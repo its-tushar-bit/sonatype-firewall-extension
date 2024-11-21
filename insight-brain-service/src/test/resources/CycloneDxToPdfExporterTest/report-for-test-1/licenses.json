@@ -1,0 +1,97 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "log4j",
+        "version" : "1.2.8"
+      }
+    },
+    "groupId" : "log4j",
+    "artifactId" : "log4j",
+    "version" : "1.2.8",
+    "hash" : "3640dd71069d7986c9a1",
+    "declaredLicenses" : [ "Apache-1.1" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "Apache-1.1" ],
+    "securityCounters" : {
+      "Critical" : 7,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 5,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 9.8,
+    "catalogDate" : 1132683379000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "log4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "log4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.8"
+      } ],
+      "name" : "log4j"
+    },
+    "hiddenObservedLicenses" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.9"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.9",
+    "hash" : "d6eb9817d9c7289a91f0",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 4,
+      "Severe" : 2,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 6,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 7.5,
+    "catalogDate" : 1557976205000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-databind"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.9.9"
+      } ],
+      "name" : "jackson-databind"
+    },
+    "hiddenObservedLicenses" : false
+  } ]
+}

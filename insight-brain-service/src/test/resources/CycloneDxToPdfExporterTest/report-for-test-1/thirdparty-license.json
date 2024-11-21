@@ -1,0 +1,43 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "log4j",
+        "version" : "1.2.8"
+      }
+    },
+    "groupId" : "log4j",
+    "artifactId" : "log4j",
+    "version" : "1.2.8",
+    "hash" : "3640dd71069d7986c9a1",
+    "declaredLicenses" : [ {
+      "id" : "MPL-2.0",
+      "name" : "MPL-2.0",
+      "url" : null
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.9"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.9",
+    "hash" : "43482bee60d253ab70b6",
+    "declaredLicenses" : [ {
+      "id" : "Apache-2.0",
+      "name" : "Apache-2.0",
+      "url" : null
+    } ]
+  } ]
+}

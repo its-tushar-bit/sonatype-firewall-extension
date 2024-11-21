@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.scan.file.SbomFormat;
@@ -32,7 +33,7 @@ public class SbomExportParams
   public enum ExportSpecification
   {
     DEFAULT("1.6", CYCLONEDX), CYCLONEDX_16("1.6", CYCLONEDX), CYCLONEDX_15("1.5", CYCLONEDX),
-    SPDX_23("2.3", SPDX);
+    SPDX_23("2.3", SPDX), PDF("pdf", null);
 
     private static final Map<String, ExportSpecification> SUPPORTED_EXPORT_SPECIFICATIONS =
         ImmutableMap.of("cyclonedx1.6", CYCLONEDX_16, "cyclonedx1.5", CYCLONEDX_15, "spdx2.3", SPDX_23);
@@ -81,6 +82,8 @@ public class SbomExportParams
 
   ExportSpecification exportSpecification = ExportSpecification.DEFAULT;
 
+  ApiReportRawDataDTOV2 reportRawData = null;
+
   private SbomExportParams(final ThirdPartySbomMetadata sbomMetadata) {
     this.sbomMetadata = sbomMetadata;
   }
@@ -93,9 +96,18 @@ public class SbomExportParams
     return targetFormat;
   }
 
+  public ApiReportRawDataDTOV2 getReportRawData() {
+    return reportRawData;
+  }
+
   public static SbomExportParams newSbomExporterParams(ThirdPartySbomMetadata sbomMetadata) {
     Objects.requireNonNull(sbomMetadata);
     return new SbomExportParams(sbomMetadata);
+  }
+
+  public SbomExportParams withReportRawData(ApiReportRawDataDTOV2 reportRawData) {
+    this.reportRawData = reportRawData;
+    return this;
   }
 
   public SbomExportParams withExportOptions(ExportOption... options) {

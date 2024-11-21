@@ -29,17 +29,25 @@ public class SbomExporterProvider
 
   private final Provider<SpdxToCycloneDxExporter> spdxToCycloneDxExporterProvider;
 
+  private final Provider<CycloneDxToPdfExporter> cycloneDxToPdfExporterProvider;
+
+  private final Provider<SpdxToPdfExporter> spdxToPdfExporterProvider;
+
   @Inject
   public SbomExporterProvider(
       final Provider<CycloneDxToCycloneDxExporter> cycloneDxToCycloneDxExporterProvider,
       final Provider<SpdxToSpdxExporter> spdxToSpdxExporterProvider,
       final Provider<SpdxToCycloneDxExporter> spdxToCycloneDxExporterProvider,
-      final Provider<CycloneDxToSpdxExporter> cycloneDxToSpdxExporterProvider)
+      final Provider<CycloneDxToSpdxExporter> cycloneDxToSpdxExporterProvider,
+      final Provider<CycloneDxToPdfExporter> cycloneDxToPdfExporterProvider,
+      final Provider<SpdxToPdfExporter> spdxToPdfExporterProvider)
   {
     this.cycloneDxToCycloneDxExporterProvider = cycloneDxToCycloneDxExporterProvider;
     this.spdxToSpdxExporterProvider = spdxToSpdxExporterProvider;
     this.cycloneDxToSpdxExporterProvider = cycloneDxToSpdxExporterProvider;
     this.spdxToCycloneDxExporterProvider = spdxToCycloneDxExporterProvider;
+    this.cycloneDxToPdfExporterProvider = cycloneDxToPdfExporterProvider;
+    this.spdxToPdfExporterProvider = spdxToPdfExporterProvider;
   }
 
   public SbomExporter get(SbomExportParams exportParams) {
@@ -66,6 +74,14 @@ public class SbomExporterProvider
 
     if (SPDX.equals(inputSpec) && CYCLONEDX.equals(outputSpec)) {
       return spdxToCycloneDxExporterProvider.get();
+    }
+
+    if (CYCLONEDX.equals(inputSpec) && outputSpec == null) {
+      return cycloneDxToPdfExporterProvider.get();
+    }
+
+    if (SPDX.equals(inputSpec) && outputSpec == null) {
+      return spdxToPdfExporterProvider.get();
     }
 
     throw new BadRequestException(

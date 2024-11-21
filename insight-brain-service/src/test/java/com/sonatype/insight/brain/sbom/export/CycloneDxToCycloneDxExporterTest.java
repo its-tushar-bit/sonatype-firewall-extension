@@ -22,11 +22,12 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
-import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportOption;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -34,6 +35,7 @@ import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
+import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 
 import org.apache.shiro.util.CollectionUtils;
 import org.cyclonedx.exception.ParseException;
@@ -90,7 +92,16 @@ public class CycloneDxToCycloneDxExporterTest
   ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
 
   @Inject
+  ThirdPartyScanDAO thirdPartyScanDAO;
+
+  @Inject
+  ApplicationDAO applicationDAO;
+
+  @Inject
   ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO;
+
+  @Inject
+  ApiReportDataServiceV2 apiReportDataServiceV2;
 
   @Inject
   private IdUtils idUtils;
@@ -113,10 +124,13 @@ public class CycloneDxToCycloneDxExporterTest
         thirdPartyFileCoordinateDAO,
         thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO,
+        thirdPartyScanDAO,
+        applicationDAO,
         thirdPartyVulnerabilityExploitabilityExchangeDAO,
         baseUrl,
         idUtils,
-        versionService
+        versionService,
+        apiReportDataServiceV2
     );
   }
 
@@ -144,7 +158,7 @@ public class CycloneDxToCycloneDxExporterTest
   public void exportTest_NoVulnerabilitiesInOriginalBom() throws Exception {
     String testFileName = "test-bom.xml";
     File testBomFile = prepareTestReportFile(testFileName);
-    ThirdPartySbomMetadata sbomMetadata = insertTestData(testBomFile.getName(), thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
     exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_15, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
@@ -169,7 +183,7 @@ public class CycloneDxToCycloneDxExporterTest
   public void exportTest_nonNumericCwesReturnedByHDS() throws Exception {
     String testFileName = "test-bom.xml";
     File testBomFile = prepareTestReportFile(testFileName);
-    ThirdPartySbomMetadata sbomMetadata = insertTestData(testBomFile.getName(), thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
     exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_15, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
@@ -198,7 +212,7 @@ public class CycloneDxToCycloneDxExporterTest
   public void exportTest_VulnerabilityRatingFieldsPreserved() throws Exception {
     String testFileName = "test-bom.xml";
     File testBomFile = prepareTestReportFile(testFileName);
-    ThirdPartySbomMetadata sbomMetadata = insertTestData(testBomFile.getName(), thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
     exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_15, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
@@ -223,7 +237,7 @@ public class CycloneDxToCycloneDxExporterTest
   public void exportTest_componentWithSimilarMatchStateProperty() throws Exception {
     String testFileName = "test-similar-match-bom.xml";
     File testBomFile = prepareTestReportFile(testFileName);
-    ThirdPartySbomMetadata sbomMetadata = insertTestData(testBomFile.getName(), thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
     exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_15, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinateWithMatchState(thirdPartyFile,
@@ -250,7 +264,7 @@ public class CycloneDxToCycloneDxExporterTest
   public void exportTest_componentWithExactMatchStateProperty() throws Exception {
     String testFileName = "test-bom.xml";
     File testBomFile = prepareTestReportFile(testFileName);
-    ThirdPartySbomMetadata sbomMetadata = insertTestData(testBomFile.getName(), thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
     exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_15, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinateWithMatchState(thirdPartyFile,
@@ -279,7 +293,7 @@ public class CycloneDxToCycloneDxExporterTest
     String testFileName = "test-bom-duplicate-vuln.xml";
     File testBomFile = prepareTestReportFile(testFileName);
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
-    ThirdPartySbomMetadata sbomMetadata = insertTestData(testBomFile.getName(), thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
     ThirdPartyFileCoordinate cp1 =
         tempEntity.newThirdPartyFileCoordinateWithMatchState(thirdPartyFile, "SBOM", "npm", "vue", "2.2.4", "2b0949b",
             "pkg:npm/vue@2.2.4", "", "exact");
@@ -333,7 +347,7 @@ public class CycloneDxToCycloneDxExporterTest
     File testBomFile = prepareTestReportFile(testFileName);
 
     defineDbTestData(thirdPartyFile);
-    ThirdPartySbomMetadata sbomMetadata = insertTestData(testBomFile.getName(),
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(),
         thirdPartyFile);
 
     Bom originalBom = mockOriginalBom(testBomFile);
@@ -523,26 +537,6 @@ public class CycloneDxToCycloneDxExporterTest
 
   private File prepareTestReportFile(String sbomFileName) throws Exception {
     return mockSbomFileForApp(APP_ID, getGZippedSbom(sbomFileName));
-  }
-
-  private ThirdPartySbomMetadata insertTestData(String testBomFile, ThirdPartyFile thirdPartyFile) {
-    ThirdPartySbomMetadata dbRecord = tempEntity.createSbomMetadata(APP_ID, SBOM_VERSION,
-        thirdPartyFile, "ACTIVE");
-    dbRecord.setFilename(testBomFile);
-    thirdPartySbomMetadataDAO.update(dbRecord);
-    return dbRecord;
-  }
-
-  private SbomExportParams withExportParams(
-      ThirdPartySbomMetadata sbomMetadata,
-      ExportSpecification specification,
-      SbomFormat targetFormat
-  )
-  {
-    return SbomExportParams.newSbomExporterParams(sbomMetadata)
-        .withExportOptions(ExportOption.NO_VULNERABILITIES)
-        .withExportSpecification(specification)
-        .withTargetFormat(targetFormat);
   }
 
   private void assertExportedBom(Bom exportedNewBom) {

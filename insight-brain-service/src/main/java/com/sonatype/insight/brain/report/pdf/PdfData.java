@@ -83,6 +83,8 @@ public class PdfData
       public String reference;
 
       public Float severity;
+
+      public String analysisState;
     }
 
     public static class PdfComponentLicense

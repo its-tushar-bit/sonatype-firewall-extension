@@ -122,7 +122,7 @@ public class PdfGeneratorTest
     String pdfContent = generatePdfAndStripText(pdfFile, pdfData, Context.SBOM, 1, 13);
     assertThat(pdfFile).isFile();
 
-    assertCommonSections(pdfContent);
+    assertSbomPdfCommonSections(pdfContent);
     assertThat(pdfContent)
         .contains(SBOM_SPECIFIC_CONTENT)
         .contains(SBOM_SPECIFIC_CONTENT_CDX)
@@ -166,11 +166,63 @@ public class PdfGeneratorTest
     String pdfContent = generatePdfAndStripText(pdfFile, pdfData, Context.SBOM, 1, 13);
     assertThat(pdfFile).isFile();
 
-    assertCommonSections(pdfContent);
+    assertSbomPdfCommonSections(pdfContent);
     assertThat(pdfContent)
         .contains(SBOM_SPECIFIC_CONTENT)
         .contains(SBOM_SPECIFIC_CONTENT_SPDX)
         .doesNotContain(LIFECYCLE_SPECIFIC_CONTENT);
+  }
+
+  private static void assertSbomPdfCommonSections(final String pdfContent) {
+    List<String> headerSection = List.of("Policy Violations for appName Build Report", "Created on:",
+        "Analyzed on:");
+    List<String> pageCount = List.of("Page 1 of 13", "Page 2 of 13", "Page 3 of 13", "Page 4 of 13",
+        "Page 5 of 13", "Page 6 of 13", "Page 7 of 13", "Page 8 of 13", "Page 9 of 13", "Page 10 of 13",
+        "Page 11 of 13", "Page 12 of 13", "Page 13 of 13");
+    List<String> violationsSection = List.of("26 43 8 77 VIOLATIONS",
+        "Affecting 26 components",
+        "THREAT POLICY NAME POLICY TYPE COMPONENT",
+        "10 Security-Critical Security apache-collections : commons-collections : 3.1",
+        "10 Security-Critical Security com.fasterxml.jackson.core : jackson-databind : 2.0.4",
+        "9 Security-High Security apache-taglibs : standard : 1.1.2",
+        "9 Security-High Security axis : axis : 1.2",
+        "7 Security-Medium Security axis : axis : 1.2",
+        "7 Security-Medium Security axis : axis : 1.2",
+        "3 Security-Low Security commons-fileupload : commons-fileupload : 1.2.2",
+        "3 Security-Low Security org.springframework : spring-core : 3.2.4.RELEASE",
+        "2 Component-Unknown Other RegexMatch.dll",
+        "2 Component-Unknown Other WebGoat-6.0.1.war",
+        "1 Architecture-Cleanup Other junit : junit : 4.8.1",
+        "1 Architecture-Quality Quality aopalliance : aopalliance : 1.0");
+    List<String> vulnerabilitiesSection = List.of("Vulnerabilities for appName Build Report",
+        "VULNERABILITY CVSS SCORE COMPONENT", "CVE-2016-1000027 9.8 org.springframework : spring-web : 3.2.4.RELEASE",
+        "CVE-2016-1000031 9.8 commons-fileupload : commons-fileupload : 1.2.2",
+        "CVE-2017-7525 9.8 com.fasterxml.jackson.core : jackson-databind : 2.0.4",
+        "sonatype-2019-0115 9.8 org.webjars jquery 1.10.2",
+        "sonatype-2015-0327 3.7 org.springframework : spring-core : 3.2.4.RELEASE",
+        "sonatype-2019-0341 3.7 org.springframework.security : spring-security-web : 3.2.4.RELEASE",
+        "sonatype-2014-0058 3.6 org.webjars angularjs 1.2.16");
+    List<String> licensesSection = List.of("Licenses for appName Build Report",
+        "9 GPL-2.0 org.owasp.webgoat webgoat-container 7.0",
+        "6 BSD-3-Clause, Non-Standard, BSD hsqldb : hsqldb : 1.8.0.7",
+        "5 Apache-1.1 commons-digester : commons-digester : 1.4.1",
+        "5 Apache-1.1 commons-discovery : commons-discovery : 0.2",
+        "5 CDDL-1.0 javax.servlet : jstl : 1.2",
+        "5 CPL-1.0 junit : junit : 4.8.1");
+    List<String> bomSection = List.of("Component BOM for appName Build Report",
+        "62 COMPONENTS", "95% of all components identified", "COMPONENT", "aopalliance : aopalliance : 1.0",
+        "apache-collections : commons-collections : 3.1", "apache-taglibs : standard : 1.1.2",
+        "axis : axis : 1.2", "axis : axis-ant : 1.2", "axis : axis-jaxrpc : 1.2",
+        "javax.mail : mail : 1.4.2", "javax.mail : mailapi : 1.4.2", "pywebtest-gitbook 0.0.1",
+        "RegexMatch.dll");
+
+    assertThat(pdfContent)
+        .contains(headerSection)
+        .contains(pageCount)
+        .contains(violationsSection)
+        .contains(vulnerabilitiesSection)
+        .contains(licensesSection)
+        .contains(bomSection);
   }
 
   @Test
@@ -796,6 +848,45 @@ public class PdfGeneratorTest
   }
 
   @Test
+  public void testCreateSecurityIssuesTable_withAnalysisStateInfo() throws Exception {
+    BomPageMetadataDTO bomPageMetadataDTO = new BomPageMetadataDTO(
+        List.of("author"),
+        List.of("manufacturer"),
+        List.of("supplier"),
+        Collections.emptyList(),
+        Collections.emptyList(),
+        SbomSpecification.CYCLONEDX.toString(),
+        "specVersion",
+        "fileFormat",
+        new Date(),
+        "scanId",
+        false
+    );
+    PdfData pdfData = mockPdfDataForSbomManager(bomPageMetadataDTO);
+    PdfGenerator pdfGenerator = new PdfGenerator(null, pdfData, Context.SBOM);
+    pdfGenerator.initFontStyles(new PDDocument());
+
+    Table securityIssuesTable = pdfGenerator.createSecurityIssuesTable(PdfGenerator.newPage());
+
+    assertThat(securityIssuesTable).isNotNull();
+    List<Row> rows = securityIssuesTable.getRows();
+    assertThat(rows.subList(1, rows.size())).extracting(row -> ((TextCell) row.getCells().get(2)).getText())
+        .containsExactly("component 0", "component 1", "component 0", "component 1");
+    assertThat(rows.subList(1, rows.size())).extracting(row -> ((ParagraphCell) row.getCells().get(0)).getParagraph()
+            .getWrappedParagraph().iterator().next().getText())
+        .containsExactly("reference0", "reference0", "reference1", "reference1");
+    assertThat(rows.subList(1, rows.size())).extracting(row -> ((TextCell) row.getCells().get(3)).getText())
+        .containsExactly("analysisState", "analysisState", "analysisState", "analysisState");
+    assertThat(rows.subList(1, rows.size())).extracting(row -> ((AnnotatedStyledText) ((ParagraphCell) row
+            .getCells().get(0)).getParagraph().getWrappedParagraph().iterator().next()).getAnnotationsOfType(
+            HyperlinkAnnotation.class).iterator().next().getHyperlinkURI())
+        .containsExactly("https://somebaseurl.com/ui/links/vln/reference0",
+            "https://somebaseurl.com/ui/links/vln/reference0",
+            "https://somebaseurl.com/ui/links/vln/reference1",
+            "https://somebaseurl.com/ui/links/vln/reference1");
+  }
+
+  @Test
   public void testCreateLicensesTable_RowOrdering() throws Exception {
     ApiReportRawDataDTOV2 rawData = new ApiReportRawDataDTOV2();
     ApiReportComponentDTOV2 c1 = generateComponentWithLicenses("v1", "v1", "v1", 9, "v1");
@@ -1063,5 +1154,54 @@ public class PdfGeneratorTest
 
       return pdfContent;
     }
+  }
+
+  private PdfData mockPdfDataForSbomManager(BomPageMetadataDTO bomPageMetadataDTO) {
+    PdfData pdfData = new PdfData();
+    pdfData.baseUrl = "https://somebaseurl.com/";
+    pdfData.title = "Policy Violations for appName Build Report";
+    pdfData.sbomMetadata = bomPageMetadataDTO;
+    pdfData.createdDate = new Date();
+    pdfData.analyzedDate = new Date();
+    pdfData.productVersion = "productVersion";
+    List<PdfData.PdfComponent> components = Arrays.asList(
+        new PdfData.PdfComponent(),
+        new PdfData.PdfComponent()
+    );
+    for (PdfData.PdfComponent component : components) {
+      component.displayName = "component " + components.indexOf(component);
+      component.matchState = "matchState";
+      component.policyViolations = Arrays.asList(
+          new PdfData.PdfComponent.PdfComponentPolicyViolation(),
+          new PdfData.PdfComponent.PdfComponentPolicyViolation()
+      );
+      for (PdfData.PdfComponent.PdfComponentPolicyViolation violation : component.policyViolations) {
+        violation.policyThreatLevel = 1;
+        violation.policyName = "policyName" + component.policyViolations.indexOf(violation);
+        violation.policyThreatCategory = "policyThreatCategory";
+        violation.legacyViolation = true;
+        violation.waived = true;
+      }
+      component.securityIssues = Arrays.asList(
+          new PdfData.PdfComponent.PdfComponentSecurityIssue(),
+          new PdfData.PdfComponent.PdfComponentSecurityIssue()
+      );
+      for (PdfData.PdfComponent.PdfComponentSecurityIssue issue : component.securityIssues) {
+        issue.reference = "reference" + component.securityIssues.indexOf(issue);
+        issue.severity = 1.0f;
+        issue.analysisState = "analysisState";
+      }
+      component.effectiveLicenses = Arrays.asList(
+          new PdfData.PdfComponent.PdfComponentLicense(),
+          new PdfData.PdfComponent.PdfComponentLicense()
+      );
+      for (PdfData.PdfComponent.PdfComponentLicense license : component.effectiveLicenses) {
+        license.name = "name";
+      }
+
+    }
+    pdfData.components = components;
+
+    return pdfData;
   }
 }

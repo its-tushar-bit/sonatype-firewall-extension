@@ -1,0 +1,73 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "log4j",
+        "version" : "1.2.8"
+      }
+    },
+    "packageUrl" : "pkg:maven/log4j/log4j@1.2.8?type=jar",
+    "groupId" : "log4j",
+    "artifactId" : "log4j",
+    "version" : "1.2.8",
+    "filenames" : [ ],
+    "pathnames" : [ "pkg:maven/log4j/log4j@1.2.8?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "3640dd71069d7986c9a1",
+    "relativePopularity" : null,
+    "createTime" : 1730200831099,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "SBOM",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : null,
+    "integrityRating" : null,
+    "endOfLife" : null,
+    "cpe" : null,
+    "swid" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.9"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar",
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.9",
+    "filenames" : [ ],
+    "pathnames" : [ "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "43482bee60d253ab70b6",
+    "relativePopularity" : null,
+    "createTime" : 1730200831099,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "SBOM",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : null,
+    "integrityRating" : null,
+    "endOfLife" : null,
+    "cpe" : null,
+    "swid" : null
+  } ]
+}

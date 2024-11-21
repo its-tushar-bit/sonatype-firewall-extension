@@ -226,6 +226,14 @@
         {
           "name": "sonatype:match_filenames",
           "value": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
+        },
+        {
+          "name": "sonatype:identification_sources",
+          "value": "SBOM,Sonatype"
+        },
+        {
+          "name": "sonatype:truncated_sha1",
+          "value": "43482bee60d253ab70b6"
         }
       ],
       "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"

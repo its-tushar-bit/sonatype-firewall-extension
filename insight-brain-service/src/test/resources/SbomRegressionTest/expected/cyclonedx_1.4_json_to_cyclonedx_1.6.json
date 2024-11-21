@@ -26,6 +26,16 @@
       "type": "library",
       "bom-ref": "pkg:npm/acme/component@1.0.0",
       "publisher": "Acme Inc",
+      "properties": [
+        {
+          "name": "sonatype:identification_sources",
+          "value": "SBOM"
+        },
+        {
+          "name": "sonatype:truncated_sha1",
+          "value": "9188560f22e0b73070d2"
+        }
+      ],
       "group": "com.acme",
       "name": "tomcat-catalina",
       "version": "9.0.14",

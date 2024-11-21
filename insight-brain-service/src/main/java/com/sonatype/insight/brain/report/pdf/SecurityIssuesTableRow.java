@@ -14,13 +14,16 @@ public class SecurityIssuesTableRow
       Comparator.comparing((SecurityIssuesTableRow row) -> row.severity, Comparator.nullsFirst(Float::compareTo))
           .reversed()
           .thenComparing(row -> row.reference, Comparator.nullsLast(String::compareToIgnoreCase))
-          .thenComparing(row -> row.componentName, Comparator.nullsLast(String::compareToIgnoreCase));
+          .thenComparing(row -> row.componentName, Comparator.nullsLast(String::compareToIgnoreCase))
+          .thenComparing(row -> row.analysisState, Comparator.nullsLast(String::compareToIgnoreCase));
 
   public String reference;
 
   public Float severity;
 
   public String componentName;
+
+  public String analysisState;
 
   @Override
   public int compareTo(SecurityIssuesTableRow that) {

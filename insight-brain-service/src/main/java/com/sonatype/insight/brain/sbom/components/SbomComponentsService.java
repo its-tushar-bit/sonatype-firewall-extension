@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.sbom.components;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -42,20 +41,17 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityE
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.sbom.SbomDependencyType;
 import com.sonatype.insight.brain.sbom.policy.SbomPolicyService;
-import com.sonatype.insight.brain.sbom.utils.SbomCreationDetails;
-import com.sonatype.insight.brain.sbom.utils.SbomCreationDetails.Creator;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.json.store.JsonUtils;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.collections4.CollectionUtils;
 
-import static com.sonatype.insight.brain.sbom.utils.SbomCreationDetails.CreatorType.parseCreatorType;
+import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.buildBomPageMetadataDTO;
 
 @Named
 @Singleton
@@ -277,80 +273,17 @@ public class SbomComponentsService
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
       String sbomVersion)
   {
-    ThirdPartySbomMetadata thirdPartySbomMetadata =
+    ThirdPartySbomMetadata metadataEntity =
         thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(applicationId, sbomVersion);
-    if (thirdPartySbomMetadata == null) {
+    if (metadataEntity == null) {
       throw new NotFoundException(
           String.format("Cannot find version %s for application with ID %s.", sbomVersion, applicationId));
     }
 
     ThirdPartyScan scanEntity =
-        thirdPartyScanDAO.getByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId());
+        thirdPartyScanDAO.getByThirdPartyFileId(metadataEntity.getThirdPartyFileId());
 
-    return buildSbomMetadataDTO(thirdPartySbomMetadata, scanEntity);
-  }
-
-  private BomPageMetadataDTO buildSbomMetadataDTO(ThirdPartySbomMetadata sbomMetadata, ThirdPartyScan thirdPartyScan) {
-    String metadataJson = sbomMetadata.getMetadataJson();
-    List<String> manufacturerList = new ArrayList<>();
-    List<String> supplierList = new ArrayList<>();
-    List<String> authorList = new ArrayList<>();
-    List<String> personList = new ArrayList<>();
-    List<String> organizationList = new ArrayList<>();
-    if (metadataJson != null) {
-      try {
-        SbomCreationDetails creationDetails = JsonUtils.parse(metadataJson, SbomCreationDetails.class);
-        if (creationDetails.creators != null) {
-          for (Creator creator : creationDetails.creators) {
-            switch (parseCreatorType(creator.type)) {
-              case Manufacturer:
-                if (!organizationList.contains(creator.name)) {
-                  manufacturerList.add(creator.name);
-                }
-                break;
-              case Supplier:
-                if (!supplierList.contains(creator.name)) {
-                  supplierList.add(creator.name);
-                }
-                break;
-              case Author:
-                if (!authorList.contains(creator.name)) {
-                  authorList.add(creator.name);
-                }
-                break;
-              case Person:
-                if (!personList.contains(creator.name)) {
-                  personList.add(creator.name);
-                }
-                break;
-              case Organization:
-                if (!organizationList.contains(creator.name)) {
-                  organizationList.add(creator.name);
-                }
-                break;
-              default:
-                break;
-            }
-          }
-        }
-      }
-      catch (IOException e) {
-        throw new IllegalStateException("Can not read metadata json, incorrect format", e);
-      }
-    }
-    return new BomPageMetadataDTO(
-        authorList,
-        manufacturerList,
-        supplierList,
-        personList,
-        organizationList,
-        sbomMetadata.getSpec(),
-        sbomMetadata.getSpecVersion(),
-        sbomMetadata.getSpecFormat(),
-        sbomMetadata.getCreatedAt(),
-        thirdPartyScan.getScanId(),
-        sbomMetadata.getIsValid()
-    );
+    return buildBomPageMetadataDTO(metadataEntity, scanEntity);
   }
 
   @Authorize(permission = Permission.READ)

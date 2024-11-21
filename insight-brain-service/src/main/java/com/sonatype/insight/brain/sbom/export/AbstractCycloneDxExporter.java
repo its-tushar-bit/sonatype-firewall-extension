@@ -5,6 +5,27 @@
  */
 package com.sonatype.insight.brain.sbom.export;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentPolicyViolationsDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
+import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.report.pdf.PdfData;
+import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicense;
+import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicenseThreat;
+import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentPolicyViolation;
+import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentSecurityIssue;
+import com.sonatype.insight.brain.sbom.components.BomPageMetadataDTO;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -22,6 +43,8 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
@@ -37,6 +60,7 @@ import com.sonatype.insight.brain.version.VersionService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
@@ -46,6 +70,7 @@ import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.OrganizationalEntity;
+import org.cyclonedx.model.Property;
 import org.cyclonedx.model.license.Expression;
 import org.cyclonedx.model.metadata.ToolInformation;
 import org.cyclonedx.model.vulnerability.Vulnerability;
@@ -70,21 +95,36 @@ public abstract class AbstractCycloneDxExporter
 
   protected final SpdxLicenseExpressionUtil spdxLicenseExpressionUtil;
 
+  protected final ApiReportDataServiceV2 apiReportDataServiceV2;
+
+  protected final ThirdPartyScanDAO thirdPartyScanDAO;
+
+  protected final ApplicationDAO applicationDAO;
+
+  protected static final String REPORT_NAME = "Compliance Report";
+
   protected AbstractCycloneDxExporter(
       final InsightWork insightWork,
       final MultiLicenseDAO multiLicenseDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
+      final ThirdPartyScanDAO thirdPartyScanDAO,
+      final ApplicationDAO applicationDAO,
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO,
       final BaseUrl baseUrl,
       final IdUtils idUtils,
-      final VersionService versionService)
+      final VersionService versionService,
+      final ApiReportDataServiceV2 apiReportDataServiceV2)
   {
     super(insightWork, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO, thirdPartyCoordinateLicenseDAO,
-        thirdPartyVulnerabilityExploitabilityExchangeDAO, baseUrl, idUtils, versionService);
+        thirdPartyVulnerabilityExploitabilityExchangeDAO, baseUrl, idUtils,
+        versionService);
     this.multiLicenseDAO = multiLicenseDAO;
     this.spdxLicenseExpressionUtil = new SpdxLicenseExpressionUtil(multiLicenseDAO);
+    this.apiReportDataServiceV2 = apiReportDataServiceV2;
+    this.thirdPartyScanDAO = thirdPartyScanDAO;
+    this.applicationDAO = applicationDAO;
   }
 
   protected Bom mergeCurrentDatabaseState(Bom bom) {
@@ -133,10 +173,10 @@ public abstract class AbstractCycloneDxExporter
           }
 
           bomComponent.setProperties(addOrUpdateBomElementProperty(bomComponent.getProperties(),
-              SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME, null));
+              SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME, sonatypeComponent.getIdentificationSources()));
 
           bomComponent.setProperties(addOrUpdateBomElementProperty(bomComponent.getProperties(),
-              SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME, null));
+              SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME, sonatypeComponent.getHash()));
 
           // Merge sonatype vulnerabilities into bom
           mergeSonatypeDataVulnerabilities(bomComponent, sonatypeComponentVulnerabilities, bomVulnerabilitiesList,
@@ -173,6 +213,7 @@ public abstract class AbstractCycloneDxExporter
     if (CollectionUtils.isEmpty(bom.getProperties())) {
       bom.setProperties(null);
     }
+
     return bom;
   }
 
@@ -335,25 +376,28 @@ public abstract class AbstractCycloneDxExporter
     newBomMetadata.setTimestamp(new Date());
 
     ToolInformation toolInformation = new ToolInformation();
-    Component generatorToolComponent = new Component();
-    generatorToolComponent.setType(Type.APPLICATION);
-    generatorToolComponent.setName("Sonatype SBOM Manager");
-    generatorToolComponent.setVersion(versionService.getFullVersion());
-    toolInformation.setComponents(Collections.singletonList(generatorToolComponent));
+    toolInformation.setComponents(Collections.singletonList(createComponent(
+        "Sonatype SBOM Manager", versionService.getFullVersion())));
     newBomMetadata.setToolChoice(toolInformation);
 
     OrganizationalEntity organizationalEntity = new OrganizationalEntity();
     organizationalEntity.setName("Sonatype Inc.");
     organizationalEntity.setUrls(Collections.singletonList("https://www.sonatype.com/"));
 
-    Component bomComponentInfo = new Component();
-    bomComponentInfo.setType(Type.APPLICATION);
-    bomComponentInfo.setName(idUtils.getPublicOwnerId(OwnerType.APPLICATION, exportParams.sbomMetadata
-        .getApplicationId()));
-    bomComponentInfo.setVersion(exportParams.sbomMetadata.getSbomVersion());
+    Component bomComponentInfo = createComponent(
+        idUtils.getPublicOwnerId(OwnerType.APPLICATION, exportParams.sbomMetadata.getApplicationId()),
+        exportParams.sbomMetadata.getSbomVersion());
     bomComponentInfo.setBomRef(UUID.randomUUID().toString());
     newBomMetadata.setComponent(bomComponentInfo);
     bom.setMetadata(newBomMetadata);
+  }
+
+  private Component createComponent(String name, String version) {
+    Component component = new Component();
+    component.setType(Type.APPLICATION);
+    component.setName(name);
+    component.setVersion(version);
+    return component;
   }
 
   // Since we overwrote the original metadata and set a new parent component
@@ -373,5 +417,247 @@ public abstract class AbstractCycloneDxExporter
         }
       }
     }
+  }
+
+  protected PdfData convertToPdfData(Bom bom) throws IOException {
+    PdfData pdfData = new PdfData();
+    pdfData.baseUrl = getBaseUrl();
+    pdfData.title = getTitle();
+    pdfData.createdDate = new Date();
+    pdfData.analyzedDate = bom.getMetadata().getTimestamp();
+    pdfData.productVersion = versionService.getShortVersion();
+    pdfData.sbomMetadata = buildSbomMetadataDTO();
+    MultiValuedMap<String, PdfComponentPolicyViolation> policyViolationsByPurlAndHash = getPolicyViolationsData();
+    Map<String, List<ApiLicenseThreatDTOV2>> effectiveLicenseThreatsByPurl = mapEffectiveLicenseThreatsByPurl();
+
+    pdfData.components = new ArrayList<>();
+    for (Component component : bom.getComponents()) {
+      PdfData.PdfComponent pdfComponent = new PdfData.PdfComponent();
+      pdfComponent.displayName = getComponentDisplayName(component);
+      pdfComponent.matchState = getComponentMatchState(component);
+      pdfComponent.policyViolations = getPdfComponentPolicyViolations(component, policyViolationsByPurlAndHash);
+      pdfComponent.securityIssues = getSecurityIssuesData(bom, component);
+      pdfComponent.effectiveLicenses = getLicensesData(component);
+      pdfComponent.effectiveLicenseThreats = getEffectiveLicenseThreats(component, effectiveLicenseThreatsByPurl);
+      pdfData.components.add(pdfComponent);
+    }
+    return pdfData;
+  }
+
+  private Map<String, List<ApiLicenseThreatDTOV2>> mapEffectiveLicenseThreatsByPurl() {
+    Map<String, List<ApiLicenseThreatDTOV2>> result = new HashMap<>();
+    ApiReportRawDataDTOV2 reportRawData = exportParams.getReportRawData();
+    if (reportRawData == null || CollectionUtils.isEmpty(reportRawData.components)) {
+      return result;
+    }
+
+    for (ApiReportComponentDTOV2 component : reportRawData.components) {
+      if (component.packageUrl != null && component.licenseData != null &&
+          component.licenseData.effectiveLicenseThreats != null) {
+        result.put(component.packageUrl, component.licenseData.effectiveLicenseThreats);
+      }
+    }
+    return result;
+  }
+
+  private List<PdfComponentLicenseThreat> getEffectiveLicenseThreats(
+      final Component component,
+      Map<String, List<ApiLicenseThreatDTOV2>> effectiveLicenseThreatsByPurl)
+  {
+    List<PdfComponentLicenseThreat> result = new ArrayList<>();
+    List<ApiLicenseThreatDTOV2> ltgs =
+        effectiveLicenseThreatsByPurl.getOrDefault(component.getPurl(), Collections.emptyList());
+    for (ApiLicenseThreatDTOV2 ltg : ltgs) {
+      PdfComponentLicenseThreat componentLicenseThreat = new PdfComponentLicenseThreat();
+      componentLicenseThreat.licenseThreatGroupLevel = ltg.licenseThreatGroupLevel;
+      result.add(componentLicenseThreat);
+    }
+    return result;
+  }
+
+  protected BomPageMetadataDTO buildSbomMetadataDTO() {
+    ThirdPartySbomMetadata metadataEntity = exportParams.sbomMetadata;
+    ThirdPartyScan scanEntity = getThirdPartyScan();
+    try {
+      return SbomCycloneDxUtils.buildBomPageMetadataDTO(metadataEntity, scanEntity);
+    }
+    catch (IllegalStateException e) {
+      //in a most unlikely event of malformed metadata json
+      log.debug("Failed to parse sbom metadata json for application {}, version {}, and scanId {}",
+          metadataEntity.getApplicationId(), metadataEntity.getSbomVersion(),
+          metadataEntity.getThirdPartyFileId());
+      return null;
+    }
+  }
+
+  private String getComponentDisplayName(final Component component) {
+    if (component.getPurl() != null) {
+      ComponentDisplayName displayName = ComponentDisplayNameUtil.fromIdentifier(
+          new PackageUrlIdentifier(component.getPurl()).toComponentIdentifier());
+      if (displayName != null) {
+        return displayName.toString();
+      }
+    }
+    return component.getName();
+  }
+
+  private List<PdfComponentPolicyViolation> getPdfComponentPolicyViolations(
+      Component component,
+      MultiValuedMap<String, PdfComponentPolicyViolation> policyViolationsByPurlAndHash)
+  {
+    List<PdfComponentPolicyViolation> componentPolicyViolations = new ArrayList<>();
+    if (component.getPurl() != null) {
+      componentPolicyViolations.addAll(policyViolationsByPurlAndHash.get(component.getPurl()));
+    }
+    if (org.apache.commons.collections4.CollectionUtils.isEmpty(componentPolicyViolations)) {
+      String componentHash = getComponentHash(component);
+      if (componentHash != null) {
+        componentPolicyViolations.addAll(policyViolationsByPurlAndHash.get(componentHash));
+      }
+    }
+    return componentPolicyViolations;
+  }
+
+  private String getComponentMatchState(final Component component) {
+    Property prop = findPropertyWithName(component, SbomTaxonomy.CDX_MATCH_STATE_PROPERTY_NAME);
+    if (prop != null) {
+      return prop.getValue();
+    }
+    return null;
+  }
+
+  private String getComponentHash(final Component component) {
+    Property prop = findPropertyWithName(component, SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
+    if (prop != null) {
+      return prop.getValue();
+    }
+    //fallback to legacy prop
+    prop = findPropertyWithName(component, SbomTaxonomy.LEGACY_SONATYPE_SHA1_PROPERTY_NAME);
+    if (prop != null) {
+      return prop.getValue();
+    }
+    return null;
+  }
+
+  private Property findPropertyWithName(Component component, String name) {
+    List<Property> properties = component.getProperties();
+    if (properties != null) {
+      for (Property property : properties) {
+        if (StringUtils.equals(property.getName(), name)) {
+          return property;
+        }
+      }
+    }
+    return null;
+  }
+
+  private List<PdfComponentLicense> getLicensesData(final Component component) {
+    LicenseChoice licenseChoice = component.getLicenses();
+    if (licenseChoice != null &&
+        org.apache.commons.collections4.CollectionUtils.isNotEmpty(licenseChoice.getLicenses())) {
+      return licenseChoice.getLicenses().stream()
+          .map(l -> {
+            PdfComponentLicense lic = new PdfComponentLicense();
+            if (StringUtils.isNotEmpty(l.getName())) {
+              lic.name = l.getName();
+            }
+            else {
+              lic.name = l.getId();
+            }
+            return lic;
+          }).collect(Collectors.toList());
+    }
+    else {
+      return Collections.emptyList();
+    }
+  }
+
+  private List<PdfComponentSecurityIssue> getSecurityIssuesData(final Bom bom, final Component component) {
+    List<PdfComponentSecurityIssue> pdfVulns = new ArrayList<>();
+    List<Vulnerability> vulnerabilities = Optional.ofNullable(bom.getVulnerabilities()).orElse(Collections.emptyList());
+
+    for (Vulnerability vulnerability : vulnerabilities) {
+      List<Affect> affects = Optional.ofNullable(vulnerability.getAffects()).orElse(Collections.emptyList());
+      for (Affect affect : affects) {
+        if (StringUtils.equals(affect.getRef(), component.getBomRef())) {
+          Optional.ofNullable(vulnerability.getRatings()).orElse(Collections.emptyList()).stream()
+              .filter(rating -> rating.getScore() != null)
+              .findFirst()
+              .ifPresent(rating -> {
+                PdfComponentSecurityIssue issue = new PdfComponentSecurityIssue();
+                issue.reference = vulnerability.getId();
+                issue.severity = rating.getScore().floatValue();
+                issue.analysisState = getAnalysisState(vulnerability);
+                pdfVulns.add(issue);
+              });
+        }
+      }
+    }
+    return pdfVulns;
+  }
+
+  private String getAnalysisState(Vulnerability vulnerability) {
+    if (vulnerability.getAnalysis() != null && vulnerability.getAnalysis().getState() != null) {
+      return WordUtils.capitalizeFully(vulnerability.getAnalysis().getState().getStateName().replace("_", " "));
+    }
+    else {
+      return "Unannotated";
+    }
+  }
+
+  /**
+   * Creates a multi-valued map that contains a mapping of component hash or purl to the policy violations data. The key
+   * can be either a hash or a purl, or both pointing to the same violation. This helps to provide a fallback if in case
+   * no match for purl to match based on hash
+   */
+  private MultiValuedMap<String, PdfComponentPolicyViolation> getPolicyViolationsData() throws IOException {
+    MultiValuedMap<String, PdfComponentPolicyViolation> mapped = new ArrayListValuedHashMap<>();
+    Application app = getApplication();
+    ThirdPartyScan tpScan = getThirdPartyScan();
+    if (tpScan != null) {
+      try {
+        ApiReportPolicyDataDTOV2 data =
+            apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), tpScan.getScanId());
+        if (data != null && data.components != null) {
+          for (ApiReportComponentPolicyViolationsDTOV2 reportViolationDto : data.components) {
+            for (ApiReportPolicyViolationDTOV2 reportPolicyViolation : reportViolationDto.violations) {
+              PdfComponentPolicyViolation pdfViolation = new PdfComponentPolicyViolation();
+              pdfViolation.policyThreatLevel = reportPolicyViolation.policyThreatLevel;
+              pdfViolation.policyName = reportPolicyViolation.policyName;
+              pdfViolation.policyThreatCategory = reportPolicyViolation.policyThreatCategory;
+              pdfViolation.waived = reportPolicyViolation.waived;
+              pdfViolation.legacyViolation = reportPolicyViolation.legacyViolation;
+              if (reportViolationDto.componentIdentifier != null) {
+                String purl = PackageUrlIdentifier.fromComponentIdentifier(
+                    reportViolationDto.componentIdentifier.toComponentIdentifier()).getPackageUrl();
+                mapped.put(purl, pdfViolation);
+              }
+              mapped.put(reportViolationDto.hash, pdfViolation);
+            }
+          }
+        }
+      }
+      catch (Exception e) {
+        log.debug("No report data found for application {} and scanId {}", app.getPublicId(), tpScan.getScanId());
+      }
+    }
+    return mapped;
+  }
+
+  private Application getApplication() {
+    return applicationDAO.getById(exportParams.sbomMetadata.getApplicationId());
+  }
+
+  private String getTitle() {
+    Application application = getApplication();
+    return String.join(" ",
+        Optional.ofNullable(application)
+            .map(Application::getName)
+            .orElse(""),
+        REPORT_NAME).trim();
+  }
+
+  private ThirdPartyScan getThirdPartyScan() {
+    return thirdPartyScanDAO.getByThirdPartyFileId(exportParams.sbomMetadata.getThirdPartyFileId());
   }
 }

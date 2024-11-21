@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.report.pdf.PdfData;
 import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -60,5 +61,10 @@ public class SpdxToSpdxExporter
           String.format("Internal error reading from the original SBOM file for application %s, version %s",
               exportParams.sbomMetadata.getApplicationId(), exportParams.sbomMetadata.getSbomVersion()), e);
     }
+  }
+
+  @Override
+  public PdfData exportPdf() {
+    throw new UnsupportedOperationException("PDF export not supported for SBOM exporter");
   }
 }

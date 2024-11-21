@@ -1,0 +1,139 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Document>
+  <SPDXID>SPDXRef-DOCUMENT</SPDXID>
+  <spdxVersion>SPDX-2.3</spdxVersion>
+  <creationInfo>
+    <created>2024-11-15T01:54:04Z</created>
+    <creators>Tool: Sonatype SBOM Manager - 1.185.0-SNAPSHOT</creators>
+  </creationInfo>
+  <name>test-app</name>
+  <dataLicense>CC0-1.0</dataLicense>
+  <documentNamespace>http://localhost:8072/ui/links/sbomManager/management/view/application/test-app/bom/20241114205258807</documentNamespace>
+  <packages>
+    <SPDXID>SPDXRef-3f51629d-5b14-4a98-9f5b-3e0a489288b4</SPDXID>
+    <attributionTexts>Evidence license text for: (MPL-2.0 AND Apache-1.1)</attributionTexts>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/log4j/log4j@1.2.8?type=jar</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23307</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23305</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://localhost:8072/ui/links/vln/sonatype-2010-0053</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23302</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-26464</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-17571</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-4104</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>MPL-2.0</licenseDeclared>
+    <name>log4j:log4j</name>
+    <primaryPackagePurpose>LIBRARY</primaryPackagePurpose>
+    <versionInfo>1.4.196</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-gnrtd0</SPDXID>
+    <attributionTexts>Evidence license text for: (See-License-Clause AND Apache-2.0)</attributionTexts>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-25649</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-42004</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-36518</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-12384</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-42003</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-12814</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>Apache-2.0</licenseDeclared>
+    <name>com.fasterxml.jackson.core:jackson-databind</name>
+    <primaryPackagePurpose>LIBRARY</primaryPackagePurpose>
+    <versionInfo>2.9.9</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-gnrtd1</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>validation</name>
+    <primaryPackagePurpose>APPLICATION</primaryPackagePurpose>
+  </packages>
+  <relationships>
+    <spdxElementId>SPDXRef-DOCUMENT</spdxElementId>
+    <relationshipType>DESCRIBES</relationshipType>
+    <relatedSpdxElement>SPDXRef-gnrtd1</relatedSpdxElement>
+  </relationships>
+</Document>

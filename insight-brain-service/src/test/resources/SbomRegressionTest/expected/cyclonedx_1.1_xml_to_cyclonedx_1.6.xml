@@ -159,6 +159,8 @@
       <properties>
         <property name="sonatype:match_state">exact</property>
         <property name="sonatype:match_filenames">pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</property>
+        <property name="sonatype:identification_sources">SBOM,Sonatype</property>
+        <property name="sonatype:truncated_sha1">43482bee60d253ab70b6</property>
       </properties>
     </component>
   </components>

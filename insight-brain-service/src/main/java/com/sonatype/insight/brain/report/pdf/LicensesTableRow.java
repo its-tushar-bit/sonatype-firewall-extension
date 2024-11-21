@@ -14,8 +14,8 @@ public class LicensesTableRow
       Comparator
           .comparingInt((LicensesTableRow row) -> row.threatLevel).reversed()
           .thenComparing(row -> row.effectiveLicenses, String::compareToIgnoreCase)
-          .thenComparing(row -> row.declaredLicenses, String::compareToIgnoreCase)
-          .thenComparing(row -> row.observedLicenses, String::compareToIgnoreCase)
+          .thenComparing(row -> row.declaredLicenses, Comparator.nullsLast(String::compareToIgnoreCase))
+          .thenComparing(row -> row.observedLicenses, Comparator.nullsLast(String::compareToIgnoreCase))
           .thenComparing(row -> row.componentName, Comparator.nullsLast(String::compareToIgnoreCase));
 
   public boolean overridden;

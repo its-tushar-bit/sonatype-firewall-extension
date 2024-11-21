@@ -17,6 +17,8 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
@@ -27,6 +29,7 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 
 import org.apache.commons.io.IOUtils;
 import org.cyclonedx.model.Bom;
@@ -59,6 +62,12 @@ public class SpdxToCycloneDxExporterTest
   @Inject
   private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
 
+  @Inject
+  ThirdPartyScanDAO thirdPartyScanDAO;
+
+  @Inject
+  ApplicationDAO applicationDAO;
+
   @Mock
   private BaseUrl baseUrl;
 
@@ -68,6 +77,9 @@ public class SpdxToCycloneDxExporterTest
   @Inject
   private VersionService versionService;
 
+  @Inject
+  ApiReportDataServiceV2 apiReportDataServiceV2;
+
   private SpdxToCycloneDxExporter spdxToCycloneDxExporter;
 
   private Application app;
@@ -75,8 +87,9 @@ public class SpdxToCycloneDxExporterTest
   @Before
   public void before() {
     spdxToCycloneDxExporter = new SpdxToCycloneDxExporter(mockInsightWork, multiLicenseDAO, thirdPartyFileCoordinateDAO,
-        thirdPartyCoordinateSecurityDAO, thirdPartyCoordinateLicenseDAO, vulnerabilityExploitabilityExchangeDAO,
-        baseUrl, idUtils, versionService);
+        thirdPartyCoordinateSecurityDAO, thirdPartyCoordinateLicenseDAO, thirdPartyScanDAO, applicationDAO,
+        vulnerabilityExploitabilityExchangeDAO,
+        baseUrl, idUtils, versionService, apiReportDataServiceV2);
     app = tempEntity.newApplicationWithParent();
   }
 

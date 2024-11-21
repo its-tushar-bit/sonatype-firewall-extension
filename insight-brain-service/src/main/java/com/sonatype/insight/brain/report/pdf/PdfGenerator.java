@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.sbom.SbomSpecification;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
@@ -476,28 +477,52 @@ public class PdfGenerator
 
   // Visible for testing
   Table createSecurityIssuesTable(PDPage page) throws IOException {
+    boolean includeAnalysisState = productContext.equals(Context.SBOM);
     float vulnIdWidth = tableRowFontStyle.getStringWidth("sonatype-0000-000000") + 2 * CELL_PADDING;
     float vulnScoreWidth = tableRowHeaderFontStyle.getStringWidth("CVSS SCORE") + 2 * CELL_PADDING;
-    float componentWidth = page.getCropBox().getWidth() - 2 * MARGIN - vulnIdWidth - vulnScoreWidth;
+    float analysisStateWidth =
+        includeAnalysisState ? tableRowHeaderFontStyle.getStringWidth("ANALYSIS STATE") + 2 * CELL_PADDING : 0;
+    float componentWidth =
+        page.getCropBox().getWidth() - 2 * MARGIN - vulnIdWidth - vulnScoreWidth - analysisStateWidth;
     TableBuilder tableBuilder = Table.builder()
         .addColumnsOfWidth(vulnIdWidth, vulnScoreWidth, componentWidth);
+    if (includeAnalysisState) {
+      tableBuilder.addColumnsOfWidth(analysisStateWidth);
+    }
 
     // Add security issues table headers
-    tableBuilder.addRow(Row.builder()
+    Row.RowBuilder headerRowBuilder = Row.builder()
         .add(headerCellBuilder().text("VULNERABILITY").build())
         .add(headerCellBuilder().text("CVSS SCORE").build())
-        .add(headerCellBuilder().text("COMPONENT").build())
-        .build());
+        .add(headerCellBuilder().text("COMPONENT").build());
+    if (includeAnalysisState) {
+      headerRowBuilder.add(headerCellBuilder().text("ANALYSIS STATE").build());
+    }
+    tableBuilder.addRow(headerRowBuilder.build());
 
     // Add security issues table data
     List<SecurityIssuesTableRow> securityIssuesTableRows = createSecurityIssuesTableData();
     securityIssuesTableRows.sort(null);
     for (SecurityIssuesTableRow securityIssuesTableRow : securityIssuesTableRows) {
-      List<Row> rows = buildTableRowAndSplitIfNeeded(
-          new TextCellBuilder(securityIssuesTableRow.reference, this::buildVulnerabilityIdCell),
-          new TextCellBuilder(securityIssuesTableRow.severity == null ? "" : securityIssuesTableRow.severity.toString(),
-              this::cellBuilder),
-          new TextCellBuilder(securityIssuesTableRow.componentName, this::cellBuilder));
+      List<Row> rows;
+      if (includeAnalysisState) {
+        rows = buildTableRowAndSplitIfNeeded(
+            new TextCellBuilder(securityIssuesTableRow.reference, this::buildVulnerabilityIdCell),
+            new TextCellBuilder(
+                securityIssuesTableRow.severity == null ? "" : securityIssuesTableRow.severity.toString(),
+                this::cellBuilder),
+            new TextCellBuilder(securityIssuesTableRow.componentName, this::cellBuilder),
+            new TextCellBuilder(securityIssuesTableRow.analysisState, this::cellBuilder));
+      }
+      else {
+        rows = buildTableRowAndSplitIfNeeded(
+            new TextCellBuilder(securityIssuesTableRow.reference, this::buildVulnerabilityIdCell),
+            new TextCellBuilder(
+                securityIssuesTableRow.severity == null ? "" : securityIssuesTableRow.severity.toString(),
+                this::cellBuilder),
+            new TextCellBuilder(securityIssuesTableRow.componentName, this::cellBuilder));
+      }
+
       rows.forEach(tableBuilder::addRow);
     }
 
@@ -527,6 +552,9 @@ public class PdfGenerator
         securityIssuesTableRow.reference = securityIssue.reference;
         securityIssuesTableRow.severity = securityIssue.severity;
         securityIssuesTableRow.componentName = component.displayName;
+        if (productContext.equals(Context.SBOM)) {
+          securityIssuesTableRow.analysisState = securityIssue.analysisState;
+        }
         securityIssuesTableRows.add(securityIssuesTableRow);
       }
     }
@@ -556,6 +584,11 @@ public class PdfGenerator
 
   // Visible for testing
   Table createLicensesTable(PDPage page) {
+    if (productContext.equals(Context.SBOM)) {
+      return createLicensesTableForSbom(page);
+    }
+
+    //for Lifecycle
     float threatLevelColorWidthPercent = 1;
     float threatLevelWidthPercent = 9;
     float effectiveLicenseWidthPercent = 16;
@@ -603,6 +636,46 @@ public class PdfGenerator
     return tableBuilder.build();
   }
 
+  private Table createLicensesTableForSbom(final PDPage page) {
+    float threatLevelColorWidthPercent = 1;
+    float threatLevelWidthPercent = 14;
+    float licensesWidthPercent = 30;
+    float componentWidthPercent = 55;
+
+    float tableWidthOnePercent = (page.getCropBox().getWidth() - 2 * MARGIN) / 100;
+    TableBuilder tableBuilder =
+        Table.builder().addColumnsOfWidth(
+            tableWidthOnePercent * threatLevelColorWidthPercent,
+            tableWidthOnePercent * threatLevelWidthPercent,
+            tableWidthOnePercent * licensesWidthPercent,
+            tableWidthOnePercent * componentWidthPercent);
+
+    // Add licenses table headers
+    tableBuilder.addRow(Row.builder()
+        .add(headerCellBuilder().text("THREAT").colSpan(2).build())
+        .add(headerCellBuilder().text("LICENSE TYPE").build())
+        .add(headerCellBuilder().text("COMPONENT").build())
+        .build());
+
+    // Add licenses table data
+    List<LicensesTableRow> licensesTableRows = createLicensesTableData();
+    licensesTableRows.sort(null);
+    for (LicensesTableRow licensesTableRow : licensesTableRows) {
+      List<Row> rows = buildTableRowAndSplitIfNeeded(
+          new TextCellBuilder("",
+              t -> cellBuilder(t).backgroundColor(ThreatLevelColor.get(licensesTableRow.threatLevel))),
+          new TextCellBuilder(String.valueOf(licensesTableRow.threatLevel),
+              t -> cellBuilder(t)
+                  .font(threatLevelFontStyle.getFont())
+                  .fontSize((int) threatLevelFontStyle.getFontSize()).textColor(threatLevelFontStyle.getFontColor())),
+          new TextCellBuilder("",
+              t -> buildLicensesCell(licensesTableRow.effectiveLicenses, licensesTableRow.overridden)),
+          new TextCellBuilder(licensesTableRow.componentName, this::cellBuilder));
+      rows.forEach(tableBuilder::addRow);
+    }
+    return tableBuilder.build();
+  }
+
   // Visible for testing
   AbstractCellBuilder<?, ?> buildLicensesCell(String licenses, boolean overridden) {
     ParagraphBuilder paragraphBuilder = Paragraph.builder();
@@ -626,18 +699,38 @@ public class PdfGenerator
   }
 
   private List<LicensesTableRow> createLicensesTableData() {
+    if (productContext.equals(Context.SBOM)) {
+      return createLicensesTableDataForSbom();
+    }
+
     List<LicensesTableRow> licensesTableRows = new ArrayList<>();
     for (PdfComponent component : pdfData.components) {
-      if (component.effectiveLicenses.isEmpty() && component.declaredLicenses.isEmpty() &&
-          component.observedLicenses.isEmpty()) {
+      if (CollectionUtils.isEmpty(component.effectiveLicenses) && CollectionUtils.isEmpty(component.declaredLicenses) &&
+          CollectionUtils.isEmpty(component.observedLicenses)) {
         continue;
       }
       LicensesTableRow licensesTableRow = new LicensesTableRow();
-      licensesTableRow.overridden = !component.overriddenLicenses.isEmpty();
+      licensesTableRow.overridden = CollectionUtils.isNotEmpty(component.overriddenLicenses);
       licensesTableRow.threatLevel = getMaxLicenseThreatLevel(component.effectiveLicenseThreats);
       licensesTableRow.effectiveLicenses = licensesToString(component.effectiveLicenses);
       licensesTableRow.declaredLicenses = licensesToString(component.declaredLicenses);
       licensesTableRow.observedLicenses = licensesToString(component.observedLicenses);
+      licensesTableRow.componentName = component.displayName;
+      licensesTableRows.add(licensesTableRow);
+    }
+    return licensesTableRows;
+  }
+
+  private List<LicensesTableRow> createLicensesTableDataForSbom() {
+    List<LicensesTableRow> licensesTableRows = new ArrayList<>();
+    for (PdfComponent component : pdfData.components) {
+      if (CollectionUtils.isEmpty(component.effectiveLicenses)) {
+        continue;
+      }
+      LicensesTableRow licensesTableRow = new LicensesTableRow();
+      licensesTableRow.overridden = CollectionUtils.isNotEmpty(component.overriddenLicenses);
+      licensesTableRow.threatLevel = getMaxLicenseThreatLevel(component.effectiveLicenseThreats);
+      licensesTableRow.effectiveLicenses = licensesToString(component.effectiveLicenses);
       licensesTableRow.componentName = component.displayName;
       licensesTableRows.add(licensesTableRow);
     }
@@ -1027,10 +1120,17 @@ public class PdfGenerator
 
   // Visible for testing
   static String licensesToString(List<PdfComponentLicense> licenses) {
+    if (CollectionUtils.isEmpty(licenses)) {
+      return "";
+    }
+
     return licenses.stream().map(license -> license.name).collect(Collectors.joining(", "));
   }
 
   static Integer getMaxLicenseThreatLevel(List<PdfComponentLicenseThreat> licenseThreats) {
+    if (CollectionUtils.isEmpty(licenseThreats)) {
+      return 0;
+    }
     return licenseThreats.stream().map(licenseThreat -> licenseThreat.licenseThreatGroupLevel)
         .max(Integer::compareTo).orElse(0);
   }

@@ -153,6 +153,10 @@
           <comment>Vendor provided documentation for the product</comment>
         </reference>
       </externalReferences>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">9188560f22e0b73070d2</property>
+      </properties>
       <evidence>
         <licenses>
           <license>

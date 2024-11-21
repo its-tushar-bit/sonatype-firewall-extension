@@ -19,14 +19,14 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabi
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.file.SbomFormat;
 
-import org.cyclonedx.generators.BomGeneratorFactory;
 import org.cyclonedx.Version;
 import org.cyclonedx.exception.GeneratorException;
+import org.cyclonedx.generators.BomGeneratorFactory;
 import org.cyclonedx.model.Bom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,15 +126,19 @@ public abstract class AbstractSbomExporter
     }
   }
 
-  protected String getBillOfMaterialsPath() {
-    String iqBaseUrl = "";
+  protected String getBaseUrl() {
+    String iqBaseUrl = null;
     try {
       iqBaseUrl = this.baseUrl.get();
     }
     catch (IllegalStateException e) {
       log.warn("SBOM Manager base URL is not configured", e);
     }
-    return iqBaseUrl + UserInterfaceLinksHelper.getSBOMBillOfMaterialPath(
+    return iqBaseUrl;
+  }
+
+  protected String getBillOfMaterialsPath() {
+    return getBaseUrl() + UserInterfaceLinksHelper.getSBOMBillOfMaterialPath(
         idUtils.getPublicOwnerId(OwnerType.APPLICATION, exportParams.sbomMetadata.getApplicationId()),
         exportParams.sbomMetadata.getSbomVersion());
   }

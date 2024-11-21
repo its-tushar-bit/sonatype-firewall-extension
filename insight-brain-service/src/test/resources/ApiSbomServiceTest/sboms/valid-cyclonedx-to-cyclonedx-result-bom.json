@@ -25,6 +25,16 @@
     {
       "group" : "apache",
       "name" : "axis",
+      "properties": [
+        {
+          "name": "sonatype:identification_sources",
+          "value": "SBOM"
+        },
+        {
+          "name": "sonatype:truncated_sha1",
+          "value": "7bdade27d8cd197d9b5c"
+        }
+      ],
       "version" : "1.0",
       "licenses" : [
         {

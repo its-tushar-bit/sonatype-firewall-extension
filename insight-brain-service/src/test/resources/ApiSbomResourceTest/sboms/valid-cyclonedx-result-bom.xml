@@ -36,6 +36,10 @@
       </licenses>
       <purl>pkg:maven/apache/axis@1.0?type=jar</purl>
       <modified>false</modified>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">7bdade27d8cd197d9b5c</property>
+      </properties>
       <evidence>
         <occurrences>
           <occurrence>

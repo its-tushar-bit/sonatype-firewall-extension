@@ -30,6 +30,14 @@
         {
           "name" : "sonatype:match_state",
           "value" : "exact"
+        },
+        {
+          "name": "sonatype:identification_sources",
+          "value": "SBOM"
+        },
+        {
+          "name": "sonatype:truncated_sha1",
+          "value": "2b0949b"
         }
       ]
     },
@@ -42,6 +50,14 @@
         {
           "name" : "sonatype:match_state",
           "value" : "exact"
+        },
+        {
+          "name": "sonatype:identification_sources",
+          "value": "SBOM"
+        },
+        {
+          "name": "sonatype:truncated_sha1",
+          "value": "2b0949b"
         }
       ]
     },
@@ -54,6 +70,14 @@
         {
           "name" : "sonatype:match_state",
           "value" : "exact"
+        },
+        {
+          "name": "sonatype:identification_sources",
+          "value": "SBOM"
+        },
+        {
+          "name": "sonatype:truncated_sha1",
+          "value": "2b0949b"
         }
       ]
     }

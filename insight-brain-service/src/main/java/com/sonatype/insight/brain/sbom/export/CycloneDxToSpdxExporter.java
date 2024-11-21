@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.report.pdf.PdfData;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -179,6 +180,11 @@ public class CycloneDxToSpdxExporter
           String.format("Internal error reading from the translated SBOM file for application %s, version %s",
               exportParams.sbomMetadata.getApplicationId(), exportParams.sbomMetadata.getSbomVersion()), e);
     }
+  }
+
+  @Override
+  public PdfData exportPdf() {
+    throw new UnsupportedOperationException("PDF export not supported for SBOM exporter");
   }
 
   private void checkAndGenerateComponentMetadataIfMissing(Bom bom) {

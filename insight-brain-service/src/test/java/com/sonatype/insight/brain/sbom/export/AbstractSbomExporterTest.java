@@ -11,9 +11,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.UUID;
 import java.util.zip.GZIPOutputStream;
+import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportOption;
+import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.scan.file.SbomFormat;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
@@ -33,6 +40,9 @@ public class AbstractSbomExporterTest
 
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
+
+  @Inject
+  private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   @Mock
   protected InsightWork mockInsightWork;
@@ -56,5 +66,30 @@ public class AbstractSbomExporterTest
   protected File mockSbomFileForApp(String applicationId, File sbomFile) {
     when(mockInsightWork.getSbomDir(applicationId)).thenReturn(sbomFile.getParentFile());
     return sbomFile;
+  }
+
+  protected SbomExportParams withExportParams(
+      ThirdPartySbomMetadata sbomMetadata,
+      ExportSpecification specification,
+      SbomFormat targetFormat
+  )
+  {
+    return SbomExportParams.newSbomExporterParams(sbomMetadata)
+        .withExportOptions(ExportOption.NO_VULNERABILITIES)
+        .withExportSpecification(specification)
+        .withTargetFormat(targetFormat);
+  }
+
+  protected ThirdPartySbomMetadata insertTestData(
+      String appId,
+      String sbomVersion,
+      String testBomFile,
+      ThirdPartyFile thirdPartyFile)
+  {
+    ThirdPartySbomMetadata dbRecord = tempEntity.createSbomMetadata(appId, sbomVersion,
+        thirdPartyFile, "ACTIVE");
+    dbRecord.setFilename(testBomFile);
+    thirdPartySbomMetadataDAO.update(dbRecord);
+    return dbRecord;
   }
 }

@@ -26,6 +26,16 @@
       "bom-ref" : "6f637a49c8be00b17132243dbc46085807e9e08b",
       "group" : "apache",
       "name" : "axis",
+      "properties": [
+        {
+          "name": "sonatype:identification_sources",
+          "value": "SBOM"
+        },
+        {
+          "name": "sonatype:truncated_sha1",
+          "value": "7bdade27d8cd197d9b5c"
+        }
+      ],
       "version" : "1.0",
       "licenses" : [
         {

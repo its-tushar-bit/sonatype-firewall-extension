@@ -20,7 +20,8 @@ public class SbomExportParamsTest
         ExportSpecification.DEFAULT,
         ExportSpecification.CYCLONEDX_16,
         ExportSpecification.CYCLONEDX_15,
-        ExportSpecification.SPDX_23
+        ExportSpecification.SPDX_23,
+        ExportSpecification.PDF
     );
     ExportSpecification result;
 

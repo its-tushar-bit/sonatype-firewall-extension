@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.sbom.utils;
 
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -19,6 +21,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.sbom.components.BomPageMetadataDTO;
+import com.sonatype.insight.brain.sbom.utils.SbomCreationDetails.Creator;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCreationDetails.CreatorType;
 
 import com.google.gson.Gson;
@@ -41,6 +46,8 @@ import org.cyclonedx.parsers.BomParserFactory;
 import org.cyclonedx.parsers.Parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.sbom.utils.SbomCreationDetails.CreatorType.parseCreatorType;
 
 public class SbomCycloneDxUtils
 {
@@ -112,6 +119,69 @@ public class SbomCycloneDxUtils
   public static String getSbomCreationDetailsJson(Bom bom) {
     SbomCreationDetails sbomCreationDetails = getSbomCreationDetails(bom);
     return sbomCreationDetails != null ? gson.toJson(sbomCreationDetails) : null;
+  }
+
+  public static BomPageMetadataDTO buildBomPageMetadataDTO(ThirdPartySbomMetadata sbomMetadata, ThirdPartyScan scan) {
+    String metadataJson = sbomMetadata.getMetadataJson();
+    List<String> manufacturerList = new ArrayList<>();
+    List<String> supplierList = new ArrayList<>();
+    List<String> authorList = new ArrayList<>();
+    List<String> personList = new ArrayList<>();
+    List<String> organizationList = new ArrayList<>();
+    if (metadataJson != null) {
+      try {
+        SbomCreationDetails creationDetails = JsonUtils.parse(metadataJson, SbomCreationDetails.class);
+        if (creationDetails.creators != null) {
+          for (Creator creator : creationDetails.creators) {
+            switch (parseCreatorType(creator.type)) {
+              case Manufacturer:
+                if (!organizationList.contains(creator.name)) {
+                  manufacturerList.add(creator.name);
+                }
+                break;
+              case Supplier:
+                if (!supplierList.contains(creator.name)) {
+                  supplierList.add(creator.name);
+                }
+                break;
+              case Author:
+                if (!authorList.contains(creator.name)) {
+                  authorList.add(creator.name);
+                }
+                break;
+              case Person:
+                if (!personList.contains(creator.name)) {
+                  personList.add(creator.name);
+                }
+                break;
+              case Organization:
+                if (!organizationList.contains(creator.name)) {
+                  organizationList.add(creator.name);
+                }
+                break;
+              default:
+                break;
+            }
+          }
+        }
+      }
+      catch (IOException e) {
+        throw new IllegalStateException("Can not read metadata json, incorrect format", e);
+      }
+    }
+    return new BomPageMetadataDTO(
+        authorList,
+        manufacturerList,
+        supplierList,
+        personList,
+        organizationList,
+        sbomMetadata.getSpec(),
+        sbomMetadata.getSpecVersion(),
+        sbomMetadata.getSpecFormat(),
+        sbomMetadata.getCreatedAt(),
+        scan != null ? scan.getScanId() : null,
+        sbomMetadata.getIsValid()
+    );
   }
 
   private static void buildCreators(SbomCreationDetails extractedMetadata, Metadata metadataFromSbomFile) {

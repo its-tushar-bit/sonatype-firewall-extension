@@ -12,6 +12,7 @@ import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
@@ -85,6 +86,8 @@ import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static com.sonatype.insight.brain.report.ReportResource.BROWSE_PATH;
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -472,9 +475,12 @@ public class ReportResourceTest
   public void testPrintSbomReport() throws Exception {
     setFeatures(LicensedFeature.SBOM_MANAGER);
     String scanId = "scanId";
+
+    Path originalSbom = mockOriginalSbom(this.getClass(), "/original-sbom/cdx-test-bom.xml",
+        getCLMServer().getInstance(InsightWork.class).getSbomDir(app.getId()).toPath());
     createReportFile(app.getId(), "scanId", "/ReportResourceTest/sample-report");
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
-    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("cdx-test-bom.xml");
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile(originalSbom.getFileName().toString());
     tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), SbomStatus.ACTIVE.name(),

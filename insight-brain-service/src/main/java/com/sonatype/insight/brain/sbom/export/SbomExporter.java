@@ -5,7 +5,11 @@
  */
 package com.sonatype.insight.brain.sbom.export;
 
+import com.sonatype.insight.brain.report.pdf.PdfData;
+
 public interface SbomExporter
 {
   String export();
+
+  PdfData exportPdf();
 }

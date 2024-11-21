@@ -6,9 +6,9 @@
 package com.sonatype.insight.brain.report.pdf;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.Callable;
@@ -48,6 +48,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
+
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
 
 public class PdfGeneratorServiceTest
     extends AbstractComponentTest
@@ -139,14 +141,16 @@ public class PdfGeneratorServiceTest
   }
 
   @Test
-  public void testPrintSbomReport() throws IOException {
+  public void testPrintSbomReport() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     String scanId = "scanId";
     PolicyEvaluation policyEvaluation =
         tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
     File reportFile = insightWork.getReportFile(application.getId(), scanId);
+    Path originalSbom = mockOriginalSbom(this.getClass(), "originalSbom/cdx-test-bom.xml",
+        insightWork.getSbomDir(application.getId()).toPath());
     FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorServiceTest/report", tempDir), reportFile);
-    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("cdx-test-bom.xml");
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile(originalSbom.getFileName().toString());
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), application.getId(), SbomStatus.ACTIVE.name(),
             thirdPartyFile.getFilename());
@@ -169,14 +173,16 @@ public class PdfGeneratorServiceTest
   }
 
   @Test
-  public void testPrintSbomReport_emptyReport() throws IOException {
+  public void testPrintSbomReport_emptyReport() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     String scanId = "scanId";
     PolicyEvaluation policyEvaluation =
         tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
     File reportFile = insightWork.getReportFile(application.getId(), scanId);
+    Path originalSbom = mockOriginalSbom(this.getClass(), "originalSbom/cdx-test-bom.xml",
+        insightWork.getSbomDir(application.getId()).toPath());
     FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorServiceTest/emptyReport", tempDir), reportFile);
-    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("cdx-test-bom.xml");
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile(originalSbom.getFileName().toString());
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), application.getId(), SbomStatus.ACTIVE.name(),
             thirdPartyFile.getFilename());

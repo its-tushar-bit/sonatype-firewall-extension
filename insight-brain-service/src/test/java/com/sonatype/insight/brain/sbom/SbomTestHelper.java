@@ -45,7 +45,7 @@ public class SbomTestHelper
       "creationInfo.created", "creationInfo.creators[0]", "documentNamespace",
       "vulnerabilities[*].analysis.lastUpdated", "vulnerabilities[*].analysis.firstIssued",
       "vulnerabilities[*].bom-ref", "components[*].licenses[*].license.bom-ref",
-      "name", "packages[*].name"
+      "components[*].properties[*].value", "name", "packages[*].name"
   };
 
   public static Predicate<Node> spdxDxIgnoreNodesFilter() {

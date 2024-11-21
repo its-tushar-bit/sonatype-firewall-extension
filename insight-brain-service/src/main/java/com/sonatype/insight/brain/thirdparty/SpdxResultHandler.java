@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLice
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
@@ -64,13 +65,11 @@ import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.Hash.Algorithm;
 import org.cyclonedx.model.Metadata;
-import org.cyclonedx.model.Swid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spdx.library.InvalidSPDXAnalysisException;
 import org.spdx.library.Read;
 import org.spdx.library.SpdxConstants;
-import org.spdx.library.model.Checksum;
 import org.spdx.library.model.ExternalRef;
 import org.spdx.library.model.ModelObject;
 import org.spdx.library.model.ReferenceType;
@@ -229,7 +228,7 @@ public class SpdxResultHandler
             log.debug("Skipping invalid CPE {} for component with ID {}", cpe, spdxPackage.getId());
           }
         });
-        getSwid(spdxPackage).ifPresent(swid -> resolvedComponent.getRight().setSwid(swid));
+        SbomSpdxUtils.getSwid(spdxPackage).ifPresent(swid -> resolvedComponent.getRight().setSwid(swid));
         ComponentIdentifier componentIdentifier = resolvedComponent.getLeft();
         if (componentIdentifier == null) {
           targetBom.addComponent(resolvedComponent.getRight());
@@ -252,8 +251,8 @@ public class SpdxResultHandler
       }
     }
     catch (InvalidPackageURLException e) {
-      log.debug("Component {} {} is missing coordinates. " + e.getMessage().replace(" for given format", ""),
-          spdxPackage.getName(), spdxPackage.getVersionInfo().orElse(""), e);
+      log.debug("Component {} {} is missing coordinates. {}", spdxPackage.getName(),
+          spdxPackage.getVersionInfo().orElse(""), e.getMessage().replace(" for given format", ""), e);
     }
     catch (Exception e) {
       log.debug("Error processing component due to insufficient information: id {}, name {}, version {}",
@@ -438,29 +437,20 @@ public class SpdxResultHandler
       final PackageUrlIdentifier packageUrlIdentifier,
       final String rootPackageId) throws InvalidSPDXAnalysisException
   {
-    ComponentIdentifier componentIdentifier;
     Component component = new Component();
     component.setType(spdxPackage.getId().equals(rootPackageId) ? Type.APPLICATION : Type.LIBRARY);
     component.setBomRef(spdxPackage.getId());
 
-    final Optional<String> sha1Optional = getChecksum(spdxPackage, ChecksumAlgorithm.SHA1);
+    final Optional<String> sha1Optional = SbomSpdxUtils.getChecksum(spdxPackage, ChecksumAlgorithm.SHA1);
     boolean hasHash = sha1Optional.isPresent();
     if (hasHash) {
       setHash(sha1Optional.get(), component);
     }
 
-    component.setPurl(ThirdPartyScanResultUtils.getTruncatedPurl(packageUrlIdentifier.getPackageUrl()));
-    componentIdentifier = packageUrlIdentifier.toComponentIdentifier();
-    componentIdentifier.ensureComplete();
-    component.setName(packageUrlIdentifier.getName());
-    component.setVersion(packageUrlIdentifier.getVersion());
-    String namespace = packageUrlIdentifier.getNamespace();
-    if (StringUtils.isNotBlank(namespace)) {
-      component.setGroup(namespace);
-    }
+    ComponentIdentifier componentIdentifier =  SbomCommonUtils.getComponentIdentifier(packageUrlIdentifier, component);
     // Process sha-256 only when BFS is enabled
     if (SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.isEnabled()) {
-      getChecksum(spdxPackage, ChecksumAlgorithm.SHA256).ifPresent(
+      SbomSpdxUtils.getChecksum(spdxPackage, ChecksumAlgorithm.SHA256).ifPresent(
           v -> component.addHash(new Hash(Algorithm.SHA_256, v))
       );
     }
@@ -488,7 +478,7 @@ public class SpdxResultHandler
     }
     else {
       // This scenario is only possible when only the hash is sent without coordinates nor purl
-      Optional<String> sha1Optional = getChecksum(spdxPackage, ChecksumAlgorithm.SHA1);
+      Optional<String> sha1Optional = SbomSpdxUtils.getChecksum(spdxPackage, ChecksumAlgorithm.SHA1);
       if (sha1Optional.isPresent()) {
         componentInfoTelemetry.incrementHashCount();
         Component component = new Component();
@@ -630,7 +620,7 @@ public class SpdxResultHandler
           metadata.setTimestamp(dateFormat.parse(created));
         }
         catch (ParseException e) {
-          log.warn("Cannot parse creation date: " + created);
+          log.warn("Cannot parse creation date: {}", created);
         }
       }
     }
@@ -663,41 +653,6 @@ public class SpdxResultHandler
                 externalRef.getReferenceLocator().startsWith("cpe"))) {
           return Optional.of(externalRef.getReferenceLocator());
         }
-      }
-    }
-    return Optional.empty();
-  }
-
-  private static final String SWID_URI_PREFIX = "swid:";
-
-  private Optional<Swid> getSwid(final SpdxPackage spdxPackage)
-      throws InvalidSPDXAnalysisException
-  {
-    for (ExternalRef externalRef : spdxPackage.getExternalRefs()) {
-      if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY) {
-        String referenceType = externalRef.getReferenceType().getIndividualURI();
-        String referenceLocator = externalRef.getReferenceLocator();
-        if (referenceType.endsWith("swid") ||
-            (referenceType.equals(ReferenceType.MISSING_REFERENCE_TYPE_URI) &&
-                referenceLocator.startsWith(SWID_URI_PREFIX))) {
-          Swid swid = new Swid();
-          String tagId = referenceLocator.startsWith(SWID_URI_PREFIX) ? referenceLocator.substring(
-              SWID_URI_PREFIX.length()) : referenceLocator;
-          swid.setTagId(tagId);
-          return Optional.of(swid);
-        }
-      }
-    }
-    return Optional.empty();
-  }
-
-  private Optional<String> getChecksum(final SpdxPackage spdxPackage, final ChecksumAlgorithm algorithm)
-      throws InvalidSPDXAnalysisException
-  {
-    final Collection<Checksum> checksums = spdxPackage.getChecksums();
-    for (Checksum checksum : checksums) {
-      if (checksum.getAlgorithm() == algorithm) {
-        return Optional.of(checksum.getValue());
       }
     }
     return Optional.empty();

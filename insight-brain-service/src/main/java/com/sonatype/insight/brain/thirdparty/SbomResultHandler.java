@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
+import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -269,8 +270,8 @@ public class SbomResultHandler
               saveVulnerability(vulnerability, fileCoordinateId, tx);
             }
             else {
-              log.debug("Vulnerability with ID {} does not have a " + (StringUtils.isBlank(affect.getRef()) ? "ref" :
-                  "matching component") + " so it can't be parsed", vulnerability.getId());
+              log.debug("Vulnerability with ID {} does not have a {} so it can't be parsed", vulnerability.getId(),
+                  StringUtils.isBlank(affect.getRef()) ? "ref" : "matching component");
             }
           }
         }
@@ -371,8 +372,8 @@ public class SbomResultHandler
       }
     }
     catch (InvalidPackageURLException e) {
-      log.debug("Component {} {} is missing coordinates. " + e.getMessage().replace(" for given format", ""),
-          sourceComponent.getName(), sourceComponent.getVersion(), e);
+      log.debug("Component {} {} is missing coordinates. {}", sourceComponent.getName(), sourceComponent.getVersion(),
+          e.getMessage().replace(" for given format", ""), e);
     }
     catch (Exception e) {
       log.debug("Error processing component due to insufficient information: bom-ref {}, name {}, version {}",
@@ -487,15 +488,7 @@ public class SbomResultHandler
       setHash(sha1, component);
     }
 
-    component.setPurl(ThirdPartyScanResultUtils.getTruncatedPurl(packageUrlIdentifier.getPackageUrl()));
-    componentIdentifier = packageUrlIdentifier.toComponentIdentifier();
-    componentIdentifier.ensureComplete();
-    component.setName(packageUrlIdentifier.getName());
-    component.setVersion(packageUrlIdentifier.getVersion());
-    String namespace = packageUrlIdentifier.getNamespace();
-    if (StringUtils.isNotBlank(namespace)) {
-      component.setGroup(namespace);
-    }
+    componentIdentifier = SbomCommonUtils.getComponentIdentifier(packageUrlIdentifier, component);
 
     // Process sha-256 only when BFS is enabled
     if (SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.isEnabled()) {
@@ -642,8 +635,7 @@ public class SbomResultHandler
       final Set<String> vulnerabilityMap,
       final TransactionContext tx)
   {
-    if (extensibleType instanceof Vulnerability10) {
-      Vulnerability10 vulnerability = (Vulnerability10) extensibleType;
+    if (extensibleType instanceof Vulnerability10 vulnerability) {
       String refId = vulnerability.getId();
       if (StringUtils.isNotBlank(refId) && !vulnerabilityMap.contains(refId)) {
         saveVulnerabilityExtension(vulnerability, fileCoordinateId, tx);

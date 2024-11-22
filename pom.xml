@@ -1473,7 +1473,7 @@
           <dependency>
             <groupId>com.sonatype</groupId>
             <artifactId>pmd-ruleset</artifactId>
-            <version>15</version>
+            <version>18</version>
           </dependency>
         </dependencies>
       </plugin>

@@ -24,7 +24,7 @@ import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
+import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
@@ -112,7 +112,7 @@ public class ReportServiceTest
   private ThirdPartyDataService thirdPartyDataService;
 
   @Inject
-  private ApplicationRiskService applicationRiskService;
+  private H2ApplicationRiskService applicationRiskService;
 
   @Inject
   private TestProductLicense productLicense;

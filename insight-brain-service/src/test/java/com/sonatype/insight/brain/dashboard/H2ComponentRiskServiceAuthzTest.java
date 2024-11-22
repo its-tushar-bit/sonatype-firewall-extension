@@ -22,7 +22,7 @@ public class H2ComponentRiskServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
-  private ComponentRiskService componentRiskService;
+  private H2ComponentRiskService componentRiskService;
 
   @Before
   public void init() {
@@ -36,6 +36,7 @@ public class H2ComponentRiskServiceAuthzTest
         Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
+    assertThat(result.hasNextPage).isEqualTo(false);
   }
 
   @Test
@@ -45,6 +46,7 @@ public class H2ComponentRiskServiceAuthzTest
         Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
+    assertThat(result.hasNextPage).isEqualTo(false);
   }
 
   @Test
@@ -54,6 +56,7 @@ public class H2ComponentRiskServiceAuthzTest
         Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
   }
 
   @Test
@@ -62,6 +65,7 @@ public class H2ComponentRiskServiceAuthzTest
         .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
+    assertThat(result.hasNextPage).isEqualTo(false);
   }
 
   @Test
@@ -71,6 +75,7 @@ public class H2ComponentRiskServiceAuthzTest
         .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
+    assertThat(result.hasNextPage).isEqualTo(false);
   }
 
   @Test
@@ -80,6 +85,7 @@ public class H2ComponentRiskServiceAuthzTest
         .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
   }
 
   @Test
@@ -89,6 +95,7 @@ public class H2ComponentRiskServiceAuthzTest
             "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
+    assertThat(result.hasNextPage).isEqualTo(false);
   }
 
   @Test
@@ -99,6 +106,7 @@ public class H2ComponentRiskServiceAuthzTest
             "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
+    assertThat(result.hasNextPage).isEqualTo(false);
   }
 
   @Test
@@ -109,5 +117,6 @@ public class H2ComponentRiskServiceAuthzTest
             "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
   }
 }

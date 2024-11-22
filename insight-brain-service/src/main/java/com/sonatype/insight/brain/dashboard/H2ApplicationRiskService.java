@@ -124,7 +124,7 @@ public class H2ApplicationRiskService
             new ApplicationTotalRiskDTO(applicationRiskScoreDTO.applicationId, applicationRiskScoreDTO.applicationName,
                 applicationRiskScoreDTO.totalApplicationRisk.totalRisk)).collect(Collectors.toList());
 
-    return new DashboardResultsDTO<>(totalRiskResults, fullResults.numResults);
+    return new DashboardResultsDTO<>(totalRiskResults, fullResults.numResults, fullResults.hasNextPage);
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
@@ -257,6 +257,7 @@ public class H2ApplicationRiskService
     else {
       List<List<ApplicationRiskScoreDTO>> pages = Lists.partition(applicationRiskScoreDTOs, pageSize);
       result.dashboardResults = page >= pages.size() ? new ArrayList<>() : pages.get(page);
+      result.hasNextPage = pages.size() > (page + 1);
     }
 
     AuditData.get().setData("resultRecordCount", result.numResults);

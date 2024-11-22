@@ -14,13 +14,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
-import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
+import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusDTO;
@@ -44,7 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 @Named
 public class IntegrationService
 {
-  private final ApplicationRiskService applicationRiskService;
+  private final H2ApplicationRiskService applicationRiskService;
 
   private final ApplicationSourceControlService applicationSourceControlService;
 
@@ -56,7 +55,7 @@ public class IntegrationService
 
   @Inject
   public IntegrationService(
-      final ApplicationRiskService applicationRiskService,
+      final H2ApplicationRiskService applicationRiskService,
       final ApplicationSourceControlService applicationSourceControlService,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO,

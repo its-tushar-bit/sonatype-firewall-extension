@@ -441,6 +441,7 @@ public class H2ComponentRiskServiceTest
 
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.hash).isEqualTo(violation.getHash());
     assertDisplayFieldValues(riskDTO.displayName.parts, violation);
@@ -460,6 +461,7 @@ public class H2ComponentRiskServiceTest
 
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.hash).isEqualTo(violation1.getHash());
     assertDisplayFieldValues(riskDTO.displayName.parts, violation1);
@@ -475,6 +477,7 @@ public class H2ComponentRiskServiceTest
 
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.hash).isEqualTo(app2PolicyViolation.getHash());
     assertDisplayFieldValues(riskDTO.displayName.parts, app2PolicyViolation);
@@ -490,6 +493,7 @@ public class H2ComponentRiskServiceTest
 
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.hash).isEqualTo(app2PolicyViolation.getHash());
     assertDisplayFieldValues(riskDTO.displayName.parts, app2PolicyViolation);
@@ -506,6 +510,7 @@ public class H2ComponentRiskServiceTest
 
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
+    assertThat(result.hasNextPage).isEqualTo(false);
   }
 
   @Test
@@ -518,6 +523,7 @@ public class H2ComponentRiskServiceTest
 
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.hash).isEqualTo(violation.getHash());
     assertDisplayFieldValues(riskDTO.displayName.parts, violation);
@@ -535,6 +541,7 @@ public class H2ComponentRiskServiceTest
         .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     assertThat(result.dashboardResults.get(0).hash).isEqualTo(app1PolicyViolation.getHash());
 
     assertThatExceptionOfType(BadRequestException.class)
@@ -554,6 +561,7 @@ public class H2ComponentRiskServiceTest
             0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.hash).isEqualTo(app2PolicyViolation.getHash());
     assertDisplayFieldValues(riskDTO.displayName.parts, app2PolicyViolation);
@@ -573,6 +581,7 @@ public class H2ComponentRiskServiceTest
             null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.hash).isEqualTo(violation.getHash());
     assertDisplayFieldValues(riskDTO.displayName.parts, violation);
@@ -587,6 +596,7 @@ public class H2ComponentRiskServiceTest
             "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.hash).isEqualTo(orgPolicyViolation.getHash());
     assertDisplayFieldValues(riskDTO.displayName.parts, orgPolicyViolation);
@@ -606,6 +616,7 @@ public class H2ComponentRiskServiceTest
             new PolicyViolationStateFilter(PolicyViolationState.WAIVED), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.hash).isEqualTo(policyViolation.getHash());
     assertDisplayFieldValues(riskDTO.displayName.parts, policyViolation);
@@ -616,6 +627,7 @@ public class H2ComponentRiskServiceTest
         new PolicyViolationStateFilter(PolicyViolationState.OPEN), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.hash).isEqualTo(orgPolicyViolation.getHash());
     assertDisplayFieldValues(riskDTO.displayName.parts, orgPolicyViolation);
@@ -627,6 +639,7 @@ public class H2ComponentRiskServiceTest
         new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(2);
     assertThat(result.numResults).isEqualTo(2);
+    assertThat(result.hasNextPage).isEqualTo(false);
     riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.hash).isEqualTo(orgPolicyViolation.getHash());
     assertDisplayFieldValues(riskDTO.displayName.parts, orgPolicyViolation);
@@ -652,6 +665,7 @@ public class H2ComponentRiskServiceTest
             new PolicyViolationStateFilter(PolicyViolationState.WAIVED), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.hash).isEqualTo(policyViolation.getHash());
     assertDisplayFieldValues(riskDTO.displayName.parts, policyViolation);
@@ -662,6 +676,7 @@ public class H2ComponentRiskServiceTest
         new PolicyViolationStateFilter(PolicyViolationState.OPEN), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.hash).isEqualTo(orgPolicyViolation.getHash());
     assertDisplayFieldValues(riskDTO.displayName.parts, orgPolicyViolation);
@@ -672,6 +687,7 @@ public class H2ComponentRiskServiceTest
         new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(2);
     assertThat(result.numResults).isEqualTo(2);
+    assertThat(result.hasNextPage).isEqualTo(false);
     riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.hash).isEqualTo(orgPolicyViolation.getHash());
     assertDisplayFieldValues(riskDTO.displayName.parts, orgPolicyViolation);
@@ -698,6 +714,7 @@ public class H2ComponentRiskServiceTest
         Collections.singleton(app2.getId()), null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.scoreCritical).isEqualTo(27);
     assertThat(riskDTO.scoreSevere).isEqualTo(22);
@@ -722,6 +739,7 @@ public class H2ComponentRiskServiceTest
             "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.scoreCritical).isEqualTo(27);
     assertThat(riskDTO.scoreSevere).isEqualTo(22);
@@ -748,6 +766,7 @@ public class H2ComponentRiskServiceTest
         .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, 1);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(2);
+    assertThat(result.hasNextPage).isEqualTo(true);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.hash).isEqualTo(hash);
     assertThat(riskDTO.score).isEqualTo(12);
@@ -771,6 +790,7 @@ public class H2ComponentRiskServiceTest
         .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1, 1);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(2);
+    assertThat(result.hasNextPage).isEqualTo(false);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.hash).isEqualTo("hash");
     assertThat(riskDTO.score).isEqualTo(11);
@@ -811,6 +831,7 @@ public class H2ComponentRiskServiceTest
         Collections.singleton(ReleaseStageType.ID), null, null, null, null, "NAME", 0, 100);
     assertThat(result.dashboardResults).hasSize(2);
     assertThat(result.numResults).isEqualTo(2);
+    assertThat(result.hasNextPage).isEqualTo(false);
 
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.filename).isEqualTo("b.zip");

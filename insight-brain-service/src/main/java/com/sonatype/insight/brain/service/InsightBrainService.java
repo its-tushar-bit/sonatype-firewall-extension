@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.UUID;
-
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.validation.Validator;
@@ -610,6 +609,8 @@ public class InsightBrainService
     });
 
     modules.addAll(baseModules());
+    // Set up bindings based on which database is used.
+    modules.add(new DbBasedModule(() -> databaseContainer));
 
     return modules;
   }

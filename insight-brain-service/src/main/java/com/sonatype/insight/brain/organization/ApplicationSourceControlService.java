@@ -13,7 +13,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.ApplicationTotalRiskDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
-import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
+import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -32,13 +32,13 @@ public class ApplicationSourceControlService
 
   private final ApiSourceControlService apiSourceControlService;
 
-  private final ApplicationRiskService applicationRiskService;
+  private final H2ApplicationRiskService applicationRiskService;
 
   @Inject
   public ApplicationSourceControlService(
       final SourceControlUtils sourceControlUtils,
       final ApiSourceControlService apiSourceControlService,
-      final ApplicationRiskService applicationRiskService)
+      final H2ApplicationRiskService applicationRiskService)
   {
     this.sourceControlUtils = sourceControlUtils;
     this.apiSourceControlService = apiSourceControlService;

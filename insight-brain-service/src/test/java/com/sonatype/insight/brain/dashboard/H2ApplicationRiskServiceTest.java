@@ -107,6 +107,7 @@ public class H2ApplicationRiskServiceTest
         .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(2);
     assertThat(result.numResults).isEqualTo(2);
+    assertThat(result.hasNextPage).isEqualTo(false);
     assertThat(result.dashboardResults.get(0).getStageRiskScore(DevelopStageType.ID)).isNull();
     assertThat(result.dashboardResults.get(1).getStageRiskScore(DevelopStageType.ID)).isNull();
 
@@ -130,6 +131,7 @@ public class H2ApplicationRiskServiceTest
             StageReleaseStageType.ID)), null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
     assertThat(appDTO.stageRisks).extracting(dto -> dto.stageTypeId).containsExactly(BuildStageType.ID,
         StageReleaseStageType.ID, ReleaseStageType.ID, OperateStageType.ID);
@@ -144,6 +146,7 @@ public class H2ApplicationRiskServiceTest
             0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
     assertThat(appDTO.stageRisks).hasSize(1);
     assertThat(appDTO.stageRisks.get(0).stageTypeId).isEqualTo(BuildStageType.ID);
@@ -161,6 +164,7 @@ public class H2ApplicationRiskServiceTest
             new PolicyViolationStateFilter(PolicyViolationState.WAIVED), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
     assertThat(appDTO.stageRisks).hasSize(1);
     assertThat(appDTO.stageRisks.get(0).stageTypeId).isEqualTo(BuildStageType.ID);
@@ -174,6 +178,7 @@ public class H2ApplicationRiskServiceTest
             new PolicyViolationStateFilter(PolicyViolationState.LEGACY_VIOLATION), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     appDTO = result.dashboardResults.get(0);
     assertThat(appDTO.stageRisks).hasSize(1);
     assertThat(appDTO.stageRisks.get(0).stageTypeId).isEqualTo(BuildStageType.ID);
@@ -184,6 +189,7 @@ public class H2ApplicationRiskServiceTest
             new PolicyViolationStateFilter(PolicyViolationState.OPEN), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     appDTO = result.dashboardResults.get(0);
     assertThat(appDTO.stageRisks).hasSize(1);
     assertThat(appDTO.stageRisks.get(0).stageTypeId).isEqualTo(BuildStageType.ID);
@@ -196,6 +202,7 @@ public class H2ApplicationRiskServiceTest
                 PolicyViolationState.OPEN), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     appDTO = result.dashboardResults.get(0);
     assertThat(appDTO.stageRisks).hasSize(1);
     assertThat(appDTO.stageRisks.get(0).stageTypeId).isEqualTo(BuildStageType.ID);
@@ -209,6 +216,7 @@ public class H2ApplicationRiskServiceTest
         .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, 1);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(2);
+    assertThat(result.hasNextPage).isEqualTo(true);
   }
 
   @Test
@@ -255,6 +263,7 @@ public class H2ApplicationRiskServiceTest
 
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
     assertThat(appDTO.stageRisks).hasSize(1);
     assertThat(appDTO.stageRisks.get(0).stageTypeId).isEqualTo(BuildStageType.ID);
@@ -521,6 +530,7 @@ public class H2ApplicationRiskServiceTest
     final DashboardResultsDTO<ApplicationTotalRiskDTO> results = applicationRiskService.getCIApplicationRisk(filter);
 
     assertThat(results.numResults).isEqualTo(2);
+    assertThat(results.hasNextPage).isEqualTo(false);
     assertThat(results.dashboardResults.get(0).applicationName)
         .isEqualTo(app1.getName());
     assertThat(results.dashboardResults.get(1).applicationName)
@@ -539,6 +549,8 @@ public class H2ApplicationRiskServiceTest
 
     assertThat(resultsPage1.numResults).isEqualTo(2);
     assertThat(resultsPage2.numResults).isEqualTo(2);
+    assertThat(resultsPage1.hasNextPage).isEqualTo(true);
+    assertThat(resultsPage2.hasNextPage).isEqualTo(false);
 
     assertThat(resultsPage1.dashboardResults).hasSize(1);
     assertThat(resultsPage2.dashboardResults).hasSize(1);
@@ -555,6 +567,7 @@ public class H2ApplicationRiskServiceTest
     final DashboardResultsDTO<ApplicationTotalRiskDTO> results = applicationRiskService.getCIApplicationRisk(filter);
 
     assertThat(results.numResults).isEqualTo(2);
+    assertThat(results.hasNextPage).isEqualTo(false);
     assertThat(results.dashboardResults).isEmpty();
   }
 
@@ -588,6 +601,7 @@ public class H2ApplicationRiskServiceTest
     final DashboardResultsDTO<ApplicationTotalRiskDTO> results = applicationRiskService.getCIApplicationRisk(filter);
 
     assertThat(results.numResults).isEqualTo(3);
+    assertThat(results.hasNextPage).isEqualTo(false);
   }
 
   @Test

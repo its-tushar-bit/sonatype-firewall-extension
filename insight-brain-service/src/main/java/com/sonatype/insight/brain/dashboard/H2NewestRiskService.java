@@ -225,6 +225,7 @@ public class H2NewestRiskService
     else {
       List<List<NewestRiskDTO>> pages = Lists.partition(riskDTOs, pageSize);
       result.dashboardResults = page >= pages.size() ? new ArrayList<>() : pages.get(page);
+      result.hasNextPage = pages.size() > (page + 1);
     }
     return result;
   }

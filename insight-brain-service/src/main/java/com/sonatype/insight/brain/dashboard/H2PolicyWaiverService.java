@@ -193,6 +193,7 @@ public class H2PolicyWaiverService
       int page = risksFilterDTO.page;
       List<List<DashboardPolicyWaiverDTO>> pages = Lists.partition(filteredWaiverDTOs, risksFilterDTO.pageSize);
       resultsDTO.dashboardResults = page >= pages.size() ? new ArrayList<>() : pages.get(page);
+      resultsDTO.hasNextPage = pages.size() > (page + 1);
     }
 
     AuditData.get().setData("resultRecordCount", resultsDTO.numResults);

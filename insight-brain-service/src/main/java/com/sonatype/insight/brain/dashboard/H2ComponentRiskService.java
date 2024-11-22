@@ -102,6 +102,7 @@ public class H2ComponentRiskService
       dtos.add(component.toDTO());
     }
     dtos.sort(componentRiskComparator);
+
     DashboardResultsDTO<ComponentRiskDTO> result = new DashboardResultsDTO<>();
     result.numResults = dtos.size();
 
@@ -111,6 +112,7 @@ public class H2ComponentRiskService
     else {
       List<List<ComponentRiskDTO>> pages = Lists.partition(dtos, pageSize);
       result.dashboardResults = page >= pages.size() ? new ArrayList<>() : pages.get(page);
+      result.hasNextPage = pages.size() > (page + 1);
     }
 
     AuditData.get().setData("resultRecordCount", result.numResults);

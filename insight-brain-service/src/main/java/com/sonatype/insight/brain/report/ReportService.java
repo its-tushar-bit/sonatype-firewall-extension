@@ -24,7 +24,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskScoreDTO;
-import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
+import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -89,7 +89,7 @@ public class ReportService
 
   private final RepositoryMatcher repositoryMatcher;
 
-  private final ApplicationRiskService applicationRiskService;
+  private final H2ApplicationRiskService applicationRiskService;
 
   private final ProductLicense productLicense;
 
@@ -107,7 +107,7 @@ public class ReportService
       TelemetrySender telemetrySender,
       TelemetryUtils telemetryUtils,
       RepositoryMatcher repositoryMatcher,
-      ApplicationRiskService applicationRiskService,
+      H2ApplicationRiskService applicationRiskService,
       ProductLicense productLicense,
       SbomMetadataUtils sbomMetadataUtils)
   {

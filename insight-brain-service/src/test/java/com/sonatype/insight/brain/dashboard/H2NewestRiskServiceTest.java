@@ -123,6 +123,7 @@ public class H2NewestRiskServiceTest
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
   }
@@ -134,6 +135,7 @@ public class H2NewestRiskServiceTest
             null, null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
   }
@@ -148,6 +150,7 @@ public class H2NewestRiskServiceTest
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app1, org1, policyViolation, evaluation.getTime());
   }
@@ -162,6 +165,7 @@ public class H2NewestRiskServiceTest
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
     assertThat(riskDTO.stageTypeId).isNotEqualTo(DevelopStageType.ID);
@@ -181,6 +185,7 @@ public class H2NewestRiskServiceTest
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
   }
@@ -197,6 +202,7 @@ public class H2NewestRiskServiceTest
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app1, org1, policyViolation, app1PolicyEvaluation.getTime());
   }
@@ -210,6 +216,7 @@ public class H2NewestRiskServiceTest
         new PolicyThreatLevelFilter(7, 7), null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(result.dashboardResults).hasSize(1);
     assertNewestRiskDTO(riskDTO, app1, org1, policyViolation, app1PolicyEvaluation.getTime());
@@ -225,6 +232,7 @@ public class H2NewestRiskServiceTest
             null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app1, org1, waivedViolation, app1PolicyEvaluation.getTime());
 
@@ -237,6 +245,7 @@ public class H2NewestRiskServiceTest
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app1, org1, legacyViolation, app1PolicyEvaluation.getTime());
 
@@ -245,6 +254,7 @@ public class H2NewestRiskServiceTest
             "-AGE,-THREAT_LEVEL", DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(3);
     assertThat(result.numResults).isEqualTo(3);
+    assertThat(result.hasNextPage).isEqualTo(false);
     assertNewestRiskDTO(result.dashboardResults.get(0), app2, org2, app2PolicyViolation,
         app2PolicyEvaluation.getTime());
     assertNewestRiskDTO(result.dashboardResults.get(1), app1, org1, app1PolicyViolation,
@@ -256,6 +266,7 @@ public class H2NewestRiskServiceTest
             PolicyViolationState.OPEN), "-AGE,-THREAT_LEVEL", DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(5);
     assertThat(result.numResults).isEqualTo(5);
+    assertThat(result.hasNextPage).isEqualTo(false);
     assertNewestRiskDTO(result.dashboardResults.get(0), app2, org2, app2PolicyViolation,
         app2PolicyEvaluation.getTime());
     assertNewestRiskDTO(result.dashboardResults.get(1), app1, org1, app1PolicyViolation,
@@ -285,6 +296,7 @@ public class H2NewestRiskServiceTest
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 1);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(3);
+    assertThat(result.hasNextPage).isEqualTo(true);
     assertNewestRiskDTO(result.dashboardResults.get(0), app2, org2, app2PolicyViolation,
         app2PolicyEvaluation.getTime());
 
@@ -294,6 +306,7 @@ public class H2NewestRiskServiceTest
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1, 1);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(3);
+    assertThat(result.hasNextPage).isEqualTo(true);
     assertNewestRiskDTO(result.dashboardResults.get(0), app1, org1, app1PolicyViolation,
         app1PolicyEvaluation.getTime());
 
@@ -316,6 +329,7 @@ public class H2NewestRiskServiceTest
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(3);
     assertThat(result.numResults).isEqualTo(3);
+    assertThat(result.hasNextPage).isEqualTo(false);
 
     NewestRiskDTO riskDTO0 = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO0, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
@@ -351,6 +365,7 @@ public class H2NewestRiskServiceTest
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(2);
     assertThat(result.numResults).isEqualTo(2);
+    assertThat(result.hasNextPage).isEqualTo(false);
 
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.derivedComponentName).isEqualTo("b.zip"); // we use the last file in the path name
@@ -377,6 +392,7 @@ public class H2NewestRiskServiceTest
         Collections.singleton(app.getId()), null, null, null, null, null, null, maxDaysOld, 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
+    assertThat(result.hasNextPage).isEqualTo(false);
 
     // then run a query with no date limit
     maxDaysOld = null;
@@ -384,6 +400,7 @@ public class H2NewestRiskServiceTest
         null, maxDaysOld, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     assertNewestRiskDTO(result.dashboardResults.get(0), app, org1, oldPolicyViolation, oldPolicyEvaluation.getTime());
     assertNewestRiskDTOContainsStageDetail(result.dashboardResults.get(0), BuildStageType.ID, oldScanId,
         orgPolicyViolation.getActionTypeId(), oldPolicyEvaluation.getTime());
@@ -433,6 +450,7 @@ public class H2NewestRiskServiceTest
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
 
     assertNewestRiskDTO(result.dashboardResults.get(0), app, org1, policyViolation1, firstOccurrenceTime);
     assertNewestRiskDTOContainsStageDetail(result.dashboardResults.get(0), ReleaseStageType.ID, scanId4,
@@ -450,6 +468,7 @@ public class H2NewestRiskServiceTest
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
 
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app1, org1, policyViolation, evaluation.getTime());
@@ -465,6 +484,7 @@ public class H2NewestRiskServiceTest
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app1, org1, policyViolation, evaluation.getTime());
   }
@@ -476,6 +496,7 @@ public class H2NewestRiskServiceTest
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
     assertNewestRiskDTOContainsStageDetail(riskDTO, BuildStageType.ID, app2PolicyEvaluation.getScanId(),
@@ -492,6 +513,7 @@ public class H2NewestRiskServiceTest
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
     assertNewestRiskDTOContainsStageDetail(riskDTO, ReleaseStageType.ID, releaseEvaluation.getScanId(),
@@ -505,6 +527,7 @@ public class H2NewestRiskServiceTest
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.hasNextPage).isEqualTo(false);
     riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
     assertNewestRiskDTOContainsStageDetail(riskDTO, BuildStageType.ID, buildEvaluation.getScanId(),
@@ -531,6 +554,7 @@ public class H2NewestRiskServiceTest
 
     assertThat(result.dashboardResults).hasSize(2);
     assertThat(result.numResults).isEqualTo(2);
+    assertThat(result.hasNextPage).isEqualTo(false);
     NewestRiskDTO riskDTO1 = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO1, app, org1, violation1, evaluation.getTime());
     NewestRiskDTO riskDTO2 = result.dashboardResults.get(1);

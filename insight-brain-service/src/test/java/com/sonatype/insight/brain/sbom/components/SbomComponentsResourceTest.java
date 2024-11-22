@@ -27,9 +27,9 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.apache.commons.io.FileUtils;
 
 import static com.sonatype.insight.brain.sbom.components.SbomComponentsResource.SBOM_SUMMARY_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -156,6 +156,7 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
     assertThat(resultDto.supplier).isEqualTo(Arrays.asList("John Doe", "Jane Doe"));
     assertThat(resultDto.manufacturer).isEqualTo(Arrays.asList("John Doe", "Jane Doe"));
     assertThat(resultDto.scanId).isEqualTo(thirdPartyScan.getScanId());
+    assertThat(resultDto.isValid).isTrue();
 
     // Test SPDX Format
     ThirdPartySbomMetadata sbomSPDXMetadata = SbomMetadataBuilder.newSbomSPDXMetadataBuilder(daoFactory)
@@ -175,6 +176,28 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
     assertThat(spdxResultDto.fileFormat).isEqualTo(sbomSPDXMetadata.getSpecFormat());
     assertThat(spdxResultDto.specification).isEqualTo(sbomSPDXMetadata.getSpec());
     assertThat(spdxResultDto.specVersion).isEqualTo(sbomSPDXMetadata.getSpecVersion());
+    assertThat(spdxResultDto.isValid).isTrue();
+  }
+
+  @Test
+  public void testGetSbomMetadata_isValid_Null() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan();
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withSpecVersion("1.5")
+        .withThirdPartyFileId(thirdPartyScan.getThirdPartyFileId())
+        .withIsValid(null)
+        .build();
+
+    HttpResponse response = restRequest()
+        .path(SbomComponentsResource.SBOM_METADATA_PATH)
+        .parameter(app.getId(), sbomMetadata.getSbomVersion())
+        .get();
+
+    assertResponseStatus(Status.OK.getStatusCode(), response);
+    BomPageMetadataDTO resultDto = response.getBody(BomPageMetadataDTO.class);
+    assertThat(resultDto.isValid).isTrue();
   }
 
   @Test

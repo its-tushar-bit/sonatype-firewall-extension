@@ -45,7 +45,7 @@ public class SbomMetadataBuilder
 
   private String scanType;
 
-  private boolean isValid;
+  private Boolean isValid;
 
   public SbomMetadataBuilder(DAOFactory daoFactory) {
     thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
@@ -145,7 +145,7 @@ public class SbomMetadataBuilder
     return this;
   }
 
-  public SbomMetadataBuilder withIsValid(boolean isValid) {
+  public SbomMetadataBuilder withIsValid(Boolean isValid) {
     this.isValid = isValid;
     return this;
   }

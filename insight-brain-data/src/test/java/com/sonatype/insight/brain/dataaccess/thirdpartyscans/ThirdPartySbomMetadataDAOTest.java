@@ -81,7 +81,7 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
-  public void testValidationSkipped_whenNull() throws SQLException {
+  public void testIsValid_whenNull() throws SQLException {
     ThirdPartyFile thirdPartyFile = new ThirdPartyFile("third-party-file", new Date());
     thirdPartyFileDAO.insert(thirdPartyFile);
 
@@ -115,14 +115,14 @@ public class ThirdPartySbomMetadataDAOTest
 
     // Read
     ThirdPartySbomMetadata fetchedThirdPartySbomMetadata = dao.getById(id);
-    assertThat(fetchedThirdPartySbomMetadata.getIsValid()).isFalse();
+    assertThat(fetchedThirdPartySbomMetadata.getIsValid()).isTrue();
 
     // Update
-    fetchedThirdPartySbomMetadata.setIsValid(true);
+    fetchedThirdPartySbomMetadata.setIsValid(false);
     dao.update(fetchedThirdPartySbomMetadata);
 
     ThirdPartySbomMetadata updatedThirdPartySbomMetadata = dao.getById(fetchedThirdPartySbomMetadata.getId());
-    assertThat(updatedThirdPartySbomMetadata.getIsValid()).isTrue();
+    assertThat(updatedThirdPartySbomMetadata.getIsValid()).isFalse();
     assertThirdPartySbomMetadata(updatedThirdPartySbomMetadata, fetchedThirdPartySbomMetadata);
   }
 

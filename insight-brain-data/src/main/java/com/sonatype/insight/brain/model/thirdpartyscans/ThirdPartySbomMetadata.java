@@ -63,7 +63,7 @@ public class ThirdPartySbomMetadata
   private String scanType;
 
   @Column(name = "is_valid")
-  private boolean isValid;
+  private Boolean isValid;
 
   public ThirdPartySbomMetadata(
       String thirdPartyFileId,
@@ -78,7 +78,7 @@ public class ThirdPartySbomMetadata
       Date createdAt,
       String metadataJson,
       String scanType,
-      boolean isValid)
+      Boolean isValid)
   {
 
     this.thirdPartyFileId = thirdPartyFileId;
@@ -203,7 +203,7 @@ public class ThirdPartySbomMetadata
   }
 
   public boolean getIsValid() {
-    return isValid;
+    return isValid == null || isValid;
   }
 
   public void setIsValid(final Boolean isValid) {

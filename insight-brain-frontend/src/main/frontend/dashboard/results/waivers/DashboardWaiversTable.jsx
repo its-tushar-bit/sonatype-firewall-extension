@@ -85,7 +85,7 @@ export default function DashboardWaiversTable(props) {
     return null;
   };
   return (
-    <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
+    <div className="nx-table-container">
       <NxTable className="nx-table--fixed-layout">
         <NxTable.Head>
           <NxTable.Row className="iq-dashboard-waivers-headers">

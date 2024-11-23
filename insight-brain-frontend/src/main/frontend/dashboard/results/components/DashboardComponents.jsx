@@ -40,7 +40,7 @@ export default function DashboardComponents(props) {
   };
 
   return (
-    <div id="dashboard-components" className="iq-dashboard-components nx-viewport-sized__container">
+    <div id="dashboard-components" className="iq-dashboard-components">
       {filtersAreDirty && !needsAcknowledgement && !isLoading && <DashboardMask />}
       <DashboardComponentsTable {...tableProps} />
     </div>

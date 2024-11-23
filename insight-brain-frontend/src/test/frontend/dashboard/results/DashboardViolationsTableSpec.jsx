@@ -76,9 +76,7 @@ describe('DashboardViolationsTable', function () {
     const component = getShallowComponent(),
       table = component.find(NxTable);
 
-    expect(component).toMatchSelector('.nx-scrollable');
     expect(component).toMatchSelector('.nx-table-container');
-    expect(component).toMatchSelector('.nx-viewport-sized__scrollable');
     expect(table).toMatchSelector('.nx-table--fixed-layout');
   });
 

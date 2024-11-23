@@ -61,7 +61,7 @@ export default function DashboardApplicationsTable(props) {
   };
 
   return (
-    <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
+    <div className="nx-table-container">
       <NxTable className="nx-table--fixed-layout">
         <NxTableHead>
           <NxTableRow>

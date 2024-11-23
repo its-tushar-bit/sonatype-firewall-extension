@@ -67,7 +67,7 @@ export default function DashboardWaivers() {
           Learn more about waivers.
         </NxTextLink>
       </NxInfoAlert>
-      <div id="dashboard-waivers" className="iq-dashboard-waivers nx-viewport-sized__container">
+      <div id="dashboard-waivers" className="iq-dashboard-waivers">
         {filtersAreDirty && !needsAcknowledgement && !isLoading && <DashboardMask />}
         <DashboardWaiversTable {...tableProps} />
       </div>

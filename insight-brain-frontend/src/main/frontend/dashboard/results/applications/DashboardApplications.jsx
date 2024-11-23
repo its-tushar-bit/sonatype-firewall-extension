@@ -38,7 +38,7 @@ export default function DashboardApplications(props) {
   };
 
   return (
-    <div id="dashboard-applications" className="iq-dashboard-applications nx-viewport-sized__container">
+    <div id="dashboard-applications" className="iq-dashboard-applications">
       {filtersAreDirty && !needsAcknowledgement && !isLoading && <DashboardMask />}
       <DashboardApplicationsTable {...tableProps} />
     </div>

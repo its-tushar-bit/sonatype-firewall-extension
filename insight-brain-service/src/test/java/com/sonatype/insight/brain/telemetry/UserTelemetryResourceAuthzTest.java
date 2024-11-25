@@ -20,12 +20,12 @@ public class UserTelemetryResourceAuthzTest
 {
   @Before
   public void setup() {
-    getCLMServer().getInstance(PendoCache.class).invalidate();
+    getCLMServer().getInstance(PendoCache.class).invalidateAll();
   }
 
   @Test
   public void testGetJavascript() throws Exception {
-    getHdsServer().respondWith("function foo() {}").atUri(PendoCache.PENDO_JS_FILENAME);
+    getHdsServer().respondWith("function foo() {}").atUri("user-telemetry.js");
     HttpResponse response = restRequest()
         .path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.JAVASCRIPT_PATH).get();
     assertResponseStatus(200, response);

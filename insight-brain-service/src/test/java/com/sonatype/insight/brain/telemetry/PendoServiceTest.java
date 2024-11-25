@@ -159,7 +159,7 @@ public class PendoServiceTest
 
   @Test
   public void testGetJavascript() {
-    when(hdsClient.get(InputStream.class, PendoCache.PENDO_JS_FILENAME))
+    when(hdsClient.get(InputStream.class, "user-telemetry.js"))
         .thenReturn(new ByteArrayInputStream("test".getBytes()));
 
     byte[] javascript = pendoService.getJavascript();

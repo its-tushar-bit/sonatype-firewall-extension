@@ -8,7 +8,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { allPass, always, cond, dec, equals, flip, gt, inc, lt, min, T } from 'ramda';
 import debounce from 'debounce';
 import moment from 'moment';
-
 import {
   NxBinaryDonutChart,
   NxFilterInput,
@@ -36,29 +35,12 @@ export default function SbomApplicationsTable() {
 
   const loadApplications = () => dispatch(actions.loadApplications());
 
-  const { loading, errorMessage, applications, totalApplicationsCount, sortConfiguration, pagination } = useSelector(
+  const { loading, errorMessage, applications, applicationsTotalCount, sortConfiguration, pagination } = useSelector(
     selectSbomApplicationsTable
   );
 
   useEffect(() => {
     loadApplications();
-
-    moment.defineLocale('custom', {
-      relativeTime: {
-        d: '%dD',
-        dd: '%dD',
-        M: '%dM',
-        MM: '%dM',
-        y: '%dY',
-        yy: '%dY',
-      },
-    });
-
-    moment.locale('custom');
-
-    return () => {
-      moment.locale('en-us');
-    };
   }, []);
 
   const debouncedLoadApplications = useCallback(debounce(loadApplications, LOAD_APPLICATIONS_DEBOUNCE_TIMEOUT_MS), []);
@@ -82,45 +64,52 @@ export default function SbomApplicationsTable() {
 
         const sbomHref = uiRouterState.href('sbomManager.management.view.bom', {
           applicationPublicId: application.applicationPublicId,
-          versionId: application.latestVersion,
+          versionId: application.sbomVersion,
         });
 
         return (
-          <NxTable.Row key={application.applicationPublicId} data-testid="sbom-manager-applications-table">
+          <NxTable.Row key={application.applicationPublicId}>
             <NxTable.Cell>
               <NxTooltip
-                title={application.name}
+                title={application.applicationName}
                 className="sbom-manager-applications-table__tooltip--application-name"
               >
                 <NxTextLink className="sbom-manager-applications-table__application-name" href={applicationHref}>
-                  {application.name}
+                  {application.applicationName}
                 </NxTextLink>
               </NxTooltip>
             </NxTable.Cell>
             <NxTable.Cell>
               <NxTooltip
-                title={application.latestVersion}
+                title={application.sbomVersion}
                 className="sbom-manager-applications-table__tooltip--latest-version"
               >
                 <NxTextLink className="sbom-manager-applications-table__latest-version" href={sbomHref}>
-                  {application.latestVersion}
+                  {application.sbomVersion}
                 </NxTextLink>
               </NxTooltip>
             </NxTable.Cell>
             <NxTable.Cell> {moment(application.importDate).fromNow()}</NxTable.Cell>
             <NxTable.Cell>
-              <NxSmallThreatCounter
-                className="sbom-manager-applications-table__violations"
-                criticalCount={application.criticalCount}
-                severeCount={application.severeCount}
-                moderateCount={application.moderateCount}
-              />
+              {application.policyViolationSummary ? (
+                <NxSmallThreatCounter
+                  className="sbom-manager-applications-table__violations"
+                  criticalCount={application.policyViolationSummary.critical}
+                  severeCount={application.policyViolationSummary.severe}
+                  moderateCount={application.policyViolationSummary.moderate}
+                />
+              ) : null}
             </NxTable.Cell>
             <NxTable.Cell>
-              <div className="sbom-manager-applications-table__annotated">
-                <NxBinaryDonutChart value={application.annotated} aria-label={`${application.annotated}% annotated`} />
-                <span>{application.annotated}%</span>
-              </div>
+              {typeof application.annotatedPercentage === 'number' ? (
+                <div className="sbom-manager-applications-table__annotated-percentage">
+                  <NxBinaryDonutChart
+                    value={application.annotatedPercentage}
+                    aria-label={`${application.annotatedPercentage}% annotated`}
+                  />
+                  <span>{application.annotatedPercentage}%</span>
+                </div>
+              ) : null}
             </NxTable.Cell>
           </NxTable.Row>
         );
@@ -131,7 +120,7 @@ export default function SbomApplicationsTable() {
   const paginationSection = () => {
     if (showTableContent) {
       const status = cond([
-        [equals(0), always(min(APPLICATIONS_PER_PAGE, totalApplicationsCount))],
+        [equals(0), always(min(APPLICATIONS_PER_PAGE, applicationsTotalCount))],
         [
           allPass([flip(gt)(0), flip(lt)(dec(pagination.pageCount))]),
           always(
@@ -140,7 +129,7 @@ export default function SbomApplicationsTable() {
             )}`
           ),
         ],
-        [T, always(formatNumberLocale(totalApplicationsCount))],
+        [T, always(formatNumberLocale(applicationsTotalCount))],
       ])(pagination.currentPage);
 
       return (
@@ -156,9 +145,9 @@ export default function SbomApplicationsTable() {
           </div>
           <div
             className="sbom-manager-applications-table__pagination-status"
-            data-testid="applications-table-pagination-status"
+            data-testid="sbom-applications-table-pagination-status"
           >
-            Showing {status} of {formatNumberLocale(totalApplicationsCount)} applications
+            Showing {status} of {formatNumberLocale(applicationsTotalCount)} applications
           </div>
         </div>
       );
@@ -167,7 +156,7 @@ export default function SbomApplicationsTable() {
   };
 
   const createColumnSortHandler = (field) =>
-    showTableContent && totalApplicationsCount > 1
+    showTableContent && applicationsTotalCount > 1
       ? {
           sortDir: field === sortConfiguration.sortBy ? sortConfiguration.sortDirection : SORT_DIRECTION.DEFAULT,
           onClick: () => loadSortedApplications(field),
@@ -183,8 +172,12 @@ export default function SbomApplicationsTable() {
   };
 
   return (
-    <div className="sbom-manager-applications nx-table-container">
-      <NxTable id="sbom-manager-applications-table" className="sbom-manager-applications-table__table">
+    <div className="sbom-manager-applications-table nx-table-container">
+      <NxTable
+        id="sbom-manager-applications-table"
+        data-testid="sbom-manager-applications-table"
+        className="sbom-manager-applications-table__table"
+      >
         <NxTable.Head>
           <NxTable.Row>
             <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.name)}>Name</NxTable.Cell>

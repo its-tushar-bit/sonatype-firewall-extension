@@ -1680,6 +1680,31 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getSbomApplicationsUrl', () => {
+    it('should return the correct URL with minimum parameters', () => {
+      const expectedURL = '/rest/sbom/applications?';
+      expect(clmLocation.getSbomApplicationsUrl()).toBe(expectedURL);
+    });
+
+    it('should return the correct URL with pagination only', () => {
+      const expectedParams = `?page=1&pageSize=50`;
+      const expectedURL = '/rest/sbom/applications' + expectedParams;
+      expect(clmLocation.getSbomApplicationsUrl(1, 50)).toBe(expectedURL);
+    });
+
+    it('should return the correct URL with applicationName only', () => {
+      const expectedParams = `?applicationName=Hello`;
+      const expectedURL = '/rest/sbom/applications' + expectedParams;
+      expect(clmLocation.getSbomApplicationsUrl(null, null, null, null, 'Hello')).toBe(expectedURL);
+    });
+
+    it('should return the correct URL with sortConfiguration', () => {
+      const expectedParams = `?page=1&sortBy=applicationName&asc=true`;
+      const expectedURL = '/rest/sbom/applications' + expectedParams;
+      expect(clmLocation.getSbomApplicationsUrl(1, null, 'applicationName', true)).toBe(expectedURL);
+    });
+  });
+
   describe('getAllApplicationSbomVersions', () => {
     it('should return the correct URL with the given parameters', () => {
       const applicationId = 'abc123';

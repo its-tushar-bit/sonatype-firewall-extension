@@ -19,6 +19,10 @@ public class SbomApplicationsTable
     super(".sbom-manager-applications-table");
   }
 
+  public SelenideElement table() {
+    return child(".sbom-manager-applications-table__table");
+  }
+
   public ElementsCollection tableRows() {
     return $$(".nx-table .nx-table-row");
   }
@@ -37,10 +41,6 @@ public class SbomApplicationsTable
 
   public SelenideElement columnHeader(int column) {
     return tableHeaders().get(column);
-  }
-
-  public SelenideElement header() {
-    return child("header.nx-tile-header .nx-h2");
   }
 
   public SelenideElement footer() {

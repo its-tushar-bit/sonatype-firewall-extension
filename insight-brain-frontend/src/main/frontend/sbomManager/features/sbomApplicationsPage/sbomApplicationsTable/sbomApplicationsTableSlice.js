@@ -4,25 +4,24 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-// import axios from 'axios';
-import { findIndex, includes, values, without } from 'ramda';
+import axios from 'axios';
+import { always, cond, equals, findIndex, includes, values, without, T } from 'ramda';
 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { getSbomApplicationsUrl } from 'MainRoot/util/CLMLocation';
 
-// https://sonatype.atlassian.net/browse/SBOM-891
-// import { getSbomApplicationsUrl } from 'MainRoot/util/CLMLocation';
+import { selectSbomApplicationsTable } from './sbomApplicationsTableSelectors';
 
 const REDUCER_NAME = 'sbomApplicationsTable';
 
 export const APPLICATIONS_PER_PAGE = 50;
 
 export const SORT_BY_FIELDS = Object.freeze({
-  name: 'name',
-  latestVersion: 'latest_version',
+  name: 'application_name',
+  latestVersion: 'latest_sbom_version',
   importDate: 'import_date',
   vulnerabilities: 'vulnerabilities',
-  violations: 'violations',
-  annotated: 'annotated',
+  annotated: 'percentage_annotated',
 });
 
 export const SORT_DIRECTION = Object.freeze({
@@ -36,7 +35,7 @@ export const defaultSortConfiguration = Object.freeze({
   sortDirection: SORT_DIRECTION.ASC,
 });
 
-export const paginationInitialState = Object.freeze({
+export const defaultPagination = Object.freeze({
   pageCount: 1,
   currentPage: 0,
 });
@@ -49,21 +48,22 @@ export const initialState = Object.freeze({
   applicationsTotalCount: null,
 
   sortConfiguration: { ...defaultSortConfiguration },
-  pagination: { ...paginationInitialState },
+  pagination: { ...defaultPagination },
 
   filterApplicationName: null,
 });
 
-// load-components
 const resetConfigurations = (state) => {
   state.sortConfiguration = { ...defaultSortConfiguration };
-  state.pagination = { ...paginationInitialState };
+  state.pagination = { ...defaultPagination };
+  state.filterApplicationName = null;
 };
 
 const setLoading = (state, { payload }) => {
   state.loading = payload;
 };
 
+// load-applications
 const loadApplicationsRequested = (state) => {
   state.loading = true;
   state.errorMessage = null;
@@ -78,62 +78,45 @@ const loadApplicationsFailed = (state, { payload }) => {
   state.applications = null;
   state.applicationsTotalCount = null;
 
-  state.pagination = { ...paginationInitialState };
+  state.pagination = { ...defaultPagination };
 };
 
 const loadApplicationsFulfilled = (state, { payload }) => {
   state.loading = false;
   state.errorMessage = null;
 
-  state.applications = payload.results;
-  state.applicationsTotalCount = payload.totalResultsCount;
+  state.applications = payload.applications;
+  state.applicationsTotalCount = payload.totalCount;
 
-  state.pagination.pageCount = Math.ceil(payload.totalResultsCount / APPLICATIONS_PER_PAGE);
+  state.pagination.pageCount = Math.ceil(payload.totalCount / APPLICATIONS_PER_PAGE);
 };
 
-const mockApplications = Object.freeze([
-  {
-    applicationPublicId: '123',
-    name: 'very-very-very-very-long-application-name',
-    latestVersion: 'very-very-very-very-very-long-sbom-version',
-    importDate: '2024-10-16T17:25:01Z',
-    criticalCount: 1,
-    severeCount: 2,
-    moderateCount: 3,
-    lowCount: 4,
-    annotated: 50,
-  },
-]);
+const loadApplications = createAsyncThunk(
+  `${REDUCER_NAME}/loadApplications`,
+  async (_, { getState, rejectWithValue }) => {
+    const state = getState();
+    const { sortConfiguration, pagination, filterApplicationName } = selectSbomApplicationsTable(state);
 
-const loadApplications = createAsyncThunk(`${REDUCER_NAME}/loadApplications`, async () => {
-  return Promise.resolve({ results: mockApplications, totalResultsCount: 1 });
-  // TODO: To be completed once the API is ready.
-  // const state = getState();
-  // const {
-  //   sortConfiguration,
-  //   filterConfiguration,
-  //   pagination,
-  //   filterApplicationName,
-  // } = selectSbomApplicationsTable(state);
+    const sortDirection = cond([
+      [equals(SORT_DIRECTION.ASC), always(true)],
+      [equals(SORT_DIRECTION.DESC), always(false)],
+      [T, always(null)],
+    ])(sortConfiguration.sortDirection);
 
-  // const pickKeysWithTrueValue = compose(
-  //   keys,
-  //   pickBy((v) => !!v)
-  // );
-
-  // const sortDirection = cond([
-  //   [equals(SORT_DIRECTION.ASC), always(true)],
-  //   [equals(SORT_DIRECTION.DESC), always(false)],
-  //   [T, always(null)],
-  // ])(sortConfiguration.sortDirection);
-
-  // return axios
-  //   .get(
-  //     getSbomApplicationsUrl()
-  //   )
-  //   .then((response) => response.data)
-  //   .catch((err) => rejectWithValue(err));
-});
+    return axios
+      .get(
+        getSbomApplicationsUrl(
+          pagination.currentPage + 1,
+          APPLICATIONS_PER_PAGE,
+          sortConfiguration.sortBy,
+          sortDirection,
+          filterApplicationName
+        )
+      )
+      .then((response) => response.data)
+      .catch((err) => rejectWithValue(err));
+  }
+);
 
 // sort-configuration
 const setSortByAndCycleDirection = (state, { payload: newSortBy }) => {
@@ -171,7 +154,7 @@ const setCurrentPage = (state, { payload }) => {
   state.pagination.currentPage = payload;
 };
 
-// component-name-search
+// filter-application-name
 const setFilterApplicationName = (state, { payload }) => {
   state.filterApplicationName = payload;
 };

@@ -1551,6 +1551,17 @@ export const getBillOfMaterialsComponentsUrl = (
   return uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components` + queryParams;
 };
 
+export const getSbomApplicationsUrl = (page, pageSize, sortBy, asc, applicationName) => {
+  const rawParams = {
+    page,
+    pageSize,
+    sortBy,
+    asc,
+    applicationName,
+  };
+  return uriTemplate`/rest/sbom/applications?` + toURIParams(rawParams);
+};
+
 export const getSbomComponentDetailsUrl = (applicationId, sbomVersion, componentHash) =>
   uriTemplate`/rest/sbom/applications/${applicationId}/versions/${sbomVersion}/components/${componentHash}`;
 

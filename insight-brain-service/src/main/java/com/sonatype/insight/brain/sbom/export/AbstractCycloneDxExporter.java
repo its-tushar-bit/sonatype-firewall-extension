@@ -431,15 +431,17 @@ public abstract class AbstractCycloneDxExporter
     Map<String, List<ApiLicenseThreatDTOV2>> effectiveLicenseThreatsByPurl = mapEffectiveLicenseThreatsByPurl();
 
     pdfData.components = new ArrayList<>();
-    for (Component component : bom.getComponents()) {
-      PdfData.PdfComponent pdfComponent = new PdfData.PdfComponent();
-      pdfComponent.displayName = getComponentDisplayName(component);
-      pdfComponent.matchState = getComponentMatchState(component);
-      pdfComponent.policyViolations = getPdfComponentPolicyViolations(component, policyViolationsByPurlAndHash);
-      pdfComponent.securityIssues = getSecurityIssuesData(bom, component);
-      pdfComponent.effectiveLicenses = getLicensesData(component);
-      pdfComponent.effectiveLicenseThreats = getEffectiveLicenseThreats(component, effectiveLicenseThreatsByPurl);
-      pdfData.components.add(pdfComponent);
+    if (bom.getComponents() != null) {
+      for (Component component : bom.getComponents()) {
+        PdfData.PdfComponent pdfComponent = new PdfData.PdfComponent();
+        pdfComponent.displayName = getComponentDisplayName(component);
+        pdfComponent.matchState = getComponentMatchState(component);
+        pdfComponent.policyViolations = getPdfComponentPolicyViolations(component, policyViolationsByPurlAndHash);
+        pdfComponent.securityIssues = getSecurityIssuesData(bom, component);
+        pdfComponent.effectiveLicenses = getLicensesData(component);
+        pdfComponent.effectiveLicenseThreats = getEffectiveLicenseThreats(component, effectiveLicenseThreatsByPurl);
+        pdfData.components.add(pdfComponent);
+      }
     }
     return pdfData;
   }

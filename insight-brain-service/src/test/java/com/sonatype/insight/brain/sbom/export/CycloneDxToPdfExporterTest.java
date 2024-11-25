@@ -128,4 +128,30 @@ public class CycloneDxToPdfExporterTest
     assertThat(c2.effectiveLicenses.stream().map(c -> c.name)).contains("Apache-2.0");
     assertThat(c2.securityIssues).hasSize(0);
   }
+
+  @Test
+  public void tesExportPdf_withEmptyReportData() throws Exception {
+    //Given
+    File testBomFile = mockOriginalSbomFile("test-empty-bom.xml");
+    ThirdPartySbomMetadata sbomMetadata =
+        createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, CYCLONEDX_15);
+    exporter.setExportParams(withExportParams(sbomMetadata, CYCLONEDX_15, SbomFormat.JSON));
+    tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
+    setupTestComponents();
+
+    //When
+    PdfData pdfData = exporter.exportPdf();
+
+    //Then
+    assertThat(pdfData.title).isEqualTo(app.getName() + REPORT_NAME);
+    assertThat(pdfData.createdDate).isNotNull();
+    assertThat(pdfData.analyzedDate).isNotNull();
+    assertThat(pdfData.productVersion).isNotNull();
+    assertThat(pdfData.sbomMetadata.author).hasSize(1).contains("John Doe");
+    assertThat(pdfData.sbomMetadata.specification).isEqualTo("CYCLONEDX");
+    assertThat(pdfData.sbomMetadata.specVersion).isEqualTo("1.5");
+    assertThat(pdfData.sbomMetadata.fileFormat).isEqualTo("xml");
+
+    assertThat(pdfData.components).isEmpty();
+  }
 }

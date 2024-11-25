@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.sbom.export;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.Collections;
 import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -67,10 +68,15 @@ public class CycloneDxToPdfExporter
       // This is a version 1.1 vulnerabilities extensions
       // (https://github.com/CycloneDX/specification/blob/1.6/schema/ext/vulnerability-1.0.xsd)
       // related fix that is not properly handled by the cyclonedx-java library when converting to newer versions.
-      bom.getComponents().stream()
-          .filter(c -> c.getExtensions() != null && c.getExtensions().containsKey("vulnerabilities")).forEach(c -> {
-            c.getExtensions().remove("vulnerabilities");
-          });
+      if (bom.getComponents() != null) {
+        bom.getComponents().stream()
+            .filter(c -> c.getExtensions() != null && c.getExtensions().containsKey("vulnerabilities")).forEach(c -> {
+              c.getExtensions().remove("vulnerabilities");
+            });
+      }
+      else {
+        bom.setComponents(Collections.emptyList());
+      }
       return convertToPdfData(mergeCurrentDatabaseState(bom));
     }
     catch (IOException | ParseException e) {

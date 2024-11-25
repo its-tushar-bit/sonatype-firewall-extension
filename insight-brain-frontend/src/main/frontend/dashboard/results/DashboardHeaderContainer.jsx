@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { pick } from 'ramda';
 import DashboardHeader from './DashboardHeader';
 import * as manageFiltersActions from '../filter/manageFiltersActions';
@@ -11,17 +11,19 @@ import * as dashboardFilterActions from '../filter/dashboardFilterActions';
 import { selectExportTitle, selectExportRequestData, selectExportUrl } from '../dashboardSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import {
+  selectIsAutoWaiversEnabled,
   selectIsDashboardSupported,
   selectIsDashboardWaiversSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 const mapStateToProps = (state) => {
+  const isAutoWaiversEnabled = selectIsAutoWaiversEnabled(state);
   const { manageFilters, dashboardFilter, dashboard, waivers } = state;
   return {
     dashboard,
     exportTitle: selectExportTitle(state),
     exportRequestData: selectExportRequestData(state),
-    exportUrl: selectExportUrl(state),
+    exportUrl: selectExportUrl(state, isAutoWaiversEnabled),
     ...pick(['appliedFilterName', 'showDirtyAsterisk'], manageFilters),
     filterSidebarOpen: dashboardFilter.filterSidebarOpen,
     filters: dashboardFilter.appliedFilter,

@@ -11,6 +11,7 @@ import {
   getComponentRisksExportUrl,
   getNewestRisksExportUrl,
   getWaiversExportUrl,
+  getWaiversAndAutoWaiversExportUrl,
 } from '../util/CLMLocation';
 import {
   translateApplicationsSortFields,
@@ -55,7 +56,7 @@ export const selectExportRequestData = (state) => {
   }
 };
 
-export const selectExportUrl = (state) => {
+export const selectExportUrl = (state, isAutoWaiversEnabled) => {
   const routeStateName = state.router.currentState.name;
   switch (routeStateName) {
     case 'dashboard.overview.violations':
@@ -68,7 +69,11 @@ export const selectExportUrl = (state) => {
       return getApplicationRisksExportUrl();
 
     case 'dashboard.overview.waivers':
-      return getWaiversExportUrl();
+      if (isAutoWaiversEnabled === true) {
+        return getWaiversAndAutoWaiversExportUrl();
+      } else {
+        return getWaiversExportUrl();
+      }
 
     default:
       return '';

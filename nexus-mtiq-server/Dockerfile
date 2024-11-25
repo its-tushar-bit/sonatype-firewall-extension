@@ -4,17 +4,36 @@
 # "Sonatype" is a trademark of Sonatype, Inc.
 #
 # MTIQ Docker image:
-# - To build locally: docker build --tag docker-all.repo.sonatype.com/mtiq/server .
+# - To build locally: docker build --build-arg IQ_SERVER_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:evaluate -Dexpression=project.version -q -DforceStdout) --tag docker-all.repo.sonatype.com/mtiq/server .
 # - To run locally: docker run -it --rm --name mtiq-docker \
 #   --user $(id -u):$(id -g) \  # So files created in the image are owned by your user
 #   --net collin-local-dev \    # Optional. Put on the same Docker network as your postgres
 #   -v /path/to/your/config-mtiq-docker.yml:/etc/nexus-iq-server/config.yaml
 #   -v $HOME/dev/work/bin/sonatype-work:/sonatype-work \
 #   docker-all.repo.sonatype.com/mtiq:latest
-
 ARG SONATYPE_PRIVATE_REGISTRY=docker-all.repo.sonatype.com
 
-FROM $SONATYPE_PRIVATE_REGISTRY/eclipse-temurin:17-jre
+FROM $SONATYPE_PRIVATE_REGISTRY/ubuntu:24.04 AS builder
+ARG TARGETPLATFORM
+ARG IQ_SERVER_VERSION
+
+# Copy both linux architectures to /opt/sonatype
+COPY target/jreleaser/assemble/nexus-mtiq-server/jlink/nexus-mtiq-server-${IQ_SERVER_VERSION}-linux-x86_64.tgz \
+  target/jreleaser/assemble/nexus-mtiq-server/jlink/nexus-mtiq-server-${IQ_SERVER_VERSION}-linux-aarch_64.tgz \
+  /opt/sonatype/
+
+# Only extract the correct platform
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+      tar -xzf /opt/sonatype/nexus-mtiq-server-${IQ_SERVER_VERSION}-linux-x86_64.tgz -C /opt/sonatype/; \
+    elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+      tar -xzf /opt/sonatype/nexus-mtiq-server-${IQ_SERVER_VERSION}-linux-aarch_64.tgz -C /opt/sonatype/; \
+    else \
+      echo "Unsupported platform: $TARGETPLATFORM"; exit 1; \
+    fi
+RUN rm /opt/sonatype/nexus-mtiq-server-${IQ_SERVER_VERSION}-linux-*.tgz
+RUN mv /opt/sonatype/nexus-mtiq-server-${IQ_SERVER_VERSION}-linux-* /opt/sonatype/nexus-iq-server
+
+FROM $SONATYPE_PRIVATE_REGISTRY/ubuntu:24.04
 
 LABEL vendor=Sonatype \
   maintainer="MTIQ Team <mtiq-dev@sonatype.com>" \
@@ -26,8 +45,8 @@ RUN apt-get update && apt-get install -y \
   tini \
 && rm -rf /var/lib/apt/lists/*
 
-# Copy JAR
-COPY target/nexus-mtiq-server.jar /opt/sonatype/nexus-iq-server/nexus-mtiq-server.jar
+# Copy assembly from builder
+COPY --from=builder /opt/sonatype/nexus-iq-server /opt/sonatype/nexus-iq-server
 
 # Copy Datadog jar
 COPY target/dd-java-agent.jar /opt/datadog/dd-java-agent.jar
@@ -41,21 +60,9 @@ EXPOSE 8071
 
 WORKDIR /opt/sonatype/nexus-iq-server
 
-# Use tini init in order to get proper orphaned process reaping
-ENTRYPOINT ["tini", "--", "java", \
-             "--add-opens=java.base/java.lang=ALL-UNNAMED", \
-             "--add-opens=java.base/java.util=ALL-UNNAMED", \
-             "--add-opens=java.base/java.security=ALL-UNNAMED", \
-             "--add-opens=java.base/sun.security.rsa=ALL-UNNAMED", \
-             "--add-opens=java.base/sun.security.x509=ALL-UNNAMED", \
-             "--add-opens=java.base/sun.security.util=ALL-UNNAMED", \
-             "--add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED", \
-             "-Dgit.without.shell=true", \
-             "-Djava.util.prefs.userRoot=/sonatype-work/javaprefs", \
-             "-javaagent:/opt/datadog/dd-java-agent.jar", \
-             "-XX:+AlwaysPreTouch", \
-             "-XX:+CrashOnOutOfMemoryError", \
-             "-XshowSettings:vm", \
-             "-jar"]
+ENV JAVA_OPTS="-Dgit.without.shell=true -Djava.util.prefs.userRoot=/sonatype-work/javaprefs -javaagent:/opt/datadog/dd-java-agent.jar -XX:+AlwaysPreTouch -XX:+CrashOnOutOfMemoryError -XshowSettings:vm"
 
-CMD ["/opt/sonatype/nexus-iq-server/nexus-mtiq-server.jar", "server", "/etc/mtiq-server/config.yaml"]
+# Use tini init in order to get proper orphaned process reaping
+ENTRYPOINT ["tini", "--", "/opt/sonatype/nexus-iq-server/bin/nexus-mtiq-server"]
+
+CMD ["server", "/etc/mtiq-server/config.yaml"]

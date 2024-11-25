@@ -212,13 +212,16 @@ void pushDockerImageIfDeployBranch() {
     String imageName = 'iq/snapshot'
     String fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"
 
+    mvn jreleaserConfig(""), ' -pl :insight-brain -Pjdks'
+    mvn jreleaserConfig(""), ' -pl :nexus-iq-server jreleaser:assemble'
+
     dir("nexus-iq-server") {
         withSonatypeDockerRegistry() {
             String latest = "${sonatypeDockerRegistryId()}/${imageName}:latest"
             sh "docker buildx create --use --driver-opt image=${sonatypeDockerRegistryId()}/moby/buildkit"
-            sh "docker buildx build --platform=linux/amd64,linux/arm64 --build-arg " +
-                "SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg " +
-                "IQ_SERVER_VERSION=${iqVersion} " +
+            sh "docker buildx build --platform=linux/amd64,linux/arm64 " +
+                " --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} " +
+                " --build-arg IQ_SERVER_VERSION=${iqVersion} " +
                 (push ? " --push " : "") +
                 " --tag ${latest} " +
                 " --tag ${fullImage} ."
@@ -282,6 +285,10 @@ void pushMTIQDockerImage() {
     }
 
     echo "MTIQ image version: ${imageVersion}"
+    String iqVersion = getMavenProjectVersion('.')
+    echo "iqVersion:'${iqVersion}'"
+    mvn jreleaserConfig(""), ' -pl :insight-brain -Pjdks'
+    mvn jreleaserConfig(""), ' -pl :nexus-mtiq-server jreleaser:assemble'
 
     dir("nexus-mtiq-server") {
       withSonatypeDockerRegistry() {
@@ -296,12 +303,13 @@ void pushMTIQDockerImage() {
         // build two images, one named mtiq with a default command to start the server, and the other with a default
         // command to migrate the database
         ['server': 'Dockerfile', 'migrate-mtiq-db': 'Dockerfile-migrate-mtiq-db'].each { imageName, dockerfile ->
-          sh "docker buildx create --use --driver-opt image=${sonatypeDockerRegistryId()}/moby/buildkit:buildx-stable-1"
+          sh "docker buildx create --use --driver-opt image=${sonatypeDockerRegistryId()}/moby/buildkit"
           sh "docker buildx build --platform=linux/amd64,linux/arm64 " +
               " -f ${dockerfile} " +
               " --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} " +
-              pushOption +
-              " --tag ${sonatypeDockerRegistryId()}/mtiq/${imageName}:${imageVersion} ."
+              " --build-arg IQ_SERVER_VERSION=${iqVersion} " +
+            pushOption +
+            " --tag ${sonatypeDockerRegistryId()}/mtiq/${imageName}:${imageVersion} ."
         }
       }
     }
@@ -315,6 +323,11 @@ void pushMTIQDockerImage() {
           wait: false,
           propagate: false)
     }
+}
+
+Map<String, ?> jreleaserConfig(String mavenOptions, String pomFile = null, String javaVersion = 'OpenJDK 17') {
+  return mavenCommon(javaVersion: javaVersion, mavenVersion: 'Maven 3.9.x', useEventSpy: false,
+      pomFile: pomFile, mavenOptions: mavenOptions)
 }
 
 void runAllTests(Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J) {

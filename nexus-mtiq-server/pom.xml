@@ -386,6 +386,15 @@
           <skip>true</skip> <!-- this module produces Docker, not Java artifacts -->
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.jreleaser</groupId>
+        <artifactId>jreleaser-maven-plugin</artifactId>
+        <version>${jreleaser.version}</version>
+        <inherited>false</inherited>
+        <configuration>
+          <configFile>jreleaser.yml</configFile>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 

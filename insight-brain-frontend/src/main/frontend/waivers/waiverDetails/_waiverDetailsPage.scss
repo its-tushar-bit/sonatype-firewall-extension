@@ -51,3 +51,29 @@ waiver-sidebar-view {
     }
   }
 }
+
+#auto-waiver-details-page {
+  .nx-read-only--grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .iq-auto-waiver-details {
+    &__policy {
+      .nx-threat-indicator {
+        margin: 0;
+      }
+    }
+
+    &__scope {
+      .nx-icon {
+        margin-left: 0;
+      }
+    }
+
+    &__expiration {
+      .nx-small-tag {
+        margin: 0;
+      }
+    }
+  }
+}

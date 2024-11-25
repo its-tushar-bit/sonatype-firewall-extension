@@ -11,7 +11,7 @@ describe('SidebarNavListContainer', function () {
   let SidebarNavListContainer,
     loadSidebarNavMock,
     gotoNewVulnerabilityMock,
-    gotoWaiverMock,
+    goToWaiverWithTypeMock,
     state,
     store,
     vdom,
@@ -22,13 +22,13 @@ describe('SidebarNavListContainer', function () {
     gotoNewVulnerabilityMock = jasmine
       .createSpy('gotoNewVulnerability')
       .and.returnValue({ type: 'GOTO_NEW_VULNERABILITY' });
-    gotoWaiverMock = jasmine.createSpy('gotoNewVulnerability').and.returnValue({ type: 'GOTO_WAIVER' });
+    goToWaiverWithTypeMock = jasmine.createSpy('goToWaiverWithType').and.returnValue({ type: 'GOTO_WAIVER' });
 
     SidebarNavListContainer = require('inject-loader!../../../main/frontend/sidebarNav/SidebarNavListContainer')({
       './sidebarNavListActions': {
         loadSidebarNav: loadSidebarNavMock,
         gotoNewVulnerability: gotoNewVulnerabilityMock,
-        gotoWaiver: gotoWaiverMock,
+        goToWaiverWithType: goToWaiverWithTypeMock,
       },
     }).default;
 
@@ -143,7 +143,7 @@ describe('SidebarNavListContainer', function () {
     it('maps action creators to SidebarNavListContainer props', function () {
       const wrapper = shallow(vdom).dive(),
         loadSidebarNavCreator = wrapper.prop('loadSidebarNav'),
-        gotoWaiverCreator = wrapper.prop('gotoWaiver');
+        gotoWaiverCreator = wrapper.prop('goToWaiverWithType');
 
       expect(loadSidebarNavCreator).toEqual(jasmine.any(Function));
       expect(gotoWaiverCreator).toEqual(jasmine.any(Function));

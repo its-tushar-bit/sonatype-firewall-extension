@@ -28,6 +28,7 @@ export function loadSidebarNav({ type = null, sidebarReference = null, sidebarId
         case 'violation':
           return loadViolations(dispatch, getState, sidebarReference, sidebarId);
         case 'waiver':
+        case 'autoWaiver':
           return loadWaivers(dispatch, getState, sidebarReference, sidebarId);
         default:
           return dispatch(loadSidebarNavListFailed(`Unknown type: ${type}`));
@@ -92,6 +93,10 @@ export function gotoNewVulnerability(id) {
 
 export function gotoWaiver(ownerId, ownerType, waiverId) {
   return stateGo('waiver.details', { ownerId, ownerType, waiverId });
+}
+
+export function goToWaiverWithType(ownerId, ownerType, waiverId, type) {
+  return stateGo('waiver.details', { ownerId, ownerType, waiverId, type });
 }
 
 export const setSidebarNavListData = payloadParamActionCreator(SET_SIDEBAR_NAV_LIST_DATA);

@@ -6,7 +6,7 @@
 import { always, pick } from 'ramda';
 import { connect } from 'react-redux';
 
-import { gotoNewVulnerability, gotoWaiver, loadSidebarNav } from './sidebarNavListActions';
+import { gotoNewVulnerability, goToWaiverWithType, loadSidebarNav } from './sidebarNavListActions';
 import SidebarNavList from './SidebarNavList';
 
 function mapStateToProps({ sidebarNavList, router, violation, waiverDetails }) {
@@ -34,6 +34,7 @@ function mapStateToProps({ sidebarNavList, router, violation, waiverDetails }) {
   return {
     ...props,
     stateParams: router.currentParams,
+    prevParams: router.prevParams,
     // dont scroll to selection if we're coming from an entry in the sidebar (same parent state)
     scrollToSelection: router.currentState.name !== router.prevState.name,
   };
@@ -42,7 +43,7 @@ function mapStateToProps({ sidebarNavList, router, violation, waiverDetails }) {
 const mapDispatchToProps = {
   loadSidebarNav,
   gotoNewVulnerability,
-  gotoWaiver,
+  goToWaiverWithType,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(SidebarNavList);

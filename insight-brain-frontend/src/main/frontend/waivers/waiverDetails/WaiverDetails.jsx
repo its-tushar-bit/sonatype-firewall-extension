@@ -39,7 +39,7 @@ import DeleteWaiverModalContainer from 'MainRoot/waivers/deleteWaiverModal/Delet
 import { setWaiverToDelete } from 'MainRoot/waivers/waiverActions';
 import { faSitemap, faTerminal } from '@fortawesome/pro-solid-svg-icons';
 
-export default function waiverDetails() {
+export default function WaiverDetails() {
   const isLoading = useSelector(selectWaiverDetailsLoading);
   const loadError = useSelector(selectWaiverDetailsError);
   const details = useSelector(selectWaiverDetails);
@@ -134,7 +134,7 @@ export default function waiverDetails() {
   }, []);
 
   return (
-    <NxTile className="nx-viewport-sized" id="waiver-details-page">
+    <NxTile className="nx-viewport-sized" id="waiver-details-page" data-testid="waiver-details-page">
       <NxTile.Header className="iq-waiver-details-header-container">
         <NxTile.HeaderTitle>
           <NxH2 id="iq-waiver-details-header">Waiver Detail View</NxH2>

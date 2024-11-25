@@ -7,7 +7,7 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 
-import { NxThreatIndicator, NxOverflowTooltip } from '@sonatype/react-shared-components';
+import { NxThreatIndicator, NxOverflowTooltip, NxSmallTag } from '@sonatype/react-shared-components';
 import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
 
 import { UPDATE_DIMENSIONS_TIMEOUT } from 'MainRoot/utilAngular/AngularCommon';
@@ -41,17 +41,32 @@ export default function SidebarNavWaiversList({ currentWaiverId, waivers, onClic
       selected: isItemSelected(item),
     });
 
-  const getFullPolicyName = (item) => `${item.threatLevel} ${item.policyName}`;
-
+  const getFullPolicyName = (item) => {
+    if (item?.isAutoWaiver) {
+      return (
+        <span>
+          <span>≤ {item.threatLevel}</span>
+          <NxSmallTag color="green">Auto</NxSmallTag>
+        </span>
+      );
+    }
+    return `${item.threatLevel} ${item.policyName}`;
+  };
   const getFullOwner = (item) => {
     return !item.scope ? displayWaiverScope(item) : item.scope;
+  };
+
+  const handleClick = (item) => {
+    const { ownerType, ownerId } = item;
+    const waiverType = item.isAutoWaiver ? 'autoWaiver' : 'waiver';
+    onClick(ownerId, ownerType, policyWaiverId(item), waiverType);
   };
 
   const listItems = waivers.map((item) => (
     <li
       aria-selected={isItemSelected(item)}
       key={policyWaiverId(item)}
-      onClick={() => onClick(item.ownerId, item.ownerType, policyWaiverId(item))}
+      onClick={() => handleClick(item)}
       className={listClass(item)}
       ref={isItemSelected(item) ? selectedElementRef : null}
       data-testid={isItemSelected(item) ? 'selected' : ''}
@@ -59,10 +74,14 @@ export default function SidebarNavWaiversList({ currentWaiverId, waivers, onClic
       <NxThreatIndicator policyThreatLevel={item.threatLevel}></NxThreatIndicator>
       <span className="nx-list__text">{getFullPolicyName(item)}</span>
       <div className="nx-list__subtext iq-waivers-list-item-info">
-        {isWaiverAllVersionsOrExact(item) ? (
-          <ComponentDisplay component={item} truncate={true} matcherStrategy={componentMatchStrategy(item)} />
-        ) : (
-          'All components'
+        {!item.isAutoWaiver && (
+          <>
+            {isWaiverAllVersionsOrExact(item) ? (
+              <ComponentDisplay component={item} truncate={true} matcherStrategy={componentMatchStrategy(item)} />
+            ) : (
+              'All components'
+            )}
+          </>
         )}
         <NxOverflowTooltip>
           <span className="nx-truncate-ellipsis">{getFullOwner(item)}</span>

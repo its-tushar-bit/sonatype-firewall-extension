@@ -15,7 +15,7 @@ describe('SidebarNavList', function () {
     loadSidebarNavSpy,
     gotoNewVulnerabilitySpy,
     SidebarNavViolationListMock,
-    gotoWaiverSpy,
+    goToWaiverWithTypeSpy,
     SidebarNavWaiversListMock,
     SidebarNavList,
     getShallowComponent,
@@ -39,6 +39,12 @@ describe('SidebarNavList', function () {
           id: '123456',
           sidebarId: 'foo',
           type: 'violation',
+          sidebarReference: 'filter',
+        },
+        prevParams: {
+          id: '234567',
+          sidebarId: 'foo',
+          type: 'waiver',
           sidebarReference: 'filter',
         },
         $state: {
@@ -165,6 +171,7 @@ describe('SidebarNavList', function () {
           sidebarReference: 'filter',
         },
       });
+
       expect(loadSidebarNavSpy).toHaveBeenCalledTimes(3);
       expect(loadSidebarNavSpy.calls.argsFor(2)[0]).toEqual({
         id: '123456',
@@ -182,6 +189,7 @@ describe('SidebarNavList', function () {
           sidebarReference: 'newFilter',
         },
       });
+
       expect(loadSidebarNavSpy).toHaveBeenCalledTimes(4);
       expect(loadSidebarNavSpy.calls.argsFor(3)[0]).toEqual({
         id: '123456',
@@ -189,6 +197,67 @@ describe('SidebarNavList', function () {
         type: 'newViolation',
         sidebarReference: 'newFilter',
       });
+
+      // Swithching from waiver -> autoWaiver and vice versa should not trigger a reload
+      component.setProps({
+        ...minimalProps,
+        stateParams: {
+          id: '123456',
+          sidebarId: 'bar',
+          type: 'waiver',
+          sidebarReference: 'newFilter',
+        },
+        prevParams: {
+          id: '123456',
+          sidebarId: 'bar',
+          type: 'newViolation',
+          sidebarReference: 'newFilter',
+        },
+      });
+
+      expect(loadSidebarNavSpy).toHaveBeenCalledTimes(5);
+      expect(loadSidebarNavSpy.calls.argsFor(4)[0]).toEqual({
+        id: '123456',
+        sidebarId: 'bar',
+        type: 'waiver',
+        sidebarReference: 'newFilter',
+      });
+
+      component.setProps({
+        ...minimalProps,
+        stateParams: {
+          id: '123456',
+          sidebarId: 'bar',
+          type: 'autoWaiver',
+          sidebarReference: 'newFilter',
+        },
+        prevParams: {
+          id: '123456',
+          sidebarId: 'bar',
+          type: 'waiver',
+          sidebarReference: 'newFilter',
+        },
+      });
+
+      expect(loadSidebarNavSpy).toHaveBeenCalledTimes(5);
+
+      component.setProps({
+        ...minimalProps,
+        stateParams: {
+          id: '123456',
+          sidebarId: 'bar',
+          type: 'waiver',
+          sidebarReference: 'newFilter',
+        },
+        prevParams: {
+          id: '123456',
+          sidebarId: 'bar',
+          type: 'autoWaiver',
+          sidebarReference: 'newFilter',
+        },
+      });
+
+      expect(loadSidebarNavSpy).toHaveBeenCalledTimes(5);
     });
 
     it('does not re-call loadViolation if other attributes (like id) of the $state param object change', function () {
@@ -263,7 +332,7 @@ describe('SidebarNavList', function () {
       }).default;
 
       loadSidebarNavSpy = jasmine.createSpy('loadSidebarNav');
-      gotoWaiverSpy = jasmine.createSpy('gotoWaiver');
+      goToWaiverWithTypeSpy = jasmine.createSpy('goToWaiverWithType');
 
       minimalProps = {
         stateParams: {
@@ -281,7 +350,7 @@ describe('SidebarNavList', function () {
           href: always('qwerty'),
         },
         loadSidebarNav: loadSidebarNavSpy,
-        gotoWaiver: gotoWaiverSpy,
+        goToWaiverWithType: goToWaiverWithTypeSpy,
         loading: false,
         error: null,
         data: [
@@ -332,15 +401,16 @@ describe('SidebarNavList', function () {
       ];
       const loadWrapper = getLoadWrapper({
         contentType: 'waivers',
-        gotoWaiver: gotoWaiverSpy,
+        goToWaiverWithType: goToWaiverWithTypeSpy,
         data,
+        prevParams: {},
       });
       expect(loadWrapper.find(SidebarNavWaiversListMock)).toHaveProp(
         'currentWaiverId',
         '35513cecc0214e0cb0207238dc1fba6e'
       );
       expect(loadWrapper.find(SidebarNavWaiversListMock)).toHaveProp('waivers', data);
-      expect(loadWrapper.find(SidebarNavWaiversListMock)).toHaveProp('onClick', gotoWaiverSpy);
+      expect(loadWrapper.find(SidebarNavWaiversListMock)).toHaveProp('onClick', goToWaiverWithTypeSpy);
     });
   });
 });

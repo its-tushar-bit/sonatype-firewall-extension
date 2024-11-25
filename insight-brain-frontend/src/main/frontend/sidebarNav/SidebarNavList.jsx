@@ -20,21 +20,31 @@ export default function SidebarNavList(props) {
     loading,
     error,
     gotoNewVulnerability,
-    gotoWaiver,
+    goToWaiverWithType,
     data,
     contentType,
     backButtonStateName,
     stateParams,
+    prevParams,
     scrollToSelection,
   } = props;
 
   const { id, sidebarId, sidebarReference, type, waiverId } = stateParams;
+  const { type: prevType } = prevParams;
 
   function load() {
     loadSidebarNav(stateParams);
   }
 
-  useEffect(load, [sidebarId, sidebarReference, type]);
+  function shouldSkipLoad(type, prevType) {
+    return (type === 'waiver' && prevType === 'autoWaiver') || (type === 'autoWaiver' && prevType === 'waiver');
+  }
+
+  useEffect(() => {
+    if (!shouldSkipLoad(type, prevType)) {
+      load();
+    }
+  }, [sidebarId, sidebarReference, type]);
 
   const sidebarDisplayComponent = (function (contentType) {
     switch (contentType) {
@@ -52,8 +62,8 @@ export default function SidebarNavList(props) {
           <SidebarNavWaiversList
             currentWaiverId={waiverId}
             waivers={data}
-            onClick={gotoWaiver}
             scrollToSelection={scrollToSelection}
+            onClick={goToWaiverWithType}
           />
         );
       default:
@@ -77,7 +87,7 @@ export default function SidebarNavList(props) {
 SidebarNavList.propTypes = {
   loadSidebarNav: PropTypes.func.isRequired,
   gotoNewVulnerability: PropTypes.func.isRequired,
-  gotoWaiver: PropTypes.func.isRequired,
+  goToWaiverWithType: PropTypes.func.isRequired,
   backButtonStateName: PropTypes.string,
   contentType: PropTypes.string,
   loading: PropTypes.bool.isRequired,
@@ -94,5 +104,14 @@ SidebarNavList.propTypes = {
     ownerId: PropTypes.string,
     waiverId: PropTypes.string,
   }).isRequired,
+  prevParams: PropTypes.shape({
+    id: PropTypes.string,
+    type: PropTypes.string,
+    sidebarReference: PropTypes.string,
+    sidebarId: PropTypes.string,
+    ownerType: PropTypes.string,
+    ownerId: PropTypes.string,
+    waiverId: PropTypes.string,
+  }),
   scrollToSelection: PropTypes.bool.isRequired,
 };

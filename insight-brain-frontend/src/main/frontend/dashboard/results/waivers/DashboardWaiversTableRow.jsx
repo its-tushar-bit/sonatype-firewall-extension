@@ -26,11 +26,12 @@ export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
   } = waiver;
 
   const goToWaiverDetails = () => {
+    const waiverType = waiver.isAutoWaiver ? 'autoWaiver' : 'waiver';
     stateGo('waiver.details', {
       waiverId,
       ownerId,
       ownerType,
-      type: 'waiver',
+      type: waiverType,
       sidebarReference: 'filter',
       page: page + 1,
     });
@@ -108,6 +109,7 @@ export const waiverPropTypes = PropTypes.shape({
   scope: PropTypes.string.isRequired,
   componentMatchStrategy: PropTypes.string,
   componentUpgradeAvailable: PropTypes.bool,
+  isAutoWaiver: PropTypes.bool,
 });
 
 DashboardWaiversTableRow.propTypes = {

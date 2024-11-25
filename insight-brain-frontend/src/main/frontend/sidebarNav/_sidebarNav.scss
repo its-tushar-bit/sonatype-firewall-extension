@@ -23,6 +23,12 @@ sidebar-view {
 }
 
 .nx-scrollable.nx-scrollable--nav-list {
+  .nx-list__text {
+    .nx-small-tag {
+      margin-left: var(--nx-spacing-2x);
+    }
+  }
+
   .nx-list__subtext {
     margin-top: var(--nx-spacing-2x);
   }

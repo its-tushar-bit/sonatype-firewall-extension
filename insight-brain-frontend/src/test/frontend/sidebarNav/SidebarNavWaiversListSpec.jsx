@@ -29,6 +29,7 @@ describe('SidebarNavWaiversList', function () {
           ownerType: 'root_organization',
           associatedPackageUrl: 'a/package/url',
           scope: 'Root Organization',
+          isAutoWaiver: false,
           componentMatchStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
           displayName: {
             parts: [
@@ -62,6 +63,7 @@ describe('SidebarNavWaiversList', function () {
           ownerName: 'unprotected zip big java app',
           ownerType: 'application',
           scope: 'Application - unprotected zip big java app',
+          isAutoWaiver: false,
           associatedPackageUrl: 'a/package/url',
           componentMatchStrategy: waiverMatcherStrategy.ALL_VERSIONS,
           displayName: {
@@ -87,6 +89,26 @@ describe('SidebarNavWaiversList', function () {
             ],
           },
         },
+        {
+          id: '97b6e453199f452482693e44d3390eab',
+          threatLevel: 7,
+          policyId: null,
+          policyName: null,
+          ownerId: 'f1c6c5defdfe47ea8b2e3b15d87d1842',
+          ownerName: 'Auto Waiver App',
+          ownerType: 'application',
+          componentMatchStrategy: 'DEFAULT',
+          hash: null,
+          constraintFacts: null,
+          comment: null,
+          creatorId: null,
+          creatorName: null,
+          componentIdentifier: null,
+          componentUpgradeAvailable: false,
+          isAutoWaiver: true,
+          displayName: null,
+          scope: 'Application - Auto Waiver App',
+        },
       ],
     };
 
@@ -94,10 +116,10 @@ describe('SidebarNavWaiversList', function () {
   });
 
   function validateNavListItems(ulChild, waiver, expectedThreatClass) {
-    const { policyName, threatLevel, ownerName, ownerType, ownerId, id, componentMatchStrategy } = waiver;
+    const { policyName, threatLevel, ownerName, ownerType, ownerId, id, componentMatchStrategy, isAutoWaiver } = waiver;
 
     fireEvent.click(ulChild);
-    expect(onClickSpy).toHaveBeenCalledWith(ownerId, ownerType, id);
+    expect(onClickSpy).toHaveBeenCalledWith(ownerId, ownerType, id, isAutoWaiver ? 'autoWaiver' : 'waiver');
 
     expect(ulChild).toHaveClass('nx-list__item');
     expect(ulChild.children.length).toEqual(3);
@@ -106,7 +128,9 @@ describe('SidebarNavWaiversList', function () {
     expect(threatIndicator).toHaveClass(expectedThreatClass);
 
     const policyNameElement = ulChild.children[1];
-    expect(policyNameElement.textContent).toEqual(`${threatLevel} ${policyName}`);
+    expect(policyNameElement.textContent).toEqual(
+      isAutoWaiver ? `≤ ${threatLevel}Auto` : `${threatLevel} ${policyName}`
+    );
 
     const subTextItems = ulChild.children[2];
     const componentDisplay = subTextItems.children[0];
@@ -121,7 +145,7 @@ describe('SidebarNavWaiversList', function () {
         break;
     }
 
-    const fullOrgName = subTextItems.children[1];
+    const fullOrgName = isAutoWaiver ? subTextItems.children[0] : subTextItems.children[1];
     expect(fullOrgName.textContent).toEqual(
       displayWaiverScope({ scopeOwnerType: ownerType, scopeOwnerName: ownerName })
     );
@@ -132,10 +156,11 @@ describe('SidebarNavWaiversList', function () {
     renderComponent();
 
     const wrappingList = screen.getByRole('list');
-    expect(wrappingList.children.length).toEqual(2);
+    expect(wrappingList.children.length).toEqual(3);
 
     validateNavListItems(wrappingList.children[0], waivers[0], 'nx-threat-indicator--severe');
     validateNavListItems(wrappingList.children[1], waivers[1], 'nx-threat-indicator--critical');
+    validateNavListItems(wrappingList.children[2], waivers[2], 'nx-threat-indicator--severe');
 
     expect(screen.getByText('test-group:test-artifact (all versions)')).toBeVisible();
     expect(screen.getByText('test-group:test-artifact:1.2.3')).toBeVisible();

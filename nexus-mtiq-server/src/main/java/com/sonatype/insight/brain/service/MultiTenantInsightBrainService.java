@@ -327,6 +327,9 @@ public class MultiTenantInsightBrainService
 
     modules.addAll(baseModules());
 
+    // Set up bindings based on which database is used.
+    modules.add(new DbBasedModule(() -> databaseContainer));
+
     return modules;
   }
 

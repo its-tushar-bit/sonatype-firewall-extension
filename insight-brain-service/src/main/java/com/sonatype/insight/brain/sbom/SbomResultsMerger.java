@@ -42,7 +42,6 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
@@ -109,8 +108,8 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.report.DependencyResolver.MATCH_STATE;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxLicenseFromDbData;
-import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxVulnerabilityFromDbData;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxProperty;
+import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxVulnerabilityFromDbData;
 import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.resolveRatingMethodFromSeveritySource;
 import static com.sonatype.insight.brain.utils.CvssV3Severity.resolveRatingSeverity;
 
@@ -138,8 +137,6 @@ public class SbomResultsMerger
   public static final Set<String> UNSUPPORTED_LICENSE_IDS = ImmutableSet.of("Not Provided", "Non-Standard");
 
   private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
-
-  private final ThirdPartyFileDAO thirdPartyFileDAO;
 
   private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
@@ -182,7 +179,6 @@ public class SbomResultsMerger
   @Inject
   public SbomResultsMerger(
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
-      final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
@@ -195,7 +191,6 @@ public class SbomResultsMerger
       final InsightWork insightWork)
   {
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
-    this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
     this.thirdPartyVulnerabilityExploitabilityExchangeDAO = thirdPartyVulnerabilityExploitabilityExchangeDAO;
     this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
@@ -770,8 +765,10 @@ public class SbomResultsMerger
     }
 
     // Add the binary file name as a property in the original SBOM
-    String binaryFileName =  thirdPartyFileDAO.getById(thirdPartySbomMetadata.getThirdPartyFileId()).getFilename();
-    originalBom.addProperty(createCycloneDxProperty(SbomTaxonomy.CDX_ORIGINAL_FILE_PROPERTY_NAME, binaryFileName));
+    String binaryFileName = thirdPartySbomMetadata.getOriginalBinaryFileName();
+    if (StringUtils.isNotBlank(binaryFileName)) {
+      originalBom.addProperty(createCycloneDxProperty(SbomTaxonomy.CDX_ORIGINAL_FILE_PROPERTY_NAME, binaryFileName));
+    }
 
     String bomAsString = generateBomString(originalBom);
     String compressedBinaryFileName = binaryFileName.substring(0, binaryFileName.lastIndexOf(".")) + ".json.gz";

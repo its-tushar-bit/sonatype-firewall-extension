@@ -45,6 +45,8 @@ public class SbomMetadataBuilder
 
   private String scanType;
 
+  private String originalBinaryFileName;
+
   private Boolean isValid;
 
   public SbomMetadataBuilder(DAOFactory daoFactory) {
@@ -67,6 +69,7 @@ public class SbomMetadataBuilder
     this.metadataJson = buildMetadataJson();
     this.scanType = "SBOM";
     this.isValid = true;
+    this.originalBinaryFileName = "example-original-binary-file-name";
   }
 
   public static SbomMetadataBuilder newSbomMetadataBuilder(DAOFactory daoFactory) {
@@ -153,8 +156,7 @@ public class SbomMetadataBuilder
   public ThirdPartySbomMetadata build() {
     ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata(
         thirdPartyFileId, applicationId, sbomVersion, filename, serialNumber, spec, specFormat, specVersion, status,
-        createdAt, metadataJson, scanType, isValid
-    );
+        createdAt, metadataJson, scanType, isValid, originalBinaryFileName);
     thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
 
     return thirdPartySbomMetadata;

@@ -65,6 +65,9 @@ public class ThirdPartySbomMetadata
   @Column(name = "is_valid")
   private Boolean isValid;
 
+  @Column(name = "original_binary_file_name")
+  private String originalBinaryFileName;
+
   public ThirdPartySbomMetadata(
       String thirdPartyFileId,
       String applicationId,
@@ -78,7 +81,8 @@ public class ThirdPartySbomMetadata
       Date createdAt,
       String metadataJson,
       String scanType,
-      Boolean isValid)
+      Boolean isValid,
+      String originalBinaryFileName)
   {
 
     this.thirdPartyFileId = thirdPartyFileId;
@@ -94,6 +98,7 @@ public class ThirdPartySbomMetadata
     this.metadataJson = metadataJson;
     this.scanType = scanType;
     this.isValid = isValid;
+    this.originalBinaryFileName = originalBinaryFileName;
   }
 
   @Override
@@ -208,5 +213,13 @@ public class ThirdPartySbomMetadata
 
   public void setIsValid(final Boolean isValid) {
     this.isValid = isValid == null || isValid;
+  }
+
+  public String getOriginalBinaryFileName() {
+    return originalBinaryFileName;
+  }
+
+  public void setOriginalBinaryFileName(final String originalBinaryFileName) {
+    this.originalBinaryFileName = originalBinaryFileName;
   }
 }

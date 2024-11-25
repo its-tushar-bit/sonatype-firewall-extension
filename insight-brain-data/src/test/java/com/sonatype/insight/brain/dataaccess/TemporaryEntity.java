@@ -5378,6 +5378,7 @@ public class TemporaryEntity
     thirdPartySbomMetadata.setCreatedAt(new Date());
     thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFile.getId());
     thirdPartySbomMetadata.setFilename("binary.temp");
+    thirdPartySbomMetadata.setOriginalBinaryFileName("binary.temp");
     thirdPartySbomMetadata.setSerialNumber(uuid().substring(0, 10));
     thirdPartySbomMetadata.setSpec(uuid().substring(0, 10));
     thirdPartySbomMetadata.setSpecFormat(uuid().substring(0, 10));

@@ -328,6 +328,7 @@ public class ThirdPartySbomMetadataDAOTest
     assertThat(actual.getMetadataJson()).isEqualTo(expected.getMetadataJson());
     assertThat(actual.getScanType()).isEqualTo(expected.getScanType());
     assertThat(actual.getIsValid()).isEqualTo(expected.getIsValid());
+    assertThat(actual.getOriginalBinaryFileName()).isEqualTo(expected.getOriginalBinaryFileName());
   }
 
   ThirdPartySbomMetadata createSbomMetadata(boolean save, String status) {

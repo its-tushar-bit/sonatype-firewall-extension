@@ -277,6 +277,110 @@ describe('ListWaiversTable', () => {
         ).toBeVisible();
       });
     });
+
+    describe('with auto waiver', () => {
+      it('displays auto waiver information when present', async () => {
+        const autoWaiver = getAutoWaiverData();
+        renderComponent({
+          violation: {
+            autoWaiver,
+            activeWaivers: [],
+            expiredWaivers: [],
+          },
+        });
+
+        const table = await screen.findByRole('table');
+        const groups = within(table).getAllByRole('rowgroup');
+        const rows = within(groups[1]).getAllByRole('row');
+
+        expect(rows.length).toBe(1);
+        const autoWaiverRow = rows[0];
+
+        expect(within(autoWaiverRow).getByText('2023-12-28')).toBeVisible();
+        expect(within(autoWaiverRow).getByText('Application - app2')).toBeVisible();
+        expect(within(autoWaiverRow).getByText('Auto')).toBeVisible();
+        expect(within(autoWaiverRow).getByText('Any Component')).toBeVisible();
+        expect(within(autoWaiverRow).getByText('Current or latest non-violating')).toBeVisible();
+        expect(within(autoWaiverRow).getByText('Admin BuiltIn')).toBeVisible();
+      });
+
+      it('shows auto waiver before regular waivers', async () => {
+        const autoWaiver = getAutoWaiverData();
+        const regularWaiver = {
+          ...getBasicWaiverData(),
+          createTime: '2023-12-29T18:29:30.649+0000', // newer than auto waiver
+        };
+
+        renderComponent({
+          violation: {
+            autoWaiver,
+            activeWaivers: [regularWaiver],
+            expiredWaivers: [],
+          },
+        });
+
+        const table = await screen.findByRole('table');
+        const groups = within(table).getAllByRole('rowgroup');
+        const rows = within(groups[1]).getAllByRole('row');
+        expect(rows.length).toBe(2);
+
+        let autoWaiverRow = rows[0];
+        let regularWaiverRow = rows[1];
+        expect(within(autoWaiverRow).getByText('2023-12-28')).toBeVisible();
+        expect(within(autoWaiverRow).getByText('Application - app2')).toBeVisible();
+        expect(within(autoWaiverRow).getByText('Auto')).toBeVisible();
+        expect(within(autoWaiverRow).getByText('Any Component')).toBeVisible();
+        expect(within(autoWaiverRow).getByText('Current or latest non-violating')).toBeVisible();
+        expect(within(autoWaiverRow).getByText('Admin BuiltIn')).toBeVisible();
+
+        expect(within(regularWaiverRow).getByText(regularWaiver.comment)).toBeVisible();
+        expect(
+          within(regularWaiverRow).getByText('org.springframework.security : spring-security-config : 5.2.0.RELEASE')
+        ).toBeVisible();
+      });
+
+      it('handles loading state for auto waiver', async () => {
+        renderComponent({
+          violation: {
+            loadingAutoWaiver: true,
+            loadingApplicableWaivers: false,
+          },
+        });
+
+        expect(screen.getByText('Loading…')).toBeInTheDocument();
+      });
+
+      it('handles error state for auto waiver', async () => {
+        renderComponent({
+          violation: {
+            loadAutoWaiverError: 'Failed to load auto waiver',
+            autoWaiver: null,
+          },
+        });
+
+        await waitFor(() => screen.getByText(/An error occurred loading data/));
+        const retryButton = screen.getByRole('button', { name: 'Retry' });
+        expect(retryButton).toBeVisible();
+      });
+
+      it('shows clog icon for auto waiver', async () => {
+        const autoWaiver = getAutoWaiverData();
+        renderComponent({
+          violation: {
+            autoWaiver,
+            activeWaivers: [],
+            expiredWaivers: [],
+          },
+        });
+
+        const table = await screen.findByRole('table');
+        const groups = within(table).getAllByRole('rowgroup');
+        const rows = within(groups[1]).getAllByRole('row');
+        const autoWaiverRow = rows[0];
+
+        expect(within(autoWaiverRow).queryByRole('icon')).not.toBeInTheDocument();
+      });
+    });
   });
 });
 
@@ -401,5 +505,21 @@ function getBasicWaiverData() {
       ],
       name: 'spring-security-config',
     },
+  };
+}
+
+function getAutoWaiverData() {
+  return {
+    autoPolicyWaiverId: 'auto-waiver-123',
+    ownerId: '366f3a50e366482a8b81b54f3152b056',
+    ownerType: 'application',
+    ownerName: 'app2',
+    publicId: 'app2-id',
+    threatLevel: 9,
+    reachable: false,
+    pathForward: false,
+    creatorId: 'admin',
+    creatorName: 'Admin BuiltIn',
+    createTime: '2023-12-28T18:29:30.649+0000',
   };
 }

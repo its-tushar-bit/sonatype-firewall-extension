@@ -10,6 +10,7 @@ import {
   getVulnerabilityJsonDetailUrl,
   getApplicableWaiversUrl,
   getApplicationSummaryUrl,
+  getApplicableAutoWaiverUrl,
 } from 'MainRoot/util/CLMLocation';
 import {
   loadViolation,
@@ -24,6 +25,9 @@ import {
   loadVulnerabilityDetails,
   VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED,
   VIOLATION_FETCH_APPLICABLE_WAIVERS_FAILED,
+  VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_REQUESTED,
+  VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FULFILLED,
+  VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FAILED,
 } from 'MainRoot/violation/violationActions';
 import { getPermissionContextTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -72,9 +76,10 @@ describe('violationActions', function () {
     });
 
     describe('when violation is already loaded', function () {
-      it('resolves violation details from memory and requests applicable waivers', function (done) {
+      it('resolves violation details from memory, requests applicable waivers and auto waiver', function (done) {
         const violationDetailsUrl = getViolationDetailsUrl('bar'),
-          applicableWaiversUrl = getApplicableWaiversUrl('bar');
+          applicableWaiversUrl = getApplicableWaiversUrl('bar'),
+          applicableAutoWaiverUrl = getApplicableAutoWaiverUrl('bar');
 
         mockAxiosCalls({
           get: {
@@ -86,6 +91,9 @@ describe('violationActions', function () {
                 activeWaivers: ['foo'],
                 expiredWaivers: ['bar'],
               },
+            }),
+            [applicableAutoWaiverUrl]: Promise.resolve({
+              data: { id: 'applicationPublicId' },
             }),
             [applicationSummaryUrl]: Promise.resolve({
               data: { id: 'applicationPrivateId' },
@@ -103,20 +111,25 @@ describe('violationActions', function () {
           expect(axios.get).not.toHaveBeenCalledWith(violationDetailsUrl);
           // make sure that a request for applicable waivers was sent
           expect(axios.get).toHaveBeenCalledWith(applicableWaiversUrl);
+          // make sure that a request for applicable auto waiver was sent
+          expect(axios.get).toHaveBeenCalledWith(applicableAutoWaiverUrl);
           const actions = store.getActions();
-          expect(actions.length).toBe(4);
+          expect(actions.length).toBe(6);
           expect(actions[1].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED);
-          expect(actions[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
-          expect(actions[2].payload).toEqual({
+          expect(actions[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_REQUESTED);
+          expect(actions[3].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+          expect(actions[3].payload).toEqual({
             activeWaivers: ['foo'],
             expiredWaivers: ['bar'],
           });
-          expect(actions[3].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
-          expect(actions[3].payload).toEqual(true);
+          expect(actions[4].type).toEqual(VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FULFILLED);
+          expect(actions[4].payload).toEqual({ id: 'applicationPublicId' });
+          expect(actions[5].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
+          expect(actions[5].payload).toEqual(true);
           done();
         });
 
-        expect(store.getActions().length).toBe(2);
+        expect(store.getActions().length).toBe(3);
       });
     });
 
@@ -126,9 +139,10 @@ describe('violationActions', function () {
       store.dispatch(loadViolation('foo'));
 
       const actions = store.getActions();
-      expect(actions.length).toBe(2);
+      expect(actions.length).toBe(3);
       expect(actions[0].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED);
       expect(actions[1].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED);
+      expect(actions[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_REQUESTED);
     });
 
     it('dispatches "fetch fulfilled" actions with cross-stage violation and waived false', function (done) {
@@ -139,6 +153,9 @@ describe('violationActions', function () {
           }),
           [getApplicableWaiversUrl('foo1')]: Promise.resolve({
             data: { activeWaivers: ['foo1'], expiredWaivers: ['bar'] },
+          }),
+          [getApplicableAutoWaiverUrl('foo1')]: Promise.resolve({
+            data: { id: 'applicationPublicId' },
           }),
           [applicationSummaryUrl]: Promise.resolve({
             data: { id: 'applicationPrivateId' },
@@ -153,20 +170,25 @@ describe('violationActions', function () {
 
       store.dispatch(loadViolation('foo1')).then(() => {
         const actions = store.getActions();
-        expect(actions.length).toBe(5);
+        expect(actions.length).toBe(7);
         expect(actions[1].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED);
-        expect(actions[2].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
-        expect(actions[2].payload).toEqual({
+        expect(actions[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_REQUESTED);
+        expect(actions[3].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+        expect(actions[3].payload).toEqual({
           violationDetails: { policyViolationId: 'foo1', waived: false },
           selectedViolationId: 'foo1',
         });
-        expect(actions[3].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
-        expect(actions[3].payload).toEqual({
+        expect(actions[4].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+        expect(actions[4].payload).toEqual({
           activeWaivers: ['foo1'],
           expiredWaivers: ['bar'],
         });
-        expect(actions[4].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
-        expect(actions[4].payload).toEqual(true);
+
+        expect(actions[5].type).toEqual(VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FULFILLED);
+        expect(actions[5].payload).toEqual({ id: 'applicationPublicId' });
+
+        expect(actions[6].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
+        expect(actions[6].payload).toEqual(true);
 
         done();
       });
@@ -183,6 +205,9 @@ describe('violationActions', function () {
           [getApplicableWaiversUrl('foo2')]: Promise.resolve({
             data: { activeWaivers: ['foo2'], expiredWaivers: ['bar'] },
           }),
+          [getApplicableAutoWaiverUrl('foo2')]: Promise.resolve({
+            data: { id: 'applicationPublicId' },
+          }),
           [applicationSummaryUrl]: Promise.resolve({
             data: { id: 'applicationPrivateId' },
           }),
@@ -196,25 +221,31 @@ describe('violationActions', function () {
 
       store.dispatch(loadViolation('foo2')).then(() => {
         const actions = store.getActions();
-        expect(actions.length).toBe(5);
+        expect(actions.length).toBe(7);
         expect(actions[1].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED);
-        expect(actions[2].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
-        expect(actions[2].payload).toEqual({
+        expect(actions[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_REQUESTED);
+        expect(actions[3].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+        expect(actions[3].payload).toEqual({
           violationDetails: { policyViolationId: 'foo2', waived: true },
           selectedViolationId: 'foo2',
         });
-        expect(actions[3].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
-        expect(actions[3].payload).toEqual({
+        expect(actions[4].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+        expect(actions[4].payload).toEqual({
           activeWaivers: ['foo2'],
           expiredWaivers: ['bar'],
         });
-        expect(actions[4].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
-        expect(actions[4].payload).toEqual(true);
+
+        expect(actions[5].type).toEqual(VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FULFILLED);
+        expect(actions[5].payload).toEqual({ id: 'applicationPublicId' });
+
+        expect(actions[6].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
+        expect(actions[6].payload).toEqual(true);
 
         done();
       });
       expect(axios.get).toHaveBeenCalledWith(getViolationDetailsUrl('foo2'));
       expect(axios.get).toHaveBeenCalledWith(getApplicableWaiversUrl('foo2'));
+      expect(axios.get).toHaveBeenCalledWith(getApplicableAutoWaiverUrl('foo2'));
     });
 
     it('dispatches VIOLATION_LOAD_VIOLATION_DETAILS_FAILED when the violation details request fails', function (done) {
@@ -226,6 +257,9 @@ describe('violationActions', function () {
           [getApplicableWaiversUrl('foo')]: Promise.resolve({
             data: { activeWaivers: ['foo'], expiredWaivers: ['bar'] },
           }),
+          [getApplicableAutoWaiverUrl('foo')]: Promise.resolve({
+            data: { id: 'applicationPublicId' },
+          }),
           [applicationSummaryUrl]: Promise.resolve({
             data: { id: 'applicationPrivateId' },
           }),
@@ -239,24 +273,29 @@ describe('violationActions', function () {
 
       store.dispatch(loadViolation('foo')).then(() => {
         const actions = store.getActions();
-        expect(actions.length).toBe(4);
+        expect(actions.length).toBe(6);
         expect(actions[0].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED);
         expect(actions[1].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED);
-        expect(actions[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
-        expect(actions[2].payload).toEqual({
+        expect(actions[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_REQUESTED);
+        expect(actions[3].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+        expect(actions[3].payload).toEqual({
           activeWaivers: ['foo'],
           expiredWaivers: ['bar'],
         });
-        expect(actions[3].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FAILED);
-        expect(actions[3].payload).toEqual(responseError);
+
+        expect(actions[4].type).toEqual(VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FULFILLED);
+        expect(actions[4].payload).toEqual({ id: 'applicationPublicId' });
+        expect(actions[5].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FAILED);
+        expect(actions[5].payload).toEqual(responseError);
         done();
       });
 
       expect(axios.get).toHaveBeenCalledWith(getViolationDetailsUrl('foo'));
       expect(axios.get).toHaveBeenCalledWith(getApplicableWaiversUrl('foo'));
+      expect(axios.get).toHaveBeenCalledWith(getApplicableAutoWaiverUrl('foo'));
     });
 
-    it('dispatches VIOLATION_LOAD_VIOLATION_DETAILS_FAILED when the applicable waivers request fails', function (done) {
+    it('dispatches VIOLATION_LOAD_VIOLATION_DETAILS_FAILED when the applicable waivers and auto waiver request fails', function (done) {
       const responseError1 = 'applicableWaiversError!';
       store = SpecUtil.mockReduxStore({ ...state, componentDetailsPolicyViolations: undefined });
 
@@ -266,6 +305,7 @@ describe('violationActions', function () {
             data: { policyViolationId: 'foo' },
           }),
           [getApplicableWaiversUrl('foo')]: () => Promise.reject(responseError1),
+          [getApplicableAutoWaiverUrl('foo')]: Promise.reject(responseError1),
           [applicationSummaryUrl]: Promise.resolve({
             data: { id: 'applicationPrivateId' },
           }),
@@ -279,22 +319,27 @@ describe('violationActions', function () {
 
       store.dispatch(loadViolation('foo')).then(() => {
         const actions = store.getActions();
-        expect(actions.length).toBe(5);
+        expect(actions.length).toBe(7);
         expect(actions[0].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED);
         expect(actions[1].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED);
-        expect(actions[2].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
-        expect(actions[2].payload).toEqual({
+        expect(actions[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_REQUESTED);
+        expect(actions[3].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+        expect(actions[3].payload).toEqual({
           violationDetails: { policyViolationId: 'foo', waived: true },
           selectedViolationId: 'foo',
         });
-        expect(actions[3].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FAILED);
-        expect(actions[3].payload).toEqual(responseError1);
-        expect(actions[4].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
+        expect(actions[4].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FAILED);
+        expect(actions[4].payload).toEqual(responseError1);
+        expect(actions[5].type).toEqual(VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FAILED);
+        expect(actions[5].payload).toEqual(responseError1);
+
+        expect(actions[6].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
         done();
       });
 
       expect(axios.get).toHaveBeenCalledWith(getViolationDetailsUrl('foo'));
       expect(axios.get).toHaveBeenCalledWith(getApplicableWaiversUrl('foo'));
+      expect(axios.get).toHaveBeenCalledWith(getApplicableAutoWaiverUrl('foo'));
     });
 
     describe('when violation has a security vulnerability reference', function () {
@@ -333,6 +378,9 @@ describe('violationActions', function () {
             [getApplicableWaiversUrl('foo')]: Promise.resolve({
               data: { activeWaivers: [], expiredWaivers: [] },
             }),
+            [getApplicableAutoWaiverUrl('foo')]: Promise.resolve({
+              data: { id: 'applicationPublicId' },
+            }),
             [getVulnerabilityJsonDetailUrl('CVE-2016-1000027', null, extraQueryParameters)]: Promise.resolve({
               data: vulnerabilityResponseData,
             }),
@@ -349,15 +397,18 @@ describe('violationActions', function () {
 
         store.dispatch(loadViolation('foo')).then(() => {
           const actions = store.getActions();
-          expect(actions.length).toBe(7);
+          expect(actions.length).toBe(9);
           expect(actions[0].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED);
           expect(actions[1].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED);
-          expect(actions[2].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
-          expect(actions[3].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
-          expect(actions[4].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
-          expect(actions[5].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED);
-          expect(actions[6].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED);
-          expect(actions[6].payload).toEqual({ bar: 'baz', hasEditIqPermission: true });
+          expect(actions[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_REQUESTED);
+          expect(actions[3].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+          expect(actions[4].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+          expect(actions[5].type).toEqual(VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FULFILLED);
+          expect(actions[5].payload).toEqual({ id: 'applicationPublicId' });
+          expect(actions[6].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
+          expect(actions[7].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED);
+          expect(actions[8].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED);
+          expect(actions[8].payload).toEqual({ bar: 'baz', hasEditIqPermission: true });
           done();
         });
       });
@@ -372,6 +423,9 @@ describe('violationActions', function () {
             }),
             [getApplicableWaiversUrl('foo')]: Promise.resolve({
               data: { activeWaivers: [], expiredWaivers: [] },
+            }),
+            [getApplicableAutoWaiverUrl('foo')]: Promise.resolve({
+              data: { id: 'applicationPublicId' },
             }),
             [getVulnerabilityJsonDetailUrl('CVE-2016-1000027', null, extraQueryParameters)]: () =>
               Promise.reject(vulnerabilityResponseError),
@@ -388,15 +442,18 @@ describe('violationActions', function () {
 
         store.dispatch(loadViolation('foo')).then(() => {
           const actions = store.getActions();
-          expect(actions.length).toBe(7);
+          expect(actions.length).toBe(9);
           expect(actions[0].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED);
           expect(actions[1].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED);
-          expect(actions[2].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
-          expect(actions[3].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
-          expect(actions[4].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
-          expect(actions[5].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED);
-          expect(actions[6].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED);
-          expect(actions[6].payload).toEqual(vulnerabilityResponseError);
+          expect(actions[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_REQUESTED);
+          expect(actions[3].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+          expect(actions[4].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+          expect(actions[5].type).toEqual(VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FULFILLED);
+          expect(actions[5].payload).toEqual({ id: 'applicationPublicId' });
+          expect(actions[6].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
+          expect(actions[7].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED);
+          expect(actions[8].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED);
+          expect(actions[8].payload).toEqual(vulnerabilityResponseError);
           done();
         });
       });

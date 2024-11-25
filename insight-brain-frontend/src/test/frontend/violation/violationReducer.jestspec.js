@@ -104,6 +104,7 @@ describe('violationReducer', function () {
         vulnerabilityDetailsError: null,
         activeWaivers: [],
         expiredWaivers: [],
+        autoWaiver: null,
         similarWaivers: [],
         selectedViolationId: null,
         hasPermissionForAppWaivers: false,
@@ -356,6 +357,68 @@ describe('violationReducer', function () {
 
       expect(newState.loadingApplicableWaivers).toBe(false);
       expect(newState.loadApplicableWaiversError).toBe('some error');
+      expect(newState.otherProp).toBe(state.otherProp);
+    });
+  });
+
+  describe('VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FULFILLED', function () {
+    it('sets the waiver in the state', function () {
+      const state = {
+        loading: true,
+        loadingApplicableWaivers: false,
+        loadingApplicableAutoWaiver: true,
+        loadApplicableWaiversError: 'error',
+        otherProp: { prop: 'foo' },
+      };
+
+      const newState = reducer(state, {
+        type: 'VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FULFILLED',
+        payload: {
+          id: 'applicationPublicId',
+        },
+      });
+
+      expect(newState.loading).toBe(true);
+      expect(newState.loadingApplicableWaivers).toBe(false);
+      expect(newState.loadApplicableWaiversError).toBe('error');
+      expect(newState.loadingApplicableAutoWaiver).toBe(false);
+      expect(newState.otherProp).toBe(state.otherProp);
+    });
+  });
+
+  describe('VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_REQUESTED', function () {
+    it('sets error and loading states for applicable auto waiver', function () {
+      const state = {
+        loadingApplicableAutoWaiver: false,
+        loadApplicableAutoWaiverError: 'error',
+        otherProp: { prop: 'foo' },
+      };
+
+      const newState = reducer(state, {
+        type: 'VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_REQUESTED',
+      });
+
+      expect(newState.loadingApplicableAutoWaiver).toBe(true);
+      expect(newState.loadApplicableAutoWaiverError).toBe(null);
+      expect(newState.otherProp).toBe(state.otherProp);
+    });
+  });
+
+  describe('VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FAILED', function () {
+    it('sets error and loading states for applicable waiver', function () {
+      const state = {
+        loadingApplicableAutoWaiver: true,
+        loadApplicableAutoWaiverError: 'error',
+        otherProp: { prop: 'foo' },
+      };
+
+      const newState = reducer(state, {
+        type: 'VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FAILED',
+        payload: 'some error',
+      });
+
+      expect(newState.loadingApplicableAutoWaiver).toBe(false);
+      expect(newState.loadApplicableAutoWaiverError).toBe('some error');
       expect(newState.otherProp).toBe(state.otherProp);
     });
   });

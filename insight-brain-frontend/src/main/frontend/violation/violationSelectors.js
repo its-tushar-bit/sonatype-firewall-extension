@@ -27,6 +27,15 @@ export const selectApplicableWaivers = createSelector(selectViolationSlice, ({ a
   return { activeWaivers, expiredWaivers };
 });
 
+export const selectApplicableAutoWaiver = createSelector(
+  selectViolationSlice,
+  ({ autoWaiver, loadingAutoWaiver, loadAutoWaiverError }) => ({
+    autoWaiver,
+    loadingAutoWaiver,
+    loadAutoWaiverError,
+  })
+);
+
 export const selectHasPermissionForAppWaivers = createSelector(
   selectViolationSlice,
   prop('hasPermissionForAppWaivers')

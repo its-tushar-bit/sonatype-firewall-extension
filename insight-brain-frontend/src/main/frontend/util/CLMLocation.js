@@ -331,6 +331,10 @@ export function getApplicableWaiversUrl(policyViolationId) {
   return uriTemplate`/api/v2/policyViolations/${policyViolationId}/applicableWaivers`;
 }
 
+export function getApplicableAutoWaiverUrl(policyViolationId) {
+  return uriTemplate`/api/v2/policyViolations/${policyViolationId}/applicableAutoWaiver`;
+}
+
 export function getSimilarWaiversUrl(policyViolationId) {
   return uriTemplate`/api/v2/policyViolations/${policyViolationId}/similarWaivers`;
 }

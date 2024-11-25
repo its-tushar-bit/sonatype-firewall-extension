@@ -14,6 +14,7 @@ import {
   NxButton,
   NxFontAwesomeIcon,
   NxReadOnly,
+  NxSmallTag,
   NxTable,
   NxTableBody,
   NxTableCell,
@@ -21,7 +22,7 @@ import {
   NxTableRow,
   NxTextLink,
 } from '@sonatype/react-shared-components';
-import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { faTrashAlt, faCog } from '@fortawesome/free-solid-svg-icons';
 
 import ComponentDisplay from '../ComponentDisplay/ReactComponentDisplay';
 import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
@@ -32,9 +33,10 @@ import { STANDARD_DATE_FORMAT } from 'MainRoot/util/dateUtils';
 import { setWaiverToDelete } from 'MainRoot/waivers/waiverActions';
 import DeleteWaiverModalContainer from 'MainRoot/waivers/deleteWaiverModal/DeleteWaiverModalContainer';
 import { selectWaiverToDelete } from 'MainRoot/waivers/deleteWaiverModal/deleteWaiverSelector';
-import { selectApplicableWaivers } from 'MainRoot/violation/violationSelectors';
-import { loadApplicableWaivers } from 'MainRoot/violation/violationActions';
+import { selectApplicableAutoWaiver, selectApplicableWaivers } from 'MainRoot/violation/violationSelectors';
+import { loadApplicableAutoWaiver, loadApplicableWaivers } from 'MainRoot/violation/violationActions';
 import { selectViolationSlice } from './requestWaiverSelectors';
+import { capitalize } from 'MainRoot/util/jsUtil';
 
 export default function ListWaiversTable(props) {
   const { violationDetails, unknownComponentName } = props;
@@ -42,6 +44,7 @@ export default function ListWaiversTable(props) {
   const dispatch = useDispatch();
   const { activeWaivers, expiredWaivers } = useSelector(selectApplicableWaivers);
   const { loadingApplicableWaivers, loadApplicableWaiversError } = useSelector(selectViolationSlice);
+  const { autoWaiver, loadingAutoWaiver, loadAutoWaiverError } = useSelector(selectApplicableAutoWaiver);
   const waiverToDelete = useSelector(selectWaiverToDelete);
   const displayWaiverInTableRow = curry((isWaiverExpired, waiver) => {
     const rowClass = classnames({
@@ -106,6 +109,48 @@ export default function ListWaiversTable(props) {
     );
   });
 
+  const displayAutoWaiverRow = (autoWaiver) => {
+    if (!autoWaiver) return null;
+    const autoKey = `auto_waiver-${autoWaiver.autoPolicyWaiverId}`;
+    return (
+      <NxTableRow className="list-auto-waiver-row" key={autoKey}>
+        <NxTableCell>
+          <NxReadOnly.Label>Created</NxReadOnly.Label>
+          <NxReadOnly.Data className="iq-auto-waiver-table__created visual-testing-ignore">
+            {moment(autoWaiver.createTime).format(STANDARD_DATE_FORMAT)}
+          </NxReadOnly.Data>
+
+          <NxReadOnly.Label>Expiration</NxReadOnly.Label>
+          <NxReadOnly.Data className="iq-auto-waiver-table__expiration">
+            <NxSmallTag color="green">Auto</NxSmallTag>
+          </NxReadOnly.Data>
+        </NxTableCell>
+        <NxTableCell>
+          <NxReadOnly.Label>Scope</NxReadOnly.Label>
+          <NxReadOnly.Data className="iq-auto-waiver-table__scope">
+            {capitalize(autoWaiver.ownerType)} - {autoWaiver.ownerName}
+          </NxReadOnly.Data>
+
+          <NxReadOnly.Label>Component</NxReadOnly.Label>
+          <NxReadOnly.Data className="iq-auto-waiver-table__component">Any Component</NxReadOnly.Data>
+
+          <NxReadOnly.Label>Version</NxReadOnly.Label>
+          <NxReadOnly.Data className="iq-auto-waiver-table__version">Current or latest non-violating</NxReadOnly.Data>
+
+          <NxReadOnly.Label>Author</NxReadOnly.Label>
+          <NxReadOnly.Data className="iq-auto-waiver-table__author">{autoWaiver?.creatorName || '- -'}</NxReadOnly.Data>
+        </NxTableCell>
+        <NxTableCell className="iq-auto-waiver-table__revocation">
+          <div className="nx-btn-bar">
+            <NxButton variant="icon-only" title="revocation" className="list-auto-waiver-row__revocation-btn">
+              <NxFontAwesomeIcon icon={faCog} />
+            </NxButton>
+          </div>
+        </NxTableCell>
+      </NxTableRow>
+    );
+  };
+
   const emptyMessage = (
     <span>
       You don&apos;t have any waivers: to learn more about waivers you can check our{' '}
@@ -114,6 +159,15 @@ export default function ListWaiversTable(props) {
       </NxTextLink>
     </span>
   );
+
+  const retryHandler = () => {
+    const violationId = violationDetails.policyViolationId;
+    dispatch(loadApplicableWaivers(violationId));
+    dispatch(loadApplicableAutoWaiver(violationId));
+  };
+
+  const isLoading = loadingApplicableWaivers || loadingAutoWaiver;
+  const error = loadApplicableWaiversError || loadAutoWaiverError;
 
   return (
     <>
@@ -128,10 +182,11 @@ export default function ListWaiversTable(props) {
         </NxTableHead>
         <NxTableBody
           emptyMessage={emptyMessage}
-          isLoading={loadingApplicableWaivers}
-          error={Messages.getHttpErrorMessage(loadApplicableWaiversError)}
-          retryHandler={() => dispatch(loadApplicableWaivers(violationDetails.policyViolationId))}
+          isLoading={isLoading}
+          error={Messages.getHttpErrorMessage(error)}
+          retryHandler={retryHandler}
         >
+          {autoWaiver && displayAutoWaiverRow(autoWaiver)}
           {activeWaivers && map(displayWaiverInTableRow(false), sort(descend(prop('createTime')), activeWaivers))}
           {expiredWaivers && map(displayWaiverInTableRow(true), sort(descend(prop('createTime')), expiredWaivers))}
         </NxTableBody>

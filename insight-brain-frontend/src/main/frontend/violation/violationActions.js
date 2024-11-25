@@ -13,6 +13,7 @@ import {
   getApplicableWaiversUrl,
   getRepositoryPolicyViolationUrl,
   getApplicationSummaryUrl,
+  getApplicableAutoWaiverUrl,
 } from '../util/CLMLocation';
 import { isNilOrEmpty } from '../util/jsUtil';
 import { convertToWaiverViolationFormat } from '../util/waiverUtils';
@@ -36,6 +37,10 @@ export const VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED = 'VIOLATION_FETCH_APP
 export const VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED = 'VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED';
 export const VIOLATION_FETCH_APPLICABLE_WAIVERS_FAILED = 'VIOLATION_FETCH_APPLICABLE_WAIVERS_FAILED';
 
+export const VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_REQUESTED = 'VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_REQUESTED';
+export const VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FULFILLED = 'VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FULFILLED';
+export const VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FAILED = 'VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FAILED';
+
 export const VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED = 'VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED';
 export const VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED = 'VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED';
 export const VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED = 'VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED';
@@ -47,11 +52,19 @@ const loadApplicableWaiversRequested = payloadParamActionCreator(VIOLATION_FETCH
 const loadApplicableWaiversFulfilled = payloadParamActionCreator(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
 const loadApplicableWaiversFailed = payloadParamActionCreator(VIOLATION_FETCH_APPLICABLE_WAIVERS_FAILED);
 
+const loadAutoWaiverRequested = payloadParamActionCreator(VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_REQUESTED);
+const loadAutoWaiverFulfilled = payloadParamActionCreator(VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FULFILLED);
+const loadAutoWaiverFailed = payloadParamActionCreator(VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FAILED);
+
 export function loadViolation(id) {
   return function (dispatch, getState) {
     dispatch(loadViolationDetailsRequested());
 
-    const parallelRequests = [dispatch(fetchCrossStageViolation(id)), dispatch(loadApplicableWaivers(id))];
+    const parallelRequests = [
+      dispatch(fetchCrossStageViolation(id)),
+      dispatch(loadApplicableWaivers(id)),
+      dispatch(loadApplicableAutoWaiver(id)),
+    ];
 
     return Promise.all(parallelRequests)
       .then(() => loadPermissionForAppWaivers(getState().violation.violationDetails.applicationPublicId))
@@ -71,6 +84,15 @@ export function loadApplicableWaivers(id) {
   };
 }
 
+export function loadApplicableAutoWaiver(id) {
+  return function (dispatch) {
+    dispatch(loadAutoWaiverRequested());
+    return axios
+      .get(getApplicableAutoWaiverUrl(id))
+      .then(compose(dispatch, loadAutoWaiverFulfilled, prop('data')))
+      .catch(compose(dispatch, loadAutoWaiverFailed));
+  };
+}
 export function setFilterIdsSimilarWaivers(selectedIds) {
   return function (dispatch) {
     return dispatch(payloadParamActionCreator(VIOLATION_SET_FILTER_IDS_SIMILAR_WAIVERS)(selectedIds));

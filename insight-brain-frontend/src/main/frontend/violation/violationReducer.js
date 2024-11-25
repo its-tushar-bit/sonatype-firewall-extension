@@ -19,6 +19,9 @@ import {
   VIOLATION_SET_FILTER_IDS_SIMILAR_WAIVERS,
   VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED,
   VIOLATION_FETCH_APPLICABLE_WAIVERS_FAILED,
+  VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FULFILLED,
+  VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_REQUESTED,
+  VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FAILED,
 } from './violationActions';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 import {
@@ -37,6 +40,7 @@ const initialState = Object.freeze({
   hasEditIqPermission: false,
   activeWaivers: Object.freeze([]),
   expiredWaivers: Object.freeze([]),
+  autoWaiver: null,
   similarWaivers: Object.freeze([]),
   similarWaiversFilterSelectedIds: new Set([]),
   selectedViolationId: null,
@@ -102,6 +106,25 @@ const loadApplicableWaiversFailed = (payload, state) => ({
   ...state,
   loadingApplicableWaivers: false,
   loadApplicableWaiversError: payload,
+});
+
+const loadApplicableAutoWaiverFulfilled = (payload, state) => ({
+  ...state,
+  autoWaiver: payload,
+  loadingApplicableAutoWaiver: false,
+  loadApplicableAutoWaiverError: null,
+});
+
+const loadApplicableAutoWaiverRequested = (payload, state) => ({
+  ...state,
+  loadingApplicableAutoWaiver: true,
+  loadApplicableAutoWaiverError: null,
+});
+
+const loadApplicableAutoWaiverFailed = (payload, state) => ({
+  ...state,
+  loadingApplicableAutoWaiver: false,
+  loadApplicableAutoWaiverError: payload,
 });
 
 const loadSimilarWaiversRequested = (payload, state) => ({
@@ -175,6 +198,9 @@ const reducerActionMap = {
   [VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED]: loadApplicableWaiversFulfilled,
   [VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED]: loadApplicableWaiversRequested,
   [VIOLATION_FETCH_APPLICABLE_WAIVERS_FAILED]: loadApplicableWaiversFailed,
+  [VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FULFILLED]: loadApplicableAutoWaiverFulfilled,
+  [VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_REQUESTED]: loadApplicableAutoWaiverRequested,
+  [VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FAILED]: loadApplicableAutoWaiverFailed,
   [VIOLATION_SORT_SIMILAR_WAIVERS]: sortSimilarWaives,
   [VIOLATION_SET_FILTER_IDS_SIMILAR_WAIVERS]: setFilterIdsSimilarWivers,
   [VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED]: loadViolationFulfilled,

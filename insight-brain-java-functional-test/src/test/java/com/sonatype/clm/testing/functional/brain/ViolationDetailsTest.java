@@ -18,6 +18,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.ManageFiltersDropdown;
 import com.sonatype.clm.testing.functional.elements.ListWaiversTable;
+import com.sonatype.clm.testing.functional.elements.ListWaiversTable.ListAutoWaiverTableRow;
 import com.sonatype.clm.testing.functional.elements.NxPolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.NxTreeViewMultiSelect;
@@ -41,6 +42,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -729,5 +731,72 @@ public class ViolationDetailsTest
     modal.yesButton().click();
 
     applicableWaiversTable.noWaiversMessage().shouldBe(visible);
+  }
+
+  @Test
+  public void testApplicableWaiversTableWithAutoWaiver() {
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
+    securityPolicyViolation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+    policyViolationDAO.update(securityPolicyViolation);
+
+    refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
+    waitUntilUrl(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    violationDetailsPage.applicableWaiversTab().click();
+    ListWaiversTable applicableWaiversTable =
+        violationDetailsPage.applicableWaiversInfoTile().getApplicableWaiversTable();
+
+    applicableWaiversTable.rows().shouldHave(size(1));
+    ListAutoWaiverTableRow row = applicableWaiversTable.autoWaiverRow(1);
+    row.shouldBe(visible);
+    row.components().shouldHave(text("Any Component"));
+    row.waiverExpiration().shouldHave(text("Auto"));
+    row.waiverVersion().shouldHave(text("Current or latest non-violating"));
+    row.revocationButton().shouldBe(visible);
+
+    // Verify auto waiver appears before regular waivers
+    applicableWaiversTable.rows().shouldHave(size(1));
+    applicableWaiversTable.rows().first().shouldHave(cssClass("list-auto-waiver-row"));
+
+    eyesWatcher.eyesCheck("Applicable auto waiver in Violation details");
+  }
+
+  @Test
+  public void testAutoWaiverWithRegularWaivers() {
+    //auto waiver
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
+    securityPolicyViolation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+    policyViolationDAO.update(securityPolicyViolation);
+
+    //manual waiver
+    List<ConstraintFact> constraintFacts = securityPolicyViolation.getConstraintFacts();
+    String policyId = securityPolicyViolation.getPolicyId();
+    String orgId = application.getParentOwnerId();
+    tempEntity.newWaiver(
+        securityPolicyViolation.getHash(),
+        policyId,
+        orgId,
+        constraintFacts,
+        "Regular waiver comment"
+    );
+
+    refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
+    waitUntilUrl(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    violationDetailsPage.applicableWaiversTab().click();
+    ListWaiversTable applicableWaiversTable =
+        violationDetailsPage.applicableWaiversInfoTile().getApplicableWaiversTable();
+
+    applicableWaiversTable.rows().shouldHave(size(2));
+
+    ListAutoWaiverTableRow autoWaiverRow = applicableWaiversTable.autoWaiverRow(1);
+    autoWaiverRow.shouldBe(visible);
+    autoWaiverRow.components().shouldHave(text("Any Component"));
+    autoWaiverRow.waiverExpiration().shouldHave(text("Auto"));
+    autoWaiverRow.waiverVersion().shouldHave(text("Current or latest non-violating"));
+    autoWaiverRow.revocationButton().shouldBe(visible);
+
+    ListWaiversTable.ListWaiversTableRow regularWaiverRow = applicableWaiversTable.row(2);
+    regularWaiverRow.comments().shouldHave(text("Regular waiver comment"));
   }
 }

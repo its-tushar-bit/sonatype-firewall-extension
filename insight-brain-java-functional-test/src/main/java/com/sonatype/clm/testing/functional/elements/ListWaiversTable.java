@@ -33,6 +33,10 @@ public class ListWaiversTable
     return new ListWaiversTableRow(childSelector(ROW_SELECTOR, nthChild(i)));
   }
 
+  public ListAutoWaiverTableRow autoWaiverRow(int i) {
+    return new ListAutoWaiverTableRow(childSelector(ROW_SELECTOR, nthChild(i)));
+  }
+
   public SelenideElement noWaiversMessage() {
     return child("tbody tr td.nx-cell--meta-info");
   }
@@ -82,5 +86,50 @@ public class ListWaiversTable
       return child(".list-waivers-row__delete-btn");
     }
   }
-}
 
+  public static class ListAutoWaiverTableRow
+      extends BasicElement<ListAutoWaiverTableRow>
+  {
+    private static final String TABLE_CELL_SELECTOR = ".nx-cell";
+
+    public ListAutoWaiverTableRow(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement dateCreated() {
+      return child(".iq-auto-waiver-table__created");
+    }
+
+    public SelenideElement duration() {
+      return child(TABLE_CELL_SELECTOR, nthChild(1));
+    }
+
+    public SelenideElement waiverExpiration() {
+      return child(".iq-auto-waiver-table__expiration");
+    }
+
+    public SelenideElement waiverVersion() {
+      return child(".iq-auto-waiver-table__version");
+    }
+
+    public SelenideElement waiverDetails() {
+      return child(TABLE_CELL_SELECTOR, nthChild(2));
+    }
+
+    public SelenideElement createdBy() {
+      return child(".iq-auto-waiver-table__author");
+    }
+
+    public SelenideElement scope() {
+      return child(".iq-auto-waiver-table__scope");
+    }
+
+    public SelenideElement components() {
+      return child(".iq-auto-waiver-table__component");
+    }
+
+    public SelenideElement revocationButton() {
+      return child(".list-auto-waiver-row__revocation-btn");
+    }
+  }
+}

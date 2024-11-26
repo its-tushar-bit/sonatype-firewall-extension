@@ -56,6 +56,8 @@ describe('sbomApplicationsTableSlice', function () {
 
     sortConfiguration: { ...defaultSortConfiguration },
     pagination: { ...defaultPagination },
+
+    applicationNameRawFilterTerm: '',
   });
 
   describe('sbomApplicationsTable/setLoading', () => {
@@ -307,22 +309,21 @@ describe('sbomApplicationsTableSlice', function () {
     });
   });
 
-  // TODO: To be implemented in https://sonatype.atlassian.net/browse/SBOM-895
-  // describe('applicationNameFilter', () => {
-  //   it('sets the correct applicationNameFilter state', () => {
-  //     const state = Object.freeze({
-  //       ...initialState,
-  //       applicationNameFilter: null,
-  //     });
+  describe('setApplicationNameRawFilterTerm', () => {
+    it('sets the correct applicationNameRawFilterTerm state', () => {
+      const state = Object.freeze({
+        ...initialState,
+        applicationNameRawFilterTerm: '',
+      });
 
-  //     const newState = reducer(state, {
-  //       type: 'sbomApplicationsTable/setApplicationNameFilter',
-  //       payload: 'Hello',
-  //     });
+      const newState = reducer(state, {
+        type: 'sbomApplicationsTable/setApplicationNameRawFilterTerm',
+        payload: 'Hello',
+      });
 
-  //     expect(newState.applicationNameFilter).toBe('Hello');
-  //   });
-  // });
+      expect(newState.applicationNameRawFilterTerm).toBe('Hello');
+    });
+  });
 
   describe('setCurrentPage', () => {
     it('sets the correct currentPage value without changing pageCount', () => {

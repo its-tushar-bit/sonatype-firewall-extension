@@ -19,6 +19,10 @@ public class SbomApplicationsTable
     super(".sbom-manager-applications-table");
   }
 
+  public SelenideElement applicationNameFilter() {
+    return child("#application-name-filter");
+  }
+
   public SelenideElement table() {
     return child(".sbom-manager-applications-table__table");
   }

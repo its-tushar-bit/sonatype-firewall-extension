@@ -35,9 +35,15 @@ export default function SbomApplicationsTable() {
 
   const loadApplications = () => dispatch(actions.loadApplications());
 
-  const { loading, errorMessage, applications, applicationsTotalCount, sortConfiguration, pagination } = useSelector(
-    selectSbomApplicationsTable
-  );
+  const {
+    loading,
+    errorMessage,
+    applications,
+    applicationsTotalCount,
+    sortConfiguration,
+    pagination,
+    applicationNameRawFilterTerm,
+  } = useSelector(selectSbomApplicationsTable);
 
   useEffect(() => {
     loadApplications();
@@ -52,6 +58,12 @@ export default function SbomApplicationsTable() {
 
   const setCurrentPageAndLoadApplications = (page) => {
     dispatch(actions.setCurrentPage(page));
+    debouncedLoadApplications();
+  };
+
+  const filterApplicationName = (filterTerm) => {
+    dispatch(actions.setApplicationNameRawFilterTerm(filterTerm));
+    dispatch(actions.setCurrentPage(0));
     debouncedLoadApplications();
   };
 
@@ -189,9 +201,13 @@ export default function SbomApplicationsTable() {
           <NxTable.Row isFilterHeader>
             <NxTable.Cell>
               <NxFilterInput
+                id="application-name-filter"
                 className="sbom-manager-applications-table__filter-input"
+                aria-label="Application Name Filter"
                 placeholder="Filter by name"
-                value=""
+                value={applicationNameRawFilterTerm}
+                onChange={filterApplicationName}
+                data-testid="application-name-filter"
               />
             </NxTable.Cell>
             <NxTable.Cell></NxTable.Cell>

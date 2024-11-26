@@ -5,11 +5,11 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { always, cond, equals, findIndex, includes, values, without, T } from 'ramda';
+import { always, compose, cond, equals, findIndex, includes, is, T, trim, values, when, without } from 'ramda';
 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getSbomApplicationsUrl } from 'MainRoot/util/CLMLocation';
-
+import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectSbomApplicationsTable } from './sbomApplicationsTableSelectors';
 
 const REDUCER_NAME = 'sbomApplicationsTable';
@@ -50,13 +50,13 @@ export const initialState = Object.freeze({
   sortConfiguration: { ...defaultSortConfiguration },
   pagination: { ...defaultPagination },
 
-  filterApplicationName: null,
+  applicationNameRawFilterTerm: '',
 });
 
 const resetConfigurations = (state) => {
   state.sortConfiguration = { ...defaultSortConfiguration };
   state.pagination = { ...defaultPagination };
-  state.filterApplicationName = null;
+  state.applicationNameRawFilterTerm = '';
 };
 
 const setLoading = (state, { payload }) => {
@@ -91,11 +91,13 @@ const loadApplicationsFulfilled = (state, { payload }) => {
   state.pagination.pageCount = Math.ceil(payload.totalCount / APPLICATIONS_PER_PAGE);
 };
 
+const cleanFilterTerm = compose(when(isNilOrEmpty, always(null)), when(is(String), trim));
+
 const loadApplications = createAsyncThunk(
   `${REDUCER_NAME}/loadApplications`,
   async (_, { getState, rejectWithValue }) => {
     const state = getState();
-    const { sortConfiguration, pagination, filterApplicationName } = selectSbomApplicationsTable(state);
+    const { sortConfiguration, pagination, applicationNameRawFilterTerm } = selectSbomApplicationsTable(state);
 
     const sortDirection = cond([
       [equals(SORT_DIRECTION.ASC), always(true)],
@@ -110,7 +112,7 @@ const loadApplications = createAsyncThunk(
           APPLICATIONS_PER_PAGE,
           sortConfiguration.sortBy,
           sortDirection,
-          filterApplicationName
+          cleanFilterTerm(applicationNameRawFilterTerm)
         )
       )
       .then((response) => response.data)
@@ -155,8 +157,8 @@ const setCurrentPage = (state, { payload }) => {
 };
 
 // filter-application-name
-const setFilterApplicationName = (state, { payload }) => {
-  state.filterApplicationName = payload;
+const setApplicationNameRawFilterTerm = (state, { payload }) => {
+  state.applicationNameRawFilterTerm = payload;
 };
 
 const sbomApplicationsTableSlice = createSlice({
@@ -167,7 +169,7 @@ const sbomApplicationsTableSlice = createSlice({
     setLoading,
     setSortByAndCycleDirection,
     setCurrentPage,
-    setFilterApplicationName,
+    setApplicationNameRawFilterTerm,
   },
   extraReducers: {
     [loadApplications.pending]: loadApplicationsRequested,

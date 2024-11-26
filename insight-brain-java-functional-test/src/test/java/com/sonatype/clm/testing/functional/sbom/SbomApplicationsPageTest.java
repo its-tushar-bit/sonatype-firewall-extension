@@ -96,9 +96,28 @@ public class SbomApplicationsPageTest
     applicationsTable.footer().shouldBe(visible);
     applicationsTable.paginationStatus().shouldHave(visible);
   }
+  
+  @Test
+  public void testApplicationsPage__nameFilter() throws Exception {
+    setSbomApplicationsTableData();
+    refreshOrOpen(SbomApplicationsPage.url());
+
+    SbomApplicationsTable applicationsTable = SbomApplicationsPage.sbomApplicationsTable();
+    ElementsCollection tableRows = applicationsTable.tableBodyRows();
+    applicationsTable.applicationNameFilter().shouldBe(visible);
+    applicationsTable.applicationNameFilter().sendKeys("Test App 19");
+    tableRows.shouldHave(size(1));
+    applicationsTable.tableBodyRows().get(0).shouldHave(text("Test App 19"));
+    applicationsTable.applicationNameFilter().clear();
+    applicationsTable.applicationNameFilter().sendKeys(" ");
+    tableRows.shouldHave(size(50));
+    applicationsTable.applicationNameFilter().sendKeys("Test App 21");
+    tableRows.shouldHave(size(1));
+    applicationsTable.tableBodyRows().get(0).shouldHave(text("Test App 21"));
+  }
 
   @Test
-  public void testApplicationsPage__paginataion() throws Exception {
+  public void testApplicationsPage__pagination() throws Exception {
     setSbomApplicationsTableData();
     refreshOrOpen(SbomApplicationsPage.url());
 

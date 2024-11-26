@@ -57,7 +57,7 @@ describe('SbomApplicationsTable', () => {
         applicationsTotalCount: 0,
         sortConfiguration: { sortBy: SORT_BY_FIELDS.importDate, sortDirection: SORT_DIRECTION.ASC },
         pagination: { pageCount: 1, currentPage: 0 },
-        filterApplicationName: null,
+        applicationNameRawFilterTerm: '',
       },
     },
   });
@@ -175,6 +175,18 @@ describe('SbomApplicationsTable', () => {
       expect(paginationStatus).toBeVisible();
 
       expect(paginationStatus).toHaveTextContent(`Showing 100 of 100 applications`);
+    });
+  });
+
+  describe('Application Name Filter', () => {
+    it('should render application name filter text field', async () => {
+      axiosMock.onGet(getSbomApplicationsUrl(...baseUrlParams)).reply(200, generateResponse(100));
+
+      renderComponent(initialState);
+
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      expect(screen.getByTestId('application-name-filter')).toBeVisible();
     });
   });
 });

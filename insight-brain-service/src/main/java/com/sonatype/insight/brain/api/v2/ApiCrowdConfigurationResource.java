@@ -26,12 +26,17 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Named
 @Timed
 @Path(value = PublicApiPaths.CROWD_CONFIG_RESOURCE_PATH_V2)
-@Tag(name = "Config Crowd")
+@Tag(name = "Config Crowd",
+    description = "Use this REST API to manage the configuration of an existing Atlassian Crowd Server that is being " +
+        "used to authenticate users for IQ Server.")
 public class ApiCrowdConfigurationResource
 {
   public static final String TEST_PATH = "test";
@@ -45,6 +50,17 @@ public class ApiCrowdConfigurationResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @Operation(description = "Use this method to retrieve the configuration details for the Atlassian Crowd Server." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit System Configuration and Users",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description =
+                  "The response contains the `serverUrl` and `applicationName` provided " +
+                      "at the time of setting up the Crowd Server.",
+              useReturnTypeSchema = true),
+      })
   public ApiCrowdConfigurationDTO getCrowdConfiguration() {
     checkCrowdEnabled();
     return apiCrowdConfigurationService.getCrowdConfiguration();
@@ -53,13 +69,40 @@ public class ApiCrowdConfigurationResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CONFIGURE_CROWD)
-  public void insertOrUpdateCrowdConfiguration(ApiCrowdConfigurationDTO crowdConfiguration) {
+  @Operation(description = "Use this method to create a new or update an existing Atlassian Crowd Server " +
+      "configuration." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit System Configuration and Users",
+      responses = {
+          @ApiResponse(responseCode = "204",
+              description = "Update or create successful",
+              useReturnTypeSchema = true)
+      })
+  public void insertOrUpdateCrowdConfiguration(
+      @RequestBody(description = "The request JSON should include the `serverUrl`, `applicationName`, " +
+          "and the `applicationPassword` which will be " +
+          "used for authentication against the Atlassian Crowd Server." +
+          "\n" +
+          "\n" +
+          "If updating the `serverUrl`, the `applicationPassword` field is required.")
+      ApiCrowdConfigurationDTO crowdConfiguration)
+  {
     checkCrowdEnabled();
     apiCrowdConfigurationService.insertOrUpdateCrowdConfiguration(crowdConfiguration);
   }
 
   @DELETE
   @Audited(AuditEvent.DELETE_CROWD)
+  @Operation(description = "Use this method to remove an existing Atlassian Crowd Configuration." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit System Configuration and Users",
+      responses = {
+          @ApiResponse(responseCode = "204",
+              description = "The Atlassian Crowd Server configuration has been deleted.",
+              useReturnTypeSchema = true)
+      })
   public void deleteCrowdConfiguration() {
     checkCrowdEnabled();
     apiCrowdConfigurationService.deleteCrowdConfiguration();
@@ -68,8 +111,21 @@ public class ApiCrowdConfigurationResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Operation(description = "Use this method to test a new or an existing Atlassian Crowd Server configuration.",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "Test performed, results will be in the response message string.",
+              useReturnTypeSchema = true)
+      })
   @Path(TEST_PATH)
-  public ApiStatusDTO testCrowdConfiguration(ApiCrowdConfigurationDTO dto) {
+  public ApiStatusDTO testCrowdConfiguration(
+      @RequestBody(description = "To test an existing configuration, the request body is not required." +
+          "\n" +
+          "\n" +
+          "To test a new configuration, provide the `serverURl`, `applicationName`, and `applicationPassword` for " +
+          "the configuration.")
+      ApiCrowdConfigurationDTO dto)
+  {
     checkCrowdEnabled();
     return apiCrowdConfigurationService.testCrowdConfiguration(dto);
   }

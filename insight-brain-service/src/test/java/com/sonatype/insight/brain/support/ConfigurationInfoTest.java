@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.support;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ConfigurationProperty;
@@ -266,7 +265,8 @@ public class ConfigurationInfoTest
         "sbomPolicies",
         "malwareDefenseApi",
         "autoWaivers",
-        "newScanProcess");
+        "newScanProcess",
+        "idTokenCookieExpirationTime");
 
     // Properties included in the config.json in support zip
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());

@@ -228,6 +228,8 @@ public class SystemConfigurationProperty
 
   public static final String OAUTH2_ENABLED = "OAUTH2_ENABLED";
 
+  public static final String ID_TOKEN_COOKIE_EXPIRATION_TIME_SECONDS = "idTokenCookieExpirationTime";
+
   public static final String SKIP_SBOM_IMPORT_VALIDATION = "skipSbomImportValidation";
 
   public static final String DEVELOPER_BULK_RECOMMENDATIONS = "developerBulkRecommendations";

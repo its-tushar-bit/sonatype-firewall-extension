@@ -327,6 +327,28 @@ public class ConfigurationUtilsTest
   }
 
   @Test
+  public void testIdTokenCookieExpirationToString_WithProperValue() {
+    String result = ConfigurationUtils.idTokenCookieExpirationToString(10);
+    assertEquals("10", result);
+  }
+
+  @Test
+  public void testIdTokenCookieExpirationToString_WithZero() {
+    assertThatThrownBy(() -> {
+      ConfigurationUtils.idTokenCookieExpirationToString(0);
+    }).isInstanceOf(RuntimeException.class)
+        .hasMessageEndingWith("Id token cookie expiration time should be greater than 0.");
+  }
+
+  @Test
+  public void testIdTokenCookieExpirationToString_WithNegativeNumber() {
+    assertThatThrownBy(() -> {
+      ConfigurationUtils.idTokenCookieExpirationToString(-2);
+    }).isInstanceOf(RuntimeException.class)
+        .hasMessageEndingWith("Id token cookie expiration time should be greater than 0.");
+  }
+
+  @Test
   public void testParseRepositoryList() {
     assertThat(ConfigurationUtils.parseRepositoryList("repo1,repo2")).isEqualTo("repo1,repo2");
   }

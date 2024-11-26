@@ -6,7 +6,9 @@
 package com.sonatype.clm.testing.functional.mtiq.user;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
@@ -24,6 +26,8 @@ import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.keycloak.KeycloakServerRule;
 import com.sonatype.insight.keycloak.KeycloakServerUtil;
 
+import com.auth0.client.mgmt.Auth0ManagementAPI;
+import com.auth0.json.mgmt.users.User;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
@@ -45,6 +49,8 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.RSC_DISABLED;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class MtiqUserManagementTest
     extends AbstractMtiqFunctionalTest
@@ -252,11 +258,18 @@ public class MtiqUserManagementTest
     loginBothSamlUsers();
     page.userItems().shouldHave(size(2));
 
+    final String firstName = "User";
+    final String lastName = "Three";
+    final String email = "user3@example.com";
+    final String connectionName = "connectionName";
+    User user = mockUser("id", false);
+    when(auth0ManagementAPI.createOrGetUser(email, firstName, lastName, connectionName)).thenReturn(user);
+
     NewUserForm newUserForm = goToInviteUserForm();
 
-    newUserForm.firstNameInput().val("User");
-    newUserForm.lastNameInput().val("Three");
-    newUserForm.emailInput().val("user3@example.com");
+    newUserForm.firstNameInput().val(firstName);
+    newUserForm.lastNameInput().val(lastName);
+    newUserForm.emailInput().val(email);
 
     newUserForm.saveButton().click();
     newUserForm.shouldBe(hidden);
@@ -264,10 +277,10 @@ public class MtiqUserManagementTest
     page.userItems().shouldHave(size(3));
 
     page.userItems().get(2).shouldHave(text("User Three"));
-    page.userItems().get(2).shouldHave(text("user3@example.com"));
+    page.userItems().get(2).shouldHave(text(email));
 
     // verify that the API call to create the user from Auth0 was made
-    Mockito.verify(auth0ManagementAPI).createOrGetUser("user3@example.com", "User", "Three", "connectionName");
+    Mockito.verify(auth0ManagementAPI).createOrGetUser(email, firstName, lastName, connectionName);
   }
 
   /**
@@ -297,5 +310,15 @@ public class MtiqUserManagementTest
 
   private void keyInElementValue(final String inputText, final List<SelenideElement> elements) {
     elements.forEach(element -> element.val(inputText));
+  }
+
+  private User mockUser(String id, boolean invitedFlag) {
+    Map<String, Object> userMetadata = new HashMap<>();
+    userMetadata.put(Auth0ManagementAPI.IS_INVITED_FLAG, invitedFlag);
+
+    User user = mock(User.class);
+    when(user.getId()).thenReturn(id);
+    when(user.getUserMetadata()).thenReturn(userMetadata);
+    return user;
   }
 }

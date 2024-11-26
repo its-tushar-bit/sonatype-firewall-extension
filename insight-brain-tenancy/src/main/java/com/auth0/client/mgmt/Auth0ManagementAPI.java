@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.auth0.client.mgmt.filter.ConnectionFilter;
 import com.auth0.client.mgmt.filter.PageFilter;
@@ -41,6 +41,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -471,7 +472,7 @@ public class Auth0ManagementAPI
     user.setEmail(email);
     user.setGivenName(firstName);
     user.setFamilyName(lastName);
-    user.setPassword(UUID.randomUUID().toString().toCharArray());
+    user.setPassword(generateCommonLangPassword());
     user.setEmailVerified(true);
 
     Map<String, Object> userMetadata = new HashMap<>();
@@ -479,6 +480,26 @@ public class Auth0ManagementAPI
     user.setUserMetadata(userMetadata);
 
     return user;
+  }
+
+  private String generateCommonLangPassword() {
+    String upperCaseLetters = RandomStringUtils.random(3, 65, 90, true, true);
+    String lowerCaseLetters = RandomStringUtils.random(3, 97, 122, true, true);
+    String numbers = RandomStringUtils.randomNumeric(3);
+    String specialChar = RandomStringUtils.random(3, 33, 47, false, false);
+    String totalChars = RandomStringUtils.randomAlphanumeric(3);
+    String combinedChars = upperCaseLetters.concat(lowerCaseLetters)
+        .concat(numbers)
+        .concat(specialChar)
+        .concat(totalChars);
+    List<Character> pwdChars = combinedChars.chars()
+        .mapToObj(c -> (char) c)
+        .collect(Collectors.toCollection(ArrayList::new));
+    Collections.shuffle(pwdChars);
+    String password = pwdChars.stream()
+        .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
+        .toString();
+    return password;
   }
 
   public PasswordChangeTicket createPasswordChangeTicket(

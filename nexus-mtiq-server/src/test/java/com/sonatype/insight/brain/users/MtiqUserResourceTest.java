@@ -224,7 +224,8 @@ public class MtiqUserResourceTest
         final String lastName,
         final String connectionName,
         final String applicationId,
-        final String connectionId)
+        final String connectionId,
+        final String organizationId)
     {
       return new User();
     }

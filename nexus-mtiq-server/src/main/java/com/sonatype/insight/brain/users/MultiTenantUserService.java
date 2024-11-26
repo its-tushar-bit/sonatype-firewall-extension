@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.MultiTenantSsoUserService;
 import com.sonatype.insight.brain.security.SsoUser;
 
-import com.auth0.json.mgmt.users.User;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
@@ -69,19 +68,14 @@ public class MultiTenantUserService
     TenantMetadata tenantMetadata = getTenantMetadata();
 
     try {
-      User auth0User =
-          multiTenantAuth0ManagementService.createOrUpdateUser(user.getEmail(), user.getFirstName(),
-              user.getLastName(), tenantMetadata.getConnectionName(), tenantMetadata.getApplicationId(),
-              tenantMetadata.getConnectionId());
+      multiTenantAuth0ManagementService.createOrUpdateUser(user.getEmail(), user.getFirstName(),
+          user.getLastName(), tenantMetadata.getConnectionName(), tenantMetadata.getApplicationId(),
+          tenantMetadata.getConnectionId(), tenantMetadata.getOrganizationId());
+
       log.debug("user created on Auth0 successfully");
 
       multiTenantSsoUserService.upsertByUsername(user);
       log.info("user created successfully");
-
-      String organizationId = tenantMetadata.getOrganizationId();
-      if (StringUtils.isNotBlank(organizationId)) {
-        multiTenantAuth0ManagementService.addMemberToOrganization(organizationId, auth0User.getId());
-      }
     }
     catch (Exception e) {
       log.error(

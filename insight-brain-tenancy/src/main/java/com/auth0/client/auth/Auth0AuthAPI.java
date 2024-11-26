@@ -16,13 +16,14 @@ public class Auth0AuthAPI
     super(domain, clientId, clientSecret);
   }
 
-  public Void resetPassword(String email, String connection, String clientId) {
+  public Void resetPassword(String email, String connection, String clientId, String organizationId) {
     String url =
         getBaseUrl().newBuilder().addPathSegment("dbconnections").addPathSegment("change_password").build().toString();
     VoidRequest request = new VoidRequest(getClient(), url, "POST");
     request.addParameter("client_id", clientId);
     request.addParameter("email", email);
     request.addParameter("connection", connection);
+    request.addParameter("organization", organizationId);
     try {
       return request.execute();
     }

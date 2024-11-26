@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 import javax.inject.Inject;
@@ -21,7 +22,9 @@ import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
 import com.sonatype.insight.brain.security.LoginErrorResponseHandler;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -76,16 +79,21 @@ public class OidcLoginFilter
 
   public static final String ERROR_AUTHORIZING_REQUEST = "Error authorizing request: %s";
 
-  public static final int COOKIE_MAX_AGE_IN_SECONDS = 30;
-
   private final OidcConfigurationDAO oidcConfigurationDAO;
 
   private final BaseUrl baseUrl;
 
+  private final ApiConfigurationService configurationService;
+
   @Inject
-  public OidcLoginFilter(BaseUrl baseUrl, OidcConfigurationDAO oidcConfigurationDAO) {
+  public OidcLoginFilter(
+      BaseUrl baseUrl,
+      OidcConfigurationDAO oidcConfigurationDAO,
+      ApiConfigurationService configurationService)
+  {
     this.oidcConfigurationDAO = oidcConfigurationDAO;
     this.baseUrl = baseUrl;
+    this.configurationService = configurationService;
   }
 
   @Override
@@ -225,13 +233,17 @@ public class OidcLoginFilter
       TokenResponse tokenResponse = OIDCTokenResponseParser.parse(tokenRequest.toHTTPRequest().send());
 
       if (!tokenResponse.indicatesSuccess()) {
-        // We got an error response...
         String error = tokenResponse.toErrorResponse().getErrorObject().getDescription();
         throw new AuthenticationException(error);
       }
 
+      int idTokenExpirationTime = (int) configurationService.getConfigurationNoAuthz(
+              Collections.singleton(SystemConfigurationProperty.ID_TOKEN_COOKIE_EXPIRATION_TIME_SECONDS))
+          .get(SystemConfigurationProperty.ID_TOKEN_COOKIE_EXPIRATION_TIME_SECONDS);
+
       OIDCTokenResponse successResponse = (OIDCTokenResponse) tokenResponse.toSuccessResponse();
-      addSecureCookie(res, JwtAuthenticationFilter.ID_TOKEN_COOKIE, successResponse.getOIDCTokens().getIDTokenString());
+      addSecureCookie(res, JwtAuthenticationFilter.ID_TOKEN_COOKIE, successResponse.getOIDCTokens().getIDTokenString(),
+          idTokenExpirationTime);
 
       res.sendRedirect(redirectUrl);
     }
@@ -273,12 +285,12 @@ public class OidcLoginFilter
     }
   }
 
-  private void addSecureCookie(final HttpServletResponse res, String id, String token) {
+  private void addSecureCookie(final HttpServletResponse res, String id, String token, int maxAge) {
     Cookie cookie = new Cookie(id, token);
     cookie.setPath("/");
     cookie.setSecure(true);
     cookie.setHttpOnly(true);
-    cookie.setMaxAge(COOKIE_MAX_AGE_IN_SECONDS);
+    cookie.setMaxAge(maxAge);
     res.addCookie(cookie);
   }
 

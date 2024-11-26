@@ -23,7 +23,6 @@ import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -40,13 +39,13 @@ public class MultiTenantUserServiceTest
   private TenantMetadataDAO tenantMetadataDAO;
 
   private final MultiTenantAuth0ManagementService auth0ManagementService =
-      Mockito.mock(MultiTenantAuth0ManagementService.class);
+      mock(MultiTenantAuth0ManagementService.class);
 
-  private final CurrentUser currentUser = Mockito.mock(CurrentUser.class);
+  private final CurrentUser currentUser = mock(CurrentUser.class);
 
-  private final DefaultWebSessionManager webSessionManager = Mockito.mock(DefaultWebSessionManager.class);
+  private final DefaultWebSessionManager webSessionManager = mock(DefaultWebSessionManager.class);
 
-  private final SessionDAO sessionDAO = Mockito.mock(SessionDAO.class);
+  private final SessionDAO sessionDAO = mock(SessionDAO.class);
 
   private MtiqUserService underTest;
 
@@ -89,28 +88,19 @@ public class MultiTenantUserServiceTest
 
   @Test
   public void test_canInviteAUser() {
-    test_canInviteAUser(false);
-  }
-
-  @Test
-  public void test_canInviteAUser_AndAddMemberToOrganization() {
-    test_canInviteAUser(true);
-  }
-
-  private void test_canInviteAUser(boolean includeOrg) {
     String userId = "userId";
     MtiqUserDTO user = createMtiqUser("foo");
 
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       provisionTenant(tenant.tenantSlug);
       enableSsoWithOAuth2();
-      TenantMetadata tenantMetadata = createTenantMetadata(tenant, includeOrg);
+      TenantMetadata tenantMetadata = createTenantMetadata(tenant, false);
 
       User user1 = mock(User.class);
       when(user1.getId()).thenReturn(userId);
       when(auth0ManagementService.createOrUpdateUser(user.getEmail(), user.getFirstName(), user.getLastName(),
           tenantMetadata.getConnectionName(), tenantMetadata.getApplicationId(),
-          tenantMetadata.getConnectionId())).thenReturn(user1);
+          tenantMetadata.getConnectionId(), tenantMetadata.getOrganizationId())).thenReturn(user1);
       assertThat(ssoUserService.getAll()).hasSize(0);
 
       underTest.inviteUser(user);
@@ -120,14 +110,8 @@ public class MultiTenantUserServiceTest
       assertThat(MtiqUserDTO.ssoUserToMtiqUser(allUsers.get(0))).usingRecursiveComparison().isEqualTo(user);
 
       verify(auth0ManagementService).createOrUpdateUser(user.getEmail(), user.getFirstName(), user.getLastName(),
-          tenantMetadata.getConnectionName(), tenantMetadata.getApplicationId(), tenantMetadata.getConnectionId());
-
-      if (includeOrg) {
-        verify(auth0ManagementService).addMemberToOrganization(tenantMetadata.getOrganizationId(), userId);
-      }
-      else {
-        verify(auth0ManagementService, never()).addMemberToOrganization(tenantMetadata.getOrganizationId(), userId);
-      }
+          tenantMetadata.getConnectionName(), tenantMetadata.getApplicationId(), tenantMetadata.getConnectionId(),
+          tenantMetadata.getOrganizationId());
     });
 
     List<SsoUser> allUsers = ssoUserService.getAll();

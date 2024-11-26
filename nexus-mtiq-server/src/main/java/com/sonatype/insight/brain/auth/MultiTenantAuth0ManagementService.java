@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.auth;
 
 import java.util.Collections;
 import java.util.Date;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -64,7 +63,8 @@ public class MultiTenantAuth0ManagementService
       final String lastName,
       final String connectionName,
       final String applicationId,
-      final String connectionId)
+      final String connectionId,
+      final String organizationId)
   {
     refreshManagementApiToken();
 
@@ -75,7 +75,16 @@ public class MultiTenantAuth0ManagementService
     User user = auth0ManagementAPI.getUserByEmail(email, connectionName);
     if (user == null) {
       user = auth0ManagementAPI.createOrGetUser(email, firstName, lastName, connectionName);
-      sendResetPassword(email, connectionName, connectionId, applicationId);
+    }
+
+    if (StringUtils.isNotBlank(organizationId)) {
+      addMemberToOrganization(organizationId, user.getId());
+    }
+
+    // We send the reset password email only if user has not accepted the invite
+    boolean sendResetPassword = (Boolean) user.getUserMetadata().get(Auth0ManagementAPI.IS_INVITED_FLAG);
+    if (sendResetPassword) {
+      sendResetPassword(email, connectionName, connectionId, applicationId, organizationId);
     }
 
     return user;
@@ -83,10 +92,11 @@ public class MultiTenantAuth0ManagementService
 
   private void sendResetPassword(
       final String email, final String connectionName,
-      final String connectionId, final String applicationId)
+      final String connectionId, final String applicationId,
+      final String organizationId)
   {
     try {
-      getAuthApiLazily(auth0Config).resetPassword(email, connectionName, applicationId);
+      getAuthApiLazily(auth0Config).resetPassword(email, connectionName, applicationId, organizationId);
       log.info("User has been created/updated for applicationId {}", applicationId);
     }
     catch (RuntimeException e) {

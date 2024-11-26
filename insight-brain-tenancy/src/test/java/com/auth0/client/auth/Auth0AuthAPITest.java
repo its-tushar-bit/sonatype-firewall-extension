@@ -67,14 +67,15 @@ public class Auth0AuthAPITest
     String email = "test@company.com";
     String connectionName = "db-connection-name";
     String applicationClientId = "application-client-id";
+    String organizationId = "organization-id";
 
     when(auth0AuthAPI.getClient()).thenReturn(client);
     when(client.newCall(any(Request.class))).thenReturn(call);
     mockAuth0Response();
 
-    auth0AuthAPI.resetPassword(email, connectionName, applicationClientId);
+    auth0AuthAPI.resetPassword(email, connectionName, applicationClientId, organizationId);
 
-    verifySentRequestIsTheExpected(email, connectionName, applicationClientId);
+    verifySentRequestIsTheExpected(email, connectionName, applicationClientId, organizationId);
   }
 
   @Test
@@ -82,16 +83,17 @@ public class Auth0AuthAPITest
     String email = "test@company.com";
     String connectionName = "db-connection-name";
     String applicationClientId = "application-client-id";
+    String organizationId = "organization-id";
 
     when(auth0AuthAPI.getClient()).thenReturn(client);
     when(client.newCall(any(Request.class))).thenReturn(call);
     doThrow(new Auth0Exception("Auth0 Error")).when(call).execute();
 
     assertThatExceptionOfType(RuntimeException.class)
-        .isThrownBy(() -> auth0AuthAPI.resetPassword(email, connectionName, applicationClientId))
+        .isThrownBy(() -> auth0AuthAPI.resetPassword(email, connectionName, applicationClientId, organizationId))
         .withMessage("com.auth0.exception.Auth0Exception: Auth0 Error");
 
-    verifySentRequestIsTheExpected(email, connectionName, applicationClientId);
+    verifySentRequestIsTheExpected(email, connectionName, applicationClientId, organizationId);
   }
 
   private void mockAuth0Response() throws IOException {
@@ -109,7 +111,8 @@ public class Auth0AuthAPITest
   private void verifySentRequestIsTheExpected(
       final String email,
       final String connectionName,
-      final String applicationClientId)
+      final String applicationClientId,
+      final String organizationId)
       throws IOException
   {
     verify(client).newCall(requestCaptor.capture());
@@ -124,6 +127,7 @@ public class Auth0AuthAPITest
     assertThat(buffer.readUtf8())
         .contains(email)
         .contains(connectionName)
-        .contains(applicationClientId);
+        .contains(applicationClientId)
+        .contains(organizationId);
   }
 }

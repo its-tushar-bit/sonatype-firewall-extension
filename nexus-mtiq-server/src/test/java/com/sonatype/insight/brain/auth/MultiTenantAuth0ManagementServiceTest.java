@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.auth;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.sonatype.insight.brain.service.Auth0Config;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 
@@ -93,14 +97,36 @@ public class MultiTenantAuth0ManagementServiceTest
 
   @Test
   public void test_canCreateUser() throws Exception {
+    when(tokenHolder.getExpiresAt()).thenReturn(new Date(System.currentTimeMillis() + 1000));
     when(tokenRequest.execute()).thenReturn(tokenHolder);
     when(authApi.requestToken(any())).thenReturn(tokenRequest);
+    User user = mockUser("userId", true);
+    when(managementApi.createOrGetUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME))
+        .thenReturn(user);
 
-    underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME, APPLICATION_ID, CONNECTION_ID);
+    underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME, APPLICATION_ID, CONNECTION_ID,
+        ORGANIZATION_ID);
 
     verify(authApi).requestToken(any());
     verify(managementApi).createOrGetUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME);
-    verify(authApi).resetPassword(EMAIL, CONNECTION_NAME, APPLICATION_ID);
+    verify(managementApi).addMembersToOrganization(eq(ORGANIZATION_ID), anyList());
+    verify(authApi).resetPassword(EMAIL, CONNECTION_NAME, APPLICATION_ID, ORGANIZATION_ID);
+  }
+
+  @Test
+  public void test_canCreateUserAndNotAddItToAnOrganization() throws Exception {
+    when(tokenRequest.execute()).thenReturn(tokenHolder);
+    when(authApi.requestToken(any())).thenReturn(tokenRequest);
+    User user = mockUser("userId", true);
+    when(managementApi.createOrGetUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME))
+        .thenReturn(user);
+
+    underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME, APPLICATION_ID, CONNECTION_ID, "");
+
+    verify(authApi).requestToken(any());
+    verify(managementApi).createOrGetUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME);
+    verify(managementApi, never()).addMembersToOrganization(eq(ORGANIZATION_ID), anyList());
+    verify(authApi).resetPassword(EMAIL, CONNECTION_NAME, APPLICATION_ID, "");
   }
 
   @Test
@@ -111,43 +137,51 @@ public class MultiTenantAuth0ManagementServiceTest
         .thenThrow(new RuntimeException("user creation failed"));
 
     assertThatThrownBy(() -> {
-      underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME, APPLICATION_ID, CONNECTION_ID);
+      underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME, APPLICATION_ID, CONNECTION_ID,
+          ORGANIZATION_ID);
     }).isInstanceOf(RuntimeException.class).hasMessageContaining("user creation failed");
 
     verify(authApi).requestToken(any());
     verify(managementApi).createOrGetUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME);
-    verify(authApi, never()).resetPassword(EMAIL, CONNECTION_NAME, APPLICATION_ID);
+    verify(authApi, never()).resetPassword(EMAIL, CONNECTION_NAME, APPLICATION_ID, ORGANIZATION_ID);
   }
 
   @Test
   public void test_restPasswordFailWillDeleteAuth0User() throws Exception {
+    when(tokenHolder.getExpiresAt()).thenReturn(new Date(System.currentTimeMillis() + 1000));
     when(tokenRequest.execute()).thenReturn(tokenHolder);
     when(authApi.requestToken(any())).thenReturn(tokenRequest);
-    when(authApi.resetPassword(any(), any(), any())).thenThrow(new RuntimeException("Password reset failed"));
+    when(authApi.resetPassword(any(), any(), any(), any())).thenThrow(new RuntimeException("Password reset failed"));
+    User user = mockUser("userId", true);
+    when(managementApi.createOrGetUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME))
+        .thenReturn(user);
 
     assertThatThrownBy(
         () -> underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME,
-            APPLICATION_ID, CONNECTION_ID))
+            APPLICATION_ID, CONNECTION_ID, ORGANIZATION_ID))
         .isInstanceOf(RuntimeException.class)
         .hasMessageContaining("Password reset failed");
 
     verify(authApi).requestToken(any());
     verify(managementApi).createOrGetUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME);
-    verify(authApi).resetPassword(EMAIL, CONNECTION_NAME, APPLICATION_ID);
+    verify(authApi).resetPassword(EMAIL, CONNECTION_NAME, APPLICATION_ID, ORGANIZATION_ID);
     verify(managementApi).deleteUserByEmailFromConnection(EMAIL, CONNECTION_ID);
   }
 
   @Test
-  public void test_restPasswordNotSentIfUserAlreadyExists() throws Exception {
+  public void test_restPasswordNotSentIfUserHasAcceptedInvitation() throws Exception {
+    when(tokenHolder.getExpiresAt()).thenReturn(new Date(System.currentTimeMillis() + 1000));
     when(tokenRequest.execute()).thenReturn(tokenHolder);
     when(authApi.requestToken(any())).thenReturn(tokenRequest);
-    when(managementApi.getUserByEmail(any(), any())).thenReturn(new User());
+    User user = mockUser("userId", false);
+    when(managementApi.getUserByEmail(any(), any())).thenReturn(user);
 
-    underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME, APPLICATION_ID, CONNECTION_ID);
+    underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME, APPLICATION_ID, CONNECTION_ID,
+        ORGANIZATION_ID);
 
     verify(authApi).requestToken(any());
     verify(managementApi, never()).createOrGetUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME);
-    verify(authApi, never()).resetPassword(EMAIL, CONNECTION_NAME, APPLICATION_ID);
+    verify(authApi, never()).resetPassword(EMAIL, CONNECTION_NAME, APPLICATION_ID, ORGANIZATION_ID);
   }
 
   @Test
@@ -275,5 +309,15 @@ public class MultiTenantAuth0ManagementServiceTest
     underTest.removeMemberFromOrganization(ORGANIZATION_ID, username);
 
     verify(managementApi, never()).removeMembersFromOrganization(eq(ORGANIZATION_ID), anyList());
+  }
+
+  private User mockUser(String id, boolean invitedFlag) {
+    Map<String, Object> userMetadata = new HashMap<>();
+    userMetadata.put(Auth0ManagementAPI.IS_INVITED_FLAG, invitedFlag);
+
+    User user = mock(User.class);
+    when(user.getId()).thenReturn(id);
+    when(user.getUserMetadata()).thenReturn(userMetadata);
+    return user;
   }
 }

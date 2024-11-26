@@ -181,11 +181,18 @@ describe('PrioritiesPageHeader', () => {
       expect(screen.getByTestId('iq-priorities-page-summary-section')).toBeInTheDocument();
     });
 
-    it('renders correct time and date', () => {
+    it('renders correct time and date', async () => {
       const reportTime = metadata.reportTime;
-      const expectedFormattedDate = moment(reportTime).format('YYYY-MM-DD HH:mm:ss');
+      const expectedFormattedDate = moment(reportTime).format('YYYY-MM-DD HH:mm:ss [UTC]ZZ');
+      const expectedFormattedText = moment(reportTime).fromNow();
       renderComponent();
-      expect(screen.getByText(expectedFormattedDate)).toBeInTheDocument();
+      const expectedText = screen.getByText(expectedFormattedText);
+      expect(expectedText).toBeInTheDocument();
+
+      fireEvent.mouseOver(expectedText);
+
+      const tooltip = await screen.findByRole('tooltip');
+      expect(tooltip).toHaveTextContent(expectedFormattedDate);
     });
 
     describe('violations section', () => {

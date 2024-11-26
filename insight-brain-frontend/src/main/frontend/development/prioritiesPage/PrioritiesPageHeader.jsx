@@ -41,7 +41,7 @@ const stageMap = {
 
 const COPY_STATUS_TOOLTIP_TIMEOUT = 1500;
 
-const formatDate = (date) => moment(date).format('YYYY-MM-DD HH:mm:ss');
+const formatDate = (date) => moment(date).format('YYYY-MM-DD HH:mm:ss [UTC]ZZ');
 
 export default function PrioritiesPageHeader() {
   const uiRouterState = useRouterState();
@@ -194,9 +194,11 @@ function Timestamp({ formattedDate }) {
   return (
     <>
       {formattedDate && (
-        <span>
-          <span className="iq-priorities-page-desc-title">Timestamp: </span> {formattedDate}
-        </span>
+        <NxTooltip title={formattedDate}>
+          <span>
+            <span className="iq-priorities-page-desc-title">Timestamp: </span> {moment(formattedDate).fromNow()}
+          </span>
+        </NxTooltip>
       )}
     </>
   );

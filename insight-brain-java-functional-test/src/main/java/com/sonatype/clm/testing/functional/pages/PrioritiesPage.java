@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.sonatype.clm.testing.functional.elements.NxDropdown;
 
 import static com.codeborne.selenide.Selectors.by;
 import static com.codeborne.selenide.Selectors.byText;
@@ -40,8 +41,8 @@ public class PrioritiesPage
         .findAll(by("data-analytics-id", "sonatype-developer-priorities-page-component-row"));
   }
 
-  public static SelenideElement fullReportButton() {
-    return $(byText("View Full Report"));
+  public static NxDropdown viewDropdown() {
+    return new NxDropdown(".iq-priorities-page-view-dropdown");
   }
 
   public static SelenideElement lastPageLink() {

@@ -9,7 +9,6 @@ import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import PrioritiesPageHeader from 'MainRoot/development/prioritiesPage/PrioritiesPageHeader';
 import moment from 'moment';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
-import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
 
 const publicAppId = 'TestApp';
 const scanId = 'testScanId';
@@ -84,79 +83,94 @@ describe('PrioritiesPageHeader', () => {
   });
 
   describe('header actions', () => {
-    let stateGoSpy;
     beforeEach(() => {
       const routerContextMock = {
         href: jest.fn('href').mockImplementation((stateName) => stateName),
         get: jest.fn('get').mockImplementation((state) => state),
       };
       jest.spyOn(routerStateContext, 'useRouterState').mockReturnValue(routerContextMock);
-      stateGoSpy = jest.spyOn(RouterActions, 'stateGo');
     });
 
-    it('renders a "View Full Report" link', async () => {
-      renderComponent();
-
-      const viewFullReportLink = await screen.findByRole('link', { name: /view full report/i });
-      expect(viewFullReportLink).toBeInTheDocument();
-      expect(viewFullReportLink).toHaveAttribute('href', 'applicationReport.policy');
-      expect(viewFullReportLink).toHaveAttribute('target', '_blank');
-    });
-
-    describe('dependencies button', () => {
-      it('renders an enabled "Dependencies" button that navigates to a state when dependency tree is available', async () => {
+    describe('view dropdown', () => {
+      it('renders a "View" dropdown with options', async () => {
         renderComponent();
+        const viewDropdown = await screen.findByRole('button', { name: /view/i });
+        expect(viewDropdown).toBeInTheDocument();
 
-        const dependenciesButton = await screen.findByRole('button', { name: /dependencies/i });
-        expect(dependenciesButton).toBeInTheDocument();
-        expect(dependenciesButton).not.toHaveAttribute('aria-disabled', 'true');
+        fireEvent.click(viewDropdown);
 
-        fireEvent.click(dependenciesButton);
-
-        expect(stateGoSpy).toHaveBeenCalledWith(
-          'componentDetailsPageWithinPrioritiesPageContainerFromDashboard.dependencyTree',
-          {
-            publicId: metadata.application.publicId,
-            scanId,
-          }
-        );
+        expect(screen.getByRole('link', { name: /lifecycle report/i })).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: /dependencies/i })).toBeInTheDocument();
       });
 
-      it('renders a disabled "Dependencies" button when dependency tree is not available', async () => {
-        const preloadedState = {
-          applicationReport: {
-            metadata,
-            selectedReport: {
-              criticalViolationCount: 133,
-              severeViolationCount: 23,
-              moderateViolationCount: 13,
-              nonLowViolationCount: 83,
-              policyComponentCount: 253,
-              totalArtifactCount: 303,
-              legacyViolationCount: 33,
-              aggregatedEntries: [{ waivedViolations: 5 }, { waivedViolations: 10 }],
-            },
-            dependencyTree: [],
-          },
-          router: {
-            currentParams: {
-              publicAppId,
-              scanId,
-            },
-            currentState: {
-              name: 'prioritiesPageFromDashboard',
-            },
-          },
-        };
-        renderComponent(preloadedState);
+      it('renders a "View Full Report" link', async () => {
+        renderComponent();
+        const viewDropdown = await screen.findByRole('button', { name: /view/i });
+        expect(viewDropdown).toBeInTheDocument();
 
-        const dependenciesButton = await screen.findByRole('button', { name: /dependencies/i });
-        expect(dependenciesButton).toBeInTheDocument();
-        expect(dependenciesButton).toHaveAttribute('aria-disabled', 'true');
+        fireEvent.click(viewDropdown);
 
-        fireEvent.click(dependenciesButton);
+        const lifecycleReportLink = await screen.findByRole('link', { name: /lifecycle report/i });
+        expect(lifecycleReportLink).toBeInTheDocument();
+        expect(lifecycleReportLink).toHaveAttribute('href', 'applicationReport.policy');
+        expect(lifecycleReportLink).toHaveAttribute('target', '_blank');
+      });
 
-        expect(stateGoSpy).not.toHaveBeenCalled();
+      describe('dependencies link', () => {
+        it('renders a "Dependencies" link when dependency tree is available', async () => {
+          renderComponent();
+          const viewDropdown = await screen.findByRole('button', { name: /view/i });
+          expect(viewDropdown).toBeInTheDocument();
+
+          fireEvent.click(viewDropdown);
+
+          const dependenciesLink = await screen.findByRole('link', { name: /dependencies/i });
+          expect(dependenciesLink).toBeInTheDocument();
+          expect(dependenciesLink).not.toHaveAttribute('aria-disabled', 'true');
+
+          expect(dependenciesLink).toHaveAttribute(
+            'href',
+            'componentDetailsPageWithinPrioritiesPageContainerFromDashboard.dependencyTree'
+          );
+        });
+
+        it('renders a disabled "Dependencies" link when dependency tree is not available', async () => {
+          const preloadedState = {
+            applicationReport: {
+              metadata,
+              selectedReport: {
+                criticalViolationCount: 133,
+                severeViolationCount: 23,
+                moderateViolationCount: 13,
+                nonLowViolationCount: 83,
+                policyComponentCount: 253,
+                totalArtifactCount: 303,
+                legacyViolationCount: 33,
+                aggregatedEntries: [{ waivedViolations: 5 }, { waivedViolations: 10 }],
+              },
+              dependencyTree: [],
+            },
+            router: {
+              currentParams: {
+                publicAppId,
+                scanId,
+              },
+              currentState: {
+                name: 'prioritiesPageFromDashboard',
+              },
+            },
+          };
+          renderComponent(preloadedState);
+
+          const viewDropdown = await screen.findByRole('button', { name: /view/i });
+          expect(viewDropdown).toBeInTheDocument();
+
+          fireEvent.click(viewDropdown);
+
+          const dependenciesLink = await screen.findByRole('link', { name: /dependencies/i });
+          expect(dependenciesLink).toBeInTheDocument();
+          expect(dependenciesLink).toHaveAttribute('aria-disabled', 'true');
+        });
       });
     });
   });

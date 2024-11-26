@@ -209,8 +209,9 @@ priorities-page {
   }
 
   .nx-btn-bar {
-    .iq-priorities-page-view-full-report-btn {
-      color: var(--nx-color-secondary-button-text);
+    .iq-priorities-page-view-dropdown,
+    .nx-dropdown-menu {
+      width: 200px;
     }
   }
 }

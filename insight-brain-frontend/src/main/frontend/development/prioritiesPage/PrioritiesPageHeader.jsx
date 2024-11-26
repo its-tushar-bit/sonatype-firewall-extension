@@ -5,7 +5,7 @@
  */
 
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import {
   NxCode,
   NxFontAwesomeIcon,
@@ -15,8 +15,7 @@ import {
   NxTile,
   NxH2,
   NxSmallThreatCounter,
-  NxTextLink,
-  NxButton,
+  NxStatefulDropdown,
 } from '@sonatype/react-shared-components';
 import { selectRouterCurrentParams, selectPrioritiesPageContainerName } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
@@ -26,12 +25,11 @@ import {
   selectDependencyTreeIsAvailable,
   selectDependencyTreeUnavailableMessage,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
-import { faCheckCircle, faExclamationCircle } from '@fortawesome/pro-solid-svg-icons';
+import { faCheckCircle, faExclamationCircle, faExternalLinkAlt } from '@fortawesome/pro-solid-svg-icons';
 import { faCopy } from '@fortawesome/pro-regular-svg-icons';
 import moment from 'moment';
 import { propOr } from 'ramda';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 
 const stageMap = {
   build: 'Build',
@@ -46,7 +44,6 @@ const COPY_STATUS_TOOLTIP_TIMEOUT = 1500;
 const formatDate = (date) => moment(date).format('YYYY-MM-DD HH:mm:ss');
 
 export default function PrioritiesPageHeader() {
-  const dispatch = useDispatch();
   const uiRouterState = useRouterState();
 
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
@@ -86,18 +83,15 @@ export default function PrioritiesPageHeader() {
   const formattedDate = reportTime ? formatDate(reportTime) : null;
   const stageName = stageMap[stageId];
 
-  const getApplicationReportHref = () => {
-    return uiRouterState.href('applicationReport.policy', {
-      publicId: publicAppId,
-      scanId: scanId,
-    });
-  };
+  const lifecycleReportHref = uiRouterState.href('applicationReport.policy', {
+    publicId: publicAppId,
+    scanId: scanId,
+  });
 
-  const redirectToDependencyTree = () => {
-    if (dependencyTreeIsAvailable) {
-      dispatch(stateGo(getHrefToDependencyTree(), { publicId: publicAppId, scanId }));
-    }
-  };
+  const dependencyTreeHref = uiRouterState.href(getHrefToDependencyTree(), {
+    publicId: publicAppId,
+    scanId,
+  });
 
   return (
     <>
@@ -105,13 +99,21 @@ export default function PrioritiesPageHeader() {
         <NxH1>{appName} - Priorities</NxH1>
 
         <div className="nx-btn-bar">
-          <NxTextLink
-            className="nx-btn iq-priorities-page-view-full-report-btn"
-            href={getApplicationReportHref()}
-            external
-          >
-            View Full Report
-          </NxTextLink>
+          <NxStatefulDropdown label="View" className="iq-priorities-page-view-dropdown">
+            <a className="nx-dropdown-link" href={lifecycleReportHref} target="_blank" rel="noreferrer">
+              <span>Lifecycle Report</span>
+              <NxFontAwesomeIcon icon={faExternalLinkAlt} />
+            </a>
+            <NxTooltip title={dependencyTreeUnavailableMessage}>
+              <a
+                className={`nx-dropdown-link ${dependencyTreeIsAvailable ? '' : 'disabled'}`}
+                aria-disabled={!dependencyTreeIsAvailable}
+                href={dependencyTreeHref}
+              >
+                <span>Dependencies</span>
+              </a>
+            </NxTooltip>
+          </NxStatefulDropdown>
         </div>
       </NxPageTitle>
       <NxTile data-testid="iq-priorities-page-summary-section">
@@ -140,16 +142,6 @@ export default function PrioritiesPageHeader() {
               {pluralTermination(totalArtifactCount)}
             </NxTile.HeaderSubtitle>
           </NxTile.Headings>
-          <div className="nx-tile__actions">
-            <NxButton
-              onClick={redirectToDependencyTree}
-              variant="tertiary"
-              className={dependencyTreeIsAvailable ? '' : 'disabled'}
-              title={dependencyTreeUnavailableMessage}
-            >
-              Dependencies
-            </NxButton>
-          </div>
         </NxTile.Header>
         <NxTile.Content>
           <div className="iq-priorities-page-desc-details">

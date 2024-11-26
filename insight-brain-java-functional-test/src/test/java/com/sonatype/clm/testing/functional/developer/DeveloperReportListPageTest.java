@@ -78,7 +78,17 @@ public class DeveloperReportListPageTest
     refreshOrOpen(DeveloperReportListPage.url());
     DeveloperReportListPage.reportListTable().findAll(byText("View Priorities")).first().click();
     PrioritiesPage.title().shouldHave(text(title(0)));
-    PrioritiesPage.fullReportButton().click();
+    NxDropdown viewDropdown = PrioritiesPage.viewDropdown();
+    viewDropdown.shouldHave(text("View"));
+    viewDropdown.click();
+    viewDropdown
+        .menu()
+        .shouldBe(visible)
+        .entries()
+        .find(text("Lifecycle Report"))
+        .shouldBe(visible)
+        .click();
+
     Selenide.switchTo().window(1);
     reportPage.shouldBe(visible);
 

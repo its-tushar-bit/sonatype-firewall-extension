@@ -20,6 +20,7 @@ import {
   selectIsScmEnabled,
   selectIsSbomContinuousMonitoringUiEnabled,
   selectIsSbomPoliciesSupported,
+  selectIsAutoWaiversEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 import NavPills from 'MainRoot/navPills/NavPills';
@@ -40,6 +41,7 @@ export default function OwnerSummaryPills() {
   const isSourceControlForSourceTileSupported = useSelector(selectIsSourceControlForSourceTileSupported);
   const isSbomContinuousMonitoringUiEnabled = useSelector(selectIsSbomContinuousMonitoringUiEnabled);
   const isSbomPoliciesSupported = useSelector(selectIsSbomPoliciesSupported);
+  const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
 
   const isMultiTenant = useSelector(selectTenantMode) === 'multi-tenant';
   const isDataRetentionConfigEnabled = isDataRetentionEnabled && !isMultiTenant;
@@ -106,6 +108,11 @@ export default function OwnerSummaryPills() {
         label: 'Artifactory repository',
         target: 'owner-pill-artifactory-repository',
         isDisplayed: isArtifactoryRepositorySupported && (isOrg || isApp) && !isSbomManager,
+      },
+      {
+        label: 'Waivers',
+        target: 'owner-pill-waivers-configuration',
+        isDisplayed: isAutoWaiversEnabled && !isSbomManager,
       },
       {
         label: 'Access',

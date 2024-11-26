@@ -33,6 +33,7 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.signature.ComponentWithSignaturesList;
 import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
+import com.sonatype.insight.brain.client.LicenseNotEnabledException;
 import com.sonatype.insight.brain.client.PolicyAction;
 import com.sonatype.insight.brain.client.RestClientFactory;
 import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
@@ -402,14 +403,24 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       final PolicyEvaluationPollingResult eval,
       PolicyEvaluationResult policyEvaluationResult) throws ExitException
   {
-    // If call flow analysis is not enabled, don't bother fetching the config
-    if (params.isRunCallFlowAnalysis() || params.getCallFlowAnalysisNamespaces() != null) {
+    boolean callFlowAnalysisRequestedByCLI =
+        params.isRunCallFlowAnalysis() || params.getCallFlowAnalysisNamespaces() != null;
+    try {
       ApiCallFlowAnalysisConfigDTO iqCallFlowParams = fetchCallFlowAnalysisConfig(params, restClient);
-      if (iqCallFlowParams != null && iqCallFlowParams.enabled) {
+      boolean callFlowAnalysisRequestedByConfig = iqCallFlowParams != null && iqCallFlowParams.enabled;
+      if (callFlowAnalysisRequestedByConfig || callFlowAnalysisRequestedByCLI) {
+        log.debug("Call flow analysis will run either because requested by CLI or configured in IQ Server.");
         policyEvaluationResult = runCallFlowAnalysis(restClient, eval, params, iqCallFlowParams);
       }
     }
-    // If call flow analysis is not enabled or fetched config forbids doing call flow analysis, return original result
+    catch (LicenseNotEnabledException e) {
+      log.debug("Call flow analysis is not enabled according to the IQ Server.");
+      // If call flow analysis is requested but not licensed, prompt to update license
+      // If not requested, do not bother them with this message
+      if (callFlowAnalysisRequestedByCLI) {
+        log.warn("Please update your license to enable call flow analysis.");
+      }
+    }
     return policyEvaluationResult;
   }
 

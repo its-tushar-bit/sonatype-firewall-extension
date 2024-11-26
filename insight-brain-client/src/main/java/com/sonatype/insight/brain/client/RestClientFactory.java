@@ -232,7 +232,7 @@ public class RestClientFactory
     public ApiCallFlowAnalysisConfigDTO getCallFlowAnalysisConfig(String ownerType, String ownerId)
         throws IOException
     {
-      return new CallFlowAnalysisConfigClient(config).getAnalysisCallFlowConfig(ownerType,ownerId);
+      return new CallFlowAnalysisConfigClient(config).getAnalysisCallFlowConfig(ownerType, ownerId);
     }
   }
 }

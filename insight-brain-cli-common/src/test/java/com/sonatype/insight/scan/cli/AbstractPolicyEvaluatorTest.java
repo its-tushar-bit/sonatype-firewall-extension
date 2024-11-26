@@ -16,8 +16,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.callflowanalysis.ApiCallFlowAnalysisConfigDTO;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
-import com.sonatype.clm.dto.model.signature.ComponentWithSignatures;
-import com.sonatype.clm.dto.model.signature.ComponentWithSignaturesList;
+import com.sonatype.insight.brain.client.LicenseNotEnabledException;
 import com.sonatype.insight.brain.client.PolicyAction;
 import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
 import com.sonatype.insight.scan.cli.AbstractParametersTest.TestParameters;
@@ -28,7 +27,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -127,52 +126,82 @@ public class AbstractPolicyEvaluatorTest
   }
 
   @Test
-  public void enrichResultIfCallFlowAnalysisEnabled_whenCallFlowAnalysisNotEnabled() throws ExitException, IOException {
-    AbstractParameters params = new TestParameters();
-    RestClient restClient = mock(RestClient.class);
-    PolicyEvaluationPollingResult eval = new PolicyEvaluationPollingResult();
-    PolicyEvaluationResult originalResult = new PolicyEvaluationResult();
-    eval.setResult(originalResult);
-    PolicyEvaluationResult enrichedResult =
-        abstractPolicyEvaluator.enrichResultIfCallFlowAnalysisEnabled(params, restClient, eval, originalResult);
-
-    // Should return original result without enrichment
-    assertThat(enrichedResult).isSameAs(originalResult);
-    // Should not fetch call flow analysis configuration
-    verify(restClient, times(0)).getCallFlowAnalysisConfig(any(), any());
-  }
-
-  @Test
-  public void enrichResultIfCallFlowAnalysisEnabled_whenCallFlowAnalysisEnabled_configEnabled()
+  public void enrichResultIfCallFlowAnalysisEnabled_noCallFlowAnalysisLicense_hasParam()
       throws ExitException, IOException
   {
+    // Even if call flow analysis parameters are present, server side license is not enabled
     AbstractParameters params = new TestParameters();
     params.parse("-c");
     params.parse("-cn", "test");
 
     RestClient restClient = mock(RestClient.class);
-    ApiCallFlowAnalysisConfigDTO apiCallFlowAnalysisConfigDTO = new ApiCallFlowAnalysisConfigDTO();
-    apiCallFlowAnalysisConfigDTO.enabled = true;
-    when(restClient.getCallFlowAnalysisConfig(any(), any())).thenReturn(apiCallFlowAnalysisConfigDTO);
-
-    ComponentWithSignaturesList componentWithSignaturesList = new ComponentWithSignaturesList();
-    componentWithSignaturesList.setComponents(List.of(new ComponentWithSignatures()));
-    when(restClient.getVulnerableComponentsWithSignatures(any(), any())).thenReturn(componentWithSignaturesList);
-
     PolicyEvaluationPollingResult eval = new PolicyEvaluationPollingResult();
     PolicyEvaluationResult originalResult = new PolicyEvaluationResult();
+    eval.setResult(originalResult);
+
+    // IQ server does not have call flow analysis license
+    when(restClient.getCallFlowAnalysisConfig(any(), any())).thenThrow(new LicenseNotEnabledException());
+
+    abstractPolicyEvaluator.enrichResultIfCallFlowAnalysisEnabled(params, restClient, eval, originalResult);
+
+    // Should fetch call flow analysis configuration (and license info) when parameters are present
+    verify(restClient).getCallFlowAnalysisConfig(any(), any());
+    // No follow-up calls with real call flow analysis logic should be made
+    verify(restClient, never()).getVulnerableComponentsWithSignatures(any(), any());
+  }
+
+  @Test
+  public void enrichResultIfCallFlowAnalysisEnabled_hasLicense_noParam_configDisabled()
+      throws ExitException, IOException
+  {
+    AbstractParameters params = new TestParameters();
+    RestClient restClient = mock(RestClient.class);
+    ApiCallFlowAnalysisConfigDTO apiCallFlowAnalysisConfigDTO = new ApiCallFlowAnalysisConfigDTO();
+    apiCallFlowAnalysisConfigDTO.enabled = false;
+    when(restClient.getCallFlowAnalysisConfig(any(), any())).thenReturn(apiCallFlowAnalysisConfigDTO);
+    PolicyEvaluationPollingResult eval = new PolicyEvaluationPollingResult();
+    PolicyEvaluationResult originalResult = new PolicyEvaluationResult();
+    eval.setResult(originalResult);
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId("scanId");
     eval.setScanReceipt(scanReceipt);
     eval.setResult(originalResult);
     abstractPolicyEvaluator.enrichResultIfCallFlowAnalysisEnabled(params, restClient, eval, originalResult);
 
-    verify(restClient, times(1)).getVulnerableComponentsWithSignatures(any(), any());
-    verify(restClient, times(1)).getCallFlowAnalysisConfig(any(), any());
+    // Even if no parameters are present,
+    // should still fetch call flow analysis configuration because experimental users might have the feature enabled
+    verify(restClient).getCallFlowAnalysisConfig(any(), any());
+    // No follow-up calls with real call flow analysis logic should be made
+    verify(restClient, never()).getVulnerableComponentsWithSignatures(any(), any());
   }
 
   @Test
-  public void enrichResultIfCallFlowAnalysisEnabled_whenCallFlowAnalysisEnabled_configDisabled()
+  public void enrichResultIfCallFlowAnalysisEnabled_hasLicense_noParam_configEnabled()
+      throws ExitException, IOException
+  {
+    AbstractParameters params = new TestParameters();
+    RestClient restClient = mock(RestClient.class);
+    ApiCallFlowAnalysisConfigDTO apiCallFlowAnalysisConfigDTO = new ApiCallFlowAnalysisConfigDTO();
+    apiCallFlowAnalysisConfigDTO.enabled = true;
+    when(restClient.getCallFlowAnalysisConfig(any(), any())).thenReturn(apiCallFlowAnalysisConfigDTO);
+    PolicyEvaluationPollingResult eval = new PolicyEvaluationPollingResult();
+    PolicyEvaluationResult originalResult = new PolicyEvaluationResult();
+    eval.setResult(originalResult);
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId("scanId");
+    eval.setScanReceipt(scanReceipt);
+    eval.setResult(originalResult);
+    abstractPolicyEvaluator.enrichResultIfCallFlowAnalysisEnabled(params, restClient, eval, originalResult);
+
+    // Even if no parameters are present,
+    // should still fetch call flow analysis configuration because experimental users might have the feature enabled
+    verify(restClient).getCallFlowAnalysisConfig(any(), any());
+    // Follow-up calls with real call flow analysis logic should be made
+    verify(restClient).getVulnerableComponentsWithSignatures(any(), any());
+  }
+
+  @Test
+  public void enrichResultIfCallFlowAnalysisEnabled_hasLicense_hasParam_configDisabled()
       throws ExitException, IOException
   {
     AbstractParameters params = new TestParameters();
@@ -183,16 +212,18 @@ public class AbstractPolicyEvaluatorTest
     ApiCallFlowAnalysisConfigDTO apiCallFlowAnalysisConfigDTO = new ApiCallFlowAnalysisConfigDTO();
     apiCallFlowAnalysisConfigDTO.enabled = false;
     when(restClient.getCallFlowAnalysisConfig(any(), any())).thenReturn(apiCallFlowAnalysisConfigDTO);
-
     PolicyEvaluationPollingResult eval = new PolicyEvaluationPollingResult();
     PolicyEvaluationResult originalResult = new PolicyEvaluationResult();
     eval.setResult(originalResult);
-    PolicyEvaluationResult enrichedResult =
-        abstractPolicyEvaluator.enrichResultIfCallFlowAnalysisEnabled(params, restClient, eval, originalResult);
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId("scanId");
+    eval.setScanReceipt(scanReceipt);
+    eval.setResult(originalResult);
+    abstractPolicyEvaluator.enrichResultIfCallFlowAnalysisEnabled(params, restClient, eval, originalResult);
 
-    // Should return original result without enrichment
-    assertThat(enrichedResult).isSameAs(originalResult);
-    // Should fetch call flow analysis configuration
-    verify(restClient, times(1)).getCallFlowAnalysisConfig(any(), any());
+    // Should fetch call flow analysis configuration (and license info) when parameters are present
+    verify(restClient).getCallFlowAnalysisConfig(any(), any());
+    // Follow-up calls with real call flow analysis logic should be made
+    verify(restClient).getVulnerableComponentsWithSignatures(any(), any());
   }
 }

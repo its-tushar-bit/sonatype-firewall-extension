@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -79,6 +80,7 @@ public class SpdxToCycloneDxExporter
   protected SpdxToCycloneDxExporter(
       final InsightWork insightWork,
       final MultiLicenseDAO multiLicenseDAO,
+      final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
@@ -90,7 +92,7 @@ public class SpdxToCycloneDxExporter
       final VersionService versionService,
       final ApiReportDataServiceV2 apiReportDataServiceV2)
   {
-    super(insightWork, multiLicenseDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+    super(insightWork, multiLicenseDAO, thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO, thirdPartyScanDAO, applicationDAO,
         thirdPartyVulnerabilityExploitabilityExchangeDAO, baseUrl, idUtils,
         versionService, apiReportDataServiceV2);

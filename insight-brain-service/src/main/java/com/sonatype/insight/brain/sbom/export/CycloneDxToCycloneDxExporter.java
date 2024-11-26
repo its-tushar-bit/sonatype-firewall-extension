@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -39,6 +40,7 @@ public class CycloneDxToCycloneDxExporter
   public CycloneDxToCycloneDxExporter(
       final InsightWork insightWork,
       final MultiLicenseDAO multiLicenseDAO,
+      final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
@@ -51,7 +53,7 @@ public class CycloneDxToCycloneDxExporter
       final ApiReportDataServiceV2 apiReportDataServiceV2)
   {
 
-    super(insightWork, multiLicenseDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+    super(insightWork, multiLicenseDAO, thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO, thirdPartyScanDAO, applicationDAO,
         thirdPartyVulnerabilityExploitabilityExchangeDAO, baseUrl, idUtils,
         versionService, apiReportDataServiceV2);
@@ -61,6 +63,7 @@ public class CycloneDxToCycloneDxExporter
   public String export() {
     try (InputStream gis = new GZIPInputStream(Files.newInputStream(getOriginalSbomFile().toPath()))) {
       Bom bom = SbomCycloneDxUtils.parseContentStreamNoValidation(gis);
+
       // This is a version 1.1 vulnerabilities extensions
       // (https://github.com/CycloneDX/specification/blob/1.6/schema/ext/vulnerability-1.0.xsd)
       // related fix that is not properly handled by the cyclonedx-java library when converting to newer versions.

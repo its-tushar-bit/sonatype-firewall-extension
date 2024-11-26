@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -106,6 +107,7 @@ public abstract class AbstractCycloneDxExporter
   protected AbstractCycloneDxExporter(
       final InsightWork insightWork,
       final MultiLicenseDAO multiLicenseDAO,
+      final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
@@ -117,8 +119,8 @@ public abstract class AbstractCycloneDxExporter
       final VersionService versionService,
       final ApiReportDataServiceV2 apiReportDataServiceV2)
   {
-    super(insightWork, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO, thirdPartyCoordinateLicenseDAO,
-        thirdPartyVulnerabilityExploitabilityExchangeDAO, baseUrl, idUtils,
+    super(insightWork, thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+        thirdPartyCoordinateLicenseDAO, thirdPartyVulnerabilityExploitabilityExchangeDAO, baseUrl, idUtils,
         versionService);
     this.multiLicenseDAO = multiLicenseDAO;
     this.spdxLicenseExpressionUtil = new SpdxLicenseExpressionUtil(multiLicenseDAO);
@@ -374,6 +376,11 @@ public abstract class AbstractCycloneDxExporter
   private void generateNewBomMetadata(Bom bom) {
     Metadata newBomMetadata = new Metadata();
     newBomMetadata.setTimestamp(new Date());
+    String binaryFileName = exportParams.sbomMetadata.getOriginalBinaryFileName();
+    if (StringUtils.isNotBlank(binaryFileName)) {
+      newBomMetadata.setProperties(addOrUpdateBomElementProperty(newBomMetadata.getProperties(),
+          SbomTaxonomy.CDX_ORIGINAL_FILE_PROPERTY_NAME, binaryFileName));
+    }
 
     ToolInformation toolInformation = new ToolInformation();
     toolInformation.setComponents(Collections.singletonList(createComponent(

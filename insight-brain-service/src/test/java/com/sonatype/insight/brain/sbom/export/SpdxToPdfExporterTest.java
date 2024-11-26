@@ -37,6 +37,7 @@ public class SpdxToPdfExporterTest extends AbstractPdfExporterTest
     exporter = new SpdxToPdfExporter(
         mockInsightWork,
         multiLicenseDAO,
+        thirdPartyFileDAO,
         thirdPartyFileCoordinateDAO,
         thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO,

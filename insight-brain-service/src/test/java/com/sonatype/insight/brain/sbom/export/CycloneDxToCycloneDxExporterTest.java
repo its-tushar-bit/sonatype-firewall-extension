@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
@@ -83,6 +84,9 @@ public class CycloneDxToCycloneDxExporterTest
   private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   @Inject
+  ThirdPartyFileDAO thirdPartyFileDAO;
+
+  @Inject
   ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
   @Inject
@@ -121,6 +125,7 @@ public class CycloneDxToCycloneDxExporterTest
     exporter = new CycloneDxToCycloneDxExporter(
         mockInsightWork,
         multiLicenseDAO,
+        thirdPartyFileDAO,
         thirdPartyFileCoordinateDAO,
         thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO,

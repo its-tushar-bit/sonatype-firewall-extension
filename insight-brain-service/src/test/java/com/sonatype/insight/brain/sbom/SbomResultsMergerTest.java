@@ -219,10 +219,10 @@ public class SbomResultsMergerTest
 
     //verify original SBOM
     Bom originalBom = merger.getOriginalBom();
-    assertThat(originalBom.getProperties()).hasSize(1);
-    assertThat(originalBom.getProperties().get(0).getName())
+    assertThat(originalBom.getMetadata().getProperties()).hasSize(1);
+    assertThat(originalBom.getMetadata().getProperties().get(0).getName())
         .isEqualTo(SbomTaxonomy.CDX_ORIGINAL_FILE_PROPERTY_NAME);
-    assertThat(originalBom.getProperties().get(0).getValue()).isEqualTo("binary.temp");
+    assertThat(originalBom.getMetadata().getProperties().get(0).getValue()).isEqualTo("binary.temp");
     assertThat(originalBom.getComponents()).hasSize(4)
         .allSatisfy(component -> assertThat(component.getProperties()).isNull());
     Component bomComponent =

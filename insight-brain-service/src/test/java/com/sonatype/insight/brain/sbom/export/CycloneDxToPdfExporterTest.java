@@ -38,6 +38,7 @@ public class CycloneDxToPdfExporterTest
     exporter = new CycloneDxToPdfExporter(
         mockInsightWork,
         multiLicenseDAO,
+        thirdPartyFileDAO,
         thirdPartyFileCoordinateDAO,
         thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO,

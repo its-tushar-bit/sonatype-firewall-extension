@@ -767,7 +767,8 @@ public class SbomResultsMerger
     // Add the binary file name as a property in the original SBOM
     String binaryFileName = thirdPartySbomMetadata.getOriginalBinaryFileName();
     if (StringUtils.isNotBlank(binaryFileName)) {
-      originalBom.addProperty(createCycloneDxProperty(SbomTaxonomy.CDX_ORIGINAL_FILE_PROPERTY_NAME, binaryFileName));
+      originalBom.getMetadata()
+          .addProperty(createCycloneDxProperty(SbomTaxonomy.CDX_ORIGINAL_FILE_PROPERTY_NAME, binaryFileName));
     }
 
     String bomAsString = generateBomString(originalBom);

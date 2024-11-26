@@ -15,6 +15,7 @@ import java.util.Optional;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -42,6 +43,8 @@ public abstract class AbstractSbomExporter
 
   private final InsightWork insightWork;
 
+  protected final ThirdPartyFileDAO thirdPartyFileDAO;
+
   protected final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
   protected final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
@@ -66,6 +69,7 @@ public abstract class AbstractSbomExporter
 
   protected AbstractSbomExporter(
       final InsightWork insightWork,
+      final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
@@ -75,6 +79,7 @@ public abstract class AbstractSbomExporter
       final VersionService versionService)
   {
     this.insightWork = insightWork;
+    this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
     this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;

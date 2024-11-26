@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.sbom.export;
 
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.report.pdf.PdfData;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent;
@@ -56,6 +57,9 @@ public class AbstractPdfExporterTest
 
   @Inject
   protected MultiLicenseDAO multiLicenseDAO;
+
+  @Inject
+  protected ThirdPartyFileDAO thirdPartyFileDAO;
 
   @Inject
   protected ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;

@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.report.pdf.PdfData;
@@ -39,6 +40,7 @@ public class SpdxToPdfExporter
   protected SpdxToPdfExporter(
       final InsightWork insightWork,
       final MultiLicenseDAO multiLicenseDAO,
+      final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
@@ -50,9 +52,8 @@ public class SpdxToPdfExporter
       final VersionService versionService,
       final ApiReportDataServiceV2 apiReportDataServiceV2)
   {
-    super(insightWork, multiLicenseDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-        thirdPartyCoordinateLicenseDAO,
-        thirdPartyScanDAO, applicationDAO,
+    super(insightWork, multiLicenseDAO, thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+        thirdPartyCoordinateLicenseDAO, thirdPartyScanDAO, applicationDAO,
         thirdPartyVulnerabilityExploitabilityExchangeDAO, baseUrl, idUtils, versionService, apiReportDataServiceV2);
   }
 

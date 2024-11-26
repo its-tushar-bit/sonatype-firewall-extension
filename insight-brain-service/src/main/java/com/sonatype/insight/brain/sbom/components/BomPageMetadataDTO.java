@@ -37,6 +37,8 @@ public class BomPageMetadataDTO
 
   public boolean isValid;
 
+  public String originalFile;
+
   public BomPageMetadataDTO(
       final List<String> author,
       final List<String> manufacturer,
@@ -48,7 +50,8 @@ public class BomPageMetadataDTO
       final String fileFormat,
       final Date createdAt,
       final String scanId,
-      final boolean isValid)
+      final boolean isValid,
+      final String originalFile)
   {
     this.author = author;
     this.manufacturer = manufacturer;
@@ -61,6 +64,7 @@ public class BomPageMetadataDTO
     this.createdAt = createdAt;
     this.scanId = scanId;
     this.isValid = isValid;
+    this.originalFile = originalFile;
   }
 
   public BomPageMetadataDTO() {

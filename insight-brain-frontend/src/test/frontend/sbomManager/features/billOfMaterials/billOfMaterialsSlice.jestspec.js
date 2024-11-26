@@ -24,6 +24,7 @@ const sbomMetadataInitialState = {
   specification: null,
   specVersion: null,
   fileFormat: null,
+  originalFile: null,
   createdAt: null,
   isValid: null,
 };
@@ -245,6 +246,7 @@ describe('billOfMaterialsPage reducers have the correct state when the following
         specification: 'SPDX',
         specVersion: '2.3',
         fileFormat: 'json',
+        originalFile: 'test.jar',
         createdAt: '2024-01-12T20:11:22Z',
         isValid: true,
         scanId: 'scan-id',

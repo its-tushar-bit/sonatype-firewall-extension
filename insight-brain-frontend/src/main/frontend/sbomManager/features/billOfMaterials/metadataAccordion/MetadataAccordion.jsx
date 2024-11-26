@@ -14,7 +14,7 @@ import { capitalize, isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import './MetadataAccordion.scss';
 
 const SBOM_METADATA_PROPERTIES = {
-  cyclonedx: ['author', 'manufacturer', 'supplier', 'specification', 'specVersion', 'fileFormat'],
+  cyclonedx: ['author', 'manufacturer', 'supplier', 'specification', 'specVersion', 'fileFormat', 'originalFile'],
   spdx: ['person', 'organization', 'specification', 'specVersion', 'fileFormat'],
 };
 
@@ -26,12 +26,13 @@ export default function MetadataAccordion() {
   const [open, toggleOpen] = useToggle(false);
   const metadataProperties = SBOM_METADATA_PROPERTIES[sbomMetadata.specification.toLowerCase()];
   const content = map(
-    (property) => (
-      <div key={property} className="sbom-manager-bill-of-materials-summary-metadata-accordion__property-list-item">
-        <dt>{camelCaseToTitleCase(property)}</dt>
-        <dd>{formatMetadataValue(sbomMetadata[property])}</dd>
-      </div>
-    ),
+    (property) =>
+      property == 'originalFile' && sbomMetadata[property] == null ? null : (
+        <div key={property} className="sbom-manager-bill-of-materials-summary-metadata-accordion__property-list-item">
+          <dt>{camelCaseToTitleCase(property)}</dt>
+          <dd>{formatMetadataValue(sbomMetadata[property])}</dd>
+        </div>
+      ),
     metadataProperties
   );
 

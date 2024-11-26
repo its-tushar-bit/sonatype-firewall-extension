@@ -15,6 +15,7 @@ describe('MetadataAccordion', () => {
     specification: 'CycloneDx',
     specVersion: '2.3',
     fileFormat: 'json',
+    originalFile: null,
   };
 
   const spdxMetadata = {
@@ -32,6 +33,17 @@ describe('MetadataAccordion', () => {
     specification: 'CycloneDx',
     specVersion: '2.3',
     fileFormat: 'json',
+    originalFile: null,
+  };
+
+  const cycloneDXMetadataFromBinaryScan = {
+    author: ['Alice', 'Bob'],
+    manufacturer: ['Orange'],
+    supplier: ['Apple'],
+    specification: 'CycloneDx',
+    specVersion: '2.3',
+    fileFormat: 'json',
+    originalFile: 'test.jar',
   };
 
   describe('renders the correct content when', () => {
@@ -60,6 +72,7 @@ describe('MetadataAccordion', () => {
       expect(await screen.getByText('2.3')).toBeVisible();
       expect(await screen.getByText('File Format')).toBeVisible();
       expect(await screen.getByText('json')).toBeVisible();
+      expect(await screen.queryByText('Original File')).not.toBeInTheDocument();
     });
 
     it('the format is SPDX', async () => {
@@ -101,6 +114,35 @@ describe('MetadataAccordion', () => {
       fireEvent.click(accordionHeader);
       expect(await screen.getByText('Author')).toBeVisible();
       expect(await screen.getByText('NONE')).toBeVisible();
+    });
+
+    it('the metadata has an original file', async () => {
+      const preloadedState = {
+        billOfMaterialsPage: {
+          sbomMetadata: { ...cycloneDXMetadataFromBinaryScan },
+        },
+      };
+
+      render(<MetadataAccordion />, { preloadedState: { ...preloadedState } });
+      const accordionHeader = screen.getByRole('button', { name: /Show metadata/i });
+
+      expect(screen.getByText('Show metadata')).toBeVisible();
+      fireEvent.click(accordionHeader);
+      expect(await screen.getByText('Author')).toBeVisible();
+      expect(await screen.getByText('Alice')).toBeVisible();
+      expect(await screen.queryByText('Bob')).not.toBeInTheDocument();
+      expect(await screen.getByText('Manufacturer')).toBeVisible();
+      expect(await screen.getByText('Orange')).toBeVisible();
+      expect(await screen.getByText('Supplier')).toBeVisible();
+      expect(await screen.getByText('Apple')).toBeVisible();
+      expect(await screen.getByText('Specification')).toBeVisible();
+      expect(await screen.getByText('CycloneDx')).toBeVisible();
+      expect(await screen.getByText('Spec Version')).toBeVisible();
+      expect(await screen.getByText('2.3')).toBeVisible();
+      expect(await screen.getByText('File Format')).toBeVisible();
+      expect(await screen.getByText('json')).toBeVisible();
+      expect(await screen.getByText('Original File')).toBeVisible();
+      expect(await screen.getByText('test.jar')).toBeVisible();
     });
   });
 });

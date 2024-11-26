@@ -374,6 +374,7 @@ public class SbomComponentsServiceTest
     assertThat(resultDto.supplier).isEqualTo(Arrays.asList("John Doe", "Jane Doe"));
     assertThat(resultDto.manufacturer).isEqualTo(Arrays.asList("John Doe", "Jane Doe"));
     assertThat(resultDto.scanId).isEqualTo(thirdPartyScan.getScanId());
+    assertThat(resultDto.originalFile).isEqualTo(sbomMetadata.getOriginalBinaryFileName());
 
     // Test SPDX Format
     ThirdPartySbomMetadata sbomSPDXMetadata = SbomMetadataBuilder.newSbomSPDXMetadataBuilder(daoFactory)

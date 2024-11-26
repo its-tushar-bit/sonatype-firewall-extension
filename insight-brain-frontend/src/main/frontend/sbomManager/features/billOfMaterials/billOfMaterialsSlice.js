@@ -52,6 +52,7 @@ export const sbomMetadataInitialState = Object.freeze({
   specification: null,
   specVersion: null,
   fileFormat: null,
+  originalFile: null,
   createdAt: null,
   isValid: null,
 });

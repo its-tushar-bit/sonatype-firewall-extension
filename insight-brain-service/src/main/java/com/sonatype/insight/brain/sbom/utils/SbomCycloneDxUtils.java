@@ -180,7 +180,8 @@ public class SbomCycloneDxUtils
         sbomMetadata.getSpecFormat(),
         sbomMetadata.getCreatedAt(),
         scan != null ? scan.getScanId() : null,
-        sbomMetadata.getIsValid()
+        sbomMetadata.getIsValid(),
+        sbomMetadata.getOriginalBinaryFileName()
     );
   }
 

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.clm.testing.functional.mtiq.sbom;
+package com.sonatype.clm.testing.functional.sbom;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.sbom.ComponentsTile;
-import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
+import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.sbom.BillOfMaterialsPageSummaryTile;
 import com.sonatype.clm.testing.functional.pages.sbom.LearnMoreSbomManagerPage;
@@ -45,6 +45,7 @@ import com.codeborne.selenide.SelenideElement;
 import org.eclipse.aether.util.version.GenericVersionScheme;
 import org.eclipse.aether.version.Version;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
@@ -60,7 +61,7 @@ import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class SbomManagerBillOfMaterialsPageTest
-    extends AbstractMtiqFunctionalTest
+    extends AbstractFunctionalTest
 {
   private final SbomManagerBillOfMaterialsPage sbomManagerBillOfMaterialsPage = new SbomManagerBillOfMaterialsPage();
 
@@ -83,7 +84,7 @@ public class SbomManagerBillOfMaterialsPageTest
     thirdPartySbomMetadataDAO = lookup(ThirdPartySbomMetadataDAO.class);
     organization = tempEntity.newOrganization("test-organization");
     application = tempEntity.newApplication("Test Application", "test-application", organization.getId());
-    Path zippedBom = mockOriginalSbom(SbomManagerApplicationSummaryPageTest.class, "simple-bom.xml",
+    Path zippedBom = mockOriginalSbom(SbomManagerBillOfMaterialsPageTest.class, "simple-bom.xml",
         insightWork.getSbomDir(application.getId()).toPath());
 
     scannedFile = tempEntity.newThirdPartyFile();
@@ -107,10 +108,15 @@ public class SbomManagerBillOfMaterialsPageTest
     );
   }
 
-  private void setLicenseAndLogin() {
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+  @BeforeClass
+  public static void initialLogin() {
     refreshOrOpen(IndexPage.url());
     loginAsAdmin();
+  }
+
+  @Before
+  public void setLicense() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
   }
 
   @Test
@@ -122,7 +128,7 @@ public class SbomManagerBillOfMaterialsPageTest
         "r1", "d1", "l1", 5.5, "sd1", "f1");
     sbomMetadata.setCreatedAt(new Date(0));
     thirdPartySbomMetadataDAO.update(sbomMetadata);
-    setLicenseAndLogin();
+    refreshOrOpen(IndexPage.url());
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
     billOfMaterialsPageSummaryTile.componentSummaryChartAndProgress().shouldBe(visible);
     billOfMaterialsPageSummaryTile.componentSummaryChartAndProgress().shouldHave(text("Component Summary\n" +
@@ -145,7 +151,7 @@ public class SbomManagerBillOfMaterialsPageTest
         "r3", "d3", "l3", 3.5, "sd3", "f3");
     sbomMetadata.setCreatedAt(new Date(0));
     thirdPartySbomMetadataDAO.update(sbomMetadata);
-    setLicenseAndLogin();
+    refreshOrOpen(IndexPage.url());
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
     billOfMaterialsPageSummaryTile.vulnerabilitySummaryChartAndProgress().shouldBe(visible);
     billOfMaterialsPageSummaryTile.vulnerabilitySummaryChartAndProgress().shouldHave(text("Vulnerabilities Summary\n" +
@@ -170,7 +176,7 @@ public class SbomManagerBillOfMaterialsPageTest
     sbomMetadata.setCreatedAt(new Date(0));
     thirdPartySbomMetadataDAO.update(sbomMetadata);
     SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
-    setLicenseAndLogin();
+    refreshOrOpen(IndexPage.url());
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
     billOfMaterialsPageSummaryTile.policyViolationSummaryChartAndProgress().shouldBe(visible);
     billOfMaterialsPageSummaryTile.policyViolationSummaryChartAndProgress()
@@ -196,7 +202,7 @@ public class SbomManagerBillOfMaterialsPageTest
     sbomMetadata.setCreatedAt(new Date(0));
     thirdPartySbomMetadataDAO.update(sbomMetadata);
     SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(false);
-    setLicenseAndLogin();
+    refreshOrOpen(IndexPage.url());
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
     billOfMaterialsPageSummaryTile.policyViolationSummaryChartAndProgress().shouldNotBe(visible);
   }
@@ -208,7 +214,7 @@ public class SbomManagerBillOfMaterialsPageTest
             "s", "SPDX", "n1", "v1", "h1", "u1");
     sbomMetadata.setCreatedAt(new Date(0));
     thirdPartySbomMetadataDAO.update(sbomMetadata);
-    setLicenseAndLogin();
+    refreshOrOpen(IndexPage.url());
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
     billOfMaterialsPageSummaryTile.annotatedVulnerabilitiesSummaryDescription().shouldBe(visible);
     billOfMaterialsPageSummaryTile.annotatedVulnerabilitiesSummaryDescription()
@@ -263,7 +269,7 @@ public class SbomManagerBillOfMaterialsPageTest
         "r1", "s1", "j1", "r1", "d1");
     sbomMetadata.setCreatedAt(new Date(0));
     thirdPartySbomMetadataDAO.update(sbomMetadata);
-    setLicenseAndLogin();
+    refreshOrOpen(IndexPage.url());
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
     billOfMaterialsPageSummaryTile.summaryTileMetadataAccordion().shouldBe(visible);
     billOfMaterialsPageSummaryTile.summaryTileMetadataAccordion().click();
@@ -302,7 +308,7 @@ public class SbomManagerBillOfMaterialsPageTest
 
   @Test
   public void testBillOfMaterial_SbomManagerDisabledRedirectsToLearnMorePage() {
-    setLicenseAndLogin();
+    refreshOrOpen(IndexPage.url());
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
     setLicensedProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
@@ -510,12 +516,38 @@ public class SbomManagerBillOfMaterialsPageTest
             text("LICENSE"));
   }
 
+  @Test
+  public void testBillOfMaterial_InvalidSbomWarnings_hiddenWhenValid() {
+    insertComponentsTileSbomData();
+
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+    var page = new SbomManagerBillOfMaterialsPage();
+    page.invalidSbomAlert().shouldNotBe(visible);
+    page.invalidSbomIndicator().shouldNotBe(visible);
+  }
+
+  @Test
+  public void testBillOfMaterial_InvalidSbomWarnings() {
+    insertInvalidSbomData();
+
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+    var page = new SbomManagerBillOfMaterialsPage();
+
+    page.invalidSbomIndicator().shouldNotBe(visible);
+
+    page.invalidSbomAlert().shouldBe(visible);
+    page.invalidSbomAlertCloseBtn().shouldBe(visible).click();
+
+    page.invalidSbomAlert().shouldNotBe(visible);
+    page.invalidSbomIndicator().shouldBe(visible);
+  }
+
   private void insertComponentsTileSbomData() {
     ThirdPartyFile scannedFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(scannedFile);
     Path zippedBom = null;
     try {
-      zippedBom = mockOriginalSbom(SbomManagerApplicationSummaryPageTest.class, "simple-bom.xml",
+      zippedBom = mockOriginalSbom(SbomManagerBillOfMaterialsPageTest.class, "simple-bom.xml",
           insightWork.getSbomDir(application.getId()).toPath());
     }
     catch (Exception e) {
@@ -555,7 +587,34 @@ public class SbomManagerBillOfMaterialsPageTest
             "state", "justification", "response", "detail");
       }
     }
-    setLicenseAndLogin();
+    refreshOrOpen(IndexPage.url());
+  }
+
+  private void insertInvalidSbomData() {
+    ThirdPartyFile scannedFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(scannedFile);
+    Path zippedBom = null;
+    try {
+      zippedBom = mockOriginalSbom(SbomManagerBillOfMaterialsPageTest.class, "simple-bom.xml",
+          insightWork.getSbomDir(application.getId()).toPath());
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    sbomMetadata = tempEntity.newThirdPartySbomMetadata(
+        thirdPartyScan.getThirdPartyFileId(),
+        application.getId(),
+        "t-version",
+        "ACTIVE",
+        zippedBom.getFileName().toString(),
+        SbomSpecification.CYCLONEDX.toString(),
+        SbomFormat.XML.name(),
+        "1.6",
+        new Date(0),
+        false
+    );
+    thirdPartySbomMetadataDAO.update(sbomMetadata);
+    refreshOrOpen(IndexPage.url());
   }
 
   private void verifySortOrder(boolean ascending, ComponentsTile componentsTile) {
@@ -705,9 +764,7 @@ public class SbomManagerBillOfMaterialsPageTest
 
   @Test
   public void testBillOfMaterial_ExportOptions_InvalidSbom() throws Exception {
-    insertComponentsTileSbomData();
-    sbomMetadata.setIsValid(false);
-    thirdPartySbomMetadataDAO.update(sbomMetadata);
+    insertInvalidSbomData();
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
 
     sbomManagerBillOfMaterialsPage.exportButton().shouldBe(enabled).shouldHave(text("Export Original SBOM"));
@@ -737,7 +794,7 @@ public class SbomManagerBillOfMaterialsPageTest
   @Test
   public void testBillOfMaterial_ComponentSearch() {
     insertComponentsTileSbomDataForSearchName();
-    setLicenseAndLogin();
+    refreshOrOpen(IndexPage.url());
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
     ComponentsTile componentsTile = SbomManagerBillOfMaterialsPage.componentsTile();
     ElementsCollection tableRows = componentsTile.tableBodyRows();
@@ -769,7 +826,7 @@ public class SbomManagerBillOfMaterialsPageTest
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(scannedFile);
     Path zippedBom = null;
     try {
-      zippedBom = mockOriginalSbom(SbomManagerApplicationSummaryPageTest.class, "simple-bom.xml",
+      zippedBom = mockOriginalSbom(SbomManagerBillOfMaterialsPageTest.class, "simple-bom.xml",
           insightWork.getSbomDir(application.getId()).toPath());
     }
     catch (Exception e) {

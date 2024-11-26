@@ -9,11 +9,13 @@ import {
   NxButtonBar,
   NxFontAwesomeIcon,
   NxH1,
+  NxPageMain,
   NxPageTitle,
   NxStatefulSegmentedButton,
   NxStatefulSubmitMask,
   NxTextLink,
   NxTooltip,
+  NxWarningAlert,
 } from '@sonatype/react-shared-components';
 import { faDownload, faFilePdf } from '@fortawesome/pro-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
@@ -25,6 +27,7 @@ import SummaryTile from 'MainRoot/sbomManager/features/billOfMaterials/summaryTi
 import BillOfMaterialsComponentsTile from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/BillOfMaterialsComponentsTile';
 import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatefulBreadcrumb';
 import SbomAdditionalExportOptionsModal from './sbomAdditionalExportOptionsModal/SbomAdditionalExportOptionsModal';
+import InvalidSbomIndicator from '../InvalidSbomIndicator';
 
 import { getDownloadSbomFileUrl, getSbomDownloadPdfUrl } from 'MainRoot/util/CLMLocation';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -44,6 +47,7 @@ import {
 } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
 import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { formatDate } from 'MainRoot/util/dateUtils';
+import { invalidSbomMessageDetails } from '../messages';
 
 import './billOfMaterials.scss';
 
@@ -69,6 +73,7 @@ export default function BillOfMaterials() {
     policyViolationSummary,
     annotatedVulnerabilitesPercentage,
     exportAndDownloadSbomSubmitMask: exportAndDownloadSbomSubmitMaskState,
+    validationErrorAlertDismissed,
   } = useSelector(selectBillOfMaterialsPage);
 
   const loadingProductFeatures = useSelector(selectLoadingFeatures);
@@ -83,8 +88,12 @@ export default function BillOfMaterials() {
 
   const showSbomAdditionalExportOptionsModal = () => dispatch(actions.setShowSbomAdditionalExportOptionsModal(true));
   const exportAndDownloadSbom = (options) => dispatch(actions.exportAndDownloadSbom(options));
+  const dismissSbomInvalidAlert = () => dispatch(actions.dismissSbomInvalidAlert());
 
   const pdfUrl = getSbomDownloadPdfUrl(publicAppId, currentSbomVersion);
+
+  const { isValid } = sbomMetadata;
+  const showSbomInvalidAlert = !isValid && !validationErrorAlertDismissed;
 
   const doLoad = () => {
     dispatch(actions.setPublicAppId(publicAppId));
@@ -146,7 +155,7 @@ export default function BillOfMaterials() {
 
   const exportOriginalButtonTooltip = 'Export the original imported SBOM.';
 
-  const segmentButtonContent = sbomMetadata.isValid ? (
+  const segmentButtonContent = isValid ? (
     <NxTooltip title={exportButtonTooltip}>
       <span>
         <NxFontAwesomeIcon icon={faDownload} />
@@ -162,7 +171,7 @@ export default function BillOfMaterials() {
     </NxTooltip>
   );
 
-  const firstChildButton = sbomMetadata.isValid ? (
+  const firstChildButton = isValid ? (
     <button className="nx-dropdown-button" onClick={downloadOriginalSbomFile}>
       <NxTooltip title={exportOriginalButtonTooltip}>
         <span>Export Original SBOM</span>
@@ -179,12 +188,31 @@ export default function BillOfMaterials() {
   return (
     <>
       <MenuBarStatefulBreadcrumb />
-      <div id="sbom-manager-bom" className="sbom-manager-bill-of-materials-page">
+      <NxPageMain id="sbom-manager-bom" className="sbom-manager-bill-of-materials-page">
         {exportAndDownloadSbomSubmitMask}
         <SbomAdditionalExportOptionsModal />
         <LoadWrapper retryHandler={() => doLoad()} loading={isLoading} error={loadError}>
+          {showSbomInvalidAlert && (
+            <NxWarningAlert
+              id="invalid-sbom-alert"
+              role="status"
+              aria-labelledby="invalid-sbom-alert-header"
+              onClose={dismissSbomInvalidAlert}
+            >
+              <strong
+                id="invalid-sbom-alert-header"
+                className="sbom-manager-bill-of-materials-page__invalid-sbom-alert-header"
+              >
+                Invalid SBOM Detected
+              </strong>
+              {invalidSbomMessageDetails}
+            </NxWarningAlert>
+          )}
           <NxPageTitle>
-            <NxH1>{applicationName}</NxH1>
+            <NxH1>
+              <span>{applicationName}</span>
+              {!isValid && validationErrorAlertDismissed && <InvalidSbomIndicator />}
+            </NxH1>
             <NxButtonBar>
               {sbomVersions && (
                 <SbomVersionDropdown
@@ -196,20 +224,20 @@ export default function BillOfMaterials() {
               <NxStatefulSegmentedButton
                 className="sbom-manager-bill-of-materials-page__export-button"
                 variant="primary"
-                onClick={sbomMetadata.isValid ? downloadLatestSbomFile : downloadOriginalSbomFile}
+                onClick={isValid ? downloadLatestSbomFile : downloadOriginalSbomFile}
                 buttonContent={segmentButtonContent}
               >
                 {firstChildButton}
                 <button
-                  className={`nx-dropdown-button ${sbomMetadata.isValid ? '' : 'disabled'}`}
+                  className={`nx-dropdown-button ${isValid ? '' : 'disabled'}`}
                   onClick={showSbomAdditionalExportOptionsModal}
-                  disabled={!sbomMetadata.isValid}
+                  disabled={!isValid}
                 >
                   <NxTooltip title="Export SBOM with customized options.">
                     <span>Additional Export Options</span>
                   </NxTooltip>
                 </button>
-                <NxTextLink className="nx-dropdown-button" href={pdfUrl} disabled={!sbomMetadata.isValid}>
+                <NxTextLink className="nx-dropdown-button" href={pdfUrl} disabled={!isValid}>
                   <NxFontAwesomeIcon icon={faFilePdf} />
                   <span>Export PDF</span>
                 </NxTextLink>
@@ -236,7 +264,7 @@ export default function BillOfMaterials() {
           />
           <BillOfMaterialsComponentsTile internalAppId={internalAppId} />
         </LoadWrapper>
-      </div>
+      </NxPageMain>
     </>
   );
 }

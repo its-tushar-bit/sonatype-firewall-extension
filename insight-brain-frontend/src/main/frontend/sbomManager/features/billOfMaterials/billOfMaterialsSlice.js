@@ -40,6 +40,7 @@ import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelector
 import { selectBillOfMaterialsPage } from './billOfMaterialsSelectors';
 
 import { actions as toastActions } from 'MainRoot/toastContainer/toastSlice';
+import { propSet } from 'MainRoot/util/jsUtil';
 
 const REDUCER_NAME = 'billOfMaterialsPage';
 
@@ -143,6 +144,7 @@ export const initialState = Object.freeze({
   vulnerabilitiesSummary: { ...vulnerabilitiesSummaryInitialState },
   policyViolationSummary: { ...policyViolationSummaryInitialState },
   annotatedVulnerabilitesPercentage: null,
+  validationErrorAlertDismissed: false,
 
   // sbom-additional-export-options-modal
   sbomAdditionalExportOptionsModal: { ...sbomAdditionalExportOptionsModalInitialState },
@@ -304,6 +306,8 @@ const setExportSbomFileFormat = (state, { payload }) => {
   }
 };
 
+const dismissSbomInvalidAlert = propSet('validationErrorAlertDismissed', true);
+
 // export-and-download-sbom
 const exportAndDownloadSbomRequested = (state) => {
   state.sbomAdditionalExportOptionsModal.showModal = false;
@@ -402,6 +406,7 @@ const billsOfMaterialsPageSlice = createSlice({
     setExportSbomSpecification,
     setExportSbomFileFormat,
     exportAndDownloadSbomSubmitMaskTimerDone,
+    dismissSbomInvalidAlert,
   },
   extraReducers: {
     [loadInternalAppId.pending]: loadInternalAppIdRequested,

@@ -89,4 +89,16 @@ public class SbomManagerBillOfMaterialsPage
   public SelenideElement exportSbomButtonModal() {
     return child("#sbom-additional-export-options-modal .nx-btn--primary");
   }
+
+  public SelenideElement invalidSbomAlert() {
+    return child("#invalid-sbom-alert");
+  }
+
+  public SelenideElement invalidSbomAlertCloseBtn() {
+    return child("#invalid-sbom-alert .nx-btn--close");
+  }
+
+  public SelenideElement invalidSbomIndicator() {
+    return child(".sbom-manager-invalid-sbom-indicator");
+  }
 }

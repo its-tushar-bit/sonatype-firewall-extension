@@ -5,6 +5,8 @@
  */
 import React from 'react';
 import moment from 'moment';
+import { fireEvent, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { axiosMockAdapter, screen, render, waitFor } from 'TestRoot/SpecUtil';
 
@@ -27,7 +29,6 @@ import {
   cleanUpComponentsFilterDrawerPortalContainer,
   setupComponentsFilterDrawerPortalContainer,
 } from './billOfMaterialsComponentsTile/componentsFilterDrawer/ComponentsFilterDrawer.jestspec';
-import { fireEvent } from '@testing-library/react';
 
 describe('BillOfMaterials Page', () => {
   let axiosMock, renderPage;
@@ -483,5 +484,199 @@ describe('BillOfMaterials Page', () => {
 
     const errorMessage = await screen.findByText('An error occurred loading data. Error Message From Server');
     expect(errorMessage).toBeVisible();
+  });
+
+  describe('Invalid SBOM alert', function () {
+    it('does not appear when the SBOM is valid', async () => {
+      jest.useFakeTimers();
+
+      axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
+      axiosMock
+        .onGet(getAllApplicationSbomVersions(APPLICATION_INTERNAL_ID))
+        .reply(200, getAllApplicationSbomVersionsResponsePayload);
+      axiosMock
+        .onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+        .reply(200, getSbomMetadataResponsePayload);
+      axiosMock
+        .onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+        .reply(200, getSbomSummaryResponsePayload);
+      axiosMock
+        .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))
+        .reply(200, getBillOfMaterialsComponentsResponsePayload);
+
+      renderPage();
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
+
+      await waitFor(() => expect(screen.queryByRole('status', { name: 'Loading…' })).not.toBeInTheDocument());
+
+      expect(screen.queryByRole('status', { name: 'Invalid SBOM Detected' })).not.toBeInTheDocument();
+    });
+
+    it('is visible on load when the SBOM is invalid', async () => {
+      jest.useFakeTimers();
+
+      axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
+      axiosMock
+        .onGet(getAllApplicationSbomVersions(APPLICATION_INTERNAL_ID))
+        .reply(200, getAllApplicationSbomVersionsResponsePayload);
+      axiosMock
+        .onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+        .reply(200, getSbomSummaryResponsePayload);
+      axiosMock
+        .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))
+        .reply(200, getBillOfMaterialsComponentsResponsePayload);
+
+      axiosMock
+        .onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+        .reply(200, { ...getSbomMetadataResponsePayload, isValid: false });
+
+      renderPage();
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
+
+      await waitFor(() => expect(screen.queryByRole('status', { name: 'Loading…' })).not.toBeInTheDocument());
+
+      const alert = screen.getByRole('status', { name: 'Invalid SBOM Detected' });
+      expect(alert).toBeInTheDocument();
+      expect(alert).toHaveTextContent('Invalid SBOM Detected');
+    });
+
+    it('contains a close button which makes it disappear', async () => {
+      const user = userEvent.setup();
+      jest.useFakeTimers();
+
+      axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
+      axiosMock
+        .onGet(getAllApplicationSbomVersions(APPLICATION_INTERNAL_ID))
+        .reply(200, getAllApplicationSbomVersionsResponsePayload);
+      axiosMock
+        .onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+        .reply(200, getSbomSummaryResponsePayload);
+      axiosMock
+        .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))
+        .reply(200, getBillOfMaterialsComponentsResponsePayload);
+
+      axiosMock
+        .onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+        .reply(200, { ...getSbomMetadataResponsePayload, isValid: false });
+
+      renderPage();
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
+
+      await waitFor(() => expect(screen.queryByRole('status', { name: 'Loading…' })).not.toBeInTheDocument());
+
+      const alert = screen.getByRole('status', { name: 'Invalid SBOM Detected' }),
+        closeAlert = within(alert).getByRole('button', { name: 'Close' });
+
+      expect(closeAlert).toBeInTheDocument();
+
+      await user.click(closeAlert);
+
+      expect(closeAlert).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Invalid SBOM indicator', function () {
+    // TODO fill in when a11y name for indicator is determined
+    it('does not appear when the SBOM is valid', async () => {
+      jest.useFakeTimers();
+
+      axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
+      axiosMock
+        .onGet(getAllApplicationSbomVersions(APPLICATION_INTERNAL_ID))
+        .reply(200, getAllApplicationSbomVersionsResponsePayload);
+      axiosMock
+        .onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+        .reply(200, getSbomMetadataResponsePayload);
+      axiosMock
+        .onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+        .reply(200, getSbomSummaryResponsePayload);
+      axiosMock
+        .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))
+        .reply(200, getBillOfMaterialsComponentsResponsePayload);
+
+      renderPage();
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
+
+      await waitFor(() => expect(screen.queryByRole('status', { name: 'Loading…' })).not.toBeInTheDocument());
+
+      expect(
+        screen.queryByTitle('This SBOM has validation errors which may result in partial or incorrect information.')
+      ).not.toBeInTheDocument();
+    });
+
+    it('is not visible on load when the SBOM is invalid', async () => {
+      jest.useFakeTimers();
+
+      axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
+      axiosMock
+        .onGet(getAllApplicationSbomVersions(APPLICATION_INTERNAL_ID))
+        .reply(200, getAllApplicationSbomVersionsResponsePayload);
+      axiosMock
+        .onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+        .reply(200, getSbomSummaryResponsePayload);
+      axiosMock
+        .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))
+        .reply(200, getBillOfMaterialsComponentsResponsePayload);
+
+      axiosMock
+        .onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+        .reply(200, { ...getSbomMetadataResponsePayload, isValid: false });
+
+      renderPage();
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
+
+      await waitFor(() => expect(screen.queryByRole('status', { name: 'Loading…' })).not.toBeInTheDocument());
+
+      expect(
+        screen.queryByTitle('This SBOM has validation errors which may result in partial or incorrect information.')
+      ).not.toBeInTheDocument();
+    });
+
+    it('appears when the Invalid SBOM alert is closed', async () => {
+      const user = userEvent.setup();
+      jest.useFakeTimers();
+
+      axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
+      axiosMock
+        .onGet(getAllApplicationSbomVersions(APPLICATION_INTERNAL_ID))
+        .reply(200, getAllApplicationSbomVersionsResponsePayload);
+      axiosMock
+        .onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+        .reply(200, getSbomSummaryResponsePayload);
+      axiosMock
+        .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))
+        .reply(200, getBillOfMaterialsComponentsResponsePayload);
+
+      axiosMock
+        .onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+        .reply(200, { ...getSbomMetadataResponsePayload, isValid: false });
+
+      renderPage();
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
+
+      await waitFor(() => expect(screen.queryByRole('status', { name: 'Loading…' })).not.toBeInTheDocument());
+
+      const alert = screen.getByRole('status', { name: 'Invalid SBOM Detected' });
+
+      await user.click(within(alert).getByRole('button', { name: 'Close' }));
+
+      expect(
+        screen.getByRole('img', {
+          name: 'This SBOM has validation errors which may result in partial or incorrect information.',
+        })
+      ).toBeInTheDocument();
+    });
   });
 });

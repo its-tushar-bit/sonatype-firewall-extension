@@ -45,6 +45,10 @@
     }
   }
 
+  &__invalid-sbom-alert-header {
+    display: block;
+  }
+
   .summary-grid {
     display: grid;
     grid-template-columns: auto auto auto;
@@ -85,5 +89,9 @@
     .nx-dropdown__toggle-label span {
       font-weight: normal;
     }
+  }
+
+  .sbom-manager-invalid-sbom-indicator {
+    vertical-align: 3px;
   }
 }

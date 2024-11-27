@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -256,16 +257,18 @@ public class H2NewestRiskService
                                             PolicyViolation policyViolation)
   {
     NewestRiskDTO newestRiskDTO = new NewestRiskDTO();
-    newestRiskDTO.applicationPublicId = app.getPublicId();
     newestRiskDTO.applicationName = app.getName();
     newestRiskDTO.organizationName = orgName;
     newestRiskDTO.threatLevel = policyViolation.getThreatLevel();
     newestRiskDTO.firstOccurrenceTime = policyViolation.getOpenTime().getTime();
-    newestRiskDTO.policyId = policyViolation.getPolicyId();
     newestRiskDTO.policyName = policyViolation.getPolicyName();
     newestRiskDTO.policyViolationId = policyViolation.getId();
     newestRiskDTO.hash = policyViolation.getHash();
-    addToNewestRiskDTO(newestRiskDTO, policyEvaluation, policyViolation);
+    newestRiskDTO.lastOccurrenceTime = policyEvaluation.getTime().getTime();
+    newestRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
+    newestRiskDTO.filename = policyViolation.getFilename();
+    newestRiskDTO.derivedComponentName = ComponentDisplayNameUtil.deriveComponentName(newestRiskDTO);
+    newestRiskDTO.referenceId = findReferenceIdForPolicyViolation(policyViolation);
 
     return newestRiskDTO;
   }
@@ -275,12 +278,8 @@ public class H2NewestRiskService
                                   PolicyViolation policyViolation)
   {
     long lastOccurrenceTime = policyEvaluation.getTime().getTime();
-    if (newestRiskDTO.lastOccurrenceTime < lastOccurrenceTime || newestRiskDTO.stageTypeId == null) {
+    if (newestRiskDTO.lastOccurrenceTime < lastOccurrenceTime) {
       newestRiskDTO.lastOccurrenceTime = lastOccurrenceTime;
-      // return the latest stage/report
-      newestRiskDTO.stageTypeId = policyEvaluation.getStageTypeId();
-      newestRiskDTO.actionTypeId = policyViolation.getActionTypeId();
-      newestRiskDTO.scanId = policyEvaluation.getScanId();
       // return the latest component name
       newestRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
       newestRiskDTO.filename = policyViolation.getFilename();

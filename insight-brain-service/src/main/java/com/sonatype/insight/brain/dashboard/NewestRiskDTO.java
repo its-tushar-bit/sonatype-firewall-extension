@@ -23,8 +23,6 @@ public class NewestRiskDTO implements CsvWritable
 {
   private static final Joiner joiner = Joiner.on(",");
 
-  public String applicationPublicId;
-
   public String applicationName;
 
   public String organizationName;
@@ -32,8 +30,6 @@ public class NewestRiskDTO implements CsvWritable
   public int threatLevel;
 
   public long firstOccurrenceTime;
-
-  public String policyId;
 
   public String policyName;
 
@@ -46,12 +42,6 @@ public class NewestRiskDTO implements CsvWritable
   public String derivedComponentName;
 
   public String filename;
-
-  public String stageTypeId;
-
-  public String actionTypeId;
-
-  public String scanId;
 
   public long lastOccurrenceTime;
 
@@ -84,17 +74,5 @@ public class NewestRiskDTO implements CsvWritable
 
   public long getFirstOccurrenceTime() {
     return firstOccurrenceTime;
-  }
-
-  public String getPolicyId() {
-    return policyId;
-  }
-
-  public String getDerivedComponentName() {
-    return derivedComponentName;
-  }
-
-  public String getScanId() {
-    return scanId;
   }
 }

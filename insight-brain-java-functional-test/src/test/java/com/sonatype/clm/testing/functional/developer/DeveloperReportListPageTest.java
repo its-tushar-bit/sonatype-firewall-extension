@@ -199,7 +199,7 @@ public class DeveloperReportListPageTest
   }
 
   private void setUpMainApp(int id, String reportResourceName) throws IOException {
-    URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
+    URL referencePolicyUrl = getClass().getResource("/reference-policies-v3-with-build-fail.json");
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
     PolicyImportExport policyImportExport = lookup(PolicyImportExport.class);
 

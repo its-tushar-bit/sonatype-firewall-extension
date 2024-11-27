@@ -111,30 +111,32 @@ public class DevelopmentPrioritiesService
       final int page,
       final int pageSize,
       final String optionalComponentNameFilter,
-      final boolean includeRemedation
+      final boolean includeRemediation,
+      final boolean optionalActionFilter
   )
   {
     final int skipCount = (page - 1) * pageSize;
     final int topCount = 3;
 
-    List<PrioritizedComponent> allPrioritizedFindings =
-        includeRemedation ?
+    final List<PrioritizedComponent> allPrioritizedFindings =
+        includeRemediation ?
             getAllPrioritizedFindings(applicationPublicId, scanId, topCount, skipCount, pageSize) :
             getAllPrioritizedFindings(applicationPublicId, scanId, 0, null, null);
 
-    final List<PrioritizedComponent> filteredPrioritizedFindings =
-        StringUtils.isNotEmpty(optionalComponentNameFilter) ? allPrioritizedFindings.stream()
-            .filter(
-                prioritizedComponent -> matchesFilter(prioritizedComponent.getDisplayName(),
-                    optionalComponentNameFilter)).toList() : allPrioritizedFindings;
+    final List<PrioritizedComponent> filteredByNameAndAction = allPrioritizedFindings.stream()
+        .filter(prioritizedComponent -> StringUtils.isEmpty(optionalComponentNameFilter) ||
+            matchesFilter(prioritizedComponent.getDisplayName(), optionalComponentNameFilter))
+        .filter(prioritizedComponent ->
+            !optionalActionFilter || Action.ID_FAIL.equals(prioritizedComponent.getAction()) ||
+                Action.ID_WARN.equals(prioritizedComponent.getAction())).toList();
 
     // pluck off top 3
-    final int top3Bound = Math.min(filteredPrioritizedFindings.size(), topCount);
-    final List<PrioritizedComponent> top3Priorities = filteredPrioritizedFindings.subList(0, top3Bound);
+    final int top3Bound = Math.min(filteredByNameAndAction.size(), topCount);
+    final List<PrioritizedComponent> top3Priorities = filteredByNameAndAction.subList(0, top3Bound);
     final List<PrioritizedComponent> remainingPrioritiesAll;
 
-    if (filteredPrioritizedFindings.size() > topCount) {
-      remainingPrioritiesAll = filteredPrioritizedFindings.subList(topCount, filteredPrioritizedFindings.size());
+    if (filteredByNameAndAction.size() > topCount) {
+      remainingPrioritiesAll = filteredByNameAndAction.subList(topCount, filteredByNameAndAction.size());
     }
     else {
       remainingPrioritiesAll = new ArrayList<>();
@@ -145,19 +147,19 @@ public class DevelopmentPrioritiesService
         .stream()
         .skip(skipCount)
         .limit(pageSize)
-        .collect(Collectors.toList());
+        .toList();
 
     // get total size before adjusting for pagination (pagination is only over remaining non-top 3 components
     final long totalSizeForRemainingPriorities = remainingPrioritiesAll.size();
 
     // get total size before for pagination
-    final long totalSize = filteredPrioritizedFindings.size();
+    final long totalSize = filteredByNameAndAction.size();
 
-    final List<PrioritizedComponent> prioritizedFindingsForPagination = filteredPrioritizedFindings
+    final List<PrioritizedComponent> prioritizedFindingsForPagination = filteredByNameAndAction
         .stream()
         .skip(skipCount)
         .limit(pageSize)
-        .collect(Collectors.toList());
+        .toList();
 
     return new DevelopmentPrioritizationResults(
         top3Priorities,
@@ -166,9 +168,9 @@ public class DevelopmentPrioritiesService
   }
 
   /**
-    * This method is used to get all prioritized findings for the specified application Id and scan Id.
-    * If the skipCount and limit are provided, it will set remediation for the topCount
-    * components and the components inside the skip and limit remediation range (page size).
+   * This method is used to get all prioritized findings for the specified application Id and scan Id.
+   * If the skipCount and limit are provided, it will set remediation for the topCount
+   * components and the components inside the skip and limit remediation range (page size).
    **/
   @Authorize(permission = Permission.READ)
   public List<PrioritizedComponent> getAllPrioritizedFindings(
@@ -183,7 +185,7 @@ public class DevelopmentPrioritiesService
 
     // checks for read permissions on the app, making this an authorized function
     final ApiReportRawDataDTOV2 apiReportRawDataDTOV2 =
-            developmentPrioritiesReportService.getDependencyInformation(applicationPublicId, scanId);
+        developmentPrioritiesReportService.getDependencyInformation(applicationPublicId, scanId);
     final PolicyThreats policyThreats = reportService.getPolicyThreats(applicationPublicId, scanId);
 
     PolicyEvaluation policyEvaluation =
@@ -194,82 +196,80 @@ public class DevelopmentPrioritiesService
     isBulkRecommendationsEnabled = isBulkRecommendationsEnabled();
 
     final List<UnprioritizedComponent> sortedComponents = apiReportRawDataDTOV2.components
-            .stream()
-            .map(component -> {
-              final List<PolicyViolation> policyViolations =
-                      getMatchingViolations(policyThreats.aaData, component);
+        .stream()
+        .map(component -> {
+          final List<PolicyViolation> policyViolations =
+              getMatchingViolations(policyThreats.aaData, component);
 
-              // Component identifier can be null for unknown components
-              final ComponentIdentifier componentIdentifier = component.componentIdentifier != null ?
-                      component.componentIdentifier.toComponentIdentifier() :
-                      null;
-              final PolicyViolation highestPolicyViolation = getHighestThreat(policyViolations, false);
-              final int highestThreatLevel;
-              final String policyName;
-              final String highestThreatConstraintName;
-              int highestReachableThreatLevel = 0;
+          // Component identifier can be null for unknown components
+          final ComponentIdentifier componentIdentifier = component.componentIdentifier != null ?
+              component.componentIdentifier.toComponentIdentifier() :
+              null;
+          final PolicyViolation highestPolicyViolation = getHighestThreat(policyViolations, false);
+          final int highestThreatLevel;
+          final String policyName;
+          final String highestThreatConstraintName;
+          int highestReachableThreatLevel = 0;
 
-              if (highestPolicyViolation == null) {
-                highestThreatLevel = 0;
-                policyName = null;
-                highestThreatConstraintName = null;
-              }
+          if (highestPolicyViolation == null) {
+            highestThreatLevel = 0;
+            policyName = null;
+            highestThreatConstraintName = null;
+          }
+          else {
+            highestThreatLevel = highestPolicyViolation.policyThreatLevel;
+            policyName = highestPolicyViolation.policyName;
 
-              else {
-                highestThreatLevel = highestPolicyViolation.policyThreatLevel;
-                policyName = highestPolicyViolation.policyName;
+            if (!highestPolicyViolation.constraints.isEmpty()) {
+              highestThreatConstraintName = highestPolicyViolation.constraints.get(0).constraintName;
+            }
+            else {
+              highestThreatConstraintName = null;
+            }
+          }
 
-                if (!highestPolicyViolation.constraints.isEmpty())
-                {
-                  highestThreatConstraintName = highestPolicyViolation.constraints.get(0).constraintName;
-                }
-                else {
-                  highestThreatConstraintName = null;
-                }
-              }
+          final boolean securityReachable = hasSecurityViolations(policyViolations)
+              && isSecurityReachable(applicationPublicId, scanId, component.hash);
 
-              final boolean securityReachable = hasSecurityViolations(policyViolations)
-                      && isSecurityReachable(applicationPublicId, scanId, component.hash);
+          ApiVersionChangeOptionType remediationType = null;
+          String remediationVersion = null;
+          if (securityReachable) {
+            final PolicyViolation highestReachablePolicyViolation = getHighestThreat(policyViolations, true);
+            if (highestReachablePolicyViolation != null) {
+              highestReachableThreatLevel = highestReachablePolicyViolation.policyThreatLevel;
+            }
+          }
 
-              ApiVersionChangeOptionType remediationType = null;
-              String remediationVersion = null;
-              if (securityReachable) {
-                final PolicyViolation highestReachablePolicyViolation = getHighestThreat(policyViolations, true);
-                if (highestReachablePolicyViolation != null) {
-                  highestReachableThreatLevel = highestReachablePolicyViolation.policyThreatLevel;
-                }
-              }
+          if (isBulkRecommendationsEnabled && componentIdentifier != null) {
+            // component.hash and componentIdentifier.toSyntheticHash() have different values. The synthetic hash
+            // from the component identifier (does not use the binary) is what is stored in the database
+            DevelopmentPrioritizationComponentInfo prioritizationComponentInfo =
+                prioritizationComponentInfoDAO.getByScanIdAndComponentHash(scanId,
+                    componentIdentifier.toSyntheticHash());
 
-              if (isBulkRecommendationsEnabled && componentIdentifier != null) {
-                // component.hash and componentIdentifier.toSyntheticHash() have different values. The synthetic hash
-                // from the component identifier (does not use the binary) is what is stored in the database
-                DevelopmentPrioritizationComponentInfo prioritizationComponentInfo =
-                    prioritizationComponentInfoDAO.getByScanIdAndComponentHash(scanId,
-                        componentIdentifier.toSyntheticHash());
+            if (prioritizationComponentInfo != null) {
+              remediationType = prioritizationComponentInfo.getRemediationType();
+              remediationVersion = prioritizationComponentInfo.getRemediationVersion();
+            }
+          }
 
-                if (prioritizationComponentInfo != null) {
-                  remediationType = prioritizationComponentInfo.getRemediationType();
-                  remediationVersion = prioritizationComponentInfo.getRemediationVersion();
-                }
-              }
-
-              return new UnprioritizedComponent(
-                component,
-                getDependencyType(component),
-                hasFailActionOnComponent(policyViolations),
-                getAction(policyViolations),
-                highestThreatLevel,
-                policyName,
-                highestThreatConstraintName,
-                securityReachable,
-                remediationType,
-                remediationVersion,
-                highestReachableThreatLevel
-              );
-            })
-            .filter(unprioritizedComponent -> unprioritizedComponent.highestThreat > 0)
-            .sorted(Comparator.comparingInt(this::getScore).thenComparingInt(this::getHighestThreat).reversed())
-            .toList();
+          return new UnprioritizedComponent(
+              component,
+              getDependencyType(component),
+              hasFailActionOnComponent(policyViolations),
+              getAction(policyViolations),
+              highestThreatLevel,
+              policyName,
+              highestThreatConstraintName,
+              securityReachable,
+              remediationType,
+              remediationVersion,
+              highestReachableThreatLevel
+          );
+        })
+        .filter(unprioritizedComponent -> unprioritizedComponent.highestThreat > 0)
+        .sorted(Comparator.comparingInt(this::getScore).thenComparingInt(this::getHighestThreat).reversed())
+        .toList();
 
     List<UnprioritizedComponent> sortedComponentsWithRemediation = setRemediationForComponents(
         sortedComponents,
@@ -286,9 +286,9 @@ public class DevelopmentPrioritiesService
   }
 
   /**
-    * This method is used to set remediation for components based on the skipCount and limit provided.
-    * If skipCount and limit are provided, it will set remediation for the topCount components and the
-    * components inside the skip and limit range (page size).
+   * This method is used to set remediation for components based on the skipCount and limit provided.
+   * If skipCount and limit are provided, it will set remediation for the topCount components and the
+   * components inside the skip and limit range (page size).
    **/
   private List<UnprioritizedComponent> setRemediationForComponents(
       final List<UnprioritizedComponent> sortedComponents,
@@ -306,7 +306,8 @@ public class DevelopmentPrioritiesService
 
             if (index < topCount ||
                 (index >= remediationSkip + topCount && index < remediationSkip + remediationLimit + topCount)
-            ) {
+            )
+            {
               return loadRemediation(unprioritizedComponent, applicationPublicId, scanId, stageId);
             }
 
@@ -518,7 +519,8 @@ public class DevelopmentPrioritiesService
 
   private int getRecommendationNumber(final UnprioritizedComponent unprioritizedComponent) {
     if (isBulkRecommendationsEnabled && Objects.nonNull(unprioritizedComponent) &&
-        Objects.nonNull(unprioritizedComponent.remediationVersion)) {
+        Objects.nonNull(unprioritizedComponent.remediationVersion))
+    {
       final String originalComponentVersion = unprioritizedComponent.getComponentVersion();
       final String remediationVersion = unprioritizedComponent.remediationVersion;
 

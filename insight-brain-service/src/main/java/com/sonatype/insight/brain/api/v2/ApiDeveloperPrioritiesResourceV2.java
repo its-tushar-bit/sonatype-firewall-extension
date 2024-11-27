@@ -80,12 +80,13 @@ public class ApiDeveloperPrioritiesResourceV2
           @DefaultValue("false") @QueryParam("includeRemediation") boolean includeRemediation,
           @DefaultValue(DEFAULT_PAGE) @QueryParam("page") final int page,
           @DefaultValue(DEFAULT_PAGE_SIZE) @QueryParam("pageSize") final int pageSize,
-          @QueryParam("optionalComponentNameFilter") final String optionalComponentNameFilter
+          @QueryParam("optionalComponentNameFilter") final String optionalComponentNameFilter,
+          @QueryParam("optionalActionFilter") @DefaultValue("true") final boolean optionalActionFilter
   )
   {
     return developmentPrioritiesService
             .getPrioritizedFindings(applicationId, scanId, page, pageSize,
-                optionalComponentNameFilter, includeRemediation);
+                optionalComponentNameFilter, includeRemediation, optionalActionFilter);
   }
 
   @GET

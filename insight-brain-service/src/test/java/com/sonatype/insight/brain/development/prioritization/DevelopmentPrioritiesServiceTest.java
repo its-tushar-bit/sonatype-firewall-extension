@@ -15,6 +15,7 @@ import javax.inject.Inject;
 
 import com.google.inject.Binder;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.api.v2.dto.*;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
@@ -123,7 +124,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThatThrownBy(() ->
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID,
-                GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10, null, false))
+                GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10, null, false, false))
         .withFailMessage("This server is not licensed for Sonatype Developer.")
         .isInstanceOf(NotAuthorizedException.class);
   }
@@ -245,7 +246,7 @@ public class DevelopmentPrioritiesServiceTest
     // === Then ===
     final DevelopmentPrioritizationResults results = developmentPrioritiesService
         .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1,
-            GIVEN_PAGE_SIZE_10, null, false);
+            GIVEN_PAGE_SIZE_10, null, false, false);
 
     assertThat(results.getPriorities().getResults()).containsExactly(
             toPrioritizedComponent(component2, 9, "policy-g", 1, "Unknown", false, null, "none", true, null, null, 9),
@@ -296,7 +297,7 @@ public class DevelopmentPrioritiesServiceTest
     // === Then ===
     final DevelopmentPrioritizationResults results = developmentPrioritiesService
         .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1,
-            GIVEN_PAGE_SIZE_10, null, false);
+            GIVEN_PAGE_SIZE_10, null, false, false);
 
     assertThat(results.getPriorities().getResults()).containsExactlyInAnyOrder(
         // "policy-f" of threat level 10 is a legacy violation, so not in the priority list.
@@ -352,7 +353,7 @@ public class DevelopmentPrioritiesServiceTest
     final DevelopmentPrioritizationResults results =
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID,
-                GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10, null, false);
+                GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10, null, false, false);
 
     assertPaginationResultCorrect(results.getPriorities(), 5, 5, 1, 1);
 
@@ -424,7 +425,7 @@ public class DevelopmentPrioritiesServiceTest
     final DevelopmentPrioritizationResults results =
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID,
-                GIVEN_PAGE_1, 66, null, false);
+                GIVEN_PAGE_1, 66, null, false, false);
 
     assertPaginationResultCorrect(results.getPriorities(), 6, 6, 1, 1);
 
@@ -588,7 +589,7 @@ public class DevelopmentPrioritiesServiceTest
     final DevelopmentPrioritizationResults results =
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID,
-                GIVEN_PAGE_1, 129, null, false);
+                GIVEN_PAGE_1, 129, null, false, false);
 
     assertPaginationResultCorrect(results.getPriorities(), 12, 12, 1, 1);
 
@@ -735,7 +736,7 @@ public class DevelopmentPrioritiesServiceTest
     final DevelopmentPrioritizationResults results =
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID,
-                GIVEN_PAGE_1, 66, null, false);
+                GIVEN_PAGE_1, 66, null, false, false);
 
     final List<PrioritizedComponent> priorities = results.getPriorities().getResults();
 
@@ -764,7 +765,7 @@ public class DevelopmentPrioritiesServiceTest
     final DevelopmentPrioritizationResults results =
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID,
-                GIVEN_PAGE_1,66, null, false);
+                GIVEN_PAGE_1,66, null, false, false);
 
     final List<PrioritizedComponent> priorities = results.getPriorities().getResults();
 
@@ -820,7 +821,7 @@ public class DevelopmentPrioritiesServiceTest
     DevelopmentPrioritizationResults results =
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID,
-                GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10, null, false);
+                GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10, null, false, false);
 
     List<PrioritizedComponent> priorities = results.getPriorities().getResults();
 
@@ -847,7 +848,7 @@ public class DevelopmentPrioritiesServiceTest
     // === THEN - Should carry forward priority even across pagination ===
     results =
         developmentPrioritiesService
-            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 2, 1, null, false);
+            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 2, 1, null, false, false);
     priorities = results.getPriorities().getResults();
 
     assertPaginationResultCorrect(results.getPriorities(), 1, 5, 5, 2);
@@ -913,7 +914,7 @@ public class DevelopmentPrioritiesServiceTest
     DevelopmentPrioritizationResults results =
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID,
-                GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10, null, false);
+                GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10, null, false, false);
 
     final List<PrioritizedComponent> priorities = results.getPriorities().getResults();
 
@@ -985,7 +986,7 @@ public class DevelopmentPrioritiesServiceTest
     final List<PrioritizedComponent> results =
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10,
-                null, false)
+                null, false, false)
             .getPriorities().getResults();
 
     final ComponentIdentifier actualComponentIdentifier = results.get(0).getComponentIdentifier();
@@ -1044,7 +1045,7 @@ public class DevelopmentPrioritiesServiceTest
     // check first page contains priorities 1-10 and the first 10 hashes
     DevelopmentPrioritizationResults results = developmentPrioritiesService
         .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1,
-            GIVEN_PAGE_SIZE_10, null, false);
+            GIVEN_PAGE_SIZE_10, null, false, false);
 
     assertPaginationResultCorrect(results.getPriorities(), 10, 22, 3, 1);
 
@@ -1061,7 +1062,7 @@ public class DevelopmentPrioritiesServiceTest
     results =
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 2,
-                GIVEN_PAGE_SIZE_10, null, false);
+                GIVEN_PAGE_SIZE_10, null, false, false);
 
     assertPaginationResultCorrect(results.getPriorities(), 10, 22, 3, 2);
 
@@ -1084,7 +1085,7 @@ public class DevelopmentPrioritiesServiceTest
     results =
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 3,
-                GIVEN_PAGE_SIZE_10, null, false);
+                GIVEN_PAGE_SIZE_10, null, false, false);
 
     priorities = results.getPriorities().getResults();
 
@@ -1101,14 +1102,15 @@ public class DevelopmentPrioritiesServiceTest
     // should return empty list if requesting a page past the end
     results =
         developmentPrioritiesService
-            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 4, GIVEN_PAGE_SIZE_10, null, false);
+            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 4, GIVEN_PAGE_SIZE_10, null, false,
+                false);
     assertPaginationResultCorrect(results.getPriorities(), 0, 22, 3, 4);
 
     // check first page contains priorities 1-5 and the first 5 hashes
     results =
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 1, 5,
-                null, false);
+                null, false, false);
 
     assertPaginationResultCorrect(results.getPriorities(), 5, 22, 5, 1);
 
@@ -1124,7 +1126,7 @@ public class DevelopmentPrioritiesServiceTest
     results =
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 2, 5,
-                null, false);
+                null, false, false);
 
     assertPaginationResultCorrect(results.getPriorities(), 5, 22, 5, 2);
 
@@ -1141,7 +1143,7 @@ public class DevelopmentPrioritiesServiceTest
     // check third page contains priorities 10-15 and the next 5 hashes
     results =
         developmentPrioritiesService
-            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 3, 5, null, false);
+            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 3, 5, null, false, false);
 
     assertPaginationResultCorrect(results.getPriorities(), 5, 22, 5, 3);
 
@@ -1163,7 +1165,7 @@ public class DevelopmentPrioritiesServiceTest
     // check fourth page contains the next 5 hashes
     results =
         developmentPrioritiesService
-            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 4, 5, null, false);
+            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 4, 5, null, false, false);
 
     assertPaginationResultCorrect(results.getPriorities(), 5, 22, 5, 4);
 
@@ -1179,7 +1181,7 @@ public class DevelopmentPrioritiesServiceTest
     // check fifth page contains the next 2 hashes
     results =
         developmentPrioritiesService
-            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 5, 5, null, false);
+            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 5, 5, null, false, false);
 
     assertPaginationResultCorrect(results.getPriorities(), 2, 22, 5, 5);
 
@@ -2228,7 +2230,7 @@ public class DevelopmentPrioritiesServiceTest
 
     DevelopmentPrioritizationResults results = developmentPrioritiesService
         .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10,
-            "Dog", false);
+            "Dog", false, false);
     assertThat(results.getPriorities().getResults())
         .hasSize(2)
         .extracting(PrioritizedComponent::getDisplayName)
@@ -2236,14 +2238,75 @@ public class DevelopmentPrioritiesServiceTest
 
     results = developmentPrioritiesService
         .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10,
-            "cat", false);
+            "cat", false, false);
     assertThat(results.getPriorities().getResults())
         .isEmpty();
 
     assertThatCode(() -> developmentPrioritiesService
         .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10,
-            "*&[>)*", false))
+            "*&[>)*", false, false))
         .doesNotThrowAnyException();
+  }
+
+  @Test
+  public void testGetPrioritizedFindings_FilterByFailWarnActions() {
+    final PolicyAction failAction = new PolicyAction();
+    failAction.actionType = Action.ID_FAIL;
+    final PolicyAction warnAction = new PolicyAction();
+    warnAction.actionType = Action.ID_WARN;
+    final PolicyAction otherAction = new PolicyAction();
+    otherAction.actionType = Action.ID_NOTIFY;
+
+    final ApiReportComponentDTOV2 component1 = createComponent("aaa", "component1");
+    final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
+        component1,
+        Lists.newArrayList(createPolicyViolation(7, "a", "policy-a", List.of(failAction),
+            false)));
+
+    final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component2");
+    final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(
+        component2,
+        Lists.newArrayList(createPolicyViolation(7, "b", "policy-b", List.of(failAction, otherAction),
+            false)));
+
+    final ApiReportComponentDTOV2 component3 = createComponent("ccc", "component3");
+    final PolicyThreats.Component component3Threats = createPolicyThreatsComponents(
+        component3,
+        Lists.newArrayList(createPolicyViolation(9, "c", "policy-c", List.of(warnAction),
+            false)));
+
+    final ApiReportComponentDTOV2 component4 = createComponent("ddd", "component4");
+    final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(
+        component4,
+        Lists.newArrayList(createPolicyViolation(2, "d", "policy-d", List.of(otherAction),
+            false)));
+
+    final ApiReportComponentDTOV2 component5 = createComponent("fff", "component5");
+    final PolicyThreats.Component component5Threats = createPolicyThreatsComponents(
+        component5,
+        Lists.newArrayList(createPolicyViolation(7, "f", "policy-f",
+            false)));
+
+    when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
+        createApiReportRawDataDTOV2(Lists.newArrayList(component1, component2, component3, component4, component5)));
+    when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
+        createPolicyThreats(List.of(component1Threats, component2Threats, component3Threats, component4Threats,
+            component5Threats)));
+    when(featuresService.getFeatures()).thenReturn(Sets.newHashSet(DEVELOPER_DASHBOARD));
+
+    DevelopmentPrioritizationResults results = developmentPrioritiesService
+        .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10,
+            null, false, true);
+    assertThat(results.getPriorities().getResults())
+        .hasSize(3)
+        .extracting(PrioritizedComponent::getAction)
+        .containsOnly(Action.ID_FAIL, Action.ID_WARN);
+
+    results = developmentPrioritiesService
+        .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10,
+            null, false, false);
+    assertThat(results.getPriorities().getResults())
+        .hasSize(5);
   }
 
   private ApiReportRawDataDTOV2 createApiReportRawDataDTOV2(final List<ApiReportComponentDTOV2> components) {
@@ -2675,16 +2738,5 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(actualPageResult.getTotal()).isEqualTo(expectedTotal);
     assertThat(actualPageResult.getPageCount()).isEqualTo(expectedPageCount);
     assertThat(actualPageResult.getPage()).isEqualTo(expectedPage);
-  }
-
-  private void assertTop3Hashes(
-      final List<PrioritizedComponent> actualTop3,
-      final List<String> expectedComponentHashes
-  )
-  {
-    assertThat(actualTop3)
-        .hasSize(3)
-        .extracting("componentHash")
-        .containsExactlyElementsOf(expectedComponentHashes);
   }
 }

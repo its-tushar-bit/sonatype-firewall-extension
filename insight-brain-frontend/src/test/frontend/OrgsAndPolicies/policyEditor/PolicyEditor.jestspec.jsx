@@ -832,6 +832,43 @@ describe('PolicyEditorSpec', () => {
           expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
           expect(conditionTypeInput.parentElement.parentElement).not.toHaveClass('invalid');
         });
+
+        it('for hf-model', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
+          renderComponent(initState);
+
+          const conditionTypeSelect = await screen.findByTestId('constraint__condition-type');
+          fireEvent.change(conditionTypeSelect, { target: { value: 'Coordinates' } });
+          const coordinatesFormatSelect = await screen.findByTestId('constraint__coordinates-format');
+
+          fireEvent.change(coordinatesFormatSelect, { target: { value: 'hf-model' } });
+
+          const conditionRepoIdInput = screen.getByPlaceholderText('Repo ID');
+          const conditionModelInput = screen.getByPlaceholderText('Model');
+          const conditionVersionInput = screen.getByPlaceholderText('Version');
+          const conditionExtensionInput = screen.getByPlaceholderText('Extension');
+          const conditionModelFormatInput = screen.getByPlaceholderText('Model Format');
+
+          expect(conditionRepoIdInput).toBeVisible();
+          expect(conditionModelInput).toBeVisible();
+          expect(conditionVersionInput).toBeVisible();
+          expect(conditionExtensionInput).toBeVisible();
+          expect(conditionModelFormatInput).toBeVisible();
+
+          let createButton = await screen.findByText('Create');
+
+          fireEvent.click(createButton);
+          const alert = screen.getByText(
+            'There were validation errors. Unable to save: fields with invalid or missing data'
+          );
+          expect(alert).toBeVisible();
+
+          expect(conditionRepoIdInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionModelInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionExtensionInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionModelFormatInput.parentElement.parentElement).toHaveClass('invalid');
+        });
       });
     });
   });

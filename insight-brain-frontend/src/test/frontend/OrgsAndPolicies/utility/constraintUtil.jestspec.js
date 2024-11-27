@@ -232,5 +232,20 @@ describe('constraintUtil', () => {
         expect(getCoordinatesValue(value)).toBe('cargo:name:version:type');
       });
     });
+
+    describe('hf-model', () => {
+      const value = {
+        format: 'hf-model',
+        repoId: initUserInput('repoId'),
+        model: initUserInput('model'),
+        version: initUserInput('version'),
+        extension: initUserInput('extension'),
+        modelFormat: initUserInput('modelFormat'),
+      };
+
+      it('returns combined coordinates value for hf-model', () => {
+        expect(getCoordinatesValue(value)).toBe('hf-model:repoId:model:version:extension:modelFormat');
+      });
+    });
   });
 });

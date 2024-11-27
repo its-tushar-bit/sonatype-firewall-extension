@@ -160,6 +160,14 @@ public class CoordinatesConditionType
         componentIdentifier = ComponentIdentifier
             .createCargoCoordinates(coordinates[1], coordinates[2], coordinates[3]);
         break;
+      case ComponentIdentifier.FORMAT_HUGGINGFACE_MODEL:
+        // this method takes hf-model coordinates
+        // repoId (namespace), model (name), version, modelFormat (classifier), modelExtension (extension)
+        // so similar to maven we need to swap the last two
+        componentIdentifier =
+            ComponentIdentifier.createHuggingfaceModelCoordinates(coordinates[1], coordinates[2], coordinates[3],
+                coordinates[5], coordinates[4]);
+        break;
       default:
         throw new IllegalArgumentException("Unsupported component identifier format:" + format);
     }
@@ -186,6 +194,7 @@ public class CoordinatesConditionType
       case ComponentIdentifier.FORMAT_CONAN:
       case ComponentIdentifier.FORMAT_COMPOSER:
       case ComponentIdentifier.FORMAT_CARGO:
+      case ComponentIdentifier.FORMAT_HUGGINGFACE_MODEL:
         break;
       default:
         throw new InvalidConditionException(condition,
@@ -204,6 +213,7 @@ public class CoordinatesConditionType
     FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_COMPOSER, Collections.emptySet());
     FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_CARGO, ImmutableSet.of(3));
     FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_COCOAPODS, Collections.emptySet());
+    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_HUGGINGFACE_MODEL, Collections.emptySet());
   }
 
   static {

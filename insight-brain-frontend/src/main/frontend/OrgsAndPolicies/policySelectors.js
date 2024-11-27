@@ -43,6 +43,17 @@ import {
 import { initialState, RECIPIENT_TYPES } from './policySlice';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 import { validateForm } from 'MainRoot/util/validationUtil';
+import {
+  A_NAME,
+  CARGO,
+  COCOAPODS,
+  COMPOSER,
+  CONAN,
+  HF_MODEL,
+  MAVEN,
+  NPM,
+  PYPI,
+} from 'MainRoot/OrgsAndPolicies/formats';
 
 export const selectPolicySlice = createSelector(selectOrgsAndPoliciesSlice, prop('policy'));
 
@@ -51,11 +62,11 @@ export const selectIsEditMode = createSelector(selectRouterCurrentParams, ({ pol
 export const selectHasEditIqPermission = createSelector(selectPolicySlice, prop('hasEditIqPermission'));
 
 const computeValidatableFieldsForCoordinates = (fields) => {
-  if (fields.format === 'maven') {
+  if (fields.format === MAVEN) {
     return values(omit(['format', isEmpty(fields.classifier?.trimmedValue) ? 'classifier' : null], fields));
-  } else if (fields.format === 'a-name') {
+  } else if (fields.format === A_NAME) {
     return values(omit(['format', isEmpty(fields.qualifier?.trimmedValue) ? 'qualifier' : null], fields));
-  } else if (fields.format === 'pypi') {
+  } else if (fields.format === PYPI) {
     return values(
       omit(
         [
@@ -66,11 +77,7 @@ const computeValidatableFieldsForCoordinates = (fields) => {
         fields
       )
     );
-  } else if (fields.format === 'npm') {
-    return values(omit(['format'], fields));
-  } else if (fields.format === 'cocoapods') {
-    return values(omit(['format'], fields));
-  } else if (fields.format === 'conan') {
+  } else if (fields.format === CONAN) {
     return values(
       omit(
         [
@@ -81,10 +88,10 @@ const computeValidatableFieldsForCoordinates = (fields) => {
         fields
       )
     );
-  } else if (fields.format === 'composer') {
-    return values(omit(['format'], fields));
-  } else if (fields.format === 'cargo') {
+  } else if (fields.format === CARGO) {
     return values(omit(['format', isEmpty(fields.type?.trimmedValue) ? 'type' : null], fields));
+  } else if ([NPM, COCOAPODS, COMPOSER, HF_MODEL].includes(fields.format)) {
+    return values(omit(['format'], fields));
   }
 };
 

@@ -10,6 +10,17 @@ import {
   validatePatternMatch,
   combineValidators,
 } from 'MainRoot/util/validationUtil';
+import {
+  A_NAME,
+  CARGO,
+  COCOAPODS,
+  COMPOSER,
+  CONAN,
+  HF_MODEL,
+  MAVEN,
+  NPM,
+  PYPI,
+} from 'MainRoot/OrgsAndPolicies/formats';
 
 function parseDays(days) {
   return days % 365 === 0
@@ -37,22 +48,24 @@ function getAvailableValue(valueParam, condition, conditionTypesMap) {
 export function getCoordinatesValue(value) {
   const fields = omit(['format'], mapObjIndexed(prop('trimmedValue'), value));
 
-  if (value.format === 'maven') {
+  if (value.format === MAVEN) {
     return `${value.format}:${fields.groupId}:${fields.artifactId}:${fields.version}:${fields.extension}:${fields.classifier}`;
-  } else if (value.format === 'a-name') {
+  } else if (value.format === A_NAME) {
     return `${value.format}:${fields.name}:${fields.qualifier}:${fields.version}`;
-  } else if (value.format === 'pypi') {
+  } else if (value.format === PYPI) {
     return `${value.format}:${fields.name}:${fields.version}:${fields.qualifier}:${fields.extension}`;
-  } else if (value.format === 'npm') {
+  } else if (value.format === NPM) {
     return `${value.format}:${fields.packageId}:${fields.version}`;
-  } else if (value.format === 'cocoapods') {
+  } else if (value.format === COCOAPODS) {
     return `${value.format}:${fields.name}:${fields.version}`;
-  } else if (value.format === 'conan') {
+  } else if (value.format === CONAN) {
     return `${value.format}:${fields.name}:${fields.version}:${fields.channel}:${fields.owner}`;
-  } else if (value.format === 'composer') {
+  } else if (value.format === COMPOSER) {
     return `${value.format}:${fields.namespace}:${fields.name}:${fields.version}`;
-  } else if (value.format === 'cargo') {
+  } else if (value.format === CARGO) {
     return `${value.format}:${fields.name}:${fields.version}:${fields.type}`;
+  } else if (value.format === HF_MODEL) {
+    return `${value.format}:${fields.repoId}:${fields.model}:${fields.version}:${fields.extension}:${fields.modelFormat}`;
   }
 }
 
@@ -166,6 +179,7 @@ export const withDefaultValue = {
   conan: ['channel', 'owner'],
   composer: [],
   cargo: ['type'],
+  'hf-model': [],
 };
 
 export const optionalFields = {
@@ -177,6 +191,7 @@ export const optionalFields = {
   conan: ['channel', 'owner'],
   composer: [],
   cargo: ['type'],
+  'hf-model': [],
 };
 // but if value is present it should not contain : symbol
 export const validatePatternMatchAndEmptyValue = curryN(
@@ -206,9 +221,10 @@ export const coordinatesTypes = {
   conan: ['name', 'version', 'channel', 'owner'],
   composer: ['namespace', 'name', 'version'],
   cargo: ['name', 'version', 'type'],
+  'hf-model': ['repoId', 'model', 'version', 'extension', 'modelFormat'],
 };
 
-export const coordinatesFormatOptions = ['maven', 'a-name', 'pypi', 'npm', 'cocoapods', 'conan', 'composer', 'cargo'];
+export const coordinatesFormatOptions = [MAVEN, A_NAME, PYPI, NPM, COCOAPODS, CONAN, COMPOSER, CARGO, HF_MODEL];
 
 export const fieldTypeToPlaceholder = {
   groupId: 'Group ID',
@@ -223,6 +239,9 @@ export const fieldTypeToPlaceholder = {
   owner: 'Owner',
   namespace: 'Namespace',
   type: 'Type',
+  repoId: 'Repo ID',
+  model: 'Model',
+  modelFormat: 'Model Format',
 };
 
 export const conditionsWithoutValue = [

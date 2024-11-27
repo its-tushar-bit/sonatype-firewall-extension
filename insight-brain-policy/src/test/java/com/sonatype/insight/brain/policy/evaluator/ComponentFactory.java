@@ -57,6 +57,13 @@ public class ComponentFactory
       case ComponentIdentifier.FORMAT_CARGO:
         componentIdentifier = ComponentIdentifier.createCargoCoordinates(coord[0], coord[1], coord[2]);
         break;
+      case ComponentIdentifier.FORMAT_HUGGINGFACE_MODEL:
+        // this method takes hf-model coordinates
+        // repoId (namespace), model (name), version, modelFormat (classifier), modelExtension (extension)
+        // so similar to maven we need to swap the last two
+        componentIdentifier =
+            ComponentIdentifier.createHuggingfaceModelCoordinates(coord[0], coord[1], coord[2], coord[4], coord[3]);
+        break;
       default:
         throw new IllegalArgumentException("Unsupported component identifier format:" + format);
     }

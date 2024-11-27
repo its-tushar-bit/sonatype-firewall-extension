@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -30,8 +31,105 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class CoordinatesConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
+  @Test
+  public void testEvaluate_HuggingFaceModel_MatchExact() {
+    testEvaluate(
+        createConstraint("match", "hf-model:g2:a2:2222222:e2:c2"),
+        createComponent("hf-model:g2:a2:2222222:e2:c2"),
+        "Coordinates were g2 : a2 : 2222222 : c2 : e2 (match g2 : a2 : 2222222 : c2 : e2)",
+        createComponent("hf-model:g1:a1:1111111:e1:c1")
+    );
+  }
+
+  @Test
+  public void testEvaluate_HuggingFaceModel_MatchWildcard() {
+    testEvaluate(
+        createConstraint("match", "hf-model:*:a2:2222222:e2:c2"),
+        createComponent("hf-model:g2:a2:2222222:e2:c2"),
+        "Coordinates were g2 : a2 : 2222222 : c2 : e2 (match * : a2 : 2222222 : c2 : e2)",
+        createComponent("hf-model:g1:a1:1111111:e1:c1")
+    );
+  }
+
+  @Test
+  public void testEvaluate_HuggingFaceModel_DoNotMatchExact() {
+    testEvaluate(
+        createConstraint("do not match", "hf-model:g2:a2:2222222:e2:c2"),
+        createComponent("hf-model:g1:a1:1111111:e1:c1"),
+        "Coordinates were g1 : a1 : 1111111 : c1 : e1 (do not match g2 : a2 : 2222222 : c2 : e2)",
+        createComponent("hf-model:g2:a2:2222222:e2:c2")
+    );
+  }
+
+  @Test
+  public void testEvaluate_HuggingFaceModel_DoNotMatchWildcard() {
+    testEvaluate(
+        createConstraint("do not match", "hf-model:*:a2:2222222:e2:c2"),
+        createComponent("hf-model:g1:a1:1111111:e1:c1"),
+        "Coordinates were g1 : a1 : 1111111 : c1 : e1 (do not match * : a2 : 2222222 : c2 : e2)",
+        createComponent("hf-model:g2:a2:2222222:e2:c2")
+    );
+  }
+
+  @Test
+  public void testEvaluate_HuggingFaceModel_ConditionWithWildcardVersion() {
+    testEvaluate(
+        createConstraint("match", "hf-model:g2:a2:*:e2:c2"),
+        createComponent("hf-model:g2:a2:2222222:e2:c2"),
+        "Coordinates were g2 : a2 : 2222222 : c2 : e2 (match g2 : a2 : * : c2 : e2)",
+        createComponent("hf-model:g1:a1:1111111:e1:c1")
+    );
+  }
+
+  private void testEvaluate(
+      Constraint constraint,
+      Component expectedMatchingComponent,
+      String expectedReason,
+      Component... otherComponents)
+  {
+    // Create the policy
+    Policy policy = new Policy(TemporaryEntity.uuid(), "Policy Name");
+    policy.setConstraints(Collections.singletonList(constraint));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
+
+    // Create components list
+    List<Component> components = new ArrayList<>();
+    components.add(expectedMatchingComponent);
+    components.addAll(Arrays.asList(otherComponents));
+    components.add(new Component());
+
+    // Evaluate the policy
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
+
+    assertThat(policyAlerts).hasSize(1);
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertContainsPolicyAlert(
+        expectedMatchingComponent,
+        policy,
+        constraint,
+        FailActionType.ID,
+        CoordinatesConditionType.ID,
+        policyAlerts
+    );
+    String actualReason = policyAlerts.get(0)
+        .getTrigger().getComponentFacts().get(0)
+        .getConstraintFacts().get(0)
+        .getConditionFacts().get(0)
+        .getReason();
+    assertThat(actualReason).isEqualTo(expectedReason);
+  }
+
   private Constraint createConstraint(String operator, String value) {
-    return createConstraint("ConstraintId1", "Constraint Name 1", CoordinatesConditionType.ID, operator, value);
+    return createConstraint(TemporaryEntity.uuid(), "Constraint Name", CoordinatesConditionType.ID, operator, value);
+  }
+
+  private Component createComponent(String formatAndCoordinates) {
+    return createComponent(formatAndCoordinates.split(":"));
+  }
+
+  private Component createComponent(String... formatAndCoordinates) {
+    return ComponentFactory.forCoordinates(formatAndCoordinates[0],
+        Arrays.copyOfRange(formatAndCoordinates, 1, formatAndCoordinates.length));
   }
 
   @Test
@@ -817,6 +915,13 @@ public class CoordinatesConditionTypeTest
     assertConvertIfNeeded("cargo:::t", "cargo:*:*:t");
     assertConvertIfNeeded("cargo:", "cargo:*:*:*");
     assertConvertIfNeeded("cargo::v:", "cargo:*:v:");
+
+    assertConvertIfNeeded("hf-model:", "hf-model:*:*:*:*:*");
+    assertConvertIfNeeded("hf-model:g", "hf-model:g:*:*:*:*");
+    assertConvertIfNeeded("hf-model::a", "hf-model:*:a:*:*:*");
+    assertConvertIfNeeded("hf-model:::v", "hf-model:*:*:v:*:*");
+    assertConvertIfNeeded("hf-model::::e", "hf-model:*:*:*:e:*");
+    assertConvertIfNeeded("hf-model:::::c", "hf-model:*:*:*:*:c");
   }
 
   private void assertConvertIfNeeded(final String value, final String expectedConvertedValue) {

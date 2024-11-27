@@ -68,7 +68,8 @@ public class PdfGeneratorTest
       List.of("Person: person", "Organization: organization", "Specification: SPDX");
 
   private static final List<String> SBOM_SPECIFIC_CONTENT_CDX =
-      List.of("Author: author", "Manufacturer: manufacturer", "Supplier: supplier", "Specification: CycloneDx");
+      List.of("Author: author", "Manufacturer: manufacturer", "Supplier: supplier", "Specification: CycloneDx",
+          "Original File: originalFile");
 
   private static final List<String> LIFECYCLE_SPECIFIC_CONTENT =
       List.of("Sonatype Application Composition Report", "IQ Server release:", "Commit:",
@@ -110,7 +111,7 @@ public class PdfGeneratorTest
         new Date(),
         "scanId",
         false,
-        null
+        "originalFile"
     );
     PdfData pdfData = PdfData.createSbomPdfData(
         null,

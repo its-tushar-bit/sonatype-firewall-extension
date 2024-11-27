@@ -150,8 +150,11 @@ public class PdfGenerator
 
   private static final int MAX_CELL_CHARACTERS = 500;
 
+  private static final String ORIGINAL_FILE_LABEL = "Original File:";
+
   private static final List<String> SBOM_METADATA_CDX_LABELS =
-      List.of("Author:", "Manufacturer:", "Supplier:", "Specification:", "Spec Version:", "File Format:");
+      List.of("Author:", "Manufacturer:", "Supplier:", "Specification:", "Spec Version:",
+          "File Format:", ORIGINAL_FILE_LABEL);
 
   private static final List<String> SBOM_METADATA_SPDX_LABELS =
       List.of("Person:", "Organization:", "Specification:", "Spec Version:", "File Format:");
@@ -811,13 +814,14 @@ public class PdfGenerator
   {
     List<String> values;
     List<String> labelsToUse;
-    values = List.of(
+    values = Arrays.asList(
         getSbomMetadataListValuesJoinedOrDefault(pdfData.sbomMetadata.author),
         getSbomMetadataListValuesJoinedOrDefault(pdfData.sbomMetadata.manufacturer),
         getSbomMetadataListValuesJoinedOrDefault(pdfData.sbomMetadata.supplier),
         pdfData.sbomMetadata.specification,
         pdfData.sbomMetadata.specVersion,
-        pdfData.sbomMetadata.fileFormat
+        pdfData.sbomMetadata.fileFormat,
+        pdfData.sbomMetadata.originalFile
     );
     labelsToUse = SBOM_METADATA_CDX_LABELS;
     return addSbomMetadataSectionToPdf(labelsToUse, contentStream, pageRec, startX, startY, values);
@@ -850,6 +854,9 @@ public class PdfGenerator
       List<String> values) throws IOException
   {
     for (int i = 0; i < labelsToUse.size(); i++) {
+      if (labelsToUse.get(i).equals(ORIGINAL_FILE_LABEL) && values.get(i) == null) {
+        continue;
+      }
       addText(contentStream, startX, startY, sbomMetadataFontStyle, labelsToUse.get(i));
       startY = addTextWithWordWrapAtChar(contentStream, pageRec, startX + SBOM_METADATA_LABELS_Y_MARGIN,
           startY, MARGIN, sbomMetadataFontStyle, values.get(i), ",");

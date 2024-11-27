@@ -13,7 +13,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dashboard.ComponentRiskDTO;
-import com.sonatype.insight.brain.dashboard.NewestRiskDTO;
+import com.sonatype.insight.brain.dashboard.DashboardViolationRiskDTO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -94,7 +94,7 @@ public class ComponentDisplayNameUtil
   /**
    * @since 1.38
    */
-  public static String deriveComponentName(NewestRiskDTO dto) {
+  public static String deriveComponentName(DashboardViolationRiskDTO dto) {
     return dto.displayName != null ? dto.displayName.toString() :
         !StringUtils.isBlank(dto.filename) ? dto.filename : "Unknown";
   }

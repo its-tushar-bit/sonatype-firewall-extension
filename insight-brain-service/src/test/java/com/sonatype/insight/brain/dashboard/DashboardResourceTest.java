@@ -57,8 +57,8 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_APPLICATION_RISKS_EXPORT_PATH;
 import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_COMPONENT_RISKS_EXPORT_PATH;
-import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_NEWEST_RISKS_EXPORT_PATH;
 import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_POLICY_WAIVERS_EXPORT_PATH;
+import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_VIOLATION_RISKS_EXPORT_PATH;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -86,14 +86,14 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testGetNewestRisks() throws Exception {
+  public void testGetViolationRisks() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app1", "test application");
 
     Policy buildPolicy = tempEntity.newPolicy(app);
 
     createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
 
-    HttpResponse response = restRequest().path(DashboardResource.GET_NEWEST_RISKS_PATH)
+    HttpResponse response = restRequest().path(DashboardResource.GET_VIOLATION_RISKS_PATH)
         .body(new RisksFilterDTO()).post();
 
     assertResponseStatus(200, response);
@@ -230,7 +230,7 @@ public class DashboardResourceTest
   }
   
   @Test
-  public void testGetNewestRisksExport() throws Exception {
+  public void testGetViolationRisksExport() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app1", "test application", "test organization");
     Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
     PolicyViolation v1 = createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
@@ -240,7 +240,7 @@ public class DashboardResourceTest
 
     RisksFilterDTO filter = new RisksFilterDTO();
     filter.orderBy = "-POLICY_NAME";
-    HttpResponse response = restRequest().path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", filter).post();
+    HttpResponse response = restRequest().path(GET_VIOLATION_RISKS_EXPORT_PATH).part("filter", filter).post();
     assertResponseOkAndCsvHeadersSet(response, "results-violations");
 
     String[] lines = response.getBodyText().split("\r\n");
@@ -248,44 +248,44 @@ public class DashboardResourceTest
         "stage policy", getTimestamps(v2), v2.getId());
     String expectedSecondLine = format("5,%s,test organization,test application,Group1 : Artifact1 : Version1,%s,,%s",
         "build policy", getTimestamps(v1), v1.getId());
-    assertThat(lines).containsExactly(NewestRiskDTO.getCsvHeader(), expectedFirstLine, expectedSecondLine);
+    assertThat(lines).containsExactly(DashboardViolationRiskDTO.getCsvHeader(), expectedFirstLine, expectedSecondLine);
 
     filter.stageIds = Sets.newHashSet(StageReleaseStageType.ID);
-    response = restRequest().path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", filter).post();
+    response = restRequest().path(GET_VIOLATION_RISKS_EXPORT_PATH).part("filter", filter).post();
     assertResponseOkAndCsvHeadersSet(response, "results-violations");
 
     lines = response.getBodyText().split("\r\n");
     String expectedLine =
         format("5,stage policy,test organization,test application,Group1 : Artifact1 : Version1,%s,,%s",
             getTimestamps(v2), v2.getId());
-    assertThat(lines).containsExactly(NewestRiskDTO.getCsvHeader(), expectedLine);
+    assertThat(lines).containsExactly(DashboardViolationRiskDTO.getCsvHeader(), expectedLine);
   }
 
   @Test
-  public void testGetNewestRisksExport_fileNamePrefix() throws Exception {
+  public void testGetViolationRisksExport_fileNamePrefix() throws Exception {
     User tempUser = tempEntity.newUser();
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     Tag tag = tempEntity.newTag(org.getId());
 
     NamedDashboardFilterDTO namedDashboardFilterDTO = createNamedDashboardFilter(app, tag);
-    namedDashboardFilterDTO.name = "test newest risks non dirty";
+    namedDashboardFilterDTO.name = "test violation risks non dirty";
 
     createNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    HttpResponse exportResponse = restRequest().auth(tempUser).path(GET_NEWEST_RISKS_EXPORT_PATH)
+    HttpResponse exportResponse = restRequest().auth(tempUser).path(GET_VIOLATION_RISKS_EXPORT_PATH)
         .part("filter", new RisksFilterDTO()).post();
-    assertResponseOkAndCsvHeadersSet(exportResponse, "test_newest_risks_non_dirty-violations");
+    assertResponseOkAndCsvHeadersSet(exportResponse, "test_violation_risks_non_dirty-violations");
 
     dirtyNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    exportResponse = restRequest().auth(tempUser).path(GET_NEWEST_RISKS_EXPORT_PATH)
+    exportResponse = restRequest().auth(tempUser).path(GET_VIOLATION_RISKS_EXPORT_PATH)
         .part("filter", new RisksFilterDTO()).post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "results-violations");
   }
 
   @Test
-  public void testGetNewestRisks_InvalidOrderBy() throws Exception {
+  public void testGetViolationRisks_InvalidOrderBy() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app1", "test application");
 
     Policy buildPolicy = tempEntity.newPolicy(app);
@@ -294,7 +294,7 @@ public class DashboardResourceTest
 
     RisksFilterDTO filter = new RisksFilterDTO();
     filter.orderBy = "Invalid";
-    HttpResponse response = restRequest().path(DashboardResource.GET_NEWEST_RISKS_PATH)
+    HttpResponse response = restRequest().path(DashboardResource.GET_VIOLATION_RISKS_PATH)
         .body(filter).post();
 
     assertResponseStatus(400, response);

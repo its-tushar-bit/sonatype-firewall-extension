@@ -11,27 +11,24 @@ import java.util.List;
 
 import com.sonatype.insight.error.exception.BadRequestException;
 
-/**
- * Sorts the NewestRiskDTOs based on the orderBy property.
- */
-class NewestRiskDTOComparator
-    implements Comparator<NewestRiskDTO>
+class DashboardViolationRiskDTOComparator
+    implements Comparator<DashboardViolationRiskDTO>
 {
-  private List<NewestRiskOrderBy> newestRiskOrderByList;
+  private List<DashboardViolationRiskOrderBy> dashboardViolationRiskOrderByList;
 
-  public NewestRiskDTOComparator(String orderBy) {
-    this.newestRiskOrderByList = NewestRiskOrderBy.getOrderBys(orderBy);
+  public DashboardViolationRiskDTOComparator(String orderBy) {
+    this.dashboardViolationRiskOrderByList = DashboardViolationRiskOrderBy.getOrderBys(orderBy);
   }
 
   @Override
-  public int compare(NewestRiskDTO o1, NewestRiskDTO o2) {
+  public int compare(DashboardViolationRiskDTO o1, DashboardViolationRiskDTO o2) {
     int rel = 0;
 
-    for (NewestRiskOrderBy newestRiskOrderBy : newestRiskOrderByList) {
-      NewestRiskDTO ob1 = newestRiskOrderBy.isOrderByAsc() ? o1 : o2;
-      NewestRiskDTO ob2 = newestRiskOrderBy.isOrderByAsc() ? o2 : o1;
+    for (DashboardViolationRiskOrderBy dashboardViolationRiskOrderBy : dashboardViolationRiskOrderByList) {
+      DashboardViolationRiskDTO ob1 = dashboardViolationRiskOrderBy.isOrderByAsc() ? o1 : o2;
+      DashboardViolationRiskDTO ob2 = dashboardViolationRiskOrderBy.isOrderByAsc() ? o2 : o1;
 
-      switch (newestRiskOrderBy.getNewestRiskOrderByEnum()) {
+      switch (dashboardViolationRiskOrderBy.getDashboardViolationRiskOrderByEnumRiskOrderByEnum()) {
         case AGE:
           rel = Long.compare(ob1.firstOccurrenceTime, ob2.firstOccurrenceTime);
           if (rel != 0) {
@@ -69,35 +66,39 @@ class NewestRiskDTOComparator
           }
           break;
         default:
-          throw new IllegalArgumentException("unsupported order by " + newestRiskOrderBy.newestRiskOrderByEnum);
+          throw new IllegalArgumentException(
+              "unsupported order by " + dashboardViolationRiskOrderBy.dashboardViolationRiskOrderByEnum);
       }
     }
 
     return rel;
   }
 
-  private static class NewestRiskOrderBy
+  private static class DashboardViolationRiskOrderBy
   {
-    private NewestRiskOrderByEnum newestRiskOrderByEnum;
+    private DashboardViolationRiskOrderByEnum dashboardViolationRiskOrderByEnum;
 
     private boolean orderByAsc = true;
 
-    public NewestRiskOrderBy(NewestRiskOrderByEnum newestRiskOrderByEnum, boolean orderByAsc) {
-      this.newestRiskOrderByEnum = newestRiskOrderByEnum;
+    public DashboardViolationRiskOrderBy(
+        DashboardViolationRiskOrderByEnum dashboardViolationRiskOrderByEnum,
+        boolean orderByAsc)
+    {
+      this.dashboardViolationRiskOrderByEnum = dashboardViolationRiskOrderByEnum;
       this.setOrderByAsc(orderByAsc);
     }
 
-    public static List<NewestRiskOrderBy> getOrderBys(String orderByText) {
-      List<NewestRiskOrderBy> newestRiskOrderByList = new ArrayList<>();
+    public static List<DashboardViolationRiskOrderBy> getOrderBys(String orderByText) {
+      List<DashboardViolationRiskOrderBy> dashboardViolationRiskOrderByList = new ArrayList<>();
       try {
         if (orderByText != null) {
           for (String orderBy : orderByText.split(",")) {
             boolean isOrderByDesc = orderBy.startsWith("-");
 
-            NewestRiskOrderByEnum orderByEnum = NewestRiskOrderByEnum
+            DashboardViolationRiskOrderByEnum orderByEnum = DashboardViolationRiskOrderByEnum
                 .valueOf(isOrderByDesc ? orderBy.substring(1) : orderBy);
             if (orderByEnum != null) {
-              newestRiskOrderByList.add(new NewestRiskOrderBy(orderByEnum, !isOrderByDesc));
+              dashboardViolationRiskOrderByList.add(new DashboardViolationRiskOrderBy(orderByEnum, !isOrderByDesc));
             }
           }
         }
@@ -105,11 +106,11 @@ class NewestRiskDTOComparator
       catch (IllegalArgumentException e) {
         throw new BadRequestException("Invalid orderBy property.", e);
       }
-      return newestRiskOrderByList;
+      return dashboardViolationRiskOrderByList;
     }
 
-    public NewestRiskOrderByEnum getNewestRiskOrderByEnum() {
-      return newestRiskOrderByEnum;
+    public DashboardViolationRiskOrderByEnum getDashboardViolationRiskOrderByEnumRiskOrderByEnum() {
+      return dashboardViolationRiskOrderByEnum;
     }
 
     public boolean isOrderByAsc() {

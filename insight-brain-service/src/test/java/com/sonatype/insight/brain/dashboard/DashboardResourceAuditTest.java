@@ -157,8 +157,8 @@ public class DashboardResourceAuditTest
   }
 
   @Test
-  public void testGetNewestRisks() throws Exception {
-    testGetRisks(DashboardResource.GET_NEWEST_RISKS_PATH, AuditEvent.VIEW_DASHBOARD_VIOLATION_LIST);
+  public void testGetViolationRisks() throws Exception {
+    testGetRisks(DashboardResource.GET_VIOLATION_RISKS_PATH, AuditEvent.VIEW_DASHBOARD_VIOLATION_LIST);
   }
 
   @Test
@@ -177,8 +177,8 @@ public class DashboardResourceAuditTest
   }
 
   @Test
-  public void testGetNewestRisksExport() throws Exception {
-    testGetRisks(DashboardResource.GET_NEWEST_RISKS_EXPORT_PATH, AuditEvent.EXPORT_DASHBOARD_VIOLATION_LIST);
+  public void testGetViolationRisksExport() throws Exception {
+    testGetRisks(DashboardResource.GET_VIOLATION_RISKS_EXPORT_PATH, AuditEvent.EXPORT_DASHBOARD_VIOLATION_LIST);
   }
 
   @Test
@@ -202,8 +202,8 @@ public class DashboardResourceAuditTest
   }
 
   @Test
-  public void testGetNewestRisks_EmptyFilter() throws Exception {
-    testGetRisks_EmptyFilter(DashboardResource.GET_NEWEST_RISKS_PATH, AuditEvent.VIEW_DASHBOARD_VIOLATION_LIST);
+  public void testGetViolationRisks_EmptyFilter() throws Exception {
+    testGetRisks_EmptyFilter(DashboardResource.GET_VIOLATION_RISKS_PATH, AuditEvent.VIEW_DASHBOARD_VIOLATION_LIST);
   }
 
   @Test
@@ -223,8 +223,8 @@ public class DashboardResourceAuditTest
   }
 
   @Test
-  public void testGetNewestRisksExport_EmptyFilter() throws Exception {
-    testGetRisks_EmptyFilter(DashboardResource.GET_NEWEST_RISKS_EXPORT_PATH,
+  public void testGetViolationRisksExport_EmptyFilter() throws Exception {
+    testGetRisks_EmptyFilter(DashboardResource.GET_VIOLATION_RISKS_EXPORT_PATH,
         AuditEvent.EXPORT_DASHBOARD_VIOLATION_LIST);
   }
 

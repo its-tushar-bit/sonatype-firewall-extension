@@ -15,11 +15,11 @@ import com.sonatype.insight.brain.utils.CsvWritable;
 import com.google.common.base.Joiner;
 
 /**
- * Carries the data backing the Newest Risk view.
+ * Carries the data backing the Dashboard Violations tab.
  *
  * @since 1.11.0
  */
-public class NewestRiskDTO implements CsvWritable
+public class DashboardViolationRiskDTO implements CsvWritable
 {
   private static final Joiner joiner = Joiner.on(",");
 

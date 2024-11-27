@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.dashboard;
 /**
  * @since 1.38
  */
-public enum NewestRiskOrderByEnum
+public enum DashboardViolationRiskOrderByEnum
 {
   AGE, APPLICATION_NAME, COMPONENT_NAME, POLICY_NAME, THREAT_LEVEL, POLICY_VIOLATION_ID;
 }

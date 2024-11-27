@@ -9,11 +9,11 @@ import java.util.function.Supplier;
 
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.ComponentRiskService;
+import com.sonatype.insight.brain.dashboard.DashboardViolationRiskService;
 import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.H2ComponentRiskService;
-import com.sonatype.insight.brain.dashboard.H2NewestRiskService;
+import com.sonatype.insight.brain.dashboard.H2DashboardViolationRiskService;
 import com.sonatype.insight.brain.dashboard.H2PolicyWaiverService;
-import com.sonatype.insight.brain.dashboard.NewestRiskService;
 import com.sonatype.insight.brain.dashboard.PolicyWaiverService;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseUtil;
@@ -38,18 +38,18 @@ public class DbBasedModule
     boolean isDatabaseEmbedded =
         DatabaseUtil.isDatabaseEmbedded(databaseContainerSupplier.get().getOperationalDataStore().getDatabaseConfig());
     if (isDatabaseEmbedded) {
-      bind(NewestRiskService.class).to(H2NewestRiskService.class);
+      bind(DashboardViolationRiskService.class).to(H2DashboardViolationRiskService.class);
       bind(ComponentRiskService.class).to(H2ComponentRiskService.class);
       bind(ApplicationRiskService.class).to(H2ApplicationRiskService.class);
       bind(PolicyWaiverService.class).to(H2PolicyWaiverService.class);
     }
     else {
-      bind(NewestRiskService.class).to(H2NewestRiskService.class);
+      bind(DashboardViolationRiskService.class).to(H2DashboardViolationRiskService.class);
       bind(ComponentRiskService.class).to(H2ComponentRiskService.class);
       bind(ApplicationRiskService.class).to(H2ApplicationRiskService.class);
       bind(PolicyWaiverService.class).to(H2PolicyWaiverService.class);
       // TODO - update as tickets of CLM-32515 are completed
-      //bind(NewestRiskService.class).to(PostgresNewestRiskService.class);
+      // bind(DashboardViolationRiskService.class).to(PostgresDashboardViolationRiskService.class);
       //bind(ComponentRiskService.class).to(PostgresComponentRiskService.class);
       //bind(ApplicationRiskService.class).to(PostgresApplicationRiskService.class);
       //bind(PolicyWaiverService.class).to(PostgresPolicyWaiverService.class);

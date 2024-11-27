@@ -12,7 +12,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dashboard.ComponentRiskDTO;
-import com.sonatype.insight.brain.dashboard.NewestRiskDTO;
+import com.sonatype.insight.brain.dashboard.DashboardViolationRiskDTO;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,8 +21,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.deriveComponentName;
-import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromJsonNode;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromFilename;
+import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromJsonNode;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromPolicyViolation;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.injectDisplayName;
 import static com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV;
@@ -120,11 +120,11 @@ public class ComponentDisplayNameUtilTest
   public void testDeriveComponentName() {
     String filename = "c.jar";
     ComponentDisplayName displayName = fromFilename(filename, "hash");
-    assertThat(deriveComponentName(createNewestRiskDTO(displayName, null))).isEqualTo("c.jar");
+    assertThat(deriveComponentName(createDashboardViolationRiskDTO(displayName, null))).isEqualTo("c.jar");
 
-    assertThat(deriveComponentName(createNewestRiskDTO(null, "c.jar"))).isEqualTo("c.jar");
+    assertThat(deriveComponentName(createDashboardViolationRiskDTO(null, "c.jar"))).isEqualTo("c.jar");
 
-    assertThat(deriveComponentName(createNewestRiskDTO(null, null))).isEqualTo("Unknown");
+    assertThat(deriveComponentName(createDashboardViolationRiskDTO(null, null))).isEqualTo("Unknown");
 
     assertThat(deriveComponentName(createComponentRiskDTO(displayName, null))).isEqualTo("c.jar");
 
@@ -133,8 +133,8 @@ public class ComponentDisplayNameUtilTest
     assertThat(deriveComponentName(createComponentRiskDTO(null, null))).isEqualTo("Unknown");
   }
 
-  private NewestRiskDTO createNewestRiskDTO(ComponentDisplayName displayName, String filename) {
-    NewestRiskDTO dto = new NewestRiskDTO();
+  private DashboardViolationRiskDTO createDashboardViolationRiskDTO(ComponentDisplayName displayName, String filename) {
+    DashboardViolationRiskDTO dto = new DashboardViolationRiskDTO();
     dto.displayName = displayName;
     dto.filename = filename;
     return dto;

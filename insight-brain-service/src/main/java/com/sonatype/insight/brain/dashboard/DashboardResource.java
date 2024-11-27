@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.io.IOException;
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -36,9 +37,9 @@ public class DashboardResource
 {
   public static final String RESOURCE_PATH = "rest/dashboard";
 
-  public static final String GET_NEWEST_RISKS_PATH = "policy/newestRisks";
+  public static final String GET_VIOLATION_RISKS_PATH = "policy/newestRisks";
 
-  public static final String GET_NEWEST_RISKS_EXPORT_PATH = "export/newestRisks";
+  public static final String GET_VIOLATION_RISKS_EXPORT_PATH = "export/newestRisks";
 
   public static final String GET_COMPONENT_RISKS_PATH = "policy/componentRisks";
 
@@ -64,7 +65,7 @@ public class DashboardResource
 
   private final DashboardFilterService dashboardFilterService;
 
-  private final NewestRiskService newestRiskService;
+  private final DashboardViolationRiskService dashboardViolationRiskService;
 
   private final PolicyWaiverService policyWaiverService;
 
@@ -73,24 +74,24 @@ public class DashboardResource
       ApplicationRiskService applicationRiskService,
       DashboardFilterService dashboardFilterService,
       ComponentRiskService componentRiskService,
-      NewestRiskService newestRiskService,
+      DashboardViolationRiskService dashboardViolationRiskService,
       PolicyWaiverService policyWaiverService)
   {
     this.applicationRiskService = applicationRiskService;
     this.componentRiskService = componentRiskService;
     this.dashboardFilterService = dashboardFilterService;
-    this.newestRiskService = newestRiskService;
+    this.dashboardViolationRiskService = dashboardViolationRiskService;
     this.policyWaiverService = policyWaiverService;
   }
 
   @POST
-  @Path(GET_NEWEST_RISKS_PATH)
+  @Path(GET_VIOLATION_RISKS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_JSON)
-  @ExceptionMetered(name = "getNewestRisksExceptionMeter")
+  @ExceptionMetered(name = "getViolationRiskServiceRisksExceptionMeter")
   @Audited(AuditEvent.VIEW_DASHBOARD_VIOLATION_LIST)
-  public DashboardResultsDTO<NewestRiskDTO> getNewestRisks(RisksFilterDTO risksFilterDTO) {
-    return newestRiskService.getNewestRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
+  public DashboardResultsDTO<DashboardViolationRiskDTO> getViolationRisks(RisksFilterDTO risksFilterDTO) {
+    return dashboardViolationRiskService.get(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
         risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
         risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates, risksFilterDTO.orderBy,
         risksFilterDTO.maxDaysOld, risksFilterDTO.page, risksFilterDTO.pageSize);
@@ -190,20 +191,20 @@ public class DashboardResource
    * @since 1.24.0
    */
   @POST
-  @Path(GET_NEWEST_RISKS_EXPORT_PATH)
+  @Path(GET_VIOLATION_RISKS_EXPORT_PATH)
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces("text/csv")
-  @ExceptionMetered(name = "getNewestRisksExportExceptionMeter")
+  @ExceptionMetered(name = "getViolationRisksExportExceptionMeter")
   @Audited(AuditEvent.EXPORT_DASHBOARD_VIOLATION_LIST)
-  public Response getNewestRisksExport(@FormDataParam("filter") RisksFilterDTO risksFilterDTO) throws IOException {
-    final List<NewestRiskDTO> results = newestRiskService
-        .getNewestRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds, risksFilterDTO.stageIds,
+  public Response getViolationRisksExport(@FormDataParam("filter") RisksFilterDTO risksFilterDTO) throws IOException {
+    final List<DashboardViolationRiskDTO> results = dashboardViolationRiskService
+        .get(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds, risksFilterDTO.stageIds,
             risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange,
             risksFilterDTO.policyViolationStates, risksFilterDTO.orderBy, risksFilterDTO.maxDaysOld,
             0, Integer.MAX_VALUE).dashboardResults;
 
     String fileNamePrefix = calculateFileNamePrefixForView("violations");
-    return Csv.generate(Response.ok(), fileNamePrefix, NewestRiskDTO.getCsvHeader(), results).build();
+    return Csv.generate(Response.ok(), fileNamePrefix, DashboardViolationRiskDTO.getCsvHeader(), results).build();
   }
 
   /**

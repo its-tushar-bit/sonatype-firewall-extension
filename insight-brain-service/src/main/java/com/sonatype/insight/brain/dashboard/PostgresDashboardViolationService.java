@@ -7,17 +7,30 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.util.Set;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 
-public interface NewestRiskService
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Named
+public class PostgresDashboardViolationService
+    implements DashboardViolationRiskService
 {
-  /**
-   * Gets the "newest" risk matching the specified filter criteria. Empty or null filter criteria generally means
-   * "all available" violations for that aspect.
-   */
-  DashboardResultsDTO<NewestRiskDTO> getNewestRisks(
+  private static final Logger log = LoggerFactory.getLogger(PostgresDashboardViolationService.class);
+
+  @Inject
+  public PostgresDashboardViolationService() {
+    // TODO - inject dependencies
+    log.info("todo");
+  }
+
+  @Override
+  public DashboardResultsDTO<DashboardViolationRiskDTO> get(
       Set<String> organizationIds,
       Set<String> applicationIds,
       Set<String> stageIds,
@@ -28,5 +41,9 @@ public interface NewestRiskService
       String orderBy,
       Integer maxDaysOld,
       int page,
-      int pageSize);
+      int pageSize)
+  {
+    // TODO - CLM-32516
+    return null;
+  }
 }

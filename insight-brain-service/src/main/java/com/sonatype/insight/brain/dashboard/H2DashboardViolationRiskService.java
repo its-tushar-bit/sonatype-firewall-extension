@@ -26,7 +26,6 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
-import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditService;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
@@ -52,15 +51,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 @Named
-public class H2NewestRiskService
-    implements NewestRiskService
+public class H2DashboardViolationRiskService
+    extends AbstractDashboardViolationRiskService
 {
-  private static final Logger log = LoggerFactory.getLogger(H2NewestRiskService.class);
-
-  private final ApplicationService applicationService;
+  private static final Logger log = LoggerFactory.getLogger(H2DashboardViolationRiskService.class);
 
   private final OrganizationDAO organizationDAO;
 
@@ -70,73 +66,43 @@ public class H2NewestRiskService
 
   private final DashboardUtils dashboardUtils;
 
-  private final AuditService auditService;
-
   @Inject
-  public H2NewestRiskService(
+  public H2DashboardViolationRiskService(
       ApplicationService applicationService,
-                           OrganizationDAO organizationDAO,
+      OrganizationDAO organizationDAO,
       PolicyViolationDAO policyViolationDAO,
-                           PolicyViolationLoader policyViolationLoader,
-                           DashboardUtils dashboardUtils,
-                           final AuditService auditService)
+      PolicyViolationLoader policyViolationLoader,
+      DashboardUtils dashboardUtils,
+      final AuditService auditService)
   {
-    this.applicationService = applicationService;
+    super(applicationService, dashboardUtils, auditService);
     this.organizationDAO = organizationDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.policyViolationLoader = policyViolationLoader;
     this.dashboardUtils = dashboardUtils;
-    this.auditService = auditService;
   }
 
   @Override
-  public DashboardResultsDTO<NewestRiskDTO> getNewestRisks(Set<String> organizationIds,
-                                                           Set<String> applicationIds,
-                                                           Set<String> stageIds,
-                                                           Set<String> tagIds,
-                                                           PolicyThreatCategoryFilter policyThreatCategoryFilter,
-                                                           PolicyThreatLevelFilter policyThreatLevelFilter,
-                                                           PolicyViolationStateFilter policyViolationStateFilter,
-                                                           String orderBy,
-                                                           Integer maxDaysOld,
-                                                           int page,
-                                                           int pageSize)
+  protected DashboardResultsDTO<DashboardViolationRiskDTO> load(
+      List<Application> applications,
+      Set<String> stageIds,
+      Set<String> tagIds,
+      PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      PolicyThreatLevelFilter policyThreatLevelFilter,
+      PolicyViolationStateFilter policyViolationStateFilter,
+      String orderBy,
+      Integer maxDaysOld,
+      int page,
+      int pageSize)
   {
-    dashboardUtils.validateDashboardLicensedAndEnabledForApplications();
-
-    validateMaxDaysOld(maxDaysOld);
-
-    long start = System.currentTimeMillis();
-
-    List<Application> applications = getApplications(organizationIds, applicationIds, tagIds);
-
-    AuditData.get() //
-        .setData("selectedOrganizations", auditService.getSelectedOrganizationsById(organizationIds)) //
-        .setData("selectedApplications",
-            auditService.getSelectedApplicationsById(applicationIds, organizationIds, applications)) //
-        .setSelectedApplicationCategories(auditService.getSelectedApplicationCategoriesById(tagIds)) //
-        .setData("inspectedApplicationCount", applications.size());
-
     Collection<ApplicationView> appViews = getPolicyViolations(applications, stageIds, policyThreatCategoryFilter,
         policyThreatLevelFilter, policyViolationStateFilter, maxDaysOld);
 
-    List<NewestRiskDTO> riskDTOs = buildRiskDTOs(appViews);
+    List<DashboardViolationRiskDTO> riskDTOs = buildRiskDTOs(appViews);
 
     sort(riskDTOs, orderBy);
 
-    DashboardResultsDTO<NewestRiskDTO> result = buildResultsDTO(riskDTOs, page, pageSize);
-
-    AuditData.get().setData("resultRecordCount", result.numResults);
-
-    log.debug("getNewestRisks finished in {} ms", System.currentTimeMillis() - start);
-
-    return result;
-  }
-
-  private void validateMaxDaysOld(Integer maxDaysOld) {
-    if (maxDaysOld != null && maxDaysOld < 1) {
-      throw new IllegalArgumentException("Max Days Old must be a positive integer");
-    }
+    return buildResultsDTO(riskDTOs, page, pageSize);
   }
 
   private Collection<ApplicationView> getPolicyViolations(List<Application> applications,
@@ -154,14 +120,14 @@ public class H2NewestRiskService
         policyThreatLevelFilter, policyThreatCategoryFilter, policyViolationStateFilter);
   }
 
-  private List<NewestRiskDTO> buildRiskDTOs(Collection<ApplicationView> appViews) {
-    List<NewestRiskDTO> riskDTOs = new ArrayList<>();
+  private List<DashboardViolationRiskDTO> buildRiskDTOs(Collection<ApplicationView> appViews) {
+    List<DashboardViolationRiskDTO> riskDTOs = new ArrayList<>();
 
     final AtomicInteger policyEvaluationCount = new AtomicInteger(0);
     final AtomicInteger policyViolationCount = new AtomicInteger(0);
 
     Map<String, String> orgNames = new ConcurrentHashMap<>();
-    List<CompletableFuture<List<NewestRiskDTO>>> dtoFutures = appViews.stream()
+    List<CompletableFuture<List<DashboardViolationRiskDTO>>> dtoFutures = appViews.stream()
         .map(appView -> CompletableFuture.supplyAsync(() -> {
           Application app = appView.getApplication();
 
@@ -175,9 +141,9 @@ public class H2NewestRiskService
               orgId -> organizationDAO.getByIdNotNull(orgId).getName());
 
           List<PolicyViolation> allUniqueAppPolicyViolations = new ArrayList<>();
-          Map<PolicyViolation, NewestRiskDTO> newestRiskDTOsByPolicyViolation = new HashMap<>();
+          Map<PolicyViolation, DashboardViolationRiskDTO> violationRiskDTOsByPolicyViolation = new HashMap<>();
 
-          List<NewestRiskDTO> localDTOs = new ArrayList<>();
+          List<DashboardViolationRiskDTO> localDTOs = new ArrayList<>();
 
           for (ApplicationStageView appStageView : appView.getStageViews()) {
             PolicyEvaluation policyEvaluation = appStageView.getLastEvaluation();
@@ -194,14 +160,16 @@ public class H2NewestRiskService
             PolicyViolationDiff<PolicyViolation> diff = PolicyViolationDigester
                 .digestPolicyViolations(allUniqueAppPolicyViolations, policyViolations);
             for (PolicyViolation policyViolation : diff.getAppeared()) {
-              NewestRiskDTO newestRiskDTO = createNewestRiskDTO(app, orgName, policyEvaluation, policyViolation);
-              newestRiskDTOsByPolicyViolation.put(policyViolation, newestRiskDTO);
-              localDTOs.add(newestRiskDTO);
+              DashboardViolationRiskDTO violationRiskDTO =
+                  createViolationRiskDTO(app, orgName, policyEvaluation, policyViolation);
+              violationRiskDTOsByPolicyViolation.put(policyViolation, violationRiskDTO);
+              localDTOs.add(violationRiskDTO);
             }
             for (Entry<PolicyViolation, PolicyViolation> samePolicyViolationEntry : diff.getSame().entrySet()) {
-              NewestRiskDTO newestRiskDTO = newestRiskDTOsByPolicyViolation.get(samePolicyViolationEntry.getKey());
+              DashboardViolationRiskDTO violationRiskDTO =
+                  violationRiskDTOsByPolicyViolation.get(samePolicyViolationEntry.getKey());
               PolicyViolation policyViolation = samePolicyViolationEntry.getValue();
-              addToNewestRiskDTO(newestRiskDTO, policyEvaluation, policyViolation);
+              addToViolationRiskDTO(violationRiskDTO, policyEvaluation, policyViolation);
             }
 
             allUniqueAppPolicyViolations.addAll(diff.getAppeared());
@@ -211,91 +179,83 @@ public class H2NewestRiskService
 
     dtoFutures.stream().map(CompletableFuture::join).forEach(riskDTOs::addAll);
 
-    log.debug("getNewestRisks: Processed {} policy evaluations and {} policy violations.", policyEvaluationCount,
+    log.debug("buildRiskDTOs: Processed {} policy evaluations and {} policy violations.", policyEvaluationCount,
         policyViolationCount);
 
     return riskDTOs;
   }
 
-  private DashboardResultsDTO<NewestRiskDTO> buildResultsDTO(List<NewestRiskDTO> riskDTOs, int page, int pageSize) {
-    DashboardResultsDTO<NewestRiskDTO> result = new DashboardResultsDTO<>();
+  private DashboardResultsDTO<DashboardViolationRiskDTO> buildResultsDTO(
+      List<DashboardViolationRiskDTO> riskDTOs,
+      int page,
+      int pageSize)
+  {
+    DashboardResultsDTO<DashboardViolationRiskDTO> result = new DashboardResultsDTO<>();
     result.numResults = riskDTOs.size();
     if (riskDTOs.isEmpty()) {
       result.dashboardResults = new ArrayList<>();
     }
     else {
-      List<List<NewestRiskDTO>> pages = Lists.partition(riskDTOs, pageSize);
+      List<List<DashboardViolationRiskDTO>> pages = Lists.partition(riskDTOs, pageSize);
       result.dashboardResults = page >= pages.size() ? new ArrayList<>() : pages.get(page);
       result.hasNextPage = pages.size() > (page + 1);
     }
     return result;
   }
 
-  private void sort(List<NewestRiskDTO> riskDTOs, String orderBy) {
-    NewestRiskDTOComparator comparator = new NewestRiskDTOComparator(orderBy);
+  private void sort(List<DashboardViolationRiskDTO> riskDTOs, String orderBy) {
+    DashboardViolationRiskDTOComparator comparator = new DashboardViolationRiskDTOComparator(orderBy);
     riskDTOs.sort(comparator);
   }
 
-  private List<Application> getApplications(Set<String> organizationIds,
-                                            Set<String> applicationIds,
-                                            Set<String> tagIds)
+  private DashboardViolationRiskDTO createViolationRiskDTO(
+      Application app,
+      String orgName,
+      PolicyEvaluation policyEvaluation,
+      PolicyViolation policyViolation)
   {
-    long start = System.currentTimeMillis();
+    DashboardViolationRiskDTO violationRiskDTO = new DashboardViolationRiskDTO();
+    violationRiskDTO.applicationName = app.getName();
+    violationRiskDTO.organizationName = orgName;
+    violationRiskDTO.threatLevel = policyViolation.getThreatLevel();
+    violationRiskDTO.firstOccurrenceTime = policyViolation.getOpenTime().getTime();
+    violationRiskDTO.policyName = policyViolation.getPolicyName();
+    violationRiskDTO.policyViolationId = policyViolation.getId();
+    violationRiskDTO.hash = policyViolation.getHash();
+    violationRiskDTO.lastOccurrenceTime = policyEvaluation.getTime().getTime();
+    violationRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
+    violationRiskDTO.filename = policyViolation.getFilename();
+    violationRiskDTO.derivedComponentName = ComponentDisplayNameUtil.deriveComponentName(violationRiskDTO);
+    violationRiskDTO.referenceId = findReferenceIdForPolicyViolation(policyViolation);
 
-    List<Application> applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds,
-        applicationIds, tagIds);
-
-    log.debug("getNewestRisks: Found {} applications filtered by appIds={} and tagIds={} in {} ms.",
-        applications.size(), !isEmpty(applicationIds), !isEmpty(tagIds), System.currentTimeMillis() - start);
-
-    return applications;
+    return violationRiskDTO;
   }
 
-  private NewestRiskDTO createNewestRiskDTO(Application app,
-                                            String orgName,
-                                            PolicyEvaluation policyEvaluation,
-                                            PolicyViolation policyViolation)
-  {
-    NewestRiskDTO newestRiskDTO = new NewestRiskDTO();
-    newestRiskDTO.applicationName = app.getName();
-    newestRiskDTO.organizationName = orgName;
-    newestRiskDTO.threatLevel = policyViolation.getThreatLevel();
-    newestRiskDTO.firstOccurrenceTime = policyViolation.getOpenTime().getTime();
-    newestRiskDTO.policyName = policyViolation.getPolicyName();
-    newestRiskDTO.policyViolationId = policyViolation.getId();
-    newestRiskDTO.hash = policyViolation.getHash();
-    newestRiskDTO.lastOccurrenceTime = policyEvaluation.getTime().getTime();
-    newestRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
-    newestRiskDTO.filename = policyViolation.getFilename();
-    newestRiskDTO.derivedComponentName = ComponentDisplayNameUtil.deriveComponentName(newestRiskDTO);
-    newestRiskDTO.referenceId = findReferenceIdForPolicyViolation(policyViolation);
-
-    return newestRiskDTO;
-  }
-
-  private void addToNewestRiskDTO(NewestRiskDTO newestRiskDTO,
-                                  PolicyEvaluation policyEvaluation,
-                                  PolicyViolation policyViolation)
+  private void addToViolationRiskDTO(
+      DashboardViolationRiskDTO dashboardViolationRiskDTO,
+      PolicyEvaluation policyEvaluation,
+      PolicyViolation policyViolation)
   {
     long lastOccurrenceTime = policyEvaluation.getTime().getTime();
-    if (newestRiskDTO.lastOccurrenceTime < lastOccurrenceTime) {
-      newestRiskDTO.lastOccurrenceTime = lastOccurrenceTime;
+    if (dashboardViolationRiskDTO.lastOccurrenceTime < lastOccurrenceTime) {
+      dashboardViolationRiskDTO.lastOccurrenceTime = lastOccurrenceTime;
       // return the latest component name
-      newestRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
-      newestRiskDTO.filename = policyViolation.getFilename();
-      newestRiskDTO.derivedComponentName = ComponentDisplayNameUtil.deriveComponentName(newestRiskDTO);
+      dashboardViolationRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
+      dashboardViolationRiskDTO.filename = policyViolation.getFilename();
+      dashboardViolationRiskDTO.derivedComponentName =
+          ComponentDisplayNameUtil.deriveComponentName(dashboardViolationRiskDTO);
     }
 
     long firstOccurrenceTime = policyViolation.getOpenTime().getTime();
-    if (newestRiskDTO.firstOccurrenceTime > firstOccurrenceTime) {
-      newestRiskDTO.firstOccurrenceTime = firstOccurrenceTime;
+    if (dashboardViolationRiskDTO.firstOccurrenceTime > firstOccurrenceTime) {
+      dashboardViolationRiskDTO.firstOccurrenceTime = firstOccurrenceTime;
       // return the policy violation id of the earliest violation to match how cross-stage violations work
       // See also ApiCrossStageViolationService::getCrossStageViolationById
-      newestRiskDTO.policyViolationId = policyViolation.getId();
+      dashboardViolationRiskDTO.policyViolationId = policyViolation.getId();
     }
 
-    if (newestRiskDTO.referenceId == null) {
-      newestRiskDTO.referenceId = findReferenceIdForPolicyViolation(policyViolation);
+    if (dashboardViolationRiskDTO.referenceId == null) {
+      dashboardViolationRiskDTO.referenceId = findReferenceIdForPolicyViolation(policyViolation);
     }
   }
 

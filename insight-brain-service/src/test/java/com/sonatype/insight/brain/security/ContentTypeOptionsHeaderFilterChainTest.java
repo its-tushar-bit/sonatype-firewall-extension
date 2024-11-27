@@ -22,7 +22,7 @@ public class ContentTypeOptionsHeaderFilterChainTest
     assertHeader(restRequest().path("/assets/index.html").get());
     assertHeader(restRequest().path("/assets/bundle.js").get());
     assertHeader(restRequest().path(DashboardResource.RESOURCE_PATH)
-        .path(DashboardResource.GET_NEWEST_RISKS_EXPORT_PATH).get());
+        .path(DashboardResource.GET_VIOLATION_RISKS_EXPORT_PATH).get());
   }
 
   private void assertHeader(HttpResponse response) {

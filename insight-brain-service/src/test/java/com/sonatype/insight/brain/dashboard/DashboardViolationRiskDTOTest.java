@@ -12,13 +12,13 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class NewestRiskDTOTest
+public class DashboardViolationRiskDTOTest
 {
-  private NewestRiskDTO risk;
+  private DashboardViolationRiskDTO risk;
 
   @Before
   public void before() {
-    risk = new NewestRiskDTO();
+    risk = new DashboardViolationRiskDTO();
     risk.threatLevel = 7;
     risk.policyName = "p";
     risk.applicationName = "a";

@@ -193,7 +193,7 @@ public class ComponentDetailsPageTest
   }
 
   @Test
-  public void testFeatureEnabled_policyViolationDetailsDrawer() {
+  public void testFeatureEnabled_policyViolationDetailsDrawer_vulerabilityDetails() {
     setTestData();
     mockHdsResponseForVulnerabilityDetails();
     SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
@@ -210,6 +210,7 @@ public class ComponentDetailsPageTest
     sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 0).shouldHave(text("9")).click();
 
     sbomManagerComponentDetailsPage.policyViolationDetailsDrawer.shouldBe(visible);
+    
     PolicyViolationDetailsDrawer.PolicyViolationConstraintInfo policyViolationConstraintInfo
         = PolicyViolationDetailsDrawer.policyViolationConstraintInfo();
     policyViolationConstraintInfo.title().shouldHave(text("Policy Constraint"));
@@ -222,6 +223,34 @@ public class ComponentDetailsPageTest
         = PolicyViolationDetailsDrawer.vulnerabilityDetails();
 
     assertVulnerabilityDetailsInsidePolicyViolationDetailsDrawer(vulnerabilityDetails);
+  }
+  
+  @Test
+  public void testFeatureEnabled_policyViolationDetailsDrawer_violationDetailsTile() {
+    setTestData();
+    mockHdsResponseForVulnerabilityDetails();
+    SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
+
+    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
+        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+
+    sbomManagerComponentDetailsPage.tabs().get(1).shouldHave(text("Policy Violations")).click();
+
+    sbomManagerComponentDetailsPage.policyViolationsTile().header().shouldHave(text("Policy Violations"));
+
+    sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 0).shouldHave(text("9")).click();
+
+    sbomManagerComponentDetailsPage.policyViolationDetailsDrawer.shouldBe(visible);
+    
+    PolicyViolationDetailsDrawer.SbomManagerViolationDetailsTile sbomManagerViolationDetailsTile
+        = PolicyViolationDetailsDrawer.sbomManagerViolationDetailsTile();
+    
+    sbomManagerViolationDetailsTile.shouldBe(visible);
+    
+    sbomManagerViolationDetailsTile.threatLevelValue().shouldHave(text("9"));
+    
+    sbomManagerViolationDetailsTile.policyTypeValue().shouldHave(text("Security"));
+    
   }
 
   @Test
@@ -784,7 +813,7 @@ public class ComponentDetailsPageTest
       vexAnnotationDrawer.annotationDetails().shouldHave(text(annotationDetails));
     }
   }
-
+  
   public void assertVulnerabilityDetailsInsidePolicyViolationDetailsDrawer(
       PolicyViolationDetailsDrawer.VulnerabilityDetails vulnerabilityDetails
   )

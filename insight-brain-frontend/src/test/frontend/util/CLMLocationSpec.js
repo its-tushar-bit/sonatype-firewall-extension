@@ -1739,4 +1739,13 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getLicensedSolutionsUrl()).toEqual(expectedUrl);
     });
   });
+
+  describe('getOwnerDetailsByTypeAndInternalId', () => {
+    it('returns the url to get the owner details by type and internal ID', () => {
+      const applicationId = 'abc123';
+      const expectedUrl = `/rest/owner/application/${applicationId}/details`;
+
+      expect(clmLocation.getOwnerDetailsByTypeAndInternalId('application', applicationId)).toEqual(expectedUrl);
+    });
+  });
 });

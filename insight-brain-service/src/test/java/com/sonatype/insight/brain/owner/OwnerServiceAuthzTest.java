@@ -160,4 +160,22 @@ public class OwnerServiceAuthzTest
     assertThat(ownersWithReadPermissionsById).isNotEmpty();
     assertThat(ownersWithReadPermissionsById).hasSize(5);
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetOwnerByTypeAndInternalId_Unauthenticated() {
+    ownerService.getOwnerByTypeAndInternalId(org.getType(), org.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetOwnerByTypeAndInternalId_Unauthorized() {
+    login();
+    ownerService.getOwnerByTypeAndInternalId(app.getType(), app.getId());
+  }
+
+  @Test
+  public void testGetOwnerByTypeAndInternalId_Authorized() {
+    grantPermission(org.getId(), Permission.READ);
+    OwnerDTO result = ownerService.getOwnerByTypeAndInternalId(org.getType(), org.getId());
+    assertThat(result).isNotNull();
+  }
 }

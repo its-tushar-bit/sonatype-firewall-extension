@@ -155,4 +155,43 @@ public class OwnerServiceTest
     assertThat(allOwnersById.containsKey(ROOT_ORGANIZATION_ID)).isTrue();
     assertThat(allOwnersById.containsKey(REPOSITORY_CONTAINER_ID)).isTrue();
   }
+
+  @Test
+  public void testGetOwnerByTypeAndInternalId_WithResult() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newApplicationWithParent();
+
+    OwnerDTO result = ownerService.getOwnerByTypeAndInternalId(application.getType(), application.getId());
+
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isEqualTo(application.getId());
+    assertThat(result.getName()).isEqualTo(application.getName());
+    assertThat(result.getParentOwnerId()).isEqualTo(application.getParentOwnerId());
+    assertThat(result.getPublicId()).isEqualTo(application.getPublicId());
+    assertThat(result.getType()).isEqualTo(application.getType());
+  }
+
+  @Test
+  public void testGetOwnerByTypeAndInternalId_NoResult() {
+    tempEntity.newOrganization();
+    tempEntity.newApplicationWithParent();
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> ownerService.getOwnerByTypeAndInternalId(OwnerType.ORGANIZATION, "doesNotExist"));
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> ownerService.getOwnerByTypeAndInternalId(OwnerType.APPLICATION, "doesNotExist"));
+  }
+
+  @Test
+  public void testGetOwnerByTypeAndInternalId_WrongOwnerType() {
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplicationWithParent(organization);
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> ownerService.getOwnerByTypeAndInternalId(OwnerType.ORGANIZATION, application.getId()));
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> ownerService.getOwnerByTypeAndInternalId(OwnerType.APPLICATION, organization.getId()));
+  }
 }

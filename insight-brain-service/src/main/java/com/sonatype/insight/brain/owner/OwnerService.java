@@ -117,6 +117,14 @@ public class OwnerService
         Collections.emptySet());
   }
 
+  @Authorize(permission = Permission.READ)
+  public OwnerDTO getOwnerByTypeAndInternalId(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.INTERNAL_ID) String ownerInternalId)
+  {
+    return new OwnerDTO(idUtils.getOwnerNotNull(ownerType, ownerInternalId));
+  }
+
   private Map<String, Owner> getOwnersWithReadPermissionsById(
       final Set<String> organizationIds,
       final Set<String> applicationIds,

@@ -18,6 +18,8 @@
       "policyId" : "6dcf07f78530400eaa120eacdd1fc792",
       "policyViolationId" : "0161344d33444a709769dc2df8469886",
       "policyName" : "Security-High",
+      "policyOwnerId" : "ROOT_ORGANIZATION_ID",
+      "policyOwnerType" : "application",
       "policyThreatLevel" : 9,
       "waived" : false,
       "grandfathered" : false,
@@ -52,6 +54,8 @@
     "allViolations" : [ {
       "policyId" : "6dcf07f78530400eaa120eacdd1fc792",
       "policyViolationId" : "0161344d33444a709769dc2df8469886",
+      "policyOwnerId" : "ROOT_ORGANIZATION_ID",
+      "policyOwnerType" : "application",
       "policyName" : "Security-High",
       "policyThreatLevel" : 9,
       "waived" : false,

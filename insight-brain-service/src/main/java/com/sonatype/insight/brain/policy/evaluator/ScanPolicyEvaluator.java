@@ -373,7 +373,7 @@ public class ScanPolicyEvaluator
       File reportFile,
       ScanPolicyEvaluatorResults scanPolicyEvaluatorResults,
       Stage stage,
-      Map<String, String> policyIdPolicyOwnerIdMap,
+      Map<String, Owner> policyIdPolicyOwnerMap,
       boolean forMonitoring,
       List<Component> components) throws IOException
   {
@@ -381,10 +381,9 @@ public class ScanPolicyEvaluator
         scanPolicyEvaluatorResults.evaluation.getScanId(), stage.getStageTypeId(), forMonitoring,
         components, scanPolicyEvaluatorResults.activeViolations);
     Report.putEntry(reportFile, POLICY_ALERTS_FILENAME, JsonUtils.generate(JsonUtils.aaData(alerts)));
-
     PolicyThreats policyThreats = PolicyThreatsAdapter.createPolicyThreats(scanPolicyEvaluatorResults.allViolations,
         stage.getStageTypeId(),
-        policyIdPolicyOwnerIdMap);
+        policyIdPolicyOwnerMap);
     Report.putEntry(reportFile, POLICY_THREATS_FILENAME, JsonUtils.generate(policyThreats));
 
     updateDataJson(reportFile, policyThreats);
@@ -473,11 +472,12 @@ public class ScanPolicyEvaluator
       List<PolicyAlert> allPolicyAlerts = new ArrayList<>();
       allPolicyAlerts.addAll(policyResults.getActiveAlerts());
       allPolicyAlerts.addAll(policyResults.getWaivedAlerts());
-      Map<String, String> policyIdPolicyOwnerIdMap = new HashMap();
+      Map<String, Owner> policyIdPolicyOwnerMap = new HashMap();
       for (PolicyAlert policyAlert : allPolicyAlerts) {
         PolicyFact policyFact = policyAlert.getTrigger();
         Policy policy = policyDAO.getByIdNotNull(policyFact.getPolicyId());
-        policyIdPolicyOwnerIdMap.put(policy.getId(), policy.getOwnerId());
+        Owner ownerPolicy = ownerDAO.getById(policy.getOwnerId());
+        policyIdPolicyOwnerMap.put(policy.getId(), ownerPolicy);
         PolicyThreatCategory threatCategory = policy.getThreatCategory();
         for (ComponentFact componentFact : policyFact.getComponentFacts()) {
           PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, policy.getId(), policy.getName(),
@@ -783,7 +783,7 @@ public class ScanPolicyEvaluator
           policyResults.getActiveAlerts().size(), policyResults.getWaivedAlerts().size(), appId,
           stage.getStageTypeId(), System.currentTimeMillis() - start);
 
-      updateReportFiles(reportFile, results, stage, policyIdPolicyOwnerIdMap, forMonitoring, components);
+      updateReportFiles(reportFile, results, stage, policyIdPolicyOwnerMap, forMonitoring, components);
 
       return results;
     }

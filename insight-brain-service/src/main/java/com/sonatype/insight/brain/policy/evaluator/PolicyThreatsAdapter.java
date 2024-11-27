@@ -14,6 +14,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 
@@ -30,7 +31,7 @@ public class PolicyThreatsAdapter
 {
   public static PolicyThreats createPolicyThreats(List<PolicyViolation> policyViolations,
                                                   String stageTypeId,
-                                                  Map<String, String> policyIdPolicyOwnerIdMap)
+                                                  Map<String, Owner> policyIdPolicyOwnerIdMap)
   {
     Map<String, PolicyThreats.Component> components = processPolicyViolations(policyViolations,
         policyIdPolicyOwnerIdMap);
@@ -44,7 +45,7 @@ public class PolicyThreatsAdapter
   }
 
   private static Map<String, PolicyThreats.Component> processPolicyViolations(List<PolicyViolation> policyViolations,
-                                                                      Map<String, String> policyIdPolicyOwnerIdMap)
+                                                                      Map<String, Owner> policyIdPolicyOwnerIdMap)
   {
     Map<String, PolicyThreats.Component> components = new LinkedHashMap<>();
 
@@ -57,13 +58,11 @@ public class PolicyThreatsAdapter
           component.componentIdentifier = violation.getComponentIdentifier();
           component.policyThreatLevel = 0;
           component.policyName = "None";
-          if (policyIdPolicyOwnerIdMap != null) {
-            component.policyOwnerId = policyIdPolicyOwnerIdMap.get(violation.getPolicyId()).toString();
-          }
           components.put(component.hash, component);
         }
 
-        PolicyThreats.PolicyViolation policyThreatsPolicyViolation = toPolicyThreatsPolicyViolation(violation);
+        PolicyThreats.PolicyViolation policyThreatsPolicyViolation = toPolicyThreatsPolicyViolation(violation,
+            policyIdPolicyOwnerIdMap);
         component.allViolations.add(policyThreatsPolicyViolation);
 
         if (!violation.isWaived()) {
@@ -84,7 +83,9 @@ public class PolicyThreatsAdapter
     return components;
   }
 
-  private static PolicyThreats.PolicyViolation toPolicyThreatsPolicyViolation(PolicyViolation violation) {
+  private static PolicyThreats.PolicyViolation toPolicyThreatsPolicyViolation(PolicyViolation violation,
+                                                                              Map<String, Owner> policyIdPolicyOwnerMap)
+  {
     PolicyThreats.PolicyViolation result = new PolicyThreats.PolicyViolation();
     result.policyId = violation.getPolicyId();
     result.policyViolationId = violation.getId();
@@ -98,6 +99,10 @@ public class PolicyThreatsAdapter
     result.constraintFactsJson = violation.getConstraintFactsJson();
     result.policyThreatCategory = violation.getThreatCategory().toString();
     result.reachabilityStatus = violation.getReachabilityStatus();
+    if (policyIdPolicyOwnerMap != null) {
+      result.policyOwnerId = policyIdPolicyOwnerMap.get(violation.getPolicyId()).getId();
+      result.policyOwnerType = policyIdPolicyOwnerMap.get(violation.getPolicyId()).getType().toString();
+    }
     return result;
   }
 

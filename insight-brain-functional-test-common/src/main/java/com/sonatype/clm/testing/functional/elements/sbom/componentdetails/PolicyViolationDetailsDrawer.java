@@ -26,9 +26,29 @@ public class PolicyViolationDetailsDrawer extends BasicElement<PolicyViolationDe
   public SelenideElement closeButton() {
     return child("header .nx-btn--close");
   }
+  
+  public static SbomManagerViolationDetailsTile sbomManagerViolationDetailsTile() {
+    return new SbomManagerViolationDetailsTile();
+  }
 
   public static PolicyViolationConstraintInfo policyViolationConstraintInfo() {
     return new PolicyViolationConstraintInfo();
+  }
+  
+  public static class SbomManagerViolationDetailsTile
+      extends BasicElement<SbomManagerViolationDetailsTile>
+  {
+    public SbomManagerViolationDetailsTile() {
+      super("#sbom-manager-violation-details-tile");
+    }
+    
+    public SelenideElement threatLevelValue() {
+      return child(".sbom-manager-violation-details__threat-level dd");
+    }
+    
+    public SelenideElement policyTypeValue() {
+      return child(".sbom-manager-violation-details__policy-type dd");
+    }
   }
 
   public static class PolicyViolationConstraintInfo

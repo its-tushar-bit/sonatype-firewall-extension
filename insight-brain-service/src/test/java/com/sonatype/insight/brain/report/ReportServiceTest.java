@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
@@ -802,10 +803,9 @@ public class ReportServiceTest
 
       assertThat(result.aaData).hasSize(1);
       assertThat(result.stageTypeId).isEqualTo("build");
-      assertThat(result.aaData.get(0).policyOwnerId).isEqualTo("ROOT_ORGANIZATION_ID");
       assertThat(result.aaData.get(0).componentIdentifier)
           .isEqualTo(givenPolicyThreatsStoredForReport.aaData.get(0).componentIdentifier);
-
+      validatePolicyValidationOwner(result.aaData);
     }
   }
 
@@ -816,6 +816,7 @@ public class ReportServiceTest
     ReportService reportService = createReportService();
     PolicyThreats policyThreats = reportService.getPolicyThreats(app.getPublicId(), scanId);
     assertThat(policyThreats).isNotNull();
+    validatePolicyValidationOwner(policyThreats.aaData);
   }
 
   private void assertThatReportZipContains(File zipFile, final String thirdPartyFile) {
@@ -845,11 +846,21 @@ public class ReportServiceTest
 
     component.activeViolations.add(policyViolation);
     component.allViolations.add(policyViolation);
-    component.policyOwnerId = "ROOT_ORGANIZATION_ID";
 
     policyThreats.aaData.add(component);
 
     return policyThreats;
+  }
+
+  private void validatePolicyValidationOwner(List<PolicyThreats.Component> components) {
+    String ownerId = "ROOT_ORGANIZATION_ID";
+    String ownerType = OwnerType.APPLICATION.toString();
+    components.stream()
+        .flatMap(component -> component.allViolations.stream())
+        .forEach(policyViolation -> {
+          assertThat(policyViolation.policyOwnerId).isEqualTo(ownerId);
+          assertThat(policyViolation.policyOwnerType).isEqualTo(ownerType);
+        });
   }
 
   public static PolicyThreats.PolicyViolation createPolicyViolation() {
@@ -857,7 +868,8 @@ public class ReportServiceTest
     policyViolation.policyThreatLevel = 9;
     policyViolation.policyId = "some-policy-id";
     policyViolation.policyViolationId = "some-violation-id";
-
+    policyViolation.policyOwnerType = OwnerType.APPLICATION.toString();
+    policyViolation.policyOwnerId = "ROOT_ORGANIZATION_ID";
     return policyViolation;
   }
 

@@ -291,8 +291,29 @@ describe('SBOM Manager componentDetailsSlice', function () {
   describe('policyViolationDetailsDrawer', () => {
     describe('showPolicyViolationDetailsDrawer', () => {
       it('sets the correct state values', () => {
+        const violationDetails = {
+          policyViolationId: 123,
+          policyThreatCategory: 'SECURITY',
+          policyThreatLevel: 10,
+          constraints: [
+            {
+              constraintId: 12345,
+              constraintName: 'asdf',
+              conditions: [
+                {
+                  conditionReason: 'asdf',
+                },
+              ],
+            },
+          ],
+        };
         const state0 = {
           policyViolationDetailsDrawer: { ...policyViolationDetailsDrawerInitialState },
+          sbomPolicyViolations: {
+            policy: {
+              activeViolations: [violationDetails],
+            },
+          },
         };
 
         const state1 = reducer(state0, {
@@ -302,6 +323,8 @@ describe('SBOM Manager componentDetailsSlice', function () {
 
         expect(state1.policyViolationDetailsDrawer.showDrawer).toBe(true);
         expect(state1.policyViolationDetailsDrawer.policyViolationId).toBe(123);
+        expect(state1.policyViolationDetailsDrawer.violationDetails.policyThreatLevel).toBe(10);
+        expect(state1.policyViolationDetailsDrawer.violationDetails.policyThreatCategory).toBe('SECURITY');
       });
     });
 
@@ -311,6 +334,11 @@ describe('SBOM Manager componentDetailsSlice', function () {
           policyViolationDetailsDrawer: {
             showDrawer: true,
             policyViolationId: 123,
+            violationDetails: {
+              policyViolationId: 123,
+              policyThreatLevel: 10,
+              policyThreatCategory: 'SECURITY',
+            },
           },
         };
 
@@ -321,8 +349,85 @@ describe('SBOM Manager componentDetailsSlice', function () {
 
         expect(state1.policyViolationDetailsDrawer.showDrawer).toBe(false);
         expect(state1.policyViolationDetailsDrawer.policyViolationId).toBe(null);
+        expect(state1.policyViolationDetailsDrawer.violationDetails).toBe(null);
       });
     });
+
+    // describe('loadViolationDetails', () => {
+    //   const pendingState = {
+    //     loading: true,
+    //     error: null,
+    //     violationDetails: null,
+    //   };
+
+    //   it('/pending', () => {
+    //     const state = {
+    //       policyViolationDetailsDrawer: {
+    //         ...policyViolationDetailsDrawerInitialState,
+    //       },
+    //     };
+
+    //     const newState = reducer(state, {
+    //       type: 'sbomComponentDetailsPage/loadViolationDetails/pending',
+    //     });
+
+    //     expect(newState.policyViolationDetailsDrawer.loading).toBe(true);
+    //     expect(newState.policyViolationDetailsDrawer.error).toBe(null);
+    //     expect(newState.policyViolationDetailsDrawer.violationDetails).toBe(null);
+    //   });
+
+    //   it('/fulfilled', () => {
+    //     const state = {
+    //       policyViolationDetailsDrawer: {
+    //         ...pendingState,
+    //       },
+    //     };
+
+    //     const payload = {
+    //       policyThreatLevel: 10,
+    //       policyThreatCategory: 'SECURITY',
+    //       policyOwner: {
+    //         id: 'abc123',
+    //         publicId: 'abc123',
+    //         name: 'test1',
+    //         type: 'organization',
+    //       },
+    //     };
+
+    //     const newState = reducer(state, {
+    //       type: 'sbomComponentDetailsPage/loadViolationDetails/fulfilled',
+    //       payload: payload,
+    //     });
+
+    //     const violationDetails = newState.policyViolationDetailsDrawer.violationDetails;
+
+    //     expect(newState.policyViolationDetailsDrawer.loading).toBe(false);
+    //     expect(newState.policyViolationDetailsDrawer.error).toBe(null);
+    //     expect(violationDetails.policyThreatLevel).toBe(10);
+    //     expect(violationDetails.policyThreatCategory).toBe('SECURITY');
+    //     expect(violationDetails.policyOwner.id).toBe('abc123');
+    //     expect(violationDetails.policyOwner.publicId).toBe('abc123');
+    //     expect(violationDetails.policyOwner.name).toBe('test1');
+    //     expect(violationDetails.policyOwner.type).toBe('organization');
+    //   });
+
+    //   it('/rejected', () => {
+    //     const state = {
+    //       policyViolationDetailsDrawer: {
+    //         ...pendingState,
+    //       },
+    //     };
+
+    //     const newState = reducer(state, {
+    //       type: 'sbomComponentDetailsPage/loadViolationDetails/rejected',
+    //       payload: { message: 'error' },
+    //     });
+
+    //     expect(newState.policyViolationDetailsDrawer.loading).toBe(false);
+    //     expect(newState.policyViolationDetailsDrawer.error).toBe('error');
+    //     expect(newState.policyViolationDetailsDrawer.violationDetails).toBe(null);
+    //   });
+    // });
   });
 
   describe('sbomComponentDetailsPage/loadSbomPolicyViolationReport', function () {

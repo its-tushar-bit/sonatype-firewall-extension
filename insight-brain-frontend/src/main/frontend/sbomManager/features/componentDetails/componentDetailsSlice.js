@@ -4,8 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { convertToWaiverViolationFormat as convertToViolationDetailsFormat } from 'MainRoot/util/waiverUtils';
+
 import axios from 'axios';
-import { always, compose, findIndex, includes, prop, values, without } from 'ramda';
+import { always, compose, find, findIndex, includes, prop, propEq, values, without } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import {
@@ -53,8 +55,11 @@ export const sbomPolicyViolationsInitialState = Object.freeze({
 });
 
 export const policyViolationDetailsDrawerInitialState = Object.freeze({
+  loading: true,
+  error: null,
   showDrawer: false,
   policyViolationId: null,
+  violationDetails: null,
 });
 
 export const initialState = {
@@ -362,7 +367,6 @@ const getVulnerabilityAnalysisReferenceData = createAsyncThunk(
   }
 );
 
-// vulnerabilities-sort-configuration
 const cycleList = (list, current) => {
   const index = findIndex((item) => item === current, list);
   return list[(index + 1) % list.length];
@@ -407,13 +411,17 @@ const cycleAdditionalVulnerabilitiesSortDirection = cycleVulnerabilitiesReducerC
   'additionalVulnerabilitiesSortConfiguration'
 );
 
-// policy-violations
 const showPolicyViolationDetailsDrawer = (state, { payload }) => {
   if (payload) {
-    state.policyViolationDetailsDrawer = {
-      showDrawer: true,
-      policyViolationId: payload,
-    };
+    const policy = state.sbomPolicyViolations.policy;
+    const violations = policy.allViolations ? policy.allViolations : policy.activeViolations;
+    const findPolicyViolationDetails = (policyViolationId) =>
+      find(propEq('policyViolationId', policyViolationId))(violations);
+    const formattedViolationDetails = convertToViolationDetailsFormat(findPolicyViolationDetails(payload));
+
+    state.policyViolationDetailsDrawer.showDrawer = true;
+    state.policyViolationDetailsDrawer.policyViolationId = payload;
+    state.policyViolationDetailsDrawer.violationDetails = formattedViolationDetails;
   }
 };
 

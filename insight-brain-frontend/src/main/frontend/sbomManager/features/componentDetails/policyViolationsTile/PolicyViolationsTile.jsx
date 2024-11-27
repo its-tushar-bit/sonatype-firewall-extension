@@ -55,8 +55,9 @@ const PolicyViolationsTile = ({ applicationPublicId, sbomVersion }) => {
     [sbomPolicyViolations.policy]
   );
 
-  const openPolicyViolationDetailsDrawerClickHandler = (policyViolationId) => () =>
+  const openPolicyViolationDetailsDrawerClickHandler = (policyViolationId) => () => {
     dispatch(actions.showPolicyViolationDetailsDrawer(policyViolationId));
+  };
 
   const tableRows = sortedViolations.map((violation, index) => (
     <NxTable.Row

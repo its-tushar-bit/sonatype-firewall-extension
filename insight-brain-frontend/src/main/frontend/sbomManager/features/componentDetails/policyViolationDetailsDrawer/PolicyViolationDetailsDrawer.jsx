@@ -19,7 +19,8 @@ import PolicyViolationConstraintInfo from 'MainRoot/violation/PolicyViolationCon
 import SbomVulnerabilityDetails from '../vulnerabilitiesDrawer/SbomVulnerabilityDetails';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { actions } from '../componentDetailsSlice';
-import { selectSbomComponentDetails } from '../componentDetailsSelector';
+import { selectSbomComponentDetails, selectPolicyViolationDetailsDrawer } from '../componentDetailsSelector';
+import SbomManagerViolationDetailsTile from './SbomManagerViolationDetailsTile';
 
 import './PolicyViolationDetailsDrawer.scss';
 
@@ -79,18 +80,19 @@ export default function PolicyViolationDetailsDrawer() {
         </NxDrawer.HeaderTitle>
       </NxDrawer.Header>
       <NxDrawer.Content tabIndex={0}>
-        {violation.constraints && (
-          <PolicyViolationConstraintInfo
-            constraintViolations={violation.constraints}
-            isFirewallContext={true}
-            isFromPolicyViolations={true}
-          />
-        )}
+        <SbomManagerViolationDetailsTile />
         <NxLoadWrapper
           retryHandler={loadSbomComponentVulnerabilities}
           loading={loadingVulnerabilityDetail}
           error={loadVulnerabilityDetailError}
         >
+          {violation.constraints && (
+            <PolicyViolationConstraintInfo
+              constraintViolations={violation.constraints}
+              isFirewallContext={true}
+              isFromPolicyViolations={true}
+            />
+          )}
           {!isNilOrEmpty(vulnerabilityDetails) && (
             <>
               <NxH2>Vulnerability Details</NxH2>

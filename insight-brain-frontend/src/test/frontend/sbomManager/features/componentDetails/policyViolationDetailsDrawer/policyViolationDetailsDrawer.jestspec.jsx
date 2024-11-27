@@ -45,6 +45,10 @@ describe('PolicyViolationDetailsDrawer', () => {
         policyViolationDetailsDrawer: {
           showDrawer: true,
           policyViolationId: POLICY_VIOLATION_ID,
+          violationDetails: {
+            policyThreatCategory: 'SECURITY',
+            threatLevel: 9,
+          },
         },
         sbomPolicyViolations: {
           policy: { ...mockPolicy },

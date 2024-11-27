@@ -17,3 +17,52 @@
     margin: 0;
   }
 }
+
+.sbom-manager-read-only-data--horizontal {
+  margin-left: 0;
+}
+
+.sbom-manager-violation-details {
+  .nx-grid-col {
+    display: flex;
+    margin: 0;
+    gap: 0 var(--nx-spacing-20x);
+    padding-bottom: var(--nx-spacing-4x);
+
+    dt {
+      line-height: var(--nx-line-height);
+      margin-bottom: var(--nx-spacing-2x);
+    }
+
+    dd {
+      line-height: var(--nx-line-height);
+      margin-left: 0;
+    }
+  }
+}
+
+.sbom-manager-violation-details-popover-section {
+  padding-bottom: var(--nx-spacing-6x);
+}
+
+.sbom-manager-violations-details-info {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.sbom-manager-violation-details__left-details {
+  padding-right: var(--nx-spacing-12x);
+}
+
+.sbom-manager-violation-details__stages .nx-icon {
+  color: var(--nx-color-threat-critical);
+  margin: 0;
+}
+
+.sbom-manager-violation-details__threat-level {
+  font-weight: 600;
+}
+
+.sbom-manager-threat-level--critical {
+  color: var(--nx-color-threat-critical);
+}

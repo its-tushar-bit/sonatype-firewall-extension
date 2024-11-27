@@ -56,6 +56,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilitySource;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -2675,9 +2676,6 @@ public class ScanPolicyEvaluatorTest
     assertThat(policyThreats.aaData) //
         .extracting(component -> component.hash) //
         .containsExactlyInAnyOrder("3e1470773021fde54f51", "e93e551d738e9f4d1aae", "f2e35e4a21f07d25710f");
-    assertThat(policyThreats.aaData) //
-        .extracting(component -> component.policyOwnerId) //
-        .containsExactly(policy.getOwnerId(), policy.getOwnerId(), policy.getOwnerId());
     // Verify the data.json report file
     ReportEntry dataReportEntry = Report.getEntry(reportFile, Report.DATA_JSON_FILENAME);
     ObjectNode data = JsonUtils.parse(dataReportEntry.buf);
@@ -2685,6 +2683,18 @@ public class ScanPolicyEvaluatorTest
     assertThat(data.get("policyComponentCount").asInt()).isEqualTo(2);
     assertThat(data.get("grandfatheredPolicyViolationCount").asInt()).isZero();
     assertThat(data.get("legacyViolationCount").asInt()).isZero();
+    validatePolicyValidationOwner(policyThreats.aaData,application);
+  }
+
+  private void validatePolicyValidationOwner(List<PolicyThreats.Component> components, Owner owner) {
+    String ownerId = owner.getId();
+    String ownerType = owner.getType().toString();
+    components.stream()
+        .flatMap(component -> component.allViolations.stream())
+        .forEach(policyViolation -> {
+          assertThat(policyViolation.policyOwnerId).isEqualTo(ownerId);
+          assertThat(policyViolation.policyOwnerType).isEqualTo(ownerType);
+        });
   }
 
   @Test

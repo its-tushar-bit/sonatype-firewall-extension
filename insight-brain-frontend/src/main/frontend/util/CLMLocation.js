@@ -1605,6 +1605,9 @@ export const getVulnerabilitesByThreatLevelUrl = () => uriTemplate`/rest/sbom/da
 
 export const getLicensedSolutionsUrl = () => uriTemplate`/api/v2/solutions/licensed?allowRelativeUrls=true`;
 
+export const getOwnerDetailsByTypeAndInternalId = (ownerType, ownerId) =>
+  uriTemplate`/rest/owner/${ownerType}/${ownerId}/details`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

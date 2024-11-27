@@ -70,8 +70,6 @@ public class PolicyThreats
 
     public String policyName;
 
-    public String policyOwnerId;
-
     public int policyThreatLevel;
 
     // active and waived violations, in no particular order, for backward compatibility
@@ -97,6 +95,10 @@ public class PolicyThreats
     public String policyName;
 
     public int policyThreatLevel;
+
+    public String policyOwnerId;
+
+    public String policyOwnerType;
 
     /**
      * @since 1.50

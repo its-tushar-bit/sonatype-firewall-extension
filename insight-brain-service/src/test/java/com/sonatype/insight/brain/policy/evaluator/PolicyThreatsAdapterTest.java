@@ -16,6 +16,8 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -43,14 +45,26 @@ public class PolicyThreatsAdapterTest
         false, Action.ID_FAIL);
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
-    Map<String, String> policyIdPolicyOwnerIdMap = new HashMap<>();
-    policyIdPolicyOwnerIdMap.put("policy1", "ROOT_ORGANIZATION_ID");
+    Map<String, Owner> policyIdPolicyOwnerIdMap = new HashMap<>();
+    Application app = new Application("ROOT_ORGANIZATION_ID","ROOT_ORGANIZATION","ROOT_ORGANIZATION_ID");
+    policyIdPolicyOwnerIdMap.put("policy1", app);
 
     PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations, "compliance",
         policyIdPolicyOwnerIdMap);
     assertThat(threats.stageTypeId).isEqualTo("compliance");
-
+    validatePolicyValidationOwner(threats.aaData, app);
     assertPolicyThreats(threats, violations);
+  }
+
+  private void validatePolicyValidationOwner(List<PolicyThreats.Component> components, Owner owner) {
+    String ownerId = owner.getId();
+    String ownerType = owner.getType().toString();
+    components.stream()
+        .flatMap(component -> component.allViolations.stream())
+        .forEach(policyViolation -> {
+          assertThat(policyViolation.policyOwnerId).isEqualTo(ownerId);
+          assertThat(policyViolation.policyOwnerType).isEqualTo(ownerType);
+        });
   }
 
   @Test
@@ -222,10 +236,11 @@ public class PolicyThreatsAdapterTest
         false, Action.ID_FAIL);
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
-    Map policyIdPolicyOwnerIdMap = new HashMap<String, String>();
-    policyIdPolicyOwnerIdMap.put("policy1", "ROOT_ORGANIZATION_ID");
+    Map policyIdPolicyOwnerMap = new HashMap<String, Owner>();
+    Application app = new Application("ROOT_ORGANIZATION_ID","ROOT_ORGANIZATION","ROOT_ORGANIZATION_ID");
+    policyIdPolicyOwnerMap.put("policy1", app);
 
-    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations, null, policyIdPolicyOwnerIdMap);
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations, null, policyIdPolicyOwnerMap);
 
     // Make sure we have two components.
     assertThat(threats.aaData).hasSize(2);
@@ -359,7 +374,6 @@ public class PolicyThreatsAdapterTest
     if (violation.isActive()) {
       assertThat(component.policyId).isEqualTo(violation.getPolicyId());
       assertThat(component.policyName).isEqualTo(violation.getPolicyName());
-      assertThat(component.policyOwnerId).isEqualTo("ROOT_ORGANIZATION_ID");
       assertThat(component.policyThreatLevel).isEqualTo(violation.getThreatLevel());
     }
   }

@@ -64,6 +64,11 @@ export const selectLoadingVulnerabilityAnalysisReferenceData = createSelector(
   prop('loadingVulnerabilityAnalysisReferenceData')
 );
 
+export const selectPolicyViolationDetailsDrawer = createSelector(
+  selectSbomComponentDetails,
+  prop('policyViolationDetailsDrawer')
+);
+
 export const selectIssueForActions = createSelector(selectSbomComponentDetails, prop('selectedIssueForActions'));
 export const selectShowDeleteModal = createSelector(selectSbomComponentDetails, prop('showDeleteModal'));
 export const selectDeleteError = createSelector(selectSbomComponentDetails, prop('deleteError'));

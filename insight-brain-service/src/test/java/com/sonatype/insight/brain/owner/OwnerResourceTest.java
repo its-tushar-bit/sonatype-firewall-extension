@@ -34,12 +34,12 @@ public class OwnerResourceTest
 
   @Test
   public void testGetHierarchy_RootOrganization() throws Exception {
-    doTestGetHierarchy_RootOrganization("");
+    doTestGetHierarchy_RootOrganization(OwnerResource.HIERARCHY_PATH);
   }
 
   @Test
   public void testGetHierarchyForLegalReviewer_RootOrganization() throws Exception {
-    doTestGetHierarchy_RootOrganization(OwnerResource.LEGAL_REVIEWER_PATH);
+    doTestGetHierarchy_RootOrganization(OwnerResource.LEGAL_REVIEWER_HIERARCHY_PATH);
   }
 
   private void doTestGetHierarchy_RootOrganization(String path) throws Exception {
@@ -59,12 +59,12 @@ public class OwnerResourceTest
 
   @Test
   public void testGetHierarchy_Organization() throws Exception {
-    doTestGetHierarchy_Organization("");
+    doTestGetHierarchy_Organization(OwnerResource.HIERARCHY_PATH);
   }
 
   @Test
   public void testGetHierarchyForLegalReviewer_Organization() throws Exception {
-    doTestGetHierarchy_Organization(OwnerResource.LEGAL_REVIEWER_PATH);
+    doTestGetHierarchy_Organization(OwnerResource.LEGAL_REVIEWER_HIERARCHY_PATH);
   }
 
   private void doTestGetHierarchy_Organization(String path) throws Exception {
@@ -91,12 +91,12 @@ public class OwnerResourceTest
 
   @Test
   public void testGetHierarchy_Application() throws Exception {
-    doTestGetHierarchy_Application("");
+    doTestGetHierarchy_Application(OwnerResource.HIERARCHY_PATH);
   }
 
   @Test
   public void testGetHierarchyForLegalReviewer_Application() throws Exception {
-    doTestGetHierarchy_Application(OwnerResource.LEGAL_REVIEWER_PATH);
+    doTestGetHierarchy_Application(OwnerResource.LEGAL_REVIEWER_HIERARCHY_PATH);
   }
 
   private void doTestGetHierarchy_Application(String path) throws Exception {
@@ -126,5 +126,22 @@ public class OwnerResourceTest
     assertThat(appHierarchy.getName()).isEqualTo(application.getName());
     assertThat(appHierarchy.getType()).isEqualTo(application.getType());
     assertThat(appHierarchy.getChildren()).isNull();
+  }
+
+  @Test
+  public void testGetOwnerByTypeAndInternalId() throws Exception {
+    Owner organization = tempEntity.newOrganization();
+
+    HttpResponse response = restRequest(organization).path(OwnerResource.DETAILS_PATH).get();
+    assertResponseStatus(200, response);
+
+    OwnerDTO result = response.getBody(OwnerDTO.class);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isEqualTo(organization.getId());
+    assertThat(result.getName()).isEqualTo(organization.getName());
+    assertThat(result.getParentOwnerId()).isEqualTo(organization.getParentOwnerId());
+    assertThat(result.getPublicId()).isEqualTo(organization.getPublicId());
+    assertThat(result.getType()).isEqualTo(organization.getType());
   }
 }

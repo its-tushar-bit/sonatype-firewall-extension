@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
@@ -93,7 +92,8 @@ public abstract class AbstractLTGEditorTest
     NxTransferList picker = LTGEditorPage.picker();
 
     picker.shouldBe(visible);
-    picker.availableItems().shouldHave(size(licenseDAO.getAll().size()));
+    SelenideElement availableFooter = picker.availableFooter();
+    availableFooter.shouldHave(text(licenseDAO.getAll().size() + " Licenses available"));
 
     LTGEditorPage.ltgName().val("updated name");
 
@@ -125,7 +125,7 @@ public abstract class AbstractLTGEditorTest
         .map(includedLicense -> licenseDAO.getById(includedLicense.getLicenseId()))
         .map(formatLicenseForDisplay)
         .sorted()
-        .collect(Collectors.toList());
+        .toList();
 
     for (int i = 0; i < includedLicenses.size(); i++) {
       picker.transferredItem(i).shouldHave(text(includedLicensesLongDisplayNames.get(i)));
@@ -207,7 +207,12 @@ public abstract class AbstractLTGEditorTest
   }
 
   private void pickFirstThreeLicenses(NxTransferList picker) {
-    int initialSize = picker.availableItems().size();
+    int size = licenseDAO.getAll().size();
+    SelenideElement availableFooter = picker.availableFooter();
+    availableFooter.shouldHave(text(size + " Licenses available"));
+    SelenideElement transferredFooter = picker.transferredFooter();
+    transferredFooter.shouldHave(text("0 Licenses transferred"));
+
     List<String> pickedLicenseNames = new ArrayList<>();
 
     for (int i = 0; i < 3; i++) {
@@ -216,8 +221,10 @@ public abstract class AbstractLTGEditorTest
       item.shouldBe(visible).click();
     }
 
-    picker.availableItems().shouldHave(size(initialSize - 3));
-    picker.transferredItems().shouldHave(size(3));
+    availableFooter = picker.availableFooter();
+    availableFooter.shouldHave(text(size - 3 + " Licenses available"));
+    transferredFooter = picker.transferredFooter();
+    transferredFooter.shouldHave(text("3 Licenses transferred"));
 
     for (int i = 0; i < 3; i++) {
       picker.transferredItem(i).shouldHave(text(pickedLicenseNames.get(i)));

@@ -720,7 +720,7 @@ describe('FirewallLegalTab', () => {
       expect(queryByTextWithin(/Selected Licenses/, popover).first).toBeVisible();
 
       const firstAvailableLicense = document.querySelector(
-        '.nx-transfer-list__half:nth-child(1) .nx-transfer-list__item:nth-child(1) label'
+        '.nx-transfer-list__half:nth-child(1) .nx-transfer-list__item:nth-child(2) label'
       );
 
       expect(

@@ -12,10 +12,10 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -65,6 +65,7 @@ public class OrganizationLTGEditorTest
     LTGEditorPage.title().shouldHave(text("New"));
     LTGEditorPage.ltgName().shouldBe(visible, Condition.empty);
 
-    LTGEditorPage.picker().availableItems().shouldHave(size(licenseDAO.getAll().size()));
+    SelenideElement availableFooter = LTGEditorPage.picker().availableFooter();
+    availableFooter.shouldHave(text(licenseDAO.getAll().size() + " Licenses available"));
   }
 }

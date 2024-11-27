@@ -171,6 +171,14 @@ public class FirewallPageComponents
     public SelenideElement repositoryPublicIdInput() {
       return child("#firewall-quarantine-table--repository-public-id");
     }
+
+    public ElementsCollection quarantineTimeOptions() {
+      return children("#firewall-quarantine-table--select-quarantine-time .nx-dropdown-button");
+    }
+
+    public SelenideElement quarantineTimeInput() {
+      return child("#firewall-quarantine-table--select-quarantine-time");
+    }
   }
 
   public static class FirewallAutoUnquarantineYtd

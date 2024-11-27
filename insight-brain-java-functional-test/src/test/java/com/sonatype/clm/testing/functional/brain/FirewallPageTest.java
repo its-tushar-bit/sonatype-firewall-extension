@@ -637,6 +637,54 @@ public class FirewallPageTest
   }
 
   @Test
+  public void testFirewallQuarantineTable_quarantineTimeSearch() {
+    Date date1 = new Date(1727784000000L);
+    Date date2 = new Date(1727870400000L);
+    Date date3 = new Date(1727870400000L);
+    Policy policy =
+        tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "testFirewallQuarantineTable_quarantineTimeSearch");
+    Repository repo1 = tempEntity.newRepository("repoPublicId1");
+    Repository repo2 = tempEntity.newRepository("repoPublicId2");
+    Repository repo3 = tempEntity.newRepository("repoPublicId3");
+    RepositoryComponent comp1 =
+        tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "repoPublicIdSearch1", "repoPublicIdSearch1",
+            ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), date1, date1);
+    RepositoryComponent comp2 =
+        tempEntity.newRepositoryComponent(repo2.getId(), MatchState.EXACT, "repoPublicIdSearch2", "repoPublicIdSearch2",
+            ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), date2, date2);
+    RepositoryComponent comp3 =
+        tempEntity.newRepositoryComponent(repo3.getId(), MatchState.EXACT, "repoPublicIdSearch3", "repoPublicIdSearch3",
+            ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"), date3, date3);
+    tempEntity.newRepositoryPolicyViolation(comp1.getRepositoryId(), 5, comp1.getPathname(), false, FailActionType.ID,
+        policy.getId(), policy.getName(), comp1.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(comp2.getRepositoryId(), 5, comp2.getPathname(), false, FailActionType.ID,
+        policy.getId(), policy.getName(), comp2.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(comp3.getRepositoryId(), 5, comp3.getPathname(), false, FailActionType.ID,
+        policy.getId(), policy.getName(), comp3.getComponentIdentifier());
+
+    refreshOrOpen(FirewallPage.url());
+
+    page.shouldBe(visible);
+    FirewallQuarantineTable firewallQuarantineTable = page.firewallQuarantineTable();
+    // We initially have 3 rows
+    firewallQuarantineTable.tableBodyRows().shouldHave(size(3));
+    firewallQuarantineTable.tableBodyRows().shouldHave(texts("repoPublicId3", "repoPublicId2", "repoPublicId1"));
+    firewallQuarantineTable.quarantineTimeInput().shouldBe(visible).click();
+    // 1 day ago search must have no results
+    ElementsCollection quarantineTimeOptions = firewallQuarantineTable.quarantineTimeOptions();
+    quarantineTimeOptions.get(0).click();
+    waitUntilFirewallPageSpinnersGone();
+    firewallQuarantineTable.tableBodyRows().shouldHave(size(1));
+    firewallQuarantineTable.tableBodyRows().shouldHave(texts("No data found"));
+    // Selecting the option ALL must bring all the elements back
+    firewallQuarantineTable.quarantineTimeInput().click();
+    quarantineTimeOptions = firewallQuarantineTable.quarantineTimeOptions();
+    quarantineTimeOptions.get(5).click();
+    waitUntilFirewallPageSpinnersGone();
+    firewallQuarantineTable.tableBodyRows().shouldHave(size(3));
+  }
+
+  @Test
   public void testFirewallQuarantineTable_RepoViewLink() {
     setupData();
     refreshOrOpen(FirewallPage.url());

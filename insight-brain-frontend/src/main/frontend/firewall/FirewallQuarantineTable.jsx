@@ -26,6 +26,9 @@ import { faSync } from '@fortawesome/pro-solid-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { formatDate, FIREWALL_TIME_DATE_FORMAT, FIREWALL_DATE_TIME_FORMAT } from 'MainRoot/util/dateUtils';
 
+import './_firewall.scss';
+import QuarantineTimeFilter from 'MainRoot/firewall/quarantineTable/QuarantineTimeFilter';
+
 export default function FirewallQuarantineTable(props) {
   // actions
   const {
@@ -35,6 +38,7 @@ export default function FirewallQuarantineTable(props) {
     setQuarantineGridPolicyFilter,
     setQuarantineGridComponentNameFilter,
     setQuarantineGridRepositoryPublicIdFilter,
+    setQuarantineGridQuarantineTimeFilter,
     goToRepositoryComponentDetailsPage,
   } = props;
 
@@ -50,6 +54,7 @@ export default function FirewallQuarantineTable(props) {
     filterPolicies,
     filterComponentName,
     filterRepositoryPublicId,
+    filterQuarantineTime,
     lastUpdated,
   } = props;
 
@@ -130,7 +135,12 @@ export default function FirewallQuarantineTable(props) {
                   selectedIds={new Set(options.length ? filterPolicies : [])}
                 />
               </NxTableCell>
-              <NxTableCell />
+              <NxTableCell>
+                <QuarantineTimeFilter
+                  setQuarantineGridQuarantineTimeFilter={setQuarantineGridQuarantineTimeFilter}
+                  filterQuarantineTime={filterQuarantineTime}
+                />
+              </NxTableCell>
               <NxTableCell>
                 <NxFilterInput
                   id="firewall-quarantine-table--component-name"
@@ -235,6 +245,7 @@ FirewallQuarantineTable.propTypes = {
   setQuarantineGridPolicyFilter: PropTypes.func.isRequired,
   setQuarantineGridComponentNameFilter: PropTypes.func.isRequired,
   setQuarantineGridRepositoryPublicIdFilter: PropTypes.func.isRequired,
+  setQuarantineGridQuarantineTimeFilter: PropTypes.func.isRequired,
   loadedQuarantineList: PropTypes.bool.isRequired,
   quarantineList: PropTypes.array.isRequired,
   quarantinePageCount: PropTypes.number.isRequired,

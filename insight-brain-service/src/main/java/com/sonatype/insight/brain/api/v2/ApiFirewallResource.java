@@ -180,7 +180,7 @@ public class ApiFirewallResource
       @QueryParam("policyId") Set<String> policyIds,
       @QueryParam("componentName") String componentName,
       @QueryParam("repositoryPublicId") String repositoryPublicId,
-      @QueryParam("quarantineDays") Integer quarantineDays,
+      @QueryParam("quarantineTime") Integer quarantineDays,
       @QueryParam("sortBy") String sortBy,
       @DefaultValue("false") @QueryParam("asc") boolean asc
   )

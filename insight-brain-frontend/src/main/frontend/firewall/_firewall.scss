@@ -104,6 +104,11 @@ h2.iq-firewall-table-label {
   }
 }
 
+#firewall-quarantine-table--select-quarantine-time,
+#firewall-quarantine-table--select-quarantine-time > .nx-dropdown-menu {
+  width: 100%;
+}
+
 // Firewall component grid column
 .iq-firewall-auto-unquarantine-table {
   height: nx-table-helpers.pagination-table-height(12, 1);

@@ -515,7 +515,8 @@ export function getFirewallQuarantineListUrl(
   sortAsc,
   policyIds,
   componentName,
-  repositoryPublicId
+  repositoryPublicId,
+  quarantineTime
 ) {
   let params = toURIParams({
     page: page,
@@ -525,6 +526,7 @@ export function getFirewallQuarantineListUrl(
     policyId: policyIds,
     componentName: componentName,
     repositoryPublicId: repositoryPublicId,
+    quarantineTime: quarantineTime,
   });
 
   params = params.length === 0 ? '' : '?' + params;

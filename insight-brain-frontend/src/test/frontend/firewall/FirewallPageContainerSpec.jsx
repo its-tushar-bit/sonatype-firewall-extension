@@ -19,6 +19,7 @@ describe('FirewallPageContainer', function () {
     setQuarantineGridPolicyFilterMock,
     setQuarantineGridComponentNameFilterMock,
     setQuarantineGridRepositoryPublicIdFilterMock,
+    setQuarantineGridQuarantineTimeFilterMock,
     setQuarantineGridPolicyFilterWithProprietaryNameConflictMock,
     setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCodeMock,
     store,
@@ -70,6 +71,12 @@ describe('FirewallPageContainer', function () {
         type: 'FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER',
       });
 
+    setQuarantineGridQuarantineTimeFilterMock = jasmine
+      .createSpy('setQuarantineGridQuarantineTimeFilterMock')
+      .and.returnValue({
+        type: 'FIREWALL_QUARANTINE_GRID_SET_QUARANTINE_TIME_FILTER',
+      });
+
     setQuarantineGridPolicyFilterWithProprietaryNameConflictMock = jasmine
       .createSpy('setQuarantineGridPolicyFilterWithProprietaryNameConflictMock')
       .and.returnValue({
@@ -95,6 +102,7 @@ describe('FirewallPageContainer', function () {
         setQuarantineGridPolicyFilterWithProprietaryNameConflict: setQuarantineGridPolicyFilterWithProprietaryNameConflictMock,
         setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode: setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCodeMock,
         setQuarantineGridRepositoryPublicIdFilter: setQuarantineGridRepositoryPublicIdFilterMock,
+        setQuarantineGridQuarantineTimeFilter: setQuarantineGridQuarantineTimeFilterMock,
       },
     }).default;
 
@@ -261,7 +269,8 @@ describe('FirewallPageContainer', function () {
       ),
       setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCodeActionCreator = wrapper.prop(
         'setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode'
-      );
+      ),
+      setQuarantineGridQuarantineTimeFilterActionCreator = wrapper.prop('setQuarantineGridQuarantineTimeFilter');
 
     expect(initializeWelcomeModalActionCreator).toEqual(jasmine.any(Function));
     expect(closeWelcomeModalActionCreator).toEqual(jasmine.any(Function));
@@ -276,6 +285,7 @@ describe('FirewallPageContainer', function () {
     expect(setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCodeActionCreator).toEqual(
       jasmine.any(Function)
     );
+    expect(setQuarantineGridQuarantineTimeFilterActionCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
 
@@ -330,6 +340,18 @@ describe('FirewallPageContainer', function () {
       { type: 'FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER' },
     ]);
 
+    setQuarantineGridQuarantineTimeFilterActionCreator();
+    expect(store.getActions()).toEqual([
+      { type: 'LOAD_FIREWALL_DATA' },
+      { type: 'LOAD_QUARANTINE_LIST' },
+      { type: 'OPEN_FIREWALL_CONFIGURATION' },
+      { type: 'firewall.componentDetailsPage' },
+      { type: 'FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER' },
+      { type: 'FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER' },
+      { type: 'FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER' },
+      { type: 'FIREWALL_QUARANTINE_GRID_SET_QUARANTINE_TIME_FILTER' },
+    ]);
+
     setQuarantineGridPolicyFilterWithProprietaryNameConflictActionCreator();
     expect(store.getActions()).toEqual([
       { type: 'LOAD_FIREWALL_DATA' },
@@ -339,6 +361,7 @@ describe('FirewallPageContainer', function () {
       { type: 'FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER' },
       { type: 'FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER' },
       { type: 'FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER' },
+      { type: 'FIREWALL_QUARANTINE_GRID_SET_QUARANTINE_TIME_FILTER' },
       { type: 'FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED' },
     ]);
 
@@ -351,6 +374,7 @@ describe('FirewallPageContainer', function () {
       { type: 'FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER' },
       { type: 'FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER' },
       { type: 'FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER' },
+      { type: 'FIREWALL_QUARANTINE_GRID_SET_QUARANTINE_TIME_FILTER' },
       { type: 'FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED' },
       { type: 'FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED' },
     ]);
@@ -364,6 +388,7 @@ describe('FirewallPageContainer', function () {
       { type: 'FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER' },
       { type: 'FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER' },
       { type: 'FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER' },
+      { type: 'FIREWALL_QUARANTINE_GRID_SET_QUARANTINE_TIME_FILTER' },
       { type: 'FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED' },
       { type: 'FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED' },
       { type: 'FIREWALL_SET_SHOW_WELCOME_MODAL', payload: true },
@@ -378,6 +403,7 @@ describe('FirewallPageContainer', function () {
       { type: 'FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER' },
       { type: 'FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER' },
       { type: 'FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER' },
+      { type: 'FIREWALL_QUARANTINE_GRID_SET_QUARANTINE_TIME_FILTER' },
       { type: 'FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED' },
       { type: 'FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED' },
       { type: 'FIREWALL_SET_SHOW_WELCOME_MODAL', payload: true },

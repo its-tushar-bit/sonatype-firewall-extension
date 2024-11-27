@@ -104,6 +104,8 @@ import {
   setQuarantineGridComponentNameFilter,
   FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER,
   setQuarantineGridRepositoryPublicIdFilter,
+  FIREWALL_QUARANTINE_GRID_SET_QUARANTINE_TIME_FILTER,
+  setQuarantineGridQuarantineTimeFilter,
   loadTileMetrics,
 } from '../../../main/frontend/firewall/firewallActions';
 import {
@@ -1311,6 +1313,20 @@ describe('firewallActions', function () {
       expect(actions[0].type).toBe(FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER);
       expect(actions[0].payload).toEqual(repositoryPublicId);
       expect(actions[0].payload.repositoryPublicId).toEqual(jasmine.any(String));
+    });
+  });
+
+  describe('setQuarantineGridQuarantineTimeFilter', function () {
+    it('immediately dispatches actions to set quarantine time filter for the quarantine grid', function () {
+      const currentPage = { currentPage: null };
+
+      store.dispatch(setQuarantineGridQuarantineTimeFilter(1));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(3);
+      expect(actions[0].type).toBe(FIREWALL_QUARANTINE_GRID_SET_QUARANTINE_TIME_FILTER);
+      expect(actions[1].payload).toEqual(currentPage);
+      expect(actions[1].payload.currentPage).toBeNull();
     });
   });
 

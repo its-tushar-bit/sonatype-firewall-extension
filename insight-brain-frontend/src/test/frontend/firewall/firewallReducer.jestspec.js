@@ -109,6 +109,7 @@ describe('firewallReducer', function () {
       filterPolicies: [],
       filterComponentName: '',
       filterRepositoryPublicId: '',
+      filterQuarantineTime: null,
       lastUpdated: null,
     }),
   });
@@ -1027,6 +1028,7 @@ describe('firewallReducer', function () {
           filterPolicies: ['123'],
           filterComponentName: '',
           filterRepositoryPublicId: '',
+          filterQuarantineTime: null,
         },
       };
       expect(reduce(customMinimumState, { type: 'FIREWALL_LOAD_DATA_REQUESTED' })).toEqual({

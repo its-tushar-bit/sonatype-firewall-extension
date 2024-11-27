@@ -125,6 +125,8 @@ export const FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER = 'FIREWALL_QUARANTINE_G
 export const FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER = 'FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER';
 export const FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER =
   'FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER';
+export const FIREWALL_QUARANTINE_GRID_SET_QUARANTINE_TIME_FILTER =
+  'FIREWALL_QUARANTINE_GRID_SET_QUARANTINE_TIME_FILTER';
 export const FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED = 'FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED';
 
 const quarantineGridSetPage = payloadParamActionCreator(FIREWALL_QUARANTINE_GRID_SET_PAGE);
@@ -135,6 +137,9 @@ const quarantineGridSetComponentNameFilter = payloadParamActionCreator(
 );
 const quarantineGridSetRepositoryPublicIdFilter = payloadParamActionCreator(
   FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER
+);
+const quarantineGridSetQuarantineTimeFilter = payloadParamActionCreator(
+  FIREWALL_QUARANTINE_GRID_SET_QUARANTINE_TIME_FILTER
 );
 
 export const FIREWALL_QUARANTINE_SUMMARY_REQUESTED = 'FIREWALL_QUARANTINE_SUMMARY_REQUESTED';
@@ -473,6 +478,7 @@ export function loadQuarantineList() {
       filterPolicies = gridState.filterPolicies.length < 1 ? null : gridState.filterPolicies,
       filterComponentName = gridState.filterComponentName === '' ? null : gridState.filterComponentName,
       filterRepositoryPublicId = gridState.filterRepositoryPublicId === '' ? null : gridState.filterRepositoryPublicId,
+      filterQuarantineTime = gridState.filterQuarantineTime === '' ? null : gridState.filterQuarantineTime,
       sortAsc = gridState.sortDir === 'asc';
 
     dispatch(loadQuarantineListRequested());
@@ -485,7 +491,8 @@ export function loadQuarantineList() {
           sortAsc,
           filterPolicies,
           filterComponentName,
-          filterRepositoryPublicId
+          filterRepositoryPublicId,
+          filterQuarantineTime
         )
       )
       .then(({ data }) => {
@@ -623,6 +630,16 @@ export function setQuarantineGridRepositoryPublicIdFilter(repositoryPublicId) {
   return (dispatch) => {
     dispatch(quarantineGridSetRepositoryPublicIdFilter({ repositoryPublicId: repositoryPublicId }));
     if (repositoryPublicId.length !== 1) {
+      dispatch(quarantineGridSetPage({ currentPage: null }));
+      dispatch(loadQuarantineList());
+    }
+  };
+}
+
+export function setQuarantineGridQuarantineTimeFilter(quarantineTime) {
+  return (dispatch) => {
+    dispatch(quarantineGridSetQuarantineTimeFilter({ quarantineTime: quarantineTime }));
+    if (quarantineTime) {
       dispatch(quarantineGridSetPage({ currentPage: null }));
       dispatch(loadQuarantineList());
     }

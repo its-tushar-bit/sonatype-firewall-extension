@@ -461,6 +461,16 @@ public class LegacyViolationServiceTest
   }
 
   @Test
+  public void testSetLegacyViolationStatus_Application_ComplianceStage() {
+    Application app = tempEntity.newApplicationWithParent();
+    app.setLegacyViolationEnabled(true);
+    applicationDAO.update(app);
+    boolean isLegacyViolation = legacyViolationService.isLegacyViolationEnabled(app.getId(), "compliance");
+
+    assertThat(isLegacyViolation).isFalse();
+  }
+
+  @Test
   public void testSetLegacyViolationStatus_Organization() {
     Organization org = tempEntity.newOrganization();
     org.setAllowLegacyViolationOverride(false);

@@ -440,7 +440,9 @@ public class ScanPolicyEvaluator
          TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
       clusterLock.lock();
       tx.begin();
-      boolean isLegacyViolationEnabled = legacyViolationService.isLegacyViolationEnabled(tx, app.getId());
+      boolean isLegacyViolationApplicable = stage.getStageTypeId().equals(Stage.ID_COMPLIANCE) ? false : true;
+      boolean isLegacyViolationEnabled = legacyViolationService.isLegacyViolationEnabled(tx, app.getId(),
+          stage.getStageTypeId());
       // Persist the policy evaluation
       boolean isReevaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null;
       AuditData.get().setIsReevaluation(isReevaluation);
@@ -536,7 +538,7 @@ public class ScanPolicyEvaluator
       }
       pathForwardInspector.cleanUp();
 
-      if (!stage.getStageTypeId().equals(Stage.ID_COMPLIANCE)) {
+      if (isLegacyViolationApplicable) {
         setLegacyViolations(tx, isLegacyViolationEnabled, app, policies, policyEvaluation.getTime(),
             results.allViolations);
       }
@@ -737,7 +739,8 @@ public class ScanPolicyEvaluator
               }
             }
 
-            if (oldPolicyViolation.isLegacyViolation() && !oldPolicyViolation.isLegacyViolationApplied()) {
+            if (oldPolicyViolation.isLegacyViolation() && !oldPolicyViolation.isLegacyViolationApplied() &&
+                !oldPolicyViolation.getStageTypeId().equals(Stage.ID_COMPLIANCE) ) {
               oldPolicyViolation.setLegacyViolationApplied(true);
               telemetryCollector.addTelemetryForLegacyViolation(oldPolicyViolation, component);
             }
@@ -745,6 +748,9 @@ public class ScanPolicyEvaluator
                 oldPolicyViolation.isLegacyViolationApplied()) {
               // legacy violation was revoked
               oldPolicyViolation.setLegacyViolationApplied(false);
+            }
+            if (!isLegacyViolationApplicable) {
+              oldPolicyViolation.setLegacyViolationTime(null);
             }
             policyViolationDAO.update(tx, oldPolicyViolation);
 
@@ -1126,10 +1132,12 @@ public class ScanPolicyEvaluator
   /**
    * @since 1.50
    */
-  void sendLegacyViolationTelemetryData(String applicationId, List<PolicyViolation> policyViolations) {
+  void sendLegacyViolationTelemetryData(String applicationId, List<PolicyViolation> policyViolations,
+                                        String stageTypeId)
+  {
     TelemetryData telemetryData = new TelemetryData(
         TelemetryPurpose.APPLICATION_EVALUATION_LEGACY_VIOLATION_COUNTS);
-    telemetryData.setAttributes(getLegacyViolationCountsAttributes(applicationId, policyViolations));
+    telemetryData.setAttributes(getLegacyViolationCountsAttributes(applicationId, policyViolations, stageTypeId));
     telemetrySender.send(telemetryData);
   }
 
@@ -1138,7 +1146,8 @@ public class ScanPolicyEvaluator
    */
   private Map<String, Object> getLegacyViolationCountsAttributes(
       String applicationId,
-      List<PolicyViolation> policyViolations)
+      List<PolicyViolation> policyViolations,
+      String stageTypeId)
   {
     Map<ThreatLevel, Long> threatLevels = new HashMap<>();
     for (ThreatLevel threatLevel : ThreatLevel.values()) {
@@ -1166,7 +1175,7 @@ public class ScanPolicyEvaluator
     attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
     telemetryUtils.includeRealApplicationId(attributes, applicationId);
     attributes.put("grandfathering_enabled",
-        String.valueOf(legacyViolationService.isLegacyViolationEnabled(applicationId)));
+        String.valueOf(legacyViolationService.isLegacyViolationEnabled(applicationId, stageTypeId)));
     attributes.put("number_of_grandfathered_violations", String.valueOf(legacyViolationCount));
     if (legacyViolationCount > 0) {
       for (Entry<ThreatLevel, Long> entry : threatLevels.entrySet()) {
@@ -1301,7 +1310,8 @@ public class ScanPolicyEvaluator
 
     telemetrySender.send(telemetryCollector.getTelemetryData());
 
-    sendLegacyViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations);
+    sendLegacyViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations,
+        stage.getStageTypeId());
 
     final Set<Feature> features = featuresService.getFeatures();
     if (features.contains(SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS)) {

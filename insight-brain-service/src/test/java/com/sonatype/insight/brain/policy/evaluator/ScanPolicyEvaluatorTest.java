@@ -771,6 +771,42 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
+  public void testEvaluate_LegacyViolationEvaluation_ComplianceStage() throws Exception {
+    application = tempEntity.newApplicationWithParent();
+    Policy policy = newSecurityPolicy();
+
+    // This is the first evaluation using compliance stage. No policy violations should be legacy.
+    String scanId1 = simulateReportIsAvailable("report");
+    Stage stage1 = new Stage(Stage.ID_COMPLIANCE);
+    ScanPolicyEvaluatorResults results1 =
+        scanPolicyEvaluator.evaluate(application, scanId1, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results1.activeViolations).hasSize(36).allSatisfy(inactiveViolation -> {
+      assertThat(inactiveViolation.getLegacyViolationTime()).isNull();
+      assertThat(inactiveViolation.isLegacyViolationApplied()).isFalse();
+    });
+
+    // setting up legacy violation
+    policy.setLegacyViolationAllowed(true);
+    policyDAO.update(policy);
+    application.setLegacyViolationEnabled(true);
+    applicationDAO.update(application);
+
+    // Evaluate again. No policy violations(old policy violations and new policy violations) should be legacy.
+    String scanId2 = simulateReportIsAvailable("report");
+    ScanPolicyEvaluatorResults results2 =
+        scanPolicyEvaluator.evaluate(application, scanId2, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results2.activeViolations).hasSize(36).allSatisfy(inactiveViolation -> {
+      assertThat(inactiveViolation.getLegacyViolationTime()).isNull();
+      assertThat(inactiveViolation.isLegacyViolationApplied()).isFalse();
+    });
+    // check old policy violations are still not set to legacy
+    assertThat(results1.activeViolations).hasSize(36).allSatisfy(inactiveViolation -> {
+      assertThat(inactiveViolation.getLegacyViolationTime()).isNull();
+      assertThat(inactiveViolation.isLegacyViolationApplied()).isFalse();
+    });
+  }
+
+  @Test
   public void testEvaluate_LegacyIgnoredOnFirstEvaluation_MissingLicenseFeature() throws Exception {
     testProductLicense.setMissingFeatures(LicensedFeature.POLICY_GRANDFATHERING);
 
@@ -1866,7 +1902,7 @@ public class ScanPolicyEvaluatorTest
     policyViolations.add(policyViolation(policyEvaluation, 5, PolicyThreatCategory.QUALITY, false));
     policyViolations.add(policyViolation(policyEvaluation, 7, PolicyThreatCategory.OTHER, false));
 
-    scanPolicyEvaluator.sendLegacyViolationTelemetryData(application.getId(), policyViolations);
+    scanPolicyEvaluator.sendLegacyViolationTelemetryData(application.getId(), policyViolations, Stage.ID_BUILD);
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
@@ -1896,7 +1932,7 @@ public class ScanPolicyEvaluatorTest
     policyViolations.add(policyViolation(policyEvaluation, 5, PolicyThreatCategory.QUALITY, false));
     policyViolations.add(policyViolation(policyEvaluation, 7, PolicyThreatCategory.OTHER, false));
 
-    scanPolicyEvaluator.sendLegacyViolationTelemetryData(application.getId(), policyViolations);
+    scanPolicyEvaluator.sendLegacyViolationTelemetryData(application.getId(), policyViolations, Stage.ID_RELEASE);
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());

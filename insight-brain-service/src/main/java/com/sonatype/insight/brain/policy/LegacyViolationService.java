@@ -11,6 +11,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -123,7 +124,7 @@ public class LegacyViolationService
     validateLegacyViolationIsLicensed();
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
-    if (!isLegacyViolationEnabled(app.getId())) {
+    if (!isLegacyViolationEnabled(app.getId(), null)) {
       throw new BadRequestException(
           "Legacy violations are not enabled for application '" + app.getName() + "'.");
     }
@@ -244,13 +245,13 @@ public class LegacyViolationService
     AuditData.get().setData("changedPolicyViolationCount", changedPolicyViolationCount);
   }
 
-  public boolean isLegacyViolationEnabled(String appId) {
+  public boolean isLegacyViolationEnabled(String appId, String stageTypeId) {
     try (TransactionContext tx = applicationDAO.createTransactionContext()) {
-      return isLegacyViolationEnabled(tx, appId);
+      return isLegacyViolationEnabled(tx, appId, stageTypeId);
     }
   }
 
-  public boolean isLegacyViolationEnabled(TransactionContext tx, String appId) {
+  public boolean isLegacyViolationEnabled(TransactionContext tx, String appId, String stageTypeId) {
     Application app = applicationDAO.getById(tx, appId);
     Boolean enabled = app.isLegacyViolationEnabled();
     String parentOrgId = app.getOrganizationId();
@@ -267,7 +268,7 @@ public class LegacyViolationService
       parentOrgId = org.getParentOrganizationId();
     }
 
-    if (enabled == null) {
+    if (enabled == null ||  (stageTypeId != null && stageTypeId.equals(Stage.ID_COMPLIANCE))) {
       enabled = false;
     }
 

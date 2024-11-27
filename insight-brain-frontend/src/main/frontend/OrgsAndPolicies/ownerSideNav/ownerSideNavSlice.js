@@ -98,12 +98,13 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, async (_, { getState, disp
 
       // for the case when user does not have access to root organization we want them to be
       // redirected to the closest available organization summary page down into n-level hierarchy
+      // when the user has no permission to view any organization then redirect to ROOT_ORGANIZATION_ID
       const isManagementViewRoute = selectIsManagementViewRouterState(state);
       if (isManagementViewRoute) {
         dispatch(
           stateGo(
             `${isSbomManager ? 'sbomManager.' : ''}management.view.organization`,
-            { organizationId: displayedOrganization.id },
+            { organizationId: displayedOrganization.id ?? 'ROOT_ORGANIZATION_ID' },
             { location: 'replace' }
           )
         );
@@ -111,7 +112,8 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, async (_, { getState, disp
 
       const flattenEntries = flatEntries(ownersMap);
 
-      // if isManagementViewRoute keep loading while redirecting to the closest available organization
+      // if isManagementViewRoute and there is at least one organization with permission
+      // keep loading while redirecting to the closest available organization
       return {
         loading: isManagementViewRoute,
         displayedOrganization,

@@ -7,6 +7,7 @@ import React from 'react';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from 'TestRoot/SpecUtil';
 import IqOrgAppPicker from '../../../main/frontend/components/iqOrgAppPicker/IqOrgAppPicker';
+import { mockAppsBig, mockAppsSmall } from './mockData.js';
 
 describe('IqOrgAppPicker', function () {
   let mockOrganizations,
@@ -380,5 +381,37 @@ describe('IqOrgAppPicker', function () {
     expect(orgCheckboxes[1]).toHaveAccessibleName('Bar Org');
     expect(orgCheckboxes[2]).toHaveAccessibleName('Baz Org');
     expect(orgCheckboxes[3]).toHaveAccessibleName('Baz Org 2');
+  });
+
+  it('does not show a warning icon when apps is 500 or less', async function () {
+    const user = userEvent.setup();
+    const applications = mockAppsSmall;
+    renderComponent({ applications });
+
+    const appMultiSelect = screen.getAllByRole('group')[1];
+    await user.click(within(appMultiSelect).getByRole('button', { name: /Applications/ }));
+
+    const applicationsCheckboxes = within(appMultiSelect).getAllByRole('menuitemcheckbox');
+    expect(applications).toHaveLength(500);
+    // there are 501 checkboxes because of the all/none checkbox
+    expect(applicationsCheckboxes).toHaveLength(501);
+    const warningIcon = screen.queryByTestId('iq-limited-apps-warning-icon');
+    expect(warningIcon).not.toBeInTheDocument();
+  });
+
+  it('shows a warning icon when apps is 501 or more and only shows 500 apps', async function () {
+    const user = userEvent.setup();
+    const applications = mockAppsBig;
+    renderComponent({ applications });
+
+    const appMultiSelect = screen.getAllByRole('group')[1];
+    await user.click(within(appMultiSelect).getByRole('button', { name: /Applications/ }));
+
+    const applicationsCheckboxes = within(appMultiSelect).getAllByRole('menuitemcheckbox');
+    expect(applications).toHaveLength(1000);
+    // there are 501 checkboxes because of the all/none checkbox
+    expect(applicationsCheckboxes).toHaveLength(501);
+    const warningIcon = screen.queryByTestId('iq-limited-apps-warning-icon');
+    expect(warningIcon).toBeVisible();
   });
 });

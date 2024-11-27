@@ -5,21 +5,28 @@
  */
 import React, { useMemo, useState } from 'react';
 import * as PropTypes from 'prop-types';
-import {
-  NxCollapsibleMultiSelect,
-  NxFontAwesomeIcon,
-  NxStatefulCollapsibleMultiSelect,
-  useToggle,
-} from '@sonatype/react-shared-components';
+import { NxCollapsibleMultiSelect, NxFontAwesomeIcon, useToggle, NxTooltip } from '@sonatype/react-shared-components';
 import { faSitemap, faTerminal } from '@fortawesome/pro-regular-svg-icons';
+import { faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
 import { areAllSelected, groupAppsByOrgId, isSelected } from './utils';
 import { fuzzyFilter } from 'MainRoot/OrgsAndPolicies/ownerSideNav/utils';
 import { faLevelUp } from '@fortawesome/pro-regular-svg-icons';
-import { filter as ramdaFilter } from 'ramda';
+import { filter as ramdaFilter, take } from 'ramda';
+
+const MAX_APPS = 500;
+const MAX_APPS_TOOLTIP_MESSAGE = (
+  <span>
+    Apps displayed in filter list are limited to {MAX_APPS}.
+    <br />
+    Enter the app name below to narrow your search.
+  </span>
+);
 
 export default function IqOrgAppPicker(props) {
-  const [filter, setFilter] = useState('');
-  const [isOpen, onToggleCollapse] = useToggle(false);
+  const [orgFilter, setOrgFilter] = useState('');
+  const [isOrgsOpen, onOrgsToggleCollapse] = useToggle(false);
+  const [appFilter, setAppFilter] = useState('');
+  const [isAppsOpen, onAppsToggleCollapse] = useToggle(false);
 
   const {
     applications,
@@ -182,11 +189,16 @@ export default function IqOrgAppPicker(props) {
   };
 
   const memoizedFormatOrganizationsName = useMemo(
-    () => formatOrganizationsName(ownersMap, topParentOrganizationId, [], [], filter),
-    [ownersMap, filter, topParentOrganizationId]
+    () => formatOrganizationsName(ownersMap, topParentOrganizationId, [], [], orgFilter),
+    [ownersMap, orgFilter, topParentOrganizationId]
   );
 
   const [formattedOrganizations, fullFormattedOrganizations] = memoizedFormatOrganizationsName;
+
+  function filterAndLimitApps() {
+    const filtered = fuzzyFilter(applications, appFilter, 'name');
+    return take(MAX_APPS, filtered);
+  }
 
   return (
     <div id={id}>
@@ -195,28 +207,43 @@ export default function IqOrgAppPicker(props) {
         options={formattedOrganizations}
         onChange={onSelectedOrganizationsChange}
         selectedIds={selectedOrganizations}
-        isOpen={isOpen}
-        onToggleCollapse={onToggleCollapse}
+        isOpen={isOrgsOpen}
+        onToggleCollapse={onOrgsToggleCollapse}
         filterPlaceholder="Organization Name"
         disabledTooltip="There are no organizations to filter"
-        filter={filter}
-        onFilterChange={setFilter}
-        filteredOptions={fuzzyFilter(formattedOrganizations, filter, 'name')}
+        filter={orgFilter}
+        onFilterChange={setOrgFilter}
+        filteredOptions={fuzzyFilter(formattedOrganizations, orgFilter, 'name')}
       >
         <NxFontAwesomeIcon icon={faSitemap} />
         <span>Organizations</span>
       </NxCollapsibleMultiSelect>
-      <NxStatefulCollapsibleMultiSelect
+      <NxCollapsibleMultiSelect
+        id="application-filter"
         name="applications"
         options={applications}
         onChange={onSelectedApplicationsChange}
         selectedIds={selectedApplications}
         filterPlaceholder="Application Name"
         disabledTooltip="There are no applications to filter"
+        isOpen={isAppsOpen}
+        onToggleCollapse={onAppsToggleCollapse}
+        filter={appFilter}
+        onFilterChange={setAppFilter}
+        filteredOptions={filterAndLimitApps()}
       >
         <NxFontAwesomeIcon icon={faTerminal} />
         <span>Applications</span>
-      </NxStatefulCollapsibleMultiSelect>
+        {applications.length > MAX_APPS && (
+          <NxTooltip title={MAX_APPS_TOOLTIP_MESSAGE}>
+            <NxFontAwesomeIcon
+              icon={faExclamationTriangle}
+              className="iq-limited-apps-warning-icon"
+              data-testid="iq-limited-apps-warning-icon"
+            />
+          </NxTooltip>
+        )}
+      </NxCollapsibleMultiSelect>
     </div>
   );
 }

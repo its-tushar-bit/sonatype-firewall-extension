@@ -27,10 +27,13 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.model.ProjectScanItem;
+import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import com.google.gson.Gson;
 import com.neuvector.model.ModuleCve;
@@ -51,12 +54,16 @@ import org.cyclonedx.model.vulnerability.Vulnerability.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.sbom.SbomSpecification.CYCLONEDX;
+
 public class ContainerResultHandler
     extends SbomResultHandler
 {
   private static final Logger log = LoggerFactory.getLogger(ContainerResultHandler.class);
 
   public static final String SONATYPE_CONTAINER = "Sonatype-Container";
+
+  private final SbomComponentInfoTelemetry componentInfoTelemetry;
 
   public ContainerResultHandler(
       final ThirdPartyFileDAO thirdPartyFileDAO,
@@ -72,6 +79,7 @@ public class ContainerResultHandler
     super(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
         thirdPartyScanContext);
+    this.componentInfoTelemetry = new SbomComponentInfoTelemetry();
   }
 
   @Override
@@ -92,6 +100,14 @@ public class ContainerResultHandler
         }
         BomXmlGenerator generator = BomGeneratorFactory.createXml(Version.VERSION_14, targetBom);
         generator.generate();
+
+        componentInfoTelemetry.setSpec(CYCLONEDX.name());
+        componentInfoTelemetry.setSpecVersion(sourceBom.getSpecVersion());
+        componentInfoTelemetry.setHasDependencies(!moduleDependencies.isEmpty());
+        TelemetryData thirdPartyScanComponentInfoTelemetryData =
+            telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry, true, true);
+        telemetrySender.send(thirdPartyScanComponentInfoTelemetryData);
+
         return new FilteredThirdPartyContent(generator.toXmlString(), moduleDependencies);
       }
       return new FilteredThirdPartyContent(content.getContent());
@@ -104,6 +120,7 @@ public class ContainerResultHandler
   @Override
   Bom parseBom(final ThirdPartyScanContent content) throws RuntimeException {
     ScanRepoReportData scanRepoReportData = new Gson().fromJson(content.getContent(), ScanRepoReportData.class);
+    componentInfoTelemetry.setContentType(SbomFormat.JSON.name());
 
     Bom bom = new Bom();
     bom.setVulnerabilities(new ArrayList<>());
@@ -135,6 +152,7 @@ public class ContainerResultHandler
       component.setPurl(packageUrlIdentifier.getPackageUrl());
       component.setBomRef(packageUrlIdentifier.getPackageUrl());
       componentsToAdd.add(component);
+      componentInfoTelemetry.incrementCoordinateCount();
 
       ModuleCve[] moduleCves = module.getCves();
       if (moduleCves != null) {

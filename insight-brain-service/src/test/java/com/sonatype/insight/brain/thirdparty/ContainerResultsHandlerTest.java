@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
+import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 
@@ -29,13 +31,18 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.scan.model.ItemContentType;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.xmlunit.assertj.XmlAssert;
 
 import static com.sonatype.insight.brain.thirdparty.ThirdPartySbomUtils.getSonatypeIdentifierNodeFilter;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 public class ContainerResultsHandlerTest
     extends AbstractComponentTest
@@ -58,7 +65,7 @@ public class ContainerResultsHandlerTest
   @Inject
   private TelemetryUtils telemetryUtils;
 
-  @Inject
+  @Mock
   private TelemetrySender telemetrySender;
 
   @Inject
@@ -94,6 +101,34 @@ public class ContainerResultsHandlerTest
         .withNodeFilter(getSonatypeIdentifierNodeFilter())
         .ignoreWhitespace()
         .areIdentical();
+  }
+
+  @Test
+  public void testHandleAndFilterContents_TelemetryData() throws Exception {
+    String json = loadResource("alpine-3.6.json");
+
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("container:alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    containerResultHandler.handleAndFilterContents(content, thirdPartyFile);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
+
+    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
+
+    assertThat(componentInfoTelemetry.getContentType()).isEqualTo("JSON");
+    assertThat(componentInfoTelemetry.getSpec()).isEqualTo("CYCLONEDX");
+    assertThat(componentInfoTelemetry.getSpecVersion()).isNull();
+    assertThat(componentInfoTelemetry.getCpeCount()).isZero();
+    assertThat(componentInfoTelemetry.getCoordinateCount()).isEqualTo(9);
   }
 
   @Test

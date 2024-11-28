@@ -53,6 +53,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.Zipper;
@@ -134,6 +135,7 @@ public class ApiSbomResourceTest
         .withApplicationId(app.getId())
         .withFilename(zippedBom.getFileName().toString())
         .withStatus(SbomStatus.ACTIVE.name())
+        .withSpec(SbomSpecification.CYCLONEDX.toString())
         .build();
 
     HttpResponse response = restRequest().path(ApiSbomResource.SBOM_VERSION_PATH)
@@ -142,7 +144,7 @@ public class ApiSbomResourceTest
         .get();
     assertResponseStatus(Status.OK.getStatusCode(), response);
     assertThat(response.getContentType()).isEqualTo("application/xml");
-    assertContentHeader(response, app, sbomMetadata.getSbomVersion(), ".xml");
+    assertContentHeader(response, app, sbomMetadata.getSbomVersion(), ".xml", SbomSpecification.CYCLONEDX, true);
     String actualContent = new String(response.getBodyBytes());
     XmlAssert.assertThat(actualContent).and(expectedContentIn("third-party-simple-bom.xml"))
         .areIdentical();
@@ -165,7 +167,7 @@ public class ApiSbomResourceTest
     assertResponseStatus(Status.OK.getStatusCode(), response);
     assertThat(response.getContentType()).isEqualTo("application/xml");
 
-    assertContentHeader(response, app, sbomVersion, ".xml");
+    assertContentHeader(response, app, sbomVersion, ".xml", SbomSpecification.CYCLONEDX, false);
     String sbomContent = new String(response.getBodyBytes());
     XmlAssert.assertThat(sbomContent).and(expectedContentIn("sboms/valid-cyclonedx-result-bom.xml"))
         .withNodeFilter(cycloneDxIgnoreNodesFilter())
@@ -191,7 +193,7 @@ public class ApiSbomResourceTest
     assertResponseStatus(Status.OK.getStatusCode(), response);
     assertThat(response.getContentType()).isEqualTo("application/json");
 
-    assertContentHeader(response, app, sbomVersion, ".json");
+    assertContentHeader(response, app, sbomVersion, ".json", SbomSpecification.SPDX, false);
     String sbomContent = new String(response.getBodyBytes());
     assertThatJson(sbomContent)
         .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]", "documentNamespace", "name")
@@ -207,6 +209,7 @@ public class ApiSbomResourceTest
         .withApplicationId(app.getId())
         .withJsonSpecFormat()
         .withFilename(zippedBom.getFileName().toString())
+        .withSpec(SbomSpecification.SPDX.toString())
         .build();
 
     HttpResponse response = restRequest().path(ApiSbomResource.SBOM_VERSION_PATH)
@@ -217,7 +220,7 @@ public class ApiSbomResourceTest
     assertThat(response.getContentType()).isEqualTo("application/json");
     assertThat(response.getBodyBytes()).hasSizeGreaterThan(0);
 
-    assertContentHeader(response, app, thirdPartySbomMetadata.getSbomVersion(), ".json");
+    assertContentHeader(response, app, thirdPartySbomMetadata.getSbomVersion(), ".json", SbomSpecification.SPDX, true);
   }
 
   @Test
@@ -856,11 +859,21 @@ public class ApiSbomResourceTest
       final HttpResponse response,
       final Application app,
       final String sbomVersion,
-      final String x)
+      final String specFormat,
+      final SbomSpecification sbomSpec,
+      final boolean isOriginal)
   {
     String contentHeader = response.getHeader("Content-Disposition");
     String actualFilename = contentHeader.substring(contentHeader.indexOf("=") + 1).split(";")[0].replaceAll("\"", "");
-    assertThat(actualFilename).isEqualTo(app.getName() + "_" + sbomVersion + x);
+    assertThat(actualFilename).matches(
+        (isOriginal ? "Original_" : "") +
+            app.getPublicId() +
+            "_" +
+            sbomVersion +
+            "_(\\d)+." +
+            (sbomSpec.equals(SbomSpecification.SPDX) ? "spdx" : "cdx") +
+            specFormat
+    );
   }
 
   private void assertSbomMetadataIdIsSetOnThirdPartyCoordinateSecurityEntities(ApiSbomStatusDTO resultDTO) {

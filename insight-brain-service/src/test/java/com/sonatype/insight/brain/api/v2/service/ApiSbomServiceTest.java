@@ -326,7 +326,7 @@ public class ApiSbomServiceTest
     assertThat(response.getMediaType().toString()).isEqualTo(acceptType);
     assertThat(response.getHeaderString(SBOM_VALIDATED_HEADER)).isEqualTo("true");
 
-    assertContentHeader(response, app, sbomVersion, "." + outputFormat.name().toLowerCase());
+    assertContentHeader(response, app, sbomVersion, "." + outputFormat.name().toLowerCase(), outputSpec);
     String sbomContent = new String((byte[]) response.getEntity());
 
     String outputFileName = "sboms/valid-" + inputSpec.name().toLowerCase() + "-to-" + outputSpec.name().toLowerCase() +
@@ -1464,11 +1464,18 @@ public class ApiSbomServiceTest
       final Response response,
       final Application app,
       final String sbomVersion,
-      final String x)
+      final String specFormat,
+      final SbomSpecification sbomSpec)
   {
     String contentHeader = response.getHeaderString("Content-Disposition");
     String actualFilename = contentHeader.substring(contentHeader.indexOf("=") + 1).split(";")[0].replaceAll("\"", "");
-    assertThat(actualFilename).isEqualTo(app.getName() + "_" + sbomVersion + x);
+    assertThat(actualFilename).matches(app.getPublicId() +
+        "_" +
+        sbomVersion +
+        "_(\\d)+." +
+        (sbomSpec.equals(SbomSpecification.SPDX) ? "spdx" : "cdx") +
+        specFormat
+    );
   }
 
   private void assertSuccessfulSBOMImportState(

@@ -13,7 +13,10 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -40,6 +43,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -89,6 +93,9 @@ import org.slf4j.LoggerFactory;
 public class ApiSbomService
 {
   private static final Logger log = LoggerFactory.getLogger(ApiSbomService.class);
+
+  private final DateTimeFormatter dtFormatter =
+      DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS").withZone(ZoneOffset.UTC);
 
   private static final String cannotFindVersionError = "Cannot find version %s for application with ID %s.";
 
@@ -231,7 +238,9 @@ public class ApiSbomService
     String fileName = getExportFileName(
         applicationId,
         sbomVersion,
-        sbomExportParams.getTargetFormat().toString()
+        sbomExportParams.getTargetFormat().toString(),
+        sbomExportParams.getExportSpecification().getSpecification(),
+        null
     );
     return Response.ok(content.getBytes(StandardCharsets.UTF_8), type)
         .header(SBOM_VALIDATED_HEADER, String.valueOf(validity))
@@ -240,17 +249,17 @@ public class ApiSbomService
   }
 
   private void validateCycloneDxAllowedForwardSpecVersionsOnly(
-       ThirdPartySbomMetadata thirdPartySbomMetadata,
-       ExportSpecification requestedSpecification)
+      ThirdPartySbomMetadata thirdPartySbomMetadata,
+      ExportSpecification requestedSpecification)
   {
     String dbSpecVersion = thirdPartySbomMetadata.getSpecVersion();
     Version dbVersion = Arrays.stream(Version.values()).filter(v -> v.getVersionString()
-        .equalsIgnoreCase(dbSpecVersion)).findFirst().orElseThrow(
-            () -> new InternalServerException("Unable to determine the original SBOM specification version"));
+            .equalsIgnoreCase(dbSpecVersion)).findFirst()
+        .orElseThrow(() -> new InternalServerException("Unable to determine the original SBOM specification version"));
     String requestedVersionString = requestedSpecification.getVersion();
     Version requestedVersion = Arrays.stream(Version.values()).filter(v -> v.getVersionString()
         .equalsIgnoreCase(requestedVersionString)).findFirst().orElseThrow(() -> new BadRequestException(
-            String.format("requested output SBOM version %s not supported", requestedVersionString)));
+        String.format("requested output SBOM version %s not supported", requestedVersionString)));
 
     if (requestedVersion.getVersion() < dbVersion.getVersion()) {
       throw new BadRequestException("Unable to export lower SBOM specification version" + requestedVersionString +
@@ -296,7 +305,12 @@ public class ApiSbomService
     final ThirdPartySbomMetadata thirdPartySbomMetadata = findSbomMetadataRecord(applicationId, version);
 
     MediaType type;
-    String fileName = getExportFileName(applicationId, version, thirdPartySbomMetadata.getSpecFormat());
+    String fileName = getExportFileName(
+        applicationId,
+        version,
+        thirdPartySbomMetadata.getSpecFormat(),
+        SbomSpecification.fromValue(thirdPartySbomMetadata.getSpec()),
+        thirdPartySbomMetadata.getCreatedAt());
     if (thirdPartySbomMetadata.getSpecFormat().equals(SbomFormat.JSON.toString())) {
       type = MediaType.APPLICATION_JSON_TYPE;
     }
@@ -322,13 +336,23 @@ public class ApiSbomService
     }
   }
 
-  @NotNull
   private String getExportFileName(
       final String applicationId,
       final String version,
-      final String targetFormat)
+      final String targetFormat,
+      final SbomSpecification exportSpecification,
+      final Date importDate)
   {
-    return applicationDAO.getById(applicationId).getName() + "_" + version + "." + targetFormat;
+    Application application = applicationDAO.getById(applicationId);
+
+    return String.format("%s%s_%s_%s.%s.%s",
+        importDate != null ? "Original_" : "",
+        application.getPublicId(),
+        version,
+        dtFormatter.format((importDate != null ? importDate : new Date()).toInstant()),
+        (SbomSpecification.SPDX.equals(exportSpecification) ? "spdx" : "cdx"),
+        targetFormat
+    );
   }
 
   @NotNull
@@ -368,7 +392,7 @@ public class ApiSbomService
     ThirdPartySbomMetadata thirdPartySbomMetadata = getThirdPartySbomMetadataNotNull(applicationId, version);
     SbomComponentListDTO sbomComponentListDTO =
         thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId(),
-        vulnerabilityThreatLevels, dependencyTypes, componentName, sortBy, asc, pageSize, page);
+            vulnerabilityThreatLevels, dependencyTypes, componentName, sortBy, asc, pageSize, page);
     sbomComponentListDTO.getResults().forEach(sbomComponentDTO -> {
       if (SystemConfigurationPropertyFeature.SBOM_POLICIES.isEnabled()) {
         try {

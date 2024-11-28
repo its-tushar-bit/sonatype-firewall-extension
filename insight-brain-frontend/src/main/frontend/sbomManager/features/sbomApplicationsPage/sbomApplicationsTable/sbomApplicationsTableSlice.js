@@ -20,7 +20,7 @@ export const SORT_BY_FIELDS = Object.freeze({
   name: 'application_name',
   latestVersion: 'latest_sbom_version',
   importDate: 'import_date',
-  vulnerabilities: 'vulnerabilities',
+  vulnerabilities: 'vulnerability',
   annotated: 'percentage_annotated',
 });
 

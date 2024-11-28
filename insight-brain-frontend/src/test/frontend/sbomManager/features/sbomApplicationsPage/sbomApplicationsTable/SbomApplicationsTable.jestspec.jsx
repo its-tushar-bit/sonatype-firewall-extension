@@ -99,15 +99,17 @@ describe('SbomApplicationsTable', () => {
     // • One div for the actual severity
     // • One div with the overflow text in this case is set at 100 so the overflow text is 99+
     // The expected text of the vulnerabilities cell is the combinations of all of these.
-    expect(firstRowCells[3]).toHaveTextContent('Critical444999+Severe333999+Moderate222999+');
-    expect(firstRowCells[4]).toHaveTextContent(/0%/);
+    expect(firstRowCells[3]).toHaveTextContent('Critical5999+High4999+Medium3999+');
+    expect(firstRowCells[4]).toHaveTextContent('Critical444999+Severe333999+Moderate222999+');
+    expect(firstRowCells[5]).toHaveTextContent(/0%/);
 
     const secondRow = tableRows[3];
     const secondRowCells = within(secondRow).getAllByRole('cell');
     expect(secondRowCells[0]).toHaveTextContent('app-name-1');
     expect(secondRowCells[1]).toHaveTextContent('sbom-version-1');
-    expect(secondRowCells[3]).toHaveTextContent('Critical445999+Severe334999+Moderate223999+');
-    expect(secondRowCells[4]).toHaveTextContent(/1%/);
+    expect(firstRowCells[3]).toHaveTextContent('Critical5999+High4999+Medium3999+');
+    expect(secondRowCells[4]).toHaveTextContent('Critical445999+Severe334999+Moderate223999+');
+    expect(secondRowCells[5]).toHaveTextContent(/1%/);
   });
 
   describe('Pagination Status', () => {

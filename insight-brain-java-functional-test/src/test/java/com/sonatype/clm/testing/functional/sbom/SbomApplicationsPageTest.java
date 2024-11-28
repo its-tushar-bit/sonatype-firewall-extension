@@ -80,16 +80,17 @@ public class SbomApplicationsPageTest
     SbomApplicationsTable applicationsTable = SbomApplicationsPage.sbomApplicationsTable();
     applicationsTable.table().shouldBe(visible);
 
-    applicationsTable.tableHeaders().shouldHave(size(5));
+    applicationsTable.tableHeaders().shouldHave(size(6));
     applicationsTable.columnHeader(0).shouldHave(
         text("NAME"));
     applicationsTable.columnHeader(1).shouldHave(
         text("LATEST VERSION"));
     applicationsTable.columnHeader(2).shouldHave(
         text("IMPORT DATE"));
-    applicationsTable.columnHeader(3).shouldHave(
-        text("VIOLATIONS"));
+    applicationsTable.columnHeader(3).shouldHave(text("VULNERABILITIES"));
     applicationsTable.columnHeader(4).shouldHave(
+        text("VIOLATIONS"));
+    applicationsTable.columnHeader(5).shouldHave(
         text("ANNOTATED"));
     ElementsCollection tableRows = applicationsTable.tableBodyRows();
     tableRows.shouldHave(sizeGreaterThan(49));

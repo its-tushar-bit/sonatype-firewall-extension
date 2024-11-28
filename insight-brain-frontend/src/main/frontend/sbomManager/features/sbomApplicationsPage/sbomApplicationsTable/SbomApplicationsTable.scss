@@ -7,12 +7,16 @@
   &__application-name,
   &__latest-version {
     display: inline-block;
-    max-width: 250px;
+    max-width: 200px;
     text-wrap: wrap;
     word-break: break-all;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  &__latest-version {
+    max-width: 150px;
   }
 
   &__annotated-percentage {

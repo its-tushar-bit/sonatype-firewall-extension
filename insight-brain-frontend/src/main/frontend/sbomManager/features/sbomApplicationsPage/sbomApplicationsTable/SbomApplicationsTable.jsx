@@ -13,6 +13,7 @@ import {
   NxFilterInput,
   NxPagination,
   NxSmallThreatCounter,
+  NxSmallVulnerabilityCounter,
   NxTable,
   NxTextLink,
   NxTooltip,
@@ -102,6 +103,16 @@ export default function SbomApplicationsTable() {
               </NxTooltip>
             </NxTable.Cell>
             <NxTable.Cell> {moment(application.importDate).fromNow()}</NxTable.Cell>
+            <NxTable.Cell>
+              {application.vulnerabilitySummary ? (
+                <NxSmallVulnerabilityCounter
+                  className="sbom-manager-applications-table__vulnerabilities"
+                  criticalCount={application.vulnerabilitySummary.critical}
+                  highCount={application.vulnerabilitySummary.high}
+                  mediumCount={application.vulnerabilitySummary.medium}
+                />
+              ) : null}
+            </NxTable.Cell>
             <NxTable.Cell>
               {application.policyViolationSummary ? (
                 <NxSmallThreatCounter
@@ -195,6 +206,7 @@ export default function SbomApplicationsTable() {
             <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.name)}>Name</NxTable.Cell>
             <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.latestVersion)}>Latest Version</NxTable.Cell>
             <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.importDate)}>Import Date</NxTable.Cell>
+            <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.vulnerabilities)}>vulnerabilities</NxTable.Cell>
             <NxTable.Cell>Violations</NxTable.Cell>
             <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.annotated)}>Annotated</NxTable.Cell>
           </NxTable.Row>

@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.admin.authorization.AuthContextProperties.SUBJECT_USER;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -71,6 +72,26 @@ public class JwtHttpAuthorizationFilterTest
   }
 
   @Test
+  public void testFilter_validatesJwt_DifferentValidIssuers() throws Exception {
+    String jwt1 = AuthorizationTestHelper.createJwt("test1/");
+    String jwt2 = AuthorizationTestHelper.createJwt("test2/");
+
+    prepareMultiTenantJwkProvider(jwt1, jwt2);
+
+    // Send first JWT
+    when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + jwt1);
+    when(response.getWriter()).thenReturn(responseWriter);
+    underTest.doFilter(request, response, filterChain);
+
+    // Send second JWT
+    when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + jwt2);
+    when(response.getWriter()).thenReturn(responseWriter);
+    underTest.doFilter(request, response, filterChain);
+
+    verify(request, times(2)).setAttribute(SUBJECT_USER, "test@test.com");
+  }
+
+  @Test
   public void testFilter_validatesJwt_RequiresBearerAuth() throws Exception {
     String jwt = AuthorizationTestHelper.createJwt();
 
@@ -104,7 +125,7 @@ public class JwtHttpAuthorizationFilterTest
     String jwt = AuthorizationTestHelper.createJwt(jwtValues, AuthorizationTestHelper.getRSA256Algorithm());
 
     prepareMultiTenantJwkProvider(jwt);
-    when(multiTenantJwkProvider.getIssuer()).thenReturn("expectedIssuer");
+    when(multiTenantJwkProvider.getIssuers()).thenReturn(new String[]{"expectedIssuer"});
 
     underTest.doFilter(request, response, filterChain);
 
@@ -151,8 +172,19 @@ public class JwtHttpAuthorizationFilterTest
 
     when(multiTenantJwkProvider.denyRequest()).thenReturn(false);
     when(multiTenantJwkProvider.getJsonWebKey(decodedJWT.getKeyId())).thenReturn(jwk);
-    when(multiTenantJwkProvider.getIssuer()).thenReturn(decodedJWT.getIssuer());
+    when(multiTenantJwkProvider.getIssuers()).thenReturn(new String[]{decodedJWT.getIssuer()});
     when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + jwt);
     when(response.getWriter()).thenReturn(responseWriter);
+  }
+
+  private void prepareMultiTenantJwkProvider(String jwt1, String jwt2) throws Exception {
+    DecodedJWT decodedJWT1 = JWT.decode(jwt1);
+    DecodedJWT decodedJWT2 = JWT.decode(jwt2);
+    Jwk jwk = AuthorizationTestHelper.createJwk(decodedJWT1.getKeyId());
+
+    when(multiTenantJwkProvider.denyRequest()).thenReturn(false);
+    when(multiTenantJwkProvider.getJsonWebKey(decodedJWT1.getKeyId())).thenReturn(jwk);
+    when(multiTenantJwkProvider.getIssuers()).thenReturn(
+        new String[]{decodedJWT1.getIssuer(), decodedJWT2.getIssuer()});
   }
 }

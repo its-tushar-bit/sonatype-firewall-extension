@@ -10,6 +10,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.service.Auth0Config;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 
 import com.auth0.jwk.Jwk;
@@ -26,7 +27,7 @@ public class MultiTenantJwkAuth0Provider
 {
   private static final Logger log = LoggerFactory.getLogger(MultiTenantJwkAuth0Provider.class.getName());
 
-  private final String auth0Domain;
+  private Auth0Config auth0Config;
 
   private JwkProvider jwkProvider;
 
@@ -34,12 +35,12 @@ public class MultiTenantJwkAuth0Provider
 
   @Inject
   public MultiTenantJwkAuth0Provider(MultiTenantInsightConfig multiTenantInsightConfig) {
-    auth0Domain = multiTenantInsightConfig.getAuth0Domain();
+    auth0Config = multiTenantInsightConfig.getAuth0Config();
 
     try {
       //Caching for 2 keys (current, next) with 24h ttl.
-      jwkProvider = new JwkProviderBuilder(auth0Domain).cached(2, 24, TimeUnit.HOURS).build();
-      log.debug("Jwk Auth0 Provider created using domain {}", auth0Domain);
+      jwkProvider = new JwkProviderBuilder(auth0Config.getDomain()).cached(2, 24, TimeUnit.HOURS).build();
+      log.debug("Jwk Auth0 Provider created using domain {}", auth0Config.getDomain());
     }
     catch (IllegalStateException e) {
       log.error("Cannot create an authorization provider! All admin access will be denied.", e);
@@ -53,8 +54,8 @@ public class MultiTenantJwkAuth0Provider
   }
 
   @Override
-  public String getIssuer() {
-    return auth0Domain;
+  public String[] getIssuers() {
+    return new String[]{auth0Config.getDomain(), auth0Config.getCustomDomain()};
   }
 
   @Override

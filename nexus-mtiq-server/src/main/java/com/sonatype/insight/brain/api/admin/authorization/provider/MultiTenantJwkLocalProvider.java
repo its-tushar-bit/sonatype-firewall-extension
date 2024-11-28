@@ -85,8 +85,8 @@ public class MultiTenantJwkLocalProvider
   }
 
   @Override
-  public String getIssuer() {
-    return LOCAL_AUTH_DOMAIN;
+  public String[] getIssuers() {
+    return new String[]{LOCAL_AUTH_DOMAIN};
   }
 
   @Override

@@ -93,7 +93,7 @@ public class JwtHttpAuthorizationFilter
       RSAPublicKey rsaPublicKey = (RSAPublicKey) jwk.getPublicKey();
       Algorithm algorithm = Algorithm.RSA256(rsaPublicKey, null);
       JWTVerifier jwtVerifier = JWT.require(algorithm)
-          .withIssuer(multiTenantJwkProvider.getIssuer())
+          .withIssuer(multiTenantJwkProvider.getIssuers())
           .build();
 
       jwtVerifier.verify(decodedJWT);

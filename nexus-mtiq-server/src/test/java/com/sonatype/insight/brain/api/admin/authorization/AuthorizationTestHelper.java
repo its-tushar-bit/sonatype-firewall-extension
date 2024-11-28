@@ -48,12 +48,16 @@ public class AuthorizationTestHelper
   private static final List<String> KEY_OPS = Lists.newArrayList("sign");
 
   public static String createJwt() throws Exception {
+    return createJwt("test/");
+  }
+
+  public static String createJwt(String issuer) throws Exception {
     final Algorithm algorithm = getRSA256Algorithm();
 
     return JWT.create()
         .withKeyId("A1B2C3")
         .withClaim(USER_EMAIL_CLAIM.getClaim(), "test@test.com")
-        .withIssuer("test/")
+        .withIssuer(issuer)
         .withSubject("test|123456")
         .withAudience("https://test.mtiq-admin-service.cloudy.sonatype.dev/")
         .withIssuedAt(new Date())

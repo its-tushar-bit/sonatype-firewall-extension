@@ -94,6 +94,10 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
 
       multiTenantInsightConfig.setMainDatabase(multiTenantDbRule.getDatabaseConfig(DatabaseName.ods.name()));
       multiTenantInsightConfig.setLocksDatabase(multiTenantDbRule.getDatabaseConfig(DatabaseName.ods.name()));
+
+      Auth0Config auth0Config = new Auth0Config();
+      auth0Config.setDomain("local/");
+      multiTenantInsightConfig.setAuth0Config(auth0Config);
     }
 
     @Override
@@ -181,7 +185,7 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
 
       when(multiTenantJwkTestProvider.denyRequest()).thenReturn(false);
       when(multiTenantJwkTestProvider.getJsonWebKey(decodedJWT.getKeyId())).thenReturn(jwk);
-      when(multiTenantJwkTestProvider.getIssuer()).thenReturn(decodedJWT.getIssuer());
+      when(multiTenantJwkTestProvider.getIssuers()).thenReturn(new String[]{decodedJWT.getIssuer()});
     }
     catch (Exception e) {
       log.error("Failed to setup mock JWT for TestMultiTenantInsightBrainService", e);

@@ -17,6 +17,10 @@ public class Auth0Config
 
   @Valid
   @JsonProperty
+  private String customDomain;
+
+  @Valid
+  @JsonProperty
   private String clientId;
 
   @Valid
@@ -29,6 +33,14 @@ public class Auth0Config
 
   public void setDomain(final String domain) {
     this.domain = domain;
+  }
+
+  public String getCustomDomain() {
+    return customDomain;
+  }
+
+  public void setCustomDomain(final String customDomain) {
+    this.customDomain = customDomain;
   }
 
   public String getClientId() {

@@ -86,6 +86,7 @@ public class MultiTenantAuth0ManagementServiceTest
   public void setUp() throws Exception {
     Auth0Config auth0Config = new Auth0Config();
     auth0Config.setDomain("domain");
+    auth0Config.setCustomDomain("customDomain");
     auth0Config.setClientId(CLIENT_ID);
     auth0Config.setClientSecret("clientSecret");
     when(config.getAuth0Config()).thenReturn(auth0Config);

@@ -12,7 +12,7 @@ public interface MultiTenantJwkProvider
 {
   Jwk getJsonWebKey(String keyId) throws JwkException;
 
-  String getIssuer();
+  String[] getIssuers();
 
   boolean denyRequest();
 }

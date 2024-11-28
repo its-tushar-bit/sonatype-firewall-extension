@@ -44,6 +44,7 @@ LABEL vendor=Sonatype \
 
 RUN apt-get update && apt-get install -y \
   git \
+  curl \
   libjemalloc2 \
   tini \
 && rm -rf /var/lib/apt/lists/*

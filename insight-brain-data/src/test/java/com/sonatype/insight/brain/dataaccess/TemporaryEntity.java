@@ -1759,22 +1759,6 @@ public class TemporaryEntity
     return autoPolicyWaiver;
   }
 
-  public AutoPolicyWaiverRevocation newAutoPolicyWaiverRevocation(String ownerId, String autoPolicyWaiverId) {
-    AutoPolicyWaiverRevocation autoPolicyWaiverRevocation = new AutoPolicyWaiverRevocation(
-        ownerId,
-        "fakeCreatorId",
-        "fakeCreatorName",
-        new Date(),
-        autoPolicyWaiverId,
-        "fakeScanId",
-        "fakeHash",
-        "pkg:maven/group/artifact@2.0?classifier=c1&type=jar",
-        EXACT_COMPONENT
-    );
-    autoPolicyWaiverRevocationDAO.insert(autoPolicyWaiverRevocation);
-    return autoPolicyWaiverRevocation;
-  }
-
   public AutoPolicyWaiverRevocation newAutoPolicyWaiverRevocation(
       String ownerId,
       String autoPolicyWaiverId,
@@ -1795,6 +1779,44 @@ public class TemporaryEntity
         componentMatcherStrategyForRevocation
     );
     autoPolicyWaiverRevocation.setPolicyViolationId(policyViolationId);
+    autoPolicyWaiverRevocationDAO.insert(autoPolicyWaiverRevocation);
+    return autoPolicyWaiverRevocation;
+  }
+
+  public AutoPolicyWaiverRevocation newAutoPolicyWaiverRevocation(String ownerId, String autoPolicyWaiverId) {
+    AutoPolicyWaiverRevocation autoPolicyWaiverRevocation = new AutoPolicyWaiverRevocation(
+        ownerId,
+        "fakeCreatorId",
+        "fakeCreatorName",
+        new Date(),
+        autoPolicyWaiverId,
+        "fakeScanId",
+        "fakeHash",
+        "pkg:maven/group/artifact@2.0?classifier=c1&type=jar",
+        EXACT_COMPONENT
+    );
+    autoPolicyWaiverRevocationDAO.insert(autoPolicyWaiverRevocation);
+    return autoPolicyWaiverRevocation;
+  }
+
+  public AutoPolicyWaiverRevocation newAutoPolicyWaiverRevocation(
+      String ownerId,
+      String autoPolicyWavierId,
+      String componentHash,
+      String associatedPacakgeUrl,
+      ComponentMatcherStrategyForRevocation strategy)
+  {
+    AutoPolicyWaiverRevocation autoPolicyWaiverRevocation = new AutoPolicyWaiverRevocation(
+        ownerId,
+        "fakeCreatorId",
+        "fakeCreatorName",
+        new Date(),
+        autoPolicyWavierId,
+        "fakeScanId",
+        componentHash,
+        associatedPacakgeUrl,
+        strategy
+    );
     autoPolicyWaiverRevocationDAO.insert(autoPolicyWaiverRevocation);
     return autoPolicyWaiverRevocation;
   }

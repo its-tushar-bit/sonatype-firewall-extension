@@ -66,6 +66,7 @@ import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -197,7 +198,7 @@ public class ScanPolicyEvaluatorTest
 
   @Inject
   private AutoPolicyWaiverDAO autoPolicyWaiverDAO;
-  
+
   @Inject
   private PolicyWaiverDAO policyWaiverDAO;
 
@@ -249,7 +250,7 @@ public class ScanPolicyEvaluatorTest
   private MockReportDownloader mockReportDownloader;
 
   private TelemetrySender mockTelemetrySender;
-  
+
   @Mock
   private ComponentInfoService mockComponentInfoService;
 
@@ -507,7 +508,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(results.activeViolations).hasSize(20);
 
     verify(mockComponentInfoService, times(0)).getComponentDetailsForAllVersionsNoAuth(
-            any(), any(), any(), any(), any(), any(), any());
+        any(), any(), any(), any(), any(), any(), any());
   }
 
   @Test
@@ -641,6 +642,150 @@ public class ScanPolicyEvaluatorTest
 
     List<PolicyViolation> inactiveViolations = getInactiveViolations(results);
     assertThat(inactiveViolations).hasSize(36);
+  }
+
+  @Test
+  public void testEvaluate_Results_AutoWaivedViolations_NoRevocations() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    tempEntity.newAutoPolicyWaiver(application.getId(), 10, false, false);
+
+    ScanPolicyEvaluatorResults results =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    assertThat(results.autoWaivedViolations).hasSize(36);
+  }
+
+  @Test
+  public void testEvaluate_Results_AutoWaivedViolations_RevocationsApply_ExactComponent() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    // The revocation will apply to tomcat-util version 5.5.23 only. The violation for v5.4.23 will be auto-waived
+    String componentIdentifier = "maven: {artifactId=tomcat-util, groupId=tomcat, version=5.5.23}";
+    String componentHash = "1249e25aebb15358bedd";
+    
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 10, false, false);
+    tempEntity.newAutoPolicyWaiverRevocation(application.getId(), autoPolicyWaiver.getId(), componentHash,
+        null,
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+
+    ScanPolicyEvaluatorResults results =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    assertThat(results.allViolations).hasSize(36);
+    assertThat(results.autoWaivedViolations).hasSize(28);
+    assertThat(results.activeViolations).hasSize(8).allSatisfy(activeViolation -> {
+      assertThat(activeViolation.getHash()).isEqualTo(componentHash);
+      assertThat(activeViolation.getComponentIdentifier().toString()).isEqualTo(componentIdentifier);
+    });
+  }
+  
+  @Test
+  public void testEvaluate_Results_AutoWaivedViolations_RevocationsApply_AllVersions() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    // The revocation will apply to all versions of tomcat-util. Report contains violations for 5.4.23 & 5.5.23
+    String componentPackageUrl = "pkg:maven/tomcat/tomcat-util@5.5.23?classifier=c1&type=jar";
+    
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 10, false, false);
+    tempEntity.newAutoPolicyWaiverRevocation(application.getId(), autoPolicyWaiver.getId(), null,
+        componentPackageUrl,
+        ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
+
+    ScanPolicyEvaluatorResults results =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    assertThat(results.allViolations).hasSize(36);
+    assertThat(results.autoWaivedViolations).hasSize(27);
+    assertThat(results.activeViolations).hasSize(9).allSatisfy(activeViolation -> {
+      assertThat(activeViolation.getComponentIdentifier().toString()).contains("tomcat-util");
+    });
+  }
+
+  @Test
+  public void testEvaluate_Results_AutoWaivedViolations_RevocationsDoNotApply_ExactComponent() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 10, false, false);
+    tempEntity.newAutoPolicyWaiverRevocation(application.getId(), autoPolicyWaiver.getId(),
+        "someHash", null, ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+
+    ScanPolicyEvaluatorResults results =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    // The revocation does not apply to the component with violations, so all violations should be auto-waived
+    assertThat(results.autoWaivedViolations).hasSize(36);
+  }
+
+  @Test
+  public void testEvaluate_Results_AutoWaivedViolations_RevocationsDoNotApply_AllVersions() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 10, false, false);
+    tempEntity.newAutoPolicyWaiverRevocation(application.getId(), autoPolicyWaiver.getId(),
+        null, "pkg:maven/group/artifact@2.0?classifier=c1&type=jar",
+        ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
+
+    ScanPolicyEvaluatorResults results =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    // The revocation does not apply to the component with violations, so all violations should be auto-waived
+    assertThat(results.autoWaivedViolations).hasSize(36);
   }
   
   @Test
@@ -922,7 +1067,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(results3.autoWaivedViolations).hasSize(0);
     assertThat(results3.notifiableViolations).hasSize(0);
   }
-  
+
   @Test
   public void testEvaluate_EmitsApplicationEvaluationEvent() throws IOException, InterruptedException {
     handler = new TestEventHandler<>(new CountDownLatch(1), ApplicationEvaluationEvent.class);
@@ -1691,7 +1836,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(results3.autoWaivedViolations).hasSize(0);
     assertThat(policyViolationDAO.getByApplicationId(application.getId())).hasSize(72);
   }
-  
+
   @Test
   public void testEvaluate_UpdateWaivedViolations() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -2875,7 +3020,7 @@ public class ScanPolicyEvaluatorTest
     assertPolicyViolationsLogged(PolicyViolationLogEvent.UNAUTOWAIVE, results2.evaluation.getTime(),
         results1.autoWaivedViolations, currentUser.getUsernameOrSystem());
   }
-  
+
   @Test
   public void testEvaluate_PolicyViolationLogger_WaiveAndUnwaivePolicyViolations() throws Exception {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);

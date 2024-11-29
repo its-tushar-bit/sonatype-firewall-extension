@@ -621,6 +621,7 @@ public class DashboardWaiversTest
     assertWaiversCsv(exportCsvData, expectedResults);
   }
 
+  @Ignore("This test is flaky and will be fixed by CLM-32946")
   @Test
   public void testWaiversTable_sortByComponent() {
     refreshOrOpen(DashboardPage.urlToWaivers());

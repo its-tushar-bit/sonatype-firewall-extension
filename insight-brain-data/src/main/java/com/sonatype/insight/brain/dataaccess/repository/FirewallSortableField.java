@@ -9,7 +9,9 @@ public enum FirewallSortableField
 {
   QUARANTINE_TIME("quarantineTime", "quarantineTime"),
   RELEASE_QUARANTINE_TIME("releaseQuarantineTime", "unquarantineTime"),
-  REPOSITORY_PUBLIC_ID("repositoryPublicId", "repositoryPublicId");
+  REPOSITORY_PUBLIC_ID("repositoryPublicId", "repositoryPublicId"),
+  POLICY_NAME("policyName", "policyName"),
+  COMPONENT_DISPLAY_NAME("componentDisplayName", "componentDisplayName");
 
   private final String label;
 

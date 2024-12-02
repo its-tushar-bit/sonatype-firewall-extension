@@ -416,8 +416,11 @@ public class ApiFirewallService
           filter.firewallComponentFilterState.name()));
     }
 
-    if (!EnumSet.of(FirewallSortableField.QUARANTINE_TIME, FirewallSortableField.REPOSITORY_PUBLIC_ID)
-        .contains(filter.sortableField)) {
+    EnumSet<FirewallSortableField> validSortFields =
+        EnumSet.of(FirewallSortableField.QUARANTINE_TIME, FirewallSortableField.REPOSITORY_PUBLIC_ID,
+            FirewallSortableField.POLICY_NAME, FirewallSortableField.COMPONENT_DISPLAY_NAME);
+
+    if (!validSortFields.contains(filter.sortableField)) {
       throw new BadRequestException(String.format(
           "SortableField %s is not applicable to get Firewall Quarantined components.",
           filter.sortableField.getLabel()));

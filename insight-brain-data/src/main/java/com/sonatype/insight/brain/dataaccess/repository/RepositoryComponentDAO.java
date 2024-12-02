@@ -419,10 +419,12 @@ public class RepositoryComponentDAO
   }
 
   private String addSortFields(final FirewallRepositoryComponentFilter filter) {
-    String select = " ORDER BY";
+    boolean isDisplayNameFilter = false;
+    String select = " ORDER BY ";
 
-    if (null != filter.sortableField && filter.sortableField.getColumn().equals("repositoryPublicId")) {
-      select += " public_id";
+    if (null != filter.sortableField && !filter.sortableField.equals(FirewallSortableField.QUARANTINE_TIME)) {
+      isDisplayNameFilter = filter.sortableField.equals(FirewallSortableField.COMPONENT_DISPLAY_NAME);
+      select += getSortField(filter.sortableField);
       if (filter.asc) {
         select += " NULLS LAST,";
       }
@@ -431,17 +433,36 @@ public class RepositoryComponentDAO
       }
     }
 
-    select += " quarantine_time";
+    select += "quarantine_time";
 
-    if (null != filter.sortableField && filter.sortableField.getColumn().equals("quarantineTime") && filter.asc) {
+    if (null != filter.sortableField && filter.sortableField.equals(FirewallSortableField.QUARANTINE_TIME) &&
+        filter.asc) {
       select += " NULLS LAST,";
     }
     else {
       select += " DESC NULLS LAST,";
     }
 
-    select += " threat_level DESC NULLS LAST, display_name DESC NULLS LAST";
+    if (isDisplayNameFilter) {
+      select += " threat_level DESC NULLS LAST";
+    }
+    else {
+      select += " threat_level DESC NULLS LAST, display_name DESC NULLS LAST";
+    }
     return select;
+  }
+
+  private String getSortField(FirewallSortableField field) {
+    switch (field) {
+      case REPOSITORY_PUBLIC_ID:
+        return "public_id";
+      case POLICY_NAME:
+        return "policy_name";
+      case COMPONENT_DISPLAY_NAME:
+        return "display_name";
+      default:
+        return "";
+    }
   }
 
   public List<RepositoryComponent> getFirewallRepositoryComponents(FirewallRepositoryComponentFilter filter) {

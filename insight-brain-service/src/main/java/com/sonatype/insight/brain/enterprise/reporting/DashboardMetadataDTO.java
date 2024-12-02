@@ -27,6 +27,8 @@ public class DashboardMetadataDTO
 
   public String spotlightColor;
 
+  public String spotlightText;
+
   public String dashboardPath;
 
   public DashboardMetadataDTO() {

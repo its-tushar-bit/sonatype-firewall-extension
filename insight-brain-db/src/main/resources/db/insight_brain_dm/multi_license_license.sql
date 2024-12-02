@@ -949,6 +949,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-UPL-1.0','UPL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-UPL-UNSPECIFIED','Apache-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-UPL-UNSPECIFIED','UPL-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-VCLST-6.0','Apache-2.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-VCLST-6.0','VCLST-6.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-with-Astramind-MA','Apache-2.0-with-Astramind-MA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-with-Commercial-Use-Enforcer','Apache-2.0-with-Commercial-Use-Enforcer');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-with-Commons-Clause-1.0','Apache-2.0-with-Commons-Clause-1.0');
@@ -1464,6 +1466,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Booz-Al
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Borceux','Borceux');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BOS-TopLogic-1.0','BOS-TopLogic-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BOSL-1.0','BOSL-1.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BOSL-UNSPECIFIED','BOSL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Boson-Higgs-Llama-3-CLA','Boson-Higgs-Llama-3-CLA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BotDetect-ASP.Net-Captcha-3.0.14.X-EULA','BotDetect-ASP.Net-Captcha-3.0.14.X-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BotDetect-ASP.Net-Captcha-3.0.15.X-EULA','BotDetect-ASP.Net-Captcha-3.0.15.X-EULA');
@@ -3558,6 +3561,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Inno-Se
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Instabug-TOS','Instabug-TOS');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Intel','Intel');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Intel-ACPI','Intel-ACPI');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Intel-Developer-Tools-EULA-UNSPECIFIED','Intel-Developer-Tools-EULA-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Intel-Developer-Tools-EULA-V042023','Intel-Developer-Tools-EULA-V042023');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Intel-Developer-Tools-EULA-V082024','Intel-Developer-Tools-EULA-V082024');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Intel-Developer-Tools-EULA-V102021','Intel-Developer-Tools-EULA-V102021');
@@ -4304,6 +4308,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Multi-t
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Multiavatar-License-1.0','Multiavatar-License-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Multics','Multics');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Multividas-Proprietary-License-2024','Multividas-Proprietary-License-2024');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Multividas-Proprietary-License-UNSPECIFIED','Multividas-Proprietary-License-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Munbo-LA','Munbo-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Mup','Mup');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MW-OSSLA-1.0','MW-OSSLA-1.0');

@@ -376,6 +376,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-Unlicense','Apache-2.0 or Unlicense','Dual License Consisting of Apache-2.0 and The Unlicense');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-UPL-1.0','Apache-2.0 or UPL-1.0','Dual License Consisting of Apache License 2.0 and Universal Permissive License v1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-UPL-UNSPECIFIED','Apache-2.0 or UPL','Dual License Consisting of Apache 2.0 and Universal Permissive License-Style License Not Identifiable by Sonatype');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-VCLST-6.0','Apache-2.0 or VCLST-6.0','Dual License Consisting of Apache License 2.0 and Vaadin Commercial License and Service Terms Version 6.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-with-Astramind-MA','Apache-2.0-with-Astramind-MA','Apache-2.0 with Astramind Modification Addendum');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-with-Commercial-Use-Enforcer','Apache-2.0-with-Commercial-Use-Enforcer','Apache 2.0 with Commercial-Use Enforcer');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-with-Commons-Clause-1.0','Apache-2.0-with-Commons-Clause-1.0','Apache-2.0 with Commons-Clause-1.0');
@@ -636,6 +637,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Borceux','Borceux','Borceux license');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BOS-TopLogic-1.0','BOS-TopLogic-1.0','Business Operation Systems GmbH TopLogic Version 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BOSL-1.0','BOSL-1.0','Bootstrap Open Source Licence (BOSL) v1.0');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BOSL-UNSPECIFIED','BOSL','BOSL-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Boson-Higgs-Llama-3-CLA','Boson-Higgs-Llama-3-CLA','Boson Higgs Llama 3 Community License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BotDetect-ASP.Net-Captcha-3.0.14.X-EULA','BotDetect-ASP.Net-Captcha-3.0.14.X-EULA','BotDetect ASP.NET CAPTCHA v3.0.14.X End User License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BotDetect-ASP.Net-Captcha-3.0.15.X-EULA','BotDetect-ASP.Net-Captcha-3.0.15.X-EULA','BotDetect ASP.NET CAPTCHA v3.0.15.X End User License Agreement');
@@ -2027,6 +2029,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Instabug-TOS','Instabug-TOS','Instabug Terms of Service');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Intel','Intel','Intel Open Source License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Intel-ACPI','Intel-ACPI','Intel ACPI Software License Agreement');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Intel-Developer-Tools-EULA-UNSPECIFIED','Intel-Developer-Tools-EULA','Intel-Developer-Tools-EULA-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Intel-Developer-Tools-EULA-V042023','Intel-Developer-Tools-EULA-V042023','Intel End User License Agreement for Developer Tools - Version April 2023');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Intel-Developer-Tools-EULA-V082024','Intel-Developer-Tools-EULA-V082024','Intel End User License Agreement for Developer Tools - Version August 2024');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Intel-Developer-Tools-EULA-V102021','Intel-Developer-Tools-EULA-V102021','Intel End User License Agreement for Developer Tools - Version October 2021');
@@ -2652,6 +2655,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Multiavatar-License-1.0','Multiavatar-License-1.0','Multiavatar License v1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Multics','Multics','Multics License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Multividas-Proprietary-License-2024','Multividas-Proprietary-License-2024','Multividas Proprietary License - Dated 2024');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Multividas-Proprietary-License-UNSPECIFIED','Multividas-Proprietary-License','Multividas-Proprietary-License-Style Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Munbo-LA','Munbo-LA','Munbo License Agreement - Release Date 05-01-2015');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Mup','Mup','Mup License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MW-OSSLA-1.0','MW-OSSLA-1.0','Mono Wireless Open Source Software License Agreement Version 1.0');

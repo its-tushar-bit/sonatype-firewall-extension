@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -31,6 +32,8 @@ public class ThirdPartyResultHandlerFactory
 
   protected final MultiLicenseDAO multiLicenseDAO;
 
+  protected final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
   protected final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO;
 
   protected final TelemetryUtils telemetryUtils;
@@ -43,6 +46,7 @@ public class ThirdPartyResultHandlerFactory
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final MultiLicenseDAO multiLicenseDAO,
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO,
       final TelemetryUtils telemetryUtils,
@@ -52,6 +56,7 @@ public class ThirdPartyResultHandlerFactory
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
     this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
+    this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.multiLicenseDAO = multiLicenseDAO;
     this.thirdPartyVexDAO = thirdPartyVexDAO;
     this.telemetryUtils = telemetryUtils;
@@ -68,18 +73,18 @@ public class ThirdPartyResultHandlerFactory
     }
     else if (ItemContentType.SBOM.equals(itemContentType)) {
       return new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-          thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
-          thirdPartyScanContext);
+          thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils,
+          telemetrySender, thirdPartyScanContext);
     }
     else if (ItemContentType.SPDX.equals(itemContentType)) {
       return new SpdxResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-          thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
-          thirdPartyScanContext);
+          thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils,
+          telemetrySender, thirdPartyScanContext);
     }
     else if (ItemContentType.CONTAINER_URI.equals(itemContentType)) {
       return new ContainerResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-          thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
-          thirdPartyScanContext);
+          thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils,
+          telemetrySender, thirdPartyScanContext);
     }
     throw new IllegalArgumentException("unsupported third party content type " + itemContentType);
   }

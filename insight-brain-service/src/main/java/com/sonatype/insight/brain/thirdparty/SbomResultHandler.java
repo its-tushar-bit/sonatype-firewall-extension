@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -37,6 +38,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLice
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
@@ -125,6 +127,8 @@ public class SbomResultHandler
 
   protected final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
 
+  protected final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
   protected final MultiLicenseDAO multiLicenseDAO;
 
   protected final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO;
@@ -144,6 +148,7 @@ public class SbomResultHandler
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final MultiLicenseDAO multiLicenseDAO,
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO,
       final TelemetryUtils telemetryUtils,
@@ -154,6 +159,7 @@ public class SbomResultHandler
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
     this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
+    this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.multiLicenseDAO = multiLicenseDAO;
     this.thirdPartyVexDAO = thirdPartyVexDAO;
     this.telemetryUtils = telemetryUtils;
@@ -219,6 +225,19 @@ public class SbomResultHandler
   {
     String thirdPartyIdentificationSource =
         getTruncatedThirdPartyIdentificationSource(determineThirdPartyIdentificationSource(contentPath));
+
+    if (sourceBom.getMetadata() != null && sourceBom.getMetadata().getProperties() != null) {
+      String  originalFileNameProperty = this.getPropertyAsString(sourceBom.getMetadata().getProperties(), SbomTaxonomy
+          .CDX_ORIGINAL_FILE_PROPERTY_NAME);
+      if (StringUtils.isNotEmpty(originalFileNameProperty)) {
+        ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+        if (sbomMetadata != null) {
+          sbomMetadata.setOriginalBinaryFileName(originalFileNameProperty);
+          thirdPartySbomMetadataDAO.update(sbomMetadata);
+        }
+      }
+    }
+
     try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
       tx.begin();
       targetBom.setMetadata(getFilteredMetadata(sourceBom));
@@ -1229,5 +1248,16 @@ public class SbomResultHandler
 
   boolean isValid() {
     return thirdPartyScanContext == null || thirdPartyScanContext.isValid();
+  }
+
+  private String getPropertyAsString(List<Property> listProperties, String propertyName) {
+    if (listProperties != null && !listProperties.isEmpty()) {
+      return listProperties.stream()
+          .filter(property -> propertyName.equals(property.getName()))
+          .map(Property::getValue).findFirst().orElse(null);
+    }
+    else {
+      return null;
+    }
   }
 }

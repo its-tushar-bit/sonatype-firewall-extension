@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 
 import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.AbstractDataTest;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
@@ -79,6 +81,9 @@ public class SpdxResultHandlerTest
 
   private ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO;
 
+  @Inject
+  private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
   private ThirdPartyScanContext thirdPartyScanContext;
 
   private TelemetryUtils telemetryUtils;
@@ -112,8 +117,8 @@ public class SpdxResultHandlerTest
 
     spdxResultHandler =
         new SpdxResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
-            thirdPartyScanContext);
+            thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
+            telemetryUtils, telemetrySender, thirdPartyScanContext);
   }
 
   @Test
@@ -412,8 +417,8 @@ public class SpdxResultHandlerTest
     thirdPartyScanContext.setIsValid(true);
     spdxResultHandler =
         new SpdxResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
-            thirdPartyScanContext);
+            thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
+            telemetryUtils, telemetrySender, thirdPartyScanContext);
     FilteredThirdPartyContent filteredContent =
         spdxResultHandler.handleAndFilterContents(content, thirdPartyFile);
     String sbomXml = filteredContent.getContent();

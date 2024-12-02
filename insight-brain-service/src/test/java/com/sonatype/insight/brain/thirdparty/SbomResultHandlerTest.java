@@ -29,13 +29,16 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
@@ -115,6 +118,9 @@ public class SbomResultHandlerTest
   private ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO;
 
   @Inject
+  private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
+  @Inject
   private TelemetryUtils telemetryUtils;
 
   @Mock
@@ -140,8 +146,8 @@ public class SbomResultHandlerTest
   public void before() {
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
-            thirdPartyScanContext);
+            thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
+            telemetryUtils, telemetrySender, thirdPartyScanContext);
   }
 
   @Test
@@ -349,8 +355,8 @@ public class SbomResultHandlerTest
     thirdPartyScanContext.setIsValid(true);
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
-            thirdPartyScanContext);
+            thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
+            telemetryUtils, telemetrySender, thirdPartyScanContext);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 7);
@@ -400,8 +406,8 @@ public class SbomResultHandlerTest
     thirdPartyScanContext.setIsValid(true);
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
-            thirdPartyScanContext);
+            thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
+            telemetryUtils, telemetrySender, thirdPartyScanContext);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
@@ -432,8 +438,8 @@ public class SbomResultHandlerTest
     thirdPartyScanContext.setIsValid(true);
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
-            thirdPartyScanContext);
+            thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
+            telemetryUtils, telemetrySender, thirdPartyScanContext);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
@@ -707,8 +713,8 @@ public class SbomResultHandlerTest
 
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
-            thirdPartyScanContext);
+            thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
+            telemetryUtils, telemetrySender, thirdPartyScanContext);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
@@ -893,8 +899,8 @@ public class SbomResultHandlerTest
     thirdPartyScanContext.setIsValid(true);
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
-            thirdPartyScanContext);
+            thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
+            telemetryUtils, telemetrySender, thirdPartyScanContext);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
@@ -2545,6 +2551,38 @@ public class SbomResultHandlerTest
         (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
     assertThat(componentInfoTelemetry.getInvalidLicensesCount()).isEqualTo(2);
     assertThat(componentInfoTelemetry.getValidLicensesCount()).isEqualTo(0);
+  }
+
+  @Test
+  public void testHandleAndFilterContents_originalSbomFilenamePropertyGetsInsertedInDb_json() throws Exception {
+    String ingestedFilename = "original-bom-filename-property.json";
+    String sbomContent = getSbomJsonFile(ingestedFilename);
+    ThirdPartyScanContent content = new ThirdPartyScanContent(ingestedFilename, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    Application app = tempEntity.newApplicationWithParent();
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE", ingestedFilename );
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    assertFilteredSbomFile(filteredContent, 4);
+    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    // Check original filename property in ingested sbom metadata
+    assertThat(sbomMetadata).isNotNull().extracting(ThirdPartySbomMetadata::getOriginalBinaryFileName)
+        .isEqualTo("binary.temp");
+  }
+
+  @Test
+  public void testHandleAndFilterContents_originalSbomFilenamePropertyGetsInsertedInDb_xml() throws Exception {
+    String ingestedFilename = "original-bom-filename-property.xml";
+    String sbomContent = getSbomXmlFile(ingestedFilename);
+    ThirdPartyScanContent content = new ThirdPartyScanContent(ingestedFilename, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    Application app = tempEntity.newApplicationWithParent();
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE", ingestedFilename );
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    assertFilteredSbomFile(filteredContent, 1);
+    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    // Check original filename property in ingested sbom metadata
+    assertThat(sbomMetadata).isNotNull().extracting(ThirdPartySbomMetadata::getOriginalBinaryFileName)
+        .isEqualTo("binary.temp");
   }
 
   private void assertExtensionVulnerabilities(Component component) {

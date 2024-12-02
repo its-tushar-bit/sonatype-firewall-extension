@@ -10,6 +10,7 @@ import java.util.Set;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.PolicyAction;
 import com.sonatype.insight.brain.client.RestClientFactory;
 import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
@@ -37,7 +38,6 @@ public abstract class PolicyEvaluator<P extends Parameters>
       RestClient restClient) throws ExitException
   {
     String reportUrl = getReportUrl(restClient, receipt, params);
-
     saveResultFile(params, restClient, receipt, eval, outcome);
 
     if (!PolicyAction.NONE.equals(outcome)) {
@@ -54,7 +54,12 @@ public abstract class PolicyEvaluator<P extends Parameters>
         eval.getModeratePolicyViolationCount());
     log.info("Number of legacy violations: {}", eval.getLegacyViolationCount());
     log.info("Number of components: {}", eval.getTotalComponentCount());
-    log.info("The detailed report can be viewed online at {}", reportUrl);
+    if (Stage.ID_COMPLIANCE.equals(params.getStage().getStageTypeId())) {
+      log.info("The Bill of Materials Page can be viewed online at {}", reportUrl);
+    }
+    else {
+      log.info("The detailed report can be viewed online at {}", reportUrl);
+    }
     log.info("*********************************************************************************************");
 
     if (outcome.equals(PolicyAction.FAIL)) {
@@ -84,6 +89,9 @@ public abstract class PolicyEvaluator<P extends Parameters>
   }
 
   private String getReportUrl(RestClient restClient, ScanReceipt receipt, Parameters params) {
+    if (Stage.ID_COMPLIANCE.equals(params.getStage().getStageTypeId())) {
+      return receipt.resolveReportUrl(params.getServerUrl());
+    }
     boolean isDevelopmentDashboardEnabled = false;
     boolean isPrioritizedFindingsReportEnabled = false;
 

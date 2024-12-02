@@ -5,7 +5,13 @@
  */
 package com.sonatype.insight.brain.integration;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -16,18 +22,30 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.policy.evaluator.AbstractPolicyEvaluationTest;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.thirdparty.SbomScanType;
+import com.sonatype.insight.brain.thirdparty.SbomStatus;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.model.ClientScanType;
+import com.sonatype.insight.scan.model.ScanFileNames;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,19 +58,46 @@ public class ApplicationEvaluationResourceTest
 
   private PolicyDAO policyDAO;
 
+  private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
+  private PolicyEvaluationHelper policyEvaluationHelper;
+
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
+    licenseManager.setProducts(
+        ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
+        ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS
+    );
+    installLicense();
+
     policyEvaluationDAO = lookup(PolicyEvaluationDAO.class);
     policyDAO = lookup(PolicyDAO.class);
+    thirdPartySbomMetadataDAO = lookup(ThirdPartySbomMetadataDAO.class);
+    policyEvaluationHelper = lookup(PolicyEvaluationHelper.class);
   }
 
-  private HttpRequest evaluateWithPollingRequest(IntegrationType integrationType,
-                                                 String applicationPublicId,
-                                                 String stageId)
+  private HttpRequest evaluateWithPollingRequest(
+      IntegrationType integrationType,
+      String applicationPublicId,
+      String stageId,
+      ClientScanType scanType,
+      boolean withFile) throws IOException, URISyntaxException
   {
-    return restRequest()
+    HttpRequest request = restRequest()
         .path(ApplicationEvaluationResource.RESOURCE_PATH, ApplicationEvaluationResource.EVALUATE_PATH)
-        .query("scanType", ClientScanType.SONATYPE).parameter(applicationPublicId, integrationType, stageId);
+        .query("scanType", scanType).parameter(applicationPublicId, integrationType, stageId);
+
+    if (withFile) {
+      URL resource = getClass().getResource("/ApplicationEvaluationResourceTest/container-scan.xml");
+      File mockScanXml = tempDir.newFile(ScanFileNames.SONATYPE_SCAN_FILENAME);
+      try (GZIPOutputStream gzipStream = new GZIPOutputStream(new FileOutputStream(mockScanXml))) {
+        FileUtils.copyFile(new File(resource.toURI()), gzipStream);
+      }
+
+      request.body(mockScanXml);
+    }
+
+    return request;
   }
 
   private HttpRequest pollEvaluationResultRequest(String appId, String statusId) {
@@ -79,7 +124,8 @@ public class ApplicationEvaluationResourceTest
 
     // evaluate policy
     HttpResponse response =
-        evaluateWithPollingRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID) //
+        evaluateWithPollingRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
+            ClientScanType.SONATYPE, false) //
             .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
             .post();
     assertResponseStatus(200, response);
@@ -115,6 +161,44 @@ public class ApplicationEvaluationResourceTest
 
     assertThat(getHdsServer().getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH)
         .get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+  }
+
+  @Test
+  public void testEvaluateWithPollingAndPollEvaluationResult_complianceStage() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    String testClientUserAgent = "testClientUserAgent";
+
+    Policy policy = tempEntity.newPolicy(app);
+    policy.setAction(ComplianceStageType.ID, Action.ID_FAIL);
+    policyDAO.update(policy);
+
+    // Simulate that the report is available
+    String scanId = mockReport("/" + getClass().getSimpleName() + "/report");
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+
+    mockScanReceipt(scanReceipt);
+
+    // evaluate policy
+    HttpResponse response =
+        evaluateWithPollingRequest(IntegrationType.CLI, app.getPublicId(), ComplianceStageType.ID,
+            ClientScanType.SONATYPE_THIRD_PARTY, true) //
+            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+            .post();
+    assertResponseStatus(200, response);
+
+    PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
+    policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), receipt.getStatusId());
+
+    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByScanId(scanId);
+    assertThat(sbomMetadata).isNotNull();
+    assertThat(sbomMetadata.getSbomVersion()).isNotEmpty();
+    assertThat(sbomMetadata.getFilename()).isNotEmpty();
+    assertThat(sbomMetadata.getScanType()).isEqualTo(SbomScanType.BINARY.toString());
+    assertThat(sbomMetadata.getSpec()).isEqualTo(SbomSpecification.CYCLONEDX.toString());
+    assertThat(sbomMetadata.getSpecFormat()).isEqualTo(SbomFormat.JSON.toString());
+    assertThat(sbomMetadata.getSpecVersion()).isEqualTo(ExportSpecification.DEFAULT.getVersion());
+    assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.toString());
   }
 
   private PolicyEvaluationPollingResult getPolicyEvaluationPollingResult(String applicationPublicId, String statusId)

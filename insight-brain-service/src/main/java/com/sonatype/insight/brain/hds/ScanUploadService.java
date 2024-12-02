@@ -98,21 +98,22 @@ public class ScanUploadService
     if (scanFile == null || app == null) {
       throw new IllegalArgumentException("scanFile and application is required for scan uploads");
     }
-    ThirdPartyScanContext tpScanContext =
+    ThirdPartyScanContext thirdPartyScanContext =
         getThirdPartyScanContext(scanRequestId, scanFile, app, stageTypeId, scanContext);
     if (thirdPartyScanTelemetryData != null) {
-      thirdPartyScanTelemetryData.put("scan_file_type", tpScanContext.getScanType().name());
+      thirdPartyScanTelemetryData.put("scan_file_type", thirdPartyScanContext.getScanType().name());
     }
     ScanReceipt scanReceipt;
     if (ClientScanType.SONATYPE_THIRD_PARTY.equals(clientScanType)) {
       scanReceipt =
-          filterAndUpload(scanFile, app, stageTypeId, clientUserAgent, tpScanContext, thirdPartyScanTelemetryData);
+          filterAndUpload(scanFile, app, stageTypeId, clientUserAgent, thirdPartyScanContext,
+              thirdPartyScanTelemetryData);
     }
     else {
-      scanReceipt = uploader.upload(scanFile, app, stageTypeId, clientUserAgent);
+      scanReceipt = uploader.upload(scanFile, app, stageTypeId, clientUserAgent, thirdPartyScanContext);
       if (ComplianceStageType.ID.equals(stageTypeId) && StringUtils.isNotEmpty(scanRequestId)) {
         thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanReceipt.getScanId());
-        saveFilteredScanFileIfNeeded(tpScanContext, scanFile);
+        saveFilteredScanFileIfNeeded(thirdPartyScanContext, scanFile);
       }
     }
     return scanReceipt;
@@ -134,7 +135,7 @@ public class ScanUploadService
     String scanRequestId =
         scanResultsProcessor.filterAndSaveData(scanFile, tempScanFile, scanDir, thirdPartyScanContext,
             thirdPartyScanTelemetryData);
-    ScanReceipt scanReceipt = uploader.upload(tempScanFile, app, stageTypeId, clientUserAgent);
+    ScanReceipt scanReceipt = uploader.upload(tempScanFile, app, stageTypeId, clientUserAgent, thirdPartyScanContext);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanReceipt.getScanId());
     saveFilteredScanFileIfNeeded(thirdPartyScanContext, tempScanFile);
     try {

@@ -1,0 +1,183 @@
+<scan version="2.24">
+  <configuration>
+    <properties>
+      <property name="anonymizeArtifactIds" value="false"/>
+      <property name="jreInfo" value="true"/>
+      <property name="maxSymlinkDepth" value="5"/>
+      <property name="dirExcludes" value="**/.*, **/CVS"/>
+      <property name="hashFiles" value="true"/>
+      <property name="anonymizePaths" value="false"/>
+      <property name="procArch" value="true"/>
+      <property name="proprietaryPackages" value=""/>
+      <property name="proprietaryRegexes" value=""/>
+      <property name="fileIncludes" value=""/>
+      <property name="fileSizes" value="false"/>
+      <property name="operatingSystem" value="true"/>
+      <property name="archiveNames" value="true"/>
+      <property name="fileExcludes" value=""/>
+      <property name="maxDepth" value="256"/>
+      <property name="resourceNames" value="true"/>
+      <property name="dirIncludes" value=""/>
+      <property name="pomProperties" value="true"/>
+      <property name="ipAddresses" value="false"/>
+      <property name="nameHashes" value="true"/>
+      <property name="hashJavaTypes" value="true"/>
+    </properties>
+  </configuration>
+  <metadata commitHash="719f5b49d89d0ce4513aef7141b824b54fec0aee"/>
+  <item path="container:alpine:3.17" contentType="CONTAINER_URI" sha1="f5622b4df6243f1f267b">
+    <content>{
+      &quot;error_message&quot;: &quot;&quot;,
+      &quot;report&quot;: {
+      &quot;image_id&quot;: &quot;5c3ba30d84c39d30f1d59207a0fa1ecb68fd42bce6e868ec3504ccbe801ffee2&quot;,
+      &quot;registry&quot;: &quot;&quot;,
+      &quot;repository&quot;: &quot;alpine&quot;,
+      &quot;tag&quot;: &quot;3.17&quot;,
+      &quot;digest&quot;: &quot;sha256:3451da08fc6ef554a100da3e2df5ac6d598c82f2a774d5f6ed465c3d80cd163a&quot;,
+      &quot;base_os&quot;: &quot;alpine:3.17.10&quot;,
+      &quot;cvedb_version&quot;: &quot;3.629&quot;,
+      &quot;cvedb_create_time&quot;: &quot;2024-11-24T20:45:52Z&quot;,
+      &quot;layers&quot;: [],
+      &quot;vulnerabilities&quot;: [
+      {
+      &quot;name&quot;: &quot;CVE-2024-9143&quot;,
+      &quot;score&quot;: 4.0,
+      &quot;severity&quot;: &quot;Medium&quot;,
+      &quot;vectors&quot;: &quot;&quot;,
+      &quot;description&quot;: &quot;description&quot;,
+      &quot;package_name&quot;: &quot;openssl&quot;,
+      &quot;package_version&quot;: &quot;3.0.15-r0&quot;,
+      &quot;fixed_version&quot;: &quot;3.0.15-r1&quot;,
+      &quot;link&quot;: &quot;https://cve.mitre.org/cgi-bin/cvename.cgi?name\u003dCVE-2024-9143&quot;,
+      &quot;score_v3&quot;: 4.3,
+      &quot;vectors_v3&quot;: &quot;CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:L/A:N&quot;,
+      &quot;published_timestamp&quot;: 1732182844,
+      &quot;last_modified_timestamp&quot;: 1732182844,
+      &quot;cves&quot;: [
+      &quot;CVE-2024-9143&quot;
+      ],
+      &quot;feed_rating&quot;: &quot;Medium&quot;
+      }
+      ],
+      &quot;modules&quot;: [
+      {
+      &quot;name&quot;: &quot;musl&quot;,
+      &quot;version&quot;: &quot;1.2.3-r5&quot;,
+      &quot;source&quot;: &quot;alpine:3.17.10&quot;
+      },
+      {
+      &quot;name&quot;: &quot;busybox&quot;,
+      &quot;version&quot;: &quot;1.35.0-r31&quot;,
+      &quot;source&quot;: &quot;alpine:3.17.10&quot;
+      },
+      {
+      &quot;name&quot;: &quot;alpine-keys&quot;,
+      &quot;version&quot;: &quot;2.4-r1&quot;,
+      &quot;source&quot;: &quot;alpine:3.17.10&quot;
+      },
+      {
+      &quot;name&quot;: &quot;ca-certificates&quot;,
+      &quot;version&quot;: &quot;20240226-r0&quot;,
+      &quot;source&quot;: &quot;alpine:3.17.10&quot;
+      },
+      {
+      &quot;name&quot;: &quot;openssl&quot;,
+      &quot;version&quot;: &quot;3.0.15-r0&quot;,
+      &quot;source&quot;: &quot;alpine:3.17.10&quot;,
+      &quot;cves&quot;: [
+      {
+      &quot;name&quot;: &quot;CVE-2024-9143&quot;,
+      &quot;status&quot;: &quot;fix exists&quot;
+      }
+      ]
+      },
+      {
+      &quot;name&quot;: &quot;apk-tools&quot;,
+      &quot;version&quot;: &quot;2.12.14-r0&quot;,
+      &quot;source&quot;: &quot;alpine:3.17.10&quot;
+      },
+      {
+      &quot;name&quot;: &quot;pax-utils&quot;,
+      &quot;version&quot;: &quot;1.3.5-r1&quot;,
+      &quot;source&quot;: &quot;alpine:3.17.10&quot;
+      },
+      {
+      &quot;name&quot;: &quot;alpine-baselayout&quot;,
+      &quot;version&quot;: &quot;3.4.0-r0&quot;,
+      &quot;source&quot;: &quot;alpine:3.17.10&quot;
+      },
+      {
+      &quot;name&quot;: &quot;zlib&quot;,
+      &quot;version&quot;: &quot;1.2.13-r0&quot;,
+      &quot;source&quot;: &quot;alpine:3.17.10&quot;
+      },
+      {
+      &quot;name&quot;: &quot;libc-dev&quot;,
+      &quot;version&quot;: &quot;0.7.2-r3&quot;,
+      &quot;source&quot;: &quot;alpine:3.17.10&quot;
+      }
+      ],
+      &quot;checks&quot;: [
+      {
+      &quot;test_number&quot;: &quot;I.4.1&quot;,
+      &quot;type&quot;: &quot;image&quot;,
+      &quot;profile&quot;: &quot;Level 1&quot;,
+      &quot;scored&quot;: true,
+      &quot;description&quot;: &quot;Ensure a user for the container has been created&quot;,
+      &quot;remediation&quot;: &quot;&quot;,
+      &quot;level&quot;: &quot;WARN&quot;,
+      &quot;message&quot;: []
+      },
+      {
+      &quot;test_number&quot;: &quot;I.4.6&quot;,
+      &quot;type&quot;: &quot;image&quot;,
+      &quot;profile&quot;: &quot;Level 1&quot;,
+      &quot;scored&quot;: false,
+      &quot;description&quot;: &quot;Ensure that HEALTHCHECK instructions have been added to container images&quot;,
+      &quot;remediation&quot;: &quot;&quot;,
+      &quot;level&quot;: &quot;WARN&quot;,
+      &quot;message&quot;: []
+      }
+      ],
+      &quot;envs&quot;: [
+      &quot;PATH\u003d/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin&quot;
+      ],
+      &quot;cmds&quot;: [
+      &quot;CMD [\&quot;/bin/sh\&quot;]&quot;,
+      &quot;ADD file:e3f989df31d7e2d820078058c5d0ed7d98695c5b86bd172276270ebb59d75ee6 in /&quot;
+      ]
+      }
+      }
+    </content>
+  </item>
+  <summary>
+    <scannerDriver>cli</scannerDriver>
+    <scannerVersion>1.184.0-01</scannerVersion>
+    <operatingSystem>Mac OS X</operatingSystem>
+    <processorArchitecture>aarch64</processorArchitecture>
+    <startTime>2024-11-25T15:13:55+0000</startTime>
+    <endTime>2024-11-25T15:14:36+0000</endTime>
+    <files>1</files>
+    <clientInfo>
+      <property name="java.specification.version" value="17"/>
+      <property name="java.runtime.version" value="17.0.12+8-LTS-jvmci-23.0-b41"/>
+      <property name="java.vm.vendor" value="Oracle Corporation"/>
+      <property name="java.runtime.name" value="GraalVM Runtime Environment"/>
+      <property name="java.vendor.url" value="https://www.graalvm.org/"/>
+      <property name="insight.scannerVersion" value="1.184.0-01"/>
+      <property name="os.name" value="Mac OS X"/>
+      <property name="java.vm.specification.version" value="17"/>
+      <property name="java.vm.name" value="Substrate VM"/>
+      <property name="java.vendor.version" value="Oracle GraalVM 17.0.12+8.1"/>
+      <property name="insight.scannerDriver" value="cli"/>
+      <property name="java.version" value="17.0.12"/>
+      <property name="os.arch" value="aarch64"/>
+      <property name="java.specification.vendor" value="Oracle Corporation"/>
+      <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+      <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+      <property name="java.specification.name" value="Java Platform API Specification"/>
+      <property name="java.vm.info" value="serial gc, compressed references"/>
+      <property name="java.vm.version" value="17.0.12+8-LTS"/>
+    </clientInfo>
+  </summary>
+</scan>

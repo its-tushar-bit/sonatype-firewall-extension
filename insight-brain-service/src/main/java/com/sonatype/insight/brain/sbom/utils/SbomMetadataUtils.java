@@ -14,11 +14,11 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Matcher;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.core.UriBuilder;
@@ -26,15 +26,24 @@ import javax.ws.rs.core.UriBuilder;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.api.v2.ApiSbomResource;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
+import com.sonatype.insight.brain.thirdparty.SbomAction;
+import com.sonatype.insight.brain.thirdparty.SbomScanType;
+import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.scan.application.ScannerDriver;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.model.ItemContentType;
@@ -67,17 +76,25 @@ public class SbomMetadataUtils
 
   private final Scanner scanner;
 
+  private final ThirdPartyFileDAO thirdPartyFileDAO;
+
+  private final ThirdPartyScanDAO thirdPartyScanDAO;
+
   @Inject
   public SbomMetadataUtils(
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final ProductLicense productLicense,
       final ProprietaryConfigService proprietaryConfigService,
-      final Scanner scanner)
+      final Scanner scanner,
+      final ThirdPartyFileDAO thirdPartyFileDAO,
+      final ThirdPartyScanDAO thirdPartyScanDAO)
   {
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.productLicense = productLicense;
     this.proprietaryConfigService = proprietaryConfigService;
     this.scanner = scanner;
+    this.thirdPartyFileDAO = thirdPartyFileDAO;
+    this.thirdPartyScanDAO = thirdPartyScanDAO;
   }
 
   public boolean hasMaxSbomLimitBeenReached() {
@@ -235,5 +252,37 @@ public class SbomMetadataUtils
         })
         .filter(Objects::nonNull)
         .toList();
+  }
+
+  public ThirdPartySbomMetadata createAndSaveBinaryThirdPartyData(
+      String applicationId,
+      String fileName,
+      String applicationVersion,
+      String scanRequestId)
+  {
+    ThirdPartyFile thirdPartyFile = new ThirdPartyFile(fileName, new Date());
+    thirdPartyFileDAO.insert(thirdPartyFile);
+    ThirdPartyScan thirdPartyScan = new ThirdPartyScan(thirdPartyFile.getId(), scanRequestId, new Date());
+    thirdPartyScanDAO.insert(thirdPartyScan);
+    ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata(
+        thirdPartyFile.getId(),
+        applicationId,
+        applicationVersion != null ? applicationVersion : dtFormatter.format(LocalDateTime.now()),
+        thirdPartyFile.getFilename(),
+        UUID.randomUUID().toString(),
+        SbomSpecification.CYCLONEDX.toString(),
+        SbomFormat.JSON.toString(),
+        ExportSpecification.DEFAULT.getVersion(),
+        SbomStatus.PENDING.toString(),
+        new Date(),
+        SbomCycloneDxUtils.getGenericSbomCreationDetailsAsString(),
+        SbomScanType.BINARY.toString(),
+        true,
+        thirdPartyFile.getFilename()
+    );
+    insertThirdPartySbomMetadataWithRetry(thirdPartySbomMetadata);
+    AuditData.get().setSbomVersion(thirdPartySbomMetadata, SbomAction.CREATE);
+
+    return thirdPartySbomMetadata;
   }
 }

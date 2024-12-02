@@ -100,11 +100,11 @@ public class ScanUploadServiceTest
 
     ScanReceipt mockReceipt = new ScanReceipt();
     mockReceipt.setScanId(scanId);
-    when(scanUploader.upload(any(File.class), eq(app), eq(stageTypeId), eq(null))).thenReturn(mockReceipt);
+    when(scanUploader.upload(any(File.class), eq(app), eq(stageTypeId), eq(null), any())).thenReturn(mockReceipt);
     ScanReceipt uploadReceipt =
         service.upload(scanFile, app, stageTypeId, null, null, thirdPartyScanTelemetryData, scanRequestId);
 
-    verify(scanUploader, times(1)).upload(any(File.class), eq(app), eq(stageTypeId), eq(null));
+    verify(scanUploader, times(1)).upload(any(File.class), eq(app), eq(stageTypeId), eq(null), any());
     verify(thirdPartyScanDAO, times(1)).updateScanIdForScanRequest(scanRequestId, mockReceipt.getScanId());
     assertThat(uploadReceipt).isEqualTo(mockReceipt);
     assertThat(thirdPartyScanTelemetryData.getAttributes()).extracting("scan_file_type")
@@ -126,13 +126,13 @@ public class ScanUploadServiceTest
     when(thirdPartyScanResultsProcessorMock.filterAndSaveData(eq(scanFile), any(File.class),
         any(File.class), eq(mockContext), eq(null)))
         .thenReturn(scanRequestId);
-    when(scanUploader.upload(any(File.class), eq(app), eq(stage.getStageTypeId()), eq(null)))
+    when(scanUploader.upload(any(File.class), eq(app), eq(stage.getStageTypeId()), eq(null), eq(mockContext)))
         .thenReturn(scanReceipt);
 
     ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
     String testClientUserAgent = "client_user_agent";
-    when(scanUploader.upload(any(File.class), eq(app), eq(stage.getStageTypeId()), clientUserAgentArgCaptor.capture()))
-        .thenReturn(scanReceipt);
+    when(scanUploader.upload(any(File.class), eq(app), eq(stage.getStageTypeId()), clientUserAgentArgCaptor.capture(),
+        eq(mockContext))).thenReturn(scanReceipt);
 
     service.filterAndUpload(scanFile, app, stage.getStageTypeId(), testClientUserAgent, mockContext, null);
 
@@ -182,10 +182,9 @@ public class ScanUploadServiceTest
   public void testUpload_NonThirdParty() throws Exception {
     String stageTypeId = ReleaseStageType.ID;
     File scanFile = createScanFile(app, TemporaryEntity.uuid().substring(0, 10));
-
     service.upload(scanFile, app, stageTypeId, null, null, thirdPartyScanTelemetryData, null);
 
-    verify(scanUploader, times(1)).upload(eq(scanFile), eq(app), eq(stageTypeId), eq(null));
+    verify(scanUploader, times(1)).upload(eq(scanFile), eq(app), eq(stageTypeId), eq(null), any());
     verify(thirdPartyScanDAO, never()).updateScanIdForScanRequest(any(), any());
     assertThat(thirdPartyScanTelemetryData.getAttributes()).extracting("scan_file_type")
         .isEqualTo(SbomScanType.SBOM.name());
@@ -208,13 +207,13 @@ public class ScanUploadServiceTest
     mockReceipt.setScanId(scanId);
     when(thirdPartyScanResultsProcessorMock.filterAndSaveData(any(File.class), any(File.class), any(File.class),
         any(), any())).thenReturn(scanRequestId);
-    when(scanUploader.upload(any(File.class), eq(app), eq(stageTypeId), eq(null))).thenReturn(mockReceipt);
+    when(scanUploader.upload(any(File.class), eq(app), eq(stageTypeId), eq(null), any())).thenReturn(mockReceipt);
 
     ScanReceipt uploadReceipt =
         service.upload(scanFile, app, stageTypeId, ClientScanType.SONATYPE, null, thirdPartyScanTelemetryData,
             scanRequestId);
 
-    verify(scanUploader, times(1)).upload(any(File.class), eq(app), eq(stageTypeId), eq(null));
+    verify(scanUploader, times(1)).upload(any(File.class), eq(app), eq(stageTypeId), eq(null), any());
     verify(thirdPartyScanDAO, times(1)).updateScanIdForScanRequest(scanRequestId, mockReceipt.getScanId());
     assertThat(uploadReceipt).isEqualTo(mockReceipt);
     assertThat(thirdPartyScanTelemetryData.getAttributes()).extracting("scan_file_type")
@@ -238,13 +237,13 @@ public class ScanUploadServiceTest
     mockReceipt.setScanId(scanId);
     when(thirdPartyScanResultsProcessorMock.filterAndSaveData(any(File.class), any(File.class), any(File.class),
         any(), any())).thenReturn(scanRequestId);
-    when(scanUploader.upload(any(File.class), eq(app), eq(stageTypeId), eq(null))).thenReturn(mockReceipt);
+    when(scanUploader.upload(any(File.class), eq(app), eq(stageTypeId), eq(null), any())).thenReturn(mockReceipt);
 
     ScanReceipt uploadReceipt =
         service.upload(scanFile, app, stageTypeId, ClientScanType.SONATYPE_THIRD_PARTY, null,
             thirdPartyScanTelemetryData, scanRequestId);
 
-    verify(scanUploader, times(1)).upload(any(File.class), eq(app), eq(stageTypeId), eq(null));
+    verify(scanUploader, times(1)).upload(any(File.class), eq(app), eq(stageTypeId), eq(null), any());
     verify(thirdPartyScanDAO, times(1)).updateScanIdForScanRequest(scanRequestId, mockReceipt.getScanId());
     assertThat(uploadReceipt).isEqualTo(mockReceipt);
     assertThat(thirdPartyScanTelemetryData.getAttributes()).extracting("scan_file_type")

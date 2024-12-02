@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -20,7 +19,9 @@ import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext;
 
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
@@ -53,7 +54,8 @@ public class ScanUploader
       File scanFile,
       Application application,
       String stageTypeId,
-      String clientUserAgent)
+      String clientUserAgent,
+      ThirdPartyScanContext thirdPartyScanContext)
       throws IOException
   {
     HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(application);
@@ -71,19 +73,40 @@ public class ScanUploader
       uploadMetadata.putAll(matcherConfiguration);
     }
     ScanReceipt receipt = client.put(analytics, ScanReceipt.class, clientUserAgent, HDS_PATH, scanFile, uploadMetadata);
-    augmentScanReceipt(application.getPublicId(), receipt);
+    augmentScanReceipt(application.getPublicId(), receipt, stageTypeId, thirdPartyScanContext);
     return receipt;
   }
 
-  void augmentScanReceipt(String applicationPublicId, ScanReceipt receipt) {
-    log.debug("Successfully uploaded scan id {}", receipt.getScanId());
+  void augmentScanReceipt(
+      String applicationPublicId,
+      ScanReceipt receipt,
+      String stageTypeId,
+      ThirdPartyScanContext thirdPartyScanContext)
+  {
+    log.debug("Successfully uploaded scan id {} for stageType {}", receipt.getScanId(), stageTypeId);
     AuditData.get().setScanId(receipt.getScanId());
 
     // HDS knows nothing about where CLM Server stores reports, add this info to the receipt.
-    receipt.setReportUrl(UserInterfaceLinksHelper.getReportUrl(applicationPublicId, receipt.getScanId()));
-    receipt.setPdfUrl(UserInterfaceLinksHelper.getPdfUrl(applicationPublicId, receipt.getScanId()));
-    receipt.setDataUrl(ApiReportDataResourceV2.getDataUrl(applicationPublicId, receipt.getScanId()));
-    receipt.setPrioritiesUrl(UserInterfaceLinksHelper.getPrioritiesUrl(applicationPublicId, receipt.getScanId()));
-    receipt.setReportTimeoutInSeconds(configuration.getReportTimeoutInSeconds());
+    if (StageTypes.COMPLIANCE.getId().equals(stageTypeId) && thirdPartyScanContext.getApplicationVersion() != null) {
+      updateReceiptForCompliance(applicationPublicId, receipt, thirdPartyScanContext);
+    }
+    else {
+      receipt.setReportUrl(UserInterfaceLinksHelper.getReportUrl(applicationPublicId, receipt.getScanId()));
+      receipt.setPdfUrl(UserInterfaceLinksHelper.getPdfUrl(applicationPublicId, receipt.getScanId()));
+      receipt.setDataUrl(ApiReportDataResourceV2.getDataUrl(applicationPublicId, receipt.getScanId()));
+      receipt.setPrioritiesUrl(UserInterfaceLinksHelper.getPrioritiesUrl(applicationPublicId, receipt.getScanId()));
+      receipt.setReportTimeoutInSeconds(configuration.getReportTimeoutInSeconds());
+    }
+  }
+
+  private void updateReceiptForCompliance(
+      String applicationPublicId,
+      ScanReceipt receipt,
+      ThirdPartyScanContext thirdPartyScanContext)
+  {
+    String bomPath = UserInterfaceLinksHelper.getSBOMBillOfMaterialPath(applicationPublicId,
+        thirdPartyScanContext.getApplicationVersion());
+    receipt.setReportUrl(bomPath);
+    receipt.setPdfUrl(bomPath + "/pdf");
   }
 }

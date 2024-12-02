@@ -9,19 +9,25 @@ import java.io.File;
 import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.UUID;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiSbomResource;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.scan.application.ScannerDriver;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -44,11 +50,23 @@ public class SbomMetadataUtilsTest
   @Inject
   private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
-  @Mock
-  private ProductLicense productLicense;
+  @Inject
+  private ThirdPartyFileDAO thirdPartyFileDAO;
+
+  @Inject
+  private ThirdPartyScanDAO thirdPartyScanDAO;
 
   @Mock
-  private ProprietaryConfigService proprietaryConfigService;
+  private ProductLicense mockProductLicense;
+
+  @Mock
+  private ProprietaryConfigService mockProprietaryConfigService;
+
+  @Mock
+  private ThirdPartyFileDAO mockThirdPartyFileDAO;
+
+  @Mock
+  private ThirdPartyScanDAO mockThirdPartyScanDAO;
 
   @Inject
   private Scanner scanner;
@@ -58,13 +76,14 @@ public class SbomMetadataUtilsTest
   @Before
   public void before() {
     sbomMetadataUtils =
-        new SbomMetadataUtils(mockThirdPartySbomMetadataDAO, productLicense, proprietaryConfigService, scanner);
+        new SbomMetadataUtils(mockThirdPartySbomMetadataDAO, mockProductLicense, mockProprietaryConfigService, scanner,
+            mockThirdPartyFileDAO, mockThirdPartyScanDAO);
   }
 
   @Test
   public void testHasMaxSbomLimitBeenReached_Less() {
     when(mockThirdPartySbomMetadataDAO.getSbomCount()).thenReturn(1L);
-    when(productLicense.getMaxSboms()).thenReturn(2);
+    when(mockProductLicense.getMaxSboms()).thenReturn(2);
 
     assertThat(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).isFalse();
   }
@@ -72,7 +91,7 @@ public class SbomMetadataUtilsTest
   @Test
   public void testHasMaxSbomLimitBeenReached_Equal() {
     when(mockThirdPartySbomMetadataDAO.getSbomCount()).thenReturn(2L);
-    when(productLicense.getMaxSboms()).thenReturn(2);
+    when(mockProductLicense.getMaxSboms()).thenReturn(2);
 
     assertThat(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).isTrue();
   }
@@ -80,7 +99,7 @@ public class SbomMetadataUtilsTest
   @Test
   public void testHasMaxSbomLimitBeenReached_More() {
     when(mockThirdPartySbomMetadataDAO.getSbomCount()).thenReturn(3L);
-    when(productLicense.getMaxSboms()).thenReturn(2);
+    when(mockProductLicense.getMaxSboms()).thenReturn(2);
 
     assertThat(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).isTrue();
   }
@@ -88,7 +107,7 @@ public class SbomMetadataUtilsTest
   @Test
   public void testHasMaxSbomLimitBeenReached_NullSbomLimit() {
     when(mockThirdPartySbomMetadataDAO.getSbomCount()).thenReturn(2L);
-    when(productLicense.getMaxSboms()).thenReturn(null);
+    when(mockProductLicense.getMaxSboms()).thenReturn(null);
 
     assertThat(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).isTrue();
   }
@@ -163,7 +182,8 @@ public class SbomMetadataUtilsTest
   @Test
   public void testInsertThirdPartySbomMetadataWithRetry() {
     SbomMetadataUtils sbomMetadataUtils =
-        new SbomMetadataUtils(thirdPartySbomMetadataDAO, productLicense, proprietaryConfigService, scanner);
+        new SbomMetadataUtils(thirdPartySbomMetadataDAO, mockProductLicense, mockProprietaryConfigService, scanner,
+            mockThirdPartyFileDAO, mockThirdPartyScanDAO);
     Organization organization = tempEntity.newOrganization("Testing Organization");
     Application application = tempEntity.newApplication("Testing Application", "TESTING", organization.getId());
     final ThirdPartySbomMetadata thirdPartySbomMetadata =
@@ -191,5 +211,25 @@ public class SbomMetadataUtilsTest
     assertThat(thirdPartySbomMetadataList).hasSize(2);
     assertThat(sbomVersions).containsExactlyInAnyOrder(thirdPartySbomMetadata.getSbomVersion(),
         duplicateThirdPartySbomMetadata.getSbomVersion());
+  }
+
+  @Test
+  public void testCreateAndSaveBinaryThirdPartyData() {
+    SbomMetadataUtils sbomMetadataUtils =
+        new SbomMetadataUtils(thirdPartySbomMetadataDAO, mockProductLicense, mockProprietaryConfigService, scanner,
+            thirdPartyFileDAO, thirdPartyScanDAO);
+    Application application = tempEntity.newApplicationWithParent("TEST_APP");
+    sbomMetadataUtils.createAndSaveBinaryThirdPartyData(application.getId(), "test-file.xml", "2.1",
+        UUID.randomUUID().toString());
+
+    List<ThirdPartySbomMetadata> sbomMetadataList = thirdPartySbomMetadataDAO.getByApplicationId(application.getId());
+    assertThat(sbomMetadataList).isNotEmpty().hasSize(1);
+    ThirdPartySbomMetadata sbomMetadata = sbomMetadataList.get(0);
+    assertThat(sbomMetadata.getSbomVersion()).isEqualTo("2.1");
+    assertThat(sbomMetadata.getFilename()).isEqualTo("test-file.xml");
+    assertThat(sbomMetadata.getScanType()).isEqualTo(SbomScanType.BINARY.toString());
+    assertThat(sbomMetadata.getSpec()).isEqualTo(SbomSpecification.CYCLONEDX.toString());
+    assertThat(sbomMetadata.getSpecFormat()).isEqualTo(SbomFormat.JSON.toString());
+    assertThat(sbomMetadata.getSpecVersion()).isEqualTo(ExportSpecification.DEFAULT.getVersion());
   }
 }

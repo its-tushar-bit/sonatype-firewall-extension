@@ -7,14 +7,15 @@ package com.sonatype.insight.brain.hds;
 
 import java.io.File;
 import java.util.Map;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
@@ -43,11 +44,15 @@ public class ScanUploaderTest
   @Mock
   private Configuration mockConfiguration;
 
+  @Mock
+  private ThirdPartyScanContext thirdPartyScanContext;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(mockHdsClient);
     binder.bind(InsightConfig.class).toInstance(insightConfig);
     binder.bind(Configuration.class).toInstance(mockConfiguration);
+    binder.bind(ThirdPartyScanContext.class).toInstance(thirdPartyScanContext);
     super.configure(binder);
   }
 
@@ -56,11 +61,27 @@ public class ScanUploaderTest
     when(mockConfiguration.getReportTimeoutInSeconds()).thenReturn(2100);
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scan id");
-    scanUploader.augmentScanReceipt("app id", receipt);
+    scanUploader.augmentScanReceipt("app id", receipt, StageTypes.RELEASE.getId(), thirdPartyScanContext);
     assertThat(receipt.getReportUrl()).isEqualTo("ui/links/application/app%20id/report/scan%20id");
     assertThat(receipt.getPdfUrl()).isEqualTo("ui/links/application/app%20id/report/scan%20id/pdf");
     assertThat(receipt.getDataUrl()).isEqualTo("api/v2/applications/app%20id/reports/scan%20id/raw");
+    assertThat(receipt.getPrioritiesUrl()).isEqualTo("ui/links/developer/priorities/app%20id/scan%20id");
     assertThat(receipt.getReportTimeoutInSeconds()).isEqualTo(2100);
+  }
+
+  @Test
+  public void testAugmentScanReceipt_SbomManager() {
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("scan id");
+    when(thirdPartyScanContext.getApplicationVersion()).thenReturn("version");
+    scanUploader.augmentScanReceipt("app id", receipt, StageTypes.COMPLIANCE.getId(), thirdPartyScanContext);
+    assertThat(receipt.getReportUrl()).isEqualTo(
+        "ui/links/sbomManager/management/view/application/app%20id/bom/version");
+    assertThat(receipt.getPdfUrl()).isEqualTo(
+        "ui/links/sbomManager/management/view/application/app%20id/bom/version/pdf");
+    assertThat(receipt.getPrioritiesUrl()).isNull();
+    assertThat(receipt.getDataUrl()).isNull();
+    assertThat(receipt.getReportTimeoutInSeconds()).isNull();
   }
 
   @Test
@@ -75,7 +96,7 @@ public class ScanUploaderTest
     when(mockHdsClient.put(analyticsArg.capture(), eq(ScanReceipt.class), eq(null), any(String.class),
         any(File.class), anyMap(), any(String[].class))).thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app, null, null);
+    scanUploader.upload(tempDir.newFile(), app, null, null, thirdPartyScanContext);
     HdsClientAnalytics analytics = analyticsArg.getValue();
     assertThat(analytics).isEqualTo(expectedAnalyticsData);
   }
@@ -92,7 +113,7 @@ public class ScanUploaderTest
         any(String.class), any(File.class), anyMap(), any(String[].class))) //
         .thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app, null, testClientUserAgent);
+    scanUploader.upload(tempDir.newFile(), app, null, testClientUserAgent, thirdPartyScanContext);
     assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
   }
 
@@ -109,7 +130,7 @@ public class ScanUploaderTest
         any(File.class), metadataArgs.capture(), any(String[].class))) //
         .thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app, null, null);
+    scanUploader.upload(tempDir.newFile(), app, null, null, thirdPartyScanContext);
 
     assertThat(metadataArgs.getValue()).containsAllEntriesOf(matcherConfigs);
   }
@@ -126,7 +147,7 @@ public class ScanUploaderTest
         any(File.class), queryParamsCaptor.capture(), any(String[].class))) //
         .thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app, null, null);
+    scanUploader.upload(tempDir.newFile(), app, null, null, thirdPartyScanContext);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
   }

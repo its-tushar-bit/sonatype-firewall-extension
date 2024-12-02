@@ -25,8 +25,6 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.policy.StageTypeService;
-import com.sonatype.insight.brain.scan.ScanContext;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.metrics.PolicyEvaluateServiceMetrics;
@@ -34,7 +32,13 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
+import com.sonatype.insight.brain.scan.ScanContext;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -43,6 +47,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
@@ -87,6 +92,10 @@ public class PolicyEvaluateService
 
   private final PolicyEvaluationUtil policyEvaluationUtil;
 
+  private final SbomMetadataUtils sbomMetadataUtils;
+
+  private final ProductLicense productLicense;
+
   public boolean disablePollingIntervalForTesting = false;
 
   @Inject
@@ -102,7 +111,9 @@ public class PolicyEvaluateService
       TelemetryUtils telemetryUtils,
       ShutdownHandler shutdownHandler,
       PolicyEvaluateServiceMetrics policyEvaluateServiceMetrics,
-      PolicyEvaluationUtil policyEvaluationUtil)
+      PolicyEvaluationUtil policyEvaluationUtil,
+      SbomMetadataUtils sbomMetadataUtils,
+      ProductLicense productLicense)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
@@ -114,8 +125,10 @@ public class PolicyEvaluateService
     this.telemetryUtils = telemetryUtils;
     this.policyEvaluateServiceMetrics = policyEvaluateServiceMetrics;
     this.policyEvaluationUtil = policyEvaluationUtil;
+    this.productLicense = productLicense;
     this.executor = buildExecutorService();
     this.stageTypeService = stageTypeService;
+    this.sbomMetadataUtils = sbomMetadataUtils;
     shutdownHandler.add(executor, 2);
   }
 
@@ -255,9 +268,27 @@ public class PolicyEvaluateService
     String thirdPartyScanType =
         clientScanType == ClientScanType.SONATYPE_THIRD_PARTY ? integrationType.toString() : null;
 
+    ScanContext scanContext = null;
+    if (stageTypeService.getLicensedStageTypes().contains(StageTypes.COMPLIANCE)
+        && stage.getStageTypeId().equals(Stage.ID_COMPLIANCE)) {
+      if (sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
+        throw new PaymentRequiredException(
+            "You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.");
+      }
+      else {
+        ThirdPartySbomMetadata sbomMetadata = sbomMetadataUtils.createAndSaveBinaryThirdPartyData(
+            app.getId(),
+            tempScanFile.getName(),
+            null,
+            statusId
+        );
+        scanContext = new ScanContext.Builder().applicationVersion(sbomMetadata.getSbomVersion()).isValid(true).build();
+      }
+    }
+
     evaluateWithPolling(statusId, app, clientScanType, stage, getScanTriggerType(integrationType),
         tempScanFile, thirdPartyScanType, HdsClient.getClientUserAgent(req),
-        HdsClient.getClientInstanceId(req));
+        HdsClient.getClientInstanceId(req), scanContext);
 
     PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
     policyEvaluationReceipt.setStatusId(statusId);

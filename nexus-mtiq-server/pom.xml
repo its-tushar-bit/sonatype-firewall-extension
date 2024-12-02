@@ -203,6 +203,7 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
               <finalName>nexus-mtiq-server</finalName> <!-- Note: version number is not included in the filename -->
               <shadedArtifactAttached>true</shadedArtifactAttached>
               <shadedClassifierName>mtiq</shadedClassifierName>

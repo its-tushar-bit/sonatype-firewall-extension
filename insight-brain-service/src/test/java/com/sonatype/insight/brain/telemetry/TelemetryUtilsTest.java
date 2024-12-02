@@ -68,6 +68,7 @@ public class TelemetryUtilsTest
     componentInfoTelemetry.incrementValidLicensesCount();
     componentInfoTelemetry.incrementInvalidLicensesCount();
     componentInfoTelemetry.incrementInvalidLicensesCount();
+    componentInfoTelemetry.setValidationErrorsCount(2);
     componentInfoTelemetry.setHasDependencies(true);
     TelemetryData telemetryData =
         telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry, true, true);
@@ -77,6 +78,7 @@ public class TelemetryUtilsTest
     assertThat(componentIdCounts.getCpeCount()).isEqualTo(2);
     assertThat(componentIdCounts.getSwidCount()).isEqualTo(3);
     assertThat(componentIdCounts.getHashCount()).isEqualTo(4);
+    assertThat(componentIdCounts.getValidationErrorsCount()).isEqualTo(2);
     assertThat(componentIdCounts.getCoordinateCount()).isEqualTo(5);
     assertThat(componentIdCounts.getHasDependencies()).isTrue();
     assertThat(componentIdCounts.getValidLicensesCount()).isEqualTo(1);

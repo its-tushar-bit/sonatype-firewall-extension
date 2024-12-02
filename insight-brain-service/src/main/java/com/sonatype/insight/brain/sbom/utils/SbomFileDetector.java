@@ -165,8 +165,8 @@ public class SbomFileDetector
       final SbomDetectionResult sbomResult,
       final boolean ignoreValidationError)
   {
+    SbomFormat sbomFormat = SbomFormat.forMimeType(sbomResult.mimeType);
     try {
-      SbomFormat sbomFormat = SbomFormat.forMimeType(sbomResult.mimeType);
       sbomResult.isSbom = true;
 
       SpdxDocument spdxDocument;
@@ -184,6 +184,9 @@ public class SbomFileDetector
         else {
           sbomResult.errorMessage = "Not a valid SPDX SBOM file.";
           sbomResult.validationErrors = getErrors(e);
+          sbomResult.summary = new SbomSummary();
+          sbomResult.summary.specification = SbomSpecification.SPDX.toString();
+          sbomResult.summary.format = sbomFormat.toString();
 
           return sbomResult;
         }
@@ -202,6 +205,9 @@ public class SbomFileDetector
       sbomResult.isValidationErrorIgnorable = false;
       sbomResult.errorMessage = "Not a valid SPDX SBOM file.";
       sbomResult.validationErrors = getErrors(e);
+      sbomResult.summary = new SbomSummary();
+      sbomResult.summary.specification = SbomSpecification.SPDX.toString();
+      sbomResult.summary.format = sbomFormat.toString();
     }
     return sbomResult;
   }
@@ -211,8 +217,8 @@ public class SbomFileDetector
       final SbomDetectionResult sbomResult,
       final boolean ignoreValidationError)
   {
+    SbomFormat sbomFormat = SbomFormat.forMimeType(sbomResult.mimeType);
     try {
-      SbomFormat sbomFormat = SbomFormat.forMimeType(sbomResult.mimeType);
       sbomResult.isSbom = true;
 
       Bom bom;
@@ -230,6 +236,9 @@ public class SbomFileDetector
         else {
           sbomResult.errorMessage = "Not a valid CycloneDX SBOM file.";
           sbomResult.validationErrors = getErrors(e);
+          sbomResult.summary = new SbomSummary();
+          sbomResult.summary.specification = SbomSpecification.CYCLONEDX.toString();
+          sbomResult.summary.format = sbomFormat.toString();
 
           return sbomResult;
         }
@@ -248,6 +257,9 @@ public class SbomFileDetector
       sbomResult.isValidationErrorIgnorable = false;
       sbomResult.errorMessage = "Not a valid CycloneDX SBOM file.";
       sbomResult.validationErrors = getErrors(e);
+      sbomResult.summary = new SbomSummary();
+      sbomResult.summary.specification = SbomSpecification.CYCLONEDX.toString();
+      sbomResult.summary.format = sbomFormat.toString();
     }
     return sbomResult;
   }

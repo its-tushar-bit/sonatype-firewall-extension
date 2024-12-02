@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
 import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
@@ -31,12 +32,15 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -64,6 +68,10 @@ public class SbomImportService
 
   private final ProductLicense productLicense;
 
+  private final TelemetrySender telemetrySender;
+
+  private final TelemetryUtils telemetryUtils;
+
   @Inject
   public SbomImportService(
       ApplicationDAO applicationDAO,
@@ -71,7 +79,9 @@ public class SbomImportService
       InsightWork insightWork,
       SbomFileDetector sbomFileDetector,
       SbomMetadataUtils sbomMetadataUtils,
-      ProductLicense productLicense)
+      ProductLicense productLicense,
+      TelemetryUtils telemetryUtils,
+      TelemetrySender telemetrySender)
   {
     this.applicationDAO = applicationDAO;
     this.sbomScanEvaluator = sbomScanEvaluator;
@@ -79,6 +89,8 @@ public class SbomImportService
     this.sbomFileDetector = sbomFileDetector;
     this.sbomMetadataUtils = sbomMetadataUtils;
     this.productLicense = productLicense;
+    this.telemetryUtils = telemetryUtils;
+    this.telemetrySender = telemetrySender;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -115,6 +127,7 @@ public class SbomImportService
 
     SbomRequestIdElements idElements;
     if (result.isSbom && StringUtils.isNotEmpty(result.errorMessage)) {
+      sendTelemetry(result);
       deleteTempFile(tempSbomFile, result.errorMessage);
       return new SbomDetectionResultDTO("", SbomScanType.SBOM, result);
     }
@@ -191,6 +204,23 @@ public class SbomImportService
         }
       }
     }
+  }
+
+  private void sendTelemetry(final SbomDetectionResult result) {
+    SbomComponentInfoTelemetry componentInfoTelemetry = new SbomComponentInfoTelemetry();
+
+    if (result.summary != null) {
+      componentInfoTelemetry.setContentType(result.summary.format);
+      componentInfoTelemetry.setSpecVersion(result.summary.version);
+      componentInfoTelemetry.setSpec(result.summary.specification);
+    }
+    componentInfoTelemetry.setValidationErrorsCount(
+        result.validationErrors == null ? 0 : result.validationErrors.size());
+    TelemetryData thirdPartyScanComponentInfoTelemetryData =
+        telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry,
+            SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled(),
+            result.isValid != null && result.isValid);
+    telemetrySender.send(thirdPartyScanComponentInfoTelemetryData);
   }
 
   private void deleteTempFile(File tempFile, String errorMessage) {

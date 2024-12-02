@@ -38,6 +38,8 @@ public class SbomComponentInfoTelemetry
 
   public Map<String, Integer> ecosystemCount = new HashMap<>();
 
+  public int validationErrorsCount;
+
   public SbomComponentInfoTelemetry() {
   }
 
@@ -165,5 +167,13 @@ public class SbomComponentInfoTelemetry
 
   public void incrementEcosystemCount(String ecosystem) {
     ecosystemCount.put(ecosystem, ecosystemCount.getOrDefault(ecosystem, 0) + 1);
+  }
+
+  public int getValidationErrorsCount() {
+    return validationErrorsCount;
+  }
+
+  public void setValidationErrorsCount(final int validationErrorsCount) {
+    this.validationErrorsCount = validationErrorsCount;
   }
 }

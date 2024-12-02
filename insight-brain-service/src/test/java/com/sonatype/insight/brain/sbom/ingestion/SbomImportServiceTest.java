@@ -17,12 +17,14 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
+import org.mockito.ArgumentCaptor;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
@@ -41,6 +43,9 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.model.ItemContentType;
+import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
@@ -50,6 +55,8 @@ import org.mockito.Mock;
 import org.thymeleaf.util.StringUtils;
 
 import static com.sonatype.insight.brain.hds.ScanUploader.HDS_PATH;
+import static com.sonatype.insight.brain.sbom.SbomSpecification.CYCLONEDX;
+import static com.sonatype.insight.brain.sbom.SbomSpecification.SPDX;
 import static com.sonatype.insight.brain.sbom.ingestion.SbomRequestIdElements.decodeFromRequestId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
@@ -57,7 +64,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 public class SbomImportServiceTest
     extends AbstractComponentTest
@@ -81,10 +90,14 @@ public class SbomImportServiceTest
   @Inject
   private PolicyEvaluationHelper policyEvaluationHelper;
 
+  @Mock
+  private TelemetrySender mockTelemetrySender;
+
   private Application application;
 
   @Override
   public void configure(Binder binder) {
+    binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
     binder.bind(HdsClient.class).toInstance(mockHdsClient);
     super.configure(binder);
   }
@@ -381,12 +394,16 @@ public class SbomImportServiceTest
     assertThat(actual.getRequestId()).isEmpty();
     assertThat(actual.getIsValid()).isFalse();
     assertThat(actual.getIsValidationErrorIgnorable()).isTrue();
-    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getSbomSummary()).isNotNull();
+    assertThat(actual.getSbomSummary().format).isEqualTo("json");
+    assertThat(actual.getSbomSummary().specification).isEqualTo("CycloneDx");
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly(
         "Line: 11, Column: 6, Path: $.components[1], Error: required property 'type' not found",
         "Line: 15, Column: 6, Path: $.components[2], Error: required property 'type' not found"
     );
+
+    assertTelemetryData("json", CYCLONEDX.toString(), null, 2, false, false);
   }
 
   @Test
@@ -415,7 +432,9 @@ public class SbomImportServiceTest
     assertThat(actual.getRequestId()).isEmpty();
     assertThat(actual.getIsValid()).isFalse();
     assertThat(actual.getIsValidationErrorIgnorable()).isTrue();
-    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getSbomSummary()).isNotNull();
+    assertThat(actual.getSbomSummary().format).isEqualTo("xml");
+    assertThat(actual.getSbomSummary().specification).isEqualTo("CycloneDx");
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly(
         "Line: 8, Column: 16, Path: //bom[1]/components[1], Error: cvc-complex-type.4: Attribute 'type' must appear " +
@@ -423,6 +442,8 @@ public class SbomImportServiceTest
         "Line: 12, Column: 16, Path: //bom[1]/components[1], Error: cvc-complex-type.4: Attribute 'type' must appear " +
             "on element 'component'."
     );
+
+    assertTelemetryData("xml", CYCLONEDX.toString(), null, 2, false, false);
   }
 
   @Test
@@ -486,7 +507,9 @@ public class SbomImportServiceTest
     assertThat(actual.getRequestId()).isEmpty();
     assertThat(actual.getIsValid()).isFalse();
     assertThat(actual.getIsValidationErrorIgnorable()).isTrue();
-    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getSbomSummary()).isNotNull();
+    assertThat(actual.getSbomSummary().format).isEqualTo("json");
+    assertThat(actual.getSbomSummary().specification).isEqualTo("SPDX");
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid SPDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly(
         "Line: 13, Column: 6, Path: $.packages[1], Error: required property 'downloadLocation' not found",
@@ -494,6 +517,8 @@ public class SbomImportServiceTest
         "Line: 1, Column: 2, Path: $, Error: required property 'creationInfo' not found",
         "Line: 1, Column: 2, Path: $, Error: required property 'dataLicense' not found"
     );
+
+    assertTelemetryData("json", SPDX.toString(), null, 4, false, false);
   }
 
   @Test
@@ -526,12 +551,16 @@ public class SbomImportServiceTest
     assertThat(actual.getRequestId()).isEmpty();
     assertThat(actual.getIsValid()).isFalse();
     assertThat(actual.getIsValidationErrorIgnorable()).isTrue();
-    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getSbomSummary()).isNotNull();
+    assertThat(actual.getSbomSummary().format).isEqualTo("xml");
+    assertThat(actual.getSbomSummary().specification).isEqualTo("SPDX");
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid SPDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly(
         "Error: Missing required Creator",
         "Error: Missing required data license"
     );
+
+    assertTelemetryData("xml", SPDX.toString(), null, 2, false, false);
   }
 
   @Test
@@ -555,10 +584,14 @@ public class SbomImportServiceTest
     assertThat(actual.getRequestId()).isEmpty();
     assertThat(actual.getIsValid()).isFalse();
     assertThat(actual.getIsValidationErrorIgnorable()).isFalse();
-    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getSbomSummary()).isNotNull();
+    assertThat(actual.getSbomSummary().format).isEqualTo("json");
+    assertThat(actual.getSbomSummary().specification).isEqualTo("CycloneDx");
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly("Error: Unable to parse BOM from byte array",
         "Line: 11, Column: 3, Error: Unexpected character (']' (code 93)): expected a value");
+
+    assertTelemetryData("json", CYCLONEDX.toString(), null, 2, false, false);
   }
 
   @Test
@@ -581,11 +614,15 @@ public class SbomImportServiceTest
     assertThat(actual.getRequestId()).isEmpty();
     assertThat(actual.getIsValid()).isFalse();
     assertThat(actual.getIsValidationErrorIgnorable()).isFalse();
-    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getSbomSummary()).isNotNull();
+    assertThat(actual.getSbomSummary().format).isEqualTo("xml");
+    assertThat(actual.getSbomSummary().specification).isEqualTo("CycloneDx");
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly(
         "Line: 9, Column: 3, Error: Element type \"component\" " +
             "must be followed by either attribute specifications, \">\" or \"/>\".");
+
+    assertTelemetryData("xml", CYCLONEDX.toString(), null, 1, false, false);
   }
 
   @Test
@@ -612,9 +649,13 @@ public class SbomImportServiceTest
     assertThat(actual.getRequestId()).isEmpty();
     assertThat(actual.getIsValid()).isFalse();
     assertThat(actual.getIsValidationErrorIgnorable()).isFalse();
-    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getSbomSummary()).isNotNull();
+    assertThat(actual.getSbomSummary().format).isEqualTo("xml");
+    assertThat(actual.getSbomSummary().specification).isEqualTo("SPDX");
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid SPDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly("Error: Missing SPDX Document");
+
+    assertTelemetryData("xml", SPDX.toString(), null, 1, false, false);
   }
 
   @Test
@@ -641,9 +682,13 @@ public class SbomImportServiceTest
     assertThat(actual.getRequestId()).isEmpty();
     assertThat(actual.getIsValid()).isFalse();
     assertThat(actual.getIsValidationErrorIgnorable()).isFalse();
-    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getSbomSummary()).isNotNull();
+    assertThat(actual.getSbomSummary().format).isEqualTo("xml");
+    assertThat(actual.getSbomSummary().specification).isEqualTo("SPDX");
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid SPDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly("Error: Misplaced '<' at 466 [character 1 line 14]");
+
+    assertTelemetryData("xml", SPDX.toString(), null, 1, false, false);
   }
 
   @Test
@@ -786,6 +831,34 @@ public class SbomImportServiceTest
         () -> sbomImportService.detectSbom(application.getId(), new ByteArrayInputStream(new byte[0]),
             TEST_FILENAME_XML, false));
     productLicense.reset();
+  }
+
+  private void assertTelemetryData(final String format,
+                                   final String spec,
+                                   final String specVersion,
+                                   final int validationErrorsCount,
+                                   final boolean isSkipSbomValidationFeatureFlagEnabled,
+                                   final boolean isSbomValid)
+  {
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender, times(1)).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
+    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    assertThat(telemetryAttributes).isNotNull();
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
+    assertThat(componentInfoTelemetry).isNotNull();
+    assertThat(componentInfoTelemetry.getSpec()).isEqualTo(spec);
+    assertThat(componentInfoTelemetry.getContentType()).isEqualTo(format);
+    assertThat(componentInfoTelemetry.getSpecVersion()).isEqualTo(specVersion);
+    assertThat(componentInfoTelemetry.getValidationErrorsCount()).isEqualTo(validationErrorsCount);
+
+    assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled"))
+        .isEqualTo(isSkipSbomValidationFeatureFlagEnabled);
+    assertThat(telemetryAttributes.get("is_sbom_valid"))
+        .isEqualTo(isSbomValid);
   }
 
   private void mockHdsReportDownload() throws IOException, URISyntaxException {

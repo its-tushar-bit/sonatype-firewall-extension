@@ -137,7 +137,7 @@ public class SbomImportResourceTest
     assertResponseStatus(200, response);
     SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
     assertThat(actual.getRequestId()).isEmpty();
-    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getSbomSummary()).isNotNull();
     assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
     assertThat(actual.getIsValid()).isFalse();
     assertThat(actual.getIsValidationErrorIgnorable()).isTrue();
@@ -158,7 +158,7 @@ public class SbomImportResourceTest
     SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
     assertResponseStatus(200, response);
     assertThat(actual.getRequestId()).isEmpty();
-    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getSbomSummary()).isNotNull();
     assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
     assertThat(actual.getIsValid()).isFalse();
     assertThat(actual.getIsValidationErrorIgnorable()).isTrue();
@@ -180,7 +180,7 @@ public class SbomImportResourceTest
     assertResponseStatus(200, response);
     SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
     assertThat(actual.getRequestId()).isEmpty();
-    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getSbomSummary()).isNotNull();
     assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
     assertThat(actual.getIsValid()).isFalse();
     assertThat(actual.getIsValidationErrorIgnorable()).isFalse();
@@ -201,7 +201,7 @@ public class SbomImportResourceTest
     SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
     assertResponseStatus(200, response);
     assertThat(actual.getRequestId()).isEmpty();
-    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getSbomSummary()).isNotNull();
     assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
     assertThat(actual.getIsValid()).isFalse();
     assertThat(actual.getIsValidationErrorIgnorable()).isFalse();

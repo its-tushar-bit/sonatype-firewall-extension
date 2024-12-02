@@ -314,10 +314,15 @@ public class SbomResultHandler
   String determineThirdPartyIdentificationSource(final String contentPath) {
     String fileName = StringUtils.contains(contentPath, "/") ?
         StringUtils.substringAfterLast(contentPath, "/") : contentPath;
-    String thirdPartyIdentificationSource = RegExUtils.removePattern(fileName, "-(?i)bom\\.(xml|json)(?i)$");
+    String thirdPartyIdentificationSource = RegExUtils.removePattern(fileName,
+        "(-(?i)bom\\.(xml|json)(?i)|\\.(?i)(cdx|spdx)\\.(xml|json)(?i))$");
     if (StringUtils.isBlank(thirdPartyIdentificationSource) ||
         StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "bom.xml") ||
-        StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "bom.json")) {
+        StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "bom.json") ||
+        StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "cdx.xml") ||
+        StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "cdx.json") ||
+        StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "spdx.xml") ||
+        StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "spdx.json")) {
       return "Third-Party";
     }
     else {

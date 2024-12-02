@@ -1797,6 +1797,36 @@ public class SbomResultHandlerTest
     assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("BOM.XML")).isEqualTo("Third-Party");
     assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("-bom.xml")).isEqualTo("Third-Party");
     assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("sub/dir/bom.xml")).isEqualTo("Third-Party");
+
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("nvd-build-image.cdx.xml"))
+        .isEqualTo("nvd-build-image");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("NVD-BUILD-IMAGE12.CDX.xmL"))
+        .isEqualTo("NVD-BUILD-IMAGE12");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource(
+        "sub/dir/nvd-build-image.cdx.xml")).isEqualTo("nvd-build-image");
+
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("ABCD-SBOM-CDX.xml")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("abcdcdx.xml")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("cdx.xml")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("CDX.XML")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource(".cdx.xml")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("sub/dir/cdx.xml")).isEqualTo("Third-Party");
+
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("nvd-build-image.spdx.xml"))
+        .isEqualTo("nvd-build-image");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("NVD-BUILD-IMAGE12.SPDX.xmL"))
+        .isEqualTo("NVD-BUILD-IMAGE12");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource(
+        "sub/dir/nvd-build-image.spdx.xml")).isEqualTo("nvd-build-image");
+
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("ABCD-SBOM-SPDX.xml"))
+        .isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("abcdspdx.xml")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("spdx.xml")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("SPDX.XML")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource(".spdx.xml")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("sub/dir/spdx.xml")).isEqualTo("Third-Party");
+
     assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("")).isEqualTo("Third-Party");
     assertThat(sbomResultHandler.determineThirdPartyIdentificationSource(null)).isEqualTo("Third-Party");
   }

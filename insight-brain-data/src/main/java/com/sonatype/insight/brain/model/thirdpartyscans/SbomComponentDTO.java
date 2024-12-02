@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.License;
-import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -23,6 +22,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.FileCoordinateDisplayNameGenerator.generateDisplayName;
 
 public class SbomComponentDTO
 {
@@ -38,6 +39,10 @@ public class SbomComponentDTO
 
   private String version;
 
+  private String format;
+
+  private String displayName;
+
   private String matchStateId;
 
   private String dependencyType;
@@ -48,8 +53,6 @@ public class SbomComponentDTO
 
   @JsonInclude(Include.NON_NULL)
   private Integer policyViolationCount;
-
-  private String displayName;
 
   private Set<License> licenses;
 
@@ -73,21 +76,26 @@ public class SbomComponentDTO
 
   public SbomComponentDTO(Object[] array) {
     hash = (String) array[0];
+
     packageUrl = (String) array[1];
+    if (StringUtils.isNotBlank(packageUrl)) {
+      componentIdentifier = new PackageUrlIdentifier(packageUrl).toComponentIdentifier();
+    }
+
     name = (String) array[2];
     version = (String) array[3];
 
-    if (StringUtils.isNotBlank(packageUrl)) {
-      componentIdentifier = new PackageUrlIdentifier(packageUrl).toComponentIdentifier();
-      displayName = ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString();
+    String formatString = (String) array[4];
+    if (StringUtils.isNotBlank(formatString)) {
+      format = formatString;
     }
 
-    if (StringUtils.isBlank(displayName)) {
-      displayName = name + ":" + version;
-    }
+    String displayNameString = (String) array[5];
+    displayName = StringUtils.isNotBlank(displayNameString) ?
+        displayNameString : generateDisplayName(componentIdentifier, format, name, version);
 
-    if ( array.length > 4 ) {
-      String licensesJson = (String) array[4];
+    if (array.length > 6) {
+      String licensesJson = (String) array[6];
       if (StringUtils.isNotBlank(licensesJson)) {
         try {
           licenses = JsonUtils.parse(licensesJson, LICENSE_TYPE_REFERENCE);
@@ -96,24 +104,24 @@ public class SbomComponentDTO
           log.error("Error parsing licenses from {}", licensesJson, e);
         }
       }
-      vulnerabilitySeverityNoneCount = longToInt(array[5]);
-      vulnerabilitySeverityLowCount = longToInt(array[6]);
-      vulnerabilitySeverityMediumCount = longToInt(array[7]);
-      vulnerabilitySeverityHighCount = longToInt(array[8]);
-      vulnerabilitySeverityCriticalCount = longToInt(array[9]);
-      percentageAnnotated = bigDecimalToDouble(array[10]);
+      vulnerabilitySeverityNoneCount = longToInt(array[7]);
+      vulnerabilitySeverityLowCount = longToInt(array[8]);
+      vulnerabilitySeverityMediumCount = longToInt(array[9]);
+      vulnerabilitySeverityHighCount = longToInt(array[10]);
+      vulnerabilitySeverityCriticalCount = longToInt(array[11]);
+      percentageAnnotated = bigDecimalToDouble(array[12]);
 
-      String dependencyTypeValue = (String) array[11];
+      String dependencyTypeValue = (String) array[13];
       if (StringUtils.isNotBlank(dependencyTypeValue)) {
         dependencyType = ThirdPartyDependencyType.fromValue(dependencyTypeValue).getDisplayName();
       }
-      fileCoordinateId = (String) array[12];
-      String filenamesString = (String) array[13];
+      fileCoordinateId = (String) array[14];
+      String filenamesString = (String) array[15];
       if (StringUtils.isNotBlank(filenamesString)) {
         filenames = List.of(filenamesString.split(","));
       }
 
-      String matchStateIdString = (String) array[14];
+      String matchStateIdString = (String) array[16];
       if (StringUtils.isNotBlank(matchStateIdString)) {
         matchStateId = matchStateIdString;
       }
@@ -174,6 +182,14 @@ public class SbomComponentDTO
 
   public void setVersion(String version) {
     this.version = version;
+  }
+
+  public String getFormat() {
+    return format;
+  }
+
+  public void setFormat(final String format) {
+    this.format = format;
   }
 
   public String getMatchStateId() {

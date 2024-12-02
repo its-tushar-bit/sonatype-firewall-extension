@@ -98,6 +98,41 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  public void testInsertWithBlankDisplayNameAndPackageUrl() {
+    ThirdPartyFile scannedFile = tempEntity.newThirdPartyFile();
+
+    ThirdPartyFileCoordinate entity =
+        new ThirdPartyFileCoordinate("filehash2", "SBOM", "maven",
+            "log4j-core", "2.14.1", scannedFile.getId());
+    entity.setIdentificationSources("SBOM");
+    entity.setPackageUrl("pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1?extension=jar");
+
+    thirdPartyFileCoordinateDAO.insert(entity);
+    assertThat(entity.getId()).isNotNull();
+
+    ThirdPartyFileCoordinate retrievedCoordinateFile = thirdPartyFileCoordinateDAO.getById(entity.getId());
+    retrievedCoordinateFile.getDisplayName();
+    assertThat(retrievedCoordinateFile.getDisplayName()).isEqualTo("org.apache.logging.log4j : log4j-core : 2.14.1");
+  }
+
+  @Test
+  public void testInsertWithBlankDisplayNameAndFormat_Name_And_Version() {
+    ThirdPartyFile scannedFile = tempEntity.newThirdPartyFile();
+
+    ThirdPartyFileCoordinate entity =
+        new ThirdPartyFileCoordinate("filehash2", "SBOM", "maven",
+            "log4j-core", "2.14.1", scannedFile.getId());
+    entity.setIdentificationSources("SBOM");
+
+    thirdPartyFileCoordinateDAO.insert(entity);
+    assertThat(entity.getId()).isNotNull();
+
+    ThirdPartyFileCoordinate retrievedCoordinateFile = thirdPartyFileCoordinateDAO.getById(entity.getId());
+    retrievedCoordinateFile.getDisplayName();
+    assertThat(retrievedCoordinateFile.getDisplayName()).isEqualTo("log4j-core : 2.14.1");
+  }
+
+  @Test
   public void testGetByThirdPartyFileId() {
     List<ThirdPartyFileCoordinate> results =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(fileCoordinate.getThirdPartyFileId());
@@ -406,6 +441,8 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(dtos).filteredOn(component -> component.getHash().equals(coordinate2.getHash()))
         .allSatisfy(component -> {
           assertThat(component.getPackageUrl()).isEqualTo(packageUrlIdentifier2.getPackageUrl());
+          assertThat(component.getFormat())
+              .isEqualTo(componentIdentifier2.getFormat());
           assertThat(component.getDisplayName())
               .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier2).toString());
           assertThat(component.getVulnerabilitySeverityNoneCount()).isZero();
@@ -449,7 +486,7 @@ public class ThirdPartyFileCoordinateDAOTest
         .withApplicationId(application.getId())
         .build();
 
-    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createGolangCoordinates("p1", "v1");
     PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
     ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
         "s1", packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
@@ -502,6 +539,7 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(dtos).filteredOn(component -> component.getHash().equals(coordinate1.getHash()))
         .allSatisfy(component -> {
           assertThat(component.getPackageUrl()).isEqualTo(packageUrlIdentifier1.getPackageUrl());
+          assertThat(component.getFormat()).isEqualTo(componentIdentifier1.getFormat());
           assertThat(component.getDisplayName())
               .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier1).toString());
           assertThat(component.getVulnerabilitySeverityNoneCount()).isZero();
@@ -517,6 +555,7 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(dtos).filteredOn(component -> component.getHash().equals(coordinate2.getHash()))
         .allSatisfy(component -> {
           assertThat(component.getPackageUrl()).isEqualTo(packageUrlIdentifier2.getPackageUrl());
+          assertThat(component.getFormat()).isEqualTo(componentIdentifier2.getFormat());
           assertThat(component.getDisplayName())
               .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier2).toString());
           assertThat(component.getVulnerabilitySeverityNoneCount()).isOne();

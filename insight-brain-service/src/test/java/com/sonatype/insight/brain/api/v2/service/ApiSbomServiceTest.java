@@ -601,6 +601,102 @@ public class ApiSbomServiceTest
 
   @Test
   @PostgresTest
+  public void testGetSbomComponents_displayNameStoredFromPackageUrl() {
+    Application application = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadata =
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
+    dao.insert(sbomMetadata);
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("org.apache.logging.log4j",
+        "log4j-core", "2.14.1", null, "war");
+    PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
+
+    ThirdPartyFileCoordinate coordinate1 =
+        tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae42", thirdPartyFile, "s1",
+            packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
+            "h1",
+            packageUrlIdentifier1.getPackageUrl(), "exact", null,
+            List.of(thirdPartyFile.getFilename()), null);
+
+    SbomComponentListDTO result = service.getSbomComponents(sbomMetadata.getApplicationId(),
+        sbomMetadata.getSbomVersion(), null, null, null,
+        null, true, 3, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(1);
+
+    List<SbomComponentDTO> dtos = result.getResults();
+
+    assertThat(dtos).hasSize(1);
+    assertThat(dtos.get(0))
+        .extracting(SbomComponentDTO::getHash, SbomComponentDTO::getDisplayName)
+        .containsExactly(coordinate1.getHash(), "org.apache.logging.log4j : log4j-core : war : 2.14.1");
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponents_displayNameStoredFromFormatNameAndVersion() {
+    Application application = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadata =
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
+    dao.insert(sbomMetadata);
+
+    ThirdPartyFileCoordinate coordinate1 =
+        tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae42", thirdPartyFile, "s1",
+            "rpm", "p1", "v1",
+            "h1",
+            null, "exact", null, List.of(thirdPartyFile.getFilename()), null);
+
+    SbomComponentListDTO result = service.getSbomComponents(sbomMetadata.getApplicationId(),
+        sbomMetadata.getSbomVersion(), null, null, null,
+        null, true, 3, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(1);
+
+    List<SbomComponentDTO> dtos = result.getResults();
+
+    assertThat(dtos).hasSize(1);
+    assertThat(dtos.get(0))
+        .extracting(SbomComponentDTO::getHash, SbomComponentDTO::getDisplayName)
+        .containsExactly(coordinate1.getHash(), "p1-v1");
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponents_displayNameStoredFromNameAndVersion() {
+    Application application = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadata =
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
+    dao.insert(sbomMetadata);
+
+    ThirdPartyFileCoordinate coordinate1 =
+        tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae42", thirdPartyFile, "s1",
+            "", "p1",
+            "v1",
+            "h1",
+            null, "exact", null, List.of(thirdPartyFile.getFilename()), null);
+
+    SbomComponentListDTO result = service.getSbomComponents(sbomMetadata.getApplicationId(),
+        sbomMetadata.getSbomVersion(), null, null, null,
+        null, true, 3, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(1);
+
+    List<SbomComponentDTO> dtos = result.getResults();
+
+    assertThat(dtos).hasSize(1);
+    assertThat(dtos.get(0))
+        .extracting(SbomComponentDTO::getHash, SbomComponentDTO::getDisplayName)
+        .containsExactly(coordinate1.getHash(), "p1 : v1");
+  }
+
+  @Test
+  @PostgresTest
   public void testGetSbomComponents_WithResults_PolicyFeatureFlagOff() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -870,7 +966,7 @@ public class ApiSbomServiceTest
           assertThat(component.getFilenames()).isEqualTo(coordinate1.getFilenamesList());
           assertThat(component.getMatchStateId()).isEqualTo(coordinate1.getMatchStateId());
           assertThat(component.getDisplayName()).isEqualTo(componentIdentifier1.get(ComponentIdentifier.NPM_PACKAGE_ID)
-              + ":" + componentIdentifier1.get(ComponentIdentifier.VERSION));
+              + " : " + componentIdentifier1.get(ComponentIdentifier.VERSION));
           assertThat(component.getVulnerabilitySeverityNoneCount()).isZero();
           assertThat(component.getVulnerabilitySeverityLowCount()).isZero();
           assertThat(component.getVulnerabilitySeverityMediumCount()).isZero();
@@ -889,7 +985,7 @@ public class ApiSbomServiceTest
           assertThat(component.getMatchStateId()).isEqualTo(coordinate2.getMatchStateId());
           assertThat(component.getDisplayName())
               .isEqualTo(componentIdentifier2.get(ComponentIdentifier.NPM_PACKAGE_ID)
-                  + ":" + componentIdentifier2.get(ComponentIdentifier.VERSION));
+                  + " : " + componentIdentifier2.get(ComponentIdentifier.VERSION));
           assertThat(component.getVulnerabilitySeverityNoneCount()).isZero();
           assertThat(component.getVulnerabilitySeverityLowCount()).isZero();
           assertThat(component.getVulnerabilitySeverityMediumCount()).isZero();

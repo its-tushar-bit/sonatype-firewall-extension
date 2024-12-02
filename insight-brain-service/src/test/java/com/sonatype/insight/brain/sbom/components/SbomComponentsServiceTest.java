@@ -33,9 +33,9 @@ import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.apache.commons.io.FileUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -303,6 +303,8 @@ public class SbomComponentsServiceTest
     assertThat(actual.getName()).isEqualTo(component.getName());
     assertThat(actual.getHash()).isEqualTo(component.getHash());
     assertThat(actual.getVersion()).isEqualTo(component.getVersion());
+    assertThat(actual.getFormat()).isEqualTo(component.getFormat());
+    assertThat(actual.getDisplayName()).isEqualTo(component.getDisplayName());
     assertThat(actual.getPackageUrl()).isEqualTo(component.getPackageUrl());
     assertThat(actual.getComponentIdentifier()).isNotNull();
     assertThat(actual.getComponentIdentifier().getFormat()).isEqualTo(component.getFormat());

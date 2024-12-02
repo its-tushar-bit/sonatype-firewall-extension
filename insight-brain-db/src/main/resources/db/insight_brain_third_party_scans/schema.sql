@@ -42,6 +42,7 @@ CREATE TABLE file_coordinate (
   match_state_id VARCHAR(20) NULL,
   occurrences TEXT NULL,
   filenames TEXT NULL,
+  display_name VARCHAR(1000) NULL,
   CONSTRAINT file_coordinate_pk PRIMARY KEY (file_coordinate_id),
   CONSTRAINT file_coordinate_fk FOREIGN KEY (third_party_file_id) REFERENCES third_party_file (third_party_file_id)
 );

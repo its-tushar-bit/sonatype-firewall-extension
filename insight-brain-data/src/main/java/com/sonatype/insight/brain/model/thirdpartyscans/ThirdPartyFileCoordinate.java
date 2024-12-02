@@ -89,6 +89,9 @@ public class ThirdPartyFileCoordinate
   @Column(name = "filenames")
   private String filenames;
 
+  @Column(name = "display_name")
+  private String displayName;
+
   @Override
   public String getId() {
     return id;
@@ -214,6 +217,14 @@ public class ThirdPartyFileCoordinate
 
   public void setFilenames(String filenames) {
     this.filenames = filenames;
+  }
+
+  public void setDisplayName(final String displayName) {
+    this.displayName = displayName;
+  }
+
+  public String getDisplayName() {
+    return displayName;
   }
 
   public List<String> getOccurrencesList() {

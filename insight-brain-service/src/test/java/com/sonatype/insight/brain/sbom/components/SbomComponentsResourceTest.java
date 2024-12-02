@@ -82,6 +82,8 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
     assertThat(actual.getName()).isEqualTo(component.getName());
     assertThat(actual.getHash()).isEqualTo(component.getHash());
     assertThat(actual.getVersion()).isEqualTo(component.getVersion());
+    assertThat(actual.getFormat()).isEqualTo(component.getFormat());
+    assertThat(actual.getDisplayName()).isEqualTo(component.getDisplayName());
     assertThat(actual.getComponentIdentifier()).isNotNull();
     assertThat(actual.getComponentIdentifier().getFormat()).isEqualTo(component.getFormat());
     assertThat(actual.getPackageUrl()).isEqualTo(component.getPackageUrl());

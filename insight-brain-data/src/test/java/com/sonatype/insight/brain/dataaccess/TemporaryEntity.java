@@ -4262,6 +4262,24 @@ public class TemporaryEntity
       List<String> occurrences,
       List<String> filenames)
   {
+    return newThirdPartyFileCoordinate(thirdPartyFileCoordinateId, thirdPartyFile, source, format, name, version, hash,
+        packageUrl, matchState, occurrences, filenames, null);
+  }
+
+  public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
+      String thirdPartyFileCoordinateId,
+      ThirdPartyFile thirdPartyFile,
+      String source,
+      String format,
+      String name,
+      String version,
+      String hash,
+      String packageUrl,
+      String matchState,
+      List<String> occurrences,
+      List<String> filenames,
+      String displayName)
+  {
     ThirdPartyFileCoordinate fileCoordinate =
         new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFile.getId());
     fileCoordinate.setPackageUrl(packageUrl);
@@ -4270,6 +4288,7 @@ public class TemporaryEntity
     fileCoordinate.setFilenamesList(filenames);
     fileCoordinate.setMatchStateId(matchState);
     fileCoordinate.setId(thirdPartyFileCoordinateId);
+    fileCoordinate.setDisplayName(displayName);
     thirdPartyFileCoordinateDAO.insert(fileCoordinate);
     return fileCoordinate;
   }

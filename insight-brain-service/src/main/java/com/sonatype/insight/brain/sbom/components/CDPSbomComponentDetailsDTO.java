@@ -36,9 +36,11 @@ public class CDPSbomComponentDetailsDTO
       String packageUrl,
       String name,
       String version,
+      String format,
+      String displayName,
       String fileCoordinateId)
   {
-    super(new String[]{hash, packageUrl, name, version});
+    super(new String[]{hash, packageUrl, name, version, format, displayName});
     setFileCoordinateId(fileCoordinateId);
   }
 

@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -62,6 +61,16 @@ public class ThirdPartyFileCoordinateDAO
     super(thirdPartyScansDataStore);
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
     this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
+  }
+
+  @Override
+  public void insert(TransactionContext tx, ThirdPartyFileCoordinate entity) {
+    if (StringUtils.isBlank(entity.getDisplayName())) {
+      entity.setDisplayName(
+          FileCoordinateDisplayNameGenerator.generateDisplayName(entity.getPackageUrl(), entity.getFormat(),
+          entity.getName(), entity.getVersion()));
+    }
+    super.insert(tx, entity);
   }
 
   @Override
@@ -176,6 +185,8 @@ public class ThirdPartyFileCoordinateDAO
         "       fc.package_url," + //
         "       fc.name," + //
         "       fc.version," + //
+        "       fc.format," + //
+        "       fc.display_name," + //
         "       lic.licenses ::TEXT as licenses_json," + //
         "       COUNT(CASE WHEN (cs.severity = ?1) THEN 1 END) AS severity_none," + //
         "       COUNT(CASE WHEN (cs.severity BETWEEN ?2 AND ?3) THEN 1 END) AS severity_low," + //
@@ -188,7 +199,6 @@ public class ThirdPartyFileCoordinateDAO
         "       fc.filenames," + //
         "       fc.match_state_id," + //
         "       COUNT(*) OVER() AS full_count" + //
-
         " FROM " + getDatabaseSchema() + ".file_coordinate fc" + //
         "  LEFT JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
         "    ON cs.file_coordinate_id = fc.file_coordinate_id" + //
@@ -206,8 +216,8 @@ public class ThirdPartyFileCoordinateDAO
     MutableInt index = new MutableInt(indexForComponentName);
     sQuery = generateComponentNameFilterQuery(componentName, index, sQuery);
     sQuery += generateHavingByDependencyTypes(dependencyTypes, dependencyTypesParams, index.intValue()) + //
-        " GROUP BY fc.hash, fc.package_url, fc.name, fc.version, licenses_json ,fc.dependency_type, " +
-        "fc.filenames, fc.file_coordinate_id, fc.match_state_id " + //
+        " GROUP BY fc.hash, fc.package_url, fc.name, fc.version, fc.display_name, fc.format, licenses_json ,fc" +
+        ".dependency_type, fc.filenames, fc.file_coordinate_id, fc.match_state_id" + //
         generateHavingByVulnerabilityThreatLevels(vulnerabilityThreatLevels) + //
         generateOrderBySortFieldSelected(sortBy, asc);
 
@@ -227,7 +237,7 @@ public class ThirdPartyFileCoordinateDAO
       List<SbomComponentDTO> dtos = ((Stream<Object[]>) paginationQuery.getResultStream())
           .peek(array -> {
             if (result.getTotalResultsCount() == 0) {
-              result.setTotalResultsCount(((Long) array[15]).intValue());
+              result.setTotalResultsCount(((Long) array[17]).intValue());
             }
           })
           .map(SbomComponentDTO::new)

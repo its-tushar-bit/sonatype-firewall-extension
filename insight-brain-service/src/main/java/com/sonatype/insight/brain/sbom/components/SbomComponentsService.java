@@ -47,9 +47,9 @@ import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.collections4.CollectionUtils;
 
 import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.buildBomPageMetadataDTO;
 
@@ -130,7 +130,8 @@ public class SbomComponentsService
                 Collectors.toMap(ThirdPartyVulnerabilityExploitabilityExchange::getCoordinateSecurityId, vex -> vex));
 
     CDPSbomComponentDetailsDTO componentDetailsDTO = new CDPSbomComponentDetailsDTO(component.getHash(),
-        component.getPackageUrl(), component.getName(), component.getVersion(), component.getId());
+        component.getPackageUrl(), component.getName(), component.getVersion(), component.getFormat(),
+        component.getDisplayName(), component.getId());
     componentDetailsDTO.setDependencyType(getDependencyType(component.getDependencyType()));
     componentDetailsDTO.setMetadata(getSbomMetadata(applicationId, sbomMetadata.getCreatedAt(), scan.getScanId()));
     componentDetailsDTO.setVulnerabilitySummary(getVulnerabilitySummary(vulnerabilityList));

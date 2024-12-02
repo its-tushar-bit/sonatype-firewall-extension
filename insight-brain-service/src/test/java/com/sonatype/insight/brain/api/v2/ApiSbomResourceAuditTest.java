@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
@@ -99,7 +98,6 @@ public class ApiSbomResourceAuditTest
   @Test
   public void testImportSbom_Authorized() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     mockReport("SCAN-ID", "/" + getClass().getSimpleName() + "/report");
 

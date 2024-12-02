@@ -15,10 +15,12 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -456,18 +458,29 @@ public class ApiSbomService
     File clientFile = saveInputStreamAsFile(inputStream, fileName);
     SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(clientFile,
         ignoreValidationError);
-    if (sbomDetectionResult.isSbom) {
+    if (sbomDetectionResult.isSbom &&
+        (sbomDetectionResult.isValid || (ignoreValidationError && sbomDetectionResult.isValidationErrorIgnorable))) {
       return scanAndEvaluateSbomFile(applicationId, clientFile, sbomDetectionResult, clientUserAgent,
           applicationVersion);
     }
-    else if (enableBinaryImport) {
+    else if (!sbomDetectionResult.isSbom && enableBinaryImport) {
       if (SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.isEnabled()) {
         log.debug("Initiating binary SBOM import for application {}", applicationId);
         return scanAndEvaluateBinaryFile(applicationId, clientUserAgent, clientFile, applicationVersion);
       }
       throw new BadRequestException("Importing binary files for SBOM Manager is disabled.");
     }
-    throw new BadRequestException(sbomDetectionResult.errorMessage);
+    throw new BadRequestException(getErrorMessage(sbomDetectionResult));
+  }
+
+  private String getErrorMessage(final SbomDetectionResult sbomDetectionResult) {
+    List<String> messageParts = new ArrayList<>();
+    messageParts.add(sbomDetectionResult.errorMessage);
+    if (sbomDetectionResult.validationErrors != null) {
+      messageParts.addAll(sbomDetectionResult.validationErrors);
+    }
+    messageParts.removeIf(Objects::isNull);
+    return String.join("\n", messageParts);
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)

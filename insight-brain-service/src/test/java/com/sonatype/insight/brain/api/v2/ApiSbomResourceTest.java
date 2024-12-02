@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -561,7 +560,6 @@ public class ApiSbomResourceTest
   @Test
   public void testImportSbom_SPDX() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     mockReport("SCAN-ID", "/" + getClass().getSimpleName() + "/report");
 
@@ -586,7 +584,6 @@ public class ApiSbomResourceTest
   @Test
   public void testImportSbom_SPDX_CustomVersion() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     mockReport("SCAN-ID", "/" + getClass().getSimpleName() + "/report");
 
@@ -615,7 +612,6 @@ public class ApiSbomResourceTest
   @Test
   public void testImportSbom_InvalidSPDX_IgnoreValidationError() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     mockReport("SCAN-ID", "/" + getClass().getSimpleName() + "/report");
 
@@ -641,7 +637,6 @@ public class ApiSbomResourceTest
   @Test
   public void testImportSbom_CycloneDX() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     mockReport("SCAN-ID", "/" + getClass().getSimpleName() + "/report");
 
@@ -667,7 +662,6 @@ public class ApiSbomResourceTest
   @Test
   public void testImportSbom_CycloneDX_CustomVersion() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     mockReport("SCAN-ID", "/" + getClass().getSimpleName() + "/report");
 
@@ -697,7 +691,6 @@ public class ApiSbomResourceTest
   @Test
   public void testImportSbom_InvalidCycloneDX_IgnoreValidationError() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     mockReport("SCAN-ID", "/" + getClass().getSimpleName() + "/report");
 
@@ -724,7 +717,6 @@ public class ApiSbomResourceTest
   @Test
   public void testImportSbom_Binary() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
     SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(true);
 
     mockReport("SCAN-ID", "/" + getClass().getSimpleName() + "/report");

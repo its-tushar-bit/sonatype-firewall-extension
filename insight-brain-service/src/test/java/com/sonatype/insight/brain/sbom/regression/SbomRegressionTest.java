@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
@@ -187,7 +186,6 @@ public class SbomRegressionTest
     setFeatures(LicensedFeature.SBOM_MANAGER);
     insightWork = lookup(InsightWork.class);
     app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
   }
 
   @Test

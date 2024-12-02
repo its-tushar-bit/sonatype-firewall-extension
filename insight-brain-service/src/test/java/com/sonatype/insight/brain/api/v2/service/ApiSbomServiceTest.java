@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Comparator;
@@ -93,6 +92,7 @@ import static com.sonatype.insight.brain.sbom.SbomTestHelper.spdxDxIgnoreNodesFi
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -933,7 +933,6 @@ public class ApiSbomServiceTest
     mockHdsForImportWithDelayedReportDownload(50);
 
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     try (InputStream inputStream = getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/spdx.json")) {
       Response response = service.importSbom(app.getId(), inputStream, "file.txt", false,
@@ -953,7 +952,6 @@ public class ApiSbomServiceTest
     mockHdsForImportWithDelayedReportDownload(50);
 
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     try (InputStream inputStream = getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/spdx.json")) {
       Response response = service.importSbom(app.getId(), inputStream, "file.txt", false,
@@ -973,7 +971,6 @@ public class ApiSbomServiceTest
     mockHdsForImportWithDelayedReportDownload(50);
 
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     try (InputStream inputStream = getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/spdx.json")) {
       String applicationVersion = "my_application_version";
@@ -994,7 +991,6 @@ public class ApiSbomServiceTest
     mockHdsForImportWithDelayedReportDownload(50);
 
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/invalid-spdx.json")) {
@@ -1015,7 +1011,6 @@ public class ApiSbomServiceTest
     mockHdsForImportWithDelayedReportDownload(50);
 
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
@@ -1037,7 +1032,6 @@ public class ApiSbomServiceTest
     mockHdsForImportWithDelayedReportDownload(50);
 
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
@@ -1059,7 +1053,6 @@ public class ApiSbomServiceTest
     mockHdsForImportWithDelayedReportDownload(50);
 
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
@@ -1082,7 +1075,6 @@ public class ApiSbomServiceTest
     mockHdsForImportWithDelayedReportDownload(50);
 
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/invalid-third-party-simple-bom.xml")) {
@@ -1151,7 +1143,6 @@ public class ApiSbomServiceTest
     mockHdsForImportWithDelayedReportDownload(50);
 
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
@@ -1177,7 +1168,6 @@ public class ApiSbomServiceTest
   @Test
   public void testImportSbom_ValidFile_MaxSbomLimitHasBeenReached() throws IOException {
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
     testProductLicense.setMaxSbom(0);
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
@@ -1193,7 +1183,6 @@ public class ApiSbomServiceTest
   @Test
   public void testImportSbom_BinaryFile_BinaryScanningDisabled() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(false);
 
@@ -1209,7 +1198,6 @@ public class ApiSbomServiceTest
   @Test
   public void testImportSbom_BinaryFile_BinaryScanningDisabled_MissingQueryParam() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     try (InputStream inputStream =
              getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/index.html")) {
@@ -1225,7 +1213,6 @@ public class ApiSbomServiceTest
     mockHdsForImportWithDelayedReportDownload(50);
 
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(true);
 
@@ -1257,7 +1244,6 @@ public class ApiSbomServiceTest
     mockHdsForImportWithDelayedReportDownload(50);
 
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(true);
 
@@ -1295,7 +1281,6 @@ public class ApiSbomServiceTest
     mockHdsForImportWithDelayedReportDownload("empty-report.zip", 50);
 
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(true);
     try (InputStream inputStream = new FileInputStream(binaryFileToScan)) {
@@ -1333,6 +1318,190 @@ public class ApiSbomServiceTest
     }
   }
 
+  @Test
+  public void testImport_CDX_Json_BadStructure() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> importInvalidSbom("cdx-bad-structure.json", false))
+        .withMessage("""
+            Not a valid CycloneDX SBOM file.
+            Error: Unable to parse BOM from byte array
+            Line: 11, Column: 3, Error: Unexpected close marker ']': expected '}' \
+            (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); \
+            line: 6, column: 2])""");
+  }
+
+  @Test
+  public void testImport_CDX_Xml_BadStructure() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> importInvalidSbom("cdx-bad-structure.xml", false))
+        .withMessage("""
+            Not a valid CycloneDX SBOM file.
+            Line: 9, Column: 1, Error: The end-tag for element type "components" must end with a '>' delimiter.""");
+  }
+
+  @Test
+  public void testImport_SPDX_Json_BadStructure() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> importInvalidSbom("spdx-bad-structure.json", false))
+        .withMessage("""
+            Not a valid SPDX SBOM file.
+            Line: 20, Column: 3, Error: Unexpected close marker ']': expected '}' \
+            (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); \
+            line: 15, column: 2])""");
+  }
+
+  @Test
+  public void testImport_SPDX_Xml_BadStructure() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> importInvalidSbom("spdx-bad-structure.xml", false))
+        .withMessage("""
+            Not a valid SPDX SBOM file.
+            Error: Misplaced '<' at 606 [character 1 line 20]""");
+  }
+
+  @Test
+  public void testImport_CDX_Json_BadStructure_IgnoreValidationError() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> importInvalidSbom("cdx-bad-structure.json", true))
+        .withMessage("""
+            Not a valid CycloneDX SBOM file.
+            Error: Unable to parse BOM from byte array
+            Line: 11, Column: 3, Error: Unexpected close marker ']': expected '}' \
+            (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); \
+            line: 6, column: 2])""");
+  }
+
+  @Test
+  public void testImport_CDX_Xml_BadStructure_IgnoreValidationError() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> importInvalidSbom("cdx-bad-structure.xml", true))
+        .withMessage("""
+            Not a valid CycloneDX SBOM file.
+            Line: 9, Column: 1, Error: The end-tag for element type "components" must end with a '>' delimiter.""");
+  }
+
+  @Test
+  public void testImport_SPDX_Json_BadStructure_IgnoreValidationError() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> importInvalidSbom("spdx-bad-structure.json", true))
+        .withMessage("""
+            Not a valid SPDX SBOM file.
+            Line: 20, Column: 3, Error: Unexpected close marker ']': expected '}' \
+            (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); \
+            line: 15, column: 2])""");
+  }
+
+  @Test
+  public void testImport_SPDX_Xml_BadStructure_IgnoreValidationError() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> importInvalidSbom("spdx-bad-structure.xml", true))
+        .withMessage("""
+            Not a valid SPDX SBOM file.
+            Error: Misplaced '<' at 606 [character 1 line 20]""");
+  }
+
+  @Test
+  public void testImport_CDX_Json_Invalid() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> importInvalidSbom("cdx-invalid.json", false))
+        .withMessage("""
+            Not a valid CycloneDX SBOM file.
+            Line: 11, Column: 6, Path: $.components[1], Error: required property 'type' not found
+            Line: 15, Column: 6, Path: $.components[2], Error: required property 'type' not found
+            Line: 19, Column: 6, Path: $.components[3], Error: required property 'type' not found
+            Line: 23, Column: 6, Path: $.components[4], Error: required property 'type' not found
+            Line: 27, Column: 6, Path: $.components[5], Error: required property 'type' not found
+            Line: 31, Column: 6, Path: $.components[6], Error: required property 'type' not found
+            Line: 35, Column: 6, Path: $.components[7], Error: required property 'type' not found
+            Line: 39, Column: 6, Path: $.components[8], Error: required property 'type' not found
+            Line: 43, Column: 6, Path: $.components[9], Error: required property 'type' not found
+            Line: 47, Column: 6, Path: $.components[10], Error: required property 'type' not found
+            Line: 51, Column: 6, Path: $.components[11], Error: required property 'type' not found
+            Line: 55, Column: 6, Path: $.components[12], Error: required property 'type' not found
+            Line: 59, Column: 6, Path: $.components[13], Error: required property 'type' not found
+            Line: 63, Column: 6, Path: $.components[14], Error: required property 'type' not found""");
+  }
+
+  @Test
+  public void testImport_CDX_Xml_Invalid() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> importInvalidSbom("cdx-invalid.xml", false))
+        .withMessage("""
+            Not a valid CycloneDX SBOM file.
+            Line: 8, Column: 16, Path: //bom[1]/components[1], Error: cvc-complex-type.4: \
+            Attribute 'type' must appear on element 'component'.""");
+  }
+
+  @Test
+  public void testImport_SPDX_Json_Invalid() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> importInvalidSbom("spdx-invalid.json", false))
+        .withMessage("""
+            Not a valid SPDX SBOM file.
+            Line: 15, Column: 4, Path: $.packages[1], Error: required property 'downloadLocation' not found
+            Line: 19, Column: 4, Path: $.packages[2], Error: required property 'downloadLocation' not found
+            Line: 1, Column: 2, Path: $, Error: required property 'creationInfo' not found
+            Line: 1, Column: 2, Path: $, Error: required property 'dataLicense' not found""");
+  }
+
+  @Test
+  public void testImport_SPDX_Xml_Invalid() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> importInvalidSbom("spdx-invalid.xml", false))
+        .withMessage("""
+            Not a valid SPDX SBOM file.
+            Error: Missing required Creator
+            Error: Missing required data license""");
+  }
+
+  @Test
+  public void testImport_CDX_Json_Invalid_IgnoreValidationError() throws Exception {
+    mockHdsForImportWithDelayedReportDownload(50);
+    assertThatNoException().isThrownBy(() -> importInvalidSbom("cdx-invalid.json", true));
+  }
+
+  @Test
+  public void testImport_CDX_Xml_Invalid_IgnoreValidationError() throws Exception {
+    mockHdsForImportWithDelayedReportDownload(50);
+    assertThatNoException().isThrownBy(() -> importInvalidSbom("cdx-invalid.xml", true));
+  }
+
+  @Test
+  public void testImport_SPDX_Json_Invalid_IgnoreValidationError() throws Exception {
+    mockHdsForImportWithDelayedReportDownload(50);
+    assertThatNoException().isThrownBy(() -> importInvalidSbom("spdx-invalid.json", true));
+  }
+
+  @Test
+  public void testImport_SPDX_Xml_Invalid_IgnoreValidationError() throws Exception {
+    mockHdsForImportWithDelayedReportDownload(50);
+    assertThatNoException().isThrownBy(() -> importInvalidSbom("spdx-invalid.xml", true));
+  }
+
+  private void importInvalidSbom(
+      final String fileName,
+      final boolean ignoreValidationError) throws Exception
+  {
+    Application app = tempEntity.newApplicationWithParent();
+    try (InputStream inputStream = getClass().getResourceAsStream(
+        "/" + getClass().getSimpleName() + "/sboms/" + fileName)) {
+      Response response = service.importSbom(
+          app.getId(),
+          inputStream,
+          fileName,
+          false,
+          DUMMY_USER_AGENT,
+          null,
+          ignoreValidationError
+      );
+      ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
+      assertThat(ticketDTO).isNotNull();
+      assertThat(ticketDTO.statusUrl).isNotEmpty().startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
+      policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
+      assertSuccessfulSBOMImportState(app, null, ticketDTO, false);
+    }
+  }
+
   private static void assertSbomMetadata(
       final ThirdPartySbomMetadata thirdPartySbomMetadata,
       final Application app,
@@ -1367,7 +1536,6 @@ public class ApiSbomServiceTest
     mockHdsForImportWithDelayedReportDownload(0);
 
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
@@ -1391,7 +1559,6 @@ public class ApiSbomServiceTest
     mockHdsForImportWithDelayedReportDownload(1000);
 
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
@@ -1413,7 +1580,6 @@ public class ApiSbomServiceTest
     mockHdsForImportWithError();
 
     Application app = tempEntity.newApplicationWithParent();
-    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {

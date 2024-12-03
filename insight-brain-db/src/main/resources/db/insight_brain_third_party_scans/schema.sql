@@ -130,7 +130,7 @@ CREATE TABLE sbom_metadata (
     status VARCHAR(20) NOT NULL,
     created_at TIMESTAMP NOT NULL,
     metadata_json TEXT,
-    sbom_version VARCHAR(200) NOT NULL,
+    sbom_version VARCHAR(1100) NOT NULL,
     scan_type VARCHAR(20) NOT NULL,
     validation_skipped BOOLEAN,
     is_valid BOOLEAN,

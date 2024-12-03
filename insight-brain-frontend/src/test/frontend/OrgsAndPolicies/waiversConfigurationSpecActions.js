@@ -52,7 +52,9 @@ describe('WaiversConfiguration URL Mock Test', () => {
     expect(await screen.findByText('Max. Threat Level')).toBeVisible();
     expect(await screen.findByRole('button', { name: 'Update' })).toBeVisible();
     const notReachableCheckbox = await screen.findByLabelText('Security vulnerability is Not Reachable');
-    const noPathForwardCheckbox = await screen.findByLabelText('Component version is current or latest non-violating');
+    const noPathForwardCheckbox = await screen.findByLabelText(
+      'No newer, non-violating component version is available'
+    );
 
     expect(notReachableCheckbox).toBeInTheDocument();
     expect(noPathForwardCheckbox).toBeInTheDocument();
@@ -81,7 +83,7 @@ describe('WaiversConfiguration URL Mock Test', () => {
 
     expect(screen.getByText('7')).toBeVisible();
     expect(screen.getByLabelText('Security vulnerability is Not Reachable')).not.toBeChecked();
-    expect(screen.getByLabelText('Component version is current or latest non-violating')).not.toBeChecked();
+    expect(screen.getByLabelText('No newer, non-violating component version is available')).not.toBeChecked();
   });
 
   it('handles a 404 error from the mock waiversConfigurationUrl', async () => {
@@ -126,7 +128,7 @@ describe('WaiversConfiguration URL Mock Test', () => {
     expect(threatLevelIndicator).toBeVisible();
 
     const reachableCheckbox = screen.getByLabelText('Security vulnerability is Not Reachable');
-    const pathForwardCheckbox = screen.getByLabelText('Component version is current or latest non-violating');
+    const pathForwardCheckbox = screen.getByLabelText('No newer, non-violating component version is available');
 
     fireEvent.click(reachableCheckbox);
     fireEvent.click(pathForwardCheckbox);
@@ -157,7 +159,7 @@ describe('WaiversConfiguration URL Mock Test', () => {
     renderComponent();
 
     const reachableCheckbox = screen.getByLabelText('Security vulnerability is Not Reachable');
-    const pathForwardCheckbox = screen.getByLabelText('Component version is current or latest non-violating');
+    const pathForwardCheckbox = screen.getByLabelText('No newer, non-violating component version is available');
 
     fireEvent.click(reachableCheckbox);
     fireEvent.click(pathForwardCheckbox);
@@ -198,7 +200,7 @@ describe('WaiversConfiguration URL Mock Test', () => {
     renderComponent();
     expect(screen.getByText('7')).toBeVisible();
     expect(screen.getByLabelText('Security vulnerability is Not Reachable')).toBeChecked();
-    expect(screen.getByLabelText('Component version is current or latest non-violating')).not.toBeChecked();
+    expect(screen.getByLabelText('No newer, non-violating component version is available')).not.toBeChecked();
   });
 
   it('handles a failed POST request with 500 error to the mock waiversConfigurationUrlnoStatus', async () => {
@@ -242,7 +244,7 @@ describe('WaiversConfiguration URL Mock Test', () => {
 
     expect(screen.getByText('7')).toBeVisible();
     expect(screen.getByLabelText('Security vulnerability is Not Reachable')).toBeChecked();
-    expect(screen.getByLabelText('Component version is current or latest non-violating')).toBeChecked();
+    expect(screen.getByLabelText('No newer, non-violating component version is available')).toBeChecked();
   });
 
   it('renders an error message on a 500 error from the mock waiversConfigurationUrl in the component', async () => {
@@ -276,7 +278,7 @@ describe('WaiversConfiguration URL Mock Test', () => {
 
     expect(screen.getByText('7')).toBeVisible();
     expect(screen.getByLabelText('Security vulnerability is Not Reachable')).not.toBeChecked();
-    expect(screen.getByLabelText('Component version is current or latest non-violating')).not.toBeChecked();
+    expect(screen.getByLabelText('No newer, non-violating component version is available')).not.toBeChecked();
   });
 
   it('shows an alert when no changes are made and waivers are enabled', async () => {

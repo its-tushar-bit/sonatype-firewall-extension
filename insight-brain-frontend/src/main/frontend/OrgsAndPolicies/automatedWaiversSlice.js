@@ -103,12 +103,18 @@ const loadWaiversConfigurationPage = createAsyncThunk(
 );
 
 const toggleCheckboxReachable = (state) => {
-  const newData = { ...state.data, reachable: !state.data.reachable };
+  const newData = {
+    ...state.data,
+    reachable: !(state.data?.reachable ?? false),
+  };
   return computeIsDirty({ ...state, data: newData });
 };
 
 const toggleCheckboxPath = (state) => {
-  const newData = { ...state.data, pathForward: !state.data.pathForward };
+  const newData = {
+    ...state.data,
+    pathForward: !(state.data?.pathForward ?? false),
+  };
   return computeIsDirty({ ...state, data: newData });
 };
 
@@ -200,6 +206,25 @@ const createWaiver = createAsyncThunk(
   }
 );
 
+const deleteWaiver = createAsyncThunk(
+  `${REDUCER_NAME}/deleteWaiver`,
+  async (_, { getState, dispatch, rejectWithValue }) => {
+    const state = getState();
+    const { ownerType, ownerId } = selectSelectedOwnerTypeAndId(state);
+    const waivers = selectWaivers(state);
+    const waiversId = waivers.autoPolicyWaiverId;
+    return axios
+      .delete(getWaiversConfigurationURLWaiver(ownerType, ownerId, waiversId))
+      .then(prop('data'))
+      .then(() => {
+        startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone).then(() =>
+          dispatch(actions.loadWaiversConfigurationPage())
+        );
+      })
+      .catch(rejectWithValue);
+  }
+);
+
 const automatedWaiversSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -230,6 +255,7 @@ export const actions = {
   loadWaiversConfigurationPage,
   saveWaiversConfiguration,
   createWaiver,
+  deleteWaiver,
 };
 
 export default automatedWaiversSlice.reducer;

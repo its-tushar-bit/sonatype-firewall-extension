@@ -18,7 +18,7 @@ export const selectWaiversConfig = createSelector(selectWaivers, (waiver) => {
 
 export const selectWaiversConfigPage = createSelector(selectWaivers, (waiver) => {
   if (!waiver) return {};
-  const config = pick(['pathForward', 'reachable', 'threatLevel', 'isInherited'], waiver);
+  const config = pick(['pathForward', 'reachable', 'threatLevel', 'isInherited', 'autoPolicyWaiverId'], waiver);
   return config;
 });
 

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   selectIsAutoWaiversEnabled,
@@ -27,6 +27,7 @@ import './_waiversConfiguration.scss';
 import { selectWaiversConfigPage, selectWaiversSlice } from 'MainRoot/OrgsAndPolicies/automatedWaiversSelectors';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+import ConfirmationModal from 'MainRoot/legal/application/ConfirmationModal';
 
 const WaiversConfiguration = () => {
   const dispatch = useDispatch();
@@ -36,7 +37,6 @@ const WaiversConfiguration = () => {
   const isSbomManager = useSelector(selectIsSbomManager);
 
   const doLoad = () => dispatch(actions.loadWaiversConfigurationPage());
-
   useEffect(() => {
     doLoad();
   }, []);
@@ -54,22 +54,44 @@ const WaiversConfiguration = () => {
 
 function WaiversConfigurationContents() {
   const dispatch = useDispatch();
+  const [isDeleteConfirmationModalOpen, setisDeleteConfirmationModalOpen] = useState(false);
 
   const waiversConfigPage = useSelector(selectWaiversConfigPage);
   let { loading, loadError, isDirty, submitMaskState, submitError } = useSelector(selectWaiversSlice);
   const reachable = waiversConfigPage?.reachable ?? false;
   const pathForward = waiversConfigPage?.pathForward ?? false;
   const threatLevel = waiversConfigPage?.threatLevel ?? 7;
+  const hasExistingWaiver = waiversConfigPage?.autoPolicyWaiverId != null;
+
   if (waiversConfigPage?.isInherited === null || waiversConfigPage?.isInherited === true) {
     isDirty = true;
   }
+
+  const handleDelete = () => {
+    dispatch(actions.deleteWaiver());
+    setisDeleteConfirmationModalOpen(false);
+  };
+
+  const shouldDeleteAutoWaiver = () => {
+    return isDirty && !reachable && !pathForward && hasExistingWaiver;
+  };
+
   const handleSubmit = () => {
-    if (waiversConfigPage?.isInherited === null || waiversConfigPage?.isInherited === true) {
+    if (shouldDeleteAutoWaiver()) {
+      setisDeleteConfirmationModalOpen(true);
+    } else if (waiversConfigPage?.isInherited === null || waiversConfigPage?.isInherited === true) {
       dispatch(actions.createWaiver());
     } else {
       dispatch(actions.saveWaiversConfiguration());
     }
   };
+
+  const validationError = () => {
+    if (!reachable && !pathForward && !hasExistingWaiver) return 'Can not save without selecting at least one option';
+    if (!isDirty) return MSG_NO_CHANGES_TO_SAVE;
+    return undefined;
+  };
+
   const doLoad = () => dispatch(actions.loadWaiversConfigurationPage());
 
   return (
@@ -83,11 +105,11 @@ function WaiversConfigurationContents() {
       <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
         <NxTile aria-label="Configure Auto-Waiver">
           <NxStatefulForm
-            submitBtnText="Update"
+            submitBtnText={shouldDeleteAutoWaiver() ? 'Delete Auto Waiver' : 'Update'}
             submitMaskState={submitMaskState}
             submitMaskMessage="Saving…"
             onSubmit={handleSubmit}
-            validationErrors={isDirty ? undefined : MSG_NO_CHANGES_TO_SAVE}
+            validationErrors={validationError()}
             loadError={loadError}
             submitError={submitError}
           >
@@ -103,12 +125,23 @@ function WaiversConfigurationContents() {
                 Security vulnerability is Not Reachable
               </NxCheckbox>
               <NxCheckbox onChange={() => dispatch(actions.toggleCheckboxPath())} isChecked={pathForward || false}>
-                Component version is current or latest non-violating
+                No newer, non-violating component version is available
               </NxCheckbox>
             </NxFieldset>
           </NxStatefulForm>
         </NxTile>
       </NxLoadWrapper>
+      {isDeleteConfirmationModalOpen && (
+        <ConfirmationModal
+          id="delete-auto-waiver-modal"
+          cancelHandler={() => setisDeleteConfirmationModalOpen(false)}
+          titleContent={<span>Confirm Delete</span>}
+          confirmationMessage="Are you sure you want to delete this auto waiver configuration?"
+          closeHandler={() => setisDeleteConfirmationModalOpen(false)}
+          confirmationHandler={handleDelete}
+          confirmationButtonText="Delete"
+        />
+      )}
     </>
   );
 }

@@ -142,6 +142,11 @@
       <artifactId>insight-license-model</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.sonatype.nexus</groupId>
       <artifactId>nexus-git-utils</artifactId>
     </dependency>
@@ -212,6 +217,11 @@
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-tenancy</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.datadoghq</groupId>
+      <artifactId>dd-trace-api</artifactId>
+      <version>${datadog.version}</version>
     </dependency>
   </dependencies>
 

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockId;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -78,8 +79,7 @@ public class MultiTenantQuartzJobStoreTXTest
   public void schemaMigrationShouldNotExitOnCheckIn() {
     // pretend that a schema migration is in progress
     // Note `lenient` is used as the code is never actually hit due to the override
-    lenient().when(clusterLockManager.lockExists(ClusterLockManager.getLockIdForSchemaMigrationInProgress()))
-        .thenReturn(true);
+    lenient().when(clusterLockManager.lockExists(ClusterLockId.forSchemaMigrationInProgress())).thenReturn(true);
 
     // the MTIQ implementation still always returns false
     assertThat(underTest.shouldExitDueToSchemaMigration()).isFalse();

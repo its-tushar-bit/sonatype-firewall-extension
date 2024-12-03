@@ -19,10 +19,17 @@ public class ClusterLockManagerProvider
 
   private final LockDAO lockDAO;
 
+  private final PostgresAdvisoryLockDAO postgresAdvisoryLockDAO;
+
   @Inject
-  public ClusterLockManagerProvider(final OperationalDataStore operationalDataStore, final LockDAO lockDAO) {
+  public ClusterLockManagerProvider(
+      final OperationalDataStore operationalDataStore,
+      final LockDAO lockDAO,
+      final PostgresAdvisoryLockDAO postgresAdvisoryLockDAO)
+  {
     this.operationalDataStore = operationalDataStore;
     this.lockDAO = lockDAO;
+    this.postgresAdvisoryLockDAO = postgresAdvisoryLockDAO;
   }
 
   @Override
@@ -31,7 +38,7 @@ public class ClusterLockManagerProvider
       return new H2ClusterLockManager();
     }
     else {
-      return new PostgresClusterLockManager(operationalDataStore, lockDAO);
+      return new PostgresClusterLockManager(operationalDataStore, lockDAO, postgresAdvisoryLockDAO);
     }
   }
 }

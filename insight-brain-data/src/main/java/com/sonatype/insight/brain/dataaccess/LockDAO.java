@@ -5,14 +5,17 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.LockModeType;
-import javax.persistence.NoResultException;
-import javax.persistence.OptimisticLockException;
 import javax.persistence.RollbackException;
 
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -24,6 +27,9 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class LockDAO
     extends AbstractOperationalSqlDAO<Lock>
 {
+  // as documented on https://www.postgresql.org/docs/current/errcodes-appendix.html
+  private static final String POSTGRES_LOCK_NOT_AVAILABLE = "55P03";
+
   @Inject
   public LockDAO(OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
@@ -48,21 +54,28 @@ public class LockDAO
     }
   }
 
-  public void acquireLock(TransactionContext tx, String lockId, LockModeType lockModeType) {
-    acquireLock(tx, lockId, lockModeType, true);
+  /**
+   * Note: Connection must have auto-commit set to false
+   */
+  public void acquireLock(Connection connection, String lockId, LockModeType lockModeType) {
+    acquireLock(connection, lockId, lockModeType, true);
   }
 
-  public boolean tryAcquireLock(TransactionContext tx, String lockId, LockModeType lockModeType) {
-    return acquireLock(tx, lockId, lockModeType, false);
+  /**
+   * Note: Connection must have auto-commit set to false
+   */
+  public boolean tryAcquireLock(Connection connection, String lockId, LockModeType lockModeType) {
+    return acquireLock(connection, lockId, lockModeType, false);
   }
 
-  public boolean acquireLock(TransactionContext tx, String lockId, LockModeType lockModeType, boolean waitForLock) {
-    if (isDatabaseEmbedded() && LockModeType.PESSIMISTIC_WRITE != lockModeType) {
-      throw new UnsupportedOperationException("Embedded database only supports acquiring an exclusive lock.");
+  /**
+   * Note: Connection must have auto-commit set to false
+   */
+  public boolean acquireLock(Connection connection, String lockId, LockModeType lockModeType, boolean waitForLock) {
+    if (isDatabaseEmbedded()) {
+      throw new UnsupportedOperationException("Embedded database not supported for database advisory locks");
     }
-    // NOTE: This query does by design not match/lock any row (and hence not block).
-    // But it crucially forces JPA to start a JDBC transaction for the native query to participate in.
-    createQuery("SELECT entity FROM Lock entity WHERE entity.id IS NULL").setLockModeType(lockModeType).get(tx);
+
     try {
       String lockType;
       switch (lockModeType) {
@@ -78,16 +91,30 @@ public class LockDAO
           throw new IllegalStateException(String.format("Unknown lock mode type: %s.", lockModeType));
         }
       }
-      tx.createNativeQuery("SELECT * FROM " + getDatabaseSchema() + ".lock" +
-              " WHERE lock_id = ?1 FOR " + lockType + (waitForLock ? "" : " NOWAIT")).setParameter(1, lockId)
-          .getSingleResult();
+
+      String sQuery = "SELECT 1 FROM " + getDatabaseSchema() + ".lock" +
+          " WHERE lock_id = ? FOR " + lockType + (waitForLock ? "" : " NOWAIT");
+
+      try (PreparedStatement stmt = connection.prepareStatement(sQuery)) {
+        stmt.setObject(1, lockId);
+
+        try (ResultSet results = stmt.executeQuery()) {
+          if (!results.next()) {
+            // no rows selected
+            throw new EntityNotFoundException("Lock row does not exist: " + lockId);
+          }
+        }
+      }
     }
-    catch (NoResultException e) {
-      throw new EntityNotFoundException("Could not acquire lock " + lockId);
+    catch (SQLException e) {
+      if (POSTGRES_LOCK_NOT_AVAILABLE.equals(e.getSQLState())) {
+        return false;
+      }
+      else {
+        throw new RuntimeException(e);
+      }
     }
-    catch (OptimisticLockException e) {
-      return false;
-    }
+
     return true;
   }
 

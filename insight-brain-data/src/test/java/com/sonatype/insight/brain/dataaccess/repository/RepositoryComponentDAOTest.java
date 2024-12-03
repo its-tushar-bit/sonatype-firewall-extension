@@ -31,6 +31,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockId;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.H2ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
@@ -303,17 +304,21 @@ public class RepositoryComponentDAOTest
     ClusterLockManager clusterLockManager = new H2ClusterLockManager();
     clusterLockManager.createForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()).close();
     clusterLockManager.createForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()).close();
-    assertThat(clusterLockManager.lockExists(ClusterLockManager
-        .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()))).isTrue();
-    assertThat(clusterLockManager.lockExists(ClusterLockManager
-        .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()))).isTrue();
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockId.forRepositoryComponent(repository.getId(), repositoryComponent1.getPathname())
+    )).isTrue();
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockId.forRepositoryComponent(repository.getId(), repositoryComponent2.getPathname())
+    )).isTrue();
 
     dao.deleteByRepositoryId(null /* TransactionContext */, repository.getId());
 
-    assertThat(clusterLockManager.lockExists(ClusterLockManager
-        .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()))).isFalse();
-    assertThat(clusterLockManager.lockExists(ClusterLockManager
-        .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()))).isFalse();
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockId.forRepositoryComponent(repository.getId(), repositoryComponent1.getPathname())
+    )).isFalse();
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockId.forRepositoryComponent(repository.getId(), repositoryComponent2.getPathname())
+    )).isFalse();
     assertThat(dao.getByRepositoryId(repository.getId())).isEmpty();
     assertThat(quarantinedComponentAccessDAO.getAll()).isEmpty();
   }
@@ -335,10 +340,12 @@ public class RepositoryComponentDAOTest
 
     clusterLockManager.createForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()).close();
     clusterLockManager.createForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()).close();
-    assertThat(clusterLockManager.lockExists(ClusterLockManager
-        .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()))).isTrue();
-    assertThat(clusterLockManager.lockExists(ClusterLockManager
-        .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()))).isTrue();
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockId.forRepositoryComponent(repository.getId(), repositoryComponent1.getPathname())
+    )).isTrue();
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockId.forRepositoryComponent(repository.getId(), repositoryComponent2.getPathname())
+    )).isTrue();
 
     try (TransactionContext tx = dao.createTransactionContext()) {
       tx.begin();
@@ -346,10 +353,12 @@ public class RepositoryComponentDAOTest
       tx.commit();
     }
 
-    assertThat(clusterLockManager.lockExists(ClusterLockManager
-        .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()))).isFalse();
-    assertThat(clusterLockManager.lockExists(ClusterLockManager
-        .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()))).isFalse();
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockId.forRepositoryComponent(repository.getId(), repositoryComponent1.getPathname())
+    )).isFalse();
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockId.forRepositoryComponent(repository.getId(), repositoryComponent2.getPathname())
+    )).isFalse();
     assertThat(dao.getByRepositoryId(repository.getId())).isEmpty();
     assertThat(quarantinedComponentAccessDAO.getAll()).isEmpty();
   }

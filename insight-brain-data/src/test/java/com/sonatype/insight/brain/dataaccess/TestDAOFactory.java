@@ -60,6 +60,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseLicenseInternalDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
+import com.sonatype.insight.brain.dataaccess.lock.PostgresAdvisoryLockDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverRevocationDAO;
@@ -164,8 +165,11 @@ public class TestDAOFactory
 
   public TestDAOFactory(final DataStoreProvider dataStoreProvider) {
     this.dataStoreProvider = dataStoreProvider;
-    this.clusterLockManager =
-        (new ClusterLockManagerProvider(dataStoreProvider.getOperationalDataStore(), createLockDAO())).get();
+    this.clusterLockManager = new ClusterLockManagerProvider(
+        dataStoreProvider.getOperationalDataStore(),
+        createLockDAO(),
+        createPostgresAdvisoryLockDAO()
+    ).get();
     this.searchIndexManager = new DefaultSearchIndexManager(createSearchIndexChangeDAO());
   }
 
@@ -516,6 +520,11 @@ public class TestDAOFactory
   @Override
   public LockDAO createLockDAO() {
     return new LockDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public PostgresAdvisoryLockDAO createPostgresAdvisoryLockDAO() {
+    return new PostgresAdvisoryLockDAO();
   }
 
   @Override

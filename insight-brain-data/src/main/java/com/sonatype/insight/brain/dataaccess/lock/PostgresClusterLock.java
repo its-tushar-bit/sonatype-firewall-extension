@@ -5,9 +5,13 @@
  */
 package com.sonatype.insight.brain.dataaccess.lock;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+
 import com.sonatype.insight.brain.dataaccess.LockDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.dataaccess.TransactionContext;
+
+import datadog.trace.api.Trace;
 
 public class PostgresClusterLock
     extends AbstractClusterLock
@@ -16,19 +20,25 @@ public class PostgresClusterLock
 
   private final LockDAO lockDAO;
 
-  private volatile TransactionContext transactionContext;
+  private final PostgresAdvisoryLockDAO advisoryLockDAO;
+
+  private volatile Connection connection;
 
   protected PostgresClusterLock(
-      final String lockId,
+      final ClusterLockId clusterLockId,
       final OperationalDataStore operationalDataStore,
-      final LockDAO lockDAO)
+      final LockDAO lockDAO,
+      final PostgresAdvisoryLockDAO advisoryLockDAO)
   {
-    super(lockId);
+    super(clusterLockId);
+
     this.operationalDataStore = operationalDataStore;
     this.lockDAO = lockDAO;
+    this.advisoryLockDAO = advisoryLockDAO;
   }
 
   @Override
+  @Trace
   public void lock(final LockType lockType, final boolean waitForLock) {
     this.lockType = lockType;
     this.waitForLock = waitForLock;
@@ -36,42 +46,116 @@ public class PostgresClusterLock
   }
 
   @Override
+  @Trace
   public void unlock() {
     acquired = false;
-    if (transactionContext != null) {
-      transactionContext.close();
-      transactionContext = null;
+    if (connection != null) {
+      try {
+        rollbackAndCloseConnection(connection);
+      }
+      catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+      finally {
+        connection = null;
+      }
     }
   }
 
+  @SuppressWarnings("PMD.DoNotThrowExceptionInFinally")
   private boolean acquire() {
-    TransactionContext tempTx =
-        new TransactionContext(operationalDataStore.getEntityManagerFactoryForLocks().createEntityManager());
-    tempTx.begin();
+    String oldStyleLockId = clusterLockId.getOldStyleLockId();
+    Connection connection = getNewConnection();
+
+    RuntimeException runtimeException = null;
     try {
       if (waitForLock) {
-        lockDAO.acquireLock(tempTx, lockId, lockType.getLockModeType());
-        transactionContext = tempTx;
+
+        // TEMPORARY: as we migrate from the old table-based locks to the new advisory lock mechanism, we use both.
+        // Once all pods are running this code, another deployment will be done to remove the call to lockDAO,
+        // and then once all pods are running _that_ code, a third deployment will be done to delete the lock table.
+        lockDAO.acquireLock(connection, oldStyleLockId, lockType.getLockModeType());
+        advisoryLockDAO.acquireLock(connection, clusterLockId, lockType.getLockModeType());
+        this.connection = connection;
         return true;
       }
       else {
-        if (lockDAO.tryAcquireLock(tempTx, lockId, lockType.getLockModeType())) {
-          transactionContext = tempTx;
-          return true;
+        if (lockDAO.tryAcquireLock(connection, oldStyleLockId, lockType.getLockModeType())) {
+          if (advisoryLockDAO.tryAcquireLock(connection, clusterLockId, lockType.getLockModeType())) {
+            this.connection = connection;
+            return true;
+          }
+          // Else failed to acquire pg_advisory lock, likely because a future-impl node that doesn't use the old lock
+          // table has it.
         }
-        // Failed to acquire lock
-        tempTx.close();
+        // Else failed to acquire lock. Return false, do not assign this.connection, and allow the finally block to
+        // close `connection`.
         return false;
       }
     }
-    catch (RuntimeException e) {
+    catch (Exception e) {
+      if (e instanceof RuntimeException re) {
+        throw re;
+      }
+      else {
+        runtimeException = new RuntimeException(e);
+        throw runtimeException;
+      }
+    }
+    finally {
+      if (connection != this.connection) {
+        // If we didn't save the connection in this.connection, we need to dispose of it
+        try {
+          rollbackAndCloseConnection(connection);
+        }
+        catch (SQLException e) {
+          if (runtimeException != null) {
+            runtimeException.addSuppressed(e);
+          }
+          else {
+            throw new RuntimeException(e);
+          }
+        }
+      }
+    }
+  }
+
+  private Connection getNewConnection() {
+    try {
+      var connection = operationalDataStore.getDataSourceForLocks().getConnection();
+
+      // Note: attempting to set default auto-commit on the DataSource (in DefaultOperationalDataStore) had no effect.
+      // JPA might be interfering with it. So we set it per-connection.
+      connection.setAutoCommit(false);
+      return connection;
+    }
+    catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @SuppressWarnings("PMD.DoNotThrowExceptionInFinally")
+  private void rollbackAndCloseConnection(Connection connection) throws SQLException {
+    SQLException sqlException = null;
+    try {
+      connection.rollback();
+    }
+    catch (SQLException e1) {
+      sqlException = e1;
+      throw e1;
+    }
+    finally {
       try {
-        tempTx.close();
+        connection.close();
       }
-      catch (Exception closeException) {
-        e.addSuppressed(closeException);
+      catch (SQLException e2) {
+        if (sqlException != null) {
+          sqlException.addSuppressed(e2);
+        }
+        else {
+          throw e2;
+        }
       }
-      throw e;
     }
   }
 }

@@ -16,8 +16,8 @@ public class H2ClusterLock
 {
   private final Semaphore semaphore;
 
-  public H2ClusterLock(final String lockId, final Semaphore semaphore) {
-    super(lockId);
+  public H2ClusterLock(final ClusterLockId clusterLockId, final Semaphore semaphore) {
+    super(clusterLockId);
     this.semaphore = semaphore;
   }
 
@@ -34,12 +34,12 @@ public class H2ClusterLock
     this.acquired = acquireH2();
 
     // Locking prevents removal/replacement, but check that it wasn't removed/replaced before locking
-    if (LOCKS_BY_ID.get(lockId) != semaphore) {
+    if (LOCKS_BY_ID.get(clusterLockId) != semaphore) {
       if (acquired) {
         semaphore.release(lockType.getPermits());
       }
       acquired = false;
-      throw new RuntimeException("Could not acquire lock " + lockId);
+      throw new RuntimeException("Could not acquire lock " + clusterLockId.getOldStyleLockId());
     }
 
   }

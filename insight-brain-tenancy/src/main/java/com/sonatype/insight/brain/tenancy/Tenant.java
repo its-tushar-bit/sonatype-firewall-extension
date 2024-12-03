@@ -89,9 +89,12 @@ public class Tenant
     return tenantSlug.equals(tenant.tenantSlug);
   }
 
+  /**
+   * @return the Tenant's hashCode, which is equal to the hashCode of its slug
+   */
   @Override
   public int hashCode() {
-    return Objects.hash(tenantSlug);
+    return Objects.hashCode(tenantSlug);
   }
 
   void invalidate() {

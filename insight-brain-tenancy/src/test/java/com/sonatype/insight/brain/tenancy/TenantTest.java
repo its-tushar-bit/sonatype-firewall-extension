@@ -113,4 +113,9 @@ public class TenantTest
 
     assertThat(Tenant.GLOBAL_TENANT.isInvalid()).isFalse();
   }
+
+  @Test
+  public void testHashCode() {
+    assertThat(new Tenant("name").hashCode()).isEqualTo("name".hashCode());
+  }
 }

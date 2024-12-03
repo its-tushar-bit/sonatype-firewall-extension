@@ -39,8 +39,11 @@ public abstract class AbstractDataTest
   public void initialize() {
     daoFactory = new TestDAOFactory(databaseRule);
     SystemConfigurationPropertyFeature.injectDependencies(daoFactory.createSystemConfigurationPropertyDAO());
-    clusterLockManager =
-        (new ClusterLockManagerProvider(databaseRule.getOperationalDataStore(), daoFactory.createLockDAO())).get();
+    clusterLockManager = new ClusterLockManagerProvider(
+        databaseRule.getOperationalDataStore(),
+        daoFactory.createLockDAO(),
+        daoFactory.createPostgresAdvisoryLockDAO()
+    ).get();
 
     // Re-inject classes that have static dependencies
     ConditionTypesTestHelper.initConditionTypes(daoFactory);

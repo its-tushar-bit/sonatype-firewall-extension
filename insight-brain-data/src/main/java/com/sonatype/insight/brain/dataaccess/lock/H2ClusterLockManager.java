@@ -20,40 +20,40 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class H2ClusterLockManager
     extends AbstractClusterLockManager
 {
-  static final ConcurrentMap<String, Semaphore> LOCKS_BY_ID = new ConcurrentHashMap<>();
+  static final ConcurrentMap<ClusterLockId, Semaphore> LOCKS_BY_ID = new ConcurrentHashMap<>();
 
   @Override
-  protected ClusterLock createClusterLock(final String lockId) {
-    Semaphore semaphore = LOCKS_BY_ID.computeIfAbsent(lockId, key -> new Semaphore(Integer.MAX_VALUE, true));
-    return new H2ClusterLock(lockId, semaphore);
+  protected ClusterLock createClusterLock(final ClusterLockId clusterLockId) {
+    Semaphore semaphore = LOCKS_BY_ID.computeIfAbsent(clusterLockId, key -> new Semaphore(Integer.MAX_VALUE, true));
+    return new H2ClusterLock(clusterLockId, semaphore);
   }
 
   @Override
-  protected void deleteLock(final TransactionContext tx /* unused */, final String lockId) {
-    Semaphore semaphore = LOCKS_BY_ID.get(lockId);
+  protected void deleteLock(final TransactionContext tx /* unused */, final ClusterLockId clusterLockId) {
+    Semaphore semaphore = LOCKS_BY_ID.get(clusterLockId);
     if (semaphore != null) {
-      try (ClusterLock lock = new H2ClusterLock(lockId, semaphore)) {
+      try (ClusterLock lock = new H2ClusterLock(clusterLockId, semaphore)) {
         lock.lock(LockType.EXCLUSIVE, true);
-        LOCKS_BY_ID.remove(lockId);
+        LOCKS_BY_ID.remove(clusterLockId);
       }
     }
   }
 
   @Override
-  public void deleteFor(final String lockId) {
-    deleteLock(null, lockId);
+  public void deleteFor(final ClusterLockId clusterLockId) {
+    deleteLock(null, clusterLockId);
   }
 
   @Override
-  public boolean lockExists(final String lockId) {
-    return LOCKS_BY_ID.containsKey(lockId);
+  public boolean lockExists(final ClusterLockId clusterLockId) {
+    return LOCKS_BY_ID.containsKey(clusterLockId);
   }
 
   @Override
   protected void deleteLocksByPrefix(final TransactionContext tx /* unused */, final String prefix) {
     LOCKS_BY_ID.keySet()
         .stream()
-        .filter(key -> key.startsWith(prefix))
-        .forEach(lockId -> deleteLock(null, lockId));
+        .filter(key -> key.getOldStyleLockId().startsWith(prefix))
+        .forEach(clusterLockId -> deleteLock(null, clusterLockId));
   }
 }

@@ -56,6 +56,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseLicenseInternalDAO;
+import com.sonatype.insight.brain.dataaccess.lock.PostgresAdvisoryLockDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverRevocationDAO;
@@ -244,6 +245,8 @@ public interface DAOFactory
   LicenseThreatGroupLicenseDAO createLicenseThreatGroupLicenseDAO();
 
   LockDAO createLockDAO();
+
+  PostgresAdvisoryLockDAO createPostgresAdvisoryLockDAO();
 
   MigrationTrackerDAO createMigrationTrackerDAO();
 

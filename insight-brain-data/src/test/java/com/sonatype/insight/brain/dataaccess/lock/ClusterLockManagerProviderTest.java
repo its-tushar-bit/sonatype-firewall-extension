@@ -26,6 +26,9 @@ public class ClusterLockManagerProviderTest
   @Mock
   private LockDAO lockDAO;
 
+  @Mock
+  private PostgresAdvisoryLockDAO postgresAdvisoryLockDAO;
+
   @Test
   public void testH2() {
     test("org.h2.Driver", H2ClusterLockManager.class);
@@ -43,7 +46,7 @@ public class ClusterLockManagerProviderTest
     when(operationalDataStore.getDatabaseConfig()).thenReturn(databaseConfig);
 
     ClusterLockManagerProvider clusterLockManagerProvider = new ClusterLockManagerProvider(operationalDataStore,
-        lockDAO);
+        lockDAO, postgresAdvisoryLockDAO);
     ClusterLockManager clusterLockManager = clusterLockManagerProvider.get();
     assertThat(clusterLockManager).isInstanceOf(clazz);
   }

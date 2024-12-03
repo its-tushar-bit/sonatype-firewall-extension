@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockId;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -153,7 +154,7 @@ public class QuartzJobStoreTX
 
   protected boolean shouldExitDueToSchemaMigration() {
     boolean schemaMigrationUnfinished =
-        clusterLockManager.lockExists(ClusterLockManager.getLockIdForSchemaMigrationInProgress());
+        clusterLockManager.lockExists(ClusterLockId.forSchemaMigrationInProgress());
     if (schemaMigrationUnfinished) {
       log.error(SCHEMA_MIGRATION_UNFINISHED_MESSAGE);
     }

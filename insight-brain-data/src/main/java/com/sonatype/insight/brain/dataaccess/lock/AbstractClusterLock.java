@@ -14,15 +14,15 @@ public abstract class AbstractClusterLock
 
   protected volatile boolean acquired;
 
-  protected final String lockId;
+  protected final ClusterLockId clusterLockId;
 
-  protected AbstractClusterLock(final String lockId) {
-    this.lockId = lockId;
+  protected AbstractClusterLock(ClusterLockId clusterLockId) {
+    this.clusterLockId = clusterLockId;
   }
 
   @Override
-  public String getLockId() {
-    return lockId;
+  public ClusterLockId getClusterLockId() {
+    return clusterLockId;
   }
 
   @Override

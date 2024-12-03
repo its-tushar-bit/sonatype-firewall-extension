@@ -28,7 +28,7 @@ import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockId;
 import com.sonatype.insight.brain.dataaccess.lock.H2ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -1068,15 +1068,14 @@ public class ApplicationDAOTest
     }
 
     assertThat(clusterLockManager).isInstanceOf(H2ClusterLockManager.class);
-    assertThat(clusterLockManager.lockExists(
-        ClusterLockManager.getLockIdForPolicyViolations(application))).isTrue();
+    assertThat(clusterLockManager.lockExists(ClusterLockId.forPolicyViolations(application.getId()))).isTrue();
 
     // Lock for policy violation aggregations
     try (ClusterLock clusterLock = clusterLockManager.createForPolicyViolationAggregations(application.getId())) {
       clusterLock.lock();
     }
-    assertThat(clusterLockManager.lockExists(
-        ClusterLockManager.getLockIdForPolicyViolationAggregations(application.getId()))).isTrue();
+    assertThat(clusterLockManager.lockExists(ClusterLockId.forPolicyViolationAggregations(application.getId())))
+        .isTrue();
 
     // Locks for application reports
     String scanId1 = "scanId1";
@@ -1086,32 +1085,42 @@ public class ApplicationDAOTest
     clusterLockManager.createForPolicyEvaluation(application, scanId2);
     clusterLockManager.createForPolicyEvaluation(otherApplication, scanId3);
     assertThat(
-        clusterLockManager.lockExists(ClusterLockManager.getLockIdForPolicyEvaluation(application, scanId1))).isTrue();
+        clusterLockManager.lockExists(ClusterLockId.forPolicyEvaluation(application.getId(), scanId1))
+    ).isTrue();
     assertThat(
-        clusterLockManager.lockExists(ClusterLockManager.getLockIdForPolicyEvaluation(application, scanId2))).isTrue();
-    assertThat(clusterLockManager.lockExists(
-        ClusterLockManager.getLockIdForPolicyEvaluation(otherApplication, scanId3))).isTrue();
+        clusterLockManager.lockExists(ClusterLockId.forPolicyEvaluation(application.getId(), scanId2))
+    ).isTrue();
+    assertThat(
+        clusterLockManager.lockExists(ClusterLockId.forPolicyEvaluation(otherApplication.getId(), scanId3))
+    ).isTrue();
 
     // Lock for audit json file store
     try (ClusterLock clusterLock = clusterLockManager.createForAuditJsonFileStore(application.getId())) {
       clusterLock.lock();
     }
     assertThat(
-        clusterLockManager.lockExists(ClusterLockManager.getLockIdForAuditJsonFileStore(application.getId()))).isTrue();
+        clusterLockManager.lockExists(ClusterLockId.forAuditJsonFileStore(application.getId()))
+    ).isTrue();
 
     applicationDAO.delete(application);
 
-    assertThat(clusterLockManager.lockExists(ClusterLockManager.getLockIdForPolicyViolations(application))).isFalse();
+    assertThat(clusterLockManager.lockExists(ClusterLockId.forPolicyViolations(application.getId())))
+        .isFalse();
     assertThat(clusterLockManager.lockExists(
-        ClusterLockManager.getLockIdForPolicyViolationAggregations(application.getId()))).isFalse();
+        ClusterLockId.forPolicyViolationAggregations(application.getId()))
+    ).isFalse();
     assertThat(
-        clusterLockManager.lockExists(ClusterLockManager.getLockIdForPolicyEvaluation(application, scanId1))).isFalse();
+        clusterLockManager.lockExists(ClusterLockId.forPolicyEvaluation(application.getId(), scanId1))
+    ).isFalse();
     assertThat(
-        clusterLockManager.lockExists(ClusterLockManager.getLockIdForPolicyEvaluation(application, scanId2))).isFalse();
-    assertThat(clusterLockManager.lockExists(
-        ClusterLockManager.getLockIdForPolicyEvaluation(otherApplication, scanId3))).isTrue();
-    assertThat(clusterLockManager.lockExists(
-        ClusterLockManager.getLockIdForAuditJsonFileStore(application.getId()))).isFalse();
+        clusterLockManager.lockExists(ClusterLockId.forPolicyEvaluation(application.getId(), scanId2))
+    ).isFalse();
+    assertThat(
+        clusterLockManager.lockExists(ClusterLockId.forPolicyEvaluation(otherApplication.getId(), scanId3))
+    ).isTrue();
+    assertThat(
+        clusterLockManager.lockExists(ClusterLockId.forAuditJsonFileStore(application.getId()))
+    ).isFalse();
   }
 
   @Test
@@ -1125,14 +1134,13 @@ public class ApplicationDAOTest
     try (ClusterLock clusterLock = clusterLockManager.createForPolicyViolations(application)) {
       clusterLock.lock();
     }
-    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyViolations(application))).isNotNull();
+    assertThat(dao.getById("policy-violations-" + application.getId())).isNotNull();
 
     // Lock for policy violation aggregations
     try (ClusterLock clusterLock = clusterLockManager.createForPolicyViolationAggregations(application.getId())) {
       clusterLock.lock();
     }
-    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyViolationAggregations(application.getId())))
-        .isNotNull();
+    assertThat(dao.getById("policy-violation-aggregations-" + application.getId())).isNotNull();
 
     // Locks for application reports
     String scanId1 = "scanId1";
@@ -1141,24 +1149,25 @@ public class ApplicationDAOTest
     clusterLockManager.createForPolicyEvaluation(application, scanId1);
     clusterLockManager.createForPolicyEvaluation(application, scanId2);
     clusterLockManager.createForPolicyEvaluation(otherApplication, scanId3);
-    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyEvaluation(application, scanId1))).isNotNull();
-    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyEvaluation(application, scanId2))).isNotNull();
-    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyEvaluation(otherApplication, scanId3))).isNotNull();
+    assertThat(dao.getById("policy-evaluation-%s-scanId1".formatted(application.getId()))).isNotNull();
+    assertThat(dao.getById("policy-evaluation-%s-scanId2".formatted(application.getId()))).isNotNull();
+    assertThat(dao.getById("policy-evaluation-%s-scanId3".formatted(otherApplication.getId()))).isNotNull();
     // Lock for audit json file store
     try (ClusterLock clusterLock = clusterLockManager.createForAuditJsonFileStore(application.getId())) {
       clusterLock.lock();
     }
-    assertThat(dao.getById(ClusterLockManager.getLockIdForAuditJsonFileStore(application.getId()))).isNotNull();
+    assertThat(dao.getById("audit-json-file-store-" + application.getId())).isNotNull();
 
     applicationDAO.delete(application);
 
-    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyViolations(application))).isNull();
-    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyViolationAggregations(application.getId())))
-        .isNull();
-    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyEvaluation(application, scanId1))).isNull();
-    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyEvaluation(application, scanId2))).isNull();
-    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyEvaluation(otherApplication, scanId3))).isNotNull();
-    assertThat(dao.getById(ClusterLockManager.getLockIdForAuditJsonFileStore(application.getId()))).isNull();
+    assertThat(dao.getById("policy-violations-" + application.getId())).isNull();
+    assertThat(dao.getById("policy-violation-aggregations-" + application.getId())).isNull();
+    assertThat(dao.getById("policy-evaluation-%s-scanId1".formatted(application.getId()))).isNull();
+    assertThat(dao.getById("policy-evaluation-%s-scanId2".formatted(application.getId()))).isNull();
+    assertThat(dao.getById("audit-json-file-store-" + application.getId())).isNull();
+
+    // Other app, not deleted
+    assertThat(dao.getById("policy-evaluation-%s-scanId3".formatted(otherApplication.getId()))).isNotNull();
   }
 
   @Test

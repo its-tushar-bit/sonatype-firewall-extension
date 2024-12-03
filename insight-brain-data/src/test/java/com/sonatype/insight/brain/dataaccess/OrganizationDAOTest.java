@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockId;
 import com.sonatype.insight.brain.dataaccess.lock.H2ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.PostgresClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
@@ -804,13 +804,11 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     }
 
     assertThat(clusterLockManager).isInstanceOf(H2ClusterLockManager.class);
-    assertThat(clusterLockManager.lockExists(
-        ClusterLockManager.getLockIdForAuditJsonFileStore(organization.getId()))).isTrue();
+    assertThat(clusterLockManager.lockExists(ClusterLockId.forAuditJsonFileStore(organization.getId()))).isTrue();
 
     dao.delete(organization);
 
-    assertThat(clusterLockManager.lockExists(
-        ClusterLockManager.getLockIdForAuditJsonFileStore(organization.getId()))).isFalse();
+    assertThat(clusterLockManager.lockExists(ClusterLockId.forAuditJsonFileStore(organization.getId()))).isFalse();
   }
 
   @Test
@@ -824,13 +822,11 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     }
 
     assertThat(clusterLockManager).isInstanceOf(PostgresClusterLockManager.class);
-    assertThat(clusterLockManager.lockExists(
-        ClusterLockManager.getLockIdForAuditJsonFileStore(organization.getId()))).isTrue();
+    assertThat(clusterLockManager.lockExists(ClusterLockId.forAuditJsonFileStore(organization.getId()))).isTrue();
 
     dao.delete(organization);
 
-    assertThat(clusterLockManager.lockExists(
-        ClusterLockManager.getLockIdForAuditJsonFileStore(organization.getId()))).isFalse();
+    assertThat(clusterLockManager.lockExists(ClusterLockId.forAuditJsonFileStore(organization.getId()))).isFalse();
   }
 
   @Test

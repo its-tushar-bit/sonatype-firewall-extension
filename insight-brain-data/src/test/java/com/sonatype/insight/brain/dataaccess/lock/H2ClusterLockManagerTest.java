@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.lock;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Semaphore;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.Application;
@@ -31,15 +30,15 @@ public class H2ClusterLockManagerTest
   }
 
   @Override
-  protected ClusterLock createClusterLock(final String lockId) {
-    return h2ClusterLockManager.createClusterLock(lockId);
+  protected ClusterLock createClusterLock(ClusterLockId clusterLockId) {
+    return h2ClusterLockManager.createClusterLock(clusterLockId);
   }
 
   @Override
-  protected Pair<CountDownLatch, Thread> startConcurrentDeleteLockThread(final String lockId) {
+  protected Pair<CountDownLatch, Thread> startConcurrentDeleteLockThread(ClusterLockId clusterLockId) {
     CountDownLatch commitLatch = new CountDownLatch(1);
     Thread other = new Thread(() -> {
-      h2ClusterLockManager.deleteLock(null, lockId);
+      h2ClusterLockManager.deleteLock(null, clusterLockId);
       commitLatch.countDown();
     });
     other.start();
@@ -53,33 +52,31 @@ public class H2ClusterLockManagerTest
 
   @Test
   public void testConstructor_H2() {
-    String lockId = "test-lock";
-    try (ClusterLock clusterLock = createClusterLock(lockId)) {
-      assertThat(clusterLock.getLockId()).isEqualTo(lockId);
-      Semaphore semaphore = H2ClusterLockManager.LOCKS_BY_ID.get(clusterLock.getLockId());
-      assertThat(semaphore).isNotNull();
-      H2ClusterLock h2Lock = (H2ClusterLock) clusterLock;
-      assertThat(h2Lock.getSemaphore()).isEqualTo(semaphore);
+    ClusterLockId clusterLockId = ClusterLockId.forDataMigration();
+    try (ClusterLock clusterLock1 = createClusterLock(clusterLockId);
+        ClusterLock clusterLock2 = createClusterLock(clusterLockId)) {
+      assertThat(clusterLock1.getClusterLockId()).isEqualTo(clusterLock2.getClusterLockId());
+      assertThat(clusterLock1.getLockId()).isEqualTo(clusterLock2.getLockId());
     }
   }
 
   @Test
   public void testDeleteLock_H2() {
-    String lockId = "test-lock";
-    try (ClusterLock clusterLock = createClusterLock(lockId)) {
-      assertThat(lockExists(lockId)).isTrue();
-      h2ClusterLockManager.deleteLock(null, lockId);
-      assertThat(h2ClusterLockManager.lockExists(lockId)).isFalse();
+    ClusterLockId clusterLockId = ClusterLockId.forDataMigration();
+    try (ClusterLock clusterLock = createClusterLock(clusterLockId)) {
+      assertThat(lockExists(clusterLockId)).isTrue();
+      h2ClusterLockManager.deleteLock(null, clusterLockId);
+      assertThat(h2ClusterLockManager.lockExists(clusterLockId)).isFalse();
     }
   }
 
   @Test
   public void testCannotLockIfDeleted_H2() {
-    String lockId = "test-lock";
-    try (ClusterLock clusterLock = createClusterLock(lockId)) {
-      h2ClusterLockManager.deleteLock(null, lockId);
+    ClusterLockId clusterLockId = ClusterLockId.forDataMigration();
+    try (ClusterLock clusterLock = createClusterLock(clusterLockId)) {
+      h2ClusterLockManager.deleteLock(null, clusterLockId);
       assertThatExceptionOfType(RuntimeException.class).isThrownBy(clusterLock::lock)
-          .withMessage("Could not acquire lock test-lock");
+          .withMessage("Could not acquire lock data-migration");
     }
   }
 

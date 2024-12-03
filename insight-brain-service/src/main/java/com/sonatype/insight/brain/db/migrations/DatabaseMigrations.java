@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.dataaccess.LockDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
+import com.sonatype.insight.brain.dataaccess.lock.PostgresAdvisoryLockDAO;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
@@ -98,8 +99,12 @@ public class DatabaseMigrations
    * instantiate both.
    */
   private ClusterLockManager getClusterLockManagerProvider(final OperationalDataStore operationalDataStore) {
-    ClusterLockManagerProvider clusterLockManagerProvider =
-        new ClusterLockManagerProvider(operationalDataStore, new LockDAO(operationalDataStore));
+    ClusterLockManagerProvider clusterLockManagerProvider = new ClusterLockManagerProvider(
+        operationalDataStore,
+        new LockDAO(operationalDataStore),
+        new PostgresAdvisoryLockDAO()
+    );
+
     return clusterLockManagerProvider.get();
   }
 

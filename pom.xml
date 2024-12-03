@@ -10,7 +10,7 @@
   <parent>
     <groupId>com.sonatype.buildsupport</groupId>
     <artifactId>private-parent</artifactId>
-    <version>49</version>
+    <version>51</version>
     <relativePath />
   </parent>
 
@@ -1330,23 +1330,35 @@
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <configuration>
-            <excludes combine.children="append">
-              <exclude>**/doc/adr/**</exclude>
-              <!-- 3rd party contents (needs refinement to catch our stuff) -->
-              <exclude>**/*.html</exclude> <!-- Don't repeat license in all templates as it'll end up in DOM -->
-              <exclude>**/src/main/frontend/**/lib/**/*</exclude>
-              <exclude>**/src/test/resources/**/*</exclude>
-              <exclude>**/node_modules/**</exclude>
-              <exclude>**/org/h2/**</exclude>
-              <exclude>**/src/main/resources/com/sonatype/insight/brain/legacy.report/**</exclude>
-              <exclude>**/src/main/resources/com/sonatype/insight/brain/cyclonedx/vulnerability-1.0.xsd</exclude>
-              <exclude>**/src/main/resources/com/sonatype/insight/brain/cyclonedx/bom-1.1.xsd</exclude>
-              <exclude>**/src/main/resources/com/sonatype/insight/brain/cyclonedx/spdx.xsd</exclude>
-              <exclude>**/rst/**</exclude>
-              <exclude>**/src/test/data/manifest/*</exclude>
-              <exclude>**/src/test/data/module/**/*</exclude>
-              <exclude>nexus-iq-cli/releasenotes/assets/css/style.scss</exclude>
-            </excludes>
+            <encoding>UTF-8</encoding>
+            <strictCheck>true</strictCheck>
+            <useDefaultExcludes>true</useDefaultExcludes>
+            <licenseSets>
+              <licenseSet>
+                <header>header.txt</header>
+                <excludes>
+                  <exclude>.zion/**</exclude>
+                  <exclude>**/doc/adr/**</exclude>
+                  <exclude>.mvn/**</exclude>
+                  <!-- 3rd party contents (needs refinement to catch our stuff) -->
+                  <exclude>**/*.html</exclude> <!-- Don't repeat license in all templates as it'll end up in DOM -->
+                  <exclude>**/src/main/frontend/**/lib/**/*</exclude>
+                  <exclude>**/src/test/resources/**/*</exclude>
+                  <exclude>**/node_modules/**</exclude>
+                  <exclude>**/.stylelintrc.js</exclude>
+                  <exclude>**/.eslintrc.js</exclude>
+                  <exclude>**/org/h2/**</exclude>
+                  <exclude>**/src/main/resources/com/sonatype/insight/brain/legacy.report/**</exclude>
+                  <exclude>**/src/main/resources/com/sonatype/insight/brain/cyclonedx/vulnerability-1.0.xsd</exclude>
+                  <exclude>**/src/main/resources/com/sonatype/insight/brain/cyclonedx/bom-1.1.xsd</exclude>
+                  <exclude>**/src/main/resources/com/sonatype/insight/brain/cyclonedx/spdx.xsd</exclude>
+                  <exclude>**/rst/**</exclude>
+                  <exclude>**/src/test/data/manifest/*</exclude>
+                  <exclude>**/src/test/data/module/**/*</exclude>
+                  <exclude>**/releasenotes/assets/css/style.scss</exclude>
+                </excludes>
+              </licenseSet>
+            </licenseSets>
           </configuration>
         </plugin>
         <plugin>

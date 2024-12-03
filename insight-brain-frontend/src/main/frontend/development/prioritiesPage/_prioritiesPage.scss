@@ -66,6 +66,11 @@ priorities-page {
     }
   }
 
+  .iq-priorities-page-filter-row {
+    display: flex;
+    justify-content: space-between;
+  }
+
   .iq-priorities-page-table {
     .nx-cell {
       align-content: center;
@@ -89,26 +94,6 @@ priorities-page {
 
     .iq-priorities-page-table-info-icon.nx-icon {
       color: var(--nx-color-text-dark);
-    }
-
-    .nx-table-row > td.nx-cell.iq-priorities-page-priority-findings-toggle {
-      padding: 0;
-      border: none;
-
-      .nx-accordion {
-        background-color: var(--nx-swatch-indigo-95);
-        border-radius: 0;
-        .nx-accordion__content {
-          display: none;
-        }
-      }
-    }
-
-    .nx-table-row > td.nx-cell.iq-priorities-page-all-findings {
-      background-color: var(--nx-swatch-indigo-95);
-      color: var(--nx-color-text-stark);
-      font-weight: bold;
-      padding: var(--nx-spacing-6x);
     }
 
     .iq-priorities-page-priority {

@@ -13,6 +13,8 @@ import {
   NxPagination,
   NxFilterInput,
   NX_STANDARD_DEBOUNCE_TIME,
+  NxTile,
+  NxToggle,
 } from '@sonatype/react-shared-components';
 import PrioritiesPageRow from 'MainRoot/development/prioritiesPage/PrioritiesPageRow';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
@@ -36,6 +38,7 @@ export default function PrioritiesPageTable() {
     publicAppId: storedPublicId,
     scanId: storedScanId,
     optionalComponentNameFilter,
+    optionalActionFilter,
   } = useSelector(selectPrioritiesPageSlice);
   const currentPage = pageCount && pageCount > 0 ? page - 1 : null;
 
@@ -65,60 +68,70 @@ export default function PrioritiesPageTable() {
     []
   );
 
+  const handleActionToggleChange = () => {
+    dispatch(actions.setOptionalActionFilter(!optionalActionFilter));
+    doLoad();
+  };
+
+  const getEmptyMessage = () => {
+    if (optionalComponentNameFilter) return 'No Results';
+    return optionalActionFilter
+      ? 'No violations with Fail/Warn policy actions were found during this evaluation.'
+      : 'All clear! No violations were found during this evaluation.';
+  };
+
   return (
-    <>
-      <div className="nx-table-container">
-        <NxTable className="iq-priorities-page-table nx-table--fixed-layout">
-          <NxTable.Head>
-            <NxTable.Row>
-              <NxTable.Cell className="iq-priorities-page-priority-header-cell">
-                <NxTooltip title={priorityTooltip}>
-                  <span>
-                    Priority <NxFontAwesomeIcon className="iq-priorities-page-table-info-icon" icon={faInfoCircle} />
-                  </span>
-                </NxTooltip>
-              </NxTable.Cell>
-              <NxTable.Cell>Component</NxTable.Cell>
-              <NxTable.Cell>Reason for priority</NxTable.Cell>
-              <NxTable.Cell className="iq-priorities-page-suggested-fix-header-cell">Suggested fix</NxTable.Cell>
-              <NxTable.Cell chevron />
-            </NxTable.Row>
-            <NxTable.Row className="nx-table-row--filter-header">
-              <NxTable.Cell />
-              <NxTable.Cell>
-                <NxFilterInput
-                  id="priorities-component-name-filter"
-                  placeholder="component name"
-                  onChange={filterByComponentName}
-                  value={optionalComponentNameFilter}
-                />
-              </NxTable.Cell>
-              <NxTable.Cell colSpan={3} />
-            </NxTable.Row>
-          </NxTable.Head>
-          <NxTable.Body
-            isLoading={loadingTableData}
-            retryHandler={doLoad}
-            error={loadErrorTableData}
-            emptyMessage={
-              !optionalComponentNameFilter
-                ? 'All clear! No violations were found during this evaluation.'
-                : 'No Results'
-            }
-          >
-            <DataRows dataset={priorities} />
-          </NxTable.Body>
-        </NxTable>
-        <div className="nx-table-container__footer">
-          <NxPagination
-            aria-controls="pagination-table"
-            pageCount={pageCount}
-            currentPage={currentPage}
-            onChange={setPage}
-          />
-        </div>
+    <NxTile>
+      <div className="iq-priorities-page-filter-row">
+        <NxFilterInput
+          id="priorities-component-name-filter"
+          placeholder="Filter by component"
+          onChange={filterByComponentName}
+          value={optionalComponentNameFilter}
+        />
+
+        <NxToggle onChange={handleActionToggleChange} isChecked={optionalActionFilter}>
+          Fail/Warn Policy Actions only
+        </NxToggle>
       </div>
-    </>
+      <NxTile.Content>
+        <div className="nx-table-container">
+          <NxTable className="iq-priorities-page-table nx-table--fixed-layout">
+            <NxTable.Head>
+              <NxTable.Row>
+                <NxTable.Cell className="iq-priorities-page-priority-header-cell">
+                  <NxTooltip title={priorityTooltip}>
+                    <span>
+                      Priority <NxFontAwesomeIcon className="iq-priorities-page-table-info-icon" icon={faInfoCircle} />
+                    </span>
+                  </NxTooltip>
+                </NxTable.Cell>
+                <NxTable.Cell>Component</NxTable.Cell>
+                <NxTable.Cell>Reason for priority</NxTable.Cell>
+                <NxTable.Cell className="iq-priorities-page-suggested-fix-header-cell">Suggested fix</NxTable.Cell>
+                <NxTable.Cell chevron />
+              </NxTable.Row>
+            </NxTable.Head>
+            <NxTable.Body
+              isLoading={loadingTableData}
+              retryHandler={doLoad}
+              error={loadErrorTableData}
+              emptyMessage={getEmptyMessage()}
+            >
+              <DataRows dataset={priorities} />
+            </NxTable.Body>
+          </NxTable>
+          <div className="nx-table-container__footer">
+            <NxPagination
+              aria-controls="pagination-table"
+              pageCount={pageCount}
+              currentPage={currentPage}
+              onChange={setPage}
+            />
+          </div>
+        </div>
+      </NxTile.Content>
+    </NxTile>
   );
 }
 

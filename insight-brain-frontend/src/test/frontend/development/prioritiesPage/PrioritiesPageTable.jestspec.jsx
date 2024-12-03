@@ -40,12 +40,12 @@ describe('PrioritiesPageTable', () => {
 
     axiosMock
       .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
-        params: { pageSize: DEFAULT_PAGE_SIZE, page: 1, optionalComponentNameFilter: '' },
+        params: { pageSize: DEFAULT_PAGE_SIZE, page: 1, optionalComponentNameFilter: '', optionalActionFilter: true },
       })
       .reply(200, mockResponsePage1);
     axiosMock
       .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
-        params: { pageSize: DEFAULT_PAGE_SIZE, page: 2, optionalComponentNameFilter: '' },
+        params: { pageSize: DEFAULT_PAGE_SIZE, page: 2, optionalComponentNameFilter: '', optionalActionFilter: true },
       })
       .reply(200, mockResponsePage2);
 
@@ -62,6 +62,7 @@ describe('PrioritiesPageTable', () => {
       pageSize: DEFAULT_PAGE_SIZE,
       page: 1,
       optionalComponentNameFilter: '',
+      optionalActionFilter: true,
     });
 
     const table = screen.getByRole('table');
@@ -84,7 +85,7 @@ describe('PrioritiesPageTable', () => {
   it('renders an error within the table when network call fails', async () => {
     axiosMock
       .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
-        params: { pageSize: DEFAULT_PAGE_SIZE, page: 1, optionalComponentNameFilter: '' },
+        params: { pageSize: DEFAULT_PAGE_SIZE, page: 1, optionalComponentNameFilter: '', optionalActionFilter: true },
       })
       .reply(500, 'Error');
 
@@ -100,7 +101,7 @@ describe('PrioritiesPageTable', () => {
   it('clicking the retry button on error alert makes correct network request', async () => {
     axiosMock
       .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
-        params: { pageSize: DEFAULT_PAGE_SIZE, page: 1, optionalComponentNameFilter: '' },
+        params: { pageSize: DEFAULT_PAGE_SIZE, page: 1, optionalComponentNameFilter: '', optionalActionFilter: true },
       })
       .reply(500, 'Error');
 
@@ -115,11 +116,10 @@ describe('PrioritiesPageTable', () => {
       pageSize: DEFAULT_PAGE_SIZE,
       page: 1,
       optionalComponentNameFilter: '',
+      optionalActionFilter: true,
     });
 
-    const buttons = within(table).getAllByRole('button');
-    expect(buttons.length).toBe(2);
-    const retryBtn = buttons[1];
+    const retryBtn = within(table).getByRole('button');
     fireEvent.click(retryBtn);
 
     expect(axiosMock.history.get.length).toBe(2);
@@ -128,6 +128,7 @@ describe('PrioritiesPageTable', () => {
       pageSize: DEFAULT_PAGE_SIZE,
       page: 1,
       optionalComponentNameFilter: '',
+      optionalActionFilter: true,
     });
   });
 
@@ -175,26 +176,64 @@ describe('PrioritiesPageTable', () => {
     expect(tooltip).toBeInTheDocument();
   });
 
-  it('renders a "No violations" message if number of priorities is 0', async () => {
-    const numOfPriorities = 0;
-    const mockData = generateMockData(numOfPriorities);
-    const mockResponsePage1 = generateMockResponseByPage(1, mockData);
-    axiosMock
-      .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
-        params: { pageSize: DEFAULT_PAGE_SIZE, page: 1, optionalComponentNameFilter: '' },
-      })
-      .reply(200, mockResponsePage1);
+  describe('empty message when there are no priorities', () => {
+    it('renders the right message by default (when fail/warn toggle is on)', async () => {
+      const numOfPriorities = 0;
+      const mockData = generateMockData(numOfPriorities);
+      const mockResponsePage1 = generateMockResponseByPage(1, mockData);
+      axiosMock
+        .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
+          params: { pageSize: DEFAULT_PAGE_SIZE, page: 1, optionalComponentNameFilter: '', optionalActionFilter: true },
+        })
+        .reply(200, mockResponsePage1);
 
-    renderComponent();
+      renderComponent();
 
-    const table = await screen.findByRole('table');
-    expect(table).toBeInTheDocument();
+      const table = await screen.findByRole('table');
+      expect(table).toBeInTheDocument();
 
-    const rows = screen.getAllByRole('row');
-    expect(rows.length).toBe(3);
+      const rows = screen.getAllByRole('row');
+      expect(rows.length).toBe(2);
 
-    const rowWithMessage = rows[2];
-    expect(rowWithMessage).toHaveTextContent('All clear! No violations were found during this evaluation.');
+      const rowWithMessage = rows[1];
+      expect(rowWithMessage).toHaveTextContent(
+        'No violations with Fail/Warn policy actions were found during this evaluation.'
+      );
+    });
+
+    it('renders the right message (when fail/warn toggle is off)', async () => {
+      const numOfPriorities = 0;
+      const mockData = generateMockData(numOfPriorities);
+      const mockResponsePage1 = generateMockResponseByPage(1, mockData);
+      axiosMock
+        .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
+          params: {
+            pageSize: DEFAULT_PAGE_SIZE,
+            page: 1,
+            optionalComponentNameFilter: '',
+            optionalActionFilter: false,
+          },
+        })
+        .reply(200, mockResponsePage1);
+
+      renderComponent();
+
+      const table = await screen.findByRole('table');
+      expect(table).toBeInTheDocument();
+
+      const toggle = screen.getByRole('switch', { name: 'Fail/Warn Policy Actions only' });
+      expect(toggle).toBeInTheDocument();
+      expect(toggle).toBeChecked();
+
+      fireEvent.click(toggle);
+      await screen.findByRole('table');
+
+      const rows = screen.getAllByRole('row');
+      expect(rows.length).toBe(2);
+
+      const rowWithMessage = rows[1];
+      expect(rowWithMessage).toHaveTextContent('All clear! No violations were found during this evaluation.');
+    });
   });
 
   it('filters components by name', async () => {
@@ -246,12 +285,13 @@ describe('PrioritiesPageTable', () => {
       pageSize: DEFAULT_PAGE_SIZE,
       page: 1,
       optionalComponentNameFilter: '',
+      optionalActionFilter: true,
     });
 
     const table = await screen.findByRole('table');
     expect(table).toBeInTheDocument();
 
-    const filterInput = screen.getByPlaceholderText('component name');
+    const filterInput = screen.getByPlaceholderText('Filter by component');
     fireEvent.change(filterInput, { target: { value: 'ABC' } });
 
     jest.runAllTimers();
@@ -262,7 +302,39 @@ describe('PrioritiesPageTable', () => {
       pageSize: DEFAULT_PAGE_SIZE,
       page: 1,
       optionalComponentNameFilter: 'ABC',
+      optionalActionFilter: true,
     });
+  });
+
+  it('toggles the "Fail/Warn Policy Actions only" filter and makes correct network requests', async () => {
+    renderComponent();
+
+    const defaultParams = {
+      pageSize: DEFAULT_PAGE_SIZE,
+      page: 1,
+      optionalComponentNameFilter: '',
+      optionalActionFilter: true,
+    };
+
+    expect(axiosMock.history.get.length).toBe(1);
+    expect(axiosMock.history.get[0].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
+    expect(axiosMock.history.get[0].params).toEqual(defaultParams);
+
+    const table = await screen.findByRole('table');
+    expect(table).toBeInTheDocument();
+
+    const toggle = screen.getByRole('switch', { name: 'Fail/Warn Policy Actions only' });
+    expect(toggle).toBeInTheDocument();
+    expect(toggle).toBeChecked();
+
+    fireEvent.click(toggle);
+    expect(axiosMock.history.get.length).toBe(17);
+    expect(axiosMock.history.get[16].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
+    expect(axiosMock.history.get[16].params).toEqual({
+      ...defaultParams,
+      optionalActionFilter: false,
+    });
+    expect(toggle).not.toBeChecked();
   });
 
   it('renders rows that when clicked navigates to component details page - violations section', async () => {
@@ -273,19 +345,20 @@ describe('PrioritiesPageTable', () => {
       pageSize: DEFAULT_PAGE_SIZE,
       page: 1,
       optionalComponentNameFilter: '',
+      optionalActionFilter: true,
     });
 
     const table = await screen.findByRole('table');
     expect(table).toBeInTheDocument();
 
     const rows = screen.getAllByRole('row');
-    expect(rows.length).toBe(17);
+    expect(rows.length).toBe(16);
 
-    // 1st row is header row, 2nd row is component filter, 3rd row is the first component row
-    const firstComponentRow = rows[2];
+    // 1st row is header row, 2nd row is the first component row
+    const firstComponentRow = rows[1];
     const firstComponentHash = mockResponsePage1.priorities.results[0].componentHash;
 
-    const secondComponentRow = rows[3];
+    const secondComponentRow = rows[2];
     const secondComponentHash = mockResponsePage1.priorities.results[1].componentHash;
 
     fireEvent.click(firstComponentRow);
@@ -317,6 +390,7 @@ describe('PrioritiesPageTable', () => {
         pageSize: DEFAULT_PAGE_SIZE,
         page: 1,
         optionalComponentNameFilter: '',
+        optionalActionFilter: true,
       });
 
       const table = await screen.findByRole('table');
@@ -336,6 +410,7 @@ describe('PrioritiesPageTable', () => {
         pageSize: DEFAULT_PAGE_SIZE,
         page: 2,
         optionalComponentNameFilter: '',
+        optionalActionFilter: true,
       });
 
       await screen.findByRole('table');
@@ -352,6 +427,7 @@ describe('PrioritiesPageTable', () => {
         pageSize: DEFAULT_PAGE_SIZE,
         page: 1,
         optionalComponentNameFilter: '',
+        optionalActionFilter: true,
       });
     });
   });

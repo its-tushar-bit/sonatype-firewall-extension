@@ -48,6 +48,7 @@ public class DashboardPolicyWaiverDTOAdapter
     dto.hash = policyWaiver.getHash();
     dto.componentUpgradeAvailable = policyWaiver.isComponentUpgradeAvailable();
     dto.isAutoWaiver = false;
+    dto.isExpireWhenRemediationAvailable = policyWaiver.isExpireWhenRemediationAvailable();
 
     if (policyWaiver.getComponentIdentifier() != null) {
       dto.componentIdentifier = ApiComponentIdentifierDTOV2
@@ -76,6 +77,7 @@ public class DashboardPolicyWaiverDTOAdapter
     dto.componentMatchStrategy = ComponentMatcherStrategyForWaiver.DEFAULT;
     dto.componentUpgradeAvailable = false;
     dto.isAutoWaiver = true;
+    dto.isExpireWhenRemediationAvailable = false;
 
     if (includeDetails) {
       dto.creatorId = autoPolicyWaiver.getCreatorId();

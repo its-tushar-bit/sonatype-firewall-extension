@@ -125,6 +125,7 @@ CREATE TABLE policy_waiver (
   creator_name varchar(210) default NULL,
   component_upgrade_available boolean,
   waiver_reason_id varchar(50) NULL,
+  expire_when_remediation_available boolean DEFAULT false,
   CONSTRAINT policy_waiver_pk PRIMARY KEY (policy_waiver_id),
   CONSTRAINT policy_waiver_policy_fk FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
 );

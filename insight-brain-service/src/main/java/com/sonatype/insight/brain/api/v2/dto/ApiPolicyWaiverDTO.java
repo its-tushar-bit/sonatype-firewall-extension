@@ -163,6 +163,11 @@ public class ApiPolicyWaiverDTO
   @JsonInclude(Include.NON_NULL)
   public String reasonText;
 
+  /**
+   * @since 1.185
+   */
+  public boolean expireWhenRemediationAvailable;
+
   public static ApiPolicyWaiverDTO toDto(
       PolicyWaiver policyWaiver,
       PolicyWaiverReason policyWaiverReason,
@@ -179,6 +184,7 @@ public class ApiPolicyWaiverDTO
     dto.creatorId = policyWaiver.getCreatorId();
     dto.creatorName = policyWaiver.getCreatorName();
     dto.componentUpgradeAvailable = policyWaiver.isComponentUpgradeAvailable();
+    dto.expireWhenRemediationAvailable = policyWaiver.isExpireWhenRemediationAvailable();
 
     if (policyWaiver.getComponentIdentifier() != null) {
       dto.componentIdentifier = ApiComponentIdentifierDTOV2

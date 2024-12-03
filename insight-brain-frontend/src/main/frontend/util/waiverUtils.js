@@ -70,7 +70,7 @@ export const originNamesForAddRequestPages = {
     'componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.legal',
 };
 
-export const waiverExpirations = [
+const waiverExpirations = [
   { name: 'Never', value: 'never' }, // <select> doesn't handle null values, so use string instead
   { name: '7 Days', value: '7' },
   { name: '14 Days', value: '14' },
@@ -80,6 +80,12 @@ export const waiverExpirations = [
   { name: '120 Days', value: '120' },
   { name: 'Custom', value: 'custom' },
 ];
+
+export const useWaiverExpirations = (isExpireWhenRemediationAvailableWaiversEnabled) => {
+  return isExpireWhenRemediationAvailableWaiversEnabled
+    ? waiverExpirations.concat([{ name: 'When Remediation Available', value: 'remediationAvailable' }])
+    : waiverExpirations;
+};
 
 export const getExpiryTime = (expiration) => {
   if (!expiration) {

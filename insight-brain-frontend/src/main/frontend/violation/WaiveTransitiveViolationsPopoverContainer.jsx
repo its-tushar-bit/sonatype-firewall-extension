@@ -9,11 +9,13 @@ import { pick } from 'ramda';
 import { toggleWaiveTransitiveViolations } from './transitiveViolationsActions';
 import { actions } from './waiveTransitiveViolationsSlice';
 import WaiveTransitiveViolationsPopover from './WaiveTransitiveViolationsPopover';
+import { selectIsExpireWhenRemediationAvailableWaiversEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
-function mapStateToProps({ transitiveViolations, waiveTransitiveViolations }) {
+function mapStateToProps(state) {
   return {
-    ...pick(['availableScopes', 'componentTransitivePolicyViolations'], transitiveViolations),
-    ...pick(['scope', 'expiration', 'comments', 'submitMaskState', 'saveError'], waiveTransitiveViolations),
+    isExpireWhenRemediationAvailable: selectIsExpireWhenRemediationAvailableWaiversEnabled(state),
+    ...pick(['availableScopes', 'componentTransitivePolicyViolations'], state.transitiveViolations),
+    ...pick(['scope', 'expiration', 'comments', 'submitMaskState', 'saveError'], state.waiveTransitiveViolations),
   };
 }
 

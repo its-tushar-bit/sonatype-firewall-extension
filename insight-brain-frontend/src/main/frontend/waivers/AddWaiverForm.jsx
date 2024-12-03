@@ -22,7 +22,7 @@ import {
 import ViolationExclamation from '../react/ViolationExclamation';
 import ArtifactNameDisplay from '../react/ArtifactNameDisplay';
 import VulnerabilityDetailsModalContainer from '../vulnerabilityDetails/VulnerabilityDetailsModalContainer';
-import { waiverExpirations, waiverMatcherStrategy } from '../util/waiverUtils';
+import { useWaiverExpirations, waiverMatcherStrategy } from '../util/waiverUtils';
 import IqScopeDropdown from 'MainRoot/react/iqScopeDropdown/IqScopeDropdown';
 
 export const isCustomExpiryTimeValid = (value) => {
@@ -65,15 +65,20 @@ export default function AddWaiverForm(props) {
     cancelAction,
     currentUser,
     componentDisplayName,
+    isExpireWhenRemediationAvailable,
   } = props;
 
   useEffect(() => {
     return () => closeVulnerabilityDetailsModal();
   }, []);
 
+  const waiverExpirations = useWaiverExpirations(isExpireWhenRemediationAvailable);
+
   const isCustomExpiryTimeSelected = expiryTime === 'custom';
 
   const isNeverExpiryTimeSelected = expiryTime === 'never' || expiryTime === null;
+
+  const isExpireWhenRemediationAvailableSelected = expiryTime === 'remediationAvailable';
 
   const waiverReasonsToRender = [{ id: '', reasonText: 'Select a reason', type: 'system' }, ...waiverReasons];
 
@@ -81,7 +86,7 @@ export default function AddWaiverForm(props) {
     if (isCustomExpiryTimeSelected) {
       return customExpiryTime.value;
     }
-    if (isNeverExpiryTimeSelected) {
+    if (isNeverExpiryTimeSelected || isExpireWhenRemediationAvailableSelected) {
       return null;
     }
     return parseInt(expiryTime, 10);
@@ -96,7 +101,16 @@ export default function AddWaiverForm(props) {
     const { value } = waiverComments;
     const expiration = getExpiration();
 
-    saveWaiver(policyViolationId, type, id, value, componentMatcherStrategy, expiration, waiverReasonId);
+    saveWaiver(
+      policyViolationId,
+      type,
+      id,
+      value,
+      componentMatcherStrategy,
+      expiration,
+      waiverReasonId,
+      isExpireWhenRemediationAvailableSelected
+    );
   };
 
   const onVulnerabilityDetailsClick = () => {
@@ -178,8 +192,11 @@ export default function AddWaiverForm(props) {
       const diff = Math.floor(moment.duration(customDate.diff(today)).asDays());
       return `This waiver will expire in ${diff} days`;
     }
-    if (!isCustomExpiryTimeSelected && !isNeverExpiryTimeSelected) {
+    if (!isCustomExpiryTimeSelected && !isNeverExpiryTimeSelected && !isExpireWhenRemediationAvailableSelected) {
       return `This waiver will expire in ${expiryTime} days`;
+    }
+    if (isExpireWhenRemediationAvailableSelected) {
+      return 'This waiver will expire when an upgrade that fixes the violation is available';
     }
     return '';
   };

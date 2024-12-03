@@ -63,6 +63,8 @@ public class DashboardPolicyWaiverDTO
 
   public Boolean isAutoWaiver = false;
 
+  public boolean isExpireWhenRemediationAvailable = false;
+
   @JsonProperty(access = Access.READ_ONLY)
   public ComponentDisplayName getDisplayName() {
     return this.componentIdentifier == null
@@ -72,7 +74,7 @@ public class DashboardPolicyWaiverDTO
   static String getCsvHeader() {
     return "Waiver Id, Threat level, Created Date, Expiration Date, Policy Id, Policy Name, Policy Constraints, " +
         "Scope Type, Scope Id, Scope Name, Component Match Strategy, Component Hash, Component Name, " +
-        "Upgrade, Created by Id, Created by Name,Comment, Is Auto Waiver";
+        "Upgrade, Created by Id, Created by Name,Comment, Is Auto Waiver, Is Expire When Remediation Available Waiver";
   }
 
   public static String getComponentUpgradeAvailableValueCSVExport(Boolean isComponentUpgradeAvailable) {
@@ -100,7 +102,8 @@ public class DashboardPolicyWaiverDTO
 
     return CsvWritable.joiner.join(id, threatLevel, createTimeCsv, expiryTimeCsv, policyIdCsv, policyNameCsv,
         constraintFactsJsonCsv, ownerType, ownerId, ownerName, componentMatchStrategy, componentHashCsv, displayNameCsv,
-        waivedComponentUpgradeAvailableValueCsv, creatorIdCsv, creatorNameCsv, commentsCsv, isAutoWaiver);
+        waivedComponentUpgradeAvailableValueCsv, creatorIdCsv, creatorNameCsv, commentsCsv, isAutoWaiver,
+        isExpireWhenRemediationAvailable);
   }
 
   private String getConstraintFactsJsonCsv() {

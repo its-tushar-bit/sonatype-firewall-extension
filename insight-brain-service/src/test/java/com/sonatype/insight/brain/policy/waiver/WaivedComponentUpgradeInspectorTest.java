@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
@@ -339,6 +340,49 @@ public class WaivedComponentUpgradeInspectorTest
 
     activeByPolicyId = policyWaiverDAO.getActiveByPolicyId(policy.getId());
     assertThat(activeByPolicyId.get(0).isComponentUpgradeAvailable()).isTrue();
+  }
+
+  @Test
+  public void testOnlyExpireExpireWhenRemediationAvailableWaiverIfUpgradeAvailable() {
+    SystemConfigurationPropertyFeature.EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE.setEnabled(true);
+    Organization org = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplication("Application 1", "Application-1", org.getId());
+    Policy policy = tempEntity.newPolicy(org);
+    PolicyWaiver waiver =
+        new TestPolicyWaiverBuilder().withPolicyId(policy.getId()).withOwnerId(app1.getId())
+            .withComponentMatcherStrategyForWaiver(
+                ComponentMatcherStrategyForWaiver.EXACT_COMPONENT).withAssociatedPackageUrl(DUMMY_PURL).build();
+    waiver.setExpireWhenRemediationAvailable(true);
+    tempEntity.newWaiver(waiver);
+    ApiComponentRemediationDTO simpleRemediationResponseWithSuggestion = getSimpleRemediationResponseWithSuggestion();
+    doReturn(simpleRemediationResponseWithSuggestion).when(apiComponentRemediationService)
+        .getSuggestedRemediationForComponentNoAuthz(any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
+            eq(app1.getId()), isNull(), isNull(), isNull(), isNull());
+
+    modifyRemediationStrategyForResponse(simpleRemediationResponseWithSuggestion,
+        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
+    waivedComponentUpgradeInspector.run();
+
+    List<PolicyWaiver> activeByPolicyId = policyWaiverDAO.getActiveByPolicyId(policy.getId());
+    assertThat(activeByPolicyId.get(0).isComponentUpgradeAvailable()).isNull();
+
+    modifyRemediationStrategyForResponse(simpleRemediationResponseWithSuggestion,
+        ApiVersionChangeOptionType.NEXT_NON_FAILING);
+    waivedComponentUpgradeInspector.run();
+
+    activeByPolicyId = policyWaiverDAO.getActiveByPolicyId(policy.getId());
+    assertThat(activeByPolicyId.get(0).isComponentUpgradeAvailable()).isNull();
+    assertThat(activeByPolicyId.get(0).getExpiryTime()).isNull();
+
+    modifyRemediationStrategyForResponse(simpleRemediationResponseWithSuggestion,
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+    waivedComponentUpgradeInspector.run();
+
+    // waiver will no longer be active
+    List<PolicyWaiver> policyWaiversById = policyWaiverDAO.getByPolicyId(policy.getId());
+    assertThat(policyWaiversById.get(0).isComponentUpgradeAvailable()).isTrue();
+    assertThat(policyWaiversById.get(0).getExpiryTime()).isNotNull();
+    SystemConfigurationPropertyFeature.EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE.setEnabled(false);
   }
 
   private void modifyRemediationStrategyForResponse(

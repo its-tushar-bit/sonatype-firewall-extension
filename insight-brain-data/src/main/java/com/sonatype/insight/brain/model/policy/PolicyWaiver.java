@@ -98,6 +98,12 @@ public class PolicyWaiver
   private String waiverReasonId;
 
   /**
+   * @since 1.185
+   */
+  @Column(name = "expire_when_remediation_available")
+  private boolean expireWhenRemediationAvailable;
+
+  /**
    * @since 1.140
    */
   @Transient
@@ -290,6 +296,14 @@ public class PolicyWaiver
 
   public void setWaiverReasonId(String waiverReasonId) {
     this.waiverReasonId = waiverReasonId;
+  }
+
+  public boolean isExpireWhenRemediationAvailable() {
+    return expireWhenRemediationAvailable;
+  }
+
+  public void setExpireWhenRemediationAvailable(boolean expireWhenRemediationAvailable) {
+    this.expireWhenRemediationAvailable = expireWhenRemediationAvailable;
   }
 
   public ComponentIdentifier getComponentIdentifier() {

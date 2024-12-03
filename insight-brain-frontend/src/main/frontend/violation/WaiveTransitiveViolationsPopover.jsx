@@ -18,7 +18,7 @@ import {
 } from '@sonatype/react-shared-components';
 import { availableScopesPropType, componentTransitivePolicyViolationsPropType } from './transitiveViolationsPropTypes';
 import { capitalize } from '../util/jsUtil';
-import { waiverExpirations } from '../util/waiverUtils';
+import { useWaiverExpirations } from '../util/waiverUtils';
 import TransitiveViolationsSummary from './TransitiveViolationsSummary';
 
 export default function WaiveTransitiveViolationsPopover(props) {
@@ -36,11 +36,14 @@ export default function WaiveTransitiveViolationsPopover(props) {
     setComments,
     cancel,
     save,
+    isExpireWhenRemediationAvailable,
   } = props;
 
   if (scope === null) {
     setScope(availableScopes.data[0].publicId);
   }
+
+  const waiverExpirations = useWaiverExpirations(isExpireWhenRemediationAvailable);
 
   const createCancelButton = () => {
     return (

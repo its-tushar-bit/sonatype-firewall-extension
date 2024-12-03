@@ -168,6 +168,7 @@ public class PolicyWaiverResource
       dto.setCreatorName(waiver.getCreatorName());
       dto.setAssociatedPackageUrl(waiver.getAssociatedPackageUrl());
       dto.setComponentMatchStrategy(waiver.getComponentMatchStrategy());
+      dto.setExpireWhenRemediationAvailable(waiver.isExpireWhenRemediationAvailable());
       dtos.add(dto);
     }
     return dtos;

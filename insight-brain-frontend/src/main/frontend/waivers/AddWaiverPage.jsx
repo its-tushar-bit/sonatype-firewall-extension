@@ -61,6 +61,7 @@ export default function AddWaiverPage(props) {
     componentDisplayName,
     // Priorities Page
     isStandaloneDeveloper,
+    isExpireWhenRemediationAvailable,
   } = props;
 
   const backButtonProps = {
@@ -116,6 +117,7 @@ export default function AddWaiverPage(props) {
       cancelAction,
       currentUser,
       componentDisplayName,
+      isExpireWhenRemediationAvailable,
       ...extractViolationDetails(violationDetails),
     };
   };

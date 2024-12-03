@@ -117,6 +117,7 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.MALWARE_DEFENSE_API.getId(),
           SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId(),
           SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.getId(),
+          SystemConfigurationPropertyFeature.EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE.getId(),
       }
   )).toArray(String[]::new);
 

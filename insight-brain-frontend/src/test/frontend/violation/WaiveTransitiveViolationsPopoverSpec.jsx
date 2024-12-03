@@ -9,7 +9,7 @@ import WaiveTransitiveViolationsPopover from '../../../main/frontend/violation/W
 import { mount } from 'enzyme';
 import React from 'react';
 import { NxLoadError, NxStatefulTextInput, NxSubmitMask } from '@sonatype/react-shared-components';
-import { waiverExpirations } from '../../../main/frontend/util/waiverUtils';
+import { useWaiverExpirations } from '../../../main/frontend/util/waiverUtils';
 import TransitiveViolationsSummary from '../../../main/frontend/violation/TransitiveViolationsSummary';
 import { IqPopoverHeader } from '../../../main/frontend/react/IqPopover';
 
@@ -142,6 +142,8 @@ describe('WaiveTransitiveViolationsPopover', function () {
     const select = wrapper.find('#waive-transitive-violations-expirations');
     expect(select).toHaveProp('value', 'never');
     const options = wrapper.find('option');
+    expect(options).toBeDefined();
+    const waiverExpirations = useWaiverExpirations(false);
     expect(options.length).toBe(waiverExpirations.length);
     options.forEach((option, index) => {
       expect(option).toHaveProp('value', waiverExpirations[index].value);

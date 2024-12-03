@@ -23,6 +23,7 @@ export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
     scope,
     componentMatchStrategy,
     componentUpgradeAvailable,
+    isExpireWhenRemediationAvailable,
   } = waiver;
 
   const goToWaiverDetails = () => {
@@ -38,8 +39,7 @@ export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
   };
 
   const waiverCreateTime = moment(createTime).format('YYYY-MM-DD');
-  const waiverExpiryTime = expiryTime ? moment(expiryTime).format('YYYY-MM-DD') : 'Never';
-
+  const waiverExpiryTime = expiryTime ? moment(expiryTime).format('YYYY-MM-DD') : isExpireWhenRemediationAvailable ? 'When Remediation Available' : 'Never';
   return (
     <NxTable.Row key={waiverId} onClick={goToWaiverDetails} className="iq-dashboard-waiver" isClickable>
       <NxTable.Cell className="iq-threat-cell">

@@ -507,7 +507,7 @@ public class ApiPolicyWaiverServiceAuthzTest
         ownerType,
         ownerId,
         violationId,
-        new ApiWaiverOptionsDTO(null, DEFAULT, null, null)
+        new ApiWaiverOptionsDTO(null, DEFAULT, null, null, false)
     );
   }
 

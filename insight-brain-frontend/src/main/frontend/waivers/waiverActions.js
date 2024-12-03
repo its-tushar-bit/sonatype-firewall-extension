@@ -101,7 +101,8 @@ function saveWaiver(
   componentMatcherStrategy,
   expiration,
   dispatch,
-  waiverReasonId
+  waiverReasonId,
+  expireWhenRemediationAvailable
 ) {
   dispatch(saveWaiverRequested());
   const url = getAddPolicyViolationWaiverUrl(waiverScope, ownerId, policyViolationId),
@@ -110,6 +111,7 @@ function saveWaiver(
       matcherStrategy: componentMatcherStrategy,
       expiryTime: typeof expiration === 'string' ? getISODateFromDateInput(expiration) : getExpiryTime(expiration),
       waiverReasonId,
+      expireWhenRemediationAvailable,
     };
   return axios.post(url, payload).then(() => {
     startSubmitMaskTimer(dispatch);
@@ -124,7 +126,8 @@ export const saveWaiverAndRedirect = (
   comment,
   componentMatcherStrategy,
   expiration,
-  waiverReasonId
+  waiverReasonId,
+  expireWhenRemediationAvailable
 ) => (dispatch) =>
   saveWaiver(
     policyViolationId,
@@ -134,7 +137,8 @@ export const saveWaiverAndRedirect = (
     componentMatcherStrategy,
     expiration,
     dispatch,
-    waiverReasonId
+    waiverReasonId,
+    expireWhenRemediationAvailable
   )
     .then(() => dispatch(returnToAddWaiverOriginPage()))
     .catch((err) => dispatch(saveWaiverFailed(err)));
@@ -146,7 +150,8 @@ export const saveWaiverAndLoadPolicyViolationData = (
   comment,
   componentMatcherStrategy,
   expiration,
-  waiverReasonId
+  waiverReasonId,
+  expireWhenRemediationAvailable
 ) => (dispatch) =>
   saveWaiver(
     policyViolationId,
@@ -156,7 +161,8 @@ export const saveWaiverAndLoadPolicyViolationData = (
     componentMatcherStrategy,
     expiration,
     dispatch,
-    waiverReasonId
+    waiverReasonId,
+    expireWhenRemediationAvailable
   )
     .then(() => dispatch(policyViolationsActions.load()))
     .then(() => dispatch(resetAddWaiverData()))

@@ -20,7 +20,6 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.validation.constraints.NotNull;
@@ -122,7 +121,7 @@ public class ApiPolicyWaiverService
   private final CurrentUser currentUser;
 
   private final OwnerService ownerService;
-  
+
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
   private final PolicyViolationDAO policyViolationDAO;
@@ -172,6 +171,15 @@ public class ApiPolicyWaiverService
     this.telemetryUtils = telemetryUtils;
   }
 
+  private static Optional<String> findFirstTriggerReference(Stream<ConstraintFact> streamOfConstraintFacts) {
+    return streamOfConstraintFacts
+        .flatMap(constraintFact -> constraintFact.getConditionFacts().stream().map(ConditionFact::getReference))
+        .filter(Objects::nonNull)
+        .filter(triggerReference -> triggerReference.getType().equals(SECURITY_VULNERABILITY_REFID))
+        .map(TriggerReference::getValue)
+        .findFirst();
+  }
+
   /**
    * This is currently used in "request waiver"
    *
@@ -203,7 +211,7 @@ public class ApiPolicyWaiverService
         throw new IllegalStateException("Unknown owner type: " + ownerType);
     }
 
-    addPolicyWaiver(ownerType, ownerId, policyViolation, comment, EXACT_COMPONENT, null, null);
+    addPolicyWaiver(ownerType, ownerId, policyViolation, comment, EXACT_COMPONENT, null, null, false);
   }
 
   /**
@@ -248,6 +256,8 @@ public class ApiPolicyWaiverService
     String comment = waiverOptionsDTO == null ? null : waiverOptionsDTO.comment;
     Date expiryTime = waiverOptionsDTO == null ? null : waiverOptionsDTO.expiryTime;
     String waiverReasonId = waiverOptionsDTO == null ? null : waiverOptionsDTO.waiverReasonId;
+    boolean expireWhenRemediationAvailable =
+        waiverOptionsDTO != null && waiverOptionsDTO.expireWhenRemediationAvailable;
 
     // validate expiry date
     if (Objects.nonNull(expiryTime) &&
@@ -255,8 +265,14 @@ public class ApiPolicyWaiverService
       throw new BadRequestException("Expiration date must be in the future.");
     }
 
+    // validate expireWhenRemediationAvailable and matcherStrategy
+    if (expireWhenRemediationAvailable && matcherStrategy != EXACT_COMPONENT) {
+      throw new BadRequestException(
+          "Expire When Remediation Available Waivers can only be applied to Exact Components.");
+    }
+
     addPolicyWaiver(ownerType, internalOwnerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime,
-        waiverReasonId);
+        waiverReasonId, expireWhenRemediationAvailable);
   }
 
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
@@ -268,10 +284,12 @@ public class ApiPolicyWaiverService
       final String comment,
       final ComponentMatcherStrategyForWaiver matcherStrategy,
       final Date expiryTime,
-      final String waiverReasonId)
+      final String waiverReasonId,
+      final boolean expireWhenRemediationAvailable)
   {
     PolicyWaiver policyWaiver =
-        savePolicyWaiver(ownerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime, waiverReasonId);
+        savePolicyWaiver(ownerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime, waiverReasonId,
+            expireWhenRemediationAvailable);
     auditPolicyWaiver(policyWaiver);
     policyWaiverTelemetryCreator.sendWaiverTelemetryForOwnerType(policyWaiver, ownerType, abstractPolicyViolation);
     sendTelemetry(ownerType, ownerId);
@@ -570,15 +588,6 @@ public class ApiPolicyWaiverService
     return policyViolation;
   }
 
-  private static Optional<String> findFirstTriggerReference(Stream<ConstraintFact> streamOfConstraintFacts) {
-    return streamOfConstraintFacts
-        .flatMap(constraintFact -> constraintFact.getConditionFacts().stream().map(ConditionFact::getReference))
-        .filter(Objects::nonNull)
-        .filter(triggerReference -> triggerReference.getType().equals(SECURITY_VULNERABILITY_REFID))
-        .map(TriggerReference::getValue)
-        .findFirst();
-  }
-
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
   public void addWaiverToTransitivePolicyViolationsByAppScanComponent(
       @AuthzContext(Key.TYPE) OwnerType ownerType,
@@ -655,7 +664,8 @@ public class ApiPolicyWaiverService
         try {
           PolicyWaiver policyWaiver =
               savePolicyWaiver(tx, owner.getId(), policyViolation, waiverDTO.comment,
-                  EXACT_COMPONENT, waiverDTO.expiryTime, waiverDTO.waiverReasonId);
+                  EXACT_COMPONENT, waiverDTO.expiryTime, waiverDTO.waiverReasonId,
+                  waiverDTO.expireWhenRemediationAvailable);
           policyWaiverTelemetryCreator.sendWaiverTelemetryForOwnerType(policyWaiver, owner.getType(), policyViolation);
           try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CREATE_WAIVER, false)) {
             auditPolicyWaiver(policyWaiver, tx);
@@ -712,13 +722,14 @@ public class ApiPolicyWaiverService
       String comment,
       ComponentMatcherStrategyForWaiver matcherStrategy,
       Date expiryTime,
-      String policyWaiverReasonId)
+      String policyWaiverReasonId,
+      boolean expireWhenRemediationAvailable)
   {
     try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
       tx.begin();
       PolicyWaiver policyWaiver =
           savePolicyWaiver(tx, ownerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime,
-              policyWaiverReasonId);
+              policyWaiverReasonId, expireWhenRemediationAvailable);
       tx.commit();
       return policyWaiver;
     }
@@ -731,7 +742,8 @@ public class ApiPolicyWaiverService
       String comment,
       ComponentMatcherStrategyForWaiver matcherStrategy,
       Date expiryTime,
-      String policyWaiverReasonId)
+      String policyWaiverReasonId,
+      boolean expireWhenRemediationAvailable)
   {
     String hash =
         matcherStrategy == ALL_COMPONENTS || matcherStrategy == ALL_VERSIONS ? null : abstractPolicyViolation.getHash();
@@ -741,6 +753,7 @@ public class ApiPolicyWaiverService
     policyWaiver.setCreatorId(currentUser.getUserPrincipal().getUsername());
     policyWaiver.setCreatorName(currentUser.getUserPrincipal().getDisplayName());
     policyWaiver.setComponentMatchStrategy(matcherStrategy);
+    policyWaiver.setExpireWhenRemediationAvailable(expireWhenRemediationAvailable);
     if (matcherStrategy != ALL_COMPONENTS && abstractPolicyViolation.getComponentIdentifier() != null) {
       policyWaiver.setAssociatedPackageUrl(toPackageUrl(abstractPolicyViolation.getComponentIdentifier()));
     }

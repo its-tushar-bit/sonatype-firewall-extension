@@ -46,6 +46,12 @@ export default function ListWaiversTable(props) {
   const { loadingApplicableWaivers, loadApplicableWaiversError } = useSelector(selectViolationSlice);
   const { autoWaiver, loadingAutoWaiver, loadAutoWaiverError } = useSelector(selectApplicableAutoWaiver);
   const waiverToDelete = useSelector(selectWaiverToDelete);
+  const getExpirationDate = (waiver) => {
+    if (waiver.expiryTime) {
+      return waiver.expireWhenRemediationAvailable ? 'Upgrade Available' : moment(waiver.expiryTime).format(STANDARD_DATE_FORMAT);
+    }
+    return waiver.expireWhenRemediationAvailable ? 'When Remediation Available' : 'Does not expire';
+  }
   const displayWaiverInTableRow = curry((isWaiverExpired, waiver) => {
     const rowClass = classnames({
       'list-waivers-row--expired': isWaiverExpired,
@@ -61,7 +67,7 @@ export default function ListWaiversTable(props) {
 
           <NxReadOnly.Label>Expiration</NxReadOnly.Label>
           <NxReadOnly.Data className="iq-waivers-table__expiration visual-testing-ignore">
-            {waiver.expiryTime ? moment(waiver.expiryTime).format(STANDARD_DATE_FORMAT) : 'Does not expire'}
+            {getExpirationDate(waiver)}
           </NxReadOnly.Data>
         </NxTableCell>
         <NxTableCell>

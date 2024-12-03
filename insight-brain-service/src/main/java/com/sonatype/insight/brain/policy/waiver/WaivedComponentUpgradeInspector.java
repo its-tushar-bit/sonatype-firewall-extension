@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.waiver;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
@@ -115,6 +117,11 @@ public class WaivedComponentUpgradeInspector
       try {
         if (waiverContainsUpgradeableComponent(waiver)) {
           waiver.setComponentUpgradeAvailable(true);
+          if (SystemConfigurationPropertyFeature.EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE.isEnabled() &&
+              waiver.isExpireWhenRemediationAvailable()) {
+            // Set expiry time to now in order to trigger auto expiry
+            waiver.setExpiryTime(new Date());
+          }
           policyWaiverDAO.update(waiver);
         }
       }

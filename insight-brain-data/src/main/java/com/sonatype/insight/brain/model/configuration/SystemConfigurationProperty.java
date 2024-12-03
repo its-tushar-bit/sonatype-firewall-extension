@@ -256,6 +256,8 @@ public class SystemConfigurationProperty
 
   public static final String NEW_SCAN_PROCESS = "newScanProcess";
 
+  public static final String EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE = "expireWaiverWhenRemediationAvailable";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

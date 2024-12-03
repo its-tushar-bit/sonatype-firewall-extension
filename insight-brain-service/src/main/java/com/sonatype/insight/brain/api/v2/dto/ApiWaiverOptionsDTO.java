@@ -32,6 +32,11 @@ public class ApiWaiverOptionsDTO
 
   public String waiverReasonId;
 
+  /**
+   * @since 1.185
+   */
+  public boolean expireWhenRemediationAvailable;
+
   public ApiWaiverOptionsDTO() {
   }
 
@@ -39,11 +44,13 @@ public class ApiWaiverOptionsDTO
       String comment,
       ComponentMatcherStrategyForWaiver matcherStrategy,
       Date expiryTime,
-      String waiverReasonId)
+      String waiverReasonId,
+      boolean expireWhenRemediationAvailable)
   {
     this.comment = comment;
     this.matcherStrategy = matcherStrategy;
     this.expiryTime = expiryTime;
     this.waiverReasonId = waiverReasonId;
+    this.expireWhenRemediationAvailable = expireWhenRemediationAvailable;
   }
 }

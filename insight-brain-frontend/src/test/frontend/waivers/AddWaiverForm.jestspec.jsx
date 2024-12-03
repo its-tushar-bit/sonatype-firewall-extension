@@ -392,7 +392,8 @@ describe('AddWaiverForm', function () {
       'waiver comments',
       'EXACT_COMPONENT',
       dayAfterToday,
-      null
+      null,
+      false
     );
   });
 
@@ -487,7 +488,8 @@ describe('AddWaiverForm', function () {
         'waiver comments',
         'EXACT_COMPONENT',
         7,
-        'idReason2'
+        'idReason2',
+        false
       );
     });
 
@@ -503,7 +505,8 @@ describe('AddWaiverForm', function () {
         'waiver comments',
         'EXACT_COMPONENT',
         7,
-        null
+        null,
+        false
       );
 
       component = getShallowComponent({
@@ -524,7 +527,8 @@ describe('AddWaiverForm', function () {
         'waiver comments',
         'EXACT_COMPONENT',
         30,
-        null
+        null,
+        false
       );
     });
 
@@ -540,7 +544,8 @@ describe('AddWaiverForm', function () {
         'waiver comments',
         'EXACT_COMPONENT',
         7,
-        null
+        null,
+        false
       );
     });
   });

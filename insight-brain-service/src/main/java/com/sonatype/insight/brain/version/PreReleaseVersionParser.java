@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.version;
 
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
+
 public class PreReleaseVersionParser
 {
   // This regex attempts to match pre-release qualifiers in a version string.
@@ -21,6 +23,9 @@ public class PreReleaseVersionParser
   }
 
   public static boolean isPreReleaseVersion(final String version) {
+    if (StringUtils.isEmpty(version)) {
+      throw new IllegalArgumentException("Version cannot be null or empty");
+    }
     final Pattern pattern = Pattern.compile(PRE_RELEASE_VERSION_REGEX, Pattern.CASE_INSENSITIVE);
     return pattern.matcher(version).find();
   }

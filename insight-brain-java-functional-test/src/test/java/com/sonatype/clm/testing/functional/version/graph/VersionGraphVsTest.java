@@ -76,7 +76,7 @@ public class VersionGraphVsTest
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
     VersionsCIP.recommendedVersionsHeader().shouldBe(visible);
     VersionsCIP.nextNoViolationVersionLink().shouldBe(visible);
-    VersionsCIP.nextNoViolationVersionLink().shouldHave(text("Select 5.0.0-beta1"));
+    VersionsCIP.nextNoViolationVersionLink().shouldHave(text("Select 5.0.0"));
     VersionsCIP.nextNoFailVersionLink().shouldNotBe(visible);
     VersionsCIP.viewDetailsButton().shouldBe(visible);
     VersionsCIP.migrateButton().shouldNotBe(visible);
@@ -122,7 +122,7 @@ public class VersionGraphVsTest
 
     VersionsCIP.selectNoViolation().shouldBe(visible).click();
 
-    VersionsCIP.version().shouldHave(text("5.0.0-beta1"));
+    VersionsCIP.version().shouldHave(text("5.0.0"));
     VersionsCIP.declaredLicenses().shouldHave(texts("Non-Standard"));
     VersionsCIP.observedLicenses().shouldHave(texts("Not Provided"));
     VersionsCIP.effectiveLicenses().shouldHave(texts("Non-Standard"));

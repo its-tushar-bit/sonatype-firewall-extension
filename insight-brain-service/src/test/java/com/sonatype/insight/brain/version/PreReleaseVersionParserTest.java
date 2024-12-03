@@ -11,6 +11,7 @@ import java.util.List;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class PreReleaseVersionParserTest
 {
@@ -92,5 +93,16 @@ public class PreReleaseVersionParserTest
       assertThat(PreReleaseVersionParser.isPreReleaseVersion(version)).isFalse();
       assertThat(PreReleaseVersionParser.isStable(version)).isTrue();
     });
+  }
+
+  @Test
+  public void testIsPreReleaseVersion_NullVersion() {
+    assertThatThrownBy(() -> PreReleaseVersionParser.isPreReleaseVersion(null))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("Version cannot be null or empty");
+
+    assertThatThrownBy(() -> PreReleaseVersionParser.isPreReleaseVersion(""))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("Version cannot be null or empty");
   }
 }

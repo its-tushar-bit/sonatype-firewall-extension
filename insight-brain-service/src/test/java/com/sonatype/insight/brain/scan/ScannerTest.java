@@ -90,6 +90,7 @@ public class ScannerTest
     assertThat(item.getPath()).isEqualTo("proprietary.jar");
     assertThat(item.getItems()).hasSize(1);
     assertThat(item.isProprietary()).isNull();
+    assertThat(item.getContentType()).isNull();
     item = item.getItems().get(0);
     assertThat(item.getSha512()).isEqualTo("b1c5fe2f797abc2da1df1a103abcfe391a1fdf4d3de08012c4f121065ff055742"
         + "f726550bbde22958baf3be18b5eeae12b39fdd4069736e620b5d0397e0c4e2c");
@@ -100,6 +101,26 @@ public class ScannerTest
     assertThat(item.getSha1JD001()).isNotNull();
     assertThat(item.getPath()).isNull();
     assertThat(item.getNoPathReason()).isEqualTo("proprietaryPackages");
+  }
+
+  @Test
+  public void testScan_CdxXmlZipFile() throws Exception {
+    testFilenamePatterns("application.cdx.xml.zip", "application.cdx.xml", ItemContentType.SBOM);
+  }
+
+  @Test
+  public void testScan_CdxJsonZipFile() throws Exception {
+    testFilenamePatterns("application.cdx.json.zip", "application.cdx.json", ItemContentType.SBOM);
+  }
+
+  @Test
+  public void testScan_SpdxXmlZipFile() throws Exception {
+    testFilenamePatterns("valid-v2.3.spdx.xml.zip", "valid-v2.3.spdx.xml", ItemContentType.SPDX);
+  }
+
+  @Test
+  public void testScan_SpdxJsonZipFile() throws Exception {
+    testFilenamePatterns("valid-v2.3.spdx.json.zip", "valid-v2.3.spdx.json", ItemContentType.SPDX);
   }
 
   @Test
@@ -353,5 +374,28 @@ public class ScannerTest
     finally {
       SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(false);
     }
+  }
+
+  private void testFilenamePatterns(String zipFilename, String unzippedFilename, ItemContentType itemContentType)
+      throws IOException
+  {
+    ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
+    proprietaryConfig.setPackages(Collections.singletonList("com.sonatype"));
+
+    File appFile = new File("src/test/resources/ScannerTest/" + zipFilename);
+    ScanResult scanResult = scanner.scan(appFile, "test-app.zip", new File(tempDir.getRoot(), "not-yet-existent"),
+        proprietaryConfig);
+    assertThat(scanResult.getScanFile()).isFile();
+    assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE_THIRD_PARTY);
+
+    Scan scan = scanReader.read(scanResult.getScanFile());
+    assertThat(scan).isNotNull();
+    assertThat(scan.getItems()).hasSize(1);
+    ScanItem item = scan.getItems().get(0);
+    assertThat(item.getPath()).isEqualTo("test-app.zip");
+    assertThat(item.getItems()).hasSize(1);
+    item = item.getItems().get(0);
+    assertThat(item.getPath()).isEqualTo(unzippedFilename);
+    assertThat(item.getContentType()).isEqualTo(itemContentType);
   }
 }

@@ -24,6 +24,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.SearchIndexChange;
@@ -33,7 +34,6 @@ import com.sonatype.insight.brain.model.thirdpartyscans.SbomPolicyViolationSumma
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.InternalServerException;
-
 
 import static com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO.createPaginationNativeQuery;
 import static com.sonatype.insight.brain.utils.CvssV3Severity.CRITICAL;
@@ -50,16 +50,19 @@ public class ThirdPartySbomMetadataDAO
 {
   private static final String ACTIVE_STATUS = "ACTIVE";
 
-  private OperationalDataStore operationalDataStore;
+  private final OperationalDataStore operationalDataStore;
+
+  private final PolicyViolationDAO policyViolationDAO;
 
   @Inject
-  private PolicyViolationDAO policyViolationDAO;
-
-  @Inject
-  public ThirdPartySbomMetadataDAO(ThirdPartyScansDataStore thirdPartyScansDataStore,
-                                   OperationalDataStore operationalDataStore)
+  public ThirdPartySbomMetadataDAO(
+      ThirdPartyScansDataStore thirdPartyScansDataStore,
+      OperationalDataStore operationalDataStore,
+      PolicyViolationDAO policyViolationDAO,
+      SearchIndexManager searchIndexManager)
   {
-    super(thirdPartyScansDataStore);
+    super(thirdPartyScansDataStore, searchIndexManager);
+    this.policyViolationDAO = policyViolationDAO;
     this.operationalDataStore = operationalDataStore;
   }
 
@@ -87,9 +90,9 @@ public class ThirdPartySbomMetadataDAO
   }
 
   public void deleteByThirdPartyFileId(TransactionContext tx, String thirdPartyFileId) {
-    String sQuery = "DELETE FROM ThirdPartySbomMetadata entity " + //
+    String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity " + //
         " WHERE entity.thirdPartyFileId=?1";
-    createQuery(sQuery, thirdPartyFileId).executeUpdate(tx);
+    getList(tx, sQuery, thirdPartyFileId).forEach(sbomMetadata -> delete(tx, sbomMetadata));
   }
 
   public List<ThirdPartySbomMetadata> getByApplicationId(String applicationId) {
@@ -141,12 +144,6 @@ public class ThirdPartySbomMetadataDAO
     return get(sQuery, applicationId, sbomVersion, status);
   }
 
-  public void deleteByApplicationId(TransactionContext tx, String applicationId) {
-    String sQuery = "DELETE FROM ThirdPartySbomMetadata entity " //
-        + " WHERE entity.applicationId=?1";
-    createQuery(sQuery, applicationId).executeUpdate(tx);
-  }
-
   public long getActiveSbomCount(String applicationId) {
     String sQuery = "SELECT COUNT(entity) FROM ThirdPartySbomMetadata entity"
         + " WHERE entity.applicationId=?1 AND entity.status=?2";
@@ -185,6 +182,11 @@ public class ThirdPartySbomMetadataDAO
   public SearchIndexChange newSearchIndexChange(ThirdPartySbomMetadata sbomMetadata) {
     return new SearchIndexChange(ChangeType.SBOM,
         String.format("%s:%s", sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion()));
+  }
+
+  @Override
+  protected SearchIndexChange newSearchIndexChangeForUpdate(ThirdPartySbomMetadata sbomMetadata) {
+    return null;
   }
 
   /**

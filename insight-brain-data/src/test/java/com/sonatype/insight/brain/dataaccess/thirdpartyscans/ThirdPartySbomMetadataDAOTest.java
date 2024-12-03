@@ -15,9 +15,16 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2InMemoryTest;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -46,17 +53,35 @@ public class ThirdPartySbomMetadataDAOTest
 
   private ThirdPartyFileDAO thirdPartyFileDAO;
 
+  private SearchIndexChangeDAO searchIndexChangeDAO;
+
   @Before
   @Override
   public void setup() {
     super.setup();
 
-    dao = daoFactory.createThirdPartySbomMetadataDAO();
-    thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
+    SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
+    systemConfigurationPropertyDAO.update(
+        new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
+    this.dao = daoFactory.createThirdPartySbomMetadataDAO();
+    this.thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
+    this.searchIndexChangeDAO = daoFactory.createSearchIndexChangeDAO();
+    searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
   }
 
   @Test
-  public void testCRUD() {
+  @H2InMemoryTest
+  public void testCRUD_H2() {
+    testCRUD();
+  }
+
+  @Test
+  @PostgresTest
+  public void testCRUD_Postgres() {
+    testCRUD();
+  }
+
+  private void testCRUD() {
     // Create
     ThirdPartySbomMetadata entity = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory).build();
     assertThat(entity.getId()).isNotNull();
@@ -76,8 +101,9 @@ public class ThirdPartySbomMetadataDAOTest
 
     // Delete
     dao.delete(entity);
-    fetchedThirdPartySbomMetadata = dao.getById(entity.getId());
-    assertThat(fetchedThirdPartySbomMetadata).isNull();
+    ThirdPartySbomMetadata updated = dao.getById(entity.getId());
+    assertThat(updated).isNull();
+    assertSearchIndexUpdated(fetchedThirdPartySbomMetadata);
   }
 
   @Test
@@ -106,7 +132,7 @@ public class ThirdPartySbomMetadataDAOTest
         statement.setString(8, SbomFormat.XML.toString());
         statement.setString(9, randomString);
         statement.setString(10, "ACTIVE");
-        statement.setDate(11,  new java.sql.Date(new Date().getTime()));
+        statement.setDate(11, new java.sql.Date(new Date().getTime()));
         statement.setString(12, buildMetadataJson());
         statement.setString(13, "SBOM");
         statement.executeUpdate();
@@ -185,6 +211,18 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
+  @H2InMemoryTest
+  public void testDeleteByThirdPartyFileId_H2() {
+    testDeleteByThirdPartyFileId();
+  }
+
+  @Test
+  @PostgresTest
+  public void testDeleteByThirdPartyFileId_Postgres() {
+    testDeleteByThirdPartyFileId();
+  }
+
+  @Test
   public void testDeleteByThirdPartyFileId() {
     ThirdPartySbomMetadata entity = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory).build();
     assertThat(entity.getId()).isNotNull();
@@ -198,9 +236,18 @@ public class ThirdPartySbomMetadataDAOTest
       dao.deleteByThirdPartyFileId(tx, entity.getThirdPartyFileId());
       tx.commit();
 
-      sbomMetadata = dao.getByThirdPartyFileId(entity.getThirdPartyFileId());
-      assertThat(sbomMetadata).isNull();
+      ThirdPartySbomMetadata updated = dao.getByThirdPartyFileId(entity.getThirdPartyFileId());
+      assertThat(updated).isNull();
+      assertSearchIndexUpdated(sbomMetadata);
     }
+  }
+
+  private void assertSearchIndexUpdated(final ThirdPartySbomMetadata sbomMetadata) {
+    List<SearchIndexChange> searchIndexChanges = searchIndexChangeDAO.getAll();
+    assertThat(searchIndexChanges).hasSize(1);
+    assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.SBOM);
+    assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(
+        String.format("%s:%s", sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion()));
   }
 
   @Test
@@ -270,26 +317,6 @@ public class ThirdPartySbomMetadataDAOTest
         dao.getByApplicationIdAndSbomVersion(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion());
     assertThat(savedSbomMetadata).isNotNull();
     assertThirdPartySbomMetadata(savedSbomMetadata, sbomMetadata);
-  }
-
-  @Test
-  public void testDeleteByApplicationId() {
-    ThirdPartySbomMetadata entity = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory).build();
-    assertThat(entity.getId()).isNotNull();
-
-    List<ThirdPartySbomMetadata> sbomMetadata = dao.getByApplicationId(entity.getApplicationId());
-    assertThat(sbomMetadata).isNotNull()
-        .hasSize(1);
-    assertThirdPartySbomMetadata(sbomMetadata.get(0), entity);
-
-    try (TransactionContext tx = dao.createTransactionContext()) {
-      tx.begin();
-      dao.deleteByApplicationId(tx, entity.getApplicationId());
-      tx.commit();
-
-      sbomMetadata = dao.getByApplicationId(entity.getThirdPartyFileId());
-      assertThat(sbomMetadata).isEmpty();
-    }
   }
 
   @Test

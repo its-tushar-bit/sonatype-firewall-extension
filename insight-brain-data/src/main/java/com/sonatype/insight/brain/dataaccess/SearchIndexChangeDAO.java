@@ -10,6 +10,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.db.IdUtil;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -20,6 +21,11 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class SearchIndexChangeDAO
     extends AbstractOperationalSqlDAO<SearchIndexChange>
 {
+  private static final String SEARCH_INDEX_CHANGE_INSERT_QUERY =
+      "INSERT INTO %s.search_index_change (" +
+          "  search_index_change_id, change_type, change_data" +
+          ") VALUES (?1, ?2, ?3)";
+
   @Inject
   public SearchIndexChangeDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
@@ -27,9 +33,14 @@ public class SearchIndexChangeDAO
 
   @Override
   public void insert(TransactionContext tx, SearchIndexChange entity) {
-    if (SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.isEnabled(tx) &&
-        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.isEnabled(tx)) {
-      super.insert(tx, entity);
+    if (SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.isEnabled() &&
+        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.isEnabled()) {
+      javax.persistence.Query nativeQuery =
+          tx.createNativeQuery(String.format(SEARCH_INDEX_CHANGE_INSERT_QUERY, getDatabaseSchema()));
+      nativeQuery.setParameter(1, IdUtil.newUUID());
+      nativeQuery.setParameter(2, entity.getChangeType().name());
+      nativeQuery.setParameter(3, entity.getChangeData());
+      nativeQuery.executeUpdate();
     }
   }
 

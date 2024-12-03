@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
+import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
@@ -23,6 +24,14 @@ public abstract class AbstractThirdPartyScansSqlDAO<T extends HasStringId>
   private final ThirdPartyScansDataStore thirdPartyScansDataStore;
 
   protected AbstractThirdPartyScansSqlDAO(ThirdPartyScansDataStore thirdPartyScansDataStore) {
+    this.thirdPartyScansDataStore = thirdPartyScansDataStore;
+  }
+
+  protected AbstractThirdPartyScansSqlDAO(
+      ThirdPartyScansDataStore thirdPartyScansDataStore,
+      SearchIndexManager searchIndexManager)
+  {
+    super(searchIndexManager);
     this.thirdPartyScansDataStore = thirdPartyScansDataStore;
   }
 

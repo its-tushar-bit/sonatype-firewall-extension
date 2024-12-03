@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.util.Collections;
-
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -53,7 +51,9 @@ public class SearchIndexChangeDAOTest
 
     SearchIndexChange change = new SearchIndexChange(ChangeType.APPLICATION, "appId");
     dao.insert(change);
-    assertThat(dao.getAll()).usingRecursiveComparison().isEqualTo(Collections.singletonList(change));
+    assertThat(dao.getAll()).hasSize(1);
+    assertThat(dao.getAll().get(0).getChangeType()).isEqualTo(change.getChangeType());
+    assertThat(dao.getAll().get(0).getChangeData()).isEqualTo(change.getChangeData());
   }
 
   @Test

@@ -274,6 +274,9 @@ public class ThirdPartyScanResultsProcessor
     storeSbomFileIfApplicable(contentType, itemElement, contentElement, scanContext);
 
     ItemContentType contentItemType = ItemContentType.valueOf(contentType);
+    if (ItemContentType.CONTAINER_URI.equals(contentItemType)) {
+      scanContext.addContainerUriPath(path);
+    }
     ThirdPartyScanResultHandler handler = createHandler(contentItemType, scanContext);
     return handler.handleAndFilterContents(
         new ThirdPartyScanContent(path, contentItemType, lastModified, sha1, contentElement.getValue()),

@@ -447,13 +447,20 @@ public class ThirdPartyScanResultsProcessorTest
   public void testHandle_container_content() throws Exception {
     File scanFile = getScanFile("container/scan-with-container-content.xml");
     File tempScanFile = tempDir.newFile();
+    final Organization organization = tempEntity.newOrganization("Test Org");
+    final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
+    ThirdPartyScanContext scanContext =
+        new ThirdPartyScanContext("scanRequestId", application.getId(), SbomScanType.SBOM, scanFile,
+            StageTypes.COMPLIANCE.getName());
 
     TelemetryData telemetryData = buildThirdPartyScanTelemetryData();
     thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(),
-        mockContext(scanFile), telemetryData);
+        scanContext, telemetryData);
 
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.CONTAINER_URI),
         any(ThirdPartyScanContext.class));
+    assertThat(scanContext.getContainerUriPaths()).hasSize(1);
+    assertThat(scanContext.getContainerUriPaths().get(0)).isEqualTo("container:alpine:3.6");
     assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.CONTAINER_URI, true, 9);
     verify(telemetrySender, times(1)).send(telemetryData);
     assertTelemetryData(telemetryData, List.of("CONTAINER_URI"));

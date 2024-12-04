@@ -25,7 +25,7 @@
 </properties>
 </configuration>
 <metadata commitHash="1c72a4b3ec2505439e7aaade1ddbc927bfaba89f"/>
-<item path="alpine:3.6" contentType="CONTAINER_URI" sha1="652160a23ec80cb0ed43">
+<item path="container:alpine:3.6" contentType="CONTAINER_URI" sha1="652160a23ec80cb0ed43">
 <content>{
   &quot;error_message&quot;: &quot;&quot;,
 &quot;report&quot;: {

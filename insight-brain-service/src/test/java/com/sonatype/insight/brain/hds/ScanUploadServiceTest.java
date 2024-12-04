@@ -165,6 +165,37 @@ public class ScanUploadServiceTest
   }
 
   @Test
+  public void testSaveContainerUriPaths() {
+    Stage stage = new Stage(ComplianceStageType.ID);
+    String scanId = "ScanUploadServiceTest_scanId";
+    File filteredScanFile = createScanFile(app, scanId);
+    String scanRequestId = secure().next(10);
+    ThirdPartyFile tpFile = tempEntity.newThirdPartyFile("filename");
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), SbomStatus.PENDING.toString(), "filename");
+    sbomMetadata.setScanType(SbomScanType.BINARY.toString());
+    thirdPartySbomMetadataDAO.update(sbomMetadata);
+    ThirdPartyScan tpScan = tempEntity.newThirdPartyScan(scanRequestId, scanId, tpFile);
+    ThirdPartyScanContext tpContext =
+        new ThirdPartyScanContext(scanRequestId, app.getId(), SbomScanType.SBOM, filteredScanFile,
+            stage.getStageTypeId());
+    tpContext.markSbomSavedForScan();
+    tpContext.setThirdPartyScanId(tpScan.getId());
+    tpContext.setSbomMetadataId(sbomMetadata.getId());
+    tpContext.addContainerUriPath("container:alpine:3.0");
+    tpContext.addContainerUriPath("container:alpine:3.6");
+
+    service.saveContainerUriPaths(stage.getStageTypeId(), tpContext);
+
+    sbomMetadata = thirdPartySbomMetadataDAO.getById(tpContext.getSbomMetadataId());
+
+    assertThat(sbomMetadata).isNotNull();
+    assertThat(sbomMetadata.getOriginalBinaryFileName())
+        .isNotNull()
+        .isEqualTo(tpContext.getContainerUriPaths().get(0) + "," + tpContext.getContainerUriPaths().get(1));
+  }
+
+  @Test
   public void testFilterAndUpload_FileProcessingError() {
     Stage stage = new Stage(ReleaseStageType.ID);
     String scanId = "ScanUploadServiceTest_scanId";

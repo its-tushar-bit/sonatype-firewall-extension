@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -18,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
@@ -29,6 +31,7 @@ import com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultsProcessor;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
@@ -137,6 +140,7 @@ public class ScanUploadService
             thirdPartyScanTelemetryData);
     ScanReceipt scanReceipt = uploader.upload(tempScanFile, app, stageTypeId, clientUserAgent, thirdPartyScanContext);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanReceipt.getScanId());
+    saveContainerUriPaths(stageTypeId, thirdPartyScanContext);
     saveFilteredScanFileIfNeeded(thirdPartyScanContext, tempScanFile);
     try {
       Files.delete(tempScanFile.toPath());
@@ -145,6 +149,20 @@ public class ScanUploadService
       log.error("Unable to remove temporary scan file {}", tempScanFile.toPath());
     }
     return scanReceipt;
+  }
+
+  @VisibleForTesting
+  void saveContainerUriPaths(final String stageTypeId, final ThirdPartyScanContext thirdPartyScanContext) {
+    if (stageTypeId.equals(StageTypes.COMPLIANCE.getId())) {
+      List<String> containerUriPaths = thirdPartyScanContext.getContainerUriPaths();
+      if (!containerUriPaths.isEmpty()) {
+        String concatenatedPaths = String.join(",", containerUriPaths);
+        ThirdPartySbomMetadata sbomMetadata =
+            thirdPartySbomMetadataDAO.getById(thirdPartyScanContext.getSbomMetadataId());
+        sbomMetadata.setOriginalBinaryFileName(concatenatedPaths);
+        thirdPartySbomMetadataDAO.update(sbomMetadata);
+      }
+    }
   }
 
   //visible for testing

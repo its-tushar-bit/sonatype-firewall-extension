@@ -6,6 +6,10 @@
 package com.sonatype.insight.brain.thirdparty;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class ThirdPartyScanContext
 {
@@ -32,6 +36,8 @@ public class ThirdPartyScanContext
   private String sbomMetadataId;
 
   private boolean isValid;
+
+  private final List<String> containerUriPaths = new ArrayList<>();
 
   public ThirdPartyScanContext(
       final String scanRequestId,
@@ -125,5 +131,15 @@ public class ThirdPartyScanContext
 
   public void setIsValid(final boolean isValid) {
     this.isValid = isValid;
+  }
+
+  public List<String> getContainerUriPaths() {
+    return containerUriPaths;
+  }
+
+  public void addContainerUriPath(String path) {
+    if (StringUtils.isNotEmpty(path)) {
+      this.containerUriPaths.add(path);
+    }
   }
 }

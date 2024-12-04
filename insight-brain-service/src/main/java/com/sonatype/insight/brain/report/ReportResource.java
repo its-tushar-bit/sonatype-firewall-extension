@@ -89,6 +89,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
@@ -230,7 +231,7 @@ public class ReportResource
       return Response.status(Status.NOT_FOUND).build();
     }
 
-    if (StringUtils.isNotEmpty(fileCoordinateId)) {
+    if (!StringUtils.isAllBlank(fileCoordinateId, hash)) {
       JsonNode jsonNode = sbomPolicyService.getPolicyViolationsJsonNodeByFileCoordinateIdOrHash(applicationInternalId,
           sbomVersion, fileCoordinateId, hash, policyThreatsReportEntry);
 
@@ -241,7 +242,8 @@ public class ReportResource
         return response.build();
       }
       else {
-        return Response.status(Status.NOT_FOUND).build();
+        // There are no policy violations for the given component
+        return Response.ok(JsonNodeFactory.instance.objectNode()).type(MediaType.APPLICATION_JSON_TYPE).build();
       }
     }
     else {

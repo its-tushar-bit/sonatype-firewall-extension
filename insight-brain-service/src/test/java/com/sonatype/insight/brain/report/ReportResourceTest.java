@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.report;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -63,6 +62,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -531,7 +531,7 @@ public class ReportResourceTest
   }
 
   @Test
-  public void testGetSbomPolicyViolationReportWithFileCoordinateId() throws Exception {
+  public void testGetSbomPolicyViolationReport_WithFileCoordinateId() throws Exception {
     final String scanId = "ReportResourceTest_ScanId";
 
     String reportResource = "/ReportResourceTest/report-bom";
@@ -542,31 +542,32 @@ public class ReportResourceTest
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     File reportDestination = work.getReportFile(app.getId(), scanId);
 
-    try {
-      FileUtils.copyURLToFile(zippedReport, reportDestination);
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+    FileUtils.copyURLToFile(zippedReport, reportDestination);
 
     String sbomVersion = "sbomVersion1";
     tempEntity.newSbomEvaluation(app, sbomVersion, "spec1",
          new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"),
-         "hash1", scanId, true,
+        "1249e25aebb15358bedd", scanId, true,
          "ACTIVE");
 
     setFeatures(LicensedFeature.SBOM_MANAGER);
     HttpResponse response = restRequest()
-        .path(ReportResource.RESOURCE_PATH + "/sbom/{sbomVersion}/sbomPolicyViolationReport")
+        .path(ReportResource.RESOURCE_PATH + "/" + ReportResource.SBOM_POLICY_VIOLATION_REPORT)
         .query("fileCoordinateId", "86163fcc32524261bfd2bdbedb7eae43")
         .parameter(app.getPublicId(), sbomVersion)
         .get();
+
     assertResponseStatus(200, response);
+
+    PolicyThreats.Component result = response.getBody(PolicyThreats.Component.class);
+    assertThat(result).isNotNull();
+    assertThat(result.hash).isEqualTo("1249e25aebb15358bedd");
+    assertThat(result.allViolations).hasSize(1);
   }
 
   @Test
-  public void testGetSbomPolicyViolationReportWithInvalidFileCoordinateId_notFound() throws Exception {
-    final String scanId = "ReportResourceTest_ScanId";
+  public void testGetSbomPolicyViolationReport_WithHash() throws Exception {
+    String scanId = "ReportResourceTest_ScanId";
 
     String reportResource = "/ReportResourceTest/report-bom";
     mockReport(scanId, reportResource);
@@ -576,26 +577,87 @@ public class ReportResourceTest
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     File reportDestination = work.getReportFile(app.getId(), scanId);
 
-    try {
-      FileUtils.copyURLToFile(zippedReport, reportDestination);
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+    FileUtils.copyURLToFile(zippedReport, reportDestination);
 
     String sbomVersion = "sbomVersion1";
     tempEntity.newSbomEvaluation(app, sbomVersion, "spec1",
-            new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"),
-            "hash1", scanId, true,
-            "ACTIVE");
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "1249e25aebb15358bedd", scanId, true,
+        "ACTIVE");
 
     setFeatures(LicensedFeature.SBOM_MANAGER);
     HttpResponse response = restRequest()
-            .path(ReportResource.RESOURCE_PATH + "/sbom/{sbomVersion}/sbomPolicyViolationReport")
-            .query("fileCoordinateId", "bad-file-coordinate-id")
-            .parameter(app.getPublicId(), sbomVersion)
-            .get();
+        .path(ReportResource.RESOURCE_PATH + "/" + ReportResource.SBOM_POLICY_VIOLATION_REPORT)
+        .query("hash", "1249e25aebb15358bedd")
+        .parameter(app.getPublicId(), sbomVersion)
+        .get();
+
+    assertResponseStatus(200, response);
+
+    PolicyThreats.Component result = response.getBody(PolicyThreats.Component.class);
+    assertThat(result).isNotNull();
+    assertThat(result.hash).isEqualTo("1249e25aebb15358bedd");
+    assertThat(result.allViolations).hasSize(1);
+  }
+
+  @Test
+  public void testGetSbomPolicyViolationReport_NotFound() throws Exception {
+    String scanId = "ReportResourceTest_ScanId";
+
+    String reportResource = "/ReportResourceTest/report-bom-no-policythreats";
+    mockReport(scanId, reportResource);
+    createScanFile(app.getId(), scanId);
+
+    URL zippedReport = ReportHelper.zipReport(reportResource, tempDir);
+    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    File reportDestination = work.getReportFile(app.getId(), scanId);
+
+    FileUtils.copyURLToFile(zippedReport, reportDestination);
+
+    String sbomVersion = "sbomVersion1";
+    tempEntity.newSbomEvaluation(app, sbomVersion, "spec1",
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "hash1", scanId, true, "ACTIVE");
+
+    setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    HttpResponse response = restRequest()
+        .path(ReportResource.RESOURCE_PATH + "/" + ReportResource.SBOM_POLICY_VIOLATION_REPORT)
+        .query("fileCoordinateId", "some-file-coordinate-id")
+        .parameter(app.getPublicId(), "sbomVersion1")
+        .get();
+
     assertResponseStatus(404, response);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testGetSbomPolicyViolationReport_NoPolicyViolations() throws Exception {
+    String scanId = "ReportResourceTest_ScanId";
+
+    String reportResource = "/ReportResourceTest/report-bom";
+    mockReport(scanId, reportResource);
+    createScanFile(app.getId(), scanId);
+
+    URL zippedReport = ReportHelper.zipReport(reportResource, tempDir);
+    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    File reportDestination = work.getReportFile(app.getId(), scanId);
+
+    FileUtils.copyURLToFile(zippedReport, reportDestination);
+
+    String sbomVersion = "sbomVersion1";
+
+    tempEntity.newSbomEvaluation(app, sbomVersion, "spec1",
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "hash1", scanId, true, "ACTIVE");
+
+    setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    HttpResponse response = restRequest()
+        .path(ReportResource.RESOURCE_PATH + "/" + ReportResource.SBOM_POLICY_VIOLATION_REPORT)
+        .query("fileCoordinateId", "some-file-coordinate-id")
+        .parameter(app.getPublicId(), "sbomVersion1")
+        .get();
+
+    assertResponseStatus(200, response);
+    assertThat(response.getBody(Map.class)).isEmpty();
   }
 
   private void configureMail() {

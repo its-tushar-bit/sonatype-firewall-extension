@@ -123,6 +123,7 @@ public class ApiAutoPolicyWaiverServiceAuthzTest
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
     dto.autoPolicyWaiverId = autoPolicyWaiver.getId();
+    dto.reachable = true;
     dto.threatLevel = 10;
     grantWritePermission(application.getId());
     apiAutoPolicyWaiverService.updateAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),

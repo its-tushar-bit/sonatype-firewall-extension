@@ -328,6 +328,28 @@ public class ApiAutoPolicyWaiverResourceTest
   }
 
   @Test
+  public void testAddAutoPolicyWaiver_BothOptionsAreFalse() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+
+    ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
+    dto.ownerId = "ownerId";
+    dto.threatLevel = 2;
+    dto.reachable = false;
+    dto.pathForward = false;
+    dto.creatorId = "creatorId";
+    dto.creatorName = "creatorName";
+    dto.createTime = new Date();
+
+    HttpResponse response = restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/" + OWNERS_PATH)
+        .parameter(OwnerType.APPLICATION, app.getId())
+        .body(dto, MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(HttpStatus.BAD_REQUEST_400, response);
+
+  }
+
+  @Test
   public void testAddAutoPolicyWaiver_MissingDeveloperDashboardFeature() throws Exception {
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(false);
     setMissingFeature(LicensedFeature.DEVELOPER_DASHBOARD);

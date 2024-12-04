@@ -551,6 +551,153 @@ public class FirewallPageTest
   }
 
   @Test
+  public void testFirewallQuarantineTable_SortByPolicyName() {
+    Date jan1st2024hour12 = Date.from(LocalDateTime.of(2024, 1, 1, 12, 0).toInstant(ZoneOffset.UTC));
+    Date jan1st2024hour14 = Date.from(LocalDateTime.of(2024, 1, 1, 14, 0).toInstant(ZoneOffset.UTC));
+    Policy policy1 = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, "policy1", 10, Action.ID_FAIL,
+        Stage.ID_PROXY, null);
+    Policy policy2 = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, "policy2", 10, Action.ID_FAIL,
+        Stage.ID_PROXY, null);
+    RepositoryManager rm = tempEntity.newRepositoryManager();
+    Repository repo = tempEntity.newRepository(rm, "repo", true, true);
+    final RepositoryComponent c1 =
+        tempEntity.newRepositoryComponent(repo.getId(), "pathname1", jan1st2024hour14, null);
+    final RepositoryComponent c2 =
+        tempEntity.newRepositoryComponent(repo.getId(), "pathname2", jan1st2024hour12, null);
+    PolicyViolationTestHelper.createPolicyViolationFail(policy1, c1, tempEntity);
+    PolicyViolationTestHelper.createPolicyViolationFail(policy2, c2, tempEntity);
+
+    refreshOrOpen(FirewallPage.url());
+    waitUntilFirewallPageSpinnersGone();
+    FirewallPage firewallPage = new FirewallPage();
+    NxTableHeader policyNameHeader = page.firewallQuarantineTable().policyNameHeader();
+
+    firewallPage.firewallQuarantineTable().tableBodyRows().shouldHave(size(2));
+
+    policyNameHeader.sortBtn().shouldHave(
+        attribute("aria-label", "Policy Name unsorted"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+        .shouldHave(texts("10", "policy1", "2024-01-02 14:00:00", "g : a : v", "repo"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+        .shouldHave(texts("10", "policy2", "2024-01-02 12:00:00", "g : a : v", "repo"));
+
+    policyNameHeader.click();
+
+    policyNameHeader.sortBtn().shouldHave(
+        attribute("aria-label", "Policy Name descending"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+        .shouldHave(texts("10", "policy2", "2024-01-02 12:00:00", "g : a : v", "repo"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+        .shouldHave(texts("10", "policy1", "2024-01-02 14:00:00", "g : a : v", "repo"));
+
+    policyNameHeader.click();
+
+    policyNameHeader.sortBtn().shouldHave(
+        attribute("aria-label", "Policy Name ascending"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+        .shouldHave(texts("10", "policy1", "2024-01-02 14:00:00", "g : a : v", "repo"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+        .shouldHave(texts("10", "policy2", "2024-01-02 12:00:00", "g : a : v", "repo"));
+  }
+
+  @Test
+  public void testFirewallQuarantineTable_SortByComponent() {
+    Date jan1st2024hour12 = Date.from(LocalDateTime.of(2024, 1, 1, 12, 0).toInstant(ZoneOffset.UTC));
+    Date jan1st2024hour14 = Date.from(LocalDateTime.of(2024, 1, 1, 14, 0).toInstant(ZoneOffset.UTC));
+    Policy policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, "policy", 10, Action.ID_FAIL,
+        Stage.ID_PROXY, null);
+    RepositoryManager rm = tempEntity.newRepositoryManager();
+    Repository repo = tempEntity.newRepository(rm, "repo", true, true);
+    final RepositoryComponent c1 =
+        tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT, "pathname1", "hash",
+            ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), jan1st2024hour14, jan1st2024hour14);
+    final RepositoryComponent c2 =
+        tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT, "pathname2", "hash",
+            ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), jan1st2024hour12, jan1st2024hour12);
+    PolicyViolationTestHelper.createPolicyViolationFail(policy, c1, tempEntity);
+    PolicyViolationTestHelper.createPolicyViolationFail(policy, c2, tempEntity);
+
+    refreshOrOpen(FirewallPage.url());
+    waitUntilFirewallPageSpinnersGone();
+    FirewallPage firewallPage = new FirewallPage();
+    NxTableHeader componentHeader = page.firewallQuarantineTable().componentHeader();
+
+    firewallPage.firewallQuarantineTable().tableBodyRows().shouldHave(size(2));
+
+    componentHeader.sortBtn().shouldHave(
+        attribute("aria-label", "Component unsorted"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+        .shouldHave(texts("10", "policy", "2024-01-02 14:00:00", "g1 : a1 : v1", "repo"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+        .shouldHave(texts("10", "policy", "2024-01-02 12:00:00", "g2 : a2 : v2", "repo"));
+
+    componentHeader.click();
+
+    componentHeader.sortBtn().shouldHave(
+        attribute("aria-label", "Component descending"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+        .shouldHave(texts("10", "policy", "2024-01-02 12:00:00", "g2 : a2 : v2", "repo"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+        .shouldHave(texts("10", "policy", "2024-01-02 14:00:00", "g1 : a1 : v1", "repo"));
+
+    componentHeader.click();
+
+    componentHeader.sortBtn().shouldHave(
+        attribute("aria-label", "Component ascending"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+        .shouldHave(texts("10", "policy", "2024-01-02 14:00:00", "g1 : a1 : v1", "repo"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+        .shouldHave(texts("10", "policy", "2024-01-02 12:00:00", "g2 : a2 : v2", "repo"));
+  }
+
+  @Test
+  public void testFirewallQuarantineTable_SortByRepository() {
+    Date jan1st2024hour12 = Date.from(LocalDateTime.of(2024, 1, 1, 12, 0).toInstant(ZoneOffset.UTC));
+    Date jan1st2024hour14 = Date.from(LocalDateTime.of(2024, 1, 1, 14, 0).toInstant(ZoneOffset.UTC));
+    Policy policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, "policy", 10, Action.ID_FAIL,
+        Stage.ID_PROXY, null);
+    RepositoryManager rm = tempEntity.newRepositoryManager();
+    Repository repo1 = tempEntity.newRepository(rm, "repo1", true, true);
+    Repository repo2 = tempEntity.newRepository(rm, "repo2", true, true);
+    final RepositoryComponent c1 =
+        tempEntity.newRepositoryComponent(repo1.getId(), "pathname1", jan1st2024hour14, null);
+    final RepositoryComponent c2 =
+        tempEntity.newRepositoryComponent(repo2.getId(), "pathname2", jan1st2024hour12, null);
+    PolicyViolationTestHelper.createPolicyViolationFail(policy, c1, tempEntity);
+    PolicyViolationTestHelper.createPolicyViolationFail(policy, c2, tempEntity);
+
+    refreshOrOpen(FirewallPage.url());
+    waitUntilFirewallPageSpinnersGone();
+    FirewallPage firewallPage = new FirewallPage();
+    NxTableHeader repositoryHeader = page.firewallQuarantineTable().repositoryHeader();
+
+    repositoryHeader.sortBtn().shouldHave(
+        attribute("aria-label", "Repository unsorted"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+        .shouldHave(texts("10", "policy", "2024-01-02 14:00:00", "g : a : v", "repo1"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+        .shouldHave(texts("10", "policy", "2024-01-02 12:00:00", "g : a : v", "repo2"));
+
+    repositoryHeader.click();
+
+    repositoryHeader.sortBtn().shouldHave(
+        attribute("aria-label", "Repository descending"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+        .shouldHave(texts("10", "policy", "2024-01-02 12:00:00", "g : a : v", "repo2"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+        .shouldHave(texts("10", "policy", "2024-01-02 14:00:00", "g : a : v", "repo1"));
+
+    repositoryHeader.click();
+
+    repositoryHeader.sortBtn().shouldHave(
+        attribute("aria-label", "Repository ascending"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+        .shouldHave(texts("10", "policy", "2024-01-02 14:00:00", "g : a : v", "repo1"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+        .shouldHave(texts("10", "policy", "2024-01-02 12:00:00", "g : a : v", "repo2"));
+  }
+
+  @Test
   public void testFirewallQuarantineTable_ComponentNameSearch() {
     setupData();
     Long time = repositoryComponentDAO.getAllQuarantinedComponent().stream()

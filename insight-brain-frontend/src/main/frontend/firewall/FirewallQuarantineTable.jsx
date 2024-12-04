@@ -109,7 +109,15 @@ export default function FirewallQuarantineTable(props) {
               <NxTableCell isNumeric className="iq-cell--threat">
                 Threat
               </NxTableCell>
-              <NxTableCell className="iq-cell--policy-type">Policy Name</NxTableCell>
+              <NxTableCell
+                  id="policyName-header"
+                  className="iq-cell--policy-type"
+                  isSortable
+                  sortDir={sortField === 'policyName' ? sortDir : null}
+                  onClick={() => sortPage('policyName')}
+              >
+                Policy Name
+              </NxTableCell>
               <NxTableCell
                 id="quarantineTime-header"
                 className="iq-cell--quarantine-date"
@@ -119,8 +127,24 @@ export default function FirewallQuarantineTable(props) {
               >
                 Quarantine Time
               </NxTableCell>
-              <NxTableCell>Component</NxTableCell>
-              <NxTableCell className="iq-cell--repository">Repository</NxTableCell>
+              <NxTableCell
+                  id="component-header"
+                  className="iq-cell--component"
+                  isSortable
+                  sortDir={sortField === 'componentDisplayName' ? sortDir : null}
+                  onClick={() => sortPage('componentDisplayName')}
+              >
+                Component
+              </NxTableCell>
+              <NxTableCell
+                  id="repository-header"
+                  className="iq-cell--repository"
+                  isSortable
+                  sortDir={sortField === 'repositoryPublicId' ? sortDir : null}
+                  onClick={() => sortPage('repositoryPublicId')}
+              >
+                Repository
+              </NxTableCell>
             </NxTableRow>
 
             <NxTableRow isFilterHeader>

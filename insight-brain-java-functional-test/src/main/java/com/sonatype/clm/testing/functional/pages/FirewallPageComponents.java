@@ -152,6 +152,18 @@ public class FirewallPageComponents
       return new NxTableHeader("#quarantineTime-header");
     }
 
+    public NxTableHeader policyNameHeader() {
+      return new NxTableHeader("#policyName-header");
+    }
+
+    public NxTableHeader componentHeader() {
+      return new NxTableHeader("#component-header");
+    }
+
+    public NxTableHeader repositoryHeader() {
+      return new NxTableHeader("#repository-header");
+    }
+
     public SelenideElement policyNameSelect() {
       return child("#firewall-quarantine-table--select-policy");
     }

@@ -482,6 +482,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Artistic-1.0-GPL-2.0+','Artistic-1.0 or GPL-2.0+','Dual License Consisting of Artistic License 1.0 and GPL 2.0 or later');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Artistic-1.0-Perl','Artistic-1.0-Perl','Artistic License 1.0 Perl');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Artistic-1.0-Perl-GPL-1.0+','Artistic-1.0-Perl or GPL-1.0+','Dual License Consisting of Artistic License 1.0 Perl and GPL 1.0 or later');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Artistic-1.0-Perl-GPL-2.0+','Artistic-1.0-Perl or GPL-2.0+','Dual License Consisting of Artistic License 1.0 Perl and GPL 2.0 or later');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Artistic-1.0-Perl-LGPL-2.0+','Artistic-1.0-Perl or LGPL-2.0+','Dual License Consisting of Artistic License 1.0 Perl and LGPL 2.0 or later');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Artistic-2.0','Artistic-2.0','Artistic License 2.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Artistic-2.0-BSD-UNSPECIFIED-LGPL-3.0+','Artistic-2.0 or BSD or LGPL-3.0+','Triple License Consisting of Artistic License 2.0, BSD-Style License Not Identifiable by Sonatype and LGPL 3.0 or later');
@@ -695,6 +696,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSD-2-Clause-Patent-BlueOak-1.0.0','BlueOak-1.0.0 or BSD-2-Clause-Patent','Dual License Consisting of Blue Oak Model License 1.0.0 and BSD-2-Clause Plus Patent License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSD-2-Clause-Patent-MIT','BSD-2-Clause-Patent or MIT','Dual License Consisting of BSD-2-Clause Plus Patent License and MIT License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSD-2-Clause-PUBLIC-DOMAIN','BSD-2-Clause or PUBLIC-DOMAIN','Dual License Consisting of BSD 2-clause "Simplified" License and The work has been placed in the public domain');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSD-2-Clause-Python-2.0.1-Ruby','BSD-2-Clause or Python-2.0.1 or Ruby','Triple License Consisting of BSD 2-clause "Simplified" License, Python License 2.0.1 and Ruby License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSD-2-Clause-Ruby','BSD-2-Clause or Ruby','Dual License Consisting of BSD 2-clause "Simplified" License and Ruby License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSD-2-Clause-Unlicense','BSD-2-Clause or Unlicense','Dual License Consisting of BSD 2-clause "Simplified" License and The Unlicense');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSD-2-Clause-Views','BSD-2-Clause-Views','BSD 2-Clause with views sentence');
@@ -2025,6 +2027,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Inner-Drive-Extensible-Architecture-LA','Inner-Drive-Extensible-Architecture-LA','Inner Drive Extensible Architecture License Agreement - Idea - Release Date 05-16-2014');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Inner-Drive-Extensible-Architecture-LA-RD06212019','Inner-Drive-Extensible-Architecture-LA-RD06212019','The Inner Drive Extensible Architecture License agreement - Release Date 06-21-2019');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Inner-Net-2.0','Inner-Net-2.0','Inner Net License v2.0');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Inner-Net-UNSPECIFIED','Inner-Net','Inner-Net-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Inno-Setup-License','Inno-Setup-License','Inno Setup License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Instabug-TOS','Instabug-TOS','Instabug Terms of Service');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Intel','Intel','Intel Open Source License');
@@ -2916,6 +2919,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('OPTIMAJET-LLC-Customer-SA','OPTIMAJET-LLC-Customer-SA','OPTIMAJET LLC Customer Support Agreement - DWKit');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('OPTIMAJET-LLC-EULA','OPTIMAJET-LLC-EULA','OPTIMAJET LLC End User License Agreement - DWKit');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('OPUBL-1.0','OPUBL-1.0','Open Publication License v1.0');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('OPUBL-UNSPECIFIED','OPUBL','OPUBL-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('OQL-1.0','OQL-1.0','Opinionated Queer License v1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('OQL-1.1','OQL-1.1','Opinionated Queer License v1.1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('OQL-UNSPECIFIED','OQL','OQL-Style License Not Identifiable by Sonatype');

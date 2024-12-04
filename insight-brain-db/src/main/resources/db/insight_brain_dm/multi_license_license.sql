@@ -1228,6 +1228,9 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Artisti
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Artistic-1.0-Perl-GPL-1.0+','GPL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Artistic-1.0-Perl-GPL-1.0+','GPL-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Artistic-1.0-Perl-GPL-1.0+','GPL-3.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Artistic-1.0-Perl-GPL-2.0+','Artistic-1.0-Perl');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Artistic-1.0-Perl-GPL-2.0+','GPL-2.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Artistic-1.0-Perl-GPL-2.0+','GPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Artistic-1.0-Perl-LGPL-2.0+','Artistic-1.0-Perl');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Artistic-1.0-Perl-LGPL-2.0+','LGPL-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Artistic-1.0-Perl-LGPL-2.0+','LGPL-2.1');
@@ -1554,6 +1557,9 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-C
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-Clause-Patent-MIT','MIT');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-Clause-PUBLIC-DOMAIN','BSD-2-Clause');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-Clause-PUBLIC-DOMAIN','PUBLIC-DOMAIN');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-Clause-Python-2.0.1-Ruby','BSD-2-Clause');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-Clause-Python-2.0.1-Ruby','Python-2.0.1');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-Clause-Python-2.0.1-Ruby','Ruby');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-Clause-Ruby','BSD-2-Clause');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-Clause-Ruby','Ruby');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-Clause-Unlicense','BSD-2-Clause');
@@ -3557,6 +3563,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('InMobi-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Inner-Drive-Extensible-Architecture-LA','Inner-Drive-Extensible-Architecture-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Inner-Drive-Extensible-Architecture-LA-RD06212019','Inner-Drive-Extensible-Architecture-LA-RD06212019');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Inner-Net-2.0','Inner-Net-2.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Inner-Net-UNSPECIFIED','Inner-Net-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Inno-Setup-License','Inno-Setup-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Instabug-TOS','Instabug-TOS');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Intel','Intel');
@@ -4570,6 +4577,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Opt-Out
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OPTIMAJET-LLC-Customer-SA','OPTIMAJET-LLC-Customer-SA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OPTIMAJET-LLC-EULA','OPTIMAJET-LLC-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OPUBL-1.0','OPUBL-1.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OPUBL-UNSPECIFIED','OPUBL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OQL-1.0','OQL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OQL-1.1','OQL-1.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OQL-UNSPECIFIED','OQL-UNSPECIFIED');

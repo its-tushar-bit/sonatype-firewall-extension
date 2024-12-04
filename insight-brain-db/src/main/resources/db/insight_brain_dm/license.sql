@@ -1256,6 +1256,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('InMob
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Inner-Drive-Extensible-Architecture-LA','Inner-Drive-Extensible-Architecture-LA','Inner Drive Extensible Architecture License Agreement - Idea - Release Date 05-16-2014');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Inner-Drive-Extensible-Architecture-LA-RD06212019','Inner-Drive-Extensible-Architecture-LA-RD06212019','The Inner Drive Extensible Architecture License agreement - Release Date 06-21-2019');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Inner-Net-2.0','Inner-Net-2.0','Inner Net License v2.0');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Inner-Net-UNSPECIFIED','Inner-Net','Inner-Net-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Inno-Setup-License','Inno-Setup-License','Inno Setup License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Instabug-TOS','Instabug-TOS','Instabug Terms of Service');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Intel','Intel','Intel Open Source License');
@@ -2051,6 +2052,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Opt-O
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OPTIMAJET-LLC-Customer-SA','OPTIMAJET-LLC-Customer-SA','OPTIMAJET LLC Customer Support Agreement - DWKit');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OPTIMAJET-LLC-EULA','OPTIMAJET-LLC-EULA','OPTIMAJET LLC End User License Agreement - DWKit');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OPUBL-1.0','OPUBL-1.0','Open Publication License v1.0');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OPUBL-UNSPECIFIED','OPUBL','OPUBL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OQL-1.0','OQL-1.0','Opinionated Queer License v1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OQL-1.1','OQL-1.1','Opinionated Queer License v1.1');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OQL-UNSPECIFIED','OQL','OQL-Style License Not Identifiable by Sonatype');

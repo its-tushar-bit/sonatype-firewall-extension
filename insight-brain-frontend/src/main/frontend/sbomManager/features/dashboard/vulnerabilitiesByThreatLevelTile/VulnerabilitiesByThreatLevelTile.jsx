@@ -7,7 +7,7 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { all, compose, equals, keys, map, prop } from 'ramda';
-import { NxH2, NxH3, NxTile, NxThreatIndicator } from '@sonatype/react-shared-components';
+import { NxH2, NxH3, NxTile, NxThreatIndicator, NxTextLink } from '@sonatype/react-shared-components';
 import { ResponsivePie } from '@nivo/pie';
 
 import { capitalize } from 'MainRoot/util/jsUtil';
@@ -18,6 +18,9 @@ import { selectVulnerabilitiesByThreatLevelTile } from './vulnerabilitiesByThrea
 import { actions } from './vulnerabilitiesByThreatLevelTileSlice';
 
 import './VulnerabilitiesByThreatLevelTile.scss';
+import { SORT_BY_FIELDS } from '../../sbomApplicationsPage/sbomApplicationsTable/sbomApplicationsTableSlice';
+import { SORT_DIRECTION } from '../recentlyImportedSbomsTile/recentlyImportedSbomsTileSlice';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 const NIVO_THREAT_COLORS_MAP = {
   critical: 'var(--nx-color-threat-critical)',
@@ -124,11 +127,17 @@ export default function VulnerabilitiesByThreatLevelTile() {
   const { loading, loadError, vulnerabilities, vulnerabilitiesTotal } = useSelector(
     selectVulnerabilitiesByThreatLevelTile
   );
+  const uiRouterState = useRouterState();
   const load = () => dispatch(actions.loadVulnerabilitesByThreatLevel());
 
   useEffect(() => {
     load();
   }, []);
+
+  const applicationsPageHref = uiRouterState.href('sbomManager.applications', {
+    sortBy: SORT_BY_FIELDS.vulnerabilities,
+    sortDirection: SORT_DIRECTION.DESC,
+  });
 
   return (
     <NxTile id="vulnerabilities-by-threat-level-tile" className="sbom-manager-vulnerabilities-by-threat-level-tile">
@@ -165,9 +174,11 @@ export default function VulnerabilitiesByThreatLevelTile() {
           </ul>
           <VulnerabilitiesByThreatLevelPieChart vulnerabilities={vulnerabilities} />
           <VulnerabilitiesByThreatLevelTable vulnerabilities={vulnerabilities} />
-          {/* <div className="sbom-manager-vulnerabilities-by-threat-level-tile__action">
-            <NxTextLink href="#">View Applications by most vulnerabilities</NxTextLink>
-          </div> */}
+          <div className="sbom-manager-vulnerabilities-by-threat-level-tile__action">
+            <NxTextLink className="sbom-manager-vulnerabilities-by-threat-level-tile__link" href={applicationsPageHref}>
+              View Applications by most vulnerabilities
+            </NxTextLink>
+          </div>
         </LoadWrapper>
       </NxTile.Content>
     </NxTile>

@@ -7,7 +7,6 @@
   &__application-name,
   &__latest-version {
     display: inline-block;
-    max-width: 200px;
     text-wrap: wrap;
     word-break: break-all;
     overflow: hidden;
@@ -15,8 +14,12 @@
     white-space: nowrap;
   }
 
+  &__application-name {
+    max-width: 250px;
+  }
+
   &__latest-version {
-    max-width: 150px;
+    max-width: 125px;
   }
 
   &__annotated-percentage {

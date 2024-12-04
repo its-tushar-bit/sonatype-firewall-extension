@@ -19,7 +19,7 @@ import {
 describe('SbomApplicationsTable', () => {
   let axiosMock;
 
-  const baseUrlParams = [1, APPLICATIONS_PER_PAGE, SORT_BY_FIELDS.importDate, true, null];
+  const baseUrlParams = [1, APPLICATIONS_PER_PAGE, SORT_BY_FIELDS.importDate, false, null];
 
   const mockApplication = (count) => ({
     applicationInternalId: `app-internal-id-${count}`,
@@ -55,7 +55,7 @@ describe('SbomApplicationsTable', () => {
         errorMessage: null,
         applications: [],
         applicationsTotalCount: 0,
-        sortConfiguration: { sortBy: SORT_BY_FIELDS.importDate, sortDirection: SORT_DIRECTION.ASC },
+        sortConfiguration: { sortBy: SORT_BY_FIELDS.importDate, sortDirection: SORT_DIRECTION.DESC },
         pagination: { pageCount: 1, currentPage: 0 },
         applicationNameRawFilterTerm: '',
       },

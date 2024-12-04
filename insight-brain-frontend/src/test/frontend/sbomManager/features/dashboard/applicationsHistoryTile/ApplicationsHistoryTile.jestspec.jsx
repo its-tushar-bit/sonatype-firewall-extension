@@ -50,6 +50,9 @@ describe('ApplicationsHistoryTile', () => {
     expect(screen.getByTestId('applications-history-tile-applications-updated-last-year')).toHaveTextContent('2,000');
     expect(screen.getByTestId('applications-history-tile-applications-updated-last-month')).toHaveTextContent('3,000');
     expect(screen.getByTestId('applications-history-tile-applications-updated-last-week')).toHaveTextContent('4,000');
+
+    const applicationsPageLink = screen.getByText('View Latest Application Versions');
+    expect(applicationsPageLink).toBeVisible();
   });
 
   it('renders error message', async () => {

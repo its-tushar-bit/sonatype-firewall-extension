@@ -39,6 +39,15 @@ public class SbomApplicationsTable
     return children("table tbody tr");
   }
 
+  public SelenideElement percentageAnnotatedColumn(int row) {
+    return tableBodyRows().get(row)
+        .find(".sbom-manager-applications-table__annotated-percentage");
+  }
+
+  public ElementsCollection vulnerabilitiesColumns(int row) {
+    return tableBodyRows().get(row).findAll(".nx-small-vulnerability-counter__count");
+  }
+
   public ElementsCollection tableBodyRowsColumns(int row) {
     return tableBodyRows().get(row).findAll("td");
   }

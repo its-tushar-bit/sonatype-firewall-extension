@@ -32,7 +32,7 @@ export const SORT_DIRECTION = Object.freeze({
 
 export const defaultSortConfiguration = Object.freeze({
   sortBy: SORT_BY_FIELDS.importDate,
-  sortDirection: SORT_DIRECTION.ASC,
+  sortDirection: SORT_DIRECTION.DESC,
 });
 
 export const defaultPagination = Object.freeze({
@@ -121,6 +121,14 @@ const loadApplications = createAsyncThunk(
 );
 
 // sort-configuration
+const setSortByAndDirection = (state, { payload }) => {
+  const { sortBy, sortDirection } = payload;
+  state.sortConfiguration.sortBy = includes(sortBy, values(SORT_BY_FIELDS)) ? sortBy : defaultSortConfiguration.sortBy;
+  state.sortConfiguration.sortDirection = includes(sortDirection, values(SORT_DIRECTION))
+    ? sortDirection
+    : defaultSortConfiguration.sortDirection;
+};
+
 const setSortByAndCycleDirection = (state, { payload: newSortBy }) => {
   const cycleList = (list, current) => {
     const index = findIndex((item) => item === current, list);
@@ -167,6 +175,7 @@ const sbomApplicationsTableSlice = createSlice({
   reducers: {
     resetConfigurations,
     setLoading,
+    setSortByAndDirection,
     setSortByAndCycleDirection,
     setCurrentPage,
     setApplicationNameRawFilterTerm,

@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import com.codeborne.selenide.WebDriverRunner;
 import com.sonatype.clm.testing.functional.elements.NxSortingHeader;
 import com.sonatype.clm.testing.functional.elements.sbom.dashboard.ApplicationsHistoryTile;
 import com.sonatype.clm.testing.functional.elements.sbom.dashboard.HighPriorityVulnerabilitiesTile;
@@ -26,6 +27,7 @@ import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
 import com.sonatype.clm.testing.functional.pages.sbom.LearnMoreSbomManagerPage;
+import com.sonatype.clm.testing.functional.pages.sbom.SbomApplicationsPage;
 import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerDashboardPage;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
@@ -149,7 +151,38 @@ public class SbomManagerDashboardPageTest
     applicationNameTableHeader.click();
     sbomManagerDashboardPage.toolTip().shouldBe(visible)
       .shouldHave(text("Application Name descending"));
+  }
 
+  @Test
+  public void testDashboard_ApplicationHistoryTile__Link() {
+    refreshOrOpen(SbomManagerDashboardPage.url());
+    ApplicationsHistoryTile applicationsHistoryTile = 
+        SbomManagerDashboardPage.applicationsHistoryTile();
+
+    applicationsHistoryTile.link().click();
+
+    SbomApplicationsPage sbomApplicationsPage = new SbomApplicationsPage();
+    sbomApplicationsPage.container().shouldBe(visible);
+
+    String currentUrl = WebDriverRunner.getWebDriver().getCurrentUrl();
+    assertThat(currentUrl).doesNotContain("sortBy");
+    assertThat(currentUrl).doesNotContain("sortDirection");
+  }
+
+  @Test
+  public void testDashboard_VulnerabilitiesByThreatTile__Link() {
+    refreshOrOpen(SbomManagerDashboardPage.url());
+    VulnerabilitiesThreatLevelTile vulnerabilitiesThreatLevelTile = 
+        SbomManagerDashboardPage.vulnerabilitiesThreatLevelTile();
+
+    vulnerabilitiesThreatLevelTile.link().click();
+
+    SbomApplicationsPage sbomApplicationsPage = new SbomApplicationsPage();
+    sbomApplicationsPage.container().shouldBe(visible);
+
+    String currentUrl = WebDriverRunner.getWebDriver().getCurrentUrl();
+    assertThat(currentUrl).contains("sortBy=vulnerability");
+    assertThat(currentUrl).contains("sortDirection=desc");
   }
 
   @Test

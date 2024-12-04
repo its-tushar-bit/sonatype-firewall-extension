@@ -27,6 +27,8 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
+
+import com.codeborne.selenide.Selenide;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -34,12 +36,16 @@ import org.junit.Test;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class SbomApplicationsPageTest
     extends AbstractFunctionalTest
@@ -130,8 +136,147 @@ public class SbomApplicationsPageTest
     applicationsTable.tableBodyRowsColumns(0).get(0).shouldHave(text("Test App 0"));
     applicationsTable.paginationStatus().shouldHave(text("Showing 50 of 75 applications"));
     paginationButtons.get(1).shouldHave(text("2")).click();
-    applicationsTable.tableBodyRowsColumns(1).get(0).shouldHave(text("Test App 1"));
+    applicationsTable.tableBodyRowsColumns(24).get(0).shouldHave(text("Test App 74"));
     applicationsTable.paginationStatus().shouldHave(text("Showing 75 of 75 applications"));
+  }
+
+  @Test
+  public void testApplicationsPage__sortByImportDate() throws Exception {
+    setSbomApplicationsTableData();
+    refreshOrOpen(SbomApplicationsPage.url());
+
+    SbomApplicationsTable applicationsTable = SbomApplicationsPage.sbomApplicationsTable();
+    applicationsTable.table().shouldBe(visible);
+    // sort desc by default -> newest first
+    ElementsCollection tableRows = applicationsTable.tableBodyRows();
+    ElementsCollection paginationButtons = applicationsTable.paginationButtons();
+    tableRows.get(0).findAll("td").get(2).shouldHave(text("a day ago"));
+    tableRows.get(8).findAll("td").get(2).shouldHave(text("9 days ago"));
+    tableRows.get(49).findAll("td").get(2).shouldHave(text("2 months ago"));
+    paginationButtons.get(1).shouldHave(text("2")).click();
+    tableRows.get(24).findAll("td").get(2).shouldHave(text("2 months ago"));
+
+    // sort asc
+    refreshOrOpen(SbomApplicationsPage.url());
+    paginationButtons.get(0).shouldHave(text("1")).click();
+    applicationsTable.columnHeader(2).click();
+    tableRows.get(0).findAll("td").get(2).shouldHave(text("2 months ago"));
+    tableRows.get(49).findAll("td").get(2).shouldHave(text("a month ago"));
+    paginationButtons.get(1).shouldHave(text("2")).click();
+    tableRows.get(24).findAll("td").get(2).shouldHave(text("a day ago"));
+
+    // sort desc
+    paginationButtons.get(0).shouldHave(text("1")).click();
+    applicationsTable.columnHeader(2).click();
+    tableRows.get(0).findAll("td").get(2).shouldHave(text("a day ago"));
+    tableRows.get(8).findAll("td").get(2).shouldHave(text("9 days ago"));
+    tableRows.get(49).findAll("td").get(2).shouldHave(text("2 months ago"));
+  }
+
+  @Test
+  public void testApplicationsPage__sortByName() throws Exception {
+    setSbomApplicationsTableData();
+    refreshOrOpen(SbomApplicationsPage.url());
+
+    SbomApplicationsTable applicationsTable = SbomApplicationsPage.sbomApplicationsTable();
+    applicationsTable.table().shouldBe(visible);
+    applicationsTable.columnHeader(0).click(); // sort asc
+    ElementsCollection tableRow = applicationsTable.tableBodyRowsColumns(0);
+    tableRow.get(0).shouldHave(text("Test App 0"));
+    tableRow = applicationsTable.tableBodyRowsColumns(1);
+    tableRow.get(0).shouldHave(text("Test App 1"));
+    tableRow = applicationsTable.tableBodyRowsColumns(2);
+    tableRow.get(0).shouldHave(text("Test App 10"));
+    applicationsTable.columnHeader(0).click(); // sort desc
+    tableRow = applicationsTable.tableBodyRowsColumns(0);
+    tableRow.get(0).shouldHave(text("Test App 9"));
+    tableRow = applicationsTable.tableBodyRowsColumns(1);
+    tableRow.get(0).shouldHave(text("Test App 8"));
+    tableRow = applicationsTable.tableBodyRowsColumns(2);
+    tableRow.get(0).shouldHave(text("Test App 74"));
+  }
+
+  @Test
+  public void testApplicationsPage__sortByVersion() throws Exception {
+    setSbomApplicationsTableData();
+    refreshOrOpen(SbomApplicationsPage.url());
+
+    SbomApplicationsTable applicationsTable = SbomApplicationsPage.sbomApplicationsTable();
+    applicationsTable.table().shouldBe(visible);
+    applicationsTable.columnHeader(0).click(); // sort asc
+    ElementsCollection tableRow = applicationsTable.tableBodyRowsColumns(0);
+    tableRow.get(1).shouldHave(text("test-version 0"));
+    tableRow = applicationsTable.tableBodyRowsColumns(1);
+    tableRow.get(1).shouldHave(text("test-version 1"));
+    tableRow = applicationsTable.tableBodyRowsColumns(2);
+    tableRow.get(1).shouldHave(text("test-version 10"));
+    applicationsTable.columnHeader(0).click(); // sort desc
+    tableRow = applicationsTable.tableBodyRowsColumns(0);
+    tableRow.get(1).shouldHave(text("test-version 9"));
+    tableRow = applicationsTable.tableBodyRowsColumns(1);
+    tableRow.get(1).shouldHave(text("test-version 8"));
+    tableRow = applicationsTable.tableBodyRowsColumns(2);
+    tableRow.get(1).shouldHave(text("test-version 74"));
+  }
+
+  @Test
+  public void testApplicationsPage__sortByPercentageAnnotated() throws Exception {
+    setSbomApplicationsTableData();
+    refreshOrOpen(SbomApplicationsPage.url());
+    waitUntilUrl(SbomApplicationsPage.url());
+    SbomApplicationsTable applicationsTable = SbomApplicationsPage.sbomApplicationsTable();
+    applicationsTable.table().shouldBe(visible);
+    applicationsTable.columnHeader(5).shouldHave(text("ANNOTATED")).click();
+    verifySortOrderPercentageAnnotated(true, applicationsTable); //verify asc
+    applicationsTable.columnHeader(5).shouldHave(text("ANNOTATED")).click();
+    verifySortOrderPercentageAnnotated(false, applicationsTable);
+  }
+
+  @Test
+  public void testApplicationsPage__sortByVulnerabilities() throws Exception {
+    setSbomApplicationsTableData();
+    refreshOrOpen(SbomApplicationsPage.url());
+
+    SbomApplicationsTable applicationsTable = SbomApplicationsPage.sbomApplicationsTable();
+    applicationsTable.table().shouldBe(visible);
+
+    applicationsTable.columnHeader(3).shouldHave(text("VULNERABILITIES")).click();
+    Selenide.sleep(1000);
+    verifySortOrderVulnerabilities(true, applicationsTable); //verify asc
+    applicationsTable.columnHeader(3).shouldHave(text("VULNERABILITIES")).click();
+    Selenide.sleep(1000);
+    verifySortOrderVulnerabilities(false, applicationsTable); //verify DESC
+  }
+
+  private void verifySortOrderVulnerabilities(boolean ascending, SbomApplicationsTable applicationsTable) {
+    applicationsTable.tableBodyRows().first().shouldBe(visible);
+    int totalRows = applicationsTable.tableBodyRows().size();
+    for (int i = 0; i < totalRows - 1; i++) {
+      List<String> currentVulnerabilities = applicationsTable.vulnerabilitiesColumns(i).texts();
+      List<String> nextVulnerabilities = applicationsTable.vulnerabilitiesColumns(i + 1).texts();
+      String currentComparable = String.join(",", currentVulnerabilities);
+      String nextComparable = String.join(",", nextVulnerabilities);
+      int comparison = currentComparable.compareTo(nextComparable);
+      if (ascending) {
+        assertThat(comparison).isLessThanOrEqualTo(0);
+      }
+      else {
+        assertThat(comparison).isGreaterThanOrEqualTo(0);
+      }
+    }
+  }
+
+  private void verifySortOrderPercentageAnnotated(boolean ascending, SbomApplicationsTable applicationsRow) {
+    String expectedValue;
+    for (int i = 0; i < 50; i++) {
+      if (ascending) {
+        expectedValue = (i < 45) ? "0%" : "7.1%";
+      }
+      else {
+        expectedValue = (i < 30) ? "7.1%" : "0%";
+      }
+      applicationsRow.percentageAnnotatedColumn(i).shouldHave(text(expectedValue));
+    }
   }
 
   private void setSbomApplicationsTableData() throws Exception {
@@ -142,7 +287,7 @@ public class SbomApplicationsPageTest
       Application app = tempEntity.newApplication("Test Policy App " + i, "test-app-policy-" + i, organization.getId());
       File reportFile = insightWork.getReportFile(app.getId(), scan.getScanId());
       FileUtils.copyURLToFile(ReportHelper
-            .zipReport("/SbomApplicationsPageTest", tempDir), reportFile);
+          .zipReport("/SbomApplicationsPageTest", tempDir), reportFile);
       tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scan.getScanId());
 
       PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(),
@@ -150,21 +295,23 @@ public class SbomApplicationsPageTest
       tempEntity.newPolicyViolation(policyEvaluation, policy, "g1",
           "a1", "v1", "h1", "r1");
     }
-
+    Calendar calendar = Calendar.getInstance();
+    Date today;
     for (int i = 0; i < 75; i++) {
       Application app = tempEntity.newApplication("Test App " + i, "test-app-" + i, organization.getId());
       Path zippedBom = mockOriginalSbom(this.getClass(), "simple-bom.xml",
-              insightWork.getSbomDir(app.getId()).toPath());
+          insightWork.getSbomDir(app.getId()).toPath());
+      calendar.add(Calendar.DAY_OF_MONTH, -1);
+      today = calendar.getTime();
       sbomMetadata = tempEntity.newThirdPartySbomMetadata(
-              scannedFile.getId(),
-              app.getId(),
-              "test-version",
-              "ACTIVE",
-              zippedBom.getFileName().toString(),
-              SbomSpecification.CYCLONEDX.name(),
-              SbomFormat.XML.name(),
-              "0.0"
-      );
+          scannedFile.getId(),
+          app.getId(),
+          "test-version " + i,
+          "ACTIVE",
+          zippedBom.getFileName().toString(),
+          SbomSpecification.CYCLONEDX.name(),
+          SbomFormat.XML.name(),
+          "0.0", today);
       ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
       PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
       ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
@@ -172,9 +319,8 @@ public class SbomApplicationsPageTest
           "h1", packageUrlIdentifier1.getPackageUrl());
 
       ThirdPartyCoordinateSecurity coordinateSecurity1 = tempEntity.newThirdPartyCoordinateSecurity(coordinate1,
-          "cve-2", sbomMetadata.getId(), "description2", "link2", CvssV3Severity.CRITICAL.getEndScoreRange(),
-          CvssV3Severity.CRITICAL.getDisplayName(), "fix1");
-      insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity1);
+          "cve-2", sbomMetadata.getId(), "description2", "link2", CvssV3Severity.LOW.getEndScoreRange(),
+          CvssV3Severity.LOW.getDisplayName(), "fix1");
 
       ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("p2", "v2");
       PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
@@ -182,26 +328,33 @@ public class SbomApplicationsPageTest
           "s2", packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
           "h2", packageUrlIdentifier2.getPackageUrl());
 
-      ThirdPartyCoordinateSecurity coordinateSecurity2 = tempEntity.newThirdPartyCoordinateSecurity(coordinate2,
-          "cve-2", sbomMetadata.getId(), "description2", "link2", CvssV3Severity.NONE.getStartScoreRange(),
-          CvssV3Severity.NONE.getDisplayName(), "fix2");
+      tempEntity.newThirdPartyCoordinateSecurity(coordinate2,
+          "cve-2", sbomMetadata.getId(), "description2", "link2", CvssV3Severity.LOW.getStartScoreRange(),
+          CvssV3Severity.LOW.getDisplayName(), "fix2");
       tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-3", sbomMetadata.getId(), "description3", "link3",
           CvssV3Severity.LOW.getStartScoreRange() + 0.2f, CvssV3Severity.LOW.getDisplayName(), "fix3");
       tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-4", sbomMetadata.getId(), "description4", "link4",
-          CvssV3Severity.MEDIUM.getStartScoreRange() + 1f, CvssV3Severity.MEDIUM.getDisplayName(), "fix4");
+          CvssV3Severity.LOW.getStartScoreRange() + 1f, CvssV3Severity.LOW.getDisplayName(), "fix4");
       tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-5", sbomMetadata.getId(), "description5", "link5",
-          CvssV3Severity.HIGH.getEndScoreRange(), CvssV3Severity.HIGH.getDisplayName(), "fix5");
+          CvssV3Severity.LOW.getEndScoreRange(), CvssV3Severity.LOW.getDisplayName(), "fix5");
       tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-6", sbomMetadata.getId(), "description6", "link6",
-          CvssV3Severity.HIGH.getEndScoreRange() - 0.1f, CvssV3Severity.HIGH.getDisplayName(), "fix6");
+          CvssV3Severity.LOW.getEndScoreRange() - 0.1f, CvssV3Severity.LOW.getDisplayName(), "fix6");
       tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-7", sbomMetadata.getId(), "description7", "link7",
-          CvssV3Severity.CRITICAL.getEndScoreRange(), CvssV3Severity.HIGH.getDisplayName(), "fix7");
+          CvssV3Severity.LOW.getEndScoreRange(), CvssV3Severity.LOW.getDisplayName(), "fix7");
 
-      insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity2);
+      if (i < 30) {
+        insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity1);
+        for (int j = 4; j <= 10; j++) {
+          tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "r-" + i + j, sbomMetadata.getId(), "description7",
+              "link7",
+              Math.min(i, 10), "severity", "fix7");
+        }
+      }
     }
   }
 
   private void insertVEXToThirdPartyCoordinateSecurity(ThirdPartyCoordinateSecurity coordinateSecurity) {
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity, coordinateSecurity.getRefId(),
-            "state", "justification", "response", "detail");
+        "state", "justification", "response", "detail");
   }
 }

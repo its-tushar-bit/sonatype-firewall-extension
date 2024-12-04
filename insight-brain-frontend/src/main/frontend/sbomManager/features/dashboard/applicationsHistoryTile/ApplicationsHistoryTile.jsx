@@ -4,10 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
-import { NxTile, NxH2, NxTooltip, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxTile, NxH2, NxTooltip, NxFontAwesomeIcon, NxTextLink } from '@sonatype/react-shared-components';
 import { faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
 
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import LoadWrapper from 'MainRoot/react/LoadWrapper';
 import { formatNumberLocale } from 'MainRoot/util/formatUtils';
 import { selectApplicationsHistoryTile } from './applicationsHistoryTileSelectors';
@@ -26,12 +27,15 @@ export default function ApplicationsHistoryTile() {
     applicationsUpdatedLastMonth,
     applicationsUpdatedLastWeek,
   } = useSelector(selectApplicationsHistoryTile);
+  const uiRouterState = useRouterState();
 
   const load = () => dispatch(actions.loadApplicationsHistory());
 
   useEffect(() => {
     load();
   }, []);
+
+  const applicationsPageHref = uiRouterState.href('sbomManager.applications');
 
   return (
     <NxTile id="applications-history-tile" className="sbom-manager-applications-history-tile">
@@ -84,14 +88,12 @@ export default function ApplicationsHistoryTile() {
               {formatNumberLocale(applicationsUpdatedLastWeek)}
             </dd>
           </dl>
-          {/*
-            Hidden until CLM-29412 is implemented
-
-            <hr className="nx-divider" />
-            <div className="sbom-manager-applications-history-tile__action">
-              <NxTextLink href="#">View Latest Application Versions</NxTextLink>
-            </div>
-          */}
+          <hr className="nx-divider" />
+          <div className="sbom-manager-applications-history-tile__action">
+            <NxTextLink className="sbom-manager-applications-history-tile__link" href={applicationsPageHref}>
+              View Latest Application Versions
+            </NxTextLink>
+          </div>
         </LoadWrapper>
       </NxTile.Content>
     </NxTile>

@@ -112,6 +112,9 @@ describe('VulnerabilitiesByThreatLevelTile', () => {
 
     const totalUnannotated = screen.getByTestId('vulnerabilities-by-threat-level-tile-total-unannotated');
     expect(totalUnannotated).toHaveTextContent(/Unannotated:16,004/);
+
+    const applicationsPageLink = screen.getByText('View Applications by most vulnerabilities');
+    expect(applicationsPageLink).toBeVisible();
   });
 
   it('renders error message', async () => {

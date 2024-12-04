@@ -31,7 +31,11 @@ public class VulnerabilitiesThreatLevelTile
   public TileTable tileTable() {
     return new TileTable();
   }
-  
+
+  public SelenideElement link() {
+    return child(".sbom-manager-vulnerabilities-by-threat-level-tile__link");
+  }
+
   public class TileLabels
       extends BasicElement<TileLabels>
   {

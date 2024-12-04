@@ -106,7 +106,7 @@ function routes($stateProvider) {
       },
     })
     .state('sbomManager.applications', {
-      url: '/applications',
+      url: '/applications?sortBy?sortDirection',
       component: 'sbomManagerApplicationsPage',
       data: {
         title: 'SBOM Manager - Applications',

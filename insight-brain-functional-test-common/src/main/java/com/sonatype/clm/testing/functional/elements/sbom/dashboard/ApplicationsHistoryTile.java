@@ -25,6 +25,10 @@ public class ApplicationsHistoryTile
     return new ApplicationsList();
   }
 
+  public SelenideElement link() {
+    return child(".sbom-manager-applications-history-tile__link");
+  }
+
   public class ApplicationsList
       extends BasicElement<ApplicationsList>
   {

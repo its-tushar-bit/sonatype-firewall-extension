@@ -39,7 +39,7 @@ const mockApplications = Object.freeze([
 describe('sbomApplicationsTableSlice', function () {
   const defaultSortConfiguration = Object.freeze({
     sortBy: SORT_BY_FIELDS.importDate,
-    sortDirection: SORT_DIRECTION.ASC,
+    sortDirection: SORT_DIRECTION.DESC,
   });
 
   const defaultPagination = Object.freeze({
@@ -181,6 +181,38 @@ describe('sbomApplicationsTableSlice', function () {
     });
   });
 
+  describe('setSortByAndDirection', () => {
+    it('sets the correct sort configuration', () => {
+      const state = Object.freeze({ ...initialState });
+
+      const newState = reducer(state, {
+        type: 'sbomApplicationsTable/setSortByAndDirection',
+        payload: {
+          sortBy: SORT_BY_FIELDS.vulnerabilities,
+          sortDirection: SORT_DIRECTION.DESC,
+        },
+      });
+
+      expect(newState.sortConfiguration.sortBy).toBe(SORT_BY_FIELDS.vulnerabilities);
+      expect(newState.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.DESC);
+    });
+
+    it('sets the default configuration when undefined is passed', () => {
+      const state = Object.freeze({ ...initialState });
+
+      const newState = reducer(state, {
+        type: 'sbomApplicationsTable/setSortByAndDirection',
+        payload: {
+          sortBy: undefined,
+          sortDirection: undefined,
+        },
+      });
+
+      expect(newState.sortConfiguration.sortBy).toBe(SORT_BY_FIELDS.importDate);
+      expect(newState.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.DESC);
+    });
+  });
+
   describe('setSortByAndCycleDirection', () => {
     it('should only cycle between ASC and DESC when sortBy is set to the default field', () => {
       const state = Object.freeze({ ...initialState });
@@ -191,7 +223,7 @@ describe('sbomApplicationsTableSlice', function () {
       });
 
       expect(newState1.sortConfiguration.sortBy).toBe(SORT_BY_FIELDS.importDate);
-      expect(newState1.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.DESC);
+      expect(newState1.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.ASC);
 
       const newState2 = reducer(newState1, {
         type: 'sbomApplicationsTable/setSortByAndCycleDirection',
@@ -199,7 +231,7 @@ describe('sbomApplicationsTableSlice', function () {
       });
 
       expect(newState2.sortConfiguration.sortBy).toBe(SORT_BY_FIELDS.importDate);
-      expect(newState2.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.ASC);
+      expect(newState2.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.DESC);
 
       const newState3 = reducer(newState2, {
         type: 'sbomApplicationsTable/setSortByAndCycleDirection',
@@ -207,7 +239,7 @@ describe('sbomApplicationsTableSlice', function () {
       });
 
       expect(newState3.sortConfiguration.sortBy).toBe(SORT_BY_FIELDS.importDate);
-      expect(newState3.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.DESC);
+      expect(newState3.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.ASC);
     });
 
     it('should cycle a non-default field correctly', () => {
@@ -231,7 +263,7 @@ describe('sbomApplicationsTableSlice', function () {
 
       const newState3 = reducer(newState2, {
         type: 'sbomApplicationsTable/setSortByAndCycleDirection',
-        payload: SORT_BY_FIELDS.importDate,
+        payload: SORT_BY_FIELDS.vulnerabilities,
       });
 
       expect(newState3.sortConfiguration).toEqual(defaultSortConfiguration);
@@ -246,7 +278,7 @@ describe('sbomApplicationsTableSlice', function () {
       });
 
       expect(newState0.sortConfiguration.sortBy).toBe(SORT_BY_FIELDS.importDate);
-      expect(newState0.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.DESC);
+      expect(newState0.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.ASC);
 
       const newState1 = reducer(newState0, {
         type: 'sbomApplicationsTable/setSortByAndCycleDirection',
@@ -297,15 +329,66 @@ describe('sbomApplicationsTableSlice', function () {
         payload: SORT_BY_FIELDS.importDate,
       });
 
-      expect(newState2.sortConfiguration).toEqual(defaultSortConfiguration);
+      expect(newState2.sortConfiguration.sortBy).toBe(SORT_BY_FIELDS.importDate);
+      expect(newState2.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.ASC);
 
       const newState3 = reducer(newState2, {
         type: 'sbomApplicationsTable/setSortByAndCycleDirection',
         payload: SORT_BY_FIELDS.importDate,
       });
 
-      expect(newState3.sortConfiguration.sortBy).toBe(SORT_BY_FIELDS.importDate);
-      expect(newState3.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.DESC);
+      expect(newState3.sortConfiguration).toEqual(defaultSortConfiguration);
+    });
+
+    it('should set sortBy and cycle sortDirection for SORT_BY_FIELDS.latestVersion', () => {
+      const newState = reducer(initialState, {
+        type: 'sbomApplicationsTable/setSortByAndCycleDirection',
+        payload: SORT_BY_FIELDS.latestVersion,
+      });
+
+      expect(newState.sortConfiguration.sortBy).toBe(SORT_BY_FIELDS.latestVersion);
+      expect(newState.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.ASC);
+
+      const newState2 = reducer(newState, {
+        type: 'sbomApplicationsTable/setSortByAndCycleDirection',
+        payload: SORT_BY_FIELDS.latestVersion,
+      });
+
+      expect(newState2.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.DESC);
+    });
+
+    it('should set sortBy and cycle sortDirection for SORT_BY_FIELDS.annotated', () => {
+      const newState = reducer(initialState, {
+        type: 'sbomApplicationsTable/setSortByAndCycleDirection',
+        payload: SORT_BY_FIELDS.annotated,
+      });
+
+      expect(newState.sortConfiguration.sortBy).toBe(SORT_BY_FIELDS.annotated);
+      expect(newState.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.ASC);
+
+      const newState2 = reducer(newState, {
+        type: 'sbomApplicationsTable/setSortByAndCycleDirection',
+        payload: SORT_BY_FIELDS.annotated,
+      });
+
+      expect(newState2.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.DESC);
+    });
+
+    it('should set sortBy and cycle sortDirection for SORT_BY_FIELDS.name', () => {
+      const newState = reducer(initialState, {
+        type: 'sbomApplicationsTable/setSortByAndCycleDirection',
+        payload: SORT_BY_FIELDS.name,
+      });
+
+      expect(newState.sortConfiguration.sortBy).toBe(SORT_BY_FIELDS.name);
+      expect(newState.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.ASC);
+
+      const newState2 = reducer(newState, {
+        type: 'sbomApplicationsTable/setSortByAndCycleDirection',
+        payload: SORT_BY_FIELDS.name,
+      });
+
+      expect(newState2.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.DESC);
     });
   });
 

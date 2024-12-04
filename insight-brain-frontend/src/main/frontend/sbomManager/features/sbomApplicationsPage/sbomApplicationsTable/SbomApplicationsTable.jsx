@@ -5,7 +5,7 @@
  */
 import React, { useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { allPass, always, cond, dec, equals, flip, gt, inc, lt, min, T } from 'ramda';
+import { allPass, always, cond, dec, equals, flip, gt, inc, lt, min, pick, T } from 'ramda';
 import debounce from 'debounce';
 import moment from 'moment';
 import {
@@ -27,12 +27,14 @@ import { selectSbomApplicationsTable } from './sbomApplicationsTableSelectors.js
 import { actions, APPLICATIONS_PER_PAGE, SORT_BY_FIELDS, SORT_DIRECTION } from './sbomApplicationsTableSlice.js';
 
 import './SbomApplicationsTable.scss';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors.js';
 
 const LOAD_APPLICATIONS_DEBOUNCE_TIMEOUT_MS = 300;
 
 export default function SbomApplicationsTable() {
   const dispatch = useDispatch();
   const uiRouterState = useRouterState();
+  const routerCurrentParams = useSelector(selectRouterCurrentParams);
 
   const loadApplications = () => dispatch(actions.loadApplications());
 
@@ -47,8 +49,9 @@ export default function SbomApplicationsTable() {
   } = useSelector(selectSbomApplicationsTable);
 
   useEffect(() => {
+    dispatch(actions.setSortByAndDirection(pick(['sortBy', 'sortDirection'], routerCurrentParams ?? {})));
     loadApplications();
-  }, []);
+  }, [routerCurrentParams]);
 
   const debouncedLoadApplications = useCallback(debounce(loadApplications, LOAD_APPLICATIONS_DEBOUNCE_TIMEOUT_MS), []);
 
@@ -222,6 +225,7 @@ export default function SbomApplicationsTable() {
                 data-testid="application-name-filter"
               />
             </NxTable.Cell>
+            <NxTable.Cell></NxTable.Cell>
             <NxTable.Cell></NxTable.Cell>
             <NxTable.Cell></NxTable.Cell>
             <NxTable.Cell></NxTable.Cell>

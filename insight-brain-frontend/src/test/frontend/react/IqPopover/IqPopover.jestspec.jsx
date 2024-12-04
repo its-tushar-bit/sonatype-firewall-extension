@@ -101,7 +101,7 @@ describe('IqPopover', function () {
 
         const icon = within(button).getByRole('img', { hidden: true });
         expect(icon).toBeInTheDocument();
-        expect(icon.getAttribute('data-icon')).toEqual('arrow-to-right');
+        expect(icon.getAttribute('data-icon')).toEqual('arrow-right-to-line');
 
         await userEvent.click(button);
 

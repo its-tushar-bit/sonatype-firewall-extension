@@ -559,7 +559,7 @@ describe('SbomVulnerabilityDetails', function () {
         expect(
           queryByText(getRootCausesWithExtraDetails().querySelector('.nx-read-only__label'), 'Root Cause')
         ).toBeInTheDocument();
-        expect(getRootCausesWithExtraDetails().querySelector('svg').getAttribute('class')).toContain('fa-info-circle');
+        expect(getRootCausesWithExtraDetails().querySelector('svg').getAttribute('class')).toContain('fa-circle-info');
       });
 
       it(

@@ -217,7 +217,7 @@ describe('VexAnnotationDrawer', () => {
         expect(getByText(summaryContainer, mockVexAnnotationDrawer.cvssScore)).toBeInTheDocument();
         expect(getByText(summaryContainer, 'Sonatype Verified')).toBeInTheDocument();
         expect(summaryContainer.querySelector('.nx-threat-indicator--severe')).toBeInTheDocument();
-        expect(summaryContainer.querySelector('.fa-check-circle')).toBeInTheDocument();
+        expect(summaryContainer.querySelector('.fa-circle-check')).toBeInTheDocument();
       });
 
       it('renders unverified data', () => {
@@ -234,7 +234,7 @@ describe('VexAnnotationDrawer', () => {
         expect(getByText(summaryContainer, 1.5)).toBeInTheDocument();
         expect(getByText(summaryContainer, 'Unverified')).toBeInTheDocument();
         expect(summaryContainer.querySelector('.nx-threat-indicator--low')).toBeInTheDocument();
-        expect(summaryContainer.querySelector('.fa-exclamation-triangle')).toBeInTheDocument();
+        expect(summaryContainer.querySelector('.fa-triangle-exclamation')).toBeInTheDocument();
       });
     });
 

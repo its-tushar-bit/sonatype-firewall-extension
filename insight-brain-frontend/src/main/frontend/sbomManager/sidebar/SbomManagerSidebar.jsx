@@ -11,7 +11,7 @@ import {
   useToggle,
   NxGlobalSidebarNavigationLink,
 } from '@sonatype/react-shared-components';
-import { faHome, faSitemap, faSearch } from '@fortawesome/pro-solid-svg-icons';
+import { faHome, faSitemap, faSearch, faGrid2Plus } from '@fortawesome/pro-solid-svg-icons';
 import { faArrowToLeft, faBars } from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
@@ -23,12 +23,14 @@ export default function SbomManagerSidebar(props) {
   const { isLoggedIn, isSbomManagerEnabled } = props;
   const uiRouterState = useRouterState();
   const dashboardState = 'sbomManager.dashboard';
+  const applicationsState = 'sbomManager.applications';
   const sbomManagerOrgsState = 'sbomManager.management.view';
   const advancedSearchState = 'sbomManager.advancedSearch';
 
   const [sidebarOpen, onToggleCollapse] = useToggle(true);
 
   const dashboardHref = uiRouterState.href(dashboardState);
+  const applicationsHref = uiRouterState.href(applicationsState);
   const sbomManagerOrgsHref = uiRouterState.href(sbomManagerOrgsState);
   const advancedSearchHref = uiRouterState.href(advancedSearchState);
 
@@ -52,6 +54,13 @@ export default function SbomManagerSidebar(props) {
             icon={faHome}
             text="Dashboard"
             href={dashboardHref}
+          />
+          <NxGlobalSidebarNavigationLink
+            isSelected={isSelected(applicationsState)}
+            id="sbom-manager-applications-navigation-button"
+            icon={faGrid2Plus}
+            text="Applications"
+            href={applicationsHref}
           />
           <NxGlobalSidebarNavigationLink
             isSelected={isSelected(sbomManagerOrgsState)}

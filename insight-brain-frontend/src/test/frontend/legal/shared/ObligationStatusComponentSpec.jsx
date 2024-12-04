@@ -26,7 +26,7 @@ describe('ObligationStatusComponent component', function () {
     let wrapper = getShallowComponent();
     const statusDropdown = wrapper.find(NxDropdown);
     const statusLabelChildren = statusDropdown.prop('label').props['children'];
-    expect(statusLabelChildren[0].props['icon'].iconName).toBe('exclamation-triangle');
+    expect(statusLabelChildren[0].props['icon'].iconName).toBe('triangle-exclamation');
     expect(statusLabelChildren[1].props['children']).toEqual('Flagged');
     const statusOptions = statusDropdown.find('button');
     expect(statusOptions.length).toBe(3);

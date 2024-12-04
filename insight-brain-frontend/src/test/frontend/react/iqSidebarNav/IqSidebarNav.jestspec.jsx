@@ -147,7 +147,7 @@ describe('IqSidebarNav', function () {
         isDashboardWaiversAvailable: true,
       });
 
-      assertNavSectionContainsLink('href-dashboard.overview.waivers', 'Dashboard', 'home');
+      assertNavSectionContainsLink('href-dashboard.overview.waivers', 'Dashboard', 'house');
     });
 
     it('renders a link to the dashboard violations overview when isDashboardAvailable is true', function () {
@@ -156,7 +156,7 @@ describe('IqSidebarNav', function () {
         isDashboardAvailable: true,
       });
 
-      assertNavSectionContainsLink('href-dashboard.overview.violations', 'Dashboard', 'home');
+      assertNavSectionContainsLink('href-dashboard.overview.violations', 'Dashboard', 'house');
     });
 
     it('renders a link to Orgs and Policies when isLicensed is true', function () {
@@ -175,7 +175,7 @@ describe('IqSidebarNav', function () {
         isOrgsAndAppsEnabled: true,
       });
 
-      assertNavSectionContainsLink('href-violations', 'Reports', 'file-chart-line');
+      assertNavSectionContainsLink('href-violations', 'Reports', 'file-chart-column');
     });
 
     it('renders a link to Success Metrics when isSuccessMetricsEnabled and isSuccessMetricsEnabled are true', function () {
@@ -204,7 +204,7 @@ describe('IqSidebarNav', function () {
         isAdvancedSearchEnabled: true,
       });
 
-      assertNavSectionContainsLink('href-advancedSearch', 'Advanced Search', 'search');
+      assertNavSectionContainsLink('href-advancedSearch', 'Advanced Search', 'magnifying-glass');
     });
 
     it('renders a link to Firewall when isLicensed and isFirewallEnabled are true', function () {
@@ -246,7 +246,7 @@ describe('IqSidebarNav', function () {
         isIntegratedEnterpriseReportingSupported: true,
       });
 
-      assertNavSectionContainsLink('href-enterpriseReporting', 'Data Insights ( NEW )', 'chart-pie-alt');
+      assertNavSectionContainsLink('href-enterpriseReporting', 'Data Insights ( NEW )', 'chart-pie-simple');
     });
 
     it('does not render an NxGlobalSidebarNavigationLink for Data Insights (Enterprise Reporting) if not allowed', function () {

@@ -256,7 +256,7 @@ public class SourceControlEditorPage
     }
 
     public boolean created() {
-      return columns().get(1).find("svg").has(cssClass("fa-check-circle"));
+      return columns().get(1).find("svg").has(cssClass("fa-circle-check"));
     }
 
     public String totalTime() {

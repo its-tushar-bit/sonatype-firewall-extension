@@ -22,10 +22,10 @@ public class SbomDashboardTile
   }
   
   public SelenideElement infoIcon() {
-    return child(".fa-info-circle");
+    return child(".fa-circle-info");
   }
   
   public ElementsCollection allInfoIcons() {
-    return children(".fa-info-circle");
+    return children(".fa-circle-info");
   }
 }

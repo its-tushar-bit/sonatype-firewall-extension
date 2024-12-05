@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
@@ -74,8 +73,10 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.report.ReportUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -118,6 +119,8 @@ public class ApiPolicyViolationServiceV2
 
   private final IdUtils idUtils;
 
+  private final ReportUtils reportUtils;
+
   @Inject
   public ApiPolicyViolationServiceV2(
       final ApplicationService applicationService,
@@ -129,7 +132,8 @@ public class ApiPolicyViolationServiceV2
       final ReportService reportService,
       final StageTypeService stageTypeService,
       final ComponentLoaderFactory componentLoaderFactory,
-      final IdUtils idUtils)
+      final IdUtils idUtils,
+      final ReportUtils reportUtils)
   {
     this.applicationService = applicationService;
     this.applicationComponentDAO = applicationComponentDAO;
@@ -141,6 +145,7 @@ public class ApiPolicyViolationServiceV2
     this.stageTypeService = stageTypeService;
     this.componentLoaderFactory = componentLoaderFactory;
     this.idUtils = idUtils;
+    this.reportUtils = reportUtils;
   }
 
   public ApiApplicationViolationListDTOV2 getPolicyViolations(
@@ -311,8 +316,8 @@ public class ApiPolicyViolationServiceV2
 
   @Authorize(permission = Permission.READ)
   public ApiComponentTransitivePolicyViolationsDTO getTransitivePolicyViolationsByAppScanComponent(
-      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(Key.ID) final String ownerId,
       final String scanId,
       final ComponentIdentifier componentIdentifier,
       final String packageUrl,
@@ -333,8 +338,8 @@ public class ApiPolicyViolationServiceV2
 
   @Authorize(permission = Permission.READ)
   public ApiComponentTransitivePolicyViolationsDTO getTransitivePolicyViolationsByOwnerStageComponent(
-      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(Key.ID) final String ownerId,
       final String stageId,
       final ComponentIdentifier componentIdentifier,
       final String packageUrl,
@@ -483,14 +488,14 @@ public class ApiPolicyViolationServiceV2
 
   private List<Component> getComponents(String applicationId, String scanId) {
     try {
-      File reportFile = reportService.getReport(applicationId, scanId);
-      ReportEntry reportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
+      Report reportFile = reportService.getReport(applicationId, scanId);
+      ReportEntry reportEntry = reportUtils.getEntry(reportFile, ReportUtils.BOM_JSON_FILENAME);
       if (reportEntry != null) {
         return componentLoaderFactory.createComponentLoader(
                 idUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId))
             .getAll(null, null, reportEntry.buf, null);
       }
-      log.debug("{} not found for application id {} and scan id {}.", Report.BOM_JSON_FILENAME, applicationId,
+      log.debug("{} not found for application id {} and scan id {}.", ReportUtils.BOM_JSON_FILENAME, applicationId,
           scanId);
     }
     catch (IOException | NotFoundException e) {
@@ -548,7 +553,7 @@ public class ApiPolicyViolationServiceV2
         .filter(component -> component.getParentComponentPurls() != null &&
             component.getParentComponentPurls().stream()
                 .map(ComponentIdentifierAdapter::toComponentIdentifier)
-                .map(this::getComplete).collect(Collectors.toSet())
+                .map(this::getComplete).collect(toSet())
                 .contains(parentComponentIdentifier))
         .collect(Collectors.toList());
   }
@@ -601,8 +606,8 @@ public class ApiPolicyViolationServiceV2
 
   private List<PolicyViolation> getPolicyViolations(String applicationId, String stageTypeId, String scanId) {
     try {
-      File reportFile = reportService.getReport(applicationId, scanId);
-      ReportEntry reportEntry = Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
+      Report reportFile = reportService.getReport(applicationId, scanId);
+      ReportEntry reportEntry = reportUtils.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
       if (reportEntry != null) {
         return JsonUtils.parse(reportEntry.buf, PolicyThreats.class).aaData.stream()
             .flatMap(component -> toPolicyViolations(applicationId, stageTypeId, component).stream())

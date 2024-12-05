@@ -37,6 +37,6 @@ public class NewInstancePopulatorUnitTest
         throw new RuntimeException(e.getMessage(), e);
       }
     };
-    testCallable_DisallowConcurrentExecution(callable, answerConsumer);
+    testCallable_DisallowConcurrentExecution(callable, answerConsumer, false);
   }
 }

@@ -51,8 +51,11 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.FileReportUtils;
 import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.ReportTestUtils;
+import com.sonatype.insight.brain.report.ReportUtils;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import com.codeborne.selenide.Condition;
@@ -124,9 +127,10 @@ public class TransitiveViolationsTest
         testCLMServer.getCLMServer().getInstance(InsightWork.class));
     ReportTestUtils.createPolicyThreats(application.getId(), policyEvaluation.getScanId(),
         testCLMServer.getCLMServer().getInstance(InsightWork.class), policyViolations);
-    File reportFile = testCLMServer.getCLMServer().getInstance(InsightWork.class)
-        .getReportFile(application.getId(), policyEvaluation.getScanId());
-    ReportEntry reportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
+    Report reportFile = testCLMServer.getCLMServer().getInstance(ReportService.class)
+        .getReport(application.getId(), policyEvaluation.getScanId());
+    ReportEntry reportEntry = testCLMServer.getCLMServer().getInstance(FileReportUtils.class)
+        .getEntry(reportFile, ReportUtils.BOM_JSON_FILENAME);
     components = lookup(ComponentLoaderFactory.class).createComponentLoader(application)
         .getAll(null, null, reportEntry.buf, null);
     component = components.stream().filter(c -> c.getHash().equals("hash1")).findFirst().orElse(null);

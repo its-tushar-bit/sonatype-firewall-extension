@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.License;
@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -97,9 +98,15 @@ public class ThirdPartyComponentDAO
 
   private static final Comparator<ComparableVersion> comparator = ComparableVersion::compareTo;
 
+  private Provider<ReportService> reportServiceProvider;
+
   @Inject
-  public ThirdPartyComponentDAO(final InsightWork work) {
+  public ThirdPartyComponentDAO(
+      final InsightWork work,
+      final Provider<ReportService> reportServiceProvider)
+  {
     this.work = work;
+    this.reportServiceProvider = reportServiceProvider;
     componentCache = new TenantReference<>(() -> CacheBuilder.newBuilder()
         .expireAfterAccess(1, TimeUnit.DAYS)
         .maximumWeight(100000)
@@ -114,29 +121,31 @@ public class ThirdPartyComponentDAO
    *
    * @return A Map of ThirdPartyReportComponentDTOs identifiable against hash.
    */
-  public Map<String, ThirdPartyReportComponentDTO> getData(final File reportFile) {
+  public Map<String, ThirdPartyReportComponentDTO> getData(final Report reportFile) {
     if (reportFile == null) {
       return null;
     }
-    log.debug("Reading third party report data from file {}", reportFile.getAbsolutePath());
+    log.debug("Reading third party report data from {}", reportFile.getLocation());
 
     Map<String, ThirdPartyReportComponentDTO> reportData = new HashMap<>();
     try {
-      final ReportEntry tpBomEntry = Report.getEntry(reportFile, THIRD_PARTY_BOM_JSON_FILENAME);
+      final ReportEntry tpBomEntry = reportServiceProvider.get().getEntry(reportFile, THIRD_PARTY_BOM_JSON_FILENAME);
       final List<ThirdPartyBillOfMaterialsRowDTO> bomRows =
-          readData(tpBomEntry, new TypeReference<List<ThirdPartyBillOfMaterialsRowDTO>>() { });
+          readData(tpBomEntry, new TypeReference<>() { });
       if (bomRows != null && !bomRows.isEmpty()) {
-        ReportEntry tpSecurityReportEntry = Report.getEntry(reportFile, THIRD_PARTY_SECURITY_JSON_FILENAME);
+        ReportEntry tpSecurityReportEntry =
+            reportServiceProvider.get().getEntry(reportFile, THIRD_PARTY_SECURITY_JSON_FILENAME);
         final List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows =
-            readData(tpSecurityReportEntry, new TypeReference<List<ThirdPartyHealthCheckReportSecurityRowDTO>>() { });
-        ReportEntry tpLicenseReportEntry = Report.getEntry(reportFile, THIRD_PARTY_LICENSE_JSON_FILENAME);
+            readData(tpSecurityReportEntry, new TypeReference<>() { });
+        ReportEntry tpLicenseReportEntry =
+            reportServiceProvider.get().getEntry(reportFile, THIRD_PARTY_LICENSE_JSON_FILENAME);
         final List<ThirdPartyLicenseRowDTO> licenseRows =
-            readData(tpLicenseReportEntry, new TypeReference<List<ThirdPartyLicenseRowDTO>>() {});
+            readData(tpLicenseReportEntry, new TypeReference<>() { });
         prepareComponentData(bomRows, securityRows, licenseRows, reportData);
       }
     }
     catch (Exception e) {
-      log.error("error attempting to read third party data from report {}", reportFile.getAbsolutePath(), e);
+      log.error("error attempting to read third party data from report {}", reportFile.getLocation(), e);
     }
     return reportData;
   }
@@ -243,7 +252,8 @@ public class ThirdPartyComponentDAO
         componentCache.get().getIfPresent(scanId);
 
     if (scannedComponents == null) {
-      final Map<String, ThirdPartyReportComponentDTO> data = getData(work.getReportFile(appId, scanId));
+      final Map<String, ThirdPartyReportComponentDTO> data =
+          getData(reportServiceProvider.get().getReport(appId, scanId));
       if (data == null || data.isEmpty()) {
         return null;
       }
@@ -299,7 +309,7 @@ public class ThirdPartyComponentDAO
       ContainerNode<?> securityJsonData,
       ContainerNode<?> dataJson,
       ContainerNode<?> summaryJsonData,
-      File reportFile)
+      Report reportFile)
   {
     int knownArtifactCount = summaryJsonData.path("knownArtifactCount").asInt();
     int exactlyMatchedComponentCount = dataJson.path("exactlyMatchedComponentCount").asInt();
@@ -355,7 +365,7 @@ public class ThirdPartyComponentDAO
   }
 
   private Map<String, ThirdPartyReportComponentDTO> getThirdPartyReportComponentDataByHash(
-      File reportFile,
+      Report reportFile,
       Map<String, ThirdPartyReportComponentDTO> thirdPartyReportComponentDataByHash)
   {
     if (thirdPartyReportComponentDataByHash == null) {

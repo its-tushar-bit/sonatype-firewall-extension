@@ -10,7 +10,6 @@ import com.sonatype.insight.brain.api.v2.service.ConfigurationUtilsTestHelper;
 import com.sonatype.insight.brain.dataaccess.ConditionTypesTestHelper;
 import com.sonatype.insight.brain.dataaccess.DAOFactory;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderTestHelper;
-import com.sonatype.insight.brain.report.ReportTestHelper;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.testing.AbstractBaseIntegrationTest;
 
@@ -41,7 +40,6 @@ public class StaticInjectionTestHelper
   public static void inject(final DAOFactory daoFactory) {
     ConditionTypesTestHelper.initConditionTypes(daoFactory);
     ConditionTypesTestHelper.initConditionValueTypes(daoFactory);
-    ReportTestHelper.inject(daoFactory);
     ComponentDetailsLoaderTestHelper.inject(daoFactory);
     SystemConfigurationPropertyFeatureTestHelper.inject(daoFactory);
     ConfigurationUtilsTestHelper.inject(daoFactory);

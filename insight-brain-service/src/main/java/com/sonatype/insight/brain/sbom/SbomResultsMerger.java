@@ -58,6 +58,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.report.ReportUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
@@ -176,6 +177,8 @@ public class SbomResultsMerger
 
   private Bom filteredBom = null;
 
+  private final ReportUtils reportUtils;
+
   @Inject
   public SbomResultsMerger(
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
@@ -188,7 +191,8 @@ public class SbomResultsMerger
       final ApplicationDAO applicationDAO,
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
-      final InsightWork insightWork)
+      final InsightWork insightWork,
+      final ReportUtils reportUtils)
   {
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
@@ -201,6 +205,7 @@ public class SbomResultsMerger
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
     this.insightWork = insightWork;
+    this.reportUtils = reportUtils;
   }
 
   @VisibleForTesting
@@ -216,7 +221,7 @@ public class SbomResultsMerger
   public void mergeResults(
       final ThirdPartySbomMetadata sbomMetadata,
       final String scanId,
-      final File reportFile)
+      final Report reportFile)
       throws IOException
   {
     initializeMerge(sbomMetadata, reportFile);
@@ -263,14 +268,20 @@ public class SbomResultsMerger
     }
   }
 
-  private void initializeMerge(final ThirdPartySbomMetadata sbomMetadata, final File reportFile) throws IOException {
+  private void initializeMerge(final ThirdPartySbomMetadata sbomMetadata, final Report reportFile)
+      throws IOException
+  {
     bomJsonData =
-        JsonUtils.parse(Objects.requireNonNull(Report.getEntry(reportFile, Report.BOM_JSON_FILENAME)).buf);
+        JsonUtils.parse(
+            Objects.requireNonNull(reportUtils.getEntry(reportFile, ReportUtils.BOM_JSON_FILENAME)).buf);
     securityJsonData =
-        JsonUtils.parse(Objects.requireNonNull(Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME)).buf);
+        JsonUtils.parse(
+            Objects.requireNonNull(reportUtils.getEntry(reportFile, ReportUtils.SECURITY_JSON_FILENAME)).buf);
     licensesJsonData =
-        JsonUtils.parse(Objects.requireNonNull(Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME)).buf);
-    final ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
+        JsonUtils.parse(
+            Objects.requireNonNull(reportUtils.getEntry(reportFile, ReportUtils.LICENSES_JSON_FILENAME)).buf);
+    final ReportEntry dependenciesReportEntry =
+        reportUtils.getEntry(reportFile, ReportUtils.DEPENDENCIES_JSON_FILENAME);
     dependenciesJsonData =
         dependenciesReportEntry != null ? JsonUtils.parse(dependenciesReportEntry.buf) : null;
     sbomPostImportMetricsTelemetry = new SbomPostImportMetricsTelemetry();

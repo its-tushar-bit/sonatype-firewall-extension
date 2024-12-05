@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.report.pdf;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,12 +26,15 @@ import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.FileReport;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicense;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicenseThreat;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentPolicyViolation;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentSecurityIssue;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.service.InsightWork;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -86,7 +89,7 @@ public class PdfGenerator
 {
   private static final Logger log = LoggerFactory.getLogger(PdfGenerator.class);
 
-  private static final String REPORT_FILE_NAME = "report.pdf";
+  public static final String REPORT_FILE_NAME = "report.pdf";
 
   // User space units per inch from org.apache.pdfbox.pdmodel.common.PDRectangle
   // Visible for testing
@@ -172,7 +175,7 @@ public class PdfGenerator
   private final Predicate<PdfComponentPolicyViolation> isActiveViolation =
       violation -> !violation.waived && !violation.legacyViolation;
 
-  private File pdfFile;
+  private Report pdfFile;
 
   private PDDocument pdf;
 
@@ -221,13 +224,13 @@ public class PdfGenerator
   }
 
   // Visible for testing
-  PdfGenerator(File pdfFile, PdfData pdfData, Context productContext) {
+  PdfGenerator(Report pdfFile, PdfData pdfData, Context productContext) {
     this.pdfFile = pdfFile;
     this.pdfData = pdfData;
     this.productContext = productContext;
   }
 
-  PdfGenerator(File pdfFile, PdfData pdfData) {
+  PdfGenerator(Report pdfFile, PdfData pdfData) {
     this(pdfFile, pdfData, Context.LIFECYCLE);
   }
 
@@ -254,7 +257,9 @@ public class PdfGenerator
     addLicensesSection();
     addBomSection();
     addPageNumbers();
-    pdf.save(pdfFile);
+    try (OutputStream outputStream = pdfFile.getOutputStream()) {
+      pdf.save(outputStream);
+    }
   }
 
   // Visible for testing
@@ -1142,8 +1147,8 @@ public class PdfGenerator
         .max(Integer::compareTo).orElse(0);
   }
 
-  public static File getPdfFile(File reportFile) {
-    return new File(reportFile.getParentFile(), REPORT_FILE_NAME);
+  public static Report getPdfFile(InsightWork insightWork, final String appId, final String scanId) {
+    return new FileReport(new File(insightWork.getReportDir(appId, scanId), REPORT_FILE_NAME));
   }
 
   /**
@@ -1233,18 +1238,17 @@ public class PdfGenerator
         .draw(() -> pdf, PdfGenerator::newPage, MEDIA_BOX_SIZE.getHeight() - CROP_BOX_SIZE.getHeight() + MARGIN);
   }
 
-  public static void generate(File pdfFile, PdfData pdfData) throws IOException {
+  public static void generate(Report pdfFile, PdfData pdfData) throws IOException {
     generate(pdfFile, pdfData, Context.LIFECYCLE);
   }
 
-  public static void generate(File pdfFile, PdfData pdfData, Context productContext) throws IOException {
-    if (!pdfFile.isFile() || pdfFile.length() == 0) {
+  public static void generate(Report pdfFile, PdfData pdfData, Context productContext) throws IOException {
+    if (pdfFile.canCreate()) {
       try {
         log.debug("Generating report PDF {}", pdfFile);
         long millis = System.currentTimeMillis();
 
         new PdfGenerator(pdfFile, pdfData, productContext).generate();
-
         if (pdfFile.length() <= 0) {
           throw new IOException("Could not generate report " + pdfFile);
         }
@@ -1254,7 +1258,7 @@ public class PdfGenerator
       }
       catch (Exception e) {
         try {
-          Files.delete(pdfFile.toPath());
+          pdfFile.deleteIfExists();
         }
         catch (Exception suppressed) {
           e.addSuppressed(suppressed);

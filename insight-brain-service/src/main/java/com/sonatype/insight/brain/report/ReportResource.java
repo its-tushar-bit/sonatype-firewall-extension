@@ -18,12 +18,11 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -64,6 +63,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoader.HostedDataServicesSource;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -72,10 +72,12 @@ import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphService;
+import com.sonatype.insight.brain.report.ReportBundleUpdater.FilenameMapping;
 import com.sonatype.insight.brain.report.pdf.PdfGeneratorService;
 import com.sonatype.insight.brain.sbom.policy.SbomPolicyService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
@@ -147,9 +149,11 @@ public class ReportResource
 
   private final ClusterLockManager clusterLockManager;
 
+  private final ReportUtils reportUtils;
+
   static {
     Set<Character> invalid = new HashSet<>(
-        Arrays.asList(new Character[] { '*', '\\', '/', '?', ':', '|', '"', '<', '>' }));
+        Arrays.asList('*', '\\', '/', '?', ':', '|', '"', '<', '>'));
 
     for (char c = 0; c <= 31; c++) {
       invalid.add(c);
@@ -171,7 +175,8 @@ public class ReportResource
       final ReleaseGraphService releaseGraphService,
       final VersionService versionService,
       final PdfGeneratorService pdfGeneratorService,
-      final ClusterLockManager clusterLockManager)
+      final ClusterLockManager clusterLockManager,
+      final ReportUtils reportUtils)
   {
     this.applicationDAO = applicationDAO;
     this.reportService = reportService;
@@ -186,6 +191,7 @@ public class ReportResource
     this.versionService = versionService;
     this.pdfGeneratorService = pdfGeneratorService;
     this.clusterLockManager = clusterLockManager;
+    this.reportUtils = reportUtils;
   }
 
   /**
@@ -199,7 +205,7 @@ public class ReportResource
   @Audited(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT)
   @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_REPORTS)
   public Response browseReport(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String appPublicId,
+      @AuthzContext(Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String appPublicId,
       @PathParam("scanId") final String scanId,
       @PathParam("path") final String path,
       @Context final HttpServletRequest httpRequest)
@@ -256,7 +262,7 @@ public class ReportResource
     // the contents loaded from the file before serving up to the browser, the timestamp on the file won't
     // change, even when brain versions do, so index.html is always sent in response
     if (reportEntry.name.equals("index.html")) {
-      reportEntry = Report.appendCacheBustingParams(reportEntry, versionService.getVersion());
+      reportEntry = reportUtils.appendCacheBustingParams(reportEntry, versionService.getVersion());
     }
     else {
       final long ifModifiedSince = httpRequest.getDateHeader(HttpHeaders.IF_MODIFIED_SINCE);
@@ -317,7 +323,7 @@ public class ReportResource
   @Audited(AuditEvent.EVALUATE_APPLICATION)
   @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
   public Response reevaluatePolicy(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId")
+      @AuthzContext(Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId")
       final String applicationPublicId,
       @PathParam("scanId") final String scanId) throws IOException
   {
@@ -374,46 +380,50 @@ public class ReportResource
   @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
   @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_REPORTS)
   public Response downloadBundle(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String appPublicId,
+      @AuthzContext(Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String appPublicId,
       @PathParam("scanId") final String scanId) throws IOException
   {
+    // TODO: Matt Johnson - this needs extracting into reportUtils
     AuditData.get().setReportId(scanId);
     Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
-    File reportFile = reportService.getReport(app.getId(), scanId);
+    Report reportFile = reportService.getReport(app.getId(), scanId);
     String filename = "report-" + scanId + ".zip";
 
-    Properties templateProps = Report.getTemplateProperties(reportFile);
+    Properties templateProps = reportUtils.getTemplateProperties(reportFile);
     String cipDetailsPath = templateProps.getProperty("cip.details.path", "");
     String cipListPath = templateProps.getProperty("cip.list.path", "");
     int dataVersion = Integer.parseInt(templateProps.getProperty("data.version", "0"));
     String dataPath = "data/";
 
-    File pdfFile = pdfGeneratorService.generateReport(app, scanId);
+    Report pdfFile = pdfGeneratorService.generateReport(app, scanId);
 
     ApiReportRawDataDTOV2 reportData = reportDataService.getDataNoAuth(appPublicId, scanId);
     List<PolicyAlert> alerts = Arrays.asList(JsonUtils
-        .parse(Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).buf, PolicyAlert[].class));
+        .parse(reportUtils.getEntry(reportFile, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).buf, PolicyAlert[].class));
 
     File updatedFile = Files.createTempFile("report", ".zip").toFile();
-    try (ReportBundleUpdater updater = new ReportBundleUpdater(reportFile, updatedFile,
-        new ReportBundleUpdater.FilenameMapping("^.*\\.json$", dataPath + "$0"))) {
+    try (ReportBundleUpdater updater = new ReportBundleUpdater(((FileReport) reportFile).getFile(), updatedFile,
+        new FilenameMapping("^.*\\.json$", dataPath + "$0"))) {
 
       addLegacyReportArtifacts(updater);
 
       updater.remove("detail.rptdesign");
-      updater.add(dataPath + "report.pdf", pdfFile);
+      try (InputStream inputStream = pdfFile.getInputStream()) {
+        updater.add(dataPath + "report.pdf", inputStream);
+      }
       updater.add(dataPath + "components.json", reportData);
 
       addUniqueComponentsToUpdater(appPublicId, scanId, dataPath, dataVersion, reportData.components, updater);
 
-      File[] cachedFiles = Report.getCacheDir(reportFile).listFiles();
+      // FIXME: This breaks the abstraction and needs cleaned up to not care about caching
+      File[] cachedFiles = ((FileReportUtils) reportUtils).getCacheDir(((FileReport) reportFile).getFile()).listFiles();
       if (cachedFiles != null) {
         for (File cachedFile : cachedFiles) {
           updater.add(dataPath + cachedFile.getName(), cachedFile);
         }
       }
 
-      try (ZipFile reportZip = new ZipFile(reportFile)) {
+      try (ZipFile reportZip = new ZipFile(((FileReport) reportFile).getFile())) {
         ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(app);
 
         for (Enumeration<? extends ZipEntry> en = reportZip.entries(); en.hasMoreElements();) {
@@ -426,7 +436,7 @@ public class ReportResource
                 NamedComponentDetails.class);
             NamedComponentDetails clmDetails =
                 ComponentDetailsLoader.getComponentDetails(hdsDetails.getComponentIdentifier(), hdsDetails.getHash(),
-                    hdsDetails.getMatchState(), new ComponentDetailsLoader.HostedDataServicesSource()
+                    hdsDetails.getMatchState(), new HostedDataServicesSource()
                     {
                       @Override
                       public NamedComponentDetails getDetails() throws IOException {
@@ -552,7 +562,7 @@ public class ReportResource
   static String toDataPathV3(ComponentIdentifier componentIdentifier) {
     StringBuilder buffer = new StringBuilder();
     buffer.append(componentIdentifier.getFormat());
-    for (Map.Entry<String, String> entry : componentIdentifier.getCoordinates().entrySet()) {
+    for (Entry<String, String> entry : componentIdentifier.getCoordinates().entrySet()) {
       buffer.append('/').append(entry.getKey());
       buffer.append('=').append(encode(entry.getValue()));
     }
@@ -582,7 +592,7 @@ public class ReportResource
   private String toDataPath(ComponentIdentifier componentIdentifier) {
     StringBuilder buffer = new StringBuilder();
     buffer.append(componentIdentifier.getFormat());
-    for (Map.Entry<String, String> entry : componentIdentifier.getCoordinates().entrySet()) {
+    for (Entry<String, String> entry : componentIdentifier.getCoordinates().entrySet()) {
       buffer.append('/').append(entry.getKey());
       buffer.append('=').append(entry.getValue());
     }
@@ -660,7 +670,7 @@ public class ReportResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
   public Response auditLog(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String appPublicId,
+      @AuthzContext(Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String appPublicId,
       @PathParam("path") final String path,
       @QueryParam("key") final String encodedKey) throws IOException
   {

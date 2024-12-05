@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,6 +50,7 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.report.ReportUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -92,6 +92,8 @@ public class ApiReportDataServiceV2
 
   private final ThirdPartyComponentDAO thirdPartyComponentDAO;
 
+  private final ReportUtils reportUtils;
+
   @Inject
   public ApiReportDataServiceV2(
       ApplicationDAO appDAO,
@@ -99,7 +101,8 @@ public class ApiReportDataServiceV2
       ApiLicenseDataAdapter licenseDataAdapter,
       ApiSecurityDataAdapter securityDataAdapter,
       ComponentLoaderFactory componentLoaderFactory,
-      ThirdPartyComponentDAO thirdPartyComponentDAO)
+      ThirdPartyComponentDAO thirdPartyComponentDAO,
+      final ReportUtils reportUtils)
   {
     this.appDAO = appDAO;
     this.reportService = reportService;
@@ -107,6 +110,7 @@ public class ApiReportDataServiceV2
     this.securityDataAdapter = securityDataAdapter;
     this.componentLoaderFactory = componentLoaderFactory;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
+    this.reportUtils = reportUtils;
   }
 
   @Authorize(permission = Permission.READ)
@@ -132,11 +136,11 @@ public class ApiReportDataServiceV2
       throws IOException
   {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
-    File reportFile = reportService.getReport(app.getId(), scanId);
+    Report reportFile = reportService.getReport(app.getId(), scanId);
 
-    ReportEntry bomEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
-    ReportEntry countsEntry = Report.getEntry(reportFile, Report.DATA_JSON_FILENAME);
-    ReportEntry policyThreatsEntry = Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
+    ReportEntry bomEntry = reportUtils.getEntry(reportFile, ReportUtils.BOM_JSON_FILENAME);
+    ReportEntry countsEntry = reportUtils.getEntry(reportFile, ReportUtils.DATA_JSON_FILENAME);
+    ReportEntry policyThreatsEntry = reportUtils.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
 
     if (bomEntry == null || policyThreatsEntry == null || countsEntry == null) {
       throw new BadRequestException(
@@ -177,9 +181,10 @@ public class ApiReportDataServiceV2
     Application application = appDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
 
-    final File reportFile = reportService.getReport(appId, scanId);
-    ReportEntry dependenciesEntry = Report.getEntry(reportFile, Report.toEntryName(Report.DEPENDENCIES_JSON_FILENAME));
-    ReportEntry bomEntry = Report.getEntry(reportFile, Report.toEntryName(Report.BOM_JSON_FILENAME));
+    final Report reportFile = reportService.getReport(appId, scanId);
+    ReportEntry dependenciesEntry =
+        reportUtils.getEntry(reportFile, reportUtils.toEntryName(ReportUtils.DEPENDENCIES_JSON_FILENAME));
+    ReportEntry bomEntry = reportUtils.getEntry(reportFile, reportUtils.toEntryName(ReportUtils.BOM_JSON_FILENAME));
     if (dependenciesEntry != null && bomEntry != null) {
       JsonNode dependenciesNode = JsonUtils.parse(dependenciesEntry.buf);
       JsonNode bomNode = JsonUtils.parse(bomEntry.buf);
@@ -410,13 +415,13 @@ public class ApiReportDataServiceV2
       final boolean doAddDependencyData) throws IOException
   {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
-    File reportFile = reportService.getReport(app.getId(), scanId);
+    Report reportFile = reportService.getReport(app.getId(), scanId);
 
-    ReportEntry bomEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
-    ReportEntry securityEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
-    ReportEntry licenseEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
-    ReportEntry dataEntry = Report.getEntry(reportFile, Report.DATA_JSON_FILENAME);
-    ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
+    ReportEntry bomEntry = reportUtils.getEntry(reportFile, ReportUtils.BOM_JSON_FILENAME);
+    ReportEntry securityEntry = reportUtils.getEntry(reportFile, ReportUtils.SECURITY_JSON_FILENAME);
+    ReportEntry licenseEntry = reportUtils.getEntry(reportFile, ReportUtils.LICENSES_JSON_FILENAME);
+    ReportEntry dataEntry = reportUtils.getEntry(reportFile, ReportUtils.DATA_JSON_FILENAME);
+    ReportEntry dependenciesReportEntry = reportUtils.getEntry(reportFile, ReportUtils.DEPENDENCIES_JSON_FILENAME);
 
     if (bomEntry == null || securityEntry == null || licenseEntry == null || dataEntry == null ||
         dependenciesReportEntry == null) {

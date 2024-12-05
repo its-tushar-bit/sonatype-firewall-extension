@@ -70,12 +70,14 @@ import com.sonatype.insight.brain.organization.ApplicationContactLoader;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
+import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.report.ReportUtils;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -153,6 +155,12 @@ public class PolicyEvaluateServiceTest
 
   @Inject
   private TestProductLicense testProductLicense;
+
+  @Inject
+  private ReportService reportService;
+
+  @Inject
+  private ReportUtils reportUtils;
 
   private Application app;
 
@@ -877,9 +885,9 @@ public class PolicyEvaluateServiceTest
     }
 
     // check the calculated policy threat
-    InsightWork insightWork = lookup(InsightWork.class);
-    File reportFile = insightWork.getReportFile(app.getId(), scanId);
-    ReportEntry policyThreatsReportEntry = Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
+    Report reportFile = reportService.getReport(app.getId(), scanId);
+    ReportEntry policyThreatsReportEntry =
+        reportUtils.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
     final JsonNode policyThreats = JsonUtils.parse(policyThreatsReportEntry.buf).get("aaData");
     assertThat(policyThreats).isNotEmpty();
     assertThat(policyThreats.get(0).get("policyThreatLevel").asInt()).isEqualTo(8);

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.callflow;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -29,8 +28,9 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
-import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.FileReport;
 import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.report.ReportUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -55,6 +55,9 @@ public class PolicyViolationReachabilityServiceTest
   @Inject
   private InsightWork insightWork;
 
+  @Inject
+  private ReportUtils reportUtils;
+
   private static final String ReachableVulnerabilityCVE = "CVE-2020-13933";
 
   private static final String NonReachableVulnerabilityCVE = "CVE-2020-13935";
@@ -71,7 +74,7 @@ public class PolicyViolationReachabilityServiceTest
 
     assertThat(policyViolation.getReachabilityStatus()).isNull();
 
-    File reportFile = insightWork.getReportFile(application.getId(), scanId);
+    FileReport reportFile = new FileReport(insightWork.getReportFile(application.getId(), scanId));
     Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers =
         getReachableVulnerabilitiesByPurlIdentifiers();
 
@@ -83,7 +86,7 @@ public class PolicyViolationReachabilityServiceTest
     assertThat(policyViolations).hasSize(1);
     assertThat(policyViolations.get(0).getReachabilityStatus()).isEqualTo(ReachabilityStatus.REACHABLE);
 
-    ReportEntry reportEntry = Report.getEntry(reportFile, Report.POLICY_THREATS);
+    ReportEntry reportEntry = reportUtils.getEntry(reportFile, ReportUtils.POLICY_THREATS);
     PolicyThreats policyThreats = JsonUtils.parse(reportEntry.buf, PolicyThreats.class);
     assertThat(policyThreats.aaData.get(0).activeViolations.get(0).reachabilityStatus).isEqualTo(
         ReachabilityStatus.REACHABLE);
@@ -111,7 +114,7 @@ public class PolicyViolationReachabilityServiceTest
     assertThat(policyViolation.getReachabilityStatus()).isNull();
     assertThat(waivedPolicyViolation.getReachabilityStatus()).isNull();
 
-    File reportFile = insightWork.getReportFile(application.getId(), scanId);
+    FileReport reportFile = new FileReport(insightWork.getReportFile(application.getId(), scanId));
     Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers =
         getReachableVulnerabilitiesByPurlIdentifiers();
 
@@ -125,7 +128,7 @@ public class PolicyViolationReachabilityServiceTest
     assertThat(policyViolations.get(0).isWaived()).isTrue();
     assertThat(policyViolations.get(1).getReachabilityStatus()).isEqualTo(ReachabilityStatus.REACHABLE);
 
-    ReportEntry reportEntry = Report.getEntry(reportFile, Report.POLICY_THREATS);
+    ReportEntry reportEntry = reportUtils.getEntry(reportFile, ReportUtils.POLICY_THREATS);
     PolicyThreats policyThreats = JsonUtils.parse(reportEntry.buf, PolicyThreats.class);
     assertThat(policyThreats.aaData.get(0).activeViolations.get(0).reachabilityStatus).isEqualTo(
         ReachabilityStatus.REACHABLE);
@@ -146,7 +149,7 @@ public class PolicyViolationReachabilityServiceTest
 
     assertThat(policyViolation.getReachabilityStatus()).isNull();
 
-    File reportFile = insightWork.getReportFile(application.getId(), scanId);
+    FileReport reportFile = new FileReport(insightWork.getReportFile(application.getId(), scanId));
     Map<PackageUrlIdentifier, Set<String>> emptyReachableVulnerabilities = new HashMap<>();
 
     policyViolationReachabilityService.updateReachabilityStatusForPolicyViolations(application.getId(), scanId,

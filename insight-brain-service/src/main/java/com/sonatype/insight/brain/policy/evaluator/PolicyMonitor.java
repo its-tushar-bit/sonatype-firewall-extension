@@ -43,6 +43,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.report.ReportUtils;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
@@ -107,6 +109,10 @@ public class PolicyMonitor
 
   private final TelemetryUtils telemetryUtils;
 
+  private final ReportUtils reportUtils;
+
+  private final ReportService reportService;
+
   @Inject
   public PolicyMonitor(
       final InsightWork work,
@@ -124,7 +130,9 @@ public class PolicyMonitor
       final Configuration configuration,
       final ShutdownHandler shutdownHandler,
       final TelemetrySender telemetrySender,
-      final TelemetryUtils telemetryUtils)
+      final TelemetryUtils telemetryUtils,
+      final ReportUtils reportUtils,
+      final ReportService reportService)
   {
     this.work = work;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
@@ -142,6 +150,8 @@ public class PolicyMonitor
     this.shutdownHandler = shutdownHandler;
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
+    this.reportUtils = reportUtils;
+    this.reportService = reportService;
     log.debug("Created a new PolicyMonitor for tenant {}", TenantThreadLocal.getTenant());
   }
 
@@ -428,11 +438,11 @@ public class PolicyMonitor
 
   private boolean hasThirdPartyScanContent(String appId, String scanId) {
     try {
-      File file = work.getReportFile(appId, scanId);
-      return Report.getEntry(file, THIRD_PARTY_BOM_JSON_FILENAME) != null;
+      Report file = reportService.getReport(appId, scanId);
+      return reportUtils.getEntry(file, THIRD_PARTY_BOM_JSON_FILENAME) != null;
     }
     catch (IOException e) {
-      log.debug("effort fetching report data for app id {} scan id {}", appId, scanId);
+      log.debug("Error fetching report data for app id {} scan id {}", appId, scanId);
       return false;
     }
   }

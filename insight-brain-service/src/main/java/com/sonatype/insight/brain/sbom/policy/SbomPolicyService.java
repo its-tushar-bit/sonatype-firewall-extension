@@ -16,9 +16,9 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
-import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.report.ReportUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -114,7 +114,8 @@ public class SbomPolicyService
       String fileCoordinateId,
       String hash) throws IOException
   {
-    ReportEntry bomReportEntry = reportService.processBrowseReport(applicationId, scanId, Report.BOM_JSON_FILENAME);
+    ReportEntry bomReportEntry =
+        reportService.processBrowseReport(applicationId, scanId, ReportUtils.BOM_JSON_FILENAME);
     if (bomReportEntry == null) {
       return null;
     }

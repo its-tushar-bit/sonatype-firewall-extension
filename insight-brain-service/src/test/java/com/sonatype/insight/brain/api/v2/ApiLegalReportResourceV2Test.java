@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
@@ -34,7 +35,7 @@ import com.sonatype.insight.brain.model.legal.AttributionReportTemplate;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.FileReportUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
@@ -56,6 +57,9 @@ public class ApiLegalReportResourceV2Test
     extends AbstractResourceTest
 {
   private static final String EMPTY_JSON_ARRAY = "[]";
+
+  @Inject
+  private FileReportUtils reportUtils;
 
   @Override
   protected HttpRequest restRequest() {
@@ -973,7 +977,7 @@ public class ApiLegalReportResourceV2Test
           ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME
       };
       for (String filename : filenames) {
-        File file = Report.getCacheFile(reportFile, filename);
+        File file = reportUtils.getCacheFile(reportFile, filename);
         FileUtils.copyURLToFile(
             Objects.requireNonNull(getClass().getResource("/" + getClass().getSimpleName() + "/report/" + filename)),
             file);

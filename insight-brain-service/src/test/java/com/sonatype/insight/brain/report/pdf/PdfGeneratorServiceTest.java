@@ -6,6 +6,9 @@
 package com.sonatype.insight.brain.report.pdf;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,6 +31,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.report.FileReport;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -37,12 +41,14 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.client.utils.DateUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
 
+import static org.apache.commons.io.IOUtils.toByteArray;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -96,7 +102,7 @@ public class PdfGeneratorServiceTest
     Response response = pdfGeneratorService.printReport(application.getPublicId(), scanId);
 
     // Validate content type and check the actual content is really a PDF.
-    File pdfFile = PdfGenerator.getPdfFile(insightWork.getReportFile(application.getId(), scanId));
+    var pdfFile = ((FileReport) PdfGenerator.getPdfFile(insightWork, application.getId(), scanId));
     String expectedFilename = application.getName() + "-" + StageTypes.BUILD.getName() + "-" +
         new SimpleDateFormat("yyyyMMdd-HHmmss").format(policyEvaluation.getTime()) + ".pdf";
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo(
@@ -106,8 +112,11 @@ public class PdfGeneratorServiceTest
     assertThat(
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
         .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
-    assertThat(response.getEntity()).isEqualTo(pdfFile);
-    assertThat(new String(Files.readAllBytes(pdfFile.toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains("%PDF-");
+    InputStream inputStream = pdfFile.getInputStream();
+    assertThat(toByteArray(((InputStream) response.getEntity()))).isEqualTo(toByteArray(inputStream));
+    inputStream.close();
+    assertThat(new String(Files.readAllBytes(pdfFile.getFile().toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains(
+        "%PDF-");
   }
 
   @Test
@@ -120,9 +129,9 @@ public class PdfGeneratorServiceTest
     FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorServiceTest/report", tempDir), reportFile);
 
     // Pretend the print attempt crashed with OOME, which usually leaves an empty PDF file around.
-    File pdfFile = PdfGenerator.getPdfFile(insightWork.getReportFile(application.getId(), scanId));
-    pdfFile.createNewFile();
-    assertThat(pdfFile).isFile();
+    var pdfFile = ((FileReport) PdfGenerator.getPdfFile(insightWork, application.getId(), scanId));
+    pdfFile.getFile().createNewFile();
+    assertThat(pdfFile.getFile()).isFile();
 
     Response response = pdfGeneratorService.printReport(application.getPublicId(), scanId);
 
@@ -136,8 +145,11 @@ public class PdfGeneratorServiceTest
     assertThat(
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
         .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
-    assertThat(response.getEntity()).isEqualTo(pdfFile);
-    assertThat(new String(Files.readAllBytes(pdfFile.toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains("%PDF-");
+    InputStream inputStream = pdfFile.getInputStream();
+    assertThat(toByteArray(((InputStream) response.getEntity()))).isEqualTo(toByteArray(inputStream));
+    inputStream.close();
+    assertThat(new String(Files.readAllBytes(pdfFile.getFile().toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains(
+        "%PDF-");
   }
 
   @Test
@@ -159,7 +171,7 @@ public class PdfGeneratorServiceTest
     Response response = pdfGeneratorService.printSbomReport(application.getPublicId(), sbomMetadata.getSbomVersion());
 
     // Validate content type and check the actual content is really a PDF.
-    File pdfFile = PdfGenerator.getPdfFile(insightWork.getReportFile(application.getId(), scanId));
+    var pdfFile = ((FileReport) PdfGenerator.getPdfFile(insightWork, application.getId(), scanId));
     String expectedFilename = application.getName() + "-" + sbomMetadata.getSbomVersion() + ".pdf";
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo(
         HttpHeaderUtils.buildContentDispositionHeaderValue(expectedFilename));
@@ -168,8 +180,12 @@ public class PdfGeneratorServiceTest
     assertThat(
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
         .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
-    assertThat(response.getEntity()).isEqualTo(pdfFile);
-    assertThat(new String(Files.readAllBytes(pdfFile.toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains("%PDF-");
+
+    InputStream inputStream = pdfFile.getInputStream();
+    assertThat(toByteArray(((InputStream) response.getEntity()))).isEqualTo(toByteArray(inputStream));
+    inputStream.close();
+    assertThat(new String(Files.readAllBytes(pdfFile.getFile().toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains(
+        "%PDF-");
   }
 
   @Test
@@ -191,7 +207,7 @@ public class PdfGeneratorServiceTest
     Response response = pdfGeneratorService.printSbomReport(application.getPublicId(), sbomMetadata.getSbomVersion());
 
     // Validate content type and check the actual content is really a PDF.
-    File pdfFile = PdfGenerator.getPdfFile(insightWork.getReportFile(application.getId(), scanId));
+    var pdfFile = ((FileReport) PdfGenerator.getPdfFile(insightWork, application.getId(), scanId));
     String expectedFilename = application.getName() + "-" + sbomMetadata.getSbomVersion() + ".pdf";
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo(
         HttpHeaderUtils.buildContentDispositionHeaderValue(expectedFilename));
@@ -200,8 +216,11 @@ public class PdfGeneratorServiceTest
     assertThat(
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
         .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
-    assertThat(response.getEntity()).isEqualTo(pdfFile);
-    assertThat(new String(Files.readAllBytes(pdfFile.toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains("%PDF-");
+    InputStream inputStream = pdfFile.getInputStream();
+    assertThat(toByteArray(((InputStream) response.getEntity()))).isEqualTo(toByteArray(inputStream));
+    inputStream.close();
+    assertThat(new String(Files.readAllBytes(pdfFile.getFile().toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains(
+        "%PDF-");
   }
 
   @Test
@@ -333,7 +352,7 @@ public class PdfGeneratorServiceTest
         throw new RuntimeException(e.getMessage(), e);
       }
     };
-    testCallable_DisallowConcurrentExecution(callable, answerConsumer);
+    testCallable_DisallowConcurrentExecution(callable, answerConsumer, true);
   }
 
   @Test
@@ -343,6 +362,10 @@ public class PdfGeneratorServiceTest
     tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
     File reportFile = insightWork.getReportFile(application.getId(), scanId);
     FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorServiceTest/report", tempDir), reportFile);
+    File pdfFile = new File(reportFile.getParentFile(), "report.pdf");
+    try (FileOutputStream output = new FileOutputStream(pdfFile)) {
+      IOUtils.write("fake pdf data", output, Charset.defaultCharset());
+    }
     PdfGeneratorService spyPdfGeneratorService = spy(pdfGeneratorService);
     Callable<Void> callable = () -> {
       spyPdfGeneratorService.printReport(application.getPublicId(), scanId);

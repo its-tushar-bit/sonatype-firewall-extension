@@ -31,7 +31,6 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
-import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
@@ -68,9 +67,6 @@ public class ApiPromoteScanServiceV2Test
   private ScanUploadService scanUploadService;
 
   @Mock
-  private ReportDownloader reportDownloader;
-
-  @Mock
   private PolicyAlertNotifier policyAlertNotifier;
 
   @Mock
@@ -99,7 +95,6 @@ public class ApiPromoteScanServiceV2Test
   @Override
   public void configure(Binder binder) {
     binder.bind(ScanUploadService.class).toInstance(scanUploadService);
-    binder.bind(ReportDownloader.class).toInstance(reportDownloader);
     binder.bind(PolicyAlertNotifier.class).toInstance(policyAlertNotifier);
     binder.bind(ScanPolicyEvaluator.class).toInstance(scanPolicyEvaluator);
     binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);

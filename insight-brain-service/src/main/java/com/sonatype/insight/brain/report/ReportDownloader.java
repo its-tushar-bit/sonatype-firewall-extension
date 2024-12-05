@@ -3,17 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 package com.sonatype.insight.brain.report;
 
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.time.Duration;
-
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
@@ -27,7 +25,6 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Named
 @Singleton
 public class ReportDownloader
 {
@@ -55,7 +52,7 @@ public class ReportDownloader
    */
   public boolean downloadReport(
       final String scanId,
-      final File reportFile,
+      final Report reportFile,
       final int reportTimeoutInSeconds,
       final int retryIntervalInSeconds)
   {
@@ -68,8 +65,9 @@ public class ReportDownloader
           HDS_PATH, null, scanId)) {
         // Create the parent dir after the client returns with success
         // to ensure dir is not created for unknown scanId (or other errors)
-        Files.createDirectories(reportFile.getAbsoluteFile().getParentFile().toPath());
-        try (OutputStream os = new BufferedOutputStream(Files.newOutputStream(reportFile.toPath()))) {
+        Files.createDirectories(((FileReport) reportFile).getFile().getAbsoluteFile().getParentFile().toPath());
+        try (OutputStream os = new BufferedOutputStream(
+            Files.newOutputStream(((FileReport) reportFile).getFile().toPath()))) {
           IOUtils.copy(is, os);
           return true;
         }
@@ -82,7 +80,7 @@ public class ReportDownloader
       // don't leave an incomplete file around
       log.error(e.getMessage(), e);
       try {
-        fileCleaner.delete(reportFile);
+        fileCleaner.delete(((FileReport) reportFile).getFile());
       }
       catch (FileDeletionException fde) {
         log.error("Could not delete incomplete report: {}", reportFile, fde);

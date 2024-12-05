@@ -72,7 +72,8 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.TestProductLicenseRule;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.FileReportUtils;
+import com.sonatype.insight.brain.report.ReportUtils;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
@@ -533,11 +534,11 @@ public abstract class AbstractBaseIntegrationTest
         zos.putNextEntry(new ZipEntry("index.html"));
       }
       String[] filenames = {
-          Report.BOM_JSON_FILENAME, Report.SECURITY_JSON_FILENAME, Report.LICENSES_JSON_FILENAME,
-          Report.DATA_JSON_FILENAME, Report.DEPENDENCIES_JSON_FILENAME
+          ReportUtils.BOM_JSON_FILENAME, ReportUtils.SECURITY_JSON_FILENAME, ReportUtils.LICENSES_JSON_FILENAME,
+          ReportUtils.DATA_JSON_FILENAME, ReportUtils.DEPENDENCIES_JSON_FILENAME
       };
       for (String filename : filenames) {
-        File file = Report.getCacheFile(reportFile, filename);
+        File file = FileReportUtils.getCacheFile(reportFile, filename);
         FileUtils.copyURLToFile(getClass().getResource("/" + classSimpleName + "/report/" + filename), file);
       }
     }

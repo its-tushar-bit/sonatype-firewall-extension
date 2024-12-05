@@ -533,7 +533,7 @@ public class PolicyEvaluateService
         log.error(
             "Failed to evaluate policy for app public id {}, scan id {}, stageTypeId {}." +
                 " The status ID of the operation is {}.",
-            app.getPublicId(), scanId, stage.getStageTypeId(), statusId);
+            app.getPublicId(), scanId, stage.getStageTypeId(), statusId, e);
         // in failed status, hold onto as much as we have obtained so far
         policyEvaluationPollingResult = makeCopy(policyEvaluationPollingResult);
         policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.FAILED);

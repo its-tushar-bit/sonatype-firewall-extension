@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,6 +35,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.report.ReportUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -49,6 +49,8 @@ public class ApiReportServiceV2
 {
   private static final Logger log = LoggerFactory.getLogger(ApiReportServiceV2.class);
 
+  private static final int MAX_POLICY_EVALUATIONS_TO_RETURN = 100;
+
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
   private final ApiApplicationService applicationService;
@@ -59,21 +61,23 @@ public class ApiReportServiceV2
 
   private final ReportService reportService;
 
-  private static final int MAX_POLICY_EVALUATIONS_TO_RETURN = 100;
+  private final ReportUtils reportUtils;
 
   @Inject
   public ApiReportServiceV2(
-          PolicyEvaluationDAO policyEvaluationDAO,
-          ApiApplicationService applicationService,
-          ApplicationDAO applicationDAO,
-          ScanPolicyEvaluator scanPolicyEvaluator,
-          ReportService reportService)
+      PolicyEvaluationDAO policyEvaluationDAO,
+      ApiApplicationService applicationService,
+      ApplicationDAO applicationDAO,
+      ScanPolicyEvaluator scanPolicyEvaluator,
+      ReportService reportService,
+      ReportUtils reportUtils)
   {
     this.applicationDAO = applicationDAO;
     this.applicationService = applicationService;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.reportService = reportService;
+    this.reportUtils = reportUtils;
   }
 
   @Authorize(permission = Permission.READ)
@@ -167,14 +171,15 @@ public class ApiReportServiceV2
       Application application)
   {
     try {
-      File reportFile = reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
-      PolicyThreats policyThreats = JsonUtils.parse(Objects.requireNonNull(Report.getEntry(reportFile,
-              ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).buf, PolicyThreats.class);
+      Report reportFile =
+          reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
+      PolicyThreats policyThreats = JsonUtils.parse(Objects.requireNonNull(reportUtils.getEntry(reportFile,
+          ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).buf, PolicyThreats.class);
       List<PolicyViolation> policyViolations =
-              PolicyAlertUtil.getDummyPolicyViolationsFromPolicyThreatsForCounts(policyThreats);
+          PolicyAlertUtil.getDummyPolicyViolationsFromPolicyThreatsForCounts(policyThreats);
 
       ApiReportResultsDTO apiReportResultsDTO = new ApiReportResultsDTO(policyEvaluation,
-              scanPolicyEvaluator.createPolicyEvaluationResult(policyEvaluation, policyViolations, false));
+          scanPolicyEvaluator.createPolicyEvaluationResult(policyEvaluation, policyViolations, false));
       populateReportDTO(apiReportResultsDTO, application, policyEvaluation);
       apiReportHistoryDTO.reports.add(apiReportResultsDTO);
     }

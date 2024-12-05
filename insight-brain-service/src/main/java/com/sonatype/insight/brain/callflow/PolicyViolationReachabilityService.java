@@ -5,14 +5,12 @@
  */
 package com.sonatype.insight.brain.callflow;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -27,6 +25,7 @@ import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreatsAdapter;
 import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.ReportUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -46,20 +45,24 @@ public class PolicyViolationReachabilityService
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
+  private final ReportUtils reportUtils;
+
   @Inject
   public PolicyViolationReachabilityService(
       PolicyViolationDAO policyViolationDAO,
-      PolicyEvaluationDAO policyEvaluationDAO)
+      PolicyEvaluationDAO policyEvaluationDAO,
+      ReportUtils reportUtils)
   {
     this.policyViolationDAO = policyViolationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
+    this.reportUtils = reportUtils;
   }
 
   public void updateReachabilityStatusForPolicyViolations(
       final String applicationId,
       final String reportId,
       final Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers,
-      final File reportFile) throws IOException
+      final Report reportFile) throws IOException
   {
     logger.info("Updating policy violations with reachability data for applicationId: {}, reportId: {}", applicationId,
         reportId);
@@ -77,7 +80,7 @@ public class PolicyViolationReachabilityService
     updateMavenSecurityViolationsReachableStatus(policyViolations, reachableVulnerabilitiesByPurlIdentifiers);
 
     PolicyThreats policyThreats = PolicyThreatsAdapter.createPolicyThreats(policyViolations, null, null);
-    Report.putEntry(reportFile, Report.POLICY_THREATS, JsonUtils.generate(policyThreats));
+    reportUtils.putEntry(reportFile, ReportUtils.POLICY_THREATS, JsonUtils.generate(policyThreats));
 
     logger.info("Finished updating policy violations with reachability data for applicationId: {}, reportId: {}",
         applicationId, reportId);

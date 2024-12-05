@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
-import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -53,6 +52,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.sbom.SbomResultsMerger;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -357,7 +357,10 @@ public class ThirdPartyDataService
     thirdPartyVulnerabilityDAO.saveOrUpdate(vulnerabilityList);
   }
 
-  public ThirdPartyApplicationReportDTO loadThirdPartyInfrastructureAsCodeData(final File report, final String appId) {
+  public ThirdPartyApplicationReportDTO loadThirdPartyInfrastructureAsCodeData(
+      final Report report,
+      final String appId)
+  {
     // Collect data for telemetry within the loop
     Map<String, Integer> inputTypeCount = new HashMap<>();
     Map<String, Integer> providerCount = new HashMap<>();
@@ -409,7 +412,9 @@ public class ThirdPartyDataService
     searchIndexManager.insert(searchIndexChange);
   }
 
-  public void mergeSonatypeDataWithSbomDataWithIndexing(final String scanId, final File reportFile) throws IOException {
+  public void mergeSonatypeDataWithSbomDataWithIndexing(final String scanId, final Report reportFile)
+      throws IOException
+  {
     if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
       return;
     }

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.search.index;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.math.BigDecimal;
@@ -65,6 +64,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.report.ReportUtils;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.LuceneComponents;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
@@ -185,6 +186,10 @@ public class IndexService
 
   private final Provider<IndexCreationScheduler> indexCreationScheduler;
 
+  private final ReportUtils reportUtils;
+
+  private final ReportService reportService;
+
   @Override
   public String getJobName() {
     return TASK_NAME;
@@ -242,7 +247,9 @@ public class IndexService
       ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       ComponentLoaderFactory componentLoaderFactory,
-      Provider<IndexCreationScheduler> indexCreationScheduler)
+      Provider<IndexCreationScheduler> indexCreationScheduler,
+      ReportUtils reportUtils,
+      ReportService reportService)
   {
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
@@ -264,6 +271,8 @@ public class IndexService
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.componentLoaderFactory = componentLoaderFactory;
     this.indexCreationScheduler = indexCreationScheduler;
+    this.reportUtils = reportUtils;
+    this.reportService = reportService;
 
     searchIndexPool = ExecutorThreadPools.getInstance()
         .createThreadPool(INDEX_THREADS_MIN, INDEX_THREADS_MAX, INDEX_THREADS_DEFAULT,
@@ -808,15 +817,16 @@ public class IndexService
       return Collections.emptyList();
     }
     String scanId = latestPolicyEvaluation.getScanId();
-    File reportFile = insightWork.getReportFile(application.getId(), scanId);
+    Report reportFile = reportService.getReport(application.getId(), scanId);
     if (!reportFile.exists()) {
       return Collections.emptyList();
     }
     try {
-      ReportEntry licenseReportEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
-      ReportEntry securityReportEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
-      ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
-      ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
+      ReportEntry licenseReportEntry = reportUtils.getEntry(reportFile, ReportUtils.LICENSES_JSON_FILENAME);
+      ReportEntry securityReportEntry = reportUtils.getEntry(reportFile, ReportUtils.SECURITY_JSON_FILENAME);
+      ReportEntry bomReportEntry = reportUtils.getEntry(reportFile, ReportUtils.BOM_JSON_FILENAME);
+      ReportEntry dependenciesReportEntry =
+          reportUtils.getEntry(reportFile, ReportUtils.DEPENDENCIES_JSON_FILENAME);
       if (licenseReportEntry == null || securityReportEntry == null || bomReportEntry == null ||
           dependenciesReportEntry == null) {
         return Collections.emptyList();
@@ -840,7 +850,7 @@ public class IndexService
       log.error(e.getMessage(), e);
     }
     catch (UncheckedIOException e) {
-      log.error("Error parsing report files at {}", reportFile.getAbsoluteFile(), e);
+      log.error("Error parsing report files at {}", reportFile.getLocation(), e);
     }
     return Collections.emptyList();
   }

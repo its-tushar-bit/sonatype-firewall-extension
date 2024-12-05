@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.zip.GZIPOutputStream;
@@ -55,9 +56,10 @@ public class PolicyMonitorAuditTest
   }
 
   @Test
-  public void testRunEvaluation_AppWithMonitoring() {
+  public void testRunEvaluation_AppWithMonitoring() throws IOException {
     createScanFile(app.getId(), RestHandler.SCAN_ID);
     tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), RestHandler.SCAN_ID);
+    createReportFile(app.getId(), RestHandler.SCAN_ID, "/PolicyMonitorTest/report");
 
     String scanId2 = "PolicyMonitorTest_scanId2";
     mockScanReceiptAndReport(scanId2);

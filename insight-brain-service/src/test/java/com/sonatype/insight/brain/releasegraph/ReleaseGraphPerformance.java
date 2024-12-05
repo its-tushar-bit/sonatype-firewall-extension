@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,6 +48,8 @@ import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ComponentPopularity;
 import com.sonatype.insight.brain.model.ReportPopularity;
+import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.report.ReportUtils;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.testing.H2InMemoryDatabaseConfigProvider;
@@ -86,8 +87,11 @@ public class ReleaseGraphPerformance
 
     callables = new LinkedList<>();
     pool = new ThreadPoolExecutor(threads, threads, 1, TimeUnit.SECONDS, new ArrayBlockingQueue<>(threads));
+    ReportService reportService = null;
+    ReportUtils reportUtils = null;
     cache = CacheBuilder.newBuilder().maximumSize(1000)
-        .build(new ReleaseGraphCacheLoader(new ReportItemCacheLoader(null, daoFactory.createApplicationDAO())));
+        .build(new ReleaseGraphCacheLoader(new ReportItemCacheLoader(reportService, daoFactory.createApplicationDAO(),
+            reportUtils)));
     ReleaseGraphCacheProvider mockReleaseGraphCacheProvider = mock(ReleaseGraphCacheProvider.class);
     when(mockReleaseGraphCacheProvider.get()).thenReturn(cache);
     reportResource = new ReleaseGraphResource(new ReleaseGraphService(mockReleaseGraphCacheProvider));
@@ -143,33 +147,6 @@ public class ReleaseGraphPerformance
           c = ++c % connectionsPerUser;
         }
         callables.add(createUser(scanId, components));
-      }
-    }
-  }
-
-  ReleaseGraphPerformance(int users, boolean preload, InsightWork work) throws Exception {
-    this(users);
-
-    List<ComponentPopularity> components = getComponents();
-    List<String> scanIds = new LinkedList<>();
-    int u = (int) Math.ceil(((double) users) / components.size());
-    for (int i = 0; i < u; i++) {
-      String scanId = createReport(work);
-      scanIds.add(scanId);
-      for (ComponentPopularity component : components) {
-        callables.add(createUser(scanId, Collections.singletonList(component)));
-        --users;
-        if (users == 0) {
-          break;
-        }
-      }
-      if (preload) {
-        try {
-          reportResource.getImage("ReleaseGraphPerformance_AppId", scanId, "fake", "fake", "fake", null);
-        }
-        catch (Exception e) {
-          // ignored
-        }
       }
     }
   }

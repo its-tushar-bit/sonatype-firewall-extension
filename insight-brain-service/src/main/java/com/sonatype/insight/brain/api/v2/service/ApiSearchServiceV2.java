@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +36,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.report.ReportUtils;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -68,6 +68,8 @@ public class ApiSearchServiceV2
 
   private final ComponentLoaderFactory componentLoaderFactory;
 
+  private ReportUtils reportUtils;
+
   @Inject
   public ApiSearchServiceV2(
       final BaseUrl baseUrl,
@@ -76,7 +78,8 @@ public class ApiSearchServiceV2
       final ApplicationComponentDAO applicationComponentDAO,
       final PolicyViolationDAO policyViolationDAO,
       final ReportService reportService,
-      final ComponentLoaderFactory componentLoaderFactory)
+      final ComponentLoaderFactory componentLoaderFactory,
+      final ReportUtils reportUtils)
   {
     this.baseUrl = baseUrl;
     this.applicationDAO = applicationDAO;
@@ -85,6 +88,7 @@ public class ApiSearchServiceV2
     this.policyViolationDAO = policyViolationDAO;
     this.reportService = reportService;
     this.componentLoaderFactory = componentLoaderFactory;
+    this.reportUtils = reportUtils;
   }
 
   public ApiSearchResultsDTOV2 searchComponent(
@@ -200,9 +204,10 @@ public class ApiSearchServiceV2
     }
 
     try {
-      File reportFile = reportService.getReport(app.getId(), eval.getScanId());
-      final ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
-      final ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
+      Report reportFile = reportService.getReport(app.getId(), eval.getScanId());
+      final ReportEntry bomReportEntry = reportUtils.getEntry(reportFile, ReportUtils.BOM_JSON_FILENAME);
+      final ReportEntry dependenciesReportEntry =
+          reportUtils.getEntry(reportFile, ReportUtils.DEPENDENCIES_JSON_FILENAME);
 
       if (bomReportEntry != null && dependenciesReportEntry != null) {
         List<Component> components =

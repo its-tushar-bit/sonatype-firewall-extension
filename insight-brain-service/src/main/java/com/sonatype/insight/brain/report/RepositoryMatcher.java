@@ -77,6 +77,8 @@ import org.codehaus.plexus.util.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.report.ReportUtils.setMavenCoordinatesWithExtension;
+
 @Named
 public class RepositoryMatcher
 {
@@ -506,7 +508,7 @@ public class RepositoryMatcher
     objectNode.put(ComponentIdentifierAdapter.PURL_IDENTIFIER,
         PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl());
     if (ComponentIdentifier.FORMAT_MAVEN.equals(componentIdentifier.getFormat())) {
-      Report.setMavenCoordinatesWithExtension(objectNode, componentIdentifier);
+      setMavenCoordinatesWithExtension(objectNode, componentIdentifier);
     }
     ComponentDisplayNameUtil.injectDisplayName(objectNode);
   }

@@ -3,12 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 package com.sonatype.insight.brain.report;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.InputStream;
-
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
@@ -16,7 +15,6 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.test.LogOutput;
 
 import org.junit.Before;
@@ -37,20 +35,20 @@ public class ReportDownloaderTest
 {
   private ReportDownloader reportDownloader;
 
-  @Inject
-  private InsightWork work;
-
   @Rule
   public LogOutput logOutput = new LogOutput(ReportDownloader.class);
 
   @Inject
   private HdsClient hdsClient;
-  
+
   private HdsClient spyHdsClient;
-  
+
   @Inject
   private FileCleaner fileCleaner;
-  
+
+  @Inject
+  FileReportUtils reportUtils;
+
   @Before
   public void before() {
     spyHdsClient = spy(hdsClient);
@@ -62,12 +60,12 @@ public class ReportDownloaderTest
     Application app = tempEntity.newApplicationWithParent("dummyApp");
     String scanId = "NonExistentScanId";
     doReturn(createMockResponse(Status.NOT_FOUND)).when(spyHdsClient).getResponse(any());
-    File reportFile = work.getReportFile(app.getId(), scanId);
+    var reportFile = reportUtils.getFileReport(app.getId(), scanId);
 
     boolean rc = reportDownloader.downloadReport(scanId, reportFile, 0, 0);
 
     assertThat(rc).isFalse();
-    assertThat(reportFile.getParentFile()).doesNotExist();
+    assertThat(reportFile.getFile().getParentFile()).doesNotExist();
     assertThat(logOutput).atErrorLevel().contains(ReportDownloader.timeoutExceptionMessage(scanId));
   }
 
@@ -76,7 +74,7 @@ public class ReportDownloaderTest
     Application app = tempEntity.newApplicationWithParent("dummyApp");
     String scanId = "scanId";
     doReturn(createMockResponse(Status.NOT_FOUND)).when(spyHdsClient).getResponse(any());
-    File reportFile = work.getReportFile(app.getId(), scanId);
+    var reportFile = ((FileReport) reportUtils.getFileReport(app.getId(), scanId));
 
     boolean rc = reportDownloader.downloadReport(scanId, reportFile, 0, 0);
 
@@ -90,7 +88,7 @@ public class ReportDownloaderTest
     Application app = tempEntity.newApplicationWithParent("dummyApp");
     String scanId = "scanId";
     doReturn(createMockResponse(Status.NOT_FOUND)).when(spyHdsClient).getResponse(any());
-    File reportFile = work.getReportFile(app.getId(), scanId);
+    var reportFile = ((FileReport) reportUtils.getFileReport(app.getId(), scanId));
     long startTime = System.currentTimeMillis();
 
     boolean rc = reportDownloader.downloadReport(scanId, reportFile, 3, 2);
@@ -109,7 +107,7 @@ public class ReportDownloaderTest
     Application app = tempEntity.newApplicationWithParent("dummyApp");
     String scanId = "scanId";
     doReturn(createMockResponse(Status.BAD_GATEWAY)).when(spyHdsClient).getResponse(any());
-    File reportFile = work.getReportFile(app.getId(), scanId);
+    var reportFile = ((FileReport) reportUtils.getFileReport(app.getId(), scanId));
 
     boolean rc = reportDownloader.downloadReport(scanId, reportFile, 1, 0);
 
@@ -124,7 +122,7 @@ public class ReportDownloaderTest
     InputStream finalReport = new ByteArrayInputStream("report".getBytes());
     doReturn(createMockResponse(Status.BAD_GATEWAY), createMockResponse(Status.OK, finalReport)).when(spyHdsClient)
         .getResponse(any());
-    File reportFile = work.getReportFile(app.getId(), scanId);
+    var reportFile = ((FileReport) reportUtils.getFileReport(app.getId(), scanId));
 
     boolean rc = reportDownloader.downloadReport(scanId, reportFile, 1, 0);
 

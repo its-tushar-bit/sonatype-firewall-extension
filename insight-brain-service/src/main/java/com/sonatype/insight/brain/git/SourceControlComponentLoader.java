@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +25,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.report.ReportUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -43,15 +43,19 @@ public class SourceControlComponentLoader
 
   private final ComponentLoaderFactory componentLoaderFactory;
 
+  private final ReportUtils reportUtils;
+
   @Inject
   SourceControlComponentLoader(
       final ReportService reportService,
       final ApplicationDAO applicationDAO,
-      final ComponentLoaderFactory componentLoaderFactory)
+      final ComponentLoaderFactory componentLoaderFactory,
+      final ReportUtils reportUtils)
   {
     this.reportService = reportService;
     this.applicationDAO = applicationDAO;
     this.componentLoaderFactory = componentLoaderFactory;
+    this.reportUtils = reportUtils;
   }
 
   public SourceControlComponentDetails getSourceControlComponentDetails(
@@ -71,9 +75,9 @@ public class SourceControlComponentLoader
 
     final SourceControlComponentDetails componentDetails = new SourceControlComponentDetails();
 
-    File reportFile = reportService.getReport(application.getId(), scanId);
-    ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
-    ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
+    Report reportFile = reportService.getReport(application.getId(), scanId);
+    ReportEntry bomReportEntry = reportUtils.getEntry(reportFile, ReportUtils.BOM_JSON_FILENAME);
+    ReportEntry dependenciesReportEntry = reportUtils.getEntry(reportFile, ReportUtils.DEPENDENCIES_JSON_FILENAME);
 
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(application);
     List<Component> components;

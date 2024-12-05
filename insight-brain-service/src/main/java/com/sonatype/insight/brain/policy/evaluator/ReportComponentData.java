@@ -5,18 +5,18 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.io.File;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.report.Report;
 
 public class ReportComponentData
 {
-  public final File reportFile;
+  public final Report reportFile;
 
   public final List<Component> components;
 
-  public ReportComponentData(final File reportFile, final List<Component> components) {
+  public ReportComponentData(final Report reportFile, final List<Component> components) {
     this.reportFile = reportFile;
     this.components = components;
   }

@@ -96,15 +96,15 @@ public class ReportPurgerTest
       Files.createDirectories(reportDir);
       Files.write(reportDir.resolve("report.zip"), Collections.singletonList("report.zip"));
       Files.write(reportDir.resolve("report.pdf"), Collections.singletonList("report.pdf"));
-      reportDir = reportDir.resolve(Report.CACHE_DIRECTORY_NAME);
+      reportDir = reportDir.resolve(ReportUtils.CACHE_DIRECTORY_NAME);
       Files.createDirectories(reportDir);
       for (String filename : new String[]{
-          "index.html", "bom.json", Report.DATA_JSON_FILENAME, "licenses.json",
+          "index.html", "bom.json", ReportUtils.DATA_JSON_FILENAME, "licenses.json",
           "licensethreats.json", "partialmatched.json", "policyalerts.json", "policythreats.json", "security.json",
           "summary.json"
       }) {
         Files.write(reportDir.resolve(filename),
-            Collections.singletonList(Report.CACHE_DIRECTORY_NAME + "/" + filename));
+            Collections.singletonList(ReportUtils.CACHE_DIRECTORY_NAME + "/" + filename));
       }
     }
     catch (IOException e) {
@@ -300,12 +300,16 @@ public class ReportPurgerTest
     assertThat(trashDir.list()).containsExactly(trashFile.getName());
     try (FileSystem zipFileSystem = FileSystems.newFileSystem(trashFile.toPath(), (ClassLoader) null)) {
       String[] expectedZipEntries = {
-          "report.zip", Report.CACHE_DIRECTORY_NAME + "/index.html",
-          Report.CACHE_DIRECTORY_NAME + "/bom.json", Report.CACHE_DIRECTORY_NAME + "/" + Report.DATA_JSON_FILENAME,
-          Report.CACHE_DIRECTORY_NAME + "/licenses.json", Report.CACHE_DIRECTORY_NAME + "/licensethreats.json",
-          Report.CACHE_DIRECTORY_NAME + "/partialmatched.json", Report.CACHE_DIRECTORY_NAME + "/policyalerts.json",
-          Report.CACHE_DIRECTORY_NAME + "/policythreats.json", Report.CACHE_DIRECTORY_NAME + "/security.json",
-          Report.CACHE_DIRECTORY_NAME + "/summary.json"
+          "report.zip", ReportUtils.CACHE_DIRECTORY_NAME + "/index.html",
+          ReportUtils.CACHE_DIRECTORY_NAME + "/bom.json",
+          ReportUtils.CACHE_DIRECTORY_NAME + "/" + ReportUtils.DATA_JSON_FILENAME,
+          ReportUtils.CACHE_DIRECTORY_NAME + "/licenses.json",
+          ReportUtils.CACHE_DIRECTORY_NAME + "/licensethreats.json",
+          ReportUtils.CACHE_DIRECTORY_NAME + "/partialmatched.json",
+          ReportUtils.CACHE_DIRECTORY_NAME + "/policyalerts.json",
+          ReportUtils.CACHE_DIRECTORY_NAME + "/policythreats.json",
+          ReportUtils.CACHE_DIRECTORY_NAME + "/security.json",
+          ReportUtils.CACHE_DIRECTORY_NAME + "/summary.json"
       };
       for (String zipEntry : expectedZipEntries) {
         Path zipEntryPath = zipFileSystem.getPath(app.getId(), reportId, zipEntry);

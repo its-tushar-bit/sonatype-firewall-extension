@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.releasegraph;
 
-import java.io.File;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -16,6 +14,7 @@ import com.sonatype.insight.brain.model.ReportPopularity;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.report.ReportUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.cache.CacheLoader;
@@ -28,10 +27,17 @@ public class ReportItemCacheLoader
 
   private final ApplicationDAO applicationDAO;
 
+  private final ReportUtils reportUtils;
+
   @Inject
-  public ReportItemCacheLoader(ReportService reportService, ApplicationDAO applicationDAO) {
+  public ReportItemCacheLoader(
+      ReportService reportService,
+      ApplicationDAO applicationDAO,
+      ReportUtils reportUtils)
+  {
     this.reportService = reportService;
     this.applicationDAO = applicationDAO;
+    this.reportUtils = reportUtils;
   }
 
   @Override
@@ -39,9 +45,9 @@ public class ReportItemCacheLoader
     Application application = applicationDAO.getByPublicIdNotNull(key.getApplicationPublicId());
     String appId = application.getId();
 
-    final String name = Report.toEntryName("popularity.json");
-    final File reportFile = reportService.getReport(appId, key.getScanId());
-    ReportEntry reportEntry = Report.getEntry(reportFile, name);
+    final String name = reportUtils.toEntryName("popularity.json");
+    final Report reportFile = reportService.getReport(appId, key.getScanId());
+    ReportEntry reportEntry = reportUtils.getEntry(reportFile, name);
 
     if (reportEntry == null) {
       throw new IllegalStateException("popularity.json is missing from report for scan " + key.getScanId());

@@ -46,7 +46,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache;
-import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.FileReportUtils;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
@@ -268,7 +268,7 @@ public class AbstractComponentTest
     binder.requestStaticInjection(ConditionTypes.class);
     binder.requestStaticInjection(ConditionValueTypes.class);
     binder.requestStaticInjection(ConfigurationUtils.class);
-    binder.requestStaticInjection(Report.class);
+    binder.requestStaticInjection(FileReportUtils.class);
     binder.requestStaticInjection(ComponentDetailsLoader.class);
     binder.requestStaticInjection(SystemConfigurationPropertyFeature.class);
 
@@ -294,28 +294,39 @@ public class AbstractComponentTest
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
   }
 
+  public void testCallable_DisallowConcurrentExecution(Callable<Void> callable, Consumer<Answer<Void>> answerConsumer,
+                                                       final boolean callRealMethod)
+      throws Exception
+  {
+    testCallable_ConcurrentExecution(callable, answerConsumer, false, callRealMethod);
+  }
+
   public void testCallable_DisallowConcurrentExecution(Callable<Void> callable, Consumer<Answer<Void>> answerConsumer)
       throws Exception
   {
-    testCallable_ConcurrentExecution(callable, answerConsumer, false);
+    testCallable_ConcurrentExecution(callable, answerConsumer, false, false);
   }
 
   public void testCallable_AllowConcurrentExecution(Callable<Void> callable, Consumer<Answer<Void>> answerConsumer)
       throws Exception
   {
-    testCallable_ConcurrentExecution(callable, answerConsumer, true);
+    testCallable_ConcurrentExecution(callable, answerConsumer, true, false);
   }
 
   public void testCallable_ConcurrentExecution(
       Callable<Void> callable,
       Consumer<Answer<Void>> answerConsumer,
-      boolean isAllowed)
+      boolean isAllowed,
+      boolean callRealMethod)
       throws Exception
   {
     CountDownLatch started = new CountDownLatch(2);
     CountDownLatch block = new CountDownLatch(1);
 
     answerConsumer.accept(invocation -> {
+      if (callRealMethod) {
+        invocation.callRealMethod();
+      }
       started.countDown();
       block.await();
       return null;

@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -72,6 +73,18 @@ public final class JsonUtils
     }
   }
 
+  public static <T> T read(final InputStream is, final Class<? extends T> type) throws IOException {
+    try (final JsonParser parser = JSON.createParser(is)) {
+      return parser.readValueAs(type);
+    }
+  }
+
+  public static <T> T read(final byte[] b, final Class<? extends T> type) throws IOException {
+    try (final JsonParser parser = JSON.createParser(b)) {
+      return parser.readValueAs(type);
+    }
+  }
+
   public static void write(final File file, final JsonNode data) throws IOException {
     Files.createDirectories(file.getAbsoluteFile().getParentFile().toPath());
     try (final JsonGenerator generator = JSON.createGenerator(file, JsonEncoding.UTF8)) {
@@ -82,6 +95,12 @@ public final class JsonUtils
   public static void write(final File file, final Object pojo) throws IOException {
     Files.createDirectories(file.getAbsoluteFile().getParentFile().toPath());
     try (final JsonGenerator generator = JSON.createGenerator(file, JsonEncoding.UTF8)) {
+      generator.useDefaultPrettyPrinter().writeObject(pojo);
+    }
+  }
+
+  public static void write(final OutputStream os, final Object pojo) throws IOException {
+    try (final JsonGenerator generator = JSON.createGenerator(os, JsonEncoding.UTF8)) {
       generator.useDefaultPrettyPrinter().writeObject(pojo);
     }
   }

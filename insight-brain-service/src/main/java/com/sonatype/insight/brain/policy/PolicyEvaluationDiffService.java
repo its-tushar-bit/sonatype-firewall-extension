@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
@@ -29,7 +28,9 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
-import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.report.ReportUtils;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.commons.collections4.SetUtils;
@@ -43,14 +44,21 @@ public class PolicyEvaluationDiffService
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluationDiffService.class);
 
-  private final InsightWork work;
-
   private final ComponentLoaderFactory componentLoaderFactory;
 
+  private final ReportUtils reportUtils;
+
+  private final ReportService reportService;
+
   @Inject
-  public PolicyEvaluationDiffService(final InsightWork work, final ComponentLoaderFactory componentLoaderFactory) {
-    this.work = work;
+  public PolicyEvaluationDiffService(
+      final ComponentLoaderFactory componentLoaderFactory,
+      final ReportUtils reportUtils,
+      final ReportService reportService)
+  {
     this.componentLoaderFactory = componentLoaderFactory;
+    this.reportUtils = reportUtils;
+    this.reportService = reportService;
   }
 
   /**
@@ -82,7 +90,7 @@ public class PolicyEvaluationDiffService
       final int minimumThreatLevel,
       boolean byComponents)
   {
-    final File fromReportFile = getReportByPolicyEvaluation(fromEvaluation);
+    final Report fromReportFile = getReportByPolicyEvaluation(fromEvaluation);
     if (fromReportFile == null) {
       log.debug(
           "Could not find report file for 'from' scan report with commit {}, " +
@@ -91,7 +99,7 @@ public class PolicyEvaluationDiffService
       return Optional.empty();
     }
 
-    final File toReportFile = getReportByPolicyEvaluation(toEvaluation);
+    final Report toReportFile = getReportByPolicyEvaluation(toEvaluation);
     if (toReportFile == null) {
       log.debug(
           "Could not find report file for 'to' scan report with commit {}, " +
@@ -101,24 +109,24 @@ public class PolicyEvaluationDiffService
     }
 
     try {
-      final ReportEntry fromReportEntry = Report.getEntry(fromReportFile,
+      final ReportEntry fromReportEntry = reportUtils.getEntry(fromReportFile,
           ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
       if (fromReportEntry == null) {
         log.debug(
             "Could not find policy alerts for 'from' scan report with commit {}, " +
                 "policy evaluation id {}, application id {} and scan report {}",
             fromEvaluation.getCommitHash(), fromEvaluation.getId(), fromEvaluation.getApplicationId(),
-            fromReportFile.getAbsolutePath());
+            fromReportFile.getLocation());
         return Optional.empty();
       }
-      final ReportEntry toReportEntry = Report.getEntry(toReportFile,
+      final ReportEntry toReportEntry = reportUtils.getEntry(toReportFile,
           ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
       if (toReportEntry == null) {
         log.debug(
             "Could not find policy alerts for 'to' scan report with commit {}, " +
                 "policy evaluation id {}, application id {} and scan report {}",
             toEvaluation.getCommitHash(), toEvaluation.getId(), toEvaluation.getApplicationId(),
-            toReportFile.getAbsolutePath());
+            toReportFile.getLocation());
         return Optional.empty();
       }
 
@@ -150,18 +158,27 @@ public class PolicyEvaluationDiffService
     }
   }
 
-  private File getReportByPolicyEvaluation(final PolicyEvaluation policyEvaluation) {
+  private Report getReportByPolicyEvaluation(final PolicyEvaluation policyEvaluation) {
     if (policyEvaluation != null) {
-      File reportFile = work.getReportFile(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
-      if (reportFile.isFile()) {
-        return reportFile;
+      try {
+        Report reportFile =
+            reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
+        if (reportFile.exists()) {
+          return reportFile;
+        }
+      }
+      catch (NotFoundException e) {
+        log.warn("Report not found", e);
+        return null;
       }
     }
     return null;
   }
 
-  private Set<ComponentIdentifierAndHashComparable> loadComponentsFromReport(File reportFile) throws IOException {
-    ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
+  private Set<ComponentIdentifierAndHashComparable> loadComponentsFromReport(Report reportFile)
+      throws IOException
+  {
+    ReportEntry bomReportEntry = reportUtils.getEntry(reportFile, ReportUtils.BOM_JSON_FILENAME);
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(null);
     Set<ComponentIdentifierAndHashComparable> result = new TreeSet<>(ComponentIdentifierAndHashComparator.COMPARATOR);
     result.addAll(componentLoader.getAll(null /* license data */, null /* security data */, bomReportEntry.buf,

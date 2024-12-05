@@ -50,12 +50,12 @@ public class MockReportDownloader
     {
       @Override
       public Boolean answer(InvocationOnMock invocation) throws Throwable {
-        File reportFile = (File) invocation.getArguments()[1];
+        Report reportFile = (Report) invocation.getArguments()[1];
         if (reportResourceName.endsWith(".zip")) {
-          FileUtils.copyURLToFile(getClass().getResource(reportResourceName), reportFile);
+          FileUtils.copyURLToFile(getClass().getResource(reportResourceName), ((FileReport) reportFile).getFile());
         }
         else {
-          zipResourceDir(reportResourceName, reportFile);
+          zipResourceDir(reportResourceName, ((FileReport) reportFile).getFile());
         }
         return true;
       }

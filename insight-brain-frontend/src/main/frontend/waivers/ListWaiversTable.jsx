@@ -48,10 +48,12 @@ export default function ListWaiversTable(props) {
   const waiverToDelete = useSelector(selectWaiverToDelete);
   const getExpirationDate = (waiver) => {
     if (waiver.expiryTime) {
-      return waiver.expireWhenRemediationAvailable ? 'Upgrade Available' : moment(waiver.expiryTime).format(STANDARD_DATE_FORMAT);
+      return waiver.expireWhenRemediationAvailable
+        ? 'Upgrade Available'
+        : moment(waiver.expiryTime).format(STANDARD_DATE_FORMAT);
     }
     return waiver.expireWhenRemediationAvailable ? 'When Remediation Available' : 'Does not expire';
-  }
+  };
   const displayWaiverInTableRow = curry((isWaiverExpired, waiver) => {
     const rowClass = classnames({
       'list-waivers-row--expired': isWaiverExpired,

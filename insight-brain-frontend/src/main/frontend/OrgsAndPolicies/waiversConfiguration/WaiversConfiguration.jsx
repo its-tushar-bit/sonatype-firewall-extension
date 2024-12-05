@@ -121,9 +121,6 @@ function WaiversConfigurationContents() {
               </div>
             </NxFieldset>
             <NxFieldset label="Scope" sublabel="Apply to violations if/when the:">
-              <NxCheckbox onChange={() => dispatch(actions.toggleCheckboxReachable())} isChecked={reachable || false}>
-                Security vulnerability is Not Reachable
-              </NxCheckbox>
               <NxCheckbox onChange={() => dispatch(actions.toggleCheckboxPath())} isChecked={pathForward || false}>
                 No newer, non-violating component version is available
               </NxCheckbox>

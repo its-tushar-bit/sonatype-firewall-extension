@@ -112,7 +112,7 @@ public class PolicyEvaluationDAOTest
     assertThat(policyEvaluation.getId()).isEqualTo(pe2.getId());
     assertThat(policyEvaluation.getTime()).isEqualTo(time2);
   }
-
+  
   @Test
   public void testGetLastByApplicationIdAndStageId() {
     String stageTypeId = ReleaseStageType.ID;

@@ -6,11 +6,13 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationResponseDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
@@ -19,26 +21,49 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.Component;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.google.common.collect.Lists;
+import com.google.inject.Binder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverRevocationResource.BY_AUTO_POLICY_WAIVER_REVOCATION_ID_PATH;
 import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverRevocationResource.OWNERS_PATH;
+import static com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation.EXACT_COMPONENT;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class ApiAutoPolicyWaiverRevocationAuditTest
     extends AbstractAuditTest
 {
+  protected static ReportService reportService = mock(ReportService.class);
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(ReportService.class).toInstance(reportService);
+    super.configure(binder);
+  }
+
   @Before
   public void setup() {
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
     testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+    Mockito.reset(reportService);
   }
 
   @After
@@ -47,56 +72,43 @@ public class ApiAutoPolicyWaiverRevocationAuditTest
   }
 
   @Test
-  public void testAddAutoPolicyWaiverRevocation_Application() throws Exception {
-    Application application = tempEntity.newApplicationWithParent();
-    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
-    tempEntity.newPolicy(application.getOrganizationId());
-    ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
-    tempEntity.newPolicyEvaluation(application.getId(), "stageId", "scanId", new Date());
-
-    ApiAutoPolicyWaiverRevocationDTO revocation = new ApiAutoPolicyWaiverRevocationDTO();
-    revocation.ownerId = application.getId();
-    revocation.autoPolicyWaiverId = autoPolicyWaiver.getId();
-    revocation.scanId = "scanId";
-    revocation.hash = "hash";
-    revocation.componentMatchStrategy = ComponentMatcherStrategyForRevocation.EXACT_COMPONENT;
-
-    HttpResponse response = restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + OWNERS_PATH)
-        .parameter(OwnerType.APPLICATION, application.getId())
-        .body(revocation)
-        .post();
-
-    assertResponseStatus(200, response);
-    ApiAutoPolicyWaiverRevocationDTO responseDTO = response.getBody(ApiAutoPolicyWaiverRevocationDTO.class);
-    final AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_AUTO_WAIVER_REVOCATION, null);
-    assertApplicationData(auditDTO, application);
-    assertCustomData(auditDTO, "autoPolicyWaiverRevocationId", responseDTO.autoPolicyWaiverRevocationId);
-  }
-
-  @Test
-  public void testAddAutoPolicyWaiverRevocation_Organization() throws Exception {
+  public void testAddAutoPolicyWaiverRevocation() throws Exception {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(org.getId());
-    tempEntity.newPolicy(org.getId());
-    ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
+    Policy policy = tempEntity.newPolicy(org.getId());
+
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, identifier, "fake", "fake");
+
     tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
-    ApiAutoPolicyWaiverRevocationDTO revocation = new ApiAutoPolicyWaiverRevocationDTO();
-    revocation.ownerId = org.getId();
-    revocation.autoPolicyWaiverId = autoPolicyWaiver.getId();
-    revocation.scanId = "scanId";
-    revocation.componentMatchStrategy = ComponentMatcherStrategyForRevocation.ALL_VERSIONS;
-    revocation.associatedPackageUrl = "http://example.com/package";
+
+    final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
+        identifier,
+        violation
+    );
+
+    when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
+        createPolicyThreats(Lists.newArrayList(component1Threats)));
+
+    ApiAutoPolicyWaiverRevocationRequestDTO dto = new ApiAutoPolicyWaiverRevocationRequestDTO();
+    dto.applicationPublicId = app.getPublicId();
+    dto.ownerId = app.getOrganizationId();
+    dto.scanId = eval.getScanId();
+    dto.policyViolationId = violation.getId();
+    dto.autoPolicyWaiverId = autoPolicyWaiver.getId();
+    dto.matchStrategy = EXACT_COMPONENT;
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + OWNERS_PATH)
         .parameter(OwnerType.ORGANIZATION, org.getId())
-        .body(revocation)
+        .body(dto)
         .post();
 
     assertResponseStatus(200, response);
-    ApiAutoPolicyWaiverRevocationDTO responseDTO = response.getBody(ApiAutoPolicyWaiverRevocationDTO.class);
+    ApiAutoPolicyWaiverRevocationResponseDTO responseDTO =
+        response.getBody(ApiAutoPolicyWaiverRevocationResponseDTO.class);
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_AUTO_WAIVER_REVOCATION, null);
     assertOrganizationData(auditDTO, org);
     assertCustomData(auditDTO, "autoPolicyWaiverRevocationId", responseDTO.autoPolicyWaiverRevocationId);
@@ -107,16 +119,18 @@ public class ApiAutoPolicyWaiverRevocationAuditTest
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
 
-    ApiAutoPolicyWaiverRevocationDTO revocation = new ApiAutoPolicyWaiverRevocationDTO();
-    revocation.ownerId = application.getId();
-    revocation.autoPolicyWaiverId = autoPolicyWaiver.getId();
-    revocation.hash = "hash";
-    revocation.scanId = "scanId";
+    ApiAutoPolicyWaiverRevocationRequestDTO dto = new ApiAutoPolicyWaiverRevocationRequestDTO();
+    dto.applicationPublicId = application.getPublicId();
+    dto.ownerId = application.getId();
+    dto.scanId = "scanId";
+    dto.policyViolationId = "violationId";
+    dto.autoPolicyWaiverId = autoPolicyWaiver.getId();
+    dto.matchStrategy = EXACT_COMPONENT;
 
     restRequest().with(unauthorizedUser())
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + OWNERS_PATH)
         .parameter(OwnerType.APPLICATION, application.getId())
-        .body(revocation)
+        .body(dto)
         .post();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_AUTO_WAIVER_REVOCATION, "unauthorized");
@@ -171,5 +185,36 @@ public class ApiAutoPolicyWaiverRevocationAuditTest
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_AUTO_WAIVER_REVOCATION, "unauthorized");
     assertOrganizationData(auditDTO, organization);
+  }
+
+  private PolicyThreats createPolicyThreats(final List<Component> components) {
+    final PolicyThreats policyThreats = new PolicyThreats();
+    policyThreats.aaData.addAll(components);
+
+    return policyThreats;
+  }
+
+  private PolicyThreats.Component createPolicyThreatsComponents(
+      ComponentIdentifier componentIdentifier,
+      PolicyViolation violation
+  )
+  {
+    PolicyThreats.PolicyViolation policyViolation = new PolicyThreats.PolicyViolation();
+    policyViolation.policyThreatLevel = violation.getThreatLevel();
+    policyViolation.policyViolationId = violation.getId();
+    policyViolation.policyName = violation.getPolicyName();
+    policyViolation.policyId = violation.getPolicyId();
+    policyViolation.actions = null;
+    policyViolation.constraints = null;
+    policyViolation.policyThreatCategory = null;
+    policyViolation.reachabilityStatus = null;
+    policyViolation.constraintFactsJson = violation.getConstraintFactsJson();
+
+    final PolicyThreats.Component component = new PolicyThreats.Component();
+    component.hash = violation.getHash();
+    component.componentIdentifier = componentIdentifier;
+    component.activeViolations.add(policyViolation);
+    component.allViolations.add(policyViolation);
+    return component;
   }
 }

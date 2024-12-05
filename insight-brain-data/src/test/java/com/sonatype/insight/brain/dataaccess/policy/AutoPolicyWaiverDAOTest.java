@@ -11,6 +11,7 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Before;
@@ -136,9 +137,9 @@ public class AutoPolicyWaiverDAOTest
         "creatorName",
         new Date(),
         autoPolicyWaiverInstanceOne.getId(),
-        "hash",
-        "purl",
-        "scanId"
+        "fakeScanId",
+        "fakeHash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
     );
     autoPolicyWaiverRevocationDAO.insert(revocationOne);
 
@@ -148,9 +149,9 @@ public class AutoPolicyWaiverDAOTest
         "creator",
         new Date(),
         autoPolicyWaiverInstanceTwo.getId(),
-        "hash",
-        "purl",
-        "scanId"
+        "otherScanId",
+        "otherHash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
     );
     autoPolicyWaiverRevocationDAO.insert(revocationTwo);
 

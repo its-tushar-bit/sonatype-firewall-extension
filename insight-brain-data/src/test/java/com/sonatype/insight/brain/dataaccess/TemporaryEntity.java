@@ -1759,64 +1759,80 @@ public class TemporaryEntity
     return autoPolicyWaiver;
   }
 
+  public AutoPolicyWaiverRevocation newAutoPolicyWaiverRevocation(String ownerId, String autoPolicyWaiverId) {
+    AutoPolicyWaiverRevocation autoPolicyWaiverRevocation = new AutoPolicyWaiverRevocation();
+    autoPolicyWaiverRevocation.setOwnerId(ownerId);
+    autoPolicyWaiverRevocation.setAutoPolicyWaiverId(autoPolicyWaiverId);
+    autoPolicyWaiverRevocation.setCreatorId("fakeCreatorId");
+    autoPolicyWaiverRevocation.setCreatorName("fakeCreatorName");
+    autoPolicyWaiverRevocation.setCreateTime(new Date());
+    autoPolicyWaiverRevocation.setScanId("fakeScanId");
+    autoPolicyWaiverRevocation.setHash("fakeHashValue");
+    autoPolicyWaiverRevocation.setComponentMatchStrategy(EXACT_COMPONENT);
+    autoPolicyWaiverRevocationDAO.insert(autoPolicyWaiverRevocation);
+    return autoPolicyWaiverRevocation;
+  }
+
   public AutoPolicyWaiverRevocation newAutoPolicyWaiverRevocation(
       String ownerId,
+      String creatorId,
+      String creatorName,
+      Date createTime,
       String autoPolicyWaiverId,
-      String policyViolationId,
-      String associatedPackageUrl,
+      String scanId,
       String hash,
-      ComponentMatcherStrategyForRevocation componentMatcherStrategyForRevocation)
+      ComponentMatcherStrategyForRevocation matchStrategy)
   {
     AutoPolicyWaiverRevocation autoPolicyWaiverRevocation = new AutoPolicyWaiverRevocation(
         ownerId,
-        "fakeCreatorId",
-        "fakeCreatorName",
-        new Date(),
+        creatorId,
+        creatorName,
+        createTime,
         autoPolicyWaiverId,
-        "fakeScanId",
+        scanId,
         hash,
-        associatedPackageUrl,
-        componentMatcherStrategyForRevocation
+        matchStrategy
+    );
+    autoPolicyWaiverRevocationDAO.insert(autoPolicyWaiverRevocation);
+    return autoPolicyWaiverRevocation;
+  }
+
+  public AutoPolicyWaiverRevocation newAutoPolicyWaiverRevocation(
+      String ownerId,
+      String creatorId,
+      String creatorName,
+      Date createTime,
+      String autoPolicyWaiverId,
+      String scanId,
+      String hash,
+      ComponentMatcherStrategyForRevocation matchStrategy,
+      String policyViolationId,
+      Integer threatLevel,
+      String vulnerabilityIdentifiers,
+      String policyName,
+      String componentDisplayName,
+      String policyId,
+      ComponentIdentifier componentIdentifier,
+      List<ConstraintFact> constraintFacts)
+  {
+    AutoPolicyWaiverRevocation autoPolicyWaiverRevocation = new AutoPolicyWaiverRevocation(
+        ownerId,
+        creatorId,
+        creatorName,
+        createTime,
+        autoPolicyWaiverId,
+        scanId,
+        hash,
+        matchStrategy
     );
     autoPolicyWaiverRevocation.setPolicyViolationId(policyViolationId);
-    autoPolicyWaiverRevocationDAO.insert(autoPolicyWaiverRevocation);
-    return autoPolicyWaiverRevocation;
-  }
-
-  public AutoPolicyWaiverRevocation newAutoPolicyWaiverRevocation(String ownerId, String autoPolicyWaiverId) {
-    AutoPolicyWaiverRevocation autoPolicyWaiverRevocation = new AutoPolicyWaiverRevocation(
-        ownerId,
-        "fakeCreatorId",
-        "fakeCreatorName",
-        new Date(),
-        autoPolicyWaiverId,
-        "fakeScanId",
-        "fakeHash",
-        "pkg:maven/group/artifact@2.0?classifier=c1&type=jar",
-        EXACT_COMPONENT
-    );
-    autoPolicyWaiverRevocationDAO.insert(autoPolicyWaiverRevocation);
-    return autoPolicyWaiverRevocation;
-  }
-
-  public AutoPolicyWaiverRevocation newAutoPolicyWaiverRevocation(
-      String ownerId,
-      String autoPolicyWavierId,
-      String componentHash,
-      String associatedPacakgeUrl,
-      ComponentMatcherStrategyForRevocation strategy)
-  {
-    AutoPolicyWaiverRevocation autoPolicyWaiverRevocation = new AutoPolicyWaiverRevocation(
-        ownerId,
-        "fakeCreatorId",
-        "fakeCreatorName",
-        new Date(),
-        autoPolicyWavierId,
-        "fakeScanId",
-        componentHash,
-        associatedPacakgeUrl,
-        strategy
-    );
+    autoPolicyWaiverRevocation.setThreatLevel(threatLevel);
+    autoPolicyWaiverRevocation.setVulnerabilityIdentifiers(vulnerabilityIdentifiers);
+    autoPolicyWaiverRevocation.setPolicyName(policyName);
+    autoPolicyWaiverRevocation.setComponentDisplayName(componentDisplayName);
+    autoPolicyWaiverRevocation.setPolicyId(policyId);
+    autoPolicyWaiverRevocation.setComponentIdentifier(componentIdentifier);
+    autoPolicyWaiverRevocation.setConstraintFacts(constraintFacts);
     autoPolicyWaiverRevocationDAO.insert(autoPolicyWaiverRevocation);
     return autoPolicyWaiverRevocation;
   }

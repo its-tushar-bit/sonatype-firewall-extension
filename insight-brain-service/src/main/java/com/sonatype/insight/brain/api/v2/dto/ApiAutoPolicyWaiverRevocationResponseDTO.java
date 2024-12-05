@@ -6,7 +6,10 @@
 package com.sonatype.insight.brain.api.v2.dto;
 
 import java.util.Date;
+import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
 import com.sonatype.insight.json.store.ApiDateFormat;
 
@@ -16,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 /**
  * @since 1.83
  */
-public class ApiAutoPolicyWaiverRevocationDTO
+public class ApiAutoPolicyWaiverRevocationResponseDTO
 {
   @JsonInclude(Include.NON_EMPTY)
   public String autoPolicyWaiverRevocationId;
@@ -35,9 +38,7 @@ public class ApiAutoPolicyWaiverRevocationDTO
   public String autoPolicyWaiverId;
 
   public String hash;
-
-  public String associatedPackageUrl;
-
+  
   public String scanId;
 
   public ComponentMatcherStrategyForRevocation componentMatchStrategy;
@@ -50,5 +51,11 @@ public class ApiAutoPolicyWaiverRevocationDTO
 
   public String componentDisplayName;
 
+  public ComponentIdentifier componentIdentifier;
+  
   public String vulnerabilityIdentifiers;
+    
+  public String policyId;
+  
+  public List<ConstraintFact> constraintFacts;
 }

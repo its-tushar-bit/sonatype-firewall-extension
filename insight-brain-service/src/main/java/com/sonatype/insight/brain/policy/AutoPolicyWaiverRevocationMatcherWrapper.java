@@ -5,11 +5,15 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import java.util.Objects;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.policy.comparison.ConstraintFactsListComparator;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.slf4j.Logger;
@@ -25,22 +29,28 @@ public class AutoPolicyWaiverRevocationMatcherWrapper
     this.autoPolicyWaiverRevocation = autoPolicyWaiverRevocation;
   }
 
-  public boolean matchesComponent(ComponentFact componentFact) {
+  public boolean matchesViolation(PolicyViolation policyViolation) {
     ComponentMatcherStrategyForRevocation componentMatcherStrategy =
         autoPolicyWaiverRevocation.getComponentMatchStrategy() == null ?
             ComponentMatcherStrategyForRevocation.EXACT_COMPONENT :
             autoPolicyWaiverRevocation.getComponentMatchStrategy();
 
+    policyViolationNotNull(policyViolation);
+    ComponentFact componentFact =
+        new ComponentFact(policyViolation.getComponentIdentifier(), policyViolation.getHash());
+
     switch (componentMatcherStrategy) {
+      case POLICY_VIOLATION:
+        return matchesPolicyViolation(policyViolation);
+      case ALL_VERSIONS:
+        return componentFactNotNull(componentFact).matchesAllVersionsOfComponent(componentFact);
       case EXACT_COMPONENT:
-        if (componentFact != null && componentFact.getHash() != null) {
+        if (componentFact.getHash() != null) {
           return componentFactNotNull(componentFact).matchesComponentHash(componentFact);
         }
         else {
           return componentFactNotNull(componentFact).matchesComponentIdentifier(componentFact);
         }
-      case ALL_VERSIONS:
-        return componentFactNotNull(componentFact).matchesAllVersionsOfComponent(componentFact);
       default:
         return componentFactNotNull(componentFact).matchesComponentHash(componentFact);
     }
@@ -49,6 +59,15 @@ public class AutoPolicyWaiverRevocationMatcherWrapper
   private AutoPolicyWaiverRevocationMatcherWrapper componentFactNotNull(ComponentFact componentFact) {
     if (componentFact == null) {
       throw new RuntimeException("componentFact is required but got null instead");
+    }
+    else {
+      return this;
+    }
+  }
+
+  private AutoPolicyWaiverRevocationMatcherWrapper policyViolationNotNull(PolicyViolation policyViolation) {
+    if (policyViolation == null) {
+      throw new RuntimeException("policyViolation is required but got null instead");
     }
     else {
       return this;
@@ -121,5 +140,55 @@ public class AutoPolicyWaiverRevocationMatcherWrapper
     }
 
     return waiverAllVersionsComponentIdentifier.compareTo(componentFactAllVersionsComponentIdentifier) == 0;
+  }
+
+  private boolean matchesPolicyViolation(PolicyViolation policyViolation) {
+    // Policy ID
+    if (autoPolicyWaiverRevocation.getPolicyId() == null || policyViolation.getPolicyId() == null) {
+      return false;
+    }
+    if (autoPolicyWaiverRevocation.getPolicyId().compareTo(policyViolation.getPolicyId()) != 0) {
+      return false;
+    }
+
+    // Threat level
+    if (autoPolicyWaiverRevocation.getThreatLevel() == null) {
+      return false;
+    }
+    if (autoPolicyWaiverRevocation.getThreatLevel() != policyViolation.getThreatLevel()) {
+      return false;
+    }
+
+    // Hash and component identifier
+    if (autoPolicyWaiverRevocation.getHash() == null || policyViolation.getHash() == null) {
+      return false;
+    }
+    if (!Objects.equals(autoPolicyWaiverRevocation.getHash(), policyViolation.getHash())) {
+      return false;
+    }
+    
+    try {
+      autoPolicyWaiverRevocation.getComponentIdentifier().ensureComplete();
+      if (autoPolicyWaiverRevocation.getComponentIdentifier().compareTo(policyViolation.getComponentIdentifier()) !=
+          0) {
+        return false;
+      }
+    }
+    catch (InvalidComponentIdentifierException e) {
+      return false;
+    }
+    try {
+      // Constraint facts
+      if (autoPolicyWaiverRevocation.getConstraintFacts() == null || policyViolation.getConstraintFacts() == null) {
+        return false;
+      }
+      return ConstraintFactsListComparator.CONSTRAINT_FACTS_LIST_COMPARATOR.compare(
+          policyViolation.getConstraintFacts(),
+          autoPolicyWaiverRevocation.getConstraintFacts()
+      ) == 0;
+    }
+    catch (NullPointerException e) {
+      return false;
+    }
   }
 }

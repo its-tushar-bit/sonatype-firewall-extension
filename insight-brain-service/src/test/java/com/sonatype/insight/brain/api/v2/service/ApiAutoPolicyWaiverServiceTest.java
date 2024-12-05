@@ -10,6 +10,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.google.inject.Binder;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverAdapter;
@@ -31,7 +32,6 @@ import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverTelemetry.AutoPolicy
 import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverTelemetryMetrics;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Test;
 import org.mockito.Mock;
@@ -711,9 +711,24 @@ public class ApiAutoPolicyWaiverServiceTest
 
     policyViolationDAO.update(violation);
     //add revocation with policy violation Id
-    tempEntity.newAutoPolicyWaiverRevocation(ownerId, autoPolicyWaiver.getId(), violation.getId(),
-        PackageUrlIdentifier.toPackageUrl(identifier), "fakeHash",
-        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+    tempEntity.newAutoPolicyWaiverRevocation(
+        ownerId,
+        "creatorId",
+        "creatorName",
+        new Date(),
+        autoPolicyWaiver.getId(),
+        evaluation.getScanId(),
+        "fakeHash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT,
+        violation.getId(),
+        violation.getThreatLevel(),
+        null,
+        null,
+        null,
+        policy.getId(),
+        identifier,
+        violation.getConstraintFacts()
+    );
 
     ApiAutoPolicyWaiverDTO result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
 
@@ -738,9 +753,24 @@ public class ApiAutoPolicyWaiverServiceTest
 
     policyViolationDAO.update(violation);
     //add revocation with diff hash not, and violation id null
-    tempEntity.newAutoPolicyWaiverRevocation(ownerId, autoPolicyWaiver.getId(), null,
-        PackageUrlIdentifier.toPackageUrl(identifier), "fakeHash",
-        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+    tempEntity.newAutoPolicyWaiverRevocation(
+        ownerId,
+        "creatorId",
+        "creatorName",
+        new Date(),
+        autoPolicyWaiver.getId(),
+        evaluation.getScanId(),
+        "otherFakeHash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT,
+        null,
+        violation.getThreatLevel(),
+        null,
+        null,
+        null,
+        policy.getId(),
+        identifier,
+        violation.getConstraintFacts()
+    );
 
     ApiAutoPolicyWaiverDTO result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
 
@@ -770,9 +800,24 @@ public class ApiAutoPolicyWaiverServiceTest
 
     policyViolationDAO.update(violation);
     //add revocation with policy violation
-    tempEntity.newAutoPolicyWaiverRevocation(ownerId, autoPolicyWaiver.getId(), violation.getId(),
-        PackageUrlIdentifier.toPackageUrl(identifier), "diffHash",
-        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+    tempEntity.newAutoPolicyWaiverRevocation(
+        ownerId,
+        "creatorId",
+        "creatorName",
+        new Date(),
+        autoPolicyWaiver.getId(),
+        evaluation.getScanId(),
+        "diffHash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT,
+        violation.getId(),
+        violation.getThreatLevel(),
+        null,
+        null,
+        null,
+        policy.getId(),
+        identifier,
+        violation.getConstraintFacts()
+    );
 
     ApiAutoPolicyWaiverDTO result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
 
@@ -798,10 +843,24 @@ public class ApiAutoPolicyWaiverServiceTest
 
     policyViolationDAO.update(violation);
     //add revocation with policy violation
-    tempEntity.newAutoPolicyWaiverRevocation(ownerId, autoPolicyWaiver.getId(), violation.getId(),
-        PackageUrlIdentifier.toPackageUrl(identifier), "diffHash",
-        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
-
+    tempEntity.newAutoPolicyWaiverRevocation(
+        ownerId,
+        "creatorId",
+        "creatorName",
+        new Date(),
+        autoPolicyWaiver.getId(),
+        evaluation.getScanId(),
+        "diffHash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT,
+        violation.getId(),
+        violation.getThreatLevel(),
+        null,
+        null,
+        null,
+        policy.getId(),
+        identifier,
+        violation.getConstraintFacts()
+    );
     ApiAutoPolicyWaiverDTO result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
 
     assertThat(result).isNull();
@@ -828,9 +887,24 @@ public class ApiAutoPolicyWaiverServiceTest
     //add revocation with different version and NO policy violation
     ComponentIdentifier diffVersionIdentifier =
         ComponentIdentifier.createMavenCoordinates("group", "artifact", "2.0", "c1", "jar");
-    tempEntity.newAutoPolicyWaiverRevocation(ownerId, autoPolicyWaiver.getId(), null,
-        PackageUrlIdentifier.toPackageUrl(diffVersionIdentifier), "diffHash",
-        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+    tempEntity.newAutoPolicyWaiverRevocation(
+        ownerId,
+        "creatorId",
+        "creatorName",
+        new Date(),
+        autoPolicyWaiver.getId(),
+        evaluation.getScanId(),
+        "differentHash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT,
+        null,
+        violation.getThreatLevel(),
+        null,
+        null,
+        null,
+        policy.getId(),
+        diffVersionIdentifier,
+        violation.getConstraintFacts()
+    );
 
     ApiAutoPolicyWaiverDTO result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
 
@@ -842,9 +916,25 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(result.creatorName).isEqualTo("fakeCreatorName");
 
     //add revocation with ALL VERSIONS and NO policy violation
-    tempEntity.newAutoPolicyWaiverRevocation(ownerId, autoPolicyWaiver.getId(), null,
-        PackageUrlIdentifier.toPackageUrl(diffVersionIdentifier), "diffHash",
-        ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
+    tempEntity.newAutoPolicyWaiverRevocation(
+        ownerId,
+        "creatorId",
+        "creatorName",
+        new Date(),
+        autoPolicyWaiver.getId(),
+        evaluation.getScanId(),
+        "diffHash",
+        ComponentMatcherStrategyForRevocation.ALL_VERSIONS,
+        violation.getId(),
+        violation.getThreatLevel(),
+        null,
+        null,
+        null,
+        policy.getId(),
+        diffVersionIdentifier,
+        violation.getConstraintFacts()
+    );
+
     result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
 
     assertThat(result).isNull();

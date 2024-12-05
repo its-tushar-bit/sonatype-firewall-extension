@@ -325,8 +325,8 @@ public class ApiPolicyViolationResourceV2Test
     assertThat(apiPolicyWaivers).isNotEmpty();
     assertThat(apiPolicyWaivers).hasSize(1);
     assertApiPolicyWaiverDTO("hashX", policyId, orgId, "NewOrg", "", violationId, null,
-            "testuser", "Test User", ALL_VERSIONS, packageUrlAllVersionsWaiver, apiPolicyWaivers[0]);
-    assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo( apiPolicyWaivers[0].constraintFactsJson);
+        "testuser", "Test User", ALL_VERSIONS, packageUrlAllVersionsWaiver, apiPolicyWaivers[0]);
+    assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo(apiPolicyWaivers[0].constraintFactsJson);
   }
 
   @Test
@@ -526,8 +526,14 @@ public class ApiPolicyViolationResourceV2Test
 
     policyViolationDAO.update(violation);
     AutoPolicyWaiverRevocation autoPolicyWaiverRevocation =
-        tempEntity.newAutoPolicyWaiverRevocation(ownerId, autoPolicyWaiver.getId(), violation.getId(),
-            PackageUrlIdentifier.toPackageUrl(identifier), "hash",
+        tempEntity.newAutoPolicyWaiverRevocation(
+            ownerId,
+            "fakeCreatorId",
+            "fakeCreatorName",
+            new Date(),
+            autoPolicyWaiver.getId(),
+            evaluation.getScanId(),
+            "hash",
             ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
@@ -542,11 +548,11 @@ public class ApiPolicyViolationResourceV2Test
     autoPolicyWaiverRevocationDAO.delete(autoPolicyWaiverRevocation);
 
     response = restRequest()
-            .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
-            .path(ApiPolicyViolationResourceV2.VIOLATIONID +
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
+        .path(ApiPolicyViolationResourceV2.VIOLATIONID +
             ApiPolicyViolationResourceV2.APPLICABLE_AUTO_WAIVER_PATH)
-            .parameter(violation.getId())
-            .get();
+        .parameter(violation.getId())
+        .get();
 
     assertResponseStatus(200, response);
 
@@ -580,8 +586,16 @@ public class ApiPolicyViolationResourceV2Test
     violation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
 
     policyViolationDAO.update(violation);
-    tempEntity.newAutoPolicyWaiverRevocation(ownerId, autoPolicyWaiver.getId(), violation.getId(),
-        PackageUrlIdentifier.toPackageUrl(identifier), "hash", ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+
+    tempEntity.newAutoPolicyWaiverRevocation(
+        ownerId,
+        "fakeCreatorId",
+        "fakeCreatorName",
+        new Date(),
+        autoPolicyWaiver.getId(),
+        evaluation.getScanId(),
+        "hash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
         .path(ApiPolicyViolationResourceV2.VIOLATIONID +
@@ -616,9 +630,25 @@ public class ApiPolicyViolationResourceV2Test
     //different version with no policy violation id
     ComponentIdentifier diffVersionIdentifier =
         ComponentIdentifier.createMavenCoordinates("group", "artifact", "2.0", "c1", "jar");
-    tempEntity.newAutoPolicyWaiverRevocation(ownerId, autoPolicyWaiver.getId(), null,
-        PackageUrlIdentifier.toPackageUrl(diffVersionIdentifier), "hash",
-        ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
+
+    tempEntity.newAutoPolicyWaiverRevocation(
+        ownerId,
+        "fakeCreatorId",
+        "fakeCreatorName",
+        new Date(),
+        autoPolicyWaiver.getId(),
+        evaluation.getScanId(),
+        "hash",
+        ComponentMatcherStrategyForRevocation.ALL_VERSIONS,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        diffVersionIdentifier,
+        null
+    );
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
         .path(ApiPolicyViolationResourceV2.VIOLATIONID +

@@ -5,14 +5,19 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import java.util.Date;
+import java.util.List;
 import java.util.TreeMap;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.assertj.core.api.Assertions;
@@ -28,164 +33,205 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
     extends AbstractComponentTest
 {
   @Test
-  public void testMatcherWrapper_MatchesComponent_null_EXACT_COMPONENT() {
+  public void testMatcherWrapper_MatchesViolation_null_POLICY_VIOLATION() {
+    Application app = tempEntity.newApplicationWithParent();
+    AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
+    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
+    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+
+    assertThatThrownBy(() -> wrapper.matchesViolation(null))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessage("policyViolation is required but got null instead");
+  }
+
+  @Test
+  public void testMatcherWrapper_MatchesViolation_null_EXACT_COMPONENT() {
     Application app = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
     AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
     revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
     AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
 
-    assertThatThrownBy(() -> wrapper.matchesComponent(null))
+    assertThatThrownBy(() -> wrapper.matchesViolation(null))
         .isInstanceOf(RuntimeException.class)
-        .hasMessage("componentFact is required but got null instead");
+        .hasMessage("policyViolation is required but got null instead");
   }
 
   @Test
-  public void testMatcherWrapper_MatchesComponent_null_ALL_VERSIONS() {
+  public void testMatcherWrapper_MatchesViolation_null_ALL_VERSIONS() {
     Application app = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
     AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
     revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
     AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
 
-    assertThatThrownBy(() -> wrapper.matchesComponent(null))
+    assertThatThrownBy(() -> wrapper.matchesViolation(null))
         .isInstanceOf(RuntimeException.class)
-        .hasMessage("componentFact is required but got null instead");
+        .hasMessage("policyViolation is required but got null instead");
   }
 
   @Test
-  public void testMatcherWrapper_MatchesComponent_EXACT_COMPONENT() {
+  public void testMatcherWrapper_MatchesViolation_EXACT_COMPONENT() {
     Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHashValue", "fake");
+
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setAssociatedPackageUrl("pkg:maven/group/artifact@2.0?classifier=c1&type=jar");
+    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(
+        app.getId(), waiver.getId());
+    revocation.setComponentIdentifier(identifier);
     revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
     AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
 
-    ComponentFact componentFact = new ComponentFact(revocation.getComponentIdentifier(), revocation.getHash());
-
-    assertThat(wrapper.matchesComponent(componentFact)).isTrue();
+    assertThat(wrapper.matchesViolation(policyViolation)).isTrue();
   }
 
   @Test
-  public void testMatcherWrapper_MatchesComponent_EXACT_COMPONENT_nullHash() {
+  public void testMatcherWrapper_MatchesViolation_EXACT_COMPONENT_nullHash() {
     Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, null, "fake");
+
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
     AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setAssociatedPackageUrl("pkg:maven/group/artifact@2.0?classifier=c1&type=jar");
+    revocation.setComponentIdentifier(identifier);
     revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
     AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
 
-    ComponentFact componentFact = new ComponentFact(revocation.getComponentIdentifier(), null);
-
-    assertThat(wrapper.matchesComponent(componentFact)).isTrue();
+    assertThat(wrapper.matchesViolation(policyViolation)).isTrue();
   }
 
   @Test
-  public void testMatcherWrapper_MatchesComponent_EXACT_COMPONENT_nullHash_missingRequiredCoordinates() {
+  public void testMatcherWrapper_MatchesViolation_EXACT_COMPONENT_nullHash_missingRequiredCoordinates() {
     Application app = tempEntity.newApplicationWithParent();
-    AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setAssociatedPackageUrl("pkg:pypi/name?extension=e&qualifier=q");
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
-
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
     ComponentIdentifier componentIdentifier = new ComponentIdentifier(FORMAT_PYPI, new TreeMap<String, String>()
     {{
         this.put("name", "name");
         this.put("extension", "e");
         this.put("qualifier", "q");
       }});
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation policyViolation =
+        tempEntity.newPolicyViolation(eval, policy, componentIdentifier, "fakeHash", "fake");
 
-    ComponentFact componentFact = new ComponentFact(componentIdentifier, null);
-    assertThat(wrapper.matchesComponent(componentFact)).isTrue();
+    AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
+    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
+    revocation.setComponentIdentifier(componentIdentifier);
+    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+
+    policyViolation.setHash(null);
+    policyViolation.setComponentIdentifier(componentIdentifier);
+    assertThat(wrapper.matchesViolation(policyViolation)).isTrue();
   }
 
   @Test
-  public void testMatcherWrapper_MatchesComponent_ALL_VERSIONS() {
+  public void testMatcherWrapper_MatchesViolation_ALL_VERSIONS() {
     Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("group", "artifact", "3.5", "", "jar");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "otherHash", "fake");
+
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
     AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setAssociatedPackageUrl("pkg:maven/group/artifact@2.0?type=jar");
+    revocation.setComponentIdentifier(identifier);
     revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
     AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
 
-    ComponentIdentifier componentIdentifier =
-        ComponentIdentifier.createMavenCoordinates("group", "artifact", "otherVersion", "", "jar");
-    ComponentFact componentFact = new ComponentFact(componentIdentifier, "otherHash");
-
-    assertThat(wrapper.matchesComponent(componentFact)).isTrue();
+    assertThat(wrapper.matchesViolation(policyViolation)).isTrue();
   }
 
   @Test
-  public void testMatcherWrapper_MatchesComponent_ALL_VERSIONS_UnknownComponent() {
+  public void testMatcherWrapper_MatchesViolation_ALL_VERSIONS_UnknownComponent() {
     Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("group", "artifact", "3.5", "", "jar");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "otherHash", "fake");
+    policyViolation.setComponentIdentifier(null);
+
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
     AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setAssociatedPackageUrl("pkg:maven/group/artifact@2.0?type=jar");
+    revocation.setComponentIdentifier(identifier);
     revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
     AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
 
-    ComponentFact componentFact = new ComponentFact(null, "otherHash");
-    assertThat(wrapper.matchesComponent(componentFact)).isFalse();
+    assertThat(wrapper.matchesViolation(policyViolation)).isFalse();
   }
 
   @Test
-  public void testMatcherWrapper_MatchesComponent_ALL_VERSIONS_missingRequiredCoordinates() {
+  public void testMatcherWrapper_MatchesViolation_ALL_VERSIONS_missingRequiredCoordinates() {
     Application app = tempEntity.newApplicationWithParent();
-    AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setAssociatedPackageUrl("pkg:maven/group/artifact@2.0?type=jar");
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
 
-    ComponentIdentifier componentIdentifier = new ComponentIdentifier(FORMAT_MAVEN, new TreeMap<String, String>()
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
+    ComponentIdentifier identifier = new ComponentIdentifier(FORMAT_MAVEN, new TreeMap<String, String>()
     {{
         this.put("artifactId", "artifact");
         this.put("groupId", "group");
         this.put("version", "1.0");
         this.put("classifier", "");
       }});
-    ComponentFact componentFact = new ComponentFact(componentIdentifier, "otherHash");
-    assertThatNoException().isThrownBy(() -> wrapper.matchesComponent(componentFact));
-  }
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "otherHash", "fake");
 
-  @Test
-  public void testMatcherWrapper_MatchesComponent_ALL_VERSIONS_caseMissMatch() {
-    Application app = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
     AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setAssociatedPackageUrl("pkg:pypi/py-component@1.0?extension=whl&qualifier=py3-none-any");
+    revocation.setComponentIdentifier(identifier);
     revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
     AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
 
-    ComponentIdentifier componentIdentifier =
-        ComponentIdentifier.createPypiCoordinates("Py-component", "otherVersion", "py3-none-any", "whl");
-    ComponentFact componentFact = new ComponentFact(componentIdentifier, "otherHash");
-
-    assertThat(wrapper.matchesComponent(componentFact)).isTrue();
+    assertThatNoException().isThrownBy(() -> wrapper.matchesViolation(policyViolation));
   }
 
   @Test
-  public void testMatcherWrapper_MatchesComponent_ALL_VERSIONS_PythonPackageWithDot() {
+  public void testMatcherWrapper_MatchesViolation_ALL_VERSIONS_caseMisMatch() {
     Application app = tempEntity.newApplicationWithParent();
+
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
+    ComponentIdentifier identifier =
+        ComponentIdentifier.createPypiCoordinates("py-component", "otherVersion", "py3-none-any", "whl");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "otherHash", "fake");
+
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
     AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setAssociatedPackageUrl("pkg:pypi/ruamel.yaml@0.17.35?extension=whl&qualifier=py3-none-any");
+    revocation.setComponentIdentifier(identifier);
     revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
     AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
 
+    assertThat(wrapper.matchesViolation(policyViolation)).isTrue();
+  }
+
+  @Test
+  public void testMatcherWrapper_MatchesViolation_ALL_VERSIONS_PythonPackageWithDot() {
+    Application app = tempEntity.newApplicationWithParent();
+
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createPypiCoordinates("ruamel.yaml", "otherVersion", "py3-none-any", "whl");
-    ComponentFact componentFact = new ComponentFact(componentIdentifier, "otherHash");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation policyViolation =
+        tempEntity.newPolicyViolation(eval, policy, componentIdentifier, "otherHash", "fake");
 
-    assertThat(wrapper.matchesComponent(componentFact)).isTrue();
+    AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
+    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
+    revocation.setComponentIdentifier(componentIdentifier);
+    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
+    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+
+    assertThat(wrapper.matchesViolation(policyViolation)).isTrue();
   }
 
   @Test
   public void testMatcherWrapper_CompareWhenMissingRequiredCoordinates() {
     ComponentIdentifier componentIdentifierSame =
-        new ComponentIdentifier(FORMAT_MAVEN, new TreeMap<String, String>()
+        new ComponentIdentifier(FORMAT_MAVEN, new TreeMap()
         {{
             this.put("artifactId", "artifact");
             this.put("groupId", "group");
@@ -200,12 +246,11 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
             this.put("version", "*");
           }});
 
-    String associatedPackagedUrlAllVersions = "pkg:maven/group/artifact@*?type=jar&classifier=";
-
     Application app = tempEntity.newApplicationWithParent();
+
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
     AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setAssociatedPackageUrl(associatedPackagedUrlAllVersions);
+    revocation.setComponentIdentifier(componentIdentifierSame);
     revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
     AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
 
@@ -218,15 +263,189 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
   }
 
   @Test
-  public void testMatcherWrapper_matchesComponent_EXACT_COMPONENT() {
+  public void testMatcherWrapper_matchesViolation_POLICY_VIOLATION_policyIdMismatch() {
     Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHash", "fake");
+
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
     AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setAssociatedPackageUrl("pkg:maven/group/artifact@*?type=jar&classifier=");
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+    revocation.setPolicyId("fakePolicyId");
+    revocation.setThreatLevel(policyViolation.getThreatLevel());
+    revocation.setHash(policyViolation.getHash());
+    revocation.setComponentIdentifier(identifier);
+    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
     AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
 
-    ComponentFact componentFact = new ComponentFact(null, "fakeHash");
-    assertThat(wrapper.matchesComponent(componentFact)).isTrue();
+    assertThat(wrapper.matchesViolation(policyViolation)).isFalse();
+  }
+
+  @Test
+  public void testMatcherWrapper_matchesViolation_POLICY_VIOLATION_policyIdNull() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHash", "fake");
+    policyViolation.setPolicyId(null);
+
+    AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
+    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
+    revocation.setPolicyId(policy.getId());
+    revocation.setThreatLevel(policyViolation.getThreatLevel());
+    revocation.setHash(policyViolation.getHash());
+    revocation.setComponentIdentifier(identifier);
+    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
+    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+
+    assertThat(wrapper.matchesViolation(policyViolation)).isFalse();
+  }
+
+  @Test
+  public void testMatcherWrapper_matchesViolation_POLICY_VIOLATION_threatLevelMismatch() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHash", "fake");
+
+    AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
+    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
+    revocation.setPolicyId(policy.getId());
+    revocation.setThreatLevel(10);
+    revocation.setHash(policyViolation.getHash());
+    revocation.setComponentIdentifier(identifier);
+    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
+    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+
+    assertThat(wrapper.matchesViolation(policyViolation)).isFalse();
+  }
+
+  @Test
+  public void testMatcherWrapper_matchesViolation_POLICY_VIOLATION_threatLevelNull() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHash", "fake");
+
+    AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
+    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
+    revocation.setPolicyId(policy.getId());
+    revocation.setThreatLevel(null);
+    revocation.setHash(policyViolation.getHash());
+    revocation.setComponentIdentifier(identifier);
+    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
+    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+
+    assertThat(wrapper.matchesViolation(policyViolation)).isFalse();
+  }
+
+  @Test
+  public void testMatcherWrapper_matchesViolation_POLICY_VIOLATION_hashMismatch() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHash", "fake");
+
+    AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
+    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
+    revocation.setPolicyId(policy.getId());
+    revocation.setThreatLevel(policyViolation.getThreatLevel());
+    revocation.setHash("anotherHashValue");
+    revocation.setComponentIdentifier(identifier);
+    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
+    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+
+    assertThat(wrapper.matchesViolation(policyViolation)).isFalse();
+  }
+
+  @Test
+  public void testMatcherWrapper_matchesViolation_POLICY_VIOLATION_hashNull() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, null, "fake");
+
+    AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
+    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
+    revocation.setPolicyId(policy.getId());
+    revocation.setThreatLevel(policyViolation.getThreatLevel());
+    revocation.setHash("anotherHashValue");
+    revocation.setComponentIdentifier(identifier);
+    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
+    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+
+    assertThat(wrapper.matchesViolation(policyViolation)).isFalse();
+  }
+
+  @Test
+  public void testMatcherWrapper_matchesViolation_POLICY_VIOLATION_constraintFactsIdNull() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHash", "fake");
+
+    AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
+    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
+    revocation.setPolicyId(policy.getId());
+    revocation.setThreatLevel(policyViolation.getThreatLevel());
+    revocation.setHash(policyViolation.getHash());
+    revocation.setComponentIdentifier(identifier);
+    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
+    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+
+    assertThat(wrapper.matchesViolation(policyViolation)).isFalse();
+  }
+
+  @Test
+  public void testMatcherWrapper_matchesViolation_POLICY_VIOLATION_constraintFactsMismatch() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation policyViolationOne = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHash", "fake");
+
+    AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
+    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
+    revocation.setPolicyId(policy.getId());
+    revocation.setThreatLevel(policyViolationOne.getThreatLevel());
+    revocation.setHash(policyViolationOne.getHash());
+    revocation.setComponentIdentifier(identifier);
+    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
+    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+
+    PolicyViolation policyViolationTwo = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHash", "fake");
+
+    ConstraintFact newFact = new ConstraintFact("fakeFact", "fakeOperator", "fakeValue");
+    List<ConstraintFact> newFacts = List.of(newFact, newFact);
+    policyViolationTwo.setConstraintFacts(newFacts);
+    policyViolationTwo.setConstraintFactsId("fakeId");
+    assertThat(wrapper.matchesViolation(policyViolationTwo)).isFalse();
+  }
+
+  @Test
+  public void testMatcherWrapper_matchesViolation_POLICY_VIOLATION_invalidConstraintFactsId() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHash", "fake");
+
+    AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
+    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
+    revocation.setPolicyId(policy.getId());
+    revocation.setThreatLevel(policyViolation.getThreatLevel());
+    revocation.setHash(policyViolation.getHash());
+    revocation.setComponentIdentifier(identifier);
+    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
+    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+
+    assertThat(wrapper.matchesViolation(policyViolation)).isFalse();
   }
 }

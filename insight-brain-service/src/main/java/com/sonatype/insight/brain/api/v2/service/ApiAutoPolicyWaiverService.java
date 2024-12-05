@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.List;
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverStatusDTO;
@@ -262,7 +261,7 @@ public class ApiAutoPolicyWaiverService
       boolean allRevocationsInvalid = true;
       for (AutoPolicyWaiverRevocation revocation : autoPolicyWaiverRevocations) {
         boolean matches = new AutoPolicyWaiverRevocationMatcherWrapper(revocation)
-            .matchesComponent(new ComponentFact(policyViolation.getComponentIdentifier(), policyViolation.getHash()));
+            .matchesViolation(policyViolation);
 
         if (matches || (revocation.getPolicyViolationId() != null &&
             revocation.getPolicyViolationId().equals(violationId))) {

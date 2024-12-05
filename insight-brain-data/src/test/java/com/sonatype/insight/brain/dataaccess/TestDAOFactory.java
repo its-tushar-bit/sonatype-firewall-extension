@@ -1167,7 +1167,9 @@ public class TestDAOFactory
 
   @Override
   public AutoPolicyWaiverRevocationDAO createAutoPolicyWaiverRevocationDAO() {
-    return new AutoPolicyWaiverRevocationDAO(dataStoreProvider.getOperationalDataStore());
+    PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO = createPolicyViolationConstraintFactsDAO();
+    return new AutoPolicyWaiverRevocationDAO(dataStoreProvider.getOperationalDataStore(),
+        policyViolationConstraintFactsDAO);
   }
 
   @Override

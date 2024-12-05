@@ -20,11 +20,15 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class AutoPolicyWaiverRevocationDAO
     extends AbstractOperationalSqlDAO<AutoPolicyWaiverRevocation>
 {
+  PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
+
   @Inject
   public AutoPolicyWaiverRevocationDAO(
-      final OperationalDataStore operationalDataStore)
+      final OperationalDataStore operationalDataStore,
+      final PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO)
   {
     super(operationalDataStore);
+    this.policyViolationConstraintFactsDAO = policyViolationConstraintFactsDAO;
   }
 
   public List<AutoPolicyWaiverRevocation> getByOwnerId(String ownerId) {
@@ -91,6 +95,27 @@ public class AutoPolicyWaiverRevocationDAO
     String sQuery = "SELECT entity FROM AutoPolicyWaiverRevocation entity" +
         " WHERE entity.ownerId=?1 AND entity.autoPolicyWaiverId=?2 AND entity.hash=?3";
     return get(tx, sQuery, ownerId, autoPolicyWaiverId, hash);
+  }
+
+  public AutoPolicyWaiverRevocation getByOwnerIdPolicyViolation(
+      String ownerId,
+      String autoPolicyWaiverId,
+      String policyViolationId)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerIdPolicyViolation(tx, ownerId, autoPolicyWaiverId, policyViolationId);
+    }
+  }
+
+  public AutoPolicyWaiverRevocation getByOwnerIdPolicyViolation(
+      TransactionContext tx,
+      String ownerId,
+      String autoPolicyWaiverId,
+      String policyViolationId)
+  {
+    String sQuery = "SELECT entity FROM AutoPolicyWaiverRevocation entity" +
+        " WHERE entity.ownerId=?1 AND entity.autoPolicyWaiverId=?2 AND entity.policyViolationId=?3";
+    return get(tx, sQuery, ownerId, autoPolicyWaiverId, policyViolationId);
   }
 
   public List<AutoPolicyWaiverRevocation> getByOwnerIdAndAutoPolicyWaiverIdPaginated(

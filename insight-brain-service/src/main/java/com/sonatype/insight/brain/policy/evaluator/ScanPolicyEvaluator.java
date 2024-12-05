@@ -1345,6 +1345,9 @@ public class ScanPolicyEvaluator
     if (hasPolicyWaiver(policyViolation)) {
       return false;
     }
+    if (hasApplicableAutoWaiverRevocation(policyViolation, autoPolicyWaiverRevocations)) {
+      return false;
+    }
     if (!doesViolationMeetThreatLevelCriteria(policyViolation, autoPolicyWaiver)) {
       return false;
     }
@@ -1402,18 +1405,20 @@ public class ScanPolicyEvaluator
     if (!features.contains(SystemConfigurationPropertyFeature.AUTO_WAIVERS)) {
       return Collections.emptyList();
     }
-    return autoPolicyWaiverRevocationDAO.getByOwnerIdAndAutoPolicyWaiverId(autoPolicyWaiver.getOwnerId(),
-        autoPolicyWaiver.getId());
+    List<AutoPolicyWaiverRevocation> revocations =
+        autoPolicyWaiverRevocationDAO.getByOwnerIdAndAutoPolicyWaiverId(autoPolicyWaiver.getOwnerId(),
+            autoPolicyWaiver.getId());
+    return revocations;
   }
 
   private boolean hasApplicableAutoWaiverRevocation(
       PolicyViolation policyViolation,
       List<AutoPolicyWaiverRevocation> autoPolicyWaiverRevocations)
   {
+    policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
     for (AutoPolicyWaiverRevocation revocation : autoPolicyWaiverRevocations) {
       AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
-      if (wrapper.matchesComponent(
-          new ComponentFact(policyViolation.getComponentIdentifier(), policyViolation.getHash()))) {
+      if (wrapper.matchesViolation(policyViolation)) {
         return true;
       }
     }

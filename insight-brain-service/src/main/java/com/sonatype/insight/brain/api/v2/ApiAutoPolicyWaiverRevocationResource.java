@@ -21,7 +21,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationResponseDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiAutoPolicyWaiverRevocationService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -85,20 +86,25 @@ public class ApiAutoPolicyWaiverRevocationResource
           )
       }
   )
-  public ApiAutoPolicyWaiverRevocationDTO addAutoPolicyWaiverRevocation(
-      @Parameter(description = "Enter the ownerType to specify the scope.", required = true)
+  public ApiAutoPolicyWaiverRevocationResponseDTO addAutoPolicyWaiverRevocation(
+      @Parameter(description = "Enter the ownerType to specify which resource type owns the auto waiver you want to " +
+          "apply a revocation to. Possible values are application, organization.", required = true)
       @PathParam("ownerType") OwnerType ownerType,
       @Parameter(description = "Enter the corresponding id for the ownerType specified above.", required = true)
       @PathParam("ownerId") String ownerId,
       @RequestBody(
           description = "The request JSON can include the fields" +
               "<ol>" +
-              "<li>autoPolicyWaiverId</li>" +
-              "<li>hash</li>" +
-              "<li>scanId</li>" +
+              "<li>applicationPublicId</li>" +
+              "<li>ownerId - ID of the application or organization which will own the auto waiver revocation</li>" +
+              "<li>policyViolationId - ID of the policy violation which the revocation will apply to</li>" +
+              "<li>autoPolicyWaiverId - ID of the auto waiver you want to apply a revocation to</li>" +
+              "<li>scanId - ID of the scan which the violation being waived appeared in</li>" +
+              "<li>matchStrategy (enumeration, required) can have values EXACT_COMPONENT, " +
+              "ALL_VERSIONS, POLICY_VIOLATION. </li>" +
               "</ol>",
           required = true
-      ) final ApiAutoPolicyWaiverRevocationDTO autoPolicyWaiverRevocationDTO)
+      ) final ApiAutoPolicyWaiverRevocationRequestDTO autoPolicyWaiverRevocationDTO)
   {
     checkAutoPolicyWaiversFeatureEnabled();
     return apiAutoPolicyWaiverRevocationService
@@ -140,7 +146,7 @@ public class ApiAutoPolicyWaiverRevocationResource
   @Path(BY_AUTO_POLICY_WAIVER_ID_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
-  public List<ApiAutoPolicyWaiverRevocationDTO> getAutoPolicyWaiverRevocations(
+  public List<ApiAutoPolicyWaiverRevocationResponseDTO> getAutoPolicyWaiverRevocations(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId,
       @PathParam("autoPolicyWaiverId") String autoPolicyWaiverId,

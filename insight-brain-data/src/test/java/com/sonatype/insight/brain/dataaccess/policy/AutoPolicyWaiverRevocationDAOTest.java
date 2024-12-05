@@ -8,12 +8,16 @@ package com.sonatype.insight.brain.dataaccess.policy;
 import java.util.Date;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -46,9 +50,7 @@ public class AutoPolicyWaiverRevocationDAOTest
         autoPolicyWaiverOne.getId(),
         "scanId",
         "fakehash",
-        "fakePurl",
-        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
     dao.insert(revocation);
 
     // Read
@@ -59,7 +61,7 @@ public class AutoPolicyWaiverRevocationDAOTest
     assertThat(instance.getCreatorName()).isEqualTo(revocation.getCreatorName());
     assertThat(instance.getCreateTime()).isEqualTo(revocation.getCreateTime());
     assertThat(instance.getHash()).isEqualTo(revocation.getHash());
-    assertThat(instance.getAssociatedPackageUrl()).isEqualTo(revocation.getAssociatedPackageUrl());
+    assertThat(instance.getComponentIdentifier()).isEqualTo(revocation.getComponentIdentifier());
     assertThat(instance.getScanId()).isEqualTo(revocation.getScanId());
     assertThat(instance.getComponentMatchStrategy()).isEqualTo(ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
 
@@ -96,7 +98,7 @@ public class AutoPolicyWaiverRevocationDAOTest
         autoPolicyWaiverOne.getId(),
         "fakeScan",
         "fakeHash",
-        "fakePurl"
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
     );
 
     AutoPolicyWaiverRevocation revocationTwo = new AutoPolicyWaiverRevocation(
@@ -107,7 +109,7 @@ public class AutoPolicyWaiverRevocationDAOTest
         autoPolicyWaiverTwo.getId(),
         "fakeScan",
         "fakeHash",
-        "fakePurl"
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
     );
 
     AutoPolicyWaiverRevocation revocationThree = new AutoPolicyWaiverRevocation(
@@ -118,7 +120,7 @@ public class AutoPolicyWaiverRevocationDAOTest
         autoPolicyWaiverTwo.getId(),
         "fakeScan",
         "fakeHash",
-        "fakePurl"
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
     );
 
     AutoPolicyWaiverRevocation revocationFour = new AutoPolicyWaiverRevocation(
@@ -129,7 +131,7 @@ public class AutoPolicyWaiverRevocationDAOTest
         autoPolicyWaiverThree.getId(),
         "fakeScan",
         "fakeHash",
-        "fakePurl"
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
     );
 
     dao.insert(revocationOne);
@@ -172,7 +174,7 @@ public class AutoPolicyWaiverRevocationDAOTest
         autoPolicyWaiverOne.getId(),
         "fakeScan",
         "fakeHashOne",
-        "fakePurl"
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
     );
 
     AutoPolicyWaiverRevocation revocationTwo = new AutoPolicyWaiverRevocation(
@@ -183,7 +185,7 @@ public class AutoPolicyWaiverRevocationDAOTest
         autoPolicyWaiverTwo.getId(),
         "fakeScan",
         "fakeHashTwo",
-        "fakePurl"
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
     );
 
     AutoPolicyWaiverRevocation revocationThree = new AutoPolicyWaiverRevocation(
@@ -194,7 +196,7 @@ public class AutoPolicyWaiverRevocationDAOTest
         autoPolicyWaiverTwo.getId(),
         "fakeScan",
         "fakeHashThree",
-        "fakePurl"
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
     );
 
     AutoPolicyWaiverRevocation revocationFour = new AutoPolicyWaiverRevocation(
@@ -205,7 +207,7 @@ public class AutoPolicyWaiverRevocationDAOTest
         autoPolicyWaiverThree.getId(),
         "fakeScan",
         "fakeHashTwo",
-        "fakePurl"
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
     );
 
     dao.insert(revocationOne);
@@ -258,7 +260,7 @@ public class AutoPolicyWaiverRevocationDAOTest
         autoPolicyWaiverForApp.getId(),
         "scanId",
         "hash",
-        "purl"
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
     );
     dao.insert(revocation);
 
@@ -288,7 +290,7 @@ public class AutoPolicyWaiverRevocationDAOTest
         autoPolicyWaiverForApp.getId(),
         "scanId",
         "hash",
-        "purl"
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
     );
     dao.insert(revocation);
 
@@ -400,5 +402,171 @@ public class AutoPolicyWaiverRevocationDAOTest
       assertThat(waiverRevocation.getOwnerId()).isEqualTo(waiverTwo.getOwnerId());
       assertThat(waiverRevocation.getAutoPolicyWaiverId()).isEqualTo(waiverTwo.getId());
     });
+  }
+  
+  @Test
+  public void testGetByOwnerIdPolicyViolation_NoMatch() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, identifier, "fake", "fake");
+    AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
+    tempEntity.newAutoPolicyWaiverRevocation(
+        app.getId(),
+        "fakeCreatorId",
+        "fakeCreatorName",
+        new Date(),
+        waiver.getId(),
+        eval.getScanId(),
+        violation.getHash(),
+        ComponentMatcherStrategyForRevocation.POLICY_VIOLATION,
+        violation.getId(),
+        violation.getThreatLevel(),
+        "CVE-111-223",
+        policy.getName(),
+        "a1 v1",
+        policy.getId(),
+        identifier,
+        violation.getConstraintFacts()
+    );
+
+    AutoPolicyWaiver autoPolicyWaiverTwo = tempEntity.newAutoPolicyWaiver(app.getOrganizationId());
+    Organization otherOrg = tempEntity.newOrganization("fakeOrgOne");
+    AutoPolicyWaiver autoPolicyWaiverThree = tempEntity.newAutoPolicyWaiver(otherOrg.getId());
+
+    AutoPolicyWaiverRevocation revocationTwo = new AutoPolicyWaiverRevocation(
+        app.getOrganizationId(),
+        "fakeCreatorId",
+        "fakeCreatorName",
+        new Date(),
+        autoPolicyWaiverTwo.getId(),
+        "fakeScan",
+        "fakeHash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
+    );
+
+    AutoPolicyWaiverRevocation revocationThree = new AutoPolicyWaiverRevocation(
+        app.getOrganizationId(),
+        "fakeCreatorId",
+        "fakeCreatorName",
+        new Date(),
+        autoPolicyWaiverTwo.getId(),
+        "fakeScan",
+        "fakeHash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
+    );
+
+    AutoPolicyWaiverRevocation revocationFour = new AutoPolicyWaiverRevocation(
+        otherOrg.getId(),
+        "fakeCreatorId",
+        "fakeCreatorName",
+        new Date(),
+        autoPolicyWaiverThree.getId(),
+        "fakeScan",
+        "fakeHash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
+    );
+    dao.insert(revocationTwo);
+    dao.insert(revocationThree);
+    dao.insert(revocationFour);
+
+    // when
+    AutoPolicyWaiverRevocation result = dao.getByOwnerIdPolicyViolation(
+        app.getId(),
+        waiver.getId(),
+        "someotherPolicyViolationId"
+    );
+
+    // then
+    assertThat(result).isNull();
+  }
+
+  @Test
+  public void testGetByOwnerIdPolicyViolation_Match() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
+    PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, identifier, "fake", "fake");
+    AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
+    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(
+        app.getId(),
+        "fakeCreatorId",
+        "fakeCreatorName",
+        new Date(),
+        waiver.getId(),
+        eval.getScanId(),
+        violation.getHash(),
+        ComponentMatcherStrategyForRevocation.POLICY_VIOLATION,
+        violation.getId(),
+        violation.getThreatLevel(),
+        "CVE-111-223",
+        policy.getName(),
+        "a1 v1",
+        policy.getId(),
+        identifier,
+        violation.getConstraintFacts()
+    );
+
+    AutoPolicyWaiver autoPolicyWaiverTwo = tempEntity.newAutoPolicyWaiver(app.getOrganizationId());
+    Organization otherOrg = tempEntity.newOrganization("fakeOrgOne");
+    AutoPolicyWaiver autoPolicyWaiverThree = tempEntity.newAutoPolicyWaiver(otherOrg.getId());
+
+    AutoPolicyWaiverRevocation revocationTwo = new AutoPolicyWaiverRevocation(
+        app.getOrganizationId(),
+        "fakeCreatorId",
+        "fakeCreatorName",
+        new Date(),
+        autoPolicyWaiverTwo.getId(),
+        "fakeScan",
+        "fakeHash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
+    );
+
+    AutoPolicyWaiverRevocation revocationThree = new AutoPolicyWaiverRevocation(
+        app.getOrganizationId(),
+        "fakeCreatorId",
+        "fakeCreatorName",
+        new Date(),
+        autoPolicyWaiverTwo.getId(),
+        "fakeScan",
+        "fakeHash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
+    );
+
+    AutoPolicyWaiverRevocation revocationFour = new AutoPolicyWaiverRevocation(
+        otherOrg.getId(),
+        "fakeCreatorId",
+        "fakeCreatorName",
+        new Date(),
+        autoPolicyWaiverThree.getId(),
+        "fakeScan",
+        "fakeHash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
+    );
+    dao.insert(revocationTwo);
+    dao.insert(revocationThree);
+    dao.insert(revocationFour);
+
+    // when
+    AutoPolicyWaiverRevocation result = dao.getByOwnerIdPolicyViolation(
+        app.getId(),
+        waiver.getId(),
+        violation.getId()
+    );
+
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result.getOwnerId()).isEqualTo(app.getId());
+    assertThat(result.getAutoPolicyWaiverId()).isEqualTo(waiver.getId());
+    assertThat(result.getComponentMatchStrategy()).isEqualTo(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
+    assertThat(result.getPolicyId()).isEqualTo(revocation.getPolicyId());
+    assertThat(result.getThreatLevel()).isEqualTo(revocation.getThreatLevel());
+    assertThat(result.getPolicyName()).isEqualTo(revocation.getPolicyName());
+    assertThat(result.getConstraintFactsJson()).isEqualTo(revocation.getConstraintFactsJson());
+    assertThat(result.getPolicyViolationId()).isEqualTo(revocation.getPolicyViolationId());
+    assertThat(result.getHash()).isEqualTo(revocation.getHash());
+    assertThat(result.getComponentIdentifier()).isEqualTo(revocation.getComponentIdentifier());
   }
 }

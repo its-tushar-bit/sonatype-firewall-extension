@@ -5,7 +5,11 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -13,8 +17,13 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
+
+import org.apache.commons.lang3.StringUtils;
 
 /*
  * @since 1.183
@@ -46,9 +55,6 @@ public class AutoPolicyWaiverRevocation
   @Column(name = "hash")
   private String hash;
 
-  @Column(name = "associated_package_url")
-  private String associatedPackageUrl;
-
   @Column(name = "scan_id")
   private String scanId;
 
@@ -70,6 +76,18 @@ public class AutoPolicyWaiverRevocation
   @Column(name = "component_display_name")
   private String componentDisplayName;
 
+  @Column(name = "policy_id")
+  private String policyId;
+
+  @Column(name = "associated_package_url")
+  private String associatedPackageUrl;
+
+  @Column(name = "constraint_facts_json")
+  private String constraintFactsJson;
+
+  @Transient
+  private List<ConstraintFact> constraintFacts;
+
   @Transient
   private ComponentIdentifier componentIdentifier;
 
@@ -84,12 +102,26 @@ public class AutoPolicyWaiverRevocation
       String autoPolicyWaiverId,
       String scanId,
       String hash,
-      String associatedPackageUrl,
-      ComponentMatcherStrategyForRevocation componentMatchStrategy
-  )
+      ComponentMatcherStrategyForRevocation componentMatchStrategy,
+      String policyViolationId,
+      Integer threatLevel,
+      String vulnerabilityIdentifiers,
+      String policyName,
+      String componentDisplayName,
+      String policyId,
+      ComponentIdentifier componentIdentifier,
+      List<ConstraintFact> constraintFacts)
   {
-    this(ownerId, creatorId, creatorName, createTime, autoPolicyWaiverId, scanId, hash, associatedPackageUrl);
+    this(ownerId, creatorId, creatorName, createTime, autoPolicyWaiverId, scanId, hash);
     setComponentMatchStrategy(componentMatchStrategy);
+    setPolicyViolationId(policyViolationId);
+    setThreatLevel(threatLevel);
+    setVulnerabilityIdentifiers(vulnerabilityIdentifiers);
+    setPolicyName(policyName);
+    setComponentDisplayName(componentDisplayName);
+    setPolicyId(policyId);
+    setComponentIdentifier(componentIdentifier);
+    setConstraintFacts(constraintFacts);
   }
 
   public AutoPolicyWaiverRevocation(
@@ -100,7 +132,21 @@ public class AutoPolicyWaiverRevocation
       String autoPolicyWaiverId,
       String scanId,
       String hash,
-      String associatedPackageUrl)
+      ComponentMatcherStrategyForRevocation componentMatchStrategy
+  )
+  {
+    this(ownerId, creatorId, creatorName, createTime, autoPolicyWaiverId, scanId, hash);
+    setComponentMatchStrategy(componentMatchStrategy);
+  }
+
+  public AutoPolicyWaiverRevocation(
+      String ownerId,
+      String creatorId,
+      String creatorName,
+      Date createTime,
+      String autoPolicyWaiverId,
+      String scanId,
+      String hash)
   {
     this.ownerId = ownerId;
     this.creatorId = creatorId;
@@ -109,7 +155,6 @@ public class AutoPolicyWaiverRevocation
     this.autoPolicyWaiverId = autoPolicyWaiverId;
     this.scanId = scanId;
     this.hash = hash;
-    this.associatedPackageUrl = associatedPackageUrl;
   }
 
   @Override
@@ -170,14 +215,6 @@ public class AutoPolicyWaiverRevocation
     this.hash = hash;
   }
 
-  public String getAssociatedPackageUrl() {
-    return associatedPackageUrl;
-  }
-
-  public void setAssociatedPackageUrl(String associatedPackageUrl) {
-    this.associatedPackageUrl = associatedPackageUrl;
-  }
-
   public String getScanId() {
     return scanId;
   }
@@ -194,6 +231,14 @@ public class AutoPolicyWaiverRevocation
     this.componentMatchStrategy = componentMatchStrategy;
   }
 
+  public String getAssociatedPackageUrl() {
+    return associatedPackageUrl;
+  }
+
+  public void setAssociatedPackageUrl(String associatedPackageUrl) {
+    this.associatedPackageUrl = associatedPackageUrl;
+  }
+
   public ComponentIdentifier getComponentIdentifier() {
     if (componentIdentifier == null) {
       if (associatedPackageUrl == null) {
@@ -202,6 +247,11 @@ public class AutoPolicyWaiverRevocation
       componentIdentifier = ComponentIdentifierAdapter.toComponentIdentifier(associatedPackageUrl);
     }
     return componentIdentifier;
+  }
+
+  public void setComponentIdentifier(ComponentIdentifier componentIdentifier) {
+    this.componentIdentifier = componentIdentifier;
+    this.associatedPackageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier);
   }
 
   public String getPolicyViolationId() {
@@ -244,10 +294,54 @@ public class AutoPolicyWaiverRevocation
     this.componentDisplayName = componentDisplayName;
   }
 
+  public String getPolicyId() {
+    return policyId;
+  }
+
+  public void setPolicyId(String policyId) {
+    this.policyId = policyId;
+  }
+
+  public String getConstraintFactsJson() {
+    return constraintFactsJson;
+  }
+
+  public void setConstraintFactsJson(String constraintFactsJson) {
+    if (StringUtils.isBlank(constraintFactsJson)) {
+      constraintFactsJson = null;
+    }
+    this.constraintFactsJson = constraintFactsJson;
+    constraintFacts = null;
+  }
+
+  public void setConstraintFacts(List<ConstraintFact> constraintFacts) {
+    if (constraintFacts == null || constraintFacts.isEmpty()) {
+      this.constraintFacts = null;
+      constraintFactsJson = null;
+    }
+    else {
+      this.constraintFacts = constraintFacts;
+      constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
+    }
+  }
+
+  public List<ConstraintFact> getConstraintFacts() {
+    if (constraintFacts == null && !StringUtils.isBlank(constraintFactsJson)) {
+      try {
+        constraintFacts = Arrays.asList(JsonUtils.parse(constraintFactsJson, ConstraintFact[].class));
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException("Failed to read constraint facts for policy waiver " + id, e);
+      }
+    }
+    return constraintFacts;
+  }
+
   public enum ComponentMatcherStrategyForRevocation
   {
     EXACT_COMPONENT,
-    ALL_VERSIONS;
+    ALL_VERSIONS,
+    POLICY_VIOLATION;
 
     @Override
     public String toString() {

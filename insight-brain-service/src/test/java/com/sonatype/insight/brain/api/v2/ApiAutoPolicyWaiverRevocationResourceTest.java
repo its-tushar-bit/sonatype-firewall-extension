@@ -14,7 +14,8 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationResponseDTO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverRevocationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -22,34 +23,53 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.google.common.collect.Lists;
+import com.google.inject.Binder;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
 import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverRevocationResource.BY_AUTO_POLICY_WAIVER_ID_PATH;
 import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverRevocationResource.OWNERS_PATH;
 import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverRevocationResource.BY_AUTO_POLICY_WAIVER_REVOCATION_ID_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class ApiAutoPolicyWaiverRevocationResourceTest
     extends AbstractResourceTest
 {
   private AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO;
 
   private PolicyViolationDAO policyViolationDAO;
-
+  
+  protected static ReportService reportService = mock(ReportService.class);
+  
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(ReportService.class).toInstance(reportService);
+    super.configure(binder);
+  }
+  
   @Before
   public void setUp() {
     autoPolicyWaiverRevocationDAO = lookup(AutoPolicyWaiverRevocationDAO.class);
@@ -57,8 +77,9 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
     licenseManager.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+    Mockito.reset(reportService);
   }
-
+  
   @After
   public void cleanup() {
     licenseManager.reset();
@@ -133,24 +154,34 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
     Policy policy = tempEntity.newPolicy(application.getOrganizationId());
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(application.getId(), "stageId", "scanId", new Date());
-    tempEntity.newPolicyViolation(eval, policy, identifier, "fake", "fake");
+    PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, identifier, "fake", "fake");
 
-    ApiAutoPolicyWaiverRevocationDTO revocation = new ApiAutoPolicyWaiverRevocationDTO();
+    ApiAutoPolicyWaiverRevocationRequestDTO revocation = new ApiAutoPolicyWaiverRevocationRequestDTO();
     revocation.ownerId = application.getId();
     revocation.autoPolicyWaiverId = autoPolicyWaiver.getId();
+    revocation.applicationPublicId = application.getPublicId();
     revocation.scanId = "scanId";
-    revocation.hash = "hash";
+    revocation.policyViolationId = violation.getId();
+    revocation.matchStrategy = ComponentMatcherStrategyForRevocation.EXACT_COMPONENT;
 
+    final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
+        identifier,
+        violation
+    );
+
+    when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
+        createPolicyThreats(Lists.newArrayList(component1Threats)));
+    
     HttpResponse response = restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + OWNERS_PATH)
         .parameter(OwnerType.APPLICATION, application.getId())
         .body(revocation)
         .post();
-
+    
     assertResponseStatus(200, response);
     AutoPolicyWaiverRevocation resultingRevocation =
         autoPolicyWaiverRevocationDAO.getByOwnerIdAndAutoPolicyWaiverIdAndHash(
-            application.getId(), autoPolicyWaiver.getId(), revocation.hash);
+            application.getId(), autoPolicyWaiver.getId(), violation.getHash());
     assertThat(resultingRevocation).isNotNull();
   }
 
@@ -161,13 +192,24 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
     Policy policy = tempEntity.newPolicy(app.getOrganizationId());
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
-    tempEntity.newPolicyViolation(eval, policy, identifier, "fake", "fake");
-    ApiAutoPolicyWaiverRevocationDTO revocation = new ApiAutoPolicyWaiverRevocationDTO();
+    PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, identifier, "fake", "fake");
+    
+    final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
+        identifier,
+        violation
+    );
+
+    when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
+        createPolicyThreats(Lists.newArrayList(component1Threats)));
+
+    ApiAutoPolicyWaiverRevocationRequestDTO revocation = new ApiAutoPolicyWaiverRevocationRequestDTO();
     revocation.ownerId = app.getOrganizationId();
     revocation.autoPolicyWaiverId = autoPolicyWaiver.getId();
+    revocation.applicationPublicId = app.getPublicId();
     revocation.scanId = "scanId";
-    revocation.hash = "hash";
-
+    revocation.policyViolationId = violation.getId();
+    revocation.matchStrategy = ComponentMatcherStrategyForRevocation.EXACT_COMPONENT;
+    
     HttpResponse response = restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + OWNERS_PATH)
         .parameter(OwnerType.ORGANIZATION, app.getOrganizationId())
@@ -177,7 +219,7 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
     assertResponseStatus(200, response);
     AutoPolicyWaiverRevocation resultingRevocation =
         autoPolicyWaiverRevocationDAO.getByOwnerIdAndAutoPolicyWaiverIdAndHash(
-            app.getOrganizationId(), autoPolicyWaiver.getId(), revocation.hash);
+            app.getOrganizationId(), autoPolicyWaiver.getId(), violation.getHash());
     assertThat(resultingRevocation).isNotNull();
   }
 
@@ -190,14 +232,24 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
     Policy policy = tempEntity.newPolicy(application.getOrganizationId());
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(application.getId(), "stageId", "scanId", new Date());
-    tempEntity.newPolicyViolation(eval, policy, identifier, "fake", "fake");
+    PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, identifier, "fake", "fake");
 
-    ApiAutoPolicyWaiverRevocationDTO revocation = new ApiAutoPolicyWaiverRevocationDTO();
+    ApiAutoPolicyWaiverRevocationRequestDTO revocation = new ApiAutoPolicyWaiverRevocationRequestDTO();
     revocation.ownerId = application.getId();
     revocation.autoPolicyWaiverId = autoPolicyWaiver.getId();
+    revocation.applicationPublicId = application.getPublicId();
     revocation.scanId = "scanId";
-    revocation.hash = "hash";
+    revocation.policyViolationId = violation.getId();
+    revocation.matchStrategy = ComponentMatcherStrategyForRevocation.EXACT_COMPONENT;
 
+    final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
+        identifier,
+        violation
+    );
+
+    when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
+        createPolicyThreats(Lists.newArrayList(component1Threats)));
+    
     HttpResponse response = restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + OWNERS_PATH)
         .parameter(OwnerType.APPLICATION, application.getId())
@@ -218,7 +270,7 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
     assertResponseStatus(200, response);
     AutoPolicyWaiverRevocation resultingRevocation =
         autoPolicyWaiverRevocationDAO.getByOwnerIdAndAutoPolicyWaiverIdAndHash(
-            application.getId(), autoPolicyWaiver.getId(), revocation.hash);
+            application.getId(), autoPolicyWaiver.getId(), violation.getHash());
     assertThat(resultingRevocation).isNotNull();
   }
 
@@ -229,7 +281,7 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
 
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
-    ApiAutoPolicyWaiverRevocationDTO revocation = new ApiAutoPolicyWaiverRevocationDTO();
+    ApiAutoPolicyWaiverRevocationResponseDTO revocation = new ApiAutoPolicyWaiverRevocationResponseDTO();
     revocation.ownerId = application.getId();
     revocation.autoPolicyWaiverId = autoPolicyWaiver.getId();
     revocation.hash = "hash";
@@ -247,7 +299,7 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
   public void testAddAutoPolicyWaiverRevocation_IncompleteDto() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
-    ApiAutoPolicyWaiverRevocationDTO revocation = new ApiAutoPolicyWaiverRevocationDTO();
+    ApiAutoPolicyWaiverRevocationResponseDTO revocation = new ApiAutoPolicyWaiverRevocationResponseDTO();
     revocation.ownerId = application.getId();
     revocation.autoPolicyWaiverId = autoPolicyWaiver.getId();
 
@@ -306,8 +358,8 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
 
     assertResponseStatus(200, responseOne);
 
-    List<ApiAutoPolicyWaiverRevocationDTO> revocations =
-        responseOne.getBodyList(ApiAutoPolicyWaiverRevocationDTO.class);
+    List<ApiAutoPolicyWaiverRevocationResponseDTO> revocations =
+        responseOne.getBodyList(ApiAutoPolicyWaiverRevocationResponseDTO.class);
     assertThat(revocations).hasSize(3).allSatisfy(revocation -> {
       assertThat(revocation.ownerId).isEqualTo(app.getId());
       assertThat(revocation.autoPolicyWaiverId).isEqualTo(waiver.getId());
@@ -322,8 +374,8 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
 
     assertResponseStatus(200, responseTwo);
 
-    List<ApiAutoPolicyWaiverRevocationDTO> revocationsTwo =
-        responseTwo.getBodyList(ApiAutoPolicyWaiverRevocationDTO.class);
+    List<ApiAutoPolicyWaiverRevocationResponseDTO> revocationsTwo =
+        responseTwo.getBodyList(ApiAutoPolicyWaiverRevocationResponseDTO.class);
 
     assertThat(revocationsTwo).hasSize(2).allSatisfy(revocation -> {
       assertThat(revocation.ownerId).isEqualTo(app.getId());
@@ -394,5 +446,36 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
       final ConditionFact... conditionFacts)
   {
     return new ConstraintFact(constraintId, constraintName, null, conditionFacts);
+  }
+
+  private PolicyThreats createPolicyThreats(final List<PolicyThreats.Component> components) {
+    final PolicyThreats policyThreats = new PolicyThreats();
+    policyThreats.aaData.addAll(components);
+
+    return policyThreats;
+  }
+
+  private PolicyThreats.Component createPolicyThreatsComponents(
+      ComponentIdentifier componentIdentifier,
+      PolicyViolation violation
+  )
+  {
+    PolicyThreats.PolicyViolation policyViolation = new PolicyThreats.PolicyViolation();
+    policyViolation.policyThreatLevel = violation.getThreatLevel();
+    policyViolation.policyViolationId = violation.getId();
+    policyViolation.policyName = violation.getPolicyName();
+    policyViolation.policyId = violation.getPolicyId();
+    policyViolation.actions = null;
+    policyViolation.constraints = null;
+    policyViolation.policyThreatCategory = null;
+    policyViolation.reachabilityStatus = null;
+    policyViolation.constraintFactsJson = violation.getConstraintFactsJson();
+
+    final PolicyThreats.Component component = new PolicyThreats.Component();
+    component.hash = violation.getHash();
+    component.componentIdentifier = componentIdentifier;
+    component.activeViolations.add(policyViolation);
+    component.allViolations.add(policyViolation);
+    return component;
   }
 }

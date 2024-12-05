@@ -5,19 +5,19 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationResponseDTO;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
 
 public class ApiAutoPolicyWaiverRevocationAdapter
 {
-  public static ApiAutoPolicyWaiverRevocationDTO convertToDTO(
+  public static ApiAutoPolicyWaiverRevocationResponseDTO convertToDTO(
       final AutoPolicyWaiverRevocation autoPolicyWaiverRevocation)
   {
     if (autoPolicyWaiverRevocation == null) {
       return null;
     }
 
-    final ApiAutoPolicyWaiverRevocationDTO dto = new ApiAutoPolicyWaiverRevocationDTO();
+    final ApiAutoPolicyWaiverRevocationResponseDTO dto = new ApiAutoPolicyWaiverRevocationResponseDTO();
 
     dto.autoPolicyWaiverRevocationId = autoPolicyWaiverRevocation.getId();
     dto.ownerId = autoPolicyWaiverRevocation.getOwnerId();
@@ -26,7 +26,6 @@ public class ApiAutoPolicyWaiverRevocationAdapter
     dto.createTime = autoPolicyWaiverRevocation.getCreateTime();
     dto.autoPolicyWaiverId = autoPolicyWaiverRevocation.getAutoPolicyWaiverId();
     dto.hash = autoPolicyWaiverRevocation.getHash();
-    dto.associatedPackageUrl = autoPolicyWaiverRevocation.getAssociatedPackageUrl();
     dto.scanId = autoPolicyWaiverRevocation.getScanId();
     dto.componentMatchStrategy = autoPolicyWaiverRevocation.getComponentMatchStrategy();
     dto.policyViolationId = autoPolicyWaiverRevocation.getPolicyViolationId();
@@ -34,6 +33,9 @@ public class ApiAutoPolicyWaiverRevocationAdapter
     dto.policyName = autoPolicyWaiverRevocation.getPolicyName();
     dto.componentDisplayName = autoPolicyWaiverRevocation.getComponentDisplayName();
     dto.vulnerabilityIdentifiers = autoPolicyWaiverRevocation.getVulnerabilityIdentifiers();
+    dto.policyId = autoPolicyWaiverRevocation.getPolicyId();
+    dto.componentIdentifier = autoPolicyWaiverRevocation.getComponentIdentifier();
+    dto.constraintFacts = autoPolicyWaiverRevocation.getConstraintFacts();
     return dto;
   }
 }

@@ -65,7 +65,7 @@ public class PolicyEvaluationDAO
         " ORDER BY entity.time DESC";
     return createQuery(sQuery, appId, scanId).forceSingleResult().get(tx);
   }
-
+  
   public PolicyEvaluation getLastByApplicationIdAndScanId(String appId, String scanId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getLastByApplicationIdAndScanId(tx, appId, scanId);

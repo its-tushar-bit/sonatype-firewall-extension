@@ -577,27 +577,27 @@ public class FirewallPageTest
     policyNameHeader.sortBtn().shouldHave(
         attribute("aria-label", "Policy Name unsorted"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
-        .shouldHave(texts("10", "policy1", "2024-01-02 14:00:00", "g : a : v", "repo"));
+        .shouldHave(texts("10", "policy1", "2024-01-01 14:00:00", "g : a : v", "repo"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
-        .shouldHave(texts("10", "policy2", "2024-01-02 12:00:00", "g : a : v", "repo"));
+        .shouldHave(texts("10", "policy2", "2024-01-01 12:00:00", "g : a : v", "repo"));
 
     policyNameHeader.click();
 
     policyNameHeader.sortBtn().shouldHave(
         attribute("aria-label", "Policy Name descending"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
-        .shouldHave(texts("10", "policy2", "2024-01-02 12:00:00", "g : a : v", "repo"));
+        .shouldHave(texts("10", "policy2", "2024-01-01 12:00:00", "g : a : v", "repo"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
-        .shouldHave(texts("10", "policy1", "2024-01-02 14:00:00", "g : a : v", "repo"));
+        .shouldHave(texts("10", "policy1", "2024-01-01 14:00:00", "g : a : v", "repo"));
 
     policyNameHeader.click();
 
     policyNameHeader.sortBtn().shouldHave(
         attribute("aria-label", "Policy Name ascending"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
-        .shouldHave(texts("10", "policy1", "2024-01-02 14:00:00", "g : a : v", "repo"));
+        .shouldHave(texts("10", "policy1", "2024-01-01 14:00:00", "g : a : v", "repo"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
-        .shouldHave(texts("10", "policy2", "2024-01-02 12:00:00", "g : a : v", "repo"));
+        .shouldHave(texts("10", "policy2", "2024-01-01 12:00:00", "g : a : v", "repo"));
   }
 
   @Test
@@ -627,27 +627,27 @@ public class FirewallPageTest
     componentHeader.sortBtn().shouldHave(
         attribute("aria-label", "Component unsorted"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
-        .shouldHave(texts("10", "policy", "2024-01-02 14:00:00", "g1 : a1 : v1", "repo"));
+        .shouldHave(texts("10", "policy", "2024-01-01 14:00:00", "g1 : a1 : v1", "repo"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
-        .shouldHave(texts("10", "policy", "2024-01-02 12:00:00", "g2 : a2 : v2", "repo"));
+        .shouldHave(texts("10", "policy", "2024-01-01 12:00:00", "g2 : a2 : v2", "repo"));
 
     componentHeader.click();
 
     componentHeader.sortBtn().shouldHave(
         attribute("aria-label", "Component descending"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
-        .shouldHave(texts("10", "policy", "2024-01-02 12:00:00", "g2 : a2 : v2", "repo"));
+        .shouldHave(texts("10", "policy", "2024-01-01 12:00:00", "g2 : a2 : v2", "repo"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
-        .shouldHave(texts("10", "policy", "2024-01-02 14:00:00", "g1 : a1 : v1", "repo"));
+        .shouldHave(texts("10", "policy", "2024-01-01 14:00:00", "g1 : a1 : v1", "repo"));
 
     componentHeader.click();
 
     componentHeader.sortBtn().shouldHave(
         attribute("aria-label", "Component ascending"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
-        .shouldHave(texts("10", "policy", "2024-01-02 14:00:00", "g1 : a1 : v1", "repo"));
+        .shouldHave(texts("10", "policy", "2024-01-01 14:00:00", "g1 : a1 : v1", "repo"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
-        .shouldHave(texts("10", "policy", "2024-01-02 12:00:00", "g2 : a2 : v2", "repo"));
+        .shouldHave(texts("10", "policy", "2024-01-01 12:00:00", "g2 : a2 : v2", "repo"));
   }
 
   @Test
@@ -674,27 +674,27 @@ public class FirewallPageTest
     repositoryHeader.sortBtn().shouldHave(
         attribute("aria-label", "Repository unsorted"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
-        .shouldHave(texts("10", "policy", "2024-01-02 14:00:00", "g : a : v", "repo1"));
+        .shouldHave(texts("10", "policy", "2024-01-01 14:00:00", "g : a : v", "repo1"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
-        .shouldHave(texts("10", "policy", "2024-01-02 12:00:00", "g : a : v", "repo2"));
+        .shouldHave(texts("10", "policy", "2024-01-01 12:00:00", "g : a : v", "repo2"));
 
     repositoryHeader.click();
 
     repositoryHeader.sortBtn().shouldHave(
         attribute("aria-label", "Repository descending"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
-        .shouldHave(texts("10", "policy", "2024-01-02 12:00:00", "g : a : v", "repo2"));
+        .shouldHave(texts("10", "policy", "2024-01-01 12:00:00", "g : a : v", "repo2"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
-        .shouldHave(texts("10", "policy", "2024-01-02 14:00:00", "g : a : v", "repo1"));
+        .shouldHave(texts("10", "policy", "2024-01-01 14:00:00", "g : a : v", "repo1"));
 
     repositoryHeader.click();
 
     repositoryHeader.sortBtn().shouldHave(
         attribute("aria-label", "Repository ascending"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
-        .shouldHave(texts("10", "policy", "2024-01-02 14:00:00", "g : a : v", "repo1"));
+        .shouldHave(texts("10", "policy", "2024-01-01 14:00:00", "g : a : v", "repo1"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
-        .shouldHave(texts("10", "policy", "2024-01-02 12:00:00", "g : a : v", "repo2"));
+        .shouldHave(texts("10", "policy", "2024-01-01 12:00:00", "g : a : v", "repo2"));
   }
 
   @Test

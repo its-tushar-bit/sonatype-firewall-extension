@@ -14,27 +14,34 @@ import {
   NxTableCell,
   NxTableHead,
   NxTableRow,
-  NxPagination,
+  NxIndeterminatePagination,
 } from '@sonatype/react-shared-components';
 
 import DashboardApplicationsTableRow from '../../../../../main/frontend/dashboard/results/applications/DashboardApplicationsTableRow';
 import DashboardApplicationsTable from '../../../../../main/frontend/dashboard/results/applications/DashboardApplicationsTable';
 
 describe('DashboardApplicationsTable', function () {
-  let minimalProps, getShallowComponent, getMountedComponent, setApplicationsPageSpy;
+  let minimalProps,
+    getShallowComponent,
+    getMountedComponent,
+    setNextApplicationsPageSpy,
+    setPreviousApplicationsPageSpy;
 
   beforeEach(function () {
-    setApplicationsPageSpy = jasmine.createSpy('setViolationsPage');
+    setNextApplicationsPageSpy = jasmine.createSpy('setNextViolationsPage');
+    setPreviousApplicationsPageSpy = jasmine.createSpy('setPreviousViolationsPage');
     minimalProps = {
       reload: jasmine.createSpy('reload'),
       sortApplications: jasmine.createSpy('sortApplications'),
       applicationResults: {
         results: [{ applicationId: 'app1' }, { applicationId: 'app2' }],
+        hasNextPage: true,
         sortFields: ['-totalApplicationRisk.totalRisk'],
         pageCount: 1,
         page: 0,
       },
-      setApplicationsPage: setApplicationsPageSpy,
+      setNextApplicationsPage: setNextApplicationsPageSpy,
+      setPreviousApplicationsPage: setPreviousApplicationsPageSpy,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(DashboardApplicationsTable, minimalProps);
@@ -432,15 +439,35 @@ describe('DashboardApplicationsTable', function () {
   });
 
   describe('pagination', () => {
-    it('renders a NxPagination component', () => {
-      const pagination = getShallowComponent().find(NxPagination);
+    it('renders a NxIndeterminatePagination component', () => {
+      const pagination = getShallowComponent().find(NxIndeterminatePagination);
       expect(pagination).toExist();
-      expect(pagination).toHaveProp('pageCount', 1);
-      expect(pagination).toHaveProp('currentPage', 0);
-      expect(pagination).toHaveProp('onChange', setApplicationsPageSpy);
+      expect(pagination).toHaveProp('isFirstPage', true);
+      expect(pagination).toHaveProp('isLastPage', false);
+      expect(pagination).toHaveProp('onPrevPageSelect', setPreviousApplicationsPageSpy);
+      expect(pagination).toHaveProp('onNextPageSelect', setNextApplicationsPageSpy);
     });
 
-    it('sets currentPage to null when there are no results', () => {
+    it('does not render NxIndeterminatePagination component when there is no Next Page', () => {
+      const minimalProps = {
+        reload: jasmine.createSpy('reload'),
+        sortApplications: jasmine.createSpy('sortApplications'),
+        applicationResults: {
+          results: [],
+          hasNextPage: false,
+          sortFields: ['-totalApplicationRisk.totalRisk'],
+          pageCount: 1,
+          page: null,
+        },
+        setNextApplicationsPage: setNextApplicationsPageSpy,
+        setPreviousApplicationsPage: setPreviousApplicationsPageSpy,
+      };
+      const props = set(lensPath(['applications', 'NextPage']), false, minimalProps);
+      const pagination = getShallowComponent(props).find(NxIndeterminatePagination);
+      expect(pagination).not.toExist();
+    });
+
+    it('does not render NxIndeterminatePagination component when there are no results', () => {
       const minimalProps = {
         reload: jasmine.createSpy('reload'),
         sortApplications: jasmine.createSpy('sortApplications'),
@@ -450,11 +477,12 @@ describe('DashboardApplicationsTable', function () {
           pageCount: 0,
           page: null,
         },
-        setApplicationsPage: setApplicationsPageSpy,
+        setNextApplicationsPage: setNextApplicationsPageSpy,
+        setPreviousApplicationsPage: setPreviousApplicationsPageSpy,
       };
       const props = set(lensPath(['applications', 'pageCount']), 0, minimalProps);
-      const pagination = getShallowComponent(props).find(NxPagination);
-      expect(pagination).toHaveProp('currentPage', null);
+      const pagination = getShallowComponent(props).find(NxIndeterminatePagination);
+      expect(pagination).not.toExist();
     });
   });
 });

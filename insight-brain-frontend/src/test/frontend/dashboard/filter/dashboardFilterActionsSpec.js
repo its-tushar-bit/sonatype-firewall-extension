@@ -291,6 +291,7 @@ describe('dashboardFilterActions: non-angular', function () {
             data: {
               dashboardResults: 'results',
               numResults: 3,
+              hasNextPage: true,
               classyBrew: 'classyBrew',
             },
           }),
@@ -334,6 +335,7 @@ describe('dashboardFilterActions: non-angular', function () {
             resultsType: 'violations',
             results: 'results',
             numResults: 3,
+            hasNextPage: true,
             classyBrew: undefined,
           },
         });

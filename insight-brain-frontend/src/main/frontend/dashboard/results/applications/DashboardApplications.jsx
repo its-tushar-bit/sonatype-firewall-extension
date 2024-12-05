@@ -18,7 +18,8 @@ export default function DashboardApplications(props) {
       filtersAreDirty,
       loadApplicationResults,
       sortApplications,
-      setApplicationsPage,
+      setNextApplicationsPage,
+      setPreviousApplicationsPage,
     } = props,
     isLoading = !applicationResults.results && !applicationResults.error;
 
@@ -34,7 +35,8 @@ export default function DashboardApplications(props) {
     sortApplications,
     applicationResults,
     needsAcknowledgement,
-    setApplicationsPage,
+    setNextApplicationsPage,
+    setPreviousApplicationsPage,
   };
 
   return (
@@ -48,6 +50,7 @@ export default function DashboardApplications(props) {
 const dashboardResultsShape = PropTypes.shape({
   results: PropTypes.array,
   sortFields: PropTypes.arrayOf(PropTypes.string),
+  hasNextPage: PropTypes.bool,
   error: PropTypes.string,
   classyBrew: heatMapColorStylerPropTypes,
 });
@@ -59,5 +62,6 @@ DashboardApplications.propTypes = {
   filtersAreDirty: PropTypes.bool.isRequired,
   loadApplicationResults: PropTypes.func.isRequired,
   sortApplications: PropTypes.func.isRequired,
-  setApplicationsPage: PropTypes.func.isRequired,
+  setNextApplicationsPage: PropTypes.func.isRequired,
+  setPreviousApplicationsPage: PropTypes.func.isRequired,
 };

@@ -18,6 +18,7 @@ describe('DashboardComponents', function () {
       stateGo: jasmine.createSpy('stateGo'),
       componentResults: {
         results: [{ hash: 'hash1' }, { hash: 'hash2' }],
+        hasNextPage: true,
         sortFields: ['-score'],
         pageCount: 1,
         currentPage: 0,
@@ -39,6 +40,7 @@ describe('DashboardComponents', function () {
     expect(table).toExist();
     expect(table).toHaveProp('componentResults', {
       results: [{ hash: 'hash1' }, { hash: 'hash2' }],
+      hasNextPage: true,
       sortFields: ['-score'],
       pageCount: 1,
       currentPage: 0,
@@ -47,7 +49,8 @@ describe('DashboardComponents', function () {
     expect(table).toHaveProp('reload', jasmine.any(Function));
     expect(table).toHaveProp('sortComponents', jasmine.any(Function));
     expect(table).toHaveProp('stateGo', jasmine.any(Function));
-    expect(table).toHaveProp('setComponentsPage');
+    expect(table).toHaveProp('setNextComponentsPage');
+    expect(table).toHaveProp('setPreviousComponentsPage');
 
     table.prop('reload')();
     expect(minimalProps.loadComponentResults).toHaveBeenCalled();

@@ -18,6 +18,7 @@ describe('DashboardWaiversTable', function () {
       waivers: {
         error: null,
         numResults: 5,
+        hasNextPage: true,
         sortFields: ['expiryTime'],
         pageCount: 5,
         page: 1,
@@ -96,6 +97,8 @@ describe('DashboardWaiversTable', function () {
       },
       sortWaivers: sortWaiversSpy,
       dispatchPagination: () => {},
+      dispatchNexPage: () => {},
+      dispatchPreviousPage: () => {},
       stateGo: () => {},
       maxDaysOld: 0,
       needsAcknowledgement: false,
@@ -125,6 +128,7 @@ describe('DashboardWaiversTable', function () {
     axiosMock.onPost(getWaiversUrl()).reply(200, {
       dashboardResults: [],
       numResults: 150,
+      hasNextPage: true,
     });
 
     for (let i = 0; i < 100; i++) {
@@ -145,7 +149,7 @@ describe('DashboardWaiversTable', function () {
       dashboardWaiversProps.waivers.results.push(resultObject);
     }
     renderComponent(dashboardWaiversProps);
-    const nextButton = document.querySelector('[aria-label="goto next page"]');
+    const nextButton = document.querySelector('[aria-label="next page"]');
     fireEvent.click(nextButton);
   });
 

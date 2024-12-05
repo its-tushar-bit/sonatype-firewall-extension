@@ -6,7 +6,7 @@
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 import {
-  NxPagination,
+  NxIndeterminatePagination,
   NxTable,
   NxTableBody,
   NxTableCell,
@@ -25,14 +25,16 @@ import { isNilOrEmpty } from '../../../util/jsUtil';
 
 export default function DashboardComponentsTable(props) {
   const {
-      componentResults: { results, sortFields, error, pageCount, page },
+      componentResults: { results, hasNextPage, sortFields, error, pageCount, page },
       colorStyler,
       needsAcknowledgement,
       reload,
       sortComponents,
       stateGo,
-      setComponentsPage,
+      setNextComponentsPage,
+      setPreviousComponentsPage,
     } = props,
+    currentPage = pageCount > 0 ? page : null,
     isLoading = !error && !results && !needsAcknowledgement,
     currentSortedColumnName = sortFields && extractSortFieldName(sortFields[0]),
     isCurrentColumnSortDescending = sortFields && sortFields[0].includes('-'),
@@ -138,9 +140,17 @@ export default function DashboardComponentsTable(props) {
         </NxTableBody>
       </NxTable>
 
-      <NxTableContainer.Footer>
-        <NxPagination pageCount={pageCount} currentPage={pageCount > 0 ? page : null} onChange={setComponentsPage} />
-      </NxTableContainer.Footer>
+      {!isLoading &&
+        (currentPage === null || (currentPage === 0 && !hasNextPage) ? null : (
+          <NxTableContainer.Footer>
+            <NxIndeterminatePagination
+              onPrevPageSelect={setPreviousComponentsPage}
+              onNextPageSelect={setNextComponentsPage}
+              isFirstPage={currentPage === 0}
+              isLastPage={!hasNextPage}
+            />
+          </NxTableContainer.Footer>
+        ))}
     </div>
   );
 }
@@ -148,6 +158,7 @@ export default function DashboardComponentsTable(props) {
 DashboardComponentsTable.propTypes = {
   componentResults: PropTypes.shape({
     results: PropTypes.arrayOf(componentPropTypes),
+    hasNextPage: PropTypes.bool,
     sortFields: PropTypes.arrayOf(PropTypes.string),
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
     pageCount: PropTypes.number,
@@ -158,5 +169,6 @@ DashboardComponentsTable.propTypes = {
   reload: PropTypes.func.isRequired,
   sortComponents: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
-  setComponentsPage: PropTypes.func.isRequired,
+  setNextComponentsPage: PropTypes.func.isRequired,
+  setPreviousComponentsPage: PropTypes.func.isRequired,
 };

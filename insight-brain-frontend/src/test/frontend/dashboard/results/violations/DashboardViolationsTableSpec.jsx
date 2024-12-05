@@ -5,31 +5,37 @@
  */
 import React from 'react';
 import { lensPath, set } from 'ramda';
-import { NxPagination, NxTable, NxTableBody, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
-import * as enzymeUtils from '../../enzymeUtils';
+import {
+  NxTable,
+  NxTableBody,
+  NxTableHead,
+  NxTableRow,
+  NxIndeterminatePagination,
+} from '@sonatype/react-shared-components';
+import * as enzymeUtils from '../../../enzymeUtils';
 
 describe('DashboardViolationsTable', function () {
   let minimalProps,
     getShallowComponent,
     reloadSpy,
     sortViolationsSpy,
-    setViolationsPageSpy,
+    setNextViolationsPageSpy,
+    setPreviousViolationsPageSpy,
     DashboardViolationsTableRowMock,
     DashboardViolationsTable;
 
   beforeEach(() => {
     reloadSpy = jasmine.createSpy('reload');
     sortViolationsSpy = jasmine.createSpy('sortViolations');
-    setViolationsPageSpy = jasmine.createSpy('setViolationsPage');
+    setNextViolationsPageSpy = jasmine.createSpy('setNextViolationsPage');
+    setPreviousViolationsPageSpy = jasmine.createSpy('setPreviousViolationsPage');
     DashboardViolationsTableRowMock = jasmine
       .createSpy('DashboardViolationsTableRow')
       .and.returnValue(<div>DashboardViolationsTableRow</div>);
 
-    DashboardViolationsTable = require('inject-loader!../../../../main/frontend/dashboard/results/violations/DashboardViolationsTable')(
-      {
-        './DashboardViolationsTableRow': DashboardViolationsTableRowMock,
-      }
-    ).default;
+    DashboardViolationsTable = require('inject-loader!MainRoot/dashboard/results/violations/DashboardViolationsTable')({
+      './DashboardViolationsTableRow': DashboardViolationsTableRowMock,
+    }).default;
 
     minimalProps = {
       reload: reloadSpy,
@@ -62,11 +68,13 @@ describe('DashboardViolationsTable', function () {
           },
         ],
         numResults: 3,
+        hasNextPage: true,
         sortFields: ['-threatLevel', '-firstOccurrenceTime'],
         pageCount: 1,
         page: 0,
       },
-      setViolationsPage: setViolationsPageSpy,
+      setNextViolationsPage: setNextViolationsPageSpy,
+      setPreviousViolationsPage: setPreviousViolationsPageSpy,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(DashboardViolationsTable, minimalProps);
@@ -353,18 +361,25 @@ describe('DashboardViolationsTable', function () {
   });
 
   describe('pagination', () => {
-    it('renders a NxPagination component', () => {
-      const pagination = getShallowComponent().find(NxPagination);
+    it('renders a NxIndeterminatePagination component', () => {
+      const pagination = getShallowComponent().find(NxIndeterminatePagination);
       expect(pagination).toExist();
-      expect(pagination).toHaveProp('pageCount', 1);
-      expect(pagination).toHaveProp('currentPage', 0);
-      expect(pagination).toHaveProp('onChange', setViolationsPageSpy);
+      expect(pagination).toHaveProp('isFirstPage', true);
+      expect(pagination).toHaveProp('isLastPage', false);
+      expect(pagination).toHaveProp('onPrevPageSelect', setPreviousViolationsPageSpy);
+      expect(pagination).toHaveProp('onNextPageSelect', setNextViolationsPageSpy);
     });
 
-    it('sets currentPage to null when there are no results', () => {
+    it('does not render NxIndeterminatePagination component when there is no Next Page', () => {
+      const props = set(lensPath(['violations', 'hasNextPage']), false, minimalProps);
+      const pagination = getShallowComponent(props).find(NxIndeterminatePagination);
+      expect(pagination).not.toExist();
+    });
+
+    it('does not render NxIndeterminatePagination component when there are no results', () => {
       const props = set(lensPath(['violations', 'pageCount']), 0, minimalProps);
-      const pagination = getShallowComponent(props).find(NxPagination);
-      expect(pagination).toHaveProp('currentPage', null);
+      const pagination = getShallowComponent(props).find(NxIndeterminatePagination);
+      expect(pagination).not.toExist();
     });
   });
 });

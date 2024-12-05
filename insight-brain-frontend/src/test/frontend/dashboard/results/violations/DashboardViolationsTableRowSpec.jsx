@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { NxOverflowTooltip, NxTableCell, NxTableRow, NxThreatIndicator } from '@sonatype/react-shared-components';
-import ComponentDisplay from '../../../../main/frontend/ComponentDisplay/ReactComponentDisplay';
-import * as enzymeUtils from '../../enzymeUtils';
+import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
+import * as enzymeUtils from '../../../enzymeUtils';
 
 describe('DashboardViolationsTableRow', function () {
   let minimalProps, getShallowComponent, stateGoSpy, terseAgoSpy, DashboardViolationsTableRow;
@@ -25,7 +25,7 @@ describe('DashboardViolationsTableRow', function () {
       },
     };
 
-    DashboardViolationsTableRow = require('inject-loader!../../../../main/frontend/dashboard/results/violations/DashboardViolationsTableRow')(
+    DashboardViolationsTableRow = require('inject-loader!MainRoot/dashboard/results/violations/DashboardViolationsTableRow')(
       {
         '../../../utilAngular/CommonServices': { terseAgo: terseAgoSpy },
       }

@@ -11,6 +11,7 @@ import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
+import static com.codeborne.selenide.Selenide.$x;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
 public abstract class BasicElement<T extends BasicElement<T>>
@@ -78,6 +79,10 @@ public abstract class BasicElement<T extends BasicElement<T>>
 
   protected SelenideElement child(String... selectors) {
     return $(childSelector(selectors));
+  }
+
+  protected SelenideElement childXpath(String xpath) {
+    return $x(xpath);
   }
 
   protected ElementsCollection children(String... selectors) {

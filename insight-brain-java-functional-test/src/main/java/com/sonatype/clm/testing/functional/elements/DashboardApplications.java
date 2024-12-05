@@ -10,13 +10,14 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class DashboardApplications
 {
   private static final String ROOT = "#dashboard-applications";
+
+  private static final String PAGINATOR = ".nx-btn-bar--indeterminate-pagination";
 
   public ApplicationsHeaders headers() {
     return new ApplicationsHeaders();
@@ -26,8 +27,8 @@ public class DashboardApplications
     return new ApplicationsResults();
   }
 
-  public ElementsCollection paginationButtons() {
-    return $$(".nx-btn--pagination");
+  public ApplicationsResultsPaginator paginator() {
+    return new ApplicationsResultsPaginator();
   }
 
   public ApplicationsResultsMask resultsMask() {
@@ -96,6 +97,26 @@ public class DashboardApplications
 
     public SelenideElement noDataMessage() {
       return child("tr:last-child");
+    }
+  }
+
+  public static class ApplicationsResultsPaginator
+      extends BasicElement<ApplicationsResultsPaginator>
+  {
+    ApplicationsResultsPaginator() {
+      super(ROOT, ".nx-table-container__footer");
+    }
+
+    public SelenideElement buttonBar() {
+      return child(PAGINATOR);
+    }
+
+    public SelenideElement nextPageButton() {
+      return childXpath("//button[@aria-label='next page']");
+    }
+
+    public SelenideElement previousPageButton() {
+      return childXpath("//button[@aria-label='previous page']");
     }
   }
 

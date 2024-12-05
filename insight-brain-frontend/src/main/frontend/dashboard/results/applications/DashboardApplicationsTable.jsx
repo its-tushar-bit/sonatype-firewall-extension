@@ -6,7 +6,7 @@
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 import {
-  NxPagination,
+  NxIndeterminatePagination,
   NxTable,
   NxTableBody,
   NxTableCell,
@@ -25,13 +25,15 @@ import NeedsAcknowledgementInfoRow from '../NeedsAcknowledgementInfoRow';
 
 export default function DashboardApplicationsTable(props) {
   const {
-      applicationResults: { results, sortFields, error, pageCount, page },
-      setApplicationsPage,
+      applicationResults: { results, hasNextPage, sortFields, error, pageCount, page },
+      setNextApplicationsPage,
+      setPreviousApplicationsPage,
       colorStyler,
       needsAcknowledgement,
       reload,
       sortApplications,
     } = props,
+    currentPage = pageCount > 0 ? page : null,
     isLoading = !error && !results && !needsAcknowledgement,
     currentSortedColumnName = sortFields && extractSortFieldName(sortFields[0]),
     isCurrentColumnSortDescending = sortFields && sortFields[0].includes('-'),
@@ -123,9 +125,18 @@ export default function DashboardApplicationsTable(props) {
           {needsAcknowledgement ? <NeedsAcknowledgementInfoRow colSpan={colSpan} /> : generateTableBodyRows()}
         </NxTableBody>
       </NxTable>
-      <NxTableContainer.Footer>
-        <NxPagination pageCount={pageCount} currentPage={pageCount > 0 ? page : null} onChange={setApplicationsPage} />
-      </NxTableContainer.Footer>
+
+      {!isLoading &&
+        (currentPage === null || (currentPage === 0 && !hasNextPage) ? null : (
+          <NxTableContainer.Footer>
+            <NxIndeterminatePagination
+              onPrevPageSelect={setPreviousApplicationsPage}
+              onNextPageSelect={setNextApplicationsPage}
+              isFirstPage={currentPage === 0}
+              isLastPage={!hasNextPage}
+            />
+          </NxTableContainer.Footer>
+        ))}
     </div>
   );
 }
@@ -134,6 +145,7 @@ DashboardApplicationsTable.propTypes = {
   applicationResults: PropTypes.shape({
     results: PropTypes.arrayOf(applicationPropTypes),
     numResults: PropTypes.number,
+    hasNextPage: PropTypes.bool,
     sortFields: PropTypes.arrayOf(PropTypes.string),
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
     pageCount: PropTypes.number,
@@ -143,5 +155,6 @@ DashboardApplicationsTable.propTypes = {
   needsAcknowledgement: PropTypes.bool,
   reload: PropTypes.func.isRequired,
   sortApplications: PropTypes.func.isRequired,
-  setApplicationsPage: PropTypes.func.isRequired,
+  setNextApplicationsPage: PropTypes.func.isRequired,
+  setPreviousApplicationsPage: PropTypes.func.isRequired,
 };

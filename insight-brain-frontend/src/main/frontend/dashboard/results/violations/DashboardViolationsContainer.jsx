@@ -7,7 +7,12 @@ import { connect } from 'react-redux';
 
 import DashboardViolations from './DashboardViolations';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { loadViolationResults, sortViolationResults, setViolationsPage } from '../dashboardResultsActions';
+import {
+  loadViolationResults,
+  sortViolationResults,
+  setNextViolationsPage,
+  setPreviousViolationsPage,
+} from '../dashboardResultsActions';
 import { selectViolationResults } from 'MainRoot/dashboard/dashboardSelectors';
 
 function mapStateToProps(state) {
@@ -27,7 +32,8 @@ const mapDispatchToProps = {
   sortViolations: sortViolationResults,
   loadViolationResults,
   stateGo,
-  setViolationsPage,
+  setNextViolationsPage,
+  setPreviousViolationsPage,
 };
 
 const DashboardViolationsContainer = connect(mapStateToProps, mapDispatchToProps)(DashboardViolations);

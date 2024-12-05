@@ -11,14 +11,18 @@ import {
   loadComponentResults,
   loadViolationResults,
   loadWaiverResults,
-  setComponentsPage,
-  setViolationsPage,
-  setApplicationsPage,
+  setNextComponentsPage,
+  setPreviousComponentsPage,
+  setNextViolationsPage,
+  setPreviousViolationsPage,
+  setNextApplicationsPage,
+  setPreviousApplicationsPage,
+  setNextWaiversPage,
+  setPreviousWaiversPage,
   sortApplicationResults,
   sortComponentResults,
   sortViolationResults,
   sortWaiversResults,
-  setWaiversPage,
 } from 'MainRoot/dashboard/results/dashboardResultsActions';
 import * as dashboardDataServices from 'MainRoot/dashboard/services/dashboard.data.service';
 import { getProductFeaturesUrl } from 'MainRoot/util/CLMLocation';
@@ -85,6 +89,7 @@ describe('dashboardResultsActions', function () {
         const mockResults = Promise.resolve({
           results: 'results',
           numResults: 3,
+          hasNextPage: true,
           classyBrew: 'classyBrew',
         });
         tab.serviceMethod.and.returnValue(mockResults);
@@ -103,6 +108,7 @@ describe('dashboardResultsActions', function () {
               resultsType: tab.resultsType,
               results: 'results',
               numResults: 3,
+              hasNextPage: true,
               classyBrew: 'classyBrew',
             },
           });
@@ -151,6 +157,7 @@ describe('dashboardResultsActions', function () {
         const mockResults = Promise.resolve({
           results: 'results',
           numResults: 3,
+          hasNextPage: true,
           classyBrew: 'classyBrew',
         });
         tab.serviceMethod.and.returnValue(mockResults);
@@ -169,6 +176,7 @@ describe('dashboardResultsActions', function () {
               resultsType: tab.resultsType,
               results: 'results',
               numResults: 3,
+              hasNextPage: true,
               classyBrew: 'classyBrew',
             },
           });
@@ -483,50 +491,110 @@ describe('dashboardResultsActions', function () {
     });
   });
 
-  describe('setViolationsPage', () => {
-    it('calls setPage with the violations resultsType', (done) => {
+  describe('setViolationsPages', () => {
+    const violationsInitialState = { ...initialState, dashboard: { violations: { page: 2 } } }; // 2 is the current page
+    const getExpectedViolationsActions = (page) => {
+      return [
+        {
+          type: 'DASHBOARD_SET_PAGE',
+          payload: { resultsType: 'violations', page: page },
+        },
+        {
+          type: 'LOAD_RESULTS_REQUESTED',
+          payload: 'violations',
+        },
+        {
+          type: 'LOAD_RESULTS_FULFILLED',
+          payload: {
+            resultsType: 'violations',
+            results: 'violationResults',
+            numResults: 3,
+            hasNextPage: true,
+            classyBrew: 'classyBrew',
+          },
+        },
+      ];
+    };
+    beforeEach(() => {
       spyOn(dashboardDataServices, 'getNewestRisks').and.returnValue(
         Promise.resolve({
           results: 'violationResults',
           numResults: 3,
+          hasNextPage: true,
           classyBrew: 'classyBrew',
         })
       );
+    });
 
-      const store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(setViolationsPage(10)).then(() => {
-        expect(store.getActions()).toHaveActionsInOrder([
-          {
-            type: 'DASHBOARD_SET_PAGE',
-            payload: { resultsType: 'violations', page: 10 },
-          },
-          {
-            type: 'LOAD_RESULTS_REQUESTED',
-            payload: 'violations',
-          },
-          {
-            type: 'LOAD_RESULTS_FULFILLED',
-            payload: {
-              resultsType: 'violations',
-              results: 'violationResults',
-              numResults: 3,
-              classyBrew: 'classyBrew',
-            },
-          },
-        ]);
+    it('calls setNextPage with the violations resultsType', (done) => {
+      const store = SpecUtil.mockReduxStore(violationsInitialState);
+      store.dispatch(setNextViolationsPage()).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder(getExpectedViolationsActions(3));
+        done();
+      });
+    });
+
+    it('calls setPreviousPage with the violations resultsType', (done) => {
+      const store = SpecUtil.mockReduxStore(violationsInitialState);
+      store.dispatch(setPreviousViolationsPage()).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder(getExpectedViolationsActions(1));
         done();
       });
     });
   });
 
-  describe('setWaiversPage', () => {
+  describe('setWaiversPages', () => {
     let getWaiversSpy, getWaiversAndAutoWaiversSpy, axiosGetSpy;
+    const waiversInitialState = { ...initialState, dashboard: { waivers: { page: 2 } } }; // 2 is the current page
+    const getExpectedAutoWaiversActions = (page) => {
+      return [
+        {
+          type: 'DASHBOARD_SET_PAGE',
+          payload: { resultsType: 'waivers', page: page },
+        },
+        {
+          type: 'LOAD_RESULTS_REQUESTED',
+          payload: 'waivers',
+        },
+        {
+          type: 'LOAD_RESULTS_FULFILLED',
+          payload: {
+            resultsType: 'waivers',
+            results: 'autoWaiversResults',
+            numResults: 3,
+            hasNextPage: true,
+          },
+        },
+      ];
+    };
+    const getExpectedWaiversActions = (page) => {
+      return [
+        {
+          type: 'DASHBOARD_SET_PAGE',
+          payload: { resultsType: 'waivers', page: page },
+        },
+        {
+          type: 'LOAD_RESULTS_REQUESTED',
+          payload: 'waivers',
+        },
+        {
+          type: 'LOAD_RESULTS_FULFILLED',
+          payload: {
+            resultsType: 'waivers',
+            results: 'waiversResults',
+            numResults: 3,
+            hasNextPage: true,
+          },
+        },
+      ];
+    };
 
     beforeEach(() => {
       getWaiversSpy = spyOn(dashboardDataServices, 'getWaivers').and.returnValue(
         Promise.resolve({
           results: 'waiversResults',
           numResults: 3,
+          hasNextPage: true,
         })
       );
 
@@ -534,85 +602,82 @@ describe('dashboardResultsActions', function () {
         Promise.resolve({
           results: 'autoWaiversResults',
           numResults: 3,
+          hasNextPage: true,
         })
       );
 
       axiosGetSpy = spyOn(axios, 'get').and.returnValue(Promise.resolve({ data: ['auto-waivers'] }));
     });
 
-    it('calls setPage with the correct resultsType and page number, and uses getWaiversAndAutoWaivers if feature is enabled', (done) => {
-      const store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(setWaiversPage(2)).then(() => {
+    it('calls setNextPage with the correct resultsType and page number, and uses getWaiversAndAutoWaivers if feature is enabled', (done) => {
+      const store = SpecUtil.mockReduxStore(waiversInitialState);
+      store.dispatch(setNextWaiversPage()).then(() => {
         expect(axiosGetSpy).toHaveBeenCalledWith(getProductFeaturesUrl());
         expect(getWaiversAndAutoWaiversSpy).toHaveBeenCalledWith(
-          initialState.dashboardFilter.appliedFilter,
-          initialState.dashboard.waivers.sortFields,
-          0
+          waiversInitialState.dashboardFilter.appliedFilter,
+          waiversInitialState.dashboard.waivers.sortFields,
+          2
         );
-        expect(store.getActions()).toHaveActionsInOrder([
-          {
-            type: 'DASHBOARD_SET_PAGE',
-            payload: { resultsType: 'waivers', page: 2 },
-          },
-          {
-            type: 'LOAD_RESULTS_REQUESTED',
-            payload: 'waivers',
-          },
-          {
-            type: 'LOAD_RESULTS_FULFILLED',
-            payload: {
-              resultsType: 'waivers',
-              results: 'autoWaiversResults',
-              numResults: 3,
-            },
-          },
-        ]);
+        expect(store.getActions()).toHaveActionsInOrder(getExpectedAutoWaiversActions(3));
         done();
       });
     });
 
-    it('calls setPage with the correct resultsType and page number, and uses getWaivers if feature is not enabled', (done) => {
+    it('calls setNextPage with the correct resultsType and page number, and uses getWaivers if feature is not enabled', (done) => {
       axiosGetSpy.and.returnValue(Promise.resolve({ data: [] }));
 
-      const store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(setWaiversPage(2)).then(() => {
+      const store = SpecUtil.mockReduxStore(waiversInitialState);
+      store.dispatch(setNextWaiversPage()).then(() => {
         expect(axiosGetSpy).toHaveBeenCalledWith(getProductFeaturesUrl());
         expect(getWaiversSpy).toHaveBeenCalledWith(
-          initialState.dashboardFilter.appliedFilter,
-          initialState.dashboard.waivers.sortFields,
-          0
+          waiversInitialState.dashboardFilter.appliedFilter,
+          waiversInitialState.dashboard.waivers.sortFields,
+          2
         );
-        expect(store.getActions()).toHaveActionsInOrder([
-          {
-            type: 'DASHBOARD_SET_PAGE',
-            payload: { resultsType: 'waivers', page: 2 },
-          },
-          {
-            type: 'LOAD_RESULTS_REQUESTED',
-            payload: 'waivers',
-          },
-          {
-            type: 'LOAD_RESULTS_FULFILLED',
-            payload: {
-              resultsType: 'waivers',
-              results: 'waiversResults',
-              numResults: 3,
-            },
-          },
-        ]);
+        expect(store.getActions()).toHaveActionsInOrder(getExpectedWaiversActions(3));
+        done();
+      });
+    });
+
+    it('calls setPreviousPage with the correct resultsType and page number, and uses getWaiversAndAutoWaivers if feature is enabled', (done) => {
+      const store = SpecUtil.mockReduxStore(waiversInitialState);
+      store.dispatch(setPreviousWaiversPage()).then(() => {
+        expect(axiosGetSpy).toHaveBeenCalledWith(getProductFeaturesUrl());
+        expect(getWaiversAndAutoWaiversSpy).toHaveBeenCalledWith(
+          waiversInitialState.dashboardFilter.appliedFilter,
+          waiversInitialState.dashboard.waivers.sortFields,
+          2
+        );
+        expect(store.getActions()).toHaveActionsInOrder(getExpectedAutoWaiversActions(1));
+        done();
+      });
+    });
+
+    it('calls setPreviousPage with the correct resultsType and page number, and uses getWaivers if feature is not enabled', (done) => {
+      axiosGetSpy.and.returnValue(Promise.resolve({ data: [] }));
+
+      const store = SpecUtil.mockReduxStore(waiversInitialState);
+      store.dispatch(setPreviousWaiversPage()).then(() => {
+        expect(axiosGetSpy).toHaveBeenCalledWith(getProductFeaturesUrl());
+        expect(getWaiversSpy).toHaveBeenCalledWith(
+          waiversInitialState.dashboardFilter.appliedFilter,
+          waiversInitialState.dashboard.waivers.sortFields,
+          2
+        );
+        expect(store.getActions()).toHaveActionsInOrder(getExpectedWaiversActions(1));
         done();
       });
     });
 
     it('handles error from the service method', (done) => {
-      const store = SpecUtil.mockReduxStore(initialState);
+      const store = SpecUtil.mockReduxStore(waiversInitialState);
       getWaiversAndAutoWaiversSpy.and.returnValue(Promise.reject('service error'));
 
-      store.dispatch(setWaiversPage(2)).then(() => {
+      store.dispatch(setNextWaiversPage()).then(() => {
         expect(store.getActions()).toHaveActionsInOrder([
           {
             type: 'DASHBOARD_SET_PAGE',
-            payload: { resultsType: 'waivers', page: 2 },
+            payload: { resultsType: 'waivers', page: 3 },
           },
           {
             type: 'LOAD_RESULTS_FAILED',
@@ -627,72 +692,107 @@ describe('dashboardResultsActions', function () {
     });
   });
 
-  describe('setApplicationsPage', () => {
-    it('calls setPage with the applications resultsType', (done) => {
+  describe('setApplicationsPages', () => {
+    const applicationsInitialState = { ...initialState, dashboard: { applications: { page: 2 } } }; // 2 is the current page
+    const getExpectedApplicationsActions = (page) => {
+      return [
+        {
+          type: 'DASHBOARD_SET_PAGE',
+          payload: { resultsType: 'applications', page: page },
+        },
+        {
+          type: 'LOAD_RESULTS_REQUESTED',
+          payload: 'applications',
+        },
+        {
+          type: 'LOAD_RESULTS_FULFILLED',
+          payload: {
+            resultsType: 'applications',
+            results: 'applicationResults',
+            numResults: 3,
+            hasNextPage: true,
+            classyBrew: 'classyBrew',
+          },
+        },
+      ];
+    };
+
+    beforeEach(() => {
       spyOn(dashboardDataServices, 'getApplicationRisks').and.returnValue(
         Promise.resolve({
           results: 'applicationResults',
           numResults: 3,
+          hasNextPage: true,
           classyBrew: 'classyBrew',
         })
       );
-      const store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(setApplicationsPage(10)).then(() => {
-        expect(store.getActions()).toHaveActionsInOrder([
-          {
-            type: 'DASHBOARD_SET_PAGE',
-            payload: { resultsType: 'applications', page: 10 },
-          },
-          {
-            type: 'LOAD_RESULTS_REQUESTED',
-            payload: 'applications',
-          },
-          {
-            type: 'LOAD_RESULTS_FULFILLED',
-            payload: {
-              resultsType: 'applications',
-              results: 'applicationResults',
-              numResults: 3,
-              classyBrew: 'classyBrew',
-            },
-          },
-        ]);
+    });
+
+    it('calls setNextPage with the applications resultsType', (done) => {
+      const store = SpecUtil.mockReduxStore(applicationsInitialState);
+      store.dispatch(setNextApplicationsPage()).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder(getExpectedApplicationsActions(3));
+        done();
+      });
+    });
+
+    it('calls setPreviousPage with the applications resultsType', (done) => {
+      const store = SpecUtil.mockReduxStore(applicationsInitialState);
+      store.dispatch(setPreviousApplicationsPage()).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder(getExpectedApplicationsActions(1));
         done();
       });
     });
   });
 
-  describe('setComponentsPage', () => {
-    it('calls setPage with the components resultsType', (done) => {
+  describe('setComponentsPages', () => {
+    const componentsInitialState = { ...initialState, dashboard: { components: { page: 2 } } }; // 2 is the current page
+    const getExpectedComponentsActions = (page) => {
+      return [
+        {
+          type: 'DASHBOARD_SET_PAGE',
+          payload: { resultsType: 'components', page: page },
+        },
+        {
+          type: 'LOAD_RESULTS_REQUESTED',
+          payload: 'components',
+        },
+        {
+          type: 'LOAD_RESULTS_FULFILLED',
+          payload: {
+            resultsType: 'components',
+            results: 'componentsResults',
+            numResults: 3,
+            hasNextPage: true,
+            classyBrew: 'classyBrew',
+          },
+        },
+      ];
+    };
+
+    beforeEach(() => {
       spyOn(dashboardDataServices, 'getComponentRisks').and.returnValue(
         Promise.resolve({
           results: 'componentsResults',
           numResults: 3,
+          hasNextPage: true,
           classyBrew: 'classyBrew',
         })
       );
+    });
 
-      const store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(setComponentsPage(10)).then(() => {
-        expect(store.getActions()).toHaveActionsInOrder([
-          {
-            type: 'DASHBOARD_SET_PAGE',
-            payload: { resultsType: 'components', page: 10 },
-          },
-          {
-            type: 'LOAD_RESULTS_REQUESTED',
-            payload: 'components',
-          },
-          {
-            type: 'LOAD_RESULTS_FULFILLED',
-            payload: {
-              resultsType: 'components',
-              results: 'componentsResults',
-              numResults: 3,
-              classyBrew: 'classyBrew',
-            },
-          },
-        ]);
+    it('calls setNextPage with the components resultsType', (done) => {
+      const store = SpecUtil.mockReduxStore(componentsInitialState);
+      store.dispatch(setNextComponentsPage()).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder(getExpectedComponentsActions(3));
+        done();
+      });
+    });
+
+    it('calls setPreviousPage with the components resultsType', (done) => {
+      const store = SpecUtil.mockReduxStore(componentsInitialState);
+      store.dispatch(setPreviousComponentsPage()).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder(getExpectedComponentsActions(1));
         done();
       });
     });
@@ -769,6 +869,7 @@ describe('dashboardResultsActions', function () {
         Promise.resolve({
           results: 'sorted results',
           numResults: 3,
+          hasNextPage: true,
           classyBrew: 'classyBrew',
         })
       );
@@ -783,6 +884,7 @@ describe('dashboardResultsActions', function () {
             resultsType: 'components',
             results: 'sorted results',
             numResults: 3,
+            hasNextPage: true,
             classyBrew: 'classyBrew',
           },
         });
@@ -812,6 +914,7 @@ describe('dashboardResultsActions', function () {
         Promise.resolve({
           results: 'sorted results',
           numResults: 3,
+          hasNextPage: true,
           classyBrew: 'classyBrew',
         })
       );
@@ -826,6 +929,7 @@ describe('dashboardResultsActions', function () {
             resultsType: 'components',
             results: 'sorted results',
             numResults: 3,
+            hasNextPage: true,
             classyBrew: 'classyBrew',
           },
         });
@@ -857,6 +961,7 @@ describe('dashboardResultsActions', function () {
         Promise.resolve({
           results: 'sorted results',
           numResults: 3,
+          hasNextPage: true,
         })
       );
 
@@ -871,6 +976,7 @@ describe('dashboardResultsActions', function () {
             resultsType: 'waivers',
             results: 'sorted results',
             numResults: 3,
+            hasNextPage: true,
           },
         });
         done();
@@ -899,6 +1005,7 @@ describe('dashboardResultsActions', function () {
         Promise.resolve({
           results: 'sorted results',
           numResults: 3,
+          hasNextPage: true,
         })
       );
 
@@ -913,6 +1020,7 @@ describe('dashboardResultsActions', function () {
             resultsType: 'waivers',
             results: 'sorted results',
             numResults: 3,
+            hasNextPage: true,
           },
         });
         done();

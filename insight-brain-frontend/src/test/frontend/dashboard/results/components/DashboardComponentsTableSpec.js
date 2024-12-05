@@ -8,7 +8,7 @@ import {
   NxButton,
   NxInfoAlert,
   NxLoadError,
-  NxPagination,
+  NxIndeterminatePagination,
   NxTable,
   NxTableBody,
   NxTableCell,
@@ -29,6 +29,7 @@ describe('DashboardComponentsTable', function () {
       stateGo: jasmine.createSpy('stateGo'),
       componentResults: {
         results: [{ hash: 'hash1' }, { hash: 'hash2' }],
+        hasNextPage: true,
         sortFields: ['-score'],
         pageCount: 1,
         page: 0,
@@ -50,24 +51,31 @@ describe('DashboardComponentsTable', function () {
     beforeEach(function () {
       dashboardComponentMinProps = {
         componentResults: {
+          hasNexPage: true,
           pageCount: 1,
           page: 0,
         },
       };
     });
 
-    it('renders a NxPagination with 1 page', function () {
+    it('renders a NxIndeterminatePagination with 1 page', function () {
       const dashboardComponentTable = getShallowComponent(),
-        paginator = dashboardComponentTable.find(NxPagination);
+        paginator = dashboardComponentTable.find(NxIndeterminatePagination);
       expect(paginator).toExist();
     });
 
-    it('checks currentPage property is null when pageCount is 0', function () {
+    it('does not render NxIndeterminatePagination component when there is no Next Page', function () {
+      minimalProps.componentResults.hasNextPage = false;
+      const dashboardComponentTable = getShallowComponent(),
+        paginator = dashboardComponentTable.find(NxIndeterminatePagination);
+      expect(paginator).not.toExist();
+    });
+
+    it('does not render NxIndeterminatePagination component when there are no results', function () {
       minimalProps.componentResults.pageCount = 0;
       const dashboardComponentTable = getShallowComponent(),
-        paginator = dashboardComponentTable.find(NxPagination);
-      expect(paginator).toExist();
-      expect(paginator.props().currentPage).toBeNull();
+        paginator = dashboardComponentTable.find(NxIndeterminatePagination);
+      expect(paginator).not.toExist();
     });
 
     it('renders a NxTableHead with a headers row with cells for each header', function () {

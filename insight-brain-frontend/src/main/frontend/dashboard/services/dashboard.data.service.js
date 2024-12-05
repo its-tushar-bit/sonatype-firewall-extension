@@ -34,7 +34,7 @@ export function getNewestRisks(filters, sortFields, page) {
     translateViolationsSortFields(sortFields),
     page
   );
-  return axios.post(getNewestRisksUrl(), request).then(dashboardRespopnseHandler());
+  return axios.post(getNewestRisksUrl(), request).then(dashboardResponseHandler());
 }
 
 export function getApplicationRisks(filters, sortFields, page) {
@@ -44,7 +44,7 @@ export function getApplicationRisks(filters, sortFields, page) {
     translateApplicationsSortFields(sortFields),
     page
   );
-  return axios.post(getApplicationRisksUrl(), request).then(dashboardRespopnseHandler(generateApplicationsSeries));
+  return axios.post(getApplicationRisksUrl(), request).then(dashboardResponseHandler(generateApplicationsSeries));
 }
 
 export function getWaiversAndAutoWaivers(filters, sortFields, page) {
@@ -54,7 +54,7 @@ export function getWaiversAndAutoWaivers(filters, sortFields, page) {
     translateWaiversSortFields(sortFields),
     page
   );
-  return axios.post(getWaiversAndAutoWaiversUrl(), request).then(dashboardRespopnseHandler());
+  return axios.post(getWaiversAndAutoWaiversUrl(), request).then(dashboardResponseHandler());
 }
 
 const applicationsScoreFields = ['totalRisk', 'criticalRisk', 'severeRisk', 'moderateRisk', 'lowRisk'];
@@ -81,7 +81,7 @@ export function getWaivers(filters, sortFields, page) {
     translateWaiversSortFields(sortFields),
     page
   );
-  return axios.post(getWaiversUrl(), request).then(dashboardRespopnseHandler());
+  return axios.post(getWaiversUrl(), request).then(dashboardResponseHandler());
 }
 
 export function getComponentRisks(filters, sortFields, page) {
@@ -91,7 +91,7 @@ export function getComponentRisks(filters, sortFields, page) {
     translateComponentsSortFields(sortFields),
     page
   );
-  return axios.post(getComponentRisksUrl(), request).then(dashboardRespopnseHandler(generateComponentsSeries));
+  return axios.post(getComponentRisksUrl(), request).then(dashboardResponseHandler(generateComponentsSeries));
 }
 
 const componentsScoreFields = ['score', 'scoreCritical', 'scoreSevere', 'scoreModerate', 'scoreLow'];
@@ -108,9 +108,9 @@ function generateComponentsSeries(components) {
   return series;
 }
 
-function dashboardRespopnseHandler(seriesGenerator) {
+function dashboardResponseHandler(seriesGenerator) {
   return ({ data }) => {
-    const { dashboardResults, numResults } = data;
+    const { dashboardResults, numResults, hasNextPage } = data;
     let series = undefined;
     if (typeof seriesGenerator === 'function') {
       series = seriesGenerator(dashboardResults);
@@ -119,6 +119,7 @@ function dashboardRespopnseHandler(seriesGenerator) {
       results: dashboardResults,
       ...(series && { classyBrew: createClassyBrew(series) }),
       numResults,
+      hasNextPage,
     };
   };
 }

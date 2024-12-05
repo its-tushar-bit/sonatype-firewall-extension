@@ -24,7 +24,8 @@ describe('DashboardApplications', function () {
         pageCount: 1,
         page: 0,
       },
-      setApplicationsPage: () => {},
+      setNextApplicationsPage: () => {},
+      setPreviousApplicationsPage: () => {},
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(DashboardApplications, minimalProps);
@@ -35,6 +36,7 @@ describe('DashboardApplications', function () {
     const dashboardApplicationsProps = {
       applicationResults: {
         results: [{ applicationId: 'app1' }, { applicationId: 'app2' }],
+        hasNextPage: true,
         classyBrew: {
           isWhiteText: () => true,
           getColor: () => 'test-background-color',
@@ -51,6 +53,7 @@ describe('DashboardApplications', function () {
     expect(table).toExist();
     expect(table).toHaveProp('applicationResults', {
       results: [{ applicationId: 'app1' }, { applicationId: 'app2' }],
+      hasNextPage: true,
       classyBrew: jasmine.any(Object),
       pageCount: 1,
       page: 0,
@@ -62,7 +65,8 @@ describe('DashboardApplications', function () {
       getColor: jasmine.any(Function),
     });
     expect(table).toHaveProp('sortApplications', jasmine.any(Function));
-    expect(table).toHaveProp('setApplicationsPage');
+    expect(table).toHaveProp('setNextApplicationsPage');
+    expect(table).toHaveProp('setPreviousApplicationsPage');
     table.prop('reload')();
     expect(minimalProps.loadApplicationResults).toHaveBeenCalled();
 

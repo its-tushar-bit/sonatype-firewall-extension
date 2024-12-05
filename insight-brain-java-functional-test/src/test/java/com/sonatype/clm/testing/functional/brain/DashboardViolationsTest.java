@@ -27,6 +27,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationTile;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsHeaders;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsResults;
+import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsResultsPaginator;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
@@ -66,7 +67,7 @@ import org.openqa.selenium.support.ui.FluentWait;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
@@ -476,7 +477,10 @@ public class DashboardViolationsTest
     createViolations(maxNumResultsPerPage, buildEvalNow);
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    DashboardPage.violationsView().paginationButtons().shouldHave(size(1));
+    ViolationsResultsPaginator paginator = DashboardPage.violationsView().paginator();
+    paginator.buttonBar().shouldBe(hidden);
+    paginator.nextPageButton().shouldNot(exist);
+    paginator.previousPageButton().shouldNot(exist);
   }
 
   @Test
@@ -803,7 +807,12 @@ public class DashboardViolationsTest
 
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    DashboardPage.violationsView().paginationButtons().shouldHave(size(2));
+
+    ViolationsResultsPaginator paginator = DashboardPage.violationsView().paginator();
+
+    paginator.buttonBar().shouldBe(visible);
+    paginator.nextPageButton().shouldBe(visible);
+    paginator.previousPageButton().shouldBe(hidden);
 
     table.firstViolation().component().shouldHave(text("group1"));
     table.firstViolation().threatNumber().shouldHave(text("5"));
@@ -811,7 +820,9 @@ public class DashboardViolationsTest
     table.lastViolation().component().shouldHave(text("group2"));
     table.lastViolation().threatNumber().shouldHave(text("4"));
 
-    changePage(1);
+    // click next page
+    paginator.nextPageButton().click();
+    newFluentWait();
 
     table.firstViolation().component().shouldHave(text("group2"));
     table.firstViolation().threatNumber().shouldHave(text("3"));
@@ -819,15 +830,21 @@ public class DashboardViolationsTest
     table.lastViolation().component().shouldHave(text("group2"));
     table.lastViolation().threatNumber().shouldHave(text("2"));
 
+    paginator.nextPageButton().shouldBe(hidden);
+    paginator.previousPageButton().shouldBe(visible);
+
     // sort by policy name asc, threat desc
     headers.policyHeader().click();
     // should be at first page after sorting
-    DashboardPage.violationsView().paginationButtons().get(0).shouldHave(cssClass("selected"));
+    paginator.nextPageButton().shouldBe(visible);
+    paginator.previousPageButton().shouldBe(hidden);
 
     table.firstViolation().policy().shouldHave(text(licensePolicy1.getName()));
     table.lastViolation().policy().shouldHave(text(licensePolicy3.getName()));
 
-    changePage(1);
+    // click next page
+    paginator.nextPageButton().click();
+    newFluentWait();
 
     table.firstViolation().policy().shouldHave(text(licensePolicy3.getName()));
     table.lastViolation().policy().shouldHave(text(licensePolicy4.getName()));
@@ -839,10 +856,16 @@ public class DashboardViolationsTest
     DashboardFilters.closeFilter();
 
     // should be at first page after filtering
-    DashboardPage.violationsView().paginationButtons().get(0).shouldHave(cssClass("selected"));
-    DashboardPage.violationsView().paginationButtons().shouldHave(size(2));
+    paginator.nextPageButton().shouldBe(visible);
+    paginator.previousPageButton().shouldBe(hidden);
 
-    changePage(1);
+    // click next page
+    paginator.nextPageButton().click();
+    newFluentWait();
+
+    paginator.nextPageButton().shouldBe(hidden);
+    paginator.previousPageButton().shouldBe(visible);
+
     table.lastViolation().policy().shouldHave(text(licensePolicy3.getName()));
 
     DashboardPage.expandFilter();
@@ -851,8 +874,8 @@ public class DashboardViolationsTest
     DashboardFilters.apply();
     DashboardFilters.closeFilter();
 
-    DashboardPage.violationsView().paginationButtons().get(0).shouldHave(cssClass("selected"));
-    DashboardPage.violationsView().paginationButtons().shouldHave(size(1));
+    // should be at first page after filtering
+    paginator.buttonBar().shouldBe(hidden);
   }
 
   @Test
@@ -947,9 +970,7 @@ public class DashboardViolationsTest
     dashboardFilterDAO.deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
   }
 
-  private void changePage(int page) {
-    DashboardPage.violationsView().paginationButtons().get(page).click();
-
+  private void newFluentWait() {
     new FluentWait<>(getWebDriver())
         .withTimeout(Duration.ofSeconds(240))
         .pollingEvery(Duration.ofSeconds(2))

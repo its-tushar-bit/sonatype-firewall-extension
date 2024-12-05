@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationElement;
 import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationsHeaders;
 import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationsResults;
+import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationsResultsPaginator;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
@@ -478,23 +479,40 @@ public class DashboardApplicationsTest
     // if the filter sidebar is opened before this it will close itself once loading completes
     DashboardPage.applicationsView().results().shouldBe(visible);
 
+    ApplicationsResultsPaginator paginator = DashboardPage.applicationsView().paginator();
+
     showLowRiskViolations();
+
     DashboardPage.dashboardContainer().shouldBe(visible);
-    DashboardPage.applicationsView().paginationButtons().shouldHave(size(2));
+    paginator.buttonBar().shouldBe(visible);
+    paginator.nextPageButton().shouldBe(visible);
+    paginator.previousPageButton().shouldBe(hidden);
     table.firstApplication().totalRisk().shouldBe(text("10"));
     table.lastApplication().totalRisk().shouldBe(text("3"));
     eyesWatcher.eyesCheck("Dashboard applications tab with multiple pages");
-    changePage(1);
+    // click next page
+    paginator.nextPageButton().click();
+    newFluentWait();
     table.firstApplication().totalRisk().shouldBe(text("3"));
     table.lastApplication().totalRisk().shouldBe(text("1"));
 
     // sort by total risk asc
     headers.totalRiskHeader().click();
     // should be at first page after sorting
-    DashboardPage.applicationsView().paginationButtons().get(0).shouldHave(cssClass("selected"));
     table.firstApplication().totalRisk().shouldBe(text("1"));
-    changePage(1);
+    paginator.nextPageButton().click();
+    newFluentWait();
+    paginator.nextPageButton().shouldBe(hidden);
+    paginator.previousPageButton().shouldBe(visible);
     table.lastApplication().totalRisk().shouldBe(text("10"));
+
+    // click previous page
+    paginator.previousPageButton().click();
+    newFluentWait();
+    paginator.nextPageButton().shouldBe(visible);
+    paginator.previousPageButton().shouldBe(hidden);
+    table.firstApplication().totalRisk().shouldBe(text("1"));
+    table.lastApplication().totalRisk().shouldBe(text("3"));
 
     refresh();
     DashboardPage.applicationsView().results().shouldBe(visible);
@@ -504,8 +522,9 @@ public class DashboardApplicationsTest
     DashboardFilters.apply();
     DashboardFilters.closeFilter();
     // should be at first page after filtering
-    DashboardPage.applicationsView().paginationButtons().get(0).shouldHave(cssClass("selected"));
-    DashboardPage.applicationsView().paginationButtons().shouldHave(size(1));
+    paginator.buttonBar().shouldBe(hidden);
+    paginator.nextPageButton().shouldBe(hidden);
+    paginator.previousPageButton().shouldBe(hidden);
     table.firstApplication().totalRisk().shouldBe(text("7"));
     table.lastApplication().totalRisk().shouldBe(text("3"));
   }
@@ -563,9 +582,7 @@ public class DashboardApplicationsTest
     dashboardFilterDAO.deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
   }
 
-  private void changePage(int page) {
-    DashboardPage.applicationsView().paginationButtons().get(page).click();
-
+  private void newFluentWait() {
     new FluentWait<>(getWebDriver())
         .withTimeout(Duration.ofSeconds(240))
         .pollingEvery(Duration.ofSeconds(2))

@@ -6,7 +6,8 @@
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 import {
-  NxPagination,
+  NxIndeterminatePagination,
+  NxTableContainer,
   NxTable,
   NxTableBody,
   NxTableCell,
@@ -36,9 +37,11 @@ export default function DashboardViolationsTable(props) {
       stateGo,
       maxDaysOld,
       needsAcknowledgement,
-      violations: { results, sortFields, error, pageCount, page },
-      setViolationsPage,
+      violations: { results, hasNextPage, sortFields, error, pageCount, page },
+      setNextViolationsPage,
+      setPreviousViolationsPage,
     } = props,
+    currentPage = pageCount > 0 ? page : null,
     isLoading = !error && !results && !needsAcknowledgement,
     sortedColumn = extractSortFieldName(sortFields[0]),
     isSortReversed = sortFields[0].includes('-'),
@@ -134,9 +137,17 @@ export default function DashboardViolationsTable(props) {
         </NxTableBody>
       </NxTable>
 
-      <div className="nx-table-container__footer">
-        <NxPagination pageCount={pageCount} currentPage={pageCount > 0 ? page : null} onChange={setViolationsPage} />
-      </div>
+      {!isLoading &&
+        (currentPage === null || (currentPage === 0 && !hasNextPage) ? null : (
+          <NxTableContainer.Footer>
+            <NxIndeterminatePagination
+              onPrevPageSelect={setPreviousViolationsPage}
+              onNextPageSelect={setNextViolationsPage}
+              isFirstPage={currentPage === 0}
+              isLastPage={!hasNextPage}
+            />
+          </NxTableContainer.Footer>
+        ))}
     </div>
   );
 }
@@ -150,10 +161,12 @@ DashboardViolationsTable.propTypes = {
   violations: PropTypes.shape({
     results: PropTypes.arrayOf(violationPropTypes),
     numResults: PropTypes.number,
+    hasNextPage: PropTypes.bool,
     sortFields: PropTypes.arrayOf(PropTypes.string),
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
     pageCount: PropTypes.number,
     page: PropTypes.number,
   }),
-  setViolationsPage: PropTypes.func.isRequired,
+  setNextViolationsPage: PropTypes.func.isRequired,
+  setPreviousViolationsPage: PropTypes.func.isRequired,
 };

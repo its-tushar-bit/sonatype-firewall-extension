@@ -21,6 +21,7 @@ import java.util.TreeMap;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
+import com.sonatype.clm.testing.functional.elements.DashboardWaivers.WaiverResultsPaginator;
 import com.sonatype.clm.testing.functional.elements.DashboardWaivers.WaiverTile;
 import com.sonatype.clm.testing.functional.elements.DashboardWaivers.WaiversHeaders;
 import com.sonatype.clm.testing.functional.elements.DashboardWaivers.WaiversResults;
@@ -49,6 +50,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 
 import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
@@ -1667,19 +1669,31 @@ public class DashboardWaiversTest
     DashboardPage.waitUntilSpinnersGone();
 
     DashboardPage.dashboardContainer().shouldBe(visible);
-    DashboardPage.waiversView().paginationButtons().shouldHave(size(2));
+
+    WaiverResultsPaginator paginator = DashboardPage.waiversView().paginator();
+
+    //DashboardPage.waiversView().paginationButtons().shouldHave(size(2));
+    paginator.buttonBar().shouldBe(visible);
+    paginator.nextPageButton().shouldBe(visible);
+    paginator.previousPageButton().shouldBe(hidden);
     table.waivers().shouldHave(size(100));
     table.firstWaiver().policy().shouldHave(text("Policy 1"));
     table.firstWaiver().threatNumber().shouldHave(text("7"));
 
-    //Click next page
-    changePage(1);
+    // click next page
+    paginator.nextPageButton().click();
+    newFluentWait();
+    paginator.nextPageButton().shouldBe(hidden);
+    paginator.previousPageButton().shouldBe(visible);
     table.waivers().shouldHave(size(50));
     table.firstWaiver().policy().shouldHave(text("Policy 1"));
     table.firstWaiver().threatNumber().shouldHave(text("7"));
 
-    //Click back page
-    changePage(0);
+    //Click previous page
+    paginator.previousPageButton().click();
+    newFluentWait();
+    paginator.nextPageButton().shouldBe(visible);
+    paginator.previousPageButton().shouldBe(hidden);
     table.waivers().shouldHave(size(100));
     table.firstWaiver().policy().shouldHave(text("Policy 1"));
     table.firstWaiver().threatNumber().shouldHave(text("7"));
@@ -1688,6 +1702,14 @@ public class DashboardWaiversTest
   private void changePage(int page) {
     DashboardPage.waiversView().paginationButtons().get(page).click();
 
+    new FluentWait<>(getWebDriver())
+        .withTimeout(Duration.ofSeconds(240))
+        .pollingEvery(Duration.ofSeconds(2))
+        .ignoring(NoSuchElementException.class)
+        .until(ExpectedConditions.visibilityOf(table.firstWaiver().policy()));
+  }
+
+  private void newFluentWait() {
     new FluentWait<>(getWebDriver())
         .withTimeout(Duration.ofSeconds(240))
         .pollingEvery(Duration.ofSeconds(2))

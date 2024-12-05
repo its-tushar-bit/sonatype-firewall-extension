@@ -22,6 +22,7 @@ const initState = {
   violations: {
     results: null,
     numResults: null,
+    hasNextPage: false,
     error: null,
     sortFields: ['-firstOccurrenceTime', '-threatLevel'],
     pageCount: 0,
@@ -30,6 +31,7 @@ const initState = {
   components: {
     results: null,
     numResults: null,
+    hasNextPage: false,
     classyBrew: null,
     error: null,
     sortFields: ['-score'],
@@ -39,6 +41,7 @@ const initState = {
   applications: {
     results: null,
     numResults: null,
+    hasNextPage: false,
     classyBrew: null,
     error: null,
     sortFields: ['-totalApplicationRisk.totalRisk'],
@@ -48,6 +51,7 @@ const initState = {
   waivers: {
     results: null,
     numResults: null,
+    hasNextPage: false,
     error: null,
     sortFields: ['expiryTime'],
     pageCount: 0,
@@ -67,7 +71,7 @@ export default function (state = initState, { type, payload }) {
       return resetResults(state, payload);
 
     case LOAD_RESULTS_FULFILLED: {
-      const { resultsType, results, numResults, classyBrew } = payload;
+      const { resultsType, results, numResults, hasNextPage, classyBrew } = payload;
       // map results if type is waivers
       const mapResults = resultsType === 'waivers' && results ? addWaiversScopeProp(results) : results;
       const pageCount = numResults ? Math.ceil(numResults / DASHBOARD_PAGE_SIZE) : 0;
@@ -79,6 +83,7 @@ export default function (state = initState, { type, payload }) {
       return updateResults(state, resultsType, {
         results: mapResults,
         numResults,
+        hasNextPage,
         classyBrew,
         pageCount,
         page,

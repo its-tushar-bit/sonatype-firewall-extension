@@ -19,7 +19,8 @@ export default function DashboardViolations(props) {
       sortViolations,
       stateGo,
       appliedFilter: { maxDaysOld },
-      setViolationsPage,
+      setNextViolationsPage,
+      setPreviousViolationsPage,
     } = props,
     isLoading = !violations.results && !violations.error;
 
@@ -40,7 +41,8 @@ export default function DashboardViolations(props) {
     maxDaysOld,
     needsAcknowledgement,
     reload: doLoad,
-    setViolationsPage,
+    setNextViolationsPage,
+    setPreviousViolationsPage,
   };
 
   return (
@@ -54,6 +56,7 @@ export default function DashboardViolations(props) {
 const dashboardResultsShape = PropTypes.shape({
   results: PropTypes.array,
   numResults: PropTypes.number,
+  hasNextPage: PropTypes.bool,
   error: PropTypes.string,
   sortFields: PropTypes.arrayOf(PropTypes.string),
 });
@@ -69,5 +72,6 @@ DashboardViolations.propTypes = {
     maxDaysOld: PropTypes.number,
   }).isRequired,
   violations: dashboardResultsShape,
-  setViolationsPage: PropTypes.func.isRequired,
+  setNextViolationsPage: PropTypes.func.isRequired,
+  setPreviousViolationsPage: PropTypes.func.isRequired,
 };

@@ -37,6 +37,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -93,23 +94,27 @@ public class DashboardComponentsTest
 
     ComponentResultsPaginator paginator = DashboardPage.componentsView().paginator();
 
-    paginator.buttonBar().shouldBe(visible);
-    paginator.paginatorButtons().shouldHave(size(1));
+    paginator.buttonBar().shouldBe(hidden);
+    paginator.nextPageButton().shouldNot(exist);
+    paginator.previousPageButton().shouldNot(exist);
 
     // 101 results
     addComponentWithViolation(101, 5);
     refreshOrOpen(DashboardPage.urlToComponents());
     DashboardPage.dashboardContainer().shouldBe(visible);
     paginator.buttonBar().shouldBe(visible);
-    paginator.paginatorButtons().shouldHave(size(3));
+    paginator.nextPageButton().shouldBe(visible);
+    paginator.previousPageButton().shouldBe(hidden);
 
     //Click next page
-    paginator.paginatorButtons().get(2).click();
-    paginator.selectedPage().shouldHave(text("2"));
+    paginator.nextPageButton().click();
+    paginator.nextPageButton().shouldBe(hidden);
+    paginator.previousPageButton().shouldBe(visible);
 
     //Click back page
-    paginator.paginatorButtons().get(0).click();
-    paginator.selectedPage().shouldHave(text("1"));
+    paginator.previousPageButton().click();
+    paginator.nextPageButton().shouldBe(visible);
+    paginator.previousPageButton().shouldBe(hidden);
   }
 
   @Test

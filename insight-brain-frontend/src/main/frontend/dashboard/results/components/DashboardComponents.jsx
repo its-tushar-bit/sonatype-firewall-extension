@@ -19,7 +19,8 @@ export default function DashboardComponents(props) {
       loadComponentResults,
       sortComponents,
       stateGo,
-      setComponentsPage,
+      setNextComponentsPage,
+      setPreviousComponentsPage,
     } = props,
     isLoading = !componentResults.results && !componentResults.error;
 
@@ -36,7 +37,8 @@ export default function DashboardComponents(props) {
     needsAcknowledgement,
     sortComponents,
     stateGo,
-    setComponentsPage,
+    setNextComponentsPage,
+    setPreviousComponentsPage,
   };
 
   return (
@@ -51,6 +53,7 @@ const dashboardResultsShape = PropTypes.shape({
   results: PropTypes.array,
   sortFields: PropTypes.arrayOf(PropTypes.string),
   numResults: PropTypes.number,
+  hasNextPage: PropTypes.bool,
   error: PropTypes.string,
   classyBrew: heatMapColorStylerPropTypes,
 });
@@ -63,5 +66,6 @@ DashboardComponents.propTypes = {
   loadComponentResults: PropTypes.func.isRequired,
   sortComponents: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
-  setComponentsPage: PropTypes.func.isRequired,
+  setNextComponentsPage: PropTypes.func.isRequired,
+  setPreviousComponentsPage: PropTypes.func.isRequired,
 };

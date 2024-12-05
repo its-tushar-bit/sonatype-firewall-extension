@@ -21,6 +21,8 @@ public class DashboardViolations
 {
   private static final String ROOT = "#dashboard-violations";
 
+  private static final String PAGINATOR = ".nx-btn-bar--indeterminate-pagination";
+
   public static final WebElementCondition CRITICAL = Condition.cssClass("nx-threat-indicator--critical");
 
   public static final WebElementCondition SEVERE = Condition.cssClass("nx-threat-indicator--severe");
@@ -35,6 +37,10 @@ public class DashboardViolations
 
   public ViolationsResults results() {
     return new ViolationsResults();
+  }
+
+  public ViolationsResultsPaginator paginator() {
+    return new ViolationsResultsPaginator();
   }
 
   public ElementsCollection paginationButtons() {
@@ -142,6 +148,26 @@ public class DashboardViolations
 
     public SelenideElement componentEllipsis() {
       return component().$(".truncate-ellipsis");
+    }
+  }
+
+  public static class ViolationsResultsPaginator
+      extends BasicElement<ViolationsResultsPaginator>
+  {
+    ViolationsResultsPaginator() {
+      super(ROOT, ".nx-table-container__footer");
+    }
+
+    public SelenideElement buttonBar() {
+      return child(PAGINATOR);
+    }
+
+    public SelenideElement nextPageButton() {
+      return childXpath("//button[@aria-label='next page']");
+    }
+
+    public SelenideElement previousPageButton() {
+      return childXpath("//button[@aria-label='previous page']");
     }
   }
 }

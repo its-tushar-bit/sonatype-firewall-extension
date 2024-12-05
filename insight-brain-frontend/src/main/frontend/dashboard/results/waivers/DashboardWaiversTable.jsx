@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { NxTable, NxPagination, NxTableContainer } from '@sonatype/react-shared-components';
+import { NxTable, NxIndeterminatePagination, NxTableContainer } from '@sonatype/react-shared-components';
 import { equals } from 'ramda';
 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
@@ -26,14 +26,16 @@ const DEFAULT_SORT_FIELDS = [
 
 export default function DashboardWaiversTable(props) {
   const {
-    waivers: { results, sortFields, error, pageCount, page },
+    waivers: { results, hasNextPage, sortFields, error, pageCount, page },
     sortWaivers,
-    dispatchPagination,
+    dispatchNexPage,
+    dispatchPreviousPage,
     stateGo,
     maxDaysOld,
     needsAcknowledgement,
     reload,
   } = props;
+  const currentPage = pageCount > 0 ? page : null;
   const isLoading = !error && !results && !needsAcknowledgement,
     sortedColumn = extractSortFieldName(sortFields[0]),
     isSortReversed = sortFields[0].includes('-'),
@@ -136,9 +138,18 @@ export default function DashboardWaiversTable(props) {
           {needsAcknowledgement ? <NeedsAcknowledgementInfoRow colSpan={colSpan} /> : bodyFragment()}
         </NxTable.Body>
       </NxTable>
-      <NxTableContainer.Footer>
-        <NxPagination pageCount={pageCount} currentPage={pageCount > 0 ? page : null} onChange={dispatchPagination} />
-      </NxTableContainer.Footer>
+
+      {!isLoading &&
+        (currentPage === null || (currentPage === 0 && !hasNextPage) ? null : (
+          <NxTableContainer.Footer>
+            <NxIndeterminatePagination
+              onPrevPageSelect={dispatchPreviousPage}
+              onNextPageSelect={dispatchNexPage}
+              isFirstPage={currentPage === 0}
+              isLastPage={!hasNextPage}
+            />
+          </NxTableContainer.Footer>
+        ))}
     </div>
   );
 }
@@ -147,11 +158,13 @@ DashboardWaiversTable.propTypes = {
   reload: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
   sortWaivers: PropTypes.func.isRequired,
-  dispatchPagination: PropTypes.func.isRequired,
+  dispatchNexPage: PropTypes.func.isRequired,
+  dispatchPreviousPage: PropTypes.func.isRequired,
   maxDaysOld: PropTypes.number,
   needsAcknowledgement: PropTypes.bool.isRequired,
   waivers: PropTypes.shape({
     results: PropTypes.arrayOf(waiverPropTypes),
+    hasNextPage: PropTypes.bool,
     sortFields: PropTypes.arrayOf(PropTypes.string),
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
     pageCount: PropTypes.number,

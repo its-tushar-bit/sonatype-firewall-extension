@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
-import DashboardViolations from 'MainRoot//dashboard/results/violations/DashboardViolations';
-import DashboardViolationsTable from 'MainRoot//dashboard/results/violations/DashboardViolationsTable';
+import DashboardViolations from 'MainRoot/dashboard/results/violations/DashboardViolations';
+import DashboardViolationsTable from 'MainRoot/dashboard/results/violations/DashboardViolationsTable';
 import DashboardMask from 'MainRoot/dashboard/results/dashboardMask/DashboardMask';
 
 describe('DashboardViolations', function () {
@@ -17,6 +17,7 @@ describe('DashboardViolations', function () {
     minimalProps = {
       violations: {
         results: {},
+        hasNextPage: true,
         sortFields: ['field'],
         pageCount: 0,
         page: null,
@@ -29,7 +30,8 @@ describe('DashboardViolations', function () {
       loadViolationResults: loadViolationResultsSpy,
       sortViolations: () => {},
       stateGo: () => {},
-      setViolationsPage: () => {},
+      setNextViolationsPage: () => {},
+      setPreviousViolationsPage: () => {},
     };
 
     (getShallowComponent = enzymeUtils.getShallowComponent(DashboardViolations, minimalProps)),
@@ -75,6 +77,7 @@ describe('DashboardViolations', function () {
       filtersAreDirty: true,
       violations: {
         results: null,
+        hasNextPage: true,
         sortFields: ['field'],
         pageCount: 0,
         page: null,
@@ -88,6 +91,7 @@ describe('DashboardViolations', function () {
       filtersAreDirty: true,
       violations: {
         results: null,
+        hasNextPage: true,
         error: 'error',
         sortFields: ['field'],
         pageCount: 0,
@@ -108,6 +112,7 @@ describe('DashboardViolations', function () {
     expect(table).toHaveProp('stateGo', minimalProps.stateGo);
     expect(table).toHaveProp('sortViolations');
     expect(table).toHaveProp('reload');
-    expect(table).toHaveProp('setViolationsPage');
+    expect(table).toHaveProp('setNextViolationsPage');
+    expect(table).toHaveProp('setPreviousViolationsPage');
   });
 });

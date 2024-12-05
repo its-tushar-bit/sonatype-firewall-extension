@@ -22,7 +22,7 @@ public class DashboardWaivers
 {
   private static final String ROOT = "#dashboard-waivers";
 
-  private static final String PAGINATOR = ".nx-btn-bar--pagination";
+  private static final String PAGINATOR = ".nx-btn-bar--indeterminate-pagination";
 
   public WaiversHeaders headers() {
     return new WaiversHeaders();
@@ -88,16 +88,16 @@ public class DashboardWaivers
       super(ROOT, ".nx-table-container__footer");
     }
 
-    public  SelenideElement buttonBar() {
+    public SelenideElement buttonBar() {
       return child(PAGINATOR);
     }
 
-    public  ElementsCollection paginatorButtons() {
-      return children(PAGINATOR, "button");
+    public SelenideElement nextPageButton() {
+      return childXpath("//button[@aria-label='next page']");
     }
 
-    public  SelenideElement selectedPage() {
-      return child(PAGINATOR, "button.selected");
+    public SelenideElement previousPageButton() {
+      return childXpath("//button[@aria-label='previous page']");
     }
   }
 

@@ -6,7 +6,12 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectDashboardFilter, selectWaiversResults } from '../../dashboardSelectors';
-import { loadWaiverResults, sortWaiversResults, setWaiversPage } from '../dashboardResultsActions';
+import {
+  loadWaiverResults,
+  sortWaiversResults,
+  setNextWaiversPage,
+  setPreviousWaiversPage,
+} from '../dashboardResultsActions';
 import { stateGo as stateGoAction } from 'MainRoot/reduxUiRouter/routerActions';
 import DashboardWaiversTable from './DashboardWaiversTable';
 import DashboardMask from '../dashboardMask/DashboardMask';
@@ -18,7 +23,8 @@ export default function DashboardWaivers() {
   const loadWaivers = () => dispatch(loadWaiverResults());
   const stateGo = (...params) => dispatch(stateGoAction(...params));
   const sortWaivers = (sortFields) => dispatch(sortWaiversResults(sortFields));
-  const dispatchPagination = (page) => dispatch(setWaiversPage(page));
+  const dispatchNexPage = () => dispatch(setNextWaiversPage());
+  const dispatchPreviousPage = () => dispatch(setPreviousWaiversPage());
 
   const {
     loading: filterLoading,
@@ -45,7 +51,8 @@ export default function DashboardWaivers() {
   const tableProps = {
     waivers: modifiedWaivers,
     sortWaivers,
-    dispatchPagination,
+    dispatchNexPage,
+    dispatchPreviousPage,
     stateGo,
     maxDaysOld,
     needsAcknowledgement,

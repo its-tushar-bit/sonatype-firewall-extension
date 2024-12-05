@@ -32,10 +32,10 @@ export const SORT_RESULTS_FULFILLED = 'SORT_RESULTS_FULFILLED';
 export const RESET_ALL_TABS = 'RESET_ALL_TABS';
 export const DASHBOARD_SET_PAGE = 'DASHBOARD_SET_PAGE';
 
-function loadResultsFulfilled(resultsType, results, numResults, classyBrew) {
+function loadResultsFulfilled(resultsType, results, numResults, hasNextPage, classyBrew) {
   return {
     type: LOAD_RESULTS_FULFILLED,
-    payload: { resultsType, results, numResults, classyBrew },
+    payload: { resultsType, results, numResults, hasNextPage, classyBrew },
   };
 }
 
@@ -55,8 +55,8 @@ export function loadResults(resultsType) {
 
     return fetchResults(resultsType, getState())
       .then((data) => {
-        const { results, numResults, classyBrew } = data;
-        dispatch(loadResultsFulfilled(resultsType, results, numResults, classyBrew));
+        const { results, numResults, hasNextPage, classyBrew } = data;
+        dispatch(loadResultsFulfilled(resultsType, results, numResults, hasNextPage, classyBrew));
       })
       .catch((error) => {
         dispatch(loadResultsFailed(resultsType, error));
@@ -75,15 +75,35 @@ export function setPage(resultsType, page) {
   };
 }
 
+export function setNextPage(resultsType) {
+  return (dispatch, getState) => {
+    const nextPage = getState().dashboard[resultsType].page + 1;
+
+    return dispatch(setPage(resultsType, nextPage));
+  };
+}
+
+export function setPreviousPage(resultsType) {
+  return (dispatch, getState) => {
+    const previousPage = getState().dashboard[resultsType].page - 1;
+
+    return dispatch(setPage(resultsType, previousPage));
+  };
+}
+
 export const loadViolationResults = partial(loadResults, [VIOLATIONS_RESULTS_TYPE]);
 export const loadComponentResults = partial(loadResults, [COMPONENTS_RESULTS_TYPE]);
 export const loadApplicationResults = partial(loadResults, [APPLICATIONS_RESULTS_TYPE]);
 export const loadWaiverResults = partial(loadResults, [WAIVERS_RESULTS_TYPE]);
 
-export const setViolationsPage = partial(setPage, [VIOLATIONS_RESULTS_TYPE]);
-export const setWaiversPage = partial(setPage, [WAIVERS_RESULTS_TYPE]);
-export const setComponentsPage = partial(setPage, [COMPONENTS_RESULTS_TYPE]);
-export const setApplicationsPage = partial(setPage, [APPLICATIONS_RESULTS_TYPE]);
+export const setNextViolationsPage = partial(setNextPage, [VIOLATIONS_RESULTS_TYPE]);
+export const setPreviousViolationsPage = partial(setPreviousPage, [VIOLATIONS_RESULTS_TYPE]);
+export const setNextComponentsPage = partial(setNextPage, [COMPONENTS_RESULTS_TYPE]);
+export const setPreviousComponentsPage = partial(setPreviousPage, [COMPONENTS_RESULTS_TYPE]);
+export const setNextApplicationsPage = partial(setNextPage, [APPLICATIONS_RESULTS_TYPE]);
+export const setPreviousApplicationsPage = partial(setPreviousPage, [APPLICATIONS_RESULTS_TYPE]);
+export const setNextWaiversPage = partial(setNextPage, [WAIVERS_RESULTS_TYPE]);
+export const setPreviousWaiversPage = partial(setPreviousPage, [WAIVERS_RESULTS_TYPE]);
 
 function sortResults(resultsType, sortFields) {
   return (dispatch, getState) => {

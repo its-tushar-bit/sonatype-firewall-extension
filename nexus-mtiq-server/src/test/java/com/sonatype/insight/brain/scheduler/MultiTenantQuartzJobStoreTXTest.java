@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockId;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -26,7 +24,6 @@ import org.quartz.utils.ConnectionProvider;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.lenient;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantQuartzJobStoreTXTest
@@ -41,9 +38,6 @@ public class MultiTenantQuartzJobStoreTXTest
   @Mock
   private OperationalDataStore operationalDataStore;
 
-  @Mock
-  private ClusterLockManager clusterLockManager;
-
   private TestMultiTenantQuartzJobStoreTX underTest;
 
   @Before
@@ -51,8 +45,7 @@ public class MultiTenantQuartzJobStoreTXTest
     try {
       underTest = new TestMultiTenantQuartzJobStoreTX(productLicense,
           insightConfig,
-          operationalDataStore,
-          clusterLockManager);
+          operationalDataStore);
     }
     catch (Exception e) {
       throw new RuntimeException(e);
@@ -75,16 +68,6 @@ public class MultiTenantQuartzJobStoreTXTest
     });
   }
 
-  @Test
-  public void schemaMigrationShouldNotExitOnCheckIn() {
-    // pretend that a schema migration is in progress
-    // Note `lenient` is used as the code is never actually hit due to the override
-    lenient().when(clusterLockManager.lockExists(ClusterLockId.forSchemaMigrationInProgress())).thenReturn(true);
-
-    // the MTIQ implementation still always returns false
-    assertThat(underTest.shouldExitDueToSchemaMigration()).isFalse();
-  }
-
   private static class TestMultiTenantQuartzJobStoreTX
       extends MultiTenantQuartzJobStoreTX
   {
@@ -93,10 +76,9 @@ public class MultiTenantQuartzJobStoreTXTest
     public TestMultiTenantQuartzJobStoreTX(
         ProductLicense productLicense,
         InsightConfig insightConfig,
-        OperationalDataStore operationalDataStore,
-        ClusterLockManager clusterLockManager) throws InvalidConfigurationException
+        OperationalDataStore operationalDataStore) throws InvalidConfigurationException
     {
-      super(productLicense, insightConfig, operationalDataStore, new TenantUtil(), clusterLockManager);
+      super(productLicense, insightConfig, operationalDataStore, new TenantUtil());
     }
 
     @Override

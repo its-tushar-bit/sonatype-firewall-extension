@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.lock;
 
-import com.sonatype.insight.brain.dataaccess.LockDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.db.DatabaseConfig;
 
@@ -22,9 +21,6 @@ public class ClusterLockManagerProviderTest
 {
   @Mock
   public OperationalDataStore operationalDataStore;
-
-  @Mock
-  private LockDAO lockDAO;
 
   @Mock
   private PostgresAdvisoryLockDAO postgresAdvisoryLockDAO;
@@ -46,7 +42,7 @@ public class ClusterLockManagerProviderTest
     when(operationalDataStore.getDatabaseConfig()).thenReturn(databaseConfig);
 
     ClusterLockManagerProvider clusterLockManagerProvider = new ClusterLockManagerProvider(operationalDataStore,
-        lockDAO, postgresAdvisoryLockDAO);
+        postgresAdvisoryLockDAO);
     ClusterLockManager clusterLockManager = clusterLockManagerProvider.get();
     assertThat(clusterLockManager).isInstanceOf(clazz);
   }

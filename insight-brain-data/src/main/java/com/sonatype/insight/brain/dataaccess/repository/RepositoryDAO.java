@@ -15,7 +15,6 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -44,8 +43,6 @@ public class RepositoryDAO
 
   private final RepositoryMigrationDAO repositoryMigrationDAO;
 
-  private final ClusterLockManager clusterLockManager;
-
   @Inject
   public RepositoryDAO(
       final OperationalDataStore operationalDataStore,
@@ -53,8 +50,7 @@ public class RepositoryDAO
       final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       final RepositoryComponentDAO repositoryComponentDAO,
       final Provider<OwnerDAO> ownerDAOProvider,
-      final RepositoryMigrationDAO repositoryMigrationDAO,
-      final ClusterLockManager clusterLockManager)
+      final RepositoryMigrationDAO repositoryMigrationDAO)
   {
     super(operationalDataStore);
     this.proprietaryComponentNamePatternDAO = proprietaryComponentNamePatternDAO;
@@ -62,7 +58,6 @@ public class RepositoryDAO
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.ownerDAOProvider = ownerDAOProvider;
     this.repositoryMigrationDAO = repositoryMigrationDAO;
-    this.clusterLockManager = clusterLockManager;
   }
 
   public static String getErrMsgMissingRepo(final String repositoryManagerInstanceId, final String repositoryPublicId) {
@@ -288,9 +283,6 @@ public class RepositoryDAO
 
         // Cascade to repository components
         repositoryComponentDAO.deleteByRepositoryId(tx, repository.getId());
-
-        // Cascade to repository reevaluation locks
-        clusterLockManager.deleteForRepositoryReevaluation(tx, repository);
 
         // Cascade to repository migration (if any)
         if (includeRepositoryMigration) {

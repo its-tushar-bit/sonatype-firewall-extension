@@ -44,9 +44,4 @@ public abstract class AbstractClusterLock
     }
     return acquired;
   }
-
-  @Override
-  public void close() {
-    unlock();
-  }
 }

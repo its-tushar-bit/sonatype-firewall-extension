@@ -32,7 +32,7 @@ public class DefaultOperationalDataStore
 
   private EntityManagerFactory entityManagerFactory;
 
-  private EntityManagerFactory entityManagerFactoryForLocks;
+  private DataSource dataSourceForLocks;
 
   private volatile boolean isInitialized = false;
 
@@ -67,12 +67,14 @@ public class DefaultOperationalDataStore
 
     entityManagerFactory = Persistence.createEntityManagerFactory("InsightBrainODS", props);
     if (isDatabaseEmbedded) {
-      entityManagerFactoryForLocks = entityManagerFactory;
+      dataSourceForLocks = null; // H2 doesn't use this, it implements ClusterLock using Java Semaphores
     }
     else {
       // smallest pool size should still support max nesting level of locks
       int maxConnections = Math.max(5, Optional.ofNullable(databaseConfig.getMaxConnections()).orElse(50));
       BasicDataSource dataSourceForLocks = new BasicDataSource();
+      dataSourceForLocks.setAutoCommitOnReturn(false);
+      dataSourceForLocks.setDefaultAutoCommit(false);
       dataSourceForLocks.setDriverClassName(databaseConfig.getDriverClassName());
       dataSourceForLocks.setUrl(databaseConfig.getUrl());
       dataSourceForLocks.setUsername(databaseConfig.getUsername());
@@ -80,8 +82,8 @@ public class DefaultOperationalDataStore
       dataSourceForLocks.setMaxTotal(maxConnections);
       dataSourceForLocks.addConnectionProperty("ApplicationName",
           new DbApplicationNameGenerator().generateApplicationNameWithHost("IQ-locks"));
-      props.put("openjpa.ConnectionFactory", dataSourceForLocks);
-      entityManagerFactoryForLocks = Persistence.createEntityManagerFactory("InsightBrainODS", props);
+
+      this.dataSourceForLocks = dataSourceForLocks;
     }
     isInitialized = true;
 
@@ -114,13 +116,8 @@ public class DefaultOperationalDataStore
   }
 
   @Override
-  public EntityManagerFactory getEntityManagerFactoryForLocks() {
-    return entityManagerFactoryForLocks;
-  }
-
-  @Override
   public DataSource getDataSourceForLocks() {
-    return dataSource;
+    return dataSourceForLocks;
   }
 
   @Override

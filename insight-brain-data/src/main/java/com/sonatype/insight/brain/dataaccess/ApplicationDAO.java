@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -123,8 +122,6 @@ public class ApplicationDAO
 
   private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
 
-  private final ClusterLockManager clusterLockManager;
-
   @Inject
   public ApplicationDAO(
       final OperationalDataStore operationalDataStore,
@@ -149,8 +146,7 @@ public class ApplicationDAO
       final SastScanDAO sastScanDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final ThirdPartyFileDAO thirdPartyFileDAO,
-      final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
-      final ClusterLockManager clusterLockManager)
+      final AutoPolicyWaiverDAO autoPolicyWaiverDAO)
   {
     super(operationalDataStore, searchIndexManager);
     this.sourceControlDAOProvider = sourceControlDAOProvider;
@@ -174,7 +170,6 @@ public class ApplicationDAO
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
-    this.clusterLockManager = clusterLockManager;
   }
 
   public Application getByPublicId(TransactionContext tx, String publicId) {
@@ -722,13 +717,6 @@ public class ApplicationDAO
     if (proprietaryConfig != null) {
       proprietaryConfigDAO.delete(tx, proprietaryConfig);
     }
-
-    // Cascade to locks
-    clusterLockManager.deleteForPolicyViolations(tx, application);
-    clusterLockManager.deleteForPolicyViolationAggregations(tx, application.getId());
-    clusterLockManager.deleteForPolicyEvaluations(tx, application);
-    clusterLockManager.deleteForAuditJsonFileStore(tx, application.getId());
-    clusterLockManager.deleteForPdfGeneration(tx, application);
 
     // Cascade to InnerSource components
     List<InnerSourceComponent> innerSourceComponents =

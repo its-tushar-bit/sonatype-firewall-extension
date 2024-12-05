@@ -18,7 +18,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplications
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
@@ -82,8 +81,6 @@ public class OrganizationDAO
 
   private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
 
-  private final ClusterLockManager clusterLockManager;
-
   @Inject
   public OrganizationDAO(
       final OperationalDataStore operationalDataStore,
@@ -100,8 +97,7 @@ public class OrganizationDAO
       final SourceControlOrganizationImportEventDAO scmEventDAO,
       final ProprietaryConfigDAO proprietaryConfigDAO,
       final OrganizationAncestorDAO organizationAncestorDAO,
-      final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
-      final ClusterLockManager clusterLockManager)
+      final AutoPolicyWaiverDAO autoPolicyWaiverDAO)
   {
     super(operationalDataStore, searchIndexManager);
     this.automaticApplicationsConfigurationDAO = automaticApplicationsConfigurationDAO;
@@ -117,7 +113,6 @@ public class OrganizationDAO
     this.proprietaryConfigDAO = proprietaryConfigDAO;
     this.organizationAncestorDAO = organizationAncestorDAO;
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
-    this.clusterLockManager = clusterLockManager;
   }
 
   private Organization getByName(TransactionContext tx, String name) {
@@ -265,9 +260,6 @@ public class OrganizationDAO
 
     // Cascade to SourceControl config
     sourceControlDAOProvider.get().deleteByOwnerId(tx, organization.getId());
-
-    // Cascade to locks
-    clusterLockManager.deleteForAuditJsonFileStore(tx, organization.getId());
 
     // Cascade to repository connections
     for (RepositoryConnection repositoryConnection : repositoryConnectionDAO.getByOwnerId(tx, organization.getId())) {

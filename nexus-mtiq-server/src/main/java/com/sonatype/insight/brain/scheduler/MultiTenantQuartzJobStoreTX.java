@@ -9,7 +9,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -31,11 +30,10 @@ public class MultiTenantQuartzJobStoreTX
       ProductLicense productLicense,
       InsightConfig insightConfig,
       OperationalDataStore operationalDataStore,
-      TenantUtil tenantUtil,
-      ClusterLockManager clusterLockManager)
+      TenantUtil tenantUtil)
       throws InvalidConfigurationException
   {
-    super(productLicense, insightConfig, operationalDataStore, clusterLockManager);
+    super(productLicense, insightConfig, operationalDataStore);
     this.tenantUtil = tenantUtil;
   }
 
@@ -54,12 +52,5 @@ public class MultiTenantQuartzJobStoreTX
   // This is a separate method so that it can be overridden during testing.
   protected boolean doSuperCheckIn() throws JobPersistenceException {
     return super.doCheckin();
-  }
-
-  @Override
-  protected boolean shouldExitDueToSchemaMigration() {
-    // For MTIQ our deployment explicitly requires that a new deployment pod/container coming online runs migrations so
-    // existing pods/containers should NEVER exit when a migration happens
-    return false;
   }
 }

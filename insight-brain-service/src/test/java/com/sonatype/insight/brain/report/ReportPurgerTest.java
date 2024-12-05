@@ -28,11 +28,8 @@ import javax.persistence.OptimisticLockException;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockId;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
@@ -79,9 +76,6 @@ public class ReportPurgerTest
 
   @Inject
   private Configuration configuration;
-
-  @Inject
-  private ClusterLockManager clusterLockManager;
 
   @Mock
   private TaskScheduler taskSchedulerMock;
@@ -417,54 +411,5 @@ public class ReportPurgerTest
   public void testExecute_AdminTask() {
     reportPurger.execute(null, new PrintWriter(new StringWriter()));
     verify(taskSchedulerMock).triggerTaskNow(reportPurger, null);
-  }
-
-  @Test
-  public void testPurgeReports_DeletesClusterLocks_H2() {
-    testPurgeReports_DeletesClusterLocks();
-  }
-
-  @Test
-  @PostgresTest
-  public void testPurgeReports_DeletesClusterLocks_Postgres() {
-    testPurgeReports_DeletesClusterLocks();
-  }
-
-  private void testPurgeReports_DeletesClusterLocks() {
-    dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), Stage.ID_BUILD, true, 1, null));
-    PolicyEvaluation policyEvaluation1 =
-        tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-1", daysAgo(2));
-    PolicyEvaluation policyEvaluation2 =
-        tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-2", daysAgo(1));
-    PolicyEvaluation policyEvaluation3 =
-        tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-3", daysAgo(0));
-    // policyEvaluation1 has no report files
-    mockReport(policyEvaluation2);
-    mockReport(policyEvaluation3);
-    clusterLockManager.createForPolicyEvaluation(app, policyEvaluation1.getScanId());
-    clusterLockManager.createForPolicyEvaluation(app, policyEvaluation2.getScanId());
-    clusterLockManager.createForPolicyEvaluation(app, policyEvaluation3.getScanId());
-    assertThat(
-        clusterLockManager.lockExists(ClusterLockId.forPolicyEvaluation(app.getId(), policyEvaluation1.getScanId()))
-    ).isTrue();
-    assertThat(
-        clusterLockManager.lockExists(ClusterLockId.forPolicyEvaluation(app.getId(), policyEvaluation2.getScanId()))
-    ).isTrue();
-    assertThat(
-        clusterLockManager.lockExists(ClusterLockId.forPolicyEvaluation(app.getId(), policyEvaluation3.getScanId()))
-    ).isTrue();
-
-    reportPurger.purgeReports();
-
-    assertThat(work.getReportDir(app.getId()).list()).containsExactlyInAnyOrder("report-3");
-    assertThat(
-        clusterLockManager.lockExists(ClusterLockId.forPolicyEvaluation(app.getId(), policyEvaluation1.getScanId()))
-    ).isFalse();
-    assertThat(
-        clusterLockManager.lockExists(ClusterLockId.forPolicyEvaluation(app.getId(), policyEvaluation2.getScanId()))
-    ).isFalse();
-    assertThat(
-        clusterLockManager.lockExists(ClusterLockId.forPolicyEvaluation(app.getId(), policyEvaluation3.getScanId()))
-    ).isTrue();
   }
 }

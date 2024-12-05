@@ -244,8 +244,6 @@ public interface DAOFactory
 
   LicenseThreatGroupLicenseDAO createLicenseThreatGroupLicenseDAO();
 
-  LockDAO createLockDAO();
-
   PostgresAdvisoryLockDAO createPostgresAdvisoryLockDAO();
 
   MigrationTrackerDAO createMigrationTrackerDAO();

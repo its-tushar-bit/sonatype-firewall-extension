@@ -207,9 +207,8 @@ public class DbMigrationCommandTest
     dbMigrationCommand.run(null, null, insightConfig);
 
     verify(spyDatabaseProvisioner).initializeDatabaseWithoutMigration();
-    verify(mockClusterLockManager, never()).createForSchemaMigrationInProgress();
+    verify(mockClusterLockManager, never()).createForSchemaMigration();
     verify(spyDatabaseProvisioner).migrateDatabase();
-    verify(mockClusterLockManager, never()).deleteForSchemaMigrationInProgress();
   }
 
   @Test
@@ -227,9 +226,8 @@ public class DbMigrationCommandTest
     dbMigrationCommand.run(null, null, insightConfig);
 
     verify(spyDatabaseProvisioner).initializeDatabaseWithoutMigration();
-    verify(mockClusterLockManager).createForSchemaMigrationInProgress();
+    verify(mockClusterLockManager).createForSchemaMigration();
     verify(spyDatabaseProvisioner).migrateDatabase();
-    verify(mockClusterLockManager).deleteForSchemaMigrationInProgress();
   }
 
   @Test
@@ -240,12 +238,10 @@ public class DbMigrationCommandTest
     spyDatabaseProvisioner.initializeDatabaseWithMigration();
 
     verify(mockClusterLockManager, never()).createForSchemaMigration();
-    verify(mockClusterLockManager, never()).createForSchemaMigrationInProgress();
     // DatabaseProvisioner invoked, DatabaseMigrations invoked and checked but migration method not executed
     verify(spyDatabaseProvisioner).migrateDatabase();
     verify(spyDatabaseMigrations).isMigrationEnabled();
     verify(spyDatabaseMigrations, never()).migrateDatabase();
-    verify(mockClusterLockManager, never()).deleteForSchemaMigrationInProgress();
   }
 
   @Test
@@ -256,9 +252,7 @@ public class DbMigrationCommandTest
     spyDatabaseProvisioner.initializeDatabaseWithMigration();
 
     verify(mockClusterLockManager, never()).createForSchemaMigration();
-    verify(mockClusterLockManager, never()).createForSchemaMigrationInProgress();
     verify(spyDatabaseProvisioner).migrateDatabase();
-    verify(mockClusterLockManager, never()).deleteForSchemaMigrationInProgress();
   }
 
   @Test
@@ -290,9 +284,7 @@ public class DbMigrationCommandTest
     spyDatabaseProvisioner.initializeDatabaseWithMigration();
 
     verify(mockClusterLockManager).createForSchemaMigration();
-    verify(mockClusterLockManager).createForSchemaMigrationInProgress();
     verify(spyDatabaseProvisioner).migrateDatabase();
-    verify(mockClusterLockManager).deleteForSchemaMigrationInProgress();
   }
 
   @Test
@@ -325,9 +317,7 @@ public class DbMigrationCommandTest
     spyDatabaseProvisioner.initializeDatabaseWithMigration();
 
     verify(mockClusterLockManager).createForSchemaMigration();
-    verify(mockClusterLockManager).createForSchemaMigrationInProgress();
     verify(spyDatabaseProvisioner).migrateDatabase();
-    verify(mockClusterLockManager).deleteForSchemaMigrationInProgress();
   }
 
   @Test

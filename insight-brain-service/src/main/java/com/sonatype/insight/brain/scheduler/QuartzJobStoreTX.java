@@ -14,8 +14,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockId;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -82,8 +80,6 @@ public class QuartzJobStoreTX
 
   protected final OperationalDataStore operationalDataStore;
 
-  private final ClusterLockManager clusterLockManager;
-
   private volatile boolean productLicenseLoaded;
 
   private volatile boolean isShuttingDown;
@@ -92,14 +88,12 @@ public class QuartzJobStoreTX
   public QuartzJobStoreTX(
       ProductLicense productLicense,
       InsightConfig insightConfig,
-      OperationalDataStore operationalDataStore,
-      final ClusterLockManager clusterLockManager)
+      OperationalDataStore operationalDataStore)
       throws InvalidConfigurationException
   {
     this.productLicense = productLicense;
     this.insightConfig = insightConfig;
     this.operationalDataStore = operationalDataStore;
-    this.clusterLockManager = clusterLockManager;
     initialize();
   }
 
@@ -127,12 +121,6 @@ public class QuartzJobStoreTX
       return false;
     }
 
-    if (shouldExitDueToSchemaMigration()) {
-      isShuttingDown = true;
-      exitInNewThread(SCHEMA_MIGRATION_UNFINISHED_EXIT_STATUS, SCHEMA_MIGRATION_UNFINISHED_SHUTDOWN_THREAD_NAME);
-      return false;
-    }
-
     if (!productLicenseLoaded) {
       return false;
     }
@@ -150,15 +138,6 @@ public class QuartzJobStoreTX
 
     // Defer calling super.doCheckin() to allow us to check if other nodes checked-in after our previous check-in
     return super.doCheckin();
-  }
-
-  protected boolean shouldExitDueToSchemaMigration() {
-    boolean schemaMigrationUnfinished =
-        clusterLockManager.lockExists(ClusterLockId.forSchemaMigrationInProgress());
-    if (schemaMigrationUnfinished) {
-      log.error(SCHEMA_MIGRATION_UNFINISHED_MESSAGE);
-    }
-    return schemaMigrationUnfinished;
   }
 
   private boolean shouldExitDueToOtherNodeInCluster() throws JobPersistenceException {

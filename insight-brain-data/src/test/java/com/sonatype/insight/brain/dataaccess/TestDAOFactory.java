@@ -58,8 +58,6 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseLicenseInternalDAO;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
 import com.sonatype.insight.brain.dataaccess.lock.PostgresAdvisoryLockDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
@@ -159,17 +157,10 @@ public class TestDAOFactory
 {
   private final DataStoreProvider dataStoreProvider;
 
-  private final ClusterLockManager clusterLockManager;
-
   private final SearchIndexManager searchIndexManager;
 
   public TestDAOFactory(final DataStoreProvider dataStoreProvider) {
     this.dataStoreProvider = dataStoreProvider;
-    this.clusterLockManager = new ClusterLockManagerProvider(
-        dataStoreProvider.getOperationalDataStore(),
-        createLockDAO(),
-        createPostgresAdvisoryLockDAO()
-    ).get();
     this.searchIndexManager = new DefaultSearchIndexManager(createSearchIndexChangeDAO());
   }
 
@@ -225,7 +216,7 @@ public class TestDAOFactory
         licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider, ownerDAOProvider, applicationTagDAO,
         applicationComponentDAOProvider, proprietaryConfigDAO, innerSourceComponentDAO, membershipMappingDAO,
         policyViolationAggregationDAO, repositoryConnectionDAO, sourceControlDefaultBranchCommitHistoryDAO,
-        sastScanDAO, thirdPartySbomMetadataDAO, thirdPartyFileDAO, autoPolicyWaiverDAO, clusterLockManager);
+        sastScanDAO, thirdPartySbomMetadataDAO, thirdPartyFileDAO, autoPolicyWaiverDAO);
   }
 
   @Override
@@ -518,11 +509,6 @@ public class TestDAOFactory
   }
 
   @Override
-  public LockDAO createLockDAO() {
-    return new LockDAO(dataStoreProvider.getOperationalDataStore());
-  }
-
-  @Override
   public PostgresAdvisoryLockDAO createPostgresAdvisoryLockDAO() {
     return new PostgresAdvisoryLockDAO();
   }
@@ -556,7 +542,7 @@ public class TestDAOFactory
     return new OrganizationDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager,
         automaticApplicationsConfigurationDAO, licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider,
         membershipMappingDAO, ownerDAOProvider, tagDAOProvider, sourceControlDAOProvider, repositoryConnectionDAO,
-        scmEventDAO, proprietaryConfigDAO, organizationAncestorDAO, autoPolicyWaiverDAO, clusterLockManager);
+        scmEventDAO, proprietaryConfigDAO, organizationAncestorDAO, autoPolicyWaiverDAO);
   }
 
   @Override
@@ -703,8 +689,7 @@ public class TestDAOFactory
   @Override
   public RepositoryComponentDAO createRepositoryComponentDAO() {
     QuarantinedComponentAccessDAO quarantinedComponentAccessDAO = createQuarantinedComponentAccessDAO();
-    return new RepositoryComponentDAO(dataStoreProvider.getOperationalDataStore(), quarantinedComponentAccessDAO,
-        clusterLockManager);
+    return new RepositoryComponentDAO(dataStoreProvider.getOperationalDataStore(), quarantinedComponentAccessDAO);
   }
 
   @Override
@@ -720,8 +705,7 @@ public class TestDAOFactory
     Provider<OwnerDAO> ownerDAOProvider = this::createOwnerDAO;
     RepositoryMigrationDAO repositoryMigrationDAO = createRepositoryMigrationDAO();
     return new RepositoryDAO(dataStoreProvider.getOperationalDataStore(), proprietaryComponentNamePatternDAO,
-        repositoryPolicyViolationDAO, repositoryComponentDAO, ownerDAOProvider, repositoryMigrationDAO,
-        clusterLockManager);
+        repositoryPolicyViolationDAO, repositoryComponentDAO, ownerDAOProvider, repositoryMigrationDAO);
   }
 
   @Override

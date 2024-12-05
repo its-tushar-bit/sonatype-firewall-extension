@@ -11,7 +11,6 @@ import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.dataaccess.LockDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
@@ -83,9 +82,7 @@ public class DatabaseMigrations
     if (supportsClusterLock()) {
       try (ClusterLock clusterLock = clusterLockManager.createForSchemaMigration()) {
         clusterLock.lock();
-        clusterLockManager.createForSchemaMigrationInProgress();
         doMigrateDatabases();
-        clusterLockManager.deleteForSchemaMigrationInProgress();
       }
     }
     else {
@@ -101,7 +98,6 @@ public class DatabaseMigrations
   private ClusterLockManager getClusterLockManagerProvider(final OperationalDataStore operationalDataStore) {
     ClusterLockManagerProvider clusterLockManagerProvider = new ClusterLockManagerProvider(
         operationalDataStore,
-        new LockDAO(operationalDataStore),
         new PostgresAdvisoryLockDAO()
     );
 

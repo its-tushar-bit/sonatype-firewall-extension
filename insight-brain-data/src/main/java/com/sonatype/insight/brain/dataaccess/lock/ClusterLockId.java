@@ -23,10 +23,6 @@ public sealed interface ClusterLockId
     return SimpleId.SCHEMA_MIGRATION;
   }
 
-  static ClusterLockId forSchemaMigrationInProgress() {
-    return SimpleId.SCHEMA_MIGRATION_IN_PROGRESS;
-  }
-
   static ClusterLockId forDataMigration() {
     return SimpleId.DATA_MIGRATION;
   }
@@ -54,16 +50,6 @@ public sealed interface ClusterLockId
     return new CompoundId(CompoundIdClass.REPOSITORY_COMPONENT, repositoryId + "-" + componentPathname);
   }
 
-  /**
-   * @Deprecated will be removed after table based lock mechanism is removed
-   */
-  static String prefixForRepositoryComponents(String repositoryId) {
-    if (repositoryId == null) {
-      throw new NullPointerException("Repository ID must not be null");
-    }
-    return new CompoundId(CompoundIdClass.REPOSITORY_COMPONENT, repositoryId + "-").getOldStyleLockId();
-  }
-
   static ClusterLockId forRepositoryReevaluation(String repositoryId) {
     return new CompoundId(CompoundIdClass.REPOSITORY_REEVALUATION, repositoryId);
   }
@@ -73,16 +59,6 @@ public sealed interface ClusterLockId
       throw new NullPointerException("Application ID and scan ID must not be null");
     }
     return new CompoundId(CompoundIdClass.POLICY_EVALUATION, applicationId + "-" + scanId);
-  }
-
-  /**
-   * @Deprecated will be removed after table based lock mechanism is removed
-   */
-  static String prefixForPolicyEvaluations(String applicationId) {
-    if (applicationId == null) {
-      throw new NullPointerException("Application ID must not be null");
-    }
-    return new CompoundId(CompoundIdClass.POLICY_EVALUATION, applicationId + "-").getOldStyleLockId();
   }
 
   static ClusterLockId forAuditJsonFileStore(String ownerId) {
@@ -97,21 +73,6 @@ public sealed interface ClusterLockId
   }
 
   /**
-   * @Deprecated will be removed after table based lock mechanism is removed
-   */
-  static String prefixForPdfGeneration(String applicationId) {
-    if (applicationId == null) {
-      throw new NullPointerException("Application ID must not be null");
-    }
-    return new CompoundId(CompoundIdClass.PDF_GENERATION, applicationId + "-").getOldStyleLockId();
-  }
-
-  /**
-   * @Deprecated will be removed after table based lock mechanism is removed
-   */
-  String getOldStyleLockId();
-
-  /**
    * ClusterLockIds that consist only of a class and not a second string.
    */
   enum SimpleId
@@ -123,33 +84,16 @@ public sealed interface ClusterLockId
      * Thus, locks corresponding to these classes will appear in the DB with decimal values in ranges as follows
      */
     // 0 - 16777215
-    SCHEMA_MIGRATION("schema-migration"),
+    SCHEMA_MIGRATION,
     // 16777216 - 3355443
-    DATA_MIGRATION("data-migration"),
+    DATA_MIGRATION,
     // 33554432 - 50331647
-    NEW_INSTANCE_POPULATION("new-instance-population"),
+    NEW_INSTANCE_POPULATION,
     // 50331648 - 67108863
-    INACTIVE_REPOSITORY_VIOLATION_CLEANER("inactive-repository-violation-cleaner"),
-    // 67108864 - 83886079
-    SCHEMA_MIGRATION_IN_PROGRESS("schema-migration-in-progress");
+    INACTIVE_REPOSITORY_VIOLATION_CLEANER;
     // MTIQ note: due to the use of ordinals in the values sent to the db, new values should always be added to
-    // the end of the enum
-
-    private final String lockId;
-
-    SimpleId(String lockId) {
-      this.lockId = lockId;
-    }
-
-    @Override
-    public String toString() {
-      return lockId;
-    }
-
-    @Override
-    public String getOldStyleLockId() {
-      return lockId;
-    }
+    // the end of the enum (or reuse old now-unused ordinal positions) and no-longer-used values cannot be deleted but
+    // only marked unused (unless they are the last ordinal)
   }
 
   /**
@@ -163,32 +107,22 @@ public sealed interface ClusterLockId
      * Thus, locks corresponding to these classes will appear in the DB with decimal values in ranges as follows
      */
     // 2147483648 - 2164260863
-    POLICY_VIOLATIONS("policy-violations"),
+    POLICY_VIOLATIONS,
     // 2164260864 - 2181038079
-    POLICY_VIOLATION_AGGREGATIONS("policy-violation-aggregations"),
+    POLICY_VIOLATION_AGGREGATIONS,
     // 2181038080 - 2197815295
-    REPOSITORY_COMPONENT("repository-component"),
+    REPOSITORY_COMPONENT,
     // 2197815296 - 2214592511
-    REPOSITORY_REEVALUATION("repository-reevaluation"),
+    REPOSITORY_REEVALUATION,
     // 2214592512 - 2231369727
-    POLICY_EVALUATION("policy-evaluation"),
+    POLICY_EVALUATION,
     // 2231369728 - 2248146943
-    AUDIT_JSON_FILE_STORE("audit-json-file-store"),
+    AUDIT_JSON_FILE_STORE,
     // 2248146944 - 2264924159
-    PDF_GENERATION("pdf-generation");
+    PDF_GENERATION;
     // MTIQ note: due to the use of ordinals in the values sent to the db, new values should always be added to
-    // the end of the enum
-
-    private final String classStr;
-
-    CompoundIdClass(String classStr) {
-      this.classStr = classStr;
-    }
-
-    @Override
-    public String toString() {
-      return classStr;
-    }
+    // the end of the enum (or reuse old now-unused ordinal positions) and no-longer-used values cannot be deleted but
+    // only marked unused (unless they are the last ordinal)
   }
 
   /**
@@ -201,11 +135,6 @@ public sealed interface ClusterLockId
       if (lockObjId == null || lockClass == null) {
         throw new NullPointerException("Lock class and object ID must not be null");
       }
-    }
-
-    @Override
-    public String getOldStyleLockId() {
-      return lockClass.toString() + "-" + lockObjId;
     }
   }
 }

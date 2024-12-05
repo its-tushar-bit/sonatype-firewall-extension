@@ -26,7 +26,6 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -56,17 +55,13 @@ public class RepositoryComponentDAO
 
   private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
 
-  private final ClusterLockManager clusterLockManager;
-
   @Inject
   public RepositoryComponentDAO(
       final OperationalDataStore operationalDataStore,
-      final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO,
-      final ClusterLockManager clusterLockManager)
+      final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO)
   {
     super(operationalDataStore);
     this.quarantinedComponentAccessDAO = quarantinedComponentAccessDAO;
-    this.clusterLockManager = clusterLockManager;
   }
 
   public List<RepositoryComponent> getByRepositoryId(String repositoryId) {
@@ -705,16 +700,11 @@ public class RepositoryComponentDAO
     // WARNING: Be careful adding business logic to this method because, for performance reasons,
     // we bypass this method when deleting all components for a repository.
     // See https://issues.sonatype.org/browse/CLM-15648 for details
-    clusterLockManager.deleteForRepositoryComponent(tx, entity.getRepositoryId(), entity.getPathname());
     quarantinedComponentAccessDAO.deleteByRepositoryComponentId(tx, entity.getId());
     super.delete(tx, entity);
   }
 
   public void deleteByRepositoryId(TransactionContext tx, String repositoryId) {
-    // For H2 locks would normally be deleted by calling delete > ClusterLock.deleteForRepositoryComponent
-    // on each repository component, but there may be orphaned locks that were created without a corresponding
-    // repository component, this will also delete those orphaned locks as well as the locks for postgres
-    clusterLockManager.deleteForRepository(tx, repositoryId);
     if (isDatabaseEmbedded()) {
       // We do not enroll the deletions in the transaction on purpose.
       // This improves performance and keeps db operations (including commits) reasonably short, which means other

@@ -5,19 +5,13 @@
  */
 package com.sonatype.insight.brain.db;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.cache.MultiTenantQueryCache;
 import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.apache.openjpa.datacache.DataCacheMode;
@@ -30,8 +24,6 @@ public class MultiTenantOperationalDataStore
     implements OperationalDataStore
 {
   private static final Logger log = LoggerFactory.getLogger(MultiTenantDataMartDataStore.class);
-
-  private final Map<Tenant, EntityManagerFactory> entityManagerFactoryForLocks = new ConcurrentHashMap<>();
 
   private DataSource locksDataSource;
 
@@ -54,11 +46,6 @@ public class MultiTenantOperationalDataStore
     MultiTenantPostgresDataSourceProvider multiTenantPostgresDataSourceProvider =
         (MultiTenantPostgresDataSourceProvider) dataSourceProvider;
     locksDataSource = multiTenantPostgresDataSourceProvider.getLocksDataSource();
-    Map<String, Object> props = new LinkedHashMap<>();
-    props.put("openjpa.ConnectionFactory", locksDataSource);
-    props.put("openjpa.jdbc.Schema", getDatabaseSchema());
-    entityManagerFactoryForLocks.put(TenantThreadLocal.getTenant(),
-        Persistence.createEntityManagerFactory("InsightBrainODS", props));
   }
 
   @Override
@@ -90,11 +77,6 @@ public class MultiTenantOperationalDataStore
   public boolean isDatabaseInMemory() {
     // multi-tenant is not compatible with H2
     return false;
-  }
-
-  @Override
-  public EntityManagerFactory getEntityManagerFactoryForLocks() {
-    return entityManagerFactoryForLocks.get(TenantThreadLocal.getTenant());
   }
 
   @Override

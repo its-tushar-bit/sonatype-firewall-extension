@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.db.datastore;
 
-import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 /**
@@ -34,11 +33,6 @@ public interface OperationalDataStore
    * Is the database currently being used an in-memory database (tests only)
    */
   boolean isDatabaseInMemory();
-
-  /**
-   * Return the special {@link EntityManagerFactory} that is used for the locking mechanism
-   */
-  EntityManagerFactory getEntityManagerFactoryForLocks();
 
   /**
    * Return the special {@link DataSource} that is used for the locking mechanism

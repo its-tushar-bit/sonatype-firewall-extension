@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.dataaccess.lock;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import com.sonatype.insight.brain.dataaccess.LockDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 
 import datadog.trace.api.Trace;
@@ -18,8 +17,6 @@ public class PostgresClusterLock
 {
   private final OperationalDataStore operationalDataStore;
 
-  private final LockDAO lockDAO;
-
   private final PostgresAdvisoryLockDAO advisoryLockDAO;
 
   private volatile Connection connection;
@@ -27,13 +24,11 @@ public class PostgresClusterLock
   protected PostgresClusterLock(
       final ClusterLockId clusterLockId,
       final OperationalDataStore operationalDataStore,
-      final LockDAO lockDAO,
       final PostgresAdvisoryLockDAO advisoryLockDAO)
   {
     super(clusterLockId);
 
     this.operationalDataStore = operationalDataStore;
-    this.lockDAO = lockDAO;
     this.advisoryLockDAO = advisoryLockDAO;
   }
 
@@ -64,29 +59,19 @@ public class PostgresClusterLock
 
   @SuppressWarnings("PMD.DoNotThrowExceptionInFinally")
   private boolean acquire() {
-    String oldStyleLockId = clusterLockId.getOldStyleLockId();
     Connection connection = getNewConnection();
 
     RuntimeException runtimeException = null;
     try {
       if (waitForLock) {
-
-        // TEMPORARY: as we migrate from the old table-based locks to the new advisory lock mechanism, we use both.
-        // Once all pods are running this code, another deployment will be done to remove the call to lockDAO,
-        // and then once all pods are running _that_ code, a third deployment will be done to delete the lock table.
-        lockDAO.acquireLock(connection, oldStyleLockId, lockType.getLockModeType());
         advisoryLockDAO.acquireLock(connection, clusterLockId, lockType.getLockModeType());
         this.connection = connection;
         return true;
       }
       else {
-        if (lockDAO.tryAcquireLock(connection, oldStyleLockId, lockType.getLockModeType())) {
-          if (advisoryLockDAO.tryAcquireLock(connection, clusterLockId, lockType.getLockModeType())) {
-            this.connection = connection;
-            return true;
-          }
-          // Else failed to acquire pg_advisory lock, likely because a future-impl node that doesn't use the old lock
-          // table has it.
+        if (advisoryLockDAO.tryAcquireLock(connection, clusterLockId, lockType.getLockModeType())) {
+          this.connection = connection;
+          return true;
         }
         // Else failed to acquire lock. Return false, do not assign this.connection, and allow the finally block to
         // close `connection`.
@@ -124,8 +109,8 @@ public class PostgresClusterLock
     try {
       var connection = operationalDataStore.getDataSourceForLocks().getConnection();
 
-      // Note: attempting to set default auto-commit on the DataSource (in DefaultOperationalDataStore) had no effect.
-      // JPA might be interfering with it. So we set it per-connection.
+      // Note: attempting to set default auto-commit on the DataSource (in DefaultOperationalDataStore) had no effect,
+      // so we set it per-connection.
       connection.setAutoCommit(false);
       return connection;
     }

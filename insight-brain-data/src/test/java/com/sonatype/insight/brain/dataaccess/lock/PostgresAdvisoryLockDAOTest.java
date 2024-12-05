@@ -610,16 +610,16 @@ public class PostgresAdvisoryLockDAOTest
     assertThat(logOutput).atWarnLevel()
         .contains("""
             Lock collision detected: existing lock on \
-            CompoundId[lockClass=policy-violations, lockObjId=Aa] for tenant "notused" \
+            CompoundId[lockClass=POLICY_VIOLATIONS, lockObjId=Aa] for tenant "notused" \
             has same database value as new lock on \
-            CompoundId[lockClass=policy-violations, lockObjId=BB] for tenant "notused\"""");
+            CompoundId[lockClass=POLICY_VIOLATIONS, lockObjId=BB] for tenant "notused\"""");
   }
 
   @Test
   public void testDebugLogging() throws Exception {
     var expectedLogEntry = """
         Acquiring lock on \
-        CompoundId[lockClass=policy-violations, lockObjId=PostgresAdvisoryLockDAOTest] for tenant "notused" with \
+        CompoundId[lockClass=POLICY_VIOLATIONS, lockObjId=PostgresAdvisoryLockDAOTest] for tenant "notused" with \
         classid 2163275024 (0x80f0f510) and objid 1289075911 (0x4cd5bcc7)""";
 
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
@@ -640,7 +640,6 @@ public class PostgresAdvisoryLockDAOTest
 
       // All the zero-param lock constructors
       dao.acquireLock(connection, ClusterLockId.forSchemaMigration(), LockModeType.PESSIMISTIC_READ);
-      dao.acquireLock(connection, ClusterLockId.forSchemaMigrationInProgress(), LockModeType.PESSIMISTIC_READ);
       dao.acquireLock(connection, ClusterLockId.forDataMigration(), LockModeType.PESSIMISTIC_READ);
       dao.acquireLock(connection, ClusterLockId.forNewInstancePopulation(), LockModeType.PESSIMISTIC_READ);
       dao.acquireLock(connection, ClusterLockId.forInactiveRepositoryViolationCleaner(), LockModeType.PESSIMISTIC_READ);
@@ -712,10 +711,6 @@ public class PostgresAdvisoryLockDAOTest
 
       dao.acquireLock(connection, ClusterLockId.forInactiveRepositoryViolationCleaner(), LockModeType.PESSIMISTIC_READ);
       assertLockClassidRange(0x03000000, 0x04000000);
-      connection.commit();
-
-      dao.acquireLock(connection, ClusterLockId.forSchemaMigrationInProgress(), LockModeType.PESSIMISTIC_READ);
-      assertLockClassidRange(0x04000000, 0x05000000);
       connection.commit();
 
       dao.acquireLock(connection, ClusterLockId.forPolicyViolations("test"), LockModeType.PESSIMISTIC_READ);

@@ -5,12 +5,10 @@
  */
 package com.sonatype.insight.brain.dataaccess.lock;
 
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Semaphore;
 
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLock.LockType;
-import com.sonatype.insight.dataaccess.TransactionContext;
+import com.google.common.collect.MapMaker;
 
 /**
  * H2 implementation of {@link ClusterLockManager}. H2 uses in-memory locks instead of row-level locks because H2 does
@@ -20,40 +18,22 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class H2ClusterLockManager
     extends AbstractClusterLockManager
 {
-  static final ConcurrentMap<ClusterLockId, Semaphore> LOCKS_BY_ID = new ConcurrentHashMap<>();
+  /*
+   * Mappings for weak values delete automatically when the value is no longer referenced elsewhere, preventing this map
+   * from indefinitely accumulating all ClusterLocks ever created within this run of the server
+   *
+   * Note: we must use weakValues instead of weakKeys because those methods cause value and key comparisons,
+   * respectively, to be done by identity rather than .equals(). For the keys that is unacceptable: two different
+   * ClusterLockIds with the same semantic value must map to the same Semaphore.
+   */
+  static final ConcurrentMap<ClusterLockId, Semaphore> LOCKS_BY_ID = new MapMaker()
+      .weakValues()
+      .initialCapacity(64)
+      .makeMap();
 
   @Override
   protected ClusterLock createClusterLock(final ClusterLockId clusterLockId) {
     Semaphore semaphore = LOCKS_BY_ID.computeIfAbsent(clusterLockId, key -> new Semaphore(Integer.MAX_VALUE, true));
     return new H2ClusterLock(clusterLockId, semaphore);
-  }
-
-  @Override
-  protected void deleteLock(final TransactionContext tx /* unused */, final ClusterLockId clusterLockId) {
-    Semaphore semaphore = LOCKS_BY_ID.get(clusterLockId);
-    if (semaphore != null) {
-      try (ClusterLock lock = new H2ClusterLock(clusterLockId, semaphore)) {
-        lock.lock(LockType.EXCLUSIVE, true);
-        LOCKS_BY_ID.remove(clusterLockId);
-      }
-    }
-  }
-
-  @Override
-  public void deleteFor(final ClusterLockId clusterLockId) {
-    deleteLock(null, clusterLockId);
-  }
-
-  @Override
-  public boolean lockExists(final ClusterLockId clusterLockId) {
-    return LOCKS_BY_ID.containsKey(clusterLockId);
-  }
-
-  @Override
-  protected void deleteLocksByPrefix(final TransactionContext tx /* unused */, final String prefix) {
-    LOCKS_BY_ID.keySet()
-        .stream()
-        .filter(key -> key.getOldStyleLockId().startsWith(prefix))
-        .forEach(clusterLockId -> deleteLock(null, clusterLockId));
   }
 }

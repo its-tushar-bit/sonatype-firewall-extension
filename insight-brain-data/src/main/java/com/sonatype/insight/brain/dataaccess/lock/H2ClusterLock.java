@@ -39,7 +39,7 @@ public class H2ClusterLock
         semaphore.release(lockType.getPermits());
       }
       acquired = false;
-      throw new RuntimeException("Could not acquire lock " + clusterLockId.getOldStyleLockId());
+      throw new RuntimeException("Could not acquire lock " + clusterLockId.toString());
     }
 
   }

@@ -32,19 +32,12 @@ public interface ClusterLock
   ClusterLockId getClusterLockId();
 
   /**
-   * Return a concatenated lock ID that uniquely identifies this lock.
-   * Warning: The concatenation of the lockClass and lockSubId must be unique.
-   * @Deprecated getLockId will be removed in favor of getClusterLockId
-   */
-  default String getLockId() {
-    return getClusterLockId().getOldStyleLockId();
-  }
-
-  /**
    * Implementation of {@link AutoCloseable#close()}. Invokes {@link #unlock()}.
    */
   @Override
-  void close();
+  default void close() {
+    unlock();
+  }
 
   /**
    * Invokes {@link #lock(LockType)} with {@link LockType#EXCLUSIVE} and waits for the lock to be acquired.

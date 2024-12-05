@@ -10,26 +10,20 @@ import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.DAOFactory;
-import com.sonatype.insight.brain.dataaccess.LockDAO;
 import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @PostgresTest
 public class PostgresClusterLockManagerTest
     extends AbstractClusterLockManagerTest
 {
   private ApplicationDAO applicationDAO;
-
-  private LockDAO lockDAO;
 
   private PostgresAdvisoryLockDAO postgresAdvisoryLockDAO;
 
@@ -39,7 +33,6 @@ public class PostgresClusterLockManagerTest
   @Before
   public void before() {
     DAOFactory daoFactory = new TestDAOFactory(databaseRule);
-    lockDAO = daoFactory.createLockDAO();
     postgresAdvisoryLockDAO = daoFactory.createPostgresAdvisoryLockDAO();
     applicationDAO = daoFactory.createApplicationDAO();
     super.before();
@@ -48,7 +41,7 @@ public class PostgresClusterLockManagerTest
   @Override
   protected ClusterLockManager createClusterLockManager() {
     this.postgresClusterLockManager =
-        new PostgresClusterLockManager(databaseRule.getOperationalDataStore(), lockDAO, postgresAdvisoryLockDAO);
+        new PostgresClusterLockManager(databaseRule.getOperationalDataStore(), postgresAdvisoryLockDAO);
     return postgresClusterLockManager;
   }
 
@@ -57,64 +50,11 @@ public class PostgresClusterLockManagerTest
     return postgresClusterLockManager.createClusterLock(clusterLockId);
   }
 
-  @Override
-  protected Pair<CountDownLatch, Thread> startConcurrentDeleteLockThread(ClusterLockId clusterLockId) {
-    CountDownLatch commitLatch = new CountDownLatch(1);
-    Thread other = new Thread(() -> {
-      try (TransactionContext tx = lockDAO.createTransactionContext()) {
-        tx.begin();
-        postgresClusterLockManager.deleteLock(tx, clusterLockId);
-        tx.commit();
-        commitLatch.countDown();
-      }
-    });
-    other.start();
-    return Pair.of(commitLatch, other);
-  }
-
-  @Override
-  protected void deleteForPdfGeneration(final Application application) {
-    try (TransactionContext tx = lockDAO.createTransactionContext()) {
-      tx.begin();
-      clusterLockManager.deleteForPdfGeneration(tx, application);
-      tx.commit();
-    }
-  }
-
   @Test
   public void testConstructor_Postgres() {
     ClusterLockId clusterLockId = ClusterLockId.forDataMigration();
     try (ClusterLock clusterLock = createClusterLock(clusterLockId)) {
-      assertThat(clusterLock.getLockId()).isEqualTo("data-migration");
-      assertThat(lockDAO.getById("data-migration")).isNotNull();
-    }
-  }
-
-  @Test
-  public void testDeleteLock_Postgres() {
-    ClusterLockId clusterLockId = ClusterLockId.forDataMigration();
-    try (ClusterLock clusterLock = createClusterLock(clusterLockId)) {
-      assertThat(lockExists(clusterLockId)).isTrue();
-      try (TransactionContext tx = lockDAO.createTransactionContext()) {
-        tx.begin();
-        postgresClusterLockManager.deleteLock(tx, clusterLockId);
-        tx.commit();
-      }
-      assertThat(postgresClusterLockManager.lockExists(clusterLockId)).isFalse();
-    }
-  }
-
-  @Test
-  public void testCannotLockIfDeleted_Postgres() {
-    ClusterLockId clusterLockId = ClusterLockId.forDataMigration();
-    try (ClusterLock clusterLock = createClusterLock(clusterLockId)) {
-      try (TransactionContext tx = lockDAO.createTransactionContext()) {
-        tx.begin();
-        postgresClusterLockManager.deleteLock(tx, clusterLockId);
-        tx.commit();
-      }
-      assertThatExceptionOfType(RuntimeException.class).isThrownBy(clusterLock::lock)
-          .withMessage("Lock row does not exist: data-migration");
+      assertThat(clusterLock.getClusterLockId()).isEqualTo(ClusterLockId.forDataMigration());
     }
   }
 
@@ -137,10 +77,5 @@ public class PostgresClusterLockManagerTest
       assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
     }
     other.join(10000);
-  }
-
-  @Test
-  public void testLock_FIFO_Postgres() throws Exception {
-    testLock_FIFO(false);
   }
 }

@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.dataaccess.lock;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
-import com.sonatype.insight.brain.dataaccess.LockDAO;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 
@@ -17,18 +16,14 @@ public class ClusterLockManagerProvider
 {
   private final OperationalDataStore operationalDataStore;
 
-  private final LockDAO lockDAO;
-
   private final PostgresAdvisoryLockDAO postgresAdvisoryLockDAO;
 
   @Inject
   public ClusterLockManagerProvider(
       final OperationalDataStore operationalDataStore,
-      final LockDAO lockDAO,
       final PostgresAdvisoryLockDAO postgresAdvisoryLockDAO)
   {
     this.operationalDataStore = operationalDataStore;
-    this.lockDAO = lockDAO;
     this.postgresAdvisoryLockDAO = postgresAdvisoryLockDAO;
   }
 
@@ -38,7 +33,7 @@ public class ClusterLockManagerProvider
       return new H2ClusterLockManager();
     }
     else {
-      return new PostgresClusterLockManager(operationalDataStore, lockDAO, postgresAdvisoryLockDAO);
+      return new PostgresClusterLockManager(operationalDataStore, postgresAdvisoryLockDAO);
     }
   }
 }

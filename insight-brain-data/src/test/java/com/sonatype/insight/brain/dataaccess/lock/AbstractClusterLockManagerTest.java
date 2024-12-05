@@ -42,15 +42,6 @@ public abstract class AbstractClusterLockManagerTest
 
   protected abstract ClusterLock createClusterLock(ClusterLockId clusterLockId);
 
-  protected abstract Pair<CountDownLatch, Thread> startConcurrentDeleteLockThread(ClusterLockId clusterLockId);
-
-  protected abstract void deleteForPdfGeneration(final Application application);
-
-  protected boolean lockExists(ClusterLockId clusterLockId) {
-    AbstractClusterLockManager abstractClusterLockManager = (AbstractClusterLockManager) clusterLockManager;
-    return abstractClusterLockManager.lockExists(clusterLockId);
-  }
-
   protected Pair<CountDownLatch, Thread> startConcurrentLockThread(ClusterLockId clusterLockId) throws Exception {
     CountDownLatch lockLatch = new CountDownLatch(1);
     CountDownLatch unlockLatch = new CountDownLatch(1);
@@ -109,7 +100,7 @@ public abstract class AbstractClusterLockManagerTest
     try (ClusterLock clusterLock = clusterLockManager.createForPolicyViolations(application)) {
       clusterLock.lock();
 
-      assertThat(clusterLock.getLockId()).isEqualTo("policy-violations-app-id");
+      assertThat(clusterLock.getClusterLockId()).isEqualTo(ClusterLockId.forPolicyViolations("app-id"));
     }
   }
 
@@ -119,7 +110,7 @@ public abstract class AbstractClusterLockManagerTest
     try (ClusterLock clusterLock = clusterLockManager.createForPolicyViolationAggregations(appId)) {
       clusterLock.lock();
 
-      assertThat(clusterLock.getLockId()).isEqualTo("policy-violation-aggregations-app-id");
+      assertThat(clusterLock.getClusterLockId()).isEqualTo(ClusterLockId.forPolicyViolationAggregations("app-id"));
     }
   }
 
@@ -130,8 +121,8 @@ public abstract class AbstractClusterLockManagerTest
 
     try (ClusterLock clusterLock = clusterLockManager.createForRepositoryComponent(repositoryId,
         componentPathname)) {
-      assertThat(clusterLock.getLockId())
-          .isEqualTo("repository-component-repositoryId-componentPathname");
+      assertThat(clusterLock.getClusterLockId()).isEqualTo(ClusterLockId.forRepositoryComponent(repositoryId,
+          componentPathname));
     }
   }
 
@@ -139,27 +130,11 @@ public abstract class AbstractClusterLockManagerTest
   public void testCreateLockForRepositoryReevaluation() {
     Repository repository = new Repository();
     repository.setId("repositoryId");
-
-    assertThat(clusterLockManager.createForRepositoryReevaluation(repository).getLockId())
-        .isEqualTo("repository-reevaluation-repositoryId");
-  }
-
-  @Test
-  public void testDeleteLock_WaitsForLocks() throws Exception {
-    ClusterLockId clusterLockId = ClusterLockId.forDataMigration();
-    CountDownLatch latch;
-    Thread other;
-    try (ClusterLock clusterLock = createClusterLock(clusterLockId)) {
+    try (ClusterLock clusterLock = clusterLockManager.createForRepositoryReevaluation(repository)) {
       clusterLock.lock();
-      Pair<CountDownLatch, Thread> countDownLatchThreadPair = startConcurrentDeleteLockThread(clusterLockId);
-      latch = countDownLatchThreadPair.getLeft();
-      other = countDownLatchThreadPair.getRight();
-      assertThat(latch.await(3, TimeUnit.SECONDS)).isFalse();
-      clusterLock.unlock();
+
+      assertThat(clusterLock.getClusterLockId()).isEqualTo(ClusterLockId.forRepositoryReevaluation("repositoryId"));
     }
-    assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
-    assertThat(lockExists(clusterLockId)).isFalse();
-    other.join(10000);
   }
 
   @Test
@@ -279,8 +254,11 @@ public abstract class AbstractClusterLockManagerTest
     application.setId("appId");
     String scanId = "scanId";
 
-    assertThat(clusterLockManager.createForPolicyEvaluation(application, scanId).getLockId())
-        .isEqualTo("policy-evaluation-appId-scanId");
+    try (ClusterLock clusterLock = clusterLockManager.createForPolicyEvaluation(application, scanId)) {
+      clusterLock.lock();
+
+      assertThat(clusterLock.getClusterLockId()).isEqualTo(ClusterLockId.forPolicyEvaluation("appId", "scanId"));
+    }
   }
 
   @Test
@@ -289,7 +267,7 @@ public abstract class AbstractClusterLockManagerTest
     try (ClusterLock clusterLock = clusterLockManager.createForAuditJsonFileStore(ownerId)) {
       clusterLock.lock();
 
-      assertThat(clusterLock.getLockId()).isEqualTo("audit-json-file-store-ownerId");
+      assertThat(clusterLock.getClusterLockId()).isEqualTo(ClusterLockId.forAuditJsonFileStore("ownerId"));
     }
   }
 
@@ -298,37 +276,8 @@ public abstract class AbstractClusterLockManagerTest
     try (ClusterLock clusterLock = clusterLockManager.createForSchemaMigration()) {
       clusterLock.lock();
 
-      assertThat(clusterLock.getLockId()).isEqualTo("schema-migration");
+      assertThat(clusterLock.getClusterLockId()).isEqualTo(ClusterLockId.forSchemaMigration());
     }
-  }
-
-  @Test
-  public void testDeleteForSchemaMigration() {
-    clusterLockManager.createForSchemaMigration();
-    assertThat(lockExists(ClusterLockId.forSchemaMigration())).isTrue();
-
-    clusterLockManager.deleteForSchemaMigration();
-
-    assertThat(lockExists(ClusterLockId.forSchemaMigration())).isFalse();
-  }
-
-  @Test
-  public void testCreateForSchemaMigrationInProgress() {
-    try (ClusterLock clusterLock = clusterLockManager.createForSchemaMigrationInProgress()) {
-      clusterLock.lock();
-
-      assertThat(clusterLock.getLockId()).isEqualTo("schema-migration-in-progress");
-    }
-  }
-
-  @Test
-  public void testDeleteForSchemaMigrationInProgress() {
-    clusterLockManager.createForSchemaMigrationInProgress();
-    assertThat(lockExists(ClusterLockId.forSchemaMigrationInProgress())).isTrue();
-
-    clusterLockManager.deleteForSchemaMigrationInProgress();
-
-    assertThat(lockExists(ClusterLockId.forSchemaMigrationInProgress())).isFalse();
   }
 
   @Test
@@ -336,18 +285,8 @@ public abstract class AbstractClusterLockManagerTest
     try (ClusterLock clusterLock = clusterLockManager.createForDataMigration()) {
       clusterLock.lock();
 
-      assertThat(clusterLock.getLockId()).isEqualTo("data-migration");
+      assertThat(clusterLock.getClusterLockId()).isEqualTo(ClusterLockId.forDataMigration());
     }
-  }
-
-  @Test
-  public void testDeleteForDataMigration() {
-    clusterLockManager.createForDataMigration();
-    assertThat(lockExists(ClusterLockId.forDataMigration())).isTrue();
-
-    clusterLockManager.deleteForDataMigration();
-
-    assertThat(lockExists(ClusterLockId.forDataMigration())).isFalse();
   }
 
   @Test
@@ -355,18 +294,8 @@ public abstract class AbstractClusterLockManagerTest
     try (ClusterLock clusterLock = clusterLockManager.createForNewInstancePopulation()) {
       clusterLock.lock();
 
-      assertThat(clusterLock.getLockId()).isEqualTo("new-instance-population");
+      assertThat(clusterLock.getClusterLockId()).isEqualTo(ClusterLockId.forNewInstancePopulation());
     }
-  }
-
-  @Test
-  public void testDeleteForNewInstancePopulation() {
-    clusterLockManager.createForNewInstancePopulation();
-    assertThat(lockExists(ClusterLockId.forNewInstancePopulation())).isTrue();
-
-    clusterLockManager.deleteForNewInstancePopulation();
-
-    assertThat(lockExists(ClusterLockId.forNewInstancePopulation())).isFalse();
   }
 
   @Test
@@ -377,21 +306,8 @@ public abstract class AbstractClusterLockManagerTest
     try (ClusterLock clusterLock = clusterLockManager.createForPdfGeneration(application, scanId)) {
       clusterLock.lock();
 
-      assertThat(clusterLock.getLockId()).isEqualTo("pdf-generation-appId-scanId");
+      assertThat(clusterLock.getClusterLockId()).isEqualTo(ClusterLockId.forPdfGeneration("appId", "scanId"));
     }
-  }
-
-  @Test
-  public void testDeleteForPdfGeneration() {
-    Application application = new Application();
-    application.setId("appId");
-    String scanId = "scanId";
-    clusterLockManager.createForPdfGeneration(application, scanId);
-    assertThat(lockExists(ClusterLockId.forPdfGeneration("appId", "scanId"))).isTrue();
-
-    deleteForPdfGeneration(application);
-
-    assertThat(lockExists(ClusterLockId.forPdfGeneration("appId", "scanId"))).isFalse();
   }
 
   @Test
@@ -399,18 +315,8 @@ public abstract class AbstractClusterLockManagerTest
     try (ClusterLock clusterLock = clusterLockManager.createForInactiveRepositoryViolationCleaner()) {
       clusterLock.lock();
 
-      assertThat(clusterLock.getLockId()).isEqualTo("inactive-repository-violation-cleaner");
+      assertThat(clusterLock.getClusterLockId()).isEqualTo(ClusterLockId.forInactiveRepositoryViolationCleaner());
     }
-  }
-
-  @Test
-  public void testDeleteForInactiveRepositoryViolationCleaner() {
-    clusterLockManager.createForInactiveRepositoryViolationCleaner();
-    assertThat(lockExists(ClusterLockId.forInactiveRepositoryViolationCleaner())).isTrue();
-
-    clusterLockManager.deleteForInactiveRepositoryViolationCleaner();
-
-    assertThat(lockExists(ClusterLockId.forInactiveRepositoryViolationCleaner())).isFalse();
   }
 
   @Test
@@ -490,39 +396,25 @@ public abstract class AbstractClusterLockManagerTest
     assertThat(exclusive.exception).isNull();
   }
 
-  protected void testLock_FIFO(boolean expectFIFO) throws Exception {
+  @Test
+  public void testLock_FIFO() throws Exception {
     ClusterLockId clusterLockId = ClusterLockId.forDataMigration();
     ClusterLockThread shared1 = new ClusterLockThread(clusterLockId, LockType.SHARED, true);
     ClusterLockThread exclusive = new ClusterLockThread(clusterLockId, LockType.EXCLUSIVE, true);
     ClusterLockThread shared2 = new ClusterLockThread(clusterLockId, LockType.SHARED, true);
 
-    if (expectFIFO) {
-      shared1.start();
-      await().atMost(2, TimeUnit.SECONDS).until(() -> shared1.acquired);
-      exclusive.start();
-      await().pollDelay(2, TimeUnit.SECONDS).until(() -> !exclusive.acquired);
-      shared2.start();
-      await().pollDelay(2, TimeUnit.SECONDS).until(() -> !shared2.acquired);
-      shared1.allowClose();
-      await().atMost(2, TimeUnit.SECONDS).until(() -> exclusive.acquired);
-      await().pollDelay(2, TimeUnit.SECONDS).until(() -> !shared2.acquired);
-      exclusive.allowClose();
-      await().atMost(2, TimeUnit.SECONDS).until(() -> shared2.acquired);
-      shared2.allowClose();
-    }
-    else {
-      shared1.start();
-      await().atMost(2, TimeUnit.SECONDS).until(() -> shared1.acquired);
-      exclusive.start();
-      await().pollDelay(2, TimeUnit.SECONDS).until(() -> !exclusive.acquired);
-      shared2.start();
-      await().atMost(2, TimeUnit.SECONDS).until(() -> shared2.acquired);
-      shared1.allowClose();
-      await().pollDelay(2, TimeUnit.SECONDS).until(() -> !exclusive.acquired);
-      shared2.allowClose();
-      await().atMost(2, TimeUnit.SECONDS).until(() -> exclusive.acquired);
-      exclusive.allowClose();
-    }
+    shared1.start();
+    await().atMost(2, TimeUnit.SECONDS).until(() -> shared1.acquired);
+    exclusive.start();
+    await().pollDelay(2, TimeUnit.SECONDS).until(() -> !exclusive.acquired);
+    shared2.start();
+    await().pollDelay(2, TimeUnit.SECONDS).until(() -> !shared2.acquired);
+    shared1.allowClose();
+    await().atMost(2, TimeUnit.SECONDS).until(() -> exclusive.acquired);
+    await().pollDelay(2, TimeUnit.SECONDS).until(() -> !shared2.acquired);
+    exclusive.allowClose();
+    await().atMost(2, TimeUnit.SECONDS).until(() -> shared2.acquired);
+    shared2.allowClose();
 
     assertThat(shared1.exception).isNull();
     assertThat(exclusive.exception).isNull();

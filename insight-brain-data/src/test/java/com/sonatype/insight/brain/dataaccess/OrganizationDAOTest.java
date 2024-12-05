@@ -21,10 +21,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockId;
-import com.sonatype.insight.brain.dataaccess.lock.H2ClusterLockManager;
-import com.sonatype.insight.brain.dataaccess.lock.PostgresClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
@@ -40,7 +36,6 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCv
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -793,40 +788,6 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.ORGANIZATION);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(org.getId());
-  }
-
-  @Test
-  public void testDelete_CascadeToLocks_H2() {
-    // Lock for audit json file store
-    Organization organization = tempEntity.newOrganization();
-    try (ClusterLock clusterLock = clusterLockManager.createForAuditJsonFileStore(organization.getId())) {
-      clusterLock.lock();
-    }
-
-    assertThat(clusterLockManager).isInstanceOf(H2ClusterLockManager.class);
-    assertThat(clusterLockManager.lockExists(ClusterLockId.forAuditJsonFileStore(organization.getId()))).isTrue();
-
-    dao.delete(organization);
-
-    assertThat(clusterLockManager.lockExists(ClusterLockId.forAuditJsonFileStore(organization.getId()))).isFalse();
-  }
-
-  @Test
-  @PostgresTest
-  public void testDelete_CascadeToLocks_Postgres() {
-    Organization organization = tempEntity.newOrganization();
-
-    // Lock for audit json file store
-    try (ClusterLock clusterLock = clusterLockManager.createForAuditJsonFileStore(organization.getId())) {
-      clusterLock.lock();
-    }
-
-    assertThat(clusterLockManager).isInstanceOf(PostgresClusterLockManager.class);
-    assertThat(clusterLockManager.lockExists(ClusterLockId.forAuditJsonFileStore(organization.getId()))).isTrue();
-
-    dao.delete(organization);
-
-    assertThat(clusterLockManager.lockExists(ClusterLockId.forAuditJsonFileStore(organization.getId()))).isFalse();
   }
 
   @Test

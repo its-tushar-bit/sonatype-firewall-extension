@@ -582,8 +582,6 @@ public class TemporaryEntity
 
   private UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO;
 
-  private LockDAO lockDAO;
-
   private PerpetualLockDAO perpetualLockDAO;
 
   private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
@@ -941,7 +939,6 @@ public class TemporaryEntity
         }
       });
       userIdePolicyEvaluationDAO.getAll().forEach(userIdePolicyEvaluationDAO::delete);
-      delete(lockDAO.getAll(), lockDAO);
       delete(perpetualLockDAO.getAll(), perpetualLockDAO);
       applicationCountHistoryDAO.getAll().stream()
           .filter(applicationCountHistory -> !applicationCountHistory.getId().equals("initialization"))
@@ -5695,7 +5692,6 @@ public class TemporaryEntity
     deletedTenantDAO = daoFactory.createDeletedTenantDAO();
     sourceControlOrganizationImportEventDAO = daoFactory.createSourceControlOrganizationImportEventDAO();
     userIdePolicyEvaluationDAO = daoFactory.createUserIdePolicyEvaluationDAO();
-    lockDAO = daoFactory.createLockDAO();
     perpetualLockDAO = daoFactory.createPerpetualLockDAO();
     applicationCountHistoryDAO = daoFactory.createApplicationCountHistoryDAO();
     sastScanDAO = daoFactory.createSastScanDAO();

@@ -15,7 +15,6 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -65,9 +64,6 @@ public class QuartzJobStoreTXTest
 
   @Inject
   private OperationalDataStore operationalDataStore;
-
-  @Inject
-  private ClusterLockManager clusterLockManager;
 
   private QuartzJobStoreTX quartzJobStoreTXSpy;
 
@@ -132,25 +128,6 @@ public class QuartzJobStoreTXTest
         .contains(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
     verify(quartzJobStoreTXSpy).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
         QuartzJobStoreTX.UNCLUSTERED_NODE_SHUTDOWN_THREAD_NAME);
-  }
-
-  @Test
-  public void testDoCheckin_SchemaMigrationInProgress() throws Exception {
-    try {
-      insightConfig.setClusterDirectory(
-          Paths.get(insightConfig.getSonatypeWork().getAbsolutePath(), "clusterDirectory").toString());
-      doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
-      clusterLockManager.createForSchemaMigrationInProgress();
-
-      quartzJobStoreTXSpy.doCheckin();
-
-      assertThat(logOutput).atErrorLevel().contains(QuartzJobStoreTX.SCHEMA_MIGRATION_UNFINISHED_MESSAGE);
-      verify(quartzJobStoreTXSpy).exitInNewThread(QuartzJobStoreTX.SCHEMA_MIGRATION_UNFINISHED_EXIT_STATUS,
-          QuartzJobStoreTX.SCHEMA_MIGRATION_UNFINISHED_SHUTDOWN_THREAD_NAME);
-    }
-    finally {
-      clusterLockManager.deleteForSchemaMigrationInProgress();
-    }
   }
 
   @Test

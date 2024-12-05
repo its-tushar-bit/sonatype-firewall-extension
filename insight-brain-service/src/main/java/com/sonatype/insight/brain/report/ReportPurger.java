@@ -37,10 +37,8 @@ import javax.persistence.OptimisticLockException;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.LockDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
@@ -52,7 +50,6 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.dataaccess.TransactionContext;
 
 import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
@@ -126,10 +123,6 @@ public class ReportPurger
 
   private final Configuration configuration;
 
-  private final LockDAO lockDAO;
-
-  private final ClusterLockManager clusterLockManager;
-
   @Inject
   public ReportPurger(
       final InsightWork work,
@@ -138,9 +131,7 @@ public class ReportPurger
       final OwnerDAO ownerDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final TaskScheduler taskScheduler,
-      final Configuration configuration,
-      final LockDAO lockDAO,
-      final ClusterLockManager clusterLockManager)
+      final Configuration configuration)
   {
     super("purgeObsoleteReports");
     this.work = work;
@@ -150,8 +141,6 @@ public class ReportPurger
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.taskScheduler = taskScheduler;
     this.configuration = configuration;
-    this.lockDAO = lockDAO;
-    this.clusterLockManager = clusterLockManager;
     contextIds = Stream
         .concat(StageTypes.getAll().stream().map(StageType::getId).filter(stageId -> !Stage.ID_PROXY.equals(stageId)),
             Stream.of(DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING))
@@ -337,7 +326,6 @@ public class ReportPurger
 
     Path reportDir = work.getReportDir(application.getId(), reportId).toPath();
     if (!Files.exists(reportDir)) {
-      deletePolicyEvaluationLock(application, reportId);
       return false;
     }
     List<Path> reportFiles;
@@ -382,17 +370,8 @@ public class ReportPurger
       Files.delete(reportFile);
     }
 
-    deletePolicyEvaluationLock(application, reportId);
     log.info("Purged report {} from application {} to {}", reportDir, application.getName(), trashFile);
     return true;
-  }
-
-  private void deletePolicyEvaluationLock(final Application application, final String reportId) {
-    try (TransactionContext tx = lockDAO.createTransactionContext()) {
-      tx.begin();
-      clusterLockManager.deleteForPolicyEvaluation(tx, application, reportId);
-      tx.commit();
-    }
   }
 
   private String getTrashBucketId(Application application) {

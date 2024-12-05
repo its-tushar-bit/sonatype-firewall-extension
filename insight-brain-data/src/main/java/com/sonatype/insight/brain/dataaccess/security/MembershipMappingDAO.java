@@ -208,7 +208,7 @@ public class MembershipMappingDAO
     if (null == membershipMappings || membershipMappings.isEmpty()) {
       return;
     }
-    try (Connection connection = operationalDataStore.getDataSourceForLocks().getConnection()) {
+    try (Connection connection = operationalDataStore.getDataSource().getConnection()) {
       String databaseSchema = getDatabaseSchema();
       String h2Query = "MERGE INTO " + databaseSchema + ".membership_mapping" +
           " (membership_mapping_id, context_id, role_id, member_name, member_type)" +

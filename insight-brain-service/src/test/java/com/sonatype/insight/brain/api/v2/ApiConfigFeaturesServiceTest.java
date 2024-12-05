@@ -1075,26 +1075,21 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
-  public void testEnableFeature_SbomPolicies() {
-    service.enableFeature(SystemConfigurationProperty.SBOM_POLICIES);
-
-    assertThat(
-        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.SBOM_POLICIES)
-            .getValue())
-        .isEqualTo("true");
+  public void testEnableFeature_SbomPolicies_AlreadyEnabled() {
+    assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.SBOM_POLICIES))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
   }
 
   @Test
-  public void testEnableFeature_SbomPolicies_AlreadyEnabled() {
-    service.enableFeature(SystemConfigurationProperty.SBOM_POLICIES);
-    assertThatThrownBy(
-        () -> service.enableFeature(
-            SystemConfigurationProperty.SBOM_POLICIES)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already enabled.");
+  public void testDisableFeature_SbomPolicies() {
+    service.disableFeature(SystemConfigurationProperty.SBOM_POLICIES);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.SBOM_POLICIES)).isNull();
   }
 
   @Test
   public void testDisableFeature_SbomPolicies_AlreadyDisabled() {
+    service.disableFeature(SystemConfigurationProperty.SBOM_POLICIES);
+
     assertThatThrownBy(
         () -> service.disableFeature(
             SystemConfigurationProperty.SBOM_POLICIES)).isInstanceOf(

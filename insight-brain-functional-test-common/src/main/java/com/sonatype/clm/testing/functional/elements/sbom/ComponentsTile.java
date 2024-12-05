@@ -80,4 +80,8 @@ public class ComponentsTile
   public SelenideElement inputComponentSearch() {
     return child("#component-name-search");
   }
+
+  public SelenideElement getLoadingSpinner() {
+    return child(".nx-loading-spinner");
+  }
 }

@@ -680,6 +680,9 @@ INSERT INTO system_configuration_property (system_configuration_property_id, nam
 -- Since 1.161
 -- ALP Observed License Detection is enable by default
 INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('531170d2fc694631a05f4d8ab61e53b9', 'alpObservedLicenseDetectionEnabled', 'true');
+-- Since 1.186
+-- Policy violations enabled for SBOM Manager by default
+INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('64716cfdb4b741e793bdd7fbc44bc93p', 'sbomPolicies', 'true');
 
 
 CREATE TABLE data_retention_policy (

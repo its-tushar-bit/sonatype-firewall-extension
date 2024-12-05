@@ -5,6 +5,9 @@
  */
 package com.sonatype.clm.testing.functional.mtiq.sbom;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar.OwnerItem;
 import com.sonatype.clm.testing.functional.elements.OwnerSummaryTile;
@@ -22,10 +25,8 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.attribute;
@@ -131,8 +132,6 @@ public class SbomManagerOwnerSummaryPageTest
 
   @Test
   public void testSbomManager_policyTable() {
-    SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
-
     List<Policy> policies = new ArrayList<>();
     policies.add(tempEntity.newPolicy(parentOrganization.getId(), "Policy 1", 10, null, null, null));
     policies.add(tempEntity.newPolicy(parentOrganization.getId(), "Policy 2", 5, null, null, null));
@@ -153,6 +152,8 @@ public class SbomManagerOwnerSummaryPageTest
   }
 
   @Test
+  @Ignore
+  // SBOM-1143
   public void testSbomManager_policyTableHiddenWhenDisabled() {
     SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(false);
 

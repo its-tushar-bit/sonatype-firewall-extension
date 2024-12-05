@@ -541,7 +541,6 @@ public class ApiSbomServiceTest
         .zipReport("/ApiSbomServicePolicyViolationsTest", tempDir), reportFile);
 
     tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scan.getScanId());
-    SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
 
     SbomComponentListDTO result = service.getSbomComponents(sbomMetadata.getApplicationId(),
         sbomMetadata.getSbomVersion(), null, null, null,
@@ -601,9 +600,10 @@ public class ApiSbomServiceTest
 
   @Test
   @PostgresTest
-  public void testGetSbomComponents_displayNameStoredFromPackageUrl() {
+  public void testGetSbomComponents_displayNameStoredFromPackageUrl() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
         ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
     dao.insert(sbomMetadata);
@@ -618,6 +618,11 @@ public class ApiSbomServiceTest
             "h1",
             packageUrlIdentifier1.getPackageUrl(), "exact", null,
             List.of(thirdPartyFile.getFilename()), null);
+
+    File reportFile = insightWork.getReportFile(application.getId(), thirdPartyScan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper.zipReport("/ApiSbomServicePolicyViolationsTest", tempDir), reportFile);
+
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, thirdPartyScan.getScanId());
 
     SbomComponentListDTO result = service.getSbomComponents(sbomMetadata.getApplicationId(),
         sbomMetadata.getSbomVersion(), null, null, null,
@@ -636,9 +641,10 @@ public class ApiSbomServiceTest
 
   @Test
   @PostgresTest
-  public void testGetSbomComponents_displayNameStoredFromFormatNameAndVersion() {
+  public void testGetSbomComponents_displayNameStoredFromFormatNameAndVersion() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
         ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
     dao.insert(sbomMetadata);
@@ -648,6 +654,11 @@ public class ApiSbomServiceTest
             "rpm", "p1", "v1",
             "h1",
             null, "exact", null, List.of(thirdPartyFile.getFilename()), null);
+
+    File reportFile = insightWork.getReportFile(application.getId(), thirdPartyScan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper.zipReport("/ApiSbomServicePolicyViolationsTest", tempDir), reportFile);
+
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, thirdPartyScan.getScanId());
 
     SbomComponentListDTO result = service.getSbomComponents(sbomMetadata.getApplicationId(),
         sbomMetadata.getSbomVersion(), null, null, null,
@@ -666,9 +677,10 @@ public class ApiSbomServiceTest
 
   @Test
   @PostgresTest
-  public void testGetSbomComponents_displayNameStoredFromNameAndVersion() {
+  public void testGetSbomComponents_displayNameStoredFromNameAndVersion() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
         ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
     dao.insert(sbomMetadata);
@@ -679,6 +691,11 @@ public class ApiSbomServiceTest
             "v1",
             "h1",
             null, "exact", null, List.of(thirdPartyFile.getFilename()), null);
+
+    File reportFile = insightWork.getReportFile(application.getId(), thirdPartyScan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper.zipReport("/ApiSbomServicePolicyViolationsTest", tempDir), reportFile);
+
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, thirdPartyScan.getScanId());
 
     SbomComponentListDTO result = service.getSbomComponents(sbomMetadata.getApplicationId(),
         sbomMetadata.getSbomVersion(), null, null, null,
@@ -811,7 +828,6 @@ public class ApiSbomServiceTest
         .zipReport("/ApiSbomServicePolicyViolationsTest/noPolicyViolations", tempDir), reportFile);
 
     tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scan.getScanId());
-    SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
 
     SbomComponentListDTO result = service.getSbomComponents(sbomMetadata.getApplicationId(),
         sbomMetadata.getSbomVersion(), null, null, null,

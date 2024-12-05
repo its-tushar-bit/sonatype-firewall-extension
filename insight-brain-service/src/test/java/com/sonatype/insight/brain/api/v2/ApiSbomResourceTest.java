@@ -295,7 +295,6 @@ public class ApiSbomResourceTest
         .zipReport("/ApiSbomServicePolicyViolationsTest", tempDir), reportFile);
 
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scan.getScanId());
-    SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
 
     HttpResponse response = restRequest()
         .path(ApiSbomResource.SBOM_COMPONENTS_PATH)
@@ -502,6 +501,7 @@ public class ApiSbomResourceTest
   public void testGetSbomComponentsByThirdPartyFileId_ComponentNameFilter() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
         ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
     dao.insert(sbomMetadata);
@@ -524,6 +524,11 @@ public class ApiSbomResourceTest
     tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
         "s3", packageUrlIdentifier3.getFormat(), packageUrlIdentifier3.getName(), packageUrlIdentifier3.getVersion(),
         "h3", packageUrlIdentifier3.getPackageUrl(), UNSPECIFIED);
+
+    File reportFile = insightWork.getReportFile(application.getId(), thirdPartyScan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper.zipReport("/ApiSbomServicePolicyViolationsTest", tempDir), reportFile);
+
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, thirdPartyScan.getScanId());
 
     HttpResponse response = restRequest()
         .path(ApiSbomResource.SBOM_COMPONENTS_PATH)

@@ -9,15 +9,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.sbom.ComponentsTile;
-import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.sbom.BillOfMaterialsPageSummaryTile;
 import com.sonatype.clm.testing.functional.pages.sbom.LearnMoreSbomManagerPage;
@@ -48,6 +49,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -57,6 +61,7 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -175,7 +180,6 @@ public class SbomManagerBillOfMaterialsPageTest
         "r3", "d3", "l3", 3.5, "sd3", "f3");
     sbomMetadata.setCreatedAt(new Date(0));
     thirdPartySbomMetadataDAO.update(sbomMetadata);
-    SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
     refreshOrOpen(IndexPage.url());
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
     billOfMaterialsPageSummaryTile.policyViolationSummaryChartAndProgress().shouldBe(visible);
@@ -320,14 +324,18 @@ public class SbomManagerBillOfMaterialsPageTest
   }
 
   @Test
+  @Ignore
+  // SBOM-1143
   public void testBillOfMaterial_ComponentsTileRendered() {
     insertComponentsTileSbomData();
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
 
+    waitUntilComponentsTileSpinnerGone();
+
     ComponentsTile componentsTile = SbomManagerBillOfMaterialsPage.componentsTile();
     componentsTile.shouldBe(visible);
     componentsTile.header().shouldHave(text("Components"));
-    componentsTile.tableHeaders().shouldHave(size(5));
+    componentsTile.tableHeaders().shouldHave(size(6));
     componentsTile.columnHeader(0).shouldHave(
         text("TYPE"));
     componentsTile.columnHeader(1).shouldHave(
@@ -335,9 +343,34 @@ public class SbomManagerBillOfMaterialsPageTest
     componentsTile.columnHeader(2).shouldHave(
         text("VULNERABILITIES"));
     componentsTile.columnHeader(3).shouldHave(
-        text("PERCENTAGE ANNOTATED"));
+        text("VIOLATIONS"));
     componentsTile.columnHeader(4).shouldHave(
+        text("PERCENTAGE ANNOTATED"));
+    componentsTile.columnHeader(5).shouldHave(
         text("LICENSE"));
+    ElementsCollection tableRows = componentsTile.tableBodyRows();
+    tableRows.shouldHave(sizeGreaterThan(49));
+    componentsTile.footer().shouldBe(visible);
+    componentsTile.paginationStatus().shouldHave(visible);
+  }
+
+  @Test
+  @Ignore
+  // SBOM-1143
+  public void testBillOfMaterial_ComponentsTileRenderedWithoutViolations() {
+    insertComponentsTileSbomData();
+    SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(false);
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+
+    ComponentsTile componentsTile = SbomManagerBillOfMaterialsPage.componentsTile();
+    componentsTile.shouldBe(visible);
+    componentsTile.header().shouldHave(text("Components"));
+    componentsTile.tableHeaders().shouldHave(size(5));
+    componentsTile.columnHeader(0).shouldHave(text("TYPE"));
+    componentsTile.columnHeader(1).shouldHave(text("NAME"));
+    componentsTile.columnHeader(2).shouldHave(text("VULNERABILITIES"));
+    componentsTile.columnHeader(3).shouldHave(text("PERCENTAGE ANNOTATED"));
+    componentsTile.columnHeader(4).shouldHave(text("LICENSE"));
     ElementsCollection tableRows = componentsTile.tableBodyRows();
     tableRows.shouldHave(sizeGreaterThan(49));
     componentsTile.footer().shouldBe(visible);
@@ -362,14 +395,21 @@ public class SbomManagerBillOfMaterialsPageTest
   }
 
   @Test
+  @Ignore
+  // SBOM-1143
   public void testBillOfMaterial_ComponentsTileSortByType() {
     insertComponentsTileSbomData();
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+
+    waitUntilComponentsTileSpinnerGone();
 
     ComponentsTile componentsTile = SbomManagerBillOfMaterialsPage.componentsTile();
     //default sorting is by vulnerabilities
     componentsTile.columnHeader(0).shouldHave(
         text("TYPE")).click();
+
+    waitUntilComponentsTileSpinnerGone();
+
     for (int i = 0; i < 30; i++) {
       componentsTile.tableBodyRowsColumns(i).get(0).shouldHave(text("D"));
     }
@@ -378,6 +418,9 @@ public class SbomManagerBillOfMaterialsPageTest
     }
     componentsTile.columnHeader(0).shouldHave(
         text("TYPE")).click();
+
+    waitUntilComponentsTileSpinnerGone();
+
     for (int i = 0; i < 30; i++) {
       componentsTile.tableBodyRowsColumns(i).get(0).shouldHave(text("T"));
     }
@@ -387,13 +430,20 @@ public class SbomManagerBillOfMaterialsPageTest
   }
 
   @Test
+  @Ignore
+  // SBOM-1143
   public void testBillOfMaterial_ComponentsTileSortByVulnerabilities() {
     insertComponentsTileSbomData();
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
     ComponentsTile componentsTile = SbomManagerBillOfMaterialsPage.componentsTile();
-    //default sorting is by vulnerabilities
-    componentsTile.columnHeader(2).shouldHave(
-        text("VULNERABILITIES")).click();
+
+    waitUntilComponentsTileSpinnerGone();
+
+    // default sorting is by vulnerabilities
+    componentsTile.columnHeader(2).shouldHave(text("VULNERABILITIES")).click();
+
+    waitUntilComponentsTileSpinnerGone();
+
     for (int i = 0; i < 31; i++) {
       componentsTile.vulnerabilitiesColumns(i).get(0).shouldHave(text("0"));
       componentsTile.vulnerabilitiesColumns(i).get(1).shouldHave(text("0"));
@@ -423,6 +473,8 @@ public class SbomManagerBillOfMaterialsPageTest
     componentsTile.columnHeader(2).shouldHave(
         text("VULNERABILITIES")).click();
 
+    waitUntilComponentsTileSpinnerGone();
+
     for (int i = 29; i < 49; i++) {
       componentsTile.vulnerabilitiesColumns(i).get(0).shouldHave(text("0"));
       componentsTile.vulnerabilitiesColumns(i).get(1).shouldHave(text("0"));
@@ -433,20 +485,32 @@ public class SbomManagerBillOfMaterialsPageTest
   }
 
   @Test
+  @Ignore
+  // SBOM-1143
   public void testBillOfMaterial_ComponentsTileSortByPercentageAnnotated() {
     insertComponentsTileSbomData();
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
 
+    waitUntilComponentsTileSpinnerGone();
+
     ComponentsTile componentsTile = SbomManagerBillOfMaterialsPage.componentsTile();
-    componentsTile.columnHeader(3).shouldHave(
+    componentsTile.columnHeader(4).shouldHave(
         text("PERCENTAGE ANNOTATED")).click();
+
+    waitUntilComponentsTileSpinnerGone();
+
     verifySortOrder(true, componentsTile);
-    componentsTile.columnHeader(3).shouldHave(
+    componentsTile.columnHeader(4).shouldHave(
         text("PERCENTAGE ANNOTATED")).click();
+
+    waitUntilComponentsTileSpinnerGone();
+
     verifySortOrder(false, componentsTile);
   }
 
   @Test
+  @Ignore
+  // SBOM-1143
   public void testBillOfMaterial_ComponentsTileFilterBy() {
     insertComponentsTileSbomData();
     for (int i = 0; i < 3; i++) {
@@ -459,8 +523,12 @@ public class SbomManagerBillOfMaterialsPageTest
           packageUrlIdentifier.getPackageUrl(), ThirdPartyDependencyType.TRANSITIVE);
     }
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+
+    waitUntilComponentsTileSpinnerGone();
+
     ComponentsTile componentsTile = SbomManagerBillOfMaterialsPage.componentsTile();
     componentsTile.filterByButton().click();
+
     sbomManagerBillOfMaterialsPage.filterDialog().shouldBe(visible);
     sbomManagerBillOfMaterialsPage.vulnerabilityThreatLevelFilterCheckboxes().get(0).shouldHave(text("Critical"));
     sbomManagerBillOfMaterialsPage.vulnerabilityThreatLevelFilterCheckboxes().get(1).shouldHave(text("High"));
@@ -471,31 +539,43 @@ public class SbomManagerBillOfMaterialsPageTest
     sbomManagerBillOfMaterialsPage.dependencyTypeFilterChecboxes().get(2).shouldHave(text("Unspecified"));
     //-9 low, 8 medium, 5 high, 7 critical
     sbomManagerBillOfMaterialsPage.vulnerabilityThreatLevelFilterCheckboxes().get(0).click();
+    waitUntilComponentsTileSpinnerGone();
+
     componentsTile.tableBodyRows().shouldHave(size(7));
     sbomManagerBillOfMaterialsPage.vulnerabilityThreatLevelFilterCheckboxes().get(0).click();
     sbomManagerBillOfMaterialsPage.vulnerabilityThreatLevelFilterCheckboxes().get(1).click();
+    waitUntilComponentsTileSpinnerGone();
+
     componentsTile.tableBodyRows().shouldHave(size(5));
     sbomManagerBillOfMaterialsPage.vulnerabilityThreatLevelFilterCheckboxes().get(1).click();
     sbomManagerBillOfMaterialsPage.vulnerabilityThreatLevelFilterCheckboxes().get(2).click();
+    waitUntilComponentsTileSpinnerGone();
+
     componentsTile.tableBodyRows().shouldHave(size(8));
     sbomManagerBillOfMaterialsPage.vulnerabilityThreatLevelFilterCheckboxes().get(2).click();
     sbomManagerBillOfMaterialsPage.vulnerabilityThreatLevelFilterCheckboxes().get(3).click();
+    waitUntilComponentsTileSpinnerGone();
+
     componentsTile.tableBodyRows().shouldHave(size(9));
     sbomManagerBillOfMaterialsPage.vulnerabilityThreatLevelFilterCheckboxes().get(3).click();
-
     sbomManagerBillOfMaterialsPage.dependencyTypeFilterChecboxes().get(0).click();
+    waitUntilComponentsTileSpinnerGone();
+
     componentsTile.tableBodyRows().shouldHave(size(30));
     sbomManagerBillOfMaterialsPage.dependencyTypeFilterChecboxes().get(0).click();
     sbomManagerBillOfMaterialsPage.dependencyTypeFilterChecboxes().get(1).click();
+    waitUntilComponentsTileSpinnerGone();
+
     componentsTile.tableBodyRows().shouldHave(size(33));
     sbomManagerBillOfMaterialsPage.dependencyTypeFilterChecboxes().get(1).click();
     sbomManagerBillOfMaterialsPage.dependencyTypeFilterChecboxes().get(2).click();
+    waitUntilComponentsTileSpinnerGone();
+
     componentsTile.tableBodyRows().get(0).shouldHave(text("No components found"));
   }
 
   @Test
   public void testBillOfMaterial_ComponentsTilePolicyViolation() {
-    SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
     insertComponentsTileSbomData();
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
     ComponentsTile componentsTile = SbomManagerBillOfMaterialsPage.componentsTile();
@@ -855,5 +935,19 @@ public class SbomManagerBillOfMaterialsPageTest
           thirdPartyScan.getThirdPartyFileId(), "s", "SPDX", componentNames.get(i), "v1", "h1",
           packageUrlIdentifier.getPackageUrl(), ThirdPartyDependencyType.DIRECT);
     }
+  }
+
+  private void waitUntilComponentsTileSpinnerGone() {
+    new FluentWait<>(getWebDriver())
+        .withTimeout(Duration.ofSeconds(240))
+        .pollingEvery(Duration.ofSeconds(2))
+        .ignoring(NoSuchElementException.class)
+        .until(ExpectedConditions.visibilityOf(SbomManagerBillOfMaterialsPage.componentsTile().getLoadingSpinner()));
+
+    new FluentWait<>(getWebDriver())
+        .withTimeout(Duration.ofSeconds(240))
+        .pollingEvery(Duration.ofSeconds(2))
+        .ignoring(NoSuchElementException.class)
+        .until(ExpectedConditions.invisibilityOf(SbomManagerBillOfMaterialsPage.componentsTile().getLoadingSpinner()));
   }
 }

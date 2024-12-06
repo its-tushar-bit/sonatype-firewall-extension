@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * @since 1.164.0
@@ -34,6 +35,7 @@ import com.codahale.metrics.annotation.Timed;
 @Singleton
 @Path(PublicApiPaths.SPDX_RESOURCE_PATH)
 @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_REPORTS)
+@Tag(name = "SPDX")
 public class ApiSpdxResource
 {
   static final String GET_BY_STAGE_PATH = "{applicationId}/stages/{stageId}";

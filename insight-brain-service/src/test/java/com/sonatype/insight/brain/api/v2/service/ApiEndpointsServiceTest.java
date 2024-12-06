@@ -6,21 +6,25 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Application;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiType;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.inject.Binder;
 import io.swagger.v3.core.util.Json;
@@ -50,6 +54,9 @@ public class ApiEndpointsServiceTest
 
   @Mock
   private VersionService mockVersionService;
+
+  @Inject
+  private TestProductLicense testProductLicense;
 
   @Override
   public void configure(Binder binder) {
@@ -91,8 +98,7 @@ public class ApiEndpointsServiceTest
 
   @Test
   public void testGetOpenAPI_CustomTag() throws Exception {
-    when(mockApplication.getClasses()).thenReturn(new HashSet<>(
-        Collections.singletonList(ApiEndpointsServiceTestResourceWithCustomTag.class)));
+    when(mockApplication.getClasses()).thenReturn(Set.of(ApiEndpointsServiceTestResourceWithCustomTag.class));
 
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
 
@@ -103,6 +109,130 @@ public class ApiEndpointsServiceTest
     assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceWithCustomTag", "Custom Tag", HttpMethod.GET,
         HttpMethod.DELETE);
     assertThat(ApiEndpointsService.OPEN_API_JSON_BY_API_TYPE).containsOnlyKeys(ApiType.PUBLIC);
+  }
+
+  @Test
+  public void testGetOpenAPI_TagOrdering() throws Exception {
+    when(mockApplication.getClasses()).thenReturn(Set.of(
+        ApiEndpointsServiceTestResourceA.class,
+        ApiEndpointsServiceTestResourceB.class,
+        ApiEndpointsServiceTestResourceC.class
+    ));
+
+    String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
+
+    OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
+    assertThat(openAPI).isNotNull();
+    assertThat(openAPI.getTags()).extracting(io.swagger.v3.oas.models.tags.Tag::getName)
+        .containsExactly("A tag", "Api Endpoints Service Test Resource A", "Api Endpoints Service Test Resource C");
+  }
+
+  @Test
+  public void testGetOpenAPI_DoesNotAddDuplicateTags() throws Exception {
+    when(mockApplication.getClasses()).thenReturn(Set.of(
+        ApiEndpointsServiceTestResourceA.class
+    ));
+
+    String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
+
+    OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
+    assertThat(openAPI).isNotNull();
+    assertThat(openAPI.getTags()).extracting(io.swagger.v3.oas.models.tags.Tag::getName)
+        .containsExactly("Api Endpoints Service Test Resource A");
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testGetOpenAPI_EnumValuesAreRestricted() throws Exception {
+    when(mockApplication.getClasses()).thenReturn(Set.of(
+        ApiEndpointsServiceTestResourceEnumParameter.class
+    ));
+
+    String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
+
+    OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
+    assertThat(openAPI).isNotNull();
+    assertThat(openAPI.getPaths()).hasSize(2);
+    PathItem pathItemA = openAPI.getPaths().get("/api/v2/ApiEndpointsServiceTestResourceEnumParameter/A/{ownerType}");
+    assertThat(pathItemA.getGet().getParameters().get(0).getSchema().getEnum()).containsExactlyInAnyOrderElementsOf(
+        Arrays.stream(OwnerType.values()).map(OwnerType::toString).toList());
+    PathItem pathItemB = openAPI.getPaths().get("/api/v2/ApiEndpointsServiceTestResourceEnumParameter/B/{ownerType}");
+    assertThat(pathItemB.getGet().getParameters().get(0).getSchema().getEnum()).containsExactlyInAnyOrder("application",
+        "organization");
+  }
+
+  @Test
+  public void testGetOpenAPI_ClassNotLicensed() throws Exception {
+    testProductLicense.setFeatures();
+    when(mockApplication.getClasses()).thenReturn(Set.of(
+        ApiEndpointsServiceTestResourceLicensedFeature1.class
+    ));
+
+    String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
+
+    OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
+    assertThat(openAPI).isNotNull();
+    assertThat(openAPI.getPaths()).isNull();
+  }
+
+  @Test
+  public void testGetOpenAPI_ClassLicensed() throws Exception {
+    testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+    when(mockApplication.getClasses()).thenReturn(Set.of(
+        ApiEndpointsServiceTestResourceLicensedFeature1.class
+    ));
+
+    String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
+
+    OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
+    assertThat(openAPI).isNotNull();
+    assertThat(openAPI.getPaths()).hasSize(1);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeature1/A",
+        "Api Endpoints Service Test Resource Licensed Feature 1", HttpMethod.GET);
+  }
+
+  @Test
+  public void testGetOpenAPI_MethodNotLicensed() throws Exception {
+    testProductLicense.setFeatures();
+    when(mockApplication.getClasses()).thenReturn(Set.of(
+        ApiEndpointsServiceTestResourceLicensedFeature2.class
+    ));
+
+    String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
+
+    OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
+    assertThat(openAPI).isNotNull();
+    assertThat(openAPI.getPaths()).hasSize(1);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeature2/A",
+        "Api Endpoints Service Test Resource Licensed Feature 2", HttpMethod.GET);
+  }
+
+  @Test
+  public void testGetOpenAPI_MethodLicensed() throws Exception {
+    testProductLicense.setFeatures(LicensedFeature.SBOM_REPORTS);
+    when(mockApplication.getClasses()).thenReturn(Set.of(
+        ApiEndpointsServiceTestResourceLicensedFeature2.class
+    ));
+
+    String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
+
+    OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
+    assertThat(openAPI).isNotNull();
+    assertThat(openAPI.getPaths()).hasSize(2);
+  }
+
+  @Test
+  public void testGetOpenAPI_ClassAndMethodLicensed() throws Exception {
+    testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.SBOM_REPORTS);
+    when(mockApplication.getClasses()).thenReturn(Set.of(
+        ApiEndpointsServiceTestResourceLicensedFeature1.class
+    ));
+
+    String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
+
+    OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
+    assertThat(openAPI).isNotNull();
+    assertThat(openAPI.getPaths()).hasSize(2);
   }
 
   private void assertEndpoints(String result, ApiType expectedApiType, String expectedEndpoint, String expectedTag)
@@ -150,7 +280,7 @@ public class ApiEndpointsServiceTest
   }
 
   private void setupApplicationClasses() {
-    when(mockApplication.getClasses()).thenReturn(new HashSet<>(Arrays.asList(
+    when(mockApplication.getClasses()).thenReturn(Set.of(
         ApiEndpointsServiceTestInterface.class,
         ApiEndpointsServiceTestAbstractClass.class,
         ApiEndpointsServiceTestClass.class,
@@ -159,7 +289,7 @@ public class ApiEndpointsServiceTest
         ApiEndpointsServiceTestPrivateResource.class,
         ApiEndpointsServiceTestApiResource.class,
         ApiEndpointsServiceTestOtherResource.class
-    )));
+    ));
   }
 
   private interface ApiEndpointsServiceTestInterface
@@ -294,6 +424,86 @@ public class ApiEndpointsServiceTest
     @DELETE
     public void delete() {
       // noop
+    }
+  }
+
+  @Path("api/v2/ApiEndpointsServiceTestResourceA")
+  @Tag(name = "Api Endpoints Service Test Resource A", description = "A description")
+  private static class ApiEndpointsServiceTestResourceA
+  {
+    @GET
+    public String get() {
+      return null;
+    }
+  }
+
+  @Path("api/v2/ApiEndpointsServiceTestResourceB")
+  @Tag(name = "A tag")
+  private static class ApiEndpointsServiceTestResourceB
+  {
+    @GET
+    public String get() {
+      return null;
+    }
+  }
+
+  @Path("api/v2/ApiEndpointsServiceTestResourceC")
+  private static class ApiEndpointsServiceTestResourceC
+  {
+    @GET
+    public String get() {
+      return null;
+    }
+  }
+
+  @Path("api/v2/ApiEndpointsServiceTestResourceEnumParameter")
+  private static class ApiEndpointsServiceTestResourceEnumParameter
+  {
+    @GET
+    @Path("A/{ownerType}")
+    public OwnerType getA(@PathParam("ownerType") OwnerType ownerType) {
+      return null;
+    }
+
+    @GET
+    @Path("B/{ownerType:application|organization}")
+    public String getB(@PathParam("ownerType") OwnerType ownerType) {
+      return null;
+    }
+  }
+
+  @Path("api/v2/ApiEndpointsServiceTestResourceLicensedFeature1")
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  private static class ApiEndpointsServiceTestResourceLicensedFeature1
+  {
+    @GET
+    @Path("A")
+    public String getA() {
+      return null;
+    }
+
+    @GET
+    @Path("B")
+    @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_REPORTS)
+    public String getB() {
+      return null;
+    }
+  }
+
+  @Path("api/v2/ApiEndpointsServiceTestResourceLicensedFeature2")
+  private static class ApiEndpointsServiceTestResourceLicensedFeature2
+  {
+    @GET
+    @Path("A")
+    public String getA() {
+      return null;
+    }
+
+    @GET
+    @Path("B")
+    @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_REPORTS)
+    public String getB() {
+      return null;
     }
   }
 }

@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -57,6 +56,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -65,6 +65,7 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 @Timed
 @Singleton
 @Path(PublicApiPaths.SBOM_RESOURCE_PATH)
+@Tag(name = "SBOM")
 public class ApiSbomResource
 {
   static final String DEFAULT_SBOM_STATE = "current";
@@ -102,7 +103,6 @@ public class ApiSbomResource
   }
 
   @Operation(summary = "Delete sbom version",
-      tags = {"sbom"},
       description = "Deletes a specific sbom version including it's original contents and updates",
       responses = {
           @ApiResponse(responseCode = "404", description = "Supplied sbom version not found"),
@@ -123,7 +123,6 @@ public class ApiSbomResource
   }
 
   @Operation(summary = "Gets a sbom version",
-      tags = {"sbom"},
       description = "Downloads a specific sbom version in its original or current form",
       responses = {
           @ApiResponse(responseCode = "404", description = "Supplied sbom version not found"),
@@ -162,7 +161,6 @@ public class ApiSbomResource
   }
 
   @Operation(summary = "Gets a paginated list of SBOMs for an application",
-      tags = {"sbom"},
       description = "Gets a paginated list of SBOMs for an application",
       responses = {
           @ApiResponse(responseCode = "200",
@@ -191,7 +189,6 @@ public class ApiSbomResource
   }
 
   @Operation(summary = "Gets the components found in a specific sbom version",
-      tags = {"sbom"},
       description = "Lists the components in a specific sbom version with data about vulnerabilities and licenses",
       responses = {
           @ApiResponse(responseCode = "200", description = "List of components in the sbom",
@@ -235,7 +232,6 @@ public class ApiSbomResource
   }
 
   @Operation(summary = "Gets a list of active sbom versions by application id",
-      tags = {"sbom"},
       description = "Gets a list of active sbom versions by application id",
       responses = {
           @ApiResponse(responseCode = "200",
@@ -256,7 +252,6 @@ public class ApiSbomResource
   }
 
   @Operation(summary = "Import a new sbom version",
-      tags = {"sbom"},
       description = "Imports a new sbom version to an existing application",
       responses = {
           @ApiResponse(responseCode = "400", description = "Invalid/Unsupported data provided for sbom import"),
@@ -291,7 +286,6 @@ public class ApiSbomResource
   }
 
   @Operation(summary = "Get sbom import status",
-      tags = {"sbom"},
       description = "Gets status of a sbom import.",
       responses = {
           @ApiResponse(responseCode = "404", description = "Sbom import still in progress."),
@@ -315,7 +309,6 @@ public class ApiSbomResource
   }
 
   @Operation(summary = "Updates a vulnerability analysis annotation for a specific SBOM vulnerability",
-      tags = {"sbom"},
       description = "Updates a vulnerability analysis annotation for a specific SBOM vulnerability",
       responses = {
           @ApiResponse(responseCode = "200",
@@ -347,7 +340,6 @@ public class ApiSbomResource
   }
 
   @Operation(summary = "Deletes a Vulnerability analysis for a given component.",
-      tags = {"sbom"},
       description = "Deletes a Vulnerability analysis for a given component.",
       responses = {
           @ApiResponse(responseCode = "404", description = "Vulnerability analysis not found"),

@@ -5,26 +5,6 @@
  */
 package com.sonatype.insight.brain.sbom.export;
 
-import com.sonatype.clm.dto.model.component.ComponentDisplayName;
-import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
-import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentPolicyViolationsDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
-import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
-import com.sonatype.insight.brain.report.pdf.PdfData;
-import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicense;
-import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicenseThreat;
-import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentPolicyViolation;
-import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentSecurityIssue;
-import com.sonatype.insight.brain.sbom.components.BomPageMetadataDTO;
-import com.sonatype.insight.purl.PackageUrlIdentifier;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,26 +17,46 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.SbomTaxonomy;
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentPolicyViolationsDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
+import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
+import com.sonatype.insight.brain.report.pdf.PdfData;
+import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicense;
+import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicenseThreat;
+import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentPolicyViolation;
+import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentSecurityIssue;
+import com.sonatype.insight.brain.sbom.components.BomPageMetadataDTO;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.SpdxLicenseExpressionUtil;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -102,6 +102,8 @@ public abstract class AbstractCycloneDxExporter
 
   protected final ApplicationDAO applicationDAO;
 
+  protected final MigrationTrackerDAO migrationTrackerDAO;
+
   protected static final String REPORT_NAME = "Compliance Report";
 
   protected AbstractCycloneDxExporter(
@@ -114,19 +116,29 @@ public abstract class AbstractCycloneDxExporter
       final ThirdPartyScanDAO thirdPartyScanDAO,
       final ApplicationDAO applicationDAO,
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO,
+      final MigrationTrackerDAO migrationTrackerDAO,
       final BaseUrl baseUrl,
       final IdUtils idUtils,
       final VersionService versionService,
       final ApiReportDataServiceV2 apiReportDataServiceV2)
   {
-    super(insightWork, thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-        thirdPartyCoordinateLicenseDAO, thirdPartyVulnerabilityExploitabilityExchangeDAO, baseUrl, idUtils,
-        versionService);
+    super(
+        insightWork,
+        thirdPartyFileDAO,
+        thirdPartyFileCoordinateDAO,
+        thirdPartyCoordinateSecurityDAO,
+        thirdPartyCoordinateLicenseDAO,
+        thirdPartyVulnerabilityExploitabilityExchangeDAO,
+        baseUrl,
+        idUtils,
+        versionService
+    );
     this.multiLicenseDAO = multiLicenseDAO;
     this.spdxLicenseExpressionUtil = new SpdxLicenseExpressionUtil(multiLicenseDAO);
     this.apiReportDataServiceV2 = apiReportDataServiceV2;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.applicationDAO = applicationDAO;
+    this.migrationTrackerDAO = migrationTrackerDAO;
   }
 
   protected Bom mergeCurrentDatabaseState(Bom bom) {
@@ -488,7 +500,7 @@ public abstract class AbstractCycloneDxExporter
     ThirdPartySbomMetadata metadataEntity = exportParams.sbomMetadata;
     ThirdPartyScan scanEntity = getThirdPartyScan();
     try {
-      return SbomCycloneDxUtils.buildBomPageMetadataDTO(metadataEntity, scanEntity);
+      return SbomCycloneDxUtils.buildBomPageMetadataDTO(metadataEntity, scanEntity, migrationTrackerDAO);
     }
     catch (IllegalStateException e) {
       //in a most unlikely event of malformed metadata json

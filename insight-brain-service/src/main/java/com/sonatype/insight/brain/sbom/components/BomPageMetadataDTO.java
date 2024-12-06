@@ -39,6 +39,8 @@ public class BomPageMetadataDTO
 
   public String originalFile;
 
+  public boolean displayNameSortingEnabled;
+
   public BomPageMetadataDTO(
       final List<String> author,
       final List<String> manufacturer,
@@ -51,7 +53,8 @@ public class BomPageMetadataDTO
       final Date createdAt,
       final String scanId,
       final boolean isValid,
-      final String originalFile)
+      final String originalFile,
+      final boolean displayNameSortingEnabled)
   {
     this.author = author;
     this.manufacturer = manufacturer;
@@ -65,6 +68,7 @@ public class BomPageMetadataDTO
     this.scanId = scanId;
     this.isValid = isValid;
     this.originalFile = originalFile;
+    this.displayNameSortingEnabled = displayNameSortingEnabled;
   }
 
   public BomPageMetadataDTO() {

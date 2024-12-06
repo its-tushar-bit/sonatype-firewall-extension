@@ -430,6 +430,9 @@ public class ThirdPartyFileCoordinateDAO
       case PERCENTAGE_ANNOTATED:
         query = " ORDER BY percentage " + order + tieBreaker;
         break;
+      case DISPLAY_NAME:
+        query = " ORDER BY fc.display_name " + order + tieBreaker;
+        break;
       case VULNERABILITIES:
       default:
         query = " ORDER BY severity_critical " + order +

@@ -14,6 +14,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -47,14 +48,28 @@ public class SpdxToPdfExporter
       final ThirdPartyScanDAO thirdPartyScanDAO,
       final ApplicationDAO applicationDAO,
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO,
+      final MigrationTrackerDAO migrationTrackerDAO,
       final BaseUrl baseUrl,
       final IdUtils idUtils,
       final VersionService versionService,
       final ApiReportDataServiceV2 apiReportDataServiceV2)
   {
-    super(insightWork, multiLicenseDAO, thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-        thirdPartyCoordinateLicenseDAO, thirdPartyScanDAO, applicationDAO,
-        thirdPartyVulnerabilityExploitabilityExchangeDAO, baseUrl, idUtils, versionService, apiReportDataServiceV2);
+    super(
+        insightWork,
+        multiLicenseDAO,
+        thirdPartyFileDAO,
+        thirdPartyFileCoordinateDAO,
+        thirdPartyCoordinateSecurityDAO,
+        thirdPartyCoordinateLicenseDAO,
+        thirdPartyScanDAO,
+        applicationDAO,
+        thirdPartyVulnerabilityExploitabilityExchangeDAO,
+        migrationTrackerDAO,
+        baseUrl,
+        idUtils,
+        versionService,
+        apiReportDataServiceV2
+    );
   }
 
   @Override

@@ -8,3 +8,4 @@ import { createSelector } from '@reduxjs/toolkit';
 
 export const selectBillOfMaterialsPage = prop('billOfMaterialsPage');
 export const selectInternalAppId = createSelector(selectBillOfMaterialsPage, prop('internalAppId'));
+export const selectSbomMetadata = createSelector(selectBillOfMaterialsPage, prop('sbomMetadata'));

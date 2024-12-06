@@ -45,6 +45,7 @@ public class CycloneDxToPdfExporterTest
         thirdPartyScanDAO,
         applicationDAO,
         thirdPartyVulnerabilityExploitabilityExchangeDAO,
+        migrationTrackerDAO,
         baseUrl,
         idUtils,
         versionService,

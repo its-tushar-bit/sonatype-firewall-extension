@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.sbom.utils;
 
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
+import com.sonatype.insight.brain.migration.DisplayNameForFileCoordinateAsyncDbMigration;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import java.io.IOException;
@@ -121,7 +123,11 @@ public class SbomCycloneDxUtils
     return sbomCreationDetails != null ? gson.toJson(sbomCreationDetails) : null;
   }
 
-  public static BomPageMetadataDTO buildBomPageMetadataDTO(ThirdPartySbomMetadata sbomMetadata, ThirdPartyScan scan) {
+  public static BomPageMetadataDTO buildBomPageMetadataDTO(
+      ThirdPartySbomMetadata sbomMetadata,
+      ThirdPartyScan scan,
+      MigrationTrackerDAO migrationTrackerDAO)
+  {
     String metadataJson = sbomMetadata.getMetadataJson();
     List<String> manufacturerList = new ArrayList<>();
     List<String> supplierList = new ArrayList<>();
@@ -181,7 +187,8 @@ public class SbomCycloneDxUtils
         sbomMetadata.getCreatedAt(),
         scan != null ? scan.getScanId() : null,
         sbomMetadata.getIsValid(),
-        sbomMetadata.getOriginalBinaryFileName()
+        sbomMetadata.getOriginalBinaryFileName(),
+        migrationTrackerDAO.isTrackerPresent(DisplayNameForFileCoordinateAsyncDbMigration.class.getSimpleName())
     );
   }
 

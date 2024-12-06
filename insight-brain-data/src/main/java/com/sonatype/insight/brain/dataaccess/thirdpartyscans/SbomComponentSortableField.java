@@ -9,7 +9,8 @@ public enum SbomComponentSortableField
 {
   TYPE("dependency_type"),
   PERCENTAGE_ANNOTATED("percentage_annotated"),
-  VULNERABILITIES("vulnerabilities");
+  VULNERABILITIES("vulnerabilities"),
+  DISPLAY_NAME("display_name");
 
   private final String column;
 

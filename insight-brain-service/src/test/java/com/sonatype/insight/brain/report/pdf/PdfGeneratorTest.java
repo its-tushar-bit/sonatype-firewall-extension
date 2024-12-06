@@ -128,7 +128,8 @@ public class PdfGeneratorTest
         new Date(),
         SCAN_ID,
         false,
-        "originalFile"
+        "originalFile",
+        true
     );
     PdfData pdfData = PdfData.createSbomPdfData(
         null,
@@ -171,7 +172,8 @@ public class PdfGeneratorTest
         new Date(),
         SCAN_ID,
         false,
-        null
+        null,
+        true
     );
     PdfData pdfData = PdfData.createSbomPdfData(
         null,
@@ -878,7 +880,8 @@ public class PdfGeneratorTest
         new Date(),
         "scanId",
         false,
-        null
+        null,
+        true
     );
     PdfData pdfData = mockPdfDataForSbomManager(bomPageMetadataDTO);
     PdfGenerator pdfGenerator = new PdfGenerator(null, pdfData, Context.SBOM);

@@ -57,6 +57,10 @@ import { actions, COMPONENTS_PER_PAGE, SORT_BY_FIELDS, SORT_DIRECTION } from './
 import { selectIsSbomPoliciesSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 import './billOfMaterialsComponentsTile.scss';
+import {
+  selectSbomMetadata,
+  selectInternalAppId,
+} from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSelectors';
 
 const LOAD_COMPONENTS_DEBOUNCE_TIMEOUT_MS = 300;
 
@@ -79,8 +83,10 @@ ComponentsTileComponentNameSearch.propTypes = {
   onSearch: PropTypes.func.isRequired,
 };
 
-export default function BillOfMaterialsComponentsTile({ internalAppId }) {
+export default function BillOfMaterialsComponentsTile() {
   const { applicationPublicId, versionId: sbomVersion } = useSelector(selectRouterCurrentParams);
+  const internalAppId = useSelector(selectInternalAppId);
+  const { displayNameSortingEnabled } = useSelector(selectSbomMetadata);
   const isSbomPoliciesSupported = useSelector(selectIsSbomPoliciesSupported);
   const uiRouterState = useRouterState();
 
@@ -293,7 +299,11 @@ export default function BillOfMaterialsComponentsTile({ internalAppId }) {
             <NxTable.Head>
               <NxTable.Row>
                 <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.type)}>Type</NxTable.Cell>
-                <NxTable.Cell>Name</NxTable.Cell>
+                <NxTable.Cell
+                  {...(displayNameSortingEnabled ? createColumnSortHandler(SORT_BY_FIELDS.displayName) : {})}
+                >
+                  Name
+                </NxTable.Cell>
                 <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.vulnerabilities)}>
                   Vulnerabilities
                 </NxTable.Cell>
@@ -312,7 +322,3 @@ export default function BillOfMaterialsComponentsTile({ internalAppId }) {
     </>
   );
 }
-
-BillOfMaterialsComponentsTile.propTypes = {
-  internalAppId: PropTypes.string,
-};

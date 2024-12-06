@@ -35,6 +35,7 @@ export const SORT_BY_FIELDS = Object.freeze({
   type: 'type',
   vulnerabilities: 'vulnerabilities',
   percentageAnnotated: 'percentage_annotated',
+  displayName: 'display_name',
 });
 
 export const SORT_DIRECTION = Object.freeze({

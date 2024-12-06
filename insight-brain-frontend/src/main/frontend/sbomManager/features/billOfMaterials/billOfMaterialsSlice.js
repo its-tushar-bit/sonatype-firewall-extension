@@ -56,6 +56,7 @@ export const sbomMetadataInitialState = Object.freeze({
   originalFile: null,
   createdAt: null,
   isValid: null,
+  displayNameSortingEnabled: false,
 });
 
 export const vulnerabilitiesSummaryInitialState = Object.freeze({

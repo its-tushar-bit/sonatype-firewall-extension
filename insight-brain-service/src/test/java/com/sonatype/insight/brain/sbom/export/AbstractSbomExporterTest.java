@@ -13,6 +13,7 @@ import java.util.UUID;
 import java.util.zip.GZIPOutputStream;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -43,6 +44,9 @@ public class AbstractSbomExporterTest
 
   @Inject
   private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
+  @Inject
+  protected MigrationTrackerDAO migrationTrackerDAO;
 
   @Mock
   protected InsightWork mockInsightWork;

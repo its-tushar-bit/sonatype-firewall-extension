@@ -262,7 +262,7 @@ export default function BillOfMaterials() {
             policyViolationSummary={policyViolationSummary}
             isSbomPoliciesSupported={isSbomPoliciesSupported}
           />
-          <BillOfMaterialsComponentsTile internalAppId={internalAppId} />
+          <BillOfMaterialsComponentsTile />
         </LoadWrapper>
       </NxPageMain>
     </>

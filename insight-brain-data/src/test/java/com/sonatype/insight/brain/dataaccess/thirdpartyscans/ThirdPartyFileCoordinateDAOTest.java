@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -18,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.thirdpartyscans.BomPageSbomSummaryDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
@@ -1168,6 +1170,185 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(result.getResults())
         .extracting(SbomComponentDTO::getPackageUrl)
         .containsExactly(packageUrlIdentifier1.getPackageUrl());
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponentsByThirdPartyFileId_SortByDisplayName() {
+    ThirdPartySbomMetadata thirdPartySbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .build();
+    String a = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "a").getId();
+    String b = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "b").getId();
+    String c = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "c").getId();
+    SbomComponentListDTO result;
+
+    // Ascending all results
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        thirdPartySbomMetadata.getThirdPartyFileId(),
+        null,
+        null,
+        null,
+        SbomComponentSortableField.DISPLAY_NAME,
+        true,
+        10,
+        1
+    );
+    assertThat(result.getResults())
+        .isNotNull()
+        .extracting(SbomComponentDTO::getFileCoordinateId)
+        .containsExactly(a, b, c);
+
+    // Descending all results
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        thirdPartySbomMetadata.getThirdPartyFileId(),
+        null,
+        null,
+        null,
+        SbomComponentSortableField.DISPLAY_NAME,
+        false,
+        10,
+        1
+    );
+    assertThat(result.getResults())
+        .isNotNull()
+        .extracting(SbomComponentDTO::getFileCoordinateId)
+        .containsExactly(c, b, a);
+
+    // Ascending paged results
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        thirdPartySbomMetadata.getThirdPartyFileId(),
+        null,
+        null,
+        null,
+        SbomComponentSortableField.DISPLAY_NAME,
+        true,
+        2,
+        1
+    );
+    assertThat(result.getResults())
+        .isNotNull()
+        .extracting(SbomComponentDTO::getFileCoordinateId)
+        .containsExactly(a, b);
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        thirdPartySbomMetadata.getThirdPartyFileId(),
+        null,
+        null,
+        null,
+        SbomComponentSortableField.DISPLAY_NAME,
+        true,
+        2,
+        2
+    );
+    assertThat(result.getResults())
+        .isNotNull()
+        .extracting(SbomComponentDTO::getFileCoordinateId)
+        .containsExactly(c);
+
+    // Descending paged results
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        thirdPartySbomMetadata.getThirdPartyFileId(),
+        null,
+        null,
+        null,
+        SbomComponentSortableField.DISPLAY_NAME,
+        false,
+        2,
+        1
+    );
+    assertThat(result.getResults())
+        .isNotNull()
+        .extracting(SbomComponentDTO::getFileCoordinateId)
+        .containsExactly(c, b);
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        thirdPartySbomMetadata.getThirdPartyFileId(),
+        null,
+        null,
+        null,
+        SbomComponentSortableField.DISPLAY_NAME,
+        false,
+        2,
+        2
+    );
+    assertThat(result.getResults())
+        .isNotNull()
+        .extracting(SbomComponentDTO::getFileCoordinateId)
+        .containsExactly(a);
+
+    // Tiebrakers
+    String d = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "d").getId();
+    String a0 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "a", s -> s.setName("n0")).getId();
+    String a2 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "a", s -> s.setName("n2")).getId();
+    String b0 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "b", s -> s.setVersion("v0")).getId();
+    String b2 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "b", s -> s.setVersion("v2")).getId();
+    String c0 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "c", s -> s.setPackageUrl("pkg:f/p0@v")).getId();
+    String c2 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "c", s -> s.setPackageUrl("pkg:f/p2@v")).getId();
+    String d0 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "d", s -> s.setHash("h0")).getId();
+    String d2 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "d", s -> s.setHash("h2")).getId();
+
+    // Ascending all results with tiebrakers
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        thirdPartySbomMetadata.getThirdPartyFileId(),
+        null,
+        null,
+        null,
+        SbomComponentSortableField.DISPLAY_NAME,
+        true,
+        20,
+        1
+    );
+    assertThat(result.getResults())
+        .isNotNull()
+        .extracting(SbomComponentDTO::getFileCoordinateId)
+        .containsExactly(a0, a, a2, b0, b, b2, c0, c, c2, d0, d, d2);
+
+    // Descending all results with tiebrakers
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        thirdPartySbomMetadata.getThirdPartyFileId(),
+        null,
+        null,
+        null,
+        SbomComponentSortableField.DISPLAY_NAME,
+        false,
+        20,
+        1
+    );
+    assertThat(result.getResults())
+        .isNotNull()
+        .extracting(SbomComponentDTO::getFileCoordinateId)
+        .containsExactly(d2, d, d0, c2, c, c0, b2, b, b0, a2, a, a0);
+  }
+
+  private ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
+      ThirdPartySbomMetadata thirdPartySbomMetadata,
+      String displayName)
+  {
+    return tempEntity.newThirdPartyFileCoordinate(
+        null,
+        thirdPartyFileDAO.getById(thirdPartySbomMetadata.getThirdPartyFileId()),
+        "s1",
+        "f1",
+        "n1",
+        "v1",
+        "h1",
+        "pkg:f/p1@v",
+        MatchState.EXACT.getId(),
+        List.of("occurrence"),
+        List.of("filename"),
+        displayName
+    );
+  }
+
+  private ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
+      ThirdPartySbomMetadata thirdPartySbomMetadata,
+      String displayName,
+      Consumer<ThirdPartyFileCoordinate> thirdPartyFileCoordinateConsumer)
+  {
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate =
+        newThirdPartyFileCoordinate(thirdPartySbomMetadata, displayName);
+    thirdPartyFileCoordinateConsumer.accept(thirdPartyFileCoordinate);
+    thirdPartyFileCoordinateDAO.update(thirdPartyFileCoordinate);
+    return thirdPartyFileCoordinate;
   }
 
   private void insertVEXToThirdPartyCoordinateSecurity(ThirdPartyCoordinateSecurity coordinateSecurity) {

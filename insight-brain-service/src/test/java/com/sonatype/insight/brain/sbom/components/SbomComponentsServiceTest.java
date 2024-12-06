@@ -13,8 +13,10 @@ import java.util.Date;
 import java.util.List;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
+import com.sonatype.insight.brain.migration.DisplayNameForFileCoordinateAsyncDbMigration;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -49,6 +51,9 @@ public class SbomComponentsServiceTest
 
   @Inject
   private InsightWork work;
+
+  @Inject
+  private MigrationTrackerDAO migrationTrackerDAO;
 
   private Application app;
 
@@ -392,6 +397,45 @@ public class SbomComponentsServiceTest
     assertThat(spdxResultDto.fileFormat).isEqualTo(sbomSPDXMetadata.getSpecFormat());
     assertThat(spdxResultDto.specification).isEqualTo(sbomSPDXMetadata.getSpec());
     assertThat(spdxResultDto.specVersion).isEqualTo(sbomSPDXMetadata.getSpecVersion());
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetBomPageMetadata_DisplayName_NotMigrated() {
+    migrationTrackerDAO.deleteById(DisplayNameForFileCoordinateAsyncDbMigration.class.getSimpleName());
+    assertThat(migrationTrackerDAO.isTrackerPresent(DisplayNameForFileCoordinateAsyncDbMigration.class.getSimpleName()))
+        .isFalse();
+    Application application = tempEntity.newApplicationWithParent();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan();
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .withSpecVersion("1.5")
+        .withThirdPartyFileId(thirdPartyScan.getThirdPartyFileId())
+        .build();
+
+    BomPageMetadataDTO result = service.getBomPageMetadata(application.getId(), sbomMetadata.getSbomVersion());
+
+    assertThat(result).isNotNull();
+    assertThat(result.displayNameSortingEnabled).isFalse();
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetBomPageMetadata_DisplayName_Migrated() {
+    assertThat(migrationTrackerDAO.isTrackerPresent(DisplayNameForFileCoordinateAsyncDbMigration.class.getSimpleName()))
+        .isTrue();
+    Application application = tempEntity.newApplicationWithParent();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan();
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .withSpecVersion("1.5")
+        .withThirdPartyFileId(thirdPartyScan.getThirdPartyFileId())
+        .build();
+
+    BomPageMetadataDTO result = service.getBomPageMetadata(application.getId(), sbomMetadata.getSbomVersion());
+
+    assertThat(result).isNotNull();
+    assertThat(result.displayNameSortingEnabled).isTrue();
   }
 
   @Test

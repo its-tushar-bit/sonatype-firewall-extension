@@ -16,15 +16,16 @@ import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
 
 import com.sonatype.insight.SbomTaxonomy;
+import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
@@ -36,7 +37,6 @@ import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
-import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 
 import org.apache.shiro.util.CollectionUtils;
 import org.cyclonedx.exception.ParseException;
@@ -132,6 +132,7 @@ public class CycloneDxToCycloneDxExporterTest
         thirdPartyScanDAO,
         applicationDAO,
         thirdPartyVulnerabilityExploitabilityExchangeDAO,
+        migrationTrackerDAO,
         baseUrl,
         idUtils,
         versionService,

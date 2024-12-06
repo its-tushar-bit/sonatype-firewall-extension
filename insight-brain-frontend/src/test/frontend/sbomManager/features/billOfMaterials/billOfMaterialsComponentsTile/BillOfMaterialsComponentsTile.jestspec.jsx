@@ -28,10 +28,6 @@ describe('BillOfMaterialsComponentsTile', () => {
   const APPLICATION_INTERNAL_ID = 'APPLICATION-INTERNAL-ID';
   const SBOM_VERSION = 'SBOM-VERSION';
 
-  const initialProps = {
-    internalAppId: APPLICATION_INTERNAL_ID,
-  };
-
   const defaultSortConfiguration = Object.freeze({
     sortBy: SORT_BY_FIELDS.vulnerabilities,
     sortDirection: SORT_DIRECTION.DESC,
@@ -105,7 +101,7 @@ describe('BillOfMaterialsComponentsTile', () => {
   const componentParametersList = [
     {
       hash: 'hash-1',
-      name: 'alice',
+      name: 'malice',
       dependencyType: 'direct',
       matchStateId: 'exact',
       vulnerabilities: [0, 1, 2, 3, 4],
@@ -131,7 +127,7 @@ describe('BillOfMaterialsComponentsTile', () => {
     },
     {
       hash: 'hash-3',
-      name: 'malice',
+      name: 'alice',
       dependencyType: 'unspecified',
       matchStateId: 'similar',
       vulnerabilities: [0, 9, 10, 11, 12],
@@ -158,8 +154,7 @@ describe('BillOfMaterialsComponentsTile', () => {
     false,
   ]);
 
-  const renderComponent = (props, preloadedState) =>
-    render(<BillOfMaterialsComponentsTile {...props} />, { preloadedState });
+  const renderComponent = (preloadedState) => render(<BillOfMaterialsComponentsTile />, { preloadedState });
 
   beforeEach(() => {
     setupComponentsFilterDrawerPortalContainer();
@@ -170,6 +165,12 @@ describe('BillOfMaterialsComponentsTile', () => {
       router: {
         currentParams: {
           versionId: SBOM_VERSION,
+        },
+      },
+      billOfMaterialsPage: {
+        internalAppId: APPLICATION_INTERNAL_ID,
+        sbomMetadata: {
+          displayNameSortingEnabled: true,
         },
       },
       billOfMaterialsComponentsTile: {
@@ -200,7 +201,7 @@ describe('BillOfMaterialsComponentsTile', () => {
   it('renders the correct title', async () => {
     jest.useFakeTimers();
 
-    renderComponent(initialProps, initialState);
+    renderComponent(initialState);
 
     jest.advanceTimersByTime(JEST_TIMER);
     jest.useRealTimers();
@@ -217,7 +218,7 @@ describe('BillOfMaterialsComponentsTile', () => {
       .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
       .reply(() => Promise.reject({ response: { data: 'Error Message' } }));
 
-    renderComponent(initialProps, initialState);
+    renderComponent(initialState);
 
     jest.advanceTimersByTime(JEST_TIMER);
     jest.useRealTimers();
@@ -231,7 +232,7 @@ describe('BillOfMaterialsComponentsTile', () => {
     it('should render component name search text field', async () => {
       jest.useFakeTimers();
 
-      renderComponent(initialProps, initialState);
+      renderComponent(initialState);
 
       jest.advanceTimersByTime(JEST_TIMER);
       jest.useRealTimers();
@@ -250,7 +251,7 @@ describe('BillOfMaterialsComponentsTile', () => {
     it('should have the Filter By button', async () => {
       jest.useFakeTimers();
 
-      renderComponent(initialProps, initialState);
+      renderComponent(initialState);
 
       jest.advanceTimersByTime(JEST_TIMER);
       jest.useRealTimers();
@@ -264,7 +265,7 @@ describe('BillOfMaterialsComponentsTile', () => {
 
   describe('Components Table', () => {
     it('renders the loading indicator initially', () => {
-      renderComponent(initialProps, initialState);
+      renderComponent(initialState);
       expect(screen.getByText('Loading…')).toBeVisible();
     });
 
@@ -275,7 +276,7 @@ describe('BillOfMaterialsComponentsTile', () => {
         .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
         .reply(200, { totalResultsCount: 0, results: [] });
 
-      renderComponent(initialProps, initialState);
+      renderComponent(initialState);
 
       jest.advanceTimersByTime(JEST_TIMER);
       jest.useRealTimers();
@@ -288,7 +289,7 @@ describe('BillOfMaterialsComponentsTile', () => {
     it('renders the correct number of components and content', async () => {
       jest.useFakeTimers();
 
-      renderComponent(initialProps, initialState);
+      renderComponent(initialState);
 
       jest.advanceTimersByTime(JEST_TIMER);
       jest.useRealTimers();
@@ -303,7 +304,7 @@ describe('BillOfMaterialsComponentsTile', () => {
       const firstRow = tableRows[1];
       const firstRowCells = within(firstRow).getAllByRole('cell');
       expect(firstRowCells[0]).toHaveTextContent('D');
-      expect(firstRowCells[1]).toHaveTextContent('com.package.alice : artifact-id : 1.2.3');
+      expect(firstRowCells[1]).toHaveTextContent('com.package.malice : artifact-id : 1.2.3');
       // The text content for each severity pill is contained in 3 divs:
       // • One div with the severity text
       // • One div for the actual severity
@@ -324,7 +325,7 @@ describe('BillOfMaterialsComponentsTile', () => {
       const thirdRow = tableRows[3];
       const thirdRowCells = within(thirdRow).getAllByRole('cell');
       expect(thirdRowCells[0]).toHaveTextContent('');
-      expect(thirdRowCells[1]).toHaveTextContent('com.package.malice : artifact-id : 1.2.3');
+      expect(thirdRowCells[1]).toHaveTextContent('com.package.alice : artifact-id : 1.2.3');
       expect(thirdRowCells[2]).toHaveTextContent('Critical1299+Severe1199+Moderate1099+Low999+');
       expect(thirdRowCells[3]).toHaveTextContent(/100%/);
       expect(thirdRowCells[4]).toHaveTextContent('Beer, GNU');
@@ -335,10 +336,202 @@ describe('BillOfMaterialsComponentsTile', () => {
       fireEvent.mouseOver(similarMatchIcon);
       const tooltip = await screen.findByRole('tooltip');
       expect(tooltip).toHaveTextContent(
-        'Original Component Name: pkg:maven/com.package.malice/artifact-id@1.2.3?type=jar.' +
+        'Original Component Name: pkg:maven/com.package.alice/artifact-id@1.2.3?type=jar.' +
           'Similar component match: This component is similar to a known open source component' +
           ' within your application based on its attributes.'
       );
+    });
+
+    it('cannot sort by display name if 0 components', async () => {
+      jest.useFakeTimers();
+
+      axiosMock.onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams)).reply(200, generateResponse([]));
+
+      renderComponent(initialState);
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
+
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      const tableRows = await screen.findAllByRole('row');
+      expect(tableRows.length).toBe(2);
+
+      const sortByDisplayNameButton = screen.queryByRole('button', { name: /name unsorted/i });
+      expect(sortByDisplayNameButton).toBeNull();
+    });
+
+    it('cannot sort by display name if 1 component', async () => {
+      jest.useFakeTimers();
+
+      axiosMock
+        .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
+        .reply(200, generateResponse([componentParametersList[0]]));
+
+      renderComponent(initialState);
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
+
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      const tableRows = await screen.findAllByRole('row');
+      expect(tableRows.length).toBe(2);
+
+      const sortByDisplayNameButton = screen.queryByRole('button', { name: /name unsorted/i });
+      expect(sortByDisplayNameButton).toBeNull();
+    });
+
+    it('cannot sort by display name if displayNameSortingEnabled is false', async () => {
+      jest.useFakeTimers();
+
+      renderComponent({
+        ...initialState,
+        billOfMaterialsPage: {
+          internalAppId: APPLICATION_INTERNAL_ID,
+          sbomMetadata: { displayNameSortingEnabled: false },
+        },
+      });
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
+
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      const tableRows = await screen.findAllByRole('row');
+      expect(tableRows.length).toBe(4);
+
+      const sortByDisplayNameButton = screen.queryByRole('button', { name: /name unsorted/i });
+      expect(sortByDisplayNameButton).toBeNull();
+    });
+
+    it('can sort by display name if displayNameSortingEnabled is true and 2 components', async () => {
+      jest.useFakeTimers();
+
+      axiosMock
+        .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
+        .reply(200, generateResponse([componentParametersList[0], componentParametersList[1]]));
+
+      renderComponent(initialState);
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
+
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      const tableRows = await screen.findAllByRole('row');
+      expect(tableRows.length).toBe(3);
+
+      const sortByDisplayNameButton = screen.getByRole('button', { name: /name unsorted/i });
+      expect(sortByDisplayNameButton).toBeVisible();
+    });
+
+    it('can sort by display name if displayNameSortingEnabled is true and more than 2 components', async () => {
+      jest.useFakeTimers();
+
+      // Unsorted
+      renderComponent(initialState);
+
+      jest.advanceTimersByTime(JEST_TIMER);
+
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      let tableRows = await screen.findAllByRole('row');
+      expect(tableRows.length).toBe(4);
+
+      let firstRow = tableRows[1];
+      let firstRowCells = within(firstRow).getAllByRole('cell');
+      expect(firstRowCells[1]).toHaveTextContent('com.package.malice : artifact-id : 1.2.3');
+
+      let secondRow = tableRows[2];
+      let secondRowCells = within(secondRow).getAllByRole('cell');
+      expect(secondRowCells[1]).toHaveTextContent('com.package.bob : artifact-id : 1.2.3');
+
+      let thirdRow = tableRows[3];
+      let thirdRowCells = within(thirdRow).getAllByRole('cell');
+      expect(thirdRowCells[1]).toHaveTextContent('com.package.alice : artifact-id : 1.2.3');
+
+      let sortByDisplayNameButton = screen.getByRole('button', { name: /name unsorted/i });
+      expect(sortByDisplayNameButton).toBeVisible();
+
+      // Ascending
+      axiosMock
+        .onGet(
+          getBillOfMaterialsComponentsUrl(
+            APPLICATION_INTERNAL_ID,
+            SBOM_VERSION,
+            1,
+            COMPONENTS_PER_PAGE,
+            SORT_BY_FIELDS.displayName,
+            true
+          )
+        )
+        .reply(
+          200,
+          generateResponse([componentParametersList[2], componentParametersList[1], componentParametersList[0]])
+        );
+
+      fireEvent.click(sortByDisplayNameButton);
+
+      jest.advanceTimersByTime(JEST_TIMER);
+
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      tableRows = await screen.findAllByRole('row');
+      firstRow = tableRows[1];
+      firstRowCells = within(firstRow).getAllByRole('cell');
+      expect(firstRowCells[1]).toHaveTextContent('com.package.alice : artifact-id : 1.2.3');
+
+      secondRow = tableRows[2];
+      secondRowCells = within(secondRow).getAllByRole('cell');
+      expect(secondRowCells[1]).toHaveTextContent('com.package.bob : artifact-id : 1.2.3');
+
+      thirdRow = tableRows[3];
+      thirdRowCells = within(thirdRow).getAllByRole('cell');
+      expect(thirdRowCells[1]).toHaveTextContent('com.package.malice : artifact-id : 1.2.3');
+
+      sortByDisplayNameButton = screen.getByRole('button', { name: /name ascending/i });
+      expect(sortByDisplayNameButton).toBeVisible();
+
+      // Descending
+      axiosMock
+        .onGet(
+          getBillOfMaterialsComponentsUrl(
+            APPLICATION_INTERNAL_ID,
+            SBOM_VERSION,
+            1,
+            COMPONENTS_PER_PAGE,
+            SORT_BY_FIELDS.displayName,
+            false
+          )
+        )
+        .reply(
+          200,
+          generateResponse([componentParametersList[0], componentParametersList[1], componentParametersList[2]])
+        );
+
+      fireEvent.click(sortByDisplayNameButton);
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
+
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      tableRows = await screen.findAllByRole('row');
+      firstRow = tableRows[1];
+      firstRowCells = within(firstRow).getAllByRole('cell');
+      expect(firstRowCells[1]).toHaveTextContent('com.package.malice : artifact-id : 1.2.3');
+
+      secondRow = tableRows[2];
+      secondRowCells = within(secondRow).getAllByRole('cell');
+      expect(secondRowCells[1]).toHaveTextContent('com.package.bob : artifact-id : 1.2.3');
+
+      thirdRow = tableRows[3];
+      thirdRowCells = within(thirdRow).getAllByRole('cell');
+      expect(thirdRowCells[1]).toHaveTextContent('com.package.alice : artifact-id : 1.2.3');
+
+      sortByDisplayNameButton = screen.getByRole('button', { name: /name descending/i });
+      expect(sortByDisplayNameButton).toBeVisible();
     });
   });
 
@@ -350,7 +543,7 @@ describe('BillOfMaterialsComponentsTile', () => {
         .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
         .reply(200, generateResponse(componentParametersList, 2500));
 
-      renderComponent(initialProps, initialState);
+      renderComponent(initialState);
 
       jest.advanceTimersByTime(JEST_TIMER);
       jest.useRealTimers();
@@ -369,7 +562,7 @@ describe('BillOfMaterialsComponentsTile', () => {
         .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
         .reply(200, generateResponse(componentParametersList, 25));
 
-      renderComponent(initialProps, initialState);
+      renderComponent(initialState);
 
       jest.advanceTimersByTime(JEST_TIMER);
       jest.useRealTimers();
@@ -388,7 +581,7 @@ describe('BillOfMaterialsComponentsTile', () => {
         .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
         .reply(200, generateResponse(componentParametersList, 150));
 
-      renderComponent(initialProps, initialState);
+      renderComponent(initialState);
 
       jest.advanceTimersByTime(JEST_TIMER);
 
@@ -420,7 +613,7 @@ describe('BillOfMaterialsComponentsTile', () => {
         .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
         .reply(200, generateResponse(componentParametersList, 100));
 
-      renderComponent(initialProps, initialState);
+      renderComponent(initialState);
 
       jest.advanceTimersByTime(JEST_TIMER);
 
@@ -461,7 +654,7 @@ describe('BillOfMaterialsComponentsTile', () => {
         },
       };
 
-      renderComponent(initialProps, { ...initialState, ...productFeaturesState });
+      renderComponent({ ...initialState, ...productFeaturesState });
 
       jest.advanceTimersByTime(JEST_TIMER);
       jest.useRealTimers();
@@ -475,7 +668,7 @@ describe('BillOfMaterialsComponentsTile', () => {
       const firstRow = tableRows[1];
       const firstRowCells = within(firstRow).getAllByRole('cell');
       expect(firstRowCells[0]).toHaveTextContent('D');
-      expect(firstRowCells[1]).toHaveTextContent('com.package.alice : artifact-id : 1.2.3');
+      expect(firstRowCells[1]).toHaveTextContent('com.package.malice : artifact-id : 1.2.3');
 
       expect(firstRowCells[2]).toHaveTextContent('Critical499+Severe399+Moderate299+Low199+');
       expect(firstRowCells[3]).toHaveTextContent('111');
@@ -494,7 +687,7 @@ describe('BillOfMaterialsComponentsTile', () => {
       const thirdRow = tableRows[3];
       const thirdRowCells = within(thirdRow).getAllByRole('cell');
       expect(thirdRowCells[0]).toHaveTextContent('');
-      expect(thirdRowCells[1]).toHaveTextContent('com.package.malice : artifact-id : 1.2.3');
+      expect(thirdRowCells[1]).toHaveTextContent('com.package.alice : artifact-id : 1.2.3');
       expect(thirdRowCells[2]).toHaveTextContent('Critical1299+Severe1199+Moderate1099+Low999+');
       expect(thirdRowCells[3]).toHaveTextContent('333');
       expect(thirdRowCells[4]).toHaveTextContent(/100%/);

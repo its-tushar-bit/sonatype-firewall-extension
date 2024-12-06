@@ -20,6 +20,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -57,6 +58,8 @@ import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.buildBomP
 @Singleton
 public class SbomComponentsService
 {
+  private static final Logger log = LoggerFactory.getLogger(SbomComponentsService.class);
+
   private final ApplicationDAO applicationDAO;
 
   private final OrganizationDAO organizationDAO;
@@ -73,7 +76,7 @@ public class SbomComponentsService
 
   private final ThirdPartyScanDAO thirdPartyScanDAO;
 
-  private static final Logger log = LoggerFactory.getLogger(SbomComponentsService.class);
+  private final MigrationTrackerDAO migrationTrackerDAO;
 
   @Inject
   public SbomComponentsService(
@@ -84,6 +87,7 @@ public class SbomComponentsService
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO vexDAO,
+      final MigrationTrackerDAO migrationTrackerDAO,
       final SbomPolicyService sbomPolicyService)
   {
     this.applicationDAO = applicationDAO;
@@ -93,6 +97,7 @@ public class SbomComponentsService
     this.vexDAO = vexDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
+    this.migrationTrackerDAO = migrationTrackerDAO;
     this.sbomPolicyService = sbomPolicyService;
   }
 
@@ -284,7 +289,7 @@ public class SbomComponentsService
     ThirdPartyScan scanEntity =
         thirdPartyScanDAO.getByThirdPartyFileId(metadataEntity.getThirdPartyFileId());
 
-    return buildBomPageMetadataDTO(metadataEntity, scanEntity);
+    return buildBomPageMetadataDTO(metadataEntity, scanEntity, migrationTrackerDAO);
   }
 
   @Authorize(permission = Permission.READ)

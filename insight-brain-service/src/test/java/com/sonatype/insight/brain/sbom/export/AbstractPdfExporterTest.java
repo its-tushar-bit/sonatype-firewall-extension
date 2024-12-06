@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.brain.sbom.export;
 
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
-import com.sonatype.insight.brain.report.pdf.PdfData;
-import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent;
 import java.io.File;
 import java.util.ArrayList;
 import javax.inject.Inject;
@@ -18,17 +14,22 @@ import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.report.pdf.PdfData;
+import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -75,6 +76,9 @@ public class AbstractPdfExporterTest
 
   @Inject
   protected ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO;
+
+  @Inject
+  protected MigrationTrackerDAO migrationTrackerDAO;
 
   @Inject
   protected ThirdPartyScanDAO thirdPartyScanDAO;

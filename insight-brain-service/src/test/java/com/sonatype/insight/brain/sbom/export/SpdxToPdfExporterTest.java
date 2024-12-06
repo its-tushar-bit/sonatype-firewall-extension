@@ -44,6 +44,7 @@ public class SpdxToPdfExporterTest extends AbstractPdfExporterTest
         thirdPartyScanDAO,
         applicationDAO,
         thirdPartyVulnerabilityExploitabilityExchangeDAO,
+        migrationTrackerDAO,
         baseUrl,
         idUtils,
         versionService,

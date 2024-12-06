@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.sbom.export;
 
-import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -13,14 +12,16 @@ import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.report.pdf.PdfData;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -47,16 +48,28 @@ public class CycloneDxToCycloneDxExporter
       final ThirdPartyScanDAO thirdPartyScanDAO,
       final ApplicationDAO applicationDAO,
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO,
+      final MigrationTrackerDAO migrationTrackerDAO,
       final BaseUrl baseUrl,
       final IdUtils idUtils,
       final VersionService versionService,
       final ApiReportDataServiceV2 apiReportDataServiceV2)
   {
-
-    super(insightWork, multiLicenseDAO, thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-        thirdPartyCoordinateLicenseDAO, thirdPartyScanDAO, applicationDAO,
-        thirdPartyVulnerabilityExploitabilityExchangeDAO, baseUrl, idUtils,
-        versionService, apiReportDataServiceV2);
+    super(
+        insightWork,
+        multiLicenseDAO,
+        thirdPartyFileDAO,
+        thirdPartyFileCoordinateDAO,
+        thirdPartyCoordinateSecurityDAO,
+        thirdPartyCoordinateLicenseDAO,
+        thirdPartyScanDAO,
+        applicationDAO,
+        thirdPartyVulnerabilityExploitabilityExchangeDAO,
+        migrationTrackerDAO,
+        baseUrl,
+        idUtils,
+        versionService,
+        apiReportDataServiceV2
+    );
   }
 
   @Override

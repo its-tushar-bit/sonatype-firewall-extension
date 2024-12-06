@@ -33,6 +33,7 @@ import {
 } from 'MainRoot/violation/violationSelectors';
 import ViolationName from './ViolationName';
 import { selectIsStandaloneDeveloper } from '../../reduxUiRouter/routerSelectors';
+import { loadReportAllData, loadReportIfNeeded } from 'MainRoot/applicationReport/applicationReportActions';
 
 export default function PolicyViolationDetailsPopover() {
   const dispatch = useDispatch();

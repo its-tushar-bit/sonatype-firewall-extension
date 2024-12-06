@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { render, screen, fireEvent, axiosMockAdapter, within } from 'TestRoot/SpecUtil';
-import { getWaiversConfigurationURLWaiver } from 'MainRoot/util/CLMLocation';
+import { getAutoWaiversConfigurationURLWaiver } from 'MainRoot/util/CLMLocation';
 import AutoWaiverDetails from 'MainRoot/waivers/waiverDetails/AutoWaiverDetails';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 
@@ -71,7 +71,7 @@ describe('AutoWaiverDetailsPage', function () {
       },
     };
 
-    expectedAutoWaiverDetailsUrl = getWaiversConfigurationURLWaiver(ownerType, ownerId, waiverId);
+    expectedAutoWaiverDetailsUrl = getAutoWaiversConfigurationURLWaiver(ownerType, ownerId, waiverId);
     renderComponent = (preloadedState = initialState) => render(<AutoWaiverDetails />, { preloadedState });
   });
 
@@ -147,7 +147,7 @@ describe('AutoWaiverDetailsPage', function () {
         ownerType = 'application';
         publicId = 'app-public-id';
 
-        expectedAutoWaiverDetailsUrl = getWaiversConfigurationURLWaiver(ownerType, ownerId, waiverId);
+        expectedAutoWaiverDetailsUrl = getAutoWaiversConfigurationURLWaiver(ownerType, ownerId, waiverId);
 
         const mockResponse = { ...autoWaiverDetails, ownerType, publicId };
         axiosMock.onGet(expectedAutoWaiverDetailsUrl).reply(200, mockResponse);
@@ -181,7 +181,7 @@ describe('AutoWaiverDetailsPage', function () {
         ownerType = 'organization';
         publicId = 'org-public-id';
 
-        expectedAutoWaiverDetailsUrl = getWaiversConfigurationURLWaiver(ownerType, ownerId, waiverId);
+        expectedAutoWaiverDetailsUrl = getAutoWaiversConfigurationURLWaiver(ownerType, ownerId, waiverId);
 
         const mockResponse = { ...autoWaiverDetails, ownerType, publicId };
         axiosMock.onGet(expectedAutoWaiverDetailsUrl).reply(200, mockResponse);

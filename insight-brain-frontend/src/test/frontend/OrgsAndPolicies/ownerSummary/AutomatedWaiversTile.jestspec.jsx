@@ -7,7 +7,7 @@ import React from 'react';
 import { axiosMockAdapter, render, screen } from 'TestRoot/SpecUtil';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import AutomatedWaiversTile from 'MainRoot/OrgsAndPolicies/ownerSummary/AutomatedWaiversTile';
-import { getCompositeSourceControlUrl, getWaiversConfigurationURL } from 'MainRoot/util/CLMLocation';
+import { getCompositeSourceControlUrl, getAutoWaiversConfigurationURL } from 'MainRoot/util/CLMLocation';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
@@ -86,7 +86,7 @@ describe('AutomatedWaiversTile', () => {
     });
 
     it('renders when isDeveloperDashboardEnabled is true, isAutoWaiverTrue is true and isInherited is false', async () => {
-      axiosMock.onGet(getWaiversConfigurationURL('organization', 'organizationId')).reply(200, {
+      axiosMock.onGet(getAutoWaiversConfigurationURL('organization', 'organizationId')).reply(200, {
         isAutoWaiverEnabled: true,
       });
 
@@ -99,7 +99,7 @@ describe('AutomatedWaiversTile', () => {
     });
 
     it('renders when isDeveloperDashboardEnabled is true isAutoWaiverEnabled is false', async () => {
-      axiosMock.onGet(getWaiversConfigurationURL('organization', 'organizationId')).reply(200, {
+      axiosMock.onGet(getAutoWaiversConfigurationURL('organization', 'organizationId')).reply(200, {
         isAutoWaiverEnabled: false,
       });
 
@@ -112,7 +112,7 @@ describe('AutomatedWaiversTile', () => {
     });
 
     it('renders when isDeveloperDashboardEnabled is true, isAutoWaiverEnabled is true and isInhetired is true', async () => {
-      const correctUrl = getWaiversConfigurationURL('organization', 'organizationId');
+      const correctUrl = getAutoWaiversConfigurationURL('organization', 'organizationId');
       const autoPolicyWaiverOwnerName = 'OrgTestName';
       axiosMock.onGet(correctUrl).reply(200, {
         isAutoWaiverEnabled: true,
@@ -172,7 +172,7 @@ describe('AutomatedWaiversTile', () => {
     });
 
     it('renders when isDeveloperDashboardEnabled is true, isAutoWaiverEnabled is true and inherited is false', async () => {
-      const correctUrl = getWaiversConfigurationURL('application', 'appId');
+      const correctUrl = getAutoWaiversConfigurationURL('application', 'appId');
       axiosMock.onGet(correctUrl).reply(200, {
         isAutoWaiverEnabled: true,
         isInherited: false,
@@ -188,7 +188,7 @@ describe('AutomatedWaiversTile', () => {
     });
 
     it('renders when isDeveloeprDashboardEnabled is true and isAutoWaiverEnabled is false', async () => {
-      const correctUrl = getWaiversConfigurationURL('application', 'appId');
+      const correctUrl = getAutoWaiversConfigurationURL('application', 'appId');
       axiosMock.onGet(correctUrl).reply(200, {
         isAutoWaiverEnabled: false,
       });
@@ -202,7 +202,7 @@ describe('AutomatedWaiversTile', () => {
     });
 
     it('renders when isDeveloperDashboardEnabled is true, isAutoWaiverEnabled is true and isInhetired is true', async () => {
-      const correctUrl = getWaiversConfigurationURL('application', 'appId');
+      const correctUrl = getAutoWaiversConfigurationURL('application', 'appId');
       const autoPolicyWaiverOwnerName = 'AppTestName';
       axiosMock.onGet(correctUrl).reply(200, {
         isAutoWaiverEnabled: true,

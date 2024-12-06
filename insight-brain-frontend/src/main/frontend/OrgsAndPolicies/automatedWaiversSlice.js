@@ -9,16 +9,16 @@ import { propSet } from 'MainRoot/util/jsUtil';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import {
-  getWaiversConfigurationURL,
-  getWaiversConfigurationURLnoStatus,
-  getWaiversConfigurationURLWaiver,
+  getAutoWaiversConfigurationURL,
+  getAutoWaiversConfigurationURLnoStatus,
+  getAutoWaiversConfigurationURLWaiver,
 } from 'MainRoot/util/CLMLocation';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { selectSelectedOwnerTypeAndId, selectOwnerProperties } from './orgsAndPoliciesSelectors';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { selectWaivers } from 'MainRoot/OrgsAndPolicies/automatedWaiversSelectors';
 
-const REDUCER_NAME = 'waiversConfiguration';
+const REDUCER_NAME = 'autoWaiversConfiguration';
 
 export const initialState = {
   loading: false,
@@ -30,52 +30,52 @@ export const initialState = {
   submitError: null,
 };
 
-const loadWaiversConfigurationRequested = (state) => {
+const loadAutoWaiversConfigurationRequested = (state) => {
   state.loading = true;
   state.loadError = null;
 };
 
-const loadWaiversConfigurationFulfilled = (state, { payload }) => {
+const loadAutoWaiversConfigurationFulfilled = (state, { payload }) => {
   state.loading = false;
   state.data = payload;
   state.serverData = payload;
 };
 
-const loadWaiversConfigurationFailed = (state, { payload }) => {
+const loadAutoWaiversConfigurationFailed = (state, { payload }) => {
   state.data = null;
   state.loading = false;
   state.loadError = Messages.getHttpErrorMessage(payload);
 };
 
-const loadWaiversConfiguration = createAsyncThunk(
-  `${REDUCER_NAME}/loadWaiversConfiguration`,
+const loadAutoWaiversConfiguration = createAsyncThunk(
+  `${REDUCER_NAME}/loadAutoWaiversConfiguration`,
   async (_, { getState, rejectWithValue, dispatch }) => {
     const state = getState();
     const { ownerType, ownerId } = selectSelectedOwnerTypeAndId(state);
     await dispatch(rootActions.loadSelectedOwner());
-    return axios.get(getWaiversConfigurationURL(ownerType, ownerId)).then(prop('data')).catch(rejectWithValue);
+    return axios.get(getAutoWaiversConfigurationURL(ownerType, ownerId)).then(prop('data')).catch(rejectWithValue);
   }
 );
 
-const loadWaiversConfigurationPageRequested = (state) => {
+const loadAutoWaiversConfigurationPageRequested = (state) => {
   state.loading = true;
   state.loadError = null;
 };
 
-const loadWaiversConfigurationPageFulfilled = (state, { payload }) => {
+const loadAutoWaiversConfigurationPageFulfilled = (state, { payload }) => {
   state.loading = false;
   state.data = payload;
   state.serverData = payload;
 };
 
-const loadWaiversConfigurationPageFailed = (state, { payload }) => {
+const loadAutoWaiversConfigurationPageFailed = (state, { payload }) => {
   state.data = null;
   state.loading = false;
   state.loadError = Messages.getHttpErrorMessage(payload);
 };
 
-const loadWaiversConfigurationPage = createAsyncThunk(
-  `${REDUCER_NAME}/loadWaiversConfiguration`,
+const loadAutoWaiversConfigurationPage = createAsyncThunk(
+  `${REDUCER_NAME}/loadAutoWaiversConfiguration`,
   async (_, { getState, dispatch, rejectWithValue }) => {
     try {
       const state = getState();
@@ -84,13 +84,13 @@ const loadWaiversConfigurationPage = createAsyncThunk(
         ({ ownerType, ownerId } = selectOwnerProperties(state));
       }
       await dispatch(rootActions.loadSelectedOwner());
-      const response = await axios.get(getWaiversConfigurationURL(ownerType, ownerId));
+      const response = await axios.get(getAutoWaiversConfigurationURL(ownerType, ownerId));
       if (response.data.isInherited === true || response.data.isAutoWaiverEnabled === false) {
         return response.data;
       } else {
         try {
           const waiversId = response.data.autoPolicyWaiverId;
-          const waiversData = await axios.get(getWaiversConfigurationURLWaiver(ownerType, ownerId, waiversId));
+          const waiversData = await axios.get(getAutoWaiversConfigurationURLWaiver(ownerType, ownerId, waiversId));
           return waiversData.data;
         } catch (error) {
           return rejectWithValue(error.response ? error.response.data : error.message);
@@ -124,29 +124,29 @@ const computeIsDirty = (state) => {
   return { ...state, isDirty };
 };
 
-const saveWaiversConfigurationRequested = (state) => {
+const saveAutoWaiversConfigurationRequested = (state) => {
   state.submitMaskState = false;
 };
 
-const saveWaiversConfigurationFulfilled = (state) => {
+const saveAutoWaiversConfigurationFulfilled = (state) => {
   state.submitMaskState = true;
   state.isDirty = false;
 };
 
-const saveWaiversConfigurationFailed = (state, { payload }) => {
+const saveAutoWaiversConfigurationFailed = (state, { payload }) => {
   state.submitMaskState = null;
   state.submitError = Messages.getHttpErrorMessage(payload);
 };
 
-const saveWaiversConfiguration = createAsyncThunk(
-  `${REDUCER_NAME}/saveWaiversConfiguration`,
+const saveAutoWaiversConfiguration = createAsyncThunk(
+  `${REDUCER_NAME}/saveAutoWaiversConfiguration`,
   async (_, { getState, dispatch, rejectWithValue }) => {
     const state = getState();
     const { ownerType, ownerId } = selectSelectedOwnerTypeAndId(state);
     const waivers = selectWaivers(state);
     let waiversId;
     try {
-      waiversId = (await axios.get(getWaiversConfigurationURL(ownerType, ownerId))).data.autoPolicyWaiverId;
+      waiversId = (await axios.get(getAutoWaiversConfigurationURL(ownerType, ownerId))).data.autoPolicyWaiverId;
     } catch (error) {
       return rejectWithValue(error.response ? error.response.data : error.message);
     }
@@ -158,33 +158,33 @@ const saveWaiversConfiguration = createAsyncThunk(
       pathForward: waivers.pathForward,
     };
     return axios
-      .put(getWaiversConfigurationURLWaiver(ownerType, ownerId, waiversId), putData)
+      .put(getAutoWaiversConfigurationURLWaiver(ownerType, ownerId, waiversId), putData)
       .then(prop('data'))
       .then(
         startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone).then(() =>
-          dispatch(actions.loadWaiversConfigurationPage())
+          dispatch(actions.loadAutoWaiversConfigurationPage())
         )
       )
       .catch(rejectWithValue);
   }
 );
 
-const createWaiverRequested = (state) => {
+const createAutoWaiverRequested = (state) => {
   state.submitMaskState = false;
 };
 
-const createWaiverFulfilled = (state) => {
+const createAutoWaiverFulfilled = (state) => {
   state.submitMaskState = true;
   state.isDirty = false;
 };
 
-const createWaiverFailed = (state, { payload }) => {
+const createAutoWaiverFailed = (state, { payload }) => {
   state.submitMaskState = null;
   state.submitError = Messages.getHttpErrorMessage(payload);
 };
 
-const createWaiver = createAsyncThunk(
-  `${REDUCER_NAME}/createWaiver`,
+const createAutoWaiver = createAsyncThunk(
+  `${REDUCER_NAME}/createAutoWaiver`,
   async (_, { getState, dispatch, rejectWithValue }) => {
     const state = getState();
     const { ownerType, ownerId } = selectSelectedOwnerTypeAndId(state);
@@ -195,18 +195,18 @@ const createWaiver = createAsyncThunk(
       pathForward: waivers.pathForward,
     };
     return axios
-      .post(getWaiversConfigurationURLnoStatus(ownerType, ownerId), putData)
+      .post(getAutoWaiversConfigurationURLnoStatus(ownerType, ownerId), putData)
       .then(prop('data'))
       .then(
         startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone).then(() =>
-          dispatch(actions.loadWaiversConfigurationPage())
+          dispatch(actions.loadAutoWaiversConfigurationPage())
         )
       )
       .catch(rejectWithValue);
   }
 );
 
-const deleteWaiver = createAsyncThunk(
+const deleteAutoWaiver = createAsyncThunk(
   `${REDUCER_NAME}/deleteWaiver`,
   async (_, { getState, dispatch, rejectWithValue }) => {
     const state = getState();
@@ -214,7 +214,7 @@ const deleteWaiver = createAsyncThunk(
     const waivers = selectWaivers(state);
     const waiversId = waivers.autoPolicyWaiverId;
     return axios
-      .delete(getWaiversConfigurationURLWaiver(ownerType, ownerId, waiversId))
+      .delete(getAutoWaiversConfigurationURLWaiver(ownerType, ownerId, waiversId))
       .then(prop('data'))
       .then(() => {
         startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone).then(() =>
@@ -231,31 +231,31 @@ const automatedWaiversSlice = createSlice({
 
   reducers: { toggleCheckboxReachable, toggleCheckboxPath, saveMaskTimerDone: propSet('submitMaskState', null) },
   extraReducers: {
-    [createWaiver.pending]: createWaiverRequested,
-    [createWaiver.fulfilled]: createWaiverFulfilled,
-    [createWaiver.rejected]: createWaiverFailed,
+    [createAutoWaiver.pending]: createAutoWaiverRequested,
+    [createAutoWaiver.fulfilled]: createAutoWaiverFulfilled,
+    [createAutoWaiver.rejected]: createAutoWaiverFailed,
 
-    [saveWaiversConfiguration.pending]: saveWaiversConfigurationRequested,
-    [saveWaiversConfiguration.fulfilled]: saveWaiversConfigurationFulfilled,
-    [saveWaiversConfiguration.rejected]: saveWaiversConfigurationFailed,
+    [saveAutoWaiversConfiguration.pending]: saveAutoWaiversConfigurationRequested,
+    [saveAutoWaiversConfiguration.fulfilled]: saveAutoWaiversConfigurationFulfilled,
+    [saveAutoWaiversConfiguration.rejected]: saveAutoWaiversConfigurationFailed,
 
-    [loadWaiversConfiguration.pending]: loadWaiversConfigurationRequested,
-    [loadWaiversConfiguration.fulfilled]: loadWaiversConfigurationFulfilled,
-    [loadWaiversConfiguration.rejected]: loadWaiversConfigurationFailed,
+    [loadAutoWaiversConfiguration.pending]: loadAutoWaiversConfigurationRequested,
+    [loadAutoWaiversConfiguration.fulfilled]: loadAutoWaiversConfigurationFulfilled,
+    [loadAutoWaiversConfiguration.rejected]: loadAutoWaiversConfigurationFailed,
 
-    [loadWaiversConfigurationPage.pending]: loadWaiversConfigurationPageRequested,
-    [loadWaiversConfigurationPage.fulfilled]: loadWaiversConfigurationPageFulfilled,
-    [loadWaiversConfigurationPage.rejected]: loadWaiversConfigurationPageFailed,
+    [loadAutoWaiversConfigurationPage.pending]: loadAutoWaiversConfigurationPageRequested,
+    [loadAutoWaiversConfigurationPage.fulfilled]: loadAutoWaiversConfigurationPageFulfilled,
+    [loadAutoWaiversConfigurationPage.rejected]: loadAutoWaiversConfigurationPageFailed,
   },
 });
 
 export const actions = {
   ...automatedWaiversSlice.actions,
-  loadWaiversConfiguration,
-  loadWaiversConfigurationPage,
-  saveWaiversConfiguration,
-  createWaiver,
-  deleteWaiver,
+  loadAutoWaiversConfiguration,
+  loadAutoWaiversConfigurationPage,
+  saveAutoWaiversConfiguration,
+  createAutoWaiver,
+  deleteAutoWaiver,
 };
 
 export default automatedWaiversSlice.reducer;

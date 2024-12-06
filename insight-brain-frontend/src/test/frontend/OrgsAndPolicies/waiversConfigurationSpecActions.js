@@ -6,11 +6,11 @@
 import axios from 'axios';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
-import WaiversConfiguration from 'MainRoot/OrgsAndPolicies/waiversConfiguration/WaiversConfiguration';
+import WaiversConfiguration from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiversConfiguration';
 import {
-  getWaiversConfigurationURL,
-  getWaiversConfigurationURLWaiver,
-  getWaiversConfigurationURLnoStatus,
+  getAutoWaiversConfigurationURL,
+  getAutoWaiversConfigurationURLWaiver,
+  getAutoWaiversConfigurationURLnoStatus,
 } from 'MainRoot/util/CLMLocation';
 import React from 'react';
 
@@ -27,7 +27,7 @@ describe('WaiversConfiguration URL Mock Test', () => {
   });
 
   it('returns the expected data from the mock waiversConfigurationUrl', async () => {
-    const waiversConfigurationUrl = getWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID');
+    const waiversConfigurationUrl = getAutoWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID');
     const mockResponse = {
       isAutoWaiverEnabled: false,
       isInherited: false,
@@ -61,7 +61,7 @@ describe('WaiversConfiguration URL Mock Test', () => {
   });
 
   it('returns the expected data from the mock waiversConfigurationUrlWaiver', async () => {
-    const waiversConfigurationUrl = getWaiversConfigurationURLWaiver(
+    const waiversConfigurationUrl = getAutoWaiversConfigurationURLWaiver(
       'organization',
       'ROOT_ORGANIZATION_ID',
       'waiversId'
@@ -87,7 +87,7 @@ describe('WaiversConfiguration URL Mock Test', () => {
   });
 
   it('handles a 404 error from the mock waiversConfigurationUrl', async () => {
-    const waiversConfigurationUrl = getWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID');
+    const waiversConfigurationUrl = getAutoWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID');
 
     mock.onGet(waiversConfigurationUrl).reply(404, { message: 'Not Found' });
     renderComponent();
@@ -99,7 +99,7 @@ describe('WaiversConfiguration URL Mock Test', () => {
   });
 
   it('handles a 500 error from the mock waiversConfigurationUrl', async () => {
-    const waiversConfigurationUrl = getWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID');
+    const waiversConfigurationUrl = getAutoWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID');
 
     mock.onGet(waiversConfigurationUrl).reply(500, { message: 'Internal Server Error' });
     renderComponent();
@@ -108,7 +108,7 @@ describe('WaiversConfiguration URL Mock Test', () => {
   });
 
   it('handles a successful PUT request to the mock waiversConfigurationUrlWaiver', async () => {
-    const waiversConfigurationUrl = getWaiversConfigurationURLWaiver(
+    const waiversConfigurationUrl = getAutoWaiversConfigurationURLWaiver(
       'organization',
       'ROOT_ORGANIZATION_ID',
       'waiversId'
@@ -142,7 +142,7 @@ describe('WaiversConfiguration URL Mock Test', () => {
   });
 
   it('handles a failed PUT request with 500 error to the mock waiversConfigurationUrlWaiver', async () => {
-    const waiversConfigurationUrl = getWaiversConfigurationURLWaiver(
+    const waiversConfigurationUrl = getAutoWaiversConfigurationURLWaiver(
       'organization',
       'ROOT_ORGANIZATION_ID',
       'waiversId'
@@ -176,7 +176,7 @@ describe('WaiversConfiguration URL Mock Test', () => {
   });
 
   it('handles a successful POST request to the mock waiversConfigurationUrlnoStatus', async () => {
-    const waiversConfigurationUrl = getWaiversConfigurationURLnoStatus('organization', 'ROOT_ORGANIZATION_ID');
+    const waiversConfigurationUrl = getAutoWaiversConfigurationURLnoStatus('organization', 'ROOT_ORGANIZATION_ID');
 
     const postData = {
       reachable: true,
@@ -204,7 +204,7 @@ describe('WaiversConfiguration URL Mock Test', () => {
   });
 
   it('handles a failed POST request with 500 error to the mock waiversConfigurationUrlnoStatus', async () => {
-    const waiversConfigurationUrl = getWaiversConfigurationURLnoStatus('organization', 'ROOT_ORGANIZATION_ID');
+    const waiversConfigurationUrl = getAutoWaiversConfigurationURLnoStatus('organization', 'ROOT_ORGANIZATION_ID');
 
     const postData = {
       reachable: true,
@@ -226,7 +226,7 @@ describe('WaiversConfiguration URL Mock Test', () => {
   });
 
   it('renders the expected data from the mock waiversConfigurationUrl in the component', async () => {
-    const waiversConfigurationUrl = getWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID');
+    const waiversConfigurationUrl = getAutoWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID');
     const mockResponse = {
       isAutoWaiverEnabled: true,
       isInherited: false,
@@ -248,7 +248,7 @@ describe('WaiversConfiguration URL Mock Test', () => {
   });
 
   it('renders an error message on a 500 error from the mock waiversConfigurationUrl in the component', async () => {
-    const waiversConfigurationUrl = getWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID');
+    const waiversConfigurationUrl = getAutoWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID');
 
     mock.onGet(waiversConfigurationUrl).reply(500, { message: 'Internal Server Error' });
 
@@ -260,7 +260,7 @@ describe('WaiversConfiguration URL Mock Test', () => {
   });
 
   it('renders the correct state when the data indicates auto-waiver is inherited in the component', async () => {
-    const waiversConfigurationUrl = getWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID');
+    const waiversConfigurationUrl = getAutoWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID');
     const mockResponse = {
       isAutoWaiverEnabled: true,
       isInherited: true,
@@ -282,7 +282,7 @@ describe('WaiversConfiguration URL Mock Test', () => {
   });
 
   it('shows an alert when no changes are made and waivers are enabled', async () => {
-    const waiversConfigurationUrl = getWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID');
+    const waiversConfigurationUrl = getAutoWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID');
     const mockResponse = {
       isAutoWaiverEnabled: true,
       isInherited: false,
@@ -306,8 +306,11 @@ describe('WaiversConfiguration URL Mock Test', () => {
   });
 
   it('creates a waiver when waivers are disabled', async () => {
-    const waiversConfigurationUrl = getWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID');
-    const waiversConfigurationUrlNoStatus = getWaiversConfigurationURLnoStatus('organization', 'ROOT_ORGANIZATION_ID');
+    const waiversConfigurationUrl = getAutoWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID');
+    const waiversConfigurationUrlNoStatus = getAutoWaiversConfigurationURLnoStatus(
+      'organization',
+      'ROOT_ORGANIZATION_ID'
+    );
 
     const mockResponse = {
       isAutoWaiverEnabled: false,
@@ -336,8 +339,11 @@ describe('WaiversConfiguration URL Mock Test', () => {
   });
 
   it('creates a waiver when waivers are enabled and inherited is true', async () => {
-    const waiversConfigurationUrl = getWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID');
-    const waiversConfigurationUrlNoStatus = getWaiversConfigurationURLnoStatus('organization', 'ROOT_ORGANIZATION_ID');
+    const waiversConfigurationUrl = getAutoWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID');
+    const waiversConfigurationUrlNoStatus = getAutoWaiversConfigurationURLnoStatus(
+      'organization',
+      'ROOT_ORGANIZATION_ID'
+    );
 
     const mockResponse = {
       isAutoWaiverEnabled: true,

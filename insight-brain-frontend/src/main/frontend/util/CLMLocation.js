@@ -1425,16 +1425,20 @@ export const getAuditReportSummary = function (repositoryId) {
 export const getLegacyViolationURL = (ownerType, ownerId) =>
   uriTemplate`/rest/legacyViolations/${ownerType}/${ownerId}`;
 
-export const getWaiversConfigurationURL = (ownerType, ownerId) => {
+export const getAutoWaiversConfigurationURL = (ownerType, ownerId) => {
   return uriTemplate`/api/v2/autoPolicyWaivers/${ownerType}/${ownerId}/status`;
 };
 
-export const getWaiversConfigurationURLnoStatus = (ownerType, ownerId) => {
+export const getAutoWaiversConfigurationURLnoStatus = (ownerType, ownerId) => {
   return uriTemplate`/api/v2/autoPolicyWaivers/${ownerType}/${ownerId}`;
 };
 
-export const getWaiversConfigurationURLWaiver = (ownerType, ownerId, waiverId) => {
+export const getAutoWaiversConfigurationURLWaiver = (ownerType, ownerId, waiverId) => {
   return uriTemplate`/api/v2/autoPolicyWaivers/${ownerType}/${ownerId}/${waiverId}`;
+};
+
+export const getAutoWaiverRevocationsUrl = (ownerType, ownerId) => {
+  return uriTemplate`/api/v2/autoPolicyWaiverRevocations/${ownerType}/${ownerId}`;
 };
 
 export const getNotificationWebhooksUrl = (ownerType, ownerId) => {

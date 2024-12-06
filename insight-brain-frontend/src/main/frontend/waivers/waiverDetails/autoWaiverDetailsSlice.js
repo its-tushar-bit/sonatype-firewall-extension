@@ -6,7 +6,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { getWaiversConfigurationURLWaiver } from 'MainRoot/util/CLMLocation';
+import { getAutoWaiversConfigurationURLWaiver } from 'MainRoot/util/CLMLocation';
 import { prop } from 'ramda';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
@@ -28,7 +28,7 @@ const loadAutoWaiverDetails = createAsyncThunk(`${REDUCER_NAME}/loadWaiver`, (_,
   const { ownerType: ownerTypeRaw, ownerId, waiverId } = selectRouterCurrentParams(getState());
   const ownerType = mapWaiverOwnerType[ownerTypeRaw] || ownerTypeRaw;
   return axios
-    .get(getWaiversConfigurationURLWaiver(ownerType, ownerId, waiverId))
+    .get(getAutoWaiversConfigurationURLWaiver(ownerType, ownerId, waiverId))
     .then(prop('data'))
     .catch(rejectWithValue);
 });

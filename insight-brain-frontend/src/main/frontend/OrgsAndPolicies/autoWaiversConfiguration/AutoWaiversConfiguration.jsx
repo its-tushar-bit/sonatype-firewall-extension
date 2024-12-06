@@ -10,7 +10,6 @@ import {
   selectIsDeveloperDashboardEnabled,
   selectProductFeaturesSlice,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import LicenseLockScreenForWaivers from './LicenseLockScreenForWaivers';
 import {
   NxTile,
   NxCheckbox,
@@ -23,20 +22,22 @@ import {
   NxThreatIndicator,
 } from '@sonatype/react-shared-components';
 import { actions } from 'MainRoot/OrgsAndPolicies/automatedWaiversSlice';
-import './_waiversConfiguration.scss';
+import './_autoWaiversConfiguration.scss';
 import { selectWaiversConfigPage, selectWaiversSlice } from 'MainRoot/OrgsAndPolicies/automatedWaiversSelectors';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+import LicenseLockScreenForAutoWaivers from './LicenseLockScreenForAutoWaivers';
 import ConfirmationModal from 'MainRoot/legal/application/ConfirmationModal';
 
-const WaiversConfiguration = () => {
+const AutoWaiversConfiguration = () => {
   const dispatch = useDispatch();
   const { loading, loadError } = useSelector(selectProductFeaturesSlice);
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
   const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
   const isSbomManager = useSelector(selectIsSbomManager);
 
-  const doLoad = () => dispatch(actions.loadWaiversConfigurationPage());
+  const doLoad = () => dispatch(actions.loadAutoWaiversConfigurationPage());
+
   useEffect(() => {
     doLoad();
   }, []);
@@ -44,17 +45,17 @@ const WaiversConfiguration = () => {
   return (
     <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
       {isDeveloperDashboardEnabled && isAutoWaiversEnabled && !isSbomManager ? (
-        <WaiversConfigurationContents />
+        <AutoWaiversConfigurationContents />
       ) : (
-        <LicenseLockScreenForWaivers />
+        <LicenseLockScreenForAutoWaivers />
       )}
     </NxLoadWrapper>
   );
 };
 
-function WaiversConfigurationContents() {
+function AutoWaiversConfigurationContents() {
   const dispatch = useDispatch();
-  const [isDeleteConfirmationModalOpen, setisDeleteConfirmationModalOpen] = useState(false);
+  const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] = useState(false);
 
   const waiversConfigPage = useSelector(selectWaiversConfigPage);
   let { loading, loadError, isDirty, submitMaskState, submitError } = useSelector(selectWaiversSlice);
@@ -68,8 +69,8 @@ function WaiversConfigurationContents() {
   }
 
   const handleDelete = () => {
-    dispatch(actions.deleteWaiver());
-    setisDeleteConfirmationModalOpen(false);
+    dispatch(actions.deleteAutoWaiver());
+    setIsDeleteConfirmationModalOpen(false);
   };
 
   const shouldDeleteAutoWaiver = () => {
@@ -78,11 +79,11 @@ function WaiversConfigurationContents() {
 
   const handleSubmit = () => {
     if (shouldDeleteAutoWaiver()) {
-      setisDeleteConfirmationModalOpen(true);
+      setIsDeleteConfirmationModalOpen(true);
     } else if (waiversConfigPage?.isInherited === null || waiversConfigPage?.isInherited === true) {
-      dispatch(actions.createWaiver());
+      dispatch(actions.createAutoWaiver());
     } else {
-      dispatch(actions.saveWaiversConfiguration());
+      dispatch(actions.saveAutoWaiversConfiguration());
     }
   };
 
@@ -92,7 +93,7 @@ function WaiversConfigurationContents() {
     return undefined;
   };
 
-  const doLoad = () => dispatch(actions.loadWaiversConfigurationPage());
+  const doLoad = () => dispatch(actions.loadAutoWaiversConfigurationPage());
 
   return (
     <>
@@ -131,10 +132,10 @@ function WaiversConfigurationContents() {
       {isDeleteConfirmationModalOpen && (
         <ConfirmationModal
           id="delete-auto-waiver-modal"
-          cancelHandler={() => setisDeleteConfirmationModalOpen(false)}
+          cancelHandler={() => setIsDeleteConfirmationModalOpen(false)}
           titleContent={<span>Confirm Delete</span>}
           confirmationMessage="Are you sure you want to delete this auto waiver configuration?"
-          closeHandler={() => setisDeleteConfirmationModalOpen(false)}
+          closeHandler={() => setIsDeleteConfirmationModalOpen(false)}
           confirmationHandler={handleDelete}
           confirmationButtonText="Delete"
         />
@@ -143,4 +144,4 @@ function WaiversConfigurationContents() {
   );
 }
 
-export default WaiversConfiguration;
+export default AutoWaiversConfiguration;

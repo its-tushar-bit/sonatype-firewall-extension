@@ -6,17 +6,17 @@
 
 import React from 'react';
 import { axiosMockAdapter, render, screen } from 'TestRoot/SpecUtil';
-import WaiversConfiguration from 'MainRoot/OrgsAndPolicies/waiversConfiguration/WaiversConfiguration';
+import WaiversConfiguration from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiversConfiguration';
 import * as ProductFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { getReportMetadataUrl } from 'MainRoot/util/CLMLocation';
 import { metadata } from 'TestRoot/componentDetails/data';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
-import { DEVELOPER_FEATURE_DISABLED_MESSAGE_WAIVERS } from 'MainRoot/OrgsAndPolicies/waiversConfiguration/LicenseLockScreenForWaivers';
+import { DEVELOPER_FEATURE_DISABLED_MESSAGE_WAIVERS } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/LicenseLockScreenForAutoWaivers';
 
 const publicAppId = 'testPublicAppId';
 const scanId = 'testScanId';
 
-describe('WaiversConfiguration', () => {
+describe('AutoWaiversConfiguration', () => {
   let renderComponent, selectIsDeveloperDashboardEnabled, axiosMock, hrefSpy;
 
   const defaultPreloadedState = {

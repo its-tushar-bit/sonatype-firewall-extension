@@ -28,7 +28,7 @@ export default function AutomatedWaiversTile() {
   const href = uiStateRouter.href(to, params);
   const isSbomManager = useSelector(selectIsSbomManager);
 
-  const doLoad = () => dispatch(actions.loadWaiversConfiguration());
+  const doLoad = () => dispatch(actions.loadAutoWaiversConfiguration());
   useEffect(() => {
     doLoad();
   }, []);

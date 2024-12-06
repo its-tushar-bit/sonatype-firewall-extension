@@ -8,7 +8,7 @@ import React from 'react';
 
 export const DEVELOPER_FEATURE_DISABLED_MESSAGE_WAIVERS = 'Automated Waivers Configuration Preview is not enabled.';
 
-export default function LicenseLockScreenForWaivers() {
+export default function LicenseLockScreenForAutoWaivers() {
   return (
     <NxPageMain>
       <NxPageTitle>

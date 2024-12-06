@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import javax.inject.Inject;
@@ -250,11 +251,12 @@ public class ApiAutoPolicyWaiverService
 
     AutoPolicyWaiver autoPolicyWaiver = getAutoPolicyWaiverByAppOwnerHierarchy(
         policyViolation.getAutoPolicyWaiverId(), policyViolation.getApplicationId());
-
+    String autoPolicyWaiverOwnerId = autoPolicyWaiver.getOwnerId();
     if (autoPolicyWaiver != null) {
+      policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
       List<AutoPolicyWaiverRevocation> autoPolicyWaiverRevocations =
           autoPolicyWaiverRevocationDAO.getByOwnerIdAndAutoPolicyWaiverId(
-              autoPolicyWaiver.getOwnerId(),
+              autoPolicyWaiverOwnerId,
               autoPolicyWaiver.getId()
           );
 
@@ -271,8 +273,7 @@ public class ApiAutoPolicyWaiverService
       }
 
       if (allRevocationsInvalid) {
-        String ownerId = policyViolation.getOwnerId();
-        Owner owner = ownerDAO.getById(ownerId);
+        Owner owner = ownerDAO.getById(autoPolicyWaiverOwnerId);
         return ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver, owner);
       }
     }

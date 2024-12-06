@@ -4,13 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import WaiversConfiguration from 'MainRoot/OrgsAndPolicies/waiversConfiguration/WaiversConfiguration';
 import { render, screen, waitFor } from 'TestRoot/SpecUtil';
 import axiosMockAdapter from 'axios-mock-adapter';
 import axios from 'axios';
 import * as ProductFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
-import { getWaiversConfigurationURL } from 'MainRoot/util/CLMLocation';
+import { getAutoWaiversConfigurationURL } from 'MainRoot/util/CLMLocation';
+import AutoWaiversConfiguration from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiversConfiguration';
 
 describe('Waivers Configuration Component', () => {
   let axiosMock;
@@ -20,7 +20,7 @@ describe('Waivers Configuration Component', () => {
     jest.spyOn(ProductFeaturesSelectors, 'selectIsAutoWaiversEnabled').mockReturnValue(true);
     axiosMock = new axiosMockAdapter(axios);
 
-    axiosMock.onGet(getWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID')).reply(200, {
+    axiosMock.onGet(getAutoWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID')).reply(200, {
       isInherited: false,
       isAutoWaiverEnabled: true,
       pathForward: false,
@@ -34,7 +34,7 @@ describe('Waivers Configuration Component', () => {
   });
 
   it('renders the page title and description', async () => {
-    render(<WaiversConfiguration />);
+    render(<AutoWaiversConfiguration />);
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Automated Waivers' })).toBeVisible();
@@ -49,7 +49,7 @@ describe('Waivers Configuration Component', () => {
   });
 
   it('renders the "Max. Threat Level" label', async () => {
-    render(<WaiversConfiguration />);
+    render(<AutoWaiversConfiguration />);
 
     expect(await screen.findByText('Max. Threat Level')).toBeVisible();
 
@@ -57,14 +57,14 @@ describe('Waivers Configuration Component', () => {
   });
 
   it('renders the update button', async () => {
-    render(<WaiversConfiguration />);
+    render(<AutoWaiversConfiguration />);
     expect(await screen.findByRole('button', { name: 'Update' })).toBeVisible();
 
     expect(axiosMock.history.get.length).toBe(2);
   });
 
   it('renders checkbox depending on the state of "noPathForward"', async () => {
-    render(<WaiversConfiguration />);
+    render(<AutoWaiversConfiguration />);
     const noPathForwardCheckbox = await screen.findByLabelText(
       'No newer, non-violating component version is available'
     );
@@ -77,7 +77,7 @@ describe('Waivers Configuration Component', () => {
 
   it('renders LicenseLockScreenForWaivers when auto waiver feature flag is disabled', async () => {
     jest.spyOn(ProductFeaturesSelectors, 'selectIsAutoWaiversEnabled').mockReturnValue(false);
-    render(<WaiversConfiguration />);
+    render(<AutoWaiversConfiguration />);
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Automated Waivers' })).toBeVisible();
@@ -87,7 +87,7 @@ describe('Waivers Configuration Component', () => {
 
   it('renders LicenseLockScreenForWaivers when developer dashboard feature flag is disabled', async () => {
     jest.spyOn(ProductFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(false);
-    render(<WaiversConfiguration />);
+    render(<AutoWaiversConfiguration />);
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Automated Waivers' })).toBeVisible();
@@ -98,7 +98,7 @@ describe('Waivers Configuration Component', () => {
   it('renders LicenseLockScreenForWaivers when one of feature flags is disabled', async () => {
     jest.spyOn(ProductFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(true);
     jest.spyOn(ProductFeaturesSelectors, 'selectIsAutoWaiversEnabled').mockReturnValue(false);
-    render(<WaiversConfiguration />);
+    render(<AutoWaiversConfiguration />);
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Automated Waivers' })).toBeVisible();
@@ -110,7 +110,7 @@ describe('Waivers Configuration Component', () => {
     jest.spyOn(ProductFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(true);
     jest.spyOn(ProductFeaturesSelectors, 'selectIsAutoWaiversEnabled').mockReturnValue(true);
     jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(true);
-    render(<WaiversConfiguration />);
+    render(<AutoWaiversConfiguration />);
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Automated Waivers' })).toBeVisible();

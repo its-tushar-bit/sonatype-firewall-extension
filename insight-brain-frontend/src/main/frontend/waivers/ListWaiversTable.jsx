@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
@@ -37,11 +37,14 @@ import { selectApplicableAutoWaiver, selectApplicableWaivers } from 'MainRoot/vi
 import { loadApplicableAutoWaiver, loadApplicableWaivers } from 'MainRoot/violation/violationActions';
 import { selectViolationSlice } from './requestWaiverSelectors';
 import { capitalize } from 'MainRoot/util/jsUtil';
+import DeleteAutoWaiverModal from 'MainRoot/waivers/DeleteAutoWaiverModal';
 
 export default function ListWaiversTable(props) {
   const { violationDetails, unknownComponentName } = props;
 
+  const [showDeleteAutoWaiverModal, setShowDeleteAutoWaiverModal] = useState(false);
   const dispatch = useDispatch();
+
   const { activeWaivers, expiredWaivers } = useSelector(selectApplicableWaivers);
   const { loadingApplicableWaivers, loadApplicableWaiversError } = useSelector(selectViolationSlice);
   const { autoWaiver, loadingAutoWaiver, loadAutoWaiverError } = useSelector(selectApplicableAutoWaiver);
@@ -150,13 +153,25 @@ export default function ListWaiversTable(props) {
         </NxTableCell>
         <NxTableCell className="iq-auto-waiver-table__revocation">
           <div className="nx-btn-bar">
-            <NxButton variant="icon-only" title="revocation" className="list-auto-waiver-row__revocation-btn">
+            <NxButton
+              variant="icon-only"
+              title="Remove auto-waiver for this policy violation"
+              className="list-auto-waiver-row__revocation-btn"
+              onClick={() => {
+                setShowDeleteAutoWaiverModal(true);
+              }}
+            >
               <NxFontAwesomeIcon icon={faCog} />
             </NxButton>
+            <DeleteAutoWaiverModal onClose={handleCloseAutoWaiverModal} showModal={showDeleteAutoWaiverModal} />
           </div>
         </NxTableCell>
       </NxTableRow>
     );
+  };
+
+  const handleCloseAutoWaiverModal = () => {
+    setShowDeleteAutoWaiverModal(false);
   };
 
   const emptyMessage = (

@@ -104,6 +104,12 @@ pipeline {
               parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
       }
     }
+    stage('Publish Alpine Docker Image') {
+      steps {
+        build(job: 'insight/insight-brain/docker/alpine-image/release',
+            parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
+      }
+    }
     stage ('Publish Standard Docker Image') {
       steps {
         build(job: 'insight/insight-brain/docker/main-image/release',

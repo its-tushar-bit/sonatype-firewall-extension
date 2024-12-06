@@ -56,7 +56,6 @@ import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.Zipper;
-import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
@@ -76,6 +75,7 @@ import org.xmlunit.assertj.XmlAssert;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.DIRECT;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.TRANSITIVE;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.UNSPECIFIED;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreAttributesFilter;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreNodesFilter;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
@@ -133,7 +133,7 @@ public class ApiSbomResourceTest
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
         .withFilename(zippedBom.getFileName().toString())
-        .withStatus(SbomStatus.ACTIVE.name())
+        .withStatus(ACTIVE)
         .withSpec(SbomSpecification.CYCLONEDX.toString())
         .build();
 
@@ -230,8 +230,8 @@ public class ApiSbomResourceTest
     ThirdPartyFile file1 = tempEntity.newThirdPartyFile("CycloneDX -bom.xml");
     ThirdPartyFile file2 = tempEntity.newThirdPartyFile("SPDX .spdx.json");
 
-    tempEntity.newThirdPartySbomMetadata(file1.getId(), app.getId(), "ACTIVE", file1.getFilename());
-    tempEntity.newThirdPartySbomMetadata(file2.getId(), app.getId(), "ACTIVE", file2.getFilename());
+    tempEntity.newThirdPartySbomMetadata(file1.getId(), app.getId(), ACTIVE, file1.getFilename());
+    tempEntity.newThirdPartySbomMetadata(file2.getId(), app.getId(), ACTIVE, file2.getFilename());
 
     ThirdPartyFileCoordinate c1 = tempEntity.newThirdPartyFileCoordinate(file1, "s1", "f1", "n1", "v1");
     ThirdPartyFileCoordinate c2 = tempEntity.newThirdPartyFileCoordinate(file2, "s2", "f2", "n2", "v2");
@@ -503,7 +503,7 @@ public class ApiSbomResourceTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
-        ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata(ACTIVE, application.getId(), thirdPartyFile.getId());
     dao.insert(sbomMetadata);
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("slf4j-log4j12", "1.7.12");
@@ -773,8 +773,7 @@ public class ApiSbomResourceTest
     tempEntity.newThirdPartyScan(thirdPartyFile);
     String refId = "CVE-123";
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), SbomStatus.ACTIVE.toString(),
-            "file.tgz");
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, "file.tgz");
     ThirdPartyFileCoordinate component =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "ThirdParty", "npm", "bloom", "1.0", "hash001",
             "pkg:npm/bloom@1.0");
@@ -807,8 +806,7 @@ public class ApiSbomResourceTest
     tempEntity.newThirdPartyScan(thirdPartyFile);
     String refId = "CVE-123";
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), SbomStatus.ACTIVE.toString(),
-            "file.tgz");
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, "file.tgz");
     ThirdPartyFileCoordinate component =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "ThirdParty", "npm", "bloom", "1.0", "hash001",
             "pkg:npm/bloom@1.0");

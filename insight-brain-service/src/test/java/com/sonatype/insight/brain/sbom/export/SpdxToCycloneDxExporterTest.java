@@ -40,6 +40,7 @@ import org.mockito.Mock;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 import org.xmlunit.assertj.XmlAssert;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreAttributesFilter;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreNodesFilter;
 import static com.sonatype.insight.brain.sbom.export.CycloneDxDocumentAssert.assertThatCycloneDx;
@@ -113,7 +114,7 @@ public class SpdxToCycloneDxExporterTest
   public void testExport_Json() throws Exception {
     File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("spdx-v2_3.json"));
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(tempEntity.newThirdPartyFile().getId(), app.getId(), "1.0.1", "ACTIVE",
+        tempEntity.newThirdPartySbomMetadata(tempEntity.newThirdPartyFile().getId(), app.getId(), "1.0.1", ACTIVE,
             sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.JSON.toString(), "2.3");
     SbomExportParams exportParams =
         SbomExportParams.newSbomExporterParams(sbomMetadata)
@@ -132,7 +133,7 @@ public class SpdxToCycloneDxExporterTest
   public void testExport_XML() throws Exception {
     File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("spdx-v2_3.xml"));
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(tempEntity.newThirdPartyFile().getId(), app.getId(), "1.0.1", "ACTIVE",
+        tempEntity.newThirdPartySbomMetadata(tempEntity.newThirdPartyFile().getId(), app.getId(), "1.0.1", ACTIVE,
             sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.XML.toString(), "2.3");
     SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
         .withExportSpecification(SbomExportParams.ExportSpecification.CYCLONEDX_15)
@@ -152,7 +153,7 @@ public class SpdxToCycloneDxExporterTest
 
     ThirdPartyFile tpf = tempEntity.newThirdPartyFile();
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(tpf.getId(), app.getId(), "1.0.1", "ACTIVE",
+        tempEntity.newThirdPartySbomMetadata(tpf.getId(), app.getId(), "1.0.1", ACTIVE,
             sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.XML.toString(), "2.3");
 
     tempEntity.newThirdPartyFileCoordinateWithMatchState(tpf,
@@ -198,7 +199,7 @@ public class SpdxToCycloneDxExporterTest
 
     File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("spdx-min.json"));
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), "1.0-SNAPSHOT", "ACTIVE",
+        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), "1.0-SNAPSHOT", ACTIVE,
             sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.JSON.toString(), "2.3");
     //mock sonatype vulnerability
     tempEntity.newThirdPartyCoordinateSecurity(core, "sonatype-2022-6438",
@@ -242,7 +243,7 @@ public class SpdxToCycloneDxExporterTest
 
     File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("spdx-min.json"));
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), "1.0-SNAPSHOT", "ACTIVE",
+        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), "1.0-SNAPSHOT", ACTIVE,
             sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.JSON.toString(), "2.3");
     //mock sonatype vulnerability
     tempEntity.newThirdPartyCoordinateLicense(core, "BSD-3-Clause", "BSD-3-Clause", "", "SONATYPE");
@@ -283,7 +284,7 @@ public class SpdxToCycloneDxExporterTest
 
     File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("spdx-min.json"));
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), "1.0-SNAPSHOT", "ACTIVE",
+        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), "1.0-SNAPSHOT", ACTIVE,
             sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.JSON.toString(), "2.3");
     //mock sonatype vulnerability
     tempEntity.newThirdPartyCoordinateLicense(databind, "Not-Supported", "Not Supported", "", "SONATYPE");

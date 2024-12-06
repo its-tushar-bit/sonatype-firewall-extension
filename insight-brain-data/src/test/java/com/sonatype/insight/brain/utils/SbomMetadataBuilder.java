@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.scan.file.SbomFormat;
 
 public class SbomMetadataBuilder
@@ -39,7 +40,7 @@ public class SbomMetadataBuilder
 
   private String specVersion;
 
-  private String status;
+  private ThirdPartySbomMetadataStatus status;
 
   private String metadataJson;
 
@@ -64,8 +65,7 @@ public class SbomMetadataBuilder
     this.spec = TemporaryEntity.uuid().substring(0, 10);
     this.specFormat = SbomFormat.XML.toString();
     this.specVersion = TemporaryEntity.uuid().substring(0, 10);
-    //this.status = SbomStatus.ACTIVE.toString();
-    this.status = "ACTIVE";
+    this.status = ThirdPartySbomMetadataStatus.ACTIVE;
     this.metadataJson = buildMetadataJson();
     this.scanType = "SBOM";
     this.isValid = true;
@@ -123,7 +123,7 @@ public class SbomMetadataBuilder
     return this;
   }
 
-  public SbomMetadataBuilder withStatus(String status) {
+  public SbomMetadataBuilder withStatus(ThirdPartySbomMetadataStatus status) {
     this.status = status;
     return this;
   }

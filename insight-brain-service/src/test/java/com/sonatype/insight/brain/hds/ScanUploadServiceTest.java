@@ -22,11 +22,11 @@ import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
-import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultsProcessor;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -38,6 +38,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static org.apache.commons.lang3.RandomStringUtils.secure;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -93,8 +94,8 @@ public class ScanUploadServiceTest
     tempEntity.newThirdPartyScan(scanRequestId, scanId, tpFile);
 
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), sbomVersion, SbomStatus.PENDING.toString(),
-            "filename", "CycloneDx", "XML", "1.5", new Date(), false);
+        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), sbomVersion,
+            ThirdPartySbomMetadataStatus.PENDING, "filename", "CycloneDx", "XML", "1.5", new Date(), false);
     sbomMetadata.setScanType(SbomScanType.SBOM.toString());
     thirdPartySbomMetadataDAO.update(sbomMetadata);
 
@@ -172,7 +173,7 @@ public class ScanUploadServiceTest
     String scanRequestId = secure().next(10);
     ThirdPartyFile tpFile = tempEntity.newThirdPartyFile("filename");
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), SbomStatus.PENDING.toString(), "filename");
+        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), PENDING, "filename");
     sbomMetadata.setScanType(SbomScanType.BINARY.toString());
     thirdPartySbomMetadataDAO.update(sbomMetadata);
     ThirdPartyScan tpScan = tempEntity.newThirdPartyScan(scanRequestId, scanId, tpFile);
@@ -230,7 +231,8 @@ public class ScanUploadServiceTest
     ThirdPartyFile tpFile = tempEntity.newThirdPartyFile("filename");
     tempEntity.newThirdPartyScan(scanRequestId, scanId, tpFile);
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), SbomStatus.PENDING.toString(), "filename");
+        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), ThirdPartySbomMetadataStatus.PENDING,
+            "filename");
     sbomMetadata.setScanType(SbomScanType.BINARY.toString());
     thirdPartySbomMetadataDAO.update(sbomMetadata);
 
@@ -260,7 +262,8 @@ public class ScanUploadServiceTest
     ThirdPartyFile tpFile = tempEntity.newThirdPartyFile("filename");
     tempEntity.newThirdPartyScan(scanRequestId, scanId, tpFile);
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), SbomStatus.PENDING.toString(), "filename");
+        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), ThirdPartySbomMetadataStatus.PENDING,
+            "filename");
     sbomMetadata.setScanType(SbomScanType.BINARY.toString());
     thirdPartySbomMetadataDAO.update(sbomMetadata);
 

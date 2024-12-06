@@ -32,6 +32,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static com.sonatype.insight.brain.utils.SbomMetadataBuilder.newSbomMetadataBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -92,7 +93,7 @@ public class SbomDashboardServiceTest extends AbstractComponentTest
         .withThirdPartyFileId(thirdPartyScan6.getThirdPartyFileId()).build();
     newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan7.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus("PENDING").withApplicationId(app.getId())
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus(PENDING).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan8.getThirdPartyFileId()).build();
     newSbomMetadataBuilder(daoFactory).withCreatedAt(twoDaysAgo).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan9.getThirdPartyFileId()).build();
@@ -297,7 +298,7 @@ public class SbomDashboardServiceTest extends AbstractComponentTest
         .withCreatedAt(yesterday).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan7.getThirdPartyFileId()).build();
     ThirdPartySbomMetadata thirdPartySbomMetadata8 = newSbomMetadataBuilder(daoFactory)
-        .withCreatedAt(yesterday).withStatus("PENDING").withApplicationId(app.getId())
+        .withCreatedAt(yesterday).withStatus(PENDING).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan8.getThirdPartyFileId()).build();
     ThirdPartySbomMetadata thirdPartySbomMetadata9 = newSbomMetadataBuilder(daoFactory)
         .withCreatedAt(twoDaysAgo).withApplicationId(app.getId())
@@ -454,7 +455,7 @@ public class SbomDashboardServiceTest extends AbstractComponentTest
         .withThirdPartyFileId(thirdPartyScan6.getThirdPartyFileId()).build();
     newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan7.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus("PENDING").withApplicationId(app.getId())
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus(PENDING).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan8.getThirdPartyFileId()).build();
     newSbomMetadataBuilder(daoFactory).withCreatedAt(twoDaysAgo).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan9.getThirdPartyFileId()).build();
@@ -706,6 +707,6 @@ public class SbomDashboardServiceTest extends AbstractComponentTest
     newSbomMetadataBuilder(daoFactory).withCreatedAt(oneMonthAgo).build();
     newSbomMetadataBuilder(daoFactory).withCreatedAt(oneWeekAgo).build();
     newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus("PENDING").build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus(PENDING).build();
   }
 }

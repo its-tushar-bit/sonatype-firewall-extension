@@ -33,6 +33,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -69,7 +70,7 @@ public class SbomManagerApplicationSummaryPageTest
         scannedFile.getId(),
         application.getId(),
         "test-version",
-        "ACTIVE",
+        ACTIVE,
         zippedBom.getFileName().toString(),
         SbomSpecification.CYCLONEDX.name(),
         SbomFormat.XML.name(),
@@ -151,7 +152,7 @@ public class SbomManagerApplicationSummaryPageTest
           scannedFile.getId(),
           application.getId(),
           "test-version-" + i,
-          "ACTIVE",
+          ACTIVE,
           scannedFile.getFilename(),
           SbomSpecification.CYCLONEDX.name(),
           SbomFormat.XML.name(),

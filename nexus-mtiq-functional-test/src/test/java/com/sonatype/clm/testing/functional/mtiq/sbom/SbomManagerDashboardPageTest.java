@@ -46,6 +46,7 @@ import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -335,7 +336,7 @@ public class SbomManagerDashboardPageTest
         thirdPartyScan.getThirdPartyFileId(),
         app.getId(),
         "test-version-" + appId,
-        "ACTIVE",
+        ACTIVE,
         thirdPartyScan.getScanId(),
         SbomSpecification.CYCLONEDX.name(),
         SbomFormat.XML.name(),

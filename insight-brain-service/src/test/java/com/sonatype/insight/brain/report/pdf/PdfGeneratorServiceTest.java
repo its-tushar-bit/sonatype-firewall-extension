@@ -31,11 +31,11 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.report.FileReport;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -164,8 +164,8 @@ public class PdfGeneratorServiceTest
     FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorServiceTest/report", tempDir), reportFile);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile(originalSbom.getFileName().toString());
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), application.getId(), SbomStatus.ACTIVE.name(),
-            thirdPartyFile.getFilename());
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), application.getId(),
+            ThirdPartySbomMetadataStatus.ACTIVE, thirdPartyFile.getFilename());
     tempEntity.newThirdPartyScan(thirdPartyFile);
 
     Response response = pdfGeneratorService.printSbomReport(application.getPublicId(), sbomMetadata.getSbomVersion());
@@ -200,8 +200,8 @@ public class PdfGeneratorServiceTest
     FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorServiceTest/emptyReport", tempDir), reportFile);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile(originalSbom.getFileName().toString());
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), application.getId(), SbomStatus.ACTIVE.name(),
-            thirdPartyFile.getFilename());
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), application.getId(),
+            ThirdPartySbomMetadataStatus.ACTIVE, thirdPartyFile.getFilename());
     tempEntity.newThirdPartyScan(thirdPartyFile);
 
     Response response = pdfGeneratorService.printSbomReport(application.getPublicId(), sbomMetadata.getSbomVersion());

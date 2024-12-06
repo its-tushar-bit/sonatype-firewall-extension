@@ -75,6 +75,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -412,7 +413,7 @@ public class IndexSearchingTest
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newSbomEvaluation(app, appVersion, sbomSpec,
         new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"),
-        "12345deadbeef", false, "PENDING");
+        "12345deadbeef", false, PENDING);
     index();
     List<SearchResultItemDTO> results = sbomManagerSearch(FieldIdentifier.APPLICATION_VERSION, appVersion);
     assertThat(results).hasSize(1);
@@ -492,7 +493,7 @@ public class IndexSearchingTest
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newSbomEvaluation(app, appVersion, sbomSpecification,
         new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345", "deadbeef", true,
-        "PENDING"
+        PENDING
     );
 
     index();
@@ -514,7 +515,7 @@ public class IndexSearchingTest
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newSbomEvaluation(app, appVersion, sbomSpecification,
         new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345", "deadbeef", false,
-        "PENDING");
+        PENDING);
 
     index();
     List<SearchResultItemDTO> results = sbomManagerSearchInAllComponents(FieldIdentifier.COMPONENT_HASH, "12345");
@@ -610,7 +611,7 @@ public class IndexSearchingTest
     tempEntity.newApplicationWithParent("a_search-test2", "App Name 2");
     tempEntity.newSbomEvaluation(app, "1.2.3", "spdx",
         new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345deadbeef", true,
-        "PENDING");
+        PENDING);
     index();
 
     // not SBOM Mgr mode; this should not be returned
@@ -622,7 +623,7 @@ public class IndexSearchingTest
     Application app = tempEntity.newApplicationWithParent("a_SEARCH-test", "App Name 1");
     tempEntity.newSbomEvaluation(app, "1.2.3", "spdx",
         new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345deadbeef", true,
-        "PENDING");
+        PENDING);
     index();
 
     assertThat(sbomManagerSearch(FieldIdentifier.APPLICATION_VERSION, "1.2.3")).satisfiesExactly(
@@ -649,7 +650,7 @@ public class IndexSearchingTest
     Application app = tempEntity.newApplicationWithParent("a_SEARCH-test", "App Name 1");
     tempEntity.newSbomEvaluation(app, "1.2.3", "spdx",
         new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345deadbeef", true,
-        "PENDING");
+        PENDING);
     index();
 
     assertThat(sbomManagerSearch(FieldIdentifier.SBOM_SPECIFICATION, "spdx")).satisfiesExactly(

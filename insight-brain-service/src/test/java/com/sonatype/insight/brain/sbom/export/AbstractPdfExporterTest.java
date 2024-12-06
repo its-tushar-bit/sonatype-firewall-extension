@@ -40,6 +40,7 @@ import com.google.inject.Binder;
 import org.junit.Before;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -193,7 +194,7 @@ public class AbstractPdfExporterTest
       SbomExportParams.ExportSpecification spec)
   {
     ThirdPartySbomMetadata entity = tempEntity.createSbomMetadata(applicationId, version,
-        thirdPartyFile, "ACTIVE");
+        thirdPartyFile, ACTIVE);
     entity.setFilename(filename);
     entity.setSpec(spec.getSpecification().name());
     entity.setSpecFormat(SbomFormat.XML.toString());

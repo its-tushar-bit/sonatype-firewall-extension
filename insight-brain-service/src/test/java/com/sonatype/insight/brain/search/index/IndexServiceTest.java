@@ -56,6 +56,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
@@ -168,7 +170,7 @@ public class IndexServiceTest
     IndexingContext indexingContext = newIndexingContext();
     indexingContext.addOwners(Arrays.asList(org, app));
 
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.newThirdPartySbomMetadata(app.getId(), "ACTIVE", "bom.xml");
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, "bom.xml");
     sbomMetadata.setSbomVersion("1.2.3");
     sbomMetadata.setSpec("CycloneDx");
     thirdPartySbomMetadataDAO.update(sbomMetadata);
@@ -198,7 +200,7 @@ public class IndexServiceTest
 
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE", "bom.xml");
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, "bom.xml");
     sbomMetadata.setSbomVersion("1.2.3");
     sbomMetadata.setSpec("CycloneDx");
     thirdPartySbomMetadataDAO.update(sbomMetadata);
@@ -246,7 +248,7 @@ public class IndexServiceTest
 
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE", "bom.xml");
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, "bom.xml");
     sbomMetadata.setSbomVersion("1.2.3");
     sbomMetadata.setSpec("CycloneDx");
     thirdPartySbomMetadataDAO.update(sbomMetadata);
@@ -458,7 +460,7 @@ public class IndexServiceTest
     Application application = tempEntity.newApplication(organization.getId());
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("bom.xml");
     ThirdPartySbomMetadata thirdPartySbomMetadata = tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(),
-        application.getId(), "someStatus", "bom.xml");
+        application.getId(), PENDING, "bom.xml");
     ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
         "someSource", "someFormat", "someName", "someVersion", "someHash", null);
 
@@ -488,7 +490,7 @@ public class IndexServiceTest
     Application application = tempEntity.newApplication(organization.getId());
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("bom.xml");
     ThirdPartySbomMetadata thirdPartySbomMetadata = tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(),
-        application.getId(), "someStatus", "bom.xml");
+        application.getId(), PENDING, "bom.xml");
     ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
         "someSource", "someFormat", "someName", "someVersion", "someHash", "invalid");
 
@@ -518,7 +520,7 @@ public class IndexServiceTest
     Application application = tempEntity.newApplication(organization.getId());
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("bom.xml");
     ThirdPartySbomMetadata thirdPartySbomMetadata = tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(),
-        application.getId(), "someStatus", "bom.xml");
+        application.getId(), PENDING, "bom.xml");
     ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
         "someSource", "someFormat", "someName", "someVersion", "someHash", "pkg:maven/g/a@v?type=jar");
 
@@ -550,7 +552,7 @@ public class IndexServiceTest
     Application application = tempEntity.newApplication(organization.getId());
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("bom.xml");
     ThirdPartySbomMetadata thirdPartySbomMetadata = tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(),
-        application.getId(), "someStatus", "bom.xml");
+        application.getId(), PENDING, "bom.xml");
     ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
         "someSource", "someFormat", "someName", "someVersion", "someHash", null);
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
@@ -588,7 +590,7 @@ public class IndexServiceTest
     Application application = tempEntity.newApplication(organization.getId());
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("bom.xml");
     ThirdPartySbomMetadata thirdPartySbomMetadata = tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(),
-        application.getId(), "someStatus", "bom.xml");
+        application.getId(), PENDING, "bom.xml");
     ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
         "someSource", "someFormat", "someName", "someVersion", "someHash", "invalid");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
@@ -626,7 +628,7 @@ public class IndexServiceTest
     Application application = tempEntity.newApplication(organization.getId());
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("bom.xml");
     ThirdPartySbomMetadata thirdPartySbomMetadata = tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(),
-        application.getId(), "someStatus", "bom.xml");
+        application.getId(), PENDING, "bom.xml");
     ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
         "someSource", "someFormat", "someName", "someVersion", "someHash", "pkg:maven/g/a@v?type=jar");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
@@ -666,7 +668,7 @@ public class IndexServiceTest
     Application application = tempEntity.newApplication(organization.getId());
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("bom.xml");
     ThirdPartySbomMetadata thirdPartySbomMetadata = tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(),
-        application.getId(), "someStatus", "bom.xml");
+        application.getId(), PENDING, "bom.xml");
     ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
         "someSource", "someFormat", "someName", "someVersion", "someHash", "pkg:maven/g/a@v?type=jar");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =

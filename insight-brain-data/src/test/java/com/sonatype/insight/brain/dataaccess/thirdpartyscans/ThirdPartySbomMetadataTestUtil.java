@@ -10,13 +10,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
 public class ThirdPartySbomMetadataTestUtil
 {
   public static ThirdPartySbomMetadata createSbomMetadata(
-      String status,
+      ThirdPartySbomMetadataStatus status,
       String applicationId,
       String thirdPartyFileId)
   {

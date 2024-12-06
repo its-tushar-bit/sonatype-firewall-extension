@@ -47,7 +47,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.Zipper;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyDataServiceTest;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -75,6 +74,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -147,7 +148,7 @@ public class SbomResultsMergerTest
     final ThirdPartyFile file = tempEntity.newThirdPartyFile("binary.temp");
     Application app = tempEntity.newApplicationWithParent();
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(app.getId(), "1", file, "PENDING");
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(app.getId(), "1", file, PENDING);
 
     ThirdPartyFileCoordinate tpComponent =
         tempEntity.newThirdPartyFileCoordinate(file, "Sonatype", "pypi", "orange", "1.0.1", "093080a1a4bbd2750541",
@@ -291,7 +292,7 @@ public class SbomResultsMergerTest
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile("binary.temp");
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(null, "1", file, "PENDING");
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(null, "1", file, PENDING);
 
     final FileReport reportZip = new FileReport(Paths.get(ReportHelper.zipReport(
         "/SbomResultsMergerTest/report-for-binary-scan", tempDir).toURI()).toFile());
@@ -477,7 +478,7 @@ public class SbomResultsMergerTest
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile("binary.temp");
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(null, "1", file, "PENDING");
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(null, "1", file, PENDING);
 
     final FileReport reportZip = new FileReport(Paths.get(ReportHelper.zipReport(
             "/SbomResultsMergerTest/report-for-binary-scan-duplicated-vulnerabilities", tempDir)
@@ -566,7 +567,7 @@ public class SbomResultsMergerTest
     Application app = tempEntity.newApplicationWithParent();
     ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(app.getId(), "1", file, "PENDING");
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(app.getId(), "1", file, PENDING);
 
     ThirdPartyFileCoordinate sbomComponent = null;
     try {
@@ -673,7 +674,7 @@ public class SbomResultsMergerTest
     //Insert Scenario 2: new third party coordinate security record is inserted in db with complete sonatype data
     //FG-R00275 with no third party vulnerability data in report zip or db
 
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, "PENDING");
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
     final FileReport reportZip =
         new FileReport(Paths.get(
@@ -831,7 +832,7 @@ public class SbomResultsMergerTest
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(tpVuln4, "FG-R00235", "resolved",
         "code_not_reachable", "will_not_fix,update", null);
 
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, "PENDING");
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
     final FileReport reportZip =
         new FileReport(Paths.get(ReportHelper
@@ -942,7 +943,7 @@ public class SbomResultsMergerTest
         "commons-httpclient", "3.1", "964cd74171f427720480", null);
     tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "Apache", "Apache-2.0", "link1", "SBOM");
 
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, "PENDING");
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
     final FileReport reportZip =
         new FileReport(Paths.get(ReportHelper
@@ -976,7 +977,7 @@ public class SbomResultsMergerTest
     // License only in DB with both SBOM and Sonatype identification sources, so it should be deleted from the DB.
     tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "AGPL-3.0", "AGPL-3.0", "link3", "Sonatype");
 
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, "PENDING");
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
     final FileReport reportZip =
         new FileReport(Paths.get(ReportHelper
@@ -1040,7 +1041,7 @@ public class SbomResultsMergerTest
 
     thirdPartyCoordinateLicenseDAO.update(license);
 
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, "PENDING");
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
     final FileReport reportZip =
         new FileReport(
@@ -1120,7 +1121,7 @@ public class SbomResultsMergerTest
         "pypi", "pip", "24.0", "XYZ", "pkg:pypi/pip@24.0?type=zip");
 
     Application app = tempEntity.newApplicationWithParent();
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(app.getId(), "1", file, "PENDING");
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(app.getId(), "1", file, PENDING);
 
     final FileReport reportZip = new FileReport(Paths.get(ReportHelper.zipReport(
         "/SbomResultsMergerTest/report-with-python-components", tempDir).toURI()).toFile());
@@ -1200,7 +1201,7 @@ public class SbomResultsMergerTest
         1.0f, "fixedBy1", "vulnSource1", "vectorString1", "high1", "cwes1", "deepdive1", "recommendations1",
         "advisories1", "SBOM");
 
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, "PENDING");
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
     final FileReport reportZip =
         new FileReport(
@@ -1269,7 +1270,7 @@ public class SbomResultsMergerTest
         tempEntity.newThirdPartyFileCoordinate(file, "IaC", "terraform", "aws_s3_bucket.test01", "current",
             "0d8e3bd6ee4e6d50557a", "pkg:terraform/plan.tfplan/aws_s3_bucket.test01@current");
 
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, SbomStatus.ACTIVE.name());
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, ACTIVE);
 
     final FileReport reportZip =
         new FileReport(Paths.get(ReportHelper

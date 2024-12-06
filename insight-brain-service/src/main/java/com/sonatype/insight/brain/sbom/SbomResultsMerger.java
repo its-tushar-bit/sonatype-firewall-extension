@@ -54,6 +54,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLice
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.report.Report;
@@ -67,7 +68,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
-import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -289,7 +289,7 @@ public class SbomResultsMerger
     dependencyTreeParser.parse(dependenciesJsonData);
 
     // create an original SBOM and filtered scan file for continuous monitoring in the case of binary scans
-    if (SbomStatus.PENDING.toString().equals(sbomMetadata.getStatus()) &&
+    if (ThirdPartySbomMetadataStatus.PENDING.equals(sbomMetadata.getStatus()) &&
         SbomScanType.BINARY.toString().equals(sbomMetadata.getScanType())) {
       originalBom = createNewBom();
       filteredBom = createNewBom();

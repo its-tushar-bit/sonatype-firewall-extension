@@ -306,6 +306,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyUnknownComponent;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
@@ -4047,7 +4048,7 @@ public class TemporaryEntity
 
   public ThirdPartySbomMetadata newThirdPartySbomMetadata(
       String applicationId,
-      String status,
+      ThirdPartySbomMetadataStatus status,
       String fileName)
   {
     ThirdPartyFile thirdPartyFile = newThirdPartyFile();
@@ -4057,7 +4058,7 @@ public class TemporaryEntity
   public ThirdPartySbomMetadata newThirdPartySbomMetadata(
       String thirdPartyFileId,
       String applicationId,
-      String status,
+      ThirdPartySbomMetadataStatus status,
       String fileName)
   {
     String sbomVersion = uuid().substring(0, 10);
@@ -4072,7 +4073,7 @@ public class TemporaryEntity
       String thirdPartyFileId,
       String applicationId,
       String sbomVersion,
-      String status,
+      ThirdPartySbomMetadataStatus status,
       String fileName,
       String spec,
       String specFormat,
@@ -4088,7 +4089,7 @@ public class TemporaryEntity
       String thirdPartyFileId,
       String applicationId,
       String sbomVersion,
-      String status,
+      ThirdPartySbomMetadataStatus status,
       String fileName,
       String spec,
       String specFormat,
@@ -4103,7 +4104,7 @@ public class TemporaryEntity
       String thirdPartyFileId,
       String applicationId,
       String sbomVersion,
-      String status,
+      ThirdPartySbomMetadataStatus status,
       String fileName,
       String spec,
       String specFormat,
@@ -5390,7 +5391,7 @@ public class TemporaryEntity
   public ThirdPartySbomMetadata createSbomMetadata(
       final String applicationId, final String sbomVersion,
       final ThirdPartyFile thirdPartyFile,
-      final String sbomStatus)
+      final ThirdPartySbomMetadataStatus sbomStatus)
   {
     ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata();
     thirdPartySbomMetadata.setCreatedAt(new Date());
@@ -5426,7 +5427,7 @@ public class TemporaryEntity
       final String applicationId,
       final String sbomVersion,
       final ThirdPartyFile thirdPartyFile,
-      final String sbomStatus)
+      final ThirdPartySbomMetadataStatus sbomStatus)
   {
     ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata();
     thirdPartySbomMetadata.setCreatedAt(new Date());
@@ -5466,7 +5467,7 @@ public class TemporaryEntity
       PackageUrlIdentifier componentPackageUrl,
       String scanId,
       boolean isVulnerable,
-      String sbomStatus)
+      ThirdPartySbomMetadataStatus sbomStatus)
   {
     return newSbomEvaluation(application, applicationVersion, sbomSpecification, componentPackageUrl,
         newRandomHash(), scanId, isVulnerable, sbomStatus);
@@ -5480,7 +5481,7 @@ public class TemporaryEntity
       String hash,
       String scanId,
       boolean isVulnerable,
-      String sbomStatus)
+      ThirdPartySbomMetadataStatus sbomStatus)
   {
     ThirdPartyFile thirdPartyFile = newThirdPartyFile("bom.xml");
     ThirdPartySbomMetadata sbomMetadata = createSbomMetadata(application.getId(),

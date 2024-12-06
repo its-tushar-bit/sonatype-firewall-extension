@@ -63,6 +63,7 @@ import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector.TOTAL_SEARCHES;
 import static com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector.TOTAL_SEARCHES_BY_FIELD_NAME;
 import static java.util.stream.Collectors.groupingBy;
@@ -679,14 +680,14 @@ public class SearchServiceTest
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
         true,
-        "PENDING");
+        PENDING);
     tempEntity.newSbomEvaluation(app,
         "1.1",
         SbomSpecification.SPDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v2")),
         "someScanId2",
         false,
-        "PENDING");
+        PENDING);
     tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID); // Should not be returned
     tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID); // Should not be returned
     tempEntity.newPolicy(); // Should not be returned
@@ -745,14 +746,14 @@ public class SearchServiceTest
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
         true,
-        "PENDING");
+        PENDING);
     tempEntity.newSbomEvaluation(app,
         "1.1",
         SbomSpecification.SPDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v2")),
         "someScanId2",
         false,
-        "PENDING");
+        PENDING);
     newAppReport(app.getId(), Stage.ID_BUILD, "someScanId3", "/SearchServiceTest/report-3");
     Tag tag = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID);
     Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
@@ -797,14 +798,14 @@ public class SearchServiceTest
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
         true,
-        "PENDING");
+        PENDING);
     tempEntity.newSbomEvaluation(app,
         "1.1",
         SbomSpecification.SPDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v2")),
         "someScanId2",
         false,
-        "PENDING");
+        PENDING);
     tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID); // Should not be returned
     tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID); // Should not be returned
     tempEntity.newPolicy(); // Should not be returned
@@ -875,14 +876,14 @@ public class SearchServiceTest
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
         true,
-        "PENDING");
+        PENDING);
     tempEntity.newSbomEvaluation(app,
         "1.1",
         SbomSpecification.SPDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v2")),
         "someScanId2",
         false,
-        "PENDING");
+        PENDING);
     Tag tag = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID);
     Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
     Policy policy = tempEntity.newPolicy();

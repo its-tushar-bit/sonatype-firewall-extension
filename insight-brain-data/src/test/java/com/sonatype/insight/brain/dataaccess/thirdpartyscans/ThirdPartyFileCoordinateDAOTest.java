@@ -42,6 +42,8 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.DIRECT;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.TRANSITIVE;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.UNSPECIFIED;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ThirdPartyFileCoordinateDAOTest
@@ -234,21 +236,21 @@ public class ThirdPartyFileCoordinateDAOTest
     Application application = tempEntity.newApplication(organization1.getId());
     final ThirdPartyFile thirdPartyFileA = tempEntity.newThirdPartyFile();
     final ThirdPartySbomMetadata thirdPartySbomMetadataA =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFileA.getId(), application.getId(), "ACTIVE",
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFileA.getId(), application.getId(), ACTIVE,
             thirdPartyFileA.getFilename());
     final ThirdPartyFileCoordinate coordinateA =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFileA, "s1", "f1", "n1", "v1");
 
     final ThirdPartyFile thirdPartyFileB = tempEntity.newThirdPartyFile();
     final ThirdPartySbomMetadata thirdPartySbomMetadataB =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFileB.getId(), application.getId(), "ACTIVE",
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFileB.getId(), application.getId(), ACTIVE,
             thirdPartyFileB.getFilename());
     final ThirdPartyFileCoordinate coordinateB =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFileB, "s2", "f2", "n2", "v2");
 
     final ThirdPartyFile thirdPartyFileC = tempEntity.newThirdPartyFile();
     final ThirdPartySbomMetadata thirdPartySbomMetadataC =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFileC.getId(), application.getId(), "ACTIVE",
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFileC.getId(), application.getId(), ACTIVE,
             thirdPartyFileC.getFilename());
     final ThirdPartyFileCoordinate coordinateC =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFileC, "s3", "f3", "n3", "v3");
@@ -285,10 +287,10 @@ public class ThirdPartyFileCoordinateDAOTest
     ThirdPartyFile file3 = tempEntity.newThirdPartyFile("file.json");
 
     ThirdPartySbomMetadata sbom1 =
-        tempEntity.newThirdPartySbomMetadata(file1.getId(), application.getId(), "ACTIVE", file1.getFilename());
+        tempEntity.newThirdPartySbomMetadata(file1.getId(), application.getId(), ACTIVE, file1.getFilename());
     ThirdPartySbomMetadata sbom2 =
-        tempEntity.newThirdPartySbomMetadata(file2.getId(), application.getId(), "ACTIVE", file2.getFilename());
-    tempEntity.newThirdPartySbomMetadata(file3.getId(), application.getId(), "PENDING", file3.getFilename());
+        tempEntity.newThirdPartySbomMetadata(file2.getId(), application.getId(), ACTIVE, file2.getFilename());
+    tempEntity.newThirdPartySbomMetadata(file3.getId(), application.getId(), PENDING, file3.getFilename());
 
     ThirdPartyFileCoordinate c1 = tempEntity.newThirdPartyFileCoordinate(file1, "s1", "f1", "n1", "v1");
     ThirdPartyFileCoordinate c2 = tempEntity.newThirdPartyFileCoordinate(file2, "s2", "f2", "n2", "v2");

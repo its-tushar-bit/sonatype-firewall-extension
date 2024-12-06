@@ -46,6 +46,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -651,7 +652,7 @@ public class ComponentDetailsPageTest
         file.getId(),
         testApplication.getId(),
         TEST_SBOM_VERSION_ID + "_2",
-        "ACTIVE",
+        ACTIVE,
         file.getFilename(),
         "cycloneDX",
         "json",
@@ -673,7 +674,7 @@ public class ComponentDetailsPageTest
         file.getId(),
         testApplication.getId(),
         TEST_SBOM_VERSION_ID,
-        "ACTIVE",
+        ACTIVE,
         file.getFilename(),
         "cycloneDX",
         "json",

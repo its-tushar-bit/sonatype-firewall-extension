@@ -60,6 +60,7 @@ import com.sonatype.insight.brain.model.security.SamlGroup;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.organization.ApplicationContactLoader;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -73,7 +74,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
-import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
@@ -849,7 +849,7 @@ public class PolicyAlertEmailerTest
   public void testNotificationEmailBodyForSM() throws Exception {
     Application app = tempEntity.newApplicationWithParent("the-app-public-id");
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(app.getId(), SbomStatus.ACTIVE.name(), "bom.xml");
+        tempEntity.newThirdPartySbomMetadata(app.getId(), ThirdPartySbomMetadataStatus.ACTIVE, "bom.xml");
     Policy policy = tempEntity.newPolicy(app.getId(), "Notifying Policy");
 
     List<PolicyFact> policyFacts = new ArrayList<>();

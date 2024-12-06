@@ -113,6 +113,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -1243,7 +1244,7 @@ public class ApplicationDAOTest
     Application app = tempEntity.newApplication(org.getId());
     ThirdPartySbomMetadata thirdPartySbomMetadata = tempEntity.newSbomEvaluation(app, appVersion, sbomSpec,
         new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345deadbeef",
-        false, "PENDING");
+        false, PENDING);
 
     ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = daoFactory.createThirdPartyFileCoordinateDAO();
     ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO = daoFactory.createThirdPartySbomMetadataDAO();

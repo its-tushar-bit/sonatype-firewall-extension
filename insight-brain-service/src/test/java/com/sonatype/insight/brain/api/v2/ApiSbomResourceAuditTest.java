@@ -30,9 +30,9 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -127,7 +127,7 @@ public class ApiSbomResourceAuditTest
     tempEntity.newThirdPartyScan(thirdPartyFile);
     String refId = "CVE-123";
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), SbomStatus.ACTIVE.toString(),
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ThirdPartySbomMetadataStatus.ACTIVE,
             "file.tgz");
     ThirdPartyFileCoordinate
         component =
@@ -175,7 +175,7 @@ public class ApiSbomResourceAuditTest
     tempEntity.newThirdPartyScan(thirdPartyFile);
     String refId = "CVE-123";
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), SbomStatus.ACTIVE.toString(),
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ThirdPartySbomMetadataStatus.ACTIVE,
             "file.tgz");
     ThirdPartyFileCoordinate component =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "ThirdParty", "npm", "bloom", "1.0", "hash001",

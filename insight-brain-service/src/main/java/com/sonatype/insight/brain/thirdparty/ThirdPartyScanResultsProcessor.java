@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
@@ -488,7 +489,7 @@ public class ThirdPartyScanResultsProcessor
     sbomMetadata.setSpecVersion(sbomDetectionResult.summary.version);
     sbomMetadata.setMetadataJson(sbomDetectionResult.summary.creationDetails);
     sbomMetadata.setCreatedAt(new Date());
-    sbomMetadata.setStatus(SbomStatus.PENDING.name());
+    sbomMetadata.setStatus(ThirdPartySbomMetadataStatus.PENDING);
     sbomMetadata.setScanType(SbomScanType.SBOM.name());
     return sbomMetadata;
   }

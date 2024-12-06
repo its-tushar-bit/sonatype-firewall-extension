@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.scan.file.SbomFormat;
@@ -30,6 +29,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.xmlunit.assertj.XmlAssert;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.spdxDxIgnoreNodesFilter;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
@@ -222,9 +222,8 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
 
   private ThirdPartySbomMetadata insertTestData(String testBomFile, ThirdPartyFile thirdPartyFile) {
     ThirdPartySbomMetadata dbRecord = tempEntity.createSbomMetadata(APP_ID, SBOM_VERSION,
-        thirdPartyFile, "PENDING");
+        thirdPartyFile, ACTIVE);
     dbRecord.setFilename(testBomFile);
-    dbRecord.setStatus(SbomStatus.ACTIVE.toString());
     thirdPartySbomMetadataDAO.update(dbRecord);
     return dbRecord;
   }

@@ -30,6 +30,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xmlunit.util.Predicate;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+
 public class SbomTestHelper
 {
   public static final List<String> CYCLONEDX_IGNORE_NODES = Arrays.asList("timestamp", "firstIssued", "lastUpdated");
@@ -202,7 +204,7 @@ public class SbomTestHelper
     String fileName = originalSbomFile.getFileName().toString();
     ThirdPartyFile tpFile = tempEntity.newThirdPartyFile(fileName);
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), sbomVersion, "ACTIVE", fileName, spec,
+        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), sbomVersion, ACTIVE, fileName, spec,
             specFormat.toString(), specVersion);
 
     ThirdPartyFileCoordinate tpComponent =

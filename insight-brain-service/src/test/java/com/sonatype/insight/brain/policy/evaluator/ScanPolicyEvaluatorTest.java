@@ -135,7 +135,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.PolicyAlertEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
@@ -165,6 +164,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.WITH_REPORTS;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COUNT;
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.LEGACY_VIOLATION_TIME;
 import static com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator.REEVALUATE_NOT_ALLOWED_FOR_OUT_OF_DATE_SCAN_MESSAGE;
@@ -3842,7 +3843,7 @@ public class ScanPolicyEvaluatorTest
     String scanId = simulateReportIsAvailable("report");
     ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan("request", scanId,file);
-    tempEntity.createSbomMetadata(application.getId(), scanId, file, "PENDING");
+    tempEntity.createSbomMetadata(application.getId(), scanId, file, PENDING);
 
     newSecurityPolicy();
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -3860,7 +3861,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(results.allViolations).isNotEmpty();
     ThirdPartySbomMetadata updatedMetadata = sbomMetadataDAO.getByThirdPartyFileId(file.getId());
 
-    assertThat(updatedMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
+    assertThat(updatedMetadata.getStatus()).isEqualTo(ACTIVE);
   }
 
   private void restoreConstraintFactsToPreMigratedState() {

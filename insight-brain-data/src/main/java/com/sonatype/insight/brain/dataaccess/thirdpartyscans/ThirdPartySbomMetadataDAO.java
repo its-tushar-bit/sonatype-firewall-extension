@@ -32,9 +32,11 @@ import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomPolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.InternalServerException;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO.createPaginationNativeQuery;
 import static com.sonatype.insight.brain.utils.CvssV3Severity.CRITICAL;
 import static com.sonatype.insight.brain.utils.CvssV3Severity.HIGH;
@@ -48,8 +50,6 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 public class ThirdPartySbomMetadataDAO
     extends AbstractThirdPartyScansSqlDAO<ThirdPartySbomMetadata>
 {
-  private static final String ACTIVE_STATUS = "ACTIVE";
-
   private final OperationalDataStore operationalDataStore;
 
   private final PolicyViolationDAO policyViolationDAO;
@@ -111,7 +111,7 @@ public class ThirdPartySbomMetadataDAO
     String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity " + //
         " WHERE entity.applicationId=?1" + //
         " AND entity.status=?2";
-    return getList(sQuery, applicationId, ACTIVE_STATUS);
+    return getList(sQuery, applicationId, ACTIVE);
   }
 
   public ThirdPartySbomMetadata getLatestActiveByApplicationId(String applicationId) {
@@ -119,7 +119,7 @@ public class ThirdPartySbomMetadataDAO
         " WHERE entity.applicationId=?1" +
         " AND entity.status=?2" +
         " ORDER BY entity.createdAt DESC";
-    return createQuery(sQuery, applicationId, ACTIVE_STATUS).forceSingleResult().get();
+    return createQuery(sQuery, applicationId, ACTIVE).forceSingleResult().get();
   }
 
   public ThirdPartySbomMetadata getByApplicationIdAndSbomVersion(String applicationId, String sbomVersion) {
@@ -137,7 +137,7 @@ public class ThirdPartySbomMetadataDAO
   public ThirdPartySbomMetadata getByApplicationIdAndSbomVersionAndStatus(
       String applicationId,
       String sbomVersion,
-      String status)
+      ThirdPartySbomMetadataStatus status)
   {
     String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity " + //
         " WHERE entity.applicationId = ?1 AND entity.sbomVersion=?2 AND entity.status=?3";
@@ -147,7 +147,7 @@ public class ThirdPartySbomMetadataDAO
   public long getActiveSbomCount(String applicationId) {
     String sQuery = "SELECT COUNT(entity) FROM ThirdPartySbomMetadata entity"
         + " WHERE entity.applicationId=?1 AND entity.status=?2";
-    return getSingle(Long.class, sQuery, applicationId, ACTIVE_STATUS);
+    return getSingle(Long.class, sQuery, applicationId, ACTIVE);
   }
 
   public long getSbomCount() {
@@ -158,13 +158,14 @@ public class ThirdPartySbomMetadataDAO
   public long getActiveSbomCount() {
     String sQuery = "SELECT COUNT(entity) FROM ThirdPartySbomMetadata entity " //
         + "WHERE entity.status=?1";
-    return getSingle(Long.class, sQuery, ACTIVE_STATUS);
+    return getSingle(Long.class, sQuery, ACTIVE);
   }
 
   public List<ThirdPartySbomMetadata> getPendingSbomsOlderThanDuration(Duration pendingTimeLimit) {
     Date limitDate = Timestamp.valueOf(LocalDateTime.now().minus(pendingTimeLimit));
     String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity " //
-        + "WHERE entity.status='PENDING' AND entity.createdAt <= ?1";
+        + "WHERE entity.status=com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING "
+        + "AND entity.createdAt <= ?1";
     return getList(sQuery, limitDate);
   }
 
@@ -222,7 +223,7 @@ public class ThirdPartySbomMetadataDAO
     LocalDate lastYear = now.minusYears(1);
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = createNativeQuery(tx, sQuery, lastYear, lastMonth, lastWeek, ACTIVE_STATUS);
+      javax.persistence.Query query = createNativeQuery(tx, sQuery, lastYear, lastMonth, lastWeek, ACTIVE.name());
       Object[] result = (Object[]) query.getSingleResult();
       return new ApiSbomApplicationsHistoryMetricDTO(result);
     }
@@ -230,7 +231,7 @@ public class ThirdPartySbomMetadataDAO
 
   public List<ThirdPartySbomMetadata> getByApplicationIdAndStatus(
       final String applicationId,
-      final String status,
+      final ThirdPartySbomMetadataStatus status,
       final int page,
       final int pageSize)
   {
@@ -243,7 +244,7 @@ public class ThirdPartySbomMetadataDAO
   public List<ThirdPartySbomMetadata> getByApplicationIdAndStatus(
       final TransactionContext tx,
       final String applicationId,
-      final String status,
+      final ThirdPartySbomMetadataStatus status,
       final int page,
       final int pageSize)
   {
@@ -436,7 +437,7 @@ public class ThirdPartySbomMetadataDAO
   public void makeSbomActiveIfExist(String scanId) {
     ThirdPartySbomMetadata sbomMetadata = getByScanId(scanId);
     if (sbomMetadata != null) {
-      sbomMetadata.setStatus("ACTIVE");
+      sbomMetadata.setStatus(ACTIVE);
       update(sbomMetadata);
     }
   }

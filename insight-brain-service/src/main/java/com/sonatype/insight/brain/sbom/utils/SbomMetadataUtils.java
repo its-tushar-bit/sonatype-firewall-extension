@@ -43,7 +43,6 @@ import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.thirdparty.SbomAction;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
-import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.scan.application.ScannerDriver;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.model.ItemContentType;
@@ -57,6 +56,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.api.v2.service.ApiCycloneDxServiceV2.CWE_REGEX;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 
 @Named
 public class SbomMetadataUtils
@@ -273,7 +273,7 @@ public class SbomMetadataUtils
         SbomSpecification.CYCLONEDX.toString(),
         SbomFormat.JSON.toString(),
         ExportSpecification.DEFAULT.getVersion(),
-        SbomStatus.PENDING.toString(),
+        PENDING,
         new Date(),
         SbomCycloneDxUtils.getGenericSbomCreationDetailsAsString(),
         SbomScanType.BINARY.toString(),

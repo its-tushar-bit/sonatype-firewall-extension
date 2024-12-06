@@ -3,9 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.thirdparty;
+package com.sonatype.insight.brain.model.thirdpartyscans;
 
-public enum SbomStatus
+public enum ThirdPartySbomMetadataStatus
 {
-  PENDING, ACTIVE;
+  PENDING,
+  ACTIVE
 }

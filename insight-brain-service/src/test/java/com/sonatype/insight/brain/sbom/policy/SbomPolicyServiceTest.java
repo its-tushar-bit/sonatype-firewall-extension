@@ -32,6 +32,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
@@ -59,7 +60,7 @@ public class SbomPolicyServiceTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(),
         "spec",
-        "specFormat",
+        ACTIVE,
         "specVersion");
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
 
@@ -102,7 +103,7 @@ public class SbomPolicyServiceTest
   private void doTestGetPolicyViolations(Function<String, PolicyThreats> function) throws IOException {
     String sbomVersion = "sbomVersion1";
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), sbomVersion, "Active", "fileName", "spec",
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), sbomVersion, ACTIVE, "fileName", "spec",
         "specFormat", "specVersion");
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
 
@@ -130,7 +131,7 @@ public class SbomPolicyServiceTest
   public void testGetPolicyViolationsJsonNodeByFileCoordinateIdOrHash_AppIdAndSbomVersionNotFound() throws IOException {
     String sbomVersion = "sbomVersion1";
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), sbomVersion, "Active", "fileName", "spec",
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), sbomVersion, ACTIVE, "fileName", "spec",
         "specFormat", "specVersion");
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
 
@@ -303,7 +304,7 @@ public class SbomPolicyServiceTest
   {
     String sbomVersion = "sbomVersion1";
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), sbomVersion, "Active", "fileName", "spec",
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), sbomVersion, ACTIVE, "fileName", "spec",
         "specFormat", "specVersion");
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
 

@@ -39,6 +39,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.Assert.assertThrows;
@@ -70,7 +71,7 @@ public class SbomComponentsServiceTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE,
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate componentA =
         tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae43",thirdPartyFile, "s1",
@@ -150,10 +151,10 @@ public class SbomComponentsServiceTest
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
 
     ThirdPartySbomMetadata sbomMetadataPrevious =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFilePrevious.getId(), app.getId(), "ACTIVE",
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFilePrevious.getId(), app.getId(), ACTIVE,
             thirdPartyFilePrevious.getFilename());
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE,
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate previousComponentA =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFilePrevious, "s1", "f1", "n1", "v1", "1249e25aebb15358bedd",
@@ -239,7 +240,7 @@ public class SbomComponentsServiceTest
   public void testGetSbomComponentDetails_AppNotFound() {
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE,
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate component =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");
@@ -252,7 +253,7 @@ public class SbomComponentsServiceTest
   @Test
   public void testGetSbomComponentDetails_SbomVersionNotFound() {
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE,
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate component =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");
@@ -266,7 +267,7 @@ public class SbomComponentsServiceTest
   public void testGetSbomComponentDetails_ComponentHashNotFound() {
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE,
             thirdPartyFile.getFilename());
     tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");
 
@@ -280,7 +281,7 @@ public class SbomComponentsServiceTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE,
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate component =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "1249e25aebb15358bedd",

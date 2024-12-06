@@ -40,6 +40,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.text;
@@ -307,7 +308,7 @@ public class SbomApplicationsPageTest
           scannedFile.getId(),
           app.getId(),
           "test-version " + i,
-          "ACTIVE",
+          ACTIVE,
           zippedBom.getFileName().toString(),
           SbomSpecification.CYCLONEDX.name(),
           SbomFormat.XML.name(),

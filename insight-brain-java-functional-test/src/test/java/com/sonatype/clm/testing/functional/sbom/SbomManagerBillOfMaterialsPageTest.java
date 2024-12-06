@@ -54,6 +54,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.cssClass;
@@ -105,7 +106,7 @@ public class SbomManagerBillOfMaterialsPageTest
       scannedFile.getId(),
       application.getId(),
       "test-version",
-      "ACTIVE",
+      ACTIVE,
         zippedBom.getFileName().toString(),
       SbomSpecification.CYCLONEDX.toString(),
       SbomFormat.XML.name(),
@@ -637,7 +638,7 @@ public class SbomManagerBillOfMaterialsPageTest
         thirdPartyScan.getThirdPartyFileId(),
         application.getId(),
         "t-version",
-        "ACTIVE",
+        ACTIVE,
         zippedBom.getFileName().toString(),
         SbomSpecification.CYCLONEDX.toString(),
         SbomFormat.XML.name(),
@@ -685,7 +686,7 @@ public class SbomManagerBillOfMaterialsPageTest
         thirdPartyScan.getThirdPartyFileId(),
         application.getId(),
         "t-version",
-        "ACTIVE",
+        ACTIVE,
         zippedBom.getFileName().toString(),
         SbomSpecification.CYCLONEDX.toString(),
         SbomFormat.XML.name(),
@@ -916,7 +917,7 @@ public class SbomManagerBillOfMaterialsPageTest
         thirdPartyScan.getThirdPartyFileId(),
         application.getId(),
         "t-version",
-        "ACTIVE",
+        ACTIVE,
         zippedBom.getFileName().toString(),
         SbomSpecification.CYCLONEDX.toString(),
         SbomFormat.XML.name(),

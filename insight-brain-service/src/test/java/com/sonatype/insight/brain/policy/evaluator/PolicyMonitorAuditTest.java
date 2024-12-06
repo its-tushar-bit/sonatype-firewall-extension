@@ -28,6 +28,8 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+
 public class PolicyMonitorAuditTest
     extends AbstractAuditTest
 {
@@ -96,7 +98,7 @@ public class PolicyMonitorAuditTest
     File scanZip = createScanFileZip(app2, scanId2, "scan/scan-third-party.xml");
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartySbomMetadata sbomMetadata = tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app2.getId(),
-        "ACTIVE", "xyz");
+        ACTIVE, "xyz");
     tempEntity.newThirdPartyScan(scanId2, scanId2, thirdPartyFile, scanZip.getName());
 
     policyMonitor.run();
@@ -114,7 +116,7 @@ public class PolicyMonitorAuditTest
     String scanId2 = "PolicyMonitorTest_scanId2";
     mockScanReceiptAndReport(scanId2);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app2.getId(), "ACTIVE", "xyz");
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app2.getId(), ACTIVE, "xyz");
     tempEntity.newThirdPartyScan(scanId2, scanId2, thirdPartyFile, "scan/deleted.gz");
 
     policyMonitor.run();

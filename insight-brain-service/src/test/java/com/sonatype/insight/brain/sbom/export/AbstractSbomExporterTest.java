@@ -31,6 +31,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static org.mockito.Mockito.when;
 
 public class AbstractSbomExporterTest
@@ -91,7 +92,7 @@ public class AbstractSbomExporterTest
       ThirdPartyFile thirdPartyFile)
   {
     ThirdPartySbomMetadata dbRecord = tempEntity.createSbomMetadata(appId, sbomVersion,
-        thirdPartyFile, "ACTIVE");
+        thirdPartyFile, ACTIVE);
     dbRecord.setFilename(testBomFile);
     thirdPartySbomMetadataDAO.update(dbRecord);
     return dbRecord;

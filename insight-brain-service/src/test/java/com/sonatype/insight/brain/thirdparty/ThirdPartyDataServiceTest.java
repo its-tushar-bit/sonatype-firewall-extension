@@ -60,6 +60,7 @@ import org.cyclonedx.model.Swid;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.withinPercentage;
 import static org.mockito.Mockito.mock;
@@ -316,7 +317,7 @@ public class ThirdPartyDataServiceTest
 
     ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(TemporaryEntity.uuid(), scanId, thirdPartyFile1);
-    tempEntity.createSbomMetadata("appId", "1", thirdPartyFile1, "PENDING");
+    tempEntity.createSbomMetadata("appId", "1", thirdPartyFile1, PENDING);
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByScanId(scanId);
     String sbomApplicationPath = tempDir.getRoot().toPath()
         .relativize(insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath()).normalize().toString();
@@ -449,7 +450,7 @@ public class ThirdPartyDataServiceTest
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
-    tempEntity.createSbomMetadata("appId", "1", file, "PENDING");
+    tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
     var reportZip =
         new FileReport(
@@ -460,7 +461,7 @@ public class ThirdPartyDataServiceTest
 
     ThirdPartySbomMetadata updated = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(updated).isNotNull();
-    assertThat(updated.getStatus()).isEqualTo(SbomStatus.PENDING.name());
+    assertThat(updated.getStatus()).isEqualTo(PENDING);
   }
 
   @Test
@@ -471,7 +472,7 @@ public class ThirdPartyDataServiceTest
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
-    tempEntity.createSbomMetadata("appId", "1", file, "PENDING");
+    tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
     var reportZip =
         new FileReport(
@@ -491,7 +492,7 @@ public class ThirdPartyDataServiceTest
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
-    tempEntity.createSbomMetadata("appId", "1", file, "PENDING");
+    tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
     var reportZip =
         new FileReport(
@@ -502,7 +503,7 @@ public class ThirdPartyDataServiceTest
 
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(sbomMetadata).isNotNull();
-    assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.PENDING.name());
+    assertThat(sbomMetadata.getStatus()).isEqualTo(PENDING);
   }
 
   @Test
@@ -546,7 +547,7 @@ public class ThirdPartyDataServiceTest
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(true);
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.setEnabled(true);
     ThirdPartySbomMetadata sbomMetadata = tempEntity.newSbomEvaluation(app, "1.2.3", "spdx",
-        new PackageUrlIdentifier("pkg:npm/jquery@1.1.1"), "deadbeef", false, "PENDING");
+        new PackageUrlIdentifier("pkg:npm/jquery@1.1.1"), "deadbeef", false, PENDING);
     handler.indexSbomForSearch(sbomMetadata);
 
     List<SearchIndexChange> searchIndexChanges = searchIndexChangeDAO.getAll();

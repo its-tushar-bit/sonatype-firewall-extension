@@ -54,7 +54,6 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.Zipper;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
-import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.utils.Retry;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
@@ -82,6 +81,8 @@ import static com.sonatype.insight.brain.api.v2.service.ApiSbomService.SBOM_VALI
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.DIRECT;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.TRANSITIVE;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.UNSPECIFIED;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.CYCLONEDX_JSON_IGNORE_FIELDS;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreAttributesFilter;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreNodesFilter;
@@ -215,12 +216,12 @@ public class ApiSbomServiceTest
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
         .withFilename(zippedBom.getFileName().toString())
-        .withStatus(SbomStatus.ACTIVE.name())
+        .withStatus(ACTIVE)
         .build();
 
     SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
-        .withStatus(SbomStatus.PENDING.name())
+        .withStatus(PENDING)
         .build();
 
     Response response = service.getSbomVersion(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion(),
@@ -238,12 +239,12 @@ public class ApiSbomServiceTest
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
         .withFilename(zippedBom.getFileName().toString())
-        .withStatus(SbomStatus.ACTIVE.name())
+        .withStatus(ACTIVE)
         .build();
 
     SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
-        .withStatus(SbomStatus.PENDING.name())
+        .withStatus(PENDING)
         .build();
 
     Response response = service.getSbomVersion(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion(),
@@ -402,7 +403,7 @@ public class ApiSbomServiceTest
   @Test
   public void testGetSbomVersion_NoActiveSboms() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
-        .withStatus(SbomStatus.PENDING.name())
+        .withStatus(PENDING)
         .build();
 
     assertThatExceptionOfType(NotFoundException.class)
@@ -422,8 +423,8 @@ public class ApiSbomServiceTest
     ThirdPartyFile file1 = tempEntity.newThirdPartyFile("CycloneDX-bom.xml");
     ThirdPartyFile file2 = tempEntity.newThirdPartyFile("SPDX-spdx.json");
 
-    tempEntity.newThirdPartySbomMetadata(file1.getId(), application.getId(), "ACTIVE", file1.getFilename());
-    tempEntity.newThirdPartySbomMetadata(file2.getId(), application.getId(), "ACTIVE", file2.getFilename());
+    tempEntity.newThirdPartySbomMetadata(file1.getId(), application.getId(), ACTIVE, file1.getFilename());
+    tempEntity.newThirdPartySbomMetadata(file2.getId(), application.getId(), ACTIVE, file2.getFilename());
 
     ThirdPartyFileCoordinate c1 = tempEntity.newThirdPartyFileCoordinate(file1, "s1", "f1", "n1", "v1");
     ThirdPartyFileCoordinate c2 = tempEntity.newThirdPartyFileCoordinate(file2, "s2", "f2", "n2", "v2");
@@ -517,7 +518,7 @@ public class ApiSbomServiceTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan scan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
-        ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata(ACTIVE, application.getId(), thirdPartyFile.getId());
     dao.insert(sbomMetadata);
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
@@ -605,7 +606,7 @@ public class ApiSbomServiceTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
-        ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata(ACTIVE, application.getId(), thirdPartyFile.getId());
     dao.insert(sbomMetadata);
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("org.apache.logging.log4j",
@@ -646,7 +647,7 @@ public class ApiSbomServiceTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
-        ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata(ACTIVE, application.getId(), thirdPartyFile.getId());
     dao.insert(sbomMetadata);
 
     ThirdPartyFileCoordinate coordinate1 =
@@ -682,7 +683,7 @@ public class ApiSbomServiceTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
-        ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata(ACTIVE, application.getId(), thirdPartyFile.getId());
     dao.insert(sbomMetadata);
 
     ThirdPartyFileCoordinate coordinate1 =
@@ -719,7 +720,7 @@ public class ApiSbomServiceTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan scan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
-        ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata(ACTIVE, application.getId(), thirdPartyFile.getId());
     dao.insert(sbomMetadata);
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
@@ -804,7 +805,7 @@ public class ApiSbomServiceTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan scan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
-        ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata(ACTIVE, application.getId(), thirdPartyFile.getId());
     dao.insert(sbomMetadata);
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
@@ -888,7 +889,7 @@ public class ApiSbomServiceTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan scan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
-        ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata(ACTIVE, application.getId(), thirdPartyFile.getId());
     dao.insert(sbomMetadata);
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("slf4j-log4j12", "1.7.12");
@@ -938,7 +939,7 @@ public class ApiSbomServiceTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan scan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
-        ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata(ACTIVE, application.getId(), thirdPartyFile.getId());
     dao.insert(sbomMetadata);
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
@@ -1024,7 +1025,7 @@ public class ApiSbomServiceTest
     SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
         .withSbomVersion("1.6")
-        .withStatus(SbomStatus.PENDING.name())
+        .withStatus(PENDING)
         .build();
 
     List<String> applicationVersionsSbomDTOS = service.getActiveSbomVersionListByApplication(app.getId());
@@ -1626,7 +1627,7 @@ public class ApiSbomServiceTest
     assertThat(thirdPartySbomMetadata.getSpec()).isEqualTo(SbomSpecification.CYCLONEDX.toString());
     assertThat(thirdPartySbomMetadata.getSpecFormat()).isEqualTo(SbomFormat.JSON.toString());
     assertThat(thirdPartySbomMetadata.getSpecVersion()).isEqualTo(ExportSpecification.DEFAULT.getVersion());
-    assertThat(thirdPartySbomMetadata.getStatus()).isEqualTo(SbomStatus.PENDING.toString());
+    assertThat(thirdPartySbomMetadata.getStatus()).isEqualTo(PENDING);
     assertThat(thirdPartySbomMetadata.getCreatedAt()).isNotNull();
     assertThat(thirdPartySbomMetadata.getScanType()).isEqualTo(SbomScanType.BINARY.toString());
     assertThat(thirdPartySbomMetadata.getMetadataJson()).isNotEmpty();
@@ -1775,7 +1776,7 @@ public class ApiSbomServiceTest
       assertThat(sbomMetadata.getSbomVersion()).isEqualTo(applicationVersion);
     }
     assertThat(sbomMetadata).isNotNull()
-        .hasFieldOrPropertyWithValue("status", SbomStatus.ACTIVE.name())
+        .hasFieldOrPropertyWithValue("status", ACTIVE)
         .hasFieldOrPropertyWithValue("isValid", isValid);
     ThirdPartyScan tpScan = thirdPartyScanDao.getByThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
     assertThat(tpScan.getFilteredScanFile()).isNotNull();

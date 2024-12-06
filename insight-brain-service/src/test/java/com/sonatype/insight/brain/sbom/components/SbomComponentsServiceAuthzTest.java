@@ -29,6 +29,7 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SbomComponentsServiceAuthzTest extends AbstractServiceAuthzTest
@@ -56,7 +57,7 @@ public class SbomComponentsServiceAuthzTest extends AbstractServiceAuthzTest
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
 
     sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE,
             thirdPartyFile.getFilename());
     component =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");

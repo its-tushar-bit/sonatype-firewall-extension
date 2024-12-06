@@ -37,6 +37,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
@@ -187,7 +188,7 @@ public class SbomMetadataUtilsTest
     Organization organization = tempEntity.newOrganization("Testing Organization");
     Application application = tempEntity.newApplication("Testing Application", "TESTING", organization.getId());
     final ThirdPartySbomMetadata thirdPartySbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(application.getId(), "PENDING", "test-file.xml");
+        tempEntity.newThirdPartySbomMetadata(application.getId(), PENDING, "test-file.xml");
     final ThirdPartySbomMetadata duplicateThirdPartySbomMetadata = new ThirdPartySbomMetadata();
     duplicateThirdPartySbomMetadata.setApplicationId(thirdPartySbomMetadata.getApplicationId());
     duplicateThirdPartySbomMetadata.setSbomVersion(thirdPartySbomMetadata.getSbomVersion());

@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
@@ -69,7 +70,6 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.SbomAction;
-import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -360,7 +360,7 @@ public class ApiSbomService
   @NotNull
   public ThirdPartySbomMetadata findSbomMetadataRecord(final String applicationId, final String version) {
     final ThirdPartySbomMetadata thirdPartySbomMetadata =
-        dao.getByApplicationIdAndSbomVersionAndStatus(applicationId, version, SbomStatus.ACTIVE.name());
+        dao.getByApplicationIdAndSbomVersionAndStatus(applicationId, version, ThirdPartySbomMetadataStatus.ACTIVE);
     if (thirdPartySbomMetadata == null) {
       throw new NotFoundException(String.format(cannotFindVersionError, version, applicationId));
     }

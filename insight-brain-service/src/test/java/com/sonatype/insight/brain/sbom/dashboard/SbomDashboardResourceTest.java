@@ -37,6 +37,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static com.sonatype.insight.brain.sbom.dashboard.SbomDashboardResource.SBOMS_ANALYZED_PATH;
 import static com.sonatype.insight.brain.sbom.dashboard.SbomDashboardResource.SBOMS_HIGH_PRIORITY_VULNERABILITIES;
 import static com.sonatype.insight.brain.sbom.dashboard.SbomDashboardResource.SBOMS_HISTORY_METRICS_PATH;
@@ -102,7 +103,7 @@ public class SbomDashboardResourceTest extends AbstractResourceTest
         .withThirdPartyFileId(thirdPartyScan6.getThirdPartyFileId()).build();
     newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan7.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus("PENDING").withApplicationId(app.getId())
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus(PENDING).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan8.getThirdPartyFileId()).build();
     newSbomMetadataBuilder(daoFactory).withCreatedAt(twoDaysAgo).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan9.getThirdPartyFileId()).build();
@@ -306,7 +307,7 @@ public class SbomDashboardResourceTest extends AbstractResourceTest
         .withCreatedAt(yesterday).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan7.getThirdPartyFileId()).build();
     ThirdPartySbomMetadata thirdPartySbomMetadata8 = newSbomMetadataBuilder(daoFactory)
-        .withCreatedAt(yesterday).withStatus("PENDING").withApplicationId(app.getId())
+        .withCreatedAt(yesterday).withStatus(PENDING).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan8.getThirdPartyFileId()).build();
     ThirdPartySbomMetadata thirdPartySbomMetadata9 = newSbomMetadataBuilder(daoFactory)
         .withCreatedAt(twoDaysAgo).withApplicationId(app.getId())
@@ -551,7 +552,7 @@ public class SbomDashboardResourceTest extends AbstractResourceTest
     newSbomMetadataBuilder(daoFactory).withCreatedAt(oneMonthAgo).build();
     newSbomMetadataBuilder(daoFactory).withCreatedAt(oneWeekAgo).build();
     newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus("PENDING").build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus(PENDING).build();
   }
 
   private void insertSbomDataAndComponentVulnerabilities() {
@@ -590,7 +591,7 @@ public class SbomDashboardResourceTest extends AbstractResourceTest
         .withThirdPartyFileId(thirdPartyScan6.getThirdPartyFileId()).build();
     newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan7.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus("PENDING").withApplicationId(app.getId())
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus(PENDING).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan8.getThirdPartyFileId()).build();
     newSbomMetadataBuilder(daoFactory).withCreatedAt(twoDaysAgo).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan9.getThirdPartyFileId()).build();

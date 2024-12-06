@@ -36,6 +36,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static com.sonatype.insight.brain.search.export.SearchRowFactory.Header.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -103,7 +104,7 @@ public class ApiAdvancedSearchResourceV2Test
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
         true,
-        "PENDING");
+        PENDING);
     restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
     awaitIndexCompletion();
 
@@ -155,7 +156,7 @@ public class ApiAdvancedSearchResourceV2Test
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
         true,
-        "PENDING");
+        PENDING);
     restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
     awaitIndexCompletion();
 

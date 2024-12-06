@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -22,7 +23,6 @@ import com.sonatype.insight.brain.report.ReportUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -153,7 +153,7 @@ public class SbomPolicyService
     ThirdPartySbomMetadata thirdPartySbomMetadata =
         thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(applicationId, sbomVersion);
     if (thirdPartySbomMetadata == null
-        || !thirdPartySbomMetadata.getStatus().replace("\n", "").equalsIgnoreCase(SbomStatus.ACTIVE.name())) {
+        || !ThirdPartySbomMetadataStatus.ACTIVE.equals(thirdPartySbomMetadata.getStatus())) {
       throw new NotFoundException(
           String.format("Cannot find version %s for application with ID %s.", sbomVersion, applicationId));
     }

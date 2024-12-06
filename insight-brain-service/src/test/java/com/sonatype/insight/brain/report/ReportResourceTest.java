@@ -67,7 +67,6 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
-import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -85,6 +84,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.report.ReportResource.BROWSE_PATH;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
 
@@ -483,7 +483,7 @@ public class ReportResourceTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile(originalSbom.getFileName().toString());
     tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), SbomStatus.ACTIVE.name(),
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE,
             thirdPartyFile.getFilename());
 
     HttpResponse response =
@@ -518,8 +518,7 @@ public class ReportResourceTest
     tempEntity.newSbomEvaluation(
         app, sbomVersion, "spec1",
         new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"),
-        "hash1", scanId, true,
-        "ACTIVE"
+        "hash1", scanId, true, ACTIVE
     );
 
     setFeatures(LicensedFeature.SBOM_MANAGER);
@@ -548,7 +547,7 @@ public class ReportResourceTest
     tempEntity.newSbomEvaluation(app, sbomVersion, "spec1",
          new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"),
         "1249e25aebb15358bedd", scanId, true,
-         "ACTIVE");
+         ACTIVE);
 
     setFeatures(LicensedFeature.SBOM_MANAGER);
     HttpResponse response = restRequest()
@@ -582,7 +581,7 @@ public class ReportResourceTest
     String sbomVersion = "sbomVersion1";
     tempEntity.newSbomEvaluation(app, sbomVersion, "spec1",
         new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "1249e25aebb15358bedd", scanId, true,
-        "ACTIVE");
+        ACTIVE);
 
     setFeatures(LicensedFeature.SBOM_MANAGER);
     HttpResponse response = restRequest()
@@ -615,7 +614,7 @@ public class ReportResourceTest
 
     String sbomVersion = "sbomVersion1";
     tempEntity.newSbomEvaluation(app, sbomVersion, "spec1",
-        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "hash1", scanId, true, "ACTIVE");
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "hash1", scanId, true, ACTIVE);
 
     setFeatures(LicensedFeature.SBOM_MANAGER);
 
@@ -646,7 +645,7 @@ public class ReportResourceTest
     String sbomVersion = "sbomVersion1";
 
     tempEntity.newSbomEvaluation(app, sbomVersion, "spec1",
-        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "hash1", scanId, true, "ACTIVE");
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "hash1", scanId, true, ACTIVE);
 
     setFeatures(LicensedFeature.SBOM_MANAGER);
 

@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.model.thirdpartyscans;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -51,7 +53,8 @@ public class ThirdPartySbomMetadata
   private String specVersion;
 
   @Column(name = "status")
-  private String status;
+  @Enumerated(EnumType.STRING)
+  private ThirdPartySbomMetadataStatus status;
 
   @Column(name = "created_at")
   private Date createdAt;
@@ -77,7 +80,7 @@ public class ThirdPartySbomMetadata
       String spec,
       String specFormat,
       String specVersion,
-      String status,
+      ThirdPartySbomMetadataStatus status,
       Date createdAt,
       String metadataJson,
       String scanType,
@@ -175,11 +178,11 @@ public class ThirdPartySbomMetadata
     this.specVersion = specVersion;
   }
 
-  public String getStatus() {
+  public ThirdPartySbomMetadataStatus getStatus() {
     return status;
   }
 
-  public void setStatus(String status) {
+  public void setStatus(ThirdPartySbomMetadataStatus status) {
     this.status = status;
   }
 

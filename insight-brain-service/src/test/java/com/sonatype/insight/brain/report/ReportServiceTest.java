@@ -83,6 +83,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -678,7 +679,7 @@ public class ReportServiceTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan("scanRequestId", scanId, thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.createSbomMetadata(app.getId(), "1", thirdPartyFile, "PENDING");
+        tempEntity.createSbomMetadata(app.getId(), "1", thirdPartyFile, PENDING);
     String sbomApplicationPath = tempDir.getRoot().toPath()
         .relativize(insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath()).normalize().toString();
     File sbomFile = tempDir.newFile(sbomApplicationPath + File.separator + sbomMetadata.getFilename());
@@ -711,7 +712,7 @@ public class ReportServiceTest
     tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, scanId);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan("scanRequestId", scanId, thirdPartyFile);
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(app.getId(), "1", thirdPartyFile, "PENDING");
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(app.getId(), "1", thirdPartyFile, PENDING);
     String sbomApplicationPath = tempDir.getRoot().toPath()
         .relativize(insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath()).normalize().toString();
     File sbomFile = tempDir.newFile(sbomApplicationPath + File.separator + sbomMetadata.getFilename());

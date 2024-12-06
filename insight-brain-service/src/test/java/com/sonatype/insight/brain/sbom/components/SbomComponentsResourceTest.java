@@ -31,6 +31,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.sbom.components.SbomComponentsResource.SBOM_SUMMARY_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -60,7 +61,7 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE,
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate component =
         tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae43", thirdPartyFile, "s1",

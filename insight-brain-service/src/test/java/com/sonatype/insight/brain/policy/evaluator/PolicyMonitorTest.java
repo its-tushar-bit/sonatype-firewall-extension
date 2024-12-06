@@ -75,6 +75,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -654,7 +655,7 @@ public class PolicyMonitorTest
     tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
 
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE", "xyz");
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, "xyz");
     tempEntity.newThirdPartyScan(scanId1, scanId1, thirdPartyFile, scanZip.getName());
 
     String newScanId = "PolicyMonitorTest_scanId2";
@@ -686,7 +687,7 @@ public class PolicyMonitorTest
     File scanZip = createScanFileZip(app, scanId1, "scan/scan-third-party.xml");
     createReportFile(app.getId(), scanId1, "/PolicyMonitorTest/report-third-party");
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE", "xyz");
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, "xyz");
     tempEntity.newThirdPartyScan(scanId1, scanId1, thirdPartyFile, scanZip.getName());
 
     String newScanId = "PolicyMonitorTest_scanId2";
@@ -748,7 +749,7 @@ public class PolicyMonitorTest
     tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
 
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE", "xyz");
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, "xyz");
 
     String newScanId = "PolicyMonitorTest_scanId2";
     mockScanReceiptAndReport(newScanId);
@@ -776,7 +777,7 @@ public class PolicyMonitorTest
     tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
 
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE", "xyz");
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, "xyz");
     tempEntity.newThirdPartyScan(scanId1, scanId1, thirdPartyFile, "scan/deleted.gz");
 
     String newScanId = "PolicyMonitorTest_scanId2";

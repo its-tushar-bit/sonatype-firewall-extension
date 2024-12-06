@@ -76,6 +76,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.w3c.dom.Document;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static com.sonatype.insight.scan.model.ItemContentType.IAC_FILE;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -260,7 +262,7 @@ public class ThirdPartyScanResultsProcessorTest
         "SPDX",
         "json",
         "2.3",
-        "PENDING",
+        PENDING,
         new Date(),
         creationDetailsToolsOnlyJson(),
         "SBOM",
@@ -354,7 +356,7 @@ public class ThirdPartyScanResultsProcessorTest
         "CycloneDx",
         "xml",
         "1.5",
-        SbomStatus.PENDING.name(),
+        PENDING,
         new Date(),
         null,
         "SBOM",
@@ -428,7 +430,7 @@ public class ThirdPartyScanResultsProcessorTest
         "CycloneDx",
         "xml",
         "1.1",
-        SbomStatus.PENDING.name(),
+        PENDING,
         new Date(),
         null,
         "SBOM",
@@ -714,7 +716,7 @@ public class ThirdPartyScanResultsProcessorTest
         "CycloneDx",
         "xml",
         "1.5",
-        SbomStatus.PENDING.name(),
+        PENDING,
         new Date(),
         creationDetailsJson(),
         "SBOM",
@@ -1130,8 +1132,7 @@ public class ThirdPartyScanResultsProcessorTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartySbomMetadata metadata =
-        ThirdPartySbomMetadataTestUtil.createSbomMetadata(SbomStatus.ACTIVE.name(), application.getId(),
-            thirdPartyFile.getId());
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata(ACTIVE, application.getId(), thirdPartyFile.getId());
 
     thirdPartySbomMetadataDAO.insert(metadata);
   }

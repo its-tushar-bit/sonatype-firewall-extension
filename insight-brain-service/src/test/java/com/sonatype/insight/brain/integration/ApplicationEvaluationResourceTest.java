@@ -39,7 +39,6 @@ import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
-import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -49,6 +48,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationEvaluationResourceTest
@@ -198,7 +198,7 @@ public class ApplicationEvaluationResourceTest
     assertThat(sbomMetadata.getSpec()).isEqualTo(SbomSpecification.CYCLONEDX.toString());
     assertThat(sbomMetadata.getSpecFormat()).isEqualTo(SbomFormat.JSON.toString());
     assertThat(sbomMetadata.getSpecVersion()).isEqualTo(ExportSpecification.DEFAULT.getVersion());
-    assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.toString());
+    assertThat(sbomMetadata.getStatus()).isEqualTo(ACTIVE);
   }
 
   private PolicyEvaluationPollingResult getPolicyEvaluationPollingResult(String applicationPublicId, String statusId)

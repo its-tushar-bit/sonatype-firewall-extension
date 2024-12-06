@@ -110,11 +110,11 @@ export default function FirewallQuarantineTable(props) {
                 Threat
               </NxTableCell>
               <NxTableCell
-                  id="policyName-header"
-                  className="iq-cell--policy-type"
-                  isSortable
-                  sortDir={sortField === 'policyName' ? sortDir : null}
-                  onClick={() => sortPage('policyName')}
+                id="policyName-header"
+                className="iq-cell--policy-type"
+                isSortable
+                sortDir={sortField === 'policyName' ? sortDir : null}
+                onClick={() => sortPage('policyName')}
               >
                 Policy Name
               </NxTableCell>
@@ -128,20 +128,20 @@ export default function FirewallQuarantineTable(props) {
                 Quarantine Time
               </NxTableCell>
               <NxTableCell
-                  id="component-header"
-                  className="iq-cell--component"
-                  isSortable
-                  sortDir={sortField === 'componentDisplayName' ? sortDir : null}
-                  onClick={() => sortPage('componentDisplayName')}
+                id="component-header"
+                className="iq-cell--component"
+                isSortable
+                sortDir={sortField === 'componentDisplayName' ? sortDir : null}
+                onClick={() => sortPage('componentDisplayName')}
               >
                 Component
               </NxTableCell>
               <NxTableCell
-                  id="repository-header"
-                  className="iq-cell--repository"
-                  isSortable
-                  sortDir={sortField === 'repositoryPublicId' ? sortDir : null}
-                  onClick={() => sortPage('repositoryPublicId')}
+                id="repository-header"
+                className="iq-cell--repository"
+                isSortable
+                sortDir={sortField === 'repositoryPublicId' ? sortDir : null}
+                onClick={() => sortPage('repositoryPublicId')}
               >
                 Repository
               </NxTableCell>

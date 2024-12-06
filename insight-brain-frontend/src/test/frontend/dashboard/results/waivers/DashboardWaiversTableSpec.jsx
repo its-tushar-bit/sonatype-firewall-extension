@@ -207,11 +207,6 @@ describe('DashboardWaiversTable', function () {
         roleName: /Scope/,
         filter: ['scope', '-scope'],
       },
-      {
-        columnName: 'Components',
-        roleName: 'Components',
-        filter: ['component', '-component'],
-      },
     ];
     columns.forEach((column) => {
       column.filter.forEach((filter) => {

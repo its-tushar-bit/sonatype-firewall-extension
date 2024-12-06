@@ -194,15 +194,7 @@ public class DashboardComponentsTest
     };
     assertComponentsCsv(exportCsv, expectedResults);
 
-    // sort by name
     ComponentsHeaders headers = DashboardPage.componentsView().headers();
-    headers.componentNameHeader().click();
-    table.components().shouldHave(texts(
-        "Group1 : Artifact1 : Version1",  //
-        "Group2 : Artifact2 : Version2",  //
-        "Group3 : Artifact3 : Version3",  //
-        "Group4 : Artifact4 : Version4"   //
-    ));
 
     // sort by Low Risk
     headers.lowRiskHeader().click();
@@ -370,22 +362,6 @@ public class DashboardComponentsTest
     table.firstComponent().affectedApps().shouldHave(text("1"));
     table.component(40).affectedApps().shouldHave(text("1"));
     table.lastComponent().affectedApps().shouldHave(text("1"));
-
-    // sort by name asc
-    headers.componentNameHeader().click();
-    headers.componentNameHeader().sortArrows().shouldBeUp();
-    table.firstComponent().name().shouldHave(text("critical"));
-    table.component(40).name().shouldHave(text("low"));
-    table.component(80).name().shouldHave(text("moderate"));
-    table.lastComponent().name().shouldHave(text("moderate"));
-
-    // sort by name desc
-    headers.componentNameHeader().click();
-    headers.componentNameHeader().sortArrows().shouldBeDown();
-    table.firstComponent().name().shouldHave(text("severe"));
-    table.component(40).name().shouldHave(text("moderate"));
-    table.component(80).name().shouldHave(text("low"));
-    table.lastComponent().name().shouldHave(text("low"));
 
     // sort by criticalRisk desc
     headers.criticalRiskHeader().click();

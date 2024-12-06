@@ -354,29 +354,6 @@ public class DashboardViolationsTest
     );
     assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
-    // sort by component name
-    headers.componentHeader().click();
-    firstViolation.shouldHave(text("g1 : a1 : v1"));
-    table.lastViolation().shouldHave(text("g3 : a3 : v3"));
-    headers.componentHeader().click();
-    firstViolation.shouldHave(text("g3 : a3 : v3"));
-    table.lastViolation().shouldHave(text("g1 : a1 : v1"));
-
-    // check the csv export sorting
-    DashboardPage.exportResultsLink().click();
-    exportCsv = new String(responseCopyHandler.consumeResponse());
-    expectedResults = ImmutableMap.of(
-        "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo, //
-        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT Org2,DVT App2 With A Long Name Just To Force "
-            + "Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
-        twoDaysAgo, //
-        "1,DVTLicensePolicy,DVT Org2,DVT App2 With A Long Name Just To Force Overflow,"
-            + "g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
-        twoDaysAgo, //
-        "7,DVTLicensePolicy,DVT Org1,DVT App1,g1 : a1 : v1", now //
-    );
-    assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
-
     // CSV export - filter out threat level 1
     DashboardPage.expandFilter();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
@@ -386,12 +363,13 @@ public class DashboardViolationsTest
 
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
+
     expectedResults = ImmutableMap.of(
-        "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo, //
         "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT Org2,DVT App2 With A Long Name Just To Force "
             + "Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
         twoDaysAgo, //
-        "7,DVTLicensePolicy,DVT Org1,DVT App1,g1 : a1 : v1", now //
+        "7,DVTLicensePolicy,DVT Org1,DVT App1,g1 : a1 : v1", now, //
+        "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo //
     );
     assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
@@ -404,11 +382,13 @@ public class DashboardViolationsTest
     DashboardFilters.closeFilter();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
+
     expectedResults = ImmutableMap.of(
-        "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo, //
         "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT Org2,DVT App2 With A Long Name Just To Force "
             + "Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
-        twoDaysAgo //
+        twoDaysAgo, //
+        "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3",
+        oneWeekAgo //
     );
     assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
@@ -740,42 +720,6 @@ public class DashboardViolationsTest
 
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-
-    // sort by component name asc, threat desc
-    headers.componentHeader().click();
-    headers.componentHeader().sortArrows().shouldBeUp();
-    table.firstViolation().component().shouldHave(text("group1"));
-    table.firstViolation().threatNumber().shouldHave(text("5"));
-
-    table.violation(25).component().shouldHave(text("group1"));
-    table.violation(25).threatNumber().shouldHave(text("4"));
-
-    table.violation(50).component().shouldHave(text("group2"));
-    table.violation(50).threatNumber().shouldHave(text("5"));
-
-    table.violation(75).component().shouldHave(text("group2"));
-    table.violation(75).threatNumber().shouldHave(text("4"));
-
-    table.lastViolation().component().shouldHave(text("group2"));
-    table.lastViolation().threatNumber().shouldHave(text("4"));
-
-    // sort by component name desc, threat desc
-    headers.componentHeader().click();
-    headers.componentHeader().sortArrows().shouldBeDown();
-    table.firstViolation().component().shouldHave(text("group2"));
-    table.firstViolation().threatNumber().shouldHave(text("5"));
-
-    table.violation(25).component().shouldHave(text("group2"));
-    table.violation(25).threatNumber().shouldHave(text("4"));
-
-    table.violation(50).component().shouldHave(text("group2"));
-    table.violation(50).threatNumber().shouldHave(text("2"));
-
-    table.violation(75).component().shouldHave(text("group1"));
-    table.violation(75).threatNumber().shouldHave(text("5"));
-
-    table.lastViolation().component().shouldHave(text("group1"));
-    table.lastViolation().threatNumber().shouldHave(text("5"));
   }
 
   @Test

@@ -68,13 +68,7 @@ export default function DashboardComponentsTable(props) {
       <NxTable className="nx-table--fixed-layout">
         <NxTableHead>
           <NxTableRow>
-            <NxTableCell
-              onClick={() => sort('derivedComponentName')}
-              sortDir={sortDir('derivedComponentName')}
-              isSortable
-            >
-              Name
-            </NxTableCell>
+            <NxTableCell>Name</NxTableCell>
             <NxTableCell
               className={'nx-cell--num iq-cell--affected-app'}
               onClick={() => sort('-affectedApplications')}

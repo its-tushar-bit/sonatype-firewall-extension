@@ -216,7 +216,9 @@ describe('DashboardComponentsTable', function () {
         headerRow = head.find(NxTableRow),
         headers = headerRow.find(NxTableCell);
 
-      expect(headers.at(0)).toHaveProp('sortDir', null);
+      // The first column 'Name' is not sortable
+      expect(headers.at(0)).not.toHaveProp('sortDir', null);
+
       expect(headers.at(1)).toHaveProp('sortDir', null);
 
       // This column represents the threat score, which is the default sorting
@@ -228,54 +230,15 @@ describe('DashboardComponentsTable', function () {
       expect(headers.at(6)).toHaveProp('sortDir', null);
     });
 
-    it('calls sortComponents with derivedComponentName if clicked none to asc', function () {
+    it('does not call sortComponents for the name column', function () {
       const dashboardComponentTable = getMountedComponent(defaultPropsForSortChecks),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
         derivedComponentNameHeader = headerRow.find(NxTableCell).at(0);
 
-      expect(derivedComponentNameHeader).toHaveProp('sortDir', null);
-      derivedComponentNameHeader.simulate('click');
-      expect(minimalProps.sortComponents).toHaveBeenCalledWith(['derivedComponentName']);
-    });
-
-    it('calls sortComponents with -derivedComponentName if clicked asc to desc', function () {
-      const dashboardComponentProps = {
-        componentResults: {
-          ...dashboardComponentMinProps.componentResults,
-          results: componentsToDisplay,
-          sortFields: ['derivedComponentName'],
-        },
-      };
-      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
-        table = dashboardComponentTable.find(NxTable),
-        head = table.find(NxTableHead),
-        headerRow = head.find(NxTableRow),
-        derivedComponentNameHeader = headerRow.find(NxTableCell).at(0);
-
-      expect(derivedComponentNameHeader).toHaveProp('sortDir', 'asc');
-      derivedComponentNameHeader.simulate('click');
-      expect(minimalProps.sortComponents).toHaveBeenCalledWith(['-derivedComponentName']);
-    });
-
-    it('calls sortComponents with derivedComponentName if clicked desc to asc', function () {
-      const dashboardComponentProps = {
-        componentResults: {
-          ...dashboardComponentMinProps.componentResults,
-          results: componentsToDisplay,
-          sortFields: ['-derivedComponentName'],
-        },
-      };
-      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
-        table = dashboardComponentTable.find(NxTable),
-        head = table.find(NxTableHead),
-        headerRow = head.find(NxTableRow),
-        derivedComponentNameHeader = headerRow.find(NxTableCell).at(0);
-
-      expect(derivedComponentNameHeader).toHaveProp('sortDir', 'desc');
-      derivedComponentNameHeader.simulate('click');
-      expect(minimalProps.sortComponents).toHaveBeenCalledWith(['derivedComponentName']);
+      expect(derivedComponentNameHeader).not.toHaveProp('isSortable');
+      expect(derivedComponentNameHeader).not.toHaveProp('sortDir');
     });
 
     it('calls sortComponents with -affectedApplications if clicked none to desc', function () {

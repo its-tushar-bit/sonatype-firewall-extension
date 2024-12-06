@@ -279,12 +279,11 @@ describe('DashboardViolationsTable', function () {
       expect(sortViolationsSpy).toHaveBeenCalledWith(['applicationName', '-threatLevel']);
     });
 
-    it('calls the sortViolations function with the component column fields if clicked: asc to desc', () => {
+    it('does not call the sortViolations function for the components column', () => {
       const props = {
         ...minimalProps,
         violations: {
           ...minimalProps.violations,
-          sortFields: ['derivedComponentName', '-threatLevel'],
         },
       };
       const component = getShallowComponent(props),
@@ -292,31 +291,8 @@ describe('DashboardViolationsTable', function () {
         headerRow = table.find(NxTableHead).find(NxTableRow),
         componentHeaderCell = headerRow.childAt(3);
 
-      expect(componentHeaderCell).toHaveProp('isSortable');
-      expect(componentHeaderCell).toHaveProp('sortDir', 'asc');
-
-      componentHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith(['-derivedComponentName', '-threatLevel']);
-    });
-
-    it('calls the sortViolations function with the component column fields if clicked: desc to asc', () => {
-      const props = {
-        ...minimalProps,
-        violations: {
-          ...minimalProps.violations,
-          sortFields: ['-derivedComponentName', '-threatLevel'],
-        },
-      };
-      const component = getShallowComponent(props),
-        table = component.find(NxTable),
-        headerRow = table.find(NxTableHead).find(NxTableRow),
-        componentHeaderCell = headerRow.childAt(3);
-
-      expect(componentHeaderCell).toHaveProp('isSortable');
-      expect(componentHeaderCell).toHaveProp('sortDir', 'desc');
-
-      componentHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith(['derivedComponentName', '-threatLevel']);
+      expect(componentHeaderCell).not.toHaveProp('isSortable');
+      expect(componentHeaderCell).not.toHaveProp('sortDir');
     });
 
     it('calls the sortViolations function with the age column fields if clicked: desc to asc', () => {

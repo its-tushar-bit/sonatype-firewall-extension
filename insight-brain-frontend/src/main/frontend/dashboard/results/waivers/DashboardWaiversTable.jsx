@@ -15,14 +15,7 @@ import NeedsAcknowledgementInfoRow from '../NeedsAcknowledgementInfoRow';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { extractSortFieldName } from 'MainRoot/util/sortUtils';
 
-const DEFAULT_SORT_FIELDS = [
-  ['-threatLevel'],
-  ['createTime'],
-  ['expiryTime'],
-  ['policyName'],
-  ['scope'],
-  ['component'],
-];
+const DEFAULT_SORT_FIELDS = [['-threatLevel'], ['createTime'], ['expiryTime'], ['policyName'], ['scope']];
 
 export default function DashboardWaiversTable(props) {
   const {
@@ -121,9 +114,7 @@ export default function DashboardWaiversTable(props) {
             <NxTable.Cell onClick={() => doSort(4)} sortDir={getColumnDirection(4)} isSortable>
               Scope
             </NxTable.Cell>
-            <NxTable.Cell onClick={() => doSort(5)} sortDir={getColumnDirection(5)} isSortable>
-              Components
-            </NxTable.Cell>
+            <NxTable.Cell>Components</NxTable.Cell>
             <NxTable.Cell className="iq-upgrade-header">Upgrade</NxTable.Cell>
             <NxTable.Cell chevron />
           </NxTable.Row>

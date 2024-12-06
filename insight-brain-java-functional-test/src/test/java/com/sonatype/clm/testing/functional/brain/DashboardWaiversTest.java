@@ -623,31 +623,6 @@ public class DashboardWaiversTest
     assertWaiversCsv(exportCsvData, expectedResults);
   }
 
-  @Ignore("This test is flaky and will be fixed by CLM-32946")
-  @Test
-  public void testWaiversTable_sortByComponent() {
-    refreshOrOpen(DashboardPage.urlToWaivers());
-    DashboardPage.waitUntilSpinnersGone();
-
-    policyWaivers = createWaivers();
-    refresh();
-    DashboardPage.waitUntilSpinnersGone();
-
-    // sort by component
-    headers.componentHeader().click();
-
-    String exportCsvData = exportWaiversCSV();
-    DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
-
-    // assert table
-    table.firstWaiver().component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
-    table.lastWaiver().component().shouldHave(text("All Components"));
-
-    // assert csv export
-    String[] expectedResults = buildExpectedCsvExportDataBySortColumn(policyWaivers, "component");
-    assertWaiversCsv(exportCsvData, expectedResults);
-  }
-
   private void assertWaiversCsv(String csv, String[] expectedSortedResults) {
     String[] lines = csv.split("\r\n");
 

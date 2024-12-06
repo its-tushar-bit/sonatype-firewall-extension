@@ -26,7 +26,6 @@ const DEFAULT_SORT_FIELDS = [
   ['-threatLevel', '-firstOccurrenceTime'],
   ['policyName', '-firstOccurrenceTime'],
   ['applicationName', '-threatLevel'],
-  ['derivedComponentName', '-threatLevel'],
   ['-firstOccurrenceTime', '-threatLevel'],
 ];
 
@@ -112,13 +111,11 @@ export default function DashboardViolationsTable(props) {
             <NxTableCell onClick={() => doSort(2)} sortDir={getColumnDirection(2)} isSortable>
               Application
             </NxTableCell>
-            <NxTableCell onClick={() => doSort(3)} sortDir={getColumnDirection(3)} isSortable>
-              Component
-            </NxTableCell>
+            <NxTableCell>Component</NxTableCell>
             <NxTableCell
               className="iq-size-controlled-cell"
-              onClick={() => doSort(4)}
-              sortDir={getColumnDirection(4, true)}
+              onClick={() => doSort(3)}
+              sortDir={getColumnDirection(3, true)}
               isSortable
             >
               Age

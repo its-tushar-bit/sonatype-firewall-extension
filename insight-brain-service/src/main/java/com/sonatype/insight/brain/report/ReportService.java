@@ -46,8 +46,8 @@ import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ReportUtils.DATA_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ReportUtils.SECURITY_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ReportDataStore.DATA_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ReportDataStore.SECURITY_JSON_FILENAME;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME;
 
 @Named
@@ -79,7 +79,7 @@ public class ReportService
 
   private final SbomMetadataUtils sbomMetadataUtils;
 
-  private ReportUtils reportUtils;
+  private ReportDataStore reportDataStore;
 
   @Inject
   public ReportService(
@@ -95,7 +95,7 @@ public class ReportService
       H2ApplicationRiskService applicationRiskService,
       ProductLicense productLicense,
       SbomMetadataUtils sbomMetadataUtils,
-      ReportUtils reportUtils)
+      ReportDataStore reportDataStore)
   {
     this.work = work;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -109,53 +109,54 @@ public class ReportService
     this.applicationRiskService = applicationRiskService;
     this.productLicense = productLicense;
     this.sbomMetadataUtils = sbomMetadataUtils;
-    this.reportUtils = reportUtils;
+    this.reportDataStore = reportDataStore;
   }
 
-  public Report fetchReport(final Application app, final String scanId)
+  public ApplicationReport fetchReport(final Application app, final String scanId)
       throws IOException
   {
     String appId = app.getId();
-    final Report reportFile = reportUtils.getFileReport(appId, scanId);
-    if (!reportFile.exists()) {
+    ApplicationReport applicationReport = reportDataStore.getFileReport(appId, scanId);
+    if (!applicationReport.exists()) {
       int reportTimeoutInSeconds = configuration.getReportTimeoutInSeconds();
-      Report tempFile = reportUtils.tempReport(reportFile);
+      ApplicationReport tempApplicationReport = reportDataStore.tempReport(applicationReport);
 
-      if (!reportUtils.downloadReport(scanId, tempFile, reportTimeoutInSeconds, 5)) {
+      if (!reportDataStore.downloadReport(scanId, tempApplicationReport, reportTimeoutInSeconds, 5)) {
         throw new NotFoundException("Could not download the report for scan ID " + scanId);
       }
-      processThirdPartyData(scanId, tempFile, appId);
-      reportUtils.rename(tempFile, reportFile);
+      processThirdPartyData(scanId, tempApplicationReport, appId);
+      reportDataStore.rename(tempApplicationReport, applicationReport);
     }
 
-    reportUtils.applyChanges(app, reportFile, repositoryMatcher, telemetrySender, telemetryUtils, configuration);
-    thirdPartyDataService.mergeSonatypeDataWithSbomDataWithIndexing(scanId, reportFile);
+    reportDataStore.applyChanges(app, applicationReport, repositoryMatcher, telemetrySender, telemetryUtils,
+        configuration);
+    thirdPartyDataService.mergeSonatypeDataWithSbomDataWithIndexing(scanId, applicationReport);
 
-    return reportFile;
+    return applicationReport;
   }
 
   //visible for testing
-  void includeThirdPartyData(final Report reportFile, final ThirdPartyApplicationReportDTO dto)
+  void includeThirdPartyData(final ApplicationReport applicationReport, final ThirdPartyApplicationReportDTO dto)
       throws IOException
   {
     if (dto != null) {
-      reportUtils.appendToReport(reportFile, dto);
+      reportDataStore.appendToReport(applicationReport, dto);
     }
   }
 
   @VisibleForTesting
-  void processThirdPartyData(final String scanId, final Report tempFile, final String appId)
+  void processThirdPartyData(final String scanId, final ApplicationReport tempApplicationReport, final String appId)
       throws IOException
   {
     ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO = thirdPartyDataService.getScanData(scanId);
     ThirdPartyApplicationReportDTO thirdPartyApplicationReportForInfrastructureAsCodeDTO =
-        thirdPartyDataService.loadThirdPartyInfrastructureAsCodeData(tempFile, appId);
+        thirdPartyDataService.loadThirdPartyInfrastructureAsCodeData(tempApplicationReport, appId);
     if (thirdPartyApplicationReportDTO != null) {
       thirdPartyApplicationReportDTO.billOfMaterials
           .addAll(thirdPartyApplicationReportForInfrastructureAsCodeDTO.billOfMaterials);
       thirdPartyApplicationReportDTO.securityRows
           .addAll(thirdPartyApplicationReportForInfrastructureAsCodeDTO.securityRows);
-      includeThirdPartyData(tempFile, thirdPartyApplicationReportDTO);
+      includeThirdPartyData(tempApplicationReport, thirdPartyApplicationReportDTO);
       thirdPartyDataService.indexVulnerabilities(scanId);
 
       if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER) ||
@@ -181,14 +182,14 @@ public class ReportService
       String scanId,
       String path)
   {
-    final String name = reportUtils.toEntryName(path);
+    final String name = reportDataStore.toEntryName(path);
     auditBrowseReport(scanId, name);
-    final Report reportFile = getReport(appPublicId, scanId);
+    final ApplicationReport applicationReport = getReport(appPublicId, scanId);
     ReportEntry reportEntry = null;
     try {
-      reportEntry = reportUtils.getEntry(reportFile, name);
+      reportEntry = reportDataStore.getEntry(applicationReport, name);
       if (SECURITY_JSON_FILENAME.equals(name)) {
-        reportEntry = loadCombinedSecurityData(reportEntry, reportFile);
+        reportEntry = loadCombinedSecurityData(reportEntry, applicationReport);
       }
     }
     catch (final Exception e) {
@@ -197,9 +198,11 @@ public class ReportService
     return reportEntry;
   }
 
-  private ReportEntry loadCombinedSecurityData(ReportEntry reportEntry, Report reportFile) throws IOException {
+  private ReportEntry loadCombinedSecurityData(ReportEntry reportEntry, ApplicationReport applicationReport)
+      throws IOException
+  {
     ReportEntry thirdPartyReportEntry =
-        reportUtils.getEntry(reportFile, THIRD_PARTY_SECURITY_JSON_FILENAME);
+        reportDataStore.getEntry(applicationReport, THIRD_PARTY_SECURITY_JSON_FILENAME);
     if (reportEntry != null && thirdPartyReportEntry != null) {
       ContainerNode<?> thirdPartySecurityNode = JsonUtils.parse(thirdPartyReportEntry.buf);
       ContainerNode<?> securityNode = JsonUtils.parse(reportEntry.buf);
@@ -212,10 +215,10 @@ public class ReportService
     return reportEntry;
   }
 
-  public Report getReport(final String appId, final String scanId) {
-    Report reportFile = reportUtils.getFileReport(appId, scanId);
-    if (reportFile.exists()) {
-      return reportFile;
+  public ApplicationReport getReport(final String appId, final String scanId) {
+    ApplicationReport applicationReport = reportDataStore.getFileReport(appId, scanId);
+    if (applicationReport.exists()) {
+      return applicationReport;
     }
 
     if (policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId) != null) {
@@ -243,8 +246,8 @@ public class ReportService
     ReportMetadataDTO metadata = new ReportMetadataDTO();
     metadata.setApplication(application);
 
-    Report reportFile = getReport(application.getId(), scanId);
-    final ContainerNode<?> data = JsonUtils.parse(reportUtils.getEntry(reportFile, DATA_JSON_FILENAME).buf);
+    ApplicationReport applicationReport = getReport(application.getId(), scanId);
+    final ContainerNode<?> data = JsonUtils.parse(reportDataStore.getEntry(applicationReport, DATA_JSON_FILENAME).buf);
     boolean expandedCoverage = data.path("globals").path("expandedCoverage").booleanValue();
     if (expandedCoverage) {
       throw new BadRequestException(
@@ -272,7 +275,7 @@ public class ReportService
     }
 
     // For NVS where a scanLabel is set for the application name and the stage name doesn't matter
-    if (reportUtils.getEntry(reportFile, "template.properties") != null) {
+    if (reportDataStore.getEntry(applicationReport, "template.properties") != null) {
       JsonNode scanLabelNode = data.path("scanLabel");
       if (scanLabelNode.isTextual()) {
         metadata.getApplication().setName(scanLabelNode.asText());
@@ -306,9 +309,9 @@ public class ReportService
     if (policyEvaluation == null) {
       return null;
     }
-    Report reportFile = getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
+    ApplicationReport applicationReport = getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
 
-    return reportUtils.getEntry(reportFile, "bom.json");
+    return reportDataStore.getEntry(applicationReport, "bom.json");
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -318,8 +321,8 @@ public class ReportService
       String entryName,
       byte[] bufferData) throws IOException
   {
-    Report reportFile = getReport(appInternalId, scanId);
-    reportUtils.putEntry(reportFile, entryName, bufferData);
+    ApplicationReport applicationReport = getReport(appInternalId, scanId);
+    reportDataStore.putEntry(applicationReport, entryName, bufferData);
   }
 
   public PolicyThreats getPolicyThreats(
@@ -327,10 +330,10 @@ public class ReportService
       final String scanId)
   {
     final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    final Report reportFile = getReport(application.getId(), scanId);
+    final ApplicationReport applicationReport = getReport(application.getId(), scanId);
 
     try {
-      final ReportEntry reportEntry = reportUtils.getEntry(reportFile, ReportUtils.POLICY_THREATS);
+      final ReportEntry reportEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.POLICY_THREATS);
 
       if (reportEntry == null) {
         throw new NotFoundException(String.format("Report policy threats entry is missing for the requested " +
@@ -344,12 +347,12 @@ public class ReportService
     }
   }
 
-  public ReportEntry getEntry(final Report reportFile, final String name) throws IOException {
-    return reportUtils.getEntry(reportFile, name);
+  public ReportEntry getEntry(final ApplicationReport applicationReport, final String name) throws IOException {
+    return reportDataStore.getEntry(applicationReport, name);
   }
 
   @VisibleForTesting
-  public void setReportUtils(final ReportUtils reportUtils) {
-    this.reportUtils = reportUtils;
+  public void setReportUtils(final ReportDataStore reportDataStore) {
+    this.reportDataStore = reportDataStore;
   }
 }

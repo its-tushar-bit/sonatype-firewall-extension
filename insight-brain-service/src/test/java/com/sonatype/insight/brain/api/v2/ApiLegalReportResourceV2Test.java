@@ -35,7 +35,7 @@ import com.sonatype.insight.brain.model.legal.AttributionReportTemplate;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.report.FileReportUtils;
+import com.sonatype.insight.brain.report.FileReportDataStore;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
@@ -59,7 +59,7 @@ public class ApiLegalReportResourceV2Test
   private static final String EMPTY_JSON_ARRAY = "[]";
 
   @Inject
-  private FileReportUtils reportUtils;
+  private FileReportDataStore reportUtils;
 
   @Override
   protected HttpRequest restRequest() {

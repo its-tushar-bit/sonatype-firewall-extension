@@ -26,8 +26,8 @@ import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.report.Report;
-import com.sonatype.insight.brain.report.FileReport;
+import com.sonatype.insight.brain.report.FileReportEntity;
+import com.sonatype.insight.brain.report.ReportPdf;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicense;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicenseThreat;
@@ -175,7 +175,7 @@ public class PdfGenerator
   private final Predicate<PdfComponentPolicyViolation> isActiveViolation =
       violation -> !violation.waived && !violation.legacyViolation;
 
-  private Report pdfFile;
+  private ReportPdf reportPdf;
 
   private PDDocument pdf;
 
@@ -224,14 +224,14 @@ public class PdfGenerator
   }
 
   // Visible for testing
-  PdfGenerator(Report pdfFile, PdfData pdfData, Context productContext) {
-    this.pdfFile = pdfFile;
+  PdfGenerator(ReportPdf reportPdf, PdfData pdfData, Context productContext) {
+    this.reportPdf = reportPdf;
     this.pdfData = pdfData;
     this.productContext = productContext;
   }
 
-  PdfGenerator(Report pdfFile, PdfData pdfData) {
-    this(pdfFile, pdfData, Context.LIFECYCLE);
+  PdfGenerator(ReportPdf reportPdf, PdfData pdfData) {
+    this(reportPdf, pdfData, Context.LIFECYCLE);
   }
 
   private void generate() throws IOException {
@@ -257,7 +257,7 @@ public class PdfGenerator
     addLicensesSection();
     addBomSection();
     addPageNumbers();
-    try (OutputStream outputStream = pdfFile.getOutputStream()) {
+    try (OutputStream outputStream = reportPdf.getOutputStream()) {
       pdf.save(outputStream);
     }
   }
@@ -1147,8 +1147,8 @@ public class PdfGenerator
         .max(Integer::compareTo).orElse(0);
   }
 
-  public static Report getPdfFile(InsightWork insightWork, final String appId, final String scanId) {
-    return new FileReport(new File(insightWork.getReportDir(appId, scanId), REPORT_FILE_NAME));
+  public static ReportPdf getPdfFile(InsightWork insightWork, final String appId, final String scanId) {
+    return new FileReportEntity(new File(insightWork.getReportDir(appId, scanId), REPORT_FILE_NAME));
   }
 
   /**
@@ -1238,33 +1238,33 @@ public class PdfGenerator
         .draw(() -> pdf, PdfGenerator::newPage, MEDIA_BOX_SIZE.getHeight() - CROP_BOX_SIZE.getHeight() + MARGIN);
   }
 
-  public static void generate(Report pdfFile, PdfData pdfData) throws IOException {
-    generate(pdfFile, pdfData, Context.LIFECYCLE);
+  public static void generate(ReportPdf reportPdf, PdfData pdfData) throws IOException {
+    generate(reportPdf, pdfData, Context.LIFECYCLE);
   }
 
-  public static void generate(Report pdfFile, PdfData pdfData, Context productContext) throws IOException {
-    if (pdfFile.canCreate()) {
+  public static void generate(ReportPdf reportPdf, PdfData pdfData, Context productContext) throws IOException {
+    if (reportPdf.canCreate()) {
       try {
-        log.debug("Generating report PDF {}", pdfFile);
+        log.debug("Generating report PDF {}", reportPdf);
         long millis = System.currentTimeMillis();
 
-        new PdfGenerator(pdfFile, pdfData, productContext).generate();
-        if (pdfFile.length() <= 0) {
-          throw new IOException("Could not generate report " + pdfFile);
+        new PdfGenerator(reportPdf, pdfData, productContext).generate();
+        if (reportPdf.length() <= 0) {
+          throw new IOException("Could not generate report " + reportPdf);
         }
 
         millis = System.currentTimeMillis() - millis;
-        log.debug("Generated report PDF {} in {} ms", pdfFile, millis);
+        log.debug("Generated report PDF {} in {} ms", reportPdf, millis);
       }
       catch (Exception e) {
         try {
-          pdfFile.deleteIfExists();
+          reportPdf.deleteIfExists();
         }
         catch (Exception suppressed) {
           e.addSuppressed(suppressed);
         }
-        if (pdfFile.exists()) {
-          log.error("Could not delete broken PDF {}", pdfFile);
+        if (reportPdf.exists()) {
+          log.error("Could not delete broken PDF {}", reportPdf);
         }
         throw e;
       }

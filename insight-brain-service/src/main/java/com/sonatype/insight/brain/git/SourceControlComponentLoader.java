@@ -15,17 +15,17 @@ import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails.ComponentInfo;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ReportUtils;
+import com.sonatype.insight.brain.report.ApplicationReport;
 
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -43,19 +43,19 @@ public class SourceControlComponentLoader
 
   private final ComponentLoaderFactory componentLoaderFactory;
 
-  private final ReportUtils reportUtils;
+  private final ReportDataStore reportDataStore;
 
   @Inject
   SourceControlComponentLoader(
       final ReportService reportService,
       final ApplicationDAO applicationDAO,
       final ComponentLoaderFactory componentLoaderFactory,
-      final ReportUtils reportUtils)
+      final ReportDataStore reportDataStore)
   {
     this.reportService = reportService;
     this.applicationDAO = applicationDAO;
     this.componentLoaderFactory = componentLoaderFactory;
-    this.reportUtils = reportUtils;
+    this.reportDataStore = reportDataStore;
   }
 
   public SourceControlComponentDetails getSourceControlComponentDetails(
@@ -75,9 +75,10 @@ public class SourceControlComponentLoader
 
     final SourceControlComponentDetails componentDetails = new SourceControlComponentDetails();
 
-    Report reportFile = reportService.getReport(application.getId(), scanId);
-    ReportEntry bomReportEntry = reportUtils.getEntry(reportFile, ReportUtils.BOM_JSON_FILENAME);
-    ReportEntry dependenciesReportEntry = reportUtils.getEntry(reportFile, ReportUtils.DEPENDENCIES_JSON_FILENAME);
+    ApplicationReport applicationReport = reportService.getReport(application.getId(), scanId);
+    ReportEntry bomReportEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.BOM_JSON_FILENAME);
+    ReportEntry dependenciesReportEntry =
+        reportDataStore.getEntry(applicationReport, ReportDataStore.DEPENDENCIES_JSON_FILENAME);
 
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(application);
     List<Component> components;

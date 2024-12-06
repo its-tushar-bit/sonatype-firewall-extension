@@ -77,7 +77,7 @@ import org.codehaus.plexus.util.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ReportUtils.setMavenCoordinatesWithExtension;
+import static com.sonatype.insight.brain.report.ReportDataStore.setMavenCoordinatesWithExtension;
 
 @Named
 public class RepositoryMatcher

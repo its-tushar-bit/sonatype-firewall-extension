@@ -11,10 +11,10 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ReportPopularity;
-import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ReportUtils;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.cache.CacheLoader;
@@ -27,17 +27,17 @@ public class ReportItemCacheLoader
 
   private final ApplicationDAO applicationDAO;
 
-  private final ReportUtils reportUtils;
+  private final ReportDataStore reportDataStore;
 
   @Inject
   public ReportItemCacheLoader(
       ReportService reportService,
       ApplicationDAO applicationDAO,
-      ReportUtils reportUtils)
+      ReportDataStore reportDataStore)
   {
     this.reportService = reportService;
     this.applicationDAO = applicationDAO;
-    this.reportUtils = reportUtils;
+    this.reportDataStore = reportDataStore;
   }
 
   @Override
@@ -45,9 +45,9 @@ public class ReportItemCacheLoader
     Application application = applicationDAO.getByPublicIdNotNull(key.getApplicationPublicId());
     String appId = application.getId();
 
-    final String name = reportUtils.toEntryName("popularity.json");
-    final Report reportFile = reportService.getReport(appId, key.getScanId());
-    ReportEntry reportEntry = reportUtils.getEntry(reportFile, name);
+    final String name = reportDataStore.toEntryName("popularity.json");
+    final ApplicationReport applicationReport = reportService.getReport(appId, key.getScanId());
+    ReportEntry reportEntry = reportDataStore.getEntry(applicationReport, name);
 
     if (reportEntry == null) {
       throw new IllegalStateException("popularity.json is missing from report for scan " + key.getScanId());

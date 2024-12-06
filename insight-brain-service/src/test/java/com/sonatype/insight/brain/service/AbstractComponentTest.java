@@ -46,7 +46,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache;
-import com.sonatype.insight.brain.report.FileReportUtils;
+import com.sonatype.insight.brain.report.FileReportDataStore;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
@@ -268,7 +268,7 @@ public class AbstractComponentTest
     binder.requestStaticInjection(ConditionTypes.class);
     binder.requestStaticInjection(ConditionValueTypes.class);
     binder.requestStaticInjection(ConfigurationUtils.class);
-    binder.requestStaticInjection(FileReportUtils.class);
+    binder.requestStaticInjection(FileReportDataStore.class);
     binder.requestStaticInjection(ComponentDetailsLoader.class);
     binder.requestStaticInjection(SystemConfigurationPropertyFeature.class);
 

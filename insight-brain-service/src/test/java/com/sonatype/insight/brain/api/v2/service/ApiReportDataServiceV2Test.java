@@ -38,8 +38,8 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.report.FileReportUtils;
-import com.sonatype.insight.brain.report.ReportUtils;
+import com.sonatype.insight.brain.report.FileReportDataStore;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
@@ -86,7 +86,7 @@ public class ApiReportDataServiceV2Test
   private PolicyEvaluation policyEvaluation;
 
   @Inject
-  private FileReportUtils reportUtils;
+  private FileReportDataStore reportUtils;
 
   private File makeReportFile() throws Exception {
     File reportFile = work.getReportFile(app.getId(), scanId);
@@ -99,9 +99,9 @@ public class ApiReportDataServiceV2Test
 
   private void makeReport(String resource) throws Exception {
     String[] filenames = {
-        ReportUtils.BOM_JSON_FILENAME, ReportUtils.SECURITY_JSON_FILENAME, ReportUtils.LICENSES_JSON_FILENAME,
-        ReportUtils.DATA_JSON_FILENAME, ReportUtils.DEPENDENCIES_JSON_FILENAME,
-        ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME
+        ReportDataStore.BOM_JSON_FILENAME, ReportDataStore.SECURITY_JSON_FILENAME,
+        ReportDataStore.LICENSES_JSON_FILENAME, ReportDataStore.DATA_JSON_FILENAME,
+        ReportDataStore.DEPENDENCIES_JSON_FILENAME, ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME
     };
     for (String filename : filenames) {
       File file = reportUtils.getCacheFile(reportFile, filename);

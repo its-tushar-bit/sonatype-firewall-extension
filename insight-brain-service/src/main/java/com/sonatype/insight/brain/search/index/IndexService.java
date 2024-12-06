@@ -22,7 +22,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -62,10 +61,10 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
-import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ReportUtils;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.LuceneComponents;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
@@ -186,7 +185,7 @@ public class IndexService
 
   private final Provider<IndexCreationScheduler> indexCreationScheduler;
 
-  private final ReportUtils reportUtils;
+  private final ReportDataStore reportDataStore;
 
   private final ReportService reportService;
 
@@ -248,7 +247,7 @@ public class IndexService
       ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       ComponentLoaderFactory componentLoaderFactory,
       Provider<IndexCreationScheduler> indexCreationScheduler,
-      ReportUtils reportUtils,
+      ReportDataStore reportDataStore,
       ReportService reportService)
   {
     this.organizationDAO = organizationDAO;
@@ -271,7 +270,7 @@ public class IndexService
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.componentLoaderFactory = componentLoaderFactory;
     this.indexCreationScheduler = indexCreationScheduler;
-    this.reportUtils = reportUtils;
+    this.reportDataStore = reportDataStore;
     this.reportService = reportService;
 
     searchIndexPool = ExecutorThreadPools.getInstance()
@@ -817,16 +816,18 @@ public class IndexService
       return Collections.emptyList();
     }
     String scanId = latestPolicyEvaluation.getScanId();
-    Report reportFile = reportService.getReport(application.getId(), scanId);
-    if (!reportFile.exists()) {
+    ApplicationReport applicationReport = reportService.getReport(application.getId(), scanId);
+    if (!applicationReport.exists()) {
       return Collections.emptyList();
     }
     try {
-      ReportEntry licenseReportEntry = reportUtils.getEntry(reportFile, ReportUtils.LICENSES_JSON_FILENAME);
-      ReportEntry securityReportEntry = reportUtils.getEntry(reportFile, ReportUtils.SECURITY_JSON_FILENAME);
-      ReportEntry bomReportEntry = reportUtils.getEntry(reportFile, ReportUtils.BOM_JSON_FILENAME);
+      ReportEntry licenseReportEntry =
+          reportDataStore.getEntry(applicationReport, ReportDataStore.LICENSES_JSON_FILENAME);
+      ReportEntry securityReportEntry =
+          reportDataStore.getEntry(applicationReport, ReportDataStore.SECURITY_JSON_FILENAME);
+      ReportEntry bomReportEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.BOM_JSON_FILENAME);
       ReportEntry dependenciesReportEntry =
-          reportUtils.getEntry(reportFile, ReportUtils.DEPENDENCIES_JSON_FILENAME);
+          reportDataStore.getEntry(applicationReport, ReportDataStore.DEPENDENCIES_JSON_FILENAME);
       if (licenseReportEntry == null || securityReportEntry == null || bomReportEntry == null ||
           dependenciesReportEntry == null) {
         return Collections.emptyList();
@@ -850,7 +851,7 @@ public class IndexService
       log.error(e.getMessage(), e);
     }
     catch (UncheckedIOException e) {
-      log.error("Error parsing report files at {}", reportFile.getLocation(), e);
+      log.error("Error parsing report files at {}", applicationReport.getLocation(), e);
     }
     return Collections.emptyList();
   }

@@ -52,8 +52,8 @@ import com.sonatype.insight.brain.migration.DbMigrationCommand;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
-import com.sonatype.insight.brain.report.FileReportUtils;
-import com.sonatype.insight.brain.report.ReportUtils;
+import com.sonatype.insight.brain.report.FileReportDataStore;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
 import com.sonatype.insight.brain.security.ContentTypeOptionsHeaderFilter;
 import com.sonatype.insight.brain.security.CspHeaderFilter;
@@ -583,7 +583,7 @@ public class InsightBrainService
         requestStaticInjection(ComponentDetailsLoader.class);
         requestStaticInjection(SystemConfigurationPropertyFeature.class);
 
-        bind(ReportUtils.class).to(FileReportUtils.class);
+        bind(ReportDataStore.class).to(FileReportDataStore.class);
         bind(ApplicationLifecycle.class).to(DefaultApplicationLifecycle.class);
 
         // This binding is referenced by a class present in sonatype-licensing that we don't actually use.

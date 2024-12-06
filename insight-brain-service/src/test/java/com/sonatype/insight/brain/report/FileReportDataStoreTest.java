@@ -42,7 +42,7 @@ import org.junit.rules.TemporaryFolder;
 import static com.sonatype.insight.brain.model.license.LicenseOverrideStatus.OVERRIDDEN;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class FileReportUtilsTest
+public class FileReportDataStoreTest
     extends AbstractDataTest
 {
   @Rule
@@ -59,9 +59,9 @@ public class FileReportUtilsTest
   private LicenseOverrideDAO licenseOverrideDAO;
 
   @Rule
-  public LogOutput logOutput = new LogOutput(FileReportUtils.class);
+  public LogOutput logOutput = new LogOutput(FileReportDataStore.class);
 
-  private FileReportUtils fileReportUtils;
+  private FileReportDataStore fileReportUtils;
 
   @Before
   public void setUp() {
@@ -82,7 +82,7 @@ public class FileReportUtilsTest
     ProprietaryConfigService proprietaryConfigService =
         new ProprietaryConfigService(daoFactory.createProprietaryConfigDAO(), daoFactory.createOwnerDAO(), idUtils);
     fileReportUtils =
-        new FileReportUtils(componentLoaderFactory, () -> null, licenseDAO,
+        new FileReportDataStore(componentLoaderFactory, () -> null, licenseDAO,
             daoFactory.createHashComponentIdentifierDAO(), daoFactory.createSecurityVulnerabilityOverrideDAO(),
             multiLicenseDAO, licenseOverrideDAO, licenseThreatGroupDao, daoFactory.createApplicationDAO(),
             daoFactory.createInnerSourceComponentDAO(), proprietaryConfigService, null, null);
@@ -93,7 +93,7 @@ public class FileReportUtilsTest
     JsonNode dependenciesJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/dependencies.json"));
     assertThat(dependenciesJson.path("gavDepths").isObject()).isTrue();
 
-    Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier = ReportUtils.parseDependencyDepths(dependenciesJson);
+    Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier = ReportDataStore.parseDependencyDepths(dependenciesJson);
     assertThat(depthsByIdentifier)
         .containsEntry(ComponentIdentifier.createMavenCoordinates("junit", "junit", "4.9", "", "jar"), depths(1));
     assertThat(depthsByIdentifier).containsEntry(
@@ -106,7 +106,7 @@ public class FileReportUtilsTest
     JsonNode dependenciesJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/dependencies.json"));
     ((ObjectNode) dependenciesJson).remove("componentDepths");
 
-    Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier = ReportUtils.parseDependencyDepths(dependenciesJson);
+    Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier = ReportDataStore.parseDependencyDepths(dependenciesJson);
     assertThat(depthsByIdentifier).containsEntry(ComponentIdentifier.createMavenCoordinates("junit", "junit", "4.9"),
         depths(1));
     assertThat(depthsByIdentifier)
@@ -132,13 +132,13 @@ public class FileReportUtilsTest
   public void testHasAnyLicenseOverrides() {
     String applicationId = tempEntity.newApplicationWithParent().getId();
 
-    boolean hasAnyLicenseOverrides = ReportUtils.hasAnyLicenseOverrides(licenseOverrideDAO, applicationId);
+    boolean hasAnyLicenseOverrides = ReportDataStore.hasAnyLicenseOverrides(licenseOverrideDAO, applicationId);
 
     assertThat(hasAnyLicenseOverrides).isFalse();
 
     ComponentIdentifier anameHawk111 = ComponentIdentifier.createAnameCoordinates("hawk", "", "1.1.1");
     tempEntity.newLicenseOverride(applicationId, anameHawk111, OVERRIDDEN, "Beerware");
-    hasAnyLicenseOverrides = ReportUtils.hasAnyLicenseOverrides(licenseOverrideDAO, applicationId);
+    hasAnyLicenseOverrides = ReportDataStore.hasAnyLicenseOverrides(licenseOverrideDAO, applicationId);
 
     assertThat(hasAnyLicenseOverrides).isTrue();
   }
@@ -148,7 +148,7 @@ public class FileReportUtilsTest
     JsonNode bomJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/bom.json"));
 
     JsonNode bomJsonAugmented = bomJson.deepCopy();
-    FileReportUtils.augmentModified(new HashSet<>(), bomJsonAugmented);
+    FileReportDataStore.augmentModified(new HashSet<>(), bomJsonAugmented);
 
     assertThat(bomJson).isEqualTo(bomJsonAugmented);
     assertThat(bomJsonAugmented.get("aaData").get(0).has("modified")).isFalse();
@@ -162,7 +162,7 @@ public class FileReportUtilsTest
     JsonNode bomJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/bom.json"));
 
     JsonNode bomJsonAugmented = bomJson.deepCopy();
-    FileReportUtils.augmentModified(Sets.newHashSet(anameHawk111), bomJsonAugmented);
+    FileReportDataStore.augmentModified(Sets.newHashSet(anameHawk111), bomJsonAugmented);
 
     assertThat(bomJson).isNotEqualTo(bomJsonAugmented);
     assertThat(bomJsonAugmented.get("aaData").get(0).has("modified")).isTrue();
@@ -177,7 +177,7 @@ public class FileReportUtilsTest
     JsonNode bomJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/bom.json"));
 
     JsonNode bomJsonAugmented = bomJson.deepCopy();
-    FileReportUtils.augmentModified(Sets.newHashSet(npmHawk111), bomJsonAugmented);
+    FileReportDataStore.augmentModified(Sets.newHashSet(npmHawk111), bomJsonAugmented);
 
     assertThat(bomJson).isNotEqualTo(bomJsonAugmented);
     assertThat(bomJsonAugmented.get("aaData").get(0).has("modified")).isFalse();
@@ -191,7 +191,7 @@ public class FileReportUtilsTest
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("package1", "version1");
     ObjectNode bomObjectAugmented = (ObjectNode) bomJson.get("aaData").get(1);
-    ReportUtils.hideObservedLicenses(componentIdentifier, bomObjectAugmented, true, notSupportedLicense);
+    ReportDataStore.hideObservedLicenses(componentIdentifier, bomObjectAugmented, true, notSupportedLicense);
 
     ObjectMapper mapper = new ObjectMapper();
     ArrayNode observedLicensesArray = mapper.createArrayNode();
@@ -208,7 +208,7 @@ public class FileReportUtilsTest
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("package1", "version1");
     ObjectNode bomObjectAugmented = (ObjectNode) bomJson.get("aaData").get(1);
-    ReportUtils.hideObservedLicenses(componentIdentifier, bomObjectAugmented, false, notSupportedLicense);
+    ReportDataStore.hideObservedLicenses(componentIdentifier, bomObjectAugmented, false, notSupportedLicense);
 
     ObjectMapper mapper = new ObjectMapper();
     ArrayNode arrayNode = mapper.createArrayNode();
@@ -226,7 +226,7 @@ public class FileReportUtilsTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier
         .createMavenCoordinates("group1", "package1", "version1");
     ObjectNode bomObjectAugmented = (ObjectNode) bomJson.get("componentDepths").get(0);
-    ReportUtils.hideObservedLicenses(componentIdentifier, bomObjectAugmented, false, notSupportedLicense);
+    ReportDataStore.hideObservedLicenses(componentIdentifier, bomObjectAugmented, false, notSupportedLicense);
 
     assertThat(bomObjectAugmented.get("hiddenObservedLicenses").asText()).isEqualTo("false");
   }
@@ -237,7 +237,7 @@ public class FileReportUtilsTest
         new ObjectMapper().readTree(getClass().getResource("/ReportTest/dependencies.json"));
 
     JsonNode dependenciesJsonAugmented = dependenciesJson.deepCopy();
-    ReportUtils.augmentDependenciesGraph(dependenciesJsonAugmented);
+    ReportDataStore.augmentDependenciesGraph(dependenciesJsonAugmented);
 
     assertThat(dependenciesJson).isEqualTo(dependenciesJsonAugmented);
   }
@@ -248,7 +248,7 @@ public class FileReportUtilsTest
         new ObjectMapper().readTree(getClass().getResource("/ReportTest/dependenciesWithGraph.json"));
     JsonNode dependenciesJsonAugmented = dependenciesJson.deepCopy();
 
-    ReportUtils.augmentDependenciesGraph(dependenciesJsonAugmented);
+    ReportDataStore.augmentDependenciesGraph(dependenciesJsonAugmented);
 
     assertThat(dependenciesJson).isNotEqualTo(dependenciesJsonAugmented);
     JsonNode dependencyGraphNode = dependenciesJsonAugmented.get("dependencyGraph");
@@ -284,7 +284,7 @@ public class FileReportUtilsTest
 
     fileReportUtils.writeLicenseThreatsToReportFile(app, reportFile);
 
-    File licenseThreatsFile = FileReportUtils.getCacheFile(reportFile, "licensethreats.json");
+    File licenseThreatsFile = FileReportDataStore.getCacheFile(reportFile, "licensethreats.json");
 
     ContainerNode<?> licenseThreats = JsonUtils.parse(Files.readAllBytes(licenseThreatsFile.toPath()));
     int countNotZero = 0;

@@ -15,7 +15,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
@@ -33,9 +32,9 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
-import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ReportUtils;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -61,7 +60,7 @@ public class ApiReportServiceV2
 
   private final ReportService reportService;
 
-  private final ReportUtils reportUtils;
+  private final ReportDataStore reportDataStore;
 
   @Inject
   public ApiReportServiceV2(
@@ -70,14 +69,14 @@ public class ApiReportServiceV2
       ApplicationDAO applicationDAO,
       ScanPolicyEvaluator scanPolicyEvaluator,
       ReportService reportService,
-      ReportUtils reportUtils)
+      ReportDataStore reportDataStore)
   {
     this.applicationDAO = applicationDAO;
     this.applicationService = applicationService;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.reportService = reportService;
-    this.reportUtils = reportUtils;
+    this.reportDataStore = reportDataStore;
   }
 
   @Authorize(permission = Permission.READ)
@@ -171,9 +170,9 @@ public class ApiReportServiceV2
       Application application)
   {
     try {
-      Report reportFile =
+      ApplicationReport applicationReport =
           reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
-      PolicyThreats policyThreats = JsonUtils.parse(Objects.requireNonNull(reportUtils.getEntry(reportFile,
+      PolicyThreats policyThreats = JsonUtils.parse(Objects.requireNonNull(reportDataStore.getEntry(applicationReport,
           ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).buf, PolicyThreats.class);
       List<PolicyViolation> policyViolations =
           PolicyAlertUtil.getDummyPolicyViolationsFromPolicyThreatsForCounts(policyThreats);

@@ -149,7 +149,7 @@ public class ReportResource
 
   private final ClusterLockManager clusterLockManager;
 
-  private final ReportUtils reportUtils;
+  private final ReportDataStore reportDataStore;
 
   static {
     Set<Character> invalid = new HashSet<>(
@@ -176,7 +176,7 @@ public class ReportResource
       final VersionService versionService,
       final PdfGeneratorService pdfGeneratorService,
       final ClusterLockManager clusterLockManager,
-      final ReportUtils reportUtils)
+      final ReportDataStore reportDataStore)
   {
     this.applicationDAO = applicationDAO;
     this.reportService = reportService;
@@ -191,7 +191,7 @@ public class ReportResource
     this.versionService = versionService;
     this.pdfGeneratorService = pdfGeneratorService;
     this.clusterLockManager = clusterLockManager;
-    this.reportUtils = reportUtils;
+    this.reportDataStore = reportDataStore;
   }
 
   /**
@@ -262,7 +262,7 @@ public class ReportResource
     // the contents loaded from the file before serving up to the browser, the timestamp on the file won't
     // change, even when brain versions do, so index.html is always sent in response
     if (reportEntry.name.equals("index.html")) {
-      reportEntry = reportUtils.appendCacheBustingParams(reportEntry, versionService.getVersion());
+      reportEntry = reportDataStore.appendCacheBustingParams(reportEntry, versionService.getVersion());
     }
     else {
       final long ifModifiedSince = httpRequest.getDateHeader(HttpHeaders.IF_MODIFIED_SINCE);
@@ -386,29 +386,30 @@ public class ReportResource
     // TODO: Matt Johnson - this needs extracting into reportUtils
     AuditData.get().setReportId(scanId);
     Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
-    Report reportFile = reportService.getReport(app.getId(), scanId);
+    ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
     String filename = "report-" + scanId + ".zip";
 
-    Properties templateProps = reportUtils.getTemplateProperties(reportFile);
+    Properties templateProps = reportDataStore.getTemplateProperties(applicationReport);
     String cipDetailsPath = templateProps.getProperty("cip.details.path", "");
     String cipListPath = templateProps.getProperty("cip.list.path", "");
     int dataVersion = Integer.parseInt(templateProps.getProperty("data.version", "0"));
     String dataPath = "data/";
 
-    Report pdfFile = pdfGeneratorService.generateReport(app, scanId);
+    ReportPdf reportPdf = pdfGeneratorService.generateReport(app, scanId);
 
     ApiReportRawDataDTOV2 reportData = reportDataService.getDataNoAuth(appPublicId, scanId);
     List<PolicyAlert> alerts = Arrays.asList(JsonUtils
-        .parse(reportUtils.getEntry(reportFile, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).buf, PolicyAlert[].class));
+        .parse(reportDataStore.getEntry(applicationReport, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).buf,
+            PolicyAlert[].class));
 
     File updatedFile = Files.createTempFile("report", ".zip").toFile();
-    try (ReportBundleUpdater updater = new ReportBundleUpdater(((FileReport) reportFile).getFile(), updatedFile,
-        new FilenameMapping("^.*\\.json$", dataPath + "$0"))) {
+    try (ReportBundleUpdater updater = new ReportBundleUpdater(((FileReportEntity) applicationReport).getFile(),
+        updatedFile, new FilenameMapping("^.*\\.json$", dataPath + "$0"))) {
 
       addLegacyReportArtifacts(updater);
 
       updater.remove("detail.rptdesign");
-      try (InputStream inputStream = pdfFile.getInputStream()) {
+      try (InputStream inputStream = reportPdf.getInputStream()) {
         updater.add(dataPath + "report.pdf", inputStream);
       }
       updater.add(dataPath + "components.json", reportData);
@@ -416,23 +417,24 @@ public class ReportResource
       addUniqueComponentsToUpdater(appPublicId, scanId, dataPath, dataVersion, reportData.components, updater);
 
       // FIXME: This breaks the abstraction and needs cleaned up to not care about caching
-      File[] cachedFiles = ((FileReportUtils) reportUtils).getCacheDir(((FileReport) reportFile).getFile()).listFiles();
+      File[] cachedFiles =
+          FileReportDataStore.getCacheDir(((FileReportEntity) applicationReport).getFile()).listFiles();
       if (cachedFiles != null) {
         for (File cachedFile : cachedFiles) {
           updater.add(dataPath + cachedFile.getName(), cachedFile);
         }
       }
 
-      try (ZipFile reportZip = new ZipFile(((FileReport) reportFile).getFile())) {
+      try (ZipFile zipFile = new ZipFile(((FileReportEntity) applicationReport).getFile())) {
         ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(app);
 
-        for (Enumeration<? extends ZipEntry> en = reportZip.entries(); en.hasMoreElements();) {
+        for (Enumeration<? extends ZipEntry> en = zipFile.entries(); en.hasMoreElements();) {
           ZipEntry entry = en.nextElement();
           if (entry.isDirectory()) {
             continue;
           }
           if (!cipDetailsPath.isEmpty() && entry.getName().startsWith(cipDetailsPath)) {
-            final NamedComponentDetails hdsDetails = JsonUtils.parse(reportZip.getInputStream(entry),
+            final NamedComponentDetails hdsDetails = JsonUtils.parse(zipFile.getInputStream(entry),
                 NamedComponentDetails.class);
             NamedComponentDetails clmDetails =
                 ComponentDetailsLoader.getComponentDetails(hdsDetails.getComponentIdentifier(), hdsDetails.getHash(),
@@ -459,7 +461,7 @@ public class ReportResource
               else {
                 listPath += toLegacyDataPath(clmDetails) + ".json";
               }
-              if (reportZip.getEntry(listPath) == null && !updater.contains(dataPath + listPath)) {
+              if (zipFile.getEntry(listPath) == null && !updater.contains(dataPath + listPath)) {
                 // CIP expects this to be an empty (!) array for every GAV but the HDS doesn't know about claimed
                 // components
                 ComponentDetailsList list = new ComponentDetailsList();
@@ -469,7 +471,7 @@ public class ReportResource
             }
           }
           if (!cipListPath.isEmpty() && entry.getName().startsWith(cipListPath)) {
-            final ComponentDetailsList list = JsonUtils.parse(reportZip.getInputStream(entry),
+            final ComponentDetailsList list = JsonUtils.parse(zipFile.getInputStream(entry),
                 ComponentDetailsList.class);
             for (ComponentDetails details : list.getList()) {
               componentDetailsLoader.augmentComponentDetails(details);

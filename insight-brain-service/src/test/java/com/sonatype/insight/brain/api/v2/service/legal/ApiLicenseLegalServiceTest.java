@@ -119,8 +119,8 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.report.InnerSourceUtils;
-import com.sonatype.insight.brain.report.FileReportUtils;
-import com.sonatype.insight.brain.report.ReportUtils;
+import com.sonatype.insight.brain.report.FileReportDataStore;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.repository.RepositoryQueryService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
@@ -286,7 +286,7 @@ public class ApiLicenseLegalServiceTest
   private TelemetryUtils telemetryUtils;
 
   @Inject
-  private FileReportUtils reportUtils;
+  private FileReportDataStore reportUtils;
 
   @Override
   public void configure(Binder binder) {
@@ -3302,8 +3302,9 @@ public class ApiLicenseLegalServiceTest
         zos.putNextEntry(new ZipEntry("index.html"));
       }
       String[] filenames = {
-          ReportUtils.BOM_JSON_FILENAME, ReportUtils.SECURITY_JSON_FILENAME, ReportUtils.LICENSES_JSON_FILENAME,
-          ReportUtils.DATA_JSON_FILENAME, ReportUtils.DEPENDENCIES_JSON_FILENAME
+          ReportDataStore.BOM_JSON_FILENAME, ReportDataStore.SECURITY_JSON_FILENAME,
+          ReportDataStore.LICENSES_JSON_FILENAME, ReportDataStore.DATA_JSON_FILENAME,
+          ReportDataStore.DEPENDENCIES_JSON_FILENAME
       };
       for (String filename : filenames) {
         File file = reportUtils.getCacheFile(reportFile, filename);

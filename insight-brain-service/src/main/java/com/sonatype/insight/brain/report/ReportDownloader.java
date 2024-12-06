@@ -46,13 +46,13 @@ public class ReportDownloader
    * Downloads a report for a scan.
    *
    * @param scanId                 of the report
-   * @param reportFile             to save report to
+   * @param tempApplicationReport             to save report to
    * @param reportTimeoutInSeconds time to wait before the report times out - 0 will not make retry attempts
    * @return true if the report was downloaded, false otherwise.
    */
   public boolean downloadReport(
       final String scanId,
-      final Report reportFile,
+      final ApplicationReport tempApplicationReport,
       final int reportTimeoutInSeconds,
       final int retryIntervalInSeconds)
   {
@@ -65,9 +65,10 @@ public class ReportDownloader
           HDS_PATH, null, scanId)) {
         // Create the parent dir after the client returns with success
         // to ensure dir is not created for unknown scanId (or other errors)
-        Files.createDirectories(((FileReport) reportFile).getFile().getAbsoluteFile().getParentFile().toPath());
+        Files.createDirectories(
+            ((FileReportEntity) tempApplicationReport).getFile().getAbsoluteFile().getParentFile().toPath());
         try (OutputStream os = new BufferedOutputStream(
-            Files.newOutputStream(((FileReport) reportFile).getFile().toPath()))) {
+            Files.newOutputStream(((FileReportEntity) tempApplicationReport).getFile().toPath()))) {
           IOUtils.copy(is, os);
           return true;
         }
@@ -80,10 +81,10 @@ public class ReportDownloader
       // don't leave an incomplete file around
       log.error(e.getMessage(), e);
       try {
-        fileCleaner.delete(((FileReport) reportFile).getFile());
+        fileCleaner.delete(((FileReportEntity) tempApplicationReport).getFile());
       }
       catch (FileDeletionException fde) {
-        log.error("Could not delete incomplete report: {}", reportFile, fde);
+        log.error("Could not delete incomplete report: {}", tempApplicationReport, fde);
       }
     }
     return false;

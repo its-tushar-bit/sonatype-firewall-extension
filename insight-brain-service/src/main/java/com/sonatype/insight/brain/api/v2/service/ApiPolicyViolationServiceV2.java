@@ -23,7 +23,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -70,10 +69,10 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
-import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ReportUtils;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -119,7 +118,7 @@ public class ApiPolicyViolationServiceV2
 
   private final IdUtils idUtils;
 
-  private final ReportUtils reportUtils;
+  private final ReportDataStore reportDataStore;
 
   @Inject
   public ApiPolicyViolationServiceV2(
@@ -133,7 +132,7 @@ public class ApiPolicyViolationServiceV2
       final StageTypeService stageTypeService,
       final ComponentLoaderFactory componentLoaderFactory,
       final IdUtils idUtils,
-      final ReportUtils reportUtils)
+      final ReportDataStore reportDataStore)
   {
     this.applicationService = applicationService;
     this.applicationComponentDAO = applicationComponentDAO;
@@ -145,7 +144,7 @@ public class ApiPolicyViolationServiceV2
     this.stageTypeService = stageTypeService;
     this.componentLoaderFactory = componentLoaderFactory;
     this.idUtils = idUtils;
-    this.reportUtils = reportUtils;
+    this.reportDataStore = reportDataStore;
   }
 
   public ApiApplicationViolationListDTOV2 getPolicyViolations(
@@ -488,14 +487,14 @@ public class ApiPolicyViolationServiceV2
 
   private List<Component> getComponents(String applicationId, String scanId) {
     try {
-      Report reportFile = reportService.getReport(applicationId, scanId);
-      ReportEntry reportEntry = reportUtils.getEntry(reportFile, ReportUtils.BOM_JSON_FILENAME);
+      ApplicationReport applicationReport = reportService.getReport(applicationId, scanId);
+      ReportEntry reportEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.BOM_JSON_FILENAME);
       if (reportEntry != null) {
         return componentLoaderFactory.createComponentLoader(
                 idUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId))
             .getAll(null, null, reportEntry.buf, null);
       }
-      log.debug("{} not found for application id {} and scan id {}.", ReportUtils.BOM_JSON_FILENAME, applicationId,
+      log.debug("{} not found for application id {} and scan id {}.", ReportDataStore.BOM_JSON_FILENAME, applicationId,
           scanId);
     }
     catch (IOException | NotFoundException e) {
@@ -606,8 +605,9 @@ public class ApiPolicyViolationServiceV2
 
   private List<PolicyViolation> getPolicyViolations(String applicationId, String stageTypeId, String scanId) {
     try {
-      Report reportFile = reportService.getReport(applicationId, scanId);
-      ReportEntry reportEntry = reportUtils.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
+      ApplicationReport applicationReport = reportService.getReport(applicationId, scanId);
+      ReportEntry reportEntry =
+          reportDataStore.getEntry(applicationReport, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
       if (reportEntry != null) {
         return JsonUtils.parse(reportEntry.buf, PolicyThreats.class).aaData.stream()
             .flatMap(component -> toPolicyViolations(applicationId, stageTypeId, component).stream())

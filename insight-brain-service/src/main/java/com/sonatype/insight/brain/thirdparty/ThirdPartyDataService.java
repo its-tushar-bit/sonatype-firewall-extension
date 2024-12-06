@@ -52,7 +52,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.sbom.SbomResultsMerger;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -358,7 +358,7 @@ public class ThirdPartyDataService
   }
 
   public ThirdPartyApplicationReportDTO loadThirdPartyInfrastructureAsCodeData(
-      final Report report,
+      final ApplicationReport applicationReport,
       final String appId)
   {
     // Collect data for telemetry within the loop
@@ -369,7 +369,7 @@ public class ThirdPartyDataService
     // End telemetry related fields
 
     ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO = new ThirdPartyApplicationReportDTO();
-    Map<String, ThirdPartyReportComponentDTO> data = thirdPartyComponentDAO.getData(report);
+    Map<String, ThirdPartyReportComponentDTO> data = thirdPartyComponentDAO.getData(applicationReport);
     if (data == null) {
       return thirdPartyApplicationReportDTO;
     }
@@ -412,7 +412,7 @@ public class ThirdPartyDataService
     searchIndexManager.insert(searchIndexChange);
   }
 
-  public void mergeSonatypeDataWithSbomDataWithIndexing(final String scanId, final Report reportFile)
+  public void mergeSonatypeDataWithSbomDataWithIndexing(final String scanId, final ApplicationReport applicationReport)
       throws IOException
   {
     if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
@@ -423,7 +423,7 @@ public class ThirdPartyDataService
       return;
     }
 
-    sbomResultsMergerProvider.get().mergeResults(sbomMetadata, scanId, reportFile);
+    sbomResultsMergerProvider.get().mergeResults(sbomMetadata, scanId, applicationReport);
     indexSbomForSearch(sbomMetadata);
   }
 

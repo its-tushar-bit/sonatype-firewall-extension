@@ -14,11 +14,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 
-public class FileReport implements Report
+public class FileReportEntity
+    implements ReportPdf, ApplicationReport
 {
   private final File file;
 
-  public FileReport(final File file) {
+  public FileReportEntity(final File file) {
     this.file = file;
   }
 

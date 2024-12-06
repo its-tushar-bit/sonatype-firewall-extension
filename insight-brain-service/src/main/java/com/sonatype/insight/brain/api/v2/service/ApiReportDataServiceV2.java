@@ -47,10 +47,10 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyCondition
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyConstraint;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
-import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ReportUtils;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -92,7 +92,7 @@ public class ApiReportDataServiceV2
 
   private final ThirdPartyComponentDAO thirdPartyComponentDAO;
 
-  private final ReportUtils reportUtils;
+  private final ReportDataStore reportDataStore;
 
   @Inject
   public ApiReportDataServiceV2(
@@ -102,7 +102,7 @@ public class ApiReportDataServiceV2
       ApiSecurityDataAdapter securityDataAdapter,
       ComponentLoaderFactory componentLoaderFactory,
       ThirdPartyComponentDAO thirdPartyComponentDAO,
-      final ReportUtils reportUtils)
+      final ReportDataStore reportDataStore)
   {
     this.appDAO = appDAO;
     this.reportService = reportService;
@@ -110,7 +110,7 @@ public class ApiReportDataServiceV2
     this.securityDataAdapter = securityDataAdapter;
     this.componentLoaderFactory = componentLoaderFactory;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
-    this.reportUtils = reportUtils;
+    this.reportDataStore = reportDataStore;
   }
 
   @Authorize(permission = Permission.READ)
@@ -136,11 +136,12 @@ public class ApiReportDataServiceV2
       throws IOException
   {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
-    Report reportFile = reportService.getReport(app.getId(), scanId);
+    ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
 
-    ReportEntry bomEntry = reportUtils.getEntry(reportFile, ReportUtils.BOM_JSON_FILENAME);
-    ReportEntry countsEntry = reportUtils.getEntry(reportFile, ReportUtils.DATA_JSON_FILENAME);
-    ReportEntry policyThreatsEntry = reportUtils.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
+    ReportEntry bomEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.BOM_JSON_FILENAME);
+    ReportEntry countsEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.DATA_JSON_FILENAME);
+    ReportEntry policyThreatsEntry =
+        reportDataStore.getEntry(applicationReport, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
 
     if (bomEntry == null || policyThreatsEntry == null || countsEntry == null) {
       throw new BadRequestException(
@@ -181,10 +182,11 @@ public class ApiReportDataServiceV2
     Application application = appDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
 
-    final Report reportFile = reportService.getReport(appId, scanId);
-    ReportEntry dependenciesEntry =
-        reportUtils.getEntry(reportFile, reportUtils.toEntryName(ReportUtils.DEPENDENCIES_JSON_FILENAME));
-    ReportEntry bomEntry = reportUtils.getEntry(reportFile, reportUtils.toEntryName(ReportUtils.BOM_JSON_FILENAME));
+    ApplicationReport applicationReport = reportService.getReport(appId, scanId);
+    ReportEntry dependenciesEntry = reportDataStore.getEntry(applicationReport,
+        reportDataStore.toEntryName(ReportDataStore.DEPENDENCIES_JSON_FILENAME));
+    ReportEntry bomEntry =
+        reportDataStore.getEntry(applicationReport, reportDataStore.toEntryName(ReportDataStore.BOM_JSON_FILENAME));
     if (dependenciesEntry != null && bomEntry != null) {
       JsonNode dependenciesNode = JsonUtils.parse(dependenciesEntry.buf);
       JsonNode bomNode = JsonUtils.parse(bomEntry.buf);
@@ -415,13 +417,14 @@ public class ApiReportDataServiceV2
       final boolean doAddDependencyData) throws IOException
   {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
-    Report reportFile = reportService.getReport(app.getId(), scanId);
+    ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
 
-    ReportEntry bomEntry = reportUtils.getEntry(reportFile, ReportUtils.BOM_JSON_FILENAME);
-    ReportEntry securityEntry = reportUtils.getEntry(reportFile, ReportUtils.SECURITY_JSON_FILENAME);
-    ReportEntry licenseEntry = reportUtils.getEntry(reportFile, ReportUtils.LICENSES_JSON_FILENAME);
-    ReportEntry dataEntry = reportUtils.getEntry(reportFile, ReportUtils.DATA_JSON_FILENAME);
-    ReportEntry dependenciesReportEntry = reportUtils.getEntry(reportFile, ReportUtils.DEPENDENCIES_JSON_FILENAME);
+    ReportEntry bomEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.BOM_JSON_FILENAME);
+    ReportEntry securityEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.SECURITY_JSON_FILENAME);
+    ReportEntry licenseEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.LICENSES_JSON_FILENAME);
+    ReportEntry dataEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.DATA_JSON_FILENAME);
+    ReportEntry dependenciesReportEntry =
+        reportDataStore.getEntry(applicationReport, ReportDataStore.DEPENDENCIES_JSON_FILENAME);
 
     if (bomEntry == null || securityEntry == null || licenseEntry == null || dataEntry == null ||
         dependenciesReportEntry == null) {
@@ -432,7 +435,7 @@ public class ApiReportDataServiceV2
         componentLoaderFactory.createComponentLoader(app).getAll(licenseEntry.buf, useLicensesJsonOverriddenLicenses,
             securityEntry.buf, bomEntry.buf, dependenciesReportEntry.buf);
 
-    Map<String, ThirdPartyReportComponentDTO> tpComponentsByHash = thirdPartyComponentDAO.getData(reportFile);
+    Map<String, ThirdPartyReportComponentDTO> tpComponentsByHash = thirdPartyComponentDAO.getData(applicationReport);
 
     ApiReportRawDataDTOV2 data = new ApiReportRawDataDTOV2();
     for (Component comp : components) {

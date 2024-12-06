@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ReportUtils;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -115,7 +115,7 @@ public class SbomPolicyService
       String hash) throws IOException
   {
     ReportEntry bomReportEntry =
-        reportService.processBrowseReport(applicationId, scanId, ReportUtils.BOM_JSON_FILENAME);
+        reportService.processBrowseReport(applicationId, scanId, ReportDataStore.BOM_JSON_FILENAME);
     if (bomReportEntry == null) {
       return null;
     }

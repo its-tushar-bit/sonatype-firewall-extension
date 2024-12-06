@@ -37,9 +37,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public interface ReportUtils
+public interface ReportDataStore
 {
-  Logger log = LoggerFactory.getLogger(ReportUtils.class);
+  Logger log = LoggerFactory.getLogger(ReportDataStore.class);
 
   String BOM_JSON_FILENAME = "bom.json";
 
@@ -61,11 +61,11 @@ public interface ReportUtils
 
   String DIRECT_DEPENDENCY_NODE = "directDependency";
 
-  ReportEntry getEntry(Report reportFile, String name) throws IOException;
+  ReportEntry getEntry(ApplicationReport reportFile, String name) throws IOException;
 
-  void putEntry(Report reportFile, String name, byte[] buf) throws IOException;
+  void putEntry(ApplicationReport reportFile, String name, byte[] buf) throws IOException;
 
-  void putEntry(Report reportFile, String name, String text) throws IOException;
+  void putEntry(ApplicationReport reportFile, String name, String text) throws IOException;
 
   String toEntryName(String path);
 
@@ -73,7 +73,7 @@ public interface ReportUtils
 
   void applyChanges(
       Application application,
-      Report reportFile,
+      ApplicationReport reportFile,
       RepositoryMatcher repositoryMatcher,
       TelemetrySender telemetrySender,
       TelemetryUtils telemetryUtils,
@@ -82,21 +82,21 @@ public interface ReportUtils
 
   void updateSecurityCounts(double severity, int[] securityCounts);
 
-  Properties getTemplateProperties(Report reportFile) throws IOException;
+  Properties getTemplateProperties(ApplicationReport reportFile) throws IOException;
 
   void fill(ArrayNode node, int[] data);
 
-  Report tempReport(Report reportFile);
+  ApplicationReport tempReport(ApplicationReport reportFile);
 
-  void rename(Report tempFile, Report reportFile) throws IOException;
+  void rename(ApplicationReport tempFile, ApplicationReport reportFile) throws IOException;
 
-  boolean downloadReport(String scanId, Report tempFile, int reportTimeoutInSeconds, int i);
+  boolean downloadReport(String scanId, ApplicationReport tempApplicationReport, int reportTimeoutInSeconds, int i);
 
-  void appendToReport(Report reportFile, ThirdPartyApplicationReportDTO dto) throws IOException;
+  void appendToReport(ApplicationReport reportFile, ThirdPartyApplicationReportDTO dto) throws IOException;
 
-  Report getFileReport(String appId, String scanId);
+  ApplicationReport getFileReport(String appId, String scanId);
 
-  Report getVulnerabilitySignatureJson(String applicationId, String reportId) throws IOException;
+  ReportEntity getVulnerabilitySignatureJson(String applicationId, String reportId) throws IOException;
 
   static void setMavenCoordinatesWithExtension(
       final ObjectNode objectNode,

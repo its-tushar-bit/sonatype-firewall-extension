@@ -13,7 +13,7 @@ import java.io.OutputStream;
 /**
  * Interface for report implementations to provide different ways to access the report data
  */
-public interface Report
+public interface ReportEntity
 {
   boolean exists();
 

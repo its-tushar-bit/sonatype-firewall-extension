@@ -142,12 +142,12 @@ public class ReportResourceTest
         .as("insight.js expires in 365 days: " + expires + " vs " + calendar.getTime()).isLessThan(2 * 60 * 1000);
 
     calendar.setTime(new Date());
-    response = request.subpath(ReportUtils.DATA_JSON_FILENAME).get();
+    response = request.subpath(ReportDataStore.DATA_JSON_FILENAME).get();
     assertResponseStatus(200, response);
     expiresHeader = response.getHeader("Expires");
     expires = expirationHeaderFormat.parse(expiresHeader);
     assertThat(Math.abs(calendar.getTimeInMillis() - expires.getTime()))
-        .as(ReportUtils.DATA_JSON_FILENAME + " expires immediately: " + expires + " vs " + calendar.getTime())
+        .as(ReportDataStore.DATA_JSON_FILENAME + " expires immediately: " + expires + " vs " + calendar.getTime())
         .isLessThan(2 * 60 * 1000);
 
     calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH) + 1);
@@ -233,7 +233,7 @@ public class ReportResourceTest
         assertThat(contentType).isEqualToIgnoringCase("image/png");
       }
 
-      if (ReportUtils.DATA_JSON_FILENAME.equals(entry)) {
+      if (ReportDataStore.DATA_JSON_FILENAME.equals(entry)) {
         String actual = response.getBodyText();
         testDataJsonApplyChanges(actual);
       }
@@ -370,7 +370,7 @@ public class ReportResourceTest
         assertThat(contentType).isEqualToIgnoringCase("image/png");
       }
 
-      if (ReportUtils.DATA_JSON_FILENAME.equals(entry)) {
+      if (ReportDataStore.DATA_JSON_FILENAME.equals(entry)) {
         String actual = response.getBodyText();
         testDataJsonApplyChanges(actual);
       }
@@ -1256,7 +1256,7 @@ public class ReportResourceTest
     final String scanId = "ReportResourceTest_ScanId";
     createReportFile(app.getId(), scanId, "/ReportResourceTest/" + dirName);
     HttpResponse response =
-        restRequest(app.getPublicId(), scanId).path(BROWSE_PATH, ReportUtils.SECURITY_JSON_FILENAME).get();
+        restRequest(app.getPublicId(), scanId).path(BROWSE_PATH, ReportDataStore.SECURITY_JSON_FILENAME).get();
     assertResponseStatus(200, response);
 
     File temp = tempDir.newFile();

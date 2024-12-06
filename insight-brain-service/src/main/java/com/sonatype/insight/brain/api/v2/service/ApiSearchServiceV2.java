@@ -18,9 +18,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiDependencyDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
-import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
@@ -33,10 +33,10 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ReportUtils;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -68,7 +68,7 @@ public class ApiSearchServiceV2
 
   private final ComponentLoaderFactory componentLoaderFactory;
 
-  private ReportUtils reportUtils;
+  private ReportDataStore reportDataStore;
 
   @Inject
   public ApiSearchServiceV2(
@@ -79,7 +79,7 @@ public class ApiSearchServiceV2
       final PolicyViolationDAO policyViolationDAO,
       final ReportService reportService,
       final ComponentLoaderFactory componentLoaderFactory,
-      final ReportUtils reportUtils)
+      final ReportDataStore reportDataStore)
   {
     this.baseUrl = baseUrl;
     this.applicationDAO = applicationDAO;
@@ -88,7 +88,7 @@ public class ApiSearchServiceV2
     this.policyViolationDAO = policyViolationDAO;
     this.reportService = reportService;
     this.componentLoaderFactory = componentLoaderFactory;
-    this.reportUtils = reportUtils;
+    this.reportDataStore = reportDataStore;
   }
 
   public ApiSearchResultsDTOV2 searchComponent(
@@ -204,10 +204,10 @@ public class ApiSearchServiceV2
     }
 
     try {
-      Report reportFile = reportService.getReport(app.getId(), eval.getScanId());
-      final ReportEntry bomReportEntry = reportUtils.getEntry(reportFile, ReportUtils.BOM_JSON_FILENAME);
+      ApplicationReport applicationReport = reportService.getReport(app.getId(), eval.getScanId());
+      final ReportEntry bomReportEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.BOM_JSON_FILENAME);
       final ReportEntry dependenciesReportEntry =
-          reportUtils.getEntry(reportFile, ReportUtils.DEPENDENCIES_JSON_FILENAME);
+          reportDataStore.getEntry(applicationReport, ReportDataStore.DEPENDENCIES_JSON_FILENAME);
 
       if (bomReportEntry != null && dependenciesReportEntry != null) {
         List<Component> components =

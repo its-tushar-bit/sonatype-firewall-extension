@@ -57,9 +57,9 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
-import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
-import com.sonatype.insight.brain.report.ReportUtils;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
@@ -177,7 +177,7 @@ public class SbomResultsMerger
 
   private Bom filteredBom = null;
 
-  private final ReportUtils reportUtils;
+  private final ReportDataStore reportDataStore;
 
   @Inject
   public SbomResultsMerger(
@@ -192,7 +192,7 @@ public class SbomResultsMerger
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
       final InsightWork insightWork,
-      final ReportUtils reportUtils)
+      final ReportDataStore reportDataStore)
   {
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
@@ -205,7 +205,7 @@ public class SbomResultsMerger
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
     this.insightWork = insightWork;
-    this.reportUtils = reportUtils;
+    this.reportDataStore = reportDataStore;
   }
 
   @VisibleForTesting
@@ -221,10 +221,10 @@ public class SbomResultsMerger
   public void mergeResults(
       final ThirdPartySbomMetadata sbomMetadata,
       final String scanId,
-      final Report reportFile)
+      final ApplicationReport applicationReport)
       throws IOException
   {
-    initializeMerge(sbomMetadata, reportFile);
+    initializeMerge(sbomMetadata, applicationReport);
     mergeSonatypeDataWithSbomData(sbomMetadata, scanId);
     addDependencyDataForOriginalSbom();
     sendTelemetries();
@@ -268,20 +268,18 @@ public class SbomResultsMerger
     }
   }
 
-  private void initializeMerge(final ThirdPartySbomMetadata sbomMetadata, final Report reportFile)
+  private void initializeMerge(final ThirdPartySbomMetadata sbomMetadata, final ApplicationReport applicationReport)
       throws IOException
   {
     bomJsonData =
         JsonUtils.parse(
-            Objects.requireNonNull(reportUtils.getEntry(reportFile, ReportUtils.BOM_JSON_FILENAME)).buf);
-    securityJsonData =
-        JsonUtils.parse(
-            Objects.requireNonNull(reportUtils.getEntry(reportFile, ReportUtils.SECURITY_JSON_FILENAME)).buf);
-    licensesJsonData =
-        JsonUtils.parse(
-            Objects.requireNonNull(reportUtils.getEntry(reportFile, ReportUtils.LICENSES_JSON_FILENAME)).buf);
+            Objects.requireNonNull(reportDataStore.getEntry(applicationReport, ReportDataStore.BOM_JSON_FILENAME)).buf);
+    securityJsonData = JsonUtils.parse(Objects.requireNonNull(
+        reportDataStore.getEntry(applicationReport, ReportDataStore.SECURITY_JSON_FILENAME)).buf);
+    licensesJsonData = JsonUtils.parse(Objects.requireNonNull(
+        reportDataStore.getEntry(applicationReport, ReportDataStore.LICENSES_JSON_FILENAME)).buf);
     final ReportEntry dependenciesReportEntry =
-        reportUtils.getEntry(reportFile, ReportUtils.DEPENDENCIES_JSON_FILENAME);
+        reportDataStore.getEntry(applicationReport, ReportDataStore.DEPENDENCIES_JSON_FILENAME);
     dependenciesJsonData =
         dependenciesReportEntry != null ? JsonUtils.parse(dependenciesReportEntry.buf) : null;
     sbomPostImportMetricsTelemetry = new SbomPostImportMetricsTelemetry();

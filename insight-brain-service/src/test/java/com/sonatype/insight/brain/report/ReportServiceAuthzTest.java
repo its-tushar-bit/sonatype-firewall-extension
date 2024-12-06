@@ -31,11 +31,11 @@ public class ReportServiceAuthzTest
   private ReportService reportService;
 
   @Mock
-  private ReportUtils reportUtils;
+  private ReportDataStore reportDataStore;
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(ReportUtils.class).toInstance(reportUtils);
+    binder.bind(ReportDataStore.class).toInstance(reportDataStore);
     super.configure(binder);
   }
 
@@ -48,7 +48,7 @@ public class ReportServiceAuthzTest
   public void testGetReportMetadata_Authorized() {
     grantReadPermission(app.getId());
     String scanId = "12345678";
-    when(reportUtils.getFileReport(app.getId(), scanId)).thenReturn(mock(Report.class));
+    when(reportDataStore.getFileReport(app.getId(), scanId)).thenReturn(mock(ApplicationReport.class));
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> reportService.getReportMetadata(app.getPublicId(), scanId))
         .withMessage("Could not find a report with ID 12345678");
@@ -69,27 +69,27 @@ public class ReportServiceAuthzTest
   public void testUpdateReportEntry_Authorized() throws IOException {
     grantWritePermission(app.getId());
     String scanId = "unrealId";
-    when(reportUtils.getFileReport(app.getId(), scanId)).thenReturn(mock(Report.class));
-    reportService.updateReportEntry(app.getId(), scanId, ReportUtils.SECURITY_JSON_FILENAME, null);
+    when(reportDataStore.getFileReport(app.getId(), scanId)).thenReturn(mock(ApplicationReport.class));
+    reportService.updateReportEntry(app.getId(), scanId, ReportDataStore.SECURITY_JSON_FILENAME, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testUpdateReportEntry_Unauthenticated() throws IOException {
-    reportService.updateReportEntry(app.getId(), "unrealId", ReportUtils.SECURITY_JSON_FILENAME, null);
+    reportService.updateReportEntry(app.getId(), "unrealId", ReportDataStore.SECURITY_JSON_FILENAME, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testUpdateReportEntry_Unauthorized() throws IOException {
     login();
-    reportService.updateReportEntry(app.getId(), "unrealId", ReportUtils.SECURITY_JSON_FILENAME, null);
+    reportService.updateReportEntry(app.getId(), "unrealId", ReportDataStore.SECURITY_JSON_FILENAME, null);
   }
 
   @Test
   public void testProcessBrowseReport_Authorized() {
     grantReadPermission(app.getId());
-    when(reportUtils.toEntryName("path")).thenReturn("dummy-entry-name");
+    when(reportDataStore.toEntryName("path")).thenReturn("dummy-entry-name");
     String scanId = "12345678";
-    when(reportUtils.getFileReport(app.getId(), scanId)).thenReturn(mock(Report.class));
+    when(reportDataStore.getFileReport(app.getId(), scanId)).thenReturn(mock(ApplicationReport.class));
 
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> reportService.processBrowseReport(app.getId(), scanId, "path"))

@@ -32,7 +32,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
-import com.sonatype.insight.brain.report.FileReport;
+import com.sonatype.insight.brain.report.FileReportEntity;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -102,20 +102,21 @@ public class PdfGeneratorServiceTest
     Response response = pdfGeneratorService.printReport(application.getPublicId(), scanId);
 
     // Validate content type and check the actual content is really a PDF.
-    var pdfFile = ((FileReport) PdfGenerator.getPdfFile(insightWork, application.getId(), scanId));
+    FileReportEntity reportPdf = ((FileReportEntity) PdfGenerator.getPdfFile(insightWork, application.getId(), scanId));
     String expectedFilename = application.getName() + "-" + StageTypes.BUILD.getName() + "-" +
         new SimpleDateFormat("yyyyMMdd-HHmmss").format(policyEvaluation.getTime()) + ".pdf";
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo(
         HttpHeaderUtils.buildContentDispositionHeaderValue(expectedFilename));
     assertThat(response.getMediaType()).hasToString("application/pdf;charset=UTF-8");
-    assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(pdfFile.length()));
+    assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(reportPdf.length()));
     assertThat(
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
         .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
-    InputStream inputStream = pdfFile.getInputStream();
+    InputStream inputStream = reportPdf.getInputStream();
     assertThat(toByteArray(((InputStream) response.getEntity()))).isEqualTo(toByteArray(inputStream));
     inputStream.close();
-    assertThat(new String(Files.readAllBytes(pdfFile.getFile().toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains(
+    assertThat(
+        new String(Files.readAllBytes(reportPdf.getFile().toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains(
         "%PDF-");
   }
 
@@ -129,9 +130,9 @@ public class PdfGeneratorServiceTest
     FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorServiceTest/report", tempDir), reportFile);
 
     // Pretend the print attempt crashed with OOME, which usually leaves an empty PDF file around.
-    var pdfFile = ((FileReport) PdfGenerator.getPdfFile(insightWork, application.getId(), scanId));
-    pdfFile.getFile().createNewFile();
-    assertThat(pdfFile.getFile()).isFile();
+    FileReportEntity reportPdf = ((FileReportEntity) PdfGenerator.getPdfFile(insightWork, application.getId(), scanId));
+    reportPdf.getFile().createNewFile();
+    assertThat(reportPdf.getFile()).isFile();
 
     Response response = pdfGeneratorService.printReport(application.getPublicId(), scanId);
 
@@ -141,14 +142,15 @@ public class PdfGeneratorServiceTest
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo(
         HttpHeaderUtils.buildContentDispositionHeaderValue(expectedFilename));
     assertThat(response.getMediaType()).hasToString("application/pdf;charset=UTF-8");
-    assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(pdfFile.length()));
+    assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(reportPdf.length()));
     assertThat(
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
         .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
-    InputStream inputStream = pdfFile.getInputStream();
+    InputStream inputStream = reportPdf.getInputStream();
     assertThat(toByteArray(((InputStream) response.getEntity()))).isEqualTo(toByteArray(inputStream));
     inputStream.close();
-    assertThat(new String(Files.readAllBytes(pdfFile.getFile().toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains(
+    assertThat(
+        new String(Files.readAllBytes(reportPdf.getFile().toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains(
         "%PDF-");
   }
 
@@ -171,20 +173,21 @@ public class PdfGeneratorServiceTest
     Response response = pdfGeneratorService.printSbomReport(application.getPublicId(), sbomMetadata.getSbomVersion());
 
     // Validate content type and check the actual content is really a PDF.
-    var pdfFile = ((FileReport) PdfGenerator.getPdfFile(insightWork, application.getId(), scanId));
+    FileReportEntity reportPdf = ((FileReportEntity) PdfGenerator.getPdfFile(insightWork, application.getId(), scanId));
     String expectedFilename = application.getName() + "-" + sbomMetadata.getSbomVersion() + ".pdf";
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo(
         HttpHeaderUtils.buildContentDispositionHeaderValue(expectedFilename));
     assertThat(response.getMediaType()).hasToString("application/pdf;charset=UTF-8");
-    assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(pdfFile.length()));
+    assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(reportPdf.length()));
     assertThat(
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
         .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
 
-    InputStream inputStream = pdfFile.getInputStream();
+    InputStream inputStream = reportPdf.getInputStream();
     assertThat(toByteArray(((InputStream) response.getEntity()))).isEqualTo(toByteArray(inputStream));
     inputStream.close();
-    assertThat(new String(Files.readAllBytes(pdfFile.getFile().toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains(
+    assertThat(
+        new String(Files.readAllBytes(reportPdf.getFile().toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains(
         "%PDF-");
   }
 
@@ -207,19 +210,20 @@ public class PdfGeneratorServiceTest
     Response response = pdfGeneratorService.printSbomReport(application.getPublicId(), sbomMetadata.getSbomVersion());
 
     // Validate content type and check the actual content is really a PDF.
-    var pdfFile = ((FileReport) PdfGenerator.getPdfFile(insightWork, application.getId(), scanId));
+    FileReportEntity reportPdf = ((FileReportEntity) PdfGenerator.getPdfFile(insightWork, application.getId(), scanId));
     String expectedFilename = application.getName() + "-" + sbomMetadata.getSbomVersion() + ".pdf";
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo(
         HttpHeaderUtils.buildContentDispositionHeaderValue(expectedFilename));
     assertThat(response.getMediaType()).hasToString("application/pdf;charset=UTF-8");
-    assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(pdfFile.length()));
+    assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(reportPdf.length()));
     assertThat(
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
         .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
-    InputStream inputStream = pdfFile.getInputStream();
+    InputStream inputStream = reportPdf.getInputStream();
     assertThat(toByteArray(((InputStream) response.getEntity()))).isEqualTo(toByteArray(inputStream));
     inputStream.close();
-    assertThat(new String(Files.readAllBytes(pdfFile.getFile().toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains(
+    assertThat(
+        new String(Files.readAllBytes(reportPdf.getFile().toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains(
         "%PDF-");
   }
 

@@ -19,8 +19,8 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.report.FileReportUtils;
-import com.sonatype.insight.brain.report.ReportUtils;
+import com.sonatype.insight.brain.report.FileReportDataStore;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.service.SisuApplication;
 
 import com.google.inject.Binder;
@@ -107,7 +107,7 @@ public abstract class BrainInjectedTest
       binder.bind(ThirdPartyScansDataStore.class).toInstance(databaseContainerRule.getThirdPartyScansDataStore());
       binder.bind(DataStoreProvider.class).toInstance(databaseContainerRule.getDatabaseContainer());
       binder.bind(ClusterLockManager.class).toProvider(ClusterLockManagerProvider.class);
-      binder.bind(ReportUtils.class).to(FileReportUtils.class);
+      binder.bind(ReportDataStore.class).to(FileReportDataStore.class);
     }
   }
 }

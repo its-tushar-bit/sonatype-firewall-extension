@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.scan.PersistedScanTicket;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.report.FileReport;
+import com.sonatype.insight.brain.report.FileReportEntity;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -118,7 +118,7 @@ public class ScanServiceTest
         .thenReturn(receipt);
     lenient().when(reportDownloader.downloadReport(eq(receipt.getScanId()), any(), anyInt(), anyInt())).then(
         (Answer<Boolean>) invocation -> {
-          FileReport reportFile = (FileReport) invocation.getArguments()[1];
+          FileReportEntity reportFile = (FileReportEntity) invocation.getArguments()[1];
           FileUtils.copyURLToFile(ReportHelper.zipReport("/ScanServiceTest/report", tempDir),
               reportFile.getFile());
           return true;
@@ -202,7 +202,7 @@ public class ScanServiceTest
     Mockito.reset(reportDownloader);
     when(reportDownloader.downloadReport(any(), any(), anyInt(), anyInt()))
         .then((Answer<Boolean>) invocation -> {
-          FileReport reportFile = (FileReport) invocation.getArguments()[1];
+          FileReportEntity reportFile = (FileReportEntity) invocation.getArguments()[1];
           FileUtils.copyURLToFile(ReportHelper.zipReport("/ScanServiceTest/report", tempDir), reportFile.getFile());
           return true;
         });

@@ -26,10 +26,10 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
-import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ReportUtils;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -46,18 +46,18 @@ public class PolicyEvaluationDiffService
 
   private final ComponentLoaderFactory componentLoaderFactory;
 
-  private final ReportUtils reportUtils;
+  private final ReportDataStore reportDataStore;
 
   private final ReportService reportService;
 
   @Inject
   public PolicyEvaluationDiffService(
       final ComponentLoaderFactory componentLoaderFactory,
-      final ReportUtils reportUtils,
+      final ReportDataStore reportDataStore,
       final ReportService reportService)
   {
     this.componentLoaderFactory = componentLoaderFactory;
-    this.reportUtils = reportUtils;
+    this.reportDataStore = reportDataStore;
     this.reportService = reportService;
   }
 
@@ -90,7 +90,7 @@ public class PolicyEvaluationDiffService
       final int minimumThreatLevel,
       boolean byComponents)
   {
-    final Report fromReportFile = getReportByPolicyEvaluation(fromEvaluation);
+    final ApplicationReport fromReportFile = getReportByPolicyEvaluation(fromEvaluation);
     if (fromReportFile == null) {
       log.debug(
           "Could not find report file for 'from' scan report with commit {}, " +
@@ -99,7 +99,7 @@ public class PolicyEvaluationDiffService
       return Optional.empty();
     }
 
-    final Report toReportFile = getReportByPolicyEvaluation(toEvaluation);
+    final ApplicationReport toReportFile = getReportByPolicyEvaluation(toEvaluation);
     if (toReportFile == null) {
       log.debug(
           "Could not find report file for 'to' scan report with commit {}, " +
@@ -109,7 +109,7 @@ public class PolicyEvaluationDiffService
     }
 
     try {
-      final ReportEntry fromReportEntry = reportUtils.getEntry(fromReportFile,
+      final ReportEntry fromReportEntry = reportDataStore.getEntry(fromReportFile,
           ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
       if (fromReportEntry == null) {
         log.debug(
@@ -119,7 +119,7 @@ public class PolicyEvaluationDiffService
             fromReportFile.getLocation());
         return Optional.empty();
       }
-      final ReportEntry toReportEntry = reportUtils.getEntry(toReportFile,
+      final ReportEntry toReportEntry = reportDataStore.getEntry(toReportFile,
           ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
       if (toReportEntry == null) {
         log.debug(
@@ -158,13 +158,13 @@ public class PolicyEvaluationDiffService
     }
   }
 
-  private Report getReportByPolicyEvaluation(final PolicyEvaluation policyEvaluation) {
+  private ApplicationReport getReportByPolicyEvaluation(final PolicyEvaluation policyEvaluation) {
     if (policyEvaluation != null) {
       try {
-        Report reportFile =
+        ApplicationReport applicationReport =
             reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
-        if (reportFile.exists()) {
-          return reportFile;
+        if (applicationReport.exists()) {
+          return applicationReport;
         }
       }
       catch (NotFoundException e) {
@@ -175,10 +175,10 @@ public class PolicyEvaluationDiffService
     return null;
   }
 
-  private Set<ComponentIdentifierAndHashComparable> loadComponentsFromReport(Report reportFile)
+  private Set<ComponentIdentifierAndHashComparable> loadComponentsFromReport(ApplicationReport applicationReport)
       throws IOException
   {
-    ReportEntry bomReportEntry = reportUtils.getEntry(reportFile, ReportUtils.BOM_JSON_FILENAME);
+    ReportEntry bomReportEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.BOM_JSON_FILENAME);
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(null);
     Set<ComponentIdentifierAndHashComparable> result = new TreeSet<>(ComponentIdentifierAndHashComparator.COMPARATOR);
     result.addAll(componentLoader.getAll(null /* license data */, null /* security data */, bomReportEntry.buf,

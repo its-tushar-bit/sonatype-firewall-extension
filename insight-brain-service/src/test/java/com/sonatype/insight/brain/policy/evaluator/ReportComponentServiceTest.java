@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ReportUtils;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -37,7 +37,7 @@ public class ReportComponentServiceTest
   private ClusterLockManager clusterLockManager;
 
   @Inject
-  private ReportUtils reportUtils;
+  private ReportDataStore reportDataStore;
 
   private ReportComponentService reportComponentService;
 
@@ -53,7 +53,7 @@ public class ReportComponentServiceTest
   @Before
   public void setup() {
     reportComponentService =
-        new ReportComponentService(reportService, componentLoaderFactory, clusterLockManager, reportUtils);
+        new ReportComponentService(reportService, componentLoaderFactory, clusterLockManager, reportDataStore);
   }
 
   @Test
@@ -66,7 +66,7 @@ public class ReportComponentServiceTest
     ReportComponentData result = reportComponentService.fetchReportAndComponents(application, scanId);
 
     assertNotNull(result);
-    assertNotNull(result.reportFile);
+    assertNotNull(result.applicationReport);
     assertNotNull(result.components);
     assertFalse(result.components.isEmpty());
   }

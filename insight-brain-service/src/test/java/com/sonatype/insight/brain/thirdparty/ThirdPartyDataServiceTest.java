@@ -41,7 +41,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.report.FileReport;
+import com.sonatype.insight.brain.report.FileReportEntity;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -361,9 +361,10 @@ public class ThirdPartyDataServiceTest
 
   @Test
   public void testProcessThirdPartyData_withInfrastructureAsCodeSavesVulnerabilities() throws Exception {
-    var reportZip = new FileReport(zipReportDir("/ThirdPartyDataServiceTest/report-with-third-party-iac"));
+    FileReportEntity appReport =
+        new FileReportEntity(zipReportDir("/ThirdPartyDataServiceTest/report-with-third-party-iac"));
 
-    ThirdPartyApplicationReportDTO dto = handler.loadThirdPartyInfrastructureAsCodeData(reportZip, "app-id");
+    ThirdPartyApplicationReportDTO dto = handler.loadThirdPartyInfrastructureAsCodeData(appReport, "app-id");
     assertThat(dto).isNotNull();
 
     ThirdPartyVulnerability vulnerability = thirdPartyVulnerabilityDAO.getByRefId(dto.securityRows.get(0).reference);
@@ -452,12 +453,12 @@ public class ThirdPartyDataServiceTest
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
     tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
-    var reportZip =
-        new FileReport(
+    FileReportEntity appReport =
+        new FileReportEntity(
             Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-iac", tempDir).toURI())
                 .toFile());
 
-    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, appReport);
 
     ThirdPartySbomMetadata updated = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(updated).isNotNull();
@@ -474,12 +475,12 @@ public class ThirdPartyDataServiceTest
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
     tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
-    var reportZip =
-        new FileReport(
+    FileReportEntity appReport =
+        new FileReportEntity(
             Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-iac", tempDir).toURI())
                 .toFile());
 
-    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, appReport);
 
     ThirdPartySbomMetadata updated = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(updated).isNotNull();
@@ -494,12 +495,12 @@ public class ThirdPartyDataServiceTest
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
-    var reportZip =
-        new FileReport(
+    FileReportEntity appReport =
+        new FileReportEntity(
             Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-iac", tempDir).toURI())
                 .toFile());
 
-    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, appReport);
 
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(sbomMetadata).isNotNull();

@@ -53,8 +53,8 @@ import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionVal
 import com.sonatype.insight.brain.product.license.DefaultProductLicense;
 import com.sonatype.insight.brain.product.license.MultiTenantProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.report.FileReportUtils;
-import com.sonatype.insight.brain.report.ReportUtils;
+import com.sonatype.insight.brain.report.FileReportDataStore;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.scheduler.MultiTenantQuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
@@ -305,7 +305,7 @@ public class MultiTenantInsightBrainService
         // For unclear reasons, since the switch to dropwizard-guicey leaving this binding null has prevented
         // the server from starting. A proper solution cound not be found, so just fill it in with a dummy value
         bind(File.class).annotatedWith(Names.named("licensing.access.file")).toInstance(new File("workaround"));
-        bind(ReportUtils.class).to(FileReportUtils.class);
+        bind(ReportDataStore.class).to(FileReportDataStore.class);
       }
     });
 

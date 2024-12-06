@@ -83,18 +83,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.api.experimental.ApiVulnerabilitySignatureService.VULNERABILITY_SIGNATURE_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ReportUtils.augmentDependenciesGraph;
-import static com.sonatype.insight.brain.report.ReportUtils.hideObservedLicenses;
-import static com.sonatype.insight.brain.report.ReportUtils.setMavenCoordinates;
-import static com.sonatype.insight.brain.report.ReportUtils.setMavenCoordinatesWithExtension;
+import static com.sonatype.insight.brain.report.ReportDataStore.augmentDependenciesGraph;
+import static com.sonatype.insight.brain.report.ReportDataStore.hideObservedLicenses;
+import static com.sonatype.insight.brain.report.ReportDataStore.setMavenCoordinates;
+import static com.sonatype.insight.brain.report.ReportDataStore.setMavenCoordinatesWithExtension;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME;
 
 @Singleton
-public class FileReportUtils implements ReportUtils
+public class FileReportDataStore
+    implements ReportDataStore
 {
-  private static final Logger log = LoggerFactory.getLogger(FileReportUtils.class);
+  private static final Logger log = LoggerFactory.getLogger(FileReportDataStore.class);
 
   public static final List<String> THIRD_PARTY_CACHED_FILES = Arrays.asList(THIRD_PARTY_BOM_JSON_FILENAME,
       THIRD_PARTY_SECURITY_JSON_FILENAME, THIRD_PARTY_LICENSE_JSON_FILENAME);
@@ -135,7 +136,7 @@ public class FileReportUtils implements ReportUtils
   }
 
   @Inject
-  public FileReportUtils(
+  public FileReportDataStore(
       final ComponentLoaderFactory componentLoaderFactory,
       final Provider<ThirdPartyComponentDAO> thirdPartyComponentDaoProvider,
       final LicenseDAO licenseDAO,
@@ -167,36 +168,38 @@ public class FileReportUtils implements ReportUtils
   }
 
   @Override
-  public ReportEntry getEntry(final Report reportFile, final String name) throws IOException {
+  public ReportEntry getEntry(final ApplicationReport reportFile, final String name) throws IOException {
     if (name.contains("../") || name.contains("..\\")) {
       // legit callers use normalized paths, no directory traversal into restricted areas
       return null;
     }
-    final File cacheFile = getCacheFile(((FileReport) reportFile).getFile(), name);
+    final File cacheFile = getCacheFile(((FileReportEntity) reportFile).getFile(), name);
     if (cacheFile.canRead()) {
       return new ReportEntry(name, cacheFile.lastModified(), fetch(cacheFile));
     }
-    return extractEntry(((FileReport) reportFile).getFile(), name);
+    return extractEntry(((FileReportEntity) reportFile).getFile(), name);
   }
 
   @Override
-  public void putEntry(final Report reportFile, final String name, final byte[] buf) throws IOException {
-    cache(getCacheFile(((FileReport) reportFile).getFile(), name), buf);
+  public void putEntry(final ApplicationReport reportFile, final String name, final byte[] buf) throws IOException {
+    cache(getCacheFile(((FileReportEntity) reportFile).getFile(), name), buf);
   }
 
   /**
    * Major hack for testing only
    */
   @VisibleForTesting
-  public static void putEntryStatic(final Report reportFile, final String name, final byte[] buf)
+  public static void putEntryStatic(final ApplicationReport applicationReport, final String name, final byte[] buf)
       throws IOException
   {
-    cache(getCacheFile(((FileReport) reportFile).getFile(), name), buf);
+    cache(getCacheFile(((FileReportEntity) applicationReport).getFile(), name), buf);
   }
 
   @Override
-  public void putEntry(final Report reportFile, final String name, final String text) throws IOException {
-    putEntry(reportFile, name, text.getBytes(StandardCharsets.UTF_8));
+  public void putEntry(final ApplicationReport applicationReport, final String name, final String text)
+      throws IOException
+  {
+    putEntry(applicationReport, name, text.getBytes(StandardCharsets.UTF_8));
   }
 
   @Override
@@ -262,7 +265,7 @@ public class FileReportUtils implements ReportUtils
   @Override
   public void applyChanges(
       final Application application,
-      final Report reportFile,
+      final ApplicationReport applicationReport,
       final RepositoryMatcher repositoryMatcher,
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
@@ -271,7 +274,7 @@ public class FileReportUtils implements ReportUtils
   {
     long start = System.currentTimeMillis();
 
-    final ReportType reportType = getType(((FileReport) reportFile).getFile());
+    final ReportType reportType = getType(((FileReportEntity) applicationReport).getFile());
 
     if (ReportType.ERROR.equals(reportType)) {
       return;
@@ -279,24 +282,24 @@ public class FileReportUtils implements ReportUtils
 
     // If this is called from a policy re-evaluation, some files may be cached.
     // Start fresh by deleting any cached files.
-    new FileCleaner().delete(getCacheDir(((FileReport) reportFile).getFile()));
-    deletePdfReport(((FileReport) reportFile).getFile());
+    new FileCleaner().delete(getCacheDir(((FileReportEntity) applicationReport).getFile()));
+    deletePdfReport(((FileReportEntity) applicationReport).getFile());
 
-    embedApplicationPublicId(application, ((FileReport) reportFile).getFile());
+    embedApplicationPublicId(application, ((FileReportEntity) applicationReport).getFile());
 
-    applyComponentRelatedChanges(application, reportFile, repositoryMatcher, telemetrySender, telemetryUtils);
-    cacheThirdPartyData(reportFile);
+    applyComponentRelatedChanges(application, applicationReport, repositoryMatcher, telemetrySender, telemetryUtils);
+    cacheThirdPartyData(applicationReport);
 
     // these data items have already had changes applied as part of applyComponentRelatedChanges above
-    final ContainerNode<?> security = JsonUtils.parse(getEntry(reportFile, SECURITY_JSON_FILENAME).buf);
-    final ContainerNode<?> licenses = JsonUtils.parse(getEntry(reportFile, LICENSES_JSON_FILENAME).buf);
-    final ContainerNode<?> partialMatched = JsonUtils.parse(getEntry(reportFile, "partialmatched.json").buf);
+    final ContainerNode<?> security = JsonUtils.parse(getEntry(applicationReport, SECURITY_JSON_FILENAME).buf);
+    final ContainerNode<?> licenses = JsonUtils.parse(getEntry(applicationReport, LICENSES_JSON_FILENAME).buf);
+    final ContainerNode<?> partialMatched = JsonUtils.parse(getEntry(applicationReport, "partialmatched.json").buf);
 
     Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier =
-        ReportUtils.parseDependencyDepths(JsonUtils.parse(extractEntry(
-            ((FileReport) reportFile).getFile(), DEPENDENCIES_JSON_FILENAME).buf));
+        ReportDataStore.parseDependencyDepths(JsonUtils.parse(extractEntry(
+            ((FileReportEntity) applicationReport).getFile(), DEPENDENCIES_JSON_FILENAME).buf));
 
-    final ObjectNode data = JsonUtils.parse(getEntry(reportFile, DATA_JSON_FILENAME).buf);
+    final ObjectNode data = JsonUtils.parse(getEntry(applicationReport, DATA_JSON_FILENAME).buf);
     final int[] securityCounts = getSecurityCounts(data);
     final int[] licenseCounts = new int[11];
 
@@ -366,9 +369,9 @@ public class FileReportUtils implements ReportUtils
       }
     }
 
-    saveReportEntry(((FileReport) reportFile).getFile(), LICENSES_JSON_FILENAME, licenses);
-    saveReportEntry(((FileReport) reportFile).getFile(), "partialmatched.json", partialMatched);
-    writeLicenseThreatsToReportFile(application, ((FileReport) reportFile).getFile());
+    saveReportEntry(((FileReportEntity) applicationReport).getFile(), LICENSES_JSON_FILENAME, licenses);
+    saveReportEntry(((FileReportEntity) applicationReport).getFile(), "partialmatched.json", partialMatched);
+    writeLicenseThreatsToReportFile(application, ((FileReportEntity) applicationReport).getFile());
 
     fill(data.putArray("securityCounts"), securityCounts);
     data.put("insecureArtifactCount", insecureArtifactCount);
@@ -376,7 +379,7 @@ public class FileReportUtils implements ReportUtils
     fill(data.putArray("securityPunchCard"), securityPunchCard);
     fill(data.putArray("licensePunchCard"), licensePunchCard);
 
-    saveReportEntry(((FileReport) reportFile).getFile(), DATA_JSON_FILENAME, data);
+    saveReportEntry(((FileReportEntity) applicationReport).getFile(), DATA_JSON_FILENAME, data);
 
     log.debug("Applied changes to report in {} ms", System.currentTimeMillis() - start);
   }
@@ -387,16 +390,16 @@ public class FileReportUtils implements ReportUtils
     securityCounts[threatIndex < 0 ? 0 : threatIndex < 10 ? threatIndex : 9]++;
   }
 
-  private void cacheThirdPartyData(final Report reportFile) {
+  private void cacheThirdPartyData(final ApplicationReport applicationReport) {
     THIRD_PARTY_CACHED_FILES.forEach(filename -> {
       try {
-        final ReportEntry entry = getEntry(reportFile, filename);
+        final ReportEntry entry = getEntry(applicationReport, filename);
         if (entry != null) {
-          cache(getCacheFile(((FileReport) reportFile).getFile(), filename), entry.buf);
+          cache(getCacheFile(((FileReportEntity) applicationReport).getFile(), filename), entry.buf);
         }
       }
       catch (IOException e) {
-        log.error("Error reading third party data from report file: {}", reportFile.getLocation(), e);
+        log.error("Error reading third party data from report file: {}", applicationReport.getLocation(), e);
       }
     });
   }
@@ -538,7 +541,7 @@ public class FileReportUtils implements ReportUtils
   {
     Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides = new HashSet<>();
 
-    if (!ReportUtils.hasAnyLicenseOverrides(licenseOverrideDAO, application.getId())) {
+    if (!ReportDataStore.hasAnyLicenseOverrides(licenseOverrideDAO, application.getId())) {
       return componentIdentifiersWithLicenseOverrides;
     }
 
@@ -675,33 +678,36 @@ public class FileReportUtils implements ReportUtils
    */
   private void applyComponentRelatedChanges(
       final Application application,
-      final Report reportFile,
+      final ApplicationReport applicationReport,
       final RepositoryMatcher repositoryMatcher,
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils) throws IOException
   {
     long start = System.currentTimeMillis();
 
-    ContainerNode<?> bomJsonData = loadReportEntry(((FileReport) reportFile).getFile(), BOM_JSON_FILENAME);
-    ContainerNode<?> dataJson = loadReportEntry(((FileReport) reportFile).getFile(), DATA_JSON_FILENAME);
-    ContainerNode<?> summaryJsonData = loadReportEntry(((FileReport) reportFile).getFile(), SUMMARY_JSON_FILENAME);
+    ContainerNode<?> bomJsonData = loadReportEntry(((FileReportEntity) applicationReport).getFile(), BOM_JSON_FILENAME);
+    ContainerNode<?> dataJson = loadReportEntry(((FileReportEntity) applicationReport).getFile(), DATA_JSON_FILENAME);
+    ContainerNode<?> summaryJsonData =
+        loadReportEntry(((FileReportEntity) applicationReport).getFile(), SUMMARY_JSON_FILENAME);
 
     Map<String, HashComponentIdentifier> claimedComponentsByHash =
         applyClaimedComponents(bomJsonData, dataJson, summaryJsonData);
 
     // must start from un-edited data
-    ContainerNode<?> licensesJsonData = loadReportEntry(((FileReport) reportFile).getFile(), LICENSES_JSON_FILENAME);
-    ContainerNode<?> securityJsonData = loadReportEntry(((FileReport) reportFile).getFile(), SECURITY_JSON_FILENAME);
+    ContainerNode<?> licensesJsonData =
+        loadReportEntry(((FileReportEntity) applicationReport).getFile(), LICENSES_JSON_FILENAME);
+    ContainerNode<?> securityJsonData =
+        loadReportEntry(((FileReportEntity) applicationReport).getFile(), SECURITY_JSON_FILENAME);
     ContainerNode<?> dependenciesJsonData =
-        loadReportEntry(((FileReport) reportFile).getFile(), DEPENDENCIES_JSON_FILENAME);
+        loadReportEntry(((FileReportEntity) applicationReport).getFile(), DEPENDENCIES_JSON_FILENAME);
     thirdPartyComponentDAO.updateReport(bomJsonData, licensesJsonData, securityJsonData, dataJson, summaryJsonData,
-        reportFile);
+        applicationReport);
 
     Set<ComponentIdentifier> componentIdentifiers = fixBomComponentIdentifiers(bomJsonData);
 
     // now apply any data edits (e.g. modified flag)
     augmentDependenciesGraph(dependenciesJsonData);
-    saveReportEntry(((FileReport) reportFile).getFile(), DEPENDENCIES_JSON_FILENAME, dependenciesJsonData);
+    saveReportEntry(((FileReportEntity) applicationReport).getFile(), DEPENDENCIES_JSON_FILENAME, dependenciesJsonData);
 
     DependencyResolver
         .getInstance(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, application, telemetrySender,
@@ -718,23 +724,23 @@ public class FileReportUtils implements ReportUtils
     ArrayNode licensesAaData = (ArrayNode) licensesJsonData.get("aaData");
     componentIdentifiersWithLicenseOverrides
         .addAll(addLicenseOverridesForClaimedComponents(licensesAaData, claimedComponentsByHash.values(), application));
-    saveReportEntry(((FileReport) reportFile).getFile(), LICENSES_JSON_FILENAME, licensesJsonData);
+    saveReportEntry(((FileReportEntity) applicationReport).getFile(), LICENSES_JSON_FILENAME, licensesJsonData);
 
-    saveReportEntry(((FileReport) reportFile).getFile(), DATA_JSON_FILENAME, dataJson);
-    saveReportEntry(((FileReport) reportFile).getFile(), SUMMARY_JSON_FILENAME, summaryJsonData);
+    saveReportEntry(((FileReportEntity) applicationReport).getFile(), DATA_JSON_FILENAME, dataJson);
+    saveReportEntry(((FileReportEntity) applicationReport).getFile(), SUMMARY_JSON_FILENAME, summaryJsonData);
 
     augmentModified(componentIdentifiersWithLicenseOverrides, bomJsonData);
-    saveReportEntry(((FileReport) reportFile).getFile(), BOM_JSON_FILENAME, bomJsonData);
+    saveReportEntry(((FileReportEntity) applicationReport).getFile(), BOM_JSON_FILENAME, bomJsonData);
 
     fixComponentIdentifiers(securityJsonData, componentIdentifiers);
     applySecurityVulnerabilityOverrides(securityJsonData, application);
-    saveReportEntry(((FileReport) reportFile).getFile(), SECURITY_JSON_FILENAME, securityJsonData);
+    saveReportEntry(((FileReportEntity) applicationReport).getFile(), SECURITY_JSON_FILENAME, securityJsonData);
 
     // must start from un-edited data
     ContainerNode<?> partialmatchedJsonData =
-        loadReportEntry(((FileReport) reportFile).getFile(), "partialmatched.json");
+        loadReportEntry(((FileReportEntity) applicationReport).getFile(), "partialmatched.json");
     removeClaimedComponentsFromPartialMatched(partialmatchedJsonData, claimedComponentsByHash);
-    saveReportEntry(((FileReport) reportFile).getFile(), "partialmatched.json", partialmatchedJsonData);
+    saveReportEntry(((FileReportEntity) applicationReport).getFile(), "partialmatched.json", partialmatchedJsonData);
 
     log.debug("applyComponentRelatedChanges finished  in {} ms", System.currentTimeMillis() - start);
   }
@@ -817,7 +823,7 @@ public class FileReportUtils implements ReportUtils
     // Starting with release 1.168, we serve shared resources for legacy report from the jar
     // HDS does not include these files in the report.zip when IQ client is v1.168 or higher
     String resource = "/com/sonatype/insight/brain/legacy.report/" + name;
-    try (InputStream stream = FileReportUtils.class.getResourceAsStream(resource)) {
+    try (InputStream stream = FileReportDataStore.class.getResourceAsStream(resource)) {
       if (stream != null) {
         return new ReportEntry(name, new Date().getTime(), IOUtils.toByteArray(stream));
       }
@@ -839,8 +845,8 @@ public class FileReportUtils implements ReportUtils
    * Gets the contents of the {@code template.properties} embedded in the report from the HDS or an empty map if none.
    */
   @Override
-  public Properties getTemplateProperties(Report reportFile) throws IOException {
-    try (ZipFile archive = new ZipFile(((FileReport) reportFile).getFile())) {
+  public Properties getTemplateProperties(ApplicationReport reportFile) throws IOException {
+    try (ZipFile archive = new ZipFile(((FileReportEntity) reportFile).getFile())) {
       Properties props = new Properties();
       ZipEntry entry = archive.getEntry("template.properties");
       if (entry != null) {
@@ -880,33 +886,34 @@ public class FileReportUtils implements ReportUtils
   }
 
   @Override
-  public FileReport tempReport(final Report reportFile) {
+  public FileReportEntity tempReport(final ApplicationReport reportFile) {
     final File tempFile =
-        FileUtils.createTempFile("temp-", ".zip", ((FileReport) reportFile).getFile().getParentFile());
-    return new FileReport(tempFile);
+        FileUtils.createTempFile("temp-", ".zip", ((FileReportEntity) reportFile).getFile().getParentFile());
+    return new FileReportEntity(tempFile);
   }
 
   @Override
-  public void rename(final Report tempFile, final Report reportFile) throws IOException {
-    FileUtils.rename(((FileReport) tempFile).getFile(), ((FileReport) reportFile).getFile());
+  public void rename(final ApplicationReport tempFile, final ApplicationReport reportFile) throws IOException {
+    FileUtils.rename(((FileReportEntity) tempFile).getFile(), ((FileReportEntity) reportFile).getFile());
   }
 
   /**
    * Downloads a report for a scan.
    *
    * @param scanId                 of the report
-   * @param reportFile             to save report to
+   * @param tempApplicationReport             to save report to
    * @param reportTimeoutInSeconds time to wait before the report times out - 0 will not make retry attempts
    * @return true if the report was downloaded, false otherwise.
    */
   @Override
   public boolean downloadReport(
       final String scanId,
-      final Report reportFile,
+      final ApplicationReport tempApplicationReport,
       final int reportTimeoutInSeconds,
       final int retryIntervalInSeconds)
   {
-    return reportDownloader.downloadReport(scanId, reportFile, reportTimeoutInSeconds, retryIntervalInSeconds);
+    return reportDownloader.downloadReport(scanId, tempApplicationReport, reportTimeoutInSeconds,
+        retryIntervalInSeconds);
   }
 
   private void fill(final ArrayNode node, final List<int[]> datas) {
@@ -916,13 +923,13 @@ public class FileReportUtils implements ReportUtils
   }
 
   @Override
-  public void appendToReport(final Report reportFile, final ThirdPartyApplicationReportDTO dto)
+  public void appendToReport(final ApplicationReport reportFile, final ThirdPartyApplicationReportDTO dto)
       throws IOException
   {
     Map<String, Object> env = new HashMap<>();
     env.put("create", "false");
     env.put("useTempFile", Boolean.TRUE); //to avoid large byte streams created in memory
-    Path archivePath = ((FileReport) reportFile).getFile().toPath();
+    Path archivePath = ((FileReportEntity) reportFile).getFile().toPath();
     URI archiveUri = URI.create("jar:" + archivePath.toUri());
     try (FileSystem fs = FileSystems.newFileSystem(archiveUri, env)) {
       appendFileToReportZip(fs, THIRD_PARTY_BOM_JSON_FILENAME, dto.billOfMaterials);
@@ -932,13 +939,13 @@ public class FileReportUtils implements ReportUtils
   }
 
   @Override
-  public FileReport getFileReport(final String appId, final String scanId) {
-    return new FileReport(insightWork.getReportFile(appId, scanId));
+  public ApplicationReport getFileReport(final String appId, final String scanId) {
+    return new FileReportEntity(insightWork.getReportFile(appId, scanId));
   }
 
   @Override
-  public FileReport getVulnerabilitySignatureJson(final String applicationId, final String reportId) {
-    return new FileReport(
+  public FileReportEntity getVulnerabilitySignatureJson(final String applicationId, final String reportId) {
+    return new FileReportEntity(
         new File(insightWork.getReportFile(applicationId, reportId).getParentFile(),
             VULNERABILITY_SIGNATURE_JSON_FILENAME));
   }

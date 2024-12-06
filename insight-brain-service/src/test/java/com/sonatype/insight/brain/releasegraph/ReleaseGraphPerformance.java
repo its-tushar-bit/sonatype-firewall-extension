@@ -49,7 +49,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ComponentPopularity;
 import com.sonatype.insight.brain.model.ReportPopularity;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ReportUtils;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.testing.H2InMemoryDatabaseConfigProvider;
@@ -88,10 +88,10 @@ public class ReleaseGraphPerformance
     callables = new LinkedList<>();
     pool = new ThreadPoolExecutor(threads, threads, 1, TimeUnit.SECONDS, new ArrayBlockingQueue<>(threads));
     ReportService reportService = null;
-    ReportUtils reportUtils = null;
+    ReportDataStore reportDataStore = null;
     cache = CacheBuilder.newBuilder().maximumSize(1000)
         .build(new ReleaseGraphCacheLoader(new ReportItemCacheLoader(reportService, daoFactory.createApplicationDAO(),
-            reportUtils)));
+            reportDataStore)));
     ReleaseGraphCacheProvider mockReleaseGraphCacheProvider = mock(ReleaseGraphCacheProvider.class);
     when(mockReleaseGraphCacheProvider.get()).thenReturn(cache);
     reportResource = new ReleaseGraphResource(new ReleaseGraphService(mockReleaseGraphCacheProvider));

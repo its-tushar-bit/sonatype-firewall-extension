@@ -39,9 +39,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.xmlunit.assertj.XmlAssert;
 
-import static com.sonatype.insight.brain.thirdparty.ThirdPartySbomUtils.getSonatypeIdentifierNodeFilter;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
@@ -98,14 +97,11 @@ public class ContainerResultsHandlerTest
         new ThirdPartyScanContent("container:alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = containerResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    String actualFilteredContent = containerResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    String expectedFiltered = loadResource("alpine-3.6-expected-bom.json");
 
-    String expectedXml = loadResource("alpine-3.6-expected-bom.xml");
-
-    XmlAssert.assertThat(filteredContent).and(expectedXml)
-        .withNodeFilter(getSonatypeIdentifierNodeFilter())
-        .ignoreWhitespace()
-        .areIdentical();
+    assertThatJson(actualFilteredContent).whenIgnoringPaths("components[*].properties[*].value")
+        .isEqualTo(expectedFiltered);
   }
 
   @Test

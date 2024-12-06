@@ -18,7 +18,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.xml.parsers.ParserConfigurationException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
@@ -41,6 +40,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
+import com.sonatype.insight.brain.sbom.export.SbomExportParams;
 import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
@@ -69,9 +69,7 @@ import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclonedx.Version;
-import org.cyclonedx.exception.GeneratorException;
 import org.cyclonedx.generators.BomGeneratorFactory;
-import org.cyclonedx.generators.xml.BomXmlGenerator;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Dependency;
@@ -1238,12 +1236,11 @@ public class SbomResultHandler
     }
   }
 
-  String generateFilteredSbom(Bom sbom)
-      throws ParserConfigurationException, GeneratorException
-  {
-    BomXmlGenerator generator = BomGeneratorFactory.createXml(Version.VERSION_14, sbom);
-    generator.generate();
-    return generator.toXmlString();
+  String generateFilteredSbom(Bom sbom) {
+    String defaultVersionString =  SbomExportParams.ExportSpecification.DEFAULT.getVersion();
+    Optional<Version> defaultVersionOptional = SbomCycloneDxUtils.getVersionFromString(defaultVersionString);
+    Version defaultVersion = defaultVersionOptional.orElse(Version.VERSION_16);
+    return BomGeneratorFactory.createJson(defaultVersion, sbom).toJsonString();
   }
 
   boolean isValid() {

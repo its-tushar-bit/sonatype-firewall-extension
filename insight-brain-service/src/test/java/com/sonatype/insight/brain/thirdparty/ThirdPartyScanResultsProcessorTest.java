@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.thirdparty;
 
 import java.io.File;
-import java.io.StringReader;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -71,17 +70,14 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParser;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
-import org.cyclonedx.parsers.Parser;
-import org.cyclonedx.parsers.XmlParser;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.w3c.dom.Document;
-import org.xmlunit.assertj.XmlAssert;
 
-import static com.sonatype.insight.brain.thirdparty.ThirdPartySbomUtils.getSonatypeIdentifierNodeFilter;
 import static com.sonatype.insight.scan.model.ItemContentType.IAC_FILE;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.entry;
@@ -187,10 +183,8 @@ public class ThirdPartyScanResultsProcessorTest
     Document actualScan = db.parse(getScanXMLFile(tempScanFile));
     String actualSbom = getSbomNodeAsString(actualScan, "/scan/item[4]/content");
 
-    XmlAssert.assertThat(actualSbom).and(expectedSbom)
-        .withNodeFilter(getSonatypeIdentifierNodeFilter())
-        .ignoreWhitespace()
-        .areIdentical();
+    assertThatJson(actualSbom).whenIgnoringPaths("components[*].properties[*].value")
+        .isEqualTo(expectedSbom);
 
     String hasErrorAttr = getSbomNodeAsString(actualScan, "/scan/item[4]/@hasError");
     assertThat(hasErrorAttr).isEmpty();
@@ -745,10 +739,8 @@ public class ThirdPartyScanResultsProcessorTest
     Document actualScan = db.parse(getScanXMLFile(tempScanFile));
     String actualSbom = getSbomNodeAsString(actualScan, "/scan/item[1]/content");
 
-    XmlAssert.assertThat(actualSbom).and(expectedSbom)
-        .withNodeFilter(getSonatypeIdentifierNodeFilter())
-        .ignoreWhitespace()
-        .areIdentical();
+    assertThatJson(actualSbom).whenIgnoringPaths("components[*].properties[*].value")
+        .isEqualTo(expectedSbom);
   }
 
   public String getSbomNodeAsString(Document rootDocument, String xPathString) throws Exception {
@@ -1003,14 +995,14 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   private void assertFilteredScanContentFile(
-      final String xml,
+      final String json,
       final String contentType,
       final boolean optionalValuesPresent,
       final int expectedComponentCount,
       final ItemContentType itemContentType) throws ParseException
   {
     assertThat(contentType).isEqualTo(itemContentType.name());
-    Bom bom = getBom(xml);
+    Bom bom = ThirdPartySbomUtils.getFilteredBom(json);
     assertThat(bom).isNotNull();
     assertThat(bom.getComponents()).hasSize(expectedComponentCount);
     assertThat(bom.getSerialNumber()).isNull();
@@ -1068,11 +1060,6 @@ public class ThirdPartyScanResultsProcessorTest
       assertThat(vulnerability.getLink()).isNull();
       assertThat(vulnerability.getSeverity()).isNull();
     }
-  }
-
-  private Bom getBom(String content) throws ParseException {
-    Parser parser = new XmlParser();
-    return parser.parse(new StringReader(content));
   }
 
   private void assertThirdPartyFile(

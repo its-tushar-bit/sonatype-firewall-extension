@@ -745,7 +745,7 @@ public class SbomResultHandlerTest
 
     String actualFilteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertThat(actualFilteredContent).isNotNull();
-    Bom actualFilteredBom = getBom(actualFilteredContent);
+    Bom actualFilteredBom = ThirdPartySbomUtils.getFilteredBom(actualFilteredContent);
     assertThat(actualFilteredBom).isNotNull();
     assertThat(actualFilteredBom.getComponents()).hasSize(1);
     Component actualComponent = actualFilteredBom.getComponents().get(0);
@@ -1203,7 +1203,7 @@ public class SbomResultHandlerTest
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
 
     assertThat(filteredContent).isNotNull();
-    Bom bom = getBom(filteredContent);
+    Bom bom = ThirdPartySbomUtils.getFilteredBom(filteredContent);
     assertThat(bom).isNotNull();
 
     List<Component> components = bom.getComponents();
@@ -1848,7 +1848,7 @@ public class SbomResultHandlerTest
     assertFilteredSbomFile(filteredContent, 1);
 
     // check filtered content (will be sent to HDS) has been truncated
-    Bom filteredSbom = getBom(filteredContent);
+    Bom filteredSbom = ThirdPartySbomUtils.getFilteredBom(filteredContent);
     Component component = filteredSbom.getComponents().get(0);
     assertThat(component.getName()).hasSize(NAME_MAX_LENGTH);
     assertThat(component.getVersion()).hasSize(VERSION_MAX_LENGTH);
@@ -1903,7 +1903,7 @@ public class SbomResultHandlerTest
       throws Exception
   {
     assertThat(content).isNotNull();
-    Bom bom = getBom(content);
+    Bom bom = ThirdPartySbomUtils.getFilteredBom(content);
     assertThat(bom).isNotNull();
     assertThat(bom.getComponents()).hasSize(expectedComponentCount);
 
@@ -2033,7 +2033,7 @@ public class SbomResultHandlerTest
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
 
     // check filtered content (will be sent to HDS) has only coordinates, hash or purl
-    Bom filteredSbom = getBom(filteredContent);
+    Bom filteredSbom = ThirdPartySbomUtils.getFilteredBom(filteredContent);
     assertFilteredSbomFile(filteredContent, 3);
     List<Component> components = filteredSbom.getComponents();
     assertThat(components).hasSize(3)

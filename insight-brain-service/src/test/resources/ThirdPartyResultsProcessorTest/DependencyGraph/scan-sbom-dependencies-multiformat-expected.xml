@@ -25,47 +25,63 @@
     </properties>
   </configuration>
   <item contentType="SBOM" lastModified="1571788783929" sha1="80d8ce5924b4b67314bf" path="scan-multiformat-bom.xml">
-    <content><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-<bom version="1" xmlns="http://cyclonedx.org/schema/bom/1.4">
-  <metadata>
-    <timestamp>2021-12-03T12:18:22Z</timestamp>
-    <component type="application" bom-ref="acme-app">
-      <name>Acme Application</name>
-      <version>9.1.1</version>
-      <purl>pkg:maven/org.acme/acme-app@9.1.1?type=jar</purl>
-    </component>
-  </metadata>
-  <components>
-    <component type="framework">
-      <group>org.acme</group>
-      <name>genericdep</name>
-      <version>1.0.0</version>
-      <purl>pkg:generic/org.acme/genericdep@1.0.0?nexustype=rar</purl>
-      <properties>
-        <property name="sonatypeIdentifier">testIdentifier</property>
-      </properties>
-    </component>
-    <component type="library">
-      <name>pydep</name>
-      <version>3.1.0</version>
-      <purl>pkg:pypi/pydep@3.1.0?extension=tgz&amp;qualifier=cp27_win</purl>
-      <properties>
-        <property name="sonatypeIdentifier">testIdentifier</property>
-      </properties>
-    </component>
-    <component type="library">
-      <name>crandep</name>
-      <version>3.0.0</version>
-      <purl>pkg:cran/crandep@3.0.0</purl>
-      <properties>
-        <property name="sonatypeIdentifier">testIdentifier</property>
-      </properties>
-    </component>
-  </components>
-</bom>
+    <content><![CDATA[{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.6",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "2021-12-03T12:18:22Z",
+    "component" : {
+      "type" : "application",
+      "bom-ref" : "acme-app",
+      "name" : "Acme Application",
+      "version" : "9.1.1",
+      "purl" : "pkg:maven/org.acme/acme-app@9.1.1?type=jar"
+    }
+  },
+  "components" : [
+    {
+      "type" : "framework",
+      "group" : "org.acme",
+      "name" : "genericdep",
+      "version" : "1.0.0",
+      "purl" : "pkg:generic/org.acme/genericdep@1.0.0?nexustype=rar",
+      "properties" : [
+        {
+          "name" : "sonatypeIdentifier",
+          "value" : "10ac6f2d51ad4a75936ee27e0c6c1b4d"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "name" : "pydep",
+      "version" : "3.1.0",
+      "purl" : "pkg:pypi/pydep@3.1.0?extension=tgz&qualifier=cp27_win",
+      "properties" : [
+        {
+          "name" : "sonatypeIdentifier",
+          "value" : "3940a00267714a5894e19dfd9e224d2a"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "name" : "crandep",
+      "version" : "3.0.0",
+      "purl" : "pkg:cran/crandep@3.0.0",
+      "properties" : [
+        {
+          "name" : "sonatypeIdentifier",
+          "value" : "44097233c1574c95beb91ab268f45676"
+        }
+      ]
+    }
+  ]
+}
 ]]></content>
   </item>
-  <project id="pkg:maven/org.acme/acme-app@9.1.1?type=jar" kind="sbom" path="scan-multiformat-bom.xml">
+  <project id="pkg:maven/org.acme/acme-app@9.1.1?type=jar" kind="sbom" path="scan-multiformat-bom.json">
     <dependencies>
       <dep direct="true" id="pkg:generic/org.acme/genericdep@1.0.0?nexustype=rar">
         <dep id="pkg:pypi/pydep@3.1.0?extension=tgz&amp;qualifier=cp27_win"/>

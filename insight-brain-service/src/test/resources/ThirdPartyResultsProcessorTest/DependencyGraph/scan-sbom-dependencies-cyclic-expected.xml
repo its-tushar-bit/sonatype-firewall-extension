@@ -24,36 +24,50 @@
       <property name="resourceNames" value="true"/>
     </properties>
   </configuration>
-  <item contentType="SBOM" lastModified="1571788783929" sha1="80d8ce5924b4b67314bf" path="scan-cyclic-bom.xml">
-    <content><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-<bom version="1" xmlns="http://cyclonedx.org/schema/bom/1.4">
-  <metadata>
-    <timestamp>2021-12-03T12:18:22Z</timestamp>
-    <component type="application" bom-ref="a-app">
-      <name>a</name>
-      <version>1.0</version>
-      <purl>pkg:npm/a@1.0</purl>
-    </component>
-  </metadata>
-  <components>
-    <component type="framework" bom-ref="pkg:npm/b@1.0">
-      <name>b</name>
-      <version>1.0</version>
-      <purl>pkg:npm/b@1.0</purl>
-      <properties>
-        <property name="sonatypeIdentifier">testIdentifier</property>
-      </properties>
-    </component>
-    <component type="library" bom-ref="pkg:npm/c@1.0">
-      <name>c</name>
-      <version>1.0</version>
-      <purl>pkg:npm/c@1.0</purl>
-      <properties>
-        <property name="sonatypeIdentifier">testIdentifier</property>
-      </properties>
-    </component>
-  </components>
-</bom>
+  <item contentType="SBOM" lastModified="1571788783929" sha1="80d8ce5924b4b67314bf" path="scan-cyclic-bom.json">
+    <content><![CDATA[{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.6",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "2021-12-03T12:18:22Z",
+    "component" : {
+      "type" : "application",
+      "bom-ref" : "a-app",
+      "name" : "a",
+      "version" : "1.0",
+      "purl" : "pkg:npm/a@1.0"
+    }
+  },
+  "components" : [
+    {
+      "type" : "framework",
+      "bom-ref" : "pkg:npm/b@1.0",
+      "name" : "b",
+      "version" : "1.0",
+      "purl" : "pkg:npm/b@1.0",
+      "properties" : [
+        {
+          "name" : "sonatypeIdentifier",
+          "value" : "d1522f492a3d4e47a43ecc4375e44c84"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "pkg:npm/c@1.0",
+      "name" : "c",
+      "version" : "1.0",
+      "purl" : "pkg:npm/c@1.0",
+      "properties" : [
+        {
+          "name" : "sonatypeIdentifier",
+          "value" : "f1edf7f610f34ca49923f84d8b1d86ce"
+        }
+      ]
+    }
+  ]
+}
 ]]></content>
   </item>
   <project path="scan-cyclic-bom.xml" id="pkg:npm/a@1.0" kind="sbom">

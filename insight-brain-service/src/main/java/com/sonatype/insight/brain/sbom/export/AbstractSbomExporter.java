@@ -9,7 +9,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatterBuilder;
-import java.util.Arrays;
 import java.util.Optional;
 
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
@@ -19,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -100,8 +100,7 @@ public abstract class AbstractSbomExporter
 
   protected String generateTargetSbomString(Bom bom) throws GeneratorException {
     String versionStr = exportParams.exportSpecification.getVersion();
-    Optional<Version> cycloneDxEnumVersion = Arrays.stream(Version.values()).filter(cycloneDxVersion
-        -> cycloneDxVersion.getVersionString().equalsIgnoreCase(versionStr)).findFirst();
+    Optional<Version> cycloneDxEnumVersion = SbomCycloneDxUtils.getVersionFromString(versionStr);
     if (cycloneDxEnumVersion.isPresent()) {
       if (exportParams.targetFormat.equals(SbomFormat.XML)) {
         return BomGeneratorFactory.createXml(cycloneDxEnumVersion.get(), bom).toXmlString();

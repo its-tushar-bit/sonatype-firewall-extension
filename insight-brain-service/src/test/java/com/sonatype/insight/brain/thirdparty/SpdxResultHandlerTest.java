@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
-import java.io.StringReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -47,14 +46,11 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
 
-import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Hash.Algorithm;
 import org.cyclonedx.model.Property;
 import org.cyclonedx.model.Swid;
-import org.cyclonedx.parsers.Parser;
-import org.cyclonedx.parsers.XmlParser;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -470,7 +466,7 @@ public class SpdxResultHandlerTest
     String actualFilteredContent = spdxResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
 
     assertThat(actualFilteredContent).isNotNull();
-    Bom actualFilteredBom = getBom(actualFilteredContent);
+    Bom actualFilteredBom = ThirdPartySbomUtils.getFilteredBom(actualFilteredContent);
 
     assertThat(actualFilteredBom).isNotNull();
     assertThat(actualFilteredBom.getComponents()).hasSize(1);
@@ -828,7 +824,7 @@ public class SpdxResultHandlerTest
       throws Exception
   {
     assertThat(content).isNotNull();
-    Bom bom = getBom(content);
+    Bom bom = ThirdPartySbomUtils.getFilteredBom(content);
     assertThat(bom).isNotNull();
     assertThat(bom.getComponents()).hasSize(expectedComponentCount);
 
@@ -856,11 +852,6 @@ public class SpdxResultHandlerTest
       }
     }
     return bom;
-  }
-
-  private Bom getBom(String content) throws ParseException {
-    Parser parser = new XmlParser();
-    return parser.parse(new StringReader(content));
   }
 
   private void assertDebugLogOutput(final String message) {

@@ -24,46 +24,64 @@
       <property name="resourceNames" value="true"/>
     </properties>
   </configuration>
-  <item contentType="SBOM" lastModified="1571788783929" sha1="80d8ce5924b4b67314bf" path="scan-multiformat-bom.xml">
-    <content><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-<bom version="1" xmlns="http://cyclonedx.org/schema/bom/1.4">
-  <metadata>
-    <timestamp>2021-12-03T12:18:22Z</timestamp>
-    <component type="application" bom-ref="acme-app">
-      <name>Acme Application</name>
-      <version>9.1.1</version>
-      <purl>pkg:maven/org.acme/acme-app@9.1.1?type=jar</purl>
-    </component>
-  </metadata>
-  <components>
-    <component type="framework" bom-ref="af6bfccd-3efd-4fad-a035-355c45ef884b">
-      <group>org.acme</group>
-      <name>genericdep</name>
-      <version>1.0.0</version>
-      <purl>pkg:generic/org.acme/genericdep@1.0.0?nexustype=rar</purl>
-      <properties>
-        <property name="sonatypeIdentifier">testIdentifier</property>
-      </properties>
-    </component>
-    <component type="library" bom-ref="d94c966b-c8ec-452a-acbf-584906d551b3">
-      <name>pydep</name>
-      <version>3.1.0</version>
-      <purl>pkg:pypi/pydep@3.1.0?extension=tgz&amp;qualifier=cp27_win</purl>
-      <properties>
-        <property name="sonatypeIdentifier">testIdentifier</property>
-      </properties>
-    </component>
-    <component type="library" bom-ref="56e214a7-af84-4068-8c23-256802b51baf">
-      <name>crandep</name>
-      <version>3.0.0</version>
-      <purl>pkg:cran/crandep@3.0.0</purl>
-      <properties>
-        <property name="sonatypeIdentifier">testIdentifier</property>
-      </properties>
-    </component>
-  </components>
-</bom>
-]]></content>
+  <item contentType="SBOM" lastModified="1571788783929" sha1="80d8ce5924b4b67314bf" path="scan-multiformat-bom.json">
+    <content><![CDATA[{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.6",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "2021-12-03T12:18:22Z",
+    "component" : {
+      "type" : "application",
+      "bom-ref" : "acme-app",
+      "name" : "Acme Application",
+      "version" : "9.1.1",
+      "purl" : "pkg:maven/org.acme/acme-app@9.1.1?type=jar"
+    }
+  },
+  "components" : [
+    {
+      "type" : "framework",
+      "bom-ref" : "af6bfccd-3efd-4fad-a035-355c45ef884b",
+      "group" : "org.acme",
+      "name" : "genericdep",
+      "version" : "1.0.0",
+      "purl" : "pkg:generic/org.acme/genericdep@1.0.0?nexustype=rar",
+      "properties" : [
+        {
+          "name" : "sonatypeIdentifier",
+          "value" : "7beb92a8ee0d432cbee9f9bf644c43ea"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "d94c966b-c8ec-452a-acbf-584906d551b3",
+      "name" : "pydep",
+      "version" : "3.1.0",
+      "purl" : "pkg:pypi/pydep@3.1.0?extension=tgz&qualifier=cp27_win",
+      "properties" : [
+        {
+          "name" : "sonatypeIdentifier",
+          "value" : "2c713344cae845839972630b2825111f"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "56e214a7-af84-4068-8c23-256802b51baf",
+      "name" : "crandep",
+      "version" : "3.0.0",
+      "purl" : "pkg:cran/crandep@3.0.0",
+      "properties" : [
+        {
+          "name" : "sonatypeIdentifier",
+          "value" : "8f77462a7d3a40d9a6645ddad66c9ce3"
+        }
+      ]
+    }
+  ]
+}]]></content>
   </item>
   <project id="pkg:maven/org.acme/acme-app@9.1.1?type=jar" kind="sbom" path="scan-multiformat-bom.xml">
     <dependencies>

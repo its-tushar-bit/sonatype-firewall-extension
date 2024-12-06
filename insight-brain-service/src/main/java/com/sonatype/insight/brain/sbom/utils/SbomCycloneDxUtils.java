@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +35,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.cyclonedx.Version;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
@@ -439,5 +441,10 @@ public class SbomCycloneDxUtils
 
   public static String getFilteredPathname(String pathname) {
     return StringUtils.removeStart(pathname, "dependency:/");
+  }
+
+  public static Optional<Version> getVersionFromString(String versionString) {
+    return Arrays.stream(Version.values())
+        .filter(cycloneDxVersion -> cycloneDxVersion.getVersionString().equalsIgnoreCase(versionString)).findFirst();
   }
 }

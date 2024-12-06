@@ -24,47 +24,66 @@
       <property name="resourceNames" value="true"/>
     </properties>
   </configuration>
-  <item contentType="SBOM" lastModified="1571788783929" sha1="80d8ce5924b4b67314bf" path="scan-basic-bom.xml">
-    <content><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-<bom version="1" xmlns="http://cyclonedx.org/schema/bom/1.4">
-  <metadata>
-    <timestamp>2021-12-03T15:47:01Z</timestamp>
-    <component type="application" bom-ref="acme-app">
-      <name>Acme Application</name>
-      <version>9.1.1</version>
-      <purl>pkg:maven/org.acme/acme-app@9.1.1?type=jar</purl>
-    </component>
-  </metadata>
-  <components>
-    <component type="framework" bom-ref="pkg:maven/org.acme/web-framework@1.0.0?type=jar">
-      <group>org.acme</group>
-      <name>web-framework</name>
-      <version>1.0.0</version>
-      <purl>pkg:maven/org.acme/web-framework@1.0.0?type=jar</purl>
-      <properties>
-        <property name="sonatypeIdentifier">testIdentifier</property>
-      </properties>
-    </component>
-    <component type="library" bom-ref="pkg:maven/org.acme/persistence@3.1.0?type=jar">
-      <group>org.acme</group>
-      <name>persistence</name>
-      <version>3.1.0</version>
-      <purl>pkg:maven/org.acme/persistence@3.1.0?type=jar</purl>
-      <properties>
-        <property name="sonatypeIdentifier">testIdentifier</property>
-      </properties>
-    </component>
-    <component type="library" bom-ref="pkg:maven/org.acme/common-util@3.0.0?type=jar">
-      <group>org.acme</group>
-      <name>common-util</name>
-      <version>3.0.0</version>
-      <purl>pkg:maven/org.acme/common-util@3.0.0?type=jar</purl>
-      <properties>
-        <property name="sonatypeIdentifier">testIdentifier</property>
-      </properties>
-    </component>
-  </components>
-</bom>
+  <item contentType="SBOM" lastModified="1571788783929" sha1="80d8ce5924b4b67314bf" path="scan-basic-bom.json">
+    <content><![CDATA[{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.6",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "2021-12-03T15:47:01Z",
+    "component" : {
+      "type" : "application",
+      "bom-ref" : "acme-app",
+      "name" : "Acme Application",
+      "version" : "9.1.1",
+      "purl" : "pkg:maven/org.acme/acme-app@9.1.1?type=jar"
+    }
+  },
+  "components" : [
+    {
+      "type" : "framework",
+      "bom-ref" : "pkg:maven/org.acme/web-framework@1.0.0?type=jar",
+      "group" : "org.acme",
+      "name" : "web-framework",
+      "version" : "1.0.0",
+      "purl" : "pkg:maven/org.acme/web-framework@1.0.0?type=jar",
+      "properties" : [
+        {
+          "name" : "sonatypeIdentifier",
+          "value" : "e0f41189ec354b1591eb2e583fd051c8"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "pkg:maven/org.acme/persistence@3.1.0?type=jar",
+      "group" : "org.acme",
+      "name" : "persistence",
+      "version" : "3.1.0",
+      "purl" : "pkg:maven/org.acme/persistence@3.1.0?type=jar",
+      "properties" : [
+        {
+          "name" : "sonatypeIdentifier",
+          "value" : "fc1893ad7f9240a7a7dc2f71c1c19307"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "pkg:maven/org.acme/common-util@3.0.0?type=jar",
+      "group" : "org.acme",
+      "name" : "common-util",
+      "version" : "3.0.0",
+      "purl" : "pkg:maven/org.acme/common-util@3.0.0?type=jar",
+      "properties" : [
+        {
+          "name" : "sonatypeIdentifier",
+          "value" : "a43f20ac87854be782926fdb8aa1643d"
+        }
+      ]
+    }
+  ]
+}
 ]]></content>
   </item>
   <project id="pkg:maven/org.acme/acme-app@9.1.1?type=jar" kind="sbom" path="scan-basic-bom.xml">

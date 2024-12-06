@@ -42,9 +42,6 @@ import com.neuvector.model.ScanModule;
 import com.neuvector.model.ScanRepoReportData;
 import com.neuvector.model.Vulnerability;
 import org.apache.commons.lang3.StringUtils;
-import org.cyclonedx.generators.BomGeneratorFactory;
-import org.cyclonedx.Version;
-import org.cyclonedx.generators.xml.BomXmlGenerator;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Component.Type;
@@ -100,17 +97,16 @@ public class ContainerResultHandler
         if (targetBom.getComponents() != null && targetBom.getComponents().isEmpty()) {
           return new FilteredThirdPartyContent(content.getContent(), moduleDependencies);
         }
-        BomXmlGenerator generator = BomGeneratorFactory.createXml(Version.VERSION_14, targetBom);
-        generator.generate();
 
+        String filteredSbomContent = generateFilteredSbom(targetBom);
         componentInfoTelemetry.setSpec(CYCLONEDX.name());
         componentInfoTelemetry.setSpecVersion(sourceBom.getSpecVersion());
         componentInfoTelemetry.setHasDependencies(!moduleDependencies.isEmpty());
         TelemetryData thirdPartyScanComponentInfoTelemetryData =
             telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry, true, true);
         telemetrySender.send(thirdPartyScanComponentInfoTelemetryData);
+        return new FilteredThirdPartyContent(filteredSbomContent, moduleDependencies);
 
-        return new FilteredThirdPartyContent(generator.toXmlString(), moduleDependencies);
       }
       return new FilteredThirdPartyContent(content.getContent());
     }

@@ -42,30 +42,43 @@
   <item path="path2/go.sum" contentType="GO_MODULE" lastModified="1543337377271" sha1="fd96d0a29d3e5888f1f8">
     <content>github.com/unknown/unknown v1.1.0</content>
   </item>
-  <item contentType="SBOM" lastModified="1571789481391" path="test-bom.xml" sha1="c963081e41394dfafc76">
-    <content><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-<bom version="1" xmlns="http://cyclonedx.org/schema/bom/1.4">
-  <components>
-    <component type="library">
-      <group>org.apache.tomcat</group>
-      <name>tomcat-catalina</name>
-      <version>9.0.14</version>
-      <purl>pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar</purl>
-      <properties>
-        <property name="sonatype:truncated_sha1">e6b1000b94e835ffd37f</property>
-        <property name="sonatypeIdentifier">ignored</property>
-      </properties>
-    </component>
-    <component type="library">
-      <name>abc</name>
-      <version>1</version>
-      <purl>pkg:test/abc@1?qualifier=q</purl>
-      <properties>
-        <property name="sonatypeIdentifier">ignored</property>
-      </properties>
-    </component>
-  </components>
-</bom>
+  <item contentType="SBOM" lastModified="1571789481391" path="test-bom.json" sha1="c963081e41394dfafc76">
+    <content><![CDATA[{
+    "bomFormat" : "CycloneDX",
+    "specVersion" : "1.6",
+    "version" : 1,
+    "components" : [
+      {
+        "type" : "library",
+        "group" : "org.apache.tomcat",
+        "name" : "tomcat-catalina",
+        "version" : "9.0.14",
+        "purl" : "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar",
+        "properties" : [
+          {
+            "name" : "sonatype:truncated_sha1",
+            "value" : "e6b1000b94e835ffd37f"
+          },
+          {
+            "name" : "sonatypeIdentifier",
+            "value" : "1328a0b5323a4bdeb620a02e373ffee4"
+          }
+        ]
+      },
+      {
+        "type" : "library",
+        "name" : "abc",
+        "version" : "1",
+        "purl" : "pkg:test/abc@1?qualifier=q",
+        "properties" : [
+          {
+            "name" : "sonatypeIdentifier",
+            "value" : "dc4a51ae16cd4735a7297b7ea72f81d8"
+          }
+        ]
+      }
+    ]
+  }
 ]]></content>
   </item>
   <item path="path1/requirements.txt" contentType="PYTHON_REQUIREMENTS" lastModified="1568660577000"

@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
+import com.sonatype.insight.brain.sbom.export.SbomExportException;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams;
 import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
@@ -69,6 +70,7 @@ import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclonedx.Version;
+import org.cyclonedx.exception.GeneratorException;
 import org.cyclonedx.generators.BomGeneratorFactory;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
@@ -1240,7 +1242,12 @@ public class SbomResultHandler
     String defaultVersionString =  SbomExportParams.ExportSpecification.DEFAULT.getVersion();
     Optional<Version> defaultVersionOptional = SbomCycloneDxUtils.getVersionFromString(defaultVersionString);
     Version defaultVersion = defaultVersionOptional.orElse(Version.VERSION_16);
-    return BomGeneratorFactory.createJson(defaultVersion, sbom).toJsonString();
+    try {
+      return BomGeneratorFactory.createJson(defaultVersion, sbom).toJsonString();
+    }
+    catch (GeneratorException e) {
+      throw new SbomExportException("An error occurred while trying to parse the SBOM's content to JSON string", e);
+    }
   }
 
   boolean isValid() {

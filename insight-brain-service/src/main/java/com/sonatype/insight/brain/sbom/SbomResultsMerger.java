@@ -57,9 +57,10 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.sbom.export.SbomExportException;
 import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
@@ -92,6 +93,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclonedx.Version;
+import org.cyclonedx.exception.GeneratorException;
 import org.cyclonedx.generators.BomGeneratorFactory;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
@@ -950,8 +952,13 @@ public class SbomResultsMerger
     }
   }
 
-  private static String generateBomString(final Bom originalBom) {
-    return BomGeneratorFactory.createJson(Version.VERSION_16, originalBom).toJsonString();
+  private String generateBomString(final Bom originalBom) {
+    try {
+      return BomGeneratorFactory.createJson(Version.VERSION_16, originalBom).toJsonString();
+    }
+    catch (GeneratorException e) {
+      throw new SbomExportException("An error occurred while trying to parse the SBOM's content to JSON string", e);
+    }
   }
 
   private SecurityVulnerability loadSecurityJson(final JsonNode securityJsonNode) {

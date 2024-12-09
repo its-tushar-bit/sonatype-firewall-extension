@@ -170,6 +170,9 @@
   </packages>
   <packages>
     <SPDXID>SPDXRef-gnrtd2</SPDXID>
+    <attributionTexts>Copyright 2012 Google Inc. All Rights Reserved.</attributionTexts>
+    <attributionTexts>Copyright (C) 2004,2005 Dave Brosius &lt;dbrosius@users.sourceforge.net&gt;</attributionTexts>
+    <attributionTexts>Copyright (C) 2005 William Pugh</attributionTexts>
     <attributionTexts>Copyright (C) 2004,2005 University of Maryland</attributionTexts>
     <attributionTexts>Evidence license text for: (LGPL-2.1-only AND Apache-2.0)</attributionTexts>
     <checksums>

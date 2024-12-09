@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -25,6 +26,7 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
@@ -168,7 +170,7 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
   }
 
   @Test
-  public void testImportSbomModal_fileUploadFail_validationError() {
+  public void testImportSbomModal_fileUploadFail_ignorableValidationErrorButImportAnyway() {
     refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
 
     SbomsTile sbomsTile = SbomManagerApplicationSummaryPage.sbomsTile();
@@ -177,11 +179,11 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
 
     importSbomModal.shouldBe(visible);
 
-    File file = new File(testFilesPath + "invalid-bom.json");
+    File file = new File(testFilesPath + "invalid-bom-ignorable-error.json");
 
     importSbomModal.title().shouldHave(text("Import File for Application " + application.getName()));
     importSbomModal.fileUpload().shouldBe(visible).uploadFile(file);
-    importSbomModal.fileSelected().shouldBe(visible).shouldHave(text("invalid-bom.json"));
+    importSbomModal.fileSelected().shouldBe(visible).shouldHave(text("invalid-bom-ignorable-error.json"));
     importSbomModal.cancelCloseButton().shouldBe(visible);
 
     importSbomModal.importSbomButton().shouldBe(visible, enabled).click();
@@ -198,6 +200,67 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
     importSbomModal.validationErrors().shouldBe(visible).shouldHave(text(expectedErrors));
     importSbomModal.importSbomButton().shouldBe(visible, disabled);
     importSbomModal.cancelCloseButton().shouldBe(visible);
+
+    importSbomModal.skipValidationCheckbox().shouldBe(visible).shouldNotBe(selected);
+    importSbomModal.skipValidationCheckbox().click();
+
+    importSbomModal.importSbomButton().shouldBe(visible, enabled).shouldHave(Condition.text("Import Anyway"));
+    importSbomModal.importSbomButton().click();
+
+    importSbomModal.title().shouldHave(text("Import in progress…"));
+    importSbomModal.progressBar().shouldBe(visible);
+    importSbomModal.summaryApplicationName().shouldHave(text(application.getName()));
+    importSbomModal.summaryInputVersionId().shouldHave(value(""));
+    importSbomModal.summaryTotalComponents().shouldHave(text("3"));
+    importSbomModal.summaryTotalVulnerabilities().shouldHave(text("0"));
+    importSbomModal.cancelCloseButton().shouldBe(visible).click();
+    importSbomModal.shouldNotBe(visible);
+
+    NxToast toast = new NxToast("info");
+    toast.shouldBe(visible);
+    toast.shouldHave(text(
+        "The file you uploaded is currently being evaluated and will be available on this page shortly. " +
+            "Please refresh the page after few minutes to see it."
+    ));
+  }
+
+  @Test
+  public void testImportSbomModal_fileUploadFail_nonIgnorableValidationError() {
+    refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
+
+    SbomsTile sbomsTile = SbomManagerApplicationSummaryPage.sbomsTile();
+    sbomsTile.importButton().click();
+    ImportSbomModal importSbomModal = sbomSummaryPage.importSbomModal();
+
+    importSbomModal.shouldBe(visible);
+
+    File file = new File(testFilesPath + "invalid-bom-non-ignorable-error.json");
+
+    importSbomModal.title().shouldHave(text("Import File for Application " + application.getName()));
+    importSbomModal.fileUpload().shouldBe(visible).uploadFile(file);
+    importSbomModal.fileSelected().shouldBe(visible).shouldHave(text("invalid-bom-non-ignorable-error.json"));
+    importSbomModal.cancelCloseButton().shouldBe(visible);
+
+    importSbomModal.importSbomButton().shouldBe(visible, enabled).click();
+
+    importSbomModal.title().shouldHave(text("Your SBOM failed validation"));
+    importSbomModal.fileUpload().shouldNotBe(visible);
+    importSbomModal.fileSelected().shouldNotBe(visible);
+    importSbomModal.errorAlert().shouldBe(visible);
+    importSbomModal.warnAlert().shouldNotBe(visible);
+    importSbomModal.copyToClipboardButton().shouldBe(visible);
+    String expectedErrors = "• Error: Missing document namespace";
+    importSbomModal.validationErrors().shouldBe(visible).shouldHave(text(expectedErrors));
+
+    // Since we are disabling via css class we also check that when clicking it does nothing
+    importSbomModal.importSbomButton()
+        .shouldBe(visible)
+        .shouldHave(Condition.cssClass("disabled"))
+        .shouldHave(Condition.text("Import"))
+        .click();
+    importSbomModal.shouldBe(visible);
+    importSbomModal.cancelCloseButton().shouldBe(visible).click();
+    importSbomModal.shouldNotBe(visible);
   }
 
   @Test

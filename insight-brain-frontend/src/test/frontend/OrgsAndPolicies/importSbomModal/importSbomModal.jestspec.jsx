@@ -281,7 +281,7 @@ describe('ImportSbomModal', () => {
     });
 
     describe('Error', () => {
-      it('should show an error message', () => {
+      it('should show an error message when an error is generated prior to starting the validation', () => {
         // We're not testing mock responses here, due to js-dom FileList error with NxFileUpload.
         // When NxFileUpload is initially mounted with a fake "FileList" passed into the files prop, in js-dom, it throws an error:
         // Failed to set the 'files' property on 'HTMLInputElement': The provided value is not of type 'FileList'
@@ -307,57 +307,282 @@ describe('ImportSbomModal', () => {
         expect(screen.queryByRole('button', { name: 'Copy to Clipboard' })).not.toBeInTheDocument();
         expect(screen.queryByRole('textbox', { name: 'Validation Error Details' })).not.toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Import' })).toBeInTheDocument();
+        const importButton = screen.getByRole('button', { name: 'Import' });
+        expect(importButton).toBeInTheDocument();
+        expect(importButton).toBeDisabled();
       });
-    });
 
-    it('should show the list of errors', () => {
-      renderComponent({
-        orgsAndPolicies: {
-          ownerActions: {
-            importSbomModal: {
-              isModalOpen: true,
-              importState: IMPORT_STATE.ERROR,
-              errorMessage: 'Something went wrong.',
-              validationErrors: ['error reason 1', 'error reason 2'],
+      it('should show an alert message of warning type when there are ignorable validation errors', () => {
+        renderComponent({
+          orgsAndPolicies: {
+            ownerActions: {
+              importSbomModal: {
+                isModalOpen: true,
+                importState: IMPORT_STATE.ERROR,
+                errorMessage: 'Something went wrong.',
+                validationErrors: ['error reason 1', 'error reason 2'],
+                isSkipValidation: false,
+                isValidationErrorIgnorable: true,
+              },
             },
           },
-        },
+        });
+
+        expect(screen.getByRole('dialog', { name: 'Your SBOM failed validation' })).toBeInTheDocument();
+        const alert = screen.getByRole('alert');
+        expect(alert).toBeInTheDocument();
+        expect(alert).toHaveTextContent('Something went wrong.');
+        expect(alert).toHaveClass('nx-alert--warning');
+        const skipCheckbox = screen.getByText('Skip validation and import anyway');
+        expect(skipCheckbox).toBeInTheDocument();
+        expect(skipCheckbox).not.toBeChecked();
+        expect(screen.queryByRole('button', { name: 'Copy to Clipboard' })).toBeInTheDocument();
+        expect(screen.queryByRole('textbox', { name: 'Validation Error Details' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+        const importButton = screen.getByRole('button', { name: 'Import Anyway' });
+        expect(importButton).toBeInTheDocument();
+        expect(importButton).toBeDisabled();
       });
 
-      expect(screen.getByRole('dialog', { name: 'Your SBOM failed validation' })).toBeInTheDocument();
-      const alert = screen.getByRole('alert');
-      expect(alert).toBeInTheDocument();
-      expect(alert).toHaveTextContent('Something went wrong.');
-      expect(screen.getByRole('button', { name: 'Copy to Clipboard' })).toBeInTheDocument();
-      const validationErrors = screen.getByRole('textbox', { name: 'Validation Error Details' });
-      expect(validationErrors).toBeInTheDocument();
-      expect(validationErrors).toHaveValue('• error reason 1\n• error reason 2');
-      expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Import' })).toBeInTheDocument();
-    });
-
-    it('should copy the list of errors when clicking the copy to clipboard button', async () => {
-      renderComponent({
-        orgsAndPolicies: {
-          ownerActions: {
-            importSbomModal: {
-              isModalOpen: true,
-              importState: IMPORT_STATE.ERROR,
-              errorMessage: 'Something went wrong.',
-              validationErrors: ['error reason 1', 'error reason 2'],
+      it('should show an alert message of error type when validation errors are not ignorable', () => {
+        renderComponent({
+          orgsAndPolicies: {
+            ownerActions: {
+              importSbomModal: {
+                isModalOpen: true,
+                importState: IMPORT_STATE.ERROR,
+                errorMessage: 'Something went wrong.',
+                validationErrors: ['error reason 1', 'error reason 2'],
+                isSkipValidation: false,
+                isValidationErrorIgnorable: false,
+              },
             },
           },
-        },
+        });
+
+        expect(screen.getByRole('dialog', { name: 'Your SBOM failed validation' })).toBeInTheDocument();
+        const alert = screen.getByRole('alert');
+        expect(alert).toBeInTheDocument();
+        expect(alert).toHaveTextContent('Something went wrong.');
+        expect(alert).toHaveClass('nx-alert--error');
+        expect(screen.queryByRole('button', { name: 'Copy to Clipboard' })).toBeInTheDocument();
+        expect(screen.queryByRole('textbox', { name: 'Validation Error Details' })).toBeInTheDocument();
+        expect(screen.queryByText('Skip validation and import anyway')).not.toBeInTheDocument();
+        const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+        expect(cancelButton).toBeInTheDocument();
+        expect(cancelButton).toBeEnabled();
+        const importButton = screen.getByRole('button', { name: 'Import' });
+        expect(importButton).toBeInTheDocument();
+        expect(importButton).toHaveClass('disabled');
       });
-      const user = userEvent.setup();
-      const copyToClipboardButton = screen.getByRole('button', { name: 'Copy to Clipboard' });
-      expect(copyToClipboardButton).toBeInTheDocument();
 
-      await user.click(copyToClipboardButton);
+      it('should show the list of errors', () => {
+        renderComponent({
+          orgsAndPolicies: {
+            ownerActions: {
+              importSbomModal: {
+                isModalOpen: true,
+                importState: IMPORT_STATE.ERROR,
+                errorMessage: 'Something went wrong.',
+                validationErrors: ['error reason 1', 'error reason 2'],
+                isSkipValidation: false,
+                isValidationErrorIgnorable: false,
+              },
+            },
+          },
+        });
 
-      const clipboardText = await navigator.clipboard.readText();
-      expect(clipboardText).toEqual('• error reason 1\n• error reason 2');
+        expect(screen.getByRole('dialog', { name: 'Your SBOM failed validation' })).toBeInTheDocument();
+        const alert = screen.getByRole('alert');
+        expect(alert).toBeInTheDocument();
+        expect(alert).toHaveTextContent('Something went wrong.');
+        expect(screen.getByRole('button', { name: 'Copy to Clipboard' })).toBeInTheDocument();
+        const validationErrors = screen.getByRole('textbox', { name: 'Validation Error Details' });
+        expect(validationErrors).toBeInTheDocument();
+        expect(validationErrors).toHaveValue('• error reason 1\n• error reason 2');
+        expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+      });
+
+      it('should copy the list of errors when clicking the copy to clipboard button', async () => {
+        renderComponent({
+          orgsAndPolicies: {
+            ownerActions: {
+              importSbomModal: {
+                isModalOpen: true,
+                importState: IMPORT_STATE.ERROR,
+                errorMessage: 'Something went wrong.',
+                validationErrors: ['error reason 1', 'error reason 2'],
+                isSkipValidation: false,
+              },
+            },
+          },
+        });
+        const user = userEvent.setup();
+        const copyToClipboardButton = screen.getByRole('button', { name: 'Copy to Clipboard' });
+        expect(copyToClipboardButton).toBeInTheDocument();
+
+        await user.click(copyToClipboardButton);
+
+        const clipboardText = await navigator.clipboard.readText();
+        expect(clipboardText).toEqual('• error reason 1\n• error reason 2');
+      });
+
+      it('should allow/disallow import if skipValidation selected when there are ignorable validation errors', () => {
+        renderComponent({
+          orgsAndPolicies: {
+            ownerActions: {
+              importSbomModal: {
+                isModalOpen: true,
+                importState: IMPORT_STATE.ERROR,
+                errorMessage: 'Something went wrong.',
+                validationErrors: ['error reason 1', 'error reason 2'],
+                isSkipValidation: false,
+                isValidationErrorIgnorable: true,
+              },
+            },
+          },
+        });
+
+        const importButton = screen.getByRole('button', { name: 'Import Anyway' });
+        expect(importButton).toBeInTheDocument();
+        expect(importButton).toBeDisabled();
+
+        const checkbox = screen.getByText('Skip validation and import anyway');
+        expect(checkbox).toBeInTheDocument();
+        expect(checkbox).not.toBeChecked();
+
+        fireEvent.click(checkbox);
+
+        const importButtonUpdate1 = screen.getByRole('button', { name: 'Import Anyway' });
+        expect(importButtonUpdate1).toBeInTheDocument();
+        expect(importButtonUpdate1).toBeEnabled();
+
+        fireEvent.click(checkbox);
+
+        const importButtonUpdate2 = screen.getByRole('button', { name: 'Import Anyway' });
+        expect(importButtonUpdate2).toBeInTheDocument();
+        expect(importButtonUpdate2).toBeDisabled();
+      });
+
+      it('should show a tooltip in import button when there are non ignorable validation errors', async () => {
+        const user = userEvent.setup();
+        renderComponent({
+          orgsAndPolicies: {
+            ownerActions: {
+              importSbomModal: {
+                isModalOpen: true,
+                importState: IMPORT_STATE.ERROR,
+                errorMessage: 'Something went wrong.',
+                validationErrors: ['error reason 1', 'error reason 2'],
+                isSkipValidation: false,
+                isValidationErrorIgnorable: false,
+              },
+            },
+          },
+        });
+
+        const importButton = screen.getByText('Import');
+        expect(importButton).toBeInTheDocument();
+        await user.hover(importButton);
+
+        const tooltip = await screen.findByRole('tooltip');
+        expect(tooltip).toHaveTextContent(
+          'Import cannot proceed due to a critical error in the file. Please correct the file and try again.'
+        );
+      });
+
+      it('should execute import if skipValidation selected when there are ignorable validation errors', async () => {
+        axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply(200, {
+          requestId: 'request-id',
+          sbomSummary: {
+            specification: 'CycloneDx',
+            format: 'json',
+            version: '1.4',
+            componentCount: 1,
+            vulnerabilityCount: 2,
+            applicationName: 'Application Name',
+            applicationVersion: '1.2.3',
+            serialNumber: 'urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79',
+            creationDetails: null,
+          },
+          scanType: 'SBOM',
+          errorMessage: null,
+        });
+        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', 'request-id')).reply(201, {});
+
+        const file = createTestFile();
+        renderComponent({
+          orgsAndPolicies: {
+            root: {
+              selectedOwner: {
+                id: 'testApplicationId',
+                name: 'testApplicationName',
+              },
+            },
+            ownerActions: {
+              importSbomModal: {
+                isModalOpen: true,
+                importState: IMPORT_STATE.ERROR,
+                errorMessage: 'Something went wrong.',
+                validationErrors: ['error reason 1', 'error reason 2'],
+                isSkipValidation: false,
+                isValidationErrorIgnorable: true,
+                scanType: 'SBOM',
+                isValid: false,
+                fileInputState: nxFileUploadStateHelpers.initialState(fakeFileList(file)),
+                uploadProgress: 0,
+                sbomSummary: {
+                  versionId: null,
+                  totalComponents: null,
+                  totalVulnerabilities: null,
+                },
+              },
+            },
+          },
+        });
+
+        const checkbox = await screen.getByText('Skip validation and import anyway');
+        expect(checkbox).toBeInTheDocument();
+        expect(checkbox).not.toBeChecked();
+
+        fireEvent.click(checkbox);
+
+        const importButton = screen.getByRole('button', { name: 'Import Anyway' });
+        expect(importButton).toBeInTheDocument();
+        expect(importButton).toBeEnabled();
+
+        fireEvent.click(importButton);
+
+        const applicationNameLabel = (await screen.findByText('Application Name')).closest('dt');
+        expect(applicationNameLabel).toBeVisible();
+        expect(applicationNameLabel.parentElement.querySelector('dd')).toHaveTextContent('testApplicationName');
+
+        const versionIdTextBox = screen.getByRole('textbox', { name: /version id/i });
+        expect(versionIdTextBox).toHaveValue('1.2.3');
+        expect(versionIdTextBox).toBeDisabled();
+
+        const totalComponentsLabel = screen.getByText('Total Components').closest('dt');
+        expect(totalComponentsLabel).toBeVisible();
+        expect(totalComponentsLabel.parentElement.querySelector('dd')).toHaveTextContent('1');
+
+        const totalVulnsLabel = screen.getByText('Total Vulnerabilities').closest('dt');
+        expect(totalVulnsLabel).toBeVisible();
+        expect(totalVulnsLabel.parentElement.querySelector('dd')).toHaveTextContent('2');
+
+        expect(
+          screen.getByText(
+            'Closing the modal will not interrupt the evaluation; it will still be in progress until completed. ' +
+              'Once the evaluation is complete, you can view the SBOM in the SBOM table.'
+          )
+        ).toBeInTheDocument();
+
+        const closeButton = screen.getByRole('button', { name: 'Close' });
+        expect(closeButton).toBeVisible();
+
+        fireEvent.click(closeButton);
+
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      });
     });
   });
 });

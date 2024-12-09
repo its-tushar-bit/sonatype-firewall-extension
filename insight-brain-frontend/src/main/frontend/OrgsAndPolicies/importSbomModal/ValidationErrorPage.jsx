@@ -8,6 +8,7 @@ import * as PropTypes from 'prop-types';
 import {
   NxButton,
   NxButtonBar,
+  NxCheckbox,
   NxCopyToClipboard,
   NxErrorAlert,
   NxFooter,
@@ -15,13 +16,25 @@ import {
   NxModal,
   NxWarningAlert,
 } from '@sonatype/react-shared-components';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { concat } from 'ramda';
 
 import { selectImportSbomModalSlice } from './importSbomModalSelectors';
+import { actions } from './importSbomModalSlice';
 
 export default function ValidationErrorPage({ headerId, onCancel }) {
-  const { errorMessage, validationErrors } = useSelector(selectImportSbomModalSlice);
+  const { errorMessage, validationErrors, isSkipValidation, isValidationErrorIgnorable } = useSelector(
+    selectImportSbomModalSlice
+  );
+
+  const dispatch = useDispatch();
+  const importAnyway = () => {
+    dispatch(actions.uploadFile());
+  };
+
+  const handleSkipValidation = () => {
+    dispatch(actions.setIsSkipValidation(!isSkipValidation));
+  };
 
   return (
     <>
@@ -29,18 +42,37 @@ export default function ValidationErrorPage({ headerId, onCancel }) {
         <NxH2 id={headerId}>Your SBOM failed validation</NxH2>
       </NxModal.Header>
       <NxModal.Content>
-        <NxWarningAlert role="alert">{errorMessage}</NxWarningAlert>
+        {isValidationErrorIgnorable ? (
+          <NxWarningAlert role="alert">{errorMessage}</NxWarningAlert>
+        ) : (
+          <NxErrorAlert>{errorMessage}</NxErrorAlert>
+        )}
         <NxCopyToClipboard
           label="Validation Error Details"
           content={validationErrors?.map(concat('• '))?.join('\n') ?? ''}
         />
+        {isValidationErrorIgnorable && (
+          <NxCheckbox onChange={handleSkipValidation} isChecked={isSkipValidation}>
+            Skip validation and import anyway
+          </NxCheckbox>
+        )}
       </NxModal.Content>
       <NxFooter>
         <NxButtonBar>
           <NxButton onClick={onCancel}>Cancel</NxButton>
-          <NxButton variant="primary" disabled={true}>
-            Import
-          </NxButton>
+          {isValidationErrorIgnorable ? (
+            <NxButton variant="primary" disabled={!isSkipValidation} onClick={importAnyway}>
+              Import Anyway
+            </NxButton>
+          ) : (
+            <NxButton
+              variant="primary"
+              className="disabled"
+              title="Import cannot proceed due to a critical error in the file. Please correct the file and try again."
+            >
+              Import
+            </NxButton>
+          )}
         </NxButtonBar>
       </NxFooter>
     </>

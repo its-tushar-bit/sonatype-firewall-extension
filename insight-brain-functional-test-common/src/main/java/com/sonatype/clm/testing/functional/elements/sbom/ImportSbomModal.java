@@ -73,6 +73,10 @@ public class ImportSbomModal
     return child(".nx-btn--primary");
   }
 
+  public SelenideElement skipValidationCheckbox() {
+    return child(".nx-checkbox");
+  }
+
   public SelenideElement fileSelected() {
     return child(".nx-selected-file__name");
   }

@@ -11,7 +11,7 @@ import { nxFileUploadStateHelpers } from '@sonatype/react-shared-components';
 import { getImportSbomUrl, getCommitImportedSbomUrl } from 'MainRoot/util/CLMLocation';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 import { selectSelectedOwnerId } from '../orgsAndPoliciesSelectors';
-import { selectSelectedFile } from './importSbomModalSelectors';
+import { selectSelectedFile, selectImportSbomModalSlice } from './importSbomModalSelectors';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
 const DEFAULT_ERROR_MESSAGE = 'Encountered unexpected error while attempting to upload.';
@@ -35,6 +35,8 @@ const sbomSummaryInitialState = Object.freeze({
 
 export const initialState = Object.freeze({
   isModalOpen: false,
+  isSkipValidation: false,
+  isValidationErrorIgnorable: false,
   importState: IMPORT_STATE.INITIAL,
   fileInputState: nxFileUploadStateHelpers.initialState(null),
   scanType: null,
@@ -43,6 +45,10 @@ export const initialState = Object.freeze({
   validationErrors: null,
   sbomSummary: sbomSummaryInitialState,
 });
+
+const setIsSkipValidation = (state, { payload }) => {
+  state.isSkipValidation = payload;
+};
 
 const setIsModalOpen = (state, { payload }) => {
   state.isModalOpen = payload;
@@ -60,6 +66,7 @@ const uploadFile = createAsyncThunk(`${REDUCER_NAME}/uploadFile`, (_, { dispatch
   const state = getState();
   const appId = selectSelectedOwnerId(state);
   const file = selectSelectedFile(state);
+  const { isSkipValidation } = selectImportSbomModalSlice(state);
 
   if (isNil(file)) {
     return;
@@ -70,6 +77,7 @@ const uploadFile = createAsyncThunk(`${REDUCER_NAME}/uploadFile`, (_, { dispatch
 
   return axios
     .post(getImportSbomUrl(appId), formData, {
+      params: { ignoreValidationError: isSkipValidation },
       onUploadProgress: (progressEvent) => {
         const percentCompleted = Math.round((progressEvent.loaded * 10) / progressEvent.total);
         dispatch(actions.setUploadProgress(percentCompleted));
@@ -135,6 +143,7 @@ const uploadOrCommitFileFailed = (state, { payload }) => {
   }
   if (payload.validationErrors) {
     state.validationErrors = payload.validationErrors;
+    state.isValidationErrorIgnorable = payload.isValidationErrorIgnorable;
   }
 };
 
@@ -145,6 +154,7 @@ const importSbomModal = createSlice({
     setIsModalOpen,
     setUploadProgress,
     setSelectedFile,
+    setIsSkipValidation,
     reset: always(initialState),
   },
   extraReducers: {

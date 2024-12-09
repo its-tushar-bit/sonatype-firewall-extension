@@ -190,7 +190,7 @@ const createAutoWaiver = createAsyncThunk(
     const { ownerType, ownerId } = selectSelectedOwnerTypeAndId(state);
     const waivers = selectWaivers(state);
     const putData = {
-      threatLevel: 7,
+      threatLevel: waivers.threatLevel,
       reachable: waivers.reachable,
       pathForward: waivers.pathForward,
     };
@@ -225,11 +225,24 @@ const deleteAutoWaiver = createAsyncThunk(
   }
 );
 
+function setThreatLevel(state, { payload }) {
+  const newData = {
+    ...state.data,
+    threatLevel: payload,
+  };
+  return computeIsDirty({ ...state, data: newData });
+}
+
 const automatedWaiversSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
 
-  reducers: { toggleCheckboxReachable, toggleCheckboxPath, saveMaskTimerDone: propSet('submitMaskState', null) },
+  reducers: {
+    toggleCheckboxReachable,
+    toggleCheckboxPath,
+    setThreatLevel,
+    saveMaskTimerDone: propSet('submitMaskState', null),
+  },
   extraReducers: {
     [createAutoWaiver.pending]: createAutoWaiverRequested,
     [createAutoWaiver.fulfilled]: createAutoWaiverFulfilled,

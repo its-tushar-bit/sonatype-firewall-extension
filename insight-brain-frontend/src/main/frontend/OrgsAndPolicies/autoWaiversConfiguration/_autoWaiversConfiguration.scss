@@ -6,3 +6,11 @@
 .iq-waivers-configuration-upgrades {
   margin-top: var(--nx-spacing-base);
 }
+
+.iq-auto-waivers-configuration-upgrades-fieldset__item {
+  padding-left: var(--nx-spacing-6x);
+
+  .nx-h4 {
+    text-transform: capitalize;
+  }
+}

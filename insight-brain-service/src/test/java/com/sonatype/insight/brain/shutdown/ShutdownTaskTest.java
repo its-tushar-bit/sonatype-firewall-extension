@@ -6,9 +6,12 @@
 package com.sonatype.insight.brain.shutdown;
 
 import java.time.Duration;
+import java.util.Collections;
+import java.util.Map;
 
 import com.sonatype.insight.brain.service.Configuration;
 
+import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,11 +44,29 @@ public class ShutdownTaskTest
   }
 
   @Test
-  public void testExecute() throws Exception {
+  public void testExecute_SkipDefaultShouldNotExit() throws Exception {
     when(mockConfiguration.getReportTimeoutInSeconds()).thenReturn(60);
 
-    shutdownTask.execute(null, null);
+    shutdownTask.execute(Collections.emptyMap(), null);
 
-    verify(mockShutdownHandler).trigger(Duration.ofSeconds(660));
+    verify(mockShutdownHandler).trigger(Duration.ofSeconds(660), false);
+  }
+
+  @Test
+  public void testExecute_ShouldSkipExitIsFalse() throws Exception {
+    when(mockConfiguration.getReportTimeoutInSeconds()).thenReturn(60);
+
+    shutdownTask.execute(Map.of(ShutdownTask.SKIP_SYSTEM_EXIT_QUERY_PARAM, Lists.newArrayList("false")), null);
+
+    verify(mockShutdownHandler).trigger(Duration.ofSeconds(660), false);
+  }
+
+  @Test
+  public void testExecute_ShouldSkipExitIsTrue() throws Exception {
+    when(mockConfiguration.getReportTimeoutInSeconds()).thenReturn(60);
+
+    shutdownTask.execute(Map.of(ShutdownTask.SKIP_SYSTEM_EXIT_QUERY_PARAM, Lists.newArrayList("true")), null);
+
+    verify(mockShutdownHandler).trigger(Duration.ofSeconds(660), true);
   }
 }

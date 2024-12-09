@@ -17,7 +17,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BooleanSupplier;
-
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -167,7 +166,7 @@ public class ShutdownHandler
     return null;
   }
 
-  synchronized void trigger(final Duration timeout) {
+  synchronized void trigger(final Duration timeout, final boolean skipSystemExit) {
     // Prevent multiple shutdown requests
     if (isTriggered()) {
       throw new BadRequestException("Graceful shutdown already initiated.");
@@ -247,7 +246,9 @@ public class ShutdownHandler
       // ApplicationShutdownHooks includes org.eclipse.jetty.util.thread.ShutdownThread
       // ShutdownThread waits for all requests to finish including this one with a timeout
       // i.e. dw.admin-X waits for ShutdownThread and then ShutdownThread waits for dw.admin-X
-      exitInNewThread(statusCode);
+      if (!skipSystemExit) {
+        exitInNewThread(statusCode);
+      }
     }
   }
 

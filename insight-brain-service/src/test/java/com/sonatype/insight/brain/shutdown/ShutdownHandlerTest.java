@@ -74,8 +74,7 @@ public class ShutdownHandlerTest
   public void testTrigger_AlreadyTriggered() {
     when(spyShutdownHandler.isTriggered()).thenReturn(true);
 
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> spyShutdownHandler.trigger(null))
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> spyShutdownHandler.trigger(null, false))
         .withMessage("Graceful shutdown already initiated.");
   }
 
@@ -100,7 +99,7 @@ public class ShutdownHandlerTest
     spyShutdownHandler.addAndClean(shutdownRequest4);
 
     // Trigger in a new thread to not block
-    Thread thread = new Thread(() -> spyShutdownHandler.trigger(timeout));
+    Thread thread = new Thread(() -> spyShutdownHandler.trigger(timeout, false));
     thread.start();
 
     await().atMost(timeout).until(() -> getCounter.get() > 0);
@@ -162,7 +161,7 @@ public class ShutdownHandlerTest
     TestShutdownRequest<String> shutdownRequest = new TestShutdownRequest<>("sr", 0);
     spyShutdownHandler.addAndClean(shutdownRequest);
 
-    spyShutdownHandler.trigger(Duration.ofMillis(10));
+    spyShutdownHandler.trigger(Duration.ofMillis(10), false);
 
     verify(spyShutdownHandler).exitInNewThread(1);
   }
@@ -172,7 +171,7 @@ public class ShutdownHandlerTest
     TestShutdownRequest<String> shutdownRequest = new TestShutdownRequest<>("sr", 0);
     spyShutdownHandler.addAndClean(shutdownRequest);
 
-    Thread thread = new Thread(() -> spyShutdownHandler.trigger(Duration.ofSeconds(10)));
+    Thread thread = new Thread(() -> spyShutdownHandler.trigger(Duration.ofSeconds(10), false));
     thread.start();
     await().atMost(10, TimeUnit.SECONDS).until(() -> getCounter.get() > 0);
     thread.interrupt();
@@ -191,7 +190,7 @@ public class ShutdownHandlerTest
     };
     spyShutdownHandler.addAndClean(shutdownRequest);
 
-    spyShutdownHandler.trigger(Duration.ofSeconds(10));
+    spyShutdownHandler.trigger(Duration.ofSeconds(10), false);
 
     verify(spyShutdownHandler).exitInNewThread(3);
   }
@@ -209,6 +208,13 @@ public class ShutdownHandlerTest
     assertThat(runnable).isNotNull();
     runnable.run();
     verify(spyShutdownHandler).exit(10);
+  }
+
+  @Test
+  public void testSkipExit() {
+    spyShutdownHandler.trigger(Duration.ofSeconds(10), true);
+
+    verify(spyShutdownHandler, never()).exit(anyInt());
   }
 
   private class TestShutdownRequest<T>

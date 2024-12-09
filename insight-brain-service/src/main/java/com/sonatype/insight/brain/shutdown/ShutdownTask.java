@@ -26,6 +26,8 @@ public class ShutdownTask
 
   private static final Duration TIMEOUT_BUFFER = Duration.ofMinutes(10);
 
+  static final String SKIP_SYSTEM_EXIT_QUERY_PARAM = "skipSystemExit";
+
   private final Configuration configuration;
 
   private final ShutdownHandler shutdownHandler;
@@ -39,7 +41,9 @@ public class ShutdownTask
 
   @Override
   public void execute(final Map<String, List<String>> parameters, final PrintWriter printWriter) throws Exception {
-    shutdownHandler.trigger(getTimeout());
+    List<String> params = parameters.get(SKIP_SYSTEM_EXIT_QUERY_PARAM);
+    boolean skipSystemExit = params != null && params.size() == 1 && params.contains("true");
+    shutdownHandler.trigger(getTimeout(), skipSystemExit);
   }
 
   private Duration getTimeout() {

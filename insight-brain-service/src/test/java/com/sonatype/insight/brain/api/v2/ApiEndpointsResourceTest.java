@@ -31,12 +31,12 @@ public class ApiEndpointsResourceTest
   @Before
   public void before() {
     SystemConfigurationPropertyFeature.API_PAGE.setEnabled(true);
-    ApiEndpointsService.OPEN_API_JSON_BY_API_TYPE.clear();
+    ApiEndpointsService.clearCaches();
   }
 
   @After
   public void after() {
-    ApiEndpointsService.OPEN_API_JSON_BY_API_TYPE.clear();
+    ApiEndpointsService.clearCaches();
   }
 
   @Test
@@ -76,9 +76,8 @@ public class ApiEndpointsResourceTest
         .parameter(ApiType.PUBLIC)
         .get();
 
-    assertResponseStatus(403, response);
-    assertThat(response.getBodyText()).contains(
-        SystemConfigurationPropertyFeature.API_PAGE.getId() + " feature is disabled.");
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).isEqualTo("Feature not supported.");
   }
 
   private void assertEndpoint(

@@ -29,12 +29,12 @@ public class ApiEndpointsServiceAuthzTest
   @Before
   public void before() {
     SystemConfigurationPropertyFeature.API_PAGE.setEnabled(true);
-    ApiEndpointsService.OPEN_API_JSON_BY_API_TYPE.clear();
+    ApiEndpointsService.clearCaches();
   }
 
   @After
   public void after() {
-    ApiEndpointsService.OPEN_API_JSON_BY_API_TYPE.clear();
+    ApiEndpointsService.clearCaches();
   }
 
   @Test

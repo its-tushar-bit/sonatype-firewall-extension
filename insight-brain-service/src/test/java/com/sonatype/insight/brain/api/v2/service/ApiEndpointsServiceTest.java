@@ -17,11 +17,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Application;
 
+import com.sonatype.insight.brain.api.v2.HasFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiType;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -66,14 +68,13 @@ public class ApiEndpointsServiceTest
 
   @Before
   public void before() {
-    SystemConfigurationPropertyFeature.API_PAGE.setEnabled(true);
-    ApiEndpointsService.OPEN_API_JSON_BY_API_TYPE.clear();
+    ApiEndpointsService.clearCaches();
     when(mockVersionService.getVersion()).thenReturn(MOCK_VERSION);
   }
 
   @After
   public void after() {
-    ApiEndpointsService.OPEN_API_JSON_BY_API_TYPE.clear();
+    ApiEndpointsService.clearCaches();
   }
 
   @Test
@@ -83,7 +84,7 @@ public class ApiEndpointsServiceTest
 
     assertEndpoints(result, ApiType.PUBLIC, "/api/v2/ApiEndpointsServiceTestPublicResource",
         "Api Endpoints Service Test Public Resource");
-    assertThat(ApiEndpointsService.OPEN_API_JSON_BY_API_TYPE).containsOnlyKeys(ApiType.PUBLIC);
+    assertThat(ApiEndpointsService.getOpenApiJsonCacheCopy()).containsOnlyKeys(ApiType.PUBLIC);
   }
 
   @Test
@@ -93,7 +94,7 @@ public class ApiEndpointsServiceTest
 
     assertEndpoints(result, ApiType.EXPERIMENTAL, "/api/experimental/ApiEndpointsServiceTestExperimentalResource",
         "Api Endpoints Service Test Experimental Resource");
-    assertThat(ApiEndpointsService.OPEN_API_JSON_BY_API_TYPE).containsOnlyKeys(ApiType.EXPERIMENTAL);
+    assertThat(ApiEndpointsService.getOpenApiJsonCacheCopy()).containsOnlyKeys(ApiType.EXPERIMENTAL);
   }
 
   @Test
@@ -108,7 +109,7 @@ public class ApiEndpointsServiceTest
     assertThat(openAPI.getPaths()).hasSize(1);
     assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceWithCustomTag", "Custom Tag", HttpMethod.GET,
         HttpMethod.DELETE);
-    assertThat(ApiEndpointsService.OPEN_API_JSON_BY_API_TYPE).containsOnlyKeys(ApiType.PUBLIC);
+    assertThat(ApiEndpointsService.getOpenApiJsonCacheCopy()).containsOnlyKeys(ApiType.PUBLIC);
   }
 
   @Test
@@ -162,70 +163,150 @@ public class ApiEndpointsServiceTest
   }
 
   @Test
-  public void testGetOpenAPI_ClassNotLicensed() throws Exception {
+  public void testGetOpenAPI_HasNoProductLicenseFeatures() throws Exception {
     testProductLicense.setFeatures();
     when(mockApplication.getClasses()).thenReturn(Set.of(
-        ApiEndpointsServiceTestResourceLicensedFeature1.class
+        ApiEndpointsServiceTestResourceLicensedFeatureA.class,
+        ApiEndpointsServiceTestResourceLicensedFeatureB.class,
+        ApiEndpointsServiceTestResourceLicensedFeatureC.class
     ));
 
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
 
     OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
     assertThat(openAPI).isNotNull();
-    assertThat(openAPI.getPaths()).isNull();
+    assertThat(openAPI.getPaths()).hasSize(5);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureA/A",
+        "Api Endpoints Service Test Resource Licensed Feature A", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureA/B",
+        "Api Endpoints Service Test Resource Licensed Feature A", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureB/A",
+        "Api Endpoints Service Test Resource Licensed Feature B", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureB/B",
+        "Api Endpoints Service Test Resource Licensed Feature B", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureC/A",
+        "Api Endpoints Service Test Resource Licensed Feature C", HttpMethod.GET);
   }
 
   @Test
-  public void testGetOpenAPI_ClassLicensed() throws Exception {
+  public void testGetOpenAPI_HasClassProductLicenseFeature() throws Exception {
     testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
     when(mockApplication.getClasses()).thenReturn(Set.of(
-        ApiEndpointsServiceTestResourceLicensedFeature1.class
+        ApiEndpointsServiceTestResourceLicensedFeatureA.class,
+        ApiEndpointsServiceTestResourceLicensedFeatureB.class,
+        ApiEndpointsServiceTestResourceLicensedFeatureC.class
     ));
 
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
 
     OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
     assertThat(openAPI).isNotNull();
-    assertThat(openAPI.getPaths()).hasSize(1);
-    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeature1/A",
-        "Api Endpoints Service Test Resource Licensed Feature 1", HttpMethod.GET);
+    assertThat(openAPI.getPaths()).hasSize(6);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureA/A",
+        "Api Endpoints Service Test Resource Licensed Feature A", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureA/B",
+        "Api Endpoints Service Test Resource Licensed Feature A", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureB/A",
+        "Api Endpoints Service Test Resource Licensed Feature B", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureB/B",
+        "Api Endpoints Service Test Resource Licensed Feature B", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureC/A",
+        "Api Endpoints Service Test Resource Licensed Feature C", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureC/B",
+        "Api Endpoints Service Test Resource Licensed Feature C", HttpMethod.GET);
   }
 
   @Test
-  public void testGetOpenAPI_MethodNotLicensed() throws Exception {
-    testProductLicense.setFeatures();
-    when(mockApplication.getClasses()).thenReturn(Set.of(
-        ApiEndpointsServiceTestResourceLicensedFeature2.class
-    ));
-
-    String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
-
-    OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
-    assertThat(openAPI).isNotNull();
-    assertThat(openAPI.getPaths()).hasSize(1);
-    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeature2/A",
-        "Api Endpoints Service Test Resource Licensed Feature 2", HttpMethod.GET);
-  }
-
-  @Test
-  public void testGetOpenAPI_MethodLicensed() throws Exception {
+  public void testGetOpenAPI_HasMethodProductLicenseFeature() throws Exception {
     testProductLicense.setFeatures(LicensedFeature.SBOM_REPORTS);
     when(mockApplication.getClasses()).thenReturn(Set.of(
-        ApiEndpointsServiceTestResourceLicensedFeature2.class
+        ApiEndpointsServiceTestResourceLicensedFeatureA.class,
+        ApiEndpointsServiceTestResourceLicensedFeatureB.class,
+        ApiEndpointsServiceTestResourceLicensedFeatureC.class
     ));
 
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
 
     OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
     assertThat(openAPI).isNotNull();
-    assertThat(openAPI.getPaths()).hasSize(2);
+    assertThat(openAPI.getPaths()).hasSize(8);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureA/A",
+        "Api Endpoints Service Test Resource Licensed Feature A", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureA/B",
+        "Api Endpoints Service Test Resource Licensed Feature A", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureA/C",
+        "Api Endpoints Service Test Resource Licensed Feature A", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureB/A",
+        "Api Endpoints Service Test Resource Licensed Feature B", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureB/B",
+        "Api Endpoints Service Test Resource Licensed Feature B", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureB/C",
+        "Api Endpoints Service Test Resource Licensed Feature B", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureC/A",
+        "Api Endpoints Service Test Resource Licensed Feature C", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureC/C",
+        "Api Endpoints Service Test Resource Licensed Feature C", HttpMethod.GET);
   }
 
   @Test
-  public void testGetOpenAPI_ClassAndMethodLicensed() throws Exception {
+  public void testGetOpenAPI_HasClassAndMethodProductLicenseFeatures() throws Exception {
     testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.SBOM_REPORTS);
     when(mockApplication.getClasses()).thenReturn(Set.of(
-        ApiEndpointsServiceTestResourceLicensedFeature1.class
+        ApiEndpointsServiceTestResourceLicensedFeatureA.class,
+        ApiEndpointsServiceTestResourceLicensedFeatureB.class,
+        ApiEndpointsServiceTestResourceLicensedFeatureC.class
+    ));
+
+    String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
+
+    OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
+    assertThat(openAPI).isNotNull();
+    assertThat(openAPI.getPaths()).hasSize(9);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureA/A",
+        "Api Endpoints Service Test Resource Licensed Feature A", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureA/B",
+        "Api Endpoints Service Test Resource Licensed Feature A", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureA/C",
+        "Api Endpoints Service Test Resource Licensed Feature A", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureB/A",
+        "Api Endpoints Service Test Resource Licensed Feature B", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureB/B",
+        "Api Endpoints Service Test Resource Licensed Feature B", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureB/C",
+        "Api Endpoints Service Test Resource Licensed Feature B", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureC/A",
+        "Api Endpoints Service Test Resource Licensed Feature C", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureC/B",
+        "Api Endpoints Service Test Resource Licensed Feature C", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceLicensedFeatureC/C",
+        "Api Endpoints Service Test Resource Licensed Feature C", HttpMethod.GET);
+  }
+
+  @Test
+  public void testGetOpenAPI_HasNoFeatureFlags() throws Exception {
+    SystemConfigurationPropertyFeature.SBOM_MANAGER.setEnabled(false);
+    SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(false);
+    when(mockApplication.getClasses()).thenReturn(Set.of(
+        ApiEndpointsServiceTestResourceFeatureFlagA.class,
+        ApiEndpointsServiceTestResourceFeatureFlagB.class
+    ));
+
+    String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
+
+    OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
+    assertThat(openAPI).isNotNull();
+    assertThat(openAPI.getPaths()).hasSize(1);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceFeatureFlagA/A",
+        "Api Endpoints Service Test Resource Feature Flag A", HttpMethod.GET);
+  }
+
+  @Test
+  public void testGetOpenAPI_HasClassFeatureFlag() throws Exception {
+    SystemConfigurationPropertyFeature.SBOM_MANAGER.setEnabled(true);
+    SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(false);
+    when(mockApplication.getClasses()).thenReturn(Set.of(
+        ApiEndpointsServiceTestResourceFeatureFlagA.class,
+        ApiEndpointsServiceTestResourceFeatureFlagB.class
     ));
 
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
@@ -233,6 +314,56 @@ public class ApiEndpointsServiceTest
     OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
     assertThat(openAPI).isNotNull();
     assertThat(openAPI.getPaths()).hasSize(2);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceFeatureFlagA/A",
+        "Api Endpoints Service Test Resource Feature Flag A", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceFeatureFlagB/A",
+        "Api Endpoints Service Test Resource Feature Flag B", HttpMethod.GET);
+  }
+
+  @Test
+  public void testGetOpenAPI_HasMethodFeatureFlag() throws Exception {
+    SystemConfigurationPropertyFeature.SBOM_MANAGER.setEnabled(false);
+    SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(true);
+    when(mockApplication.getClasses()).thenReturn(Set.of(
+        ApiEndpointsServiceTestResourceFeatureFlagA.class,
+        ApiEndpointsServiceTestResourceFeatureFlagB.class
+    ));
+
+    String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
+
+    OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
+    assertThat(openAPI).isNotNull();
+    assertThat(openAPI.getPaths()).hasSize(3);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceFeatureFlagA/A",
+        "Api Endpoints Service Test Resource Feature Flag A", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceFeatureFlagA/B",
+        "Api Endpoints Service Test Resource Feature Flag A", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceFeatureFlagB/B",
+        "Api Endpoints Service Test Resource Feature Flag B", HttpMethod.GET);
+  }
+
+  @Test
+  public void testGetOpenAPI_HasClassAndMethodFeatureFlags() throws Exception {
+    SystemConfigurationPropertyFeature.SBOM_MANAGER.setEnabled(true);
+    SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(true);
+    when(mockApplication.getClasses()).thenReturn(Set.of(
+        ApiEndpointsServiceTestResourceFeatureFlagA.class,
+        ApiEndpointsServiceTestResourceFeatureFlagB.class
+    ));
+
+    String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
+
+    OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
+    assertThat(openAPI).isNotNull();
+    assertThat(openAPI.getPaths()).hasSize(4);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceFeatureFlagA/A",
+        "Api Endpoints Service Test Resource Feature Flag A", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceFeatureFlagA/B",
+        "Api Endpoints Service Test Resource Feature Flag A", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceFeatureFlagB/A",
+        "Api Endpoints Service Test Resource Feature Flag B", HttpMethod.GET);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceFeatureFlagB/B",
+        "Api Endpoints Service Test Resource Feature Flag B", HttpMethod.GET);
   }
 
   private void assertEndpoints(String result, ApiType expectedApiType, String expectedEndpoint, String expectedTag)
@@ -472,9 +603,82 @@ public class ApiEndpointsServiceTest
     }
   }
 
-  @Path("api/v2/ApiEndpointsServiceTestResourceLicensedFeature1")
+  @Path("api/v2/ApiEndpointsServiceTestResourceLicensedFeatureA")
+  @UnlicensedPath
+  private static class ApiEndpointsServiceTestResourceLicensedFeatureA
+  {
+    @GET
+    @Path("A")
+    @UnlicensedPath
+    public String getA() {
+      return null;
+    }
+
+    @GET
+    @Path("B")
+    public String getB() {
+      return null;
+    }
+
+    @GET
+    @Path("C")
+    @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_REPORTS)
+    public String getC() {
+      return null;
+    }
+  }
+
+  @Path("api/v2/ApiEndpointsServiceTestResourceLicensedFeatureB")
+  private static class ApiEndpointsServiceTestResourceLicensedFeatureB
+  {
+    @GET
+    @Path("A")
+    @UnlicensedPath
+    public String getA() {
+      return null;
+    }
+
+    @GET
+    @Path("B")
+    public String getB() {
+      return null;
+    }
+
+    @GET
+    @Path("C")
+    @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_REPORTS)
+    public String getC() {
+      return null;
+    }
+  }
+
+  @Path("api/v2/ApiEndpointsServiceTestResourceLicensedFeatureC")
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
-  private static class ApiEndpointsServiceTestResourceLicensedFeature1
+  private static class ApiEndpointsServiceTestResourceLicensedFeatureC
+  {
+    @GET
+    @Path("A")
+    @UnlicensedPath
+    public String getA() {
+      return null;
+    }
+
+    @GET
+    @Path("B")
+    public String getB() {
+      return null;
+    }
+
+    @GET
+    @Path("C")
+    @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_REPORTS)
+    public String getC() {
+      return null;
+    }
+  }
+
+  @Path("api/v2/ApiEndpointsServiceTestResourceFeatureFlagA")
+  private static class ApiEndpointsServiceTestResourceFeatureFlagA
   {
     @GET
     @Path("A")
@@ -484,14 +688,15 @@ public class ApiEndpointsServiceTest
 
     @GET
     @Path("B")
-    @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_REPORTS)
+    @HasFeature(SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING)
     public String getB() {
       return null;
     }
   }
 
-  @Path("api/v2/ApiEndpointsServiceTestResourceLicensedFeature2")
-  private static class ApiEndpointsServiceTestResourceLicensedFeature2
+  @Path("api/v2/ApiEndpointsServiceTestResourceFeatureFlagB")
+  @HasFeature(SystemConfigurationPropertyFeature.SBOM_MANAGER)
+  private static class ApiEndpointsServiceTestResourceFeatureFlagB
   {
     @GET
     @Path("A")
@@ -501,7 +706,7 @@ public class ApiEndpointsServiceTest
 
     @GET
     @Path("B")
-    @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_REPORTS)
+    @HasFeature(SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING)
     public String getB() {
       return null;
     }

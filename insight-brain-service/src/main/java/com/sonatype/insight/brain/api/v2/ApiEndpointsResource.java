@@ -18,6 +18,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiType;
 import com.sonatype.insight.brain.api.v2.service.ApiEndpointsService;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -30,18 +31,19 @@ import com.codahale.metrics.annotation.Timed;
 @Timed
 @Path(PublicApiPaths.ENDPOINTS_RESOURCE_PATH)
 @ProductLicenseEnforcementPoint(LicensedFeature.API_PAGE)
+@HasFeature(SystemConfigurationPropertyFeature.API_PAGE)
 public class ApiEndpointsResource
 {
   private final ApiEndpointsService apiEndpointsService;
 
   @Inject
-  public ApiEndpointsResource(ApiEndpointsService apiEndpointsService) {
+  public ApiEndpointsResource(final ApiEndpointsService apiEndpointsService) {
     this.apiEndpointsService = apiEndpointsService;
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public String getOpenAPI(@Context Application application, @PathParam("apiType") ApiType apiType) {
+  public String getOpenAPI(@Context final Application application, @PathParam("apiType") final ApiType apiType) {
     return apiEndpointsService.getOpenAPI(application, apiType);
   }
 }

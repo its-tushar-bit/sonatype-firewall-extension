@@ -7,16 +7,10 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 
-import com.codeborne.selenide.SelenideElement;
-
 public class DashboardTab
     extends BasicElement<DashboardTab>
 {
   public DashboardTab(final String selector) {
     super(selector);
-  }
-
-  public SelenideElement counter() {
-    return child(".nx-counter");
   }
 }

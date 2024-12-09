@@ -85,10 +85,6 @@ import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.ACTIVE;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.NO_CHANGES_MESSAGE;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.SELECTED_SAVED_FILTER_OPTION;
-import static com.sonatype.clm.testing.functional.pages.DashboardPage.applicationsTab;
-import static com.sonatype.clm.testing.functional.pages.DashboardPage.componentsTab;
-import static com.sonatype.clm.testing.functional.pages.DashboardPage.violationsTab;
-import static com.sonatype.clm.testing.functional.pages.DashboardPage.waiversTab;
 import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -290,15 +286,13 @@ public class DashboardFilterTest
     ageFilter.past90days().shouldNotBe(selected).click();
     ageFilter.past90days().shouldBe(selected);
 
-    // make sure the tabs are updated
-    violationsTab().counter().shouldBe(visible).shouldHave(text("3"));
-    componentsTab().counter().shouldBe(visible).shouldHave(text("1"));
-    applicationsTab().counter().shouldBe(visible).shouldHave(text("2"));
+    // make sure the results are updated
     DashboardFilters.apply();
     ageFilter.singleSelectList().shouldHave(size(6));
 
     refreshOrOpen(DashboardPage.urlToViolations());
     DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.violationsView().results().violations().shouldHave(size(3));
     DashboardPage.expandFilter();
     ageFilter.twisty().click();
     ageFilter.past30days().shouldNotBe(selected).click();
@@ -443,23 +437,20 @@ public class DashboardFilterTest
     expirationDateFilter.never().shouldNotBe(selected).click();
     expirationDateFilter.never().shouldBe(selected);
 
-    // make sure the tabs are updated
-    violationsTab().counter().shouldBe(visible).shouldHave(text("3"));
-    componentsTab().counter().shouldBe(visible).shouldHave(text("1"));
-    applicationsTab().counter().shouldBe(visible).shouldHave(text("2"));
-    waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
-
     // check waiver results change
     DashboardFilters.apply();
-    waiversTab().counter().shouldBe(visible).shouldHave(text("7"));
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.waiversView().results().waivers().shouldHave(size(7));
 
     expirationDateFilter.in30days().shouldNotBe(selected).click();
     DashboardFilters.apply();
-    waiversTab().counter().shouldBe(visible).shouldHave(text("4"));
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.waiversView().results().waivers().shouldHave(size(4));
 
     expirationDateFilter.all().shouldNotBe(selected).click();
     DashboardFilters.apply();
-    waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.waiversView().results().waivers().shouldHave(size(8));
 
     refreshOrOpen(DashboardPage.urlToWaivers());
     DashboardPage.waitUntilSpinnersGone();
@@ -507,9 +498,6 @@ public class DashboardFilterTest
 
     // assert no filtering is done
     DashboardPage.violationsView().results().violations().shouldHave(size(3));
-    DashboardPage.violationsTab().counter().shouldHave(text("3"));
-    DashboardPage.componentsTab().counter().shouldNot(exist);
-    DashboardPage.applicationsTab().counter().shouldNot(exist);
 
     DashboardFilters.applyButton().shouldBe(DISABLED).hover();
     Tooltip.get().shouldHave(NO_CHANGES_MESSAGE);
@@ -596,7 +584,6 @@ public class DashboardFilterTest
 
     // assert applied filters
     DashboardPage.violationsView().results().violations().shouldHave(size(1));
-    DashboardPage.violationsTab().counter().shouldHave(text("1"));
     ViolationTile violation = DashboardPage.violationsView().results().firstViolation();
     violation.threatNumber().shouldHave(text("2"));
     violation.policy().shouldHave(text("DashboardTestPolicy"));
@@ -683,7 +670,6 @@ public class DashboardFilterTest
     DashboardFilters.apply();
 
     DashboardPage.violationsView().results().violations().shouldHave(size(1));
-    DashboardPage.violationsTab().counter().shouldHave(text("1"));
     ViolationTile firstViolation = DashboardPage.violationsView().results().firstViolation();
     firstViolation.threatNumber().shouldHave(text("10"));
     firstViolation.policy().shouldHave(text("DashboardTestPolicy"));
@@ -693,13 +679,10 @@ public class DashboardFilterTest
     // check component tab
     DashboardPage.componentsTab().click();
     DashboardPage.componentsView().results().components().shouldHave(size(1));
-    DashboardPage.componentsTab().counter().shouldHave(text("1"));
 
     // check application tab
-    DashboardPage.applicationsTab().counter().shouldNot(exist);
     DashboardPage.applicationsTab().click();
     DashboardPage.applicationsView().results().applications().shouldHave(size(1));
-    DashboardPage.applicationsTab().counter().shouldHave(text("1"));
 
     // check waivers tab
     DashboardPage.waiversTab().click();
@@ -734,11 +717,6 @@ public class DashboardFilterTest
 
     DashboardFilters.apply();
 
-    DashboardPage.violationsTab().counter().shouldHave(text("1"));
-    DashboardPage.componentsTab().counter().shouldNot(exist);
-    DashboardPage.applicationsTab().counter().shouldNot(exist);
-    DashboardPage.waiversTab().counter().shouldNot(exist);
-
     DashboardPage.violationsTab().click();
     DashboardPage.violationsView().results().violations().shouldHave(size(1));
     DashboardPage.violationsView().results().firstViolation().component()
@@ -746,14 +724,9 @@ public class DashboardFilterTest
 
     DashboardPage.componentsTab().click();
     DashboardPage.componentsView().results().components().shouldHave(size(1));
-    DashboardPage.violationsTab().counter().shouldHave(text("1"));
-    DashboardPage.componentsTab().counter().shouldHave(text("1"));
 
     DashboardPage.applicationsTab().click();
     DashboardPage.applicationsView().results().applications().shouldHave(size(1));
-    DashboardPage.violationsTab().counter().shouldHave(text("1"));
-    DashboardPage.componentsTab().counter().shouldHave(text("1"));
-    DashboardPage.applicationsTab().counter().shouldHave(text("1"));
     DashboardPage.componentsTab().click();
   }
 
@@ -861,9 +834,6 @@ public class DashboardFilterTest
     DashboardFilters.policyTypeFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 4"));
     // verify no violations row shown
     DashboardPage.violationsView().results().violations().shouldHave(size(0));
-    DashboardPage.violationsTab().counter().shouldHave(text("0"));
-    DashboardPage.componentsTab().counter().shouldNot(exist);
-    DashboardPage.applicationsTab().counter().shouldNot(exist);
     // verify no data message
     DashboardPage.violationsView().results().noDataMessage().shouldBe(visible)
         .shouldHave(text("No data available in the last 30 days given the applied filters and permissions."));
@@ -1244,9 +1214,8 @@ public class DashboardFilterTest
     DashboardFilters.applicationFilter().checkboxItem(2).click();
     DashboardFilters.applicationFilter().checkboxItem(3).click();
     DashboardFilters.apply();
-
-    waiversTab().counter().shouldBe(visible).shouldHave(text("4"));
-
+    DashboardPage.waiversView().results().waivers().shouldHave(size(4));
+    
     assertThat(
         containsWaiverWithScope(allWaivers, secondApp))
         .as("It should contain waivers on second application.")
@@ -1266,7 +1235,7 @@ public class DashboardFilterTest
     DashboardPage.expandFilter();
 
     // all waivers should be listed without filter
-    waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
+    DashboardPage.waiversView().results().waivers().shouldHave(size(8));
 
     // select All applications filter option
     DashboardFilters.applicationFilter().twisty().click();
@@ -1274,7 +1243,7 @@ public class DashboardFilterTest
     DashboardFilters.apply();
 
     // all the waivers should be present after filtering.
-    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+    DashboardPage.waiversView().results().waivers().shouldHave(size(5));
   }
 
   @Test
@@ -1284,7 +1253,7 @@ public class DashboardFilterTest
     DashboardPage.expandFilter();
 
     // all waivers should be listed without filter
-    waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
+    DashboardPage.waiversView().results().waivers().shouldHave(size(8));
 
     // select All applications category filter option
     DashboardFilters.applicationCategoryFilter().twisty().click();
@@ -1292,7 +1261,7 @@ public class DashboardFilterTest
     DashboardFilters.apply();
 
     // all the waivers should be present after filtering.
-    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+    DashboardPage.waiversView().results().waivers().shouldHave(size(5));
   }
 
   @Test
@@ -1302,14 +1271,14 @@ public class DashboardFilterTest
     DashboardPage.expandFilter();
 
     // all waivers should be listed without filter
-    waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
+    DashboardPage.waiversView().results().waivers().shouldHave(size(8));
 
     // select no category filter option
     DashboardFilters.applicationCategoryFilter().twisty().click();
     DashboardFilters.applicationCategoryFilter().noCategory().click();
     DashboardFilters.apply();
 
-    waiversTab().counter().shouldBe(visible).shouldHave(text("4"));
+    DashboardPage.waiversView().results().waivers().shouldHave(size(4));
 
     List<WaiverTile> allWaivers = DashboardPage.waiversView().results().allWaivers();
     assertThat(
@@ -1330,14 +1299,14 @@ public class DashboardFilterTest
     DashboardPage.expandFilter();
 
     // all waivers should be listed without filter
-    waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
+    DashboardPage.waiversView().results().waivers().shouldHave(size(8));
 
     // select no category filter option
     DashboardFilters.applicationCategoryFilter().twisty().click();
     DashboardFilters.applicationCategoryFilter().checkboxItem(3).click();
     DashboardFilters.apply();
 
-    waiversTab().counter().shouldBe(visible).shouldHave(text("3"));
+    DashboardPage.waiversView().results().waivers().shouldHave(size(3));
 
     List<WaiverTile> allWaivers = DashboardPage.waiversView().results().allWaivers();
     assertThat(
@@ -1384,7 +1353,7 @@ public class DashboardFilterTest
     DashboardPage.expandFilter();
 
     // all waivers should be listed without filter
-    waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
+    DashboardPage.waiversView().results().waivers().shouldHave(size(8));
 
     // assert that waivers are by default sorted by expiry date
     WaiverTile firstWaiver = DashboardPage.waiversView().results().firstWaiver();
@@ -1401,7 +1370,7 @@ public class DashboardFilterTest
     DashboardFilters.applicationCategoryFilter().checkboxItem(3).click();
     DashboardFilters.apply();
 
-    waiversTab().counter().shouldBe(visible).shouldHave(text("3"));
+    DashboardPage.waiversView().results().waivers().shouldHave(size(3));
 
     // assert items order after filtering.
     firstWaiver = DashboardPage.waiversView().results().firstWaiver();
@@ -1412,20 +1381,20 @@ public class DashboardFilterTest
 
   @Test
   public void testWaiverOrgFilter_allOptionSelected() {
-    testWaiverOrgFilter(null, "6");
+    testWaiverOrgFilter(null, 6);
   }
 
   @Test
   public void testWaiverOrgFilter_childOrgSelected() {
-    testWaiverOrgFilter("DashboardTest", "6");
+    testWaiverOrgFilter("DashboardTest", 6);
   }
 
   @Test
   public void testWaiverOrgFilter_parentOrgSelected() {
-    testWaiverOrgFilter("ParentOrgTest", "6");
+    testWaiverOrgFilter("ParentOrgTest", 6);
   }
 
-  private void testWaiverOrgFilter(String orgName, String waiverAmountExpectation) {
+  private void testWaiverOrgFilter(String orgName, int waiverAmountExpectation) {
     tempEntity.newWaiver(policy.getId(), parentOrg.getId());
 
     refreshOrOpen(DashboardPage.urlToWaivers());
@@ -1433,7 +1402,7 @@ public class DashboardFilterTest
     DashboardPage.expandFilter();
 
     // all waivers should be listed without filter
-    waiversTab().counter().shouldBe(visible).shouldHave(text("9"));
+    DashboardPage.waiversView().results().waivers().shouldHave(size(9));
 
     // select parent organizations filter option
     DashboardFilters.organizationFilter().twisty().click();
@@ -1446,7 +1415,7 @@ public class DashboardFilterTest
     DashboardFilters.apply();
 
     // all the waivers should be present after filtering.
-    waiversTab().counter().shouldBe(visible).shouldHave(text(waiverAmountExpectation));
+    DashboardPage.waiversView().results().waivers().shouldHave(size(waiverAmountExpectation));
   }
 
   private boolean containsWaiverWithScope(List<WaiverTile> waivers, Owner owner) {
@@ -1489,7 +1458,7 @@ public class DashboardFilterTest
     DashboardPage.waitUntilSpinnersGone();
     DashboardPage.expandFilter();
 
-    waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
+    DashboardPage.waiversView().results().waivers().shouldHave(size(8));
 
     WaiverTile firstWaiver = DashboardPage.waiversView().results().firstWaiver();
     firstWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
@@ -1500,7 +1469,7 @@ public class DashboardFilterTest
     DashboardFilters.repositoryFilter().allItems().click();
     DashboardFilters.apply();
 
-    waiversTab().counter().shouldBe(visible).shouldHave(text("4"));
+    DashboardPage.waiversView().results().waivers().shouldHave(size(4));
     Owner rootOrgAsOwner = orgDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     List<WaiverTile> waiverTiles = DashboardPage.waiversView().results().allWaivers();
     assertThat(containsWaiverWithScope(waiverTiles, rootOrgAsOwner)).isTrue();
@@ -1512,7 +1481,7 @@ public class DashboardFilterTest
     DashboardFilters.repositoryFilter().checkboxItem(2).click();
     DashboardFilters.apply();
 
-    waiversTab().counter().shouldBe(visible).shouldHave(text("3"));
+    DashboardPage.waiversView().results().waivers().shouldHave(size(3));
     waiverTiles = DashboardPage.waiversView().results().allWaivers();
     assertThat(containsWaiverWithScope(waiverTiles, rootOrgAsOwner)).isTrue();
     assertThat(containsWaiverWithScope(waiverTiles, repository1)).isTrue();
@@ -1523,7 +1492,7 @@ public class DashboardFilterTest
     DashboardFilters.repositoryFilter().checkboxItem(3).click();
     DashboardFilters.apply();
 
-    waiversTab().counter().shouldBe(visible).shouldHave(text("3"));
+    DashboardPage.waiversView().results().waivers().shouldHave(size(3));
     waiverTiles = DashboardPage.waiversView().results().allWaivers();
     assertThat(containsWaiverWithScope(waiverTiles, rootOrgAsOwner)).isTrue();
     assertThat(containsWaiverWithScope(waiverTiles, repository1)).isFalse();

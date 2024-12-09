@@ -57,31 +57,6 @@ describe('DashboardTabs', () => {
     });
   });
 
-  describe('Counters', () => {
-    it('is rendered when numResults not null', () => {
-      const component = getShallow({
-        violations: { numResults: 42 },
-        components: { numResults: 42 },
-        applications: { numResults: null },
-        waivers: { numResults: 42 },
-      });
-      const tabs = component.find(NxTab);
-      expect(tabs.at(0).find('span.nx-counter')).toExist();
-      expect(tabs.at(1).find('span.nx-counter')).toExist();
-      expect(tabs.at(2).find('span.nx-counter')).not.toExist();
-      expect(tabs.at(3).find('span.nx-counter')).toExist();
-    });
-  });
-
-  describe('Active Tab', () => {
-    it('renders counter with "nx-counter--active" class', () => {
-      const component = getShallow({ violations: { numResults: 42 } });
-      const tabs = component.find(NxTab);
-      const selectedIndex = component.find(NxTabs).prop('activeTab');
-      expect(tabs.at(selectedIndex).find('span.nx-counter--active')).toExist();
-    });
-  });
-
   describe('when a Tab is clicked', () => {
     let getMounted, component, stateGoSpy;
 

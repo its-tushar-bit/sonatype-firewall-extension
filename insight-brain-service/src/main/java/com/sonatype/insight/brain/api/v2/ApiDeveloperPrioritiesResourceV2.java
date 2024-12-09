@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioriti
 import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritizationResults;
 import com.sonatype.insight.brain.utils.Csv;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -55,33 +56,40 @@ public class ApiDeveloperPrioritiesResourceV2
   }
 
   @GET
-  @Operation(description = "Use this method to retrieve the priorities for the specified application Id and scan Id" +
-      "\n" +
-      "\n" +
-      "Permissions required: View IQ Elements ",
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(description = """
+      Use this method to retrieve the priorities, by providing the applicationId and scanId
+      
+      Permissions required: View IQ Elements""",
       responses = {
           @ApiResponse(
               responseCode = "200",
-              description = "The response field `topPriorities` returns the first 3 prioritized components and the " +
-                  "`additionalPriorities` field returns the remaining prioritized components for the specified " +
-                  "application Id and scan Id. Each result has all relevant component information, reachability" +
-                  "information, policy information, and the priority assigned to it." +
-                  "It has pagination support, and the default page size is 10." +
-                  "The parameter `includeRemediation` is required for the paginated result to " +
-                  "have remediation information.",
-              useReturnTypeSchema = true
-          )
+              description = """
+                  The response field `topPriorities` returns the first 3 prioritized components and the
+                  `additionalPriorities` field returns the remaining prioritized components for the specified
+                  application Id and scan Id. Each result has all relevant component information, reachability
+                  information, policy information, and the priority assigned to it.
+                  It has pagination support, and the default page size is 10.
+                  The parameter `includeRemediation` is required for the paginated result to
+                  have remediation information.""",
+              useReturnTypeSchema = true)
       }
   )
-  @Produces(MediaType.APPLICATION_JSON)
   public DevelopmentPrioritizationResults getPriorities(
-          @PathParam("applicationId") final String applicationId,
-          @PathParam("scanId") final String scanId,
-          @DefaultValue("false") @QueryParam("includeRemediation") boolean includeRemediation,
-          @DefaultValue(DEFAULT_PAGE) @QueryParam("page") final int page,
-          @DefaultValue(DEFAULT_PAGE_SIZE) @QueryParam("pageSize") final int pageSize,
-          @QueryParam("optionalComponentNameFilter") final String optionalComponentNameFilter,
-          @QueryParam("optionalActionFilter") @DefaultValue("true") final boolean optionalActionFilter
+      @Parameter(description = "Enter the applicationId.")
+      @PathParam("applicationId") final String applicationId,
+      @Parameter(description = "Enter the scanId.")
+      @PathParam("scanId") final String scanId,
+      @Parameter(description = "Whether to include remediation type and version for the component or not")
+      @DefaultValue("false") @QueryParam("includeRemediation") boolean includeRemediation,
+      @Parameter(description = "Current page number.")
+      @DefaultValue(DEFAULT_PAGE) @QueryParam("page") final int page,
+      @Parameter(description = "Enter the no. of results that should be visible per page.")
+      @DefaultValue(DEFAULT_PAGE_SIZE) @QueryParam("pageSize") final int pageSize,
+      @Parameter(description = "Component name to filter by")
+      @QueryParam("optionalComponentNameFilter") final String optionalComponentNameFilter,
+      @Parameter(description = "Whether to enable Fail/Warn policy action filter or not")
+      @QueryParam("optionalActionFilter") @DefaultValue("true") final boolean optionalActionFilter
   )
   {
     return developmentPrioritiesService
@@ -91,25 +99,26 @@ public class ApiDeveloperPrioritiesResourceV2
 
   @GET
   @Path(EXPORT_PATH)
-  @Operation(description = "Use this method to retrieve the priorities for the specified application Id and scan Id" +
-      "\n" +
-      "\n" +
-      "Permissions required: View IQ Elements ",
+  @Produces("text/csv")
+  @Operation(description = """
+      Use this method to retrieve the priorities, by providing the applicationId and scanId.
+      
+      Permissions required: View IQ Elements""",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response is a CSV that contains all the prioritized components for the specified " +
-                  "application Id and scan Id. Each line has all relevant component information, reachability " +
-                  "information, policy information, and the priority assigned to it.",
-              useReturnTypeSchema = true
-          )
+          @ApiResponse(responseCode = "200",
+              description = """
+                  The response is a CSV that contains all the prioritized components for the specified
+                  applicationId and scanId. Each line has all relevant component information, reachability
+                  information, policy information, and the priority assigned to it.""",
+              useReturnTypeSchema = true)
       }
   )
-  @Produces("text/csv")
   @Audited(AuditEvent.EXPORT_DEVELOPER_PRIORITIES)
   public Response getPrioritiesExport(
-          @PathParam("applicationId") final String applicationId,
-          @PathParam("scanId") final String scanId)
+      @Parameter(description = "Enter the applicationId.")
+      @PathParam("applicationId") final String applicationId,
+      @Parameter(description = "Enter the scanId.")
+      @PathParam("scanId") final String scanId)
   {
     List<PrioritizedComponent> results =
         developmentPrioritiesService.getAllPrioritizedFindings(applicationId, scanId, 0, null,

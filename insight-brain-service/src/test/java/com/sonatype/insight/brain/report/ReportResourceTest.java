@@ -85,9 +85,10 @@ import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ReportResource.BROWSE_PATH;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -142,12 +143,12 @@ public class ReportResourceTest
         .as("insight.js expires in 365 days: " + expires + " vs " + calendar.getTime()).isLessThan(2 * 60 * 1000);
 
     calendar.setTime(new Date());
-    response = request.subpath(ReportDataStore.DATA_JSON_FILENAME).get();
+    response = request.subpath(DATA_JSON_FILENAME).get();
     assertResponseStatus(200, response);
     expiresHeader = response.getHeader("Expires");
     expires = expirationHeaderFormat.parse(expiresHeader);
     assertThat(Math.abs(calendar.getTimeInMillis() - expires.getTime()))
-        .as(ReportDataStore.DATA_JSON_FILENAME + " expires immediately: " + expires + " vs " + calendar.getTime())
+        .as(DATA_JSON_FILENAME + " expires immediately: " + expires + " vs " + calendar.getTime())
         .isLessThan(2 * 60 * 1000);
 
     calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH) + 1);
@@ -233,7 +234,7 @@ public class ReportResourceTest
         assertThat(contentType).isEqualToIgnoringCase("image/png");
       }
 
-      if (ReportDataStore.DATA_JSON_FILENAME.equals(entry)) {
+      if (DATA_JSON_FILENAME.equals(entry)) {
         String actual = response.getBodyText();
         testDataJsonApplyChanges(actual);
       }
@@ -370,7 +371,7 @@ public class ReportResourceTest
         assertThat(contentType).isEqualToIgnoringCase("image/png");
       }
 
-      if (ReportDataStore.DATA_JSON_FILENAME.equals(entry)) {
+      if (DATA_JSON_FILENAME.equals(entry)) {
         String actual = response.getBodyText();
         testDataJsonApplyChanges(actual);
       }
@@ -1063,6 +1064,20 @@ public class ReportResourceTest
     return new ComponentIdentifier("bb", Collections.singletonMap("x", String.valueOf(c)));
   }
 
+  @Test
+  public void testAppendCacheBustingParams() {
+    String indexContent = "<script type='text/javascript' src='../brain/policy-assets/js/brain.client.js'></script>"
+        + "<script type='text/javascript' src='../brain/policy-assets/js/cip-loader.js'></script>";
+    String expectedIndexContent = "<script type='text/javascript' src='../brain/policy-assets/js/brain.client.js?1.0'>"
+        + "</script><script type='text/javascript' src='../brain/policy-assets/js/cip-loader.js?1.0'></script>";
+
+    ReportEntry entry =
+        new ReportEntry("index.html", System.currentTimeMillis(), indexContent.getBytes(StandardCharsets.UTF_8));
+    entry = ReportResource.appendCacheBustingParams(entry, "1.0");
+
+    assertThat(entry.buf).isEqualTo(expectedIndexContent.getBytes(StandardCharsets.UTF_8));
+  }
+
   private static void assertComponent(String groupId,
                                       String artifactId,
                                       String version,
@@ -1256,7 +1271,7 @@ public class ReportResourceTest
     final String scanId = "ReportResourceTest_ScanId";
     createReportFile(app.getId(), scanId, "/ReportResourceTest/" + dirName);
     HttpResponse response =
-        restRequest(app.getPublicId(), scanId).path(BROWSE_PATH, ReportDataStore.SECURITY_JSON_FILENAME).get();
+        restRequest(app.getPublicId(), scanId).path(BROWSE_PATH, SECURITY_JSON_FILENAME).get();
     assertResponseStatus(200, response);
 
     File temp = tempDir.newFile();

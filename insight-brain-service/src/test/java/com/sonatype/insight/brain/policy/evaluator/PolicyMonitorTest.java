@@ -55,7 +55,7 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.policy.PolicyResource;
-import com.sonatype.insight.brain.report.ReportDataStore;
+import com.sonatype.insight.brain.report.FileReportEntity;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
@@ -610,7 +610,7 @@ public class PolicyMonitorTest
 
     File reportFile = insightWork.getReportFile(app.getId(), newScanId);
     assertThat(reportFile).isFile();
-    File reportCacheDir = new File(reportFile.getParentFile(), ReportDataStore.CACHE_DIRECTORY_NAME);
+    File reportCacheDir = new File(reportFile.getParentFile(), FileReportEntity.CACHE_DIRECTORY_NAME);
     assertThat(reportCacheDir).isDirectory();
     File policyAlertsFile = new File(reportCacheDir, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
     assertThat(policyAlertsFile).isFile();

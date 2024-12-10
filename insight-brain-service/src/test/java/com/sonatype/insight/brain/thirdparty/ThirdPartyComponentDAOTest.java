@@ -58,11 +58,11 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
 
-import static com.sonatype.insight.brain.report.ReportDataStore.BOM_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ReportDataStore.DATA_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ReportDataStore.LICENSES_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ReportDataStore.SECURITY_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ReportDataStore.SUMMARY_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.SUMMARY_JSON_FILENAME;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME;

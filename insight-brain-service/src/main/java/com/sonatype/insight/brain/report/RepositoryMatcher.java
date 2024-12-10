@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -76,8 +75,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.codehaus.plexus.util.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.sonatype.insight.brain.report.ReportDataStore.setMavenCoordinatesWithExtension;
 
 @Named
 public class RepositoryMatcher
@@ -508,7 +505,7 @@ public class RepositoryMatcher
     objectNode.put(ComponentIdentifierAdapter.PURL_IDENTIFIER,
         PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl());
     if (ComponentIdentifier.FORMAT_MAVEN.equals(componentIdentifier.getFormat())) {
-      setMavenCoordinatesWithExtension(objectNode, componentIdentifier);
+      ReportService.setMavenCoordinatesWithExtension(objectNode, componentIdentifier);
     }
     ComponentDisplayNameUtil.injectDisplayName(objectNode);
   }

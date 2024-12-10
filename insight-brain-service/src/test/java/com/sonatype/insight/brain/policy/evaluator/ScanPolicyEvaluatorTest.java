@@ -122,13 +122,12 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.FileReportEntity;
 import com.sonatype.insight.brain.report.MockReportDownloader;
-import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -169,6 +168,7 @@ import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMet
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COUNT;
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.LEGACY_VIOLATION_TIME;
 import static com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator.REEVALUATE_NOT_ALLOWED_FOR_OUT_OF_DATE_SCAN_MESSAGE;
+import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -271,9 +271,6 @@ public class ScanPolicyEvaluatorTest
 
   @Inject
   private ReportComponentService reportComponentService;
-
-  @Inject
-  private ReportDataStore reportDataStore;
 
   @Inject
   private ReportService reportService;
@@ -1426,7 +1423,8 @@ public class ScanPolicyEvaluatorTest
     scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
 
     // Create a fake PDF report.
-    FileReportEntity reportPdf = ((FileReportEntity) PdfGenerator.getPdfFile(insightWork, application.getId(), scanId));
+    FileReportEntity reportPdf =
+        ((FileReportEntity) PdfGenerator.getPdfFile(reportService, application.getId(), scanId));
     reportPdf.getFile().createNewFile();
     assertThat(reportPdf.getFile()).isFile();
 
@@ -3022,8 +3020,7 @@ public class ScanPolicyEvaluatorTest
 
     ApplicationReport applicationReport = reportService.getReport(application.getId(), scanId);
     // Verify the policyalerts.json report file
-    ReportEntry policyAlertsReportEntry =
-        reportDataStore.getEntry(applicationReport, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
+    ReportEntry policyAlertsReportEntry = applicationReport.getEntry(ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
     List<PolicyAlert> policyAlerts = Arrays.asList(JsonUtils.parse(policyAlertsReportEntry.buf, PolicyAlert[].class));
     assertThat(policyAlerts).extracting(PolicyAlert::getTrigger) //
         .flatExtracting(PolicyFact::getComponentFacts) //
@@ -3031,15 +3028,14 @@ public class ScanPolicyEvaluatorTest
         .containsExactlyInAnyOrder("3e1470773021fde54f51", "e93e551d738e9f4d1aae");
     assertThat(policyAlerts).flatExtracting(PolicyAlert::getActions).isNotEmpty();
     // Verify the policythreats.json report file
-    ReportEntry policyThreatsReportEntry =
-        reportDataStore.getEntry(applicationReport, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
+    ReportEntry policyThreatsReportEntry = applicationReport.getEntry(ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
     PolicyThreats policyThreats = JsonUtils.parse(policyThreatsReportEntry.buf, PolicyThreats.class);
     assertThat(policyThreats.stageTypeId).isEqualTo("build");
     assertThat(policyThreats.aaData) //
         .extracting(component -> component.hash) //
         .containsExactlyInAnyOrder("3e1470773021fde54f51", "e93e551d738e9f4d1aae", "f2e35e4a21f07d25710f");
     // Verify the data.json report file
-    ReportEntry dataReportEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.DATA_JSON_FILENAME);
+    ReportEntry dataReportEntry = applicationReport.getEntry(DATA_JSON_FILENAME);
     ObjectNode data = JsonUtils.parse(dataReportEntry.buf);
     assertThat(data.get("policyCounts").toString()).isEqualTo("[1,0,0,0,0,2,0,0,0,0,0]");
     assertThat(data.get("policyComponentCount").asInt()).isEqualTo(2);
@@ -3079,19 +3075,17 @@ public class ScanPolicyEvaluatorTest
 
     ApplicationReport applicationReport = reportService.getReport(application.getId(), scanId);
     // Verify the policyalerts.json report file
-    ReportEntry policyAlertsReportEntry =
-        reportDataStore.getEntry(applicationReport, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
+    ReportEntry policyAlertsReportEntry = applicationReport.getEntry(ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
     List<PolicyAlert> policyAlerts = Arrays.asList(JsonUtils.parse(policyAlertsReportEntry.buf, PolicyAlert[].class));
     assertThat(policyAlerts).isEmpty();
     // Verify the policythreats.json report file
-    ReportEntry policyThreatsReportEntry =
-        reportDataStore.getEntry(applicationReport, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
+    ReportEntry policyThreatsReportEntry = applicationReport.getEntry(ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
     PolicyThreats policyThreats = JsonUtils.parse(policyThreatsReportEntry.buf, PolicyThreats.class);
     assertThat(policyThreats.aaData) //
         .extracting(component -> component.hash) //
         .containsExactlyInAnyOrder("3e1470773021fde54f51", "e93e551d738e9f4d1aae", "f2e35e4a21f07d25710f");
     // Verify the data.json report file
-    ReportEntry dataReportEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.DATA_JSON_FILENAME);
+    ReportEntry dataReportEntry = applicationReport.getEntry(DATA_JSON_FILENAME);
     ObjectNode data = JsonUtils.parse(dataReportEntry.buf);
     // All three policy violations are legacy and so each of the three components has a policyThreatLevel of 0
     assertThat(data.get("policyCounts").toString()).isEqualTo("[3,0,0,0,0,0,0,0,0,0,0]");
@@ -3119,8 +3113,7 @@ public class ScanPolicyEvaluatorTest
 
     ApplicationReport applicationReport = reportService.getReport(application.getId(), scanId);
     // Verify the policyalerts.json report file
-    ReportEntry policyAlertsReportEntry =
-        reportDataStore.getEntry(applicationReport, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
+    ReportEntry policyAlertsReportEntry = applicationReport.getEntry(ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
     List<PolicyAlert> policyAlerts = Arrays.asList(JsonUtils.parse(policyAlertsReportEntry.buf, PolicyAlert[].class));
     assertThat(policyAlerts).extracting(PolicyAlert::getTrigger) //
         .flatExtracting(PolicyFact::getComponentFacts) //
@@ -3128,8 +3121,7 @@ public class ScanPolicyEvaluatorTest
         .containsExactlyInAnyOrder("3e1470773021fde54f51", "e93e551d738e9f4d1aae");
     assertThat(policyAlerts).flatExtracting(PolicyAlert::getActions).isEmpty();
     // Verify the policythreats.json report file
-    ReportEntry policyThreatsReportEntry =
-        reportDataStore.getEntry(applicationReport, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
+    ReportEntry policyThreatsReportEntry = applicationReport.getEntry(ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
     PolicyThreats policyThreats = JsonUtils.parse(policyThreatsReportEntry.buf, PolicyThreats.class);
     assertThat(policyThreats.aaData) //
         .extracting(component -> component.hash) //

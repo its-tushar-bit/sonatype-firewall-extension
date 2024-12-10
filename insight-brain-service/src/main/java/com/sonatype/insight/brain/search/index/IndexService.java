@@ -61,7 +61,6 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
-import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.ApplicationReport;
@@ -108,6 +107,10 @@ import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -185,8 +188,6 @@ public class IndexService
 
   private final Provider<IndexCreationScheduler> indexCreationScheduler;
 
-  private final ReportDataStore reportDataStore;
-
   private final ReportService reportService;
 
   @Override
@@ -247,7 +248,6 @@ public class IndexService
       ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       ComponentLoaderFactory componentLoaderFactory,
       Provider<IndexCreationScheduler> indexCreationScheduler,
-      ReportDataStore reportDataStore,
       ReportService reportService)
   {
     this.organizationDAO = organizationDAO;
@@ -270,7 +270,6 @@ public class IndexService
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.componentLoaderFactory = componentLoaderFactory;
     this.indexCreationScheduler = indexCreationScheduler;
-    this.reportDataStore = reportDataStore;
     this.reportService = reportService;
 
     searchIndexPool = ExecutorThreadPools.getInstance()
@@ -821,13 +820,10 @@ public class IndexService
       return Collections.emptyList();
     }
     try {
-      ReportEntry licenseReportEntry =
-          reportDataStore.getEntry(applicationReport, ReportDataStore.LICENSES_JSON_FILENAME);
-      ReportEntry securityReportEntry =
-          reportDataStore.getEntry(applicationReport, ReportDataStore.SECURITY_JSON_FILENAME);
-      ReportEntry bomReportEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.BOM_JSON_FILENAME);
-      ReportEntry dependenciesReportEntry =
-          reportDataStore.getEntry(applicationReport, ReportDataStore.DEPENDENCIES_JSON_FILENAME);
+      ReportEntry licenseReportEntry = applicationReport.getEntry(LICENSES_JSON_FILENAME);
+      ReportEntry securityReportEntry = applicationReport.getEntry(SECURITY_JSON_FILENAME);
+      ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
+      ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON_FILENAME);
       if (licenseReportEntry == null || securityReportEntry == null || bomReportEntry == null ||
           dependenciesReportEntry == null) {
         return Collections.emptyList();

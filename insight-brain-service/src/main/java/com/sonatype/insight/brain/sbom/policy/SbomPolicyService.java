@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.sbom.policy;
 
 import java.io.IOException;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -19,7 +18,6 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -30,6 +28,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import org.apache.commons.lang3.StringUtils;
+
+import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
 
 @Named
 public class SbomPolicyService
@@ -115,7 +115,7 @@ public class SbomPolicyService
       String hash) throws IOException
   {
     ReportEntry bomReportEntry =
-        reportService.processBrowseReport(applicationId, scanId, ReportDataStore.BOM_JSON_FILENAME);
+        reportService.processBrowseReport(applicationId, scanId, BOM_JSON_FILENAME);
     if (bomReportEntry == null) {
       return null;
     }

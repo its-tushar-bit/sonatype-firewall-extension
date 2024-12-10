@@ -14,7 +14,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -38,8 +37,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.report.FileReportDataStore;
-import com.sonatype.insight.brain.report.ReportDataStore;
+import com.sonatype.insight.brain.report.FileReportEntity;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
@@ -56,6 +54,11 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 
@@ -81,30 +84,26 @@ public class ApiReportDataServiceV2Test
 
   private String scanId;
 
-  private File reportFile;
+  private FileReportEntity reportZip;
 
   private PolicyEvaluation policyEvaluation;
 
-  @Inject
-  private FileReportDataStore reportUtils;
-
-  private File makeReportFile() throws Exception {
+  private FileReportEntity makeReportFile() throws Exception {
     File reportFile = work.getReportFile(app.getId(), scanId);
     reportFile.getParentFile().mkdirs();
     try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(reportFile.toPath()))) {
       zos.putNextEntry(new ZipEntry("index.html"));
     }
-    return reportFile;
+    return new FileReportEntity(reportFile);
   }
 
   private void makeReport(String resource) throws Exception {
     String[] filenames = {
-        ReportDataStore.BOM_JSON_FILENAME, ReportDataStore.SECURITY_JSON_FILENAME,
-        ReportDataStore.LICENSES_JSON_FILENAME, ReportDataStore.DATA_JSON_FILENAME,
-        ReportDataStore.DEPENDENCIES_JSON_FILENAME, ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME
+        BOM_JSON_FILENAME, SECURITY_JSON_FILENAME, LICENSES_JSON_FILENAME, DATA_JSON_FILENAME,
+        DEPENDENCIES_JSON_FILENAME, ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME
     };
     for (String filename : filenames) {
-      File file = reportUtils.getCacheFile(reportFile, filename);
+      File file = reportZip.getCacheFile(filename);
       URL resourceUrl = getClass().getResource("/ApiReportDataServiceTest/" + resource + "/" + filename);
       if (resourceUrl != null) {
         FileUtils.copyURLToFile(resourceUrl, file);
@@ -127,19 +126,19 @@ public class ApiReportDataServiceV2Test
   }
 
   private void populatePolicyThreats(String resource, String policyThreatsFile) throws IOException {
-    File file = reportUtils.getCacheFile(reportFile, "policythreats.json");
+    File file = reportZip.getCacheFile("policythreats.json");
     FileUtils.copyURLToFile(getClass()
         .getResource("/ApiReportDataServiceTest/" + resource + "/" + policyThreatsFile), file);
   }
   
   private void populateDependencies(String resource, String dependenciesFile) throws IOException {
-    File file = reportUtils.getCacheFile(reportFile, "dependencies.json");
+    File file = reportZip.getCacheFile("dependencies.json");
     FileUtils.copyURLToFile(getClass()
         .getResource("/ApiReportDataServiceTest/" + resource + "/" + dependenciesFile), file);
   }
 
   private void populateBom(String resource, String bomFile) throws IOException {
-    File file = reportUtils.getCacheFile(reportFile, "bom.json");
+    File file = reportZip.getCacheFile("bom.json");
     FileUtils.copyURLToFile(getClass()
         .getResource("/ApiReportDataServiceTest/" + resource + "/" + bomFile), file);
   }
@@ -148,7 +147,7 @@ public class ApiReportDataServiceV2Test
   public void init() throws Exception {
     app = tempEntity.newApplicationWithParent("app-id");
     scanId = "scan-id";
-    reportFile = makeReportFile();
+    reportZip = makeReportFile();
     policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId, "the-commit-hash");
     hdsMockServer.reset();
     setHdsUrl(hdsMockServer.getHttpUrl());

@@ -15,11 +15,15 @@ import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.error.exception.BadRequestException;
+
+import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
 
 @Named
 public class ReportComponentService
@@ -30,19 +34,15 @@ public class ReportComponentService
 
   private final ClusterLockManager clusterLockManager;
 
-  private final ReportDataStore reportDataStore;
-
   @Inject
   public ReportComponentService(
       final ReportService reportService,
       final ComponentLoaderFactory componentLoaderFactory,
-      final ClusterLockManager clusterLockManager,
-      final ReportDataStore reportDataStore)
+      final ClusterLockManager clusterLockManager)
   {
     this.reportService = reportService;
     this.componentLoaderFactory = componentLoaderFactory;
     this.clusterLockManager = clusterLockManager;
-    this.reportDataStore = reportDataStore;
   }
 
   public ReportComponentData fetchReportAndComponents(Application application, String scanId) throws IOException {
@@ -52,13 +52,10 @@ public class ReportComponentService
     try (ClusterLock clusterLock = clusterLockManager.createForPolicyEvaluation(application, scanId)) {
       clusterLock.lock();
       applicationReport = reportService.fetchReport(application, scanId);
-      final ReportEntry licenseReportEntry =
-          reportDataStore.getEntry(applicationReport, ReportDataStore.LICENSES_JSON_FILENAME);
-      final ReportEntry securityReportEntry =
-          reportDataStore.getEntry(applicationReport, ReportDataStore.SECURITY_JSON_FILENAME);
-      final ReportEntry bomReportEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.BOM_JSON_FILENAME);
-      final ReportEntry dependenciesReportEntry =
-          reportDataStore.getEntry(applicationReport, ReportDataStore.DEPENDENCIES_JSON_FILENAME);
+      final ReportEntry licenseReportEntry = applicationReport.getEntry(LICENSES_JSON_FILENAME);
+      final ReportEntry securityReportEntry = applicationReport.getEntry(SECURITY_JSON_FILENAME);
+      final ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
+      final ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON_FILENAME);
 
       if (bomReportEntry == null || securityReportEntry == null || licenseReportEntry == null
           || dependenciesReportEntry == null) {

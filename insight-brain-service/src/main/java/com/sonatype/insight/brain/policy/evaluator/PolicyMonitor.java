@@ -42,7 +42,6 @@ import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.service.Configuration;
@@ -109,8 +108,6 @@ public class PolicyMonitor
 
   private final TelemetryUtils telemetryUtils;
 
-  private final ReportDataStore reportDataStore;
-
   private final ReportService reportService;
 
   @Inject
@@ -131,7 +128,6 @@ public class PolicyMonitor
       final ShutdownHandler shutdownHandler,
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
-      final ReportDataStore reportDataStore,
       final ReportService reportService)
   {
     this.work = work;
@@ -150,7 +146,6 @@ public class PolicyMonitor
     this.shutdownHandler = shutdownHandler;
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
-    this.reportDataStore = reportDataStore;
     this.reportService = reportService;
     log.debug("Created a new PolicyMonitor for tenant {}", TenantThreadLocal.getTenant());
   }
@@ -439,7 +434,7 @@ public class PolicyMonitor
   private boolean hasThirdPartyScanContent(String appId, String scanId) {
     try {
       ApplicationReport applicationReport = reportService.getReport(appId, scanId);
-      return reportDataStore.getEntry(applicationReport, THIRD_PARTY_BOM_JSON_FILENAME) != null;
+      return applicationReport.getEntry(THIRD_PARTY_BOM_JSON_FILENAME) != null;
     }
     catch (IOException e) {
       log.debug("Error fetching report data for app id {} scan id {}", appId, scanId);

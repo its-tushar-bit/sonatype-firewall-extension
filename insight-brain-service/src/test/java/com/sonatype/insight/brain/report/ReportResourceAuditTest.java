@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.report.ReportResource.BROWSE_PATH;
 import static com.sonatype.insight.brain.report.ReportResource.PRINT_PATH;
+import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReportResourceAuditTest
@@ -97,7 +98,7 @@ public class ReportResourceAuditTest
   public void testBrowseReport_Json() throws Exception {
     createReportFile(app.getId(), SCAN_ID);
 
-    restRequest(app.getPublicId(), SCAN_ID).path(BROWSE_PATH, ReportDataStore.DATA_JSON_FILENAME).get();
+    restRequest(app.getPublicId(), SCAN_ID).path(BROWSE_PATH, DATA_JSON_FILENAME).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT, null);
     assertApplicationData(auditDTO, app);
@@ -116,8 +117,7 @@ public class ReportResourceAuditTest
 
   @Test
   public void testBrowseReport_Unauthorized() throws Exception {
-    restRequest(app.getPublicId(), SCAN_ID).with(unauthorizedUser())
-        .path(BROWSE_PATH, ReportDataStore.DATA_JSON_FILENAME).get();
+    restRequest(app.getPublicId(), SCAN_ID).with(unauthorizedUser()).path(BROWSE_PATH, DATA_JSON_FILENAME).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT, "unauthorized");
     assertApplicationData(auditDTO, app);

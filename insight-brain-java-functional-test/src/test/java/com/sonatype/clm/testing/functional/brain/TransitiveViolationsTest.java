@@ -50,8 +50,6 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.report.FileReportDataStore;
-import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.ReportTestUtils;
@@ -76,6 +74,7 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
+import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TransitiveViolationsTest
@@ -129,8 +128,7 @@ public class TransitiveViolationsTest
         testCLMServer.getCLMServer().getInstance(InsightWork.class), policyViolations);
     ApplicationReport applicationReport = testCLMServer.getCLMServer().getInstance(ReportService.class)
         .getReport(application.getId(), policyEvaluation.getScanId());
-    ReportEntry reportEntry = testCLMServer.getCLMServer().getInstance(FileReportDataStore.class)
-        .getEntry(applicationReport, ReportDataStore.BOM_JSON_FILENAME);
+    ReportEntry reportEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
     components = lookup(ComponentLoaderFactory.class).createComponentLoader(application)
         .getAll(null, null, reportEntry.buf, null);
     component = components.stream().filter(c -> c.getHash().equals("hash1")).findFirst().orElse(null);

@@ -50,6 +50,7 @@ import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.WITH_REPORTS;
+import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -90,15 +91,15 @@ public class ReportPurgerTest
       Files.createDirectories(reportDir);
       Files.write(reportDir.resolve("report.zip"), Collections.singletonList("report.zip"));
       Files.write(reportDir.resolve("report.pdf"), Collections.singletonList("report.pdf"));
-      reportDir = reportDir.resolve(ReportDataStore.CACHE_DIRECTORY_NAME);
+      reportDir = reportDir.resolve(FileReportEntity.CACHE_DIRECTORY_NAME);
       Files.createDirectories(reportDir);
       for (String filename : new String[]{
-          "index.html", "bom.json", ReportDataStore.DATA_JSON_FILENAME, "licenses.json",
+          "index.html", "bom.json", DATA_JSON_FILENAME, "licenses.json",
           "licensethreats.json", "partialmatched.json", "policyalerts.json", "policythreats.json", "security.json",
           "summary.json"
       }) {
         Files.write(reportDir.resolve(filename),
-            Collections.singletonList(ReportDataStore.CACHE_DIRECTORY_NAME + "/" + filename));
+            Collections.singletonList(FileReportEntity.CACHE_DIRECTORY_NAME + "/" + filename));
       }
     }
     catch (IOException e) {
@@ -294,16 +295,16 @@ public class ReportPurgerTest
     assertThat(trashDir.list()).containsExactly(trashFile.getName());
     try (FileSystem zipFileSystem = FileSystems.newFileSystem(trashFile.toPath(), (ClassLoader) null)) {
       String[] expectedZipEntries = {
-          "report.zip", ReportDataStore.CACHE_DIRECTORY_NAME + "/index.html",
-          ReportDataStore.CACHE_DIRECTORY_NAME + "/bom.json",
-          ReportDataStore.CACHE_DIRECTORY_NAME + "/" + ReportDataStore.DATA_JSON_FILENAME,
-          ReportDataStore.CACHE_DIRECTORY_NAME + "/licenses.json",
-          ReportDataStore.CACHE_DIRECTORY_NAME + "/licensethreats.json",
-          ReportDataStore.CACHE_DIRECTORY_NAME + "/partialmatched.json",
-          ReportDataStore.CACHE_DIRECTORY_NAME + "/policyalerts.json",
-          ReportDataStore.CACHE_DIRECTORY_NAME + "/policythreats.json",
-          ReportDataStore.CACHE_DIRECTORY_NAME + "/security.json",
-          ReportDataStore.CACHE_DIRECTORY_NAME + "/summary.json"
+          "report.zip", FileReportEntity.CACHE_DIRECTORY_NAME + "/index.html",
+          FileReportEntity.CACHE_DIRECTORY_NAME + "/bom.json",
+          FileReportEntity.CACHE_DIRECTORY_NAME + "/" + DATA_JSON_FILENAME,
+          FileReportEntity.CACHE_DIRECTORY_NAME + "/licenses.json",
+          FileReportEntity.CACHE_DIRECTORY_NAME + "/licensethreats.json",
+          FileReportEntity.CACHE_DIRECTORY_NAME + "/partialmatched.json",
+          FileReportEntity.CACHE_DIRECTORY_NAME + "/policyalerts.json",
+          FileReportEntity.CACHE_DIRECTORY_NAME + "/policythreats.json",
+          FileReportEntity.CACHE_DIRECTORY_NAME + "/security.json",
+          FileReportEntity.CACHE_DIRECTORY_NAME + "/summary.json"
       };
       for (String zipEntry : expectedZipEntries) {
         Path zipEntryPath = zipFileSystem.getPath(app.getId(), reportId, zipEntry);

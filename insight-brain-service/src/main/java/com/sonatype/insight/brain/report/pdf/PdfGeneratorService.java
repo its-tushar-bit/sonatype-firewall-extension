@@ -187,7 +187,7 @@ public class PdfGeneratorService
       Application app, String scanId, PdfData pdfData,
       boolean overwrite, Context productContext) throws IOException
   {
-    ReportPdf reportPdf = PdfGenerator.getPdfFile(insightWork, app.getId(), scanId);
+    ReportPdf reportPdf = PdfGenerator.getPdfFile(reportService, app.getId(), scanId);
 
     if (!overwrite) {
       try (ClusterLock clusterLock = clusterLockManager.createForPdfGeneration(app, scanId)) {

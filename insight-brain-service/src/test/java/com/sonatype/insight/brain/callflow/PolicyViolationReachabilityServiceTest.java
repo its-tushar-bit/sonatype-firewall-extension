@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.report.FileReportEntity;
 import com.sonatype.insight.brain.report.ReportEntry;
-import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -38,6 +37,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationReachabilityServiceTest
@@ -55,9 +55,6 @@ public class PolicyViolationReachabilityServiceTest
   @Inject
   private InsightWork insightWork;
 
-  @Inject
-  private ReportDataStore reportDataStore;
-
   private static final String ReachableVulnerabilityCVE = "CVE-2020-13933";
 
   private static final String NonReachableVulnerabilityCVE = "CVE-2020-13935";
@@ -74,19 +71,19 @@ public class PolicyViolationReachabilityServiceTest
 
     assertThat(policyViolation.getReachabilityStatus()).isNull();
 
-    FileReportEntity reportFile = new FileReportEntity(insightWork.getReportFile(application.getId(), scanId));
+    FileReportEntity reportZip = new FileReportEntity(insightWork.getReportFile(application.getId(), scanId));
     Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers =
         getReachableVulnerabilitiesByPurlIdentifiers();
 
     policyViolationReachabilityService.updateReachabilityStatusForPolicyViolations(application.getId(), scanId,
-        reachableVulnerabilitiesByPurlIdentifiers, reportFile);
+        reachableVulnerabilitiesByPurlIdentifiers, reportZip);
 
     List<PolicyViolation> policyViolations =
         policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
     assertThat(policyViolations).hasSize(1);
     assertThat(policyViolations.get(0).getReachabilityStatus()).isEqualTo(ReachabilityStatus.REACHABLE);
 
-    ReportEntry reportEntry = reportDataStore.getEntry(reportFile, ReportDataStore.POLICY_THREATS);
+    ReportEntry reportEntry = reportZip.getEntry(POLICY_THREATS);
     PolicyThreats policyThreats = JsonUtils.parse(reportEntry.buf, PolicyThreats.class);
     assertThat(policyThreats.aaData.get(0).activeViolations.get(0).reachabilityStatus).isEqualTo(
         ReachabilityStatus.REACHABLE);
@@ -114,12 +111,12 @@ public class PolicyViolationReachabilityServiceTest
     assertThat(policyViolation.getReachabilityStatus()).isNull();
     assertThat(waivedPolicyViolation.getReachabilityStatus()).isNull();
 
-    FileReportEntity reportFile = new FileReportEntity(insightWork.getReportFile(application.getId(), scanId));
+    FileReportEntity reportZip = new FileReportEntity(insightWork.getReportFile(application.getId(), scanId));
     Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers =
         getReachableVulnerabilitiesByPurlIdentifiers();
 
     policyViolationReachabilityService.updateReachabilityStatusForPolicyViolations(application.getId(), scanId,
-        reachableVulnerabilitiesByPurlIdentifiers, reportFile);
+        reachableVulnerabilitiesByPurlIdentifiers, reportZip);
 
     List<PolicyViolation> policyViolations =
         policyViolationDAO.getUnfixedByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
@@ -128,7 +125,7 @@ public class PolicyViolationReachabilityServiceTest
     assertThat(policyViolations.get(0).isWaived()).isTrue();
     assertThat(policyViolations.get(1).getReachabilityStatus()).isEqualTo(ReachabilityStatus.REACHABLE);
 
-    ReportEntry reportEntry = reportDataStore.getEntry(reportFile, ReportDataStore.POLICY_THREATS);
+    ReportEntry reportEntry = reportZip.getEntry(POLICY_THREATS);
     PolicyThreats policyThreats = JsonUtils.parse(reportEntry.buf, PolicyThreats.class);
     assertThat(policyThreats.aaData.get(0).activeViolations.get(0).reachabilityStatus).isEqualTo(
         ReachabilityStatus.REACHABLE);

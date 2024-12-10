@@ -33,7 +33,6 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.ApplicationReport;
@@ -45,6 +44,9 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
 
 /**
  * @since 1.13.0
@@ -68,8 +70,6 @@ public class ApiSearchServiceV2
 
   private final ComponentLoaderFactory componentLoaderFactory;
 
-  private ReportDataStore reportDataStore;
-
   @Inject
   public ApiSearchServiceV2(
       final BaseUrl baseUrl,
@@ -78,8 +78,7 @@ public class ApiSearchServiceV2
       final ApplicationComponentDAO applicationComponentDAO,
       final PolicyViolationDAO policyViolationDAO,
       final ReportService reportService,
-      final ComponentLoaderFactory componentLoaderFactory,
-      final ReportDataStore reportDataStore)
+      final ComponentLoaderFactory componentLoaderFactory)
   {
     this.baseUrl = baseUrl;
     this.applicationDAO = applicationDAO;
@@ -88,7 +87,6 @@ public class ApiSearchServiceV2
     this.policyViolationDAO = policyViolationDAO;
     this.reportService = reportService;
     this.componentLoaderFactory = componentLoaderFactory;
-    this.reportDataStore = reportDataStore;
   }
 
   public ApiSearchResultsDTOV2 searchComponent(
@@ -205,9 +203,8 @@ public class ApiSearchServiceV2
 
     try {
       ApplicationReport applicationReport = reportService.getReport(app.getId(), eval.getScanId());
-      final ReportEntry bomReportEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.BOM_JSON_FILENAME);
-      final ReportEntry dependenciesReportEntry =
-          reportDataStore.getEntry(applicationReport, ReportDataStore.DEPENDENCIES_JSON_FILENAME);
+      final ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
+      final ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON_FILENAME);
 
       if (bomReportEntry != null && dependenciesReportEntry != null) {
         List<Component> components =

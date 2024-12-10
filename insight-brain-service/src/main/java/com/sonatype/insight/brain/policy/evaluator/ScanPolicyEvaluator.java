@@ -77,7 +77,6 @@ import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLog
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.ApplicationReport;
@@ -89,6 +88,7 @@ import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverTelemetry.AutoPolicy
 import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverTelemetryMetrics;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.brain.utils.JacksonNodeUtils;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEventService;
 import com.sonatype.insight.brain.webhook.PolicyAlertEventService;
@@ -108,6 +108,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -189,8 +190,6 @@ public class ScanPolicyEvaluator
 
   private final PathForwardInspector pathForwardInspector;
 
-  private final ReportDataStore reportDataStore;
-
   @Inject
   public ScanPolicyEvaluator(
       final InsightWork insightWork,
@@ -224,8 +223,7 @@ public class ScanPolicyEvaluator
       final ReportComponentService reportComponentService,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final AutoPolicyWaiverTelemetryMetrics autoPolicyWaiverTelemetryMetrics,
-      final PathForwardInspector pathForwardInspector,
-      final ReportDataStore reportDataStore)
+      final PathForwardInspector pathForwardInspector)
   {
     this.work = insightWork;
     this.reportService = reportService;
@@ -256,7 +254,6 @@ public class ScanPolicyEvaluator
     this.featuresService = featuresService;
     this.componentInfoService = componentInfoService;
     this.reportComponentService = reportComponentService;
-    this.reportDataStore = reportDataStore;
     componentInfoService.setToolName("ci");
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.autoPolicyWaiverTelemetryMetrics = autoPolicyWaiverTelemetryMetrics;
@@ -391,11 +388,11 @@ public class ScanPolicyEvaluator
     List<PolicyAlert> alerts = createPolicyAlerts(scanPolicyEvaluatorResults.evaluation.getApplicationId(),
         scanPolicyEvaluatorResults.evaluation.getScanId(), stage.getStageTypeId(), forMonitoring,
         components, scanPolicyEvaluatorResults.activeViolations);
-    reportDataStore.putEntry(applicationReport, POLICY_ALERTS_FILENAME, JsonUtils.generate(JsonUtils.aaData(alerts)));
+    applicationReport.putEntry(POLICY_ALERTS_FILENAME, JsonUtils.generate(JsonUtils.aaData(alerts)));
     PolicyThreats policyThreats = PolicyThreatsAdapter.createPolicyThreats(scanPolicyEvaluatorResults.allViolations,
         stage.getStageTypeId(),
         policyIdPolicyOwnerMap);
-    reportDataStore.putEntry(applicationReport, POLICY_THREATS_FILENAME, JsonUtils.generate(policyThreats));
+    applicationReport.putEntry(POLICY_THREATS_FILENAME, JsonUtils.generate(policyThreats));
 
     updateDataJson(applicationReport, policyThreats);
   }
@@ -418,13 +415,12 @@ public class ScanPolicyEvaluator
       }
     }
 
-    ObjectNode data =
-        JsonUtils.parse(reportDataStore.getEntry(applicationReport, ReportDataStore.DATA_JSON_FILENAME).buf);
-    reportDataStore.fill(data.putArray("policyCounts"), policyCounts);
+    ObjectNode data = JsonUtils.parse(applicationReport.getEntry(DATA_JSON_FILENAME).buf);
+    JacksonNodeUtils.fill(data.putArray("policyCounts"), policyCounts);
     data.put("policyComponentCount", policyComponentCount);
     data.put("grandfatheredPolicyViolationCount", legacyViolationCount);
     data.put("legacyViolationCount", legacyViolationCount);
-    reportDataStore.putEntry(applicationReport, ReportDataStore.DATA_JSON_FILENAME, JsonUtils.generate(data));
+    applicationReport.putEntry(DATA_JSON_FILENAME, JsonUtils.generate(data));
   }
 
   /**
@@ -460,7 +456,7 @@ public class ScanPolicyEvaluator
       PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
           forMonitoring, currentUser.getUsernameOrSystem(), scanTriggerType, clientScanType);
       policyEvaluation.setCommitHash(
-          extractCommitHash(reportDataStore.getEntry(applicationReport, ReportDataStore.DATA_JSON_FILENAME)));
+          extractCommitHash(applicationReport.getEntry(DATA_JSON_FILENAME)));
       PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx,
           appId, stage.getStageTypeId());
       boolean isForLatestScan = true;
@@ -1109,9 +1105,9 @@ public class ScanPolicyEvaluator
 
   private int getTotalComponentCount(PolicyEvaluation policyEvaluation) {
     try {
-      ApplicationReport reportFile =
+      ApplicationReport applicationReport =
           reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
-      ReportEntry summaryEntry = reportDataStore.getEntry(reportFile, ReportDataStore.SUMMARY_JSON_FILENAME);
+      ReportEntry summaryEntry = applicationReport.getEntry(ApplicationReport.SUMMARY_JSON_FILENAME);
       if (summaryEntry != null) {
         JsonNode content = JsonUtils.parse(summaryEntry.buf);
         return content.get("totalArtifactCount").asInt();

@@ -11,21 +11,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Interface for report implementations to provide different ways to access the report data
+ * Interface for report implementations to access the report data
  */
 public interface ReportEntity
 {
   boolean exists();
 
-  void deleteIfExists() throws IOException;
-
-  boolean canCreate();
-
   OutputStream getOutputStream() throws IOException;
-
-  String getLocation();
-
-  long length();
 
   InputStream getInputStream() throws IOException;
 }

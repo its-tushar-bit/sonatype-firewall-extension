@@ -72,8 +72,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.TestProductLicenseRule;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.report.FileReportDataStore;
-import com.sonatype.insight.brain.report.ReportDataStore;
+import com.sonatype.insight.brain.report.FileReportEntity;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
@@ -119,6 +118,11 @@ import org.junit.rules.TestName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -529,17 +533,16 @@ public abstract class AbstractBaseIntegrationTest
           .getReportDir(evaluation.getApplicationId(), evaluation.getScanId()).toPath();
       Files.createDirectories(reportDir);
       Files.write(reportDir.resolve("report.zip"), Collections.singletonList("report.zip"));
-      File reportFile = reportDir.resolve("report.zip").toFile();
-      try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(reportFile.toPath()))) {
+      var reportZip = new FileReportEntity(reportDir.resolve("report.zip").toFile());
+      try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(reportZip.getFile().toPath()))) {
         zos.putNextEntry(new ZipEntry("index.html"));
       }
       String[] filenames = {
-          ReportDataStore.BOM_JSON_FILENAME, ReportDataStore.SECURITY_JSON_FILENAME,
-          ReportDataStore.LICENSES_JSON_FILENAME, ReportDataStore.DATA_JSON_FILENAME,
-          ReportDataStore.DEPENDENCIES_JSON_FILENAME
+          BOM_JSON_FILENAME, SECURITY_JSON_FILENAME, LICENSES_JSON_FILENAME, DATA_JSON_FILENAME,
+          DEPENDENCIES_JSON_FILENAME
       };
       for (String filename : filenames) {
-        File file = FileReportDataStore.getCacheFile(reportFile, filename);
+        File file = reportZip.getCacheFile(filename);
         FileUtils.copyURLToFile(getClass().getResource("/" + classSimpleName + "/report/" + filename), file);
       }
     }

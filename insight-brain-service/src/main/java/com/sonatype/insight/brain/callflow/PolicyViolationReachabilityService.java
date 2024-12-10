@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreatsAdapter;
-import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -35,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
+import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS;
 
 @Named
 public class PolicyViolationReachabilityService
@@ -45,17 +45,13 @@ public class PolicyViolationReachabilityService
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
-  private final ReportDataStore reportDataStore;
-
   @Inject
   public PolicyViolationReachabilityService(
       PolicyViolationDAO policyViolationDAO,
-      PolicyEvaluationDAO policyEvaluationDAO,
-      ReportDataStore reportDataStore)
+      PolicyEvaluationDAO policyEvaluationDAO)
   {
     this.policyViolationDAO = policyViolationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
-    this.reportDataStore = reportDataStore;
   }
 
   public void updateReachabilityStatusForPolicyViolations(
@@ -80,7 +76,7 @@ public class PolicyViolationReachabilityService
     updateMavenSecurityViolationsReachableStatus(policyViolations, reachableVulnerabilitiesByPurlIdentifiers);
 
     PolicyThreats policyThreats = PolicyThreatsAdapter.createPolicyThreats(policyViolations, null, null);
-    reportDataStore.putEntry(applicationReport, ReportDataStore.POLICY_THREATS, JsonUtils.generate(policyThreats));
+    applicationReport.putEntry(POLICY_THREATS, JsonUtils.generate(policyThreats));
 
     logger.info("Finished updating policy violations with reachability data for applicationId: {}, reportId: {}",
         applicationId, reportId);

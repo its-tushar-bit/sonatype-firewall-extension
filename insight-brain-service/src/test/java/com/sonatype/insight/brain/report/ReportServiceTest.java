@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,12 +30,20 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
+import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -49,6 +58,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -58,6 +68,7 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyBillOfMaterialsRowDTO;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyLicenseRowDTO;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -71,7 +82,10 @@ import com.sonatype.insight.scan.model.ItemContentType;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.google.inject.Binder;
 import de.schlichtherle.truezip.file.TFile;
 import org.apache.commons.io.FileUtils;
@@ -83,13 +97,22 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
+import static com.sonatype.insight.brain.model.license.LicenseOverrideStatus.OVERRIDDEN;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
+import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.SUMMARY_JSON_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -108,6 +131,10 @@ public class ReportServiceTest
   private Application app;
 
   private final String scanId = "ReportServiceTestScanId";
+
+  private Set<Integer> depths(Integer... depths) {
+    return Sets.newHashSet(depths);
+  }
 
   @Inject
   private Configuration configuration;
@@ -161,6 +188,36 @@ public class ReportServiceTest
 
   private MockReportDownloader mockReportDownloader;
 
+  @Inject
+  private MultiLicenseDAO multiLicenseDAO;
+
+  @Inject
+  private LicenseDAO licenseDao;
+
+  @Inject
+  private ThirdPartyComponentDAO thirdPartyComponentDAO;
+
+  @Inject
+  private LicenseThreatGroupDAO licenseThreatGroupDAO;
+
+  @Inject
+  private HashComponentIdentifierDAO hashComponentIdentifierDAO;
+
+  @Inject
+  private LicenseOverrideDAO licenseOverrideDAO;
+
+  @Inject
+  private SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO;
+
+  @Inject
+  private InnerSourceComponentDAO innerSourceComponentDAO;
+
+  @Inject
+  private ProprietaryConfigService proprietaryConfigService;
+
+  @Inject
+  private MultiLicenseDAO multiLicenseDaoFromFactory;
+
   @Before
   public void before() {
     thirdPartyDataServiceSpy = spy(thirdPartyDataService);
@@ -182,9 +239,11 @@ public class ReportServiceTest
   }
 
   private ReportService createReportService() {
-    return new ReportService(insightWork, policyEvaluationDAO, configuration,
-        applicationDAO, organizationDAO, thirdPartyDataServiceSpy, telemetrySender, telemetryUtils, repositoryMatcher,
-        applicationRiskService, productLicense, sbomMetadataUtils, reportDataStoreSpy);
+    return new ReportService(policyEvaluationDAO, configuration, applicationDAO, organizationDAO,
+        thirdPartyDataServiceSpy, telemetrySender, telemetryUtils, repositoryMatcher, applicationRiskService,
+        productLicense, sbomMetadataUtils, licenseDao, componentLoaderFactory, thirdPartyComponentDAO,
+        licenseThreatGroupDAO, hashComponentIdentifierDAO, licenseOverrideDAO, securityVulnerabilityOverrideDAO,
+        multiLicenseDAO, innerSourceComponentDAO, proprietaryConfigService, reportDataStoreSpy);
   }
 
   @Test
@@ -220,15 +279,14 @@ public class ReportServiceTest
     mockReportDownloader.mockDownloadReport(scanId, "/ReportServiceTest/report-with-third-party-data");
     ReportService reportService = createReportService();
 
-    FileReportEntity reportFile = ((FileReportEntity) reportService.fetchReport(app, scanId));
+    FileReportEntity reportZip = ((FileReportEntity) reportService.fetchReport(app, scanId));
 
     // Verify bom.json
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(app);
-    ReportEntry licenseReportEntry = reportDataStore.getEntry(reportFile, ReportDataStore.LICENSES_JSON_FILENAME);
-    ReportEntry securityReportEntry = reportDataStore.getEntry(reportFile, ReportDataStore.SECURITY_JSON_FILENAME);
-    ReportEntry bomReportEntry = reportDataStore.getEntry(reportFile, ReportDataStore.BOM_JSON_FILENAME);
-    ReportEntry dependenciesReportEntry =
-        reportDataStore.getEntry(reportFile, ReportDataStore.DEPENDENCIES_JSON_FILENAME);
+    ReportEntry licenseReportEntry = reportZip.getEntry(LICENSES_JSON_FILENAME);
+    ReportEntry securityReportEntry = reportZip.getEntry(SECURITY_JSON_FILENAME);
+    ReportEntry bomReportEntry = reportZip.getEntry(BOM_JSON_FILENAME);
+    ReportEntry dependenciesReportEntry = reportZip.getEntry(DEPENDENCIES_JSON_FILENAME);
     List<Component> components = componentLoader
         .getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
     assertThat(components).hasSize(3);
@@ -263,12 +321,12 @@ public class ReportServiceTest
     assertLicenses(components.get(2), Collections.singleton("GPL-2.0"), Collections.emptySet());
 
     // Verify summary.json
-    ReportEntry summaryReportEntry = reportDataStore.getEntry(reportFile, ReportDataStore.SUMMARY_JSON_FILENAME);
+    ReportEntry summaryReportEntry = reportZip.getEntry(SUMMARY_JSON_FILENAME);
     JsonNode summaryJsonNode = JsonUtils.parse(summaryReportEntry.buf);
     assertThat(summaryJsonNode.path("knownArtifactCount").asInt()).isEqualTo(3);
 
     // Verify data.json
-    ReportEntry dataReportEntry = reportDataStore.getEntry(reportFile, ReportDataStore.DATA_JSON_FILENAME);
+    ReportEntry dataReportEntry = reportZip.getEntry(DATA_JSON_FILENAME);
     JsonNode dataJsonNode = JsonUtils.parse(dataReportEntry.buf);
     assertThat(dataJsonNode.path("exactlyMatchedComponentCount").asInt()).isEqualTo(3);
     assertThat(dataJsonNode.path("knownArtifactCount").asInt()).isEqualTo(3);
@@ -592,14 +650,13 @@ public class ReportServiceTest
 
     ReportService reportService = createReportService();
 
-    FileReportEntity reportFile = ((FileReportEntity) reportService.fetchReport(app, scanId));
+    FileReportEntity reportZip = ((FileReportEntity) reportService.fetchReport(app, scanId));
 
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(app);
-    ReportEntry licenseReportEntry = reportDataStore.getEntry(reportFile, ReportDataStore.LICENSES_JSON_FILENAME);
-    ReportEntry securityReportEntry = reportDataStore.getEntry(reportFile, ReportDataStore.SECURITY_JSON_FILENAME);
-    ReportEntry bomReportEntry = reportDataStore.getEntry(reportFile, ReportDataStore.BOM_JSON_FILENAME);
-    ReportEntry dependenciesReportEntry =
-        reportDataStore.getEntry(reportFile, ReportDataStore.DEPENDENCIES_JSON_FILENAME);
+    ReportEntry licenseReportEntry = reportZip.getEntry(LICENSES_JSON_FILENAME);
+    ReportEntry securityReportEntry = reportZip.getEntry(SECURITY_JSON_FILENAME);
+    ReportEntry bomReportEntry = reportZip.getEntry(BOM_JSON_FILENAME);
+    ReportEntry dependenciesReportEntry = reportZip.getEntry(DEPENDENCIES_JSON_FILENAME);
     List<Component> components = componentLoader
         .getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
     assertThat(components).hasSize(9);
@@ -799,8 +856,10 @@ public class ReportServiceTest
         "application [%s] and scan ID [%s]", app.getPublicId(), scanId);
 
     createReportFile(app.getId(), scanId, zipReportDir("/ReportServiceTest/report"));
-
-    doReturn(null).when(reportDataStoreSpy).getEntry(any(), any());
+    ApplicationReport applicationReport = mock(ApplicationReport.class);
+    doReturn(true).when(applicationReport).exists();
+    doReturn(null).when(applicationReport).getEntry(any());
+    doReturn(applicationReport).when(reportDataStoreSpy).getApplicationReport(app.getId(), scanId);
 
     assertThatThrownBy(() ->
         reportService.getPolicyThreats(app.getPublicId(), scanId))
@@ -815,12 +874,15 @@ public class ReportServiceTest
     final PolicyThreats givenPolicyThreatsStoredForReport = createPolicyThreat();
 
     final ReportEntry givenReportEntryReturned =
-        new ReportEntry(ReportDataStore.POLICY_THREATS, 1L, (new ObjectMapper())
+        new ReportEntry(POLICY_THREATS, 1L, (new ObjectMapper())
             .writeValueAsBytes(givenPolicyThreatsStoredForReport));
 
     createReportFile(app.getId(), scanId, zipReportDir("/ReportServiceTest/report"));
 
-    doReturn(givenReportEntryReturned).when(reportDataStoreSpy).getEntry(any(), any());
+    ApplicationReport applicationReport = mock(ApplicationReport.class);
+    doReturn(true).when(applicationReport).exists();
+    doReturn(givenReportEntryReturned).when(applicationReport).getEntry(any());
+    doReturn(applicationReport).when(reportDataStoreSpy).getApplicationReport(any(), any());
 
     final PolicyThreats result = reportService
         .getPolicyThreats(app.getPublicId(), scanId);
@@ -909,5 +971,177 @@ public class ReportServiceTest
     component.componentIdentifier = new ComponentIdentifier("maven", coordinate);
 
     return component;
+  }
+
+  @Test
+  public void testParseDependencyDepths_PreferNewStructure() throws Exception {
+    JsonNode dependenciesJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/dependencies.json"));
+    assertThat(dependenciesJson.path("gavDepths").isObject()).isTrue();
+
+    Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier =
+        ReportService.parseDependencyDepths(dependenciesJson);
+    assertThat(depthsByIdentifier)
+        .containsEntry(ComponentIdentifier.createMavenCoordinates("junit", "junit", "4.9", "", "jar"), depths(1));
+    assertThat(depthsByIdentifier).containsEntry(
+        ComponentIdentifier.createMavenCoordinates("org.slf4j", "slf4j-api", "1.6", "", "jar"), depths(1, 2, 3));
+    assertThat(depthsByIdentifier).hasSize(2);
+  }
+
+  @Test
+  public void testParseDependencyDepths_FallbackToOldStructure() throws Exception {
+    JsonNode dependenciesJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/dependencies.json"));
+    ((ObjectNode) dependenciesJson).remove("componentDepths");
+
+    Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier =
+        ReportService.parseDependencyDepths(dependenciesJson);
+    assertThat(depthsByIdentifier).containsEntry(ComponentIdentifier.createMavenCoordinates("junit", "junit", "4.9"),
+        depths(1));
+    assertThat(depthsByIdentifier)
+        .containsEntry(ComponentIdentifier.createMavenCoordinates("org.slf4j", "slf4j-api", "1.6"), depths(1, 2, 3));
+    assertThat(depthsByIdentifier).hasSize(2);
+  }
+
+  @Test
+  public void testHasAnyLicenseOverrides() {
+    String applicationId = tempEntity.newApplicationWithParent().getId();
+
+    boolean hasAnyLicenseOverrides = ReportService.hasAnyLicenseOverrides(licenseOverrideDAO, applicationId);
+
+    assertThat(hasAnyLicenseOverrides).isFalse();
+
+    ComponentIdentifier anameHawk111 = ComponentIdentifier.createAnameCoordinates("hawk", "", "1.1.1");
+    tempEntity.newLicenseOverride(applicationId, anameHawk111, OVERRIDDEN, "Beerware");
+    hasAnyLicenseOverrides = ReportService.hasAnyLicenseOverrides(licenseOverrideDAO, applicationId);
+
+    assertThat(hasAnyLicenseOverrides).isTrue();
+  }
+
+  @Test
+  public void testAugmentModified_NoLicenseOverrides() throws Exception {
+    JsonNode bomJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/bom.json"));
+
+    JsonNode bomJsonAugmented = bomJson.deepCopy();
+    ReportService.augmentModified(new HashSet<>(), bomJsonAugmented);
+
+    assertThat(bomJson).isEqualTo(bomJsonAugmented);
+    assertThat(bomJsonAugmented.get("aaData").get(0).has("modified")).isFalse();
+    assertThat(bomJsonAugmented.get("aaData").get(1).has("modified")).isFalse();
+  }
+
+  @Test
+  public void testAugmentModified_AppLicenseOverride() throws Exception {
+    ComponentIdentifier anameHawk111 = ComponentIdentifier.createAnameCoordinates("hawk", "", "1.1.1");
+    tempEntity.newLicenseOverride(tempEntity.newApplicationWithParent().getId(), anameHawk111, OVERRIDDEN, "Beerware");
+    JsonNode bomJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/bom.json"));
+
+    JsonNode bomJsonAugmented = bomJson.deepCopy();
+    ReportService.augmentModified(Sets.newHashSet(anameHawk111), bomJsonAugmented);
+
+    assertThat(bomJson).isNotEqualTo(bomJsonAugmented);
+    assertThat(bomJsonAugmented.get("aaData").get(0).has("modified")).isTrue();
+    assertThat(bomJsonAugmented.get("aaData").get(1).has("modified")).isFalse();
+  }
+
+  @Test
+  public void testAugmentModified_OrgLicenseOverrides() throws Exception {
+    ComponentIdentifier npmHawk111 = ComponentIdentifier.createNpmCoordinates("hawk", "1.1.1");
+    tempEntity.newLicenseOverride(tempEntity.newApplicationWithParent().getParentOwnerId(), npmHawk111,
+        OVERRIDDEN, "Beerware");
+    JsonNode bomJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/bom.json"));
+
+    JsonNode bomJsonAugmented = bomJson.deepCopy();
+    ReportService.augmentModified(Sets.newHashSet(npmHawk111), bomJsonAugmented);
+
+    assertThat(bomJson).isNotEqualTo(bomJsonAugmented);
+    assertThat(bomJsonAugmented.get("aaData").get(0).has("modified")).isFalse();
+    assertThat(bomJsonAugmented.get("aaData").get(1).has("modified")).isTrue();
+  }
+
+  @Test
+  public void testHideObservedLicenses_ObservedLicenseEnabled_NonMaven() throws Exception {
+    JsonNode bomJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/bom.json"));
+    License notSupportedLicense = licenseDao.getById(License.NOT_SUPPORTED_ID);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("package1", "version1");
+    ObjectNode bomObjectAugmented = (ObjectNode) bomJson.get("aaData").get(1);
+    ReportService.hideObservedLicenses(componentIdentifier, bomObjectAugmented, true, notSupportedLicense);
+
+    ObjectMapper mapper = new ObjectMapper();
+    ArrayNode observedLicensesArray = mapper.createArrayNode();
+    observedLicensesArray.add("EPL-1.0");
+
+    assertThat(bomObjectAugmented.get("observedLicenses")).isEqualTo(observedLicensesArray);
+    assertThat(bomObjectAugmented.get("hiddenObservedLicenses").asText()).isEqualTo("false");
+  }
+
+  @Test
+  public void testHideObservedLicenses_ObservedLicenseDisabled_NonMaven() throws Exception {
+    JsonNode bomJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/bom.json"));
+    License notSupportedLicense = licenseDao.getById(License.NOT_SUPPORTED_ID);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("package1", "version1");
+    ObjectNode bomObjectAugmented = (ObjectNode) bomJson.get("aaData").get(1);
+    ReportService.hideObservedLicenses(componentIdentifier, bomObjectAugmented, false, notSupportedLicense);
+
+    ObjectMapper mapper = new ObjectMapper();
+    ArrayNode arrayNode = mapper.createArrayNode();
+
+    assertThat(bomObjectAugmented.get("observedLicenses"))
+        .isEqualTo(arrayNode.add(licenseDao.getById(License.NOT_SUPPORTED_ID).getShortDisplayName()));
+    assertThat(bomObjectAugmented.get("hiddenObservedLicenses").asText()).isEqualTo("true");
+  }
+
+  @Test
+  public void testHideObservedLicenses_ObservedLicenseDisabled_Maven() throws Exception {
+    JsonNode bomJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/dependencies.json"));
+    License notSupportedLicense = licenseDao.getById(License.NOT_SUPPORTED_ID);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier
+        .createMavenCoordinates("group1", "package1", "version1");
+    ObjectNode bomObjectAugmented = (ObjectNode) bomJson.get("componentDepths").get(0);
+    ReportService.hideObservedLicenses(componentIdentifier, bomObjectAugmented, false, notSupportedLicense);
+
+    assertThat(bomObjectAugmented.get("hiddenObservedLicenses").asText()).isEqualTo("false");
+  }
+
+  @Test
+  public void testAugmentDependenciesGraph_WithoutDependencyGraphNode() throws Exception {
+    JsonNode dependenciesJson =
+        new ObjectMapper().readTree(getClass().getResource("/ReportTest/dependencies.json"));
+
+    JsonNode dependenciesJsonAugmented = dependenciesJson.deepCopy();
+    ReportService.augmentDependenciesGraph(dependenciesJsonAugmented);
+
+    assertThat(dependenciesJson).isEqualTo(dependenciesJsonAugmented);
+  }
+
+  @Test
+  public void testAugmentDependenciesGraph_WithDependencyGraphNode() throws Exception {
+    JsonNode dependenciesJson =
+        new ObjectMapper().readTree(getClass().getResource("/ReportTest/dependenciesWithGraph.json"));
+    JsonNode dependenciesJsonAugmented = dependenciesJson.deepCopy();
+
+    ReportService.augmentDependenciesGraph(dependenciesJsonAugmented);
+
+    assertThat(dependenciesJson).isNotEqualTo(dependenciesJsonAugmented);
+    JsonNode dependencyGraphNode = dependenciesJsonAugmented.get("dependencyGraph");
+
+    int expectedNumDirectDependencies = 15;
+    assertThat(dependencyGraphNode.get(0).get("children")).hasSize(expectedNumDirectDependencies);
+    assertThat(dependencyGraphNode.get(0).has("directDependency")).isFalse();
+    for (int i = 0; i < expectedNumDirectDependencies; i++) {
+      assertThat(dependencyGraphNode.get(0).get("children").get(i).get("directDependency").asBoolean()).isTrue();
+    }
+
+    int expectedTotalDependencies = 29;
+    assertThat(dependencyGraphNode).hasSize(expectedTotalDependencies);
+    int numDirect = 0;
+    for (int i = 1; i < dependencyGraphNode.size(); i++) {
+      assertThat(dependencyGraphNode.get(i).has("directDependency")).isTrue();
+      if (dependencyGraphNode.get(i).get("directDependency").asBoolean()) {
+        numDirect++;
+      }
+    }
+    assertThat(numDirect).isEqualTo(expectedNumDirectDependencies);
   }
 }

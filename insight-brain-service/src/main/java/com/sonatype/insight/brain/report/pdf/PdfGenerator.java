@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.report.pdf;
 
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DateFormat;
@@ -26,15 +25,14 @@ import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.report.FileReportEntity;
 import com.sonatype.insight.brain.report.ReportPdf;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicense;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicenseThreat;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentPolicyViolation;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentSecurityIssue;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
-import com.sonatype.insight.brain.service.InsightWork;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -1147,8 +1145,8 @@ public class PdfGenerator
         .max(Integer::compareTo).orElse(0);
   }
 
-  public static ReportPdf getPdfFile(InsightWork insightWork, final String appId, final String scanId) {
-    return new FileReportEntity(new File(insightWork.getReportDir(appId, scanId), REPORT_FILE_NAME));
+  public static ReportPdf getPdfFile(final ReportService reportService, final String appId, final String scanId) {
+    return reportService.getPdfReport(appId, scanId);
   }
 
   /**

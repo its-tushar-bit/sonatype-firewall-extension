@@ -58,7 +58,6 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataSt
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.report.ApplicationReport;
-import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.sbom.export.SbomExportException;
 import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
@@ -110,6 +109,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.report.DependencyResolver.MATCH_STATE;
+import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxLicenseFromDbData;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxProperty;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxVulnerabilityFromDbData;
@@ -179,8 +182,6 @@ public class SbomResultsMerger
 
   private Bom filteredBom = null;
 
-  private final ReportDataStore reportDataStore;
-
   @Inject
   public SbomResultsMerger(
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
@@ -193,8 +194,7 @@ public class SbomResultsMerger
       final ApplicationDAO applicationDAO,
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
-      final InsightWork insightWork,
-      final ReportDataStore reportDataStore)
+      final InsightWork insightWork)
   {
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
@@ -207,7 +207,6 @@ public class SbomResultsMerger
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
     this.insightWork = insightWork;
-    this.reportDataStore = reportDataStore;
   }
 
   @VisibleForTesting
@@ -273,15 +272,12 @@ public class SbomResultsMerger
   private void initializeMerge(final ThirdPartySbomMetadata sbomMetadata, final ApplicationReport applicationReport)
       throws IOException
   {
-    bomJsonData =
-        JsonUtils.parse(
-            Objects.requireNonNull(reportDataStore.getEntry(applicationReport, ReportDataStore.BOM_JSON_FILENAME)).buf);
-    securityJsonData = JsonUtils.parse(Objects.requireNonNull(
-        reportDataStore.getEntry(applicationReport, ReportDataStore.SECURITY_JSON_FILENAME)).buf);
-    licensesJsonData = JsonUtils.parse(Objects.requireNonNull(
-        reportDataStore.getEntry(applicationReport, ReportDataStore.LICENSES_JSON_FILENAME)).buf);
-    final ReportEntry dependenciesReportEntry =
-        reportDataStore.getEntry(applicationReport, ReportDataStore.DEPENDENCIES_JSON_FILENAME);
+    bomJsonData = JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(BOM_JSON_FILENAME)).buf);
+    securityJsonData =
+        JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(SECURITY_JSON_FILENAME)).buf);
+    licensesJsonData =
+        JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(LICENSES_JSON_FILENAME)).buf);
+    final ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON_FILENAME);
     dependenciesJsonData =
         dependenciesReportEntry != null ? JsonUtils.parse(dependenciesReportEntry.buf) : null;
     sbomPostImportMetricsTelemetry = new SbomPostImportMetricsTelemetry();

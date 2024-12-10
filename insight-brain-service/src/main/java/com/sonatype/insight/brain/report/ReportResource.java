@@ -93,6 +93,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 
@@ -149,8 +150,6 @@ public class ReportResource
 
   private final ClusterLockManager clusterLockManager;
 
-  private final ReportDataStore reportDataStore;
-
   static {
     Set<Character> invalid = new HashSet<>(
         Arrays.asList('*', '\\', '/', '?', ':', '|', '"', '<', '>'));
@@ -175,8 +174,7 @@ public class ReportResource
       final ReleaseGraphService releaseGraphService,
       final VersionService versionService,
       final PdfGeneratorService pdfGeneratorService,
-      final ClusterLockManager clusterLockManager,
-      final ReportDataStore reportDataStore)
+      final ClusterLockManager clusterLockManager)
   {
     this.applicationDAO = applicationDAO;
     this.reportService = reportService;
@@ -191,7 +189,6 @@ public class ReportResource
     this.versionService = versionService;
     this.pdfGeneratorService = pdfGeneratorService;
     this.clusterLockManager = clusterLockManager;
-    this.reportDataStore = reportDataStore;
   }
 
   /**
@@ -262,7 +259,7 @@ public class ReportResource
     // the contents loaded from the file before serving up to the browser, the timestamp on the file won't
     // change, even when brain versions do, so index.html is always sent in response
     if (reportEntry.name.equals("index.html")) {
-      reportEntry = reportDataStore.appendCacheBustingParams(reportEntry, versionService.getVersion());
+      reportEntry = appendCacheBustingParams(reportEntry, versionService.getVersion());
     }
     else {
       final long ifModifiedSince = httpRequest.getDateHeader(HttpHeaders.IF_MODIFIED_SINCE);
@@ -293,6 +290,15 @@ public class ReportResource
       response.expires(new Date());
     }
     return response.build();
+  }
+
+  @VisibleForTesting
+  public static ReportEntry appendCacheBustingParams(ReportEntry reportEntry, String clmVersion) {
+    String originalIndexHtmlContent = new String(reportEntry.buf, StandardCharsets.UTF_8);
+    String augmentedIndexHtmlContent = originalIndexHtmlContent.replace("/brain.client.js",
+        "/brain.client.js?" + clmVersion).replace("/cip-loader.js", "/cip-loader.js?" + clmVersion);
+    return new ReportEntry(reportEntry.name, reportEntry.time,
+        augmentedIndexHtmlContent.getBytes(StandardCharsets.UTF_8));
   }
 
   private ReportEntry removeBomPathnames(ReportEntry reportEntry) {
@@ -389,7 +395,7 @@ public class ReportResource
     ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
     String filename = "report-" + scanId + ".zip";
 
-    Properties templateProps = reportDataStore.getTemplateProperties(applicationReport);
+    Properties templateProps = applicationReport.getTemplateProperties();
     String cipDetailsPath = templateProps.getProperty("cip.details.path", "");
     String cipListPath = templateProps.getProperty("cip.list.path", "");
     int dataVersion = Integer.parseInt(templateProps.getProperty("data.version", "0"));
@@ -398,8 +404,8 @@ public class ReportResource
     ReportPdf reportPdf = pdfGeneratorService.generateReport(app, scanId);
 
     ApiReportRawDataDTOV2 reportData = reportDataService.getDataNoAuth(appPublicId, scanId);
-    List<PolicyAlert> alerts = Arrays.asList(JsonUtils
-        .parse(reportDataStore.getEntry(applicationReport, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).buf,
+    List<PolicyAlert> alerts = Arrays.asList(
+        JsonUtils.parse(applicationReport.getEntry(ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).buf,
             PolicyAlert[].class));
 
     File updatedFile = Files.createTempFile("report", ".zip").toFile();
@@ -418,7 +424,7 @@ public class ReportResource
 
       // FIXME: This breaks the abstraction and needs cleaned up to not care about caching
       File[] cachedFiles =
-          FileReportDataStore.getCacheDir(((FileReportEntity) applicationReport).getFile()).listFiles();
+          FileReportEntity.getCacheDir(((FileReportEntity) applicationReport).getFile()).listFiles();
       if (cachedFiles != null) {
         for (File cachedFile : cachedFiles) {
           updater.add(dataPath + cachedFile.getName(), cachedFile);

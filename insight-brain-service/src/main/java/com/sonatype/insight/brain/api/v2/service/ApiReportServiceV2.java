@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
-import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.security.Authorize;
@@ -60,23 +59,19 @@ public class ApiReportServiceV2
 
   private final ReportService reportService;
 
-  private final ReportDataStore reportDataStore;
-
   @Inject
   public ApiReportServiceV2(
       PolicyEvaluationDAO policyEvaluationDAO,
       ApiApplicationService applicationService,
       ApplicationDAO applicationDAO,
       ScanPolicyEvaluator scanPolicyEvaluator,
-      ReportService reportService,
-      ReportDataStore reportDataStore)
+      ReportService reportService)
   {
     this.applicationDAO = applicationDAO;
     this.applicationService = applicationService;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.reportService = reportService;
-    this.reportDataStore = reportDataStore;
   }
 
   @Authorize(permission = Permission.READ)
@@ -172,8 +167,9 @@ public class ApiReportServiceV2
     try {
       ApplicationReport applicationReport =
           reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
-      PolicyThreats policyThreats = JsonUtils.parse(Objects.requireNonNull(reportDataStore.getEntry(applicationReport,
-          ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).buf, PolicyThreats.class);
+      PolicyThreats policyThreats = JsonUtils.parse(
+          Objects.requireNonNull(applicationReport.getEntry(ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).buf,
+          PolicyThreats.class);
       List<PolicyViolation> policyViolations =
           PolicyAlertUtil.getDummyPolicyViolationsFromPolicyThreatsForCounts(policyThreats);
 

@@ -47,7 +47,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyCondition
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyConstraint;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
-import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.ApplicationReport;
@@ -68,6 +67,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -92,8 +96,6 @@ public class ApiReportDataServiceV2
 
   private final ThirdPartyComponentDAO thirdPartyComponentDAO;
 
-  private final ReportDataStore reportDataStore;
-
   @Inject
   public ApiReportDataServiceV2(
       ApplicationDAO appDAO,
@@ -101,8 +103,7 @@ public class ApiReportDataServiceV2
       ApiLicenseDataAdapter licenseDataAdapter,
       ApiSecurityDataAdapter securityDataAdapter,
       ComponentLoaderFactory componentLoaderFactory,
-      ThirdPartyComponentDAO thirdPartyComponentDAO,
-      final ReportDataStore reportDataStore)
+      ThirdPartyComponentDAO thirdPartyComponentDAO)
   {
     this.appDAO = appDAO;
     this.reportService = reportService;
@@ -110,7 +111,6 @@ public class ApiReportDataServiceV2
     this.securityDataAdapter = securityDataAdapter;
     this.componentLoaderFactory = componentLoaderFactory;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
-    this.reportDataStore = reportDataStore;
   }
 
   @Authorize(permission = Permission.READ)
@@ -138,10 +138,9 @@ public class ApiReportDataServiceV2
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
 
-    ReportEntry bomEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.BOM_JSON_FILENAME);
-    ReportEntry countsEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.DATA_JSON_FILENAME);
-    ReportEntry policyThreatsEntry =
-        reportDataStore.getEntry(applicationReport, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
+    ReportEntry bomEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
+    ReportEntry countsEntry = applicationReport.getEntry(DATA_JSON_FILENAME);
+    ReportEntry policyThreatsEntry = applicationReport.getEntry(ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
 
     if (bomEntry == null || policyThreatsEntry == null || countsEntry == null) {
       throw new BadRequestException(
@@ -183,10 +182,9 @@ public class ApiReportDataServiceV2
     String appId = application.getId();
 
     ApplicationReport applicationReport = reportService.getReport(appId, scanId);
-    ReportEntry dependenciesEntry = reportDataStore.getEntry(applicationReport,
-        reportDataStore.toEntryName(ReportDataStore.DEPENDENCIES_JSON_FILENAME));
-    ReportEntry bomEntry =
-        reportDataStore.getEntry(applicationReport, reportDataStore.toEntryName(ReportDataStore.BOM_JSON_FILENAME));
+    ReportEntry dependenciesEntry =
+        applicationReport.getEntry(DEPENDENCIES_JSON_FILENAME);
+    ReportEntry bomEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
     if (dependenciesEntry != null && bomEntry != null) {
       JsonNode dependenciesNode = JsonUtils.parse(dependenciesEntry.buf);
       JsonNode bomNode = JsonUtils.parse(bomEntry.buf);
@@ -419,12 +417,11 @@ public class ApiReportDataServiceV2
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
 
-    ReportEntry bomEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.BOM_JSON_FILENAME);
-    ReportEntry securityEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.SECURITY_JSON_FILENAME);
-    ReportEntry licenseEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.LICENSES_JSON_FILENAME);
-    ReportEntry dataEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.DATA_JSON_FILENAME);
-    ReportEntry dependenciesReportEntry =
-        reportDataStore.getEntry(applicationReport, ReportDataStore.DEPENDENCIES_JSON_FILENAME);
+    ReportEntry bomEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
+    ReportEntry securityEntry = applicationReport.getEntry(SECURITY_JSON_FILENAME);
+    ReportEntry licenseEntry = applicationReport.getEntry(LICENSES_JSON_FILENAME);
+    ReportEntry dataEntry = applicationReport.getEntry(DATA_JSON_FILENAME);
+    ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON_FILENAME);
 
     if (bomEntry == null || securityEntry == null || licenseEntry == null || dataEntry == null ||
         dependenciesReportEntry == null) {

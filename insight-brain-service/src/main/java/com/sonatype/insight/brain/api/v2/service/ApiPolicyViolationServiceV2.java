@@ -69,7 +69,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
-import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.ApplicationReport;
@@ -88,6 +87,7 @@ import org.joda.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -118,8 +118,6 @@ public class ApiPolicyViolationServiceV2
 
   private final IdUtils idUtils;
 
-  private final ReportDataStore reportDataStore;
-
   @Inject
   public ApiPolicyViolationServiceV2(
       final ApplicationService applicationService,
@@ -131,8 +129,7 @@ public class ApiPolicyViolationServiceV2
       final ReportService reportService,
       final StageTypeService stageTypeService,
       final ComponentLoaderFactory componentLoaderFactory,
-      final IdUtils idUtils,
-      final ReportDataStore reportDataStore)
+      final IdUtils idUtils)
   {
     this.applicationService = applicationService;
     this.applicationComponentDAO = applicationComponentDAO;
@@ -144,7 +141,6 @@ public class ApiPolicyViolationServiceV2
     this.stageTypeService = stageTypeService;
     this.componentLoaderFactory = componentLoaderFactory;
     this.idUtils = idUtils;
-    this.reportDataStore = reportDataStore;
   }
 
   public ApiApplicationViolationListDTOV2 getPolicyViolations(
@@ -488,14 +484,13 @@ public class ApiPolicyViolationServiceV2
   private List<Component> getComponents(String applicationId, String scanId) {
     try {
       ApplicationReport applicationReport = reportService.getReport(applicationId, scanId);
-      ReportEntry reportEntry = reportDataStore.getEntry(applicationReport, ReportDataStore.BOM_JSON_FILENAME);
+      ReportEntry reportEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
       if (reportEntry != null) {
         return componentLoaderFactory.createComponentLoader(
                 idUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId))
             .getAll(null, null, reportEntry.buf, null);
       }
-      log.debug("{} not found for application id {} and scan id {}.", ReportDataStore.BOM_JSON_FILENAME, applicationId,
-          scanId);
+      log.debug("{} not found for application id {} and scan id {}.", BOM_JSON_FILENAME, applicationId, scanId);
     }
     catch (IOException | NotFoundException e) {
       log.debug(e.getMessage(), e);
@@ -606,8 +601,7 @@ public class ApiPolicyViolationServiceV2
   private List<PolicyViolation> getPolicyViolations(String applicationId, String stageTypeId, String scanId) {
     try {
       ApplicationReport applicationReport = reportService.getReport(applicationId, scanId);
-      ReportEntry reportEntry =
-          reportDataStore.getEntry(applicationReport, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
+      ReportEntry reportEntry = applicationReport.getEntry(ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
       if (reportEntry != null) {
         return JsonUtils.parse(reportEntry.buf, PolicyThreats.class).aaData.stream()
             .flatMap(component -> toPolicyViolations(applicationId, stageTypeId, component).stream())

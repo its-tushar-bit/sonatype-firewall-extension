@@ -18,6 +18,7 @@ describe('ViolationsTableTile', () => {
   beforeEach(function () {
     tableProps = {
       waivers: ['exampleWaiver'],
+      isAutoWaiverEnabled: true,
       violations: [
         {
           policyViolationId: 'policyViolationId',

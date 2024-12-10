@@ -8,7 +8,13 @@ import * as PropTypes from 'prop-types';
 import { flatten } from 'ramda';
 
 import ViolationExclamation from '../../react/ViolationExclamation';
-import { NxFontAwesomeIcon, NxTableCell, NxTableRow, NxThreatIndicator } from '@sonatype/react-shared-components';
+import {
+  NxFontAwesomeIcon,
+  NxSmallTag,
+  NxTableCell,
+  NxTableRow,
+  NxThreatIndicator,
+} from '@sonatype/react-shared-components';
 import { faHistory } from '@fortawesome/pro-solid-svg-icons';
 import classnames from 'classnames';
 import ActiveWaiversIndicator from '../../violation/ActiveWaiversIndicator';
@@ -23,6 +29,7 @@ export default function PolicyViolationsTableRow({
   violation,
   toggleShowViolationsDetailPopover,
   setSelectedPolicyViolationId,
+  isAutoWaiversEnabled,
 }) {
   const {
     policyThreatLevel,
@@ -89,7 +96,7 @@ export default function PolicyViolationsTableRow({
         })}
       </NxTableCell>
       <NxTableCell className="iq-policy-violation-row__actions-and-indicators-cell">
-        <LegacyViolationsAndWaiverIndicators violation={violation} />
+        <LegacyViolationsAndWaiverIndicators violation={violation} isAutoWaiversEnabled={isAutoWaiversEnabled} />
       </NxTableCell>
       <NxTableCell chevron />
     </NxTableRow>
@@ -128,10 +135,12 @@ PolicyViolationsTableRow.propTypes = {
 };
 
 /* Helper component for legacy violations and waiver indicators. */
-const LegacyViolationsAndWaiverIndicators = ({ violation }) => {
-  const { waived, legacyViolation, applicableWaivers = [] } = violation;
-  const numberOfWaivers = applicableWaivers.length;
-
+const LegacyViolationsAndWaiverIndicators = ({ violation, isAutoWaiversEnabled }) => {
+  const { waived, legacyViolation, applicableWaivers, waivedWithAutoWaiver = [] } = violation;
+  let numberOfWaivers = [];
+  if (applicableWaivers) {
+    numberOfWaivers = applicableWaivers.length;
+  }
   const legacyViolationIndicator = legacyViolation ? (
     <div>
       <NxFontAwesomeIcon icon={faHistory} />
@@ -141,7 +150,17 @@ const LegacyViolationsAndWaiverIndicators = ({ violation }) => {
 
   return (
     <Fragment>
-      {numberOfWaivers > 0 && (
+      {waivedWithAutoWaiver && isAutoWaiversEnabled && (
+        <p style={{ textAlign: 'end', marginTop: '4px' }}>
+          <NxSmallTag color="green" style={{ margin: '0' }}>
+            Auto
+          </NxSmallTag>
+        </p>
+      )}
+      {numberOfWaivers > 0 && isAutoWaiversEnabled && !waivedWithAutoWaiver && (
+        <ActiveWaiversIndicator activeWaiverCount={numberOfWaivers} waived={waived} showUnapplied />
+      )}
+      {numberOfWaivers > 0 && !isAutoWaiversEnabled && (
         <ActiveWaiversIndicator activeWaiverCount={numberOfWaivers} waived={waived} showUnapplied />
       )}
       {legacyViolationIndicator}

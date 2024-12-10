@@ -34,6 +34,7 @@ export default function PolicyViolationsTable({
   componentName,
   componentNameWithoutVersion,
   waivers,
+  isAutoWaiverEnabled,
   toggleComponentWaiversPopover,
   setViolationsDetailRowClicked,
   waiverToDelete,
@@ -84,6 +85,7 @@ export default function PolicyViolationsTable({
               violation={violation}
               toggleShowViolationsDetailPopover={toggleShowViolationsDetail}
               setSelectedPolicyViolationId={setSelectedPolicyViolationId}
+              isAutoWaiversEnabled={isAutoWaiverEnabled}
             />
           ))}
         </NxTableBody>
@@ -108,6 +110,7 @@ export default function PolicyViolationsTable({
 
 PolicyViolationsTable.propTypes = {
   waivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
+  isAutoWaiverEnabled: PropTypes.bool,
   componentName: PropTypes.string,
   componentNameWithoutVersion: PropTypes.string,
   toggleShowViolationsDetailPopover: PropTypes.func.isRequired,

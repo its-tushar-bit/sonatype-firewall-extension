@@ -28,6 +28,8 @@ import {
   selectIsSbomManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
+import { selectIsAutoWaiversEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+
 import {
   selectFirewallComponentDetailsPage,
   selectFirewallComponentDetailsPageRouteParams,
@@ -52,6 +54,7 @@ function mapStateToProps(state, props) {
   const { tabId } = selectRouterCurrentParams(state);
   const firewallComponentDetailsPageParams = selectFirewallComponentDetailsPageRouteParams(state);
   const isSbomManager = selectIsSbomManager(state);
+  const isAutoWaiversEnabled = selectIsAutoWaiversEnabled(state);
 
   const getFirewallOrRepositoryViolationDetails = () =>
     !Array.isArray(firewallComponentDetailsPage?.violationDetails)
@@ -77,6 +80,7 @@ function mapStateToProps(state, props) {
         'hasPermissionForAppWaivers',
         'isVulnerabilityDetailsOutdated',
         'similarWaiversFilterSelectedIds',
+        'autoWaiver',
       ],
       violation
     ),
@@ -99,6 +103,7 @@ function mapStateToProps(state, props) {
     isFirewall,
     firewallIsLoading,
     isSbomManager,
+    isAutoWaiversEnabled,
   };
 }
 

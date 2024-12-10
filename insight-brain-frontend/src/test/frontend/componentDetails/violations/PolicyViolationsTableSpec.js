@@ -17,6 +17,7 @@ describe('PolicyViolationsTable', () => {
     minimalProps = {
       violations: [
         {
+          applicableWaivers: ['152da3a8ba7349379b87ab685f7b28ba'],
           policyViolationId: 'policyViolationId',
           policyThreatLevel: 10,
           policyName: 'Security-Blocker',
@@ -34,6 +35,7 @@ describe('PolicyViolationsTable', () => {
       showComponentWaiversPopover: false,
       componentName: 'componentName',
       waivers: [],
+      isAutoWaiverEnabled: false,
       toggleComponentWaiversPopover: () => {},
       waiverToDelete: null,
       setWaiverToDelete: () => {},

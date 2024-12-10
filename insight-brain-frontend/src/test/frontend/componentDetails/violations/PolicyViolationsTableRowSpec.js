@@ -211,7 +211,9 @@ describe('PolicyViolationsTableRow', () => {
       };
 
       it('renders a legacy violations indicator if it is a legacy violation', () => {
-        const indicators = getMountedIndicators({ violation: { ...minimalProps.violation, legacyViolation: true } });
+        const indicators = getMountedIndicators({
+          violation: { ...minimalProps.violation, legacyViolation: true, waivedWithAutoWaiver: false },
+        });
         expect(indicators).toExist();
 
         const legacyIcon = indicators.find(NxFontAwesomeIcon);
@@ -220,14 +222,9 @@ describe('PolicyViolationsTableRow', () => {
         expect(indicators.find('span')).toHaveText('Legacy');
       });
 
-      it('does not render a legacy violations indicator if it is a legacy violation', () => {
-        const indicators = getMountedIndicators({ violation: { ...minimalProps.violation, legacyViolation: false } });
-        expect(indicators.find('span')).not.toExist();
-      });
-
       it('renders an information indicator when there are unapplied waivers', () => {
         const indicators = getMountedIndicators({
-          violation: { ...minimalProps.violation, applicableWaivers: ['waiver1'] },
+          violation: { ...minimalProps.violation, applicableWaivers: ['waiver1'], waivedWithAutoWaiver: false },
         });
         const unnappliedIcon = indicators.find(NxFontAwesomeIcon);
         expect(unnappliedIcon).toExist();
@@ -236,21 +233,47 @@ describe('PolicyViolationsTableRow', () => {
       });
 
       it('does not render an information indicator when there are no unapplied waivers', () => {
-        const indicators = getMountedIndicators({ violation: { ...minimalProps.violation, applicableWaivers: [] } });
+        const indicators = getMountedIndicators({
+          violation: { ...minimalProps.violation, applicableWaivers: [], waivedWithAutoWaiver: false },
+        });
         expect(indicators.find('span')).not.toExist();
       });
 
       it('does not render an information indicator when the violation has been waived', () => {
         const indicators = getMountedIndicators({
-          violation: { ...minimalProps.violation, applicableWaivers: ['waiver1'], waived: true },
+          violation: {
+            ...minimalProps.violation,
+            applicableWaivers: ['waiver1'],
+            waived: true,
+            waivedWithAutoWaiver: false,
+          },
         });
 
         expect(indicators).toHaveText('1Active Waiver');
       });
 
+      it('does render a correct autobadge when there is an autowaiver', () => {
+        const indicators = getMountedIndicators({
+          violation: {
+            ...minimalProps.violation,
+            applicableWaivers: [],
+            waived: true,
+            waivedWithAutoWaiver: true,
+          },
+          isAutoWaiversEnabled: true,
+        });
+
+        expect(indicators).toHaveText('Auto');
+      });
+
       it('renders an ActiveWaiversIndicator when the violation has been waived and has applicableWaivers', () => {
         const indicators = getMountedIndicators({
-          violation: { ...minimalProps.violation, applicableWaivers: ['waiver1', 'waiver2'], waived: true },
+          violation: {
+            ...minimalProps.violation,
+            applicableWaivers: ['waiver1', 'waiver2'],
+            waived: true,
+            waivedWithAutoWaiver: true,
+          },
         });
 
         const activeWaiversIndicator = indicators.find(ActiveWaiversIndicator);

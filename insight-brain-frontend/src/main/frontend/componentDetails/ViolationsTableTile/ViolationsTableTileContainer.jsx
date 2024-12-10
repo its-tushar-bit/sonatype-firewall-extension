@@ -23,6 +23,7 @@ import { setWaiverToDelete } from '../../waivers/waiverActions';
 import { stateGo } from '../../reduxUiRouter/routerActions';
 import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { getComponentNameWithoutVersion } from 'MainRoot/util/componentNameUtils';
+import { selectIsAutoWaiversEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 function mapStateToProps(state) {
   const {
@@ -48,6 +49,7 @@ function mapStateToProps(state) {
     componentDetailsLoadError,
     violations: selectComponentViolations(state),
     waivers: selectComponentWaivers(state),
+    isAutoWaiverEnabled: selectIsAutoWaiversEnabled(state),
     componentName: selectComponentName(state),
     componentNameWithoutVersion,
     loading,

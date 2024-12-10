@@ -34,7 +34,7 @@ const APPLICABLE_WAIVERS = 'APPLICABLE_WAIVERS';
 const SIMILAR_WAIVERS = 'SIMILAR_WAIVERS';
 
 export default function ViolationPage(props) {
-  const {
+  let {
     $state,
     loadViolation,
     loadVulnerabilityDetails,
@@ -48,6 +48,7 @@ export default function ViolationPage(props) {
     vulnerabilityDetailsError,
     isVulnerabilityDetailsOutdated,
     activeWaivers,
+    autoWaiver,
     componentDisplayName,
     selectedViolationId,
     isFromPolicyViolations,
@@ -69,7 +70,12 @@ export default function ViolationPage(props) {
     isSbomManager,
     similarWaiversFilterSelectedIds,
     setFilterIdsSimilarWaivers,
+    isAutoWaiversEnabled,
   } = props;
+
+  if (isAutoWaiversEnabled && autoWaiver) {
+    activeWaivers = activeWaivers.concat(autoWaiver);
+  }
 
   const violationMissingDatabaseIdentifier = !isFirewallContext && !selectedViolationId;
 

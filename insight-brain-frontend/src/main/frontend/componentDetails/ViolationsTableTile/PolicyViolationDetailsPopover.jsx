@@ -30,7 +30,9 @@ import {
   selectViolationDetails,
   selectApplicableWaivers,
   selectHasPermissionForAppWaivers,
+  selectApplicableAutoWaiver,
 } from 'MainRoot/violation/violationSelectors';
+import { selectIsAutoWaiversEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import ViolationName from './ViolationName';
 import { selectIsStandaloneDeveloper } from '../../reduxUiRouter/routerSelectors';
 import { loadReportAllData, loadReportIfNeeded } from 'MainRoot/applicationReport/applicationReportActions';
@@ -46,10 +48,16 @@ export default function PolicyViolationDetailsPopover() {
   const violationIsLoading = useSelector(selectViolationIsLoading);
   const policyExists = useSelector(selectPolicyExists);
   const selectedPolicyViolation = useSelector(selectSelectedComponentPolicyViolation);
-  const { activeWaivers } = useSelector(selectApplicableWaivers);
+  let { activeWaivers } = useSelector(selectApplicableWaivers);
+  const activeAutoWaivers = useSelector(selectApplicableAutoWaiver);
   const violationDetails = useSelector(selectViolationDetails);
   const hasPermissionForAppWaivers = useSelector(selectHasPermissionForAppWaivers);
   const isStandaloneDeveloper = useSelector(selectIsStandaloneDeveloper);
+  const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
+
+  if (isAutoWaiversEnabled && activeAutoWaivers.autoWaiver) {
+    activeWaivers = activeWaivers.concat(activeAutoWaivers.autoWaiver);
+  }
 
   const redirectToAddWaiver = () => {
     if (isStandaloneDeveloper) {

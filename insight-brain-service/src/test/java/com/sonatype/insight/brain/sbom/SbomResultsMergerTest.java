@@ -591,6 +591,9 @@ public class SbomResultsMergerTest
       assertThat(sbomComponent.getPackageUrl()).isEqualTo(
           "pkg:pypi/citrus/orange@1.0.1?extension=whl&qualifier=py2.py3-none-any&arch=x86_64");
 
+      //updated hash from the best match result
+      assertThat(sbomComponent.getHash()).isEqualTo("093080a1a4bbd2750544");
+
       ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
       assertThat(updatedMetadata).isNotNull();
 
@@ -1149,7 +1152,7 @@ public class SbomResultsMergerTest
         c -> c.getPackageUrl().equals(expectedPurlTarGz.getPackageUrl())).findFirst();
     // Hash updated
     assertThat(componentUpdatedTarGzExtensionOptional.isPresent()).isTrue();
-    assertThat(componentUpdatedTarGzExtensionOptional.get().getHash()).isEqualTo("XYZ");
+    assertThat(componentUpdatedTarGzExtensionOptional.get().getHash()).isEqualTo("093080a1a4bbd2750543");
 
     // New component inserted
     expectedComponentIdentifier = ComponentIdentifier.createPypiCoordinates("pip", "24.0", "py3-none-any", "whl");

@@ -455,6 +455,13 @@ public class SbomResultsMerger
       // in such cases update the purl to the result purl for consistency with Sonatype data
       sbomComponent.setPackageUrl(bomPurl);
     }
+
+    JsonNode bomHashNode = bomNode.get("hash");
+    if (bomHashNode != null && !StringUtils.equals(sbomComponent.getHash(), bomHashNode.asText())) {
+      // Update the original hash to the result hash for consistency with Sonatype data
+      sbomComponent.setHash(bomHashNode.asText());
+    }
+
     if (StringUtils.isEmpty(sbomComponent.getMatchStateId())) {
       sbomComponent.setMatchStateId(JsonUtils.getNullableString(bomNode.get(FIELD_MATCH_STATE)));
     }

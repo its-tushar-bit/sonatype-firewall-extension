@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.net.URI;
+import java.nio.file.Path;
 
 import javax.annotation.Nullable;
 import javax.validation.Valid;
@@ -52,6 +53,9 @@ public class MultiTenantInsightConfig
   @Nullable
   @JsonProperty
   private StatsdMetricsConfig statsdMetricsConfig;
+
+  @JsonProperty
+  private Path jemallocProfileDir = Path.of(".");
 
   @Override
   public File getSonatypeWork() {
@@ -149,5 +153,13 @@ public class MultiTenantInsightConfig
 
   public void setStatsdMetricsConfig(final StatsdMetricsConfig metricsConfig) {
     this.statsdMetricsConfig = metricsConfig;
+  }
+
+  public Path getJemallocProfileDir() {
+    return jemallocProfileDir;
+  }
+
+  public void setJemallocProfileDir(final Path jemallocProfileDir) {
+    this.jemallocProfileDir = jemallocProfileDir;
   }
 }

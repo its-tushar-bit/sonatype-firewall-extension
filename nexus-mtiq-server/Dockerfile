@@ -49,8 +49,9 @@ RUN apt-get update && apt-get install -y \
 # Copy assembly from builder
 COPY --from=builder /opt/sonatype/nexus-iq-server /opt/sonatype/nexus-iq-server
 
-# Copy Datadog jar
+# Copy Datadog jar and JNI code
 COPY target/dd-java-agent.jar /opt/datadog/dd-java-agent.jar
+COPY target/libjemalloc-jni.so /opt/sonatype/nexus-iq-server/libjemalloc-jni.so
 
 # This is where we will store persistent data
 VOLUME /sonatype-work
@@ -61,7 +62,7 @@ EXPOSE 8071
 
 WORKDIR /opt/sonatype/nexus-iq-server
 
-ENV JAVA_OPTS="-Dgit.without.shell=true -Djava.util.prefs.userRoot=/sonatype-work/javaprefs -javaagent:/opt/datadog/dd-java-agent.jar -XX:+AlwaysPreTouch -XX:+CrashOnOutOfMemoryError -XshowSettings:vm"
+ENV JAVA_OPTS="-Dgit.without.shell=true -Djava.util.prefs.userRoot=/sonatype-work/javaprefs -Djava.library.path=/opt/sonatype/nexus-iq-server -javaagent:/opt/datadog/dd-java-agent.jar -XX:+AlwaysPreTouch -XX:+CrashOnOutOfMemoryError -XshowSettings:vm"
 
 # Use tini init in order to get proper orphaned process reaping
 ENTRYPOINT ["tini", "--", "/opt/sonatype/nexus-iq-server/bin/nexus-mtiq-server"]

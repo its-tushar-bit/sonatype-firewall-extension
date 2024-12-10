@@ -170,7 +170,7 @@ public class ApiEndpointsService
       if (values == null) {
         continue;
       }
-      Pattern pattern = Pattern.compile(patternString);
+      Pattern pattern = Pattern.compile(patternString, Pattern.CASE_INSENSITIVE);
       values.removeIf(value -> !pattern.matcher(value.toString()).matches());
     }
   }

@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.api.v2.HasFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiType;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
@@ -153,13 +154,36 @@ public class ApiEndpointsServiceTest
 
     OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
     assertThat(openAPI).isNotNull();
-    assertThat(openAPI.getPaths()).hasSize(2);
+    assertThat(openAPI.getPaths()).hasSize(8);
+
     PathItem pathItemA = openAPI.getPaths().get("/api/v2/ApiEndpointsServiceTestResourceEnumParameter/A/{ownerType}");
-    assertThat(pathItemA.getGet().getParameters().get(0).getSchema().getEnum()).containsExactlyInAnyOrderElementsOf(
-        Arrays.stream(OwnerType.values()).map(OwnerType::toString).toList());
+    assertThat(pathItemA.getGet().getParameters().get(0).getSchema().getEnum())
+        .containsExactlyInAnyOrderElementsOf(Arrays.stream(OwnerType.values()).map(OwnerType::toString).toList());
+
     PathItem pathItemB = openAPI.getPaths().get("/api/v2/ApiEndpointsServiceTestResourceEnumParameter/B/{ownerType}");
-    assertThat(pathItemB.getGet().getParameters().get(0).getSchema().getEnum()).containsExactlyInAnyOrder("application",
-        "organization");
+    assertThat(pathItemB.getGet().getParameters().get(0).getSchema().getEnum())
+        .containsExactlyInAnyOrder("application", "organization");
+
+    PathItem pathItemC = openAPI.getPaths().get("/api/v2/ApiEndpointsServiceTestResourceEnumParameter/C/{ownerType}");
+    assertThat(pathItemC.getGet().getParameters().get(0).getSchema().getEnum())
+        .containsExactlyInAnyOrder("application", "organization");
+
+    PathItem pathItemD = openAPI.getPaths().get("/api/v2/ApiEndpointsServiceTestResourceEnumParameter/D/{ownerType}");
+    assertThat(pathItemD.getGet().getParameters().get(0).getSchema().getEnum())
+        .containsExactlyInAnyOrder("application", "organization");
+
+    PathItem pathItemE = openAPI.getPaths().get("/api/v2/ApiEndpointsServiceTestResourceEnumParameter/E/{memberType}");
+    assertThat(pathItemE.getGet().getParameters().get(0).getSchema().getEnum())
+        .containsExactlyInAnyOrder("USER", "GROUP");
+
+    PathItem pathItemF = openAPI.getPaths().get("/api/v2/ApiEndpointsServiceTestResourceEnumParameter/F/{value}");
+    assertThat(pathItemF.getGet().getParameters().get(0).getSchema().getEnum()).isNull();
+
+    PathItem pathItemG = openAPI.getPaths().get("/api/v2/ApiEndpointsServiceTestResourceEnumParameter/G/{value}");
+    assertThat(pathItemG.getGet().getParameters().get(0).getSchema().getEnum()).isNull();
+
+    PathItem pathItemH = openAPI.getPaths().get("/api/v2/ApiEndpointsServiceTestResourceEnumParameter/H/{value}");
+    assertThat(pathItemH.getGet().getParameters().get(0).getSchema().getEnum()).isNull();
   }
 
   @Test
@@ -599,6 +623,42 @@ public class ApiEndpointsServiceTest
     @GET
     @Path("B/{ownerType:application|organization}")
     public String getB(@PathParam("ownerType") OwnerType ownerType) {
+      return null;
+    }
+
+    @GET
+    @Path("C/{ownerType: application|organization}")
+    public String getC(@PathParam("ownerType") OwnerType ownerType) {
+      return null;
+    }
+
+    @GET
+    @Path("D/{ownerType : application|organization}")
+    public String getD(@PathParam("ownerType") OwnerType ownerType) {
+      return null;
+    }
+
+    @GET
+    @Path("E/{memberType}")
+    public String getE(@PathParam("memberType") MemberType memberType) {
+      return null;
+    }
+
+    @GET
+    @Path("F/{value}")
+    public String getF(@PathParam("value") String value) {
+      return null;
+    }
+
+    @GET
+    @Path("G/{value: .*}")
+    public String getG(@PathParam("value") String value) {
+      return null;
+    }
+
+    @GET
+    @Path("H/{value:true|false}")
+    public String getH(@PathParam("value") boolean value) {
       return null;
     }
   }

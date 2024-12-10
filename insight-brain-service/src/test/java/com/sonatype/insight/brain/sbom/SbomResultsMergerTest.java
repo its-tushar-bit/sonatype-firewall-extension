@@ -1298,6 +1298,45 @@ public class SbomResultsMergerTest
   }
 
   @Test
+  public void testMergeResults_OriginalBinaryFileName() throws URISyntaxException, IOException {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    String filename = "postgres";
+    ThirdPartyFile file = tempEntity.newThirdPartyFile(filename);
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(null, "1", file, PENDING);
+    sbomMetadata.setOriginalBinaryFileName(filename);
+
+    FileReportEntity appReport = new FileReportEntity(Paths.get(ReportHelper.zipReport(
+        "/SbomResultsMergerTest/report-for-binary-scan", tempDir).toURI()).toFile());
+
+    merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
+
+    ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
+
+    assertThat(updatedMetadata.getFilename()).isEqualTo(filename + "." + updatedMetadata.getSbomVersion() + ".json.gz");
+
+    filename = "postgres.1.3";
+    file = tempEntity.newThirdPartyFile(filename);
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+    sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(null, "2", file, PENDING);
+    sbomMetadata.setOriginalBinaryFileName(filename);
+
+    appReport = new FileReportEntity(Paths.get(ReportHelper.zipReport(
+        "/SbomResultsMergerTest/report-for-binary-scan", tempDir).toURI()).toFile());
+
+    merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
+
+    updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
+
+    String binaryFileName = updatedMetadata.getOriginalBinaryFileName();
+    int index = binaryFileName.lastIndexOf(".") == -1 ? binaryFileName.length() : binaryFileName.lastIndexOf(".");
+    String compressedBinaryFileName =
+        binaryFileName.substring(0, index) + "." + updatedMetadata.getSbomVersion() + ".json.gz";
+    assertThat(updatedMetadata.getFilename()).isEqualTo(compressedBinaryFileName);
+  }
+
+  @Test
   public void testCleanUpPreviousReport() throws IOException {
     executeCleanUpPreviousReportTest(true, false);
   }

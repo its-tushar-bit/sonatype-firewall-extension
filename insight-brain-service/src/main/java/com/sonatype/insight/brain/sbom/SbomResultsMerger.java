@@ -786,7 +786,9 @@ public class SbomResultsMerger
     }
 
     String bomAsString = generateBomString(originalBom);
-    String compressedBinaryFileName = binaryFileName.substring(0, binaryFileName.lastIndexOf(".")) + ".json.gz";
+    int index = binaryFileName.lastIndexOf(".") == -1 ? binaryFileName.length() : binaryFileName.lastIndexOf(".");
+    String compressedBinaryFileName =
+        binaryFileName.substring(0, index) + "." + thirdPartySbomMetadata.getSbomVersion() + ".json.gz";
     File sbomDirectory = insightWork.getSbomDir(thirdPartySbomMetadata.getApplicationId());
     File compressedSbom = new File(sbomDirectory, compressedBinaryFileName);
     try (InputStream inputStream = new ByteArrayInputStream(bomAsString.getBytes());

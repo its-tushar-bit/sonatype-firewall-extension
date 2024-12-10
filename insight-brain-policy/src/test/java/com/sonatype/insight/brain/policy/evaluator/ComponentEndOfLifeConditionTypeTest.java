@@ -105,4 +105,44 @@ public class ComponentEndOfLifeConditionTypeTest
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, ComponentEndOfLifeConditionType.ID,
         policyAlerts);
   }
+
+  @Test
+  public void testHandlesNullEndOfLife() {
+    List<Component> components = new ArrayList<>();
+    Component component1 = ComponentFactory.forCoordinates("maven","g1", "a1", "v1", "jar", "");
+    component1.setMatchState(MatchState.EXACT);
+    component1.setEndOfLife(null);
+    components.add(component1);
+
+    // Create "is false" policy constraints
+    Constraint isFalseConstraint = createConstraint("is false");
+    List<Constraint> constraints = new ArrayList<>();
+    constraints.add(isFalseConstraint);
+
+    // Create "is false" policy
+    Policy isFalsePolicy = new Policy("PolicyId1", "is false");
+    isFalsePolicy.setConstraints(constraints);
+    isFalsePolicy.setAction(BuildStageType.ID, FailActionType.ID);
+
+    // Evaluate the "is false" policy
+    List<PolicyAlert> policyAlerts = evaluate(isFalsePolicy, components);
+    assertThat(policyAlerts).hasSize(1);
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertContainsPolicyAlert(component1, isFalsePolicy, isFalseConstraint, FailActionType.ID,
+        ComponentEndOfLifeConditionType.ID, policyAlerts);
+
+    // Create "is true" policy constraints
+    Constraint isTrueConstraint = createConstraint("is true");
+    constraints = new ArrayList<>();
+    constraints.add(isTrueConstraint);
+
+    // Create "is true" policy
+    Policy isTruePolicy = new Policy("PolicyId2", "is true");
+    isTruePolicy.setConstraints(constraints);
+    isTruePolicy.setAction(BuildStageType.ID, FailActionType.ID);
+
+    // Evaluate the "is true" policy
+    policyAlerts = evaluate(isTruePolicy, components);
+    assertThat(policyAlerts).isEmpty();
+  }
 }

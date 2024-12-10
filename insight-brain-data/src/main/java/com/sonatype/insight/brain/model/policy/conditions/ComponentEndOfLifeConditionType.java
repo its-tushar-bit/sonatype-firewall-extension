@@ -53,7 +53,9 @@ public class ComponentEndOfLifeConditionType
 
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
-    if (matchFact.getComponent().getEndOfLife().equals(ComponentEndOfLifeStatus.END_OF_LIFE_TRUE)) {
+    boolean isEndOfLife = ComponentEndOfLifeStatus.END_OF_LIFE_TRUE.equals(matchFact.getComponent().getEndOfLife());
+
+    if (isEndOfLife) {
       return "Component status is End-of-Life (EOL)";
     }
     else {
@@ -73,8 +75,8 @@ public class ComponentEndOfLifeConditionType
 
   @Override
   protected boolean internalEvaluateCondition(Component component, String operator, String value) {
-    boolean result = component.getEndOfLife().equals(ComponentEndOfLifeStatus.END_OF_LIFE_TRUE);
-    return "is true".equals(operator) ? result : !result;
+    boolean isTrue = ComponentEndOfLifeStatus.END_OF_LIFE_TRUE.equals(component.getEndOfLife());
+    return "is true".equals(operator) == isTrue;
   }
 
   @Override

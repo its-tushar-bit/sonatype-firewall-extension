@@ -8,8 +8,9 @@ import { NxH2, NxCard, NxP } from '@sonatype/react-shared-components';
 import React from 'react';
 import IntegrationsCard from 'MainRoot/development/developmentDashboard/IntegrationsCard';
 import IdeaLogo from 'MainRoot/img/third-party-logos/idea.png';
-import EclipseLogo from 'MainRoot/img/third-party-logos/eclipse.png';
-import VisualStudioLogo from 'MainRoot/img/third-party-logos/VisualStudio.png';
+import EclipseLogo from 'MainRoot/img/third-party-logos/eclipse_small.png';
+import VisualStudioLogo from 'MainRoot/img/third-party-logos/visual_studio_small.png';
+import VSCode from 'MainRoot/img/third-party-logos/vs_code_small.png';
 
 export default function Ide() {
   return (
@@ -20,33 +21,41 @@ export default function Ide() {
         orchestration, automation and response. You can view the security risks and vulnerabilities for your
         applications and determine steps for remediation.
       </NxP>
-
       <NxCard.Container className="iq-integrations-card-container">
         <IntegrationsCard
-          title="IQ for IDEA"
-          imgUrl={IdeaLogo}
-          description="Provides Nexus IQ evaluation of project dependencies right inside IntelliJ IDEA."
-          linkText="Click here for installation help."
-          linkUrl="https://links.sonatype.com/products/nxiq/doc/integrations/scm/ides/idea"
-          dataAnalyticsId="sonatype-developer-ide-idea"
-        />
-
-        <IntegrationsCard
-          title="IQ for Eclipse"
+          title="Eclipse"
           imgUrl={EclipseLogo}
-          description="Provides Nexus IQ evaluation of project dependencies right inside the Eclipse IDE."
+          description="Sonatype Nexus IQ scans open source dependencies for policy violations and security vulnerabilities, providing actionable insights and remediation advice."
           linkText="Click here for installation help."
-          linkUrl="https://links.sonatype.com/products/nxiq/doc/integrations/scm/ides/eclipse"
+          linkUrl="https://help.sonatype.com/en/iq-for-eclipse.html"
           dataAnalyticsId="sonatype-developer-ide-eclipse"
         />
 
         <IntegrationsCard
-          title="IQ for Visual Studio"
-          imgUrl={VisualStudioLogo}
-          description="Visual Studio is a full-featured IDE. IQ for Visual Studio provides component analysis for both the Community, Professional, and Enterprise versions of Visual Studio."
+          title="IDEA"
+          imgUrl={IdeaLogo}
+          description="Sonatype Nexus IQ evaluates project dependencies right inside IntelliJ IDEA, providing actionable insights and remediation advice."
           linkText="Click here for installation help."
-          linkUrl="https://links.sonatype.com/products/nxiq/doc/integrations/scm/ides/visual-studio"
+          linkUrl="https://help.sonatype.com/en/iq-for-idea.html"
+          dataAnalyticsId="sonatype-developer-ide-idea"
+        />
+
+        <IntegrationsCard
+          title="Visual Studio 2022"
+          imgUrl={VisualStudioLogo}
+          description="Sonatype for Visual Studio 2022 provides component analysis for both the Community, Professional, and Enterprise versions of Visual Studio."
+          linkText="Click here for installation help."
+          linkUrl="https://help.sonatype.com/en/sonatype-for-visual-studio-2022.html"
           dataAnalyticsId="sonatype-developer-ide-visual-studio"
+        />
+
+        <IntegrationsCard
+          title="VS Code"
+          imgUrl={VSCode}
+          description="Sonatype for VS Code allows you to surface and remediate issues in your workspace dependencies, a true Shift Left in application security for development teams."
+          linkText="Click here for installation help."
+          linkUrl="https://help.sonatype.com/en/sonatype-for-vs-code.html"
+          dataAnalyticsId="sonatype-developer-ide-vs-code"
         />
       </NxCard.Container>
     </div>

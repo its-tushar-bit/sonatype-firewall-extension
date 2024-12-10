@@ -6,8 +6,11 @@
 
 import React from 'react';
 import { NxCard, NxH2, NxP, NxTextLink } from '@sonatype/react-shared-components';
-import JenkinsLogo from 'MainRoot/img/third-party-logos/Jenkins.png';
-import AzureDevOpsLogo from 'MainRoot/img/third-party-logos/AzureDevOps.png';
+import JenkinsLogo from 'MainRoot/img/third-party-logos/jenkins_small.png';
+import AzureDevOpsLogo from 'MainRoot/img/third-party-logos/azure_small.png';
+import BambooLogo from 'MainRoot/img/third-party-logos/bamboo_small.png';
+import GitHubLogo from 'MainRoot/img/third-party-logos/github_small.png';
+import GitLabLogo from 'MainRoot/img/third-party-logos/gitlab_small.png';
 import IntegrationsCard from 'MainRoot/development/developmentDashboard/IntegrationsCard';
 
 export default function CiCd() {
@@ -24,18 +27,41 @@ export default function CiCd() {
         <IntegrationsCard
           title="Azure DevOps"
           imgUrl={AzureDevOpsLogo}
-          description="Nexus IQ for Azure DevOps evaluates pipeline builds for all supported component types and presents policy results and widgets within Azure DevOps."
+          description="Sonatype for Azure DevOps evaluates pipeline builds for all supported component types and presents policy results and widgets within Azure DevOps."
           linkText="Click here for installation help."
-          linkUrl="https://links.sonatype.com/products/nxiq/doc/nexus-iq-for-azure-devops"
+          linkUrl="https://help.sonatype.com/en/sonatype-for-azure-devops.html"
           dataAnalyticsId="sonatype-developer-cicd-azure-devops"
         />
-
         <IntegrationsCard
-          title="Plugin for Jenkins 2.x"
-          imgUrl={JenkinsLogo}
-          description="Nexus IQ for Jenkins 2.x plugin provides full component intelligence and the ability to run policy against your application."
+          title="Bamboo Data Center"
+          imgUrl={BambooLogo}
+          description="Sonatype for Bamboo Data Center integrates with Atlassian Bamboo to run policy evaluations and display scan results within the build workspace."
           linkText="Click here for installation help."
-          linkUrl="https://links.sonatype.com/products/nxiq/doc/nexus-platform-plugin-for-jenkins"
+          linkUrl="https://help.sonatype.com/en/sonatype-for-bamboo-data-center.html"
+          dataAnalyticsId="sonatype-developer-cicd-bamboo"
+        />
+        <IntegrationsCard
+          title="GitHub Actions"
+          imgUrl={GitHubLogo}
+          description="Sonatype GitHub Actions provides a set of actions for interacting with different Sonatype products directly within your GitHub workflows."
+          linkText="Click here for installation help."
+          linkUrl="https://help.sonatype.com/en/sonatype-github-actions.html"
+          dataAnalyticsId="sonatype-developer-cicd-github"
+        />
+        <IntegrationsCard
+          title="GitLab CI"
+          imgUrl={GitLabLogo}
+          description="Sonatype for GitLab CI is packaged as a Docker image that allows you to perform policy evaluations against one or more build artifacts during a GitLab CI/CD pipeline run."
+          linkText="Click here for installation help."
+          linkUrl="https://help.sonatype.com/en/sonatype-for-gitlab-ci.html"
+          dataAnalyticsId="sonatype-developer-cicd-gitlab"
+        />
+        <IntegrationsCard
+          title="Jenkins 2.x"
+          imgUrl={JenkinsLogo}
+          description="Sonatype for Jenkins provides full component intelligence and the ability to run policy against your application build."
+          linkText="Click here for installation help."
+          linkUrl="https://help.sonatype.com/en/sonatype-platform-plugin-for-jenkins.html"
           dataAnalyticsId="sonatype-developer-cicd-jenkins"
         />
       </NxCard.Container>

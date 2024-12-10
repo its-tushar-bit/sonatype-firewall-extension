@@ -6,10 +6,10 @@
 
 import React from 'react';
 import { NxCard, NxH2, NxP } from '@sonatype/react-shared-components';
-import GithubLogo from 'MainRoot/img/third-party-logos/github.png';
-import GitlabLogo from 'MainRoot/img/third-party-logos/gitlab.png';
-import BitbucketLogo from 'MainRoot/img/third-party-logos/bitbucket.png';
-import AzureDevOpsLogo from 'MainRoot/img/third-party-logos/AzureDevOps.png';
+import GithubLogo from 'MainRoot/img/third-party-logos/github_small.png';
+import GitlabLogo from 'MainRoot/img/third-party-logos/gitlab_small.png';
+import BitbucketLogo from 'MainRoot/img/third-party-logos/bitbucket_small.png';
+import AzureDevOpsLogo from 'MainRoot/img/third-party-logos/azure_small.png';
 import IntegrationsCard from '../IntegrationsCard';
 
 const scmIntegrations = [
@@ -19,7 +19,7 @@ const scmIntegrations = [
     description:
       'Lifecycle pushes component intelligence into GitHub where developers can view and respond to policy violations directly in pull requests.',
     linkText: 'Click here for installation help.',
-    linkUrl: 'https://links.sonatype.com/products/nxiq/doc/integrations/scm/source-control-config/github',
+    linkUrl: 'https://help.sonatype.com/en/github-configuration.html',
     dataAnalyticsId: 'sonatype-developer-scm-github',
   },
   {
@@ -28,7 +28,7 @@ const scmIntegrations = [
     description:
       'Lifecycle pushes component intelligence into GitLab where developers can view and respond to policy violations without breaking a build.',
     linkText: 'Click here for installation help.',
-    linkUrl: 'https://links.sonatype.com/products/nxiq/doc/integrations/scm/source-control-config/gitlab',
+    linkUrl: 'https://help.sonatype.com/en/gitlab-configuration.html',
     dataAnalyticsId: 'sonatype-developer-scm-gitlab',
   },
   {
@@ -37,8 +37,17 @@ const scmIntegrations = [
     description:
       'Lifecycle pushes component intelligence into Bitbucket where developers can view and remediate policy violations with detailed Code Insights.',
     linkText: 'Click here for installation help.',
-    linkUrl: 'https://links.sonatype.com/products/nxiq/doc/integrations/scm/source-control-config/bitbucket',
+    linkUrl: 'https://help.sonatype.com/en/bitbucket-configuration.html',
     dataAnalyticsId: 'sonatype-developer-scm-bitbucket',
+  },
+  {
+    title: 'Bitbucket Cloud',
+    imgUrl: BitbucketLogo,
+    description:
+      'Lifecycle pushes component intelligence into Bitbucket Cloud where developers can view and remediate policy violations with detailed Code Insights.',
+    linkText: 'Click here for installation help.',
+    linkUrl: 'https://help.sonatype.com/en/bitbucket-cloud-configuration.html',
+    dataAnalyticsId: 'sonatype-developer-scm-bitbucket-cloud',
   },
   {
     title: 'Azure DevOps',
@@ -46,7 +55,7 @@ const scmIntegrations = [
     description:
       'Lifecycle pushes component intelligence into Azure DevOps where developers can view and remediate policy violations with detailed Code Insights.',
     linkText: 'Click here for installation help.',
-    linkUrl: 'https://links.sonatype.com/products/nxiq/doc/integrations/scm/source-control-config/azure-devops',
+    linkUrl: 'https://help.sonatype.com/en/azure-devops-configuration.html ',
     dataAnalyticsId: 'sonatype-developer-scm-azure-devops',
   },
 ];

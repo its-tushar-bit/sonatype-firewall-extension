@@ -60,6 +60,12 @@ a.nx-text-link.integrations-link.integrations-link-selected {
   }
 }
 
+.iq-integrations-card--flex-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .iq-integrations-card--align-left {
   text-align: left;
 }

@@ -7,7 +7,7 @@
 import { NxCard, NxH2, NxP } from '@sonatype/react-shared-components';
 import React from 'react';
 import IntegrationsCard from 'MainRoot/development/developmentDashboard/IntegrationsCard';
-import AtlassianLogo from 'MainRoot/img/third-party-logos/atlassian.png';
+import AtlassianLogo from 'MainRoot/img/third-party-logos/atlassian_small.png';
 
 export default function IssueTracking() {
   return (
@@ -21,12 +21,20 @@ export default function IssueTracking() {
 
       <NxCard.Container className="iq-integrations-card-container">
         <IntegrationsCard
-          title="Nexus IQ for Jira"
+          title="Jira Cloud"
           imgUrl={AtlassianLogo}
-          description="Atlassian Jira Server and Datacenter plug-in creating issues in Jira for policy violations."
+          description="Sonatype for Jira Cloud automatically creates issues in response to new violations as they occur during your policy evaluation."
           linkText="Click here for installation help."
-          linkUrl="https://links.sonatype.com/products/nxiq/doc/integrations/scm/issue-tracking/jira"
-          dataAnalyticsId="sonatype-developer-issue-tracking-jira"
+          linkUrl="https://help.sonatype.com/en/sonatype-for-jira-cloud.html"
+          dataAnalyticsId="sonatype-developer-issue-tracking-jira-cloud"
+        />
+        <IntegrationsCard
+          title="Jira Data Center"
+          imgUrl={AtlassianLogo}
+          description="Sonatype for Jira Data Center is an Atlassian Jira plugin that automates the creation of Jira issues for new policy violations."
+          linkText="Click here for installation help."
+          linkUrl="https://help.sonatype.com/en/sonatype-for-jira-data-center.html"
+          dataAnalyticsId="sonatype-developer-issue-tracking-jira-data-center"
         />
       </NxCard.Container>
     </div>

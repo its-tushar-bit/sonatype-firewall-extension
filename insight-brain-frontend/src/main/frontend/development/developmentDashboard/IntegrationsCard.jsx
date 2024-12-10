@@ -11,13 +11,13 @@ import { NxCard, NxH3, NxP, NxTextLink } from '@sonatype/react-shared-components
 export default function IntegrationsCard({ title, imgUrl, description, linkText, linkUrl, dataAnalyticsId }) {
   return (
     <NxCard className="iq-integrations-card" aria-label={title}>
-      <NxCard.Header>
+      <NxCard.Header className="iq-integrations-card--flex-header">
+        <NxH3>{title}</NxH3>
         <img src={imgUrl} alt="" className="iq-integrations-card-logo" />
       </NxCard.Header>
 
       <NxCard.Content>
         <NxCard.Text className="iq-integrations-card--align-left">
-          <NxH3>{title}</NxH3>
           <NxP>{description}</NxP>
         </NxCard.Text>
       </NxCard.Content>

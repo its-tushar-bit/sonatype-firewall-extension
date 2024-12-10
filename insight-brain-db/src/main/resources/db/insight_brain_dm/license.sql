@@ -1166,6 +1166,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('HPND-
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('HPND-UC','HPND-UC','Historical Permission Notice and Disclaimer - University of California variant');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('HPND-UC-export-US','HPND-UC-export-US','Historical Permission Notice and Disclaimer - University of California, US export warning');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('HSUL-1.0','HSUL-1.0','HelpingAI Simplified Universal License Version 1.0');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('HSUL-UNSPECIFIED','HSUL','HSUL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('HTMLTIDY','HTMLTIDY','HTML Tidy License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Hugware-License','Hugware-License','The Hugware License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Hydraulic-Conveyor-EULA-1.0','Hydraulic-Conveyor-EULA-1.0','Hydraulic Conveyor End User License Agreement version 1');

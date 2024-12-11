@@ -62,7 +62,6 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals, es5 = fa
       { from: 'version-graph/details.html', transform: true },
       { from: 'version-graph/**/version-graph-*.*', transform: true },
       { from: 'version-graph/**/viewdetails-*.*', transform: true },
-      { from: 'cip/cip-claim-component.html', transform: true },
       { from: 'brain.client.js', transform: true },
       { from: 'reports.*', transform: true },
       { from: '**/*.{ttf,woff,png,svg,gif,jpg,ico}', transform: false },
@@ -83,13 +82,7 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals, es5 = fa
       new EslintPlugin({
         emitWarning: !production,
         context: __dirname,
-        exclude: [
-          'node_modules',
-          'src/main/frontend/lib',
-          'src/main/frontend/audit-report',
-          'src/main/frontend/version-graph',
-          'src/main/frontend/cip',
-        ],
+        exclude: ['node_modules', 'src/main/frontend/lib', 'src/main/frontend/version-graph'],
       }),
     ].concat(cssOutputPath ? getCssPlugins() : [], productionPlugins),
     // Babel is used to to convert to ES5-compatible syntax. We'll probably have to output
@@ -260,12 +253,7 @@ module.exports = function (env) {
       cssOutputPath: 'version.graph.app.css',
       env,
       es5: true,
-    }),
-    // to be used as the `externals` config on bundles that expect jquery to already be defined.  Prevents
-    // loading of multiple copies of jquery
-    jqueryExternals = {
-      jquery: 'jQuery',
-    };
+    });
 
   if (env.brainOnly) {
     return brainConfig;
@@ -275,16 +263,5 @@ module.exports = function (env) {
     return [versionGraphConfig, versionGraphAppConfig];
   }
 
-  return [
-    brainConfig,
-    versionGraphConfig,
-    versionGraphAppConfig,
-    config({
-      entryPath: './cip/cip-loader-index.js',
-      outputPath: 'cip-loader.js',
-      cssOutputPath: 'cip-loader.css',
-      env,
-      externals: jqueryExternals,
-    }),
-  ];
+  return [brainConfig, versionGraphConfig, versionGraphAppConfig];
 };

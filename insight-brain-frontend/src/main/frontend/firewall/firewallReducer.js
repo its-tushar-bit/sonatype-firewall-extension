@@ -10,8 +10,6 @@ import {
   FIREWALL_AUTO_UNQUARANTINE_DATA_REQUESTED,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING,
-  FIREWALL_CIP_MODAL_CLOSED,
-  FIREWALL_CIP_MODAL_SHOW,
   FIREWALL_LOAD_CONFIGURATION_FAILED,
   FIREWALL_LOAD_CONFIGURATION_FULFILLED,
   FIREWALL_LOAD_CONFIGURATION_REQUESTED,
@@ -75,7 +73,6 @@ export const initialState = Object.freeze({
   selectedPolicyId: null,
   showWelcomeModal: false,
   cip: Object.freeze({
-    showCipModal: false,
     selectedComponent: null,
     selectedComponentIndex: null,
     displayedEntries: [],
@@ -659,28 +656,6 @@ function setSelectedComponent(payload, state) {
   };
 }
 
-function cipModalClosed(_, state) {
-  return {
-    ...state,
-    cip: {
-      showCipModal: false,
-      selectedComponent: null,
-      selectedComponentIndex: null,
-      displayedEntries: [],
-    },
-  };
-}
-
-function cipModalShow(_, state) {
-  return {
-    ...state,
-    cip: {
-      ...state.cip,
-      showCipModal: true,
-    },
-  };
-}
-
 function loadComponentDetailsRequested(_, state) {
   return {
     ...state,
@@ -873,8 +848,6 @@ const reducerActionMap = {
   [FIREWALL_QUARANTINE_SUMMARY_FULFILLED]: quarantineSummaryFulfilled,
   [FIREWALL_QUARANTINE_SUMMARY_FAILED]: quarantineSummaryFailed,
   [FIREWALL_SELECT_COMPONENT]: setSelectedComponent,
-  [FIREWALL_CIP_MODAL_CLOSED]: cipModalClosed,
-  [FIREWALL_CIP_MODAL_SHOW]: cipModalShow,
   [FIREWALL_COMPONENT_DETAILS_REQUESTED]: loadComponentDetailsRequested,
   [FIREWALL_COMPONENT_DETAILS_FULFILLED]: loadComponentDetailsFulfilled,
   [FIREWALL_COMPONENT_DETAILS_FAILED]: loadComponentDetailsFailed,

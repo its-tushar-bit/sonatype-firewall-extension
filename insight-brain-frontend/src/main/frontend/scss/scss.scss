@@ -167,11 +167,6 @@
 @use '../sbomManager/features/billOfMaterials/billOfMaterials';
 @use '../sbomManager/features/componentDetails/componentDetails';
 
-// CIP
-@use '../version-graph/icons' as version-graph-icons;
-
 // Overrides
 @use 'responsive';
 @use 'print';
-@use 'ie9';
-@use 'ie11';

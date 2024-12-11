@@ -656,17 +656,11 @@ export function setQuarantineGridLastUpdated(lastUpdated) {
 export const FIREWALL_SELECT_COMPONENT = 'FIREWALL_SELECT_COMPONENT';
 const setSelectedComponent = payloadParamActionCreator(FIREWALL_SELECT_COMPONENT);
 
-export const FIREWALL_CIP_MODAL_CLOSED = 'FIREWALL_CIP_MODAL_CLOSED';
-export const FIREWALL_CIP_MODAL_SHOW = 'FIREWALL_CIP_MODAL_SHOW';
-export const cipModalClosed = noPayloadActionCreator(FIREWALL_CIP_MODAL_CLOSED);
-export const cipModalShow = noPayloadActionCreator(FIREWALL_CIP_MODAL_SHOW);
-
 export function selectQuarantineComponent(componentIndex) {
   return (dispatch, getState) => {
     let components = getState().firewall.quarantineGridState.quarantineList;
     let component = components[componentIndex];
     dispatch(setSelectedComponent({ component, componentIndex, components }));
-    dispatch(cipModalShow());
   };
 }
 
@@ -675,7 +669,6 @@ export function selectReleaseQuarantineComponent(componentIndex) {
     let components = getState().firewall.autoUnquarantineState.autoUnquarantineGridState.releaseQuarantineList;
     let component = components[componentIndex];
     dispatch(setSelectedComponent({ component, componentIndex, components }));
-    dispatch(cipModalShow());
   };
 }
 

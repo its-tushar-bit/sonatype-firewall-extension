@@ -11,7 +11,6 @@ import {
   FIREWALL_AUTO_UNQUARANTINE_DATA_REQUESTED,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING,
-  FIREWALL_CIP_MODAL_SHOW,
   FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE,
   FIREWALL_LOAD_CONFIGURATION_FAILED,
   FIREWALL_LOAD_CONFIGURATION_FULFILLED,
@@ -1384,7 +1383,7 @@ describe('firewallActions', function () {
   });
 
   describe('selectQuarantineComponent', function () {
-    it('immediately dispatches actions to set the selected component and show the CIP modal', function () {
+    it('immediately dispatches actions to set the selected component', function () {
       let components = [{ componentDisplayTex: 'text' }];
       state = {
         firewall: Object.freeze({
@@ -1398,20 +1397,18 @@ describe('firewallActions', function () {
       store.dispatch(selectQuarantineComponent(0));
 
       const actions = store.getActions();
-      expect(actions.length).toBe(2);
+      expect(actions.length).toBe(1);
       expect(actions[0].type).toBe(FIREWALL_SELECT_COMPONENT);
       expect(actions[0].payload).toEqual({
         component: components[0],
         componentIndex: 0,
         components: components,
       });
-      expect(actions[1].type).toBe(FIREWALL_CIP_MODAL_SHOW);
-      expect(actions[1].payload).toBeUndefined();
     });
   });
 
   describe('selectReleaseQuarantineComponent', function () {
-    it('immediately dispatches actions to set the selected component and show the CIP modal', function () {
+    it('immediately dispatches actions to set the selected component', function () {
       let components = [{ componentDisplayTex: 'text' }];
       state = {
         firewall: Object.freeze({
@@ -1427,15 +1424,13 @@ describe('firewallActions', function () {
       store.dispatch(selectReleaseQuarantineComponent(0));
 
       const actions = store.getActions();
-      expect(actions.length).toBe(2);
+      expect(actions.length).toBe(1);
       expect(actions[0].type).toBe(FIREWALL_SELECT_COMPONENT);
       expect(actions[0].payload).toEqual({
         component: components[0],
         componentIndex: 0,
         components: components,
       });
-      expect(actions[1].type).toBe(FIREWALL_CIP_MODAL_SHOW);
-      expect(actions[1].payload).toBeUndefined();
     });
   });
 

@@ -10,7 +10,6 @@ describe('firewallReducer', function () {
     selectedPolicyId: null,
     showWelcomeModal: false,
     cip: Object.freeze({
-      showCipModal: false,
       selectedComponent: null,
       selectedComponentIndex: null,
       displayedEntries: [],
@@ -1063,48 +1062,6 @@ describe('firewallReducer', function () {
           selectedComponent: component,
           selectedComponentIndex: componentIndex,
           displayedEntries: components,
-        },
-      });
-    });
-  });
-
-  describe('FIREWALL_CIP_MODAL_SHOW action', function () {
-    let initialState = {
-      cip: {
-        showCipModal: false,
-      },
-    };
-
-    it('updates the state and sets showCipModal to true', function () {
-      expect(reduce(initialState, { type: 'FIREWALL_CIP_MODAL_SHOW' })).toEqual({
-        ...initialState,
-        cip: {
-          ...initialState.cip,
-          showCipModal: true,
-        },
-      });
-    });
-  });
-
-  describe('FIREWALL_CIP_MODAL_CLOSED action', function () {
-    let initialState = {
-      cip: {
-        showCipModal: true,
-        selectedComponent: 'selectedComponent',
-        selectedComponentIndex: 0,
-        displayedEntries: ['selectedComponent'],
-      },
-    };
-
-    it('updates the state and sets showCipModal to false and clears component fields', function () {
-      expect(reduce(initialState, { type: 'FIREWALL_CIP_MODAL_CLOSED' })).toEqual({
-        ...initialState,
-        cip: {
-          ...initialState.cip,
-          showCipModal: false,
-          selectedComponent: null,
-          selectedComponentIndex: null,
-          displayedEntries: [],
         },
       });
     });

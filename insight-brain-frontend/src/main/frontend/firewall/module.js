@@ -6,12 +6,11 @@
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import FirewallPageContainer from './FirewallPageContainer';
 import FirewallAutoUnqaurantinePageContainer from './autounquarantine/FirewallAutoUnquarantinePageContainer';
-import firewallCipModalModule from './firewallCipModal/module';
 import firewall from './firewall';
 import FirewallComponentDetailsPage from './firewallComponentDetailsPage/FirewallComponentDetailsPage';
 
 export default angular
-  .module('firewallModule', [firewallCipModalModule.name, 'ngRedux'])
+  .module('firewallModule', ['ngRedux', 'ui.router'])
   .component('firewall', firewall)
   .component('firewallPage', iqReact2Angular(FirewallPageContainer, [], ['$ngRedux', '$state']))
   .component(

@@ -19,7 +19,6 @@ public class CspHeaderFilterChainTest
   @Test
   public void testHeaders() throws Exception {
     assertHeaders(restRequest().path("/assets/index.html").get());
-    assertHeaders(restRequest().path("/assets/audit-report/index.html").get());
     assertHeaders(restRequest().path("/assets/version-graph/ide/eclipse/index.html").get());
     assertHeaders(restRequest().path("/assets/version-graph/ide/eclipse/viewdetails.html").get());
     assertHeaders(restRequest().path("/assets/version-graph/ide/idea/index.html").get());

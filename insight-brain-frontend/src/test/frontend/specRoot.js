@@ -49,9 +49,7 @@ importAll(require.context('.', true, /(?<!(jest))[sS]pec.jsx?$/));
 import '../../main/frontend/index';
 import '../../main/frontend/version-graph/view-details-index';
 import '../../main/frontend/version-graph/version-graph-app-index';
-import '../../main/frontend/audit-report/audit-report-index';
-import '../../main/frontend/cip/cip-loader-index';
-import '../../main/frontend/cip/cip-index';
+import '../../main/frontend/brain.client.js';
 
 window.d3 = d3;
 window.Fuse = Fuse;

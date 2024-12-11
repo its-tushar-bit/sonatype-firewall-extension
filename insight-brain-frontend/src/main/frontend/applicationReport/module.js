@@ -5,7 +5,6 @@
  */
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
-import cipModalModule from './results/cipModal/module';
 import CLMLocationsModule from '../util/CLMLocation';
 import utilityModule from '../utility/utility.module';
 import utilityDirectivesModule from '../utility/directives/utility.directives.module';
@@ -21,7 +20,6 @@ import ApplicationReportRawDataContainer from './rawData/ApplicationReportRawDat
 
 export default angular
   .module('applicationReportModule', [
-    cipModalModule.name,
     CLMLocationsModule.name,
     utilityModule.name,
     utilityDirectivesModule.name,

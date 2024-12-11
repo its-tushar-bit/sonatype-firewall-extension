@@ -43,12 +43,11 @@ import {
   values,
 } from 'ramda';
 
-import { isNilOrEmpty, multiGroupBy, setToArray } from '../util/jsUtil';
+import { isNilOrEmpty, lookup, multiGroupBy, setToArray } from '../util/jsUtil';
 import { serializeComponentIdentifier } from '../util/componentIdentifierUtils';
 import { getComponentName } from '../util/componentNameUtils';
 import { getDeclaredLicensesDisplay, getObservedLicensesDisplay } from './licenseDisplayUtils';
 import DependencyInfoGenerator from './DependencyInfoGenerator';
-import { findRootAncestors } from './results/cipModal/rootAncestors/rootAncestors';
 
 const joinPathnames = join('\t'),
   toKey = (component) => component.hash || joinPathnames(component.pathnames || []),
@@ -245,6 +244,24 @@ function augmentIsOnlyInnerSourceTransitiveDependency(components) {
       component.innerSourceParentsDerivedComponentNames = map(prop('derivedComponentName'), rootAncestors);
     }
   });
+}
+
+// For each key in dependencyInfo.rootAncestors, find last matching component in allEntries.
+// Note, allEntries represent non-aggregated list so there could be multiple entries with the same componentId.
+function findRootAncestors(component, allEntries) {
+  if (!component.dependencyInfo || component.directDependency || isNilOrEmpty(component.dependencyInfo.rootAncestors)) {
+    return [];
+  }
+
+  const allEntriesBySerializedComponentId = into(
+    {},
+    compose(reject(pipe(prop('serializedComponentIdentifier'), isNil)), indexBy(prop('serializedComponentIdentifier'))),
+    allEntries
+  );
+
+  const getRootAncestorsFromAllEntries = pipe(map(lookup(allEntriesBySerializedComponentId)), reject(isNil));
+
+  return getRootAncestorsFromAllEntries(component.dependencyInfo.rootAncestors);
 }
 
 function addSerializedComponentIdentifier(entry) {

@@ -7,6 +7,9 @@
 -->
 # Changelog
 
+## Version 1.185.0 (December 11, 2024)
+* Added support for customizing container scans to include only OS components via the `NEXUS_CONTAINER_INCLUDE_ONLY_OS_COMPONENTS` environment variable
+
 ## Version 1.184.0 (November 08, 2024)
 * Removed the mount path requirement for Sonatype Container Security
 * Added support for files ending with the pattern .cdx.json

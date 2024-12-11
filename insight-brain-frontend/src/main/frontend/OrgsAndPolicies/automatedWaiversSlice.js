@@ -78,12 +78,13 @@ const loadAutoWaiversConfigurationPage = createAsyncThunk(
   `${REDUCER_NAME}/loadAutoWaiversConfiguration`,
   async (_, { getState, dispatch, rejectWithValue }) => {
     try {
+      await dispatch(rootActions.loadSelectedOwner());
+
       const state = getState();
       let { ownerType, ownerId } = selectSelectedOwnerTypeAndId(state);
       if (ownerId === undefined) {
         ({ ownerType, ownerId } = selectOwnerProperties(state));
       }
-      await dispatch(rootActions.loadSelectedOwner());
       const response = await axios.get(getAutoWaiversConfigurationURL(ownerType, ownerId));
       if (response.data.isInherited === true || response.data.isAutoWaiverEnabled === false) {
         return response.data;
@@ -218,7 +219,7 @@ const deleteAutoWaiver = createAsyncThunk(
       .then(prop('data'))
       .then(() => {
         startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone).then(() =>
-          dispatch(actions.loadWaiversConfigurationPage())
+          dispatch(actions.loadAutoWaiversConfigurationPage())
         );
       })
       .catch(rejectWithValue);

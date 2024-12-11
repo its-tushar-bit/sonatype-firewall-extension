@@ -19,7 +19,7 @@ import {
   NxPageTitle,
   NxStatefulForm,
   NxH2,
-  NxThreatIndicator,
+  NxH4,
 } from '@sonatype/react-shared-components';
 import { actions } from 'MainRoot/OrgsAndPolicies/automatedWaiversSlice';
 import './_autoWaiversConfiguration.scss';
@@ -28,6 +28,7 @@ import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import LicenseLockScreenForAutoWaivers from './LicenseLockScreenForAutoWaivers';
 import ConfirmationModal from 'MainRoot/legal/application/ConfirmationModal';
+import ThreatDropdownSelector from 'MainRoot/react/ThreatDropdownSelector';
 
 const AutoWaiversConfiguration = () => {
   const dispatch = useDispatch();
@@ -56,12 +57,13 @@ const AutoWaiversConfiguration = () => {
 function AutoWaiversConfigurationContents() {
   const dispatch = useDispatch();
   const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] = useState(false);
+  const setThreatLevel = (val) => dispatch(actions.setThreatLevel(val));
 
   const waiversConfigPage = useSelector(selectWaiversConfigPage);
   let { loading, loadError, isDirty, submitMaskState, submitError } = useSelector(selectWaiversSlice);
   const reachable = waiversConfigPage?.reachable ?? false;
   const pathForward = waiversConfigPage?.pathForward ?? false;
-  const threatLevel = waiversConfigPage?.threatLevel ?? 7;
+  const threatLevel = waiversConfigPage?.threatLevel ?? setThreatLevel(7);
   const hasExistingWaiver = waiversConfigPage?.autoPolicyWaiverId != null;
 
   if (waiversConfigPage?.isInherited === null || waiversConfigPage?.isInherited === true) {
@@ -69,8 +71,8 @@ function AutoWaiversConfigurationContents() {
   }
 
   const handleDelete = () => {
-    dispatch(actions.deleteAutoWaiver());
     setIsDeleteConfirmationModalOpen(false);
+    dispatch(actions.deleteAutoWaiver());
   };
 
   const shouldDeleteAutoWaiver = () => {
@@ -115,16 +117,23 @@ function AutoWaiversConfigurationContents() {
             submitError={submitError}
           >
             <NxH2>Configure Auto-Waiver</NxH2>
-            <NxFieldset label="Max. Threat Level">
+            <NxFieldset label="Max. Threat Level" sublabel="Violations with higher threats will not be waived">
               <div className="iq-waivers-configuration-upgrades">
-                <NxThreatIndicator policyThreatLevel={threatLevel} />
-                <strong>{threatLevel}</strong>
+                <ThreatDropdownSelector
+                  className="edit-auto-waiver-threat-dropdown"
+                  threatLevel={threatLevel}
+                  onSelectThreatLevel={setThreatLevel}
+                  id="editor-auto-waiver-threat-level"
+                />
               </div>
             </NxFieldset>
-            <NxFieldset label="Scope" sublabel="Apply to violations if/when the:">
-              <NxCheckbox onChange={() => dispatch(actions.toggleCheckboxPath())} isChecked={pathForward || false}>
-                No newer, non-violating component version is available
-              </NxCheckbox>
+            <NxFieldset label="Scope" sublabel="Eligible violations will be waived if/when:">
+              <div className="iq-auto-waivers-configuration-upgrades-fieldset__item">
+                <NxH4>No Upgrade Path</NxH4>
+                <NxCheckbox onChange={() => dispatch(actions.toggleCheckboxPath())} isChecked={pathForward || false}>
+                  No newer, non-violating component version is available
+                </NxCheckbox>
+              </div>
             </NxFieldset>
           </NxStatefulForm>
         </NxTile>

@@ -39,10 +39,10 @@ export function loadSidebarNav({ type = null, sidebarReference = null, sidebarId
 
 function loadViolations(dispatch, getState, sidebarReference) {
   let filterPromise = null;
-
+  const { results } = getState().dashboard.violations;
   switch (sidebarReference) {
     case 'filter':
-      filterPromise = dispatch(loadFilter('violations', true));
+      filterPromise = results ? Promise.resolve() : dispatch(loadFilter('violations', true));
       break;
     default:
       return dispatch(loadSidebarNavListFailed(`Unknown sidebarReference: ${sidebarReference}`));

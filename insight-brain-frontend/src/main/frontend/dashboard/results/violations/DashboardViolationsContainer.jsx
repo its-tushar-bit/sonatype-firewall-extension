@@ -18,6 +18,7 @@ import { selectViolationResults } from 'MainRoot/dashboard/dashboardSelectors';
 function mapStateToProps(state) {
   const { dashboardFilter } = state;
   const { loading, needsAcknowledgement, filtersAreDirty, appliedFilter } = dashboardFilter;
+  const prevStateName = state.router.prevState.name;
 
   return {
     violations: selectViolationResults(state),
@@ -25,6 +26,7 @@ function mapStateToProps(state) {
     needsAcknowledgement,
     filtersAreDirty,
     appliedFilter,
+    prevStateName,
   };
 }
 

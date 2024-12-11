@@ -138,6 +138,8 @@ public class ViolationDetailsTest
     nonSecurityPolicyViolation = tempEntity.newPolicyViolation(policyEvaluation2, nonSecurityPolicy);
 
     mockHdsResponseForVulnerabilityDetails();
+    // This ensures that the redux state has the updated information at the start of the tests
+    refresh();
   }
 
   private Policy createPolicy(

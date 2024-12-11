@@ -13,6 +13,7 @@ import {
 } from '../../../main/frontend/sidebarNav/sidebarNavListActions';
 import * as RouterActions from '../../../main/frontend/reduxUiRouter/routerActions';
 import * as DashboardFilterActions from '../../../main/frontend/dashboard/filter/dashboardFilterActions';
+import { lensPath, set } from 'ramda';
 
 describe('sidebarNavListActions', function () {
   describe('gotoNewVulnerability', function () {
@@ -74,7 +75,18 @@ describe('sidebarNavListActions', function () {
       store = SpecUtil.mockReduxStore(initialState);
     });
 
+    it('does not dispatch LOAD_SIDEBAR_NAV_LIST_REQUESTED when there are results in place', function () {
+      spyOn(DashboardFilterActions, 'loadFilter').and.callThrough();
+
+      store.dispatch(loadSidebarNav(stateParams));
+
+      expect(DashboardFilterActions.loadFilter).not.toHaveBeenCalled();
+    });
+
     it('dispatches LOAD_SIDEBAR_NAV_LIST_REQUESTED immediately', function () {
+      const resultLens = lensPath(['dashboard', 'violations', 'results']);
+      store = SpecUtil.mockReduxStore(set(resultLens, null, initialState));
+
       spyOn(DashboardFilterActions, 'loadFilter').and.callThrough();
 
       store.dispatch(loadSidebarNav(stateParams));
@@ -104,6 +116,9 @@ describe('sidebarNavListActions', function () {
     });
 
     it('dispatches LOAD_SIDEBAR_NAV_LIST_FULFILLED with violations results data', function (done) {
+      const resultLens = lensPath(['dashboard', 'violations', 'results']);
+      store = SpecUtil.mockReduxStore(set(resultLens, null, initialState));
+
       spyOn(DashboardFilterActions, 'loadFilter').and.returnValue(Promise.resolve({}));
 
       store
@@ -118,7 +133,7 @@ describe('sidebarNavListActions', function () {
           expect(DashboardFilterActions.loadFilter).toHaveBeenCalledWith('violations', true);
           expect(store.getActions()[2].type).toEqual(LOAD_SIDEBAR_NAV_LIST_FULFILLED);
           expect(store.getActions()[2].payload).toEqual({
-            data: { foo: 'bar' },
+            data: null,
             contentType: 'violations',
             backButtonStateName: 'dashboard.overview.violations',
           });
@@ -152,6 +167,8 @@ describe('sidebarNavListActions', function () {
     });
 
     it('dispatches LOAD_SIDEBAR_NAV_LIST_FAILED when the response fails', function (done) {
+      const resultLens = lensPath(['dashboard', 'violations', 'results']);
+      store = SpecUtil.mockReduxStore(set(resultLens, null, initialState));
       const responseError = 'errrr!';
 
       spyOn(DashboardFilterActions, 'loadFilter').and.callFake(() => Promise.reject(responseError));

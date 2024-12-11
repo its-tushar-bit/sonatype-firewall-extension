@@ -27,10 +27,20 @@ export default function DashboardResults(props) {
     stateGo,
     isDashboardEnabled,
     isWaiversTabEnabled,
+    prevStateName,
   } = props;
 
   useEffect(() => {
-    loadFilter();
+    // if it comes back from violation details and there are results, don't reload
+    if (
+      !(
+        dashboard.currentTab === 'violations' &&
+        dashboard.violations.results &&
+        prevStateName === 'sidebarView.violation'
+      )
+    ) {
+      loadFilter();
+    }
   }, []);
 
   return (
@@ -73,4 +83,5 @@ DashboardResults.propTypes = {
   loadFilterError: PropTypes.string,
   isDashboardEnabled: PropTypes.bool.isRequired,
   isWaiversTabEnabled: PropTypes.bool.isRequired,
+  prevStateName: PropTypes.string,
 };

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { connect, useSelector } from 'react-redux';
+import { connect } from 'react-redux';
 import { pick } from 'ramda';
 import DashboardHeader from './DashboardHeader';
 import * as manageFiltersActions from '../filter/manageFiltersActions';
@@ -19,6 +19,7 @@ import {
 const mapStateToProps = (state) => {
   const isAutoWaiversEnabled = selectIsAutoWaiversEnabled(state);
   const { manageFilters, dashboardFilter, dashboard, waivers } = state;
+  const prevStateName = state.router.prevState.name;
   return {
     dashboard,
     exportTitle: selectExportTitle(state),
@@ -31,6 +32,7 @@ const mapStateToProps = (state) => {
     loadFilterError: dashboardFilter.loadError || waivers.waiverReasons.loadError,
     isDashboardEnabled: selectIsDashboardSupported(state),
     isWaiversTabEnabled: selectIsDashboardWaiversSupported(state),
+    prevStateName,
   };
 };
 

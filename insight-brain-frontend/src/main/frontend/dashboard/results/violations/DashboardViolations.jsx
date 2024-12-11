@@ -19,6 +19,7 @@ export default function DashboardViolations(props) {
       sortViolations,
       stateGo,
       appliedFilter: { maxDaysOld },
+      prevStateName,
       setNextViolationsPage,
       setPreviousViolationsPage,
     } = props,
@@ -30,7 +31,10 @@ export default function DashboardViolations(props) {
 
   useEffect(() => {
     if (!filterLoading && !needsAcknowledgement) {
-      doLoad();
+      // if it comes back from violation details and there are results, don't reload
+      if (!(violations.results && prevStateName === 'sidebarView.violation')) {
+        doLoad();
+      }
     }
   }, [filterLoading, needsAcknowledgement]);
 
@@ -72,6 +76,7 @@ DashboardViolations.propTypes = {
     maxDaysOld: PropTypes.number,
   }).isRequired,
   violations: dashboardResultsShape,
+  prevStateName: PropTypes.string,
   setNextViolationsPage: PropTypes.func.isRequired,
   setPreviousViolationsPage: PropTypes.func.isRequired,
 };

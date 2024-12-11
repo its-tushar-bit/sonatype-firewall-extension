@@ -23,6 +23,8 @@ public class BomPageSbomSummaryDTO
 
   private Double annotatedPercentage;
 
+  private Double releaseStatusPercentage;
+
   public BomPageSbomSummaryDTO() {
     // for Jackson
   }
@@ -34,6 +36,15 @@ public class BomPageSbomSummaryDTO
     high = Long.parseLong(String.valueOf(array[3]));
     critical = Long.parseLong(String.valueOf(array[4]));
     annotatedPercentage = array[5] != null ? ((Number)array[5]).doubleValue() : null;
+    this.releaseStatusPercentage = array[6] != null ? ((Number)array[6]).doubleValue() : null;
+  }
+
+  public Double getReleaseStatusPercentage() {
+    return releaseStatusPercentage;
+  }
+
+  public void setReleaseStatusPercentage(final Double releaseStatusPercentage) {
+    this.releaseStatusPercentage = releaseStatusPercentage;
   }
 
   public SbomDependencyTypeDTO getDependencyType() {

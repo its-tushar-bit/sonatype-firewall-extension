@@ -323,7 +323,10 @@ public class ThirdPartyFileCoordinateDAO
         " COUNT(CASE WHEN (cs.severity BETWEEN ?6 AND ?7) THEN 1 END) as high," + //
         " COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END) as critical," + //
         " ROUND((COUNT(CASE WHEN (vex.coordinate_security_id IS NOT NULL) THEN 1 END)) * 100" +
-        " / NULLIF(COUNT(cs.coordinate_security_id)::decimal, 0), 1) as annotatedPercentage" +
+        " / NULLIF(COUNT(cs.coordinate_security_id)::decimal, 0), 1) as annotatedPercentage," +
+        " COALESCE(ROUND((COUNT(CASE WHEN (vex.coordinate_security_id IS NOT NULL AND cs.severity >= ?6) THEN 1 END))" +
+        "* 100 / NULLIF(COUNT(CASE WHEN (cs.coordinate_security_id IS NOT NULL AND cs.severity >= ?6) THEN 1 END)" +
+        "::decimal, 0), 1), 100) as releaseStatusPercentage" + //
         " FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
         " JOIN " + getDatabaseSchema() + ".file_coordinate fc" + //
         " ON fc.third_party_file_id = sm.third_party_file_id" + //
@@ -342,6 +345,30 @@ public class ThirdPartyFileCoordinateDAO
       Object[] result = (Object[]) query.getSingleResult();
 
       return new BomPageSbomSummaryDTO(result);
+    }
+  }
+
+  private Double getSbomReleaseStatusPercentage(String applicationId, String sbomVersion) {
+    String sQuery = "" + //
+        "SELECT ROUND((COUNT(CASE WHEN (vex.coordinate_security_id IS NOT NULL) THEN 1 END)) * 100" + //
+        " / NULLIF(COUNT(cs.coordinate_security_id)::decimal, 0), 1) as annotatedPercentage" + //
+        " FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
+        " LEFT JOIN insight_brain_third_party_scans.coordinate_security cs" + //
+        " ON cs.sbom_metadata_id = sm.sbom_metadata_id" + //
+        " LEFT JOIN insight_brain_third_party_scans.vulnerability_exploitability vex" + //
+        " ON cs.coordinate_security_id = vex.coordinate_security_id" + //
+        " WHERE sm.application_id = ?1" + //
+        " AND sm.sbom_version = ?2" + //
+        " AND  cs.severity > ?3";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = createNativeQuery(tx, sQuery,
+          applicationId,
+          sbomVersion,
+          HIGH.getStartScoreRange());
+      Object result = query.getSingleResult();
+
+      return result != null ? ((Number)result).doubleValue() : null;
     }
   }
 

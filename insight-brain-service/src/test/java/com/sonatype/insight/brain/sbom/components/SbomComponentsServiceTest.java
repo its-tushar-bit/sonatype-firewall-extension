@@ -453,16 +453,16 @@ public class SbomComponentsServiceTest
             "s", "SPDX", "n1", "v1", "h1", "u1");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity1 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-            "r1", "d1", "l1", 5.5, "sd1", "f1");
+            "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity2 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-            "r2", "d2", "l2", 7.5, "sd2", "f1");
+            "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-            "r3", "d3", "l3", 3.5, "sd3", "f3");
+            "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity1,
         "r1", "s1", "j1", "r1", "d1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
-        "r1", "s1", "j1", "r1", "d1");
+        "r2", "s1", "j1", "r1", "d1");
 
     File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
     FileUtils.copyURLToFile(ReportHelper
@@ -474,6 +474,46 @@ public class SbomComponentsServiceTest
     assertThat(resultDto.getHigh()).isEqualTo(1);
     assertThat(resultDto.getMedium()).isEqualTo(1);
     assertThat(resultDto.getCritical()).isEqualTo(0);
+    assertThat(resultDto.getReleaseStatusPercentage()).isEqualTo(100.0);
+    assertThat(resultDto.getDependencyType().getUnspecified()).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetSbomSummaryForComponents_noCriticalHighVulnerability() throws IOException {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan();
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withSpecVersion("1.5")
+        .withThirdPartyFileId(thirdPartyScan.getThirdPartyFileId())
+        .build();
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
+            "s", "SPDX", "n1", "v1", "h1", "u1");
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity1 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
+            "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity2 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
+            "r2", sbomMetadata.getId(), "d2", "l2", 2.5, "sd2", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
+        "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity1,
+        "r1", "s1", "j1", "r1", "d1");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
+        "r2", "s1", "j1", "r1", "d1");
+
+    File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper
+        .zipReport("/SbomComponentsServiceTest", tempDir), reportFile);
+
+    BomPageSbomSummaryDTO resultDto = service.getSbomSummaryForComponents(app.getId(), sbomMetadata.getSbomVersion());
+    assertThat(resultDto.getAnnotatedPercentage()).isEqualTo(66.7);
+    assertThat(resultDto.getLow()).isEqualTo(2);
+    assertThat(resultDto.getHigh()).isEqualTo(0);
+    assertThat(resultDto.getMedium()).isEqualTo(1);
+    assertThat(resultDto.getCritical()).isEqualTo(0);
+    assertThat(resultDto.getReleaseStatusPercentage()).isEqualTo(100.0);
     assertThat(resultDto.getDependencyType().getUnspecified()).isEqualTo(1);
   }
 
@@ -536,6 +576,7 @@ public class SbomComponentsServiceTest
     assertThat(bomPageSbomSummaryDTO.getCritical()).isEqualTo(null);
     assertThat(bomPageSbomSummaryDTO.getDependencyType()).isEqualTo(null);
     assertThat(bomPageSbomSummaryDTO.getAnnotatedPercentage()).isEqualTo(null);
+    assertThat(bomPageSbomSummaryDTO.getReleaseStatusPercentage()).isEqualTo(null);
     assertThat(bomPageSbomSummaryDTO.getPolicyViolationSummary()).isEqualTo(null);
   }
 
@@ -556,18 +597,18 @@ public class SbomComponentsServiceTest
             "s", "SPDX", "n1", "v1", "h1", "u1", ThirdPartyDependencyType.TRANSITIVE);
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity1 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1,
-            "r1", "d1", "l1", 5.5, "sd1", "f1");
+            "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity2 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1,
-            "r2", "d2", "l2", 7.5, "sd2", "f1");
+            "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1,
-            "r3", "d3", "l3", 3.5, "sd3", "f3");
+            "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2,
-            "r1", "d1", "l1", 5.5, "sd1", "f1");
+            "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2,
-            "r2", "d2", "l2", 7.5, "sd2", "f1");
+            "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2,
-            "r3", "d3", "l3", 3.5, "sd3", "f3");
+            "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity1,
         "r1", "s1", "j1", "r1", "d1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
@@ -587,6 +628,7 @@ public class SbomComponentsServiceTest
     assertThat(resultDto.getCritical()).isEqualTo(0);
     assertThat(resultDto.getDependencyType().getUnspecified()).isEqualTo(0);
     assertThat(resultDto.getDependencyType().getDirect()).isEqualTo(1);
+    assertThat(resultDto.getReleaseStatusPercentage()).isEqualTo(50.0);
     assertThat(resultDto.getDependencyType().getTransitive()).isEqualTo(1);
   }
 

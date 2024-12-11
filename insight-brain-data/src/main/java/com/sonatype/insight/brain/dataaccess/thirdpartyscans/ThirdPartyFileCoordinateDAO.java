@@ -276,6 +276,7 @@ public class ThirdPartyFileCoordinateDAO
         "       sm.spec," + //
         "       sm.spec_version," + //
         "       sm.created_at," + //
+        "       sm.is_valid," + //
         "       COUNT(CASE WHEN (cs.severity = ?1) THEN 1 END)," + //
         "       COUNT(CASE WHEN (cs.severity BETWEEN ?2 AND ?3) THEN 1 END)," + //
         "       COUNT(CASE WHEN (cs.severity BETWEEN ?4 AND ?5) THEN 1 END)," + //
@@ -289,7 +290,7 @@ public class ThirdPartyFileCoordinateDAO
         "    ON cs.file_coordinate_id = fc.file_coordinate_id" + //
         " WHERE sm.application_id = ?10" + //
         "   AND sm.status = ?11" + //
-        " GROUP BY sm.sbom_version, sm.spec, sm.spec_version, sm.created_at" + //
+        " GROUP BY sm.sbom_version, sm.spec, sm.spec_version, sm.created_at, sm.is_valid" + //
         " ORDER BY sm.created_at " + (sortByDate.equalsIgnoreCase("asc") ? "ASC " : "DESC ");
 
     int offset = (page - 1) * pageSize;
@@ -300,16 +301,13 @@ public class ThirdPartyFileCoordinateDAO
           applicationId, pageSize, sQuery, offset, tx);
       paginationQuery.setParameter(11, "ACTIVE");
 
-      List<ThirdPartySbomMetadataSummaryDTO> dtos = ((Stream<Object[]>) paginationQuery.getResultStream())
-          .peek(array -> {
-            if (result.getTotalResultsCount() == 0) {
-              result.setTotalResultsCount(((Long) array[9]).intValue());
-            }
-          })
-          .map(ThirdPartySbomMetadataSummaryDTO::new)
-          .collect(Collectors.toList());
-
-      result.setResults(dtos);
+      try (Stream<Object[]> resultsStream = paginationQuery.getResultStream()) {
+        result.setResults(resultsStream.peek(array -> {
+          if (result.getTotalResultsCount() == 0) {
+            result.setTotalResultsCount(((Long) array[10]).intValue());
+          }
+        }).map(ThirdPartySbomMetadataSummaryDTO::new).collect(Collectors.toList()));
+      }
       return result;
     }
   }

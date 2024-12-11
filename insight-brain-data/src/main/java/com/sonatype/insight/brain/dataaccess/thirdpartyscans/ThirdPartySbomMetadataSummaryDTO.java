@@ -32,6 +32,8 @@ public class ThirdPartySbomMetadataSummaryDTO
 
   private int critical;
 
+  private Boolean isValid;
+
   public ThirdPartySbomMetadataSummaryDTO() {
     // for Jackson
   }
@@ -41,12 +43,13 @@ public class ThirdPartySbomMetadataSummaryDTO
     spec = (String) array[1];
     specVersion = (String) array[2];
     importDate = (Date) array[3];
+    isValid = (Boolean) array[4];
 
-    none = longToInt(array[4]);
-    low = longToInt(array[5]);
-    medium = longToInt(array[6]);
-    high = longToInt(array[7]);
-    critical = longToInt(array[8]);
+    none = longToInt(array[5]);
+    low = longToInt(array[6]);
+    medium = longToInt(array[7]);
+    high = longToInt(array[8]);
+    critical = longToInt(array[9]);
   }
 
   public String getApplicationVersion() {
@@ -85,6 +88,10 @@ public class ThirdPartySbomMetadataSummaryDTO
     return critical;
   }
 
+  public boolean getIsValid() {
+    return isValid == null || isValid;
+  }
+
   public void setApplicationVersion(final String applicationVersion) {
     this.applicationVersion = applicationVersion;
   }
@@ -119,6 +126,10 @@ public class ThirdPartySbomMetadataSummaryDTO
 
   public void setCritical(final int critical) {
     this.critical = critical;
+  }
+
+  public void setIsValid(Boolean isValid) {
+    this.isValid = isValid;
   }
 
   private int longToInt(Object number) {

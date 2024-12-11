@@ -10,11 +10,11 @@ import java.io.FileInputStream;
 import java.nio.file.Path;
 import java.util.Date;
 
-import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.sbom.SbomsTile;
+import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
+import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerApplicationSummaryPage;
 import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerBillOfMaterialsPage;
-import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -35,6 +35,8 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
@@ -61,23 +63,7 @@ public class SbomManagerApplicationSummaryPageTest
     organization = tempEntity.newOrganization("test-organization");
     application = tempEntity.newApplication("Test Application", "test-application", organization.getId());
 
-    ThirdPartyFile scannedFile = tempEntity.newThirdPartyFile();
-    tempEntity.newThirdPartyScan(scannedFile);
-    Path zippedBom = mockOriginalSbom(SbomManagerApplicationSummaryPageTest.class, "simple-bom.xml",
-        insightWork.getSbomDir(application.getId()).toPath());
-
-    sbomMetadata = tempEntity.newThirdPartySbomMetadata(
-        scannedFile.getId(),
-        application.getId(),
-        "test-version",
-        ACTIVE,
-        zippedBom.getFileName().toString(),
-        SbomSpecification.CYCLONEDX.name(),
-        SbomFormat.XML.name(),
-        "0.0"
-    );
-    sbomMetadata.setCreatedAt(new Date(0));
-    thirdPartySbomMetadataDAO.update(sbomMetadata);
+    createSbomMetadata("test-version", true);
   }
 
   private void setLicenseAndAdminLogin() {
@@ -111,6 +97,19 @@ public class SbomManagerApplicationSummaryPageTest
     tableRows.first().shouldBe(visible);
     tableRows.shouldHave(size(2));
     sbomsTile.footer().shouldBe(visible);
+  }
+
+  @Test
+  public void testSbomsTile_RenderInvalidSbomIndicator() throws Exception {
+    createSbomMetadata("test-version-2", false);
+
+    setLicenseAndAdminLogin();
+    refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
+
+    SbomsTile sbomsTile = SbomManagerApplicationSummaryPage.sbomsTile();
+    sbomsTile.shouldBe(visible);
+    sbomsTile.getRowInvalidSbomIndicatorFromRow(1).shouldNotBe(visible);
+    sbomsTile.getRowInvalidSbomIndicatorFromRow(2).shouldBe(visible);
   }
 
   @Test
@@ -148,18 +147,8 @@ public class SbomManagerApplicationSummaryPageTest
     tempEntity.newThirdPartyScan(scannedFile);
     Date initialDate = DateUtils.addMonths(new Date(), -1);
     for (int i = 0; i < 50; i++) {
-      ThirdPartySbomMetadata sbom = tempEntity.newThirdPartySbomMetadata(
-          scannedFile.getId(),
-          application.getId(),
-          "test-version-" + i,
-          ACTIVE,
-          scannedFile.getFilename(),
-          SbomSpecification.CYCLONEDX.name(),
-          SbomFormat.XML.name(),
-          "0.0"
-      );
-      sbom.setCreatedAt(DateUtils.addHours(initialDate, i));
-      thirdPartySbomMetadataDAO.update(sbom);
+      createSbomMetadata(scannedFile.getId(), scannedFile.getFilename(), DateUtils.addHours(initialDate, i),
+          "test-version-" + i, true);
     }
     setLicenseAndAdminLogin();
     refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
@@ -200,17 +189,34 @@ public class SbomManagerApplicationSummaryPageTest
   }
 
   @Test
-  public void testSbomsTile_DownloadSbomReportFolder() throws Exception {
+  public void testSbomsTile_DownloadDropdownOptions() throws Exception {
+    createSbomMetadata("test-version-2", false);
+
     setLicenseAndAdminLogin();
 
     refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
     SbomsTile sbomsTile = SbomManagerApplicationSummaryPage.sbomsTile();
 
+    // Valid SBOM options
     sbomsTile.actions(1).click();
+    sbomsTile.actionsSbomOptions().get(0).shouldBe(enabled).shouldHave(text("Export Original SBOM"));
+    sbomsTile.actionsSbomOptions().get(1).shouldBe(enabled).shouldHave(text("Additional Export Options"));
+    sbomsTile.actionsSbomOptions().get(2).shouldHave(text("Export PDF"));
+    sbomsTile.actionsSbomOptions().last().shouldBe(enabled).shouldHave(text("Delete SBOM"));
+
+    // Click to close the dropdown
+    SbomManagerApplicationSummaryPage.sbomsTile().click();
+
+    // Invalid SBOM options
+    sbomsTile.actions(2).click();
+    sbomsTile.actionsSbomOptions().get(0).shouldBe(enabled).shouldHave(text("Export Original SBOM"));
+    sbomsTile.actionsSbomOptions().get(1).shouldBe(disabled).shouldHave(text("Additional Export Options"));
+    sbomsTile.actionsSbomOptions().get(2).shouldHave(text("Export PDF"));
+    sbomsTile.actionsSbomOptions().last().shouldBe(enabled).shouldHave(text("Delete SBOM"));
 
     File downloadedSbom = sbomsTile.actionsSbomOptions()
         .first()
-        .shouldHave(text("Download SBOM report"))
+        .shouldHave(text("Export Original SBOM"))
         .download();
 
     byte[] fileBeginning = new byte[5];
@@ -218,5 +224,26 @@ public class SbomManagerApplicationSummaryPageTest
       stream.read(fileBeginning);
     }
     assertThat(new String(fileBeginning)).isEqualTo("<?xml");
+  }
+
+  private void createSbomMetadata(String sbomVersion, boolean isValid) throws Exception {
+    ThirdPartyFile scannedFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(scannedFile);
+    Path zippedBom = mockOriginalSbom(SbomManagerApplicationSummaryPageTest.class, "simple-bom.xml",
+        insightWork.getSbomDir(application.getId()).toPath());
+
+    createSbomMetadata(scannedFile.getId(), zippedBom.getFileName().toString(), new Date(0), sbomVersion, isValid);
+  }
+
+  private void createSbomMetadata(
+      String thirdPartyFileId, String fileName, Date createdAt, String sbomVersion, boolean isValid)
+  {
+    sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFileId, application.getId(), sbomVersion, ACTIVE, fileName,
+            SbomSpecification.CYCLONEDX.name(), SbomFormat.XML.name(), "0.0");
+    sbomMetadata.setCreatedAt(createdAt);
+    sbomMetadata.setIsValid(isValid);
+
+    thirdPartySbomMetadataDAO.update(sbomMetadata);
   }
 }

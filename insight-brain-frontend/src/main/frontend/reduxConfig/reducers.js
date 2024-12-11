@@ -105,6 +105,7 @@ import sbomManagerDashboardSlice from 'MainRoot/sbomManager/features/dashboard/s
 import solutionSwitcherSlice from 'MainRoot/mainHeader/MenuBar/SolutionSwitcherContainer/solutionSwitcherSlice';
 import latestReportForStageSlice from 'MainRoot/applicationReport/latestReportForStageSlice';
 import sbomApplicationsPageSlice from 'MainRoot/sbomManager/features/sbomApplicationsPage/sbomApplicationsPageSlice';
+import sbomExportSlice from 'MainRoot/sbomManager/features/sbomExport/sbomExportSlice';
 import autoWaiverDetailsSlice from 'MainRoot/waivers/waiverDetails/autoWaiverDetailsSlice';
 import autoWaiverRevocationsSlice from 'MainRoot/OrgsAndPolicies/automatedWaiversRevocationsSlice';
 
@@ -204,6 +205,7 @@ export default combineReducers({
   sast: sastReportSlice,
   billOfMaterialsComponentsTile: billOfMaterialsComponentsTileSlice,
   billOfMaterialsPage: billsOfMaterialsPageSlice,
+  sbomExport: sbomExportSlice,
   sbomComponentDetailsPage: sbomComponenDetailsSlice,
   prioritiesPage: prioritiesPageSlice,
   sbomManagerDashboard: sbomManagerDashboardSlice,

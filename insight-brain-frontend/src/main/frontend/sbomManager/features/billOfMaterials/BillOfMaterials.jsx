@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
 import React, { useEffect } from 'react';
 import {
   NxButtonBar,
@@ -12,12 +11,11 @@ import {
   NxPageMain,
   NxPageTitle,
   NxStatefulSegmentedButton,
-  NxStatefulSubmitMask,
   NxTextLink,
   NxTooltip,
   NxWarningAlert,
 } from '@sonatype/react-shared-components';
-import { faDownload, faFilePdf } from '@fortawesome/pro-solid-svg-icons';
+import { faDownload } from '@fortawesome/pro-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { toLower, toUpper } from 'ramda';
 
@@ -26,11 +24,10 @@ import SbomVersionDropdown from 'MainRoot/sbomManager/features/sbomVersionDropdo
 import SummaryTile from 'MainRoot/sbomManager/features/billOfMaterials/summaryTile/SummaryTile';
 import BillOfMaterialsComponentsTile from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/BillOfMaterialsComponentsTile';
 import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatefulBreadcrumb';
-import SbomAdditionalExportOptionsModal from './sbomAdditionalExportOptionsModal/SbomAdditionalExportOptionsModal';
 import InvalidSbomIndicator from '../InvalidSbomIndicator';
-
 import { getDownloadSbomFileUrl, getSbomDownloadPdfUrl } from 'MainRoot/util/CLMLocation';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+
 import {
   selectLoadErrorFeatures,
   selectLoadingFeatures,
@@ -38,16 +35,23 @@ import {
   selectIsSbomPoliciesSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectBillOfMaterialsPage } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSelectors';
+import { actions } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
+import { formatDate } from 'MainRoot/util/dateUtils';
+import SbomAdditionalExportOptionsModal from 'MainRoot/sbomManager/features/sbomExport/SbomAdditionalExportOptionsModal';
+import ExportModalSubmitMask from 'MainRoot/sbomManager/features/sbomExport/ExportModalSubmitMask';
 import {
-  actions,
-  EXPORT_AND_DOWNLOAD_SBOM_SUBMIT_MASK_EXPORTING_MESSAGE,
+  actions as sbomExportActions,
   EXPORT_SBOM_FILE_FORMAT,
   EXPORT_SBOM_SPECIFICATION,
   EXPORT_SBOM_STATE,
-} from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
+} from 'MainRoot/sbomManager/features/sbomExport/sbomExportSlice';
 import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
-import { formatDate } from 'MainRoot/util/dateUtils';
-import { invalidSbomMessageDetails } from '../messages';
+import {
+  invalidSbomMessageDetails,
+  additionalExportOptionsDisabledDueToValidationErrors,
+  exportPDFIsDisabledDueToValidationErrors,
+} from '../messages';
+import InvalidSbomTooltipWrapper from 'MainRoot/sbomManager/features/sbomExport/InvalidSbomTooltipWrapper';
 
 import './billOfMaterials.scss';
 
@@ -72,7 +76,6 @@ export default function BillOfMaterials() {
     vulnerabilitiesSummary,
     policyViolationSummary,
     annotatedVulnerabilitesPercentage,
-    exportAndDownloadSbomSubmitMask: exportAndDownloadSbomSubmitMaskState,
     validationErrorAlertDismissed,
   } = useSelector(selectBillOfMaterialsPage);
 
@@ -86,8 +89,16 @@ export default function BillOfMaterials() {
   const publicAppId = routerParams.applicationPublicId;
   const currentSbomVersion = routerParams.versionId;
 
-  const showSbomAdditionalExportOptionsModal = () => dispatch(actions.setShowSbomAdditionalExportOptionsModal(true));
-  const exportAndDownloadSbom = (options) => dispatch(actions.exportAndDownloadSbom(options));
+  const showSbomAdditionalExportOptionsModal = () =>
+    dispatch(
+      sbomExportActions.setShowSbomAdditionalExportOptionsModal({
+        applicationId: internalAppId,
+        sbomVersion: currentSbomVersion,
+      })
+    );
+
+  const exportAndDownloadSbom = (options) => dispatch(sbomExportActions.exportAndDownloadSbom(options));
+
   const dismissSbomInvalidAlert = () => dispatch(actions.dismissSbomInvalidAlert());
 
   const pdfUrl = getSbomDownloadPdfUrl(publicAppId, currentSbomVersion);
@@ -130,6 +141,8 @@ export default function BillOfMaterials() {
 
   const downloadLatestSbomFile = () =>
     exportAndDownloadSbom({
+      applicationId: internalAppId,
+      sbomVersion: currentSbomVersion,
       state: EXPORT_SBOM_STATE.current,
       specification: EXPORT_SBOM_SPECIFICATION[toLower(sbomMetadata.specification)],
       fileFormat: EXPORT_SBOM_FILE_FORMAT[toLower(sbomMetadata.fileFormat)],
@@ -137,14 +150,6 @@ export default function BillOfMaterials() {
 
   const downloadOriginalSbomFile = () =>
     window.open(getDownloadSbomFileUrl(internalAppId, currentSbomVersion), '_blank');
-
-  const exportAndDownloadSbomSubmitMask = exportAndDownloadSbomSubmitMaskState.showSubmitMask ? (
-    <NxStatefulSubmitMask
-      success={exportAndDownloadSbomSubmitMaskState.success}
-      successMessage={exportAndDownloadSbomSubmitMaskState.successMessage}
-      message={EXPORT_AND_DOWNLOAD_SBOM_SUBMIT_MASK_EXPORTING_MESSAGE}
-    />
-  ) : null;
 
   const exportButtonTooltip =
     sbomMetadata.fileFormat &&
@@ -173,24 +178,22 @@ export default function BillOfMaterials() {
 
   const firstChildButton = isValid ? (
     <button className="nx-dropdown-button" onClick={downloadOriginalSbomFile}>
-      <NxTooltip title={exportOriginalButtonTooltip}>
-        <span>Export Original SBOM</span>
-      </NxTooltip>
+      Export Original SBOM
     </button>
   ) : (
-    <button className="nx-dropdown-button disabled" onClick={downloadLatestSbomFile} disabled={true}>
-      <NxTooltip title={exportButtonTooltip}>
-        <span>Export SBOM</span>
-      </NxTooltip>
-    </button>
+    <NxTooltip title="Export SBOM is disabled due to validation errors.">
+      <button className="nx-dropdown-button disabled" disabled={true}>
+        Export SBOM
+      </button>
+    </NxTooltip>
   );
 
   return (
     <>
       <MenuBarStatefulBreadcrumb />
+      <ExportModalSubmitMask />
+      <SbomAdditionalExportOptionsModal />
       <NxPageMain id="sbom-manager-bom" className="sbom-manager-bill-of-materials-page">
-        {exportAndDownloadSbomSubmitMask}
-        <SbomAdditionalExportOptionsModal />
         <LoadWrapper retryHandler={() => doLoad()} loading={isLoading} error={loadError}>
           {showSbomInvalidAlert && (
             <NxWarningAlert
@@ -228,19 +231,23 @@ export default function BillOfMaterials() {
                 buttonContent={segmentButtonContent}
               >
                 {firstChildButton}
-                <button
-                  className={`nx-dropdown-button ${isValid ? '' : 'disabled'}`}
-                  onClick={showSbomAdditionalExportOptionsModal}
-                  disabled={!isValid}
+                <InvalidSbomTooltipWrapper
+                  isValid={isValid}
+                  text={additionalExportOptionsDisabledDueToValidationErrors}
                 >
-                  <NxTooltip title="Export SBOM with customized options.">
-                    <span>Additional Export Options</span>
-                  </NxTooltip>
-                </button>
-                <NxTextLink className="nx-dropdown-button" href={pdfUrl} disabled={!isValid}>
-                  <NxFontAwesomeIcon icon={faFilePdf} />
-                  <span>Export PDF</span>
-                </NxTextLink>
+                  <button
+                    className={`nx-dropdown-button ${isValid ? '' : 'disabled'}`}
+                    onClick={showSbomAdditionalExportOptionsModal}
+                    disabled={!isValid}
+                  >
+                    Additional Export Options
+                  </button>
+                </InvalidSbomTooltipWrapper>
+                <InvalidSbomTooltipWrapper isValid={isValid} text={exportPDFIsDisabledDueToValidationErrors}>
+                  <NxTextLink className="nx-dropdown-button" href={pdfUrl} disabled={!isValid}>
+                    Export PDF
+                  </NxTextLink>
+                </InvalidSbomTooltipWrapper>
               </NxStatefulSegmentedButton>
             </NxButtonBar>
             <NxPageTitle.Description>

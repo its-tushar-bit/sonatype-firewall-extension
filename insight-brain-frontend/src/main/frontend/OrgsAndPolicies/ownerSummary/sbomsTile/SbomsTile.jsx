@@ -9,37 +9,47 @@ import { faPlus, faEllipsisV } from '@fortawesome/pro-solid-svg-icons';
 import {
   NxButton,
   NxFontAwesomeIcon,
-  NxTile,
   NxH2,
-  NxLoadWrapper,
-  NxTable,
-  NxTooltip,
-  NxSmallThreatCounter,
-  NxPagination,
   NxIconDropdown,
+  NxLoadWrapper,
+  NxPagination,
+  NxSmallThreatCounter,
+  NxTable,
   NxTextLink,
+  NxTile,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import moment from 'moment';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
-import { actions as importSbomActions } from 'MainRoot/OrgsAndPolicies/importSbomModal/importSbomModalSlice';
 import {
-  selectSbomsResults,
-  selectError,
-  selectCurrentPage,
-  selectPageCount,
-  selectVersionForActions,
   selectApplicationId,
-  selectLoading,
-  selectSortDir,
+  selectCurrentPage,
   selectDeleteError,
   selectDeleteMaskState,
+  selectError,
+  selectLoading,
+  selectPageCount,
+  selectSbomsResults,
   selectShowDeleteModal,
+  selectSortDir,
+  selectVersionForActions,
 } from './sbomsTileSelectors.js';
 import { actions } from './sbomsTileSlice.js';
-import { getDownloadSbomFileUrl } from 'MainRoot/util/CLMLocation';
+import { actions as importSbomActions } from 'MainRoot/OrgsAndPolicies/importSbomModal/importSbomModalSlice';
+import { getDownloadSbomFileUrl, getSbomDownloadPdfUrl } from 'MainRoot/util/CLMLocation';
 import DeleteModal from './DeleteModal.jsx';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+
+import { actions as sbomExportActions } from 'MainRoot/sbomManager/features/sbomExport/sbomExportSlice';
+import SbomAdditionalExportOptionsModal from 'MainRoot/sbomManager/features/sbomExport/SbomAdditionalExportOptionsModal';
+import ExportModalSubmitMask from 'MainRoot/sbomManager/features/sbomExport/ExportModalSubmitMask';
+import InvalidSbomIndicator from 'MainRoot/sbomManager/features/InvalidSbomIndicator';
+import InvalidSbomTooltipWrapper from 'MainRoot/sbomManager/features/sbomExport/InvalidSbomTooltipWrapper';
+import {
+  additionalExportOptionsDisabledDueToValidationErrors,
+  exportPDFIsDisabledDueToValidationErrors,
+} from 'MainRoot/sbomManager/features/messages';
 
 export default function SbomsTile() {
   const dispatch = useDispatch();
@@ -49,7 +59,6 @@ export default function SbomsTile() {
   const [selectedSbom, setSelectedSbom] = useState({});
   const sbomTableData = useSelector(selectSbomsResults);
   const sbomTableError = useSelector(selectError);
-  const downloadSbomUrl = getDownloadSbomFileUrl;
   const currentPage = useSelector(selectCurrentPage);
   const pageCount = useSelector(selectPageCount);
   const deleteMaskState = useSelector(selectDeleteMaskState);
@@ -65,6 +74,14 @@ export default function SbomsTile() {
     return !isNilOrEmpty(selectedVersionForActions) && selectedVersionForActions === version;
   };
 
+  const showSbomAdditionalExportOptionsModal = (applicationId, sbomVersion) =>
+    dispatch(
+      sbomExportActions.setShowSbomAdditionalExportOptionsModal({
+        applicationId,
+        sbomVersion,
+      })
+    );
+
   const onDeleteModalClick = (sbom) => {
     dispatch(actions.setShowDeleteModal(true));
     setSelectedSbom(sbom);
@@ -79,62 +96,80 @@ export default function SbomsTile() {
 
   const generateTableBodyRows = () => {
     if (!isNilOrEmpty(sbomTableData)) {
-      return (
-        <>
-          {sbomTableData.map((sbom) => (
-            <NxTable.Row key={sbom.applicationVersion}>
-              <NxTable.Cell>
-                <NxTooltip
-                  title={sbom.applicationVersion}
-                  className="sbom-manager-owner-summary-sboms-tile-table__version-link-tooltip"
+      return sbomTableData.map((sbom) => (
+        <NxTable.Row key={sbom.applicationVersion}>
+          <NxTable.Cell>
+            <NxTooltip
+              title={sbom.applicationVersion}
+              className="sbom-manager-owner-summary-sboms-tile-table__version-link-tooltip"
+            >
+              <NxTextLink
+                className="sbom-manager-owner-summary-sboms-tile-table__version-link"
+                href={uiRouterState.href('sbomManager.management.view.bom', {
+                  applicationPublicId: selectedApplication.publicId,
+                  versionId: sbom.applicationVersion,
+                })}
+              >
+                {sbom.applicationVersion}
+              </NxTextLink>
+            </NxTooltip>
+            {!sbom.isValid && <InvalidSbomIndicator />}
+          </NxTable.Cell>
+          <NxTable.Cell>
+            <NxSmallThreatCounter
+              maxDigits={2}
+              criticalCount={sbom.critical}
+              severeCount={sbom.high}
+              moderateCount={sbom.medium}
+              lowCount={sbom.low}
+            />
+          </NxTable.Cell>
+          <NxTable.Cell>
+            {sbom.spec} {sbom.specVersion}
+          </NxTable.Cell>
+          <NxTable.Cell>{moment(sbom.importDate).format('YYYY-MM-DD HH:mm:ss')}</NxTable.Cell>
+          <NxTable.Cell>
+            <NxIconDropdown
+              isOpen={isActionsOpen(sbom.applicationVersion)}
+              onToggleCollapse={() => onActionsToggleCollapse(sbom.applicationVersion)}
+              icon={faEllipsisV}
+              title="Options"
+              aria-label={sbom.applicationVersion + '-options'}
+            >
+              <button
+                onClick={() => window.open(getDownloadSbomFileUrl(applicationId, sbom.applicationVersion), '_blank')}
+                className="nx-dropdown-button"
+              >
+                Export Original SBOM
+              </button>
+              <InvalidSbomTooltipWrapper
+                isValid={sbom.isValid}
+                text={additionalExportOptionsDisabledDueToValidationErrors}
+              >
+                <button
+                  onClick={() => showSbomAdditionalExportOptionsModal(applicationId, sbom.applicationVersion)}
+                  className={`nx-dropdown-button${sbom.isValid ? '' : ' disabled'}`}
+                  disabled={!sbom.isValid}
                 >
-                  <NxTextLink
-                    className="sbom-manager-owner-summary-sboms-tile-table__version-link"
-                    href={uiRouterState.href('sbomManager.management.view.bom', {
-                      applicationPublicId: selectedApplication.publicId,
-                      versionId: sbom.applicationVersion,
-                    })}
-                  >
-                    {sbom.applicationVersion}
-                  </NxTextLink>
-                </NxTooltip>
-              </NxTable.Cell>
-              <NxTable.Cell>
-                <NxSmallThreatCounter
-                  maxDigits={2}
-                  criticalCount={sbom.critical}
-                  severeCount={sbom.high}
-                  moderateCount={sbom.medium}
-                  lowCount={sbom.low}
-                />
-              </NxTable.Cell>
-              <NxTable.Cell>
-                {sbom.spec} {sbom.specVersion}
-              </NxTable.Cell>
-              <NxTable.Cell>{moment(sbom.importDate).format('YYYY-MM-DD HH:mm:ss')}</NxTable.Cell>
-              <NxTable.Cell>
-                <NxIconDropdown
-                  isOpen={isActionsOpen(sbom.applicationVersion)}
-                  onToggleCollapse={() => onActionsToggleCollapse(sbom.applicationVersion)}
-                  icon={faEllipsisV}
-                  title="Options"
-                  aria-label={sbom.applicationVersion + '-options'}
+                  Additional Export Options
+                </button>
+              </InvalidSbomTooltipWrapper>
+              <InvalidSbomTooltipWrapper isValid={sbom.isValid} text={exportPDFIsDisabledDueToValidationErrors}>
+                <NxTextLink
+                  className="nx-dropdown-button"
+                  href={getSbomDownloadPdfUrl(applicationId, sbom.applicationVersion)}
+                  disabled={!sbom.isValid}
                 >
-                  <button
-                    onClick={() => window.open(downloadSbomUrl(applicationId, sbom.applicationVersion), '_blank')}
-                    className="nx-dropdown-button"
-                  >
-                    Download SBOM report
-                  </button>
-                  <button onClick={() => onDeleteModalClick(sbom)} className="nx-dropdown-button delete-sbom">
-                    Delete SBOM
-                  </button>
-                </NxIconDropdown>
-              </NxTable.Cell>
-            </NxTable.Row>
-          ))}
-        </>
-      );
+                  Export PDF
+                </NxTextLink>
+              </InvalidSbomTooltipWrapper>
+              <button onClick={() => onDeleteModalClick(sbom)} className="nx-dropdown-button delete-sbom">
+                Delete SBOM
+              </button>
+            </NxIconDropdown>
+          </NxTable.Cell>
+        </NxTable.Row>
+      ));
     }
   };
 
@@ -156,6 +191,8 @@ export default function SbomsTile() {
 
   return (
     <NxTile id="owner-pill-sboms">
+      <ExportModalSubmitMask />
+      <SbomAdditionalExportOptionsModal />
       <NxLoadWrapper retryHandler={() => {}}>
         <NxTile.Header>
           <NxTile.Headings>

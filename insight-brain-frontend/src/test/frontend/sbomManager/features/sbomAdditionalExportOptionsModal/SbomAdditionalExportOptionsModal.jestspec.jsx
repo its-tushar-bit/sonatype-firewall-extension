@@ -6,37 +6,37 @@
 import React from 'react';
 import { assocPath } from 'ramda';
 
-import { fireEvent, render, screen } from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, fireEvent, render, screen } from 'TestRoot/SpecUtil';
 
-import SbomAdditionalExportOptionsModal from 'MainRoot/sbomManager/features/billOfMaterials/sbomAdditionalExportOptionsModal/SbomAdditionalExportOptionsModal';
+import SbomAdditionalExportOptionsModal from 'MainRoot/sbomManager/features/sbomExport/SbomAdditionalExportOptionsModal';
 import {
   EXPORT_SBOM_SPECIFICATION,
   EXPORT_SBOM_FILE_FORMAT,
   exportAndDownloadSbomSubmitMaskInitialState,
   sbomAdditionalExportOptionsModalInitialState,
-} from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
+} from 'MainRoot/sbomManager/features/sbomExport/sbomExportSlice';
+import { getDownloadSbomFileUrl } from 'MainRoot/util/CLMLocation';
 
 describe('SbomAdditionalExportOptionsModal', () => {
-  const APPLICATION_PUBLIC_ID = 'APPLICATION-PUBLIC-ID';
+  const APPLICATION_INTERNAL_ID = 'APPLICATION-INTERNAL-ID';
   const SBOM_VERSION = 'SBOM-VERSION';
 
   const initialState = Object.freeze({
-    router: {
-      currentParams: {
-        applicationPublicId: APPLICATION_PUBLIC_ID,
-        versionId: SBOM_VERSION,
-      },
-    },
-    billOfMaterialsPage: {
-      sbomAdditionalExportOptionsModal: {
-        ...sbomAdditionalExportOptionsModalInitialState,
-        showModal: true,
-      },
+    sbomExport: {
+      ...sbomAdditionalExportOptionsModalInitialState,
+      showModal: true,
+      applicationId: APPLICATION_INTERNAL_ID,
+      sbomVersion: SBOM_VERSION,
       exportAndDownloadSbomSubmitMask: { ...exportAndDownloadSbomSubmitMaskInitialState },
     },
   });
 
   const renderComponent = (state) => render(<SbomAdditionalExportOptionsModal />, { preloadedState: { ...state } });
+
+  let axiosMock;
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+  });
 
   it('should render the correct content', () => {
     renderComponent(initialState);
@@ -57,9 +57,46 @@ describe('SbomAdditionalExportOptionsModal', () => {
     expect(screen.getByRole('button', { name: /Export SBOM/ })).toBeVisible();
   });
 
+  it('downloads an SBOM from the additional export options modal with the default settings', async () => {
+    const downloadSbomFileUrl = getDownloadSbomFileUrl(
+      APPLICATION_INTERNAL_ID,
+      SBOM_VERSION,
+      'current',
+      'cyclonedx1.6'
+    );
+    axiosMock.onGet(downloadSbomFileUrl).reply(200, {});
+
+    renderComponent(initialState);
+    expect(screen.getByText(/Additional Export Options/)).toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: /Export SBOM/ }));
+    expect(axiosMock.history.get[0].url).toBe(downloadSbomFileUrl);
+    expect(axiosMock.history.get[0].headers).toHaveProperty('Accept', 'application/json');
+  });
+
+  it('downloads an SBOM from the additional export options modal ', async () => {
+    const downloadSbomFileUrl = getDownloadSbomFileUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION, 'current', 'spdx2.3');
+    axiosMock.onGet(downloadSbomFileUrl).reply(200, {});
+
+    renderComponent(initialState);
+    expect(screen.getByText(/Additional Export Options/)).toBeVisible();
+
+    const spdxRadio = screen.getByLabelText(/SPDX/);
+    fireEvent.click(spdxRadio);
+    expect(spdxRadio).toBeChecked();
+
+    const xmlRadio = screen.getByLabelText(/XML/);
+    fireEvent.click(xmlRadio);
+    expect(xmlRadio).toBeChecked();
+
+    fireEvent.click(screen.getByRole('button', { name: /Export SBOM/ }));
+    expect(axiosMock.history.get[0].url).toBe(downloadSbomFileUrl);
+    expect(axiosMock.history.get[0].headers).toHaveProperty('Accept', 'application/xml');
+  });
+
   it('render the correct radios state', () => {
     const preloadedState = assocPath(
-      ['billOfMaterialsPage', 'sbomAdditionalExportOptionsModal'],
+      ['sbomExport'],
       {
         showModal: true,
         sbomSpecification: EXPORT_SBOM_SPECIFICATION.spdx,

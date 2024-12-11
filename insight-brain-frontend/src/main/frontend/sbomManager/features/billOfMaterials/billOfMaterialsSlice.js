@@ -5,41 +5,15 @@
  */
 import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import {
-  __,
-  always,
-  complement,
-  compose,
-  gt,
-  ifElse,
-  includes,
-  isNil,
-  length,
-  match,
-  nth,
-  omit,
-  pick,
-  pickBy,
-  prop,
-  replace,
-  trim,
-  values,
-} from 'ramda';
-import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
+import { always, complement, compose, isNil, omit, pick, pickBy, prop } from 'ramda';
 
 import {
   getApplicationSummaryUrl,
   getAllApplicationSbomVersions,
   getSbomMetadataUrl,
   getSbomSummaryUrl,
-  getDownloadSbomFileUrl,
 } from 'MainRoot/util/CLMLocation';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
-
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectBillOfMaterialsPage } from './billOfMaterialsSelectors';
-
-import { actions as toastActions } from 'MainRoot/toastContainer/toastSlice';
 import { propSet } from 'MainRoot/util/jsUtil';
 
 const REDUCER_NAME = 'billOfMaterialsPage';
@@ -79,45 +53,6 @@ export const policyViolationSummaryInitialState = Object.freeze({
   low: 0,
 });
 
-// export-and-download-sbom
-const DEFAULT_SBOM_FILENAME = 'exported_sbom';
-
-const extractFileNameFromResponseDisposition = (disposition, defaultFileName) =>
-  compose(ifElse(compose(gt(__, 1), length), nth(1), always(defaultFileName)), match(/filename="(.+)"/))(disposition);
-
-// export-and-download-submit-mask
-export const EXPORT_AND_DOWNLOAD_SBOM_SUBMIT_MASK_SUCCESS_MESSAGE = 'SBOM export completed successfully!';
-const EXPORT_AND_DOWNLOAD_SBOM_SUBMIT_MASK_ERROR_MESSAGE = 'SBOM export failed.';
-export const EXPORT_AND_DOWNLOAD_SBOM_SUBMIT_MASK_EXPORTING_MESSAGE = 'SBOM export in progress...';
-
-export const exportAndDownloadSbomSubmitMaskInitialState = Object.freeze({
-  showSubmitMask: false,
-  success: false,
-  successMessage: null,
-});
-
-// sbom-additional-export-options-modal
-export const EXPORT_SBOM_FILE_FORMAT = Object.freeze({
-  json: 'application/json',
-  xml: 'application/xml',
-});
-
-export const EXPORT_SBOM_SPECIFICATION = Object.freeze({
-  cyclonedx: 'cyclonedx1.6',
-  spdx: 'spdx2.3',
-});
-
-export const EXPORT_SBOM_STATE = Object.freeze({
-  original: 'original',
-  current: 'current',
-});
-
-export const sbomAdditionalExportOptionsModalInitialState = Object.freeze({
-  showModal: false,
-  sbomSpecification: EXPORT_SBOM_SPECIFICATION.cyclonedx,
-  sbomFileFormat: EXPORT_SBOM_FILE_FORMAT.json,
-});
-
 export const initialState = Object.freeze({
   publicAppId: null,
 
@@ -146,10 +81,6 @@ export const initialState = Object.freeze({
   policyViolationSummary: { ...policyViolationSummaryInitialState },
   annotatedVulnerabilitesPercentage: null,
   validationErrorAlertDismissed: false,
-
-  // sbom-additional-export-options-modal
-  sbomAdditionalExportOptionsModal: { ...sbomAdditionalExportOptionsModalInitialState },
-  exportAndDownloadSbomSubmitMask: { ...exportAndDownloadSbomSubmitMaskInitialState },
 });
 
 // internal-application-id
@@ -290,111 +221,7 @@ const loadSbomSummary = createAsyncThunk(
       .catch((err) => rejectWithValue(err))
 );
 
-// sbom-additional-export-options-modal
-const setShowSbomAdditionalExportOptionsModal = (state, { payload }) => {
-  state.sbomAdditionalExportOptionsModal.showModal = payload;
-};
-
-const setExportSbomSpecification = (state, { payload }) => {
-  if (includes(payload, values(EXPORT_SBOM_SPECIFICATION))) {
-    state.sbomAdditionalExportOptionsModal.sbomSpecification = payload;
-  }
-};
-
-const setExportSbomFileFormat = (state, { payload }) => {
-  if (includes(payload, values(EXPORT_SBOM_FILE_FORMAT))) {
-    state.sbomAdditionalExportOptionsModal.sbomFileFormat = payload;
-  }
-};
-
 const dismissSbomInvalidAlert = propSet('validationErrorAlertDismissed', true);
-
-// export-and-download-sbom
-const exportAndDownloadSbomRequested = (state) => {
-  state.sbomAdditionalExportOptionsModal.showModal = false;
-  state.exportAndDownloadSbomSubmitMask.showSubmitMask = true;
-};
-
-const exportAndDownloadSbomFailed = (state) => {
-  state.sbomAdditionalExportOptionsModal = { ...sbomAdditionalExportOptionsModalInitialState };
-  state.exportAndDownloadSbomSubmitMask = { ...exportAndDownloadSbomSubmitMaskInitialState };
-};
-
-const exportAndDownloadSbomFulfilled = (state) => {
-  state.sbomAdditionalExportOptionsModal = { ...sbomAdditionalExportOptionsModalInitialState };
-
-  state.exportAndDownloadSbomSubmitMask.showSubmitMask = true;
-  state.exportAndDownloadSbomSubmitMask.success = true;
-  state.exportAndDownloadSbomSubmitMask.successMessage = EXPORT_AND_DOWNLOAD_SBOM_SUBMIT_MASK_SUCCESS_MESSAGE;
-};
-
-const exportAndDownloadSbomSubmitMaskTimerDone = (state) => {
-  state.exportAndDownloadSbomSubmitMask = { ...exportAndDownloadSbomSubmitMaskInitialState };
-};
-
-const startExportAndDownloadSbomSubmitMaskSuccessTimer = (dispatch) => {
-  setTimeout(() => dispatch(actions.exportAndDownloadSbomSubmitMaskTimerDone()), SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-};
-
-const getErrorMessageFromResponseBlob = async (error) => {
-  try {
-    return await error.response.data.text();
-  } catch {
-    return '';
-  }
-};
-
-const exportAndDownloadSbom = createAsyncThunk(
-  `${REDUCER_NAME}/exportAndDownloadSbom`,
-  async (options = {}, { getState, dispatch, rejectWithValue }) => {
-    const state = getState();
-
-    const {
-      internalAppId,
-      sbomAdditionalExportOptionsModal: { sbomFileFormat, sbomSpecification },
-    } = selectBillOfMaterialsPage(state);
-    const { versionId: sbomVersion } = selectRouterCurrentParams(state);
-
-    const headersAccept = options.fileFormat || sbomFileFormat;
-    return axios({
-      headers: {
-        Accept: headersAccept,
-      },
-      url: getDownloadSbomFileUrl(
-        internalAppId,
-        sbomVersion,
-        options.state,
-        options.specification || sbomSpecification
-      ),
-      method: 'GET',
-      responseType: 'blob',
-    })
-      .then((response) => {
-        const fileExtension = replace('application/', '', headersAccept);
-        const defaultFileName = DEFAULT_SBOM_FILENAME + '_' + Date.now() + '.' + fileExtension;
-        const disposition = response?.headers?.get('Content-Disposition') || '';
-        const fileName = extractFileNameFromResponseDisposition(disposition, defaultFileName);
-
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', fileName);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-
-        startExportAndDownloadSbomSubmitMaskSuccessTimer(dispatch);
-      })
-      .catch(async (error) => {
-        const errorMessage = trim(
-          EXPORT_AND_DOWNLOAD_SBOM_SUBMIT_MASK_ERROR_MESSAGE + ' ' + (await getErrorMessageFromResponseBlob(error))
-        );
-        dispatch(toastActions.addToast({ type: 'error', message: errorMessage }));
-        return rejectWithValue(errorMessage);
-      });
-  }
-);
 
 const billsOfMaterialsPageSlice = createSlice({
   name: REDUCER_NAME,
@@ -403,10 +230,6 @@ const billsOfMaterialsPageSlice = createSlice({
     setPublicAppId: (state, { payload }) => {
       state.publicAppId = payload;
     },
-    setShowSbomAdditionalExportOptionsModal,
-    setExportSbomSpecification,
-    setExportSbomFileFormat,
-    exportAndDownloadSbomSubmitMaskTimerDone,
     dismissSbomInvalidAlert,
   },
   extraReducers: {
@@ -422,9 +245,6 @@ const billsOfMaterialsPageSlice = createSlice({
     [loadSbomSummary.pending]: loadSbomSummaryRequested,
     [loadSbomSummary.fulfilled]: loadSbomSummaryFulfilled,
     [loadSbomSummary.rejected]: loadSbomSummaryFailed,
-    [exportAndDownloadSbom.pending]: exportAndDownloadSbomRequested,
-    [exportAndDownloadSbom.fulfilled]: exportAndDownloadSbomFulfilled,
-    [exportAndDownloadSbom.rejected]: exportAndDownloadSbomFailed,
     [UI_ROUTER_ON_FINISH]: always(initialState),
   },
 });
@@ -435,7 +255,6 @@ export const actions = {
   loadApplicationSbomVersions,
   loadSbomMetadata,
   loadSbomSummary,
-  exportAndDownloadSbom,
 };
 
 export default billsOfMaterialsPageSlice.reducer;

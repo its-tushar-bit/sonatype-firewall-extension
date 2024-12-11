@@ -7,7 +7,7 @@ import React from 'react';
 import { axiosMockAdapter, render, screen, waitFor, fireEvent, within } from 'TestRoot/SpecUtil';
 import SbomsTile from 'MainRoot/OrgsAndPolicies/ownerSummary/sbomsTile/SbomsTile.jsx';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
-import { getSbomsByApplicationUrl } from 'MainRoot/util/CLMLocation';
+import { getDownloadSbomFileUrl, getSbomsByApplicationUrl } from 'MainRoot/util/CLMLocation';
 import moment from 'moment';
 
 describe('SbomsTile', () => {
@@ -18,7 +18,6 @@ describe('SbomsTile', () => {
 
   beforeAll(() => {
     axiosMock = axiosMockAdapter();
-
     initialState = {
       orgsAndPolicies: {
         root: {
@@ -107,7 +106,8 @@ describe('SbomsTile', () => {
         totalResultsCount: 0,
       });
       renderComponent(initialState);
-      // The table has its own loader spinner so we have to assert that it is gone before we can start querying the table's content
+      // The table has its own loader spinner so we have to assert that it is gone before we can start querying the
+      // table's content
       await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
       const tableRows = await screen.findAllByRole('row');
       const firstRow = tableRows[1];
@@ -123,6 +123,60 @@ describe('SbomsTile', () => {
       expect(rowCells[1]).toHaveTextContent('Critical499+Severe399+Moderate299+Low199+');
       expect(rowCells[2]).toHaveTextContent('SPDX 2.1');
       expect(rowCells[3]).toHaveTextContent(importDate);
+    });
+
+    it('only renders the SBOM InvalidSbomIndicator on an invalid row', async () => {
+      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 10, 1)).reply(200, {
+        applicationId: applicationId,
+        results: [
+          {
+            applicationVersion: 'app123',
+            spec: 'SPDX',
+            specVersion: '2.1',
+            importDate: '2020-02-01T12:00:00.000+00:00',
+            none: 0,
+            low: 1,
+            medium: 2,
+            high: 3,
+            critical: 4,
+            isValid: true,
+          },
+          {
+            applicationVersion: 'app456',
+            spec: 'SPDX',
+            specVersion: '2.1',
+            importDate: '2020-01-01T12:00:00.000+00:00',
+            none: 0,
+            low: 1,
+            medium: 2,
+            high: 3,
+            critical: 4,
+            isValid: false,
+          },
+        ],
+        totalResultsCount: 0,
+      });
+      renderComponent(initialState);
+      // The table has its own loader spinner so we have to assert that it is gone before we can start querying the
+      // table's content
+      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
+      const tableRows = await screen.findAllByRole('row');
+
+      const firstRowCells = within(tableRows[1]).getAllByRole('cell');
+      expect(firstRowCells[0]).toHaveTextContent('app123');
+      expect(
+        within(firstRowCells[0]).queryByRole('img', {
+          name: 'This SBOM has validation errors which may result in partial or incorrect information.',
+        })
+      ).not.toBeInTheDocument();
+
+      const secondRowCells = within(tableRows[2]).getAllByRole('cell');
+      expect(secondRowCells[0]).toHaveTextContent('app456');
+      expect(
+        within(secondRowCells[0]).getByRole('img', {
+          name: 'This SBOM has validation errors which may result in partial or incorrect information.',
+        })
+      ).toBeInTheDocument();
     });
 
     it('sorts SBOMs by Import Date', async () => {
@@ -196,7 +250,7 @@ describe('SbomsTile', () => {
       expect(rowCells[0]).toHaveTextContent('newest.version');
     });
 
-    it("renders SBOM row's dropdown correctly", async () => {
+    it("renders SBOM row's dropdown correctly for a valid SBOM", async () => {
       axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 10, 1)).reply(200, {
         applicationId: applicationId,
         results: [
@@ -210,9 +264,10 @@ describe('SbomsTile', () => {
             medium: 2,
             high: 3,
             critical: 4,
+            isValid: true,
           },
         ],
-        totalResultsCount: 0,
+        totalResultsCount: 1,
       });
       renderComponent(initialState);
       await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
@@ -220,8 +275,134 @@ describe('SbomsTile', () => {
       const firstRow = tableRows[1];
       const dropdown = within(firstRow).getByRole('button');
       fireEvent.click(dropdown);
-      expect(screen.getByRole('button', { name: 'Download SBOM report' })).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Export Original SBOM' })).toBeVisible();
+      const additionalExportOptionsBtn = screen.getByRole('button', { name: 'Additional Export Options' });
+      expect(additionalExportOptionsBtn).toBeVisible();
+      expect(additionalExportOptionsBtn).toBeEnabled();
+      const exportPdfLink = screen.getByRole('link', { name: 'Export PDF' });
+      expect(exportPdfLink).toBeVisible();
+      expect(exportPdfLink).toBeEnabled();
+      expect(exportPdfLink.getAttribute('href')).toBe(`/rest/report/abc123/sbom/app123/printReport`);
       expect(screen.getByRole('button', { name: 'Delete SBOM' })).toBeVisible();
+    });
+
+    it("renders SBOM row's dropdown correctly for a invalid SBOM", async () => {
+      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 10, 1)).reply(200, {
+        applicationId: applicationId,
+        results: [
+          {
+            applicationVersion: 'app123',
+            spec: 'SPDX',
+            specVersion: '2.1',
+            importDate: '2020-01-01T12:00:00.000+00:00',
+            none: 0,
+            low: 1,
+            medium: 2,
+            high: 3,
+            critical: 4,
+            isValid: false,
+          },
+        ],
+        totalResultsCount: 1,
+      });
+      renderComponent(initialState);
+      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
+      const tableRows = await screen.findAllByRole('row');
+      const firstRow = tableRows[1];
+      let dropdown = within(firstRow).getByRole('button');
+      fireEvent.click(dropdown);
+
+      expect(screen.getByRole('button', { name: 'Export Original SBOM' })).toBeVisible();
+      const additionalExportOptionsBtn = screen.getByRole('button', { name: 'Additional Export Options' });
+      expect(additionalExportOptionsBtn).toBeVisible();
+      expect(additionalExportOptionsBtn).toHaveClass('disabled');
+
+      const exportPdfLink = screen.getByRole('link', { name: 'Export PDF' });
+      expect(exportPdfLink).toBeVisible();
+      expect(exportPdfLink).toHaveClass('disabled');
+      expect(exportPdfLink.getAttribute('href')).toBe(null);
+
+      fireEvent.mouseOver(additionalExportOptionsBtn);
+      const tooltip = await screen.findByRole('tooltip');
+      expect(tooltip).toHaveTextContent('Additional Export Options disabled due to validation errors.');
+
+      fireEvent.mouseOver(exportPdfLink);
+      await waitFor(() => expect(screen.queryByText('Export PDF is disabled due to validation errors.')).toBeVisible());
+
+      expect(screen.getByRole('button', { name: 'Delete SBOM' })).toBeVisible();
+    });
+
+    describe('when the additional export options modal is used with a valid SBOM', () => {
+      beforeEach(() => {
+        global.URL.createObjectURL = jest.fn(() => 'fakeResponseUrl');
+        global.URL.revokeObjectURL = jest.fn();
+      });
+
+      it('downloads an SBOM', async () => {
+        const downloadSbomFileUrl = getDownloadSbomFileUrl(applicationId, 'app123', 'current', 'cyclonedx1.6');
+        let resolveFn = null;
+        axiosMock.onGet(downloadSbomFileUrl).reply(
+          () =>
+            new Promise((resolve) => {
+              resolveFn = resolve;
+            })
+        );
+        axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 10, 1)).reply(200, {
+          applicationId: applicationId,
+          results: [
+            {
+              applicationVersion: 'app123',
+              spec: 'SPDX',
+              specVersion: '2.1',
+              importDate: '2020-01-01T12:00:00.000+00:00',
+              none: 0,
+              low: 1,
+              medium: 2,
+              high: 3,
+              critical: 4,
+              isValid: true,
+            },
+          ],
+          totalResultsCount: 1,
+        });
+
+        renderComponent(initialState);
+        await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
+        const tableRows = await screen.findAllByRole('row');
+        const dropdown = within(tableRows[1]).getByRole('button');
+        fireEvent.click(dropdown);
+        fireEvent.click(screen.getByRole('button', { name: 'Additional Export Options' }));
+
+        expect(screen.getByText(/Additional Export Options/)).toBeVisible();
+
+        expect(screen.getByText(/SBOM Specification/)).toBeVisible();
+        expect(screen.getByLabelText(/Cyclone DX/)).toBeVisible();
+        expect(screen.getByLabelText(/Cyclone DX/)).toBeChecked();
+        expect(screen.getByLabelText(/SPDX/)).toBeVisible();
+
+        expect(screen.getByText(/SBOM Format/)).toBeVisible();
+        expect(screen.getByLabelText(/JSON/)).toBeVisible();
+        expect(screen.getByLabelText(/JSON/)).toBeChecked();
+        expect(screen.getByLabelText(/XML/)).toBeVisible();
+
+        expect(screen.getByRole('button', { name: /Cancel/ })).toBeVisible();
+
+        fireEvent.click(screen.getByRole('button', { name: /Export SBOM/ }));
+        expect(screen.getByText(/SBOM export in progress…/)).toBeVisible();
+
+        resolveFn([200, { data: {} }]);
+        await waitFor(() => expect(screen.queryByText('SBOM export completed successfully!')).toBeVisible());
+
+        expect(axiosMock.history.get[1].url).toBe(downloadSbomFileUrl);
+        expect(axiosMock.history.get[0].headers).toHaveProperty('Accept', 'application/json, text/plain, */*');
+        expect(global.URL.createObjectURL).toHaveBeenCalledTimes(1);
+        expect(global.URL.revokeObjectURL).toHaveBeenCalledTimes(1);
+      });
+
+      afterEach(() => {
+        delete global.URL.createObjectURL;
+        delete global.URL.revokeObjectURL;
+      });
     });
 
     it('renders the correct amount of rows', async () => {

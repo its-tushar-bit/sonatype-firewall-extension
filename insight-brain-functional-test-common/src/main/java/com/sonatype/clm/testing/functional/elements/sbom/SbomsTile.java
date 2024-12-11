@@ -59,6 +59,10 @@ public class SbomsTile
     return $$(".nx-table .nx-table-row");
   }
 
+  public SelenideElement getRowInvalidSbomIndicatorFromRow(int row) {
+    return tableRows().get(row).$(".sbom-manager-invalid-sbom-indicator");
+  }
+
   public ElementsCollection actionsSbomOptions() {
     return $$(".nx-dropdown-menu .nx-dropdown-button");
   }

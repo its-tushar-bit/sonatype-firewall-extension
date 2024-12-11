@@ -244,6 +244,7 @@ describe('BillOfMaterials Page', () => {
   });
 
   it('renders correct export options for an invalid SBOM', async () => {
+    const user = userEvent.setup();
     axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
     axiosMock
       .onGet(getAllApplicationSbomVersions(APPLICATION_INTERNAL_ID))
@@ -265,17 +266,29 @@ describe('BillOfMaterials Page', () => {
     expect(exportOriginalButton).toBeVisible();
     expect(exportOriginalButton).not.toBeDisabled();
     const exportDropdown = screen.getByRole('button', { name: 'more options' });
-    fireEvent.click(exportDropdown);
+    await user.click(exportDropdown);
+
     const exportButton = screen.getByRole('button', { name: 'Export SBOM' });
     expect(exportButton).toBeVisible();
     expect(exportButton).toBeDisabled();
+
     const additionalExportOptionsButton = screen.getByRole('button', { name: 'Additional Export Options' });
     expect(additionalExportOptionsButton).toBeVisible();
     expect(additionalExportOptionsButton).toBeDisabled();
+
     const exportPdfLink = screen.getByRole('link', { name: 'Export PDF' });
     expect(exportPdfLink).toBeVisible();
     expect(exportPdfLink).toHaveClass('disabled');
     expect(exportPdfLink.getAttribute('href')).toBeNull();
+
+    await user.hover(additionalExportOptionsButton);
+    let tooltip = await screen.findByRole('tooltip');
+    expect(tooltip).toHaveTextContent('Additional Export Options disabled due to validation errors.');
+    await user.unhover(additionalExportOptionsButton);
+
+    await user.hover(exportPdfLink);
+    tooltip = await screen.findByRole('tooltip');
+    expect(tooltip).toHaveTextContent('Export PDF is disabled due to validation errors.');
   });
 
   it('renders SummaryTile values correctly', async () => {

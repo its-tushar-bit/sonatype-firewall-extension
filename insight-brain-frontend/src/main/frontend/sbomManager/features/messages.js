@@ -6,3 +6,8 @@
 
 export const invalidSbomMessageDetails =
   'This SBOM has validation errors which may result in partial or incorrect information.';
+
+export const exportPDFIsDisabledDueToValidationErrors = 'Export PDF is disabled due to validation errors.';
+
+export const additionalExportOptionsDisabledDueToValidationErrors =
+  'Additional Export Options disabled due to validation errors.';

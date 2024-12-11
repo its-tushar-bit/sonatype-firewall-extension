@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -15,7 +16,6 @@ import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -39,6 +39,7 @@ import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.uuid;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.DIRECT;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.TRANSITIVE;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.UNSPECIFIED;
@@ -53,6 +54,8 @@ public class ThirdPartyFileCoordinateDAOTest
 
   private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
+  private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
   private ThirdPartyFileCoordinate fileCoordinate;
 
   private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
@@ -65,6 +68,7 @@ public class ThirdPartyFileCoordinateDAOTest
     super.setup();
     thirdPartyCoordinateSecurityDAO = daoFactory.createThirdPartyCoordinateSecurityDAO();
     thirdPartyFileCoordinateDAO = daoFactory.createThirdPartyFileCoordinateDAO();
+    thirdPartySbomMetadataDAO = daoFactory.createThirdPartySbomMetadataDAO();
     thirdPartyCoordinateLicenseDAO = daoFactory.createThirdPartyCoordinateLicenseDAO();
     fileCoordinate = tempEntity.newThirdPartyFileCoordinate();
     thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
@@ -219,7 +223,7 @@ public class ThirdPartyFileCoordinateDAOTest
 
   @Test
   public void testGetByScanId() {
-    String scanId = TemporaryEntity.uuid();
+    String scanId = uuid();
     String hash = tempEntity.newRandomHash();
     createThirdPartyScans(scanId, hash);
 
@@ -289,8 +293,11 @@ public class ThirdPartyFileCoordinateDAOTest
     ThirdPartySbomMetadata sbom1 =
         tempEntity.newThirdPartySbomMetadata(file1.getId(), application.getId(), ACTIVE, file1.getFilename());
     ThirdPartySbomMetadata sbom2 =
-        tempEntity.newThirdPartySbomMetadata(file2.getId(), application.getId(), ACTIVE, file2.getFilename());
+        tempEntity.newThirdPartySbomMetadata(file2.getId(), application.getId(), uuid().substring(0, 10), ACTIVE,
+            file2.getFilename(), "SPDX", "JSON", "1.5", new Date(), false);
+
     tempEntity.newThirdPartySbomMetadata(file3.getId(), application.getId(), PENDING, file3.getFilename());
+
 
     ThirdPartyFileCoordinate c1 = tempEntity.newThirdPartyFileCoordinate(file1, "s1", "f1", "n1", "v1");
     ThirdPartyFileCoordinate c2 = tempEntity.newThirdPartyFileCoordinate(file2, "s2", "f2", "n2", "v2");
@@ -333,6 +340,7 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(dto.getImportDate().toInstant()).isEqualTo(sbom2.getCreatedAt().toInstant());
     assertThat(dto.getSpec()).isEqualTo(sbom2.getSpec());
     assertThat(dto.getSpecVersion()).isEqualTo(sbom2.getSpecVersion());
+    assertThat(dto.getIsValid()).isEqualTo(false);
     assertThat(dto.getLow()).isEqualTo(2);
     assertThat(dto.getMedium()).isEqualTo(1);
     assertThat(dto.getNone()).isEqualTo(1);
@@ -349,8 +357,48 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(dto.getImportDate().toInstant()).isEqualTo(sbom1.getCreatedAt().toInstant());
     assertThat(dto.getSpec()).isEqualTo(sbom1.getSpec());
     assertThat(dto.getSpecVersion()).isEqualTo(sbom1.getSpecVersion());
+    assertThat(dto.getIsValid()).isEqualTo(true);
     assertThat(dto.getLow()).isEqualTo(1);
     assertThat(dto.getHigh()).isEqualTo(1);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomApplicationVulnerabilities_nullIsValid() {
+    Organization organization1 = tempEntity.newOrganization("org1");
+    Application application = tempEntity.newApplication(organization1.getId());
+    ThirdPartyFile file1 = tempEntity.newThirdPartyFile("CycloneDX-bom.xml");
+
+    ThirdPartySbomMetadata sbomNullIsValid = new ThirdPartySbomMetadata();
+    sbomNullIsValid.setSerialNumber(uuid().substring(0, 10));
+    sbomNullIsValid.setSpec("CycloneDx");
+    sbomNullIsValid.setSpecFormat("XML");
+    sbomNullIsValid.setSpecVersion("1.5");
+    sbomNullIsValid.setStatus(ACTIVE);
+    sbomNullIsValid.setSbomVersion(uuid().substring(0, 10));
+    sbomNullIsValid.setApplicationId(application.getId());
+    sbomNullIsValid.setFilename("file.json");
+    sbomNullIsValid.setThirdPartyFileId(file1.getId());
+    sbomNullIsValid.setCreatedAt(new Date());
+    sbomNullIsValid.setScanType("SBOM");
+
+    try {
+      thirdPartySbomMetadataDAO.insert(sbomNullIsValid);
+
+      ThirdPartySbomMetadataSummaryListDTO result =
+          thirdPartyFileCoordinateDAO.getSbomApplicationVulnerabilities(application.getId(), "asc", 5, 1);
+
+      assertThat(result).isNotNull();
+      assertThat(result.getTotalResultsCount()).isEqualTo(1);
+      List<ThirdPartySbomMetadataSummaryDTO> results = result.getResults();
+
+      ThirdPartySbomMetadataSummaryDTO dto = results.get(0);
+      assertThat(dto.getApplicationVersion()).isEqualTo(sbomNullIsValid.getSbomVersion());
+      assertThat(dto.getIsValid()).isEqualTo(true);
+    }
+    finally {
+      thirdPartySbomMetadataDAO.delete(sbomNullIsValid);
+    }
   }
 
   @Test
@@ -1386,7 +1434,7 @@ public class ThirdPartyFileCoordinateDAOTest
   private List<ThirdPartyFileCoordinate> createThirdPartyScans(String scanId, String hash) {
     List<ThirdPartyFileCoordinate> fileCoordinateList = new ArrayList<>();
 
-    String scanRequestId = TemporaryEntity.uuid();
+    String scanRequestId = uuid();
 
     ThirdPartyFileCoordinate fileCoordinate1 = new ThirdPartyFileCoordinate(hash, "s1", "f1", "n1", "v1", null);
     newThirdPartyScan(scanId, scanRequestId, fileCoordinate1);

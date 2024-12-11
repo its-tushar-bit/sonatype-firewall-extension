@@ -6,22 +6,14 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { NxButton, NxFooter, NxH2, NxModal, NxFieldset, NxRadio } from '@sonatype/react-shared-components';
-
-import { selectBillOfMaterialsPage } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSelectors';
-import {
-  actions,
-  EXPORT_SBOM_FILE_FORMAT,
-  EXPORT_SBOM_SPECIFICATION,
-  EXPORT_SBOM_STATE,
-} from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
+import { actions, EXPORT_SBOM_FILE_FORMAT, EXPORT_SBOM_SPECIFICATION, EXPORT_SBOM_STATE } from './sbomExportSlice';
+import { selectSbomExportSlice } from './sbomExportSelectors';
 
 export default function SbomAdditionalExportOptionsModal() {
   const dispatch = useDispatch();
-  const {
-    sbomAdditionalExportOptionsModal: { showModal, sbomSpecification, sbomFileFormat },
-  } = useSelector(selectBillOfMaterialsPage);
+  const { showModal, sbomSpecification, sbomFileFormat } = useSelector(selectSbomExportSlice);
 
-  const closeModal = () => dispatch(actions.setShowSbomAdditionalExportOptionsModal(false));
+  const closeModal = () => dispatch(actions.closeShowSbomAdditionalExportOptionsModal());
   const exportAndDownloadSbom = () => dispatch(actions.exportAndDownloadSbom({ state: EXPORT_SBOM_STATE.current }));
 
   const createRadioHandler = (name, currentValue, actionCreator) => (value) => ({

@@ -298,7 +298,6 @@ public class ThirdPartyFileCoordinateDAOTest
 
     tempEntity.newThirdPartySbomMetadata(file3.getId(), application.getId(), PENDING, file3.getFilename());
 
-
     ThirdPartyFileCoordinate c1 = tempEntity.newThirdPartyFileCoordinate(file1, "s1", "f1", "n1", "v1");
     ThirdPartyFileCoordinate c2 = tempEntity.newThirdPartyFileCoordinate(file2, "s2", "f2", "n2", "v2");
     ThirdPartyFileCoordinate c3 = tempEntity.newThirdPartyFileCoordinate(file3, "s3", "f3", "n3", "v3");

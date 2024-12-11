@@ -33,6 +33,9 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
@@ -41,7 +44,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Named
 @Timed
 @Path(value = PublicApiPaths.ARTIFACTORY_CONNECTION_CONFIG_PATH_V2)
-@Tag(name = "Config Artifactory Connection")
+@Tag(name = "Configure Artifactory Connection")
 public class ArtifactoryConnectionResource
 {
   private static final String OWNER_TYPE = "{ownerType:application|organization}";
@@ -69,10 +72,23 @@ public class ArtifactoryConnectionResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CONFIGURE_ARTIFACTORY_CONNECTION)
+  @Operation(description = "Use this method to add an Artifactory connection.",
+             responses = {
+                 @ApiResponse(responseCode = "201",
+                              description = "Response contains the details of the added Artifactory connection.",
+                              useReturnTypeSchema = true)
+             }
+  )
   @Path(BY_OWNER)
   public ApiArtifactoryConnectionDTO addArtifactoryConnection(
+      @Parameter(description = "Specify the type of owner: `application` or `organization`.")
       @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the internal ID of the owner.")
       @PathParam("internalOwnerId") String internalOwnerId,
+      @Parameter(description = "Provide the details of the Artifactory connection you wish to add." +
+          "`isAnonymous` (Boolean) indicates if the connection is anonymous, `baseUrl` (String) is the " +
+          "base URL of the Artifactory instance, `username` (String) and `password` (String) are the " +
+          "username and password for the Artifactory connection.")
       ApiArtifactoryConnectionDTO artifactoryConnection)
   {
     checkArtifactoryIntegrationEnabled();
@@ -83,24 +99,48 @@ public class ArtifactoryConnectionResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CONFIGURE_ARTIFACTORY_CONNECTION)
+  @Operation(description = "Use this method to update an existing Artifactory connection.",
+             responses = {
+                 @ApiResponse(responseCode = "200",
+                              description = "The response contains the updated Artifactory connection details.",
+                              useReturnTypeSchema = true)
+             }
+  )
   @Path(BY_ARTIFACTORY)
   public ApiArtifactoryConnectionDTO updateArtifactoryConnection(
+      @Parameter(description = "Specify the type of owner: `application` or `organization`.")
       @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the internal ID of the owner.")
       @PathParam("internalOwnerId") String internalOwnerId,
+      @Parameter(description = "Enter the Artifactory Connection ID.")
       @PathParam("artifactoryConnectionId") String artifactoryConnectionId,
+      @Parameter(description = "Provide the details of the Artifactory connection you wish to update." +
+          "`isAnonymous` (Boolean) indicates if the connection is anonymous, `baseUrl` (String) is the " +
+          "base URL of the Artifactory instance, `username` (String) and `password` (String) are the " +
+          "username and password for the Artifactory connection.")
       ApiArtifactoryConnectionDTO artifactoryConnection)
   {
     checkArtifactoryIntegrationEnabled();
-    return artifactoryConnectionService.updateArtifactoryConnection(ownerType, internalOwnerId, artifactoryConnectionId,
+    return artifactoryConnectionService.updateArtifactoryConnection(ownerType,
+        internalOwnerId,
+        artifactoryConnectionId,
         artifactoryConnection);
   }
 
   @DELETE
   @Path(BY_ARTIFACTORY)
   @Audited(AuditEvent.DELETE_ARTIFACTORY_CONNECTION)
+  @Operation(description = "Use this method to delete an existing Artifactory connection.",
+             responses = {
+                 @ApiResponse(responseCode = "204",
+                              description = "Artifactory connection deleted successfully.")
+             })
   public void deleteArtifactoryConnection(
+      @Parameter(description = "Specify the type of owner: `application` or `organization`.")
       @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the internal ID of the owner.")
       @PathParam("internalOwnerId") String internalOwnerId,
+      @Parameter(description = "Enter the Artifactory Connection ID.")
       @PathParam("artifactoryConnectionId") String artifactoryConnectionId)
   {
     checkArtifactoryIntegrationEnabled();
@@ -110,21 +150,42 @@ public class ArtifactoryConnectionResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_ARTIFACTORY)
+  @Operation(description = "Use this method to retrieve Artifactory connection information using its unique ID.",
+             responses = {
+                 @ApiResponse(responseCode = "200",
+                              description = "The response contains the details of the Artifactory connection.",
+                              useReturnTypeSchema = true)
+             })
   public ApiArtifactoryConnectionDTO getArtifactoryConnection(
+      @Parameter(description = "Specify the type of owner: `application` or `organization`.")
       @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the internal ID of the owner.")
       @PathParam("internalOwnerId") String internalOwnerId,
+      @Parameter(description = "Enter the Artifactory Connection ID.")
       @PathParam("artifactoryConnectionId") String artifactoryConnectionId)
   {
     checkArtifactoryIntegrationEnabled();
-    return artifactoryConnectionService.getArtifactoryConnection(ownerType, internalOwnerId, artifactoryConnectionId);
+    return artifactoryConnectionService.getArtifactoryConnection(ownerType,
+        internalOwnerId,
+        artifactoryConnectionId);
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_OWNER)
+  @Operation(description = "Use this method to retrieve Artifactory connection information using its owner's ID.",
+             responses = {
+                 @ApiResponse(responseCode = "200",
+                              description = "The response contains the details of the Artifactory connection.",
+                              useReturnTypeSchema = true)
+             })
   public ApiOwnerArtifactoryConnectionDTO getOwnerArtifactoryConnection(
+      @Parameter(description = "Specify the type of owner: `application` or `organization`.")
       @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the internal ID of the owner.")
       @PathParam("internalOwnerId") String internalOwnerId,
+      @Parameter(description = "Specify whether to inherit the Artifactory connection from the parent " +
+          "organization.")
       @QueryParam("inherit") @DefaultValue("false") boolean inherit)
   {
     checkArtifactoryIntegrationEnabled();
@@ -134,28 +195,53 @@ public class ArtifactoryConnectionResource
   @POST
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_OWNER_TEST_PATH)
+  @Operation(description = "Use this method to test an Artifactory connection for a specified owner.",
+             responses = {
+                 @ApiResponse(responseCode = "200",
+                              description = "Artifactory connection is valid.",
+                              useReturnTypeSchema = true)
+             })
   public ApiStatusDTO testArtifactoryConnection(
+      @Parameter(description = "Specify the type of owner: `application` or `organization`.")
       @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the internal ID of the owner.")
       @PathParam("internalOwnerId") String internalOwnerId,
+      @Parameter(description = "Provide the details of the Artifactory connection you wish to test." +
+          "`isAnonymous` (Boolean) indicates if the connection is anonymous, `baseUrl` (String) is the " +
+          "base URL of the Artifactory instance, `username` (String) and `password` (String) are the " +
+          "username and password for the Artifactory connection.")
       ApiArtifactoryConnectionDTO artifactoryConnectionDTO)
   {
     checkArtifactoryIntegrationEnabled();
     StatusType status =
-        artifactoryConnectionService.testArtifactoryConnection(ownerType, internalOwnerId, artifactoryConnectionDTO);
+        artifactoryConnectionService.testArtifactoryConnection(ownerType,
+            internalOwnerId,
+            artifactoryConnectionDTO);
     return ApiStatusDTO.fromStatusType(status);
   }
 
   @POST
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_ARTIFACTORY_TEST_PATH)
+  @Operation(description = "Use this method to test an existing Artifactory connection using its unique ID.",
+             responses = {
+                 @ApiResponse(responseCode = "200",
+                              description = "Artifactory connection is valid.",
+                              useReturnTypeSchema = true)
+             })
   public ApiStatusDTO testArtifactoryConnection(
+      @Parameter(description = "Specify the type of owner: `application` or `organization`.")
       @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the internal ID of the owner.")
       @PathParam("internalOwnerId") String internalOwnerId,
+      @Parameter(description = "Enter the Artifactory Connection ID.")
       @PathParam("artifactoryConnectionId") String artifactoryConnectionId)
   {
     checkArtifactoryIntegrationEnabled();
     StatusType status =
-        artifactoryConnectionService.testArtifactoryConnection(ownerType, internalOwnerId, artifactoryConnectionId);
+        artifactoryConnectionService.testArtifactoryConnection(ownerType,
+            internalOwnerId,
+            artifactoryConnectionId);
     return ApiStatusDTO.fromStatusType(status);
   }
 
@@ -171,9 +257,21 @@ public class ArtifactoryConnectionResource
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_OWNER)
   @Audited(AuditEvent.CONFIGURE_ARTIFACTORY_CONNECTION)
+  @Operation(description = "Use this method to update the status of the effective Artifactory connection for " +
+      "the specified owner.",
+             responses = {
+                 @ApiResponse(responseCode = "204",
+                              description = "Artifactory connection status successfully updated.")
+             })
   public void updateOwnerArtifactoryConnectionStatus(
+      @Parameter(description = "Specify the type of owner: `application` or `organization`.")
       @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the internal ID of the owner.")
       @PathParam("internalOwnerId") String internalOwnerId,
+      @Parameter(description = "Provide the details of the Artifactory connection you wish to update." +
+          "`isAnonymous` (Boolean) indicates if the connection is anonymous, `baseUrl` (String) is the " +
+          "base URL of the Artifactory instance, `username` (String) and `password` (String) are the " +
+          "username and password for the Artifactory connection.")
       ApiArtifactoryConnectionStatusRequestDTO artifactoryConnectionStatusDTO)
   {
     checkArtifactoryIntegrationEnabled();

@@ -98,6 +98,7 @@ import com.sonatype.insight.brain.dataaccess.security.SamlUserGroupDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.ScmUserMappingsDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
@@ -345,6 +346,8 @@ public interface DAOFactory
   SourceControlUserDAO createSourceControlUserDAO();
 
   SourceControlUserActivityDAO crateSourceControlUserActivityDAO();
+
+  ScmUserMappingsDAO createScmUserMappingsDAO();
 
   ApplicationTagDAO createApplicationTagDAO();
 

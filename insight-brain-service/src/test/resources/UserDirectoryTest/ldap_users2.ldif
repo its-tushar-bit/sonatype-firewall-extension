@@ -20,7 +20,21 @@ objectClass: inetOrgPerson
 sn: User
 cn: Test User2
 userPassword: {md5}rQ8H83Kkz8RJZFwzDwk0fg==
-mail: test.user@company.com
+mail: test.user2@company.com
+departmentNumber: testUsers
+departmentNumber: primaryUsers
+
+dn: uid=testuser3,ou=users,dc=company,dc=com
+uid: testuser3
+givenName: Jannet Ray
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+sn: User
+cn: Test User3
+userPassword: {md5}rQ8H83Kkz8RJZFwzDwk0fg==
+mail: test.user3@company.com
 departmentNumber: testUsers
 departmentNumber: primaryUsers
 

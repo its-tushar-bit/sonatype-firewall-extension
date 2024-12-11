@@ -99,6 +99,7 @@ import static com.sonatype.insight.brain.git.ScmResultStatus.SCM_UNKNOWN_HOST_FA
 import static com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderUtils.sanitizeUrl;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.counting;
 
 /**
@@ -159,6 +160,10 @@ public class ScmOnboardingService
 
   private final InsightProxy insightProxy;
 
+  private final ScmUserMatchingService userMatchingService;
+
+  private final ScmUserMappingService scmUserMappingService;
+
   @Inject
   public ScmOnboardingService(
       final SourceControlDAO sourceControlDAO,
@@ -177,7 +182,9 @@ public class ScmOnboardingService
       final SourceControlUtils sourceControlUtils,
       final InsightProxy insightProxy,
       final Configuration configuration,
-      final ShutdownHandler shutdownHandler)
+      final ShutdownHandler shutdownHandler,
+      final ScmUserMatchingService userMatchingService,
+      final ScmUserMappingService scmUserMappingService)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
@@ -195,6 +202,8 @@ public class ScmOnboardingService
     this.sourceControlUtils = sourceControlUtils;
     this.insightProxy = insightProxy;
     this.executor = new SourceControlImportThreadPoolExecutor(configuration.getSourceControlImportPoolSize());
+    this.userMatchingService = userMatchingService;
+    this.scmUserMappingService = scmUserMappingService;
     shutdownHandler.add(() -> executor.getActiveCount() != 0 || !executor.getQueue().isEmpty());
   }
 
@@ -521,6 +530,8 @@ public class ScmOnboardingService
     ApiSourceControlDTO apiSourceControlDTO = apiSourceControlService.addOrUpdateSourceControl(app.getPublicId(),
         scmRepository.getHttpCloneUrl(), scmRepository.getSshCloneUrl(), defaultBranch);
 
+    importUserRolesBasedOnSCMContributors(app);
+
     if (licenseChecker.isIqForScmSupported()) {
       GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
       Boolean sourceControlEvaluationsEnabled = gitRepositoryInfo.getSourceControlEvaluationsEnabled();
@@ -549,6 +560,37 @@ public class ScmOnboardingService
       applicationHelper.addApplication(app);
     }
     return app;
+  }
+
+  // only supported for Github in general, although, the mapping SCM_USER to IQ_USER should work
+  // more broadly
+  private void importUserRolesBasedOnSCMContributors(final Application app) {
+    final var mappings = scmUserMappingService.getUserMappingsByOwner(OwnerType.APPLICATION, app.getId());
+
+    if (nonNull(mappings)) {
+      log.info("performing automatic role assignment for app {}", app.getPublicId());
+
+      try {
+        final var results = userMatchingService.automaticRoleAssignmentByMapping(
+            app.getPublicId(),
+            mappings.userMapping());
+
+        if (!results.matchedUsers().isEmpty()) {
+          log.info("{} user(s) imported from SCM for app {}", results.matchedUsers().size(), app.getPublicId());
+          log.info("The successful mapping strategy was {}", results.successfulMapping());
+        }
+        else
+        {
+          log.info("no users imported for {}", app.getPublicId());
+        }
+      }
+      catch (RuntimeException  ex) {
+        log.warn("Could not import users for app {}: {}", app.getPublicId(), ex.getMessage());
+      }
+    }
+    else {
+      log.info("skipping automatic role assignment -- no scm mapping strategies configured");
+    }
   }
 
   private String getAndSetDefaultBranch(

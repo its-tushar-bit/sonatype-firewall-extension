@@ -289,6 +289,7 @@
                 <include>**/ConditionTypesTestHelper*</include>
                 <include>**/ThirdPartySbomMetadataTestUtil*</include>
                 <include>**/SbomMetadataBuilder*</include>
+                <include>**/ScmUserMappingsHelper*</include>
               </includes>
             </configuration>
           </execution>

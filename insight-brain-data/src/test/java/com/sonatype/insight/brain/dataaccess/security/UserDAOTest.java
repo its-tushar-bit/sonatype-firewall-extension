@@ -715,6 +715,63 @@ public class UserDAOTest
     assertThat(users).extracting(User::getUsername).containsExactly(user2.getUsername());
   }
 
+  @Test
+  public void testGetByRealNames_shouldReturnSortedListOfAnyUserMatchingOneOfTheProvidedRealNames() {
+    final var user1 = createUser(
+        "user1",
+        "xxx",
+        "Bob",
+        "Vance",
+        "bvance@example.com");
+
+    createUser(
+        "user2",
+        "xxx",
+        "James",
+        "Smith",
+        "smith@example.com");
+
+    final var user3 = createUser(
+        "user3",
+        "xxx",
+        "Tim",
+        "Master",
+
+        "tmasters@example.com");
+
+    List<User> users = userDAO.getByRealNames(
+        Sets.newHashSet("Bob Vance", "Tim Master", "No Body"));
+    assertThat(users).extracting(User::getUsername).containsExactly(user3.getUsername(), user1.getUsername());
+  }
+
+  @Test
+  public void testGetByEmails_shouldReturnSortedListOfAnyUserMatchingOneOfTheProvidedEmails() {
+    final var user1 = createUser(
+        "user1",
+        "xxx",
+        "Bob",
+        "Vance",
+        "q-bvance@example.com");
+
+    createUser(
+        "user2",
+        "xxx",
+        "James",
+        "Smith",
+        "z-smith@example.com");
+
+    final var user3 = createUser(
+        "user3",
+        "xxx",
+        "Tim",
+        "Master",
+        "a-tmasters@example.com");
+
+    List<User> users = userDAO.getByEmails(
+        Sets.newHashSet("q-bvance@example.com", "a-tmasters@example.com", "a-not-in-db@example.com"));
+    assertThat(users).extracting(User::getUsername).containsExactly(user3.getUsername(), user1.getUsername());
+  }
+
   private User createUser(String username) {
     return createUser(username, username + "Password", username + "First", username + "Last", username
         + "Email@localhost");

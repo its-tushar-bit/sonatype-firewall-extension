@@ -102,6 +102,7 @@ import com.sonatype.insight.brain.dataaccess.security.SamlUserGroupDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.ScmUserMappingsDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
@@ -539,10 +540,11 @@ public class TestDAOFactory
     ProprietaryConfigDAO proprietaryConfigDAO = createProprietaryConfigDAO();
     OrganizationAncestorDAO organizationAncestorDAO = createOrganizationAncestorDAO();
     AutoPolicyWaiverDAO autoPolicyWaiverDAO = createAutoPolicyWaiverDAO();
+    ScmUserMappingsDAO scmUserMappingsDAO = createScmUserMappingsDAO();
     return new OrganizationDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager,
         automaticApplicationsConfigurationDAO, licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider,
         membershipMappingDAO, ownerDAOProvider, tagDAOProvider, sourceControlDAOProvider, repositoryConnectionDAO,
-        scmEventDAO, proprietaryConfigDAO, organizationAncestorDAO, autoPolicyWaiverDAO);
+        scmEventDAO, proprietaryConfigDAO, organizationAncestorDAO, autoPolicyWaiverDAO, scmUserMappingsDAO);
   }
 
   @Override
@@ -884,6 +886,11 @@ public class TestDAOFactory
   @Override
   public SourceControlUserActivityDAO crateSourceControlUserActivityDAO() {
     return new SourceControlUserActivityDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public ScmUserMappingsDAO createScmUserMappingsDAO() {
+    return new ScmUserMappingsDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

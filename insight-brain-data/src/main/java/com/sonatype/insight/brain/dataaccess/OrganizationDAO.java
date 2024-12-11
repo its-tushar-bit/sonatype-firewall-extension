@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.ScmUserMappingsDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlOrganizationImportEventDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
@@ -81,6 +82,8 @@ public class OrganizationDAO
 
   private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
 
+  private ScmUserMappingsDAO scmUserMappingsDAO;
+
   @Inject
   public OrganizationDAO(
       final OperationalDataStore operationalDataStore,
@@ -97,7 +100,8 @@ public class OrganizationDAO
       final SourceControlOrganizationImportEventDAO scmEventDAO,
       final ProprietaryConfigDAO proprietaryConfigDAO,
       final OrganizationAncestorDAO organizationAncestorDAO,
-      final AutoPolicyWaiverDAO autoPolicyWaiverDAO)
+      final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
+      final ScmUserMappingsDAO scmUserMappingsDAO)
   {
     super(operationalDataStore, searchIndexManager);
     this.automaticApplicationsConfigurationDAO = automaticApplicationsConfigurationDAO;
@@ -113,6 +117,7 @@ public class OrganizationDAO
     this.proprietaryConfigDAO = proprietaryConfigDAO;
     this.organizationAncestorDAO = organizationAncestorDAO;
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
+    this.scmUserMappingsDAO = scmUserMappingsDAO;
   }
 
   private Organization getByName(TransactionContext tx, String name) {
@@ -241,6 +246,9 @@ public class OrganizationDAO
     for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextId(tx, organization.getId())) {
       membershipMappingDAO.delete(tx, membershipMapping);
     }
+
+    // Cascade to SCM user mappings
+    scmUserMappingsDAO.deleteByOrganizationId(tx, organization.getId());
 
     // Cascade to owned entities
     ownerDAOProvider.get().cascadeDelete(tx, organization);

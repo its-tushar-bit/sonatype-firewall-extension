@@ -229,14 +229,56 @@ class LdapQuery
         ldapUserMapping.getUserRealNameAttribute(), ldapUserMapping.getUserEmailAttribute());
     try (LdapContextHolder ctxHolder = getSystemLdapContext()) {
       try (SearchResults results = searchUsersByUsernames(ctxHolder.ctx, usernames, attributes, 0)) {
-        List<LdapUser> ldapUsers = new ArrayList<>();
-        while (results.hasMoreElements()) {
-          SearchResult result = results.nextElement();
-          ldapUsers.add(createUser(ctxHolder.ctx, result.getNameInNamespace(), result.getAttributes(), false));
-        }
-        return ldapUsers;
+        return getUsersFromResults(ctxHolder, results);
       }
     }
+  }
+
+  /**
+   * Search ldap server for all users whose "real name" (full name) attribute matches one of the supplied names,
+   * don't allow asterisk, exact match only
+   */
+  public List<LdapUser> getUsersByRealName(String[] realNames) throws NamingException {
+    final String[] attributes = pickAttributes(ldapUserMapping.getUserIDAttribute(),
+        ldapUserMapping.getUserRealNameAttribute(), ldapUserMapping.getUserEmailAttribute());
+
+    try (final LdapContextHolder ctxHolder = getSystemLdapContext()) {
+      try (final SearchResults results = searchUsersByRealName(ctxHolder.ctx, realNames, attributes, 0)) {
+        return getUsersFromResults(ctxHolder, results);
+      }
+    }
+  }
+
+  private SearchResults searchUsersByRealName(LdapContext ctx, String[] realNames, String[] attributes, long maxResults)
+      throws NamingException
+  {
+    Multimap<String, String> attributeValues = ArrayListMultimap.create();
+    attributeValues.putAll(escapeAttribute(ldapUserMapping.getUserRealNameAttribute(), false),
+        escapeAttributes(realNames, false));
+    return searchUsersByAttributes(ctx, attributeValues, attributes, maxResults);
+  }
+
+  public List<LdapUser> getUsersByEmail(String[] emails) throws NamingException {
+    final String[] attributes = pickAttributes(ldapUserMapping.getUserIDAttribute(),
+        ldapUserMapping.getUserRealNameAttribute(), ldapUserMapping.getUserEmailAttribute());
+
+    try (final LdapContextHolder ctxHolder = getSystemLdapContext()) {
+      try (final SearchResults results = searchUsersByEmail(ctxHolder.ctx, emails, attributes, 0)) {
+        return getUsersFromResults(ctxHolder, results);
+      }
+    }
+  }
+
+  private SearchResults searchUsersByEmail(LdapContext ctx,
+                                           String[] emails,
+                                           String[] attributes,
+                                           long maxResults)
+      throws NamingException
+  {
+    Multimap<String, String> attributeValues = ArrayListMultimap.create();
+    attributeValues.putAll(escapeAttribute(ldapUserMapping.getUserEmailAttribute(), false),
+        escapeAttributes(emails, false));
+    return searchUsersByAttributes(ctx, attributeValues, attributes, maxResults);
   }
 
   public List<LdapGroup> getGroupsByName(String[] groupNames) throws NamingException {
@@ -915,5 +957,18 @@ class LdapQuery
 
   private IllegalStateException newUnknownGroupMappingTypeException() {
     return new IllegalStateException("Unknown group mapping " + ldapUserMapping.getGroupMappingType());
+  }
+
+  private List<LdapUser> getUsersFromResults(final LdapContextHolder ctxHolder, final SearchResults results)
+      throws NamingException
+  {
+    final List<LdapUser> ldapUsers = new ArrayList<>();
+
+    while (results.hasMoreElements()) {
+      final SearchResult result = results.nextElement();
+      ldapUsers.add(createUser(ctxHolder.ctx, result.getNameInNamespace(), result.getAttributes(), false));
+    }
+
+    return ldapUsers;
   }
 }

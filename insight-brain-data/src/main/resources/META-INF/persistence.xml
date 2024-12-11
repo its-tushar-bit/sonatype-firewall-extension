@@ -69,6 +69,7 @@
     <class>com.sonatype.insight.brain.model.configuration.SystemNotice</class>
     <class>com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty</class>
     <class>com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration</class>
+    <class>com.sonatype.insight.brain.model.sourcecontrol.ScmUserMappings</class>
     <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration</class>
     <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControl</class>
     <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent</class>

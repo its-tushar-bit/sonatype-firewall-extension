@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
@@ -133,6 +134,7 @@ import com.sonatype.insight.brain.dataaccess.security.SamlUserGroupDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.ScmUserMappingsDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
@@ -283,6 +285,7 @@ import com.sonatype.insight.brain.model.security.SamlUserGroup;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.model.sourcecontrol.GitImplementation;
+import com.sonatype.insight.brain.model.sourcecontrol.ScmUserMappings;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
@@ -627,6 +630,8 @@ public class TemporaryEntity
 
   private PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
 
+  private ScmUserMappingsDAO scmUserMappingsDAO;
+
   private MalwareDefenseMetricsDAO malwareDefenseMetricsDAO;
 
   private Collection<String> persistedUserSessionIds;
@@ -899,6 +904,7 @@ public class TemporaryEntity
       delete(deletedTenants, deletedTenantDAO);
       delete(callFlowAnalysisConfigDAO.getAll(), callFlowAnalysisConfigDAO);
       delete(policyViolationConstraintFactsDAO.getAll(), policyViolationConstraintFactsDAO);
+      delete(scmUserMappingsDAO.getAll(), scmUserMappingsDAO);
       delete(malwareDefenseMetricsDAO.getAll(), malwareDefenseMetricsDAO);
       restoreInitialWaiverReasons();
       productLicenseDAO.delete();
@@ -1571,6 +1577,16 @@ public class TemporaryEntity
     MembershipMapping membershipMapping = new MembershipMapping(contextId, roleId, memberName, memberType);
     membershipMappingDAO.insert(membershipMapping);
     return membershipMapping;
+  }
+
+  public List<MembershipMapping> getMembershipMappings(final String roleName) {
+    try (TransactionContext tx = membershipMappingDAO.createTransactionContext()) {
+      String roleId = roleDAO.getByName(roleName).getId();
+      List<MembershipMapping> membershipMappings =
+          new ArrayList<>(membershipMappingDAO.getByRoleId(tx, roleId));
+      membershipMappings.sort(Comparator.comparing(MembershipMapping::getMemberName));
+      return membershipMappings;
+    }
   }
 
   public Label newLabel(String ownerId) {
@@ -5582,6 +5598,23 @@ public class TemporaryEntity
     return developmentPrioritizationComponentInfo;
   }
 
+  public ScmUserMappings createScmUserMappings(String organizationId, List<Map.Entry<String, String>> mappings) {
+    return createScmUserMappings(null, organizationId, mappings);
+  }
+
+  public ScmUserMappings createScmUserMappings(
+      String roleId,
+      String organizationId,
+      List<Map.Entry<String, String>> mappings)
+  {
+    ScmUserMappings scmUserMappings = new ScmUserMappings();
+    scmUserMappings.setRoleId(roleId);
+    scmUserMappings.setOrganizationId(organizationId);
+    scmUserMappings.setMappingsJson(mappings);
+    scmUserMappingsDAO.insert(scmUserMappings);
+    return scmUserMappings;
+  }
+
   private void initializeDAOs() {
     initializeOperationalDataStoreDAOs();
     initializeDataMartDataStoreDAOs();
@@ -5706,6 +5739,7 @@ public class TemporaryEntity
     oAuth2ConfigurationDAO = daoFactory.createOAuth2ConfigurationDAO();
     oidcConfigurationDAO = daoFactory.createOidcConfigurationDAO();
     policyViolationConstraintFactsDAO = daoFactory.createPolicyViolationConstraintFactsDAO();
+    scmUserMappingsDAO = daoFactory.createScmUserMappingsDAO();
     malwareDefenseMetricsDAO = daoFactory.createMalwareDefenseMetricsDAO();
   }
 

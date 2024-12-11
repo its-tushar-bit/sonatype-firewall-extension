@@ -18,6 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
@@ -44,7 +45,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A facade that accesses either the internal user data or LDAP data.
- * 
+ *
  * @since 1.11.0
  */
 @Named
@@ -54,7 +55,7 @@ public class UserDirectory
   public static final char QUERY_WILDCARD = '*';
 
   private static final char SQL_QUERY_WILDCARD = '%';
-  
+
   private static final String IGNORING_MEMBER_MESSAGE = "Ignoring {} {} from {}, as they were already found in {}.";
 
   private final LdapServerDAO ldapServerDAO;
@@ -213,7 +214,7 @@ public class UserDirectory
   }
 
   /**
-   * 
+   *
    * @param origUserNames the user names to find
    * @return A query result containing members or exceptions. If an exception is encountered it is still likely that the
    *         result contains user information.
@@ -282,6 +283,144 @@ public class UserDirectory
           Set<Member> crowdMembers = crowdClient.searchUsersByUsernames(sortedUserNames);
           members.addAll(crowdMembers);
           sortedUserNames.removeAll(crowdMembers.stream().map(Member::getInternalName).collect(Collectors.toSet()));
+        }
+        catch (Exception e) {
+          otherExceptions.add(e);
+        }
+      }
+    }
+
+    return new QueryResult(members, mergeExceptions(namingExceptions, otherExceptions));
+  }
+
+  // SSO and CrowClient are not implemented for this method. These were not in scope.
+  public List<Member> getUsersByRealNames(final Set<String> realNames) {
+    if (realNames == null || realNames.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    QueryResult result = queryUsersByRealNames(realNames);
+    if (result.hasException()) {
+      log.error(
+          "An exception occurred while trying to resolve users by real name.",
+          result.getException());
+    }
+
+    return result.get();
+  }
+
+  private QueryResult queryUsersByRealNames(Set<String> origRealNames) {
+    final List<Member> members = new LinkedList<>();
+    final Set<String> realNames = origRealNames.stream().filter(Objects::nonNull).collect(Collectors.toSet());
+
+    if (realNames.isEmpty()) {
+      return new QueryResult(members);
+    }
+
+    final Set<String> sortedRealNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+    sortedRealNames.addAll(realNames);
+
+    // === check against all internal e-mails
+    final List<User> internalUsers = userDao.getByRealNames(sortedRealNames);
+    for (User internalUser : internalUsers) {
+      Member member = new Member(MemberType.USER, internalUser.getUsername(), internalUser.calculateDisplayName(),
+          internalUser.getEmail(), InternalRealm.DISPLAY_NAME);
+      members.add(member);
+
+      // if we've matched on an internal user don't try to match again against ldap
+      sortedRealNames.remove(internalUser.getFirstName() + " " + internalUser.getLastName());
+    }
+
+    // === check against all ldap servers registered with iq
+    final List<NamingException> namingExceptions = new ArrayList<>();
+    final List<Exception> otherExceptions = new ArrayList<>();
+    for (LdapServer ldapServer : ldapServerDAO.getAll()) {
+      if (ldapService.isLdapEnabled(ldapServer) && !sortedRealNames.isEmpty()) {
+        try {
+          String ldapName = ldapServer.getName();
+
+          for (LdapUser user : ldapService
+              .getUsersByRealName(ldapServer, sortedRealNames.toArray(new String[sortedRealNames.size()]))) {
+            final Member member =
+                new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
+            member.setDn(user.getDn());
+            members.add(member);
+
+            // once we've matched, don't try to match again
+            sortedRealNames.remove(user.getRealName());
+          }
+        }
+        catch (NamingException e) {
+          namingExceptions.add(e);
+        }
+        catch (Exception e) {
+          otherExceptions.add(e);
+        }
+      }
+    }
+
+    return new QueryResult(members, mergeExceptions(namingExceptions, otherExceptions));
+  }
+
+  // Note: SSO and CrowdClient are not yet supported on this method. These were not in scope.
+  public List<Member> getUsersByEmails(final Set<String> emails) {
+    if (emails == null || emails.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    QueryResult result = queryUsersByEmail(emails);
+    if (result.hasException()) {
+      log.error(
+          "An exception occurred while trying to resolve user names.",
+          result.getException());
+    }
+
+    return result.get();
+  }
+
+  private QueryResult queryUsersByEmail(Set<String> origEmails) {
+    final List<Member> members = new LinkedList<>();
+    final Set<String> emails = origEmails.stream().filter(Objects::nonNull).collect(Collectors.toSet());
+
+    if (emails.isEmpty()) {
+      return new QueryResult(members);
+    }
+
+    final Set<String> sortedEmails = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+    sortedEmails.addAll(emails);
+
+    // === check against all internal e-mails
+    final List<User> internalUsers = userDao.getByEmails(sortedEmails);
+    for (User internalUser : internalUsers) {
+      Member member = new Member(MemberType.USER, internalUser.getUsername(), internalUser.calculateDisplayName(),
+          internalUser.getEmail(), InternalRealm.DISPLAY_NAME);
+      members.add(member);
+
+      // if we've matched on an internal user don't try to match against ldap
+      sortedEmails.remove(internalUser.getEmail());
+    }
+
+    // === check against all ldap servers registered with iq
+    final List<NamingException> namingExceptions = new ArrayList<>();
+    final List<Exception> otherExceptions = new ArrayList<>();
+    for (LdapServer ldapServer : ldapServerDAO.getAll()) {
+      if (ldapService.isLdapEnabled(ldapServer) && !sortedEmails.isEmpty()) {
+        try {
+          String ldapName = ldapServer.getName();
+
+          for (LdapUser user : ldapService
+              .getUsersByEmail(ldapServer, sortedEmails.toArray(new String[sortedEmails.size()]))) {
+            final Member member =
+                new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
+            member.setDn(user.getDn());
+            members.add(member);
+
+            // once we've matched, don't try to match again
+            sortedEmails.remove(user.getEmail());
+          }
+        }
+        catch (NamingException e) {
+          namingExceptions.add(e);
         }
         catch (Exception e) {
           otherExceptions.add(e);
@@ -547,7 +686,7 @@ public class UserDirectory
 
   /**
    * Validate the users in the list and return a list of the invalid users.
-   * 
+   *
    * @param userNames The set of user name to lookup.
    * @return Set of invalid user names.
    */

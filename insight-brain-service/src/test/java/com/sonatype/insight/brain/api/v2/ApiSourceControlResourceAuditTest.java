@@ -13,6 +13,10 @@ import java.util.stream.Collectors;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.FromMappingEnum;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsDTO;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.ToMappingEnum;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.UserMapping;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlAdapter;
 import com.sonatype.insight.brain.audit.AuditDTO;
@@ -29,6 +33,7 @@ import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.collect.Lists;
 import com.google.inject.Binder;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
@@ -171,8 +176,36 @@ public class ApiSourceControlResourceAuditTest
     assertCustomData(auditDTO, "repositoryUrl", repositoryUrl);
   }
 
+  @Test
+  public void testAuditForAddOrUpdateUserMappingByOrg() throws Exception {
+    List<UserMapping> userMappings =
+        Arrays.asList(new UserMapping(FromMappingEnum.GITLOG_EMAIL, ToMappingEnum.IQ_EMAIL));
+    SCMUserMappingsDTO scmUserMappingsDTO = new SCMUserMappingsDTO(null, userMappings);
+
+    HttpResponse response =
+        restRequest().path(SOURCE_CONTROL_PATH_V2)
+            .path("/automaticRoleAssignment/userMappings/")
+            .path(app.getOrganizationId())
+            .body(scmUserMappingsDTO)
+            .post();
+    assertResponseStatus(204, response);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_USER_MAPPINGS, null);
+    assertCustomData(auditDTO, "organizationId", app.getOrganizationId());
+  }
+
+  @Test
+  public void testAuditForDeleteUserMapping() throws Exception {
+    HttpResponse response =
+        restRequest().path(SOURCE_CONTROL_PATH_V2)
+            .path("/automaticRoleAssignment/userMappings/")
+            .path(app.getOrganizationId())
+            .delete();
+    assertResponseStatus(204, response);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_USER_MAPPINGS, null);
+    assertCustomData(auditDTO, "organizationId", app.getOrganizationId());
+  }
+
   /*
-   * TODO this only cover one user test case CLM-30465
    * MembershipMappingService.grantRoleMembership method is only able to register on the audit event the
    * last user on the list this can be fixed in the optimize bulk insert ticket
    */
@@ -188,7 +221,12 @@ public class ApiSourceControlResourceAuditTest
     when(getCLMServer().getInstance(SourceControlUtils.class)
         .getGitRepositoryInfoForApplication(app.getId())).thenReturn(gitRepositoryInfo);
 
-    HttpResponse response = roleAssignmentRestRequest().parameter(app.getPublicId()).post();
+    HttpResponse response = roleAssignmentRestRequest()
+        .parameter(app.getPublicId())
+        .body(new SCMUserMappingsDTO(null, Lists.newArrayList(
+            new UserMapping(FromMappingEnum.SCM_USERNAME, ToMappingEnum.IQ_USERNAME))))
+        .post();
+
     assertResponseStatus(200, response);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.GRANT_ROLE_MEMBERSHIP, null);

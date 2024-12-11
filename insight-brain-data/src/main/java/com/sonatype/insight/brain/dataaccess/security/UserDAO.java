@@ -108,6 +108,21 @@ public class UserDAO
     return getList(sQuery, lowerCaseUsernames);
   }
 
+  public List<User> getByEmails(Set<String> emails) {
+    String sQuery = "SELECT entity from User entity" + //
+        " WHERE entity.email IN ?1" + //
+        " ORDER BY entity.email";
+    return getList(sQuery, emails);
+  }
+
+  // real name means full name (First + Last)
+  public List<User> getByRealNames(Set<String> fullNames) {
+    String sQuery = "SELECT entity from User entity" + //
+        " WHERE CONCAT(entity.firstName, ' ', entity.lastName) IN ?1" + //
+        " ORDER BY entity.lastName, entity.firstName";
+    return getList(sQuery, fullNames);
+  }
+
   /**
    * Looks up a user by its (case-insensitive) username.
    * 

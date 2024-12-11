@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -21,10 +20,14 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.sourcecontrol.ApiSourceControlRepositoryUserDTO;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsResponseDTO;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsDTO;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMatchingResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.git.ScmUserMappingService;
 import com.sonatype.insight.brain.git.ScmUserMatchingService;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -60,22 +63,35 @@ public class ApiSourceControlResource
 
   private static final String OWNER_ID = "{internalOwnerId}";
 
+  private static final String ORGANIZATION_ID = "{organizationId}";
+
   /* paths are package private for use in tests */
   static final String BY_OWNER = OWNER_TYPE + "/" + OWNER_ID;
 
-  static final String AUTOMATIC_ROLE_ASSIGNMENT_PATH = "/automaticRoleAssignment/{publicId}";
+  static final String AUTOMATIC_ROLE_ASSIGNMENT_NAMESPACE = "/automaticRoleAssignment";
+
+  static final String AUTOMATIC_ROLE_ASSIGNMENT_PATH = AUTOMATIC_ROLE_ASSIGNMENT_NAMESPACE + "/" + "{publicId}";
+
+  static final String USER_MAPPINGS_BY_OWNER_PATH = AUTOMATIC_ROLE_ASSIGNMENT_NAMESPACE + "/userMappings/" + BY_OWNER;
+
+  static final String USER_MAPPING_PER_ORGANIZATION_PATH = AUTOMATIC_ROLE_ASSIGNMENT_NAMESPACE + "/userMappings/"
+      + ORGANIZATION_ID;
 
   private final ApiSourceControlService sourceControlService;
 
   private final ScmUserMatchingService scmUserMatchingService;
 
+  private final ScmUserMappingService scmUserMappingService;
+
   @Inject
   public ApiSourceControlResource(
       final ApiSourceControlService apiSourceControlService,
-      final ScmUserMatchingService scmUserMatchingService)
+      final ScmUserMatchingService scmUserMatchingService,
+      final ScmUserMappingService scmUserMappingService)
   {
     this.sourceControlService = apiSourceControlService;
     this.scmUserMatchingService = scmUserMatchingService;
+    this.scmUserMappingService = scmUserMappingService;
   }
 
   @GET
@@ -282,14 +298,16 @@ public class ApiSourceControlResource
   @Path(AUTOMATIC_ROLE_ASSIGNMENT_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.GRANT_ROLE_MEMBERSHIP)
-  @Operation(description = "Use this method to automatically grant the 'developer' role to all contributors of " +
+  @Operation(description = "Use this method to automatically grant the supplied role to all contributors of " +
       "a repository on a given application." +
       "\n" +
       "\n" +
       "Prerequisites for automatic role assignment are:" +
       "<ol>" +
       "<li>SCM configuration for the application and authentication token should exist.</li>" +
-      "<li>The contributors to the repository should have a matching username in IQ.</li>" +
+      "<li>The contributors to the repository should match a user in IQ based on the supplied mappings.</li>" +
+      "<li>Either user mapping strategies have been configured for your organization, or they are provided in " +
+      "the request</li>" +
       "</ol>" +
       "\n" +
       "\n" +
@@ -298,18 +316,55 @@ public class ApiSourceControlResource
           @ApiResponse(responseCode = "204",
               description =
                   "The 'developer' role has automatically been assigned to all contributors of the repository, who " +
-                      "have a matching username configured in IQ Server." +
+                      "matched IQ Server users via the provided matching strategies." +
                       "\n" +
                       "\n" +
-                      "The response contains all usernames that were successfully granted the 'developer' role " +
-                      "on the given application.",
+                      "The response contains all usernames that were successfully granted the role provided " +
+                      "on the given application as well as an indication of which matching strategy was the first to " +
+                      "match a user.",
               useReturnTypeSchema = true)
       }
   )
-  public Set<String> automaticRoleAssignment(
+  public SCMUserMatchingResultDTO automaticRoleAssignment(
       @Parameter(description = "Enter the public applicationId for automatic role assignment.", required = true)
-      @PathParam("publicId") String publicId)
+      @PathParam("publicId") String publicId,
+      final SCMUserMappingsDTO scmUserMappingsDTO)
   {
-    return scmUserMatchingService.automaticRoleAssignment(publicId);
+    return scmUserMatchingService.automaticRoleAssignmentByMapping(publicId, scmUserMappingsDTO);
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(USER_MAPPINGS_BY_OWNER_PATH)
+  @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
+  public SCMUserMappingsResponseDTO getUserMappingsByOwner(
+      @Parameter(description = "Enter the value for ownerType.", required = true)
+      @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the value for internal ownerId.", required = true)
+      @PathParam("internalOwnerId") String internalOwnerId)
+  {
+    return scmUserMappingService.getUserMappingsByOwner(ownerType, internalOwnerId);
+  }
+
+  @POST
+  @Path(USER_MAPPING_PER_ORGANIZATION_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CREATE_USER_MAPPINGS)
+  @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
+  public void addUserMappings(
+      @PathParam("organizationId") String organizationId,
+      final SCMUserMappingsDTO scmUserMappingsDTO)
+  {
+    scmUserMappingService.addOrUpdateUserMappingByOrg(organizationId, scmUserMappingsDTO);
+  }
+
+  @DELETE
+  @Path(USER_MAPPING_PER_ORGANIZATION_PATH)
+  @Audited(AuditEvent.DELETE_USER_MAPPINGS)
+  @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
+  public void deleteUserMappings(
+      @PathParam("organizationId") String organizationId)
+  {
+    scmUserMappingService.deleteUserMappingByOrg(organizationId);
   }
 }

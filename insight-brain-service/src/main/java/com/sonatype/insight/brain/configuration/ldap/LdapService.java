@@ -238,6 +238,16 @@ public class LdapService
     return newLdapQuery(ldapServer).getGroupsByName(groupNames);
   }
 
+  public List<LdapUser> getUsersByRealName(final LdapServer ldapServer, final String[] realNames)
+      throws NamingException
+  {
+    return newLdapQuery(ldapServer).getUsersByRealName(realNames);
+  }
+
+  public List<LdapUser> getUsersByEmail(final LdapServer ldapServer, final String[] emails) throws NamingException {
+    return newLdapQuery(ldapServer).getUsersByEmail(emails);
+  }
+
   /**
    * Find a list of users, searching the displayName attribute.
    * 

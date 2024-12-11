@@ -5,25 +5,45 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map.Entry;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsResponseDTO;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.FromMappingEnum;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsDTO;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMatchingResultDTO;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.ToMappingEnum;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.UserMapping;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlAdapter;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.sourcecontrol.ScmUserMappings;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import org.assertj.core.api.Assertions;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.junit.Before;
@@ -32,10 +52,15 @@ import org.junit.Test;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.sonatype.insight.brain.api.v2.ApiSourceControlResource.AUTOMATIC_ROLE_ASSIGNMENT_PATH;
+import static com.sonatype.insight.brain.api.v2.dto.scmusermatching.FromMappingEnum.SCM_USERNAME;
+import static com.sonatype.insight.brain.api.v2.dto.scmusermatching.ToMappingEnum.IQ_USERNAME;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.utils.ScmUserMappingsHelper.getRandomMappings;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class ApiSourceControlResourceTest
@@ -359,6 +384,102 @@ public class ApiSourceControlResourceTest
     assertThat(response.getBodyText()).startsWith("Cannot validate SourceControl repositoryUrl");
   }
 
+  @Test
+  public void testAddUserMappingByOrg_NoExistingMapping()
+      throws Exception
+  {
+    List<UserMapping> userMappings =
+        Arrays.asList(new UserMapping(FromMappingEnum.GITLOG_EMAIL, ToMappingEnum.IQ_EMAIL));
+    SCMUserMappingsDTO scmUserMappingsDTO = new SCMUserMappingsDTO("developer", userMappings);
+    HttpResponse response = restRequest()
+        .path(ApiSourceControlResource.USER_MAPPING_PER_ORGANIZATION_PATH)
+        .parameter(org.getId())
+        .body(scmUserMappingsDTO)
+        .post();
+    assertResponseStatus(204, response);
+  }
+
+  @Test
+  public void testAddUserMappingByOrg_ExistingMapping()
+      throws Exception
+  {
+    List<UserMapping> userMappings =
+        Arrays.asList(new UserMapping(FromMappingEnum.GITLOG_EMAIL, ToMappingEnum.IQ_EMAIL));
+    SCMUserMappingsDTO scmUserMappingsDTO = new SCMUserMappingsDTO(null, userMappings);
+    List<Entry<String, String>>
+        userMappingsAsEntries = SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
+    tempEntity.createScmUserMappings(org.getId(), userMappingsAsEntries);
+
+    List<UserMapping> newUserMappings =
+        Arrays.asList(new UserMapping(FromMappingEnum.GITLOG_FULLNAME, ToMappingEnum.IQ_FULLNAME));
+    SCMUserMappingsDTO newScmUserMappingsDTO = new SCMUserMappingsDTO("developer", newUserMappings);
+    HttpResponse response = restRequest()
+        .path(ApiSourceControlResource.USER_MAPPING_PER_ORGANIZATION_PATH)
+        .parameter(org.getId())
+        .body(newScmUserMappingsDTO)
+        .post();
+    assertResponseStatus(204, response);
+  }
+
+  @Test
+  public void testAddUserMappingByOrg_ErrorForDuplicatedMapping()
+      throws Exception
+  {
+    List<UserMapping> userMappings =
+        Arrays.asList(new UserMapping(FromMappingEnum.GITLOG_EMAIL, ToMappingEnum.IQ_EMAIL),
+            new UserMapping(FromMappingEnum.GITLOG_EMAIL, ToMappingEnum.IQ_EMAIL));
+    SCMUserMappingsDTO scmUserMappingsDTO = new SCMUserMappingsDTO("developer", userMappings);
+    HttpResponse response = restRequest()
+        .path(ApiSourceControlResource.USER_MAPPING_PER_ORGANIZATION_PATH)
+        .parameter(org.getId())
+        .body(scmUserMappingsDTO)
+        .post();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).startsWith(
+        "There was a duplicate mapping GITLOG_EMAIL: IQ_EMAIL. Mappings should be unique.");
+  }
+
+  @Test
+  public void testDeleteUserMapping()
+      throws Exception
+  {
+    List<UserMapping> userMappings =
+        Arrays.asList(new UserMapping(FromMappingEnum.GITLOG_EMAIL, ToMappingEnum.IQ_EMAIL));
+    SCMUserMappingsDTO scmUserMappingsDTO = new SCMUserMappingsDTO(null, userMappings);
+    List<Entry<String, String>>
+        userMappingsAsEntries = SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
+    tempEntity.createScmUserMappings(org.getId(), userMappingsAsEntries);
+
+    HttpResponse response = restRequest()
+        .path(ApiSourceControlResource.USER_MAPPING_PER_ORGANIZATION_PATH)
+        .parameter(org.getId())
+        .delete();
+    assertResponseStatus(204, response);
+  }
+
+  @Test
+  public void testDeleteUserMapping_NoExistingMapping()
+      throws Exception
+  {
+    HttpResponse response = restRequest()
+        .path(ApiSourceControlResource.USER_MAPPING_PER_ORGANIZATION_PATH)
+        .parameter(org.getId())
+        .delete();
+    assertResponseStatus(204, response);
+  }
+
+  @Test
+  public void testDeleteUserMapping_InvalidOrgId()
+      throws Exception
+  {
+    HttpResponse response = restRequest()
+        .path(ApiSourceControlResource.USER_MAPPING_PER_ORGANIZATION_PATH)
+        .parameter("invalid")
+        .delete();
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).startsWith("Organization with ID invalid does not exist");
+  }
+
   @SuppressWarnings("deprecation")
   @Test
   public void testAddSourceControl_DeprecatedFieldsAreUsedWhenReplacementFieldsAreNotPopulated() throws Exception {
@@ -469,6 +590,117 @@ public class ApiSourceControlResourceTest
     assertThat(result.enableStatusChecks).isFalse();
   }
 
+  @Test
+  public void testGetUserMappingsByOwner_NoScmUserMappingsConfigured() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+
+    HttpResponse response = restRequest().path(ApiSourceControlResource.USER_MAPPINGS_BY_OWNER_PATH)
+        .parameter(OwnerType.ORGANIZATION, organization.getId()).get();
+
+    assertResponseStatus(204, response);
+  }
+
+  @Test
+  public void testGetUserMappingsByOwner_NoPathForRepository() throws Exception {
+    Repository repository = tempEntity.newRepository();
+
+    HttpResponse response = restRequest().path(ApiSourceControlResource.USER_MAPPINGS_BY_OWNER_PATH)
+        .parameter(OwnerType.REPOSITORY, repository.getId()).get();
+
+    assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void testGetUserMappingsByOwner_Success() throws Exception {
+    Organization organization1 = tempEntity.newOrganization();
+    Organization organization2 = tempEntity.newOrganization(organization1);
+    Organization organization3 = tempEntity.newOrganization(organization2);
+
+    Application application = tempEntity.newApplication(organization3.getId());
+
+    ScmUserMappings existingScmUserMappings = tempEntity.createScmUserMappings(Role.DEVELOPER_ROLE_ID,
+        organization1.getId(), getRandomMappings());
+
+    HttpResponse response = restRequest().path(ApiSourceControlResource.USER_MAPPINGS_BY_OWNER_PATH)
+        .parameter(OwnerType.APPLICATION, application.getId()).get();
+
+    List<UserMapping> existingMappings = existingScmUserMappings.getMappings().stream().map(UserMapping::new).toList();
+
+    assertResponseStatus(200, response);
+    SCMUserMappingsResponseDTO responseBody = response.getBody(SCMUserMappingsResponseDTO.class);
+    Assertions.assertThat(responseBody.ownerInternalId()).isEqualTo(organization1.getId());
+    Assertions.assertThat(responseBody.inherited()).isTrue();
+    Assertions.assertThat(responseBody.userMapping().role()).isEqualTo("developer");
+    Assertions.assertThat(responseBody.userMapping().mappings()).isEqualTo(existingMappings);
+  }
+
+  @Test
+  public void testAutomaticRoleAssignment_ReturnMappedUsersGivenValidAuthorizationAndPayloads() throws Exception {
+    // === Given ===
+    mockGithubContributorUserNamesApiCalls();
+
+    final var organization = tempEntity.newOrganization();
+    final var givenApp = tempEntity.newApplication(organization.getId());
+
+    tempEntity.newSourceControl(
+        givenApp.getId(),
+        gitService.baseUrl() + "/some-org/some-app",
+        TOKEN,
+        SourceControlProvider.GITHUB);
+
+    tempEntity.newUser("user1");
+    tempEntity.newUser("user2");
+
+    final SCMUserMappingsDTO givenScmUserMappingsDTO = new SCMUserMappingsDTO(
+        "developer",
+        Lists.newArrayList(new UserMapping(SCM_USERNAME, IQ_USERNAME))
+    );
+
+    // === Then ===
+    HttpResponse response = restRequest().path(AUTOMATIC_ROLE_ASSIGNMENT_PATH)
+        .parameter(givenApp.getPublicId())
+        .body(givenScmUserMappingsDTO)
+        .post();
+
+    assertResponseStatus(200, response);
+    final SCMUserMatchingResultDTO scmUserMatchingResultDTO = response.getBody(SCMUserMatchingResultDTO.class);
+    assertThat(scmUserMatchingResultDTO).isEqualTo(new SCMUserMatchingResultDTO(
+        new UserMapping(SCM_USERNAME, IQ_USERNAME),
+        Sets.newHashSet("user1", "user2")
+    ));
+  }
+
+  @Test
+  public void testAutomaticRoleAssignment_ReturnsUnauthorizedWhenUserIsNotLoggedIn() throws Exception {
+    final SCMUserMappingsDTO givenScmUserMappingsDTO = new SCMUserMappingsDTO(
+        "developer",
+        Lists.newArrayList(new UserMapping(SCM_USERNAME, IQ_USERNAME))
+    );
+
+    HttpResponse response = restRequest().path(AUTOMATIC_ROLE_ASSIGNMENT_PATH)
+        .parameter("any-id")
+        .body(givenScmUserMappingsDTO)
+        .anon()
+        .post();
+
+    assertResponseStatus(401, response);
+  }
+
+  @Test
+  public void testAutomaticRoleAssignment_ReturnsBadRequestIfUserDoesNotProvideMapping() throws Exception {
+    final var organization = tempEntity.newOrganization();
+    final var givenApp = tempEntity.newApplication(organization.getId());
+
+    HttpResponse response = restRequest().path(AUTOMATIC_ROLE_ASSIGNMENT_PATH)
+        .parameter(givenApp.getPublicId())
+        .body(null)
+        .post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText())
+        .isEqualTo("An SCMUserMappingsDTO must be provided either with the request or via at the organization level");
+  }
+
   /**
    * This is a verbatim copy of the ApiSourceControlDTO class before some fields were deprecated.
    * It is used to test the API still works with the old API DTO.
@@ -493,5 +725,21 @@ public class ApiSourceControlResourceTest
     public Boolean enablePullRequests;
 
     public Boolean enableStatusChecks;
+  }
+
+  private void mockGithubContributorUserNamesApiCalls() throws IOException {
+    gitService.stubFor(get(urlPathEqualTo("/api/v3/repos/some-org/some-app/contributors"))
+        .willReturn(aResponse()
+            .withBody(getResourceContents("/ApiSourceControlResourceTest/contributorsResponse.json"))));
+
+    gitService.stubFor(get(urlEqualTo("/user"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody(getResourceContents("/ApiSourceControlResourceTest/userResponse.json"))));
+  }
+
+  private String getResourceContents(final String path) throws IOException {
+    final var resource = getClass().getResource(path);
+    return FileUtils.readFileToString(new File(resource.getFile()), StandardCharsets.UTF_8);
   }
 }

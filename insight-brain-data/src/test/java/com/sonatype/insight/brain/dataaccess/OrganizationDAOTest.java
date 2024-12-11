@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -28,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.ScmUserMappingsDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlOrganizationImportEventDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
@@ -58,6 +60,8 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.sourcecontrol.ScmUserMappings;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
@@ -66,6 +70,7 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSev
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
+import com.sonatype.insight.brain.utils.ScmUserMappingsBuilder;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -77,6 +82,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.utils.ScmUserMappingsHelper.getRandomMappings;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
@@ -130,6 +136,8 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
 
   private OrganizationAncestorDAO orgAncestorDAO;
 
+  private ScmUserMappingsDAO scmUserMappingsDAO;
+
   private OrganizationDAO dao;
 
   @Before
@@ -158,6 +166,7 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     vulnerabilityCustomCvssVectorDAO = daoFactory.createVulnerabilityCustomCvssVectorDAO();
     vulnerabilityCustomCvssSeverityDAO = daoFactory.createVulnerabilityCustomCvssSeverityDAO();
     orgAncestorDAO = daoFactory.createOrganizationAncestorDAO();
+    scmUserMappingsDAO = daoFactory.createScmUserMappingsDAO();
     dao = daoFactory.createOrganizationDAO();
   }
 
@@ -587,6 +596,24 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     dao.delete(organization);
 
     assertThat(membershipMappingDAO.getByContextId(organization.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadeToScmUserMappings() {
+    Organization organization = tempEntity.newOrganization("testCascadeDeleteToUserMappings");
+
+    List<Entry<String, String>> mappings = getRandomMappings();
+
+    ScmUserMappings scmUserMappings = new ScmUserMappingsBuilder()
+        .withId().withRoleId(Role.DEVELOPER_ROLE_ID)
+        .withMappings(mappings)
+        .withOrganizationId(organization.getId()).build();
+
+    scmUserMappingsDAO.addOrUpdate(scmUserMappings);
+
+    dao.delete(organization);
+
+    assertThat(scmUserMappingsDAO.getByOrganizationId(organization.getId())).isNull();
   }
 
   @Test

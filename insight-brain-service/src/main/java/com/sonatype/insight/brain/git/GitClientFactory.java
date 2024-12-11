@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.ContributorInfoProvider;
 import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClientUtils;
@@ -71,6 +72,16 @@ public class GitClientFactory
         gitRepositoryInfo.username, gitRepositoryInfo.token, gitRepositoryInfo.normalizedRepositoryUrl);
   }
 
+  public ContributorInfoProvider createContributorInfoProvider(GitRepositoryInfo gitRepositoryInfo) {
+    Configuration configuration = gitApiClientFactory.createConfiguration();
+
+    final String graphqlApiUrl = getContributorInfoProviderUrl(gitRepositoryInfo, configuration);
+    insightProxy.contextualize(configuration, graphqlApiUrl);
+
+    return gitApiClientFactory.getContributorInfoClient(
+        gitRepositoryInfo.provider, configuration, gitRepositoryInfo.token);
+  }
+
   public GeneralSCMApiClient createGeneralApiClient(
       final SourceControlProvider sourceControlProvider,
       final String hostUrl,
@@ -120,6 +131,12 @@ public class GitClientFactory
     return getUrl(gitRepositoryInfo, prInfoClientUrlCache.get(),
         gri -> getClientUtils(gri.provider, configuration)
             .getPullRequestInfoProviderUrl(gri.normalizedRepositoryUrl, gri.token));
+  }
+
+  private String getContributorInfoProviderUrl(final GitRepositoryInfo gitRepositoryInfo, Configuration configuration) {
+    return getUrl(gitRepositoryInfo, prInfoClientUrlCache.get(),
+        gri -> getClientUtils(gri.provider, configuration)
+            .getContributorInfoProviderUrl(gri.normalizedRepositoryUrl));
   }
 
   @VisibleForTesting

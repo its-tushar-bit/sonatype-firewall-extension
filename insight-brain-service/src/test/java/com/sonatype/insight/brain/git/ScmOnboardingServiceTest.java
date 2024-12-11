@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -27,6 +28,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlOrganizationImportEventDAO;
 import com.sonatype.insight.brain.git.dto.ImportFailure;
@@ -42,6 +44,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Nameable;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlOrganizationImportEvent;
@@ -65,7 +68,9 @@ import org.sonatype.plexus.components.cipher.PlexusCipher;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.collect.Lists;
 import com.google.inject.Binder;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
@@ -82,9 +87,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.sonatype.insight.brain.api.v2.dto.scmusermatching.FromMappingEnum.SCM_USERNAME;
+import static com.sonatype.insight.brain.api.v2.dto.scmusermatching.ToMappingEnum.IQ_USERNAME;
 import static com.sonatype.insight.brain.git.ScmOnboardingService.MAX_PUBLICID_RENAME_ATTEMPTS;
 import static com.sonatype.insight.brain.git.ScmOnboardingService.setScmParallelImportThreshold;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.model.security.Role.DEVELOPER_ROLE_ID;
+import static com.sonatype.insight.brain.utils.ScmUserMappingsHelper.getMappingForScmUserJsonStorage;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -177,10 +186,12 @@ public class ScmOnboardingServiceTest
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication("tmpapp", org.getId());
     mockGetRequest(gitService, "/api/v3/user", MOCK_USER_JSON, HttpStatus.SC_OK);
+
+    // returns contributors for automatic role assignment
     gitService.stubFor(get(urlPathMatching("/api/v3/repos/.*/.*"))
         .willReturn(aResponse()
             .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-            .withBody("{ \"private\": false }")));
+            .withBody(getResourceContents("/ScmOnboardingServiceTest/contributorsResponse.json"))));
 
     rootOrgSourceControl = tempEntity
         .newSourceControl(ROOT_ORGANIZATION_ID, null, plexusCipher.encrypt("TOKEN", ENC), SourceControlProvider.GITHUB);
@@ -602,6 +613,8 @@ public class ScmOnboardingServiceTest
     int totalRepoCount = 50;
     int prevImportedCount = 10;
 
+    givenScmMappingEnabledAndSomeIQUsersToMapTo();
+
     // when the repos are imported
     ImportResults response = scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount));
@@ -647,7 +660,26 @@ public class ScmOnboardingServiceTest
     int batchPercent = 8;
     int batchCount = reposToImport.length;
     int totalPercent = (int)((prevImportedCount + batchCount) * 100.0 / totalRepoCount);
-    assertTelemetry(batchPercent, batchCount, totalPercent, batchCount);
+    assertTelemetry(batchPercent, batchCount, totalPercent, batchCount, batchCount);
+
+    final var mappedMemberships = tempEntity.getMembershipMappings(RoleDAO.DEVELOPER);
+
+    // should have created 2 membership mappings per each of the 4 apps created
+    assertThat(mappedMemberships).isNotNull();
+    assertThat(mappedMemberships.size()).isEqualTo(8);
+
+    final var groupedByApps = mappedMemberships.stream()
+        .collect(Collectors.groupingBy(MembershipMapping::getContextId));
+    assertThat(groupedByApps.size()).isEqualTo(4);
+    for (var membership : groupedByApps.values()) {
+      assertThat(membership.size()).isEqualTo(2);
+
+      assertThat(membership.get(0).getMemberName()).isEqualTo("some-other-user");
+      assertThat(membership.get(0).getRoleId()).isEqualTo(DEVELOPER_ROLE_ID);
+
+      assertThat(membership.get(1).getMemberName()).isEqualTo("some-user-1");
+      assertThat(membership.get(1).getRoleId()).isEqualTo(DEVELOPER_ROLE_ID);
+    }
   }
 
   @Test
@@ -728,7 +760,7 @@ public class ScmOnboardingServiceTest
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
     // given an existing application which will match a repo which we'll import
-    tempEntity.newApplication("repo1__org", org.getId());
+    final var existingApp = tempEntity.newApplication("repo1__org", org.getId());
 
     String repo1URL = String.format("%s/org/repo1", gitService.baseUrl());
     // and a list of repos to import
@@ -738,6 +770,8 @@ public class ScmOnboardingServiceTest
     };
     int totalRepoCount = 50;
     int prevImportedCount = 8;
+
+    givenScmMappingEnabledAndSomeIQUsersToMapTo();
 
     // when the repos are imported
     ImportResults response = scmOnboardingService.importRepositories(org.getId(),
@@ -775,7 +809,20 @@ public class ScmOnboardingServiceTest
     int batchPercent = reposToImport.length * 2;
     int batchCount = reposToImport.length;
     int totalPercent = (int)((prevImportedCount + batchCount) * 100.0 / totalRepoCount);
-    assertTelemetry(batchPercent, batchCount, totalPercent, reposToImport.length);
+    assertTelemetry(batchPercent, batchCount, totalPercent, reposToImport.length, reposToImport.length);
+
+    // should create 2 memberships for the single created app
+    final var mappedMemberships = tempEntity.getMembershipMappings(RoleDAO.DEVELOPER);
+    assertThat(mappedMemberships).isNotNull();
+    assertThat(mappedMemberships.size()).isEqualTo(2);
+
+    assertThat(mappedMemberships.get(0).getContextId()).isNotEqualTo(existingApp.getId());
+    assertThat(mappedMemberships.get(0).getRoleId()).isEqualTo(DEVELOPER_ROLE_ID);
+    assertThat(mappedMemberships.get(0).getMemberName()).isEqualTo("some-other-user");
+
+    assertThat(mappedMemberships.get(1).getContextId()).isNotEqualTo(existingApp.getId());
+    assertThat(mappedMemberships.get(1).getRoleId()).isEqualTo(DEVELOPER_ROLE_ID);
+    assertThat(mappedMemberships.get(1).getMemberName()).isEqualTo("some-user-1");
   }
 
   @Test
@@ -807,16 +854,19 @@ public class ScmOnboardingServiceTest
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
     // given an existing application with a Source Control entry that matches one we'll import
+    final String repoUrl = String.format("%s/org/repo1", gitService.baseUrl());
     Application targetApp = tempEntity.newApplication("repo1__org", org.getId());
-    tempEntity.newSourceControl(targetApp.getId(), "http://localhost/org/repo1", new Date());
+    tempEntity.newSourceControl(targetApp.getId(), repoUrl, new Date());
 
     // and a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", null, false, "org", "repo1",
+        new SCMRepository(SourceControlProvider.GITHUB, repoUrl, null, false, "org", "repo1",
             "foo")
     };
     int totalRepoCount = 50;
     int prevImportedCount = 8;
+
+    givenScmMappingEnabledAndSomeIQUsersToMapTo();
 
     // when the repos are imported
     ImportResults response = scmOnboardingService.importRepositories(org.getId(),
@@ -827,7 +877,7 @@ public class ScmOnboardingServiceTest
     assertThat(imported.size()).isEqualTo(1);
     assertThat(imported.get(0).getNamespace()).isEqualTo("org");
     assertThat(imported.get(0).getProject()).isEqualTo("repo1");
-    assertThat(imported.get(0).getHttpCloneUrl()).isEqualTo("http://localhost/org/repo1");
+    assertThat(imported.get(0).getHttpCloneUrl()).isEqualTo(repoUrl);
     assertThat(imported.get(0).getSourceControlProvider()).isEqualTo(SourceControlProvider.GITHUB);
     assertThat(imported.get(0).getDescription()).isEqualTo("foo");
     assertThat(response.getFailedRepositories()).isEmpty();
@@ -858,7 +908,21 @@ public class ScmOnboardingServiceTest
     // DB changes were made)
     int totalPercent = (int)((prevImportedCount + batchCount) * 100.0 / totalRepoCount);
     int updatedApps = 0;
-    assertTelemetry(batchPercent, batchCount, totalPercent, updatedApps);
+    int roleAssignmentCount = 1;
+    assertTelemetry(batchPercent, batchCount, totalPercent, updatedApps, roleAssignmentCount);
+
+    // should still create memberships even though the app was existing
+    final var mappedMemberships = tempEntity.getMembershipMappings(RoleDAO.DEVELOPER);
+    assertThat(mappedMemberships).isNotNull();
+    assertThat(mappedMemberships.size()).isEqualTo(2);
+
+    assertThat(mappedMemberships.get(0).getContextId()).isEqualTo(targetApp.getId());
+    assertThat(mappedMemberships.get(0).getRoleId()).isEqualTo(DEVELOPER_ROLE_ID);
+    assertThat(mappedMemberships.get(0).getMemberName()).isEqualTo("some-other-user");
+
+    assertThat(mappedMemberships.get(1).getContextId()).isEqualTo(targetApp.getId());
+    assertThat(mappedMemberships.get(1).getRoleId()).isEqualTo(DEVELOPER_ROLE_ID);
+    assertThat(mappedMemberships.get(1).getMemberName()).isEqualTo("some-user-1");
   }
 
   @Test(expected = BadRequestException.class)
@@ -1581,8 +1645,18 @@ public class ScmOnboardingServiceTest
   }
 
   private void assertTelemetry(final int batchPercent, final int batchCount, final int totalPercent, int updateCount) {
+    assertTelemetry(batchPercent, batchCount, totalPercent, updateCount, 0);
+  }
+
+  private void assertTelemetry(final int batchPercent,
+                               final int batchCount,
+                               final int totalPercent,
+                               int updateCount,
+                               int roleAssignmentCount)
+  {
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(telemetrySenderMock, times(1 + (updateCount * 2))).send(telemetryDataArgumentCaptor.capture());
+    verify(telemetrySenderMock, times(1 + (updateCount * 2) + roleAssignmentCount)).send(
+        telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
     TelemetryData telemetryData = telemetryDataList.stream()
         .filter(td -> td.getPurpose().equals(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING))
@@ -1598,5 +1672,22 @@ public class ScmOnboardingServiceTest
         .isBetween(System.currentTimeMillis() - 10_000, System.currentTimeMillis());
     assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
     reset(telemetrySenderMock);
+  }
+
+  private String getResourceContents(final String path) throws IOException {
+    final var resource = getClass().getResource(path);
+    return FileUtils.readFileToString(new File(resource.getFile()), StandardCharsets.UTF_8);
+  }
+
+  private void givenScmMappingEnabledAndSomeIQUsersToMapTo() {
+    // given mapping enabled
+    tempEntity.createScmUserMappings(
+        DEVELOPER_ROLE_ID,
+        org.getId(),
+        Lists.newArrayList(getMappingForScmUserJsonStorage(SCM_USERNAME.name(), IQ_USERNAME.name())));
+
+    // given some existing users in IQ that will match the scm contributors
+    tempEntity.newUser("some-user-1");
+    tempEntity.newUser("some-other-user");
   }
 }

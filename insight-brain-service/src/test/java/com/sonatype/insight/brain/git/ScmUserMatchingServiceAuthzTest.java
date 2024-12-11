@@ -7,12 +7,14 @@ package com.sonatype.insight.brain.git;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsDTO;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
+import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -23,20 +25,26 @@ public class ScmUserMatchingServiceAuthzTest
   private ScmUserMatchingService scmUserMatchingService;
 
   @Test(expected = UnauthenticatedException.class)
-  public void testAutomaticRoleAssignment_Unauthenticated() {
-    scmUserMatchingService.automaticRoleAssignment(app.getPublicId());
+  public void testAutomaticRoleAssignmentByMapping_Unauthenticated() {
+    scmUserMatchingService.automaticRoleAssignmentByMapping(
+        app.getPublicId(),
+        new SCMUserMappingsDTO(null, Lists.newArrayList()));
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testAutomaticRoleAssignment_Unauthorized() {
+  public void testAutomaticRoleAssignmentByMapping_Unauthorized() {
     login();
-    scmUserMatchingService.automaticRoleAssignment(app.getPublicId());
+    scmUserMatchingService.automaticRoleAssignmentByMapping(
+        app.getPublicId(),
+        new SCMUserMappingsDTO(null, Lists.newArrayList()));
   }
 
   @Test
-  public void testAutomaticRoleAssignment_Authorized() {
+  public void testAutomaticRoleAssignmentByMapping_Authorized() {
     grantEditAccessControlPermission(app.getId());
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> scmUserMatchingService.automaticRoleAssignment(app.getPublicId()));
+        .isThrownBy(() -> scmUserMatchingService.automaticRoleAssignmentByMapping(
+            app.getPublicId(),
+            new SCMUserMappingsDTO(null, Lists.newArrayList())));
   }
 }

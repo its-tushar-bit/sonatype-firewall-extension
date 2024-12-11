@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.atlassian.crowd.exception.OperationFailedException;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Rule;
@@ -555,11 +556,143 @@ public class UserDirectoryTest
   }
 
   @Test
-  public void testGetUsersByName_LdapOnlyCalledWithNamesNotFoundInInternalRealm() throws Exception {
-    LdapService mockLdapService = mock(LdapService.class);
-    tempEntity.newLdapServer("Test Server");
+  public void testGetUsersByRealNames_MatchesAgainstInternalUsersAndAllConfiguredLDAPServersCombiningResults()
+      throws Exception
+  {
+    configureAndStartNewLdapServer(testLdapServer1, "LDAP1");
+    configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
 
-    when(mockLdapService.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
+    tempEntity.newUser(
+        "internal-user-1", "internal", "users-1", "internal-user1@example.com");
+    tempEntity.newUser(
+        "internal-user-2", "internal", "users-2", "internal-user2@example.com");
+    tempEntity.newUser(
+        "internal-user-3", "internal", "users-3", "internal-user3@example.com");
+
+    final List<Member> members = userDirectory.getUsersByRealNames(Sets.newHashSet(
+        "internal users-2",
+        "internal users-1",
+        "John Doe", // ldap1 user
+        "Jannet Ray", // ldap2 user
+        "Nobody Here"
+    ));
+
+    // should return a list of any users that matched internally or in ldap and exclude any users that did not match
+    assertThat(members).extracting(Member::getInternalName).containsExactly(
+        "internal-user-1", "internal-user-2", "testuser1", "testuser3");
+    assertThat(members).extracting(Member::getRealm).containsExactly(
+        "IQ Server", "IQ Server", "LDAP1", "LDAP2"
+    );
+  }
+
+  @Test
+  public void testGetUsersByRealNames_OnlyQueriesLdapForUsersNotFoundInternally() throws NamingException {
+    final LdapService mockLdapService = mockEnabledLdapService("Test Server");
+
+    when(mockLdapService.getUsersByRealName(any(), any())).thenReturn(Lists.newArrayList());
+
+    tempEntity.newUser(
+        "internal-user-1", "internal", "users-1", "internal-user1@example.com");
+    tempEntity.newUser(
+        "internal-user-2", "internal", "users-2", "internal-user2@example.com");
+
+    final UserDirectory userDirectory =
+        new UserDirectory(userDao, ldapServerDAO, ssoUserService, mockLdapService, crowdClientFactory);
+
+    userDirectory.getUsersByRealNames(Sets.newHashSet(
+        "internal users-2",
+        "internal users-1",
+        "Sam Jenkins",
+        "Jim Varney"
+    ));
+
+    // these are the arguments that didn't already match to an internal user vis userDao
+    final String[] expectedLdapArguments = { "Jim Varney", "Sam Jenkins" };
+
+    // should only have tried to find ldap users if they were not found as internal users
+    verify(mockLdapService).getUsersByRealName(any(LdapServer.class), eq(expectedLdapArguments));
+  }
+
+  @Test
+  public void testGetUsersByRealNames_HandlesNullAndEmptyLists() {
+    final var resultsForNull = userDirectory.getUsersByRealNames(null);
+    assertThat(resultsForNull).isEmpty();
+
+    final var resultsForEmpty = userDirectory.getUsersByRealNames(Sets.newHashSet());
+    assertThat(resultsForEmpty).isEmpty();
+  }
+
+  @Test
+  public void testGetUsersByEmails_MatchesAgainstInternalUsersAndAllConfiguredLDAPServersCombiningResults()
+      throws Exception
+  {
+    configureAndStartNewLdapServer(testLdapServer1, "LDAP1");
+    configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
+
+    tempEntity.newUser(
+        "internal-user-1", "internal", "users-1", "internal-user1@example.com");
+    tempEntity.newUser(
+        "internal-user-2", "internal", "users-2", "internal-user2@example.com");
+    tempEntity.newUser(
+        "internal-user-3", "internal", "users-3", "internal-user3@example.com");
+
+    final List<Member> members = userDirectory.getUsersByEmails(Sets.newHashSet(
+        "internal-user2@example.com",
+        "internal-user1@example.com",
+        "test.user@company.com", // ldap1 user
+        "test.user2@company.com", // ldap2 user
+        "not-in-any-user-provider@example.com"
+    ));
+
+    // should return a list of any users that matched internally or in ldap and exclude any users that did not match
+    assertThat(members).extracting(Member::getInternalName).containsExactly(
+        "internal-user-1", "internal-user-2", "testuser1", "testuser2");
+    assertThat(members).extracting(Member::getRealm).containsExactly(
+        "IQ Server", "IQ Server", "LDAP1", "LDAP2"
+    );
+  }
+
+  @Test
+  public void testGetUsersByEmails_OnlyQueriesLdapForUsersNotFoundInternally() throws NamingException {
+    final LdapService mockLdapService = mockEnabledLdapService("Test Server");
+
+    when(mockLdapService.getUsersByEmail(any(), any())).thenReturn(Lists.newArrayList());
+
+    tempEntity.newUser(
+        "internal-user-1", "internal", "users-1", "internal-user1@example.com");
+    tempEntity.newUser(
+        "internal-user-2", "internal", "users-2", "internal-user2@example.com");
+
+    final UserDirectory userDirectory =
+        new UserDirectory(userDao, ldapServerDAO, ssoUserService, mockLdapService, crowdClientFactory);
+
+    userDirectory.getUsersByEmails(Sets.newHashSet(
+        "internal-user2@example.com",
+        "internal-user1@example.com",
+        "ldap1@gmail.com",
+        "ldap2@gmail.com"
+    ));
+
+    // these are the arguments that didn't already match to an internal user vis userDao
+    final String[] expectedLdapArguments = { "ldap1@gmail.com", "ldap2@gmail.com" };
+
+    // should only have tried to find ldap users if they were not found as internal users
+    verify(mockLdapService).getUsersByEmail(any(LdapServer.class), eq(expectedLdapArguments));
+  }
+
+  @Test
+  public void testGetUsersByEmails_HandlesNullAndEmptyLists() {
+    final var resultsForNull = userDirectory.getUsersByEmails(null);
+    assertThat(resultsForNull).isEmpty();
+
+    final var resultsForEmpty = userDirectory.getUsersByEmails(Sets.newHashSet());
+    assertThat(resultsForEmpty).isEmpty();
+  }
+
+  @Test
+  public void testGetUsersByName_LdapOnlyCalledWithNamesNotFoundInInternalRealm() throws Exception {
+    LdapService mockLdapService = mockEnabledLdapService("Test Server");
+
     List<LdapUser> emptyLdapUsers = new ArrayList<>();
     String[] expectedArgument = new String[] { "Alpha", "CLMBOB" };
     when(mockLdapService.getUsersByName(any(LdapServer.class), eq(expectedArgument)))
@@ -585,7 +718,7 @@ public class UserDirectoryTest
     // Count of the number of calls is still one, as expected.
     verify(mockLdapService, times(1)).getUsersByName(any(LdapServer.class), any(String[].class));
   }
-  
+
   @Test
   public void testGetUsersByName_MultipleLdapServers() throws Exception {
     // Configure LDAP.
@@ -1372,6 +1505,14 @@ public class UserDirectoryTest
     when(mockLdapService.isDynamicGroupSearchDisabled()).thenReturn(dynamicGroupSearchDisabled);
 
     assertThat(userDirectory.isGroupSearchDisabled()).isEqualTo(expectedDisabled);
+  }
+
+  private LdapService mockEnabledLdapService(final String ldapServerName) {
+    final LdapService mockLdapService = mock(LdapService.class);
+    tempEntity.newLdapServer(ldapServerName);
+    when(mockLdapService.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
+
+    return mockLdapService;
   }
 
   private static class SameId

@@ -2586,6 +2586,24 @@ public class SbomResultHandlerTest
         .isEqualTo("binary.temp");
   }
 
+  @Test
+  public void testHandlerAndFilterContent_ContainerScanWithVulnerability() throws Exception {
+    String sbomContent = getSbomJsonFile("sbom-container-scan.json");
+    String identificationSource = IdentificationSource.SONATYPE_CONTAINER.getName();
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent(identificationSource + "-bom.json", null, null, null,
+            sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    assertFilteredSbomFile(filteredContent, 1);
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).allSatisfy(coord -> assertThat(coord.getSource())
+            .isEqualTo(identificationSource))
+        .allSatisfy(coord -> assertThat(coord.getIdentificationSources()).isEqualTo(
+            SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE));
+  }
+
   private void assertExtensionVulnerabilities(Component component) {
     Map<String, Extension> extensions = component.getExtensions();
     assertThat(extensions).isNotEmpty().containsKey(ExtensionType.VULNERABILITIES.getTypeName());

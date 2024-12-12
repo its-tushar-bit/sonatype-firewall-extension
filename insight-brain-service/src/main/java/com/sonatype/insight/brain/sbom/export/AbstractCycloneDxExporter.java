@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
@@ -106,6 +107,9 @@ public abstract class AbstractCycloneDxExporter
 
   protected static final String REPORT_NAME = "Compliance Report";
 
+  private static final String IDENTIFICATION_SOURCE_SONATYPE_CONTAINER =
+      IdentificationSource.SONATYPE_CONTAINER.getName();
+
   protected AbstractCycloneDxExporter(
       final InsightWork insightWork,
       final MultiLicenseDAO multiLicenseDAO,
@@ -185,9 +189,10 @@ public abstract class AbstractCycloneDxExporter
                 SbomTaxonomy.CDX_MATCH_FILENAMES_PROPERTY_NAME,
                 String.join(",", sonatypeComponent.getFilenamesList())));
           }
-
+          String identificationSource = sonatypeComponent.getSource().equals(IDENTIFICATION_SOURCE_SONATYPE_CONTAINER) ?
+              IDENTIFICATION_SOURCE_SONATYPE_CONTAINER : sonatypeComponent.getIdentificationSources();
           bomComponent.setProperties(addOrUpdateBomElementProperty(bomComponent.getProperties(),
-              SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME, sonatypeComponent.getIdentificationSources()));
+              SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME, identificationSource));
 
           bomComponent.setProperties(addOrUpdateBomElementProperty(bomComponent.getProperties(),
               SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME, sonatypeComponent.getHash()));

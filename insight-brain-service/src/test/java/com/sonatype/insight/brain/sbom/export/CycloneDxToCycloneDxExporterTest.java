@@ -186,6 +186,32 @@ public class CycloneDxToCycloneDxExporterTest
   }
 
   @Test
+  public void exportTest_ContainerScan() throws Exception {
+    String testFileName = "test-container-bom.json";
+    File testBomFile = prepareTestReportFile(testFileName);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
+    exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.DEFAULT, SbomFormat.JSON));
+    tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
+    ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
+        "Sonatype-Container",
+        "container",
+        "pam/libpam-modules-bin",
+        "1.5.2-6+deb12u1",
+        "abcdef",
+        "pkg:generic/debian%3A12/pam%2Flibpam-modules-bin@1.5.2-6%2Bdeb12u1?nexustype=container"
+    );
+    tempEntity.newThirdPartyCoordinateSecurity(
+        fileCoordinate, "CVE-2024-10041", "DESC CVE-2024-10041", "l1", 4.7d,
+        "1.1", "Source-Container", "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:N/A:N",
+        "Medium", "1234", "other", "<dd>r1<dd/>",
+        "<dd>a1<dd/>", "SBOM");
+    String export = exporter.export();
+    assertThatJson(export)
+        .whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS)
+        .isEqualTo(readFileToString("outputs/test-container-expected-bom.json"));
+  }
+
+  @Test
   public void exportTest_nonNumericCwesReturnedByHDS() throws Exception {
     String testFileName = "test-bom.xml";
     File testBomFile = prepareTestReportFile(testFileName);

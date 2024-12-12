@@ -179,7 +179,7 @@ public class ContainerResultsHandlerTest
     coordinateSecurityList = new ArrayList<>(coordinateSecurityList);
     coordinateSecurityList.sort(Comparator.comparing(ThirdPartyCoordinateSecurity::getRefId));
 
-    String source = "Sonatype-C";
+    String source = "Sonatype-Container";
 
     Iterator<ThirdPartyCoordinateSecurity> iterator = coordinateSecurityList.iterator();
     assertCoordinateSecurity(iterator.next(), "CVE-2017-15874", "archival/libarchive/decompress_unlzma.c in BusyBox",

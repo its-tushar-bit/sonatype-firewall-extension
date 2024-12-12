@@ -78,7 +78,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * the native image configuration and testing. This allows us to have one set of tests which covers all three cases.
  */
 public abstract class DefaultPolicyEvaluatorTest
-    extends AbstractPolicyEvaluatorTest
+    extends BasePolicyEvaluatorTest
 {
   @Rule
   public final AccessibleEnvironmentVariables environmentVariables = new AccessibleEnvironmentVariables();

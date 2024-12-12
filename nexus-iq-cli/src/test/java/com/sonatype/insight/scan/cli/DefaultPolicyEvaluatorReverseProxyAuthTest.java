@@ -38,7 +38,7 @@ import org.junit.runners.Parameterized;
  */
 @RunWith(Parameterized.class)
 public abstract class DefaultPolicyEvaluatorReverseProxyAuthTest
-    extends AbstractPolicyEvaluatorTest
+    extends BasePolicyEvaluatorTest
 {
   @Rule
   public SslSettings sslSettings = new SslSettings();

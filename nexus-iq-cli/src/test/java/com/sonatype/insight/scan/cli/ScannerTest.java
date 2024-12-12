@@ -58,7 +58,7 @@ public class ScannerTest
     scanner.scan(tmpDir.newFile("scan-test.xml.gz"), targets, new Properties());
 
     assertThat(logOutput).atInfoLevel()
-        .containsPattern("Fingerprinting completed in \\d+ seconds for 4 archives, 60 total files");
+        .containsPattern("Fingerprinting completed in \\d+ seconds for 4 archives, 71 total files");
   }
 
   @Test

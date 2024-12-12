@@ -786,6 +786,9 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-CDDL-UNSPECIFIED-GPL-2.0','GPL-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-COMMERCIAL','Apache-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-COMMERCIAL','COMMERCIAL');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-COMMERCIAL-GPL-UNSPECIFIED','Apache-2.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-COMMERCIAL-GPL-UNSPECIFIED','COMMERCIAL');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-COMMERCIAL-GPL-UNSPECIFIED','GPL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-CVAL-3.0','Apache-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-CVAL-3.0','CVAL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-CVDL-4.0','Apache-2.0');
@@ -1382,6 +1385,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Atlassi
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Atlassian-Cloud-TOS-RD08062019','Atlassian-Cloud-TOS-RD08062019');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Atlassian-Customer-Agreement','Atlassian-Customer-Agreement');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Atlassian-SLA-ED08012023','Atlassian-SLA-ED08012023');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Atlassian-SLA-UNSPECIFIED','Atlassian-SLA-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ATP-OfficeComponent-EULA','ATP-OfficeComponent-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ATR-ESL-0.6','ATR-ESL-0.6');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ATT','ATT');
@@ -3695,6 +3699,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('JSON-MI
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Just-World-License','Just-World-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Kaazing-Developer-LA','Kaazing-Developer-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Karate-Labs-EULA-UD02132024','Karate-Labs-EULA-UD02132024');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Karate-Labs-EULA-UNSPECIFIED','Karate-Labs-EULA-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('KarmaData-TOU','KarmaData-TOU');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Kastrup','Kastrup');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Katalon-Automation-Framework-LA','Katalon-Automation-Framework-LA');

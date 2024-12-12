@@ -315,6 +315,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-CDDL-1.0-EPL-1.0-LGPL-2.1-LGPL-3.0','Apache-2.0 or CDDL-1.0 or EPL-1.0 or LGPL-2.1 or LGPL-3.0','Quintuple License Consisting of Apache License 2.0, Common Development and Distribution License 1.0, Eclipse Public License 1.0, LGPL 2.1 and LGPL 3.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-CDDL-UNSPECIFIED-GPL-2.0','Apache-2.0 or CDDL or GPL-2.0','Triple License Consisting of Apache License 2.0, CDDL-Style License Not Identifiable by Sonatype and GPL 2.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-COMMERCIAL','Apache-2.0 or COMMERCIAL','Dual License Consisting of Apache License 2.0 and Commercial Software License Not Identifiable by Sonatype');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-COMMERCIAL-GPL-UNSPECIFIED','Apache-2.0 or COMMERCIAL or GPL','Triple License Consisting of Apache-2.0, Commercial Software License Not Identifiable by Sonatype and GPL-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-CVAL-3.0','Apache-2.0 or CVAL-3.0','Dual License Consisting of Apache-2.0 and Commercial Vaadin Add On License Version 3');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-CVDL-4.0','Apache-2.0 or CVDL-4.0','Dual License Consisting of Apache License 2.0 and Commercial Vaadin Developer License version 4.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-EPL-1.0','Apache-2.0 or EPL-1.0','Dual License Consisting of Apache License 2.0 and Eclipse Public License 1.0');
@@ -543,6 +544,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Atlassian-Cloud-TOS-RD08062019','Atlassian-Cloud-TOS-RD08062019','Atlassian Cloud Terms of Service Release Date August 06 2019');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Atlassian-Customer-Agreement','Atlassian-Customer-Agreement','Atlassian-Cloud-TOS-RD11012018');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Atlassian-SLA-ED08012023','Atlassian-SLA-ED08012023','Atlassian Software License Agreement - Effective Date 08-01-2023');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Atlassian-SLA-UNSPECIFIED','Atlassian-SLA','Atlassian-SLA-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ATP-OfficeComponent-EULA','ATP-OfficeComponent-EULA','ATP Corp OfficeComponent End User License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ATR-ESL-0.6','ATR-ESL-0.6','The Antiracist Ethical Source License Version 0.6');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ATT','ATT','ATT');
@@ -2140,6 +2142,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Just-World-License','Just-World-License','Just World License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Kaazing-Developer-LA','Kaazing-Developer-LA','Kaazing Developer License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Karate-Labs-EULA-UD02132024','Karate-Labs-EULA-UD02132024','Karate Labs End User License Agreement - Updated Date 02-13-2024');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Karate-Labs-EULA-UNSPECIFIED','Karate-Labs-EULA','Karate-Labs-EULA-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('KarmaData-TOU','KarmaData-TOU','KarmaData Terms of Use - Release Date 01-12-2013');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Kastrup','Kastrup','Kastrup License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Katalon-Automation-Framework-LA','Katalon-Automation-Framework-LA','License Agreement for Katalon Automation Framework');

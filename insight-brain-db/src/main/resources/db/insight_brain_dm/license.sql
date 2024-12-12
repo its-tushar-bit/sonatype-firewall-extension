@@ -201,6 +201,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Atlas
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Atlassian-Cloud-TOS-RD08062019','Atlassian-Cloud-TOS-RD08062019','Atlassian Cloud Terms of Service Release Date August 06 2019');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Atlassian-Customer-Agreement','Atlassian-Customer-Agreement','Atlassian-Cloud-TOS-RD11012018');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Atlassian-SLA-ED08012023','Atlassian-SLA-ED08012023','Atlassian Software License Agreement - Effective Date 08-01-2023');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Atlassian-SLA-UNSPECIFIED','Atlassian-SLA','Atlassian-SLA-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('ATP-OfficeComponent-EULA','ATP-OfficeComponent-EULA','ATP Corp OfficeComponent End User License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('ATR-ESL-0.6','ATR-ESL-0.6','The Antiracist Ethical Source License Version 0.6');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('ATT','ATT','ATT');
@@ -1361,6 +1362,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('JSON'
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Just-World-License','Just-World-License','Just World License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Kaazing-Developer-LA','Kaazing-Developer-LA','Kaazing Developer License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Karate-Labs-EULA-UD02132024','Karate-Labs-EULA-UD02132024','Karate Labs End User License Agreement - Updated Date 02-13-2024');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Karate-Labs-EULA-UNSPECIFIED','Karate-Labs-EULA','Karate-Labs-EULA-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('KarmaData-TOU','KarmaData-TOU','KarmaData Terms of Use - Release Date 01-12-2013');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Kastrup','Kastrup','Kastrup License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Katalon-Automation-Framework-LA','Katalon-Automation-Framework-LA','License Agreement for Katalon Automation Framework');

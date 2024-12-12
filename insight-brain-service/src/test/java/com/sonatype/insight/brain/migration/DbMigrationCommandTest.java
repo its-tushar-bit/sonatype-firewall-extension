@@ -185,20 +185,6 @@ public class DbMigrationCommandTest
   }
 
   @Test
-  @H2DiskTest(suppressMigrations = true)
-  public void testRun_LockTableDoesNotExist() throws Exception {
-    new LegacyDataStoreMigrator(databaseContainerRule.getOperationalDataStore()).migrate();
-
-    deleteLockTable();
-    when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
-
-    dbMigrationCommand.run(null, null, insightConfig);
-
-    verify(spyDatabaseProvisioner).initializeDatabaseWithoutMigration();
-    verify(spyDatabaseProvisioner).migrateDatabase();
-  }
-
-  @Test
   @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "DbMigrationCommandTest/h2")
   public void testRun_IgnoresMigrationDisabled_ByEnvironmentVariable() {
     environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "false");
@@ -465,10 +451,6 @@ public class DbMigrationCommandTest
 
   private void deleteSchedulerStateTable() throws Exception {
     deleteTable("QRTZ_SCHEDULER_STATE");
-  }
-
-  private void deleteLockTable() throws Exception {
-    deleteTable("lock");
   }
 
   private void deleteTable(String tableName) throws Exception {

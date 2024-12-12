@@ -939,12 +939,6 @@ CREATE TABLE product_license (
   CONSTRAINT product_license_pk PRIMARY KEY (product_license_id)
 );
 
--- Since 1.97
-CREATE TABLE lock (
-  lock_id varchar(1100) NOT NULL,
-  CONSTRAINT lock_pk PRIMARY KEY (lock_id)
-);
-
 -- Since 1.98
 CREATE TABLE persisted_policy_evaluation_polling_result (
   persisted_policy_evaluation_polling_result_id varchar(50) NOT NULL,

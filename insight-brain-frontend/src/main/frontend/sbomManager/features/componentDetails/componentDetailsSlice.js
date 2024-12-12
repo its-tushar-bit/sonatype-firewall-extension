@@ -7,7 +7,25 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { convertToWaiverViolationFormat as convertToViolationDetailsFormat } from 'MainRoot/util/waiverUtils';
 
 import axios from 'axios';
-import { always, compose, find, findIndex, includes, prop, propEq, values, without } from 'ramda';
+import {
+  always,
+  any,
+  compose,
+  cond,
+  equals,
+  find,
+  findIndex,
+  includes,
+  keys,
+  pickBy,
+  pipe,
+  prop,
+  propEq,
+  T,
+  toPairs,
+  values,
+  without,
+} from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import {
@@ -19,11 +37,14 @@ import {
   getSbomPolicyViolationReportUrl,
   getVulnerabilityJsonDetailUrl,
   getVulnerabilityOverrideUrl,
+  getBillOfMaterialsComponentsUrl,
 } from 'MainRoot/util/CLMLocation';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 import { propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { selectSbomComponentDetails } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
+import { COMPONENTS_PER_PAGE } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
 
 const REDUCER_NAME = 'sbomComponentDetailsPage';
 
@@ -93,6 +114,7 @@ export const initialState = {
   // policy-violations
   policyViolationDetailsDrawer: { ...policyViolationDetailsDrawerInitialState },
   sbomPolicyViolations: { ...sbomPolicyViolationsInitialState },
+  componentDetailsPaginationData: null,
 };
 
 const setActiveTabIndex = (state, { payload }) => {
@@ -104,6 +126,21 @@ const setSelectedIssueForActions = (state, { payload }) => {
     state.selectedIssueForActions = null;
   } else {
     state.selectedIssueForActions = payload;
+  }
+};
+
+const updateCurrentPage = (state, { payload }) => {
+  if (state.componentDetailsPaginationData) {
+    const { pagesData } = state.componentDetailsPaginationData;
+    const pageWithHash = pipe(
+      toPairs,
+      find(([, items]) => any(propEq('hash', payload), items))
+    )(pagesData);
+
+    if (pageWithHash) {
+      const pageNumber = pageWithHash[0];
+      state.componentDetailsPaginationData.pagination.currentPage = Number(pageNumber);
+    }
   }
 };
 
@@ -458,6 +495,92 @@ const loadSbomPolicyViolationsRejected = (state, { payload }) => {
   });
 };
 
+const loadInternalAppIdRequested = (state) => {
+  state.loadingInternalAppId = true;
+  state.errorInternalAppId = null;
+  state.applicationName = null;
+};
+
+const loadInternalAppIdFulfilled = (state, { payload }) => {
+  state.loadingInternalAppId = false;
+  state.errorInternalAppId = null;
+  state.internalAppId = payload.id;
+  state.applicationName = payload.name;
+};
+
+const loadInternalAppIdRejected = (state, { payload }) => {
+  state.loadingInternalAppId = false;
+  state.errorInternalAppId = payload.response.data;
+  state.internalAppId = null;
+  state.publicApplicationId = null;
+};
+
+const loadComponentsRequested = (state) => {
+  state.loadingComponents = true;
+  state.errorLoadingComponents = null;
+};
+
+const loadComponentsFulfilled = (state, { payload }) => {
+  state.loadingComponents = false;
+  state.errorLoadingComponents = null;
+  state.componentDetailsPaginationData = {
+    ...state.componentDetailsPaginationData,
+    pagesData: {
+      ...state.componentDetailsPaginationData.pagesData,
+      [state.componentDetailsPaginationData.pagination.nextPage]: payload.results,
+    },
+  };
+};
+
+const loadComponentsRejected = (state, { payload }) => {
+  state.loadingComponents = false;
+  state.errorLoadingComponents = payload.response.data;
+};
+
+const loadInternalAppId = createAsyncThunk(
+  `${REDUCER_NAME}/loadInternalAppId`,
+  async (publicApplicationId, { rejectWithValue }) =>
+    axios
+      .get(getApplicationSummaryUrl(publicApplicationId))
+      .then((response) => response.data)
+      .catch((error) => rejectWithValue(error))
+);
+
+const loadComponents = createAsyncThunk(
+  `${REDUCER_NAME}/loadComponents`,
+  async ({ internalAppId, sbomVersion, pageToQuery }, { getState, rejectWithValue }) => {
+    const state = getState();
+    const { componentDetailsPaginationData } = selectSbomComponentDetails(state);
+    const { sortConfiguration, filterConfiguration, componentNameSearchFromState } = componentDetailsPaginationData;
+    const pickKeysWithTrueValue = compose(
+      keys,
+      pickBy((v) => !!v)
+    );
+
+    const sortDirection = cond([
+      [equals(SORT_DIRECTION.ASC), always(true)],
+      [equals(SORT_DIRECTION.DESC), always(false)],
+      [T, always(null)],
+    ])(sortConfiguration.sortDirection);
+    return axios
+      .get(
+        getBillOfMaterialsComponentsUrl(
+          internalAppId,
+          sbomVersion,
+          pageToQuery + 1,
+          COMPONENTS_PER_PAGE,
+          sortConfiguration.sortBy,
+          sortDirection,
+          pickKeysWithTrueValue(filterConfiguration.vulnerabilityThreatLevels),
+          pickKeysWithTrueValue(filterConfiguration.dependencyTypes),
+          componentNameSearchFromState
+        )
+      )
+      .then((response) => response.data)
+      .catch((err) => rejectWithValue(err));
+  }
+);
+
 const sbomComponentDetailsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -478,6 +601,13 @@ const sbomComponentDetailsSlice = createSlice({
     copyMaskTimerDone: propSetConst('copyMaskState', null),
     showPolicyViolationDetailsDrawer,
     hidePolicyViolationDetailsDrawer,
+    setComponentDetailsPaginationData: (state, { payload }) => {
+      state.componentDetailsPaginationData = payload;
+    },
+    setComponentsNextPage: (state, { payload }) => {
+      state.componentDetailsPaginationData.pagination.nextPage = payload;
+    },
+    updateCurrentPage,
   },
   extraReducers: {
     [loadComponentDetails.pending]: loadComponentDetailsRequested,
@@ -504,7 +634,19 @@ const sbomComponentDetailsSlice = createSlice({
     [loadSbomPolicyViolations.pending]: loadSbomPolicyViolationsRequested,
     [loadSbomPolicyViolations.fulfilled]: loadSbomPolicyViolationsFulfilled,
     [loadSbomPolicyViolations.rejected]: loadSbomPolicyViolationsRejected,
-    [UI_ROUTER_ON_FINISH]: always(initialState),
+    [loadInternalAppId.pending]: loadInternalAppIdRequested,
+    [loadInternalAppId.fulfilled]: loadInternalAppIdFulfilled,
+    [loadInternalAppId.rejected]: loadInternalAppIdRejected,
+    [loadComponents.pending]: loadComponentsRequested,
+    [loadComponents.fulfilled]: loadComponentsFulfilled,
+    [loadComponents.rejected]: loadComponentsRejected,
+    [UI_ROUTER_ON_FINISH]: (state) => {
+      const savedPaginationData = state.componentDetailsPaginationData;
+      return {
+        ...initialState,
+        componentDetailsPaginationData: savedPaginationData,
+      };
+    },
   },
 });
 
@@ -518,6 +660,8 @@ export const actions = {
   saveVexAnnotation,
   deleteVexAnnotation,
   copyVexAnnotation,
+  loadInternalAppId,
+  loadComponents,
 };
 
 export default sbomComponentDetailsSlice.reducer;

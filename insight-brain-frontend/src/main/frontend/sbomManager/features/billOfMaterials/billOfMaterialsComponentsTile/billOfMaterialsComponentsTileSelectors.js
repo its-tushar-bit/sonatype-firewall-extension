@@ -4,5 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { prop } from 'ramda';
+import { createSelector } from '@reduxjs/toolkit';
 
 export const selectBillOfMaterialsComponentsTile = prop('billOfMaterialsComponentsTile');
+export const selectComponentNameSearch = createSelector(
+  selectBillOfMaterialsComponentsTile,
+  prop('componentNameSearch')
+);

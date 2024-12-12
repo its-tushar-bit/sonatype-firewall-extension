@@ -28,6 +28,7 @@ import VulnerabilitiesTile from 'MainRoot/sbomManager/features/componentDetails/
 import { faCopy } from '@fortawesome/pro-regular-svg-icons';
 import {
   selectComponentDetails,
+  selectComponentPagination,
   selectCopyError,
   selectCopyMaskState,
   selectDeleteError,
@@ -40,13 +41,16 @@ import {
   selectShowCopyModal,
   selectShowDeleteModal,
   selectStatesReferenceData,
+  selectInternalAppId,
+  selectComponentsCurrentPage,
+  selectSelectedComponentIndex,
+  selectComponentsPagesData,
+  selectTotalNumberOfPages,
 } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
 import { actions } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
-import { actions as billOfMaterialsActions } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
 import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import ComponentDetailsDependencyTreeTile from 'MainRoot/sbomManager/features/componentDetails/dependecyTree/ComponentDetailsDependencyTreeTile';
-import { selectInternalAppId } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSelectors';
 import ComponentDetailsSbomInfo from 'MainRoot/sbomManager/features/componentDetails/ComponentDetailsSbomInfo';
 import ComponentSummary from 'MainRoot/sbomManager/features/componentDetails/ComponentSummary';
 import SbomVulnerabilityDetailsPopover from 'MainRoot/sbomManager/features/componentDetails/vulnerabilitiesDrawer/SbomVulnerabilityDetailsPopover';
@@ -62,12 +66,16 @@ import DeleteAnnotationModal from 'MainRoot/sbomManager/features/componentDetail
 import CopyAnnotationModal from 'MainRoot/sbomManager/features/componentDetails/CopyAnnotationModal';
 import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatefulBreadcrumb';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
+import { ComponentDetailsFooter } from 'MainRoot/componentDetails/ComponentDetailsFooter';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function ComponentDetailsPage() {
   const dispatch = useDispatch();
   const isProductFeaturesLoading = useSelector(selectLoadingFeatures);
   const isLoading = useSelector(selectIsLoading);
   const loadError = useSelector(selectLoadError);
+  const uiRouterStateService = useRouterState();
+  const pagination = useSelector((state) => selectComponentPagination(state, uiRouterStateService));
   const errorLoadingProductFeatures = useSelector(selectLoadErrorFeatures);
   const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
   const componentDetails = useSelector(selectComponentDetails);
@@ -87,6 +95,10 @@ export default function ComponentDetailsPage() {
   const copyError = useSelector(selectCopyError);
   const copyMaskState = useSelector(selectCopyMaskState);
   const isSbomPoliciesSupported = useSelector(selectIsSbomPoliciesSupported);
+  const currentComponentsPage = useSelector(selectComponentsCurrentPage);
+  const currentSelectedComponentIndex = useSelector(selectSelectedComponentIndex);
+  const pagesData = useSelector(selectComponentsPagesData);
+  const pagesCount = useSelector(selectTotalNumberOfPages);
 
   const { applicationPublicId, sbomVersion, componentHash } = routerParams;
   const isMounted = useRef(true);
@@ -162,12 +174,39 @@ export default function ComponentDetailsPage() {
 
   const loadStateForBreadcrum = () => dispatch(ownerSideNavActions.loadOwnerList());
 
-  const loadInternalAppId = () => dispatch(billOfMaterialsActions.loadInternalAppId(applicationPublicId));
+  const loadInternalAppId = () => dispatch(actions.loadInternalAppId(applicationPublicId));
+
+  const updateComponentCurrentPage = () => dispatch(actions.updateCurrentPage(componentHash));
 
   const cycleDisclosedVulnerabilitiesSortDirection = (sortBy) =>
     dispatch(actions.cycleDisclosedVulnerabilitiesSortDirection({ sortBy }));
   const cycleAdditionalVulnerabilitiesSortDirection = (sortBy) =>
     dispatch(actions.cycleAdditionalVulnerabilitiesSortDirection({ sortBy }));
+
+  const handleComponentPageQuery = () => {
+    const components = pagesData?.[currentComponentsPage];
+    if (
+      currentComponentsPage !== undefined &&
+      currentSelectedComponentIndex !== undefined &&
+      currentSelectedComponentIndex !== -1
+    ) {
+      const pageToQuery = getPageToQuery(components);
+      if (pageToQuery !== null && !pagesData[pageToQuery]) {
+        dispatch(actions.setComponentsNextPage(pageToQuery));
+        dispatch(actions.loadComponents({ internalAppId, sbomVersion, pageToQuery }));
+      }
+    }
+  };
+
+  const getPageToQuery = (components) => {
+    if (currentSelectedComponentIndex === components.length - 1 && currentComponentsPage < pagesCount - 1) {
+      return currentComponentsPage + 1;
+    }
+    if (currentSelectedComponentIndex === 0 && currentComponentsPage > 0) {
+      return currentComponentsPage - 1;
+    }
+    return null;
+  };
 
   useEffect(() => {
     loadInternalAppId();
@@ -177,6 +216,8 @@ export default function ComponentDetailsPage() {
 
   useEffect(() => {
     if (internalAppId) {
+      handleComponentPageQuery();
+      updateComponentCurrentPage();
       load();
     }
   }, [internalAppId]);
@@ -267,7 +308,7 @@ export default function ComponentDetailsPage() {
           onLearnMoreClick={onLearnMoreClick}
         />
       )}
-      <NxPageMain id="sbom-manager-component-details">
+      <NxPageMain id="sbom-manager-component-details" className={'sbom-component-details nx-viewport-sized'}>
         <MenuBarStatefulBreadcrumb />
         <NxLoadWrapper
           retryHandler={load}
@@ -275,7 +316,7 @@ export default function ComponentDetailsPage() {
           error={errorLoadingProductFeatures || noSbomManagerEnabledError || loadError}
         >
           {componentDetails && (
-            <div className="sbom-component-details">
+            <div className="nx-viewport-sized__scrollable nx-scrollable sbom-component-details-page__content">
               <ComponentDetailsHeader>
                 <Title id="component-details-title">{componentDetails.displayName}</Title>
                 <ComponentDetailsSbomInfo {...componentDetails.metadata} />
@@ -385,6 +426,7 @@ export default function ComponentDetailsPage() {
             onCancel={cancelCopyModal}
           ></CopyAnnotationModal>
         )}
+        <ComponentDetailsFooter {...pagination} />
       </NxPageMain>
     </>
   );

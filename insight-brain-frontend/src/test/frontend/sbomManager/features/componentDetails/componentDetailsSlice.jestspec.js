@@ -576,4 +576,191 @@ describe('SBOM Manager componentDetailsSlice', function () {
       expect(newState.vulnerabilityDetails).toEqual(fakeVulnerabilityDetails);
     });
   });
+
+  describe('sbomComponentDetailsPage/loadComponents', function () {
+    it('sets loadingComponents to true when loadComponents is pending', () => {
+      const state = {
+        loadingComponents: false,
+        errorLoadingComponents: null,
+      };
+
+      const newState = reducer(state, {
+        type: 'sbomComponentDetailsPage/loadComponents/pending',
+      });
+
+      expect(newState.loadingComponents).toBe(true);
+      expect(newState.errorLoadingComponents).toBe(null);
+    });
+
+    it('updates the value for errorLoadingComponents when loadComponents fails', () => {
+      const state = {
+        loadingComponents: true,
+        errorLoadingComponents: null,
+      };
+
+      const payload = {
+        response: {
+          data: 'payload-error',
+        },
+      };
+
+      const newState = reducer(state, {
+        type: 'sbomComponentDetailsPage/loadComponents/rejected',
+        payload: payload,
+      });
+
+      expect(newState.loadingComponents).toBe(false);
+      expect(newState.errorLoadingComponents).toBe('payload-error');
+    });
+
+    it('updates the pagesData when the components load successfully', () => {
+      const state = {
+        loadingComponents: true,
+        errorLoadingComponents: null,
+        componentDetailsPaginationData: {
+          pagesData: {},
+          pagination: {
+            nextPage: 1,
+          },
+        },
+      };
+
+      const payload = {
+        results: [{ hash: 'abc', name: 'Component 1' }],
+      };
+
+      const newState = reducer(state, {
+        type: 'sbomComponentDetailsPage/loadComponents/fulfilled',
+        payload: payload,
+      });
+
+      expect(newState.loadingComponents).toBe(false);
+      expect(newState.errorLoadingComponents).toBe(null);
+      expect(newState.componentDetailsPaginationData.pagesData[1]).toEqual(payload.results);
+    });
+  });
+
+  describe('sbomComponentDetailsPage/loadInternalAppId', function () {
+    it('sets the loadingInternalAppId when the load is pending', () => {
+      const state = {
+        loadingInternalAppId: false,
+        errorInternalAppId: null,
+        applicationName: null,
+      };
+
+      const newState = reducer(state, {
+        type: 'sbomComponentDetailsPage/loadInternalAppId/pending',
+      });
+
+      expect(newState.loadingInternalAppId).toBe(true);
+      expect(newState.errorInternalAppId).toBe(null);
+      expect(newState.applicationName).toBe(null);
+    });
+
+    it('updates the errorInternalAppId when the load fails', () => {
+      const state = {
+        loadingInternalAppId: true,
+        errorInternalAppId: null,
+        internalAppId: null,
+        publicApplicationId: null,
+      };
+
+      const payload = {
+        response: {
+          data: 'payload-error',
+        },
+      };
+
+      const newState = reducer(state, {
+        type: 'sbomComponentDetailsPage/loadInternalAppId/rejected',
+        payload: payload,
+      });
+
+      expect(newState.loadingInternalAppId).toBe(false);
+      expect(newState.errorInternalAppId).toBe('payload-error');
+      expect(newState.internalAppId).toBe(null);
+      expect(newState.publicApplicationId).toBe(null);
+    });
+
+    it('updates the internal id when it loads', () => {
+      const state = {
+        loadingInternalAppId: true,
+        errorInternalAppId: null,
+        internalAppId: null,
+        applicationName: null,
+      };
+
+      const payload = {
+        id: 'internalAppId123',
+        name: 'Application Name',
+      };
+
+      const newState = reducer(state, {
+        type: 'sbomComponentDetailsPage/loadInternalAppId/fulfilled',
+        payload: payload,
+      });
+
+      expect(newState.loadingInternalAppId).toBe(false);
+      expect(newState.errorInternalAppId).toBe(null);
+      expect(newState.internalAppId).toBe('internalAppId123');
+      expect(newState.applicationName).toBe('Application Name');
+    });
+  });
+
+  describe('sbomComponentDetailsPage/updateCurrentPage', function () {
+    it('updates currentPage when hash is found', () => {
+      const state = {
+        componentDetailsPaginationData: {
+          pagesData: {
+            1: [{ hash: 'abc', name: 'Component 1' }],
+            2: [{ hash: 'def', name: 'Component 2' }],
+          },
+          pagination: {
+            currentPage: 1,
+          },
+        },
+      };
+
+      const newState = reducer(state, {
+        type: 'sbomComponentDetailsPage/updateCurrentPage',
+        payload: 'def',
+      });
+
+      expect(newState.componentDetailsPaginationData.pagination.currentPage).toBe(2);
+    });
+
+    it('does not update currentPage when hash is not found', () => {
+      const state = {
+        componentDetailsPaginationData: {
+          pagesData: {
+            1: [{ hash: 'abc', name: 'Component 1' }],
+            2: [{ hash: 'def', name: 'Component 2' }],
+          },
+          pagination: {
+            currentPage: 1,
+          },
+        },
+      };
+
+      const newState = reducer(state, {
+        type: 'sbomComponentDetailsPage/updateCurrentPage',
+        payload: 'ghi',
+      });
+
+      expect(newState.componentDetailsPaginationData.pagination.currentPage).toBe(1);
+    });
+
+    it('does not update currentPage when componentDetailsPaginationData is null', () => {
+      const state = {
+        componentDetailsPaginationData: null,
+      };
+
+      const newState = reducer(state, {
+        type: 'sbomComponentDetailsPage/updateCurrentPage',
+        payload: 'abc',
+      });
+
+      expect(newState.componentDetailsPaginationData).toBe(null);
+    });
+  });
 });

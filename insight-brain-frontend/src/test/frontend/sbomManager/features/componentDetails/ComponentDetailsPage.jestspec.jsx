@@ -524,6 +524,15 @@ describe('ComponentDetailsPage', () => {
         vulnerabilityAnalysisReferenceData,
         policyViolationDetailsDrawer: { ...policyViolationDetailsDrawerInitialState },
         sbomPolicyViolations: { ...sbomPolicyViolationsInitialState },
+        componentDetailsPaginationData: {
+          pagination: { currentPage: 1, pageCount: 3 },
+          pagesData: {
+            0: [{ hash: 'componentHash1' }, { hash: 'componentHash2' }, { hash: 'componentHash3' }],
+            1: [{ hash: 'componentHash4' }, { hash: 'componentHash' }, { hash: 'componentHash6' }],
+            2: [{ hash: 'componentHash7' }, { hash: 'componentHash8' }],
+          },
+          totalNumberOfComponents: 102,
+        },
       },
     };
     renderPage = (additionalPreloadedState = {}) =>
@@ -591,6 +600,12 @@ describe('ComponentDetailsPage', () => {
 
       expect(screen.getByText('Dependency Tree')).toBeVisible();
       expect(screen.getByText('Dependency tree not available')).toBeVisible();
+      const previousComponentLink = (await screen.findByText('Previous Component')).closest('a');
+      expect(previousComponentLink).toBeVisible();
+
+      const nextComponentLink = (await screen.findByText('Next Component')).closest('a');
+      expect(nextComponentLink).toBeVisible();
+      expect(screen.getByText('52 of 102')).toBeVisible();
     });
 
     it('should render correct tabs', async () => {

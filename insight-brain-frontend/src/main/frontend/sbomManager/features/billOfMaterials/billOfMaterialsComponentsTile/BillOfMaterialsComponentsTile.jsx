@@ -52,8 +52,12 @@ import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { formatNumberLocale } from 'MainRoot/util/formatUtils';
 
 import ComponentsFilterDrawer from './componentsFilterDrawer/ComponentsFilterDrawer';
-import { selectBillOfMaterialsComponentsTile } from './billOfMaterialsComponentsTileSelectors.js';
+import {
+  selectBillOfMaterialsComponentsTile,
+  selectComponentNameSearch,
+} from './billOfMaterialsComponentsTileSelectors.js';
 import { actions, COMPONENTS_PER_PAGE, SORT_BY_FIELDS, SORT_DIRECTION } from './billOfMaterialsComponentsTileSlice';
+import { actions as cdpActions } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
 import { selectIsSbomPoliciesSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 import './billOfMaterialsComponentsTile.scss';
@@ -120,11 +124,23 @@ export default function BillOfMaterialsComponentsTile() {
     components,
     totalNumberOfComponents,
     sortConfiguration,
+    filterConfiguration,
     pagination,
   } = useSelector(selectBillOfMaterialsComponentsTile);
+  const componentNameSearchFromState = useSelector(selectComponentNameSearch);
 
   useEffect(() => {
     if (internalAppId) {
+      dispatch(
+        cdpActions.setComponentDetailsPaginationData({
+          pagination,
+          pagesData: { [pagination.currentPage]: components },
+          totalNumberOfComponents,
+          sortConfiguration,
+          filterConfiguration,
+          componentNameSearchFromState,
+        })
+      );
       dispatch(actions.resetLoadComponentsConfigurations());
       loadComponents();
     }

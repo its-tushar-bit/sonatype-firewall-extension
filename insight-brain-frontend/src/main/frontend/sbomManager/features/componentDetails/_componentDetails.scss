@@ -28,9 +28,8 @@
   }
 }
 
-.sbom-component-details {
-  height: 100%;
-  overflow-y: auto;
+.nx-page-main.sbom-component-details {
+  padding: 0;
 }
 
 .nx-tag.sbom-component-match-state-tag {
@@ -41,4 +40,9 @@
 
 .sbom-match-state-info-icon {
   color: black;
+}
+
+.sbom-component-details-page__content {
+  padding: var(--nx-spacing-6x);
+  z-index: 1;
 }

@@ -19,6 +19,8 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import java.util.UUID;
 import javax.inject.Inject;
@@ -111,7 +113,7 @@ public class SbomImportServiceTest
   @Test
   public void testDetectSbom_Success_CycloneDx() throws IOException {
     SbomSummary expectedSummary = new SbomSummary();
-    expectedSummary.specification = "CycloneDx";
+    expectedSummary.specification = SbomSpecification.CYCLONEDX.toString();
     expectedSummary.format = "xml";
     expectedSummary.version = "1.5";
     expectedSummary.componentCount = 1;
@@ -170,7 +172,7 @@ public class SbomImportServiceTest
   @Test
   public void testDetectSbom_Success_IgnoreValidationError_ValidCycloneDx() throws IOException {
     SbomSummary expectedSummary = new SbomSummary();
-    expectedSummary.specification = "CycloneDx";
+    expectedSummary.specification = SbomSpecification.CYCLONEDX.toString();
     expectedSummary.format = "xml";
     expectedSummary.version = "1.5";
     expectedSummary.componentCount = 1;
@@ -229,7 +231,7 @@ public class SbomImportServiceTest
   @Test
   public void testDetectSbom_Success_IgnoreValidationError_InvalidCycloneDx() {
     SbomSummary expectedSummary = new SbomSummary();
-    expectedSummary.specification = "CycloneDx";
+    expectedSummary.specification = SbomSpecification.CYCLONEDX.toString();
     expectedSummary.format = "json";
     expectedSummary.version = "1.4";
     expectedSummary.componentCount = 3;
@@ -396,7 +398,7 @@ public class SbomImportServiceTest
     assertThat(actual.getIsValidationErrorIgnorable()).isTrue();
     assertThat(actual.getSbomSummary()).isNotNull();
     assertThat(actual.getSbomSummary().format).isEqualTo("json");
-    assertThat(actual.getSbomSummary().specification).isEqualTo("CycloneDx");
+    assertThat(actual.getSbomSummary().specification).isEqualTo(CYCLONEDX.toString());
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly(
         "Line: 11, Column: 6, Path: $.components[1], Error: required property 'type' not found",
@@ -434,7 +436,7 @@ public class SbomImportServiceTest
     assertThat(actual.getIsValidationErrorIgnorable()).isTrue();
     assertThat(actual.getSbomSummary()).isNotNull();
     assertThat(actual.getSbomSummary().format).isEqualTo("xml");
-    assertThat(actual.getSbomSummary().specification).isEqualTo("CycloneDx");
+    assertThat(actual.getSbomSummary().specification).isEqualTo(SbomSpecification.CYCLONEDX.toString());
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly(
         "Line: 8, Column: 16, Path: //bom[1]/components[1], Error: cvc-complex-type.4: Attribute 'type' must appear " +
@@ -586,7 +588,7 @@ public class SbomImportServiceTest
     assertThat(actual.getIsValidationErrorIgnorable()).isFalse();
     assertThat(actual.getSbomSummary()).isNotNull();
     assertThat(actual.getSbomSummary().format).isEqualTo("json");
-    assertThat(actual.getSbomSummary().specification).isEqualTo("CycloneDx");
+    assertThat(actual.getSbomSummary().specification).isEqualTo(SbomSpecification.CYCLONEDX.toString());
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly("Error: Unable to parse BOM from byte array",
         "Line: 11, Column: 3, Error: Unexpected character (']' (code 93)): expected a value");
@@ -616,7 +618,7 @@ public class SbomImportServiceTest
     assertThat(actual.getIsValidationErrorIgnorable()).isFalse();
     assertThat(actual.getSbomSummary()).isNotNull();
     assertThat(actual.getSbomSummary().format).isEqualTo("xml");
-    assertThat(actual.getSbomSummary().specification).isEqualTo("CycloneDx");
+    assertThat(actual.getSbomSummary().specification).isEqualTo(SbomSpecification.CYCLONEDX.toString());
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly(
         "Line: 9, Column: 3, Error: Element type \"component\" " +

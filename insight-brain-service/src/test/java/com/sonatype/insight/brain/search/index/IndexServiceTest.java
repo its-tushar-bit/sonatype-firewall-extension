@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
@@ -172,7 +173,7 @@ public class IndexServiceTest
 
     ThirdPartySbomMetadata sbomMetadata = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, "bom.xml");
     sbomMetadata.setSbomVersion("1.2.3");
-    sbomMetadata.setSpec("CycloneDx");
+    sbomMetadata.setSpec(SbomSpecification.CYCLONEDX.toString());
     thirdPartySbomMetadataDAO.update(sbomMetadata);
 
     Document document = indexService.buildDocument(indexingContext, sbomMetadata);
@@ -183,7 +184,7 @@ public class IndexServiceTest
         field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_VERSION, "1.2.3", TextField.class, true),
-        field(FieldIdentifier.SBOM_SPECIFICATION, "CycloneDx", TextField.class, true),
+        field(FieldIdentifier.SBOM_SPECIFICATION, SbomSpecification.CYCLONEDX.toString(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),
@@ -202,7 +203,7 @@ public class IndexServiceTest
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, "bom.xml");
     sbomMetadata.setSbomVersion("1.2.3");
-    sbomMetadata.setSpec("CycloneDx");
+    sbomMetadata.setSpec(SbomSpecification.CYCLONEDX.toString());
     thirdPartySbomMetadataDAO.update(sbomMetadata);
 
     ThirdPartyFileCoordinate thirdPartyFileCoord = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "asdf",
@@ -229,7 +230,7 @@ public class IndexServiceTest
         field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_VERSION, "1.2.3", TextField.class, true),
-        field(FieldIdentifier.SBOM_SPECIFICATION, "CycloneDx", TextField.class, true),
+        field(FieldIdentifier.SBOM_SPECIFICATION, SbomSpecification.CYCLONEDX.toString(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),
@@ -250,7 +251,7 @@ public class IndexServiceTest
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, "bom.xml");
     sbomMetadata.setSbomVersion("1.2.3");
-    sbomMetadata.setSpec("CycloneDx");
+    sbomMetadata.setSpec(SbomSpecification.CYCLONEDX.toString());
     thirdPartySbomMetadataDAO.update(sbomMetadata);
 
     ThirdPartyFileCoordinate thirdPartyFileCoord = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "asdf",
@@ -270,7 +271,7 @@ public class IndexServiceTest
         field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_VERSION, "1.2.3", TextField.class, true),
-        field(FieldIdentifier.SBOM_SPECIFICATION, "CycloneDx", TextField.class, true),
+        field(FieldIdentifier.SBOM_SPECIFICATION, SbomSpecification.CYCLONEDX.toString(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),

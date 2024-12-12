@@ -156,7 +156,7 @@ public class ApiSbomResourceTest
         insightWork.getSbomDir(app.getId()).toPath());
     String sbomVersion = tempEntity.newRandomHash();
     setupScenarioWithMetadataComponentSecurityLicenseAndVex(tempEntity, app, zippedBom, sbomVersion,
-        "CycloneDx", "1.5", SbomFormat.XML);
+        SbomSpecification.CYCLONEDX.toString(), "1.5", SbomFormat.XML);
 
     HttpResponse response = restRequest().path(ApiSbomResource.SBOM_VERSION_PATH)
         .parameter(app.getId(), sbomVersion)

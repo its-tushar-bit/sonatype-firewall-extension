@@ -9,7 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 
 public enum SbomSpecification
 {
-  CYCLONEDX("CycloneDx"), SPDX("SPDX");
+  CYCLONEDX("CycloneDX"), SPDX("SPDX");
 
   private final String specification;
 

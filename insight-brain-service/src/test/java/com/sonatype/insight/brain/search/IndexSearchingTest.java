@@ -55,6 +55,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.product.license.ProductMode;
 import com.sonatype.insight.brain.report.ReportTestUtils;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.search.index.IndexService;
@@ -1130,7 +1131,7 @@ public class IndexSearchingTest
           assertThat(sbom.itemType).isEqualTo("SBOM_METADATA");
           assertThat(sbom.organizationName).isEqualTo("org");
           assertThat(sbom.applicationPublicId).isEqualTo("app");
-          assertThat(sbom.sbomSpecification).isEqualTo("CycloneDx");
+          assertThat(sbom.sbomSpecification).isEqualTo(SbomSpecification.CYCLONEDX.toString());
           assertThat(sbom.applicationVersion).isNotBlank();
         },
         sbomVuln -> {
@@ -1138,7 +1139,7 @@ public class IndexSearchingTest
           assertThat(sbomVuln.organizationName).isEqualTo("org");
           assertThat(sbomVuln.applicationPublicId).isEqualTo("app");
           assertThat(sbomVuln.applicationVersion).isNotBlank();
-          assertThat(sbomVuln.sbomSpecification).isEqualTo("CycloneDx");
+          assertThat(sbomVuln.sbomSpecification).isEqualTo(SbomSpecification.CYCLONEDX.toString());
           assertThat(sbomVuln.vulnerabilityId).isEqualTo("SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111");
           assertThat(sbomVuln.componentName).isEqualTo("com.fasterxml.jackson.core : jackson-databind : 2.9.4");
         },
@@ -1147,7 +1148,7 @@ public class IndexSearchingTest
           assertThat(hdsVuln1.organizationName).isEqualTo("org");
           assertThat(hdsVuln1.applicationPublicId).isEqualTo("app");
           assertThat(hdsVuln1.applicationVersion).isNotBlank();
-          assertThat(hdsVuln1.sbomSpecification).isEqualTo("CycloneDx");
+          assertThat(hdsVuln1.sbomSpecification).isEqualTo(SbomSpecification.CYCLONEDX.toString());
           assertThat(hdsVuln1.vulnerabilityId).isEqualTo("CVE-2018-7489");
           assertThat(hdsVuln1.componentName).isEqualTo("com.fasterxml.jackson.core : jackson-databind : 2.9.4");
         },
@@ -1156,7 +1157,7 @@ public class IndexSearchingTest
           assertThat(hdsVuln2.organizationName).isEqualTo("org");
           assertThat(hdsVuln2.applicationPublicId).isEqualTo("app");
           assertThat(hdsVuln2.applicationVersion).isNotBlank();
-          assertThat(hdsVuln2.sbomSpecification).isEqualTo("CycloneDx");
+          assertThat(hdsVuln2.sbomSpecification).isEqualTo(SbomSpecification.CYCLONEDX.toString());
           assertThat(hdsVuln2.vulnerabilityId).isEqualTo("CVE-2020-25649");
           assertThat(hdsVuln2.componentName).isEqualTo("com.fasterxml.jackson.core : jackson-databind : 2.9.4");
         },
@@ -1165,7 +1166,7 @@ public class IndexSearchingTest
           assertThat(hdsVuln3.organizationName).isEqualTo("org");
           assertThat(hdsVuln3.applicationPublicId).isEqualTo("app");
           assertThat(hdsVuln3.applicationVersion).isNotBlank();
-          assertThat(hdsVuln3.sbomSpecification).isEqualTo("CycloneDx");
+          assertThat(hdsVuln3.sbomSpecification).isEqualTo(SbomSpecification.CYCLONEDX.toString());
           assertThat(hdsVuln3.vulnerabilityId).isEqualTo("CVE-2020-36518");
           assertThat(hdsVuln3.componentName).isEqualTo("com.fasterxml.jackson.core : jackson-databind : 2.9.4");
         },
@@ -1174,7 +1175,7 @@ public class IndexSearchingTest
           assertThat(hdsVuln4.organizationName).isEqualTo("org");
           assertThat(hdsVuln4.applicationPublicId).isEqualTo("app");
           assertThat(hdsVuln4.applicationVersion).isNotBlank();
-          assertThat(hdsVuln4.sbomSpecification).isEqualTo("CycloneDx");
+          assertThat(hdsVuln4.sbomSpecification).isEqualTo(SbomSpecification.CYCLONEDX.toString());
           assertThat(hdsVuln4.vulnerabilityId).isEqualTo("CVE-2022-42003");
           assertThat(hdsVuln4.componentName).isEqualTo("com.fasterxml.jackson.core : jackson-databind : 2.9.4");
         },
@@ -1183,7 +1184,7 @@ public class IndexSearchingTest
           assertThat(hdsVuln5.organizationName).isEqualTo("org");
           assertThat(hdsVuln5.applicationPublicId).isEqualTo("app");
           assertThat(hdsVuln5.applicationVersion).isNotBlank();
-          assertThat(hdsVuln5.sbomSpecification).isEqualTo("CycloneDx");
+          assertThat(hdsVuln5.sbomSpecification).isEqualTo(SbomSpecification.CYCLONEDX.toString());
           assertThat(hdsVuln5.vulnerabilityId).isEqualTo("CVE-2022-42004");
           assertThat(hdsVuln5.componentName).isEqualTo("com.fasterxml.jackson.core : jackson-databind : 2.9.4");
         },
@@ -1192,7 +1193,7 @@ public class IndexSearchingTest
           assertThat(hdsVuln6.organizationName).isEqualTo("org");
           assertThat(hdsVuln6.applicationPublicId).isEqualTo("app");
           assertThat(hdsVuln6.applicationVersion).isNotBlank();
-          assertThat(hdsVuln6.sbomSpecification).isEqualTo("CycloneDx");
+          assertThat(hdsVuln6.sbomSpecification).isEqualTo(SbomSpecification.CYCLONEDX.toString());
           assertThat(hdsVuln6.vulnerabilityId).isEqualTo("sonatype-2020-1579");
           assertThat(hdsVuln6.componentName).isEqualTo("prismjs : 1.27.0");
         }

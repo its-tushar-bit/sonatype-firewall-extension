@@ -845,7 +845,8 @@ public class SearchServiceTest
     assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(4)).contains(app.getPublicId());
     assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(10)).isEqualTo("n v1");
     assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(13)).contains("1.0");
-    assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(14)).contains("CycloneDx");
+    assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(14)).contains(
+        SbomSpecification.CYCLONEDX.toString());
     assertThat(items.get(ItemType.NON_VULNERABLE_COMPONENT.name()).get(0).get(1)).isEqualTo(org.getName());
     assertThat(items.get(ItemType.NON_VULNERABLE_COMPONENT.name()).get(0).get(2)).contains(org.getId());
     assertThat(items.get(ItemType.NON_VULNERABLE_COMPONENT.name()).get(0).get(3)).isEqualTo(app.getName());
@@ -856,7 +857,8 @@ public class SearchServiceTest
     assertThat(items.get(ItemType.SBOM_METADATA.name()).get(0).get(3)).isEqualTo(app.getName());
     assertThat(items.get(ItemType.SBOM_METADATA.name()).get(0).get(4)).contains(app.getPublicId());
     assertThat(items.get(ItemType.SBOM_METADATA.name()).get(0).get(13)).contains("1.0");
-    assertThat(items.get(ItemType.SBOM_METADATA.name()).get(0).get(14)).contains("CycloneDx");
+    assertThat(items.get(ItemType.SBOM_METADATA.name()).get(0).get(14)).contains(
+        SbomSpecification.CYCLONEDX.toString());
     assertThat(items.get(ItemType.SBOM_METADATA.name()).get(1).get(3)).isEqualTo(app.getName());
     assertThat(items.get(ItemType.SBOM_METADATA.name()).get(1).get(4)).contains(app.getPublicId());
     assertThat(items.get(ItemType.SBOM_METADATA.name()).get(1).get(13)).contains("1.1");

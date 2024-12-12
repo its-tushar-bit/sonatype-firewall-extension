@@ -757,7 +757,7 @@ public class SbomManagerBillOfMaterialsPageTest
     sbomManagerBillOfMaterialsPage.additionalExportOptionsModal().shouldBe(visible);
     sbomManagerBillOfMaterialsPage.sbomModalOptions().shouldBe(size(2));
     sbomManagerBillOfMaterialsPage.sbomSpecificationOptions().shouldHave(size(2))
-        .get(0).shouldHave(text("Cyclone DX"));
+        .get(0).shouldHave(text("CycloneDX"));
     sbomManagerBillOfMaterialsPage.sbomSpecificationOptions().shouldHave(size(2))
         .get(1).shouldHave(text("SPDX"));
     sbomManagerBillOfMaterialsPage.sbomsFormatOptions().shouldHave(size(2))

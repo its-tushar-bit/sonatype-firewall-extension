@@ -40,7 +40,7 @@ describe('RecentlyImportedSbomsTile', () => {
       applicationName: 'bob',
       publicApplicationId: 'bob-id',
       sbomVersion: '2.3.4',
-      specification: 'Cyclone DX',
+      specification: 'CycloneDX',
       importDate: '2024-01-02T00:00:00.000+00:00',
       criticalCount: 2,
       highCount: 3,
@@ -134,7 +134,7 @@ describe('RecentlyImportedSbomsTile', () => {
       const secondRowCells = within(secondRow).getAllByRole('cell');
       expect(secondRowCells[0]).toHaveTextContent(/bob/);
       expect(secondRowCells[1]).toHaveTextContent(/2.3.4/);
-      expect(secondRowCells[2]).toHaveTextContent(/Cyclone DX/);
+      expect(secondRowCells[2]).toHaveTextContent(/CycloneDX/);
       expect(secondRowCells[3].textContent).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
       expect(secondRowCells[4]).toHaveTextContent('Critical2999+Severe3999+Moderate4999+Low5999+');
 

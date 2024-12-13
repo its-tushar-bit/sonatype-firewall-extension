@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -64,8 +62,6 @@ public class H2DashboardViolationRiskService
 
   private final PolicyViolationLoader policyViolationLoader;
 
-  private final DashboardUtils dashboardUtils;
-
   @Inject
   public H2DashboardViolationRiskService(
       ApplicationService applicationService,
@@ -79,24 +75,22 @@ public class H2DashboardViolationRiskService
     this.organizationDAO = organizationDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.policyViolationLoader = policyViolationLoader;
-    this.dashboardUtils = dashboardUtils;
   }
 
   @Override
   protected DashboardResultsDTO<DashboardViolationRiskDTO> load(
       List<Application> applications,
-      Set<String> stageIds,
-      Set<String> tagIds,
+      Set<StageType> stageTypes,
       PolicyThreatCategoryFilter policyThreatCategoryFilter,
       PolicyThreatLevelFilter policyThreatLevelFilter,
       PolicyViolationStateFilter policyViolationStateFilter,
       String orderBy,
-      Integer maxDaysOld,
+      Date minDate,
       int page,
       int pageSize)
   {
-    Collection<ApplicationView> appViews = getPolicyViolations(applications, stageIds, policyThreatCategoryFilter,
-        policyThreatLevelFilter, policyViolationStateFilter, maxDaysOld);
+    Collection<ApplicationView> appViews = getPolicyViolations(applications, stageTypes, policyThreatCategoryFilter,
+        policyThreatLevelFilter, policyViolationStateFilter, minDate);
 
     List<DashboardViolationRiskDTO> riskDTOs = buildRiskDTOs(appViews);
 
@@ -105,17 +99,14 @@ public class H2DashboardViolationRiskService
     return buildResultsDTO(riskDTOs, page, pageSize);
   }
 
-  private Collection<ApplicationView> getPolicyViolations(List<Application> applications,
-                                                          Set<String> stageIds,
-                                                          PolicyThreatCategoryFilter policyThreatCategoryFilter,
-                                                          PolicyThreatLevelFilter policyThreatLevelFilter,
-                                                          PolicyViolationStateFilter policyViolationStateFilter,
-                                                          Integer maxDaysOld)
+  private Collection<ApplicationView> getPolicyViolations(
+      List<Application> applications,
+      Collection<StageType> stageTypes,
+      PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      PolicyThreatLevelFilter policyThreatLevelFilter,
+      PolicyViolationStateFilter policyViolationStateFilter,
+      Date minDate)
   {
-    Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
-
-    Date minDate = (maxDaysOld == null) ? null
-        : new Date(Instant.now().minus(Duration.ofDays(maxDaysOld)).toEpochMilli());
     return policyViolationLoader.getViolations(applications, stageTypes, false, null, minDate,
         policyThreatLevelFilter, policyThreatCategoryFilter, policyViolationStateFilter);
   }
@@ -161,7 +152,7 @@ public class H2DashboardViolationRiskService
                 .digestPolicyViolations(allUniqueAppPolicyViolations, policyViolations);
             for (PolicyViolation policyViolation : diff.getAppeared()) {
               DashboardViolationRiskDTO violationRiskDTO =
-                  createViolationRiskDTO(app, orgName, policyEvaluation, policyViolation);
+                  createViolationRiskDTO(app, orgName, policyViolation);
               violationRiskDTOsByPolicyViolation.put(policyViolation, violationRiskDTO);
               localDTOs.add(violationRiskDTO);
             }
@@ -169,7 +160,7 @@ public class H2DashboardViolationRiskService
               DashboardViolationRiskDTO violationRiskDTO =
                   violationRiskDTOsByPolicyViolation.get(samePolicyViolationEntry.getKey());
               PolicyViolation policyViolation = samePolicyViolationEntry.getValue();
-              addToViolationRiskDTO(violationRiskDTO, policyEvaluation, policyViolation);
+              addToViolationRiskDTO(violationRiskDTO, policyViolation);
             }
 
             allUniqueAppPolicyViolations.addAll(diff.getAppeared());
@@ -191,7 +182,10 @@ public class H2DashboardViolationRiskService
       int pageSize)
   {
     DashboardResultsDTO<DashboardViolationRiskDTO> result = new DashboardResultsDTO<>();
-    result.numResults = riskDTOs.size();
+    // This is to match the numResults value for Postgres, were we extract max pageSize+1 records from the db.
+    // For CSV export, pageSize=Integer.MAX_VALUE.
+    result.numResults =
+        Math.min(riskDTOs.size(), pageSize < Integer.MAX_VALUE ? (page * pageSize) + pageSize + 1 : Integer.MAX_VALUE);
     if (riskDTOs.isEmpty()) {
       result.dashboardResults = new ArrayList<>();
     }
@@ -211,7 +205,6 @@ public class H2DashboardViolationRiskService
   private DashboardViolationRiskDTO createViolationRiskDTO(
       Application app,
       String orgName,
-      PolicyEvaluation policyEvaluation,
       PolicyViolation policyViolation)
   {
     DashboardViolationRiskDTO violationRiskDTO = new DashboardViolationRiskDTO();
@@ -222,7 +215,6 @@ public class H2DashboardViolationRiskService
     violationRiskDTO.policyName = policyViolation.getPolicyName();
     violationRiskDTO.policyViolationId = policyViolation.getId();
     violationRiskDTO.hash = policyViolation.getHash();
-    violationRiskDTO.lastOccurrenceTime = policyEvaluation.getTime().getTime();
     violationRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
     violationRiskDTO.filename = policyViolation.getFilename();
     violationRiskDTO.derivedComponentName = ComponentDisplayNameUtil.deriveComponentName(violationRiskDTO);
@@ -233,19 +225,8 @@ public class H2DashboardViolationRiskService
 
   private void addToViolationRiskDTO(
       DashboardViolationRiskDTO dashboardViolationRiskDTO,
-      PolicyEvaluation policyEvaluation,
       PolicyViolation policyViolation)
   {
-    long lastOccurrenceTime = policyEvaluation.getTime().getTime();
-    if (dashboardViolationRiskDTO.lastOccurrenceTime < lastOccurrenceTime) {
-      dashboardViolationRiskDTO.lastOccurrenceTime = lastOccurrenceTime;
-      // return the latest component name
-      dashboardViolationRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
-      dashboardViolationRiskDTO.filename = policyViolation.getFilename();
-      dashboardViolationRiskDTO.derivedComponentName =
-          ComponentDisplayNameUtil.deriveComponentName(dashboardViolationRiskDTO);
-    }
-
     long firstOccurrenceTime = policyViolation.getOpenTime().getTime();
     if (dashboardViolationRiskDTO.firstOccurrenceTime > firstOccurrenceTime) {
       dashboardViolationRiskDTO.firstOccurrenceTime = firstOccurrenceTime;

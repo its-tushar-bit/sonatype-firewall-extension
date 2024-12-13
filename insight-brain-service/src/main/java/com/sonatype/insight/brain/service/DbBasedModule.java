@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.dashboard.H2ComponentRiskService;
 import com.sonatype.insight.brain.dashboard.H2DashboardViolationRiskService;
 import com.sonatype.insight.brain.dashboard.H2PolicyWaiverService;
 import com.sonatype.insight.brain.dashboard.PolicyWaiverService;
+import com.sonatype.insight.brain.dashboard.PostgresDashboardViolationRiskService;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 
@@ -44,12 +45,11 @@ public class DbBasedModule
       bind(PolicyWaiverService.class).to(H2PolicyWaiverService.class);
     }
     else {
-      bind(DashboardViolationRiskService.class).to(H2DashboardViolationRiskService.class);
       bind(ComponentRiskService.class).to(H2ComponentRiskService.class);
       bind(ApplicationRiskService.class).to(H2ApplicationRiskService.class);
       bind(PolicyWaiverService.class).to(H2PolicyWaiverService.class);
       // TODO - update as tickets of CLM-32515 are completed
-      // bind(DashboardViolationRiskService.class).to(PostgresDashboardViolationRiskService.class);
+      bind(DashboardViolationRiskService.class).to(PostgresDashboardViolationRiskService.class);
       //bind(ComponentRiskService.class).to(PostgresComponentRiskService.class);
       //bind(ApplicationRiskService.class).to(PostgresApplicationRiskService.class);
       //bind(PolicyWaiverService.class).to(PostgresPolicyWaiverService.class);

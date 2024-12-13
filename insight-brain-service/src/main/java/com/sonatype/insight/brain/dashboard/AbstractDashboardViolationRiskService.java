@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -14,6 +17,7 @@ import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.organization.ApplicationService;
 
 import org.slf4j.Logger;
@@ -71,9 +75,15 @@ abstract class AbstractDashboardViolationRiskService
         .setSelectedApplicationCategories(auditService.getSelectedApplicationCategoriesById(tagIds)) //
         .setData("inspectedApplicationCount", applications.size());
 
+    // This also validates the stageIds
+    Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
+
+    Date minDate =
+        (maxDaysOld == null) ? null : new Date(Instant.now().minus(Duration.ofDays(maxDaysOld)).toEpochMilli());
+
     DashboardResultsDTO<DashboardViolationRiskDTO> result =
-        load(applications, stageIds, tagIds, policyThreatCategoryFilter, policyThreatLevelFilter,
-            policyViolationStateFilter, orderBy, maxDaysOld, page, pageSize);
+        load(applications, stageTypes, policyThreatCategoryFilter, policyThreatLevelFilter,
+            policyViolationStateFilter, orderBy, minDate, page, pageSize);
 
     AuditData.get().setData("resultRecordCount", result.numResults);
 
@@ -84,13 +94,12 @@ abstract class AbstractDashboardViolationRiskService
 
   protected abstract DashboardResultsDTO<DashboardViolationRiskDTO> load(
       List<Application> applications,
-      Set<String> stageIds,
-      Set<String> tagIds,
+      Set<StageType> stageTypes,
       PolicyThreatCategoryFilter policyThreatCategoryFilter,
       PolicyThreatLevelFilter policyThreatLevelFilter,
       PolicyViolationStateFilter policyViolationStateFilter,
       String orderBy,
-      Integer maxDaysOld,
+      Date minDate,
       int page,
       int pageSize);
 

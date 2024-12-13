@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -653,6 +654,14 @@ public class TemporaryEntity
   private DAOFactory daoFactory;
 
   private OperationalDataStore operationalDataStore;
+
+  // Some parts of the code sort policy violations by id in order to get repeatable results,
+  // so we create policy violations with sequential ids for tests.
+  private AtomicInteger policyViolationIndex = new AtomicInteger(1);
+
+  private String getNextPolicyViolationId() {
+    return "policyViolationId" + policyViolationIndex.getAndIncrement();
+  }
 
   public TemporaryEntity(final DataStoreProvider dataStoreProvider) {
     this.dataStoreProvider = dataStoreProvider;
@@ -2529,6 +2538,7 @@ public class TemporaryEntity
 
     PolicyViolation policyViolation = new PolicyViolation(evaluation, policy, hash, componentIdentifier,
         Collections.singletonList(constraintFact), filename);
+    policyViolation.setId(getNextPolicyViolationId());
     policyViolationDAO.insert(policyViolation);
     return policyViolation;
   }
@@ -2602,6 +2612,7 @@ public class TemporaryEntity
     policyViolation.setWaiveTime(evaluation.getTime());
     policyViolation.setPolicyWaiverId(policyWaiver.getId());
     policyViolation.setPolicyWaiverComment(policyWaiver.getComment());
+    policyViolation.setId(getNextPolicyViolationId());
     policyViolationDAO.insert(policyViolation);
     return policyViolation;
   }
@@ -2645,6 +2656,7 @@ public class TemporaryEntity
         policy.getThreatLevel(), policy.getThreatCategory(), hash, componentIdentifier,
         Collections.singletonList(constraintFact), "unknown.jar");
     policyViolation.setLegacyViolationTime(evaluation.getTime());
+    policyViolation.setId(getNextPolicyViolationId());
     policyViolationDAO.insert(policyViolation);
     return policyViolation;
   }
@@ -2745,6 +2757,7 @@ public class TemporaryEntity
     PolicyViolation policyViolation = new PolicyViolation(evaluation, policy.getId(), policy.getName(), threatLevel,
         category, hash, componentIdentifier, Collections.singletonList(constraintFact), "unknown.jar");
     policyViolation.setActionTypeId(actionTypeId);
+    policyViolation.setId(getNextPolicyViolationId());
     policyViolationDAO.insert(policyViolation);
     return policyViolation;
   }

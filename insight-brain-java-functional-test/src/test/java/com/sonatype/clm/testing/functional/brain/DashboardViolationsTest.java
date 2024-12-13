@@ -698,31 +698,6 @@ public class DashboardViolationsTest
   }
 
   @Test
-  public void testSortsOnBackendByComponentNameAndThreat() {
-    Policy licensePolicy2 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy2", 2);
-    Policy licensePolicy4 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy4", 4);
-    Policy licensePolicy5 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy5", 5);
-
-    for (int i = 1; i <= 25; i++) {
-      // 50 violations for 'group1' component: 25 with threatLevel 4, 25 with threatLevel 5
-      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy4, "group1", "artifact", "version" + i, null);
-      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy5, "group1", "artifact", "version" + i, null);
-
-      // 50 violations for 'group2' component: 25 with threatLevel 4, 25 with threatLevel 5
-      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy4, "group2", "artifact", "version" + i, null);
-      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy5, "group2", "artifact", "version" + i, null);
-    }
-
-    // 25 violations for 'group2' component with threatLevel 2
-    for (int i = 1; i <= 25; i++) {
-      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy2, "group2", "artifact", "version" + i, null);
-    }
-
-    refresh();
-    DashboardPage.dashboardContainer().shouldBe(visible);
-  }
-
-  @Test
   public void testPagination() {
     Policy licensePolicy1 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy1", 3);
     Policy licensePolicy2 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy2", 4);

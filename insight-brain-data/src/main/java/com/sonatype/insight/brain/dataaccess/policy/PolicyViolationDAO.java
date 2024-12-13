@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.sql.JDBCType;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -14,8 +15,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -35,7 +38,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import org.apache.commons.lang3.StringUtils;
 
 import static java.util.stream.Collectors.toList;
-
 
 /**
  * @since 1.11
@@ -329,6 +331,41 @@ public class PolicyViolationDAO
     return policyStateFilter;
   }
 
+  private String getPolicyStateFilterForNativeQuery(
+      Boolean violationStateOpen,
+      Boolean violationStateWaived,
+      Boolean violationStateLegacyViolation)
+  {
+    String policyStateFilter = "";
+
+    violationStateOpen = violationStateOpen == null || violationStateOpen;
+    violationStateWaived = violationStateWaived == null || violationStateWaived;
+    violationStateLegacyViolation = violationStateLegacyViolation == null || violationStateLegacyViolation;
+
+    if (!violationStateOpen && !violationStateWaived && !violationStateLegacyViolation) {
+      return policyStateFilter;
+    }
+
+    if (!violationStateOpen || !violationStateWaived || !violationStateLegacyViolation) {
+      policyStateFilter += "    AND (";
+
+      List<String> stateQuery = new ArrayList<>();
+      if (violationStateOpen) {
+        stateQuery.add("(waive_time IS NULL AND legacy_violation_time IS NULL)");
+      }
+      if (violationStateWaived) {
+        stateQuery.add("waive_time IS NOT NULL");
+      }
+      if (violationStateLegacyViolation) {
+        stateQuery.add("legacy_violation_time IS NOT NULL");
+      }
+      policyStateFilter += StringUtils.join(stateQuery.toArray(), " OR ");
+      policyStateFilter += ")\n";
+    }
+
+    return policyStateFilter;
+  }
+
   public List<PolicyViolation> getActiveByApplicationIdsAndPolicyIds(
       Collection<String> applicationIds,
       Collection<String> policyIds,
@@ -605,5 +642,159 @@ public class PolicyViolationDAO
       policyThreatCategories = Arrays.stream(PolicyThreatCategory.values()).collect(Collectors.toSet());
     }
     return policyThreatCategories;
+  }
+
+  public List<InternalDashboardViolationRiskDTO> getDashboardViolationRisk(
+      Set<String> applicationIds,
+      Set<String> stageTypeIds,
+      Integer minPolicyThreatLevel,
+      Integer maxPolicyThreatLevel,
+      Date minDate,
+      Set<String> policyThreatCategories,
+      Boolean violationStateOpen,
+      Boolean violationStateWaived,
+      Boolean violationStateLegacyViolation,
+      List<String> orderBys,
+      int page,
+      int pageSize)
+  {
+    if (applicationIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    String databaseSchema = getDatabaseSchema();
+    int appIdsParamStartPosition = 1;
+    int stageIdsParamStartPosition = appIdsParamStartPosition + applicationIds.size();
+    // The aggregationQuery extracts policy violations grouped by app+policy+threat_level+component across stages (i.e.
+    // the columns in DISTINCT ON) and extracts the oldest policy violation for each group (because it orders by the
+    // same columns it groups by and open_time).
+    // It is important that the columns in DISTINCT ON are the first columns in ORDER BY.
+    // Note that GROUP BY was tested with this query instead of DISTINCT ON and was found to be slower.
+    String aggregationQuery = //
+        "  SELECT\n" + //
+        "    DISTINCT ON (\n" + //
+        "      application_id,\n" + //
+        "      policy_name,\n" + //
+        "      threat_level,\n" + //
+        "      hash,\n" + //
+        "      component_id_format,\n" + //
+        "      component_id_coordinates_json,\n" + //
+        "      constraint_facts_id\n" + //
+        "    )\n" + //
+        "    application_id,\n" + //
+        "    policy_name,\n" + //
+        "    threat_level,\n" + //
+        "    hash,\n" + //
+        "    component_id_format,\n" + //
+        "    component_id_coordinates_json,\n" + //
+        "    constraint_facts_id,\n" + //
+        "    open_time,\n" + //
+        "    filename,\n" + //
+        "    policy_violation_id\n" + //
+        "  FROM " + databaseSchema + ".policy_violation\n" + //
+        "  WHERE\n" + //
+        "    application_id IN " + buildPositionalParameters(applicationIds, appIdsParamStartPosition) + "\n" + //
+        "    AND stage_type_id IN " + buildPositionalParameters(stageTypeIds, stageIdsParamStartPosition) + "\n" + //
+        "    AND fix_time IS NULL\n";
+    int nextParamPosition = stageIdsParamStartPosition + stageTypeIds.size();
+    int minDateParamPosition = nextParamPosition;
+    if (minDate != null) {
+      aggregationQuery += "    AND open_time >= ?" + minDateParamPosition + "\n";
+      nextParamPosition++;
+    }
+    int minThreatLevelParamPosition = nextParamPosition;
+    if (minPolicyThreatLevel != null) {
+      aggregationQuery += "    AND threat_level >= ?" + minThreatLevelParamPosition + "\n";
+      nextParamPosition++;
+    }
+    int maxThreatLevelParamPosition = nextParamPosition;
+    if (maxPolicyThreatLevel != null) {
+      aggregationQuery += "    AND threat_level <= ?" + maxThreatLevelParamPosition + "\n";
+      nextParamPosition++;
+    }
+    int threatCategoriesParamPosition = nextParamPosition;
+    if (policyThreatCategories != null) {
+      aggregationQuery += "    AND threat_category IN "
+          + buildPositionalParameters(policyThreatCategories, threatCategoriesParamPosition) + "\n";
+      nextParamPosition++;
+    }
+    aggregationQuery +=
+        getPolicyStateFilterForNativeQuery(violationStateOpen, violationStateWaived, violationStateLegacyViolation);
+    aggregationQuery += "  ORDER BY\n" + //
+        "    application_id,\n" + //
+        "    policy_name,\n" + //
+        "    threat_level,\n" + //
+        "    hash,\n" + //
+        "    component_id_format,\n" + //
+        "    component_id_coordinates_json,\n" + //
+        "    constraint_facts_id,\n" + //
+        "    open_time";
+
+    // The final query uses the aggregation query above to extract the columns needed in the results.
+    // We need this "extra" query because the desired order is not the order used in the aggregation query.
+    String sQuery = //
+        "WITH aggregated_policy_violation AS (\n" + //
+        aggregationQuery + "\n" + //
+        ")\n" + //
+        "SELECT\n" + //
+        "  application.name application_name,\n" + //
+        "  organization.name organization_name,\n" + //
+        "  pv.policy_violation_id,\n" + //
+        "  pv.policy_name,\n" + //
+        "  pv.threat_level,\n" + //
+        "  pv.hash,\n" + //
+        "  pv.filename,\n" + //
+        "  pv.component_id_format,\n" + //
+        "  pv.component_id_coordinates_json,\n" + //
+        "  pv.constraint_facts_id,\n" + //
+        "  pv.open_time\n" + //
+        "FROM aggregated_policy_violation pv\n" + //
+        "JOIN " + databaseSchema + ".application application USING (application_id)\n" + //
+        "JOIN " + databaseSchema + ".organization organization USING (organization_id)\n";
+    // Adds sorting by policy_violation_id to get repeatable results
+    orderBys.add("policy_violation_id");
+    sQuery += "ORDER BY " + String.join(", ", orderBys) + "\n";
+    // For CSV export, the pageSize is set to Integer.MAX_VALUE, which means unlimited.
+    // We extract pageSize+1 records to be able to know if there are more records available, which tells the UI if there
+    // is a next page or not.
+    if (pageSize < Integer.MAX_VALUE) {
+      sQuery += "LIMIT " + (pageSize + 1) + " OFFSET " + (page * pageSize);
+    }
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = tx.createNativeQuery(sQuery.toString());
+      addPositionalParameters(query, applicationIds, appIdsParamStartPosition);
+      addPositionalParameters(query, stageTypeIds, stageIdsParamStartPosition);
+      if (minDate != null) {
+        query.setParameter(minDateParamPosition, minDate);
+      }
+      if (minPolicyThreatLevel != null) {
+        query.setParameter(minThreatLevelParamPosition, minPolicyThreatLevel);
+      }
+      if (maxPolicyThreatLevel != null) {
+        query.setParameter(maxThreatLevelParamPosition, maxPolicyThreatLevel);
+      }
+      if (policyThreatCategories != null) {
+        addPositionalParameters(query, policyThreatCategories, threatCategoriesParamPosition);
+      }
+
+      @SuppressWarnings("unchecked")
+      List<InternalDashboardViolationRiskDTO> results =
+          ((Stream<Object[]>) query.getResultStream()).map(array -> new InternalDashboardViolationRiskDTO( //
+              (String) array[0], // applicationName
+              (String) array[1], // organizationName
+              (String) array[2], // policyViolationId
+              (String) array[3], // policyName
+              getInteger(array[4]), // threatLevel
+              (String) array[5], // hash
+              (String) array[6], // filename
+              (String) array[7], // componentIdFormat
+              (String) array[8], // componentIdCoordinatesJson
+              (String) array[9], // constraintFactsId
+              ((Timestamp) array[10]).getTime() // firstOccurrenceTime
+          )).toList();
+
+      return results;
+    }
   }
 }

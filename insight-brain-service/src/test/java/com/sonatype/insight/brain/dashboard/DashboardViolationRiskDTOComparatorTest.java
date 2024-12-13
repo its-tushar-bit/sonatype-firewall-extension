@@ -90,18 +90,6 @@ public class DashboardViolationRiskDTOComparatorTest
   }
 
   @Test
-  public void testCompare_ComponentName_ASC_SmallerFirst() {
-    assertComparison(new DashboardViolationRiskDTOComparator("COMPONENT_NAME"), -1,
-        newDTO(5, 0, "MyPolicy", "MyApp", "c.jar"), newDTO(5, 0, "MyPolicy", "MyApp", "d.jar"));
-  }
-
-  @Test
-  public void testCompare_ComponentName_DESC_SmallerLast() {
-    assertComparison(new DashboardViolationRiskDTOComparator("-COMPONENT_NAME"), 1,
-        newDTO(5, 0, "MyPolicy", "MyApp", "c.jar"), newDTO(5, 0, "MyPolicy", "MyApp", "d.jar"));
-  }
-
-  @Test
   public void testCompare_InvalidOrderBy() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> assertComparison(new DashboardViolationRiskDTOComparator("Invalid"), 0,

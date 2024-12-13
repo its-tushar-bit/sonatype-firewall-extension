@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -33,6 +34,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -295,17 +297,17 @@ abstract class AbstractDashboardViolationRiskServiceTest
     assertDashboardViolationRiskDTO(result.dashboardResults.get(2), app1, org1, orgPolicyViolation,
         app1PolicyEvaluation.getTime());
 
-    // Limit to 1, Get Page 0
+    // Page size 1, get page 0
     result = getDashboardViolationRiskService()
         .get(null, null, null, null, null, null, null, "-AGE,-THREAT_LEVEL",
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 1);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(3);
+    assertThat(result.numResults).isEqualTo(2);
     assertThat(result.hasNextPage).isEqualTo(true);
     assertDashboardViolationRiskDTO(result.dashboardResults.get(0), app2, org2, app2PolicyViolation,
         app2PolicyEvaluation.getTime());
 
-    // Limit to 1, Get Page 1
+    // Page size 1, get page 1
     result = getDashboardViolationRiskService()
         .get(null, null, null, null, null, null, null, "-AGE,-THREAT_LEVEL",
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1, 1);
@@ -340,28 +342,28 @@ abstract class AbstractDashboardViolationRiskServiceTest
     assertDashboardViolationRiskDTO(riskDTO0, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
 
     DashboardViolationRiskDTO riskDTO1 = result.dashboardResults.get(1);
-    assertDashboardViolationRiskDTO(riskDTO1, app1, org1, app1PolicyViolation, app1PolicyEvaluation.getTime(),
-        policyEvaluation.getTime());
+    assertDashboardViolationRiskDTO(riskDTO1, app1, org1, app1PolicyViolation, app1PolicyEvaluation.getTime());
 
     DashboardViolationRiskDTO riskDTO2 = result.dashboardResults.get(2);
     assertDashboardViolationRiskDTO(riskDTO2, app1, org1, orgPolicyViolation, app1PolicyEvaluation.getTime());
   }
 
   @Test
-  public void testGet_Unknown() {
+  public void testGet_Unknown() throws Exception {
     ComponentIdentifier nullComponentIdentifier = null;
-    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanIdApp1");
-    tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "pathnames-hash", nullComponentIdentifier,
-        "a.zip/b.zip", MatchState.UNKNOWN, false, evaluation.getTime());
 
     // create 2 violations with no component identifier and give one no pathname and one with a pathname.
-    PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, app1Policy, nullComponentIdentifier,
-        "hash-4", "unknown");
-    PolicyViolation policyViolationPathName = tempEntity.newPolicyViolation(evaluation, app1Policy,
+    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanIdApp1");
+    PolicyViolation policyViolation =
+        tempEntity.newPolicyViolation(evaluation1, app1Policy, nullComponentIdentifier, "hash-4", "unknown");
+    // Ensure policy violations don't have the same openTime.
+    awaitNextTimestamp();
+    PolicyEvaluation evaluation2 = tempEntity.newPolicyEvaluation(app1.getId(), OperateStageType.ID, "newScanIdApp2");
+    PolicyViolation policyViolationPathName = tempEntity.newPolicyViolation(evaluation2, app1Policy,
         nullComponentIdentifier, "filename-hash", "unknown2", "b.zip");
 
     DashboardResultsDTO<DashboardViolationRiskDTO> result = getDashboardViolationRiskService().get(null, null,
-        Collections.singleton(ReleaseStageType.ID), null, null, null, null, "COMPONENT_NAME",
+        Set.of(ReleaseStageType.ID, OperateStageType.ID), null, null, null, null, "-AGE",
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(2);
     assertThat(result.numResults).isEqualTo(2);
@@ -369,15 +371,22 @@ abstract class AbstractDashboardViolationRiskServiceTest
 
     DashboardViolationRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.derivedComponentName).isEqualTo("b.zip"); // we use the last file in the path name
-    assertDashboardViolationRiskDTO(riskDTO, app1, org1, policyViolationPathName, evaluation.getTime());
+    assertDashboardViolationRiskDTO(riskDTO, app1, org1, policyViolationPathName, evaluation2.getTime());
 
     riskDTO = result.dashboardResults.get(1);
     assertThat(riskDTO.derivedComponentName).isEqualTo("Unknown");
-    assertDashboardViolationRiskDTO(riskDTO, app1, org1, policyViolation, evaluation.getTime());
+    assertDashboardViolationRiskDTO(riskDTO, app1, org1, policyViolation, evaluation1.getTime());
+  }
+
+  private void awaitNextTimestamp() throws Exception {
+    long now = System.currentTimeMillis();
+    while (System.currentTimeMillis() <= now) {
+      Thread.sleep(1);
+    }
   }
 
   @Test
-  public void testGet_NoTimeLimit() {
+  public void testGet_TimeLimit() {
     Application app = tempEntity.newApplication("myapp", "myapp", org1.getId());
 
     Date oldDate = new Date(0);
@@ -442,8 +451,7 @@ abstract class AbstractDashboardViolationRiskServiceTest
 
     DateTime time4 = time3.plusHours(1);
     String scanId4 = "scanId4";
-    PolicyEvaluation policyEval4 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId4,
-        time4.toDate());
+    tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId4, time4.toDate());
 
     DashboardResultsDTO<DashboardViolationRiskDTO> result = getDashboardViolationRiskService().get(null,
         Collections.singleton(app.getId()), null, null, null, null, null, null,
@@ -452,8 +460,7 @@ abstract class AbstractDashboardViolationRiskServiceTest
     assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
 
-    assertDashboardViolationRiskDTO(result.dashboardResults.get(0), app, org1, policyViolation1, firstOccurrenceTime,
-        policyEval4.getTime());
+    assertDashboardViolationRiskDTO(result.dashboardResults.get(0), app, org1, policyViolation1, firstOccurrenceTime);
   }
 
   @Test
@@ -512,11 +519,10 @@ abstract class AbstractDashboardViolationRiskServiceTest
     assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     riskDTO = result.dashboardResults.get(0);
-    assertDashboardViolationRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime(),
-        releaseEvaluation.getTime());
+    assertDashboardViolationRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
 
-    PolicyEvaluation buildEvaluation = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID,
-        "test scan app2 build id", new Date(app2PolicyEvaluation.getTime().getTime() + 2));
+    tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "test scan app2 build id",
+        new Date(app2PolicyEvaluation.getTime().getTime() + 2));
 
     result = getDashboardViolationRiskService()
         .get(null, Collections.singleton(app2.getId()), null, null, null, null, null, null,
@@ -525,8 +531,7 @@ abstract class AbstractDashboardViolationRiskServiceTest
     assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     riskDTO = result.dashboardResults.get(0);
-    assertDashboardViolationRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime(),
-        buildEvaluation.getTime());
+    assertDashboardViolationRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
   }
 
   @Test
@@ -537,10 +542,10 @@ abstract class AbstractDashboardViolationRiskServiceTest
     PolicyViolation violation2 = tempEntity.newPolicyViolation(evaluation, org1Policy);
     // Set different constraint facts on the policy violations to ensure they are different.
     violation1.setConstraintFacts(Collections
-        .singletonList(buildConstraintFact(org1Policy, "{\"conditionIndex\":1,\"trigger\":{\"foo\":\"bar\"}}")));
+        .singletonList(buildConstraintFact(org1Policy, "{\"conditionIndex\":1,\"trigger\":{\"foo\":\"bar1\"}}")));
     policyViolationDAO.update(violation1);
     violation2.setConstraintFacts(Collections
-        .singletonList(buildConstraintFact(org1Policy, "{\"conditionIndex\":1,\"trigger\":{\"foo\":\"bar\"}}")));
+        .singletonList(buildConstraintFact(org1Policy, "{\"conditionIndex\":1,\"trigger\":{\"foo\":\"bar2\"}}")));
     policyViolationDAO.update(violation2);
 
     DashboardResultsDTO<DashboardViolationRiskDTO> result = getDashboardViolationRiskService().get(null,
@@ -585,22 +590,10 @@ abstract class AbstractDashboardViolationRiskServiceTest
       PolicyViolation policyViolation,
       Date firstOccurrenceTime)
   {
-    assertDashboardViolationRiskDTO(actual, app, org, policyViolation, firstOccurrenceTime, firstOccurrenceTime);
-  }
-
-  private void assertDashboardViolationRiskDTO(
-      DashboardViolationRiskDTO actual,
-      Application app,
-      Organization org,
-      PolicyViolation policyViolation,
-      Date firstOccurrenceTime,
-      Date lastOccurrenceTime)
-  {
     assertThat(actual.organizationName).isEqualTo(org.getName());
     assertThat(actual.applicationName).isEqualTo(app.getName());
     assertThat(actual.threatLevel).isEqualTo(policyViolation.getThreatLevel());
     assertThat(actual.firstOccurrenceTime).isEqualTo(firstOccurrenceTime.getTime());
-    assertThat(actual.lastOccurrenceTime).isEqualTo(lastOccurrenceTime.getTime());
     assertThat(actual.policyName).isEqualTo(policyViolation.getPolicyName());
     assertThat(actual.policyViolationId).isEqualTo(policyViolation.getId());
     assertThat(actual.hash).isEqualTo(policyViolation.getHash());

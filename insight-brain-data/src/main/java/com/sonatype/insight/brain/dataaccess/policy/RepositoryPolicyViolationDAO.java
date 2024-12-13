@@ -559,18 +559,4 @@ public class RepositoryPolicyViolationDAO
         return "";
     }
   }
-
-  private static <T> Integer getInteger(T value) {
-    if (value instanceof Short) {
-      return Integer.valueOf((Short) value);
-    }
-    if (value instanceof Integer) {
-      return (Integer) value;
-    }
-    if (value instanceof Long) {
-      return ((Long) value).intValue();
-    }
-
-    return null;
-  }
 }

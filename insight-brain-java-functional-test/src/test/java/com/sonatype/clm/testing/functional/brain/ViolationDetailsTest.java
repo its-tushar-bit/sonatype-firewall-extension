@@ -123,9 +123,13 @@ public class ViolationDetailsTest
     Policy otherPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 2", 3);
     otherPolicyViolation = tempEntity.newPolicyViolation(policyEvaluation1, otherPolicy);
 
-    tempEntity.newPolicyViolation(policyEvaluation2, securityPolicy);
+    // The same as securityPolicyViolation, but for a different stage
+    tempEntity.newPolicyViolation(policyEvaluation2, securityPolicy, "Group1", "Artifact1", "Version1", "hash",
+        "sonatype-2017-0507");
 
-    PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation3, securityPolicy);
+    // The same as securityPolicyViolation, but for a different stage
+    PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation3, securityPolicy, "Group1",
+        "Artifact1", "Version1", "hash", "sonatype-2017-0507");
     policyViolation3.setActionTypeId(Action.ID_WARN);
     policyViolationDAO.update(policyViolation3);
 

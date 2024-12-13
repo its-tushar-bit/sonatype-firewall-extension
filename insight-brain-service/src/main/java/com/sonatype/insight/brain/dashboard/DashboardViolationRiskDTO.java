@@ -43,8 +43,6 @@ public class DashboardViolationRiskDTO implements CsvWritable
 
   public String filename;
 
-  public long lastOccurrenceTime;
-
   public String referenceId;
 
   public static String getCsvHeader() {

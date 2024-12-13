@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -778,19 +779,5 @@ public class RepositoryComponentDAO
     }
 
     entity.setDisplayName(pathname.substring(pathname.lastIndexOf('/') + 1) + " (" + pathname + ")");
-  }
-
-  private static <T> Integer getInteger(T value) {
-    if (value instanceof Short) {
-      return Integer.valueOf((Short) value);
-    }
-    if (value instanceof Integer) {
-      return (Integer) value;
-    }
-    if (value instanceof Long) {
-      return ((Long) value).intValue();
-    }
-
-    return null;
   }
 }

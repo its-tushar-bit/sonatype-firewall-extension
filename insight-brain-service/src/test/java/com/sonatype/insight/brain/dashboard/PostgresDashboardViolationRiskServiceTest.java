@@ -7,14 +7,14 @@ package com.sonatype.insight.brain.dashboard;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2InMemoryTest;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
-@H2InMemoryTest
-public class H2DashboardViolationRiskServiceTest
+@PostgresTest
+public class PostgresDashboardViolationRiskServiceTest
     extends AbstractDashboardViolationRiskServiceTest
 {
   @Inject
-  private H2DashboardViolationRiskService dashboardViolationRiskService;
+  private PostgresDashboardViolationRiskService dashboardViolationRiskService;
 
   @Override
   protected DashboardViolationRiskService getDashboardViolationRiskService() {

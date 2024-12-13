@@ -59,12 +59,20 @@ public class EnterpriseReportingLandingPageTest
     DashboardMetadataDTO spotlightDefautColorDashboardMetadataDTO = mockDashboardMetadataDTOSpotlightDefaultColor();
     DashboardMetadataDTO spotlightProvidedColorDashboardMetadataDTO = mockDashboardMetadataDTOSpotlightProvidedColor();
     DashboardMetadataDTO nonSpotlightDashboardMetadataDTO = mockDashboardMetadataDTO();
+    DashboardMetadataDTO spotlightTextProvidedDashboardMetadataDTO = mockDashboardMetadataDTOSpotlightTextProvided();
+    DashboardMetadataDTO spotlightTextProvidedDisabledSpotlightDashboardMetadataDTO =
+        mockDashboardMetadataDTOSpotlightTextProvidedDisabledSpotlight();
     testCLMServer.getHdsServer()
         .respondWith(new DashboardsVersionDTO(1))
         .atUri("/rest/enterpriseReporting/currentVersion");
     testCLMServer.getHdsServer()
-        .respondWith(new DashboardMetadataListDTO(Arrays.asList(spotlightDefautColorDashboardMetadataDTO,
-            spotlightProvidedColorDashboardMetadataDTO, nonSpotlightDashboardMetadataDTO)))
+        .respondWith(new DashboardMetadataListDTO(Arrays.asList(
+            spotlightDefautColorDashboardMetadataDTO,
+            spotlightProvidedColorDashboardMetadataDTO,
+            nonSpotlightDashboardMetadataDTO,
+            spotlightTextProvidedDashboardMetadataDTO, 
+            spotlightTextProvidedDisabledSpotlightDashboardMetadataDTO
+        )))
         .atUri("/rest/enterpriseReporting/dashboards");
     refreshOrOpen(EnterpriseReportingLandingPage.url());
     page.enterpriseReportingNotEnabledError().shouldBe(hidden);
@@ -73,6 +81,8 @@ public class EnterpriseReportingLandingPageTest
     assertReportContent(spotlightDefautColorDashboardMetadataDTO);
     assertReportContent(spotlightProvidedColorDashboardMetadataDTO);
     assertReportContent(nonSpotlightDashboardMetadataDTO);
+    assertReportContent(spotlightTextProvidedDashboardMetadataDTO);
+    assertReportContent(spotlightTextProvidedDisabledSpotlightDashboardMetadataDTO);
     contactusShouldBeVisible();
     eyesWatcher.eyesCheck();
   }
@@ -110,6 +120,11 @@ public class EnterpriseReportingLandingPageTest
       else {
         report.$(".iq-enterprise-reporting__dashboard__spotlight").shouldHave(cssClass("nx-selectable-color--kiwi"));
       }
+    }
+    if (dashboardMetadataDTO.spotlightText != null) {
+      report.$(".iq-enterprise-reporting__dashboard__spotlight").shouldBe(visible);
+      report.$(".iq-enterprise-reporting__dashboard__spotlight")
+            .shouldHave(text(dashboardMetadataDTO.spotlightText));
     }
   }
 
@@ -149,19 +164,29 @@ public class EnterpriseReportingLandingPageTest
 
   private static DashboardMetadataDTO mockDashboardMetadataDTOSpotlightDefaultColor() {
     return new DashboardMetadataDTO("id", "title", "description", Arrays.asList("feature 1", "feature 2"),
-        "button text", "rolling-recap.svg", 1, true, "dashboards/rolling_recap::rolling_recap");
+        "button text", "rolling-recap.svg", 1, true, "dashboards/rolling_recap::rolling_recap", null, null);
   }
 
   private static DashboardMetadataDTO mockDashboardMetadataDTOSpotlightProvidedColor() {
-    DashboardMetadataDTO dashboard = new DashboardMetadataDTO("id", "title", "description",
+    return new DashboardMetadataDTO("id", "title", "description",
         Arrays.asList("feature 1", "feature 2"), "button text", "rolling-recap.svg", 2, true,
-        "dashboards/rolling_recap::rolling_recap");
-    dashboard.spotlightColor = "kiwi";
-    return dashboard;
+        "dashboards/rolling_recap::rolling_recap", "kiwi", null);
   }
 
   private static DashboardMetadataDTO mockDashboardMetadataDTO() {
     return new DashboardMetadataDTO("id 2", "title 2", "description 2", Arrays.asList("feature 3", "feature 4"),
-        "button text 2", "rolling-recap.svg", 3, false, "dashboards/rolling_recap::rolling_recap");
+        "button text 2", "rolling-recap.svg", 3, false, "dashboards/rolling_recap::rolling_recap", null, null);
+  }
+
+  private static DashboardMetadataDTO mockDashboardMetadataDTOSpotlightTextProvided() {
+    return new DashboardMetadataDTO("id3", "title 3", "description",
+        Arrays.asList("feature 5", "feature 6"), "button text", "rolling-recap.svg", 4, true,
+        "dashboards/rolling_recap::rolling_recap", null, "TEST");
+  }
+
+  private static DashboardMetadataDTO mockDashboardMetadataDTOSpotlightTextProvidedDisabledSpotlight() {
+    return new DashboardMetadataDTO("id3", "title 3", "description",
+        Arrays.asList("feature 5", "feature 6"), "button text", "rolling-recap.svg", 4, false,
+        "dashboards/rolling_recap::rolling_recap", null, "TEST");
   }
 }

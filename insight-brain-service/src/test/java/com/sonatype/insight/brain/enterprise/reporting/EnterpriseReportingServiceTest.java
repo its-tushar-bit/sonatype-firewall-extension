@@ -259,7 +259,9 @@ public class EnterpriseReportingServiceTest
         firstIconImageFileName,
         1,
         false,
-        "dashboards/rolling_recap::rolling_recap"
+        "dashboards/rolling_recap::rolling_recap",
+        null,
+        null
     );
     DashboardMetadataListDTO firstDashboardMetadataListDTO =
         new DashboardMetadataListDTO(Collections.singletonList(firstDashboardMetadataDTO));
@@ -289,7 +291,9 @@ public class EnterpriseReportingServiceTest
         firstIconImageFileName,
         1,
         false,
-        "dashboards/rolling_recap::rolling_recap"
+        "dashboards/rolling_recap::rolling_recap",
+        null,
+        null
     );
     String secondIconImageFileName = "icon-2.png";
     byte[] secondIconBytes = Files.readAllBytes(Paths.get(getClass()
@@ -301,7 +305,9 @@ public class EnterpriseReportingServiceTest
         secondIconImageFileName,
         1,
         false,
-        "dashboards/rolling_recap::rolling_recap"
+        "dashboards/rolling_recap::rolling_recap",
+        null,
+        null
     );
     DashboardMetadataListDTO dashboardMetadataListDTO =
         new DashboardMetadataListDTO(Arrays.asList(firstDashboardMetadataDTO, secondDashboardMetadataDTO));
@@ -333,7 +339,9 @@ public class EnterpriseReportingServiceTest
         firstIconImageFileName,
         1,
         false,
-        "dashboards/rolling_recap::rolling_recap"
+        "dashboards/rolling_recap::rolling_recap",
+        null,
+        null
     );
     DashboardMetadataListDTO firstDashboardMetadataListDTO =
         new DashboardMetadataListDTO(Collections.singletonList(firstDashboardMetadataDTO));
@@ -365,7 +373,9 @@ public class EnterpriseReportingServiceTest
         firstIconImageFileName,
         1,
         false,
-        "dashboards/rolling_recap::rolling_recap"
+        "dashboards/rolling_recap::rolling_recap",
+        null,
+        null
     );
     DashboardMetadataListDTO firstDashboardMetadataListDTO =
         new DashboardMetadataListDTO(Collections.singletonList(firstDashboardMetadataDTO));
@@ -393,7 +403,9 @@ public class EnterpriseReportingServiceTest
         secondIconImageFileName,
         1,
         false,
-        "dashboards/rolling_recap::rolling_recap"
+        "dashboards/rolling_recap::rolling_recap",
+        null,
+        null
     );
     DashboardMetadataListDTO secondDashboardMetadataListDTO =
         new DashboardMetadataListDTO(Collections.singletonList(secondDashboardMetadataDTO));
@@ -420,7 +432,7 @@ public class EnterpriseReportingServiceTest
     return new DashboardMetadataDTO(TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
         TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
         TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8), 1, false,
-        "dashboards/rolling_recap::rolling_recap");
+        "dashboards/rolling_recap::rolling_recap", null, null);
   }
 
   private void assertDashboardIconImage(
@@ -442,7 +454,7 @@ public class EnterpriseReportingServiceTest
         new DashboardMetadataDTO(TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
             TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
             TemporaryEntity.uuid().substring(0, 8), iconName,
-            1, false, "dashboards/rolling_recap::rolling_recap")));
+            1, false, "dashboards/rolling_recap::rolling_recap", null, null)));
     when(mockHdsClient.get(DashboardsVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
     when(mockHdsClient.get(DashboardMetadataListDTO.class,
@@ -500,7 +512,7 @@ public class EnterpriseReportingServiceTest
         new DashboardMetadataDTO(TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
             TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
             TemporaryEntity.uuid().substring(0, 8), iconName,
-            1, false, "dashboards/rolling_recap::rolling_recap")));
+            1, false, "dashboards/rolling_recap::rolling_recap", null, null)));
     when(mockHdsClient.get(DashboardsVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
     when(mockHdsClient.get(DashboardMetadataListDTO.class,

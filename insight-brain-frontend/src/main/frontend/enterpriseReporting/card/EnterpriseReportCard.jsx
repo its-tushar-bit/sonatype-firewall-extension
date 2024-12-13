@@ -24,6 +24,7 @@ export default function EnterpriseReportCard(props) {
 
   const color = selectableColors.includes(dashboard.spotlightColor) ? dashboard.spotlightColor : selectableColors[4];
 
+  const spotlightText = dashboard.spotlightText ? dashboard.spotlightText : 'NEW';
   const btnClassName = 'iq-enterprise-reporting__dashboard__btn dashboard-id-btn-' + dashboard.dashboardId;
 
   return (
@@ -32,9 +33,9 @@ export default function EnterpriseReportCard(props) {
         <NxTile.Header className="iq-enterprise-reporting__dashboard__header">
           <NxTile.HeaderTitle className="iq-enterprise-reporting__dashboard__header-title">
             <NxH2>{dashboard.title}</NxH2>
-            {dashboard.spotlight ? (
+            {dashboard.spotlight || dashboard.spotlightText ? (
               <NxTag color={color} className="iq-enterprise-reporting__dashboard__spotlight">
-                NEW
+                {spotlightText}
               </NxTag>
             ) : (
               ''
@@ -73,6 +74,7 @@ EnterpriseReportCard.propTypes = {
     title: PropTypes.string.isRequired,
     spotlight: PropTypes.bool,
     spotlightColor: PropTypes.string,
+    spotlightText: PropTypes.string,
     previewImage: PropTypes.string,
     description: PropTypes.string,
     features: PropTypes.arrayOf(PropTypes.string),

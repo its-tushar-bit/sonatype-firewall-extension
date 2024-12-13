@@ -35,6 +35,7 @@ describe('EnterpriseReportCard', () => {
     expect(screen.queryByText(dashboard.features[0])).toBeInTheDocument();
     expect(screen.queryByText(dashboard.features[1])).toBeInTheDocument();
     expect(screen.queryByText(dashboard.features[2])).toBeInTheDocument();
+    // querying by default text 'NEW', as spotlightText is not assigned
     expect(screen.queryByText('NEW')).not.toBeInTheDocument();
 
     const btn = screen.getByRole('button', { name: dashboard.accessButtonText });
@@ -42,14 +43,45 @@ describe('EnterpriseReportCard', () => {
     expect(btn).toHaveClass('dashboard-id-btn-rolling-recap');
   });
 
-  it('spotligths a given card with default color', async () => {
-    dashboard = { ...dashboard, spotlight: true };
+  it('spotlights a given card with default text and default color', async () => {
+    dashboard = { ...dashboard, spotlight: true, spotlightText: '' };
 
     renderComponent();
 
     expect(await screen.findByRole('enterprise-reporting-dashboard-card')).toBeInTheDocument();
     expect(screen.queryByText('NEW')).toBeInTheDocument();
     expect(screen.queryByText('NEW').parentElement).toHaveClass('nx-selectable-color--turquoise');
+    expect(screen.getByRole('button', { name: dashboard.accessButtonText })).toBeInTheDocument();
+  });
+
+  it('spotligths a given card with custom text if spotlightText is assigned', async () => {
+    dashboard = { ...dashboard, spotlight: true, spotlightText: 'TEST' };
+
+    renderComponent();
+
+    expect(await screen.findByRole('enterprise-reporting-dashboard-card')).toBeInTheDocument();
+    expect(screen.getByText('TEST')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: dashboard.accessButtonText })).toBeInTheDocument();
+  });
+
+  it('spotligths a given card with custom text if spotlightText is assigned and spotlight is false', async () => {
+    dashboard = { ...dashboard, spotlight: false, spotlightText: 'TEST' };
+
+    renderComponent();
+
+    expect(await screen.findByRole('enterprise-reporting-dashboard-card')).toBeInTheDocument();
+    expect(screen.getByText('TEST')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: dashboard.accessButtonText })).toBeInTheDocument();
+  });
+
+  it('does not spotlight a given card if spotlightText is not assigned and spotlight is false', async () => {
+    dashboard = { ...dashboard, spotlight: false, spotlightText: '' };
+
+    renderComponent();
+
+    expect(await screen.findByRole('enterprise-reporting-dashboard-card')).toBeInTheDocument();
+    // querying from the default 'NEW' text as spotlightText is unassigned
+    expect(screen.queryByText('NEW')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: dashboard.accessButtonText })).toBeInTheDocument();
   });
 

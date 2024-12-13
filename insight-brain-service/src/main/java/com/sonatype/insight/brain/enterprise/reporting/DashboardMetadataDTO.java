@@ -43,7 +43,9 @@ public class DashboardMetadataDTO
                               final String previewImage,
                               final Integer priority,
                               final boolean spotlight,
-                              final String dashboardPath)
+                              final String dashboardPath,
+                              final String spotlightColor,
+                              final String spotlightText)
   {
     this.dashboardId = dashboardId;
     this.title = title;
@@ -54,5 +56,7 @@ public class DashboardMetadataDTO
     this.priority = priority;
     this.spotlight = spotlight;
     this.dashboardPath = dashboardPath;
+    this.spotlightColor = spotlightColor;
+    this.spotlightText = spotlightText;
   }
 }

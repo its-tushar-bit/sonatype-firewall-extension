@@ -229,7 +229,6 @@ void pushDockerImageIfDeployBranch(boolean push) {
             String latest = "${sonatypeDockerRegistryId()}/${imageName}:latest"
             sh "docker buildx create --use --driver-opt image=${sonatypeDockerRegistryId()}/moby/buildkit"
             sh "docker buildx build --platform=linux/amd64,linux/arm64 " +
-                " --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} " +
                 " --build-arg IQ_SERVER_VERSION=${iqVersion} " +
                 (push ? " --push " : "") +
                 " --tag ${latest} " +

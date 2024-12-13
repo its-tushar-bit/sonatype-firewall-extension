@@ -116,12 +116,11 @@ public class DevelopmentPrioritiesService
   )
   {
     final int skipCount = (page - 1) * pageSize;
-    final int topCount = 3;
 
     final List<PrioritizedComponent> allPrioritizedFindings =
         includeRemediation ?
-            getAllPrioritizedFindings(applicationPublicId, scanId, topCount, skipCount, pageSize) :
-            getAllPrioritizedFindings(applicationPublicId, scanId, 0, null, null);
+            getAllPrioritizedFindings(applicationPublicId, scanId, skipCount, pageSize) :
+            getAllPrioritizedFindings(applicationPublicId, scanId, null, null);
 
     final List<PrioritizedComponent> filteredByNameAndAction = allPrioritizedFindings.stream()
         .filter(prioritizedComponent -> StringUtils.isEmpty(optionalComponentNameFilter) ||
@@ -129,28 +128,6 @@ public class DevelopmentPrioritiesService
         .filter(prioritizedComponent ->
             !optionalActionFilter || Action.ID_FAIL.equals(prioritizedComponent.getAction()) ||
                 Action.ID_WARN.equals(prioritizedComponent.getAction())).toList();
-
-    // pluck off top 3
-    final int top3Bound = Math.min(filteredByNameAndAction.size(), topCount);
-    final List<PrioritizedComponent> top3Priorities = filteredByNameAndAction.subList(0, top3Bound);
-    final List<PrioritizedComponent> remainingPrioritiesAll;
-
-    if (filteredByNameAndAction.size() > topCount) {
-      remainingPrioritiesAll = filteredByNameAndAction.subList(topCount, filteredByNameAndAction.size());
-    }
-    else {
-      remainingPrioritiesAll = new ArrayList<>();
-    }
-
-    // take a page from remaining priorities
-    final List<PrioritizedComponent> remainingPriorities = remainingPrioritiesAll
-        .stream()
-        .skip(skipCount)
-        .limit(pageSize)
-        .toList();
-
-    // get total size before adjusting for pagination (pagination is only over remaining non-top 3 components
-    final long totalSizeForRemainingPriorities = remainingPrioritiesAll.size();
 
     // get total size before for pagination
     final long totalSize = filteredByNameAndAction.size();
@@ -161,22 +138,19 @@ public class DevelopmentPrioritiesService
         .limit(pageSize)
         .toList();
 
-    return new DevelopmentPrioritizationResults(
-        top3Priorities,
-        new ApiPageResult<>(totalSizeForRemainingPriorities, page, pageSize, remainingPriorities),
-        new ApiPageResult<>(totalSize, page, pageSize, prioritizedFindingsForPagination));
+    return new DevelopmentPrioritizationResults(new ApiPageResult<>(totalSize, page, pageSize,
+        prioritizedFindingsForPagination));
   }
 
   /**
    * This method is used to get all prioritized findings for the specified application Id and scan Id.
-   * If the skipCount and limit are provided, it will set remediation for the topCount
-   * components and the components inside the skip and limit remediation range (page size).
+   * If the skipCount and limit are provided, it will set remediation for the components inside the skip and limit
+   * remediation range (page size).
    **/
   @Authorize(permission = Permission.READ)
   public List<PrioritizedComponent> getAllPrioritizedFindings(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
       final String scanId,
-      final int topCount,
       final Integer remediationSkip,
       final Integer remediationLimit
   )
@@ -276,7 +250,6 @@ public class DevelopmentPrioritiesService
         applicationPublicId,
         scanId,
         policyEvaluation != null ? policyEvaluation.getStageTypeId() : null,
-        topCount,
         remediationSkip,
         remediationLimit
     );
@@ -287,15 +260,14 @@ public class DevelopmentPrioritiesService
 
   /**
    * This method is used to set remediation for components based on the skipCount and limit provided.
-   * If skipCount and limit are provided, it will set remediation for the topCount components and the
-   * components inside the skip and limit range (page size).
+   * If skipCount and limit are provided, it will set remediation for the components inside the skip and limit range
+   * (page size).
    **/
   private List<UnprioritizedComponent> setRemediationForComponents(
       final List<UnprioritizedComponent> sortedComponents,
       final String applicationPublicId,
       final String scanId,
       final String stageId,
-      final int topCount,
       final Integer remediationSkip,
       final Integer remediationLimit)
   {
@@ -304,10 +276,7 @@ public class DevelopmentPrioritiesService
           .mapToObj(index -> {
             UnprioritizedComponent unprioritizedComponent = sortedComponents.get(index);
 
-            if (index < topCount ||
-                (index >= remediationSkip + topCount && index < remediationSkip + remediationLimit + topCount)
-            )
-            {
+            if (index >= remediationSkip && index < remediationSkip + remediationLimit) {
               return loadRemediation(unprioritizedComponent, applicationPublicId, scanId, stageId);
             }
 

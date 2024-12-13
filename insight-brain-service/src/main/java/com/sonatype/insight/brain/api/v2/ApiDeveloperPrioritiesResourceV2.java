@@ -58,20 +58,19 @@ public class ApiDeveloperPrioritiesResourceV2
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(description = """
-      Use this method to retrieve the priorities, by providing the applicationId and scanId
+      Use this method to retrieve all priorities by providing the application ID and scan ID.
       
       Permissions required: View IQ Elements""",
       responses = {
           @ApiResponse(
               responseCode = "200",
               description = """
-                  The response field `topPriorities` returns the first 3 prioritized components and the
-                  `additionalPriorities` field returns the remaining prioritized components for the specified
-                  application Id and scan Id. Each result has all relevant component information, reachability
-                  information, policy information, and the priority assigned to it.
-                  It has pagination support, and the default page size is 10.
+                  The response field `priorities` returns prioritized components for the specified
+                  application ID and scan ID. Each result has relevant component information, reachability
+                  information, policy information, and a priority number, sorted by priority in descending order.
+                  Pagination is supported, and the default page size is 10.
                   The parameter `includeRemediation` is required for the paginated result to
-                  have remediation information.""",
+                  include remediation information.""",
               useReturnTypeSchema = true)
       }
   )
@@ -121,8 +120,7 @@ public class ApiDeveloperPrioritiesResourceV2
       @PathParam("scanId") final String scanId)
   {
     List<PrioritizedComponent> results =
-        developmentPrioritiesService.getAllPrioritizedFindings(applicationId, scanId, 0, null,
-            null);
+        developmentPrioritiesService.getAllPrioritizedFindings(applicationId, scanId, null, null);
     String fileNamePrefix = applicationId + "-" + scanId + "-priorities";
     return Csv.generate(Response.ok(), fileNamePrefix, PrioritizedComponent.getCsvHeader(), results).build();
   }

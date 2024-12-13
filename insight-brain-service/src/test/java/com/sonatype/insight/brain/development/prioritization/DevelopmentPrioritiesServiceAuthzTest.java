@@ -43,8 +43,7 @@ public class DevelopmentPrioritiesServiceAuthzTest
   public void getAllPrioritizedFindings_Unauthorized() {
     login();
     assertThatThrownBy(
-            () -> developmentPrioritiesService.getAllPrioritizedFindings(app.getPublicId(),
-                "irrelevant", 0, null, null))
+            () -> developmentPrioritiesService.getAllPrioritizedFindings(app.getPublicId(), "irrelevant",null, null))
             .isInstanceOf(UnauthorizedException.class);
   }
 
@@ -52,16 +51,14 @@ public class DevelopmentPrioritiesServiceAuthzTest
   public void getAllPrioritizedFindings_Authorized() {
     grantReadPermission(app.getId());
     assertThatThrownBy(
-            () -> developmentPrioritiesService.getAllPrioritizedFindings(app.getPublicId(),
-                "irrelevant", 0, null, null))
+            () -> developmentPrioritiesService.getAllPrioritizedFindings(app.getPublicId(), "irrelevant", null, null))
             .isInstanceOf(NotFoundException.class);
   }
 
   @Test
   public void testGetComponentVersions_Unauthenticated() throws Exception {
     assertThatThrownBy(
-        () -> developmentPrioritiesService.getAllPrioritizedFindings(app.getPublicId(),
-            "irrelevant", 0, null, null))
+        () -> developmentPrioritiesService.getAllPrioritizedFindings(app.getPublicId(), "irrelevant", null, null))
         .isInstanceOf(UnauthenticatedException.class);
   }
 }

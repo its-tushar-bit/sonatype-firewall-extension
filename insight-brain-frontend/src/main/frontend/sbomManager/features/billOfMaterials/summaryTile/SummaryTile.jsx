@@ -7,10 +7,13 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import { omit, sum } from 'ramda';
-import { ResponsivePie } from '@nivo/pie';
-import { NxH2, NxH3, NxP, NxProgressBar, NxTile } from '@sonatype/react-shared-components';
+
+import { NxH2, NxH3, NxProgressBar, NxTile } from '@sonatype/react-shared-components';
 import classNames from 'classnames';
 import MetadataAccordion from 'MainRoot/sbomManager/features/billOfMaterials/metadataAccordion/MetadataAccordion';
+
+import PieChart from './summaryTilePieChart/summaryTilePieChart';
+import SummaryTileReleaseStatus from './summaryTileReleaseStatus/SummaryTileReleaseStatus';
 
 import { capitalize } from 'MainRoot/util/jsUtil';
 import { formatNumberLocale } from 'MainRoot/util/formatUtils';
@@ -30,60 +33,6 @@ const NIVO_VULNERABILITIES_SUMMARY_COLOR_MAP = {
   medium: 'var(--nx-color-threat-moderate)',
   moderate: 'var(--nx-color-threat-moderate)',
   low: 'var(--nx-color-threat-low)',
-};
-
-const NIVO_ANNOTATED_VULNERABILITIES_PERCENTAGE_COLOR_MAP = {
-  percentage: 'var(--nx-swatch-teal-40)',
-};
-
-const NIVO_COMPLEMENT_COLOR_MAP = {
-  complement: 'var(--nx-color-progress-background)',
-};
-
-const NIVO_EMPTY_CHART_DATA = [{ id: 'complement', label: 'complement', value: 100 }];
-
-const PieChart = ({ total, data, colorMap }) => {
-  const totalValue =
-    typeof total === 'number' ? (
-      <NxH3 className="sbom-manager-bill-of-materials-summary-pie-chart__total" data-testid="pie-chart-total">
-        {formatNumberLocale(total)}
-      </NxH3>
-    ) : null;
-
-  const rawChartData = Object.values(data).length === 1 ? { complement: 100 - Object.values(data)[0], ...data } : data;
-
-  const isEmptyChart = Object.values(data).every((value) => value === 0 || value === null);
-  const chartData = isEmptyChart
-    ? NIVO_EMPTY_CHART_DATA
-    : Object.keys(rawChartData).map((field) => ({ id: field, label: field, value: rawChartData[field] }));
-
-  const combinedColorMap = {
-    ...colorMap,
-    ...NIVO_COMPLEMENT_COLOR_MAP,
-  };
-
-  return (
-    <div className="sbom-manager-bill-of-materials-summary-pie-chart">
-      <ResponsivePie
-        data={chartData}
-        enableArcLabels={false}
-        enableArcLinkLabels={false}
-        isInteractive={false}
-        cornerRadius={4}
-        borderWidth={0}
-        innerRadius={0.7}
-        padAngle={2}
-        colors={chartData.map(({ label }) => combinedColorMap[label])}
-      />
-      {totalValue}
-    </div>
-  );
-};
-
-PieChart.propTypes = {
-  total: PropTypes.number,
-  data: PropTypes.object.isRequired,
-  colorMap: PropTypes.object.isRequired,
 };
 
 const SummaryChartAndProgress = ({ id, title, data, colorMap, isSbomPoliciesSupported }) => {
@@ -136,7 +85,7 @@ SummaryChartAndProgress.propTypes = {
 
 export default function BillOfMaterialSummaryTile(props) {
   const {
-    annotatedVulnerabilitesPercentage,
+    releaseStatusPercentage,
     componentSummary,
     vulnerabilitiesSummary,
     policyViolationSummary,
@@ -157,20 +106,6 @@ export default function BillOfMaterialSummaryTile(props) {
     ...policyViolationSummary,
     total: sum(Object.values(policyViolationSummary)),
   };
-
-  const annotatedVulnerabilitiesData = {
-    percentage: annotatedVulnerabilitesPercentage,
-  };
-
-  const annotatedVulnerabilitiesText =
-    typeof annotatedVulnerabilitesPercentage === 'number' ? (
-      <>
-        <strong>{annotatedVulnerabilitesPercentage}%</strong> of vulnerabilities annotated with exploitability{' '}
-        information
-      </>
-    ) : (
-      'No vulnerabilities to annotate'
-    );
 
   return (
     <NxTile id="bill-of-materials-summary-tile" className="sbom-manager-bill-of-materials-summary-tile">
@@ -196,6 +131,8 @@ export default function BillOfMaterialSummaryTile(props) {
             colorMap={NIVO_VULNERABILITIES_SUMMARY_COLOR_MAP}
             isSbomPoliciesSupported={isSbomPoliciesSupported}
           />
+          <div className="sbom-manager-bill-of-materials-summary-tile__summaries__divider"></div>
+          <SummaryTileReleaseStatus percentage={releaseStatusPercentage} />
           {isSbomPoliciesSupported && (
             <>
               <div className="sbom-manager-bill-of-materials-summary-tile__summaries__divider"></div>
@@ -208,18 +145,6 @@ export default function BillOfMaterialSummaryTile(props) {
               />
             </>
           )}
-          <div className="sbom-manager-bill-of-materials-summary-tile__annotated-vulnerabilities-summary">
-            <PieChart
-              data={annotatedVulnerabilitiesData}
-              colorMap={NIVO_ANNOTATED_VULNERABILITIES_PERCENTAGE_COLOR_MAP}
-            />
-            <NxP
-              className="sbom-manager-bill-of-materials-summary-tile__annotated-vulnerabilities-summary__description"
-              data-testid="annotated-vulnerabilities-summary-description"
-            >
-              {annotatedVulnerabilitiesText}
-            </NxP>
-          </div>
         </div>
       </NxTile.Content>
       <MetadataAccordion />
@@ -228,7 +153,7 @@ export default function BillOfMaterialSummaryTile(props) {
 }
 
 BillOfMaterialSummaryTile.propTypes = {
-  annotatedVulnerabilitesPercentage: PropTypes.number,
+  releaseStatusPercentage: PropTypes.number,
   componentSummary: PropTypes.object.isRequired,
   vulnerabilitiesSummary: PropTypes.object.isRequired,
   policyViolationSummary: PropTypes.object.isRequired,

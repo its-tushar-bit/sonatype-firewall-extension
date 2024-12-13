@@ -213,7 +213,7 @@ public class SbomManagerBillOfMaterialsPageTest
   }
 
   @Test
-  public void testBillOfMaterial_AnnotatedVulnerabilitiesSummaryDescription() {
+  public void testBillOfMaterial_ReleaseStatusSummaryDescription() {
     ThirdPartyFileCoordinate thirdPartyFileCoordinate =
         tempEntity.newThirdPartyFileCoordinate(scannedFile.getId(),
             "s", "SPDX", "n1", "v1", "h1", "u1");
@@ -221,9 +221,10 @@ public class SbomManagerBillOfMaterialsPageTest
     thirdPartySbomMetadataDAO.update(sbomMetadata);
     refreshOrOpen(IndexPage.url());
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
-    billOfMaterialsPageSummaryTile.annotatedVulnerabilitiesSummaryDescription().shouldBe(visible);
-    billOfMaterialsPageSummaryTile.annotatedVulnerabilitiesSummaryDescription()
-        .shouldHave(text("No vulnerabilities to annotate")).shouldBe(visible);
+    billOfMaterialsPageSummaryTile.releaseStatusSummaryDescription().shouldBe(visible);
+    billOfMaterialsPageSummaryTile.releaseStatusSummaryDescription()
+        .shouldHave(text("0% of critical and high vulnerabilities " +
+        "have been annotated with exploitability information")).shouldBe(visible);
 
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
         "r1", "d1", "l1", 5.5, "sd1", "f1");
@@ -239,8 +240,8 @@ public class SbomManagerBillOfMaterialsPageTest
         "r1", "s1", "j1", "r1", "d1");
 
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
-    billOfMaterialsPageSummaryTile.annotatedVulnerabilitiesSummaryDescription().shouldHave(text("66.7% of " +
-        "vulnerabilities annotated with exploitability information")).shouldBe(visible);
+    billOfMaterialsPageSummaryTile.releaseStatusSummaryDescription().shouldHave(text("100% of critical " +
+            "and high vulnerabilities have been annotated with exploitability information")).shouldBe(visible);
   }
 
   @Test

@@ -75,7 +75,7 @@ export default function BillOfMaterials() {
     componentSummary,
     vulnerabilitiesSummary,
     policyViolationSummary,
-    annotatedVulnerabilitesPercentage,
+    releaseStatusPercentage,
     validationErrorAlertDismissed,
   } = useSelector(selectBillOfMaterialsPage);
 
@@ -263,7 +263,7 @@ export default function BillOfMaterials() {
             </NxPageTitle.Description>
           </NxPageTitle>
           <SummaryTile
-            annotatedVulnerabilitesPercentage={annotatedVulnerabilitesPercentage}
+            releaseStatusPercentage={releaseStatusPercentage}
             componentSummary={componentSummary}
             vulnerabilitiesSummary={vulnerabilitiesSummary}
             policyViolationSummary={policyViolationSummary}

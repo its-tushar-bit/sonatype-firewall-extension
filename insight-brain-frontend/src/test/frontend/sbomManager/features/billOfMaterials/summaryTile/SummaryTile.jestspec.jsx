@@ -50,7 +50,7 @@ describe('SummaryTile', () => {
         vulnerabilitiesSummary={vulnerabilitiesSummaryProp}
         policyViolationSummary={policyViolationSummaryProp}
         isSbomPoliciesSupported={true}
-        annotatedVulnerabilitesPercentage={75}
+        releaseStatusPercentage={75}
       />,
       { preloadedState: { ...initialState } }
     );
@@ -63,7 +63,8 @@ describe('SummaryTile', () => {
     const pieChartTotals = screen.getAllByTestId('pie-chart-total');
     expect(pieChartTotals[0]).toHaveTextContent('5,678');
     expect(pieChartTotals[1]).toHaveTextContent('1,234');
-    expect(pieChartTotals[2]).toHaveTextContent('11,110');
+    expect(pieChartTotals[2]).toHaveTextContent('75%');
+    expect(pieChartTotals[3]).toHaveTextContent('11,110');
 
     expect(screen.getByText(/5,000 Direct/)).toBeVisible();
     expect(screen.getByText(/600 Transitive/)).toBeVisible();
@@ -74,8 +75,10 @@ describe('SummaryTile', () => {
     expect(screen.getByText(/3,333 Severe/)).toBeVisible();
     expect(screen.getByText(/4,444 Critical/)).toBeVisible();
 
-    const description = screen.getByTestId('annotated-vulnerabilities-summary-description');
-    expect(description).toHaveTextContent('75% of vulnerabilities annotated with exploitability information');
+    const description = screen.getByTestId('summary-tile-release-status-description');
+    expect(description).toHaveTextContent(
+      '75% of critical and high vulnerabilities have been annotated with exploitability information'
+    );
   });
 
   it('renders the correct tile content when sbom policies supported is false', async () => {
@@ -85,7 +88,7 @@ describe('SummaryTile', () => {
         vulnerabilitiesSummary={vulnerabilitiesSummaryProp}
         policyViolationSummary={policyViolationSummaryProp}
         isSbomPoliciesSupported={false}
-        annotatedVulnerabilitesPercentage={75}
+        releaseStatusPercentage={75}
       />,
       { preloadedState: { ...initialState } }
     );
@@ -98,6 +101,7 @@ describe('SummaryTile', () => {
     const pieChartTotals = screen.getAllByTestId('pie-chart-total');
     expect(pieChartTotals[0]).toHaveTextContent('5,678');
     expect(pieChartTotals[1]).toHaveTextContent('1,234');
+    expect(pieChartTotals[2]).toHaveTextContent('75%');
 
     expect(screen.getByText(/5,000 Direct/)).toBeVisible();
     expect(screen.getByText(/600 Transitive/)).toBeVisible();
@@ -113,23 +117,25 @@ describe('SummaryTile', () => {
     expect(screen.queryByText(/3,333 Severe/)).not.toBeInTheDocument();
     expect(screen.queryByText(/4,444 Critical/)).not.toBeInTheDocument();
 
-    const description = screen.getByTestId('annotated-vulnerabilities-summary-description');
-    expect(description).toHaveTextContent('75% of vulnerabilities annotated with exploitability information');
+    const description = screen.getByTestId('summary-tile-release-status-description');
+    expect(description).toHaveTextContent(
+      '75% of critical and high vulnerabilities have been annotated with exploitability information'
+    );
   });
 
-  it('renders the correct description when annotatedVulnerabilitesPercentage is null', async () => {
+  it('renders the correct description when releaseStatusPercentage is null', async () => {
     render(
       <SummaryTile
         componentSummary={componentSummaryProp}
         vulnerabilitiesSummary={vulnerabilitiesSummaryProp}
         policyViolationSummary={policyViolationSummaryProp}
         isSbomPoliciesSupported={true}
-        annotatedVulnerabilitesPercentage={null}
+        releaseStatusPercentage={null}
       />,
       { preloadedState: { ...initialState } }
     );
 
-    const description = screen.getByTestId('annotated-vulnerabilities-summary-description');
-    expect(description).toHaveTextContent('No vulnerabilities to annotate');
+    const status = screen.getByTestId('summary-tile-release-status');
+    expect(status).toHaveTextContent('Needs Attention');
   });
 });

@@ -79,7 +79,7 @@ export const initialState = Object.freeze({
   componentSummary: { ...componentSummaryInitialState },
   vulnerabilitiesSummary: { ...vulnerabilitiesSummaryInitialState },
   policyViolationSummary: { ...policyViolationSummaryInitialState },
-  annotatedVulnerabilitesPercentage: null,
+  releaseStatusPercentage: null,
   validationErrorAlertDismissed: false,
 });
 
@@ -178,7 +178,7 @@ const loadSbomSummaryRequested = (state) => {
   state.componentSummary = { ...componentSummaryInitialState };
   state.vulnerabilitiesSummary = { ...vulnerabilitiesSummaryInitialState };
   state.policyViolationSummary = { ...policyViolationSummaryInitialState };
-  state.annotatedVulnerabilitesPercentage = null;
+  state.releaseStatusPercentage = null;
 };
 
 const loadSbomSummaryFailed = (state, { payload }) => {
@@ -187,7 +187,7 @@ const loadSbomSummaryFailed = (state, { payload }) => {
   state.componentSummary = { ...componentSummaryInitialState };
   state.vulnerabilitiesSummary = { ...vulnerabilitiesSummaryInitialState };
   state.policyViolationSummary = { ...policyViolationSummaryInitialState };
-  state.annotatedVulnerabilitesPercentage = null;
+  state.releaseStatusPercentage = null;
 };
 
 const loadSbomSummaryFulfilled = (state, { payload }) => {
@@ -209,7 +209,7 @@ const loadSbomSummaryFulfilled = (state, { payload }) => {
       prop('policyViolationSummary')
     )(payload),
   };
-  state.annotatedVulnerabilitesPercentage = payload.annotatedPercentage;
+  state.releaseStatusPercentage = payload.releaseStatusPercentage;
 };
 
 const loadSbomSummary = createAsyncThunk(

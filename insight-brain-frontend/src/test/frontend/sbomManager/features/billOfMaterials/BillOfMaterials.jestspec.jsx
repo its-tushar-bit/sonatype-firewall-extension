@@ -83,7 +83,7 @@ describe('BillOfMaterials Page', () => {
       severe: 3333,
       critical: 5555,
     },
-    annotatedPercentage: 75,
+    releaseStatusPercentage: 75,
   });
 
   const getSbomSummaryNoVulnerabilitiesResponsePayload = Object.freeze({
@@ -104,7 +104,7 @@ describe('BillOfMaterials Page', () => {
       severe: 3333,
       critical: 5555,
     },
-    annotatedPercentage: null,
+    releaseStatusPercentage: null,
   });
 
   const getSbomSummaryEmptyResponsePayload = Object.freeze({
@@ -121,7 +121,7 @@ describe('BillOfMaterials Page', () => {
       critical: null,
     },
     dependencyType: null,
-    annotatedPercentage: null,
+    releaseStatusPercentage: null,
   });
 
   const getBillOfMaterialsComponentsResponsePayload = Object.freeze({
@@ -316,7 +316,8 @@ describe('BillOfMaterials Page', () => {
     const pieChartTotals = screen.getAllByTestId('pie-chart-total');
     expect(pieChartTotals[0]).toHaveTextContent('5,678');
     expect(pieChartTotals[1]).toHaveTextContent('1,234');
-    expect(pieChartTotals[2]).toHaveTextContent('12,221');
+    expect(pieChartTotals[2]).toHaveTextContent('75%');
+    expect(pieChartTotals[3]).toHaveTextContent('12,221');
 
     expect(screen.getByText(/5,000 Direct/)).toBeVisible();
     expect(screen.getByText(/600 Transitive/)).toBeVisible();
@@ -332,8 +333,10 @@ describe('BillOfMaterials Page', () => {
     expect(screen.getByText(/3,333 Severe/)).toBeVisible();
     expect(screen.getByText(/5,555 Critical/)).toBeVisible();
 
-    const description = screen.getByTestId('annotated-vulnerabilities-summary-description');
-    expect(description).toHaveTextContent('75% of vulnerabilities annotated with exploitability information');
+    const description = screen.getByTestId('summary-tile-release-status-description');
+    expect(description).toHaveTextContent(
+      '75% of critical and high vulnerabilities have been annotated with exploitability information'
+    );
   });
 
   it('renders SummaryTile values correctly when there are no vulnerabilities', async () => {
@@ -373,8 +376,10 @@ describe('BillOfMaterials Page', () => {
     expect(screen.getByText(/0 High/)).toBeVisible();
     expect(screen.getByText(/0 Critical/)).toBeVisible();
 
-    const description = screen.getByTestId('annotated-vulnerabilities-summary-description');
-    expect(description).toHaveTextContent('No vulnerabilities to annotate');
+    const description = screen.getByTestId('summary-tile-release-status-description');
+    expect(description).toHaveTextContent(
+      '0% of critical and high vulnerabilities have been annotated with exploitability information'
+    );
   });
 
   it('renders SummaryTile values correctly when empty values', async () => {
@@ -425,8 +430,10 @@ describe('BillOfMaterials Page', () => {
     expect(screen.getByText(/0 Moderate/)).toBeVisible();
     expect(screen.getByText(/0 Severe/)).toBeVisible();
 
-    const description = screen.getByTestId('annotated-vulnerabilities-summary-description');
-    expect(description).toHaveTextContent('No vulnerabilities to annotate');
+    const description = screen.getByTestId('summary-tile-release-status-description');
+    expect(description).toHaveTextContent(
+      '0% of critical and high vulnerabilities have been annotated with exploitability information'
+    );
   });
 
   it('shows error when the SBOM Manager license is disabled', async () => {

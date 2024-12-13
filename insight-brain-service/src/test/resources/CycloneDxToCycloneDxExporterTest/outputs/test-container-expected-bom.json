@@ -51,13 +51,13 @@
       "bom-ref" : "CVE-2024-10041-66a07531c03d4ad5884918608b187605",
       "id" : "CVE-2024-10041",
       "source" : {
-        "name" : "Source-Container",
+        "name" : "Sonatype-Container",
         "url" : "l1"
       },
       "ratings" : [
         {
           "source" : {
-            "name" : "Source-Container",
+            "name" : "Sonatype-Container",
             "url" : "l1"
           },
           "score" : 4.7,
@@ -78,7 +78,7 @@
       "properties" : [
         {
           "name" : "sonatype:identification_sources",
-          "value" : "SBOM"
+          "value" : "Sonatype-Container"
         }
       ]
     }

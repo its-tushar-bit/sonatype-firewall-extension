@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
@@ -43,6 +44,9 @@ import static com.google.common.collect.Lists.newArrayList;
 
 public class SbomExportUtils
 {
+  private static final String IDENTIFICATION_SOURCE_SONATYPE_CONTAINER =
+      IdentificationSource.SONATYPE_CONTAINER.getName();
+
   public static Vulnerability createCycloneDxVulnerabilityFromDbData(
       Component bomComponent,
       ThirdPartyCoordinateSecurity sonatypeVulnerability,
@@ -83,8 +87,12 @@ public class SbomExportUtils
     bomVulnerability.setRatings(Collections.singletonList(
         updateVulnerabilityRatingWithSonatypeData(new Rating(), sonatypeVulnerability)));
 
+    String vulnerabilityIdentificationSource =
+        IDENTIFICATION_SOURCE_SONATYPE_CONTAINER.equals(sonatypeVulnerability.getVulnerabilitySource()) ?
+        IDENTIFICATION_SOURCE_SONATYPE_CONTAINER : sonatypeVulnerability.getIdentificationSources();
+
     bomVulnerability.setProperties(addOrUpdateBomElementProperty(bomVulnerability.getProperties(),
-          SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME, sonatypeVulnerability.getIdentificationSources()));
+        SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME, vulnerabilityIdentificationSource));
 
     if (sonatypeVexInformation != null) {
       Analysis analysis = bomVulnerability.getAnalysis();

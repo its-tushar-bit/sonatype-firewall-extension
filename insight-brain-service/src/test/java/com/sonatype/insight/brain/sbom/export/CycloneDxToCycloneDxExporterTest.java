@@ -202,7 +202,7 @@ public class CycloneDxToCycloneDxExporterTest
     );
     tempEntity.newThirdPartyCoordinateSecurity(
         fileCoordinate, "CVE-2024-10041", "DESC CVE-2024-10041", "l1", 4.7d,
-        "1.1", "Source-Container", "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:N/A:N",
+        "1.1", "Sonatype-Container", "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:N/A:N",
         "Medium", "1234", "other", "<dd>r1<dd/>",
         "<dd>a1<dd/>", "SBOM");
     String export = exporter.export();

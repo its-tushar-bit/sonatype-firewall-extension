@@ -150,7 +150,8 @@ void postBuild() {
     pushDockerImageIfDeployBranch(push)
 
     def pushMtiqImage = params.mtiqImagePushEnabled == null ? true : params.mtiqImagePushEnabled
-    pushMTIQDockerImage(pushMtiqImage)
+    def imageVersion = mtiqImageVersion()
+    pushMTIQDockerImage(pushMtiqImage, imageVersion)
     // Successful builds on the `main` branch trigger the MTIQ job to bump the image version in the K8S deployment
     def isSuccess = currentBuild.currentResult == 'SUCCESS'
     if (isSuccess) {
@@ -255,7 +256,22 @@ void pushDockerImageIfDeployBranch(boolean push) {
     }
 }
 
-void pushMTIQDockerImage(boolean pushMtiqImage) {
+String mtiqImageVersion() {
+  // Default version for the MTIQ image off the `main` branch is in the format 202307111354-1234-ABCDEFGH
+
+  // First part of MTIQ version number (202307111354 in the example) is an unformatted date up to the minute
+  def dateSection = new Date().format("yyyyMMddHHmm", TimeZone.getTimeZone('UTC'))
+
+  // Second part of the MTIQ version number (1234 in the example) is the Jenkins snapshot build number
+  def buildNumSection = env.BUILD_NUMBER
+
+  // Third part of the MTIQ version number (ABCDEFGH in the example) is the Git short hash
+  def gitShortHashSection = env.GIT_COMMIT.take(8)
+
+  return "${dateSection}-${buildNumSection}-${gitShortHashSection}"
+}
+
+void pushMTIQDockerImage(boolean pushMtiqImage, String imageVersion) {
     // MTIQ image push rules:
     // - any snapshot build on the `main` branch
     //   - Note IQ on-prem release builds should not be processed
@@ -270,19 +286,6 @@ void pushMTIQDockerImage(boolean pushMtiqImage) {
         echo 'Skipping MTIQ docker image for IQ on-premise release'
         return
     }
-
-    // Default version for the MTIQ image off the `main` branch is in the format 202307111354-1234-ABCDEFGH
-
-    // First part of MTIQ version number (202307111354 in the example) is an unformatted date up to the minute
-    def dateSection = new Date().format("yyyyMMddHHmm", TimeZone.getTimeZone('UTC'))
-
-    // Second part of the MTIQ version number (1234 in the example) is the Jenkins snapshot build number
-    def buildNumSection = env.BUILD_NUMBER
-
-    // Third part of the MTIQ version number (ABCDEFGH in the example) is the Git short hash
-    def gitShortHashSection = env.GIT_COMMIT.take(8)
-
-    def imageVersion = "${dateSection}-${buildNumSection}-${gitShortHashSection}"
 
     // If we are on a feature branch (i.e. not `main`), then we use the branch name in the version number
     // as well as prefixing it with `branch-` to allow for easy identification
@@ -378,7 +381,7 @@ Map<String, Closure> getDockerSteps(List<String> zipFiles) {
               copyRepo(zipFiles)
               boolean pushMtiqImage =
                   params.mtiqImagePushEnabled == null ? projName.endsWith('_mtiq') : params.mtiqImagePushEnabled
-              pushMTIQDockerImage(pushMtiqImage)
+              pushMTIQDockerImage(pushMtiqImage, mtiqImageVersion())
             }
           }
         }])

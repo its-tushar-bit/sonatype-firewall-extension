@@ -195,7 +195,7 @@
       "licenseConcluded": "NOASSERTION",
       "licenseDeclared": "NOASSERTION",
       "name": "operating-system-a",
-      "primaryPackagePurpose": "OPERATING-SYSTEM",
+      "primaryPackagePurpose": "OPERATING_SYSTEM",
       "versionInfo": "1.0"
     },
     {

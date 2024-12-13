@@ -4,9 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 @Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
-import hudson.plugins.git.GitChangeSet
-import hudson.scm.ChangeLogSet
-import hudson.scm.ChangeLogSet.Entry
 
 m2Zip = 'm2.zip'
 workspaceZip = 'workspace.zip'
@@ -55,7 +52,7 @@ make(
       withSonatypeDockerRegistry() {
         withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
                  "TESTCONTAINERS_RYUK_DISABLED=true"]) {
-          runAllTests(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
+          runBuildAndParallelSteps(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
         }
       }
     },
@@ -143,9 +140,26 @@ make(
 )
 
 void postBuild() {
-  if (!isMergeQueueBranch(env)) {
-    pushDockerImageIfDeployBranch()
-    pushMTIQDockerImage()
+  if (isDeployBranch(env, 'main')) {
+    def push = true
+    // If the git repo branch name isn't main or the project name isn't snapshot, skip the image push.
+    if (!isDeployBranch(env, 'main') || !currentBuild.fullProjectName.contains("snapshot")) {
+      echo 'Skipping push of docker image for non-deploy branch or release'
+      push = false
+    }
+    pushDockerImageIfDeployBranch(push)
+
+    def pushMtiqImage = params.mtiqImagePushEnabled == null ? true : params.mtiqImagePushEnabled
+    pushMTIQDockerImage(pushMtiqImage)
+    // Successful builds on the `main` branch trigger the MTIQ job to bump the image version in the K8S deployment
+    def isSuccess = currentBuild.currentResult == 'SUCCESS'
+    if (isSuccess) {
+      build('job': '/insight/MTIQ/bump-mtiq-version',
+          parameters: [ string(name: 'DOCKER_IMAGE_VERSION', value: imageVersion), string(name: 'IQ_COMMIT', value:
+              env.GIT_COMMIT) ],
+          wait: false,
+          propagate: false)
+    }
   }
 }
 
@@ -192,16 +206,10 @@ void configureBranchJob() {
   ])
 }
 
-void pushDockerImageIfDeployBranch() {
+void pushDockerImageIfDeployBranch(boolean push) {
     if (!currentBuild.fullProjectName.contains("snapshot")) {
       echo 'Skipping build of docker image on release branch'
       return
-    }
-    def push = true
-    // If the git repo branch name isn't main or the project name isn't snapshot, skip the image push.
-    if (!isDeployBranch(env, 'main') || !currentBuild.fullProjectName.contains("snapshot")) {
-        echo 'Skipping push of docker image for non-deploy branch or release'
-        push = false
     }
 
     String iqVersion = getMavenProjectVersion('.')
@@ -247,7 +255,7 @@ void pushDockerImageIfDeployBranch() {
     }
 }
 
-void pushMTIQDockerImage() {
+void pushMTIQDockerImage(boolean pushMtiqImage) {
     // MTIQ image push rules:
     // - any snapshot build on the `main` branch
     //   - Note IQ on-prem release builds should not be processed
@@ -293,8 +301,6 @@ void pushMTIQDockerImage() {
     dir("nexus-mtiq-server") {
       withSonatypeDockerRegistry() {
         // Push for all `main` builds as well as any enabled branches by name or build parameter
-        def pushMtiqImage = params.mtiqImagePushEnabled == null
-            ? (isMainBuild || projName.endsWith('_mtiq')) : params.mtiqImagePushEnabled
         echo "pushMtiqImage: $pushMtiqImage"
         def pushOption = ""
         if (pushMtiqImage) {
@@ -313,16 +319,6 @@ void pushMTIQDockerImage() {
         }
       }
     }
-
-    // Successful builds on the `main` branch trigger the MTIQ job to bump the image version in the K8S deployment
-    def isSuccess = currentBuild.currentResult == 'SUCCESS'
-    if (isMainBuild && isSuccess) {
-      build('job': '/insight/MTIQ/bump-mtiq-version',
-          parameters: [ string(name: 'DOCKER_IMAGE_VERSION', value: imageVersion), string(name: 'IQ_COMMIT', value:
-              env.GIT_COMMIT) ],
-          wait: false,
-          propagate: false)
-    }
 }
 
 Map<String, ?> jreleaserConfig(String mavenOptions, String pomFile = null, String javaVersion = 'OpenJDK 17') {
@@ -330,7 +326,7 @@ Map<String, ?> jreleaserConfig(String mavenOptions, String pomFile = null, Strin
       pomFile: pomFile, mavenOptions: mavenOptions)
 }
 
-void runAllTests(Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J) {
+void runBuildAndParallelSteps(Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J) {
   buildAndTest(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
 
   if (!isMergeQueueBranch(env)) {
@@ -347,8 +343,47 @@ void runAllTests(Map<String, ?> mavenCommon, String keystoreCredId, boolean depl
       archiveArtifacts(artifacts: workspaceZip, fingerprint: false)
     }
 
-    parallel(getParallelTests())
+
+    def zips = isFastCopyEnabled() ? [m2Zip, iqTestsZip] : [workspaceZip]
+    def parallelSteps = new HashMap<String, Closure>(getParallelTests(zips))
+    parallelSteps.putAll(getDockerSteps(zips))
+    parallel(parallelSteps)
   }
+}
+
+/**
+ * Returns Docker stages to be run in parallel with tests for feature branch builds. If the build is for main, these
+ * stages are skipped, and the pipeline will run the docker steps in the post build actions.
+ *
+ * @param zipFiles
+ * @return
+ */
+Map<String, Closure> getDockerSteps(List<String> zipFiles) {
+  Map<String, Closure> dockerSteps = [:]
+  if (isDeployBranch(env, 'main')) {
+    return dockerSteps
+  }
+  if (!isMergeQueueBranch(env)) {
+    dockerSteps.putAll(
+        ["Push Docker Image If Deploy Branch": {
+          node('iq-large') {
+            stage("Push Docker Image If Deploy Branch") {
+              copyRepo(zipFiles)
+              pushDockerImageIfDeployBranch(false)
+            }
+          }
+        }, "Push MTIQ Docker Image"          : {
+          node('iq-large') {
+            stage("Push MTIQ Docker Image") {
+              copyRepo(zipFiles)
+              boolean pushMtiqImage =
+                  params.mtiqImagePushEnabled == null ? projName.endsWith('_mtiq') : params.mtiqImagePushEnabled
+              pushMTIQDockerImage(pushMtiqImage)
+            }
+          }
+        }])
+  }
+  return dockerSteps
 }
 
 private static String addBuildCacheOptions(String mavenOptions, boolean enabled) {
@@ -363,10 +398,8 @@ private static String addBuildCacheOptions(String mavenOptions, boolean enabled)
   return mavenOptions
 }
 
-Map<String, Closure> getParallelTests() {
+Map<String, Closure> getParallelTests(List <String> zips) {
   Map<String, Closure> testStages = [:]
-
-  String[] zips = isFastCopyEnabled() ? [m2Zip, iqTestsZip] : [workspaceZip]
 
   if (isFunctionalTestsEnabled()) {
     testStages << createFunctionalTests('Java Functional Tests A', '.*/[A-B].*Test.class', zips)
@@ -398,7 +431,7 @@ Map<String, Closure> getParallelTests() {
 Map<String, Closure> createFunctionalTests(
     String stageName,
     String regex,
-    String... zipFiles
+    List<String> zipFiles
 ) {
   return createFunctionalTests(stageName, regex, false, zipFiles)
 }
@@ -406,7 +439,7 @@ Map<String, Closure> createFunctionalTests(
 Map<String, Closure> createMtiqFunctionalTests(
     String stageName,
     String regex,
-    String... zipFiles
+    List<String> zipFiles
 ) {
   return createFunctionalTests(stageName, regex, true, zipFiles)
 }
@@ -415,7 +448,7 @@ Map<String, Closure> createFunctionalTests(
   String stageName,
   String regex,
   boolean mtiq,
-  String... zipFiles
+  List<String> zipFiles
 ) {
   String mavenModule = 'insight-brain-java-functional-test'
   if (mtiq) {
@@ -446,7 +479,7 @@ Map<String, Closure> createFunctionalTests(
   }]
 }
 
-Map<String, Closure> createFrontendTests(String stageName, String... zipFiles) {
+Map<String, Closure> createFrontendTests(String stageName, List<String> zipFiles) {
   return ["${stageName}": {
     // 2024-05-03: We are using c6i.2xlarge EC2 instances. I tried c6i.4xlarge, there was a small difference (~2 mins),
     // but this stage is still faster then other parallel stages without using larger EC2 instances.
@@ -472,8 +505,8 @@ Map<String, Closure> createFrontendTests(String stageName, String... zipFiles) {
   }]
 }
 
-Map<String, Closure> createUnitTests(String stageName, String jdk, String regex, String... zipFiles) {
-  return ["${stageName}": {
+Map<String, Closure> createUnitTests(String stageName, String jdk, String regex, List<String> zipFiles) {
+  return [(stageName): {
     node('iq-large'){
       stage(stageName) {
         try {
@@ -503,8 +536,8 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex,
   }]
 }
 
-Map<String, Closure> createMtiqUnitTests(String stageName, String jdk, String... zipFiles) {
-  return ["${stageName}": {
+Map<String, Closure> createMtiqUnitTests(String stageName, String jdk, List<String> zipFiles) {
+  return [(stageName): {
     node('iq-large'){
       stage(stageName) {
         try {
@@ -532,7 +565,7 @@ Map<String, Closure> createMtiqUnitTests(String stageName, String jdk, String...
   }]
 }
 
-void copyRepo(String... zipFiles) {
+void copyRepo(List<String> zipFiles) {
   for (String zipFile : zipFiles) {
     copyArtifacts(projectName: currentBuild.fullProjectName, filter: zipFile, selector: specific(currentBuild.id),
         flatten: false)

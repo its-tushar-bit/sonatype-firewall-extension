@@ -42,7 +42,6 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.report.FileReportEntity;
-import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -225,9 +224,8 @@ public class ThirdPartyDataServiceTest
     attachmentText.setText("PD94bWwgdmV");
     expectedSwid.setAttachmentText(attachmentText);
 
-    tempEntity.newThirdPartyFileCoordinate(file, SbomSpecification.CYCLONEDX.toString(), "f1", "n1", "v1", "hash1",
-        "pkg:f1/n1@v1", "cpe:/a:acme:application:9.1.1",
-        ThirdPartyComponentDAO.MAPPER.writeValueAsString(expectedSwid));
+    tempEntity.newThirdPartyFileCoordinate(file, "CycloneDx", "f1", "n1", "v1", "hash1", "pkg:f1/n1@v1",
+        "cpe:/a:acme:application:9.1.1", ThirdPartyComponentDAO.MAPPER.writeValueAsString(expectedSwid));
 
     ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
 

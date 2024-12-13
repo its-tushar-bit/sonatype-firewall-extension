@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
 import com.sonatype.insight.brain.db.rule.DatabaseRule;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.policy.evaluator.AbstractPolicyEvaluationTest;
-import com.sonatype.insight.brain.sbom.SbomSpecification;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -52,18 +51,16 @@ public class SbomFileDetectorTest
 
   @Test
   public void testGetSbomMetadata_CycloneDx_Json_Valid_1_4() throws Exception {
-    SbomDetectionResult expected =
-        createValidSbomExpectedResult("application/json", "1.4", SbomSpecification.CYCLONEDX.toString(), "json", 1, 1,
-            "example-sbom-application-1.4", "0.0.1");
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/json", "1.4", "CycloneDx", "json", 1, 1,
+        "example-sbom-application-1.4", "0.0.1");
 
     checkSbomMetadata("cyclonedx-valid-v1_4-json.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_Json_Valid_1_5() throws Exception {
-    SbomDetectionResult expected =
-        createValidSbomExpectedResult("application/json", "1.5", SbomSpecification.CYCLONEDX.toString(), "json", 1, 1,
-            "example-sbom-application-1.5", "1.0.1");
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/json", "1.5", "CycloneDx", "json", 1, 1,
+        "example-sbom-application-1.5", "1.0.1");
 
     checkSbomMetadata("cyclonedx-valid-v1_5-json.tmp", expected);
   }
@@ -77,43 +74,38 @@ public class SbomFileDetectorTest
 
   @Test
   public void testGetSbomMetadata_CycloneDx_XML_Valid_1_1() throws Exception {
-    SbomDetectionResult expected =
-        createValidSbomExpectedResult("application/xml", "1.1", SbomSpecification.CYCLONEDX.toString(), "xml", 1, 0,
-            null, null);
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/xml", "1.1", "CycloneDx", "xml", 1, 0,
+        null, null);
 
     checkSbomMetadata("cyclonedx-valid-v1_1.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_XML_Valid_1_2() throws Exception {
-    SbomDetectionResult expected =
-        createValidSbomExpectedResult("application/xml", "1.2", SbomSpecification.CYCLONEDX.toString(), "xml", 2, 1,
-            "Acme Application", "9.1.1");
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/xml", "1.2", "CycloneDx", "xml", 2, 1,
+        "Acme Application", "9.1.1");
 
     checkSbomMetadata("cyclonedx-valid-v1_2.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_XML_Valid_1_3() throws Exception {
-    SbomDetectionResult expected =
-        createValidSbomExpectedResult("application/xml", "1.3", SbomSpecification.CYCLONEDX.toString(), "xml", 2, 1,
-            "Acme Application", "9.1.1");
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/xml", "1.3", "CycloneDx", "xml", 2, 1,
+        "Acme Application", "9.1.1");
     checkSbomMetadata("cyclonedx-valid-v1_3.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDxVulnerabilityExtension_XML_Valid_1_4() throws Exception {
-    SbomDetectionResult expected =
-        createValidSbomExpectedResult("application/xml", "1.4", SbomSpecification.CYCLONEDX.toString(), "xml", 1, 1,
-            null, null);
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/xml", "1.4", "CycloneDx", "xml", 1, 1,
+        null, null);
     checkSbomMetadata("cyclonedx-vulnerability-ext-v1_4.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_XML_Valid_1_5() throws Exception {
-    SbomDetectionResult expected =
-        createValidSbomExpectedResult("application/xml", "1.5", SbomSpecification.CYCLONEDX.toString(), "xml", 1, 1,
-            null, null);
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/xml", "1.5", "CycloneDx", "xml", 1, 1,
+        null, null);
     checkSbomMetadata("cyclonedx-valid-v1_5-xml.tmp", expected);
   }
 
@@ -124,41 +116,36 @@ public class SbomFileDetectorTest
         "Line: 22, Column: 16, Path: //bom[1]/components[1]/component[1], Error: cvc-complex-type.2.4.a: Invalid content was found starting with element '{\"http://cyclonedx.org/schema/bom/1.4\":version}'. One of '{\"http://cyclonedx.org/schema/bom/1.4\":name}' is expected."
     );
     SbomDetectionResult expected = createExpectedResult(true, false, true, "application/xml",
-        "Not a valid CycloneDX SBOM file.", expectedErrors, null, SbomSpecification.CYCLONEDX.toString(), "xml", 0, 0,
-        null, null);
+        "Not a valid CycloneDX SBOM file.", expectedErrors, null, "CycloneDx", "xml", 0, 0, null, null);
     checkSbomMetadata("cyclonedx-invalid-v1_4-xml.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_XML_Invalid_1_4_ignoreValidationError() throws Exception {
-    SbomDetectionResult expected =
-        createValidationIgnoredExpectedResult("application/xml", "1.4", SbomSpecification.CYCLONEDX.toString(), "xml",
-            1, 1, "insight-scanner", "2.36.19-SNAPSHOT");
+    SbomDetectionResult expected = createValidationIgnoredExpectedResult("application/xml", "1.4", "CycloneDx", "xml",
+        1, 1, "insight-scanner", "2.36.19-SNAPSHOT");
     checkSbomMetadata("cyclonedx-invalid-v1_4-xml.tmp", expected, true);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_XML_Invalid_1_4_SKIP_SBOM_IMPORT_VALIDATION() throws Exception {
     SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
-    SbomDetectionResult expected =
-        createValidationIgnoredExpectedResult("application/xml", "1.4", SbomSpecification.CYCLONEDX.toString(), "xml",
-            1, 1, "insight-scanner", "2.36.19-SNAPSHOT");
+    SbomDetectionResult expected = createValidationIgnoredExpectedResult("application/xml", "1.4", "CycloneDx", "xml",
+        1, 1, "insight-scanner", "2.36.19-SNAPSHOT");
     checkSbomMetadata("cyclonedx-invalid-v1_4-xml.tmp", expected, false);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_Valid_Xml5() throws Exception {
-    SbomDetectionResult expected =
-        createValidSbomExpectedResult("application/xml", "1.5", SbomSpecification.CYCLONEDX.toString(), "xml", 1, 0,
-            null, null);
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/xml", "1.5", "CycloneDx", "xml", 1, 0,
+        null, null);
     checkSbomMetadata("cyclonedx-valid-xml.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_XML_Valid_OtherExtension() throws Exception {
-    SbomDetectionResult expected =
-        createValidSbomExpectedResult("application/xml", "1.4", SbomSpecification.CYCLONEDX.toString(), "xml", 2, 0,
-            "Acme Application", "9.1.1");
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/xml", "1.4", "CycloneDx", "xml", 2, 0,
+        "Acme Application", "9.1.1");
     checkSbomMetadata("cyclonedx-valid-bom-uknown-extension.abc", expected);
   }
 
@@ -211,7 +198,7 @@ public class SbomFileDetectorTest
         "Line: 24, Column: 14, Error: The end-tag for element type \"component\" must end with a '>' delimiter.");
     SbomDetectionResult expected =
         createExpectedResult(true, false, false, "application/xml", "Not a valid CycloneDX SBOM file.",
-            expectedErrors, null, SbomSpecification.CYCLONEDX.toString(), "xml", 0, 0, null, null);
+            expectedErrors, null, "CycloneDx", "xml", 0, 0, null, null);
     checkSbomMetadata("cyclonedx-invalid-xml.tmp", expected);
   }
 
@@ -230,7 +217,7 @@ public class SbomFileDetectorTest
     );
     SbomDetectionResult expected =
         createExpectedResult(true, false, true, "application/xml", "Not a valid CycloneDX SBOM file.",
-            expectedErrors, null, SbomSpecification.CYCLONEDX.toString(), "xml", 0, 0, null, null);
+            expectedErrors, null, "CycloneDx", "xml", 0, 0, null, null);
     checkSbomMetadata("cyclonedx-invalid-2-xml.tmp", expected);
   }
 
@@ -312,7 +299,7 @@ public class SbomFileDetectorTest
         "Line: 11, Column: 3, Error: Unexpected close marker ']': expected '}' (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 6, column: 2])");
     SbomDetectionResult expected1 =
         createExpectedResult(true, false, false, "application/json", "Not a valid CycloneDX SBOM file.",
-            expectedErrors, null, SbomSpecification.CYCLONEDX.toString(),"json", 0, 0, null, null);
+            expectedErrors, null, "CycloneDx","json", 0, 0, null, null);
     checkSbomMetadataUsingFile("cdx-bad-structure.json", expected1, false);
     SbomDetectionResult expected2 =
         createBinaryExpectedResult("text/plain", "Provided file type is not a supported SBOM file type.");
@@ -325,7 +312,7 @@ public class SbomFileDetectorTest
         "Line: 9, Column: 1, Error: The end-tag for element type \"components\" must end with a '>' delimiter.");
     SbomDetectionResult expected =
         createExpectedResult(true, false, false, "application/xml", "Not a valid CycloneDX SBOM file.",
-            expectedErrors, null, SbomSpecification.CYCLONEDX.toString(), "xml", 0, 0, null, null);
+            expectedErrors, null, "CycloneDx","xml", 0, 0, null, null);
     checkSbomMetadata("cdx-bad-structure.xml", expected);
   }
 

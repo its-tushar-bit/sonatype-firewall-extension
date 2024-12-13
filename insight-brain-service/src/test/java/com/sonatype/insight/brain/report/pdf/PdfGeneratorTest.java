@@ -75,7 +75,7 @@ public class PdfGeneratorTest
       List.of("Person: person", "Organization: organization", "Specification: SPDX");
 
   private static final List<String> SBOM_SPECIFIC_CONTENT_CDX =
-      List.of("Author: author", "Manufacturer: manufacturer", "Supplier: supplier", "Specification: CycloneDX",
+      List.of("Author: author", "Manufacturer: manufacturer", "Supplier: supplier", "Specification: CycloneDx",
           "Original File: originalFile");
 
   private static final List<String> LIFECYCLE_SPECIFIC_CONTENT =

@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
-import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
@@ -96,8 +95,7 @@ public class ScanUploadServiceTest
 
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), sbomVersion,
-            ThirdPartySbomMetadataStatus.PENDING, "filename", SbomSpecification.CYCLONEDX.toString(), "XML", "1.5",
-            new Date(), false);
+            ThirdPartySbomMetadataStatus.PENDING, "filename", "CycloneDx", "XML", "1.5", new Date(), false);
     sbomMetadata.setScanType(SbomScanType.SBOM.toString());
     thirdPartySbomMetadataDAO.update(sbomMetadata);
 

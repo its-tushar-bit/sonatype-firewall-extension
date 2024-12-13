@@ -378,7 +378,7 @@ public class ApiSbomServiceTest
         service.validateAndLogAnyErrors(content, "appId", "v1", ExportSpecification.CYCLONEDX_15, SbomFormat.XML);
     assertThat(validated).isFalse();
     logOutput.assertThat()
-        .contains("Invalid SBOM generated for application appId, version v1, spec CycloneDX, format xml")
+        .contains("Invalid SBOM generated for application appId, version v1, spec CycloneDx, format xml")
         .atDebugLevel();
   }
 

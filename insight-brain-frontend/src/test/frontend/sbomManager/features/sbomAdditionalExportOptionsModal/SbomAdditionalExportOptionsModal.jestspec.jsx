@@ -44,8 +44,8 @@ describe('SbomAdditionalExportOptionsModal', () => {
     expect(screen.getByText(/Additional Export Options/)).toBeVisible();
 
     expect(screen.getByText(/SBOM Specification/)).toBeVisible();
-    expect(screen.getByLabelText(/CycloneDX/)).toBeVisible();
-    expect(screen.getByLabelText(/CycloneDX/)).toBeChecked();
+    expect(screen.getByLabelText(/Cyclone DX/)).toBeVisible();
+    expect(screen.getByLabelText(/Cyclone DX/)).toBeChecked();
     expect(screen.getByLabelText(/SPDX/)).toBeVisible();
 
     expect(screen.getByText(/SBOM Format/)).toBeVisible();
@@ -114,7 +114,7 @@ describe('SbomAdditionalExportOptionsModal', () => {
   it('should render the correct content', () => {
     renderComponent(initialState);
 
-    expect(screen.getByLabelText(/CycloneDX/)).toBeChecked();
+    expect(screen.getByLabelText(/Cyclone DX/)).toBeChecked();
     expect(screen.getByLabelText(/JSON/)).toBeChecked();
 
     const spdxRadio = screen.getByLabelText(/SPDX/);
@@ -123,7 +123,7 @@ describe('SbomAdditionalExportOptionsModal', () => {
     fireEvent.click(spdxRadio);
 
     expect(spdxRadio).toBeChecked();
-    expect(screen.getByLabelText(/CycloneDX/)).not.toBeChecked();
+    expect(screen.getByLabelText(/Cyclone DX/)).not.toBeChecked();
 
     fireEvent.click(xmlRadio);
 

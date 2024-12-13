@@ -4091,7 +4091,7 @@ public class TemporaryEntity
       String fileName)
   {
     String sbomVersion = uuid().substring(0, 10);
-    String spec = "CycloneDX";
+    String spec = "CycloneDx";
     String specVersion = "1.5";
     String specFormat = "XML";
     return newThirdPartySbomMetadata(thirdPartyFileId, applicationId, sbomVersion, status, fileName, spec, specFormat,

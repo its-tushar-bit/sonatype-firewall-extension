@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -70,7 +69,7 @@ public class SbomImportResourceTest
     assertThat(actual.getSbomSummary().applicationVersion).isEqualTo("a140fd3c3ded4bb0a640dc31e2904dc9");
     assertThat(actual.getSbomSummary().componentCount).isEqualTo(1);
     assertThat(actual.getSbomSummary().vulnerabilityCount).isEqualTo(1);
-    assertThat(actual.getSbomSummary().specification).isEqualTo(SbomSpecification.CYCLONEDX.toString());
+    assertThat(actual.getSbomSummary().specification).isEqualTo("CycloneDx");
     assertThat(actual.getSbomSummary().format).isEqualTo("xml");
     assertThat(actual.getSbomSummary().version).isEqualTo("1.5");
     assertThat(actual.getErrorMessage()).isNullOrEmpty();
@@ -230,7 +229,7 @@ public class SbomImportResourceTest
     assertThat(actual.getSbomSummary().applicationVersion).isEqualTo("a140fd3c3ded4bb0a640dc31e2904dc9");
     assertThat(actual.getSbomSummary().componentCount).isEqualTo(1);
     assertThat(actual.getSbomSummary().vulnerabilityCount).isEqualTo(1);
-    assertThat(actual.getSbomSummary().specification).isEqualTo(SbomSpecification.CYCLONEDX.toString());
+    assertThat(actual.getSbomSummary().specification).isEqualTo("CycloneDx");
     assertThat(actual.getSbomSummary().format).isEqualTo("xml");
     assertThat(actual.getSbomSummary().version).isEqualTo("1.5");
     assertThat(actual.getErrorMessage()).isNullOrEmpty();

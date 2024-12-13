@@ -43,7 +43,6 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -354,7 +353,7 @@ public class ThirdPartyScanResultsProcessorTest
         "",
         sboms[0].getName(),
         "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
-        SbomSpecification.CYCLONEDX.toString(),
+        "CycloneDx",
         "xml",
         "1.5",
         PENDING,
@@ -428,7 +427,7 @@ public class ThirdPartyScanResultsProcessorTest
         "",
         sboms[0].getName(),
         "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
-        SbomSpecification.CYCLONEDX.toString(),
+        "CycloneDx",
         "xml",
         "1.1",
         PENDING,
@@ -714,7 +713,7 @@ public class ThirdPartyScanResultsProcessorTest
         "",
         sboms[0].getName(),
         "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
-        SbomSpecification.CYCLONEDX.toString(),
+        "CycloneDx",
         "xml",
         "1.5",
         PENDING,

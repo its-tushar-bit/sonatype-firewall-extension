@@ -127,8 +127,7 @@ public class SbomMetadataUtilsTest
 
   @Test
   public void testDetermineItemContentType_CycloneDx() {
-    assertThat(sbomMetadataUtils.determineItemContentType(SbomSpecification.CYCLONEDX.toString())).isEqualTo(
-        ItemContentType.SBOM);
+    assertThat(sbomMetadataUtils.determineItemContentType("CycloneDx")).isEqualTo(ItemContentType.SBOM);
   }
 
   @Test

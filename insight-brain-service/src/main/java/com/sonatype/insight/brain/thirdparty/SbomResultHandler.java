@@ -463,7 +463,7 @@ public class SbomResultHandler
         component.setName(name);
         component.setType(sourceComponent.getType());
         component.setBomRef(sourceComponent.getBomRef());
-        setHash(sha1, component);
+        setHashes(sourceComponent, component);
         componentInfoTelemetry.incrementHashCount();
         return Pair.of(null, component);
       }
@@ -506,11 +506,7 @@ public class SbomResultHandler
     component.setType(sourceComponent.getType());
     component.setBomRef(sourceComponent.getBomRef());
 
-    String sha1 = SbomUtils.getSha1(sourceComponent);
-    boolean hasHash = StringUtils.isNotBlank(sha1);
-    if (hasHash) {
-      setHash(sha1, component);
-    }
+    setHashes(sourceComponent, component);
 
     componentIdentifier = SbomCommonUtils.getComponentIdentifier(packageUrlIdentifier, component);
 
@@ -525,7 +521,17 @@ public class SbomResultHandler
     return Pair.of(componentIdentifier, component);
   }
 
-  protected void setHash(final String sha1, final Component component) {
+  private void setHashes(final Component sourceComponent, final Component newComponent) {
+    String sha1 = SbomUtils.getSha1(sourceComponent);
+    if (StringUtils.isNotBlank(sha1)) {
+      setSha1Property(sha1, newComponent);
+    }
+    if (CollectionUtils.isNotEmpty(sourceComponent.getHashes())) {
+      newComponent.setHashes(sourceComponent.getHashes());
+    }
+  }
+
+  protected void setSha1Property(final String sha1, final Component component) {
     Property property = new Property();
     property.setName(SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
     property.setValue(StringUtils.truncate(sha1, 0, HashHelper.MAX_LENGTH));
@@ -583,7 +589,8 @@ public class SbomResultHandler
     }
 
     String hash = getOrCreateFakeHash(component, componentIdentifier);
-    ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(hash, thirdPartyIdentificationSource,
+    ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(
+        StringUtils.truncate(hash, 0, HashHelper.MAX_LENGTH), thirdPartyIdentificationSource,
         componentIdentifier.getFormat(), component.getName(), component.getVersion(), thirdPartyFileId);
     fileCoordinate.setPackageUrl(component.getPurl());
     fileCoordinate.setCpe(component.getCpe());

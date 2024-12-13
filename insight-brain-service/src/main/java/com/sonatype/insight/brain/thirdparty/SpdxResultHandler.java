@@ -446,7 +446,7 @@ public class SpdxResultHandler
     final Optional<String> sha1Optional = SbomSpdxUtils.getChecksum(spdxPackage, ChecksumAlgorithm.SHA1);
     boolean hasHash = sha1Optional.isPresent();
     if (hasHash) {
-      setHash(sha1Optional.get(), component);
+      setSha1Property(sha1Optional.get(), component);
     }
 
     ComponentIdentifier componentIdentifier =  SbomCommonUtils.getComponentIdentifier(packageUrlIdentifier, component);
@@ -487,7 +487,7 @@ public class SpdxResultHandler
         component.setType(isRootPackage ? Type.APPLICATION : Type.LIBRARY);
         component.setBomRef(spdxPackage.getId());
         spdxPackage.getName().ifPresent(component::setName);
-        setHash(sha1Optional.get(), component);
+        setSha1Property(sha1Optional.get(), component);
         return Pair.of(null, component);
       }
     }

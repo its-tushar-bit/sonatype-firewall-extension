@@ -67,6 +67,7 @@ import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.ExtensibleType;
 import org.cyclonedx.model.Extension;
 import org.cyclonedx.model.Extension.ExtensionType;
+import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.Property;
@@ -159,7 +160,8 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 2);
+    List<Boolean> hasHashes = List.of(true, false);
+    assertFilteredSbomFile(filteredContent, 2, false, hasHashes);
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
@@ -178,7 +180,8 @@ public class SbomResultHandlerTest
             sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 2);
+    List<Boolean> hasHashes = List.of(true, false);
+    assertFilteredSbomFile(filteredContent, 2, false, hasHashes);
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     assertThat(coordinates).allSatisfy(coord -> assertThat(coord.getSource())
@@ -211,7 +214,8 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    Bom bom = assertFilteredSbomFile(filteredContent, 4);
+    List<Boolean> hasHashes = List.of(true, true, true, true);
+    Bom bom = assertFilteredSbomFile(filteredContent, 4, false, hasHashes);
     List<Component> components = bom.getComponents();
     assertThat(components).extracting(Component::getName)
         .containsOnly("tomcat-catalina", "django", "jackson-databind", "joda-time");
@@ -241,7 +245,8 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    Bom bom = assertFilteredSbomFile(filteredContent, 1);
+    List<Boolean> hasHashes = List.of(true);
+    Bom bom = assertFilteredSbomFile(filteredContent, 1, false, hasHashes);
     List<Component> components = bom.getComponents();
     assertThat(components).extracting(Component::getName).containsOnly("tomcat-catalina");
     assertThat(components).extracting(Component::getVersion).containsOnly("9.0.14");
@@ -261,7 +266,9 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    Bom bom = assertFilteredSbomFile(filteredContent, 6);
+    List<Boolean> hasHashes = List.of(true, true, true, true, true, true);
+    Bom bom = assertFilteredSbomFile(filteredContent, 6, false, hasHashes);
+
     List<Component> components = bom.getComponents();
     assertThat(components).extracting(Component::getName)
         .containsOnly("tomcat-catalina", "django", "log4j", "log4j", "jackson-databind", "joda-time");
@@ -294,7 +301,8 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    Bom bom = assertFilteredSbomFile(filteredContent, 5);
+    List<Boolean> hasHashes = List.of(true, true, true, true, true, true);
+    Bom bom = assertFilteredSbomFile(filteredContent, 5, false, hasHashes);
     List<Component> components = bom.getComponents();
     assertThat(components).extracting(Component::getName)
         .containsOnly("tomcat-catalina", "django", "Apache Log4J", "jackson-databind", "joda-time");
@@ -327,7 +335,8 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    Bom bom = assertFilteredSbomFile(filteredContent, 2);
+    List<Boolean> hasHashes = List.of(true, false);
+    Bom bom = assertFilteredSbomFile(filteredContent, 2, false, hasHashes);
     List<Component> components = bom.getComponents();
     assertThat(components).extracting(Component::getName)
         .containsOnly("tomcat-catalina", "jackson-databind");
@@ -338,6 +347,13 @@ public class SbomResultHandlerTest
     assertThat(components).extracting(Component::getPurl)
         .containsOnly("pkg:generic/org.apache.tomcat/tomcat-catalina@9.0.14?publisher=Apache&sbom_type=library",
             "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library");
+    assertThat(components.get(0).getHashes()).extracting(Hash::getAlgorithm)
+        .containsOnly("MD5", "SHA-1", "SHA-256","SHA-512");
+    assertThat(components.get(0).getHashes()).extracting(Hash::getValue)
+        .containsOnly("3942447fac867ae5cdb3229b658f4d48", "e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a",
+            "f498a8ff2dd007e29c2074f5e4b01a9a01775c3ff3aeaf6906ea503bc5791b7b",
+            "e8f33e424f3f4ed6db76a482fde1a5298970e442c531729119e37991884bdffab4f9426" +
+                "b7ee11fccd074eeda0634d71697d6f88a460dce0ac8d627a29f7d1282");
     assertThat(components).extracting("properties.size")
         .containsOnly(2, 1);
     assertThat(components.get(0).getProperties())
@@ -360,7 +376,8 @@ public class SbomResultHandlerTest
             telemetryUtils, telemetrySender, thirdPartyScanContext);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 7);
+    List<Boolean> hasHashes = List.of(false, false, false, true, true, false, true);
+    assertFilteredSbomFile(filteredContent, 7, false, hasHashes);
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
@@ -384,7 +401,8 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 4);
+    List<Boolean> hasHashes = List.of(true, true, true, true);
+    assertFilteredSbomFile(filteredContent, 4, false, hasHashes);
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
@@ -443,7 +461,8 @@ public class SbomResultHandlerTest
             telemetryUtils, telemetrySender, thirdPartyScanContext);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
+    List<Boolean> hasHashes = List.of(true);
+    Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1, false, hasHashes);
 
     List<Component> components = filteredSbom.getComponents();
 
@@ -469,7 +488,8 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 1, true, false);
+    List<Boolean> hasHashes = List.of(true);
+    assertFilteredSbomFile(filteredContent, 1, true, hasHashes);
     assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId())).isEmpty();
   }
 
@@ -756,9 +776,10 @@ public class SbomResultHandlerTest
         SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
     assertThat(actualComponent.getProperties().get(0).getValue()).isEqualTo("e6b1000b94e835ffd37f");
     assertThat(actualComponent.getVersion()).isNull();
-    assertThat(actualComponent.getHashes()).isNull();
+    assertThat(actualComponent.getHashes().get(0).getAlgorithm()).isEqualTo("SHA-1");
+    assertThat(actualComponent.getHashes().get(0).getValue()).isEqualTo(
+        "e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a");
     assertThat(actualComponent.getAuthor()).isNull();
-    assertThat(actualComponent.getHashes()).isNull();
     assertThat(actualComponent.getCpe()).isNull();
     assertThat(actualComponent.getPurl()).isNull();
     List<ThirdPartyFileCoordinate> coordinates =
@@ -1157,7 +1178,8 @@ public class SbomResultHandlerTest
         new ThirdPartyScanContent("scan-with-sbom-nested-component.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 1);
+    List<Boolean> hasHashes = List.of(true);
+    assertFilteredSbomFile(filteredContent, 1, false, hasHashes);
   }
 
   @Test
@@ -1168,7 +1190,8 @@ public class SbomResultHandlerTest
     FilteredThirdPartyContent filteredContent =
         sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
     String sbomXml = filteredContent.getContent();
-    Bom bom = assertFilteredSbomFile(sbomXml, 2);
+    List<Boolean> hasHashes = List.of(true, false);
+    Bom bom = assertFilteredSbomFile(sbomXml, 2, false, hasHashes);
     assertThat(bom.getMetadata()).isNotNull();
     assertThat(bom.getMetadata().getComponent().getPurl()).isEqualTo("pkg:generic/Acme%20Application@9.1.1");
   }
@@ -1179,7 +1202,8 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent("sbom-v1_3.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    Bom bom = assertFilteredSbomFile(filteredContent, 2);
+    List<Boolean> hasHashes = List.of(true, false);
+    Bom bom = assertFilteredSbomFile(filteredContent, 2, false, hasHashes);
     assertThat(bom.getMetadata()).isNotNull();
     assertThat(bom.getMetadata().getComponent().getPurl()).isEqualTo("pkg:generic/Acme%20Application@9.1.1");
   }
@@ -1190,7 +1214,8 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent("sbom-v1_4.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    Bom bom = assertFilteredSbomFile(filteredContent, 2);
+    List<Boolean> hasHashes = List.of(true, false);
+    Bom bom = assertFilteredSbomFile(filteredContent, 2, false, hasHashes);
     assertThat(bom.getMetadata()).isNotNull();
     assertThat(bom.getMetadata().getComponent().getPurl()).isEqualTo("pkg:generic/Acme/Acme%20Application@9.1.1");
   }
@@ -1223,7 +1248,8 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent("sbom-v1_4.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 1, false, true);
+    List<Boolean> hasHashes = List.of(true);
+    assertFilteredSbomFile(filteredContent, 1, false, hasHashes);
   }
 
   @Test
@@ -1232,7 +1258,8 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent("sbom-v1_4.json", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 1);
+    List<Boolean> hasHashes = List.of(true);
+    assertFilteredSbomFile(filteredContent, 1, false, hasHashes);
   }
 
   @Test
@@ -1241,7 +1268,8 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent("sbom-v1_5.json", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 1);
+    List<Boolean> hasHashes = List.of(true);
+    assertFilteredSbomFile(filteredContent, 1, false, hasHashes);
   }
 
   @Test
@@ -1693,7 +1721,8 @@ public class SbomResultHandlerTest
         new ThirdPartyScanContent("scan-with-sbom-coords-no-purl.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 2);
+    List<Boolean> hasHashes = List.of(true, false);
+    assertFilteredSbomFile(filteredContent, 2, false, hasHashes);
   }
 
   @Test
@@ -1703,7 +1732,8 @@ public class SbomResultHandlerTest
         new ThirdPartyScanContent("scan-with-sbom-no-name-and-version-no-purl.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 1, true, false);
+    List<Boolean> hasHashes = List.of(true);
+    assertFilteredSbomFile(filteredContent, 1, true, hasHashes);
   }
 
   @Test
@@ -1713,7 +1743,8 @@ public class SbomResultHandlerTest
         new ThirdPartyScanContent("scan-with-sbom-no-name-no-purl.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 2, true, false);
+    List<Boolean> hasHashes = List.of(true, false);
+    assertFilteredSbomFile(filteredContent, 2, true, hasHashes);
   }
 
   @Test
@@ -1893,14 +1924,14 @@ public class SbomResultHandlerTest
   }
 
   private Bom assertFilteredSbomFile(final String content, final int expectedComponentCount) throws Exception {
-    return assertFilteredSbomFile(content, expectedComponentCount, false, false);
+    return assertFilteredSbomFile(content, expectedComponentCount, false, null);
   }
 
   private Bom assertFilteredSbomFile(
       final String content,
       final int expectedComponentCount,
       final boolean optional,
-      final boolean hasHashes)
+      final List<Boolean> hasHashes)
       throws Exception
   {
     assertThat(content).isNotNull();
@@ -1908,6 +1939,7 @@ public class SbomResultHandlerTest
     assertThat(bom).isNotNull();
     assertThat(bom.getComponents()).hasSize(expectedComponentCount);
 
+    int componentIndex = 0;
     for (Component component : bom.getComponents()) {
       assertThat(component.getComponents()).isNull();
       if (!optional) {
@@ -1921,7 +1953,8 @@ public class SbomResultHandlerTest
       assertThat(component.getCopyright()).isNull();
       assertThat(component.getEvidence()).isNull();
       assertThat(component.getPedigree()).isNull();
-      if (hasHashes) {
+
+      if (hasHashes != null && hasHashes.get(componentIndex)) {
         assertThat(component.getHashes()).isNotNull();
       }
       else {
@@ -1936,6 +1969,7 @@ public class SbomResultHandlerTest
             .filter(p -> p.getName().equals(SbomCycloneDxUtils.PROPERTY_SONATYPE_IDENTIFIER)).findFirst()
             .orElse(null)).isNotNull();
       }
+      componentIndex += 1;
     }
     assertThat(bom.getCompositions()).isNull();
     assertThat(bom.getServices()).isNull();
@@ -2035,7 +2069,8 @@ public class SbomResultHandlerTest
 
     // check filtered content (will be sent to HDS) has only coordinates, hash or purl
     Bom filteredSbom = ThirdPartySbomUtils.getFilteredBom(filteredContent);
-    assertFilteredSbomFile(filteredContent, 3);
+    List<Boolean> hasHashes = List.of(false, true, false);
+    assertFilteredSbomFile(filteredContent, 3, false, hasHashes);
     List<Component> components = filteredSbom.getComponents();
     assertThat(components).hasSize(3)
         .allSatisfy(component -> {
@@ -2057,7 +2092,21 @@ public class SbomResultHandlerTest
     assertThat(component1.getPurl()).isEqualTo("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar");
     assertThat(component3.getPurl()).isEqualTo("pkg:generic/org.example/sample-library@1.0.0?sbom_type=library");
     assertThat(component1.getHashes()).isNull();
-    assertThat(component2.getHashes()).isNull();
+
+    assertThat(component2.getHashes().get(0).getAlgorithm()).isEqualTo("MD5");
+    assertThat(component2.getHashes().get(0).getValue()).isEqualTo(
+        "3942447fac867ae5cdb3229b658f4d48");
+    assertThat(component2.getHashes().get(1).getAlgorithm()).isEqualTo("SHA-1");
+    assertThat(component2.getHashes().get(1).getValue()).isEqualTo(
+        "e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a");
+    assertThat(component2.getHashes().get(2).getAlgorithm()).isEqualTo("SHA-256");
+    assertThat(component2.getHashes().get(2).getValue()).isEqualTo(
+        "f498a8ff2dd007e29c2074f5e4b01a9a01775c3ff3aeaf6906ea503bc5791b7b");
+    assertThat(component2.getHashes().get(3).getAlgorithm()).isEqualTo("SHA-512");
+    assertThat(component2.getHashes().get(3).getValue()).isEqualTo(
+        "e8f33e424f3f4ed6db76a482fde1a5298970e442c531729119e3799" +
+            "1884bdffab4f9426b7ee11fccd074eeda0634d71697d6f88a460dce0ac8d627a29f7d1282");
+
     assertThat(component3.getHashes()).isNull();
     assertThat(component1.getProperties()).isNotNull().hasSize(1);
     assertThat(component2.getProperties()).hasSize(2);
@@ -2171,7 +2220,8 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 6);
+    List<Boolean> hasHashes = List.of(true, true, true, true, true, true);
+    assertFilteredSbomFile(filteredContent, 6, false, hasHashes);
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
@@ -2229,7 +2279,8 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 5);
+    List <Boolean> hasHashes = List.of(true, true, true, true, true, true);
+    assertFilteredSbomFile(filteredContent, 5, false, hasHashes);
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
@@ -2579,7 +2630,8 @@ public class SbomResultHandlerTest
     Application app = tempEntity.newApplicationWithParent();
     tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, ingestedFilename );
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 1);
+    List<Boolean> hasHashes = List.of(true);
+    assertFilteredSbomFile(filteredContent, 1, false, hasHashes);
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     // Check original filename property in ingested sbom metadata
     assertThat(sbomMetadata).isNotNull().extracting(ThirdPartySbomMetadata::getOriginalBinaryFileName)

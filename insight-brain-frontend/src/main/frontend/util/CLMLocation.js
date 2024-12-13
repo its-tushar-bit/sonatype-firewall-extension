@@ -1361,6 +1361,10 @@ export const getPolicyUrl = (ownerType, ownerId) => {
   return uriTemplate`/rest/policy/${ownerType}/${ownerId}`;
 };
 
+export const getPolicyNotificationsUrl = (ownerType, ownerId) => {
+  return uriTemplate`/rest/policy/${ownerType}/${ownerId}/notifications`;
+};
+
 export const getPolicyCRUDUrl = (ownerType, ownerId, policyId) => {
   return getPolicyUrl(ownerType, ownerId) + `/${policyId}`;
 };

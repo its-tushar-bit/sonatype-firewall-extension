@@ -96,6 +96,8 @@ public class PolicyResource
   public static final String RESOURCE_PATH =
       "rest/policy/{ownerType: application|organization|repository_container|repository_manager|repository}/{ownerId}";
 
+  static final String NOTIFICATIONS_PATH = "notifications";
+
   private static final Logger log = LoggerFactory.getLogger(PolicyResource.class);
 
   private final PolicyImportExport policyImportExport;
@@ -325,11 +327,46 @@ public class PolicyResource
   }
 
   @PUT
+  @Path(NOTIFICATIONS_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.WRITE)
+  @Audited(AuditEvent.UPDATE_POLICY)
+  @ProductLicenseEnforcementPoint(LicensedFeature.POLICY_READ_ONLY)
+  public Policy updatePolicyNotifications(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+      Policy policy)
+  {
+    log.debug("Received request to update {} policy notifications for ownerId {}, policyId {}", ownerType, ownerId,
+        policy.getId());
+
+    Policy originalPolicy = policyDAO.getById(policy.getId());
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
+
+    if (originalPolicy == null || !internalOwnerId.equals(originalPolicy.getOwnerId())) {
+      throw new NotFoundException("Cannot find a policy with id " + policy.getId() + " for owner id " + ownerId);
+    }
+
+    originalPolicy.setPolicyNotificationsOverrideAllowed(policy.isPolicyNotificationsOverrideAllowed());
+    originalPolicy.setPolicyNotificationsOverrides(policy.getPolicyNotificationsOverrides());
+    originalPolicy.setNotifications(policy.getNotifications());
+
+    policyDAO.update(originalPolicy);
+    AuditData.get().setPolicyWithDetails(originalPolicy);
+
+    managementEventService.postEvent(UPDATED, originalPolicy);
+
+    return originalPolicy;
+  }
+
+  @PUT
   @Path("{policyId}/overrides")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
   @Audited(AuditEvent.UPDATE_OVERRIDES)
+  @ProductLicenseEnforcementPoint(LicensedFeature.POLICY_READ_ONLY)
   public Policy updateOverrides(
       @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,

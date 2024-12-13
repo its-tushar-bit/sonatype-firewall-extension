@@ -19,6 +19,7 @@ import {
   getPolicyTagUrl,
   getPolicyUrl,
   getOrganizationUrl,
+  getPolicyNotificationsUrl,
 } from 'MainRoot/util/CLMLocation';
 import { omit, prop } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
@@ -498,7 +499,7 @@ describe('policySlice actions', () => {
   });
 
   describe('savePolicy', () => {
-    let selectIsOrgOwnerSpy, selectIsEditModeSpy, selectHasPolicyCategoriesSpy, onSaveSpy;
+    let selectIsOrgOwnerSpy, selectIsEditModeSpy, selectHasPolicyCategoriesSpy, selectIsSbomManagerSpy, onSaveSpy;
     const currentPolicyId = 'currentPolicyId';
     const categories = [
       { id: '1', isApplied: true },
@@ -546,6 +547,7 @@ describe('policySlice actions', () => {
       selectIsOrgOwnerSpy = spyOn(selectors, 'selectIsOrgOwner').and.returnValue(true);
       selectIsEditModeSpy = spyOn(selectors, 'selectIsEditMode').and.returnValue(true);
       selectHasPolicyCategoriesSpy = spyOn(selectors, 'selectHasPolicyCategories').and.returnValue(true);
+      selectIsSbomManagerSpy = spyOn(routerSelectors, 'selectIsSbomManager').and.returnValue(false);
       onSaveSpy = jasmine.createSpy('onSave');
       jasmine.clock().install();
     });
@@ -569,6 +571,33 @@ describe('policySlice actions', () => {
 
         const categoriesWithoutIsApplied = categories.filter(prop('isApplied')).map(omit(['isApplied']));
         expect(axios.put.calls.argsFor(1)).toEqual([jasmine.any(String), categoriesWithoutIsApplied]);
+
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(3);
+        expect(actions).toHaveActionTypesInOrder([
+          'policy/savePolicy/pending',
+          'policy/savePolicy/fulfilled',
+          'policy/saveMaskTimerDone',
+        ]);
+        expect(actions[1].payload).toEqual({ isEditMode: true });
+
+        done();
+      });
+    });
+
+    it('saves an existing policy which is also the organization owner in SBOM Manager', (done) => {
+      selectIsSbomManagerSpy.and.returnValue(true);
+      mockAxiosCalls({
+        put: {
+          [getPolicyNotificationsUrl(mockOwnerType, mockOwnerId)]: Promise.resolve({ data: currentPolicyData }),
+        },
+      });
+
+      store.dispatch(actions.savePolicy()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        expect(axios.put).toHaveBeenCalled();
+        expect(axios.put.calls.argsFor(0)).toEqual([jasmine.any(String), currentPolicyData]);
 
         const actions = store.getActions();
 
@@ -672,6 +701,26 @@ describe('policySlice actions', () => {
       mockAxiosCalls({
         put: {
           [getPolicyUrl(mockOwnerType, mockOwnerId)]: () => Promise.reject('error'),
+        },
+      });
+
+      store.dispatch(actions.savePolicy({ onSaveExistingPolicy: onSaveSpy })).then(() => {
+        expect(axios.put).toHaveBeenCalledTimes(1);
+
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder(['policy/savePolicy/pending', 'policy/savePolicy/rejected']);
+
+        done();
+      });
+    });
+
+    it('dispatches rejected action if savePolicy request fails in SBOM Manager', (done) => {
+      selectIsSbomManagerSpy.and.returnValue(true);
+      mockAxiosCalls({
+        put: {
+          [getPolicyNotificationsUrl(mockOwnerType, mockOwnerId)]: () => Promise.reject('error'),
         },
       });
 

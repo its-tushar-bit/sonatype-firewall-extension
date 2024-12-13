@@ -1063,6 +1063,14 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getPolicyNotificationsUrl', () => {
+    it('returns base url for policy notifications', () => {
+      const expectedUrl = '/rest/policy/organization/someOrganization/notifications';
+
+      expect(clmLocation.getPolicyNotificationsUrl('organization', 'someOrganization')).toBe(expectedUrl);
+    });
+  });
+
   describe('getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodeUrl', () => {
     it('returns url for get policies with conditions', () => {
       const expectedUrl =

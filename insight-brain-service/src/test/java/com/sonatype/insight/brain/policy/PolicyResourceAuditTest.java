@@ -55,6 +55,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.policy.PolicyResource.NOTIFICATIONS_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyResourceAuditTest
@@ -463,6 +464,120 @@ public class PolicyResourceAuditTest
     policy.setId(existingPolicyId);
 
     policyResourceRequest(organization).with(unauthorizedUser()).body(policy).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, "unauthorized");
+    assertOrganizationData(auditDTO, organization);
+  }
+
+  @Test
+  public void updatePolicyNotifications_Application() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy existingPolicy = tempEntity.newPolicy(app.getId(), TemporaryEntity.uuid());
+    Policy policy = aComplexPolicy();
+    policy.setId(existingPolicy.getId());
+
+    policyResourceRequest(app).path(NOTIFICATIONS_PATH).body(policy).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, null);
+    assertApplicationData(auditDTO, app);
+
+    Policy expectedPolicy = existingPolicy;
+    expectedPolicy.setPolicyNotificationsOverrideAllowed(policy.isPolicyNotificationsOverrideAllowed());
+    expectedPolicy.setPolicyNotificationsOverrides(policy.getPolicyNotificationsOverrides());
+    expectedPolicy.setNotifications(policy.getNotifications());
+
+    assertPolicyData(auditDTO, expectedPolicy, false);
+  }
+
+  @Test
+  public void updatePolicyNotifications_Organization() throws Exception {
+    Policy existingPolicy = tempEntity.newPolicy(organization.getId(), TemporaryEntity.uuid());
+    Policy policy = aComplexPolicy();
+    policy.setId(existingPolicy.getId());
+
+    policyResourceRequest(organization).path(NOTIFICATIONS_PATH).body(policy).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, null);
+    assertOrganizationData(auditDTO, organization);
+
+    Policy expectedPolicy = existingPolicy;
+    expectedPolicy.setPolicyNotificationsOverrideAllowed(policy.isPolicyNotificationsOverrideAllowed());
+    expectedPolicy.setPolicyNotificationsOverrides(policy.getPolicyNotificationsOverrides());
+    expectedPolicy.setNotifications(policy.getNotifications());
+
+    assertPolicyData(auditDTO, expectedPolicy, false);
+  }
+
+  @Test
+  public void testUpdatePolicyNotifications_RepositoryContainer() throws Exception {
+    Policy existingPolicy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, TemporaryEntity.uuid());
+    Policy policy = aComplexPolicy();
+    policy.setId(existingPolicy.getId());
+
+    policyResourceRequest(RepositoryContainer.SINGLETON).path(NOTIFICATIONS_PATH).body(policy).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, null);
+    assertRepositoryContainerData(auditDTO);
+
+    Policy expectedPolicy = existingPolicy;
+    expectedPolicy.setPolicyNotificationsOverrideAllowed(policy.isPolicyNotificationsOverrideAllowed());
+    expectedPolicy.setPolicyNotificationsOverrides(policy.getPolicyNotificationsOverrides());
+    expectedPolicy.setNotifications(policy.getNotifications());
+
+    assertPolicyData(auditDTO, expectedPolicy, false);
+  }
+
+  @Test
+  public void testUpdatePolicyNotifications_RepositoryManager() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Policy existingPolicy = tempEntity.newPolicy(repositoryManager.getId(), TemporaryEntity.uuid());
+
+    Policy policy = aComplexPolicy();
+    policy.setId(existingPolicy.getId());
+
+    policyResourceRequest(repositoryManager).path(NOTIFICATIONS_PATH).body(policy).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, null);
+    assertRepositoryManagerData(auditDTO, repositoryManager);
+
+    Policy expectedPolicy = existingPolicy;
+    expectedPolicy.setPolicyNotificationsOverrideAllowed(policy.isPolicyNotificationsOverrideAllowed());
+    expectedPolicy.setPolicyNotificationsOverrides(policy.getPolicyNotificationsOverrides());
+    expectedPolicy.setNotifications(policy.getNotifications());
+
+    assertPolicyData(auditDTO, expectedPolicy, false);
+  }
+
+  @Test
+  public void testUpdatePolicyNotifications_Repository() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    Policy existingPolicy = tempEntity.newPolicy(repository.getId(), TemporaryEntity.uuid());
+
+    Policy policy = aComplexPolicy();
+    policy.setId(existingPolicy.getId());
+
+    restRequest().path(PolicyResource.RESOURCE_PATH).path(NOTIFICATIONS_PATH)
+        .parameter(repository.getType(), repository.getId()).body(policy).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, null);
+    assertCustomData(auditDTO, "repositoryId", repository.getId());
+
+    Policy expectedPolicy = existingPolicy;
+    expectedPolicy.setPolicyNotificationsOverrideAllowed(policy.isPolicyNotificationsOverrideAllowed());
+    expectedPolicy.setPolicyNotificationsOverrides(policy.getPolicyNotificationsOverrides());
+    expectedPolicy.setNotifications(policy.getNotifications());
+
+    assertPolicyData(auditDTO, expectedPolicy, false);
+  }
+
+  @Test
+  public void updatePolicyNotifications_Unauthorized() throws Exception {
+    String existingPolicyId = tempEntity.newPolicy(organization.getId(), UUID.randomUUID().toString()).getId();
+    Policy policy = aComplexPolicy();
+    policy.setId(existingPolicyId);
+
+    policyResourceRequest(organization).path(PolicyResource.NOTIFICATIONS_PATH).with(unauthorizedUser()).body(policy)
+        .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, "unauthorized");
     assertOrganizationData(auditDTO, organization);

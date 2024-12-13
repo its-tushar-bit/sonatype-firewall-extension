@@ -19,9 +19,14 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
+import com.sonatype.insight.license.model.LicensedFeature;
 
+import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
+
+import static com.sonatype.insight.brain.policy.PolicyResource.NOTIFICATIONS_PATH;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyResourceAuthzTest
     extends AbstractResourceAuthzTest
@@ -195,6 +200,53 @@ public class PolicyResourceAuthzTest
 
     policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     testAuthzPut(restRequest().body(policy).parameter(OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID));
+  }
+
+  @Test
+  public void testUpdatePolicyNotifications() throws Exception {
+    Policy policy = tempEntity.newPolicy(app);
+
+    setMissingFeature(LicensedFeature.POLICY_READ_ONLY);
+    HttpResponse response = restRequest().path(NOTIFICATIONS_PATH).auth(authorized).body(policy)
+        .parameter(OwnerType.APPLICATION, app.getPublicId()).put();
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_PAYMENT_REQUIRED);
+    setFeatures(LicensedFeature.POLICY_READ_ONLY);
+
+    testAuthzPut(
+        restRequest().path(NOTIFICATIONS_PATH).body(policy).parameter(OwnerType.APPLICATION, app.getPublicId()),
+        HttpStatus.SC_FORBIDDEN);
+    grantWritePermission(app.getId());
+    testAuthzPut(
+        restRequest().path(NOTIFICATIONS_PATH).body(policy).parameter(OwnerType.APPLICATION, app.getPublicId()));
+
+    policy = tempEntity.newPolicy(org);
+
+    testAuthzPut(restRequest().path(NOTIFICATIONS_PATH).body(policy).parameter(OwnerType.ORGANIZATION, org.getId()),
+        HttpStatus.SC_FORBIDDEN);
+    grantWritePermission(org.getId());
+    testAuthzPut(restRequest().path(NOTIFICATIONS_PATH).body(policy).parameter(OwnerType.ORGANIZATION, org.getId()));
+
+    policy = tempEntity.newPolicy(repo);
+
+    testAuthzPut(restRequest().path(NOTIFICATIONS_PATH).body(policy).parameter(OwnerType.REPOSITORY, repo.getId()),
+        HttpStatus.SC_FORBIDDEN);
+    grantWritePermission(repo.getId());
+    testAuthzPut(restRequest().path(NOTIFICATIONS_PATH).body(policy).parameter(OwnerType.REPOSITORY, repo.getId()));
+
+    policy = tempEntity.newPolicy(repositoryManager);
+
+    testAuthzPut(restRequest().path(NOTIFICATIONS_PATH).body(policy).parameter(OwnerType.REPOSITORY_MANAGER,
+        repositoryManager.getId()), HttpStatus.SC_FORBIDDEN);
+    grantWritePermission(repositoryManager.getId());
+    testAuthzPut(restRequest().path(NOTIFICATIONS_PATH).body(policy).parameter(OwnerType.REPOSITORY_MANAGER,
+        repositoryManager.getId()));
+
+    policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    testAuthzPut(restRequest().path(NOTIFICATIONS_PATH).body(policy).parameter(OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID), HttpStatus.SC_FORBIDDEN);
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    testAuthzPut(restRequest().path(NOTIFICATIONS_PATH).body(policy).parameter(OwnerType.REPOSITORY_CONTAINER,
         RepositoryContainer.REPOSITORY_CONTAINER_ID));
   }
 

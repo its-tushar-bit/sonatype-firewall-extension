@@ -11,9 +11,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -43,9 +46,11 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.policy.PolicyResource.NOTIFICATIONS_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyResourceTest
@@ -127,6 +132,74 @@ public class PolicyResourceTest
     assertResponseStatus(404, response);
     assertThat(response.getBodyText())
         .isEqualTo("Cannot find a policy with id " + policy.getId() + " for owner id " + otherOrg.getId());
+  }
+
+  @Test
+  public void testUpdatePolicyNotifications_DifferentOwnerId() throws Exception {
+    Organization ownerOrg = tempEntity.newOrganization();
+    Policy policy = tempEntity.newPolicy(ownerOrg);
+
+    Organization otherOrg = tempEntity.newOrganization();
+    policy.setOwnerId(otherOrg.getId());
+
+    HttpResponse response =
+        restRequest(OwnerType.ORGANIZATION, otherOrg.getId()).path(NOTIFICATIONS_PATH).body(policy).put();
+
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText())
+        .isEqualTo("Cannot find a policy with id " + policy.getId() + " for owner id " + otherOrg.getId());
+  }
+
+  @Test
+  public void testUpdatePolicyNotifications_PolicyNotExists() throws Exception {
+    Organization ownerOrg = tempEntity.newOrganization();
+    Policy policy = tempEntity.newPolicy(ownerOrg);
+    policy.setId("not-exists");
+
+    HttpResponse response =
+        restRequest(OwnerType.ORGANIZATION, ownerOrg.getId()).path(NOTIFICATIONS_PATH).body(policy).put();
+
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText())
+        .isEqualTo("Cannot find a policy with id " + policy.getId() + " for owner id " + ownerOrg.getId());
+  }
+
+  @Test
+  public void testUpdatePolicyNotifications_OnlyNotificationsUpdated() throws Exception {
+    Organization ownerOrg = tempEntity.newOrganization();
+    Policy policy = tempEntity.newPolicy(ownerOrg);
+    Policy originalPolicy = policyDAO.getById(policy.getId());
+
+    policy.setPolicyNotificationsOverrideAllowed(!policy.isPolicyNotificationsOverrideAllowed());
+    policy.setPolicyNotificationsOverrides(Map.of(ownerOrg.getId(), new Notifications(
+        new UserNotification("test1@email.com", Stage.ID_BUILD, Stage.ID_STAGE_RELEASE, Stage.ID_OPERATE))));
+    policy.setNotifications(new Notifications(
+        new UserNotification("test2@email.com", Stage.ID_BUILD, Stage.ID_STAGE_RELEASE, Stage.ID_OPERATE)));
+
+    // Fields that should not change
+    policy.setName("new-name");
+    policy.setThreatLevel(0);
+    policy.setLegacyViolationAllowed(!policy.isLegacyViolationAllowed());
+    Constraint constraint = new Constraint(TemporaryEntity.uuid(), "test-constraint", LogicalOperator.AND);
+    constraint.setConditions(List.of(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0")));
+    policy.setConstraints(List.of(constraint));
+
+    HttpResponse response =
+        restRequest(OwnerType.ORGANIZATION, ownerOrg.getId()).path(NOTIFICATIONS_PATH).body(policy).put();
+
+    assertResponseStatus(200, response);
+    Policy result = response.getBody(Policy.class);
+
+    assertThat(result).isNotNull();
+
+    String[] ignoredFields = ArrayUtils.addAll(JPA.IGNORE_FIELDS, "droolsCode", "policyNotificationsOverrideAllowed",
+        "policyNotificationsOverrides", "notifications");
+    assertThat(result).usingRecursiveComparison().ignoringFields(ignoredFields).ignoringCollectionOrder()
+        .isEqualTo(originalPolicy);
+
+    assertThat(result.isPolicyActionsOverrideAllowed()).isEqualTo(policy.isPolicyActionsOverrideAllowed());
+    assertThat(result.getPolicyNotificationsOverrides()).isEqualTo(policy.getPolicyNotificationsOverrides());
+    assertThat(result.getNotifications()).isEqualTo(policy.getNotifications());
   }
 
   private void testCRUD(OwnerType ownerType, String ownerId) throws Exception {

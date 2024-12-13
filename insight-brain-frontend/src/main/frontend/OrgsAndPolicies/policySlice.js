@@ -61,6 +61,7 @@ import {
   getRoleMappingForCurrentOwnerUrl,
   getJiraProjectsUrl,
   getIsJiraEnabledUrl,
+  getPolicyNotificationsUrl,
 } from '../util/CLMLocation';
 import {
   selectActionsOverrideNeedsToBeAdded,
@@ -637,6 +638,7 @@ const savePolicy = createAsyncThunk(`${REDUCER_NAME}/savePolicy`, (_, { getState
   const hasPolicyCategories = selectHasPolicyCategories(state);
   const isOrgOwner = selectIsOrgOwner(state);
   const categories = selectCategories(state);
+  const isSbomManager = selectIsSbomManager(state);
   const appliedCategories = categories?.filter(prop('isApplied')).map(omit(['isApplied'])) ?? [];
   const policyToSave = {
     ...currentPolicy,
@@ -644,10 +646,11 @@ const savePolicy = createAsyncThunk(`${REDUCER_NAME}/savePolicy`, (_, { getState
     notifications: map(removeNotificationHashKeys, currentPolicy.notifications),
   };
   const categoriesToSave = hasPolicyCategories ? appliedCategories : [];
+  const apiUrlToCall = isSbomManager ? getPolicyNotificationsUrl(ownerType, ownerId) : getPolicyUrl(ownerType, ownerId);
 
-  return axios[isEditMode ? 'put' : 'post'](getPolicyUrl(ownerType, ownerId), policyToSave)
+  return axios[isEditMode ? 'put' : 'post'](apiUrlToCall, policyToSave)
     .then(({ data: savedPolicy }) =>
-      isOrgOwner
+      isOrgOwner && !isSbomManager
         ? axios.put(getPolicyTagUrl(savedPolicy.id, ownerType, ownerId), categoriesToSave)
         : Promise.resolve({})
     )

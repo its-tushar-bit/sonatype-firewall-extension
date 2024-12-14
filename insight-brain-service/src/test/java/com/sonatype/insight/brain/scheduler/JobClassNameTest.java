@@ -116,6 +116,8 @@ public class JobClassNameTest
         "PendingSbomMetadataCleanerJob");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.migration.AsyncDbMigrationScheduler",
         "AsyncDbMigrationScheduler");
+    insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.security.oauth2.OidcTokenCleanUpJob",
+        "OidcTokenCleanUpJob");
   }
 
   @Inject

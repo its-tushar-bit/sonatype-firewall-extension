@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.security.oauth2;
 
 import java.util.stream.Stream;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.ServletRequest;
@@ -32,6 +33,13 @@ public class JwtAuthenticationFilter
 
   public static final String LOGIN_REQUEST = "rest/user/session";
 
+  private final OidcTokenService oidcTokenService;
+
+  @Inject
+  public JwtAuthenticationFilter(OidcTokenService oidcTokenService) {
+    this.oidcTokenService = oidcTokenService;
+  }
+
   @Override
   protected boolean isLoginAttempt(ServletRequest request, ServletResponse response) {
     if (!SystemConfigurationPropertyFeature.OAUTH2_ENABLED.isEnabled()) {
@@ -49,18 +57,18 @@ public class JwtAuthenticationFilter
   }
 
   private boolean isLoginRequestWithCookie(final ServletRequest request) {
-    String idTokenCookie = getAuthCookie(request, ID_TOKEN_COOKIE);
+    String oidcToken = getOidcToken(request);
     String path = ((HttpServletRequest) request).getPathInfo();
-    return StringUtils.isNotBlank(idTokenCookie) && path != null && path.contains(LOGIN_REQUEST);
+    return StringUtils.isNotBlank(oidcToken) && path != null && path.contains(LOGIN_REQUEST);
   }
 
   @Override
   protected AuthenticationToken createToken(ServletRequest request, ServletResponse response) {
-    String idToken = getAuthCookie(request, ID_TOKEN_COOKIE);
+    String oidcToken = pullOidcToken(request);
 
-    if (StringUtils.isNotBlank(idToken)) {
+    if (StringUtils.isNotBlank(oidcToken)) {
       log.debug("Attempting to execute login with ID Token");
-      return new ShiroJsonWebToken(idToken, true);
+      return new ShiroJsonWebToken(oidcToken, true);
     }
 
     String bearerToken = getTokenFromAuthzHeader(request);
@@ -73,11 +81,21 @@ public class JwtAuthenticationFilter
     return createBearerToken("", request);
   }
 
+  private String getOidcToken(ServletRequest request) {
+    String tokenId = getAuthCookie(request, ID_TOKEN_COOKIE);
+    return oidcTokenService.getOidcToken(tokenId);
+  }
+
+  private String pullOidcToken(ServletRequest request) {
+    String tokenId = getAuthCookie(request, ID_TOKEN_COOKIE);
+    return oidcTokenService.pullOidcToken(tokenId);
+  }
+
   private String getTokenFromAuthzHeader(ServletRequest request) {
     String authzHeader = getAuthzHeader(request);
 
     // Check if it is a bearer token
-    if (isLoginAttempt(authzHeader)) {
+    if (authzHeader != null && isLoginAttempt(authzHeader)) {
       final String[] principalsAndCredentials = getPrincipalsAndCredentials(authzHeader, request);
       return principalsAndCredentials[0];
     }

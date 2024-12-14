@@ -141,6 +141,7 @@
     <class>com.sonatype.insight.brain.model.security.OAuth2UserGroup</class>
     <class>com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts</class>
     <class>com.sonatype.insight.brain.model.MalwareDefenseMetrics</class>
+    <class>com.sonatype.insight.brain.model.security.OidcToken</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

@@ -18,6 +18,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.dataaccess.security.OidcTokenDAO;
+import com.sonatype.insight.brain.model.security.OidcToken;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
@@ -64,6 +66,12 @@ public class OidcLoginFilterTest
   @Inject
   private OidcLoginFilter oidcLoginFilter;
 
+  @Inject
+  private OidcTokenDAO oidcTokenDAO;
+
+  @Inject
+  private JWTGenerator jwtGenerator;
+
   @Mock
   private BaseUrl mockBaseUrl;
 
@@ -74,7 +82,7 @@ public class OidcLoginFilterTest
   }
 
   @Test
-  public void testDoFilter_RedirectsToIndexIfIdTokenCookieExists() throws ServletException, IOException {
+  public void testDoFilter_RedirectsToIndexIfOidcTokenExistsInCookie() throws ServletException, IOException {
     final HttpServletRequest request = mock(HttpServletRequest.class);
     final HttpServletResponse response = mock(HttpServletResponse.class);
     final ArgumentCaptor<String> indexUrlCaptor = ArgumentCaptor.forClass(String.class);
@@ -82,8 +90,9 @@ public class OidcLoginFilterTest
     final String tokenUrl = String.format("%s/token", issuer);
     final String expectedUrl = String.format("%s%s", BASE_URL, OidcLoginFilter.INDEX_HTML);
 
+    String token = jwtGenerator.generateJWT("sub", issuer);
     when(mockBaseUrl.get()).thenReturn(BASE_URL);
-    when(request.getCookies()).thenReturn(new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, "JWT")});
+    when(request.getCookies()).thenReturn(new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, token)});
 
     tempEntity.newOidcConfiguration(issuer, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, tokenUrl);
     when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_LOGIN);
@@ -96,7 +105,35 @@ public class OidcLoginFilterTest
   }
 
   @Test
-  public void testDoFilter_RedirectsToIndexWithHashIfIdTokenCookieExistsAndHashParameterIsSent()
+  public void testDoFilter_RedirectsToIndexIfTokenIdExistsInCookieAndOidcTokenIsOnDB()
+      throws ServletException, IOException
+  {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    final HttpServletResponse response = mock(HttpServletResponse.class);
+    final ArgumentCaptor<String> indexUrlCaptor = ArgumentCaptor.forClass(String.class);
+    final String issuer = idpServer.baseUrl();
+    final String tokenUrl = String.format("%s/token", issuer);
+    final String expectedUrl = String.format("%s%s", BASE_URL, OidcLoginFilter.INDEX_HTML);
+
+    String token = jwtGenerator.generateJWT("sub", issuer);
+    OidcToken oidcToken = new OidcToken(token);
+    oidcTokenDAO.insert(oidcToken);
+    when(mockBaseUrl.get()).thenReturn(BASE_URL);
+    when(request.getCookies()).thenReturn(
+        new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, oidcToken.getToken())});
+
+    tempEntity.newOidcConfiguration(issuer, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, tokenUrl);
+    when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_LOGIN);
+
+    oidcLoginFilter.doFilter(request, response, null);
+
+    verify(response).sendRedirect(indexUrlCaptor.capture());
+    verify(request).getCookies();
+    assertThat(indexUrlCaptor.getValue()).isEqualTo(expectedUrl);
+  }
+
+  @Test
+  public void testDoFilter_RedirectsToIndexWithHashIfTokenIdIsPresentInCookieAndHashParameterIsSent()
       throws ServletException, IOException
   {
     final HttpServletRequest request = mock(HttpServletRequest.class);
@@ -107,8 +144,12 @@ public class OidcLoginFilterTest
     final String hash = "#/dashboard/violations";
     final String expectedUrl = String.format("%s%s%s", BASE_URL, OidcLoginFilter.INDEX_HTML, hash);
 
+    String token = jwtGenerator.generateJWT("sub", issuer);
+    OidcToken oidcToken = new OidcToken(token);
+    oidcTokenDAO.insert(oidcToken);
     when(mockBaseUrl.get()).thenReturn(BASE_URL);
-    when(request.getCookies()).thenReturn(new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, "JWT")});
+    when(request.getCookies()).thenReturn(
+        new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, oidcToken.getId())});
 
     tempEntity.newOidcConfiguration(issuer, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, tokenUrl);
     when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_LOGIN);
@@ -211,6 +252,7 @@ public class OidcLoginFilterTest
     verify(response).addCookie(cookieCaptor.capture());
     assertThat(cookieCaptor.getValue().getName()).isEqualTo(JwtAuthenticationFilter.ID_TOKEN_COOKIE);
     assertThat(cookieCaptor.getValue().getValue()).isNotBlank();
+    assertThat(oidcTokenDAO.getById(cookieCaptor.getValue().getValue())).isNotNull();
     assertThat(cookieCaptor.getValue().isHttpOnly()).isTrue();
     assertThat(cookieCaptor.getValue().getSecure()).isTrue();
     assertThat(indexUrlCaptor.getValue()).isEqualTo(String.format("%s%s", BASE_URL, OidcLoginFilter.INDEX_HTML));
@@ -244,6 +286,7 @@ public class OidcLoginFilterTest
     verify(response).addCookie(cookieCaptor.capture());
     assertThat(cookieCaptor.getValue().getName()).isEqualTo(JwtAuthenticationFilter.ID_TOKEN_COOKIE);
     assertThat(cookieCaptor.getValue().getValue()).isNotBlank();
+    assertThat(oidcTokenDAO.getById(cookieCaptor.getValue().getValue())).isNotNull();
     assertThat(cookieCaptor.getValue().isHttpOnly()).isTrue();
     assertThat(cookieCaptor.getValue().getSecure()).isTrue();
     assertThat(indexUrlCaptor.getValue()).isEqualTo(expectedUrl);

@@ -93,6 +93,7 @@ import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.OAuth2GroupDAO;
 import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.OAuth2UserGroupDAO;
+import com.sonatype.insight.brain.dataaccess.security.OidcTokenDAO;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
@@ -1166,5 +1167,10 @@ public class TestDAOFactory
   @Override
   public MalwareDefenseMetricsDAO createMalwareDefenseMetricsDAO() {
     return new MalwareDefenseMetricsDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public OidcTokenDAO createOidcTokenDAO() {
+    return new OidcTokenDAO(dataStoreProvider.getOperationalDataStore());
   }
 }

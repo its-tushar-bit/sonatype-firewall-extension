@@ -85,15 +85,19 @@ public class OidcLoginFilter
 
   private final ApiConfigurationService configurationService;
 
+  private final OidcTokenService oidcTokenService;
+
   @Inject
   public OidcLoginFilter(
       BaseUrl baseUrl,
       OidcConfigurationDAO oidcConfigurationDAO,
-      ApiConfigurationService configurationService)
+      ApiConfigurationService configurationService,
+      OidcTokenService oidcTokenService)
   {
     this.oidcConfigurationDAO = oidcConfigurationDAO;
     this.baseUrl = baseUrl;
     this.configurationService = configurationService;
+    this.oidcTokenService = oidcTokenService;
   }
 
   @Override
@@ -113,9 +117,9 @@ public class OidcLoginFilter
         throw new AuthenticationException(OIDC_CONFIGURATION_INVALID);
       }
 
-      // Check if ID Token cookie is present, so no need to login again
-      String idToken = getCookie(req, JwtAuthenticationFilter.ID_TOKEN_COOKIE);
-      if (StringUtils.isNotBlank(idToken)) {
+      // Check if the ID Token exists
+      String oidcToken = getOidcToken(req);
+      if (StringUtils.isNotBlank(oidcToken)) {
         String redirectUrl = buildRedirectUrl(INDEX_HTML, hash, false);
         res.sendRedirect(redirectUrl);
         return;
@@ -242,8 +246,8 @@ public class OidcLoginFilter
           .get(SystemConfigurationProperty.ID_TOKEN_COOKIE_EXPIRATION_TIME_SECONDS);
 
       OIDCTokenResponse successResponse = (OIDCTokenResponse) tokenResponse.toSuccessResponse();
-      addSecureCookie(res, JwtAuthenticationFilter.ID_TOKEN_COOKIE, successResponse.getOIDCTokens().getIDTokenString(),
-          idTokenExpirationTime);
+      String tokenId = oidcTokenService.registerOidcToken(successResponse.getOIDCTokens().getIDTokenString());
+      addSecureCookie(res, JwtAuthenticationFilter.ID_TOKEN_COOKIE, tokenId, idTokenExpirationTime);
 
       res.sendRedirect(redirectUrl);
     }
@@ -292,6 +296,11 @@ public class OidcLoginFilter
     cookie.setHttpOnly(true);
     cookie.setMaxAge(maxAge);
     res.addCookie(cookie);
+  }
+
+  private String getOidcToken(final HttpServletRequest request) {
+    String tokenId = getCookie(request, JwtAuthenticationFilter.ID_TOKEN_COOKIE);
+    return oidcTokenService.getOidcToken(tokenId);
   }
 
   private String getCookie(final HttpServletRequest request, String authCookie) {

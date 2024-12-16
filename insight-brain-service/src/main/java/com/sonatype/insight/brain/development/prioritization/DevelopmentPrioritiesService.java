@@ -110,9 +110,9 @@ public class DevelopmentPrioritiesService
       final String scanId,
       final int page,
       final int pageSize,
-      final String optionalComponentNameFilter,
+      final String componentNameFilter,
       final boolean includeRemediation,
-      final boolean optionalActionFilter
+      final boolean filterOnPolicyActions
   )
   {
     final int skipCount = (page - 1) * pageSize;
@@ -123,10 +123,10 @@ public class DevelopmentPrioritiesService
             getAllPrioritizedFindings(applicationPublicId, scanId, null, null);
 
     final List<PrioritizedComponent> filteredByNameAndAction = allPrioritizedFindings.stream()
-        .filter(prioritizedComponent -> StringUtils.isEmpty(optionalComponentNameFilter) ||
-            matchesFilter(prioritizedComponent.getDisplayName(), optionalComponentNameFilter))
+        .filter(prioritizedComponent -> StringUtils.isEmpty(componentNameFilter) ||
+            matchesFilter(prioritizedComponent.getDisplayName(), componentNameFilter))
         .filter(prioritizedComponent ->
-            !optionalActionFilter || Action.ID_FAIL.equals(prioritizedComponent.getAction()) ||
+            !filterOnPolicyActions || Action.ID_FAIL.equals(prioritizedComponent.getAction()) ||
                 Action.ID_WARN.equals(prioritizedComponent.getAction())).toList();
 
     // get total size before for pagination

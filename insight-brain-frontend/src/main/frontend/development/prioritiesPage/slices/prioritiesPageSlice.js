@@ -60,11 +60,11 @@ const loadTableData = createAsyncThunk(
     const state = getState();
     const { publicAppId, scanId } = selectRouterCurrentParams(state);
     const tableDataUrl = getPrioritiesPageTableData(publicAppId, scanId);
-    const { page, optionalComponentNameFilter, optionalActionFilter } = selectPrioritiesPageSlice(state);
+    const { page, componentNameFilter, filterOnPolicyActions } = selectPrioritiesPageSlice(state);
 
     return axios
       .get(tableDataUrl, {
-        params: { pageSize: TABLE_PAGE_SIZE, page, optionalComponentNameFilter, optionalActionFilter },
+        params: { pageSize: TABLE_PAGE_SIZE, page, componentNameFilter, filterOnPolicyActions },
       })
       .then(({ data }) => ({ ...data, publicAppId, scanId }))
       .catch(rejectWithValue);
@@ -147,28 +147,27 @@ const resetState = (state) => {
     loadingMetadata: false,
     loadErrorMetaData: null,
     recommendations: {},
-    optionalActionFilter: true,
   };
 };
 
 const setComponentNameFilter = (state, { payload }) => {
   return {
     ...state,
-    optionalComponentNameFilter: payload,
+    componentNameFilter: payload,
   };
 };
 
-const setOptionalActionFilter = (state, { payload }) => {
+const setFilterOnPolicyActions = (state, { payload }) => {
   return {
     ...state,
-    optionalActionFilter: payload,
+    filterOnPolicyActions: payload,
   };
 };
 
 const prioritiesPageSlice = createSlice({
   name: PRIORITIES_PAGE_REDUCER_NAME,
   initialState: initialState(),
-  reducers: { resetState, setPage, setComponentNameFilter, setOptionalActionFilter },
+  reducers: { resetState, setPage, setComponentNameFilter, setFilterOnPolicyActions },
   extraReducers: {
     [loadTableData.pending]: loadTableDataRequested,
     [loadTableData.fulfilled]: loadTableDataFulfilled,
@@ -193,8 +192,8 @@ function initialState() {
     total: null,
     publicAppId: null,
     scanId: null,
-    optionalComponentNameFilter: '',
-    optionalActionFilter: true,
+    componentNameFilter: '',
+    filterOnPolicyActions: true,
   };
 }
 

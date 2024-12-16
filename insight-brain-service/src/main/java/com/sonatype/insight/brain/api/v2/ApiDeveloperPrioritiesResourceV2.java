@@ -86,14 +86,13 @@ public class ApiDeveloperPrioritiesResourceV2
       @Parameter(description = "Enter the no. of results that should be visible per page.")
       @DefaultValue(DEFAULT_PAGE_SIZE) @QueryParam("pageSize") final int pageSize,
       @Parameter(description = "Component name to filter by")
-      @QueryParam("optionalComponentNameFilter") final String optionalComponentNameFilter,
+      @QueryParam("componentNameFilter") final String componentNameFilter,
       @Parameter(description = "Whether to enable Fail/Warn policy action filter or not")
-      @QueryParam("optionalActionFilter") @DefaultValue("true") final boolean optionalActionFilter
-  )
+      @QueryParam("filterOnPolicyActions") @DefaultValue("true") final boolean filterOnPolicyActions)
   {
     return developmentPrioritiesService
             .getPrioritizedFindings(applicationId, scanId, page, pageSize,
-                optionalComponentNameFilter, includeRemediation, optionalActionFilter);
+                componentNameFilter, includeRemediation, filterOnPolicyActions);
   }
 
   @GET

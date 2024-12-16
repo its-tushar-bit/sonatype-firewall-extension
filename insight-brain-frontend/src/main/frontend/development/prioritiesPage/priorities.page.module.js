@@ -16,7 +16,7 @@ function routes($stateProvider, $urlServiceProvider) {
   $stateProvider
     // Standalone Developer Dashboard -> Priorities Page
     .state('prioritiesPageFromDashboard', {
-      url: '/dashboard/developer/priorities/{publicAppId}/{scanId}',
+      url: '/dashboard/developer/priorities/{publicAppId}/{scanId}?componentNameFilter&filterOnPolicyActions',
       component: 'prioritiesPage',
       data: {
         title: 'Priorities',
@@ -25,7 +25,7 @@ function routes($stateProvider, $urlServiceProvider) {
 
     // Standalone Developer Reports Page -> Priorities Page
     .state('prioritiesPageFromReports', {
-      url: '/developer/priorities/{publicAppId}/{scanId}',
+      url: '/developer/priorities/{publicAppId}/{scanId}?componentNameFilter&filterOnPolicyActions',
       component: 'prioritiesPage',
       data: {
         title: 'Priorities',

@@ -14,6 +14,7 @@ import {
   selectIsPrioritiesPageContainer,
   selectPrioritiesPageName,
   selectPrioritiesPageContainerName,
+  selectRouterPrevParams,
 } from '../reduxUiRouter/routerSelectors';
 
 export default function ComponentDetailsBackButton(props) {
@@ -24,6 +25,7 @@ export default function ComponentDetailsBackButton(props) {
   const prioritiesPageName = useSelector(selectPrioritiesPageName);
   const prioritiesPageContainerName = useSelector(selectPrioritiesPageContainerName);
   const currentParams = useSelector(selectRouterCurrentParams);
+  const prevParams = useSelector(selectRouterPrevParams);
   const uiRouterState = useRouterState();
 
   if (dependencyTreePropsPresent) {
@@ -40,6 +42,7 @@ export default function ComponentDetailsBackButton(props) {
     const href = uiRouterState.href(prioritiesPageName, {
       scanId: currentParams.scanId,
       publicAppId: currentParams.publicId,
+      ...prevParams,
     });
     return <MenuBarBackButton href={href} text="Back to Priorities" />;
   }

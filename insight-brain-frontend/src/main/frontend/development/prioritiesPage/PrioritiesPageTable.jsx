@@ -24,6 +24,7 @@ import { selectRouterCurrentParams, selectCurrentRouteName } from 'MainRoot/redu
 import { actions } from 'MainRoot/development/prioritiesPage/slices/prioritiesPageSlice';
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
 import { debounce } from 'debounce';
+import { isNil } from 'ramda';
 
 export default function PrioritiesPageTable() {
   const dispatch = useDispatch();
@@ -37,12 +38,20 @@ export default function PrioritiesPageTable() {
     pageCount,
     publicAppId: storedPublicId,
     scanId: storedScanId,
-    optionalComponentNameFilter,
-    optionalActionFilter,
+    componentNameFilter: componentNameFilterValue,
+    filterOnPolicyActions: filterOnPolicyActionsValue,
   } = useSelector(selectPrioritiesPageSlice);
-  const currentPage = pageCount && pageCount > 0 ? page - 1 : null;
 
-  const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
+  const currentRouteName = useSelector(selectCurrentRouteName);
+  const currentPage = pageCount && pageCount > 0 ? page - 1 : null;
+  const { publicAppId, scanId, filterOnPolicyActions, componentNameFilter } = useSelector(selectRouterCurrentParams);
+
+  const getDerivedActionFilter = () => {
+    if (filterOnPolicyActions === 'true') return true;
+    return filterOnPolicyActions !== 'false';
+  };
+
+  const derivedComponentName = isNil(componentNameFilter) ? '' : componentNameFilter;
 
   const setPage = (page) => dispatch(actions.setPage(page));
 
@@ -54,6 +63,9 @@ export default function PrioritiesPageTable() {
   };
 
   useEffect(() => {
+    dispatch(actions.setFilterOnPolicyActions(getDerivedActionFilter()));
+    dispatch(actions.setComponentNameFilter(derivedComponentName));
+
     //If page is viewed for a different applicationId and scanId, reset pagination
     if (publicAppId !== storedPublicId || scanId !== storedScanId) {
       setPage(0);
@@ -63,19 +75,36 @@ export default function PrioritiesPageTable() {
 
   const debouncedFilterComponentNameChange = useCallback(
     debounce((value) => {
-      dispatch(actions.loadTableData(value));
+      dispatch(
+        stateGo(currentRouteName, {
+          publicAppId,
+          scanId,
+          filterOnPolicyActions,
+          componentNameFilter: value,
+        })
+      );
     }, NX_STANDARD_DEBOUNCE_TIME),
     []
   );
 
   const handleActionToggleChange = () => {
-    dispatch(actions.setOptionalActionFilter(!optionalActionFilter));
-    doLoad();
+    dispatch(actions.setFilterOnPolicyActions(!filterOnPolicyActionsValue));
+
+    // if initial toggle state is true, clicking the toggle adds the actionFilter query param
+    // if initial toggle state is false, clicking on the toggle removes the actionFilter query param
+    dispatch(
+      stateGo(currentRouteName, {
+        publicAppId,
+        scanId,
+        filterOnPolicyActions: filterOnPolicyActionsValue ? false : '',
+        componentNameFilter: derivedComponentName,
+      })
+    );
   };
 
   const getEmptyMessage = () => {
-    if (optionalComponentNameFilter) return 'No Results';
-    return optionalActionFilter
+    if (componentNameFilterValue) return 'No Results';
+    return filterOnPolicyActionsValue
       ? 'No violations with Fail/Warn policy actions were found during this evaluation.'
       : 'All clear! No violations were found during this evaluation.';
   };
@@ -87,10 +116,10 @@ export default function PrioritiesPageTable() {
           id="priorities-component-name-filter"
           placeholder="Filter by component"
           onChange={filterByComponentName}
-          value={optionalComponentNameFilter}
+          value={componentNameFilterValue}
         />
 
-        <NxToggle onChange={handleActionToggleChange} isChecked={optionalActionFilter}>
+        <NxToggle onChange={handleActionToggleChange} isChecked={filterOnPolicyActionsValue}>
           Fail/Warn Policy Actions only
         </NxToggle>
       </div>

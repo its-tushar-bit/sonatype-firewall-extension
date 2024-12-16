@@ -236,7 +236,6 @@ public class ApiPolicyViolationResourceV2
           "waiver ",
           required = true) @PathParam("violationId") final String violationId)
   {
-    apiAutoPolicyWaiverService.ensureAutoWaiverEnabled();
     return apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violationId);
   }
 

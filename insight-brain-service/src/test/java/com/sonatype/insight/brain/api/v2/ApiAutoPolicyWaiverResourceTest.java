@@ -79,7 +79,7 @@ public class ApiAutoPolicyWaiverResourceTest
         .parameter(OwnerType.APPLICATION, application.getId(), autoPolicyWaiver.getId())
         .delete();
 
-    assertResponseStatus(400, response);
+    assertResponseStatus(403, response);
 
     //when feature flag is enabled
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);

@@ -43,6 +43,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.collect.ImmutableList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ApiAutoPolicyWaiverRevocationService
 {
@@ -62,6 +64,8 @@ public class ApiAutoPolicyWaiverRevocationService
 
   private static final List<String> SECURITY_CONDITIONS = ImmutableList
       .of(SecurityVulnerabilitySeverityConditionType.ID, SecurityVulnerabilityStatusConditionType.ID);
+
+  private static final Logger log = LoggerFactory.getLogger(ApiAutoPolicyWaiverRevocationService.class);
 
   @Inject
   public ApiAutoPolicyWaiverRevocationService(
@@ -139,19 +143,30 @@ public class ApiAutoPolicyWaiverRevocationService
         newRevocation.setPolicyId(policyViolation.policyId);
         newRevocation.setHash(component.hash);
         newRevocation.setConstraintFacts(constraintFacts);
+        log.debug("Revoking policy violation for component {} with hash {}", component.componentIdentifier,
+            component.hash);
       }
       else if (requestDTO.matchStrategy == ComponentMatcherStrategyForRevocation.EXACT_COMPONENT) {
         newRevocation.setHash(component.hash);
+        log.debug("Revoking policy violation for exact component {} with hash {}",
+            component.componentIdentifier,
+            component.hash);
+      }
+      else {
+        log.debug("Revoking policy violation for all versions of component {}",
+            component.componentIdentifier);
       }
 
       checkForExistingRecord(newRevocation);
 
       autoPolicyWaiverRevocationDAO.insert(newRevocation);
       auditAutoPolicyWaiverRevocation(newRevocation);
+      log.debug("Added auto policy waiver revocation {}", newRevocation.getId());
       return ApiAutoPolicyWaiverRevocationAdapter.convertToDTO(newRevocation);
     }
     catch (IOException e) {
-      throw new BadRequestException("Failed to parse constraint facts JSON", e);
+      throw new BadRequestException("Couldn't add auto-waiver revocation. Failed to parse " +
+          "constraint facts JSON", e);
     }
   }
 
@@ -171,6 +186,7 @@ public class ApiAutoPolicyWaiverRevocationService
     }
     auditAutoPolicyWaiverRevocation(autoPolicyWaiverRevocation);
     autoPolicyWaiverRevocationDAO.delete(autoPolicyWaiverRevocation);
+    log.debug("Deleted auto policy waiver revocation {}", autoPolicyWaiverRevocationId);
   }
 
   @Authorize(permission = Permission.READ)

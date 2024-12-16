@@ -18,22 +18,24 @@ describe('DeleteAutoWaiverModal', () => {
   });
 
   beforeEach(() => {
-    defaultPreloadedState = {
-      violation: {
-        autoWaiver: {
-          ownerType: 'application',
-          ownerId: 'application-owner-id',
-          autoPolicyWaiverId: 'example-auto-waiver-id',
-        },
-        violationDetails: {
-          applicationPublicId: 'application-public-id',
-          stageData: {
-            build: {
-              mostRecentScanId: 'example-scan-id',
+    defaultPreloadedState = (isRoot) => {
+      return {
+        violation: {
+          autoWaiver: {
+            ownerType: isRoot ? 'root_organization' : 'application',
+            ownerId: 'application-owner-id',
+            autoPolicyWaiverId: 'example-auto-waiver-id',
+          },
+          violationDetails: {
+            applicationPublicId: 'application-public-id',
+            stageData: {
+              build: {
+                mostRecentScanId: 'example-scan-id',
+              },
             },
           },
         },
-      },
+      };
     };
   });
 
@@ -42,7 +44,7 @@ describe('DeleteAutoWaiverModal', () => {
   });
 
   it('does not render modal without being open', () => {
-    renderComponent({
+    renderComponent(false, {
       showModal: false,
       onClose: onCloseMock,
     });
@@ -137,6 +139,33 @@ describe('DeleteAutoWaiverModal', () => {
     });
   });
 
+  it('submits correct information when its root organization', async () => {
+    renderComponent(true);
+
+    const confirmationCheckbox = screen.getByRole('checkbox', { name: 'Remove auto-waiver' });
+    fireEvent.click(confirmationCheckbox);
+
+    const submitButton = screen.getByRole('button', { name: 'Submit' });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(axiosMock.history.post.length).toBe(1);
+      expect(axiosMock.history.post[0].data).toBe(
+        JSON.stringify({
+          ownerId: 'application-owner-id',
+          applicationPublicId: 'application-public-id',
+          scanId: 'example-scan-id',
+          policyViolationId: undefined,
+          autoPolicyWaiverId: 'example-auto-waiver-id',
+          matchStrategy: 'POLICY_VIOLATION',
+        })
+      );
+      expect(axiosMock.history.post[0].url).toBe(
+        '/api/v2/autoPolicyWaiverRevocations/organization/application-owner-id'
+      );
+    });
+  });
+
   it('displays error message when creating revocation fails', async () => {
     axiosMock.onPost(getAutoWaiverRevocationsUrl('application', 'application-owner-id')).reply(500, {
       message: 'Failed to save configuration',
@@ -169,7 +198,7 @@ describe('DeleteAutoWaiverModal', () => {
     });
   });
 
-  function renderComponent(props = { showModal: true, onClose: onCloseMock }) {
-    return render(<DeleteAutoWaiverModal {...props} />, { preloadedState: defaultPreloadedState });
+  function renderComponent(isRoot = false, props = { showModal: true, onClose: onCloseMock }) {
+    return render(<DeleteAutoWaiverModal {...props} />, { preloadedState: defaultPreloadedState(isRoot) });
   }
 });

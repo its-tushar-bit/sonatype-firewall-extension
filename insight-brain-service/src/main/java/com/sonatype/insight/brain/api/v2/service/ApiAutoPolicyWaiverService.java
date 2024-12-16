@@ -41,6 +41,9 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.authz.UnauthorizedException;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ApiAutoPolicyWaiverService
 {
@@ -59,6 +62,8 @@ public class ApiAutoPolicyWaiverService
   private final AutoPolicyWaiverTelemetryMetrics autoPolicyWaiverTelemetryMetrics;
 
   private final AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO;
+
+  private static final Logger log = LoggerFactory.getLogger(ApiAutoPolicyWaiverService.class);
 
   @Inject
   public ApiAutoPolicyWaiverService(
@@ -88,6 +93,7 @@ public class ApiAutoPolicyWaiverService
       @AuthzContext(Key.INTERNAL_ID) String ownerId,
       String autoPolicyWaiverId)
   {
+    ensureAutoWaiverEnabled();
     checkOwnerType(ownerType, ownerId);
     AutoPolicyWaiver autoPolicyWaiver =
         autoPolicyWaiverDAO.getByIdAndOwnerIdNotNull(autoPolicyWaiverId, ownerId);
@@ -106,6 +112,7 @@ public class ApiAutoPolicyWaiverService
       @AuthzContext(Key.TYPE) OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) String ownerId)
   {
+    ensureAutoWaiverEnabled();
     checkOwnerType(ownerType, ownerId);
     Owner owner = ownerDAO.getById(ownerId);
     List<ApiAutoPolicyWaiverDTO> apiAutoPolicyWaiverDTOs = new ArrayList<>();
@@ -124,6 +131,7 @@ public class ApiAutoPolicyWaiverService
       @AuthzContext(Key.INTERNAL_ID) String ownerId,
       ApiAutoPolicyWaiverDTO apiAutoPolicyWaiverDTO)
   {
+    ensureAutoWaiverEnabled();
     checkOwnerType(ownerType, ownerId);
     validateRequestDto(apiAutoPolicyWaiverDTO);
 
@@ -133,6 +141,17 @@ public class ApiAutoPolicyWaiverService
       throw new BadRequestException("An auto policy waiver is already configured for " + ownerId);
     }
 
+    AutoPolicyWaiver autoPolicyWaiver = getAutoPolicyWaiver(ownerId, apiAutoPolicyWaiverDTO);
+    autoPolicyWaiverDAO.insert(autoPolicyWaiver);
+    auditAutoPolicyWaiver(autoPolicyWaiver);
+    autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, ownerType,
+        AutoPolicyWaiverAction.CREATE, null);
+    log.debug("Auto policy waiver created for {} with ID {}", ownerType, autoPolicyWaiver.getId());
+    return ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
+  }
+
+  @NotNull
+  private AutoPolicyWaiver getAutoPolicyWaiver(String ownerId, ApiAutoPolicyWaiverDTO apiAutoPolicyWaiverDTO) {
     AutoPolicyWaiver autoPolicyWaiver = new AutoPolicyWaiver();
     autoPolicyWaiver.setOwnerId(ownerId);
     autoPolicyWaiver.setThreatLevel(apiAutoPolicyWaiverDTO.threatLevel);
@@ -145,11 +164,7 @@ public class ApiAutoPolicyWaiverService
     autoPolicyWaiver.setCreatorId(currentUser.getUserPrincipal().getUsername());
     autoPolicyWaiver.setCreatorName(currentUser.getUserPrincipal().getDisplayName());
     autoPolicyWaiver.setCreateTime(new Date());
-    autoPolicyWaiverDAO.insert(autoPolicyWaiver);
-    auditAutoPolicyWaiver(autoPolicyWaiver);
-    autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, ownerType,
-        AutoPolicyWaiverAction.CREATE, null);
-    return ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
+    return autoPolicyWaiver;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -159,6 +174,7 @@ public class ApiAutoPolicyWaiverService
       String autoPolicyWaiverId,
       ApiAutoPolicyWaiverDTO apiAutoPolicyWaiverDTO)
   {
+    ensureAutoWaiverEnabled();
     if (apiAutoPolicyWaiverDTO.autoPolicyWaiverId == null ||
         !autoPolicyWaiverId.equals(apiAutoPolicyWaiverDTO.autoPolicyWaiverId)) {
       throw new BadRequestException("Auto policy waiver ID in requst path does not match request body");
@@ -179,6 +195,7 @@ public class ApiAutoPolicyWaiverService
     auditAutoPolicyWaiver(autoPolicyWaiver);
     autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, ownerType,
         AutoPolicyWaiverAction.UPDATE, null);
+    log.debug("Auto policy waiver updated for {} with ID {}", ownerType, autoPolicyWaiver.getId());
     return ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
   }
 
@@ -188,6 +205,7 @@ public class ApiAutoPolicyWaiverService
       @AuthzContext(Key.INTERNAL_ID) String ownerId,
       String autoPolicyWaiverId)
   {
+    ensureAutoWaiverEnabled();
     checkOwnerType(ownerType, ownerId);
     AutoPolicyWaiver autoPolicyWaiver = autoPolicyWaiverDAO.getByIdNotNull(autoPolicyWaiverId);
     if (!ownerId.equals(autoPolicyWaiver.getOwnerId())) {
@@ -199,6 +217,7 @@ public class ApiAutoPolicyWaiverService
     autoPolicyWaiverDAO.delete(autoPolicyWaiver);
     autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, ownerType,
         AutoPolicyWaiverAction.DELETE, null);
+    log.debug("Auto policy waiver deleted for {} with ID {}", ownerType, autoPolicyWaiver.getId());
   }
 
   @Authorize(permission = Permission.READ)
@@ -206,6 +225,7 @@ public class ApiAutoPolicyWaiverService
       @AuthzContext(Key.TYPE) OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) String ownerId)
   {
+    ensureAutoWaiverEnabled();
     checkOwnerType(ownerType, ownerId);
     List<String> ownerIds = ownerDAO.getOwnerIds(ownerId);
     List<AutoPolicyWaiver> autoPolicyWaivers = new ArrayList<>();
@@ -240,6 +260,7 @@ public class ApiAutoPolicyWaiverService
 
   @Authorize(permission = Permission.READ)
   public ApiAutoPolicyWaiverDTO getApplicableAutoPolicyWaiver(final String violationId) {
+    ensureAutoWaiverEnabled();
     PolicyViolation policyViolation = policyViolationDAO.getById(violationId);
     if (policyViolation == null) {
       throw new NotFoundException("Could not find policy violation with ID " + violationId + ".");
@@ -278,6 +299,15 @@ public class ApiAutoPolicyWaiverService
       }
     }
     return null;
+  }
+
+  // visible for testing
+  @Authorize(permission = Permission.READ)
+  public AutoPolicyWaiver getApplicableAutoPolicyWaiverWithPermissionCheck(
+      String autoPolicyWaiverId,
+      @AuthzContext(Key.OWNER) Owner owner)
+  {
+    return autoPolicyWaiverDAO.getByIdAndOwnerIdNullable(autoPolicyWaiverId, owner.getId());
   }
 
   private AutoPolicyWaiver getAutoPolicyWaiverByAppOwnerHierarchy(String autoPolicyWaiverId, String applicationId) {
@@ -330,14 +360,6 @@ public class ApiAutoPolicyWaiverService
 
   private void auditAutoPolicyWaiver(AutoPolicyWaiver autoPolicyWaiver) {
     AuditData.get().setData("autoPolicyWaiverId", autoPolicyWaiver.getId());
-  }
-
-  @Authorize(permission = Permission.READ)
-  AutoPolicyWaiver getApplicableAutoPolicyWaiverWithPermissionCheck(
-      String autoPolicyWaiverId,
-      @AuthzContext(Key.OWNER) Owner owner)
-  {
-    return autoPolicyWaiverDAO.getByIdAndOwnerIdNullable(autoPolicyWaiverId, owner.getId());
   }
 
   public void ensureAutoWaiverEnabled() {

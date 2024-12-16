@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -33,6 +34,8 @@ import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverTelemetryMetrics;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.apache.shiro.authz.UnauthorizedException;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -63,6 +66,12 @@ public class ApiAutoPolicyWaiverServiceTest
   public void configure(Binder binder) {
     binder.bind(AutoPolicyWaiverTelemetryMetrics.class).toInstance(autoPolicyWaiverTelemetryMetrics);
     super.configure(binder);
+  }
+
+  @Before
+  public void setup() {
+    //feature flag default to true
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
   }
 
   @Test
@@ -938,5 +947,47 @@ public class ApiAutoPolicyWaiverServiceTest
     result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
 
     assertThat(result).isNull();
+  }
+
+  @Test
+  public void testAllMethods_AutoPolicyWaiverIsDisabled() {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
+
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplicationWithParent(organization.getId());
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
+    ApiAutoPolicyWaiverDTO dto = ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
+
+    final String disabledAutoWaiversMessage = "auto-waivers feature is disabled.";
+    assertThatThrownBy(() ->
+        apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(), dto)).isInstanceOf(
+        UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
+
+    assertThatThrownBy(() ->
+        apiAutoPolicyWaiverService.getAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
+            autoPolicyWaiver.getId())).isInstanceOf(UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
+
+    assertThatThrownBy(() ->
+        apiAutoPolicyWaiverService.deleteAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
+            autoPolicyWaiver.getId())).isInstanceOf(UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
+
+    assertThatThrownBy(() ->
+        apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.APPLICATION, application.getId())).isInstanceOf(
+        UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
+
+    assertThatThrownBy(() ->
+        apiAutoPolicyWaiverService.updateAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
+            dto.autoPolicyWaiverId, dto))
+          .isInstanceOf(UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
+
+    assertThatThrownBy(() ->
+        apiAutoPolicyWaiverService.getAutoPolicyWaiverStatus(OwnerType.APPLICATION, application.getId())).isInstanceOf(
+        UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
+
+    assertThatThrownBy(() ->
+        apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver("fakeViolationId")).isInstanceOf(
+        UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
+
+    verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 }

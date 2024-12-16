@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v2;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -26,7 +25,6 @@ import com.sonatype.insight.brain.api.v2.service.ApiAutoPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -48,8 +46,6 @@ public class ApiAutoPolicyWaiverResource
 {
   private final ApiAutoPolicyWaiverService apiAutoPolicyWaiverService;
 
-  private final ApiConfigFeaturesService apiConfigFeaturesService;
-
   static final String OWNERS_PATH = "{ownerType: application|organization}/{ownerId}";
 
   static final String AUTO_WAIVER_STATUS_PATH = OWNERS_PATH + "/status";
@@ -57,12 +53,8 @@ public class ApiAutoPolicyWaiverResource
   static final String BY_AUTO_POLICY_WAIVER_ID_PATH = OWNERS_PATH + "/{autoPolicyWaiverId}";
 
   @Inject
-  public ApiAutoPolicyWaiverResource(
-      ApiAutoPolicyWaiverService apiAutoPolicyWaiverService,
-      ApiConfigFeaturesService apiConfigFeaturesService)
-  {
+  public ApiAutoPolicyWaiverResource(ApiAutoPolicyWaiverService apiAutoPolicyWaiverService) {
     this.apiAutoPolicyWaiverService = apiAutoPolicyWaiverService;
-    this.apiConfigFeaturesService = apiConfigFeaturesService;
   }
 
   @GET
@@ -92,7 +84,6 @@ public class ApiAutoPolicyWaiverResource
           required = true)
       @PathParam("autoPolicyWaiverId") String autoPolicyWaiverId)
   {
-    checkAutoPolicyWaiversFeatureEnabled();
     return apiAutoPolicyWaiverService.getAutoPolicyWaiver(ownerType, ownerId, autoPolicyWaiverId);
   }
 
@@ -119,7 +110,6 @@ public class ApiAutoPolicyWaiverResource
       @Parameter(description = "Enter the corresponding id for the ownerType specified above.", required = true)
       @PathParam("ownerId") String ownerId)
   {
-    checkAutoPolicyWaiversFeatureEnabled();
     return apiAutoPolicyWaiverService.getAutoPolicyWaivers(ownerType, ownerId);
   }
 
@@ -159,7 +149,6 @@ public class ApiAutoPolicyWaiverResource
           required = true
       ) final ApiAutoPolicyWaiverDTO autoPolicyWaiverDTO)
   {
-    checkAutoPolicyWaiversFeatureEnabled();
     return apiAutoPolicyWaiverService.addAutoPolicyWaiver(ownerType, ownerId, autoPolicyWaiverDTO);
   }
 
@@ -199,7 +188,6 @@ public class ApiAutoPolicyWaiverResource
           required = true
       ) final ApiAutoPolicyWaiverDTO autoPolicyWaiverDTO)
   {
-    checkAutoPolicyWaiversFeatureEnabled();
     return apiAutoPolicyWaiverService.updateAutoPolicyWaiver(ownerType, ownerId, autoPolicyWaiverId,
         autoPolicyWaiverDTO);
   }
@@ -227,7 +215,6 @@ public class ApiAutoPolicyWaiverResource
       @Parameter(description = "Enter the autoPolicyWaiverId to be deleted")
       @PathParam("autoPolicyWaiverId") String autoPolicyWaiverId)
   {
-    checkAutoPolicyWaiversFeatureEnabled();
     apiAutoPolicyWaiverService.deleteAutoPolicyWaiver(ownerType, ownerId, autoPolicyWaiverId);
   }
 
@@ -256,13 +243,6 @@ public class ApiAutoPolicyWaiverResource
       @Parameter(description = "Enter the corresponding id for the ownerType specified above.", required = true)
       @PathParam("ownerId") String ownerId)
   {
-    checkAutoPolicyWaiversFeatureEnabled();
     return apiAutoPolicyWaiverService.getAutoPolicyWaiverStatus(ownerType, ownerId);
-  }
-
-  private void checkAutoPolicyWaiversFeatureEnabled() {
-    if (!apiConfigFeaturesService.isFeatureEnabled(SystemConfigurationPropertyFeature.AUTO_WAIVERS)) {
-      throw new BadRequestException("Auto Policy Waivers feature is not enabled");
-    }
   }
 }

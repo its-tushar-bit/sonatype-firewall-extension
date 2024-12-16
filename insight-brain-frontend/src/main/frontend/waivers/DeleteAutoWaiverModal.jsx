@@ -29,6 +29,12 @@ export default function DeleteAutoWaiverModal({ showModal, onClose }) {
     dispatch(actions.createAutoWaiverRevocation());
   };
 
+  useEffect(() => {
+    if (!showModal) {
+      dispatch(actions.clearAutoWaiverRevocationMaskState());
+    }
+  }, [showModal]);
+
   return (
     <>
       {showModal && (

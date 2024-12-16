@@ -5,7 +5,6 @@
  */
 import axios from 'axios';
 import { prop } from 'ramda';
-import { propSet } from 'MainRoot/util/jsUtil';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getAutoWaiverRevocationsUrl } from 'MainRoot/util/CLMLocation';
@@ -39,6 +38,11 @@ const createAutoWaiverRevocationFailed = (state, { payload }) => {
   state.submitError = Messages.getHttpErrorMessage(payload);
 };
 
+const clearAutoWaiverRevocationMaskState = (state) => {
+  state.submitMaskState = null;
+  state.submitError = null;
+};
+
 const createAutoWaiverRevocation = createAsyncThunk(
   `${REDUCER_NAME}/createAutoWaiverRevocation`,
   async (_, { getState, dispatch, rejectWithValue }) => {
@@ -51,6 +55,8 @@ const createAutoWaiverRevocation = createAsyncThunk(
     const { autoWaiver } = selectApplicableAutoWaiver(state);
 
     const ownerType = autoWaiver.ownerType;
+    const validatedOwnerType = ownerType === 'root_organization' ? 'organization' : ownerType;
+
     const ownerId = autoWaiver.ownerId;
     const policyViolationId = violationDetails?.policyViolationId;
 
@@ -64,10 +70,10 @@ const createAutoWaiverRevocation = createAsyncThunk(
     };
 
     return axios
-      .post(getAutoWaiverRevocationsUrl(ownerType, ownerId), putData)
+      .post(getAutoWaiverRevocationsUrl(validatedOwnerType, ownerId), putData)
       .then(() => {
         prop('data');
-        startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone);
+        startSaveMaskSuccessTimer(dispatch, actions.clearAutoWaiverRevocationMaskState);
       })
       .catch(rejectWithValue);
   }
@@ -76,7 +82,7 @@ const createAutoWaiverRevocation = createAsyncThunk(
 const automatedWaiversRevocationSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
-  reducers: { saveMaskTimerDone: propSet('submitMaskState', null) },
+  reducers: { clearAutoWaiverRevocationMaskState },
   extraReducers: {
     [createAutoWaiverRevocation.pending]: createAutoWaiverRevocationRequested,
     [createAutoWaiverRevocation.fulfilled]: createAutoWaiverRevocationFulfilled,

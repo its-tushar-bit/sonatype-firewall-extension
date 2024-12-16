@@ -5,7 +5,8 @@
  */
 package com.sonatype.insight.brain.service;
 
-import io.dropwizard.Configuration;
+import com.sonatype.insight.brain.health.MultiTenantHealthFactory;
+
 import io.dropwizard.ConfiguredBundle;
 import io.dropwizard.jersey.DropwizardResourceConfig;
 import io.dropwizard.jersey.setup.JerseyContainerHolder;
@@ -15,7 +16,7 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 public class AdminResourceBundle
-    implements ConfiguredBundle<Configuration>
+    implements ConfiguredBundle<InsightConfig>
 {
   private final String basePath;
 
@@ -26,9 +27,26 @@ public class AdminResourceBundle
   }
 
   @Override
-  public void run(Configuration configuration, Environment environment) {
+  public void run(InsightConfig configuration, Environment environment) {
     this.jerseyAdminEnvironment = this.setupAdminEnvironment(environment);
     this.jerseyAdminEnvironment.register(MultiPartFeature.class);
+
+    setupHealthChecks(configuration, environment);
+  }
+
+  /**
+   * Override DropWizard health check setup. The default in {@link io.dropwizard.cli.EnvironmentCommand} passes in a
+   * {@link io.dropwizard.jetty.setup.ServletEnvironment} which registers it under port 8070. We want to register it on
+   * the admin port so need to use {@link io.dropwizard.setup.AdminEnvironment} instead.
+   */
+  private void setupHealthChecks(final InsightConfig configuration, final Environment environment) {
+    MultiTenantInsightConfig multiTenantInsightConfig = (MultiTenantInsightConfig) configuration;
+    MultiTenantHealthFactory multiTenantHealthFactory = multiTenantInsightConfig.getMultiTenantHealthFactory();
+    if (multiTenantHealthFactory == null) {
+      throw new IllegalStateException("Missing MTIQ health checks. See https://sonatype.atlassian.net/wiki/x/iQCONw.");
+    }
+    multiTenantHealthFactory.configure(environment.lifecycle(), environment.admin(), environment.jersey(),
+        environment.health(), environment.getObjectMapper(), "mtiq-health");
   }
 
   private JerseyEnvironment setupAdminEnvironment(final Environment environment) {

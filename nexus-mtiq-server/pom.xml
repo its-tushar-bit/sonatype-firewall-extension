@@ -233,6 +233,9 @@
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                   <resource>META-INF/services/io.dropwizard.logging.AppenderFactory</resource>
                 </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/services/io.dropwizard.health.HealthFactory</resource>
+                </transformer>
               </transformers>
             </configuration>
           </execution>

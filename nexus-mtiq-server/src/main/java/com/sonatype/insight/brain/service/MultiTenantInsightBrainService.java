@@ -10,7 +10,6 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.ws.rs.Path;
@@ -44,6 +43,7 @@ import com.sonatype.insight.brain.git.MultiTenantDefaultBranchMonitorExecutor;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.MultiTenantTelemetryId;
 import com.sonatype.insight.brain.hds.TelemetryId;
+import com.sonatype.insight.brain.health.ServerBootHealthCheck;
 import com.sonatype.insight.brain.micrometer.MultiTenantMeterRegistryProvider;
 import com.sonatype.insight.brain.migration.MigrateTenantsCommand;
 import com.sonatype.insight.brain.migration.MultiTenantDbMigrationCommand;
@@ -197,6 +197,7 @@ public class MultiTenantInsightBrainService
     new TenantUtil().setGlobalTenant();
 
     super.run(arguments);
+    ServerBootHealthCheck.fullyBooted();
   }
 
   @Override

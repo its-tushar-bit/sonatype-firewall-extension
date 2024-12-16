@@ -18,3 +18,8 @@ logging:
   appenders:
     - type: console
       logFormat: "%date %-5level [%thread] %logger - %msg%n"
+
+# for tests we disable the health checks
+mtiq-health:
+  type: mtiq-health
+  enabled: false

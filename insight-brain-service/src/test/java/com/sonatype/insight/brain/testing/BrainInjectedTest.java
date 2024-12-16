@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.report.FileReportDataStore;
 import com.sonatype.insight.brain.report.ReportDataStore;
+import com.sonatype.insight.brain.service.DbBasedModule;
 import com.sonatype.insight.brain.service.SisuApplication;
 
 import com.google.inject.Binder;
@@ -94,6 +95,7 @@ public abstract class BrainInjectedTest
   @Override
   public void configure(final Binder binder) {
     binder.install(new DataStoreTestModule());
+    binder.install(new DbBasedModule(() -> databaseContainerRule.getDatabaseContainer()));
   }
 
   private class DataStoreTestModule

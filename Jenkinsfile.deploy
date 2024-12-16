@@ -39,19 +39,9 @@ pipeline {
         publishProduct('IQServer')
       }
     }
-    stage('Publish CLI Scanner') {
-      steps {
-        publishProduct('CLIScanner')
-      }
-    }
     stage('Update iq-server latest version') {
       steps {
         updateLatestVersionTable(params.environment, 'IQ_SERVER', getVersionFromBuildName(env.releaseBuild_NAME))
-      }
-    }
-    stage('Update iq-cli latest version') {
-      steps {
-        updateLatestVersionTable(params.environment, 'IQ_CLI', getVersionFromBuildName(env.releaseBuild_NAME))
       }
     }
     stage('Update nginx configuration') {

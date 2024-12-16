@@ -159,3 +159,7 @@ script to delete it from the `system_configuration_property` table.
 
 Some Customer Support tickets have support.zip files that include db dumps.
 To import the db dump, see insight-brain-service/src/test/java/com/sonatype/insight/brain/support/DbImportFromSupportZip.java
+
+## IQ CLI ##
+
+In December 2024, the IQ CLI was moved to its own repository: [sonatype/iq-cli](https://github.com/sonatype/iq-cli). 

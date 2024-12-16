@@ -1,9 +1,0 @@
-Loading "fastestmirror" plugin
-Loading "installonlyn" plugin
-Installed Packages
-Deployment_Guide-en-US.noarch            5.1.0-11.el5.centos.1  installed
-GConf2.i386                              2.14.0-9.el5           installed
-GConf2.x86_64                            2.14.0-9.el5           installed
-ImageMagick.i386                         6.2.8.0-3.el5.4        installed
-ImageMagick.x86_64                       6.2.8.0-3.el5.4        installed
-MAKEDEV.x86_64                           3.23-1.2               installed

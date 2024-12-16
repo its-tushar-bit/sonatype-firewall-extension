@@ -114,10 +114,7 @@ make(
         'nexus-iq-server/target/*.zip*',
         'nexus-iq-server/target/jreleaser/assemble/nexus-iq-server/jlink/*.zip',
         'nexus-iq-server/target/jreleaser/assemble/nexus-iq-server/jlink/*.tgz',
-        'nexus-iq-server/target/jreleaser/assemble/nexus-iq-cli/jlink/*.zip',
-        'nexus-iq-server/target/jreleaser/assemble/nexus-iq-cli/jlink/*.tgz',
         'nexus-iq-server/target/*.tar.gz*',
-        'nexus-iq-cli/target/*.jar*',
         'nexus-iq-diagnostics/target/*.jar*',
         'nexus-mtiq-server/target/*.tar.gz*',
         "*insight-brain-${params.version}*.html"

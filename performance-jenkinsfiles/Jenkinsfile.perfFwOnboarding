@@ -150,7 +150,7 @@ pipeline {
                 options: [ artifactsPublisher(disabled: true), junitPublisher(disabled: true) ]) {
           sh '''
             mvn clean install -Dmaven.repo.local="$WORKSPACE/.zion/repository" -T 1C -DskipTests -Dpmd.skip -Dskip-obfuscate \
-                -pl -insight-brain-frontend,-nexus-iq-cli,-nexus-iq-server,-insight-rm-common
+                -pl -insight-brain-frontend,-nexus-iq-server,-insight-rm-common
           '''
         }
       }

@@ -32,11 +32,6 @@
       <version>${project.version}</version>
       <classifier>server</classifier>
     </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>nexus-iq-cli</artifactId>
-      <version>${project.version}</version>
-    </dependency>
   </dependencies>
 
   <build>

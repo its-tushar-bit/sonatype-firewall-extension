@@ -1,7 +1,0 @@
-<module formatVersion="1.0" id="org.example:test:jar:1.0-SNAPSHOT"
-        parentId="com.sonatype.buildsupport:private-parent:pom:33" idKind="maven" pathname="test3/modulePath1">
-  <builderInfo>
-    <property name="clm.tool" value="maven"/>
-    <property name="clm.version" value="2.28.0-01"/>
-  </builderInfo>
-</module>

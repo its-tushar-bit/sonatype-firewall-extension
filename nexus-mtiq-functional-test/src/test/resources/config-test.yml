@@ -40,3 +40,8 @@ auth0:
   domain: a
   clientId: b
   clientSecret: c
+
+# for tests we disable the health checks
+mtiq-health:
+  type: mtiq-health
+  enabled: false

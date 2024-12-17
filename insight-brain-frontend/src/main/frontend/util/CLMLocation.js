@@ -8,7 +8,7 @@ import {
   always,
   chain,
   compose,
-  filter,
+  filter as ramdaFilter,
   ifElse,
   is,
   isNil,
@@ -1530,14 +1530,14 @@ export const getBillOfMaterialsComponentsUrl = (
   asc,
   vulnerabilityThreatLevels,
   dependencyTypes,
-  componentName
+  filter
 ) => {
   const rawParams = {
     page,
     pageSize,
     sortBy,
     asc,
-    componentName,
+    filter,
   };
 
   const listParams = {
@@ -1551,7 +1551,7 @@ export const getBillOfMaterialsComponentsUrl = (
     toPairs,
     reject(isNilOrEmpty)
   )(rawParams);
-  const isStringArray = ifElse(is(Array), filter(is(String)), always([]));
+  const isStringArray = ifElse(is(Array), ramdaFilter(is(String)), always([]));
   const listQueryTerms = compose(
     reject(isNilOrEmpty),
     chain(([key, values]) => map((v) => `${key}=${encodeURIComponent(v)}`, isStringArray(values))),

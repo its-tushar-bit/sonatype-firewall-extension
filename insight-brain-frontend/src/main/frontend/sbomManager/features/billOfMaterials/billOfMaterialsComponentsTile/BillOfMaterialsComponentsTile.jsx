@@ -68,22 +68,22 @@ import {
 
 const LOAD_COMPONENTS_DEBOUNCE_TIMEOUT_MS = 300;
 
-const ComponentsTileComponentNameSearch = ({ onSearch }) => {
+const ComponentsTileComponentSearch = ({ onSearch }) => {
   const handleOnChange = (value) => compose(onSearch, when(isNilOrEmpty, always(null)), when(is(String), trim))(value);
   return (
     <div className="bill-of-materials-components-tile-search">
       <NxFontAwesomeIcon icon={faSearch} />
       <NxStatefulTextInput
-        aria-label="Component Name Search"
-        id="component-name-search"
-        placeholder="Component Name"
+        aria-label="Component Search"
+        id="component-search"
+        placeholder="Search by component or license"
         onChange={handleOnChange}
       />
     </div>
   );
 };
 
-ComponentsTileComponentNameSearch.propTypes = {
+ComponentsTileComponentSearch.propTypes = {
   onSearch: PropTypes.func.isRequired,
 };
 
@@ -102,8 +102,8 @@ export default function BillOfMaterialsComponentsTile() {
 
   const loadComponents = () => dispatch(actions.loadComponents({ internalAppId, sbomVersion }));
   const debouncedLoadComponents = useCallback(debounce(loadComponents, LOAD_COMPONENTS_DEBOUNCE_TIMEOUT_MS), []);
-  const componentNameSearch = (searchTerm) => {
-    dispatch(actions.setComponentNameSearch(searchTerm));
+  const componentSearch = (searchTerm) => {
+    dispatch(actions.setComponentSearch(searchTerm));
     dispatch(actions.setCurrentPage(0));
     debouncedLoadComponents();
   };
@@ -300,7 +300,7 @@ export default function BillOfMaterialsComponentsTile() {
             <NxH2>Components</NxH2>
           </NxTile.HeaderTitle>
           <NxTile.HeaderActions className="sbom-manager-bill-of-materials-components-tile__actions">
-            <ComponentsTileComponentNameSearch onSearch={componentNameSearch} />
+            <ComponentsTileComponentSearch onSearch={componentSearch} />
             <NxButton variant="tertiary" onClick={toggleFilterDrawer} disabled={loadingComponents}>
               <NxFontAwesomeIcon icon={faFilter} />
               <span>Filter By</span>

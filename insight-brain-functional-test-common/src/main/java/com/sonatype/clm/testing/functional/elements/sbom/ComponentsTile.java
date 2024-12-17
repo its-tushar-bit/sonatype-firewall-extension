@@ -45,6 +45,10 @@ public class ComponentsTile
         .find(".sbom-manager-bill-of-materials-components-tile__component-name-content");
   }
 
+  public SelenideElement noComponentsColumn() {
+    return tableBodyRows().get(0).find("td");
+  }
+
   public ElementsCollection tableBodyRowsColumns(int row) {
     return tableBodyRows().get(row).findAll("td");
   }
@@ -78,7 +82,7 @@ public class ComponentsTile
   }
 
   public SelenideElement inputComponentSearch() {
-    return child("#component-name-search");
+    return child("#component-search");
   }
 
   public SelenideElement getLoadingSpinner() {

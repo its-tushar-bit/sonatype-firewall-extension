@@ -172,7 +172,7 @@ public class ThirdPartyFileCoordinateDAO
       String thirdPartyFileId,
       Set<CvssV3Severity> vulnerabilityThreatLevels,
       Set<ThirdPartyDependencyType> dependencyTypes,
-      String componentName,
+      String filterText,
       SbomComponentSortableField sortBy,
       boolean asc,
       int pageSize,
@@ -212,9 +212,9 @@ public class ThirdPartyFileCoordinateDAO
         "  LEFT JOIN " + getDatabaseSchema() + ".vulnerability_exploitability ve" + //
         "    ON cs.coordinate_security_id = ve.coordinate_security_id" + //
         " WHERE fc.third_party_file_id = ?10";
-    int indexForComponentName = 11;
-    MutableInt index = new MutableInt(indexForComponentName);
-    sQuery = generateComponentNameFilterQuery(componentName, index, sQuery);
+    int indexForFilter = 11;
+    MutableInt index = new MutableInt(indexForFilter);
+    sQuery = applyFilterText(filterText, index, sQuery);
     sQuery += generateHavingByDependencyTypes(dependencyTypes, dependencyTypesParams, index.intValue()) + //
         " GROUP BY fc.hash, fc.package_url, fc.name, fc.version, fc.display_name, fc.format, licenses_json ,fc" +
         ".dependency_type, fc.filenames, fc.file_coordinate_id, fc.match_state_id" + //
@@ -226,9 +226,9 @@ public class ThirdPartyFileCoordinateDAO
     try (TransactionContext tx = createTransactionContext()) {
       javax.persistence.Query paginationQuery = createPaginationQueryWithScoreRangeParams(
           thirdPartyFileId, pageSize, sQuery, offset, tx);
-      if (componentName != null && !componentName.isEmpty()) {
-        componentName = componentName.trim();
-        setComponentNameParameters(componentName, indexForComponentName, paginationQuery);
+      if (filterText != null && !filterText.isEmpty()) {
+        filterText = filterText.trim();
+        setFilterParameters(filterText, indexForFilter, paginationQuery);
       }
       dependencyTypesParams.forEach(paginationQuery::setParameter);
 
@@ -501,37 +501,38 @@ public class ThirdPartyFileCoordinateDAO
     return "";
   }
 
-  private String applyComponentNameFilter(String componentName,
-                                          int index)
+  private String applyFilter(String filterText,
+                             int index)
   {
-    if (!componentName.isEmpty()) {
+    if (!filterText.isEmpty()) {
       String query = " AND ((lower(fc.package_url) ~ lower(?" + index++ + "))" + //
-          " OR (lower(fc.name) LIKE lower(?" + index + ") OR lower(fc.version) LIKE lower(?" + index + ")))";
+          " OR (lower(fc.name) LIKE lower(?" + index + ") OR lower(fc.version) LIKE lower(?" + index + "))" +
+          " OR (lower(lic.licenses::TEXT) LIKE lower(?" + index + ")))";
 
       return query;
     }
     return "";
   }
 
-  private String applyComponentNameFilterArray(String componentName,
-                                          int index)
+  private String applyFilterArray(String filterText,
+                                  int index)
   {
-    if (!componentName.isEmpty()) {
-      return " (lower(fc.package_url) ~ lower(?" + index + "))";
+    if (!filterText.isEmpty()) {
+      return " (lower(fc.package_url) ~ lower(?" + index + ") OR lower(lic.licenses::TEXT) LIKE lower(?" + index + "))";
     }
     return "";
   }
 
-  private String generateComponentNameFilterQuery(String componentName, MutableInt index, String sQuery) {
-    if (componentName != null && !componentName.isEmpty()) {
-      if (componentName.contains(" : ") || componentName.contains(" ")) {
-        long count = Arrays.stream(componentName.split("\\s+:\\s+|\\s+"))
+  private String applyFilterText(String filterText, MutableInt index, String sQuery) {
+    if (filterText != null && !filterText.isEmpty()) {
+      if (filterText.contains(" : ") || filterText.contains(" ")) {
+        long count = Arrays.stream(filterText.split("\\s+:\\s+|\\s+"))
                 .filter(s -> !s.isEmpty())
                 .count();
         int i = 0;
         sQuery += " AND (";
         while (i < count) {
-          sQuery += applyComponentNameFilterArray(componentName, index.intValue());
+          sQuery += applyFilterArray(filterText, index.intValue());
           index.increment();
           i++;
           if (i < count) {
@@ -541,19 +542,19 @@ public class ThirdPartyFileCoordinateDAO
         sQuery += " ) ";
       }
       else {
-        sQuery += applyComponentNameFilter(componentName, index.intValue());
+        sQuery += applyFilter(filterText, index.intValue());
       }
     }
     return sQuery;
   }
 
-  private void setComponentNameParameters(
-      String componentName,
+  private void setFilterParameters(
+      String filterText,
       int index,
       javax.persistence.Query paginationQuery)
   {
-    if (StringUtils.containsAny(componentName, " : ", " ")) {
-      String[] coordinates = Arrays.stream(componentName.split("\\s+:\\s+|\\s+")) //
+    if (StringUtils.containsAny(filterText, " : ", " ")) {
+      String[] coordinates = Arrays.stream(filterText.split("\\s+:\\s+|\\s+")) //
           .filter(coordinate -> !coordinate.isEmpty()) //
           .map(this::urlEncodeCoordinate)
           .toArray(String[]::new);
@@ -564,11 +565,11 @@ public class ThirdPartyFileCoordinateDAO
       }
     }
     else {
-      String componentNameQuoted = urlEncodeCoordinate(componentName);
+      String filterTextQuoted = urlEncodeCoordinate(filterText);
 
-      paginationQuery.setParameter(11, "((?<=\\/)(.*" + componentNameQuoted + ".*)(?=\\@))|((?<=@)(.*"
-              + componentNameQuoted + "[^=]*)(?=(\\?|&|$)))");
-      paginationQuery.setParameter(12,'%' + componentName + '%');
+      paginationQuery.setParameter(11, "((?<=\\/)(.*" + filterTextQuoted + ".*)(?=\\@))|((?<=@)(.*"
+              + filterTextQuoted + "[^=]*)(?=(\\?|&|$)))");
+      paginationQuery.setParameter(12,'%' + filterText + '%');
     }
   }
 

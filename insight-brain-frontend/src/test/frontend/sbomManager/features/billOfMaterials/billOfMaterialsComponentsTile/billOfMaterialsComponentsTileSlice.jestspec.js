@@ -475,19 +475,19 @@ describe('billOfMaterialsComponentsTileSlice', function () {
     });
   });
 
-  describe('componentNameSearch', () => {
-    it('sets the correct componentNameSearch state', () => {
+  describe('componentSearch', () => {
+    it('sets the correct componentSearch state', () => {
       const state = {
         ...initialState,
-        componentNameSearch: null,
+        componentSearch: null,
       };
 
       const newState = reducer(state, {
-        type: 'billOfMaterialsComponentsTile/setComponentNameSearch',
+        type: 'billOfMaterialsComponentsTile/setComponentSearch',
         payload: 'Hello',
       });
 
-      expect(newState.componentNameSearch).toBe('Hello');
+      expect(newState.componentSearch).toBe('Hello');
     });
   });
 

@@ -384,7 +384,7 @@ public class ApiSbomService
       String version,
       Set<CvssV3Severity> vulnerabilityThreatLevels,
       Set<ThirdPartyDependencyType> dependencyTypes,
-      String componentName,
+      String filterText,
       SbomComponentSortableField sortBy,
       boolean asc,
       int pageSize,
@@ -394,7 +394,7 @@ public class ApiSbomService
     ThirdPartySbomMetadata thirdPartySbomMetadata = getThirdPartySbomMetadataNotNull(applicationId, version);
     SbomComponentListDTO sbomComponentListDTO =
         thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId(),
-            vulnerabilityThreatLevels, dependencyTypes, componentName, sortBy, asc, pageSize, page);
+            vulnerabilityThreatLevels, dependencyTypes, filterText, sortBy, asc, pageSize, page);
     sbomComponentListDTO.getResults().forEach(sbomComponentDTO -> {
       if (SystemConfigurationPropertyFeature.SBOM_POLICIES.isEnabled()) {
         try {

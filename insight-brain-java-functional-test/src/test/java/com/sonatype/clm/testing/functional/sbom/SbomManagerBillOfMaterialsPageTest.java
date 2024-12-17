@@ -43,6 +43,7 @@ import com.sonatype.insight.scan.file.SbomFormat;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.aether.util.version.GenericVersionScheme;
 import org.eclipse.aether.version.Version;
 import org.junit.Before;
@@ -901,6 +902,18 @@ public class SbomManagerBillOfMaterialsPageTest
     componentsTile.inputComponentSearch().setValue("geronimo-jpa_2.2_");
     tableRows.shouldHave(size(1));
     componentsTile.nameColum(0).shouldHave(text("geronimo-jpa_2.2_spec"));
+    componentsTile.inputComponentSearch().setValue("apac");
+    tableRows.shouldHave(size(4));
+    componentsTile.nameColum(0).shouldHave(text("org.apache.karaf"));
+    componentsTile.nameColum(1).shouldHave(text("org.apache.felix.converter"));
+    componentsTile.nameColum(2).shouldHave(text("insight-scanner-manifest-model"));
+    componentsTile.nameColum(3).shouldHave(text("insight-archive-utils"));
+    componentsTile.inputComponentSearch().setValue("epl");
+    tableRows.shouldHave(size(1));
+    componentsTile.nameColum(0).shouldHave(text("nexus-rest-jackson2"));
+    componentsTile.inputComponentSearch().setValue("MPL-2.0");
+    tableRows.shouldHave(size(1));
+    componentsTile.noComponentsColumn().shouldHave(text("No components found"));
   }
 
   private void insertComponentsTileSbomDataForSearchName() {
@@ -929,13 +942,17 @@ public class SbomManagerBillOfMaterialsPageTest
     List<String> componentNames = List.of("insight-scanner-manifest-model", "jackson-annotations",
         "nexus-rest-jackson2", "insight-archive-utils", "org.apache.felix.converter", "org.apache.karaf",
         "jss-plugin-global", "insight-scanner-tools", "glibc/libc6", "geronimo-jpa_2.2_spec");
+    List<String> licenses = List.of("Apache-2.0", "", "EPL-1.0", "Apache-2.0", "", "", "LGPL-3.0", "", "", "");
     for (int i = 0; i < 10; i++) {
       ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates(
           componentNames.get(i), "v-" + i);
       PackageUrlIdentifier packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
-      tempEntity.newThirdPartyFileCoordinate(
+      ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(
           thirdPartyScan.getThirdPartyFileId(), "s", "SPDX", componentNames.get(i), "v1", "h1",
           packageUrlIdentifier.getPackageUrl(), ThirdPartyDependencyType.DIRECT);
+      if (StringUtils.isNotEmpty(licenses.get(i))) {
+        tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, licenses.get(i), licenses.get(i), null);
+      }
     }
   }
 

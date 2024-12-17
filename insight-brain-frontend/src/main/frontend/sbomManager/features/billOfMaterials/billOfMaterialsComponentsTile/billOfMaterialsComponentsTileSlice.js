@@ -89,7 +89,7 @@ export const initialState = Object.freeze({
 
   filterDrawer: { ...filterDrawerInitialState },
 
-  componentNameSearch: null,
+  componentSearch: null,
 });
 
 // load-components
@@ -135,12 +135,9 @@ const loadComponents = createAsyncThunk(
   `${REDUCER_NAME}/loadComponents`,
   async ({ internalAppId, sbomVersion }, { getState, rejectWithValue }) => {
     const state = getState();
-    const {
-      sortConfiguration,
-      filterConfiguration,
-      pagination,
-      componentNameSearch,
-    } = selectBillOfMaterialsComponentsTile(state);
+    const { sortConfiguration, filterConfiguration, pagination, componentSearch } = selectBillOfMaterialsComponentsTile(
+      state
+    );
 
     const pickKeysWithTrueValue = compose(
       keys,
@@ -164,7 +161,7 @@ const loadComponents = createAsyncThunk(
           sortDirection,
           pickKeysWithTrueValue(filterConfiguration.vulnerabilityThreatLevels),
           pickKeysWithTrueValue(filterConfiguration.dependencyTypes),
-          componentNameSearch
+          componentSearch
         )
       )
       .then((response) => response.data)
@@ -237,8 +234,8 @@ const setCurrentPage = (state, { payload }) => {
 };
 
 // component-name-search
-const setComponentNameSearch = (state, { payload }) => {
-  state.componentNameSearch = payload;
+const setComponentSearch = (state, { payload }) => {
+  state.componentSearch = payload;
 };
 
 const billOfMaterialsComponentsTileSlice = createSlice({
@@ -254,7 +251,7 @@ const billOfMaterialsComponentsTileSlice = createSlice({
     setFilterVulnerabilityThreatLevels,
     setFilterDependencyTypes,
     setCurrentPage,
-    setComponentNameSearch,
+    setComponentSearch,
   },
   extraReducers: {
     [loadComponents.pending]: loadComponentsRequested,

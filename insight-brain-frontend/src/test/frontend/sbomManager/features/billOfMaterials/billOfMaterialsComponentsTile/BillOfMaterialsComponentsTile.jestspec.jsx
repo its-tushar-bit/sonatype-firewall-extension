@@ -185,7 +185,7 @@ describe('BillOfMaterialsComponentsTile', () => {
 
         filterDrawer: { ...filterDrawerInitialState },
 
-        componentNameSearch: null,
+        componentSearch: null,
       },
     };
 
@@ -240,7 +240,7 @@ describe('BillOfMaterialsComponentsTile', () => {
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
       const searchTextBox = screen.getByRole('textbox', {
-        name: /Component Name Search/i,
+        name: /Component Search/i,
       });
 
       expect(searchTextBox).toBeVisible();

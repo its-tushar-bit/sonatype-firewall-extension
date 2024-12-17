@@ -539,7 +539,7 @@ public class ApiSbomResourceTest
         .query("asc", true)
         .query("page", 1)
         .query("pageSize", "3")
-        .query("componentName", "slf4j-log4j")
+        .query("filter", "slf4j-log4j")
         .get();
 
     assertResponseStatus(200, response);
@@ -547,6 +547,74 @@ public class ApiSbomResourceTest
 
     assertThat(result).isNotNull();
     assertThat(result.getTotalResultsCount()).isEqualTo(2);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponentsByThirdPartyFileId_LicenseNameFilter() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
+
+    ThirdPartySbomMetadata sbomMetadata =
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata(ACTIVE, application.getId(), thirdPartyFile.getId());
+    dao.insert(sbomMetadata);
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("slf4j-log4j12", "1.7.12");
+    PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
+    ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s1", packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
+        "h1", packageUrlIdentifier1.getPackageUrl(), TRANSITIVE);
+
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("cxf-rt-transports-http-jetty",
+        "3.0.4");
+    PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
+    ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s2", packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
+        "h2", packageUrlIdentifier2.getPackageUrl(), DIRECT);
+
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createNpmCoordinates("slf4j-log4j", "2.4.0");
+    PackageUrlIdentifier packageUrlIdentifier3 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier3);
+    tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s3", packageUrlIdentifier3.getFormat(), packageUrlIdentifier3.getName(), packageUrlIdentifier3.getVersion(),
+        "h3", packageUrlIdentifier3.getPackageUrl(), UNSPECIFIED);
+
+    ComponentIdentifier componentIdentifier4 = ComponentIdentifier.createNpmCoordinates("d-license-blah", "3.5.0");
+    PackageUrlIdentifier packageUrlIdentifier4 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier4);
+    ThirdPartyFileCoordinate coordinate4 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s4", packageUrlIdentifier4.getFormat(), packageUrlIdentifier4.getName(), packageUrlIdentifier4.getVersion(),
+        "h4", packageUrlIdentifier4.getPackageUrl(), UNSPECIFIED);
+
+    tempEntity.newThirdPartyCoordinateLicense(coordinate1, "license-1", "License 1", "http://license1");
+    tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-1", "License 1", "http://license1");
+    tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-3", "SpecialChars %$3", "http://license3");
+    tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-4", "Another 4", "http://license4");
+    tempEntity.newThirdPartyCoordinateLicense(coordinate4, "some-5", "Some 5", "http://some5");
+
+    File reportFile = insightWork.getReportFile(application.getId(), thirdPartyScan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper.zipReport("/ApiSbomServicePolicyViolationsTest", tempDir), reportFile);
+
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, thirdPartyScan.getScanId());
+
+    HttpResponse response = restRequest()
+        .path(ApiSbomResource.SBOM_COMPONENTS_PATH)
+        .parameter(application.getId(), sbomMetadata.getSbomVersion())
+        .query("vulnerabilityThreatLevels", null)
+        .query("dependencyTypes", null)
+        .query("sortBy", null)
+        .query("asc", true)
+        .query("page", 1)
+        .query("pageSize", "3")
+        .query("filter", "license")
+        .get();
+
+    assertResponseStatus(200, response);
+    SbomComponentListDTO result = response.getBody(SbomComponentListDTO.class);
+
+    assertThat(result).isNotNull();
+    //componentIdentifier1, componentIdentifier2 match based on license text (license-x)
+    //while componentIdentifier4 is matched based on component name (d-license-blah)
+    assertThat(result.getTotalResultsCount()).isEqualTo(3);
   }
 
   @Test

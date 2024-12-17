@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import com.sonatype.clm.dto.model.License;
@@ -1219,6 +1220,114 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(result.getResults())
         .extracting(SbomComponentDTO::getPackageUrl)
         .containsExactly(packageUrlIdentifier1.getPackageUrl());
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponentsByThirdPartyFileId_LicenseFilter() {
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .build();
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("a-slf4j-log4j12", "1.7.12");
+    PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
+    ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s1", packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
+        "h1", packageUrlIdentifier1.getPackageUrl(), TRANSITIVE);
+
+    ComponentIdentifier componentIdentifier2 =
+        ComponentIdentifier.createNpmCoordinates("b-cxf-rt-transports-http-jetty",
+            "3.0.4");
+    PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
+    ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s2", packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
+        "h2", packageUrlIdentifier2.getPackageUrl(), DIRECT);
+
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createNpmCoordinates("c-slf4j-log4j", "2.4.0");
+    PackageUrlIdentifier packageUrlIdentifier3 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier3);
+    tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s3", packageUrlIdentifier3.getFormat(), packageUrlIdentifier3.getName(), packageUrlIdentifier3.getVersion(),
+        "h3", packageUrlIdentifier3.getPackageUrl(), UNSPECIFIED);
+
+    ComponentIdentifier componentIdentifier4 = ComponentIdentifier.createNpmCoordinates("d-license-blah", "3.5.0");
+    PackageUrlIdentifier packageUrlIdentifier4 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier4);
+    ThirdPartyFileCoordinate coordinate4 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s4", packageUrlIdentifier4.getFormat(), packageUrlIdentifier4.getName(), packageUrlIdentifier4.getVersion(),
+        "h4", packageUrlIdentifier4.getPackageUrl(), UNSPECIFIED);
+
+    tempEntity.newThirdPartyCoordinateLicense(coordinate1, "license-1", "License 1", "http://license1");
+    tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-2", "License 2", "http://license2");
+    tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-3", "SpecialChars %$3", "http://license3");
+    tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-4", "Another 4", "http://license4");
+    tempEntity.newThirdPartyCoordinateLicense(coordinate4, "some-5", "Some 5", "http://some5");
+
+    //testing with license id
+    SbomComponentListDTO result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        sbomMetadata.getThirdPartyFileId(), null, null, "license-1",
+        null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isOne();
+    SbomComponentDTO dto = result.getResults().get(0);
+    assertThat(dto.getComponentIdentifier()).isEqualTo(componentIdentifier1);
+    Set<License> licenses = result.getResults().get(0).getLicenses();
+    assertThat(licenses).hasSize(1);
+    assertThat(licenses).extracting(License::getLicenseId).containsExactly("license-1");
+
+    //testing with license id partial
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        sbomMetadata.getThirdPartyFileId(), null, null, "nse-",
+        null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(3);
+    //componentIdentifier1, componentIdentifier2 match based on license text (license-x)
+    //while componentIdentifier4 is matched based on component name (d-license-blah)
+    result.getResults().sort(Comparator.comparing(SbomComponentDTO::getName)); //sort results by name
+    dto = result.getResults().get(0);
+    assertThat(dto.getComponentIdentifier()).isEqualTo(componentIdentifier1);
+    licenses = dto.getLicenses();
+    assertThat(licenses).hasSize(1);
+    assertThat(licenses).extracting(License::getLicenseId).containsExactly("license-1");
+    dto = result.getResults().get(1);
+    assertThat(dto.getComponentIdentifier()).isEqualTo(componentIdentifier2);
+    licenses = dto.getLicenses();
+    assertThat(licenses).hasSize(3);
+    assertThat(licenses).extracting(License::getLicenseId)
+        .containsExactlyInAnyOrder("license-2", "license-3", "license-4");
+    dto = result.getResults().get(2);
+    assertThat(dto.getComponentIdentifier()).isEqualTo(componentIdentifier4); // matches component name 'd-license-blah'
+    licenses = dto.getLicenses();
+    assertThat(licenses).hasSize(1);
+    assertThat(licenses).extracting(License::getLicenseId).containsExactly("some-5");
+
+    //testing with license name
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        sbomMetadata.getThirdPartyFileId(), null, null, "Chars",
+        null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isOne();
+    dto = result.getResults().get(0);
+    assertThat(dto.getComponentIdentifier()).isEqualTo(componentIdentifier2);
+    licenses = dto.getLicenses();
+    assertThat(licenses).hasSize(3);
+    assertThat(licenses).extracting(License::getLicenseId)
+        .containsExactlyInAnyOrder("license-2", "license-3", "license-4");
+
+    //testing with license name special characters
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        sbomMetadata.getThirdPartyFileId(), null, null, "%$3",
+        null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isOne();
+    dto = result.getResults().get(0);
+    assertThat(dto.getComponentIdentifier()).isEqualTo(componentIdentifier2);
+    licenses = dto.getLicenses();
+    assertThat(licenses).hasSize(3);
+    assertThat(licenses).extracting(License::getLicenseId)
+        .containsExactlyInAnyOrder("license-2", "license-3", "license-4");
   }
 
   @Test

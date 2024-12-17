@@ -63,7 +63,7 @@ public class SourceControlMetricsTelemetryCollectorTest
 
     assertThat(collector.collectData().getAttributes())
         .isNotEmpty()
-        .hasSize(13)
+        .hasSize(15)
         .containsOnly(entry(TOTAL_SC_WITH_REMEDIATION_PRS_ENABLED, "0"),
             entry(TOTAL_APPLICATION_SC_ENTRIES, "0"),
             entry(TOTAL_APPLICATIONS, "0"),
@@ -72,6 +72,8 @@ public class SourceControlMetricsTelemetryCollectorTest
             entry(TOTAL_SC_PRS_SUGGESTED, "0"),
             entry(TOTAL_SC_APPLICATIONS_WITH_PRS, "0"),
             entry(TOTAL_SC_EXCEPTIONS_RAISED, "0"),
+            entry(TOTAL_SC_GOLDEN_PRS_CREATED, "0"),
+            entry(TOTAL_SC_GOLDEN_PRS_SUGGESTED, "0"),
             entry(TOTAL_PULL_REQUESTS_UPDATED_1_W_TO_1_M_AGO, 0),
             entry(TOTAL_PULL_REQUESTS_UPDATED_1_M_TO_2_M_AGO, 0),
             entry(TOTAL_PULL_REQUESTS_UPDATED_2_M_TO_3_M_AGO, 0),
@@ -96,13 +98,14 @@ public class SourceControlMetricsTelemetryCollectorTest
         new Application(), new Application(), new Application(), new Application()
     ));
     when(metrics.computeStatsAndReset())
-        .thenReturn(new AggregatedPRStats(Collections.singletonList(new ApplicationPRStats("foo", 1, 2, 3, 1))));
+        .thenReturn(new AggregatedPRStats(Collections.singletonList(new ApplicationPRStats("foo", 1, 2, 3, 1,
+            5, 6))));
 
     setupPrBranchTestData();
 
     assertThat(collector.collectData().getAttributes())
         .isNotEmpty()
-        .hasSize(13)
+        .hasSize(15)
         .containsOnly(entry(TOTAL_SC_WITH_REMEDIATION_PRS_ENABLED, "2"),
             entry(TOTAL_APPLICATION_SC_ENTRIES, "3"),
             entry(TOTAL_APPLICATIONS, "4"),
@@ -111,6 +114,8 @@ public class SourceControlMetricsTelemetryCollectorTest
             entry(TOTAL_SC_PRS_SUGGESTED, "3"),
             entry(TOTAL_SC_APPLICATIONS_WITH_PRS, "1"),
             entry(TOTAL_SC_EXCEPTIONS_RAISED, "1"),
+            entry(TOTAL_SC_GOLDEN_PRS_CREATED, "5"),
+            entry(TOTAL_SC_GOLDEN_PRS_SUGGESTED, "6"),
             entry(TOTAL_PULL_REQUESTS_UPDATED_1_W_TO_1_M_AGO, 1),
             entry(TOTAL_PULL_REQUESTS_UPDATED_1_M_TO_2_M_AGO, 2),
             entry(TOTAL_PULL_REQUESTS_UPDATED_2_M_TO_3_M_AGO, 1),

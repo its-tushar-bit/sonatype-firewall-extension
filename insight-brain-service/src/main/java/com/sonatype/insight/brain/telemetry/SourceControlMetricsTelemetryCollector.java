@@ -35,8 +35,13 @@ public class SourceControlMetricsTelemetryCollector
 
   public static final String TOTAL_SC_PRS_CREATED = "total_daily_source_control_pull_requests_created";
 
+  public static final String TOTAL_SC_GOLDEN_PRS_CREATED = "total_daily_source_control_golden_pull_requests_created";
+
   public static final String TOTAL_SC_PRS_SUGGESTED =
       "total_daily_source_control_pull_requests_suggested_for_remediation";
+
+  public static final String TOTAL_SC_GOLDEN_PRS_SUGGESTED =
+      "total_daily_source_control_golden_pull_requests_suggested_for_remediation";
 
   public static final String TOTAL_SC_APPLICATIONS_WITH_PRS =
       "total_daily_source_control_pull_requests_applications_with_prs";
@@ -92,6 +97,8 @@ public class SourceControlMetricsTelemetryCollector
     attributes.put(TOTAL_SC_PRS_SUGGESTED, String.valueOf(aggregatedPRStats.getTotalSuggestedPRs()));
     attributes.put(TOTAL_SC_APPLICATIONS_WITH_PRS, String.valueOf(aggregatedPRStats.getApplicationPRStats().size()));
     attributes.put(TOTAL_SC_EXCEPTIONS_RAISED, String.valueOf(aggregatedPRStats.getTotalRaisedExceptions()));
+    attributes.put(TOTAL_SC_GOLDEN_PRS_CREATED, String.valueOf(aggregatedPRStats.getSuccessfulGoldenPRs()));
+    attributes.put(TOTAL_SC_GOLDEN_PRS_SUGGESTED, String.valueOf(aggregatedPRStats.getTotalSuggestedGoldenPRs()));
 
     collectStaleBranchStats(attributes);
 

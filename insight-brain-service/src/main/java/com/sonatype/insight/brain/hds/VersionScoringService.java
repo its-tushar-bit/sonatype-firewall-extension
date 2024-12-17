@@ -30,6 +30,9 @@ public class VersionScoringService
 
   // Currently HDS only supports Maven version scoring.
   // Here at client side will have better performance if filtering out non-Maven formats.
+  // Change this to false when:
+  // 1. HDS supports more formats.
+  // 2. IQ considers golden versions of formats other than Maven.
   static final boolean MAVEN_VERSION_SCORE_ONLY = true;
 
   private final HdsClient hdsClient;

@@ -7,13 +7,14 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
 import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
+import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics.AggregatedPRStats;
@@ -21,14 +22,20 @@ import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics.Appl
 import com.sonatype.nexus.iq.manager.PullRequestResult;
 
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 public class SourceControlPullRequestMetricsTest
     extends AbstractComponentTest
 {
   private static final ComponentIdentifier MAVEN_COORDINATES =
       ComponentIdentifier.createMavenCoordinates("foo", "bar", "1.0");
+
+  @Mock
+  private PullRequestCommentingRemediationService mockPullRequestCommentingRemediationService;
 
   @Inject
   private SourceControlPullRequestMetrics metrics;
@@ -47,6 +54,9 @@ public class SourceControlPullRequestMetricsTest
 
   @Test
   public void test_computeStatsAndReset_withPrs() {
+    metrics = new SourceControlPullRequestMetrics(
+        sourceControlPullRequestResultDAO, mockPullRequestCommentingRemediationService);
+
     PullRequestResult success = new PullRequestResult();
     success.setCheckoutTime(1L);
     success.setRemediationTime(1L);
@@ -78,6 +88,9 @@ public class SourceControlPullRequestMetricsTest
     EnhancedPullRequestResult app2EnhancedSuccess = new EnhancedPullRequestResult(app2Success, new Date(),
         MAVEN_COORDINATES, "Bump bar to 1.1", false);
     metrics.addResult(bar.getId(), app2EnhancedSuccess);
+
+    when(mockPullRequestCommentingRemediationService.getRemediationVersion(
+        any(), any())).thenReturn(Optional.empty());
 
     AggregatedPRStats stats = metrics.computeStatsAndReset();
     assertThat(stats.getTotalTime()).isEqualTo(11L);

@@ -13,14 +13,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
 import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
+import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
+import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestResult;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
@@ -40,9 +45,14 @@ public class SourceControlPullRequestMetrics
 
   private final SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO;
 
+  private final PullRequestCommentingRemediationService remediationService;
+
   @Inject
-  public SourceControlPullRequestMetrics(SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO) {
+  public SourceControlPullRequestMetrics(SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO,
+                                         final PullRequestCommentingRemediationService remediationService)
+  {
     this.sourceControlPullRequestResultDAO = sourceControlPullRequestResultDAO;
+    this.remediationService = remediationService;
   }
 
   public void addResult(String applicationId, EnhancedPullRequestResult pullRequestResult) {
@@ -96,14 +106,39 @@ public class SourceControlPullRequestMetrics
           .filter(PullRequestResult::isSuccessful)
           .count();
 
+      List<EnhancedPullRequestResult> allGoldenResults = result.stream()
+          .filter(pr -> isGolden(pr.getTarget(), entry.getKey()))
+          .toList();
+
+      long successfulGoldenPRs = allGoldenResults.stream()
+          .map(EnhancedPullRequestResult::getTiming)
+          .filter(PullRequestResult::isSuccessful)
+          .count();
+
+      long possibleGoldenPRs = allGoldenResults.size();
+
       int possiblePRs = result.size();
 
       long exceptionsRaised = result.stream().filter(EnhancedPullRequestResult::isExceptionThrown).count();
 
       applicationPRStats
-          .add(new ApplicationPRStats(entry.getKey(), timeSpent, successfulPRs, possiblePRs, exceptionsRaised));
+          .add(new ApplicationPRStats(entry.getKey(), timeSpent, successfulPRs, possiblePRs, exceptionsRaised,
+              successfulGoldenPRs, possibleGoldenPRs));
     }
     return new AggregatedPRStats(applicationPRStats);
+  }
+
+  private boolean isGolden(ComponentIdentifier toVersion, final String appId) {
+    Optional<RemediationVersionDTO> remediationVersion =
+        remediationService.getRemediationVersion(toVersion, appId);
+    boolean isGolden = remediationVersion
+        .map(RemediationVersionDTO::getRemediationType)
+        .map(ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES::equals)
+        .orElse(false);
+    if (isGolden) {
+      log.debug("Golden PR created for application {} with target {}", appId, toVersion);
+    }
+    return isGolden;
   }
 
   private EnhancedPullRequestResult convert(SourceControlPullRequestResult sourceControlPullRequestResult) {
@@ -147,6 +182,14 @@ public class SourceControlPullRequestMetrics
       return getApplicationPRStats().stream().mapToLong(ApplicationPRStats::getExceptionsRaised).sum();
     }
 
+    public long getSuccessfulGoldenPRs() {
+      return getApplicationPRStats().stream().mapToLong(ApplicationPRStats::getSuccessfulGoldenPRs).sum();
+    }
+
+    public long getTotalSuggestedGoldenPRs() {
+      return getApplicationPRStats().stream().mapToLong(ApplicationPRStats::getTotalSuggestedGoldenPRs).sum();
+    }
+
     public List<ApplicationPRStats> getApplicationPRStats() {
       return applicationPRStats;
     }
@@ -158,6 +201,8 @@ public class SourceControlPullRequestMetrics
           ", successfulPRs=" + getSuccessfulPRs() +
           ", totalSuggestedPRs=" + getTotalSuggestedPRs() +
           ", totalExceptionsRaised=" + getTotalRaisedExceptions() +
+          ", successfulGoldenPRs=" + getSuccessfulGoldenPRs() +
+          ", totalSuggestedGoldenPRs=" + getTotalSuggestedGoldenPRs() +
           ", applicationPRStats=" + applicationPRStats +
           '}';
     }
@@ -175,18 +220,26 @@ public class SourceControlPullRequestMetrics
 
     private final long exceptionsRaised;
 
+    private final long successfulGoldenPRs;
+
+    private long totalSuggestedGoldenPRs;
+
     ApplicationPRStats(
         final String applicationId,
         final long totalTime,
         final long successfulPRs,
         final long totalSuggestedPRs,
-        final long exceptionsRaised)
+        final long exceptionsRaised,
+        final long successfulGoldenPRs,
+        final long totalSuggestedGoldenPRs)
     {
       this.applicationId = applicationId;
       this.totalTime = totalTime;
       this.successfulPRs = successfulPRs;
       this.totalSuggestedPRs = totalSuggestedPRs;
       this.exceptionsRaised = exceptionsRaised;
+      this.successfulGoldenPRs = successfulGoldenPRs;
+      this.totalSuggestedGoldenPRs = totalSuggestedGoldenPRs;
     }
 
     public String getApplicationId() {
@@ -209,6 +262,14 @@ public class SourceControlPullRequestMetrics
       return exceptionsRaised;
     }
 
+    public long getSuccessfulGoldenPRs() {
+      return successfulGoldenPRs;
+    }
+
+    public long getTotalSuggestedGoldenPRs() {
+      return totalSuggestedGoldenPRs;
+    }
+
     @Override
     public String toString() {
       return "ApplicationPRStats{" +
@@ -217,6 +278,7 @@ public class SourceControlPullRequestMetrics
           ", successfulPRs=" + successfulPRs +
           ", totalSuggestedPRs=" + totalSuggestedPRs +
           ", exceptionsRaised=" + exceptionsRaised +
+          ", successfulGoldenPRs=" + successfulGoldenPRs +
           '}';
     }
   }

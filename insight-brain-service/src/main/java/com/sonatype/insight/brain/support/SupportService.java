@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.support;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -17,7 +18,8 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +67,11 @@ import io.dropwizard.server.DefaultServerFactory;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.apache.commons.io.filefilter.AndFileFilter;
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.NotFileFilter;
+import org.apache.commons.io.filefilter.OrFileFilter;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,6 +120,8 @@ public class SupportService
 
   private final LdapUserMappingDAO ldapUserMappingDAO;
 
+  private final Set<String> clusterLogFileNames;
+
   @Inject
   public SupportService(final InsightConfig config,
                         final Configuration configuration,
@@ -144,10 +152,19 @@ public class SupportService
         work.getDataDir(),
         work.getTrashDir(),
         work.getSbomDir(),
-        work.getScanDir());
+        work.getScanDir(),
+        new File(config.getClusterDirectory(), "source-control"),
+        new File(config.getClusterDirectory(), "temp")
+    );
     this.dbDiagnostics = dbDiagnostics;
     this.ldapServerDAO = ldapServerDAO;
     this.ldapUserMappingDAO = ldapUserMappingDAO;
+    this.clusterLogFileNames = Sets.newHashSet(
+        "audit.log",
+        "request.log",
+        "clm-server.log",
+        "policy-violation.log"
+    );
   }
 
   File getWorkDir() {
@@ -485,9 +502,34 @@ public class SupportService
     AgeFileFilter ageFileFilter = new AgeFileFilter(todayStartTime.minusMillis(1), false /* acceptOlder */);
 
     AndFileFilter clusterLogFileFilter = new AndFileFilter(clusterLogRegexFileFilter, ageFileFilter);
+
+    // Append list of directories to exclude to the recursive search
+    IOFileFilter excludeDirectoriesFilter = getClusterExcludedDirectoriesAtTopLevelFilter();
+    clusterLogFileFilter.addFileFilter(excludeDirectoriesFilter);
+
     try {
-      Collection<File> clusterLogFiles =
-          FileUtils.listFiles(clusterDirectory, clusterLogFileFilter, excludeDirFilter());
+      List<File> clusterLogFiles = new ArrayList<>();
+
+      File[] clusterDirRootLogFiles =  clusterDirectory.listFiles(
+          (FileFilter) getClusterWhitelistLogFilesFilter());
+
+      // Add log files at cluster dir root level
+      if (clusterDirRootLogFiles != null) {
+        clusterLogFiles.addAll(List.of(clusterDirRootLogFiles));
+      }
+
+      // Get only directories at the cluster dir root level (non-recursive) excluding non-necessary ones
+      File[] filteredClusterTopLevelDirs =  clusterDirectory.listFiles(((FileFilter) DirectoryFileFilter.DIRECTORY
+          .and(excludeDirectoriesFilter)));
+
+      if (filteredClusterTopLevelDirs != null) {
+        // Traverse recursively to find log files
+        Arrays.stream(filteredClusterTopLevelDirs).forEach( topLevelDir -> {
+          clusterLogFiles.addAll( FileUtils.listFiles(topLevelDir, clusterLogFileFilter,
+              excludeDirFilter() ));
+        });
+      }
+
       log.debug("Found {} cluster log files matching the regex {}.", clusterLogFiles.size(), clusterLogFileRegex);
       for (File clusterLogFile : clusterLogFiles) {
         addFileIfExists(filesToZip, clusterLogFile, clusterLogFile.getName(), SupportFileType.CLUSTER_LOG, false);
@@ -499,14 +541,42 @@ public class SupportService
     }
   }
 
+  private IOFileFilter getClusterExcludedDirectoriesAtTopLevelFilter() {
+    AndFileFilter excludeDirectoriesAtTopLevelFilter = new AndFileFilter();
+    //Exclude paths at the root level of the cluster dir
+    excludedDirs.forEach(directoryToExclude -> {
+      //IOFileFilter prefixFileFilter = FileFilterUtils.prefixFileFilter(directoryToExclude.getPath());
+      IOFileFilter prefixFileFilter = FileFilterUtils.asFileFilter(pathname ->
+          pathname.getPath().startsWith(directoryToExclude.getPath()));
+
+      NotFileFilter excludeFileWithThisPathFilter = new NotFileFilter(prefixFileFilter);
+
+      excludeDirectoriesAtTopLevelFilter.addFileFilter( excludeFileWithThisPathFilter );
+    });
+
+    return excludeDirectoriesAtTopLevelFilter;
+  }
+
+  private IOFileFilter getClusterWhitelistLogFilesFilter() {
+    OrFileFilter listOfValidLogFiles = new OrFileFilter();
+    //Exclude paths at the root level of the cluster dir
+    clusterLogFileNames.forEach(logFilenameToSearch -> {
+      IOFileFilter regexFileFilter = new RegexFileFilter("^.*" + logFilenameToSearch + "$");
+      listOfValidLogFiles.addFileFilter( regexFileFilter );
+    });
+
+    return listOfValidLogFiles;
+  }
+
   @VisibleForTesting
   IOFileFilter excludeDirFilter() {
+    List<String> dirNamesToExclude = excludedDirs.stream().map(File::getName).toList();
     return new IOFileFilter() {
 
       @Override
       public boolean accept(File file) {
-        return excludedDirs.stream().noneMatch(excludeDir ->
-            file.getAbsolutePath().startsWith(excludeDir.getAbsolutePath()));
+        return dirNamesToExclude.stream().noneMatch(excludeDir ->
+            file.getAbsolutePath().contains("/" + excludeDir ));
       }
 
       @Override

@@ -87,6 +87,7 @@ describe('ListWaiversTable', () => {
         policyWaiverId: 'id1',
         createTime: '2023-12-28T18:29:30.649+0000',
         comment: 'waiver at app level',
+        reasonText: 'Mitigated externally',
       };
       const expectedSecondWaiver = {
         ...getBasicWaiverData(),
@@ -114,6 +115,7 @@ describe('ListWaiversTable', () => {
       ).toBeVisible();
       expect(within(rowAtAppLevel).getByText('Does not expire')).toBeVisible();
       expect(within(rowAtAppLevel).getByText('waiver at app level')).toBeVisible();
+      expect(within(rowAtAppLevel).getByText('Mitigated externally')).toBeVisible();
 
       const rowAtOrgLevel = rows[1];
       expect(within(rowAtOrgLevel).getByText('2023-12-14')).toBeVisible();
@@ -124,6 +126,8 @@ describe('ListWaiversTable', () => {
       ).toBeVisible();
       expect(within(rowAtOrgLevel).getByText('2023-12-21')).toBeVisible();
       expect(within(rowAtOrgLevel).getByText('waiver at org level')).toBeVisible();
+      expect(within(rowAtOrgLevel).getByText('Reason')).toBeVisible();
+      expect(within(rowAtOrgLevel).getByText('—')).toBeVisible();
     });
 
     it('with active waivers in descending order by expiry time', async () => {

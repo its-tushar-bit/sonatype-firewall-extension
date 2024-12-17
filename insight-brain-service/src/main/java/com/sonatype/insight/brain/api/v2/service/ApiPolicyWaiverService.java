@@ -17,6 +17,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -499,12 +500,15 @@ public class ApiPolicyWaiverService
     ComponentIdentifier componentIdentifier = policyViolation.getComponentIdentifier();
 
     Owner owner = ownerDAO.getById(ownerId);
+    final Map<String, PolicyWaiverReason> policyWaiversReasons = policyWaiverReasonDAO.getAll().stream()
+        .collect(Collectors.toMap(PolicyWaiverReason::getId, Function.identity(), (existing, replacement) -> existing));
 
     Map<Boolean, List<ApiPolicyWaiverDTO>> applicableWaivers = getAllApplicableWaiversWithAuthzCheck(owner).stream()
         .filter(policyWaiver -> filterWaiverByCriteria(policyId, constraintFactsJson, constraintFacts,
             componentIdentifier, hash, policyWaiver))
         .map(policyWaiver ->
-            ApiPolicyWaiverDTO.toDto(policyWaiver, ownerDAO.getById(policyWaiver.getOwnerId()), violationId))
+            ApiPolicyWaiverDTO.toDto(policyWaiver, ownerDAO.getById(policyWaiver.getOwnerId()), violationId,
+                policyWaiversReasons.get(policyWaiver.getWaiverReasonId())))
         .collect(partitioningBy(dto -> hasWaiverExpired(dto.expiryTime), toList()));
 
     ApiPolicyWaiversApplicableToViolationDTO apiPolicyWaivers = new ApiPolicyWaiversApplicableToViolationDTO();

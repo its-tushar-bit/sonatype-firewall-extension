@@ -1975,7 +1975,8 @@ public class TemporaryEntity
       ComponentMatcherStrategyForWaiver componentMatchStrategy,
       String comment)
   {
-    return newWaiver(hash, policyId, ownerId, constraintFacts, null, componentMatchStrategy, comment, null, null);
+    return newWaiver(hash, policyId, ownerId, constraintFacts, null, componentMatchStrategy, comment,
+        (Date) null, null);
   }
 
   public PolicyWaiver newWaiver(
@@ -1990,6 +1991,27 @@ public class TemporaryEntity
   {
     return newWaiver(hash, policyId, ownerId, constraintFacts, associatedPackageUrl, componentMatchStrategy, comment,
         createTime, null);
+  }
+
+  public PolicyWaiver newWaiver(
+      String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts,
+      String associatedPackageUrl,
+      ComponentMatcherStrategyForWaiver componentMatchStrategy,
+      String comment,
+      PolicyWaiverReason policyWaiverReason,
+      Date createTime)
+  {
+    PolicyWaiver waiver =
+        new PolicyWaiver(hash, policyId, ownerId, constraintFacts, associatedPackageUrl, componentMatchStrategy,
+            comment);
+    waiver.setWaiverReasonId(policyWaiverReason.getId());
+    waiver.setCreateTime(createTime);
+    addCreatorDataToWaiver(waiver);
+    waiverDAO.insert(waiver);
+    return waiver;
   }
 
   public PolicyWaiver newWaiver(
@@ -2028,7 +2050,7 @@ public class TemporaryEntity
       String comment)
   {
     return newWaiver(hash, policyId, ownerId, constraintFacts, associatedPackageUrl, componentMatchStrategy, comment,
-        null, null);
+        (Date) null, null);
   }
 
   public PolicyWaiver newWaiver(

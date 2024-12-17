@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
@@ -92,6 +92,11 @@ export default function ListWaiversTable(props) {
               'All'
             )}
           </NxReadOnly.Data>
+
+          <>
+            <NxReadOnly.Label>Reason</NxReadOnly.Label>
+            <NxReadOnly.Data className="iq-waivers-table__comment">{waiver.reasonText ?? '\u2014'}</NxReadOnly.Data>
+          </>
 
           {waiver.comment && (
             <>

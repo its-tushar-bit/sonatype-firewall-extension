@@ -160,13 +160,17 @@ public class ApiPolicyWaiverDTO
   /**
    * @since 1.181
    */
-  @JsonInclude(Include.NON_NULL)
   public String reasonText;
 
   /**
    * @since 1.185
    */
   public boolean expireWhenRemediationAvailable;
+
+  /**
+   * @since 1.186
+   */
+  public String policyWaiverReasonId;
 
   public static ApiPolicyWaiverDTO toDto(
       PolicyWaiver policyWaiver,
@@ -216,6 +220,7 @@ public class ApiPolicyWaiverDTO
 
     if (policyWaiverReason != null) {
       dto.reasonText = policyWaiverReason.getReasonText();
+      dto.policyWaiverReasonId = policyWaiverReason.getId();
     }
 
     return dto;
@@ -225,8 +230,11 @@ public class ApiPolicyWaiverDTO
     return toDto(policyWaiver, null, owner);
   }
 
-  public static ApiPolicyWaiverDTO toDto(PolicyWaiver policyWaiver, Owner owner, String policyViolationId) {
-    ApiPolicyWaiverDTO dto = toDto(policyWaiver, owner);
+  public static ApiPolicyWaiverDTO toDto(
+      PolicyWaiver policyWaiver, Owner owner, String policyViolationId,
+      PolicyWaiverReason policyWaiverReason)
+  {
+    ApiPolicyWaiverDTO dto = toDto(policyWaiver, policyWaiverReason, owner);
     dto.policyViolationId = policyViolationId;
 
     return dto;
@@ -237,7 +245,7 @@ public class ApiPolicyWaiverDTO
       Owner owner,
       String policyViolationId)
   {
-    ApiPolicyWaiverDTO dto = toDto(policyWaiver, owner, policyViolationId);
+    ApiPolicyWaiverDTO dto = toDto(policyWaiver, owner, policyViolationId, null);
     dto.constraintFactsJson = policyWaiver.getConstraintFactsJson();
     dto.constraintFacts = policyWaiver.getConstraintFacts();
 

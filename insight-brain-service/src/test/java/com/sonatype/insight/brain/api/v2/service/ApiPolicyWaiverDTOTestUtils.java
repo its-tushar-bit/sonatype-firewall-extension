@@ -26,7 +26,10 @@ public class ApiPolicyWaiverDTOTestUtils
       String creatorName,
       ComponentMatcherStrategyForWaiver matcherStrategy,
       String associatedPackageUrl,
-      ApiPolicyWaiverDTO actual)
+      String reasonText,
+      String policyWaiverReasonId,
+      ApiPolicyWaiverDTO actual
+  )
   {
     assertThat(actual.hash).isEqualTo(hash);
     assertThat(actual.policyId).isEqualTo(policyId);
@@ -40,5 +43,7 @@ public class ApiPolicyWaiverDTOTestUtils
     assertThat(actual.matcherStrategy).isEqualTo(matcherStrategy);
     assertThat(actual.creatorName).isEqualTo(creatorName);
     assertThat(actual.associatedPackageUrl).isEqualTo(associatedPackageUrl);
+    assertThat(actual.reasonText).isEqualTo(reasonText);
+    assertThat(actual.policyWaiverReasonId).isEqualTo(policyWaiverReasonId);
   }
 }

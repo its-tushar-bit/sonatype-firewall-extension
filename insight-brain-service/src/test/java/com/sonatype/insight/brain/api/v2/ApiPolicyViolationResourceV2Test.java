@@ -265,11 +265,11 @@ public class ApiPolicyViolationResourceV2Test
 
     assertThat(activeApplicableWaivers.size()).isEqualTo(3);
     assertApiPolicyWaiverDTO("hashX", policyId, orgId, "NewOrg", "", violationId, null,
-        "testuser", "Test User", ALL_VERSIONS, packageUrlAllVersionsWaiver, activeApplicableWaivers.get(0));
+        "testuser", "Test User", ALL_VERSIONS, packageUrlAllVersionsWaiver, null, null, activeApplicableWaivers.get(0));
     assertApiPolicyWaiverDTO(null, policyId, orgId, "NewOrg", "", violationId, null,
-        "testuser", "Test User", ALL_COMPONENTS, null, activeApplicableWaivers.get(1));
+        "testuser", "Test User", ALL_COMPONENTS, null, null, null, activeApplicableWaivers.get(1));
     assertApiPolicyWaiverDTO(null, policyId, appId, "NewApp", "A comment", violationId, expiringInFutureExpiryTime,
-        "testuser", "Test User", ALL_COMPONENTS, null, activeApplicableWaivers.get(2));
+        "testuser", "Test User", ALL_COMPONENTS, null, null, null, activeApplicableWaivers.get(2));
 
     List<ApiPolicyWaiverDTO> expiredApplicableWaivers = apiPolicyWaivers.expiredWaivers.stream()
         .sorted(Comparator.comparing(apiPolicyWaiverDTO -> apiPolicyWaiverDTO.createTime))
@@ -277,7 +277,8 @@ public class ApiPolicyViolationResourceV2Test
 
     assertThat(expiredApplicableWaivers.size()).isEqualTo(1);
     assertApiPolicyWaiverDTO("hash", policyId, appId, "NewApp", "", violationId, expiredExpiryTime,
-        "testuser", "Test User", EXACT_COMPONENT, packageUrlAllVersionsWaiver, expiredApplicableWaivers.get(0));
+        "testuser", "Test User", EXACT_COMPONENT, packageUrlAllVersionsWaiver, null, null,
+        expiredApplicableWaivers.get(0));
   }
 
   @Test
@@ -325,7 +326,7 @@ public class ApiPolicyViolationResourceV2Test
     assertThat(apiPolicyWaivers).isNotEmpty();
     assertThat(apiPolicyWaivers).hasSize(1);
     assertApiPolicyWaiverDTO("hashX", policyId, orgId, "NewOrg", "", violationId, null,
-        "testuser", "Test User", ALL_VERSIONS, packageUrlAllVersionsWaiver, apiPolicyWaivers[0]);
+        "testuser", "Test User", ALL_VERSIONS, packageUrlAllVersionsWaiver, null, null, apiPolicyWaivers[0]);
     assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo(apiPolicyWaivers[0].constraintFactsJson);
   }
 

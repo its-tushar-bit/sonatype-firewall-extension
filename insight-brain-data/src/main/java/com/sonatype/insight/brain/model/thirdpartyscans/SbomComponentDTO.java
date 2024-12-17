@@ -70,6 +70,8 @@ public class SbomComponentDTO
 
   private String fileCoordinateId;
 
+  private double releaseStatusPercentage;
+
   public SbomComponentDTO() {
     // for Jackson
   }
@@ -110,18 +112,19 @@ public class SbomComponentDTO
       vulnerabilitySeverityHighCount = longToInt(array[10]);
       vulnerabilitySeverityCriticalCount = longToInt(array[11]);
       percentageAnnotated = bigDecimalToDouble(array[12]);
+      releaseStatusPercentage =  bigDecimalToDouble(array[13]);
 
-      String dependencyTypeValue = (String) array[13];
+      String dependencyTypeValue = (String) array[14];
       if (StringUtils.isNotBlank(dependencyTypeValue)) {
         dependencyType = ThirdPartyDependencyType.fromValue(dependencyTypeValue).getDisplayName();
       }
-      fileCoordinateId = (String) array[14];
-      String filenamesString = (String) array[15];
+      fileCoordinateId = (String) array[15];
+      String filenamesString = (String) array[16];
       if (StringUtils.isNotBlank(filenamesString)) {
         filenames = List.of(filenamesString.split(","));
       }
 
-      String matchStateIdString = (String) array[16];
+      String matchStateIdString = (String) array[17];
       if (StringUtils.isNotBlank(matchStateIdString)) {
         matchStateId = matchStateIdString;
       }
@@ -274,6 +277,14 @@ public class SbomComponentDTO
 
   public void setFileCoordinateId(String fileCoordinateId) {
     this.fileCoordinateId = fileCoordinateId;
+  }
+
+  public double getReleaseStatusPercentage() {
+    return releaseStatusPercentage;
+  }
+
+  public void setReleaseStatusPercentage(double releaseStatusPercentage) {
+    this.releaseStatusPercentage = releaseStatusPercentage;
   }
 
   private int longToInt(Object number) {

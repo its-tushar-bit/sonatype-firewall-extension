@@ -194,6 +194,10 @@ public class ThirdPartyFileCoordinateDAO
         "       COUNT(CASE WHEN (cs.severity BETWEEN ?6 AND ?7) THEN 1 END) AS severity_high," + //
         "       COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END) AS severity_critical, " + //
         "       ROUND(COUNT(ve) * 100.0 / GREATEST(COUNT(cs), 1), 1) as percentage, " + //
+        "       COALESCE(ROUND((COUNT(CASE WHEN (ve.coordinate_security_id IS NOT NULL" + //
+        "           AND cs.severity >= ?6) THEN 1 END)) * 100 / NULLIF(COUNT(CASE WHEN " + //
+        "           (cs.coordinate_security_id IS NOT NULL AND cs.severity >= ?6) THEN 1 END)"  + //
+        "           ::decimal, 0), 1), 100) as release_status_percentage, " + //
         "       fc.dependency_type," + //
         "       fc.file_coordinate_id," + //
         "       fc.filenames," + //
@@ -237,7 +241,7 @@ public class ThirdPartyFileCoordinateDAO
       List<SbomComponentDTO> dtos = ((Stream<Object[]>) paginationQuery.getResultStream())
           .peek(array -> {
             if (result.getTotalResultsCount() == 0) {
-              result.setTotalResultsCount(((Long) array[17]).intValue());
+              result.setTotalResultsCount(((Long) array[18]).intValue());
             }
           })
           .map(SbomComponentDTO::new)
@@ -450,6 +454,9 @@ public class ThirdPartyFileCoordinateDAO
         break;
       case PERCENTAGE_ANNOTATED:
         query = " ORDER BY percentage " + order + tieBreaker;
+        break;
+      case RELEASE_STATUS_PERCENTAGE:
+        query = " ORDER BY release_status_percentage " + order + tieBreaker;
         break;
       case DISPLAY_NAME:
         query = " ORDER BY fc.display_name " + order + tieBreaker;

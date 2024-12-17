@@ -9,6 +9,7 @@ public enum SbomComponentSortableField
 {
   TYPE("dependency_type"),
   PERCENTAGE_ANNOTATED("percentage_annotated"),
+  RELEASE_STATUS_PERCENTAGE("release_status_percentage"),
   VULNERABILITIES("vulnerabilities"),
   DISPLAY_NAME("display_name");
 

@@ -138,14 +138,6 @@ make(
 
 void postBuild() {
   if (isDeployBranch(env, 'main')) {
-    def push = true
-    // If the git repo branch name isn't main or the project name isn't snapshot, skip the image push.
-    if (!isDeployBranch(env, 'main') || !currentBuild.fullProjectName.contains("snapshot")) {
-      echo 'Skipping push of docker image for non-deploy branch or release'
-      push = false
-    }
-    pushDockerImageIfDeployBranch(push)
-
     def pushMtiqImage = params.mtiqImagePushEnabled == null ? true : params.mtiqImagePushEnabled
     def imageVersion = mtiqImageVersion()
     pushMTIQDockerImage(pushMtiqImage, imageVersion)
@@ -202,54 +194,6 @@ void configureBranchJob() {
       copyArtifactPermission("/${projName}"),
       parameters(params)
   ])
-}
-
-void pushDockerImageIfDeployBranch(boolean push) {
-    if (!currentBuild.fullProjectName.contains("snapshot")) {
-      echo 'Skipping build of docker image on release branch'
-      return
-    }
-
-    String iqVersion = getMavenProjectVersion('.')
-    String imageVersion = "${iqVersion.split("-")[0]}-${env.BUILD_NUMBER}"
-    echo "iqVersion:'${iqVersion}'"
-    echo "buildnum: ${env.BUILD_NUMBER}"
-
-    String imageName = 'iq/snapshot'
-    String fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"
-
-    mvn jreleaserConfig(""), ' -pl :insight-brain -Pjdks'
-    mvn jreleaserConfig(""), ' -pl :nexus-iq-server jreleaser:assemble'
-
-    dir("nexus-iq-server") {
-        withSonatypeDockerRegistry() {
-            String latest = "${sonatypeDockerRegistryId()}/${imageName}:latest"
-            sh "docker buildx create --use --driver-opt image=${sonatypeDockerRegistryId()}/moby/buildkit"
-            sh "docker buildx build --platform=linux/amd64,linux/arm64 " +
-                " --build-arg IQ_SERVER_VERSION=${iqVersion} " +
-                (push ? " --push " : "") +
-                " --tag ${latest} " +
-                " --tag ${fullImage} ."
-        }
-    }
-
-    if (push) {
-        // Trigger downstream jobs for IQ
-        String targetImage = "${sonatypeDockerRegistryId()}/iq/staging:${imageVersion}"
-        build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/staging',
-              parameters: [
-                string(name: 'BASE_IMAGE', value: fullImage),
-                string(name: 'TARGET_IMAGE', value: targetImage),
-              ],
-              propagate: false)
-
-        build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/staging',
-              parameters: [
-                string(name: 'environment', value: 'Staging'),
-                string(name:'imageUrl', value: targetImage)
-              ],
-              propagate: false)
-    }
 }
 
 String mtiqImageVersion() {
@@ -364,14 +308,7 @@ Map<String, Closure> getDockerSteps(List<String> zipFiles) {
   }
   if (!isMergeQueueBranch(env)) {
     dockerSteps.putAll(
-        ["Push Docker Image If Deploy Branch": {
-          node('iq-large') {
-            stage("Push Docker Image If Deploy Branch") {
-              copyRepo(zipFiles)
-              pushDockerImageIfDeployBranch(false)
-            }
-          }
-        }, "Push MTIQ Docker Image"          : {
+        ["Push MTIQ Docker Image": {
           node('iq-large') {
             stage("Push MTIQ Docker Image") {
               copyRepo(zipFiles)

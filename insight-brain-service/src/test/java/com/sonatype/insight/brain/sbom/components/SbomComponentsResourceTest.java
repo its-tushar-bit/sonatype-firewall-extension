@@ -230,12 +230,12 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
             "s", "SPDX", "n1", "v1", "h1", "u1");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity1 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-            "r1", "d1", "l1", 5.5, "sd1", "f1");
+            "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity2 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-            "r2", "d2", "l2", 7.5, "sd2", "f1");
+            "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-            "r3", "d3", "l3", 3.5, "sd3", "f3");
+            "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity1,
             "r1", "s1", "j1", "r1", "d1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
@@ -261,7 +261,7 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
   }
 
   @Test
-  public void testGetSbomSummaryForComponents_DepedencyType() throws Exception {
+  public void testGetSbomSummaryForComponents_DependencyType() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan();
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -277,18 +277,18 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
             "s", "SPDX", "n1", "v1", "h1", "u1", ThirdPartyDependencyType.TRANSITIVE);
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity1 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1,
-            "r1", "d1", "l1", 5.5, "sd1", "f1");
+            "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity2 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1,
-            "r2", "d2", "l2", 7.5, "sd2", "f1");
+            "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1,
-            "r3", "d3", "l3", 3.5, "sd3", "f3");
+            "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2,
-            "r1", "d1", "l1", 5.5, "sd1", "f1");
+            "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2,
-            "r2", "d2", "l2", 7.5, "sd2", "f1");
+            "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2,
-            "r3", "d3", "l3", 3.5, "sd3", "f3");
+            "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity1,
             "r1", "s1", "j1", "r1", "d1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,

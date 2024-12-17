@@ -132,7 +132,7 @@ public class SbomManagerBillOfMaterialsPageTest
         tempEntity.newThirdPartyFileCoordinate(scannedFile.getId(),
             "s", "SPDX", "n1", "v1", "h1", "u1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r1", "d1", "l1", 5.5, "sd1", "f1");
+        "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
     sbomMetadata.setCreatedAt(new Date(0));
     thirdPartySbomMetadataDAO.update(sbomMetadata);
     refreshOrOpen(IndexPage.url());
@@ -151,11 +151,11 @@ public class SbomManagerBillOfMaterialsPageTest
         tempEntity.newThirdPartyFileCoordinate(scannedFile.getId(),
             "s", "SPDX", "n1", "v1", "h1", "u1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r1", "d1", "l1", 5.5, "sd1", "f1");
+        "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r2", "d2", "l2", 7.5, "sd2", "f1");
+        "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r3", "d3", "l3", 3.5, "sd3", "f3");
+        "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     sbomMetadata.setCreatedAt(new Date(0));
     thirdPartySbomMetadataDAO.update(sbomMetadata);
     refreshOrOpen(IndexPage.url());
@@ -175,11 +175,11 @@ public class SbomManagerBillOfMaterialsPageTest
         tempEntity.newThirdPartyFileCoordinate(scannedFile.getId(),
             "s", "SPDX", "n1", "v1", "h1", "u1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r1", "d1", "l1", 5.5, "sd1", "f1");
+        "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r2", "d2", "l2", 7.5, "sd2", "f1");
+        "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r3", "d3", "l3", 3.5, "sd3", "f3");
+        "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     sbomMetadata.setCreatedAt(new Date(0));
     thirdPartySbomMetadataDAO.update(sbomMetadata);
     refreshOrOpen(IndexPage.url());
@@ -200,11 +200,11 @@ public class SbomManagerBillOfMaterialsPageTest
         tempEntity.newThirdPartyFileCoordinate(scannedFile.getId(),
             "s", "SPDX", "n1", "v1", "h1", "u1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r1", "d1", "l1", 5.5, "sd1", "f1");
+        "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r2", "d2", "l2", 7.5, "sd2", "f1");
+        "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r3", "d3", "l3", 3.5, "sd3", "f3");
+        "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     sbomMetadata.setCreatedAt(new Date(0));
     thirdPartySbomMetadataDAO.update(sbomMetadata);
     SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(false);
@@ -228,13 +228,13 @@ public class SbomManagerBillOfMaterialsPageTest
         "have been annotated with exploitability information")).shouldBe(visible);
 
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r1", "d1", "l1", 5.5, "sd1", "f1");
+        "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity1 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r2", "d2", "l2", 7.5, "sd2", "f1");
+        "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity2 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r3", "d3", "l3", 3.5, "sd3", "f3");
+        "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity1,
         "r1", "s1", "j1", "r1", "d1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
@@ -263,13 +263,13 @@ public class SbomManagerBillOfMaterialsPageTest
         tempEntity.newThirdPartyFileCoordinate(scannedFile.getId(),
             "s", "SPDX", "n1", "v1", "h1", "u1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r1", "d1", "l1", 5.5, "sd1", "f1");
+        "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity1 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r2", "d2", "l2", 7.5, "sd2", "f1");
+        "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity2 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r3", "d3", "l3", 3.5, "sd3", "f3");
+        "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity1,
         "r1", "s1", "j1", "r1", "d1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
@@ -664,7 +664,7 @@ public class SbomManagerBillOfMaterialsPageTest
             packageUrlIdentifier.getPackageUrl(), ThirdPartyDependencyType.TRANSITIVE);
         double severity = 0.1 * i * 2;
         ThirdPartyCoordinateSecurity coordinateSecurity = tempEntity.newThirdPartyCoordinateSecurity(
-            thirdPartyFileCoordinate, "r1", "d1", "l1", severity <= 10 ? severity : 10, "sd1",
+            thirdPartyFileCoordinate, "r1", sbomMetadata.getId(), "d1", "l1", severity <= 10 ? severity : 10, "sd1",
             "f1");
         tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity, coordinateSecurity.getRefId(),
             "state", "justification", "response", "detail");

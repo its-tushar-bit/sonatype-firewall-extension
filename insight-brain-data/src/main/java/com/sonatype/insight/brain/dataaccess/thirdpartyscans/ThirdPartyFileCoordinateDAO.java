@@ -326,10 +326,8 @@ public class ThirdPartyFileCoordinateDAO
         "* 100 / NULLIF(COUNT(CASE WHEN (cs.coordinate_security_id IS NOT NULL AND cs.severity >= ?6) THEN 1 END)" +
         "::decimal, 0), 1), 100) as releaseStatusPercentage" + //
         " FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
-        " JOIN " + getDatabaseSchema() + ".file_coordinate fc" + //
-        " ON fc.third_party_file_id = sm.third_party_file_id" + //
         " LEFT JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
-        " ON cs.file_coordinate_id = fc.file_coordinate_id" + //
+        " ON cs.sbom_metadata_id = sm.sbom_metadata_id" + //
         " LEFT JOIN " + getDatabaseSchema() + ".vulnerability_exploitability vex" + //
         " ON cs.coordinate_security_id = vex.coordinate_security_id" + //
         " WHERE sm.application_id = ?10" + //

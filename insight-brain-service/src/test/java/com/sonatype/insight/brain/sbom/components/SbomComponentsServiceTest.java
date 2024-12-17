@@ -581,7 +581,7 @@ public class SbomComponentsServiceTest
   }
 
   @Test
-  public void testGetSbomSummaryForComponents_DepedencyType() throws IOException {
+  public void testGetSbomSummaryForComponents_DependencyType() throws IOException {
     Application app = tempEntity.newApplicationWithParent();
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan();
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)

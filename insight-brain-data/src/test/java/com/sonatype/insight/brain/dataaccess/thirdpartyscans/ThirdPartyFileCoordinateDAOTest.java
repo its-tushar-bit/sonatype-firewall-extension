@@ -303,12 +303,12 @@ public class ThirdPartyFileCoordinateDAOTest
     ThirdPartyFileCoordinate c2 = tempEntity.newThirdPartyFileCoordinate(file2, "s2", "f2", "n2", "v2");
     ThirdPartyFileCoordinate c3 = tempEntity.newThirdPartyFileCoordinate(file3, "s3", "f3", "n3", "v3");
 
-    tempEntity.newThirdPartyCoordinateSecurity(c1, "r1", "d1", "l1", 3.5F, "sd1", "f1");
-    tempEntity.newThirdPartyCoordinateSecurity(c1, "r2", "d2", "l2", 7.5F, "sd2", "f2");
-    tempEntity.newThirdPartyCoordinateSecurity(c2, "r3", "d3", "l3", 1.5F, "sd3", "f3");
-    tempEntity.newThirdPartyCoordinateSecurity(c2, "r4", "d4", "l4", 0.5F, "sd4", "f4");
-    tempEntity.newThirdPartyCoordinateSecurity(c2, "r5", "d5", "l5", 4.7F, "sd5", "f5");
-    tempEntity.newThirdPartyCoordinateSecurity(c2, "r6", "d6", "l6", 0F, "sd6", "f6");
+    tempEntity.newThirdPartyCoordinateSecurity(c1, "r1", sbom1.getId(), "d1", "l1", 3.5F, "sd1", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(c1, "r2", sbom1.getId(), "d2", "l2", 7.5F, "sd2", "f2");
+    tempEntity.newThirdPartyCoordinateSecurity(c2, "r3", sbom2.getId(), "d3", "l3", 1.5F, "sd3", "f3");
+    tempEntity.newThirdPartyCoordinateSecurity(c2, "r4", sbom2.getId(), "d4", "l4", 0.5F, "sd4", "f4");
+    tempEntity.newThirdPartyCoordinateSecurity(c2, "r5", sbom2.getId(), "d5", "l5", 4.7F, "sd5", "f5");
+    tempEntity.newThirdPartyCoordinateSecurity(c2, "r6", sbom2.getId(), "d6", "l6", 0F, "sd6", "f6");
     tempEntity.newThirdPartyCoordinateSecurity(c3, "r7", "d7", "l7", 1F, "sd7", "f7");
 
     ThirdPartySbomMetadataSummaryListDTO result =

@@ -69,6 +69,7 @@ CREATE TABLE coordinate_security (
   CONSTRAINT coordinate_security_uk UNIQUE (file_coordinate_id, ref_id),
   CONSTRAINT coordinate_security_fk FOREIGN KEY (file_coordinate_id) REFERENCES file_coordinate(file_coordinate_id)
 );
+CREATE INDEX coordinate_security_sbom_metadata_id_idx ON coordinate_security (sbom_metadata_id);
 
 CREATE TABLE coordinate_license (
   coordinate_license_id VARCHAR(50) NOT NULL,

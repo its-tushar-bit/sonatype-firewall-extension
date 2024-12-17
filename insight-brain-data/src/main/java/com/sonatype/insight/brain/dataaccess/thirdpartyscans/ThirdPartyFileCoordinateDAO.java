@@ -284,10 +284,8 @@ public class ThirdPartyFileCoordinateDAO
         "       COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END)," + //
         "       COUNT(*) OVER() AS full_count" + //
         " FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
-        "  LEFT JOIN " + getDatabaseSchema() + ".file_coordinate fc" + //
-        "    ON fc.third_party_file_id = sm.third_party_file_id" + //
         "  LEFT JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
-        "    ON cs.file_coordinate_id = fc.file_coordinate_id" + //
+        "    ON cs.sbom_metadata_id = sm.sbom_metadata_id" + //
         " WHERE sm.application_id = ?10" + //
         "   AND sm.status = ?11" + //
         " GROUP BY sm.sbom_version, sm.spec, sm.spec_version, sm.created_at, sm.is_valid" + //

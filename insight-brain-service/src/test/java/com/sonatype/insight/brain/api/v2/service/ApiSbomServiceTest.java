@@ -423,16 +423,18 @@ public class ApiSbomServiceTest
     ThirdPartyFile file1 = tempEntity.newThirdPartyFile("CycloneDX-bom.xml");
     ThirdPartyFile file2 = tempEntity.newThirdPartyFile("SPDX-spdx.json");
 
-    tempEntity.newThirdPartySbomMetadata(file1.getId(), application.getId(), ACTIVE, file1.getFilename());
-    tempEntity.newThirdPartySbomMetadata(file2.getId(), application.getId(), ACTIVE, file2.getFilename());
+    ThirdPartySbomMetadata sbom1 =
+        tempEntity.newThirdPartySbomMetadata(file1.getId(), application.getId(), ACTIVE, file1.getFilename());
+    ThirdPartySbomMetadata sbom2 =
+        tempEntity.newThirdPartySbomMetadata(file2.getId(), application.getId(), ACTIVE, file2.getFilename());
 
     ThirdPartyFileCoordinate c1 = tempEntity.newThirdPartyFileCoordinate(file1, "s1", "f1", "n1", "v1");
     ThirdPartyFileCoordinate c2 = tempEntity.newThirdPartyFileCoordinate(file2, "s2", "f2", "n2", "v2");
 
-    tempEntity.newThirdPartyCoordinateSecurity(c1, "r1", "d1", "l1", 3.5F, "sd1", "f1");
-    tempEntity.newThirdPartyCoordinateSecurity(c1, "r2", "d2", "l2", 7.5F, "sd2", "f2");
-    tempEntity.newThirdPartyCoordinateSecurity(c2, "r3", "d3", "l3", 1.5F, "sd3", "f3");
-    tempEntity.newThirdPartyCoordinateSecurity(c2, "r4", "d4", "l4", 0.5F, "sd4", "f4");
+    tempEntity.newThirdPartyCoordinateSecurity(c1, "r1", sbom1.getId(), "d1", "l1", 3.5F, "sd1", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(c1, "r2", sbom1.getId(), "d2", "l2", 7.5F, "sd2", "f2");
+    tempEntity.newThirdPartyCoordinateSecurity(c2, "r3", sbom2.getId(), "d3", "l3", 1.5F, "sd3", "f3");
+    tempEntity.newThirdPartyCoordinateSecurity(c2, "r4", sbom2.getId(), "d4", "l4", 0.5F, "sd4", "f4");
 
     ThirdPartySbomMetadataSummaryListDTO resultList =
         service.getSbomMetadataSummaryForApplication(application.getId(), "asc", 5, 1);

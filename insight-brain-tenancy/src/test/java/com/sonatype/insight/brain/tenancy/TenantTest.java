@@ -35,6 +35,7 @@ public class TenantTest
     new Tenant("a-b-c");
     new Tenant("a00");
     new Tenant("abc-0123");
+    new Tenant("1-slug-with-number-start");
     new Tenant(StringUtils.repeat("a", 61));
   }
 
@@ -56,8 +57,6 @@ public class TenantTest
         .hasMessage("slug-with_underscore is not a valid tenant slug");
     assertThatThrownBy(() -> new Tenant("slug-with.dot")).isInstanceOfAny(InvalidTenantSlugException.class)
         .hasMessage("slug-with.dot is not a valid tenant slug");
-    assertThatThrownBy(() -> new Tenant("1-slug-with-number-start")).isInstanceOfAny(InvalidTenantSlugException.class)
-        .hasMessage("1-slug-with-number-start is not a valid tenant slug");
     assertThatThrownBy(() -> new Tenant("-slug-with-hyphen-start")).isInstanceOfAny(InvalidTenantSlugException.class)
         .hasMessage("-slug-with-hyphen-start is not a valid tenant slug");
     assertThatThrownBy(() -> new Tenant("slug-with-hyphen-end-")).isInstanceOfAny(InvalidTenantSlugException.class)

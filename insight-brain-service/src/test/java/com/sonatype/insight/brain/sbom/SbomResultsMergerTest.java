@@ -185,7 +185,7 @@ public class SbomResultsMergerTest
     assertThat(tpfc1.getName()).isEqualTo("orange");
     assertThat(tpfc1.getVersion()).isEqualTo("1.0.1");
     assertThat(tpfc1.getHash()).isEqualTo("093080a1a4bbd2750541");
-    assertThat(tpfc1.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+    assertThat(tpfc1.getIdentificationSources()).isEqualTo("SBOM");
     assertThat(tpfc1.getMatchStateId()).isEqualTo("exact");
     assertThat(tpfc1.getOccurrencesList()).isNotEmpty().hasSize(1);
     assertThat(tpfc1.getOccurrencesList().get(0)).isEqualTo("dependency:/SBOM-bom.json/pkg:pypi\\orange@1.0.1");
@@ -687,7 +687,7 @@ public class SbomResultsMergerTest
     merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
 
     thirdPartyFileCoordinate = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate.getId());
-    assertThat(thirdPartyFileCoordinate.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+    assertThat(thirdPartyFileCoordinate.getIdentificationSources()).isEqualTo("SBOM");
 
     List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());
@@ -845,7 +845,7 @@ public class SbomResultsMergerTest
     merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
 
     thirdPartyFileCoordinate = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate.getId());
-    assertThat(thirdPartyFileCoordinate.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+    assertThat(thirdPartyFileCoordinate.getIdentificationSources()).isEqualTo("SBOM");
 
     List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());

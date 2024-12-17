@@ -33,6 +33,8 @@ import java.util.zip.GZIPOutputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.AnalysisSource;
+import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.IdentificationSource;
@@ -108,6 +110,7 @@ import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.report.DependencyResolver.FIELD_ANALYZER_FEATURES;
 import static com.sonatype.insight.brain.report.DependencyResolver.MATCH_STATE;
 import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
@@ -470,7 +473,8 @@ public class SbomResultsMerger
         sbomComponent.setFilenamesList(filenames);
       }
     }
-    updateComponentIdentifiedAsSonatype(sbomComponent);
+    setSonatypeIdentificationSourceIfApplicable(bomNode, sbomComponent);
+    thirdPartyFileCoordinateDAO.update(sbomComponent);
     mergeSecurityData(sonatypeVulnerabilityResults, bomComponentIdentifier, sbomComponent, thirdPartySbomMetadata);
     mergeLicenseData(sonatypeLicenseResults, bomComponentIdentifier, sbomComponent);
   }
@@ -671,7 +675,7 @@ public class SbomResultsMerger
     String bomPurl = getBomPurl(componentNode, componentIdentifier);
     component.setPackageUrl(bomPurl);
     component.setSource("Sonatype");
-    component.setIdentificationSources("Sonatype");
+    setSonatypeIdentificationSourceIfApplicable(componentNode, component);
     thirdPartyFileCoordinateDAO.insert(component);
     return component;
   }
@@ -1057,5 +1061,20 @@ public class SbomResultsMerger
       sbomComponent = null;
     }
     return sbomComponent;
+  }
+
+  private void setSonatypeIdentificationSourceIfApplicable(JsonNode componentJsonNode,
+                                                           ThirdPartyFileCoordinate thirdPartyFileCoordinate)
+  {
+    try {
+      AnalyzerFeatures analyzerFeatures =
+          JsonUtils.asPojo(componentJsonNode.get(FIELD_ANALYZER_FEATURES), AnalyzerFeatures.class);
+      if (analyzerFeatures != null && analyzerFeatures.getAnalysisSource() == AnalysisSource.SDS) {
+        thirdPartyFileCoordinate.addIdentificationSource("Sonatype");
+      }
+    }
+    catch (IOException e) {
+      log.debug("Unable to read analysis features for component", e);
+    }
   }
 }

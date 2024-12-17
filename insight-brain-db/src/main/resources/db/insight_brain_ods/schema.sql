@@ -378,6 +378,7 @@ CREATE TABLE policy_evaluation (
   initiator varchar(60) NOT NULL,
   scan_trigger_type varchar(50) NOT NULL,
   client_scan_type varchar(50) NULL,
+  branch_name varchar(512) NULL,
   CONSTRAINT policy_evaluation_pk PRIMARY KEY (policy_evaluation_id),
   CONSTRAINT policy_evaluation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
 );

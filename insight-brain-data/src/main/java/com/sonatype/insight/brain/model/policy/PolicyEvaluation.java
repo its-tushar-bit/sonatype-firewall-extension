@@ -67,7 +67,6 @@ public class PolicyEvaluation
   @Enumerated(EnumType.STRING)
   private ScanTriggerType scanTriggerType;
 
-
   /**
    * @since 1.160.0
    * Entities before the version 1.160 will have a null value, which indicates an unknown clientScanType.
@@ -75,6 +74,9 @@ public class PolicyEvaluation
   @Column(name = "client_scan_type")
   @Enumerated(EnumType.STRING)
   private ClientScanType clientScanType;
+
+  @Column(name = "branch_name")
+  private String branchName;
 
   public PolicyEvaluation() {
   }
@@ -211,6 +213,14 @@ public class PolicyEvaluation
     this.clientScanType = clientScanType;
   }
 
+  public String getBranchName() {
+    return branchName;
+  }
+
+  public void setBranchName(String branchName) {
+    this.branchName = branchName;
+  }
+
   public boolean wasInternallyTriggered() {
     return ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING == scanTriggerType
         || ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST == scanTriggerType
@@ -219,17 +229,20 @@ public class PolicyEvaluation
 
   @Override
   public String toString() {
-    return "PolicyEvaluation{" + //
-        "id='" + id + '\'' + //
-        ", applicationId='" + applicationId + '\'' + //
-        ", stageTypeId='" + stageTypeId + '\'' + //
-        ", scanId='" + scanId + '\'' + //
-        ", isReevaluation=" + isReevaluation + //
-        ", isForMonitoring=" + isForMonitoring + //
-        ", isForObsoleteScan=" + isForObsoleteScan + //
-        ", time=" + time + " (" + (time == null ? "" : time.getTime()) + ")" + //
-        ", commitHash='" + commitHash + '\'' + //
-        ", initiator='" + initiator + '\'' + //
+    return "PolicyEvaluation{" +
+        "id='" + id + '\'' +
+        ", applicationId='" + applicationId + '\'' +
+        ", stageTypeId='" + stageTypeId + '\'' +
+        ", scanId='" + scanId + '\'' +
+        ", isForObsoleteScan=" + isForObsoleteScan +
+        ", isReevaluation=" + isReevaluation +
+        ", isForMonitoring=" + isForMonitoring +
+        ", time=" + time +
+        ", commitHash='" + commitHash + '\'' +
+        ", initiator='" + initiator + '\'' +
+        ", scanTriggerType=" + scanTriggerType +
+        ", clientScanType=" + clientScanType +
+        ", branchName='" + branchName + '\'' +
         '}';
   }
 }

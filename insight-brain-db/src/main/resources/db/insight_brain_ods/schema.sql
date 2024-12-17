@@ -261,6 +261,7 @@ CREATE TABLE membership_mapping (
   CONSTRAINT membership_mapping_role_fk FOREIGN KEY (role_id) REFERENCES role(role_id)
 );
 CREATE INDEX membership_mapping_member_name_idx ON membership_mapping(member_name);
+CREATE INDEX membership_mapping_role_id_member_type_member_name_idx ON membership_mapping (role_id, member_type, member_name);
 INSERT INTO membership_mapping (membership_mapping_id, context_id, role_id, member_name, member_type) VALUES ('1d5d75c5a86742549bbf3767a985c6ee', 'global', '1b92fae3e55a411793a091fb821c422d', 'admin', 'USER');
 INSERT INTO membership_mapping (membership_mapping_id, context_id, role_id, member_name, member_type) VALUES ('c20a1df68fa948b787f3d1962411fb50', 'global', 'b9646757e98e486da7d730025f5245f8', 'admin', 'USER');
 

@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -24,6 +25,8 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * @since 1.7
@@ -234,15 +237,48 @@ public class MembershipMappingDAO
   }
 
   /**
-   * @since 1.15.0
+   * This method may load tons (even millions) of records in production.
+   * It is ok to use it for tests where there isn't a lot of data, but not in production, where it may consume a lot of
+   * memory and have very poor performance.
    */
-  public List<MembershipMapping> getByRoleIds(Set<String> roleIds) {
+  List<MembershipMapping> getByRoleIdsForTestsOnly(Set<String> roleIds) {
     if (roleIds.isEmpty()) {
       return Collections.emptyList();
     }
     String sQuery = "SELECT entity FROM MembershipMapping entity" //
         + " WHERE entity.roleId IN ?1";
     return getList(sQuery, roleIds);
+  }
+
+  public int getCountByRoleIdAndMemberType(String roleId, MemberType memberType) {
+    String sQuery = """
+        SELECT COUNT(DISTINCT entity.memberName) FROM MembershipMapping entity
+          WHERE entity.roleId = ?1 AND entity.memberType = ?2""";
+    return getSingle(Long.class, sQuery, roleId, memberType).intValue();
+  }
+
+  public boolean isUserHavingRolesInAnyContext(
+      Set<String> roleIds,
+      String userName,
+      Set<String> groupNames)
+  {
+    if (roleIds.isEmpty()) {
+      return false;
+    }
+    String sQuery = """
+        SELECT COUNT(entity) FROM MembershipMapping entity
+          WHERE entity.roleId IN ?1 AND""";
+    String userAndGroupsFilter = "(entity.memberType=?2 AND LOWER(entity.memberName)=LOWER(?3))";
+    if (!CollectionUtils.isEmpty(groupNames)) {
+      userAndGroupsFilter = "(" + userAndGroupsFilter + " OR " + //
+          "(entity.memberType=?4 AND entity.memberName IN ?5))";
+      sQuery += userAndGroupsFilter;
+      return getSingle(Long.class, sQuery, roleIds, MemberType.USER, userName, MemberType.GROUP, groupNames) > 0;
+    }
+    else {
+      sQuery += userAndGroupsFilter;
+      return getSingle(Long.class, sQuery, roleIds, MemberType.USER, userName) > 0;
+    }
   }
 
   /**

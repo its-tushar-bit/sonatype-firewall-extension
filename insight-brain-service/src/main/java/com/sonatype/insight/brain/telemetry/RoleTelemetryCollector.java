@@ -5,10 +5,7 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -18,7 +15,7 @@ import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
-import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -72,22 +69,10 @@ public class RoleTelemetryCollector
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.ROLE_USAGE);
     telemetryData.put(ROLE_NAME, role.isBuiltIn() ? role.getName() : HdsClientAnalytics.obfuscate(role.getName()));
     telemetryData.put(ROLE_PERMISSIONS, rolePermissionDAO.getPermissionsForRole(role.getId()));
-    Set<String> users = new HashSet<>();
-    Set<String> groups = new HashSet<>();
-    for (MembershipMapping membershipMapping : membershipMappingDAO.getByRoleIds(Collections.singleton(role.getId()))) {
-      switch (membershipMapping.getMemberType()) {
-        case USER:
-          users.add(membershipMapping.getMemberName());
-          break;
-        case GROUP:
-          groups.add(membershipMapping.getMemberName());
-          break;
-        default:
-          throw new IllegalStateException("Unsupported member type: " + membershipMapping.getMemberType());
-      }
-    }
-    telemetryData.put(ROLE_USER_COUNT, users.size());
-    telemetryData.put(ROLE_GROUP_COUNT, groups.size());
+    telemetryData.put(ROLE_USER_COUNT,
+        membershipMappingDAO.getCountByRoleIdAndMemberType(role.getId(), MemberType.USER));
+    telemetryData.put(ROLE_GROUP_COUNT,
+        membershipMappingDAO.getCountByRoleIdAndMemberType(role.getId(), MemberType.GROUP));
     return telemetryData;
   }
 }

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
@@ -221,12 +222,6 @@ public class AuthorizationChecker
   }
 
   private boolean isUserHavingAnyRoleInAnyContext(UserPrincipal user, Set<String> roleIds) {
-    Collection<MembershipMapping> memberships = membershipMappingDAO.getByRoleIds(roleIds);
-    for (MembershipMapping membership : memberships) {
-      if (membership.includes(user)) {
-        return true;
-      }
-    }
-    return false;
+    return membershipMappingDAO.isUserHavingRolesInAnyContext(roleIds, user.getUsername(), user.getMembership());
   }
 }

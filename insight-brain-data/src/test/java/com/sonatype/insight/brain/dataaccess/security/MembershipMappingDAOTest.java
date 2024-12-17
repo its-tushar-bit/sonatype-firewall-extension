@@ -150,21 +150,30 @@ public class MembershipMappingDAOTest
   }
 
   @Test
-  public void testGetByRoleIds() {
+  public void testGetByRoleIdsForTestsOnly() {
     Role role1 = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
     Role role2 = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
     MembershipMapping membership = tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role1.getId(),
         "username");
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role2.getId(), "username");
-    List<MembershipMapping> memberships = membershipDAO.getByRoleIds(Collections.singleton(role1.getId()));
+    List<MembershipMapping> memberships = membershipDAO.getByRoleIdsForTestsOnly(Collections.singleton(role1.getId()));
     assertThat(memberships).hasSize(1);
     assertThat(memberships.get(0).getId()).isEqualTo(membership.getId());
   }
 
   @Test
-  public void testGetByRoleIds_emptyRoleIds() {
-    List<MembershipMapping> memberships = membershipDAO.getByRoleIds(Collections.emptySet());
+  public void testGetByRoleIdsForTestsOnly_emptyRoleIds() {
+    List<MembershipMapping> memberships = membershipDAO.getByRoleIdsForTestsOnly(Collections.emptySet());
     assertThat(memberships).isEmpty();
+  }
+
+  @Test
+  public void testGetCountByRoleIdAndMemberType() {
+    Role role1 = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
+    Role role2 = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role2.getId(), "username");
+    assertThat(membershipDAO.getCountByRoleIdAndMemberType(role1.getId(), MemberType.USER)).isEqualTo(0);
+    assertThat(membershipDAO.getCountByRoleIdAndMemberType(role2.getId(), MemberType.USER)).isEqualTo(1);
   }
 
   @Test
@@ -289,7 +298,7 @@ public class MembershipMappingDAOTest
     membershipMappings.addAll(membershipsToInsert);
 
     List<MembershipMapping> storedMemberships = membershipDAO
-        .getByRoleIds(Collections.singleton(roleDeveloper.getId()));
+        .getByRoleIdsForTestsOnly(Collections.singleton(roleDeveloper.getId()));
     assertThat(storedMemberships.stream()
         .map(MembershipMapping::getMemberName).collect(Collectors.toList()))
         .hasSize(5)
@@ -333,7 +342,7 @@ public class MembershipMappingDAOTest
     membershipMappings.add(newMembership1);
 
     List<MembershipMapping> storedMemberships = membershipDAO
-        .getByRoleIds(Collections.singleton(roleDeveloper.getId()));
+        .getByRoleIdsForTestsOnly(Collections.singleton(roleDeveloper.getId()));
     assertThat(storedMemberships.stream()
         .map(MembershipMapping::getMemberName).collect(Collectors.toList()))
         .hasSize(6)
@@ -351,5 +360,89 @@ public class MembershipMappingDAOTest
       createdMembershipMappings.add(membershipMapping);
     }
     return createdMembershipMappings;
+  }
+
+  @Test
+  public void testIsUserHavingRolesInAnyContext_ByUsername() {
+    Role role1 = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
+    Role role2 = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
+    Set<String> noGroups = Collections.emptySet();
+    Set<String> bothRoleIds = Set.of(role1.getId(), role2.getId());
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role1.getId()), "username",
+        noGroups)).isFalse();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role2.getId()), "username",
+        noGroups)).isFalse();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(bothRoleIds, "username", noGroups)).isFalse();
+
+    MembershipMapping membershipMappingRole1 =
+        tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role1.getId(), "username");
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role1.getId()), "username",
+        noGroups)).isTrue();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role2.getId()), "username",
+        noGroups)).isFalse();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(bothRoleIds, "username", noGroups)).isTrue();
+
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role2.getId(), "username");
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role1.getId()), "username",
+        noGroups)).isTrue();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role2.getId()), "username",
+        noGroups)).isTrue();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(bothRoleIds, "username", noGroups)).isTrue();
+
+    membershipDAO.delete(membershipMappingRole1);
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role1.getId()), "username",
+        noGroups)).isFalse();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role2.getId()), "username",
+        noGroups)).isTrue();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(bothRoleIds, "username", noGroups)).isTrue();
+  }
+
+  @Test
+  public void testIsUserHavingRolesInAnyContext_ByGroups() {
+    Role role1 = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
+    Role role2 = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
+    Set<String> bothRoleIds = Set.of(role1.getId(), role2.getId());
+    Set<String> bothGroupIds = Set.of("group1", "group2");
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role1.getId()), "username",
+        Collections.singleton("group1")))
+        .isFalse();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role2.getId()), "username",
+        Collections.singleton("group1")))
+        .isFalse();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(bothRoleIds, "username", bothGroupIds)).isFalse();
+
+    MembershipMapping membershipMappingRole1 =
+        tempEntity.newGroupMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role1.getId(), "group1");
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role1.getId()), "username",
+        Collections.singleton("group1"))).isTrue();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role2.getId()), "username",
+        Collections.singleton("group1"))).isFalse();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role1.getId()), "username",
+        Collections.singleton("group2"))).isFalse();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role2.getId()), "username",
+        Collections.singleton("group2"))).isFalse();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(bothRoleIds, "username", bothGroupIds)).isTrue();
+
+    tempEntity.newGroupMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role2.getId(), "group2");
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role1.getId()), "username",
+        Collections.singleton("group1"))).isTrue();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role2.getId()), "username",
+        Collections.singleton("group1"))).isFalse();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role1.getId()), "username",
+        Collections.singleton("group2"))).isFalse();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role2.getId()), "username",
+        Collections.singleton("group2"))).isTrue();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(bothRoleIds, "username", bothGroupIds)).isTrue();
+
+    membershipDAO.delete(membershipMappingRole1);
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role1.getId()), "username",
+        Collections.singleton("group1"))).isFalse();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role2.getId()), "username",
+        Collections.singleton("group1"))).isFalse();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role1.getId()), "username",
+        Collections.singleton("group2"))).isFalse();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role2.getId()), "username",
+        Collections.singleton("group2"))).isTrue();
+    assertThat(membershipDAO.isUserHavingRolesInAnyContext(bothRoleIds, "username", bothGroupIds)).isTrue();
   }
 }

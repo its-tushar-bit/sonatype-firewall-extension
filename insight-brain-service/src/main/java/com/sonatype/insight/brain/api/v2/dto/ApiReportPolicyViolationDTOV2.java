@@ -29,6 +29,9 @@ public class ApiReportPolicyViolationDTOV2
 
   public boolean waived;
 
+  @JsonInclude(Include.NON_NULL)
+  public boolean waivedWithAutoWaiver;
+
   /**
    * @deprecated Use legacyViolation
    */

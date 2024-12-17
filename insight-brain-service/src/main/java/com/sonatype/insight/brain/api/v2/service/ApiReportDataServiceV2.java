@@ -361,6 +361,7 @@ public class ApiReportDataServiceV2
     dto.grandfathered = violation.grandfathered;
     dto.legacyViolation = violation.legacyViolation || violation.grandfathered;
     dto.waived = violation.waived;
+    dto.waivedWithAutoWaiver = violation.waivedWithAutoWaiver;
     dto.constraints = getConstraints(violation.constraints);
     return dto;
   }

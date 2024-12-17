@@ -1,0 +1,371 @@
+{
+  "aaData" : [ {
+    "trigger" : {
+      "policyId" : "3224dfaa601c420497c648a70efc2bf7",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "c037a83262c54bb5b9ebfaef979a5f3d",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "commons-io",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "commons-io",
+            "version" : "2.2"
+          }
+        },
+        "hash" : "83b5b8a7ba1c08f9e8c8",
+        "constraintFacts" : [ {
+          "constraintId" : "02fc7a3cdcba43f7a2b9f10a8cb9a32e",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2024-47554 with severity >= 7 (severity = 8.7)",
+            "reference" : {
+              "value" : "CVE-2024-47554",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2024-47554 with severity < 9 (severity = 8.7)",
+            "reference" : {
+              "value" : "CVE-2024-47554",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/iqtestprojectone/pom.xml/pkg:maven\\commons-io\\commons-io@2.2?type=jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "commons-io"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "commons-io"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.2"
+          } ],
+          "name" : "commons-io"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "50930c7626e5438386b89205132a5e92",
+      "policyName" : "Component-Unknown",
+      "threatLevel" : 2,
+      "policyViolationId" : "4eb019a109764565925d05b7aea0767f",
+      "componentFacts" : [ {
+        "componentIdentifier" : null,
+        "hash" : "d71362c9b1f47eff4bb7",
+        "constraintFacts" : [ {
+          "constraintId" : "19f71ba839b949bf967f6f10b2ff2834",
+          "constraintName" : "Unknown 3rd party component",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "MatchState",
+            "conditionIndex" : 0,
+            "summary" : "Match State is unknown",
+            "reason" : "Match state was 'Unknown'",
+            "reference" : null,
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "Proprietary",
+            "conditionIndex" : 0,
+            "summary" : "Proprietary is false",
+            "reason" : "Component does not contain proprietary packages",
+            "reference" : null,
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "DataSource",
+            "conditionIndex" : 0,
+            "summary" : "Data Source has support for identity",
+            "reason" : "Data Source has support for Identity",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "iqtestprojectone/target/original-untitled-1.0-SNAPSHOT.jar" ],
+        "displayName" : null
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "50930c7626e5438386b89205132a5e92",
+      "policyName" : "Component-Unknown",
+      "threatLevel" : 2,
+      "policyViolationId" : "6a9c612dba5b4a4fbdcf0c3542ecbedf",
+      "componentFacts" : [ {
+        "componentIdentifier" : null,
+        "hash" : "4ac86061ec0c6d341a57",
+        "constraintFacts" : [ {
+          "constraintId" : "19f71ba839b949bf967f6f10b2ff2834",
+          "constraintName" : "Unknown 3rd party component",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "MatchState",
+            "conditionIndex" : 0,
+            "summary" : "Match State is unknown",
+            "reason" : "Match state was 'Unknown'",
+            "reference" : null,
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "Proprietary",
+            "conditionIndex" : 0,
+            "summary" : "Proprietary is false",
+            "reason" : "Component does not contain proprietary packages",
+            "reference" : null,
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "DataSource",
+            "conditionIndex" : 0,
+            "summary" : "Data Source has support for identity",
+            "reason" : "Data Source has support for Identity",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "iqtestprojectone/target/untitled-1.0-SNAPSHOT.jar" ],
+        "displayName" : null
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "9f7aaee3df89410eb2ba8c07c4965b35",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "a747fa7207bb4831b4148bd9fb604652",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "commons-io",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "commons-io",
+            "version" : "2.2"
+          }
+        },
+        "hash" : "83b5b8a7ba1c08f9e8c8",
+        "constraintFacts" : [ {
+          "constraintId" : "1ec7c74b2b65414d85bf1767f9efc8fd",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability sonatype-2018-0705 with severity >= 4 (severity = 5.3)",
+            "reference" : {
+              "value" : "sonatype-2018-0705",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability sonatype-2018-0705 with severity < 7 (severity = 5.3)",
+            "reference" : {
+              "value" : "sonatype-2018-0705",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/iqtestprojectone/pom.xml/pkg:maven\\commons-io\\commons-io@2.2?type=jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "commons-io"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "commons-io"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.2"
+          } ],
+          "name" : "commons-io"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "dd4b72e73d3541d381d3c18ce7ecc3dc",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "b313673b1ae745eab0c9c0f9ebcf9be5",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "logback-classic",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "ch.qos.logback",
+            "version" : "1.3.14"
+          }
+        },
+        "hash" : "a2f0045eae641a356b74",
+        "constraintFacts" : [ {
+          "constraintId" : "1f42dccef9a9480e90d1e9282884c978",
+          "constraintName" : "Version is unpopular",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "RelativePopularity",
+            "conditionIndex" : 0,
+            "summary" : "Relative Popularity (Percentage) <= 10",
+            "reason" : "Relative popularity was <= 10% (relative popularity = 3%)",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/iqtestprojectone/pom.xml/pkg:maven\\ch.qos.logback\\logback-classic@1.3.14?type=jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "ch.qos.logback"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "logback-classic"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.3.14"
+          } ],
+          "name" : "logback-classic"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "dd4b72e73d3541d381d3c18ce7ecc3dc",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "d65a0b10d03041cc817e36638729e5e4",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "commons-io",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "commons-io",
+            "version" : "2.2"
+          }
+        },
+        "hash" : "83b5b8a7ba1c08f9e8c8",
+        "constraintFacts" : [ {
+          "constraintId" : "1f42dccef9a9480e90d1e9282884c978",
+          "constraintName" : "Version is unpopular",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "RelativePopularity",
+            "conditionIndex" : 0,
+            "summary" : "Relative Popularity (Percentage) <= 10",
+            "reason" : "Relative popularity was <= 10% (relative popularity = 10%)",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/iqtestprojectone/pom.xml/pkg:maven\\commons-io\\commons-io@2.2?type=jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "commons-io"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "commons-io"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.2"
+          } ],
+          "name" : "commons-io"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "dd4b72e73d3541d381d3c18ce7ecc3dc",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "8d2a6f349fd34c18a3dcaa50f3e31778",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "commons-io",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "commons-io",
+            "version" : "2.2"
+          }
+        },
+        "hash" : "83b5b8a7ba1c08f9e8c8",
+        "constraintFacts" : [ {
+          "constraintId" : "234b138b476b433399160db3fc0c5ff2",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/iqtestprojectone/pom.xml/pkg:maven\\commons-io\\commons-io@2.2?type=jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "commons-io"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "commons-io"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.2"
+          } ],
+          "name" : "commons-io"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  } ]
+}

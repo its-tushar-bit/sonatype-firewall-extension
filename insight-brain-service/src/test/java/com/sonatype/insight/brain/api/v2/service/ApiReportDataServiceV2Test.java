@@ -705,4 +705,26 @@ public class ApiReportDataServiceV2Test
     assertThat(response).isNotNull();
     assertThat(response.getChildren()).isNull();
   }
+
+  @Test
+  public void testGetPolicyViolationsData_includeWaivedWithAutoWaiver() throws Exception {
+    makeReport("report-6-autowaiver");
+    populatePolicyThreats("report-6-autowaiver", "policythreats.json");
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId);
+
+    // component 1 with auto waived policy violation
+    ApiReportComponentPolicyViolationsDTOV2 component = data.components.get(0);
+    assertThat(component.hash).isEqualTo("47e0b80099d6109ef199");
+    assertThat(component.matchState).isEqualTo("exact");
+    assertThat(component.proprietary).isFalse();
+    assertThat(component.pathnames).containsExactlyInAnyOrder(
+        "iqtestprojectone/pom.xml/pkg:maven\\com.nulab-inc\\zxcvbn@1.9.0?type=jar");
+    assertThat(component.violations).hasSize(1);
+    ApiReportPolicyViolationDTOV2 violation = component.violations.get(0);
+    assertThat(violation.waivedWithAutoWaiver).isTrue();
+    assertThat(violation.waived).isTrue();
+    assertThat(violation.policyId).isEqualTo("9f7aaee3df89410eb2ba8c07c4965b35");
+    assertThat(violation.policyName).isEqualTo("Security-Medium");
+
+  }
 }

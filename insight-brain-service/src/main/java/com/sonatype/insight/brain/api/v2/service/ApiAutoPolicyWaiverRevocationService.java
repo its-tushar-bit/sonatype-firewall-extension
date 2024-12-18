@@ -38,6 +38,8 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverRevocationTelemetry.AutoPolicyWaiverRevocationAction;
+import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverRevocationTelemetryMetrics;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -60,6 +62,8 @@ public class ApiAutoPolicyWaiverRevocationService
 
   private final CurrentUser currentUser;
 
+  private final AutoPolicyWaiverRevocationTelemetryMetrics autoPolicyWaiverRevocationTelemetryMetrics;
+
   private static final Pattern CVE_REGEX_PATTERN = Pattern.compile("((CVE|SONATYPE|sonatype)-\\d+-\\d+)");
 
   private static final List<String> SECURITY_CONDITIONS = ImmutableList
@@ -74,7 +78,8 @@ public class ApiAutoPolicyWaiverRevocationService
       AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       ApplicationDAO applicationDAO,
       OrganizationDAO organizationDAO,
-      CurrentUser currentUser)
+      CurrentUser currentUser,
+      AutoPolicyWaiverRevocationTelemetryMetrics autoPolicyWaiverRevocationTelemetryMetrics)
   {
     this.reportService = reportService;
     this.autoPolicyWaiverRevocationDAO = autoPolicyWaiverRevocationDAO;
@@ -82,6 +87,7 @@ public class ApiAutoPolicyWaiverRevocationService
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
     this.currentUser = currentUser;
+    this.autoPolicyWaiverRevocationTelemetryMetrics = autoPolicyWaiverRevocationTelemetryMetrics;
   }
 
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
@@ -162,6 +168,8 @@ public class ApiAutoPolicyWaiverRevocationService
       autoPolicyWaiverRevocationDAO.insert(newRevocation);
       auditAutoPolicyWaiverRevocation(newRevocation);
       log.debug("Added auto policy waiver revocation {}", newRevocation.getId());
+      autoPolicyWaiverRevocationTelemetryMetrics.collect(newRevocation, ownerType,
+          AutoPolicyWaiverRevocationAction.CREATE);
       return ApiAutoPolicyWaiverRevocationAdapter.convertToDTO(newRevocation);
     }
     catch (IOException e) {
@@ -187,6 +195,8 @@ public class ApiAutoPolicyWaiverRevocationService
     auditAutoPolicyWaiverRevocation(autoPolicyWaiverRevocation);
     autoPolicyWaiverRevocationDAO.delete(autoPolicyWaiverRevocation);
     log.debug("Deleted auto policy waiver revocation {}", autoPolicyWaiverRevocationId);
+    autoPolicyWaiverRevocationTelemetryMetrics.collect(autoPolicyWaiverRevocation, ownerType,
+        AutoPolicyWaiverRevocationAction.DELETE);
   }
 
   @Authorize(permission = Permission.READ)

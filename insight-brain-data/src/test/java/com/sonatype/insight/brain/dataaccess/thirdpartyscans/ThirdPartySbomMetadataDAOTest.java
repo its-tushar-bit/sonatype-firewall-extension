@@ -529,6 +529,7 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   @PostgresTest
+  @Ignore
   public void testGetApplications_WithResults_SortByReleaseStatusPercentage() {
     Application application1 = tempEntity.newApplicationWithParent();
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)

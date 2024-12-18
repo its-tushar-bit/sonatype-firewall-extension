@@ -11,6 +11,8 @@ public enum SbomApplicationsSortableField
   APPLICATION_NAME("application_name"),
   LATEST_SBOM_VERSION("latest_sbom_version"),
   PERCENTAGE_ANNOTATED("percentage_annotated"),
+
+  RELEASE_STATUS_PERCENTAGE("release_status_percentage"),
   VULNERABILITY("vulnerability");
 
   private final String column;

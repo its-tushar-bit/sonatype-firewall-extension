@@ -281,7 +281,10 @@ public class ThirdPartySbomMetadataDAO
         "  COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END) AS vulnerabilityCritical, " + //
         " ROUND((COUNT(CASE WHEN (vex.coordinate_security_id IS NOT NULL) THEN 1 END)) * 100" + //
         " / NULLIF(COUNT(cs.coordinate_security_id)::decimal, 0), 1) as annotatedPercentage, " + //
-        " COUNT(*) OVER() AS full_count" + //
+        " COUNT(*) OVER() AS full_count," + //
+        " COALESCE(ROUND((COUNT(CASE WHEN (vex.coordinate_security_id IS NOT NULL AND cs.severity >= ?6) THEN 1 END))" +
+        "* 100 / NULLIF(COUNT(CASE WHEN (cs.coordinate_security_id IS NOT NULL AND cs.severity >= ?6) THEN 1 END)" +
+        "::decimal, 0), 1), 100) as releaseStatusPercentage" + //
         " FROM " +  databaseSchema + ".sbom_metadata sm " + //
         " JOIN " + //
         "  (SELECT  application_id, max(created_at) as created_at " + //
@@ -415,6 +418,9 @@ public class ThirdPartySbomMetadataDAO
         break;
       case PERCENTAGE_ANNOTATED:
         query.append(" ORDER BY annotatedPercentage " + order);
+        break;
+      case RELEASE_STATUS_PERCENTAGE:
+        query.append(" ORDER BY releaseStatusPercentage " + order);
         break;
       case LATEST_SBOM_VERSION:
         query.append(" ORDER BY sbomVersion " + order);

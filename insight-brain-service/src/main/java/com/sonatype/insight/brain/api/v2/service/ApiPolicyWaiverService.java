@@ -570,13 +570,17 @@ public class ApiPolicyWaiverService
     Predicate<PolicyWaiver> isNotAnApplicableWaiver =
         policyWaiver -> !applicableWaiversIds.contains(policyWaiver.getId());
 
+    final Map<String, PolicyWaiverReason> policyWaiversReasons = policyWaiverReasonDAO.getAll().stream()
+        .collect(Collectors.toMap(PolicyWaiverReason::getId, Function.identity(), (existing, replacement) -> existing));
+
     return waiversForPolicy.stream()
         .filter(userHasViewPermissionOnWaiverOwner)
         .filter(isNotAnApplicableWaiver) // higher in filter hierarchy since it's a lighter filter to process
         .filter(waiverMatchesComponentOrAnyVersionOfIt)
         .filter(securityWaiverAppliesToSameVulnerabilityId) // saved for the end as it requires more processing
         .map(policyWaiver -> ApiPolicyWaiverDTO.toDtoWithConstraints(policyWaiver,
-            availableOwners.get(policyWaiver.getOwnerId()), violationId))
+            availableOwners.get(policyWaiver.getOwnerId()), violationId,
+            policyWaiversReasons.get(policyWaiver.getWaiverReasonId())))
         .collect(toList());
   }
 

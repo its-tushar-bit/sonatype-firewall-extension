@@ -70,6 +70,7 @@ describe('ListSimilarWaiversTable', () => {
             creatorName: 'Terraria',
             scopeOwnerName: 'App',
             comment: 'waiver at app level',
+            reasonText: 'mitigated externally',
           }),
         },
         getSimilarWaiver(),
@@ -103,7 +104,7 @@ describe('ListSimilarWaiversTable', () => {
       expect(row1Cells.length).toBe(2);
       expect(row1Cells[0]).toHaveTextContent('Created2050-12-31Expiration2050-12-31');
       expect(row1Cells[1]).toHaveTextContent(
-        'ScopeOrganization - OrgComponentorg.apache.logging.log4j : log4j-core : 2.15.0Conditionsreason 1reason 2Commentwaiver at org levelAuthorAdmin BuiltIn'
+        'ScopeOrganization - OrgComponentorg.apache.logging.log4j : log4j-core : 2.15.0Conditionsreason 1reason 2Reason—Commentwaiver at org levelAuthorAdmin BuiltIn'
       );
 
       const row2Level = rows[1];
@@ -111,7 +112,7 @@ describe('ListSimilarWaiversTable', () => {
       expect(row2Cells.length).toBe(2);
       expect(row2Cells[0]).toHaveTextContent('Created2024-01-11Expiration2024-01-12');
       expect(row2Cells[1]).toHaveTextContent(
-        'ScopeOrganization - OrgComponentorg.apache.logging.log4j : log4j-core : 2.15.0Commentwaiver at org levelAuthorAdmin BuiltIn'
+        'ScopeOrganization - OrgComponentorg.apache.logging.log4j : log4j-core : 2.15.0Reason—Commentwaiver at org levelAuthorAdmin BuiltIn'
       );
 
       const row3Level = rows[2];
@@ -119,7 +120,7 @@ describe('ListSimilarWaiversTable', () => {
       expect(row3Cells.length).toBe(2);
       expect(row3Cells[0]).toHaveTextContent('Created2023-01-11ExpirationNever');
       expect(row3Cells[1]).toHaveTextContent(
-        'ScopeApplication - AppComponentorg.apache.logging.log4j : log4j-core : 2.15.0Commentwaiver at app levelAuthorTerraria'
+        'ScopeApplication - AppComponentorg.apache.logging.log4j : log4j-core : 2.15.0Reasonmitigated externallyCommentwaiver at app levelAuthorTerraria'
       );
     });
 
@@ -163,7 +164,7 @@ describe('ListSimilarWaiversTable', () => {
       expect(row1Cells.length).toBe(2);
       expect(row1Cells[0]).toHaveTextContent('Created2050-12-31Expiration2050-12-31');
       expect(row1Cells[1]).toHaveTextContent(
-        'ScopeOrganization - OrgComponentorg.apache.logging.log4j : log4j-core : 2.15.0Commentwaiver at org levelAuthorAdmin BuiltIn'
+        'ScopeOrganization - OrgComponentorg.apache.logging.log4j : log4j-core : 2.15.0Reason—Commentwaiver at org levelAuthorAdmin BuiltIn'
       );
     });
 
@@ -206,7 +207,7 @@ describe('ListSimilarWaiversTable', () => {
       expect(row1Cells.length).toBe(2);
       expect(row1Cells[0]).toHaveTextContent('Created2050-12-31Expiration2024-01-12');
       expect(row1Cells[1]).toHaveTextContent(
-        'ScopeOrganization - OrgComponentorg.apache.logging.log4j : log4j-core : 2.15.0Conditionsreason 1reason 2Commentwaiver at org levelAuthorAdmin BuiltIn'
+        'ScopeOrganization - OrgComponentorg.apache.logging.log4j : log4j-core : 2.15.0Conditionsreason 1reason 2Reason—Commentwaiver at org levelAuthorAdmin BuiltIn'
       );
 
       const row2Level = rows[1];
@@ -214,7 +215,7 @@ describe('ListSimilarWaiversTable', () => {
       expect(row2Cells.length).toBe(2);
       expect(row2Cells[0]).toHaveTextContent('Created2024-01-11Expiration2024-01-12');
       expect(row2Cells[1]).toHaveTextContent(
-        'ScopeOrganization - OrgComponentorg.apache.logging.log4j : log4j-core : 2.15.0Commentwaiver at org levelAuthorAdmin BuiltIn'
+        'ScopeOrganization - OrgComponentorg.apache.logging.log4j : log4j-core : 2.15.0Reason—Commentwaiver at org levelAuthorAdmin BuiltIn'
       );
     });
 
@@ -257,7 +258,7 @@ describe('ListSimilarWaiversTable', () => {
       expect(row1Cells.length).toBe(2);
       expect(row1Cells[0]).toHaveTextContent('Created2024-01-11Expiration2024-01-12');
       expect(row1Cells[1]).toHaveTextContent(
-        'ScopeOrganization - OrgComponentorg.apache.logging.log4j : log4j-core : 2.15.0Commentwaiver at org levelAuthorAdmin BuiltIn'
+        'ScopeOrganization - OrgComponentorg.apache.logging.log4j : log4j-core : 2.15.0Reason—Commentwaiver at org levelAuthorAdmin BuiltIn'
       );
 
       const row2Level = rows[1];
@@ -265,7 +266,7 @@ describe('ListSimilarWaiversTable', () => {
       expect(row2Cells.length).toBe(2);
       expect(row2Cells[0]).toHaveTextContent('Created2023-05-10Expiration2024-01-12');
       expect(row2Cells[1]).toHaveTextContent(
-        'ScopeOrganization - OrgComponentorg.apache.logging.log4j : log4j-core : 2.15.0Commentwaiver at org levelAuthorAdmin BuiltIn'
+        'ScopeOrganization - OrgComponentorg.apache.logging.log4j : log4j-core : 2.15.0Reason—Commentwaiver at org levelAuthorAdmin BuiltIn'
       );
     });
 
@@ -300,7 +301,7 @@ describe('ListSimilarWaiversTable', () => {
       expect(row1Cells.length).toBe(2);
       expect(row1Cells[0]).toHaveTextContent('Created2024-01-11Expiration2024-01-12');
       expect(row1Cells[1]).toHaveTextContent(
-        'ScopeOrganization - OrgComponentfirewall component nameCommentwaiver at org levelAuthorAdmin BuiltIn'
+        'ScopeOrganization - OrgComponentfirewall component nameReason—Commentwaiver at org levelAuthorAdmin BuiltIn'
       );
     });
   });

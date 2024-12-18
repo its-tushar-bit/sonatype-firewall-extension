@@ -243,9 +243,10 @@ public class ApiPolicyWaiverDTO
   public static ApiPolicyWaiverDTO toDtoWithConstraints(
       PolicyWaiver policyWaiver,
       Owner owner,
-      String policyViolationId)
+      String policyViolationId,
+      PolicyWaiverReason policyWaiverReason)
   {
-    ApiPolicyWaiverDTO dto = toDto(policyWaiver, owner, policyViolationId, null);
+    ApiPolicyWaiverDTO dto = toDto(policyWaiver, owner, policyViolationId, policyWaiverReason);
     dto.constraintFactsJson = policyWaiver.getConstraintFactsJson();
     dto.constraintFacts = policyWaiver.getConstraintFacts();
 

@@ -95,7 +95,7 @@ export default function ListWaiversTable(props) {
 
           <>
             <NxReadOnly.Label>Reason</NxReadOnly.Label>
-            <NxReadOnly.Data className="iq-waivers-table__comment">{waiver.reasonText ?? '\u2014'}</NxReadOnly.Data>
+            <NxReadOnly.Data className="iq-waivers-table__reason">{waiver.reasonText ?? '\u2014'}</NxReadOnly.Data>
           </>
 
           {waiver.comment && (

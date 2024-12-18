@@ -104,7 +104,7 @@ export default function ListSimilarWaiversTable() {
           )}
           <>
             <NxReadOnly.Label>Reason</NxReadOnly.Label>
-            <NxReadOnly.Data className="iq-waivers-table__comment">
+            <NxReadOnly.Data className="iq-waivers-table__reason">
               {similarWaiver.reasonText ?? '\u2014'}
             </NxReadOnly.Data>
           </>

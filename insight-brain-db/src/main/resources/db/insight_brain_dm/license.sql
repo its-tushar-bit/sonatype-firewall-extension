@@ -2249,6 +2249,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Ratus
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('RavenDB-Software-EULA','RavenDB-Software-EULA','End User License Agreement for RavenDB Software');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Raygun-TOS','Raygun-TOS','Raygun Terms of Service - Release Date May-2019');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('RCL-1.0','RCL-1.0','Reciprocal Community License 1.00');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('RCL-UNSPECIFIED','RCL','RCL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Rdisc','Rdisc','Rdisc License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('RDPCrystal-EDI-Library-EULA','RDPCrystal-EDI-Library-EULA','RDPCrystal EDI Library End User License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Real-World-Developers-EULA','Real-World-Developers-EULA','Real World Developers End User License Agreement');

@@ -529,7 +529,6 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   @PostgresTest
-  @Ignore
   public void testGetApplications_WithResults_SortByReleaseStatusPercentage() {
     Application application1 = tempEntity.newApplicationWithParent();
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -634,13 +633,14 @@ public class ThirdPartySbomMetadataDAOTest
         SbomApplicationsSortableField.RELEASE_STATUS_PERCENTAGE, false, 1, 5);
 
     assertThat(resultDtoList.getApplications()).hasSize(4);
-    SbomApplicationSummaryDTO applicationPageApplicationSummaryDTO1 = resultDtoList.getApplications().get(0);
-    assertThat(applicationPageApplicationSummaryDTO1.getApplicationInternalId()).isEqualTo(application1.getId());
-    assertThat(applicationPageApplicationSummaryDTO1.getReleaseStatusPercentage()).isEqualTo(100);
 
-    SbomApplicationSummaryDTO applicationPageApplicationSummaryDTO2 = resultDtoList.getApplications().get(1);
-    assertThat(applicationPageApplicationSummaryDTO2.getApplicationInternalId()).isEqualTo(application3.getId());
-    assertThat(applicationPageApplicationSummaryDTO2.getReleaseStatusPercentage()).isEqualTo(100);
+    assertThat(resultDtoList.getApplications().subList(0, 2))
+        .extracting(SbomApplicationSummaryDTO::getApplicationInternalId,
+            SbomApplicationSummaryDTO::getReleaseStatusPercentage)
+        .containsExactlyInAnyOrder(
+            tuple(application1.getId(), 100.0),
+            tuple(application3.getId(), 100.0)
+        );
 
     SbomApplicationSummaryDTO applicationPageApplicationSummaryDTO3 = resultDtoList.getApplications().get(2);
     assertThat(applicationPageApplicationSummaryDTO3.getApplicationInternalId()).isEqualTo(application.getId());

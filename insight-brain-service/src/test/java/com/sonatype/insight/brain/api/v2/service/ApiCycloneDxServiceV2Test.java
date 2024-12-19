@@ -355,10 +355,10 @@ public class ApiCycloneDxServiceV2Test
     assertThat(d2.getRef()).isEqualTo(bomRefOf(bom,
         "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.36.19-SNAPSHOT?type=jar"));
     assertThat(d2.getDependencies()).hasSize(2);
-    assertThat(d2.getDependencies()).extracting("ref").containsExactlyInAnyOrder(new String[]{
+    assertThat(d2.getDependencies()).extracting("ref").containsExactlyInAnyOrder(
         bomRefOf(bom, "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar"),
         bomRefOf(bom, "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar")
-    });
+    );
 
     Dependency d3 = bom.getDependencies().get(3);
     assertThat(d3.getRef()).isEqualTo(bomRefOf(bom, "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar"));

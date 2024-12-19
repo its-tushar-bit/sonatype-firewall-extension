@@ -103,7 +103,7 @@ public class ApplicationsResourceTest
 
     HttpResponse response = restRequest()
         .path(ApplicationsResource.SBOMS_APPLICATIONS_PATH)
-        .query("applicationName", null)
+        .query("applicationName")
         .query("sortBy", SbomApplicationsSortableField.IMPORT_DATE)
         .query("asc", false)
         .query("page", 1)

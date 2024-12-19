@@ -184,10 +184,8 @@ public class ApiSamlConfigurationService
       String certificatePem =
           Base64.getEncoder().encodeToString(samlConfigurationDAO.get().getCertificate().getEncoded());
       Element keyElement = SPMetadataDescriptor.buildKeyInfoElement(null, certificatePem);
-      KeyDescriptorType signingCert =
-          SPMetadataDescriptor.buildKeyDescriptorType(keyElement, KeyTypes.SIGNING, null /* algorithm */);
-      KeyDescriptorType encryptionCert =
-          SPMetadataDescriptor.buildKeyDescriptorType(keyElement, KeyTypes.ENCRYPTION, null /* algorithm */);
+      KeyDescriptorType signingCert = SPMetadataDescriptor.buildKeyDescriptorType(keyElement, KeyTypes.SIGNING);
+      KeyDescriptorType encryptionCert = SPMetadataDescriptor.buildKeyDescriptorType(keyElement, KeyTypes.ENCRYPTION);
       URI bindingUri = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.getUri();
       EntityDescriptorType spDescriptor = SPMetadataDescriptor.buildSPDescriptor(bindingUri,
           bindingUri, samlEndpointUrl, samlEndpointUrl, samlDeployment.getIDP().getSingleSignOnService().signRequest(),

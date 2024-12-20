@@ -34,6 +34,7 @@ import PropTypes from 'prop-types';
 import { selectReportStageId } from 'MainRoot/applicationReport/applicationReportSelectors';
 import ReachabilityStatus from 'MainRoot/componentDetails/ReachabilityStatus/ReachabilityStatus';
 import GoldenStar from 'MainRoot/img/golden-star.svg';
+import { selectApplicationReportMetaData } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 export const dependencyTypeMap = {
   Direct: 'direct',
@@ -59,6 +60,9 @@ export default function PrioritiesPageRow({ component, onClick }) {
   const stageId = useSelector(selectReportStageId);
 
   const isDeveloperBulkRecommendationsEnabled = useSelector(selectIsDeveloperBulkRecommendationsEnabled);
+
+  const metadata = useSelector(selectApplicationReportMetaData);
+  const { forMonitoring } = metadata || {};
 
   const {
     displayName,
@@ -139,11 +143,16 @@ export default function PrioritiesPageRow({ component, onClick }) {
       </NxTableCell>
       <NxTableCell>
         <span className="iq-priorities-page-policy-details">
-          <span className="iq-priorities-page-policy-details__desc">
+          <span
+            className={
+              forMonitoring
+                ? 'iq-priorities-page-policy-details__desc-ignore-policy-action'
+                : 'iq-priorities-page-policy-details__desc'
+            }
+          >
             <span className={`iq-priorities-page-policy-details__desc-policy-action ${policyAction}`}>
               {policyAction}
             </span>
-
             <NxThreatIndicator
               className="iq-priorities-page-policy-details__desc-threat-indicator"
               policyThreatLevel={highestThreat}

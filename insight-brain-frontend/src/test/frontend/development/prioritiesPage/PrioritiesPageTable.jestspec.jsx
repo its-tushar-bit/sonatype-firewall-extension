@@ -431,6 +431,39 @@ describe('PrioritiesPageTable', () => {
     });
   });
 
+  it('if the report is triggered by CM, toggle should be unchecked and disabled, even if query param filterOnPolicyActions=true is provided', async () => {
+    const metadata = {
+      forMonitoring: true,
+    };
+    const state = {
+      applicationReport: {
+        metadata,
+      },
+      router: {
+        currentParams: {
+          publicAppId,
+          scanId,
+          filterOnPolicyActions: 'true',
+        },
+      },
+    };
+
+    renderComponent(state);
+
+    expect(axiosMock.history.get.length).toEqual(1);
+    expect(axiosMock.history.get[0].params).toEqual({
+      pageSize: DEFAULT_PAGE_SIZE,
+      page: 1,
+      componentNameFilter: '',
+      filterOnPolicyActions: false,
+    });
+
+    const toggle = await screen.findByRole('switch', { name: 'Fail/Warn Policy Actions only' });
+    expect(toggle).toBeInTheDocument();
+    expect(toggle).toBeDisabled();
+    expect(toggle).not.toBeChecked();
+  });
+
   it('renders rows that when clicked navigates to component details page - violations section', async () => {
     renderComponent();
 

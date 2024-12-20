@@ -25,6 +25,7 @@ import { actions } from 'MainRoot/development/prioritiesPage/slices/prioritiesPa
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
 import { debounce } from 'debounce';
 import { isNil } from 'ramda';
+import { selectApplicationReportMetaData } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 export default function PrioritiesPageTable() {
   const dispatch = useDispatch();
@@ -41,6 +42,9 @@ export default function PrioritiesPageTable() {
     componentNameFilter: componentNameFilterValue,
     filterOnPolicyActions: filterOnPolicyActionsValue,
   } = useSelector(selectPrioritiesPageSlice);
+
+  const metadata = useSelector(selectApplicationReportMetaData);
+  const { forMonitoring } = metadata || {};
 
   const currentRouteName = useSelector(selectCurrentRouteName);
   const currentPage = pageCount && pageCount > 0 ? page - 1 : null;
@@ -63,7 +67,19 @@ export default function PrioritiesPageTable() {
   };
 
   useEffect(() => {
-    dispatch(actions.setFilterOnPolicyActions(getDerivedActionFilter()));
+    if (forMonitoring) {
+      dispatch(actions.setFilterOnPolicyActions(false));
+      dispatch(
+        stateGo(currentRouteName, {
+          publicAppId,
+          scanId,
+          filterOnPolicyActions: false,
+          componentNameFilter: derivedComponentName,
+        })
+      );
+    } else {
+      dispatch(actions.setFilterOnPolicyActions(getDerivedActionFilter()));
+    }
     dispatch(actions.setComponentNameFilter(derivedComponentName));
 
     //If page is viewed for a different applicationId and scanId, reset pagination
@@ -119,7 +135,7 @@ export default function PrioritiesPageTable() {
           value={componentNameFilterValue}
         />
 
-        <NxToggle onChange={handleActionToggleChange} isChecked={filterOnPolicyActionsValue}>
+        <NxToggle onChange={handleActionToggleChange} isChecked={filterOnPolicyActionsValue} disabled={forMonitoring}>
           Fail/Warn Policy Actions only
         </NxToggle>
       </div>

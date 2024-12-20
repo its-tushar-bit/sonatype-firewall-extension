@@ -106,38 +106,47 @@ priorities-page {
     }
 
     .iq-priorities-page-policy-details {
-      .iq-priorities-page-policy-details__desc {
+    @mixin iq-priorities-page-policy-details-desc {
         display: grid;
-        grid-template-columns: minmax(auto, 48px) 14px 19px 150px 1fr;
         grid-column-gap: var(--nx-spacing-2x);
         align-items: center;
 
         svg.iq-priorities-page-policy-details__desc-threat-indicator.nx-threat-indicator {
-          margin: 0;
+            margin: 0;
         }
 
         .iq-priorities-page-policy-details__desc-threat {
-          font-weight: bold;
+            font-weight: bold;
         }
+    }
+
+    .iq-priorities-page-policy-details__desc-ignore-policy-action {
+        @include iq-priorities-page-policy-details-desc;
+        grid-template-columns: 0px 14px 19px 150px 1fr;
+    }
+
+    .iq-priorities-page-policy-details__desc {
+        @include iq-priorities-page-policy-details-desc;
+        grid-template-columns: minmax(auto, 48px) 14px 19px 150px 1fr;
 
         .iq-priorities-page-policy-details__desc-policy-action {
-          text-transform: capitalize;
-          padding: 0px 6px;
-          border-radius: 10px;
-          font-size: 14px;
-          text-align: center;
+            text-transform: capitalize;
+            padding: 0px 6px;
+            border-radius: 10px;
+            font-size: 14px;
+            text-align: center;
 
-          &.fail {
-            color: var(--nx-swatch-white);
-            background-color: var(--nx-swatch-red-40);
-          }
+            &.fail {
+                color: var(--nx-swatch-white);
+                background-color: var(--nx-swatch-red-40);
+            }
 
-          &.warn {
-            color: var(--nx-swatch-grey-05);
-            background-color: var(--nx-swatch-orange-55);
-          }
+            &.warn {
+                color: var(--nx-swatch-grey-05);
+                background-color: var(--nx-swatch-orange-55);
+            }
         }
-      }
+    }
 
       .iq-priorities-page-policy-details__policy {
         color: var(--nx-swatch-grey-50);

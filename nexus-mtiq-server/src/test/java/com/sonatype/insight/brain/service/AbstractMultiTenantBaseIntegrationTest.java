@@ -52,6 +52,7 @@ import org.junit.Rule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_CONFIG_PATH;
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_LICENSE_PATH;
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_PROVISIONING_PATH;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ENABLE_SSO_ONLY;
@@ -245,6 +246,12 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
       TenantTestHelper.testAsNewTenant(tenantName, tenant -> {
         testProductLicenseRule.insertLicenseIfNeeded();
       });
+
+      // This just makes an endpoint call which indirectly will ensure the tenant registration process is invoked
+      adminRestRequest(ADMIN_CONFIG_PATH)
+          .parameter(tenantName)
+          .get();
+
       return httpResponse;
     }
     catch (Exception e) {

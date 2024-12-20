@@ -237,4 +237,43 @@ public class ExternalTelemetryServiceTest
 
     verifyNoInteractions(telemetrySenderMock);
   }
+
+  @Test
+  public void testSendTelemetry_IntegrationsFeatureUsageMetricsTelemetry_FeatureMissing() {
+    Map<String, Object> telemetryValues = new HashMap<>();
+    telemetryValues.put("telemetry_purpose", "INTEGRATIONS_FEATURE_USAGE_METRICS");
+    telemetryValues.put("telemetry_purpose_one", "telemetry_purpose_one_value");
+    telemetryValues.put("telemetry_purpose_two", 2);
+
+    assertThatThrownBy(() -> externalTelemetryService.sendTelemetry(telemetryValues, httpServletRequest))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Telemetry property 'feature' is required.");
+
+    verifyNoInteractions(telemetrySenderMock);
+  }
+
+  @Test
+  public void testSendTelemetry_IntegrationsFeatureUsageMetricsTelemetry() {
+    Map<String, Object> telemetryValues = new HashMap<>();
+    telemetryValues.put("telemetry_purpose", "INTEGRATIONS_FEATURE_USAGE_METRICS");
+    telemetryValues.put("feature", "a_feature");
+    telemetryValues.put("telemetry_purpose_one", "telemetry_purpose_one_value");
+    telemetryValues.put("telemetry_purpose_two", 2);
+
+    externalTelemetryService.sendTelemetry(telemetryValues, httpServletRequest);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
+
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("feature", "a_feature");
+    expectedAttributes.put("telemetry_purpose_one", "telemetry_purpose_one_value");
+    expectedAttributes.put("telemetry_purpose_two", 2);
+
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.INTEGRATIONS_FEATURE_USAGE_METRICS);
+    assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
+  }
 }

@@ -86,6 +86,9 @@ public class ExternalTelemetryService
       case IDE_USER_INTERACTION_METRICS:
         sendIdeUserInteractionMetrics(telemetryValues);
         break;
+      case INTEGRATIONS_FEATURE_USAGE_METRICS:
+        sendIntegrationsFeatureUsageMetricsTelemetry(telemetryValues);
+        break;
       default:
         log.info("External telemetry endpoint called with an unsupported `telemetry_purpose`.");
         throw new BadRequestException("Telemetry purpose not supported.");
@@ -132,6 +135,16 @@ public class ExternalTelemetryService
 
   private void sendIdeUserInteractionMetrics(Map<String, Object> telemetryValues) {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.IDE_USER_INTERACTION_METRICS);
+    populateTelemetryData(telemetryValues, telemetryData);
+    telemetrySender.send(telemetryData);
+  }
+
+  private void sendIntegrationsFeatureUsageMetricsTelemetry(Map<String, Object> telemetryValues) {
+    if (!telemetryValues.containsKey("feature")) {
+      throw new BadRequestException("Telemetry property 'feature' is required.");
+    }
+
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.INTEGRATIONS_FEATURE_USAGE_METRICS);
     populateTelemetryData(telemetryValues, telemetryData);
     telemetrySender.send(telemetryData);
   }

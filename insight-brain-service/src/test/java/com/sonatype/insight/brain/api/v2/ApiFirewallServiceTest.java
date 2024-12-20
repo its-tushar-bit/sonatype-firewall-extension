@@ -214,9 +214,9 @@ public class ApiFirewallServiceTest
     tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
     tempEntity.newAutoUnquarantinePolicyConditionType(LicenseConditionType.ID);
 
-    final String[] autoUnquarantinedConditionTypes = ConditionTypes.getAllWithAutoUnquarantineSupported().stream()
+    final List<String> autoUnquarantinedConditionTypes = ConditionTypes.getAllWithAutoUnquarantineSupported().stream()
         .map(ConditionType::getName)
-        .toArray(String[]::new);
+        .toList();
 
     //when: getting release quarantine config
     //then: expect the auto unquarantined enabled policy condition types with the enabled flag set
@@ -226,7 +226,7 @@ public class ApiFirewallServiceTest
     long numTrue = releaseQuarantineConfig.values().stream().filter(dto -> dto.autoReleaseQuarantineEnabled).count();
 
     assertThat(releaseQuarantineConfig.values()).extracting("name")
-        .containsOnly(autoUnquarantinedConditionTypes);
+        .containsExactlyInAnyOrderElementsOf(autoUnquarantinedConditionTypes);
     // Ensures correct number of falses
     assertThat(numTrue).isEqualTo(2);
     assertThat(releaseQuarantineConfig.get(IntegrityRatingConditionType.ID).autoReleaseQuarantineEnabled).isTrue();
@@ -270,9 +270,9 @@ public class ApiFirewallServiceTest
     security.autoReleaseQuarantineEnabled = true;
     list.add(security);
 
-    final String[] autoUnquarantinedConditionTypes = ConditionTypes.getAllWithAutoUnquarantineSupported().stream()
+    final List<String> autoUnquarantinedConditionTypes = ConditionTypes.getAllWithAutoUnquarantineSupported().stream()
         .map(ConditionType::getName)
-        .toArray(String[]::new);
+        .toList();
 
     //when: setting release quarantine config
 
@@ -287,7 +287,7 @@ public class ApiFirewallServiceTest
     long numTrue = releaseQuarantineConfig.values().stream().filter(dto -> dto.autoReleaseQuarantineEnabled).count();
 
     assertThat(releaseQuarantineConfig.values()).extracting("name")
-        .containsOnly(autoUnquarantinedConditionTypes);
+        .containsExactlyInAnyOrderElementsOf(autoUnquarantinedConditionTypes);
     // Ensures correct number of falses
     assertThat(numTrue).isEqualTo(2);
     assertThat(releaseQuarantineConfig.get(SecurityVulnerabilityCategoryConditionType.ID).autoReleaseQuarantineEnabled)
@@ -318,9 +318,9 @@ public class ApiFirewallServiceTest
     licenceThreatGroup.autoReleaseQuarantineEnabled = false;
     list.add(licenceThreatGroup);
 
-    final String[] autoUnquarantinedConditionTypes = ConditionTypes.getAllWithAutoUnquarantineSupported().stream()
+    final List<String> autoUnquarantinedConditionTypes = ConditionTypes.getAllWithAutoUnquarantineSupported().stream()
         .map(ConditionType::getName)
-        .toArray(String[]::new);
+        .toList();
 
     //when: setting release quarantine config
 
@@ -337,7 +337,7 @@ public class ApiFirewallServiceTest
     long numTrue = releaseQuarantineConfig.values().stream().filter(dto -> dto.autoReleaseQuarantineEnabled).count();
 
     assertThat(releaseQuarantineConfig.values()).extracting("name")
-        .containsOnly(autoUnquarantinedConditionTypes);
+        .containsExactlyInAnyOrderElementsOf(autoUnquarantinedConditionTypes);
     // Ensures correct number of falses
     assertThat(numTrue).isEqualTo(2);
     assertThat(releaseQuarantineConfig.get(SecurityVulnerabilityCategoryConditionType.ID).autoReleaseQuarantineEnabled)

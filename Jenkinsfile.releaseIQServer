@@ -110,6 +110,15 @@ pipeline {
             parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
       }
     }
+    stage('Publish RedHat Docker Image to quay.io') {
+      steps {
+        build(job: 'insight/insight-brain/docker/redhat-image/release',
+            parameters: [
+                string(name: 'tag', value: "${params.releaseVersion.split('-')[0]}-ubi-1"),
+                run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")
+            ])
+      }
+    }
     stage ('Publish Standard Docker Image') {
       steps {
         build(job: 'insight/insight-brain/docker/main-image/release',

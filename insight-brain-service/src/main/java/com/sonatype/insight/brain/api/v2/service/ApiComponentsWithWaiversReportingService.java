@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
 import com.sonatype.insight.brain.model.Application;
@@ -49,6 +50,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.organization.ApplicationService;
@@ -65,6 +67,8 @@ import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.util.stream.Collectors.toMap;
 
 /**
  * @since 1.76
@@ -96,6 +100,8 @@ public class ApiComponentsWithWaiversReportingService
 
   private final OwnerDAO ownerDAO;
 
+  private final PolicyWaiverReasonDAO policyWaiverReasonDAO;
+
   @Inject
   public ApiComponentsWithWaiversReportingService(
       ApplicationService applicationService,
@@ -104,7 +110,8 @@ public class ApiComponentsWithWaiversReportingService
       PolicyViolationDAO policyViolationDao,
       RepositoryPolicyViolationDAO repositoryPolicyViolationDao,
       PolicyWaiverDAO policyWaiverDao,
-      OwnerDAO ownerDAO)
+      OwnerDAO ownerDAO,
+      PolicyWaiverReasonDAO policyWaiverReasonDAO)
   {
     this.applicationService = applicationService;
     this.policyViolationLoader = policyViolationLoader;
@@ -113,14 +120,22 @@ public class ApiComponentsWithWaiversReportingService
     this.repositoryPolicyViolationDao = repositoryPolicyViolationDao;
     this.policyWaiverDao = policyWaiverDao;
     this.ownerDAO = ownerDAO;
+    this.policyWaiverReasonDAO = policyWaiverReasonDAO;
   }
 
   public ApiComponentWaiversDTO getComponentsWithWaivers(String format) {
-    return getComponentsWithWaivers(format, 1000);
+    final var waiverReasonIdToReasonMap = policyWaiverReasonDAO.getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
+
+    return getComponentsWithWaivers(waiverReasonIdToReasonMap, format, 1000);
   }
 
   @VisibleForTesting
-  ApiComponentWaiversDTO getComponentsWithWaivers(String format, int appBatchSize) {
+  ApiComponentWaiversDTO getComponentsWithWaivers(
+      Map<String, PolicyWaiverReason> waiverReasonIdToReasonMap,
+      String format,
+      int appBatchSize
+  )
+  {
     final AtomicInteger componentsWithWaiversCount = new AtomicInteger(0);
     final AtomicInteger applicationComponentsWithWaiversCount = new AtomicInteger(0);
 
@@ -150,7 +165,11 @@ public class ApiComponentsWithWaiversReportingService
     final List<RepositoryDTO> repositoryDTOs = repositoryService.getRepositories().repositories;
 
     componentWaiversDTO.repositoryWaivers =
-            buildRepositoryWaiverDTOs(repositoryDTOs, overallPredicate, componentsWithWaiversCount);
+            buildRepositoryWaiverDTOs(
+                waiverReasonIdToReasonMap,
+                repositoryDTOs,
+                overallPredicate,
+                componentsWithWaiversCount);
 
     log.debug("getComponentsWithWaivers: Processed {} components with waived policy violations.",
         componentsWithWaiversCount);
@@ -166,6 +185,8 @@ public class ApiComponentsWithWaiversReportingService
       final AtomicInteger applicationComponentsWithWaiversCount,
       final Consumer<ApiApplicationWaiverDTO> waiverConsumer)
   {
+    final var waiverReasonIdToReasonMap = policyWaiverReasonDAO.getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
+
     appViews
         .stream()
         .map(appView -> {
@@ -209,6 +230,7 @@ public class ApiComponentsWithWaiversReportingService
                     applicationComponentsWithWaiversCount.incrementAndGet();
                     // for this component identifier create a dto list of all the waived policy violations
                     componentPolicyViolationDTOs.add(buildComponentPolicyViolationDTO(
+                        waiverReasonIdToReasonMap,
                         policyViolationsByComponent,
                         componentIdentifier,
                         policyViolationsByComponent.get(0).getHash(),
@@ -227,6 +249,7 @@ public class ApiComponentsWithWaiversReportingService
                     applicationComponentsWithWaiversCount.incrementAndGet();
                     // for this hash create a dto list of all the waived policy violations
                     componentPolicyViolationDTOs.add(buildComponentPolicyViolationDTO(
+                        waiverReasonIdToReasonMap,
                         policyViolationsByHash,
                         null,
                         hash,
@@ -251,6 +274,7 @@ public class ApiComponentsWithWaiversReportingService
   }
 
   private List<ApiRepositoryWaiverDTO> buildRepositoryWaiverDTOs(
+      Map<String, PolicyWaiverReason> waiverReasonIdToReasonMap,
       List<RepositoryDTO> repositoryDTOs,
       Predicate<? super RepositoryPolicyViolation> violationFilterPredicate,
       final AtomicInteger componentsWithWaiversCount)
@@ -260,7 +284,7 @@ public class ApiComponentsWithWaiversReportingService
 
     if (repositoryDTOs != null && !repositoryDTOs.isEmpty()) {
       Map<String, Repository> idToRepositoryMap = repositoryDTOs.stream()
-          .collect(Collectors.toMap(repositoryDTO -> repositoryDTO.repository.getId(),
+          .collect(toMap(repositoryDTO -> repositoryDTO.repository.getId(),
               repositoryDTO -> repositoryDTO.repository));
 
       List<RepositoryPolicyViolation> repositoryPolicyViolations =
@@ -282,9 +306,12 @@ public class ApiComponentsWithWaiversReportingService
                   // Grab the first hash it should be the same for all violations
                   String hash = policyViolationsByComponent.get(0).getHash();
                   // for this component identifier a dto list of all the waived policy violations
-                  ApiComponentPolicyViolationDTO componentPolicyViolationDTO =
-                      buildComponentPolicyViolationDTO(policyViolationsByComponent, componentIdentifier, hash,
-                          repositoryId);
+                  ApiComponentPolicyViolationDTO componentPolicyViolationDTO = buildComponentPolicyViolationDTO(
+                      waiverReasonIdToReasonMap,
+                      policyViolationsByComponent,
+                      componentIdentifier,
+                      hash,
+                      repositoryId);
 
                   componentPolicyViolationDTOs.add(componentPolicyViolationDTO);
                 });
@@ -295,7 +322,12 @@ public class ApiComponentsWithWaiversReportingService
                   repositoryComponentsWithWaiversCount.increment();
                   // for this hash create a dto list of all the waived policy violations
                   ApiComponentPolicyViolationDTO componentPolicyViolationDTO =
-                      buildComponentPolicyViolationDTO(policyViolationsByHash, null, hash, repositoryId);
+                      buildComponentPolicyViolationDTO(
+                          waiverReasonIdToReasonMap,
+                          policyViolationsByHash,
+                          null,
+                          hash,
+                          repositoryId);
 
                   componentPolicyViolationDTOs.add(componentPolicyViolationDTO);
                 });
@@ -317,6 +349,7 @@ public class ApiComponentsWithWaiversReportingService
   }
 
   private ApiComponentPolicyViolationDTO buildComponentPolicyViolationDTO(
+      Map<String, PolicyWaiverReason> waiverReasonIdToReasonMap,
       List<? extends AbstractPolicyViolation> policyViolations,
       ComponentIdentifier componentIdentifier,
       String hash,
@@ -327,7 +360,7 @@ public class ApiComponentsWithWaiversReportingService
 
     componentPolicyViolationDTO.waivedPolicyViolations =
         policyViolations.stream()
-            .map(policyViolation -> buildWaivedPolicyViolationDTO(policyViolation, ownerId))
+            .map(policyViolation -> buildWaivedPolicyViolationDTO(waiverReasonIdToReasonMap, policyViolation, ownerId))
             .collect(Collectors.toList());
 
     return componentPolicyViolationDTO;
@@ -371,6 +404,7 @@ public class ApiComponentsWithWaiversReportingService
   }
 
   private ApiWaivedPolicyViolationDTO buildWaivedPolicyViolationDTO(
+      Map<String, PolicyWaiverReason> waiverReasonIdToReasonMap,
       AbstractPolicyViolation policyViolation,
       String ownerId)
   {
@@ -395,8 +429,12 @@ public class ApiComponentsWithWaiversReportingService
       // This can occur if an app is moved to a different org than the original policy waiver was defined for.
       Owner waiverOwner = StreamSupport.stream(ownerDAO.walkHierarchy(ownerId).spliterator(), false /* parallel */)
           .filter(owner -> owner.getId().equals(policyWaiver.getOwnerId())).findFirst().orElse(null);
+
       if (waiverOwner != null) {
-        policyWaiverDTO = ApiPolicyWaiverDTO.toDto(policyWaiver, waiverOwner);
+        policyWaiverDTO = ApiPolicyWaiverDTO.toDto(
+            policyWaiver,
+            waiverReasonIdToReasonMap.get(policyWaiver.getWaiverReasonId()),
+            waiverOwner);
         policyWaiverDTO.isObsolete = false;
       }
       else {

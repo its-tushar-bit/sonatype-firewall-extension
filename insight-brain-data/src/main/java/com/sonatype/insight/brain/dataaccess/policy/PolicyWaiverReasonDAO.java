@@ -13,6 +13,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.List;
+import java.util.Map;
+
+import static java.util.function.UnaryOperator.identity;
+import static java.util.stream.Collectors.toMap;
 
 @Named
 @Singleton
@@ -35,6 +39,16 @@ public class PolicyWaiverReasonDAO
         "    entity.reasonText ASC";
 
     return getList(sQuery);
+  }
+
+  // Returns all waivers reasons as a convenient lookup map;
+  // Call this once, outside any loops, so we don't go the db over and over;
+  // The number of waivers reasons is very small and should always be very small;
+  // We can get all of them once per request, keep them in memory, and just look them up id from this map;
+  public Map<String, PolicyWaiverReason> getPolicyWaiverReasonIdToPolicyWaiverReasonMap() {
+    return getAll()
+        .stream()
+        .collect(toMap(PolicyWaiverReason::getId, identity(), (existing, replacement) -> existing));
   }
 
   public List<PolicyWaiverReason> getAllByIds(List<String> policyWaiverReasonIds) {

@@ -97,6 +97,10 @@ import static org.mockito.Mockito.when;
 public class ApiPolicyWaiverServiceTest
     extends AbstractComponentTest
 {
+  private static final String ACKNOWLEDGED_VIOLATION_REASON_ID = "9b704ef5bc064fc29d7fe08a251ee9a6";
+
+  private static final String ACKNOWLEDGED_VIOLATION_REASON_TEXT = "Acknowledged violation";
+
   @Inject
   private PolicyViolationDAO policyViolationDAO;
 
@@ -1634,36 +1638,50 @@ public class ApiPolicyWaiverServiceTest
     ConstraintFact constraintFact = new ConstraintFact("constraint id", "constraint name", "operator", conditionFact);
     PolicyWaiver policyWaiver =
         tempEntity.newWaiver("hash", policy.getId(), application.getId(), Collections.singletonList(constraintFact),
-            "comment", Date.from(Instant.now()), expirationDate);
+            "comment", Date.from(Instant.now()), expirationDate, ACKNOWLEDGED_VIOLATION_REASON_ID);
 
     ApiPolicyWaiverDTO savedWaiver =
         apiPolicyWaiverService.getPolicyWaiver(OwnerType.APPLICATION, application.getId(), policyWaiver.getId());
 
-    assertWaivers(savedWaiver, policyWaiver, policy, application, null);
+    assertWaivers(savedWaiver, policyWaiver, policy, application, ACKNOWLEDGED_VIOLATION_REASON_TEXT);
   }
 
   @Test
   public void testGetPolicyWaiver_Application_UsePublicId() {
     Application application = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(application);
-    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), application.getId(), "comment");
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(
+        "hash",
+        policy.getId(),
+        application.getId(),
+        "comment",
+        null,
+        null,
+        ACKNOWLEDGED_VIOLATION_REASON_ID);
 
     ApiPolicyWaiverDTO savedWaiver =
         apiPolicyWaiverService.getPolicyWaiver(OwnerType.APPLICATION, application.getPublicId(), policyWaiver.getId());
 
-    assertWaivers(savedWaiver, policyWaiver, policy, application, null);
+    assertWaivers(savedWaiver, policyWaiver, policy, application, ACKNOWLEDGED_VIOLATION_REASON_TEXT);
   }
 
   @Test
   public void testGetPolicyWaiver_Organization() {
     Organization organization = tempEntity.newOrganization();
     Policy policy = tempEntity.newPolicy(organization);
-    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), organization.getId(), "comment");
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(
+        "hash",
+        policy.getId(),
+        organization.getId(),
+        "comment",
+        null,
+        null,
+        ACKNOWLEDGED_VIOLATION_REASON_ID);
 
     ApiPolicyWaiverDTO savedWaiver =
         apiPolicyWaiverService.getPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), policyWaiver.getId());
 
-    assertWaivers(savedWaiver, policyWaiver, policy, organization, null);
+    assertWaivers(savedWaiver, policyWaiver, policy, organization, ACKNOWLEDGED_VIOLATION_REASON_TEXT);
   }
 
   @Test
@@ -1671,37 +1689,56 @@ public class ApiPolicyWaiverServiceTest
     Application application = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(application);
     PolicyWaiver policyWaiver = new TestPolicyWaiverBuilder()
-        .withHash("hash").withPolicyId(policy.getId()).withOwnerId(application.getId())
-        .withComponentUpgradeAvailable(true).build();
+        .withHash("hash")
+        .withPolicyId(policy.getId())
+        .withOwnerId(application.getId())
+        .withComponentUpgradeAvailable(true)
+        .withWaverReasonId(ACKNOWLEDGED_VIOLATION_REASON_ID)
+        .build();
+
     tempEntity.newWaiver(policyWaiver);
 
     ApiPolicyWaiverDTO savedWaiver =
         apiPolicyWaiverService.getPolicyWaiver(OwnerType.APPLICATION, application.getId(), policyWaiver.getId());
 
-    assertWaivers(savedWaiver, policyWaiver, policy, application, null);
+    assertWaivers(savedWaiver, policyWaiver, policy, application, ACKNOWLEDGED_VIOLATION_REASON_TEXT);
   }
 
   @Test
   public void testGetPolicyWaiver_Repository() {
     Repository repository = tempEntity.newRepository();
     Policy policy = tempEntity.newPolicy();
-    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), repository.getId(), "comment");
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(
+        "hash",
+        policy.getId(),
+        repository.getId(),
+        "comment",
+        null,
+        null,
+        ACKNOWLEDGED_VIOLATION_REASON_ID);
 
     ApiPolicyWaiverDTO savedWaiver =
         apiPolicyWaiverService.getPolicyWaiver(OwnerType.REPOSITORY, repository.getId(), policyWaiver.getId());
 
-    assertWaivers(savedWaiver, policyWaiver, policy, repository, null);
+    assertWaivers(savedWaiver, policyWaiver, policy, repository, ACKNOWLEDGED_VIOLATION_REASON_TEXT);
   }
 
   @Test
   public void testGetPolicyWaiver_RepositoryContainer() {
     Policy policy = tempEntity.newPolicy();
-    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), REPOSITORY_CONTAINER_ID, "comment");
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(
+        "hash",
+        policy.getId(),
+        REPOSITORY_CONTAINER_ID,
+        "comment",
+        null,
+        null,
+        ACKNOWLEDGED_VIOLATION_REASON_ID);
 
     ApiPolicyWaiverDTO savedWaiver =
         apiPolicyWaiverService.getPolicyWaiver(REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID, policyWaiver.getId());
 
-    assertWaivers(savedWaiver, policyWaiver, policy, null, null);
+    assertWaivers(savedWaiver, policyWaiver, policy, null, ACKNOWLEDGED_VIOLATION_REASON_TEXT);
     assertThat(savedWaiver.scopeOwnerId).isEqualTo(REPOSITORY_CONTAINER_ID);
     assertThat(savedWaiver.scopeOwnerName).isEqualTo("Repository Managers");
     assertThat(savedWaiver.scopeOwnerType).isEqualTo("all_repositories");
@@ -1714,14 +1751,23 @@ public class ApiPolicyWaiverServiceTest
     Date expirationDate = Date.from(Instant.now().minus(Duration.ofDays(2)));
 
     PolicyWaiver policyWaiver =
-        tempEntity.newWaiver("hash", policy.getId(), application.getId(), null, "comment", expirationDate,
-            expirationDate);
+        tempEntity.newWaiver(
+            "hash",
+            policy.getId(),
+            application.getId(),
+            null,
+            "comment",
+            expirationDate,
+            expirationDate,
+            ACKNOWLEDGED_VIOLATION_REASON_ID);
 
     ApiPolicyWaiverDTO savedExpiredWaiver =
         apiPolicyWaiverService.getPolicyWaiver(OwnerType.APPLICATION, application.getId(), policyWaiver.getId());
 
     assertThat(savedExpiredWaiver).isNotNull();
     assertThat(savedExpiredWaiver.expiryTime).isEqualTo(expirationDate);
+    assertThat(savedExpiredWaiver.policyWaiverReasonId).isEqualTo(ACKNOWLEDGED_VIOLATION_REASON_ID);
+    assertThat(savedExpiredWaiver.reasonText).isEqualTo(ACKNOWLEDGED_VIOLATION_REASON_TEXT);
   }
 
   @Test
@@ -1736,8 +1782,7 @@ public class ApiPolicyWaiverServiceTest
     ApiPolicyWaiverDTO savedWaiver =
         apiPolicyWaiverService.getPolicyWaiver(OwnerType.APPLICATION, application.getId(), policyWaiver.getId());
 
-    assertWaivers(savedWaiver, policyWaiver, policy, application, null);
-    assertThat(savedWaiver.reasonText).isEqualTo("because reasons");
+    assertWaivers(savedWaiver, policyWaiver, policy, application, "because reasons");
   }
 
   @Test
@@ -1777,18 +1822,22 @@ public class ApiPolicyWaiverServiceTest
     constraintFacts.add(new ConstraintFact("id", "Test Constraint 2", null));
 
     PolicyWaiverReason policyWaiverReason = tempEntity.newWaiverReason("reasonType", "some reason");
-    PolicyWaiver policyWaiver = tempEntity.newWaiver(policyViolation.getHash(),
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(
+        policyViolation.getHash(),
         policyViolation.getPolicyId(),
         policyViolation.getOwnerId(),
         constraintFacts,
-        policyWaiverReason);
+        null,
+        null,
+        null,
+        policyWaiverReason.getId());
 
     List<ApiPolicyWaiverDTO> similarWaivers = apiPolicyWaiverService.getSimilarWaivers(policyViolation.getId());
 
     assertThat(similarWaivers).isNotEmpty();
     assertThat(similarWaivers).hasSize(1);
 
-    assertWaivers(similarWaivers.get(0), policyWaiver, null, app, policyWaiverReason);
+    assertWaivers(similarWaivers.get(0), policyWaiver, null, app, "some reason");
   }
 
   @Test
@@ -1797,17 +1846,22 @@ public class ApiPolicyWaiverServiceTest
         tempEntity.newPolicyViolation(policyEvaluation, policy, 0, PolicyThreatCategory.LICENSE);
     List<ConstraintFact> constraintFacts = new ArrayList<>(policyViolation2.getConstraintFacts());
     constraintFacts.add(new ConstraintFact("id", "Test Constraint 2", null));
-    PolicyWaiver policyWaiver = tempEntity.newWaiver(policyViolation2.getHash(),
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(
+        policyViolation2.getHash(),
         policyViolation2.getPolicyId(),
         policyViolation2.getOwnerId(),
-        constraintFacts);
+        constraintFacts,
+        null,
+        null,
+        null,
+        ACKNOWLEDGED_VIOLATION_REASON_ID);
 
     List<ApiPolicyWaiverDTO> similarWaivers = apiPolicyWaiverService.getSimilarWaivers(policyViolation2.getId());
 
     assertThat(similarWaivers).isNotEmpty();
     assertThat(similarWaivers).hasSize(1);
 
-    assertWaivers(similarWaivers.get(0), policyWaiver, null, app, null);
+    assertWaivers(similarWaivers.get(0), policyWaiver, null, app, ACKNOWLEDGED_VIOLATION_REASON_TEXT);
   }
 
   @Test
@@ -1876,7 +1930,8 @@ public class ApiPolicyWaiverServiceTest
       PolicyWaiver policyWaiver,
       Policy policy,
       Owner owner,
-      PolicyWaiverReason policyWaiverReason)
+      String expectedWaiverReasonText
+  )
   {
     assertThat(savedWaiver.policyWaiverId).isEqualTo(policyWaiver.getId());
     assertThat(savedWaiver.comment).isEqualTo(policyWaiver.getComment());
@@ -1895,9 +1950,8 @@ public class ApiPolicyWaiverServiceTest
       assertThat(savedWaiver.policyName).isEqualTo(policy.getName());
       assertThat(savedWaiver.threatLevel).isEqualTo(policy.getThreatLevel());
     }
-    if (policyWaiverReason != null) {
-      assertThat(savedWaiver.reasonText).isEqualTo(policyWaiverReason.getReasonText());
-      assertThat(savedWaiver.policyWaiverReasonId).isEqualTo(policyWaiverReason.getId());
-    }
+
+    assertThat(savedWaiver.policyWaiverReasonId).isEqualTo(policyWaiver.getWaiverReasonId());
+    assertThat(savedWaiver.reasonText).isEqualTo(expectedWaiverReasonText);
   }
 }

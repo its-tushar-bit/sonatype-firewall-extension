@@ -1950,6 +1950,10 @@ public class TemporaryEntity
     return policyWaiverReason;
   }
 
+  public Map<String, PolicyWaiverReason> getPolicyWaiverReasonIdToPolicyWaiverReasonMap() {
+    return waiverReasonDAO.getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
+  }
+
   public CallFlowAnalysisConfig newCallFlowAnalysisConfig(String ownerId, int threadCount) {
     CallFlowAnalysisConfig callFlowAnalysisConfig = new CallFlowAnalysisConfig(true,
         Collections.singletonList("com.sonatype"),
@@ -2133,9 +2137,32 @@ public class TemporaryEntity
       Date createTime,
       Date expiryTime)
   {
+    return newWaiver(
+        hash,
+        policyId,
+        ownerId,
+        constraintFacts,
+        comment,
+        createTime,
+        expiryTime,
+        null
+    );
+  }
+
+  public PolicyWaiver newWaiver(
+      String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts,
+      String comment,
+      Date createTime,
+      Date expiryTime,
+      String waiverReasonId)
+  {
     PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, constraintFacts, comment);
     waiver.setCreateTime(createTime);
     waiver.setExpiryTime(expiryTime);
+    waiver.setWaiverReasonId(waiverReasonId);
     addCreatorDataToWaiver(waiver);
     waiverDAO.insert(waiver);
     return waiver;

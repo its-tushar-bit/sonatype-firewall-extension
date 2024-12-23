@@ -22,6 +22,27 @@ public class PolicyWaiverReasonDAOTest
 {
   private PolicyWaiverReasonDAO policyWaiverReasonDAO;
 
+  private static final PolicyWaiverReason ACKNOWLEDGED_VIOLATION_WAIVER_REASON = new PolicyWaiverReason(
+      "9b704ef5bc064fc29d7fe08a251ee9a6", "system", "Acknowledged violation", 0);
+
+  private static final PolicyWaiverReason MITIGATED_EXTERNALLY_WAIVER_REASON = new PolicyWaiverReason(
+      "42069f58114f4df8b435a40a415d2835", "system", "Mitigated externally", 1);
+
+  private static final PolicyWaiverReason NO_UPGRADE_PATH_WAIVER_REASON = new PolicyWaiverReason(
+      "39984de3d6e64f508df82b4cbfd72f70", "system", "No upgrade path", 2);
+
+  private static final PolicyWaiverReason NOT_EXPLOITABLE_WAIVER_REASON = new PolicyWaiverReason(
+      "f6990a32cd8d4ea78853ca829d948927", "system", "Not exploitable", 3);
+
+  private static final PolicyWaiverReason NOT_REACHABLE_WAIVER_REASON = new PolicyWaiverReason(
+      "19bbf1a7d591497698ab3172461d971a", "system", "Not reachable", 4);
+
+  private static final PolicyWaiverReason RESEARCHING_WAIVER_REASON = new PolicyWaiverReason(
+      "3446e70e60e04676a90131f3dea9bdb5", "system", "Researching", 5);
+
+  private static final PolicyWaiverReason OTHER_WAIVER_REASON = new PolicyWaiverReason(
+      "c991ef95866d4903ad0c6c217ac47c07", "system", "Other", 6);
+
   @Before
   @Override
   public void setup() {
@@ -48,6 +69,37 @@ public class PolicyWaiverReasonDAOTest
         .containsExactlyInAnyOrder(
             policyWaiverReason1.getReasonText(), policyWaiverReason2.getReasonText(),
             policyWaiverReason3.getReasonText());
+  }
+
+  @Test
+  public void testGetPolicyWaiverReasonIdToPolicyWaiverReasonMap() {
+    final var policyWaiverReason1 = tempEntity.newWaiverReason("type1", "because reasons 1");
+
+    final var results = policyWaiverReasonDAO.getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
+
+    assertThat(results.size()).isEqualTo(8);
+    assertPolicyWaiverReasonsEqual(results.get(policyWaiverReason1.getId()), policyWaiverReason1);
+    assertPolicyWaiverReasonsEqual(
+        results.get(ACKNOWLEDGED_VIOLATION_WAIVER_REASON.getId()),
+        ACKNOWLEDGED_VIOLATION_WAIVER_REASON);
+    assertPolicyWaiverReasonsEqual(
+        results.get(MITIGATED_EXTERNALLY_WAIVER_REASON.getId()),
+        MITIGATED_EXTERNALLY_WAIVER_REASON);
+    assertPolicyWaiverReasonsEqual(
+        results.get( NO_UPGRADE_PATH_WAIVER_REASON.getId()),
+        NO_UPGRADE_PATH_WAIVER_REASON);
+    assertPolicyWaiverReasonsEqual(
+        results.get(NOT_EXPLOITABLE_WAIVER_REASON.getId()),
+        NOT_EXPLOITABLE_WAIVER_REASON);
+    assertPolicyWaiverReasonsEqual(
+        results.get(NOT_REACHABLE_WAIVER_REASON.getId()),
+        NOT_REACHABLE_WAIVER_REASON);
+    assertPolicyWaiverReasonsEqual(
+        results.get(RESEARCHING_WAIVER_REASON.getId()),
+        RESEARCHING_WAIVER_REASON);
+    assertPolicyWaiverReasonsEqual(
+        results.get(OTHER_WAIVER_REASON.getId()),
+        OTHER_WAIVER_REASON);
   }
 
   @Test
@@ -107,14 +159,14 @@ public class PolicyWaiverReasonDAOTest
             apples,
             oranges,
             plumbs,
-            new PolicyWaiverReason("9b704ef5bc064fc29d7fe08a251ee9a6", "system", "Acknowledged violation", 0),
+            ACKNOWLEDGED_VIOLATION_WAIVER_REASON,
             overLappingSortOrder, // show come second, same sort-order, but greater alphabetical value
-            new PolicyWaiverReason("42069f58114f4df8b435a40a415d2835", "system", "Mitigated externally", 1),
-            new PolicyWaiverReason("39984de3d6e64f508df82b4cbfd72f70", "system", "No upgrade path", 2),
-            new PolicyWaiverReason("f6990a32cd8d4ea78853ca829d948927", "system", "Not exploitable", 3),
-            new PolicyWaiverReason("19bbf1a7d591497698ab3172461d971a", "system", "Not reachable", 4),
-            new PolicyWaiverReason("3446e70e60e04676a90131f3dea9bdb5", "system", "Researching", 5),
-            new PolicyWaiverReason("c991ef95866d4903ad0c6c217ac47c07", "system", "Other", 6),
+            MITIGATED_EXTERNALLY_WAIVER_REASON,
+            NO_UPGRADE_PATH_WAIVER_REASON,
+            NOT_EXPLOITABLE_WAIVER_REASON,
+            NOT_REACHABLE_WAIVER_REASON,
+            RESEARCHING_WAIVER_REASON,
+            OTHER_WAIVER_REASON,
             endOfTheLine // comes at the end of entries with sort-orders
         ));
   }

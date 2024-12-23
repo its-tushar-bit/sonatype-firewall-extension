@@ -226,13 +226,11 @@ public class ApiPolicyWaiverDTO
     return dto;
   }
 
-  public static ApiPolicyWaiverDTO toDto(PolicyWaiver policyWaiver, Owner owner) {
-    return toDto(policyWaiver, null, owner);
-  }
-
   public static ApiPolicyWaiverDTO toDto(
-      PolicyWaiver policyWaiver, Owner owner, String policyViolationId,
-      PolicyWaiverReason policyWaiverReason)
+      PolicyWaiver policyWaiver,
+      PolicyWaiverReason policyWaiverReason,
+      Owner owner,
+      String policyViolationId)
   {
     ApiPolicyWaiverDTO dto = toDto(policyWaiver, policyWaiverReason, owner);
     dto.policyViolationId = policyViolationId;
@@ -242,11 +240,11 @@ public class ApiPolicyWaiverDTO
 
   public static ApiPolicyWaiverDTO toDtoWithConstraints(
       PolicyWaiver policyWaiver,
+      PolicyWaiverReason policyWaiverReason,
       Owner owner,
-      String policyViolationId,
-      PolicyWaiverReason policyWaiverReason)
+      String policyViolationId)
   {
-    ApiPolicyWaiverDTO dto = toDto(policyWaiver, owner, policyViolationId, policyWaiverReason);
+    ApiPolicyWaiverDTO dto = toDto(policyWaiver, policyWaiverReason, owner, policyViolationId);
     dto.constraintFactsJson = policyWaiver.getConstraintFactsJson();
     dto.constraintFacts = policyWaiver.getConstraintFacts();
 

@@ -17,7 +17,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -500,15 +499,18 @@ public class ApiPolicyWaiverService
     ComponentIdentifier componentIdentifier = policyViolation.getComponentIdentifier();
 
     Owner owner = ownerDAO.getById(ownerId);
-    final Map<String, PolicyWaiverReason> policyWaiversReasons = policyWaiverReasonDAO.getAll().stream()
-        .collect(Collectors.toMap(PolicyWaiverReason::getId, Function.identity(), (existing, replacement) -> existing));
+    final var policyWaiversReasons =
+        policyWaiverReasonDAO.getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
 
     Map<Boolean, List<ApiPolicyWaiverDTO>> applicableWaivers = getAllApplicableWaiversWithAuthzCheck(owner).stream()
         .filter(policyWaiver -> filterWaiverByCriteria(policyId, constraintFactsJson, constraintFacts,
             componentIdentifier, hash, policyWaiver))
         .map(policyWaiver ->
-            ApiPolicyWaiverDTO.toDto(policyWaiver, ownerDAO.getById(policyWaiver.getOwnerId()), violationId,
-                policyWaiversReasons.get(policyWaiver.getWaiverReasonId())))
+            ApiPolicyWaiverDTO.toDto(
+                policyWaiver,
+                policyWaiversReasons.get(policyWaiver.getWaiverReasonId()),
+                ownerDAO.getById(policyWaiver.getOwnerId()),
+                violationId))
         .collect(partitioningBy(dto -> hasWaiverExpired(dto.expiryTime), toList()));
 
     ApiPolicyWaiversApplicableToViolationDTO apiPolicyWaivers = new ApiPolicyWaiversApplicableToViolationDTO();
@@ -570,17 +572,19 @@ public class ApiPolicyWaiverService
     Predicate<PolicyWaiver> isNotAnApplicableWaiver =
         policyWaiver -> !applicableWaiversIds.contains(policyWaiver.getId());
 
-    final Map<String, PolicyWaiverReason> policyWaiversReasons = policyWaiverReasonDAO.getAll().stream()
-        .collect(Collectors.toMap(PolicyWaiverReason::getId, Function.identity(), (existing, replacement) -> existing));
+    final var policyWaiversReasons =
+        policyWaiverReasonDAO.getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
 
     return waiversForPolicy.stream()
         .filter(userHasViewPermissionOnWaiverOwner)
         .filter(isNotAnApplicableWaiver) // higher in filter hierarchy since it's a lighter filter to process
         .filter(waiverMatchesComponentOrAnyVersionOfIt)
         .filter(securityWaiverAppliesToSameVulnerabilityId) // saved for the end as it requires more processing
-        .map(policyWaiver -> ApiPolicyWaiverDTO.toDtoWithConstraints(policyWaiver,
-            availableOwners.get(policyWaiver.getOwnerId()), violationId,
-            policyWaiversReasons.get(policyWaiver.getWaiverReasonId())))
+        .map(policyWaiver -> ApiPolicyWaiverDTO.toDtoWithConstraints(
+            policyWaiver,
+            policyWaiversReasons.get(policyWaiver.getWaiverReasonId()),
+            availableOwners.get(policyWaiver.getOwnerId()),
+            violationId))
         .collect(toList());
   }
 

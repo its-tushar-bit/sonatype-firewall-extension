@@ -72,6 +72,14 @@ public class WebhookEditPage
     return new AlertError(childSelector(".nx-alert--error"));
   }
 
+  public HttpUrlWarningModal httpUrlWarningModal() {
+    return new HttpUrlWarningModal("#http-url-warning-modal");
+  }
+
+  public SelenideElement httpUrlWarningAlertMessage() {
+    return child("#editor-webhook-url-http-alert");
+  }
+
   public SelenideElement form() {
     return child(".nx-form");
   }
@@ -88,6 +96,29 @@ public class WebhookEditPage
 
     public SelenideElement retryButton() {
       return child("button");
+    }
+  }
+
+  public class HttpUrlWarningModal extends BasicElement<HttpUrlWarningModal>
+  {
+    public HttpUrlWarningModal(String... selector) {
+      super(selector);
+    }
+
+    public SelenideElement retryButton() {
+      return child("button");
+    }
+
+    public SelenideElement content() {
+      return child(".nx-modal-content");
+    }
+
+    public SelenideElement continueButton() {
+      return child(".nx-form__submit-btn");
+    }
+
+    public SelenideElement cancelButton() {
+      return child(".nx-form__cancel-btn");
     }
   }
 }

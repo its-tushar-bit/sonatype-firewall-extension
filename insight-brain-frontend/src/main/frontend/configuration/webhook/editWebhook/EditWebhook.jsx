@@ -23,10 +23,13 @@ import { isNilOrEmpty } from '../../../util/jsUtil';
 import MenuBarBackButton from '../../../mainHeader/MenuBar/MenuBarBackButton';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
+import { validateUrlIsHttp } from 'MainRoot/configuration/webhook/webhookActions';
 
 function EditWebhook({
   isLoading,
   isDirty,
+  isUrlHTTP,
+  tenantMode,
   loadError,
   saveError,
   updateMaskState,
@@ -49,6 +52,7 @@ function EditWebhook({
   const {
     currentParams: { webhookId },
   } = router;
+  const isSelfHosted = tenantMode !== 'multi-tenant';
 
   const createMode = isNilOrEmpty(webhookId);
 
@@ -57,6 +61,7 @@ function EditWebhook({
   }, []);
 
   const [showModal, toggleShowModal] = useToggle(false);
+  const [showHttpUrlWarningModal, toggleShowHttpUrlWarningModal] = useToggle(false);
 
   const { url, description, secretKey } = inputFields;
 
@@ -86,6 +91,26 @@ function EditWebhook({
     return url.trimmedValue ? url.validationErrors : 'Webhook URL is a required field';
   };
 
+  const onSubmitForm = () => {
+    if (isSelfHosted && validateUrlIsHttp(url.trimmedValue)) {
+      toggleShowHttpUrlWarningModal();
+      return false;
+    } else {
+      return saveWebhook();
+    }
+  };
+
+  const subLabelUrlInputGroupFormElement = (
+    <>
+      <span>to send the POST request</span>
+      {isUrlHTTP && isSelfHosted && (
+        <NxInfoAlert id="editor-webhook-url-http-alert">
+          HTTPS is recommended because it is more secure than HTTP
+        </NxInfoAlert>
+      )}
+    </>
+  );
+
   return (
     <Fragment>
       <main className="nx-page-main" id="webhook-editor">
@@ -95,7 +120,7 @@ function EditWebhook({
         </div>
         <section className="nx-tile">
           <NxStatefulForm
-            onSubmit={saveWebhook}
+            onSubmit={onSubmitForm}
             submitBtnText={createMode ? 'Create' : 'Update'}
             submitMaskState={updateMaskState}
             submitError={saveError}
@@ -104,6 +129,7 @@ function EditWebhook({
             loadError={loadError}
             loading={isLoading}
             doLoad={() => loadWebhookPage(webhookId)}
+            id="webhook-form"
           >
             <div className="nx-tile-header">
               <div className="nx-tile-header__title">
@@ -119,7 +145,7 @@ function EditWebhook({
               )}
             </div>
             <div className="nx-tile-content">
-              <NxFormGroup label="Webhook URL" sublabel="to send the POST request" isRequired={true}>
+              <NxFormGroup label="Webhook URL" sublabel={subLabelUrlInputGroupFormElement} isRequired={true}>
                 <NxTextInput
                   {...url}
                   onChange={setUrl}
@@ -187,6 +213,30 @@ function EditWebhook({
           </NxStatefulForm>
         </NxModal>
       )}
+      {showHttpUrlWarningModal && (
+        <NxModal onClose={toggleShowHttpUrlWarningModal} variant="narrow" id="http-url-warning-modal">
+          <NxStatefulForm
+            id="http-url-warning-modal-form"
+            className="nx-form"
+            onSubmit={saveWebhook}
+            submitMaskState={updateMaskState}
+            onCancel={toggleShowHttpUrlWarningModal}
+            submitBtnText="Continue"
+            submitError={saveError}
+          >
+            <header className="nx-modal-header">
+              <h2 className="nx-h2">
+                <span>HTTP Warning</span>
+              </h2>
+            </header>
+            <div className="nx-modal-content">
+              <NxWarningAlert>
+                Using HTTP URLS for webhooks is less secure than HTTPS. Would you like to continue?
+              </NxWarningAlert>
+            </div>
+          </NxStatefulForm>
+        </NxModal>
+      )}
     </Fragment>
   );
 }
@@ -203,6 +253,8 @@ const userInputPropType = PropTypes.shape({
 EditWebhook.propTypes = {
   isLoading: PropTypes.bool,
   isDirty: PropTypes.bool,
+  isUrlHTTP: PropTypes.bool,
+  tenantMode: PropTypes.string,
   isAppWebhooksSupported: PropTypes.bool,
   updateMaskState: PropTypes.bool,
   deleteMaskState: PropTypes.bool,

@@ -27,6 +27,7 @@ import {
   EDIT_WEBHOOK_DELETE_FULFILLED,
   EDIT_WEBHOOK_DELETE_REQUESTED,
   EDIT_WEBHOOK_DELETE_FAILED,
+  EDIT_WEBHOOK_SET_IS_URL_HTTP,
   deleteWebhook,
 } from '../../../../main/frontend/configuration/webhook/webhookActions';
 import { STATE_GO } from '../../../../main/frontend/reduxUiRouter/routerActions';
@@ -81,8 +82,7 @@ describe('webhookActions', () => {
 
         store.dispatch(loadEditWebhookPage('1')).then(() => {
           const actions = store.getActions();
-          expect(actions.length).toBe(5);
-
+          expect(actions.length).toBe(6);
           expect(actions).toHaveAction({
             type: EDIT_WEBHOOK_FETCH_EVENT_TYPES_FULFILLED,
             payload: ['eventType1', 'eventType2'],
@@ -98,13 +98,16 @@ describe('webhookActions', () => {
             type: EDIT_WEBHOOK_FETCH_PRODUCT_FEATURES_FULFILLED,
             payload: true,
           });
-          expect(actions[4]).toEqual({
+          expect(actions).toHaveAction({
+            type: EDIT_WEBHOOK_SET_IS_URL_HTTP,
+            payload: true,
+          });
+          expect(actions[actions.length - 1]).toEqual({
             type: EDIT_WEBHOOK_LOAD_EDIT_FULFILLED,
             payload: { id: '1', url: 'http://yetanother.com' },
           });
           done();
         });
-
         expect(store.getActions()[0]).toEqual({ type: EDIT_WEBHOOK_LOAD_REQUESTED });
       });
 

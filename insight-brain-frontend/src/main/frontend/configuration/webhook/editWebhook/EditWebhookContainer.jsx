@@ -17,12 +17,18 @@ import {
 import { stateGo } from '../../../reduxUiRouter/routerActions';
 
 import EditWebhook from './EditWebhook';
+import { selectTenantMode } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default connect(
-  ({ webhooks, router }) => ({
-    ...webhooks,
-    router,
-  }),
+  (state) => {
+    const { webhooks, router } = state;
+    const tenantMode = selectTenantMode(state);
+    return {
+      ...webhooks,
+      router,
+      tenantMode,
+    };
+  },
   {
     loadWebhookPage,
     toggleEventType,

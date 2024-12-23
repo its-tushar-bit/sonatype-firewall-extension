@@ -78,7 +78,7 @@ public class WebhookConfigurationTest
     ElementsCollection webhooks = webhookConfigurationPage.webhooks();
 
     webhooks.shouldHave(size(3));
-    webhooks.shouldHave(texts("http://localhost0", "http://localhost1", "http://localhost2"));
+    webhooks.shouldHave(texts("https://localhost0", "https://localhost1", "https://localhost2"));
 
     // click on page title before eyesCheck to avoid random mouse-over style
     webhookConfigurationPage.pageTitle().click();
@@ -100,7 +100,7 @@ public class WebhookConfigurationTest
     newWebhook.shouldBe(visible).click();
     webhookEditPage.should(appear);
 
-    webhookEditPage.url().val("http://foo.bar");
+    webhookEditPage.url().val("https://foo.bar");
 
     webhookEditPage.secretKey().val("sooper sekrit");
     webhookEditPage.applicationEvaluation().click();
@@ -112,7 +112,7 @@ public class WebhookConfigurationTest
     webhookConfigurationPage.should(appear);
 
     webhookConfigurationPage.webhooks()
-        .shouldHave(texts("http://localhost0", "http://localhost1", "http://localhost2", "http://foo.bar"));
+        .shouldHave(texts("https://localhost0", "https://localhost1", "https://localhost2", "https://foo.bar"));
     webhookConfigurationPage.webhook(3).shouldHave(text("Application Evaluation"));
   }
 
@@ -129,7 +129,7 @@ public class WebhookConfigurationTest
     firstWebhook.link().click();
     webhookEditPage.should(appear);
 
-    webhookEditPage.url().shouldHave(value("http://localhost0"));
+    webhookEditPage.url().shouldHave(value("https://localhost0"));
     webhookEditPage.title().shouldHave(text("Edit Webhook"));
     webhookEditPage.secretKey().shouldHave(value("#~FAKE~SECRET~KEY~#"));
     webhookEditPage.management().shouldBe(selected);
@@ -138,7 +138,7 @@ public class WebhookConfigurationTest
 
     webhookEditPage.url().val("");
 
-    webhookEditPage.url().val("http://foo.bar");
+    webhookEditPage.url().val("https://foo.bar");
 
     webhookEditPage.management().click();
     webhookEditPage.violationAlert().click();
@@ -149,7 +149,7 @@ public class WebhookConfigurationTest
     webhookConfigurationPage.should(appear);
     firstWebhook = webhookConfigurationPage.webhook(2);
 
-    firstWebhook.text().shouldHave(text("http://foo.bar"));
+    firstWebhook.text().shouldHave(text("https://foo.bar"));
     firstWebhook.subtext().shouldHave(text("Violation Alert"));
   }
 
@@ -282,9 +282,86 @@ public class WebhookConfigurationTest
     webhookEditPage.applicationEvaluation().shouldNotBe(selected);
   }
 
+  @Test
+  public void testCanNavigateToAndEditWebhook_showHttpWarningAlert() {
+    Webhook newWebhook = tempEntity.newWebhookWithSecret("http://localhost" + webhookList.size(),
+        Sets.newSet(WebhookEventType.POLICY_MANAGEMENT), "");
+    webhookList.add(newWebhook);
+    refreshOrOpen(WebhookConfigurationPage.url());
+
+    int lastWebhookIndex = webhookList.size() - 1;
+
+    WebhookListElement webhookWithHttpUrl = webhookConfigurationPage.webhook(lastWebhookIndex);
+    webhookWithHttpUrl.link().click();
+
+    webhookEditPage.should(appear);
+    webhookEditPage.httpUrlWarningAlertMessage().shouldBe(visible);
+    webhookEditPage.httpUrlWarningAlertMessage().shouldHave(text("HTTPS is recommended because it is more secure " +
+        "than HTTP"));
+
+    webhookEditPage.secretKey().val("new secret");
+    webhookEditPage.save().shouldBe(visible);
+    webhookEditPage.save().shouldBe(enabled).click();
+
+    webhookEditPage.httpUrlWarningModal().shouldBe(visible);
+    webhookEditPage.httpUrlWarningModal().content().shouldHave(text("Using HTTP URLS for webhooks is less secure " +
+        "than HTTPS. Would you like to continue?"));
+
+    webhookEditPage.httpUrlWarningModal().cancelButton().shouldHave(text("Cancel"));
+    webhookEditPage.httpUrlWarningModal().cancelButton().click();
+    webhookEditPage.httpUrlWarningModal().shouldNotBe(visible);
+
+    webhookEditPage.save().shouldBe(enabled).click();
+    webhookEditPage.httpUrlWarningModal().continueButton().shouldHave(text("Continue"));
+    webhookEditPage.httpUrlWarningModal().continueButton().click();
+
+    webhookConfigurationPage.should(appear);
+
+    webhookConfigurationPage.webhooks().shouldHave(texts("https://localhost0", "https://localhost1",
+        "https://localhost2", "http://localhost" + lastWebhookIndex));
+    webhookConfigurationPage.webhook(3).shouldHave(text("http://localhost" + lastWebhookIndex));
+  }
+
+  @Test
+  public void testAddNewWebhookForm_showHttpWarningAlert() {
+    SelenideElement newWebhook = webhookConfigurationPage.newWebhook();
+    newWebhook.shouldBe(visible);
+
+    newWebhook.click();
+    webhookEditPage.should(appear);
+    webhookEditPage.title().shouldHave(text("Create Webhook"));
+
+    webhookEditPage.url().val("http://foo.bar");
+    webhookEditPage.httpUrlWarningAlertMessage().shouldBe(visible);
+    webhookEditPage.httpUrlWarningAlertMessage().shouldHave(text("HTTPS is recommended because it is more secure " +
+        "than HTTP"));
+
+    webhookEditPage.save().shouldHave(text("Create"));
+    eyesWatcher.eyesCheck();
+    webhookEditPage.save().shouldBe(enabled).click();
+
+    webhookEditPage.httpUrlWarningModal().shouldBe(visible);
+    webhookEditPage.httpUrlWarningModal().content().shouldHave(text("Using HTTP URLS for webhooks is less secure " +
+        "than HTTPS. Would you like to continue?"));
+
+    webhookEditPage.httpUrlWarningModal().cancelButton().shouldHave(text("Cancel"));
+    webhookEditPage.httpUrlWarningModal().cancelButton().click();
+    webhookEditPage.httpUrlWarningModal().shouldNotBe(visible);
+
+    webhookEditPage.save().shouldBe(enabled).click();
+    webhookEditPage.httpUrlWarningModal().continueButton().shouldHave(text("Continue"));
+    webhookEditPage.httpUrlWarningModal().continueButton().click();
+
+    webhookConfigurationPage.should(appear);
+
+    webhookConfigurationPage.webhooks().shouldHave(texts("https://localhost0", "https://localhost1",
+        "https://localhost2", "http://foo.bar"));
+    webhookConfigurationPage.webhook(3).shouldHave(text("http://foo.bar"));
+  }
+
   private void insertWebhooks() {
     for (int i = 0; i < 3; i++) {
-      Webhook newWebhook = tempEntity.newWebhookWithSecret("http://localhost" + i,
+      Webhook newWebhook = tempEntity.newWebhookWithSecret("https://localhost" + i,
           Sets.newSet(WebhookEventType.POLICY_MANAGEMENT), "");
       webhookList.add(newWebhook);
     }

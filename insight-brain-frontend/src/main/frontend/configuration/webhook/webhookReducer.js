@@ -25,6 +25,8 @@ import {
   EDIT_WEBHOOK_FETCH_PRODUCT_FEATURES_FULFILLED,
   EDIT_WEBHOOK_FETCH_EVENT_TYPES_FULFILLED,
   EDIT_WEBHOOK_FETCH_WEBHOOKS_FULFILLED,
+  EDIT_WEBHOOK_SET_IS_URL_HTTP,
+  validateUrlIsHttp,
 } from './webhookActions';
 import { eqValues, isNilOrEmpty, pathSet, propSet } from '../../util/jsUtil';
 import { combineValidators, validateNonEmpty } from '../../util/validationUtil';
@@ -52,6 +54,7 @@ export const initialState = Object.freeze({
   },
   webhooks: [],
   serverData: {},
+  isUrlHTTP: false,
 });
 
 const textFields = ['url', 'description', 'secretKey'];
@@ -73,7 +76,8 @@ const computeIsDirty = (state) => {
 
 const setTextInput = (fieldName, validator) => (payload, state) => {
   const textInput = userInput(validator, payload);
-  return computeIsDirty(pathSet(['inputFields', fieldName], textInput, state));
+  const isUrlHTTP = validateUrlIsHttp(textInput.trimmedValue);
+  return { ...computeIsDirty(pathSet(['inputFields', fieldName], textInput, state)), isUrlHTTP };
 };
 
 function validateWebhookUrl(value) {
@@ -162,6 +166,14 @@ function resetSubmitMaskState(_, state) {
   };
 }
 
+function saveRequested(_, state) {
+  return { ...state, updateMaskState: false };
+}
+
+function updateIfUrlHttpInState(payload, state) {
+  return { ...state, isUrlHTTP: payload };
+}
+
 const reducerActionMap = {
   [EDIT_WEBHOOK_LOAD_REQUESTED]: () => initialState,
   [EDIT_WEBHOOK_FETCH_PRODUCT_FEATURES_FULFILLED]: propSet('isAppWebhooksSupported'),
@@ -174,13 +186,14 @@ const reducerActionMap = {
   [EDIT_WEBHOOK_SET_URL]: setTextInput('url', urlValidator),
   [EDIT_WEBHOOK_SET_DESCRIPTION]: setTextInput('description'),
   [EDIT_WEBHOOK_SET_SECRET_KEY]: setTextInput('secretKey'),
-  [EDIT_WEBHOOK_SAVE_REQUESTED]: propSetConst('updateMaskState', false),
+  [EDIT_WEBHOOK_SAVE_REQUESTED]: saveRequested,
   [EDIT_WEBHOOK_SAVE_FULFILLED]: saveFulfilled,
   [EDIT_WEBHOOK_SAVE_FAILED]: saveFailed,
   [EDIT_WEBHOOK_SUBMIT_MASK_TIMER_DONE]: resetSubmitMaskState,
   [EDIT_WEBHOOK_DELETE_REQUESTED]: propSetConst('deleteMaskState', false),
   [EDIT_WEBHOOK_DELETE_FULFILLED]: deleteFulfilled,
   [EDIT_WEBHOOK_DELETE_FAILED]: deleteFailed,
+  [EDIT_WEBHOOK_SET_IS_URL_HTTP]: updateIfUrlHttpInState,
 };
 
 const webhookReducer = createReducerFromActionMap(reducerActionMap, initialState);

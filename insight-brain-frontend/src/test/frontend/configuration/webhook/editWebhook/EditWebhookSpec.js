@@ -34,6 +34,15 @@ describe('EditWebhook', () => {
       router: {
         currentParams: {},
       },
+      isUrlHTTP: false,
+      setUrl: () => null,
+      setDescription: () => null,
+      setSecretKey: () => null,
+      saveWebhook: () => null,
+      deleteWebhook: () => null,
+      stateGo: () => null,
+      toggleEventType: () => null,
+      loadWebhookPage: () => null,
     };
 
     getShallow = enzymeUtils.getShallowComponent(EditWebhook, minProps);
@@ -170,6 +179,24 @@ describe('EditWebhook', () => {
         },
       });
       expect(loadWebhookPageSpy).toHaveBeenCalledWith('404');
+    });
+
+    it('shows http warning alert message after loading the form when editing an http link', () => {
+      component = getMounted({
+        inputFields: {
+          url: initialState('http://test.xyz'),
+          description: initialState(''),
+          secretKey: initialState(''),
+        },
+        router: {
+          currentParams: {
+            webhookId: '404',
+          },
+        },
+        isUrlHTTP: true,
+      });
+      expect(loadWebhookPageSpy).toHaveBeenCalledWith('404');
+      expect(component.find('#editor-webhook-url-http-alert')).toExist();
     });
   });
 
@@ -312,6 +339,62 @@ describe('EditWebhook', () => {
         const form = modal.find(NxStatefulForm);
         form.simulate('submit');
         expect(deleteWebhook).toHaveBeenCalledWith(webhookId);
+      });
+    });
+
+    describe('http url warning modal', () => {
+      let modal, urlValue, webhookId, saveWebhook;
+      beforeEach(() => {
+        urlValue = 'http://test';
+        webhookId = '404';
+        saveWebhook = jasmine.createSpy('saveWebhook');
+        const component = getShallow({
+          inputFields: {
+            url: initialState(urlValue),
+            description: initialState('test'),
+            secretKey: initialState('test'),
+          },
+          router: {
+            currentParams: {
+              webhookId,
+            },
+          },
+          saveWebhook,
+        });
+        const webhookForm = component.find('#webhook-form');
+        webhookForm.simulate('submit');
+        modal = component.find('#http-url-warning-modal-form');
+      });
+      it('renders http url warning modal', () => {
+        const alert = modal.find(NxWarningAlert);
+        expect(alert).toExist();
+        expect(alert).toHaveText('Using HTTP URLS for webhooks is less secure than HTTPS. Would you like to continue?');
+      });
+      it('calls saveWebhook when submitted', () => {
+        const form = modal.find(NxStatefulForm);
+        form.simulate('submit');
+        expect(saveWebhook).toHaveBeenCalled();
+      });
+      it("won't show modal when multi-tenant", () => {
+        const component = getShallow({
+          inputFields: {
+            url: initialState(urlValue),
+            description: initialState('test'),
+            secretKey: initialState('test'),
+          },
+          router: {
+            currentParams: {
+              webhookId,
+            },
+          },
+          saveWebhook,
+          tenantMode: 'multi-tenant',
+        });
+        const webhookForm = component.find('#webhook-form');
+        webhookForm.simulate('submit');
+        modal = component.find('#http-url-warning-modal-form');
+        expect(modal).not.toExist();
+        expect(saveWebhook).toHaveBeenCalled();
       });
     });
   });

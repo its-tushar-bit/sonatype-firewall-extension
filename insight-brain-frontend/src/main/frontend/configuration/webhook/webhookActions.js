@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { compose, mapObjIndexed, prop, find } from 'ramda';
+import { compose, mapObjIndexed, prop, find, startsWith } from 'ramda';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import {
   deleteWebhooksUrl,
@@ -29,6 +29,7 @@ export const EDIT_WEBHOOK_TOGGLE_EVENT_TYPE = 'EDIT_WEBHOOK_TOGGLE_EVENT_TYPE';
 export const EDIT_WEBHOOK_SET_URL = 'EDIT_WEBHOOK_SET_URL';
 export const EDIT_WEBHOOK_SET_DESCRIPTION = 'EDIT_WEBHOOK_SET_DESCRIPTION';
 export const EDIT_WEBHOOK_SET_SECRET_KEY = 'EDIT_WEBHOOK_SET_SECRET_KEY';
+export const EDIT_WEBHOOK_SET_IS_URL_HTTP = 'EDIT_WEBHOOK_SET_IS_URL_HTTP';
 
 export const EDIT_WEBHOOK_SAVE_REQUESTED = 'EDIT_WEBHOOK_SAVE_REQUESTED';
 export const EDIT_WEBHOOK_SAVE_FULFILLED = 'EDIT_WEBHOOK_SAVE_FULFILLED';
@@ -116,6 +117,8 @@ export function loadEditWebhookPage(webhookId) {
           throw 'Unable to locate webhook';
         }
 
+        // Update state after evaluating if the url is http or not
+        dispatch(setIsUrlHttp(validateUrlIsHttp(webhook.url)));
         dispatch(loadEditFulfilled(webhook));
       })
       .catch(compose(dispatch, loadFailed, Messages.getHttpErrorMessage));
@@ -140,6 +143,7 @@ export const setUrl = payloadParamActionCreator(EDIT_WEBHOOK_SET_URL);
 export const setDescription = payloadParamActionCreator(EDIT_WEBHOOK_SET_DESCRIPTION);
 export const setSecretKey = payloadParamActionCreator(EDIT_WEBHOOK_SET_SECRET_KEY);
 export const toggleEventType = payloadParamActionCreator(EDIT_WEBHOOK_TOGGLE_EVENT_TYPE);
+export const setIsUrlHttp = payloadParamActionCreator(EDIT_WEBHOOK_SET_IS_URL_HTTP);
 
 // SAVE
 const saveRequested = noPayloadActionCreator(EDIT_WEBHOOK_SAVE_REQUESTED);
@@ -193,4 +197,9 @@ export function deleteWebhook(webhookId) {
       })
       .catch(compose(dispatch, deleteFailed, Messages.getHttpErrorMessage));
   };
+}
+
+export function validateUrlIsHttp(url) {
+  const httpStr = 'http://';
+  return url && url.length >= httpStr.length && startsWith(httpStr, url);
 }

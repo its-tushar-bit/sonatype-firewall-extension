@@ -144,6 +144,7 @@ public class PolicyAlertScmNotifier
     }
 
     if (!remediationPullRequestFeatureCheck.isPullRequestFeatureSupported(app, gitRepositoryInfo)) {
+      log.debug("Pull Request feature is not supported for application '{}' and scan '{}'", app.getPublicId(), scanId);
       return;
     }
 
@@ -195,8 +196,15 @@ public class PolicyAlertScmNotifier
         if (shouldCreateNonBreakingVersionsPR(componentIdentifier)) {
           final ApiVersionChangeOptionType remediationType = remediationVersion.get().getRemediationType();
           if (!ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES.equals(remediationType)) {
+            log.debug("Remediation type for component '{}' is not golden: {}", componentIdentifier, remediationType);
             continue;
           }
+          log.debug("Attempt to create golden PR for application '{}' component '{}'",
+              app.getPublicId(), componentIdentifier);
+        }
+        else {
+          log.debug("Attempt to create PR for application '{}' component '{}'",
+              app.getPublicId(), componentIdentifier);
         }
 
         String nextVersion = remediationVersion.get().getVersion();
@@ -212,6 +220,10 @@ public class PolicyAlertScmNotifier
                   scanId, stage.getStageTypeId(), baseUrl.getConfigured(), gitRepositoryInfo.provider,
                   gitRepositoryInfo.normalizedRepositoryUrl, organizationDAO);
           publishRemediationPullRequestEvent(pullRequestRemediationDetails);
+        }
+        else {
+          log.debug("Remediation pull request already exists for application '{}' component '{}'",
+              app.getPublicId(), ComponentDisplayNameUtil.fromIdentifier(componentIdentifier));
         }
       }
       else {

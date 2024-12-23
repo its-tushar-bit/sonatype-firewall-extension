@@ -15,7 +15,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.audit.AuditData;
+import com.google.common.annotations.VisibleForTesting;
 import com.sonatype.insight.brain.audit.AuditService;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
@@ -38,20 +38,14 @@ import org.slf4j.LoggerFactory;
 
 @Named
 public class H2ComponentRiskService
-    implements ComponentRiskService
+    extends AbstractComponentRiskService
 {
   private static final Logger log = LoggerFactory.getLogger(H2ComponentRiskService.class);
 
   private static final PolicyViolationDTOComparator POLICY_VIOLATION_DTO_COMPARATOR =
       new PolicyViolationDTOComparator();
 
-  private final ApplicationService applicationService;
-
   private final PolicyViolationLoader policyViolationLoader;
-
-  private final DashboardUtils dashboardUtils;
-
-  private final AuditService auditService;
 
   private final PolicyViolationDAO policyViolationDAO;
 
@@ -61,31 +55,26 @@ public class H2ComponentRiskService
       final PolicyViolationLoader policyViolationLoader,
       final DashboardUtils dashboardUtils, final AuditService auditService, final PolicyViolationDAO policyViolationDAO)
   {
-    this.applicationService = applicationService;
+    super(applicationService, dashboardUtils, auditService);
     this.policyViolationLoader = policyViolationLoader;
-    this.dashboardUtils = dashboardUtils;
-    this.auditService = auditService;
     this.policyViolationDAO = policyViolationDAO;
   }
 
   @Override
-  public DashboardResultsDTO<ComponentRiskDTO> getComponentRisks(Set<String> organizationIds,
-                                                                 Set<String> applicationIds,
-                                                                 Set<String> stageIds,
-                                                                 Set<String> tagIds,
-                                                                 PolicyThreatCategoryFilter policyThreatCategoryFilter,
-                                                                 PolicyThreatLevelFilter policyThreatLevelFilter,
-                                                                 PolicyViolationStateFilter policyViolationStateFilter,
-                                                                 String orderBy,
-                                                                 int page,
-                                                                 int pageSize)
+  public DashboardResultsDTO<ComponentRiskDTO> load(
+      List<Application> applications,
+      Set<String> stageIds,
+      PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      PolicyThreatLevelFilter policyThreatLevelFilter,
+      PolicyViolationStateFilter policyViolationStateFilter,
+      String orderBy,
+      int page,
+      int pageSize)
   {
-    dashboardUtils.validateDashboardLicensedAndEnabledForApplications();
-
-    long start = System.currentTimeMillis();
+    DashboardResultsDTO<ComponentRiskDTO> result = new DashboardResultsDTO<>();
 
     ComponentRiskDTOComparator componentRiskComparator = new ComponentRiskDTOComparator(orderBy);
-    List<PolicyViolationDTO> violations = getPolicyViolations(organizationIds, applicationIds, stageIds, tagIds,
+    List<PolicyViolationDTO> violations = getPolicyViolations(applications, stageIds,
         policyThreatCategoryFilter, policyThreatLevelFilter, policyViolationStateFilter);
     Map<String, ComponentViolationRollUp> componentsByHash = new LinkedHashMap<>();
     for (PolicyViolationDTO violation : violations) {
@@ -103,7 +92,6 @@ public class H2ComponentRiskService
     }
     dtos.sort(componentRiskComparator);
 
-    DashboardResultsDTO<ComponentRiskDTO> result = new DashboardResultsDTO<>();
     result.numResults = dtos.size();
 
     if (dtos.isEmpty()) {
@@ -115,35 +103,36 @@ public class H2ComponentRiskService
       result.hasNextPage = pages.size() > (page + 1);
     }
 
-    AuditData.get().setData("resultRecordCount", result.numResults);
-
-    log.debug("getComponentRisks finished in {} ms", System.currentTimeMillis() - start);
-
     return result;
+  }
+
+  @VisibleForTesting
+  List<PolicyViolationDTO> getPolicyViolations(
+      Set<String> organizationIds,
+      Set<String> applicationIds,
+      Set<String> stageIds,
+      Set<String> tagIds,
+      PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      PolicyThreatLevelFilter policyThreatLevelFilter,
+      PolicyViolationStateFilter policyViolationStateFilter)
+  {
+    List<Application> applications = getApplications(organizationIds, applicationIds, tagIds);
+
+    return getPolicyViolations(applications, stageIds, policyThreatCategoryFilter, policyThreatLevelFilter,
+            policyViolationStateFilter);
   }
 
   /**
    * Gets the policy violations matching the specified filter criteria. Empty or null filter criteria generally mean
    * "all available" violations for that aspect.
    */
-  List<PolicyViolationDTO> getPolicyViolations(Set<String> organizationIds,
-                                               Set<String> applicationIds,
-                                               Set<String> stageIds,
-                                               Set<String> tagIds,
-                                               PolicyThreatCategoryFilter policyThreatCategoryFilter,
-                                               PolicyThreatLevelFilter policyThreatLevelFilter,
-                                               PolicyViolationStateFilter policyViolationStateFilter)
+  private List<PolicyViolationDTO> getPolicyViolations(
+      List<Application> applications,
+      Set<String> stageIds,
+      PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      PolicyThreatLevelFilter policyThreatLevelFilter,
+      PolicyViolationStateFilter policyViolationStateFilter)
   {
-    List<Application> applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds,
-        applicationIds, tagIds);
-
-    AuditData.get() //
-        .setData("selectedOrganizations", auditService.getSelectedOrganizationsById(organizationIds)) //
-        .setData("selectedApplications",
-            auditService.getSelectedApplicationsById(applicationIds, organizationIds, applications)) //
-        .setSelectedApplicationCategories(auditService.getSelectedApplicationCategoriesById(tagIds)) //
-        .setData("inspectedApplicationCount", applications.size());
-
     log.debug("Loaded {} applications", applications.size());
     Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
     Collection<ApplicationView> appViews = policyViolationLoader.getViolations(applications, stageTypes, false,

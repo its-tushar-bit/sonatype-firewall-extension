@@ -27,7 +27,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiRoleMembershipResource;
 import com.sonatype.insight.brain.api.v2.ApiUserResource;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
-import com.sonatype.insight.brain.dashboard.ComponentRiskService;
+import com.sonatype.insight.brain.dashboard.DashboardComponentRiskService;
 import com.sonatype.insight.brain.dashboard.DashboardViolationRiskService;
 import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.H2ComponentRiskService;
@@ -523,7 +523,8 @@ public class InsightBrainServiceTest
   public void testInitialize_correctDbBasedInstancesInjected() {
     assertThat(getCLMServer().getInstance(DashboardViolationRiskService.class)).isInstanceOf(
         H2DashboardViolationRiskService.class);
-    assertThat(getCLMServer().getInstance(ComponentRiskService.class)).isInstanceOf(H2ComponentRiskService.class);
+    assertThat(getCLMServer().getInstance(DashboardComponentRiskService.class))
+            .isInstanceOf(H2ComponentRiskService.class);
     assertThat(getCLMServer().getInstance(ApplicationRiskService.class)).isInstanceOf(H2ApplicationRiskService.class);
     assertThat(getCLMServer().getInstance(PolicyWaiverService.class)).isInstanceOf(H2PolicyWaiverService.class);
   }

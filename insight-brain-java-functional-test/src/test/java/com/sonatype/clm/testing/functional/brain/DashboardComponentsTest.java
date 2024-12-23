@@ -206,9 +206,9 @@ public class DashboardComponentsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
-        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
         "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
+        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
+        "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
         "Group1 : Artifact1 : Version1,1,1,0,0,0,1"
     };
     assertComponentsCsv(exportCsv, expectedResults);
@@ -223,9 +223,9 @@ public class DashboardComponentsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
-        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
         "Group1 : Artifact1 : Version1,1,1,0,0,0,1",
+        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
+        "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
         "Group2 : Artifact2 : Version2,1,3,0,0,3,0"
     };
     assertComponentsCsv(exportCsv, expectedResults);
@@ -240,9 +240,9 @@ public class DashboardComponentsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
-        "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
         "Group1 : Artifact1 : Version1,1,1,0,0,0,1",
+        "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
+        "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
         "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
     };
     assertComponentsCsv(exportCsv, expectedResults);
@@ -257,9 +257,9 @@ public class DashboardComponentsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
-        "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
         "Group1 : Artifact1 : Version1,1,1,0,0,0,1",
+        "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
+        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
         "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
     };
     assertComponentsCsv(exportCsv, expectedResults);
@@ -273,8 +273,8 @@ public class DashboardComponentsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
         "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
+        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
         "Group4 : Artifact4 : Version4,1,10,10,0,0,0"
     };
     assertComponentsCsv(exportCsv, expectedResults);

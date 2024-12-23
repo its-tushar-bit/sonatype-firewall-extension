@@ -5,11 +5,13 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import javax.persistence.Query;
 
@@ -20,14 +22,20 @@ import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
+import com.sonatype.insight.brain.model.ApplicationComponentRisk;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 
 import com.google.common.collect.Sets;
+import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -624,6 +632,412 @@ public class ApplicationComponentDAOTest
     Application app = tempEntity.newApplicationWithParent();
 
     assertThat(dao.getByApplicationIdAndComponentIdentifier(app.getId(), componentIdentifier)).isEmpty();
+  }
+
+  @Test
+  public void testGetComponentsRiskFiltered_H2DatabaseNotSupported() {
+    assertThatThrownBy(() -> dao.getComponentsRiskFiltered(Set.of(application.getId()), Collections.emptySet(),
+        Collections.emptySet(), new AbstractMap.SimpleEntry<>(0, 10), Collections.emptySet(),
+        "score DESC", 0, 100))
+        .hasMessage("This operation is only supported for PostgreSQL databases")
+        .isInstanceOf(UnsupportedOperationException.class);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetComponentsRiskFiltered_DefaultFilters() {
+    long time = System.currentTimeMillis() - 1000;
+
+    Policy app1Policy = tempEntity.newPolicy(application.getId(), "app owned policy", 5);
+    PolicyEvaluation app1PolicyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "test scan app1 id", new Date(time));
+
+    tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, "hash-1",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"));
+
+    tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, "Group1",
+        "Artifact1", "Version1", "hash", "ConstraintFact1");
+
+    List<ApplicationComponentRisk> result = dao.getComponentsRiskFiltered(Set.of(application.getId()),
+        Set.of(BuildStageType.ID, SourceStageType.ID, ReleaseStageType.ID), Collections.emptySet(),
+        new AbstractMap.SimpleEntry<>(0, 10), Collections.emptySet(),
+        "score DESC", 0, 100);
+
+    ApplicationComponentRisk expected = new ApplicationComponentRisk("hash",null,"maven",null,1,5,0,5,0,0);
+
+    assertApplicationComponentRisk(List.of(expected), result);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetComponentsRiskFiltered_ApplicationFilter() {
+    long time = System.currentTimeMillis() - 1000;
+
+    Application application1 = tempEntity.newApplication(organization.getId());
+    Application application2 = tempEntity.newApplication(organization.getId());
+    Application application3 = tempEntity.newApplication(organization.getId());
+
+    Policy orgPolicy1 = tempEntity.newPolicy(organization.getId(), "critical policy", 10);
+    Policy orgPolicy2 = tempEntity.newPolicy(organization.getId(), "severe policy", 5);
+    Policy orgPolicy3 = tempEntity.newPolicy(organization.getId(), "moderate policy", 2);
+
+    PolicyEvaluation app1PolicyEvaluation = tempEntity.newPolicyEvaluation(application1.getId(), BuildStageType.ID,
+        "test scan app1 id", new Date(time));
+    PolicyEvaluation app2PolicyEvaluation = tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID,
+        "test scan app2 id", new Date(time));
+    PolicyEvaluation app3PolicyEvaluation = tempEntity.newPolicyEvaluation(application3.getId(), BuildStageType.ID,
+        "test scan app3 id", new Date(time));
+
+    tempEntity.newApplicationComponent(application1.getId(), BuildStageType.ID, "hash-1",
+        ComponentIdentifier.createMavenCoordinates("a", "b", "1"));
+    tempEntity.newApplicationComponent(application1.getId(), BuildStageType.ID, "hash-2",
+        ComponentIdentifier.createMavenCoordinates("c", "d", "1"));
+    tempEntity.newApplicationComponent(application2.getId(), BuildStageType.ID, "hash-3",
+        ComponentIdentifier.createMavenCoordinates("e", "f", "1"));
+    tempEntity.newApplicationComponent(application2.getId(), BuildStageType.ID, "hash-4",
+        ComponentIdentifier.createMavenCoordinates("g", "h", "1"));
+    tempEntity.newApplicationComponent(application3.getId(), BuildStageType.ID, "hash-5",
+        ComponentIdentifier.createMavenCoordinates("i", "j", "1"));
+
+    tempEntity.newPolicyViolation(app1PolicyEvaluation, orgPolicy1, "Group1",
+        "Artifact1", "Version1", "hash", "ConstraintFact1");
+    tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy1, "Group2",
+        "Artifact2", "Version2", "hash", "ConstraintFact2");
+    tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy2, "Group3",
+        "Artifact3", "Version3", "hash", "ConstraintFact3");
+    tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy3, "Group4",
+        "Artifact4", "Version4", "hash", "ConstraintFact4");
+    tempEntity.newPolicyViolation(app3PolicyEvaluation, orgPolicy2, "Group5",
+        "Artifact5", "Version5", "hash", "ConstraintFact5");
+    tempEntity.newPolicyViolation(app3PolicyEvaluation, orgPolicy3, "Group6",
+        "Artifact6", "Version6", "hash", "ConstraintFact6");
+
+    List<ApplicationComponentRisk> result = dao.getComponentsRiskFiltered(
+        Set.of(application1.getId(), application2.getId()), Set.of(BuildStageType.ID, SourceStageType.ID,
+            ReleaseStageType.ID), Collections.emptySet(), new AbstractMap.SimpleEntry<>(0, 10), Collections.emptySet(),
+        "score DESC", 0, 100);
+
+    List<ApplicationComponentRisk> expected = List.of(
+            new ApplicationComponentRisk("hash",null,"maven",null,1,10,10,0,0,0),
+            new ApplicationComponentRisk("hash",null,"maven",null,1,10,10,0,0,0),
+            new ApplicationComponentRisk("hash",null,"maven",null,1,5,0,5,0,0),
+            new ApplicationComponentRisk("hash",null,"maven",null,1,2,0,0,2,0)
+    );
+
+    assertApplicationComponentRisk(expected, result);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetComponentsRiskFiltered_StageFilter() {
+    long time = System.currentTimeMillis() - 1000;
+
+    Application application1 = tempEntity.newApplication(organization.getId());
+    Application application2 = tempEntity.newApplication(organization.getId());
+    Application application3 = tempEntity.newApplication(organization.getId());
+
+    Policy orgPolicy1 = tempEntity.newPolicy(organization.getId(), "critical policy", 10);
+    Policy orgPolicy2 = tempEntity.newPolicy(organization.getId(), "severe policy", 5);
+    Policy orgPolicy3 = tempEntity.newPolicy(organization.getId(), "moderate policy", 2);
+
+    PolicyEvaluation app1PolicyEvaluation = tempEntity.newPolicyEvaluation(application1.getId(), BuildStageType.ID,
+        "test scan app1 id", new Date(time));
+    PolicyEvaluation app2PolicyEvaluation = tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID,
+        "test scan app2 id", new Date(time));
+    PolicyEvaluation app3PolicyEvaluation = tempEntity.newPolicyEvaluation(application3.getId(), SourceStageType.ID,
+        "test scan app3 id", new Date(time));
+
+    tempEntity.newApplicationComponent(application1.getId(), BuildStageType.ID, "hash-1",
+        ComponentIdentifier.createMavenCoordinates("a", "b", "1"));
+    tempEntity.newApplicationComponent(application1.getId(), BuildStageType.ID, "hash-2",
+        ComponentIdentifier.createMavenCoordinates("c", "d", "1"));
+    tempEntity.newApplicationComponent(application2.getId(), BuildStageType.ID, "hash-3",
+        ComponentIdentifier.createMavenCoordinates("e", "f", "1"));
+    tempEntity.newApplicationComponent(application2.getId(), BuildStageType.ID, "hash-4",
+        ComponentIdentifier.createMavenCoordinates("g", "h", "1"));
+    tempEntity.newApplicationComponent(application3.getId(), SourceStageType.ID, "hash-5",
+        ComponentIdentifier.createMavenCoordinates("i", "j", "1"));
+
+    tempEntity.newPolicyViolation(app1PolicyEvaluation, orgPolicy1, "Group1",
+        "Artifact1", "Version1", "hash", "ConstraintFact1");
+    tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy1, "Group2",
+        "Artifact2", "Version2", "hash", "ConstraintFact2");
+    tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy2, "Group3",
+        "Artifact3", "Version3", "hash", "ConstraintFact3");
+    tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy3, "Group4",
+        "Artifact4", "Version4", "hash", "ConstraintFact4");
+    tempEntity.newPolicyViolation(app3PolicyEvaluation, orgPolicy2, "Group5",
+        "Artifact5", "Version5", "hash", "ConstraintFact5");
+    tempEntity.newPolicyViolation(app3PolicyEvaluation, orgPolicy3, "Group6",
+        "Artifact6", "Version6", "hash", "ConstraintFact6");
+
+    List<ApplicationComponentRisk> result = dao.getComponentsRiskFiltered(
+        Set.of(application1.getId(), application2.getId(), application3.getId()), Set.of(BuildStageType.ID,
+            SourceStageType.ID, ReleaseStageType.ID), Collections.emptySet(), new AbstractMap.SimpleEntry<>(0, 10),
+        Collections.emptySet(),
+        "score DESC", 0, 100);
+
+    List<ApplicationComponentRisk> expected = List.of(
+            new ApplicationComponentRisk("hash",null,"maven",null,1,10,10,0,0,0),
+            new ApplicationComponentRisk("hash",null,"maven",null,1,10,10,0,0,0),
+            new ApplicationComponentRisk("hash",null,"maven",null,1,5,0,5,0,0),
+            new ApplicationComponentRisk("hash",null,"maven",null,1,5,0,5,0,0),
+            new ApplicationComponentRisk("hash",null,"maven",null,1,2,0,0,2,0),
+            new ApplicationComponentRisk("hash",null,"maven",null,1,2,0,0,2,0)
+    );
+
+    assertApplicationComponentRisk(expected, result);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetComponentsRiskFiltered_TheatCategoryFilter() {
+    long time = System.currentTimeMillis() - 1000;
+
+    Application application1 = tempEntity.newApplication(organization.getId());
+    Application application2 = tempEntity.newApplication(organization.getId());
+    Application application3 = tempEntity.newApplication(organization.getId());
+
+    Policy orgPolicy1 = tempEntity.newPolicy(organization.getId(), "critical policy", 10);
+    Policy orgPolicy2 = tempEntity.newPolicy(organization.getId(), "severe policy", 5);
+    Policy orgPolicy3 = tempEntity.newPolicy(organization.getId(), "moderate policy", 2);
+
+    PolicyEvaluation app1PolicyEvaluation = tempEntity.newPolicyEvaluation(application1.getId(), BuildStageType.ID,
+        "test scan app1 id", new Date(time));
+    PolicyEvaluation app2PolicyEvaluation = tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID,
+        "test scan app2 id", new Date(time));
+    PolicyEvaluation app3PolicyEvaluation = tempEntity.newPolicyEvaluation(application3.getId(), SourceStageType.ID,
+        "test scan app3 id", new Date(time));
+
+    tempEntity.newApplicationComponent(application1.getId(), BuildStageType.ID, "hash-1",
+        ComponentIdentifier.createMavenCoordinates("a", "b", "1"));
+    tempEntity.newApplicationComponent(application1.getId(), BuildStageType.ID, "hash-2",
+        ComponentIdentifier.createMavenCoordinates("c", "d", "1"));
+    tempEntity.newApplicationComponent(application2.getId(), BuildStageType.ID, "hash-3",
+        ComponentIdentifier.createMavenCoordinates("e", "f", "1"));
+    tempEntity.newApplicationComponent(application2.getId(), BuildStageType.ID, "hash-4",
+        ComponentIdentifier.createMavenCoordinates("g", "h", "1"));
+    tempEntity.newApplicationComponent(application3.getId(), SourceStageType.ID, "hash-5",
+        ComponentIdentifier.createMavenCoordinates("i", "j", "1"));
+
+    tempEntity.newPolicyViolation(app1PolicyEvaluation, orgPolicy1, "Group1",
+        "Artifact1", "Version1", "hash", "ConstraintFact1");
+    tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy1, "Group2",
+        "Artifact2", "Version2", "hash", "ConstraintFact2");
+    tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy2, "Group3",
+        "Artifact3", "Version3", "hash", "ConstraintFact3");
+    tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy3, "Group4",
+        "Artifact4", "Version4", "hash", "ConstraintFact4");
+    tempEntity.newPolicyViolation(app3PolicyEvaluation, orgPolicy2, "Group5",
+        "Artifact5", "Version5", "hash", "ConstraintFact5");
+    tempEntity.newPolicyViolation(app3PolicyEvaluation, orgPolicy3, "Group6",
+        "Artifact6", "Version6", "hash", "ConstraintFact6");
+
+    List<ApplicationComponentRisk> result = dao.getComponentsRiskFiltered(
+        Set.of(application1.getId(), application2.getId(), application3.getId()),
+        Set.of(BuildStageType.ID, SourceStageType.ID,
+            ReleaseStageType.ID), Set.of(PolicyThreatCategory.SECURITY.getId()),
+        new AbstractMap.SimpleEntry<>(0, 10), Collections.emptySet(), "score DESC", 0, 100);
+
+    List<ApplicationComponentRisk> expected = List.of(
+            new ApplicationComponentRisk("hash",null,"maven",null,1,10,10,0,0,0),
+            new ApplicationComponentRisk("hash",null,"maven",null,1,10,10,0,0,0),
+            new ApplicationComponentRisk("hash",null,"maven",null,1,5,0,5,0,0),
+            new ApplicationComponentRisk("hash",null,"maven",null,1,5,0,5,0,0),
+            new ApplicationComponentRisk("hash",null,"maven",null,1,2,0,0,2,0),
+            new ApplicationComponentRisk("hash",null,"maven",null,1,2,0,0,2,0)
+    );
+
+    assertApplicationComponentRisk(expected, result);
+
+    result = dao.getComponentsRiskFiltered(
+        Set.of(application1.getId(), application2.getId(), application3.getId()),
+        Set.of(BuildStageType.ID, SourceStageType.ID,
+            ReleaseStageType.ID), Set.of(PolicyThreatCategory.LICENSE.getId()),
+        new AbstractMap.SimpleEntry<>(0, 10), Collections.emptySet(), "score DESC", 0, 100);
+
+    assertThat(result).hasSize(0);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetComponentsRiskFiltered_ThreatLevelFilter() {
+    long time = System.currentTimeMillis() - 1000;
+
+    Application application1 = tempEntity.newApplication(organization.getId());
+    Application application2 = tempEntity.newApplication(organization.getId());
+    Application application3 = tempEntity.newApplication(organization.getId());
+
+    Policy orgPolicy1 = tempEntity.newPolicy(organization.getId(), "critical policy", 10);
+    Policy orgPolicy2 = tempEntity.newPolicy(organization.getId(), "severe policy", 5);
+    Policy orgPolicy3 = tempEntity.newPolicy(organization.getId(), "moderate policy", 2);
+
+    PolicyEvaluation app1PolicyEvaluation = tempEntity.newPolicyEvaluation(application1.getId(), BuildStageType.ID,
+        "test scan app1 id", new Date(time));
+    PolicyEvaluation app2PolicyEvaluation = tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID,
+        "test scan app2 id", new Date(time));
+    PolicyEvaluation app3PolicyEvaluation = tempEntity.newPolicyEvaluation(application3.getId(), SourceStageType.ID,
+        "test scan app3 id", new Date(time));
+
+    tempEntity.newApplicationComponent(application1.getId(), BuildStageType.ID, "hash-1",
+        ComponentIdentifier.createMavenCoordinates("a", "b", "1"));
+    tempEntity.newApplicationComponent(application1.getId(), BuildStageType.ID, "hash-2",
+        ComponentIdentifier.createMavenCoordinates("c", "d", "1"));
+    tempEntity.newApplicationComponent(application2.getId(), BuildStageType.ID, "hash-3",
+        ComponentIdentifier.createMavenCoordinates("e", "f", "1"));
+    tempEntity.newApplicationComponent(application2.getId(), BuildStageType.ID, "hash-4",
+        ComponentIdentifier.createMavenCoordinates("g", "h", "1"));
+    tempEntity.newApplicationComponent(application3.getId(), SourceStageType.ID, "hash-5",
+        ComponentIdentifier.createMavenCoordinates("i", "j", "1"));
+
+    tempEntity.newPolicyViolation(app1PolicyEvaluation, orgPolicy1, "Group1",
+        "Artifact1", "Version1", "hash", "ConstraintFact1");
+    tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy1, "Group2",
+        "Artifact2", "Version2", "hash", "ConstraintFact2");
+    tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy2, "Group3",
+        "Artifact3", "Version3", "hash", "ConstraintFact3");
+    tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy3, "Group4",
+        "Artifact4", "Version4", "hash", "ConstraintFact4");
+    tempEntity.newPolicyViolation(app3PolicyEvaluation, orgPolicy2, "Group5",
+        "Artifact5", "Version5", "hash", "ConstraintFact5");
+    tempEntity.newPolicyViolation(app3PolicyEvaluation, orgPolicy3, "Group6",
+        "Artifact6", "Version6", "hash", "ConstraintFact6");
+
+    List<ApplicationComponentRisk> result = dao.getComponentsRiskFiltered(
+        Set.of(application1.getId(), application2.getId(), application3.getId()),
+        Set.of(BuildStageType.ID, SourceStageType.ID,
+            ReleaseStageType.ID), Collections.emptySet(), new AbstractMap.SimpleEntry<>(6, 10), Collections.emptySet(),
+        "score DESC", 0, 100);
+
+    List<ApplicationComponentRisk> expected = List.of(
+            new ApplicationComponentRisk("hash",null,"maven",null,1,10,10,0,0,0),
+            new ApplicationComponentRisk("hash",null,"maven",null,1,10,10,0,0,0));
+
+    assertApplicationComponentRisk(expected, result);
+
+    result = dao.getComponentsRiskFiltered(
+        Set.of(application1.getId(), application2.getId(), application3.getId()),
+        Set.of(BuildStageType.ID, SourceStageType.ID,
+            ReleaseStageType.ID), Collections.emptySet(), new AbstractMap.SimpleEntry<>(0, 5), Collections.emptySet(),
+        "score DESC", 0, 100);
+
+    expected = List.of(
+            new ApplicationComponentRisk("hash",null,"maven",null,1,5,0,5,0,0),
+            new ApplicationComponentRisk("hash",null,"maven",null,1,5,0,5,0,0),
+            new ApplicationComponentRisk("hash",null,"maven",null,1,2,0,0,2,0),
+            new ApplicationComponentRisk("hash",null,"maven",null,1,2,0,0,2,0)
+    );
+
+    assertApplicationComponentRisk(expected, result);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetComponentsRiskFiltered_ViolationStateFilter() {
+    long time = System.currentTimeMillis() - 1000;
+
+    Application application1 = tempEntity.newApplication(organization.getId());
+    Application application2 = tempEntity.newApplication(organization.getId());
+    Application application3 = tempEntity.newApplication(organization.getId());
+
+    Policy orgPolicy1 = tempEntity.newPolicy(organization.getId(), "critical policy", 10);
+    Policy orgPolicy2 = tempEntity.newPolicy(organization.getId(), "severe policy", 5);
+    Policy orgPolicy3 = tempEntity.newPolicy(organization.getId(), "moderate policy", 2);
+    Policy orgPolicy4 = tempEntity.newPolicy(organization.getId(), "legacy policy", 3);
+
+    PolicyEvaluation app1PolicyEvaluation = tempEntity.newPolicyEvaluation(application1.getId(), BuildStageType.ID,
+        "test scan app1 id", new Date(time));
+    PolicyEvaluation app2PolicyEvaluation = tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID,
+        "test scan app2 id", new Date(time));
+    PolicyEvaluation app3PolicyEvaluation = tempEntity.newPolicyEvaluation(application3.getId(), BuildStageType.ID,
+        "test scan app3 id", new Date(time));
+
+    tempEntity.newApplicationComponent(application1.getId(), BuildStageType.ID, "hash-1",
+        ComponentIdentifier.createMavenCoordinates("a", "b", "1"));
+    tempEntity.newApplicationComponent(application1.getId(), BuildStageType.ID, "hash-2",
+        ComponentIdentifier.createMavenCoordinates("c", "d", "1"));
+    tempEntity.newApplicationComponent(application2.getId(), BuildStageType.ID, "hash-3",
+        ComponentIdentifier.createMavenCoordinates("e", "f", "1"));
+    tempEntity.newApplicationComponent(application2.getId(), BuildStageType.ID, "hash-4",
+        ComponentIdentifier.createMavenCoordinates("g", "h", "1"));
+    tempEntity.newApplicationComponent(application3.getId(), BuildStageType.ID, "hash-5",
+        ComponentIdentifier.createMavenCoordinates("i", "j", "1"));
+
+    tempEntity.newPolicyViolation(app1PolicyEvaluation, orgPolicy1, "Group1",
+        "Artifact1", "Version1", "hash-1", "ConstraintFact1");
+    tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy1, "Group2",
+        "Artifact2", "Version2", "hash-2", "ConstraintFact2");
+    tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy2, "Group3",
+        "Artifact3", "Version3", "hash-3", "ConstraintFact3");
+    tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy3, "Group4",
+        "Artifact4", "Version4", "hash-4", "ConstraintFact4");
+    tempEntity.newPolicyViolation(app3PolicyEvaluation, orgPolicy2, "Group5",
+        "Artifact5", "Version5", "hash-5", "ConstraintFact5");
+    PolicyWaiver waiver = tempEntity.newWaiver(orgPolicy3.getId(), application3.getId());
+    tempEntity.newWaivedPolicyViolation(app3PolicyEvaluation, orgPolicy3, waiver);
+    tempEntity.newLegacyPolicyViolation(app3PolicyEvaluation, orgPolicy4);
+
+    List<ApplicationComponentRisk> result = dao.getComponentsRiskFiltered(
+        Set.of(application1.getId(), application2.getId(), application3.getId()),
+        Set.of(BuildStageType.ID), Collections.emptySet(),
+        new AbstractMap.SimpleEntry<>(0, 10), Set.of("WAIVED"), "score DESC", 0, 100);
+
+    List<ApplicationComponentRisk> expected = List.of(
+            new ApplicationComponentRisk("hash",null,"maven",null,1,2,0,0,2,0)
+    );
+
+    assertApplicationComponentRisk(expected, result);
+
+    result = dao.getComponentsRiskFiltered(
+        Set.of(application1.getId(), application2.getId(), application3.getId()),
+        Set.of(BuildStageType.ID), Collections.emptySet(),
+        new AbstractMap.SimpleEntry<>(0, 10), Set.of("OPEN"), "score DESC", 0, 100);
+
+    expected = List.of(
+            new ApplicationComponentRisk("hash-1",null,"maven",null,1,10,10,0,0,0),
+            new ApplicationComponentRisk("hash-2",null,"maven",null,1,10,10,0,0,0),
+            new ApplicationComponentRisk("hash-3",null,"maven",null,1,5,0,5,0,0),
+            new ApplicationComponentRisk("hash-5",null,"maven",null,1,5,0,5,0,0),
+            new ApplicationComponentRisk("hash-4",null,"maven",null,1,2,0,0,2,0)
+    );
+
+    assertApplicationComponentRisk(expected, result);
+
+    result = dao.getComponentsRiskFiltered(
+        Set.of(application1.getId(), application2.getId(), application3.getId()),
+        Set.of(BuildStageType.ID), Collections.emptySet(),
+        new AbstractMap.SimpleEntry<>(0, 10), Set.of("LEGACY_VIOLATION"), "score DESC", 0, 100);
+
+    expected = List.of(
+            new ApplicationComponentRisk(result.get(0).hash(),"unknown.jar","npm",null,1,3,0,0,3,0)
+    );
+
+    assertApplicationComponentRisk(expected, result);
+  }
+
+  public void assertApplicationComponentRisk(
+          List<ApplicationComponentRisk> expected,
+          List<ApplicationComponentRisk> actual)
+  {
+    assertThat(actual).isNotNull();
+    assertThat(actual).hasSize(expected.size());
+    assertThat(actual).usingElementComparator((a, b) -> {
+      if (
+          Objects.equals(a.hash(), b.hash()) &&
+          Objects.equals(a.componentIdFormat(), b.componentIdFormat()) &&
+          Objects.equals(a.affectedApplications(), b.affectedApplications()) &&
+          Objects.equals(a.score(), b.score()) &&
+          Objects.equals(a.scoreCritical(), b.scoreCritical()) &&
+          Objects.equals(a.scoreSevere(), b.scoreSevere()) &&
+          Objects.equals(a.scoreModerate(), b.scoreModerate()) &&
+          Objects.equals(a.scoreLow(), b.scoreLow())
+      ) {
+        return 0;
+      }
+
+      return  -1;
+    })
+    .containsExactlyInAnyOrderElementsOf(expected);
   }
 
   public void assertApplicationComponent(ApplicationComponent expected, ApplicationComponent actual) {

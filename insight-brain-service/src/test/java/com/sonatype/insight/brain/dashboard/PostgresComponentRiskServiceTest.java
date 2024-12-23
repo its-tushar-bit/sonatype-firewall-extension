@@ -5,16 +5,16 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
+
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2InMemoryTest;
-
-@H2InMemoryTest
-public class H2ComponentRiskServiceAuthzTest
-    extends AbstractComponentRiskServiceAuthzTest
+@PostgresTest
+public class PostgresComponentRiskServiceTest
+    extends AbstractComponentRiskServiceTest
 {
   @Inject
-  private H2ComponentRiskService componentRiskService;
+  protected PostgresComponentRiskService componentRiskService;
 
   @Override
   protected DashboardComponentRiskService getComponentRiskService() {

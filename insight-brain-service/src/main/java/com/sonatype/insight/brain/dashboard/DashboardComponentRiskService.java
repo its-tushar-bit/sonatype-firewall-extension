@@ -5,13 +5,13 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import java.util.Set;
-
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 
-public interface ComponentRiskService
+import java.util.Set;
+
+public interface DashboardComponentRiskService
 {
   /**
    * Gets the risk per component by rolling up the policy violations matching the specified filter criteria. Empty or

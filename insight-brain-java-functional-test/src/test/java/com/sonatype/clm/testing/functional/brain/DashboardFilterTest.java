@@ -46,13 +46,11 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
@@ -80,7 +78,6 @@ import org.openqa.selenium.Keys;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.ACTIVE;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.NO_CHANGES_MESSAGE;
@@ -91,9 +88,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class DashboardFilterTest
     extends AbstractFunctionalTest
 {
-  private static final ComponentIdentifier DEFAULT_COMPONENT_IDENTIFIER = createMavenCoordinates("Group1", "Artifact1",
-      "Version1");
-
   private static final String POLICY_WAIVER_REASON_ACKNOWLEDGED_VIOLATION_ID = "9b704ef5bc064fc29d7fe08a251ee9a6";
 
   private ApplicationDAO applicationDAO;
@@ -169,27 +163,14 @@ public class DashboardFilterTest
     PolicyEvaluation firstPolicyEvaluation = tempEntity
         .newPolicyEvaluation(firstApp.getId(), BuildStageType.ID, "DashboardTestFirstEvaluation",
             now.minusDays(7).toDate());
-    PolicyViolation firstViolation = tempEntity
-        .newPolicyViolation(firstPolicyEvaluation, policy, 5, PolicyThreatCategory.LICENSE, "Group1", "Artifact1",
-            "Version1", "hash", FailActionType.ID);
-    tempEntity
-        .newApplicationComponent(firstPolicyEvaluation.getApplicationId(), firstPolicyEvaluation.getStageTypeId(),
-            firstViolation.getHash(), DEFAULT_COMPONENT_IDENTIFIER);
-    tempEntity
-        .newApplicationComponent(firstPolicyEvaluation.getApplicationId(), firstPolicyEvaluation.getStageTypeId(),
-            "987654321", MatchState.SIMILAR, false);
-    tempEntity
-        .newApplicationComponent(firstPolicyEvaluation.getApplicationId(), firstPolicyEvaluation.getStageTypeId(),
-            "987654322", MatchState.UNKNOWN, false);
+    tempEntity.newPolicyViolation(firstPolicyEvaluation, policy, 5, PolicyThreatCategory.LICENSE, "Group1", "Artifact1",
+        "Version1", "hash", FailActionType.ID);
 
     //same policy as first evaluation, but a different stage and earlier
     PolicyEvaluation firstPolicyEvaluationSecondStage = tempEntity.newPolicyEvaluation(firstApp.getId(),
         StageReleaseStageType.ID, "DashboardTestFirstEvaluationSecondStage", now.minusDays(14).toDate());
-    PolicyViolation firstViolationSecondStage = tempEntity.newPolicyViolation(firstPolicyEvaluationSecondStage,
-        policy, 5, PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1", "hash", WarnActionType.ID);
-    tempEntity.newApplicationComponent(firstPolicyEvaluationSecondStage.getApplicationId(),
-        firstPolicyEvaluationSecondStage.getStageTypeId(), firstViolationSecondStage.getHash(),
-        DEFAULT_COMPONENT_IDENTIFIER);
+    tempEntity.newPolicyViolation(firstPolicyEvaluationSecondStage, policy, 5, PolicyThreatCategory.LICENSE, "Group1",
+        "Artifact1", "Version1", "hash", WarnActionType.ID);
 
     // evaluation in yet another stage
     PolicyEvaluation thirdPolicyEvaluation = tempEntity.newPolicyEvaluation(firstApp.getId(), ReleaseStageType.ID,
@@ -207,7 +188,8 @@ public class DashboardFilterTest
     PolicyEvaluation secondPolicyEvaluation = tempEntity
         .newPolicyEvaluation(secondApp.getId(), ReleaseStageType.ID,
             "DashboardTestSecondEvaluation", now.minusDays(1).toDate());
-    tempEntity.newPolicyViolation(secondPolicyEvaluation, policy, 10, PolicyThreatCategory.QUALITY);
+    tempEntity.newPolicyViolation(secondPolicyEvaluation, policy, 10, PolicyThreatCategory.QUALITY, "Group1",
+        "Artifact1", "Version1");
 
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash-waived", policy.getId(), secondApp.getId());
     tempEntity.newWaiver("hash-waived-2", policy.getId(), secondApp.getId(), "",
@@ -674,7 +656,7 @@ public class DashboardFilterTest
     firstViolation.threatNumber().shouldHave(text("10"));
     firstViolation.policy().shouldHave(text("DashboardTestPolicy"));
     firstViolation.application().shouldHave(text("DashboardTestAppTwo"));
-    firstViolation.component().shouldHave(text("unknown.jar"));
+    firstViolation.component().shouldHave(text("Group1 : Artifact1 : Version1"));
 
     // check component tab
     DashboardPage.componentsTab().click();

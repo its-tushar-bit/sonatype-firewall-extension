@@ -61,7 +61,7 @@ public class DashboardResource
 
   private final ApplicationRiskService applicationRiskService;
 
-  private final ComponentRiskService componentRiskService;
+  private final DashboardComponentRiskService componentRiskService;
 
   private final DashboardFilterService dashboardFilterService;
 
@@ -73,7 +73,7 @@ public class DashboardResource
   public DashboardResource(
       ApplicationRiskService applicationRiskService,
       DashboardFilterService dashboardFilterService,
-      ComponentRiskService componentRiskService,
+      DashboardComponentRiskService componentRiskService,
       DashboardViolationRiskService dashboardViolationRiskService,
       PolicyWaiverService policyWaiverService)
   {

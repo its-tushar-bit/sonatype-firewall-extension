@@ -17,12 +17,12 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class ComponentRiskDTOComparatorTest
 {
   private ComponentRiskDTO newDTO(String derivedComponentName,
-                                  int affectedApplications,
-                                  int total,
-                                  int critical,
-                                  int severe,
-                                  int moderate,
-                                  int low)
+      int affectedApplications,
+      int total,
+      int critical,
+      int severe,
+      int moderate,
+      int low)
   {
     ComponentRiskDTO dto = new ComponentRiskDTO();
     dto.derivedComponentName = derivedComponentName;
@@ -32,6 +32,21 @@ public class ComponentRiskDTOComparatorTest
     dto.scoreSevere = severe;
     dto.scoreModerate = moderate;
     dto.scoreLow = low;
+    return dto;
+  }
+
+  private ComponentRiskDTO newDTO(
+      String derivedComponentName,
+      String hash,
+      int affectedApplications,
+      int total,
+      int critical,
+      int severe,
+      int moderate,
+      int low)
+  {
+    ComponentRiskDTO dto = newDTO(derivedComponentName, affectedApplications, total, critical, severe, moderate, low);
+    dto.hash = hash;
     return dto;
   }
 
@@ -146,5 +161,33 @@ public class ComponentRiskDTOComparatorTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> assertComparison(new ComponentRiskDTOComparator(""), 0, newDTO("Name", 1, 0, 0, 0, 0, 5),
             newDTO("Name1", 0, 1, 1, 1, 1, 4))).withMessage("Invalid orderBy property.");
+  }
+
+  @Test
+  public void testCompare_SameOrdersByHash_BothHashesNull() {
+    assertComparison(new ComponentRiskDTOComparator("NAME"), 0, newDTO("Name", null /* hash */, 0, 0, 0, 0, 0, 0),
+        newDTO("Name", null /* hash */, 0, 0, 0, 0, 0, 0));
+  }
+
+  @Test
+  public void testCompare_SameOrdersByHash_SameHash() {
+    assertComparison(new ComponentRiskDTOComparator("NAME"), 0, newDTO("Name", "hash", 0, 0, 0, 0, 0, 0),
+        newDTO("Name", "hash", 0, 0, 0, 0, 0, 0));
+  }
+
+  @Test
+  public void testCompare_SameOrdersByHash_OneHashNull() {
+    assertComparison(new ComponentRiskDTOComparator("NAME"), 1, newDTO("Name", null /* hash */, 0, 0, 0, 0, 0, 0),
+        newDTO("Name", "hash", 0, 0, 0, 0, 0, 0));
+    assertComparison(new ComponentRiskDTOComparator("NAME"), -1, newDTO("Name", "hash", 0, 0, 0, 0, 0, 0),
+        newDTO("Name", null /* hash */, 0, 0, 0, 0, 0, 0));
+  }
+
+  @Test
+  public void testCompare_SameOrdersByHash_DifferentHashes() {
+    assertComparison(new ComponentRiskDTOComparator("NAME"), -1, newDTO("Name", "hash1", 0, 0, 0, 0, 0, 0),
+        newDTO("Name", "hash2", 0, 0, 0, 0, 0, 0));
+    assertComparison(new ComponentRiskDTOComparator("NAME"), 1, newDTO("Name", "hash2", 0, 0, 0, 0, 0, 0),
+        newDTO("Name", "hash1", 0, 0, 0, 0, 0, 0));
   }
 }

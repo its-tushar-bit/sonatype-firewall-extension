@@ -23,31 +23,44 @@ class ComponentRiskDTOComparator
 
   @Override
   public int compare(ComponentRiskDTO o1, ComponentRiskDTO o2) {
+    int result  = 0;
     if (componentRiskOrderBy != null) {
       ComponentRiskDTO ob1 = componentRiskOrderBy.isOrderByAsc() ? o1 : o2;
       ComponentRiskDTO ob2 = componentRiskOrderBy.isOrderByAsc() ? o2 : o1;
 
-      switch (componentRiskOrderBy.getComponentRiskOrderByEnum()) {
-        case CRITICAL_RISK:
-          return ob1.scoreCritical - ob2.scoreCritical;
-        case MODERATE_RISK:
-          return ob1.scoreModerate - ob2.scoreModerate;
-        case LOW_RISK:
-          return ob1.scoreLow - ob2.scoreLow;
-        case NAME:
-          return String.CASE_INSENSITIVE_ORDER.compare(ob1.derivedComponentName, ob2.derivedComponentName);
-        case NUMBER_OF_AFFECTED_APPS:
-          return Integer.compare(ob1.affectedApplications, ob2.affectedApplications);
-        case SEVERE_RISK:
-          return ob1.scoreSevere - ob2.scoreSevere;
-        case TOTAL_RISK:
-          return ob1.score - ob2.score;
-        default:
-          throw new IllegalArgumentException("unsupported order by " + componentRiskOrderBy.componentRiskOrderByEnum);
-      }
+      result = switch (componentRiskOrderBy.getComponentRiskOrderByEnum()) {
+        case CRITICAL_RISK -> ob1.scoreCritical - ob2.scoreCritical;
+        case MODERATE_RISK -> ob1.scoreModerate - ob2.scoreModerate;
+        case LOW_RISK -> ob1.scoreLow - ob2.scoreLow;
+        case NAME -> String.CASE_INSENSITIVE_ORDER.compare(ob1.derivedComponentName, ob2.derivedComponentName);
+        case NUMBER_OF_AFFECTED_APPS -> Integer.compare(ob1.affectedApplications, ob2.affectedApplications);
+        case SEVERE_RISK -> ob1.scoreSevere - ob2.scoreSevere;
+        case TOTAL_RISK -> ob1.score - ob2.score;
+        default -> throw new IllegalArgumentException(
+            "unsupported order by " + componentRiskOrderBy.componentRiskOrderByEnum);
+      };
     }
 
-    return 0;
+    if (result != 0) {
+      return result;
+    }
+
+    // If the objects are equal, use the hash to establish a complete order.
+    // This matches the Postgres implementation.
+    String hash1 = o1.hash;
+    String hash2 = o2.hash;
+    if (hash1 == null) {
+      if (hash2 == null) {
+        return 0;
+      }
+      return 1; // nulls last
+    }
+    else {
+      if (hash2 == null) {
+        return -1; // nulls last
+      }
+      return hash1.compareTo(hash2);
+    }
   }
 
   private static class ComponentRiskOrderBy

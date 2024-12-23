@@ -2615,6 +2615,24 @@ public class TemporaryEntity
     return this.newPolicyViolation(evaluation, policy, groupId, artifactId, version, null, null, hash, reason);
   }
 
+  public PolicyViolation newPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      String groupId,
+      String artifactId,
+      String version,
+      String hash,
+      String reason,
+      String filename)
+  {
+    ComponentIdentifier componentIdentifier = null;
+    if (groupId != null) {
+      componentIdentifier =
+          ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version, null, null);
+    }
+    return newPolicyViolation(evaluation, policy, componentIdentifier, hash, reason, filename);
+  }
+
   public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation, Policy policy) {
     return newPolicyViolation(evaluation, policy, policy.getThreatLevel(), policy.getThreatCategory(), "Group1",
         "Artifact1", "Version1");

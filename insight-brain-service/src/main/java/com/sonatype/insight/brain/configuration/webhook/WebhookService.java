@@ -45,15 +45,15 @@ public class WebhookService
 {
   private static final Logger log = LoggerFactory.getLogger(WebhookService.class);
 
-  private final WebhookDAO webhookDao;
+  protected final WebhookDAO webhookDao;
 
   private final Configuration configuration;
 
   private final PlexusCipher plexusCipher;
 
-  private final ProductLicense productLicense;
+  protected final ProductLicense productLicense;
 
-  private final OrganizationApplicationManagementEventService organizationApplicationManagementEventService;
+  protected final OrganizationApplicationManagementEventService organizationApplicationManagementEventService;
 
   @Inject
   public WebhookService(
@@ -185,7 +185,7 @@ public class WebhookService
     auditWebhook(webhook);
   }
 
-  private void auditWebhook(Webhook webhook) {
+  protected void auditWebhook(Webhook webhook) {
     List<String> webhookEventTypes =
         webhook.getEventTypes() == null ? new ArrayList<>() : webhook.getEventTypes().stream()
             .map(webhookEventType -> webhookEventType.name().toLowerCase(Locale.ROOT).replace('_', '-')).sorted()
@@ -194,7 +194,7 @@ public class WebhookService
         .setData("webhookTriggerEvents", webhookEventTypes);
   }
 
-  private void encryptWebhookSecretKey(final Webhook webhook) {
+  protected void encryptWebhookSecretKey(final Webhook webhook) {
     if (StringUtils.isNotEmpty(webhook.getSecretKey())) {
       synchronized (plexusCipher) {
         try {

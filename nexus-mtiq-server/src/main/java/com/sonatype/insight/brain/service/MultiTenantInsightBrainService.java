@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.sonatype.insight.brain.configuration.webhook.WebhookService;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -386,6 +387,8 @@ public class MultiTenantInsightBrainService
         bind(MeterRegistry.class).toProvider(MultiTenantMeterRegistryProvider.class);
 
         bind(SsoUserService.class).to(MultiTenantSsoUserService.class);
+
+        bind(WebhookService.class).to(MultiTenantWebhookService.class);
 
         bind(ProductLicense.class).to(MultiTenantProductLicense.class);
         bind(DefaultProductLicense.class).to(MultiTenantProductLicense.class);

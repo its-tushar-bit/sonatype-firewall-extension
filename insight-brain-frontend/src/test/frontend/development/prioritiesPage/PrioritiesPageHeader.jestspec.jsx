@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
+import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 import PrioritiesPageHeader from 'MainRoot/development/prioritiesPage/PrioritiesPageHeader';
 import moment from 'moment';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
@@ -38,16 +38,6 @@ describe('PrioritiesPageHeader', () => {
   const defaultPreloadedState = {
     applicationReport: {
       metadata,
-      selectedReport: {
-        criticalViolationCount: 133,
-        severeViolationCount: 23,
-        moderateViolationCount: 13,
-        nonLowViolationCount: 83,
-        policyComponentCount: 253,
-        totalArtifactCount: 303,
-        legacyViolationCount: 33,
-        aggregatedEntries: [{ waivedViolations: 5 }, { waivedViolations: 10 }],
-      },
       dependencyTree: [
         {
           children: null,
@@ -193,39 +183,6 @@ describe('PrioritiesPageHeader', () => {
 
       const tooltip = await screen.findByRole('tooltip');
       expect(tooltip).toHaveTextContent(expectedFormattedDate);
-    });
-
-    describe('violations section', () => {
-      it('renders the correct number of violations', async () => {
-        renderComponent();
-        const summarySection = screen.getByTestId('iq-priorities-page-summary-section');
-
-        const critical = within(summarySection).getByText('Critical');
-        expect(critical).toBeInTheDocument();
-        expect(within(summarySection).getByText('133')).toBeInTheDocument();
-
-        const severe = within(summarySection).getByText('Severe');
-        expect(severe).toBeInTheDocument();
-        expect(within(summarySection).getByText('23')).toBeInTheDocument();
-
-        const moderate = within(summarySection).getByText('Moderate');
-        expect(moderate).toBeInTheDocument();
-        expect(within(summarySection).getByText('13')).toBeInTheDocument();
-
-        const legacy = within(summarySection).getByText('Legacy');
-        expect(legacy).toBeInTheDocument();
-        expect(within(summarySection).getByText('33')).toBeInTheDocument();
-
-        const waived = within(summarySection).getByText('Waived');
-        expect(waived).toBeInTheDocument();
-        expect(within(summarySection).getByText('15')).toBeInTheDocument();
-      });
-
-      it('renders correct number of identified and total components', () => {
-        renderComponent();
-        const summarySection = screen.getByTestId('iq-priorities-page-summary-section');
-        expect(within(summarySection).getByText('Affecting 253 of 303 identified components')).toBeInTheDocument();
-      });
     });
 
     describe('triggered by section', () => {

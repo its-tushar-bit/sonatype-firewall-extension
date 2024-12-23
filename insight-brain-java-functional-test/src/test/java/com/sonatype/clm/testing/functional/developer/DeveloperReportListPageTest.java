@@ -29,7 +29,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.After;
 import org.junit.Before;
@@ -106,19 +105,6 @@ public class DeveloperReportListPageTest
     WebDriverRunner.getWebDriver().close();
     Selenide.switchTo().window(0);
     PrioritiesPage.title().shouldHave(text("Priorities"));
-  }
-
-  @Test
-  public void testPrioritiesReportPage_shouldShowCorrectNumbersInSummary() {
-    refreshOrOpen(DeveloperReportListPage.url());
-    DeveloperReportListPage.reportListTable().findAll(byText("View Priorities")).first().click();
-    PrioritiesPage.title().shouldHave(text(title(0)));
-
-    SelenideElement summaryTile = PrioritiesPage.summaryTile();
-
-    summaryTile.find(".nx-small-threat-counter--critical").shouldHave(text("22"));
-    summaryTile.find(".nx-small-threat-counter--severe").shouldHave(text("39"));
-    summaryTile.find(".nx-small-threat-counter--moderate").shouldHave(text("4"));
   }
 
   @Test

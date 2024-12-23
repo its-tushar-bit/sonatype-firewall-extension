@@ -21,7 +21,7 @@ public class PrioritiesPage
   }
 
   public static SelenideElement title() {
-    return $("h1");
+    return $("h2");
   }
 
   public static SelenideElement summaryTile() {

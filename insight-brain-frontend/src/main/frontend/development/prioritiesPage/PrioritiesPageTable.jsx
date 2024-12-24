@@ -59,7 +59,7 @@ export default function PrioritiesPageTable() {
 
   const setPage = (page) => dispatch(actions.setPage(page));
 
-  const priorityTooltip = `Priority of actionable items based on this application's policy, component reachability status, recommendation availability, and threat score severity.`;
+  const priorityTooltip = `Priority of actionable items based on the policy action, component reachability status, and threat score severity.`;
 
   const filterByComponentName = (filter) => {
     dispatch(actions.setComponentNameFilter(filter));

@@ -178,7 +178,7 @@ describe('PrioritiesPageTable', () => {
     fireEvent.mouseOver(infoIcon);
     const tooltip = await screen.findByRole('tooltip', {
       name:
-        "Priority of actionable items based on this application's policy, component reachability status, recommendation availability, and threat score severity.",
+        'Priority of actionable items based on the policy action, component reachability status, and threat score severity.',
     });
     expect(tooltip).toBeInTheDocument();
   });

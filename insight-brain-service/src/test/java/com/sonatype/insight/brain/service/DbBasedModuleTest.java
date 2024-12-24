@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.dashboard.H2ComponentRiskService;
 import com.sonatype.insight.brain.dashboard.H2DashboardViolationRiskService;
 import com.sonatype.insight.brain.dashboard.H2PolicyWaiverService;
 import com.sonatype.insight.brain.dashboard.PolicyWaiverService;
+import com.sonatype.insight.brain.dashboard.PostgresApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.PostgresComponentRiskService;
 import com.sonatype.insight.brain.dashboard.PostgresDashboardViolationRiskService;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
@@ -62,8 +63,8 @@ public class DbBasedModuleTest
   public void postgresTest() {
     assertThat(dashboardViolationRiskService).isInstanceOf(PostgresDashboardViolationRiskService.class);
     assertThat(dashboardComponentRiskService).isInstanceOf(PostgresComponentRiskService.class);
+    assertThat(applicationRiskService).isInstanceOf(PostgresApplicationRiskService.class);
     // TODO - update as Postgres implementations are merged
-    assertThat(applicationRiskService).isInstanceOf(H2ApplicationRiskService.class);
     assertThat(policyWaiverService).isInstanceOf(H2PolicyWaiverService.class);
   }
 }

@@ -7,15 +7,14 @@ package com.sonatype.insight.brain.service;
 
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.DashboardComponentRiskService;
 import com.sonatype.insight.brain.dashboard.DashboardViolationRiskService;
-import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.H2PolicyWaiverService;
 import com.sonatype.insight.brain.dashboard.PolicyWaiverService;
+import com.sonatype.insight.brain.dashboard.PostgresApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.PostgresComponentRiskService;
 import com.sonatype.insight.brain.dashboard.PostgresDashboardViolationRiskService;
 import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
@@ -85,7 +84,8 @@ public class MultiTenantInsightBrainServiceTest
         PostgresDashboardViolationRiskService.class);
     assertThat(getCLMServer().getInstance(DashboardComponentRiskService.class))
             .isInstanceOf(PostgresComponentRiskService.class);
-    assertThat(getCLMServer().getInstance(ApplicationRiskService.class)).isInstanceOf(H2ApplicationRiskService.class);
+    assertThat(getCLMServer().getInstance(ApplicationRiskService.class)).isInstanceOf(
+        PostgresApplicationRiskService.class);
     assertThat(getCLMServer().getInstance(PolicyWaiverService.class)).isInstanceOf(H2PolicyWaiverService.class);
   }
 

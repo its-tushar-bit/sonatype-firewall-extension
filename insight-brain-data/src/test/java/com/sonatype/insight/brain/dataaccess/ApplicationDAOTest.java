@@ -17,6 +17,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -56,6 +57,7 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRe
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.ApplicationRiskDTO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -77,6 +79,8 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.sast.SastFinding;
 import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
@@ -1641,6 +1645,156 @@ public class ApplicationDAOTest
     assertThat(applicationDAO.getByIdOrPublicIdNotNull(" " + application.getPublicId() + " "))
         .usingRecursiveComparison()
         .isEqualTo(application);
+  }
+
+  @Test
+  public void testGetDashboardApplicationRisk_H2DatabaseNotSupported() {
+    assertThatThrownBy(
+        () -> applicationDAO.getDashboardApplicationRisk(Collections.emptySet(), Collections.emptySet(),
+            Collections.emptySet(),1, 10, Collections.emptySet(),
+            "total_risk_per_stage_unique", "DESC", 0, 100))
+        .hasMessage("This operation is only supported for PostgreSQL databases")
+        .isInstanceOf(UnsupportedOperationException.class);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetDashboardApplicationRisk_Filters() {
+    Policy app1Policy = tempEntity.newPolicy(application.getId(), "app owned policy", 5);
+    PolicyEvaluation app1PolicyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "test scan app1 id", new Date());
+    tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy);
+
+    List<ApplicationRiskDTO> result =
+        applicationDAO.getDashboardApplicationRisk(Set.of(application.getId()),
+            Set.of(BuildStageType.ID, SourceStageType.ID, ReleaseStageType.ID), Collections.emptySet(),
+            1, 10, Collections.emptySet(),
+            "total_risk_per_stage_unique", "DESC", 0, 100);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).applicationName()).isEqualTo("AbstractDbDAOTest-AppName");
+    assertThat(result.get(0).totalRiskPerStage()).isEqualTo(5);
+    assertThat(result.get(0).criticalPerStage()).isEqualTo(0);
+    assertThat(result.get(0).severePerStage()).isEqualTo(5);
+    assertThat(result.get(0).moderatePerStage()).isEqualTo(0);
+    assertThat(result.get(0).lowPerStage()).isEqualTo(0);
+
+    assertThat(result.get(0).totalRiskPerStageUnique()).isEqualTo(5);
+    assertThat(result.get(0).criticalPerStageUnique()).isEqualTo(0);
+    assertThat(result.get(0).severePerStageUnique()).isEqualTo(5);
+    assertThat(result.get(0).moderatePerStageUnique()).isEqualTo(0);
+    assertThat(result.get(0).lowPerStageUnique()).isEqualTo(0);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetDashboardApplicationRisk_Pages() {
+    Policy app1Policy = tempEntity.newPolicy(application.getId(), "app owned policy", 5);
+    PolicyEvaluation app1PolicyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "test scan app1 id", new Date());
+    tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy);
+
+    Application app2 = tempEntity.newApplication("tsta-app2", "tsta-app2", organization.getId());
+    Policy policy2 = tempEntity.newPolicy(app2.getId(), "app owned policy2", 5);
+    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID,
+        "test scan app id2", new Date());
+    tempEntity.newPolicyViolation(policyEvaluation2, policy2);
+
+    Application app3 = tempEntity.newApplication("tsta-app3", "tsta-app3", organization.getId());
+    Policy policy3 = tempEntity.newPolicy(app3.getId(), "app owned policy3", 5);
+    PolicyEvaluation policyEvaluation3 = tempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID,
+        "test scan app id3", new Date());
+    tempEntity.newPolicyViolation(policyEvaluation3, policy3);
+
+    List<ApplicationRiskDTO> result =
+        applicationDAO.getDashboardApplicationRisk(Set.of(application.getId(), app2.getId(), app3.getId()),
+            Set.of(BuildStageType.ID), Collections.emptySet(),
+            1, 10, Collections.emptySet(),
+            "total_risk_per_stage_unique", "DESC", 0, 2);
+    assertThat(result).hasSize(3);
+    assertThat(result.get(0).applicationName()).isEqualTo("AbstractDbDAOTest-AppName");
+    assertThat(result.get(1).applicationName()).isEqualTo("tsta-app2");
+    // an extra app is returned to know if there is a next page
+    assertThat(result.get(2).applicationName()).isEqualTo("tsta-app3");
+
+    result =
+        applicationDAO.getDashboardApplicationRisk(Set.of(application.getId(), app2.getId(), app3.getId()),
+            Set.of(BuildStageType.ID), Collections.emptySet(),
+            1, 10, Collections.emptySet(),
+            "total_risk_per_stage_unique", "DESC", 1, 2);
+    assertThat(result).hasSize(1);
+
+    result =
+        applicationDAO.getDashboardApplicationRisk(Set.of(application.getId(), app2.getId(), app3.getId()),
+            Set.of(BuildStageType.ID), Collections.emptySet(),
+            1, 10, Collections.emptySet(),
+            "total_risk_per_stage_unique", "DESC", 2, 2);
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetDashboardApplicationRisk_EmptyResultWhenNoMatchWithFilter() {
+    Policy app1Policy = tempEntity.newPolicy(application.getId(), "app owned policy", 5);
+    PolicyEvaluation app1PolicyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "test scan app1 id", new Date());
+    tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy);
+
+    List<ApplicationRiskDTO> result =
+        applicationDAO.getDashboardApplicationRisk(Set.of("non-existent-app-id"),
+            Set.of(BuildStageType.ID), Collections.emptySet(),
+            1, 10, Collections.emptySet(),
+            "total_risk_per_stage_unique", "DESC", 0, 100);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetDashboardApplicationRisk_EmptyResultWhenThereIsNoAppId() {
+    Policy app1Policy = tempEntity.newPolicy(application.getId(), "app owned policy", 5);
+    PolicyEvaluation app1PolicyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "test scan app1 id", new Date());
+    tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy);
+
+    List<ApplicationRiskDTO> result =
+        applicationDAO.getDashboardApplicationRisk(Collections.emptySet(),
+            Collections.emptySet(), Collections.emptySet(),
+            1, 10, Collections.emptySet(),
+            "total_risk_per_stage_unique", "DESC", 0, 100);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetDashboardApplicationRisk_SortCaseInsensitive() {
+    Policy app1Policy = tempEntity.newPolicy(application.getId(), "app1", 5);
+    PolicyEvaluation app1PolicyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "test scan app1 id", new Date());
+    tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy);
+
+    Application app2 = tempEntity.newApplication("app2", "app2", organization.getId());
+    Policy policy2 = tempEntity.newPolicy(app2.getId(), "app owned policy2", 5);
+    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID,
+        "test scan app id2", new Date());
+    tempEntity.newPolicyViolation(policyEvaluation2, policy2);
+
+    Application app3 = tempEntity.newApplication("Sandbox-app", "Sandbox-app", organization.getId());
+    Policy policy3 = tempEntity.newPolicy(app3.getId(), "app owned policy3", 5);
+    PolicyEvaluation policyEvaluation3 = tempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID,
+        "test scan app id3", new Date());
+    tempEntity.newPolicyViolation(policyEvaluation3, policy3);
+
+    List<ApplicationRiskDTO> result =
+        applicationDAO.getDashboardApplicationRisk(Set.of(application.getId(), app2.getId(), app3.getId()),
+            Set.of(BuildStageType.ID), Collections.emptySet(),
+            1, 10, Collections.emptySet(),
+            "name", "ASC", 0, 100);
+    assertThat(result).hasSize(3);
+    assertThat(result.get(0).applicationName()).isEqualTo("AbstractDbDAOTest-AppName");
+    assertThat(result.get(1).applicationName()).isEqualTo("app2");
+    assertThat(result.get(2).applicationName()).isEqualTo("Sandbox-app");
   }
 
   private void validateApplication(Application actualApp, Application expectedApp) {

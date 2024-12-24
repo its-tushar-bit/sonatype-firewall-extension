@@ -17,4 +17,6 @@ public class ApiAutoPolicyWaiverStatusDTO
   public String autoPolicyWaiverOwnerId;
 
   public String autoPolicyWaiverOwnerName;
+
+  public String autoPolicyWaiverOwnerType;
 }

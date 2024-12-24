@@ -88,7 +88,14 @@ const loadAutoWaiversConfigurationPage = createAsyncThunk(
       }
       const response = await axios.get(getAutoWaiversConfigurationURL(ownerType, ownerId));
       if (response.data.isInherited === true || response.data.isAutoWaiverEnabled === false) {
-        return response.data;
+        //get the inherited data
+        const inheritedOwnerType = response.data.autoPolicyWaiverOwnerType;
+        const inheritedOwnerId = response.data.autoPolicyWaiverOwnerId;
+        const inheritedWaiverId = response.data.autoPolicyWaiverId;
+        const inheritedData = await axios.get(
+          getAutoWaiversConfigurationURLWaiver(inheritedOwnerType, inheritedOwnerId, inheritedWaiverId)
+        );
+        return { ...response.data, ...inheritedData.data };
       } else {
         try {
           const waiversId = response.data.autoPolicyWaiverId;
@@ -132,6 +139,7 @@ const saveAutoWaiversConfigurationRequested = (state) => {
 
 const saveAutoWaiversConfigurationFulfilled = (state) => {
   state.submitMaskState = true;
+  state.submitError = null;
   state.isDirty = false;
 };
 
@@ -162,11 +170,7 @@ const saveAutoWaiversConfiguration = createAsyncThunk(
     return axios
       .put(getAutoWaiversConfigurationURLWaiver(ownerType, ownerId, waiversId), putData)
       .then(prop('data'))
-      .then(
-        startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone).then(() =>
-          dispatch(actions.loadAutoWaiversConfigurationPage())
-        )
-      )
+      .then(startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone))
       .catch(rejectWithValue);
   }
 );

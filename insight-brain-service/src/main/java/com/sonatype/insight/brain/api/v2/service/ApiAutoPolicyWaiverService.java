@@ -250,10 +250,13 @@ public class ApiAutoPolicyWaiverService
     if (dto.isInherited || ownerType == OwnerType.ORGANIZATION) {
       Organization owner = organizationDAO.getById(applicableWaiver.getOwnerId());
       dto.autoPolicyWaiverOwnerName = owner.getName();
+      dto.autoPolicyWaiverOwnerType = OwnerType.ORGANIZATION.toString();
+
     }
     else {
       Application owner = applicationDAO.getById(applicableWaiver.getOwnerId());
       dto.autoPolicyWaiverOwnerName = owner.getName();
+      dto.autoPolicyWaiverOwnerType = OwnerType.APPLICATION.toString();
     }
     return dto;
   }

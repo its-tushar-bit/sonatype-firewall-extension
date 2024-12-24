@@ -12,6 +12,7 @@ import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { getAutoWaiversConfigurationURL, getAutoWaiversConfigurationURLWaiver } from 'MainRoot/util/CLMLocation';
 import AutoWaiversConfiguration from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiversConfiguration';
 import { fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 describe('Auto Waivers Configuration Component', () => {
   let axiosMock, renderComponent;
@@ -270,6 +271,7 @@ describe('Auto Waivers Configuration Component', () => {
     renderComponent();
 
     const pathForwardCheckbox = await screen.findByLabelText('No newer, non-violating component version is available');
+    expect(pathForwardCheckbox).toBeChecked();
     fireEvent.click(pathForwardCheckbox);
 
     const disableButton = screen.getByRole('button', { name: 'Delete Auto Waiver' });
@@ -346,6 +348,120 @@ describe('Auto Waivers Configuration Component', () => {
     fireEvent.click(updateButton);
 
     expect(await screen.findByRole('button', { name: /3 - Moderate/i })).toBeVisible();
+  });
+
+  it('disables checkbox when configuration is inherited from organization', async () => {
+    const user = userEvent.setup();
+
+    axiosMock.onGet(getAutoWaiversConfigurationURL('application', 'app')).reply(200, {
+      isInherited: true,
+      isAutoWaiverEnabled: true,
+      autoPolicyWaiverId: 'some-id',
+      threatLevel: 7,
+      autoPolicyWaiverOwnerId: 'orgId',
+      autoPolicyWaiverOwnerType: 'organization',
+    });
+
+    axiosMock.onGet(getAutoWaiversConfigurationURLWaiver('organization', 'orgId', 'some-id')).reply(200, {
+      pathForward: true,
+      reachable: false,
+      threatLevel: 7,
+      autoPolicyWaiverId: 'some-id',
+    });
+
+    renderComponent();
+
+    const checkbox = await screen.findByLabelText('No newer, non-violating component version is available');
+    expect(checkbox).toBeVisible();
+    expect(checkbox).toBeChecked();
+
+    expect(checkbox).toBeDisabled();
+
+    expect(
+      screen.getByText(
+        'Automated waivers are enabled for the parent organization. Changes made here will only affect this application.'
+      )
+    ).toBeVisible();
+
+    //click should have no effect
+    await user.click(checkbox);
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toBeDisabled();
+  });
+
+  it('adjust threatLevel should override the auto waiver when configuration is inherited from organization', async () => {
+    axiosMock.onGet(getAutoWaiversConfigurationURL('application', 'app')).replyOnce(200, {
+      isInherited: true,
+      isAutoWaiverEnabled: true,
+      autoPolicyWaiverId: 'some-id',
+      threatLevel: 7,
+      autoPolicyWaiverOwnerId: 'orgId',
+      autoPolicyWaiverOwnerType: 'organization',
+    });
+
+    axiosMock.onGet(getAutoWaiversConfigurationURLWaiver('organization', 'orgId', 'some-id')).reply(200, {
+      pathForward: true,
+      reachable: false,
+      threatLevel: 7,
+      autoPolicyWaiverId: 'some-id',
+    });
+
+    // Response after creating new waiver
+    axiosMock.onPost(getAutoWaiversConfigurationURL('application', 'app')).reply(200, {
+      autoPolicyWaiverId: 'some-id-2',
+    });
+
+    // Response after creation to reload configuration
+    axiosMock.onGet(getAutoWaiversConfigurationURL('application', 'app')).reply(200, {
+      isInherited: false,
+      isAutoWaiverEnabled: true,
+      autoPolicyWaiverId: 'some-id-2',
+      threatLevel: 3,
+      autoPolicyWaiverOwnerId: 'app',
+      autoPolicyWaiverOwnerType: 'application',
+      pathForward: true,
+      reachable: false,
+    });
+
+    axiosMock.onGet(getAutoWaiversConfigurationURLWaiver('application', 'app', 'some-id-2')).reply(200, {
+      pathForward: true,
+      reachable: false,
+      threatLevel: 3,
+      autoPolicyWaiverId: 'some-id-2',
+    });
+
+    renderComponent();
+
+    const checkbox = await screen.findByLabelText('No newer, non-violating component version is available');
+    expect(checkbox).toBeVisible();
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toBeDisabled();
+
+    expect(
+      screen.getByText(
+        'Automated waivers are enabled for the parent organization. Changes made here will only affect this application.'
+      )
+    ).toBeVisible();
+
+    // Change threat level
+    const dropdown = await screen.findByRole('button', { name: /7 - Severe/i });
+    fireEvent.click(dropdown);
+    fireEvent.click(screen.getByRole('button', { name: /3 - Moderate/i }));
+
+    const updateButton = screen.getByRole('button', { name: 'Update' });
+    fireEvent.click(updateButton);
+
+    await waitFor(async () => {
+      const updatedCheckbox = screen.getByLabelText('No newer, non-violating component version is available');
+      expect(updatedCheckbox).not.toBeDisabled();
+    });
+
+    expect(screen.getByRole('button', { name: /3 - Moderate/i })).toBeVisible();
+    expect(
+      screen.queryByText(
+        'Automated waivers are enabled for the parent organization. Changes made here will only affect this application.'
+      )
+    ).not.toBeInTheDocument();
   });
 
   it('renders exclusion log section', async () => {

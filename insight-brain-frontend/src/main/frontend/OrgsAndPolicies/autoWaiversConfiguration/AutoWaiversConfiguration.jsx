@@ -20,6 +20,8 @@ import {
   NxStatefulForm,
   NxH2,
   NxH4,
+  NxInfoAlert,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import { actions } from 'MainRoot/OrgsAndPolicies/automatedWaiversSlice';
 import './_autoWaiversConfiguration.scss';
@@ -123,10 +125,15 @@ function AutoWaiversConfigurationContents({ refreshData }) {
             submitMaskMessage="Saving…"
             onSubmit={handleSubmit}
             validationErrors={validationError()}
-            loadError={loadError}
             submitError={submitError}
           >
             <NxH2>Configure Auto-Waiver</NxH2>
+            {waiversConfigPage?.isInherited === true && (
+              <NxInfoAlert>
+                Automated waivers are enabled for the parent organization. Changes made here will only affect this
+                application.
+              </NxInfoAlert>
+            )}
             <NxFieldset label="Max. Threat Level" sublabel="Violations with higher threats will not be waived">
               <div className="iq-waivers-configuration-upgrades">
                 <ThreatDropdownSelector
@@ -140,9 +147,25 @@ function AutoWaiversConfigurationContents({ refreshData }) {
             <NxFieldset label="Scope" sublabel="Eligible violations will be waived if/when:">
               <div className="iq-auto-waivers-configuration-upgrades-fieldset__item">
                 <NxH4>No Upgrade Path</NxH4>
-                <NxCheckbox onChange={() => dispatch(actions.toggleCheckboxPath())} isChecked={pathForward || false}>
-                  No newer, non-violating component version is available
-                </NxCheckbox>
+                {waiversConfigPage?.isInherited ? (
+                  <NxTooltip title="Inheriting from parent organization">
+                    <NxCheckbox
+                      onChange={() => dispatch(actions.toggleCheckboxPath())}
+                      isChecked={pathForward || false}
+                      disabled={waiversConfigPage?.isInherited}
+                    >
+                      No newer, non-violating component version is available
+                    </NxCheckbox>
+                  </NxTooltip>
+                ) : (
+                  <NxCheckbox
+                    onChange={() => dispatch(actions.toggleCheckboxPath())}
+                    isChecked={pathForward || false}
+                    disabled={waiversConfigPage?.isInherited}
+                  >
+                    No newer, non-violating component version is available
+                  </NxCheckbox>
+                )}
               </div>
             </NxFieldset>
           </NxStatefulForm>

@@ -129,18 +129,6 @@
       "dependsOn" : [
         "7ae27c3edb8c038436ae11c8ae2bb2d11087923f"
       ]
-    },
-    {
-      "ref" : "7ae27c3edb8c038436ae11c8ae2bb2d11087923f",
-      "dependsOn" : [ ]
-    },
-    {
-      "ref" : "54eb26493a58d052fd2adabf1ab68b33969d9a56",
-      "dependsOn" : [ ]
-    },
-    {
-      "ref" : "8ef8444bb82551413612a2c5e7c03aa4362e6022",
-      "dependsOn" : [ ]
     }
   ],
   "vulnerabilities" : [

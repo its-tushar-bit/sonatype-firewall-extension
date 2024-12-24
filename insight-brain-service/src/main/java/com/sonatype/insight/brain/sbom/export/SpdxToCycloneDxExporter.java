@@ -61,6 +61,7 @@ import org.spdx.library.model.Relationship;
 import org.spdx.library.model.SpdxDocument;
 import org.spdx.library.model.SpdxPackage;
 import org.spdx.library.model.enumerations.ChecksumAlgorithm;
+import org.spdx.library.model.enumerations.RelationshipType;
 
 import static com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils.getChecksum;
 import static com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils.getCpe;
@@ -305,20 +306,48 @@ public class SpdxToCycloneDxExporter
                                final Bom target)
       throws InvalidSPDXAnalysisException
   {
-    SpdxPackage rootPackage = SbomSpdxUtils.getRootPackage(base);
+    SpdxPackage rootSpdxPackage = SbomSpdxUtils.getRootPackage(base);
     // Set root of dependency tree first referencing the Bom Component ref
     // A random UUID will be used as the bom-ref of the new Bom Component
-    String bomComponentRef = target.getMetadata().getComponent().getBomRef();
-    Dependency rootDependency = new Dependency(bomComponentRef);
-    addChildDependencies(rootDependency, rootPackage);
-    target.addDependency(rootDependency);
+    String rootBomComponentRef = target.getMetadata().getComponent().getBomRef();
+    Dependency rootBomDependency = new Dependency(rootBomComponentRef);
+    if (hasDependsOnRelationship(rootSpdxPackage)) {
+      addChildDependencies(rootBomDependency, rootSpdxPackage);
+      target.addDependency(rootBomDependency);
+    }
     List<SpdxPackage> directAndTransitiveDependencies = SbomSpdxUtils.getAllPackages(base).stream()
-        .filter(pkg -> !pkg.getId().equals(rootPackage.getId())).toList();
+        .filter(pkg -> !pkg.getId().equals(rootSpdxPackage.getId())).toList();
     for (SpdxPackage spdxPackage : directAndTransitiveDependencies) {
+      addAvailableDependencies(target, spdxPackage);
+    }
+  }
+
+  private void addAvailableDependencies(Bom cycloneDxSbom,
+                                        SpdxPackage spdxPackage) throws InvalidSPDXAnalysisException
+  {
+    if (hasDependsOnRelationship(spdxPackage)) {
       Dependency dependency = new Dependency(spdxPackageIdsToCdxBomRefs.get(spdxPackage.getId()));
       addChildDependencies(dependency, spdxPackage);
-      target.addDependency(dependency);
+      cycloneDxSbom.addDependency(dependency);
     }
+  }
+
+  private boolean hasDependsOnRelationship(SpdxPackage spdxPackage) {
+    try {
+      return spdxPackage.getRelationships().stream().anyMatch(relationship -> {
+        try {
+          return relationship.getRelationshipType().equals(RelationshipType.DEPENDS_ON);
+        }
+        catch (InvalidSPDXAnalysisException e) {
+          log.debug("Error getting relationships", e);
+        }
+        return false;
+      });
+    }
+    catch (InvalidSPDXAnalysisException e) {
+      log.debug("Error getting relationships", e);
+    }
+    return false;
   }
 
   private void addChildDependencies(final Dependency dependency, final SpdxPackage spdxPackage)

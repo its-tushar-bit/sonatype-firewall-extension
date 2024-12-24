@@ -92,9 +92,6 @@
     <dependency ref="da83d3971bd00a068715210af7ae418b3fef1819">
       <dependency ref="7ae27c3edb8c038436ae11c8ae2bb2d11087923f"/>
     </dependency>
-    <dependency ref="7ae27c3edb8c038436ae11c8ae2bb2d11087923f"/>
-    <dependency ref="54eb26493a58d052fd2adabf1ab68b33969d9a56"/>
-    <dependency ref="8ef8444bb82551413612a2c5e7c03aa4362e6022"/>
   </dependencies>
   <vulnerabilities>
     <vulnerability>

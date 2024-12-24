@@ -74,16 +74,6 @@
       "purl" : "pkg:generic/sonatype/iq_application_SBOMTests@4daddd64a281411cb9ba2e6eabe12fa1"
     }
   ],
-  "dependencies" : [
-    {
-      "ref" : "${json-unit.ignore}",
-      "dependsOn" : [ ]
-    },
-    {
-      "ref" : "6f637a49c8be00b17132243dbc46085807e9e08b",
-      "dependsOn" : [ ]
-    }
-  ],
   "vulnerabilities" : [
     {
       "id" : "CVE-2007-2353",

@@ -11,6 +11,10 @@ import { getAutoWaiverRevocationsUrl } from 'MainRoot/util/CLMLocation';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { selectApplicableAutoWaiver, selectViolationDetails } from 'MainRoot/violation/violationSelectors';
 import { selectReportParameters } from 'MainRoot/applicationReport/applicationReportSelectors';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
+import { selectOwnerProperties, selectSelectedOwnerTypeAndId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectWaivers } from 'MainRoot/OrgsAndPolicies/automatedWaiversSelectors';
+import { propSet } from 'MainRoot/util/jsUtil';
 
 const REDUCER_NAME = 'autoWaiversRevocationConfiguration';
 
@@ -22,6 +26,8 @@ export const initialState = {
   isDirty: false,
   submitMaskState: null,
   submitError: null,
+  deleteRevocationSubmitMaskState: null,
+  deleteRevocationSubmitError: null,
 };
 
 const createAutoWaiverRevocationRequested = (state) => {
@@ -79,14 +85,103 @@ const createAutoWaiverRevocation = createAsyncThunk(
   }
 );
 
+const loadAutoWaiverRevocation = createAsyncThunk(
+  `${REDUCER_NAME}/loadAutoWaiverRevocation`,
+  async (_, { getState, dispatch, rejectWithValue }) => {
+    try {
+      await dispatch(rootActions.loadSelectedOwner());
+
+      const state = getState();
+      let { ownerType, ownerId } = selectSelectedOwnerTypeAndId(state);
+      if (ownerId === undefined) {
+        ({ ownerType, ownerId } = selectOwnerProperties(state));
+      }
+
+      const autoWaiver = selectWaivers(state);
+      const autoPolicyWaiverId = autoWaiver?.autoPolicyWaiverId;
+
+      if (!autoPolicyWaiverId) {
+        return rejectWithValue('No auto waiver ID found');
+      }
+
+      const response = await axios.get(
+        `/api/v2/autoPolicyWaiverRevocations/${ownerType}/${ownerId}/${autoPolicyWaiverId}`
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+const loadAutoWaiverRevocationRequested = (state) => {
+  state.loading = true;
+  state.error = null;
+};
+
+const loadAutoWaiverRevocationFulfilled = (state, { payload }) => {
+  state.loading = true;
+  state.data = payload;
+  state.error = null;
+};
+
+const loadAutoWaiverRevocationFailed = (state, { payload }) => {
+  state.data = null;
+  state.loading = false;
+  state.error = Messages.getHttpErrorMessage(payload);
+};
+
+const deleteAutoWaiverRevocation = createAsyncThunk(
+  `${REDUCER_NAME}/deleteRevocation`,
+  async ({ autoPolicyWaiverId, autoPolicyWaiverRevocationId }, { getState, dispatch, rejectWithValue }) => {
+    const state = getState();
+    const { ownerType, ownerId } = selectSelectedOwnerTypeAndId(state);
+
+    return axios
+      .delete(
+        `/api/v2/autoPolicyWaiverRevocations/${ownerType}/${ownerId}/${autoPolicyWaiverId}/${autoPolicyWaiverRevocationId}`
+      )
+      .then(() => {
+        startSaveMaskSuccessTimer(dispatch, actions.saveDeleteRevocationMaskTimerDone);
+        dispatch(actions.loadAutoWaiverRevocation());
+      })
+      .catch(rejectWithValue);
+  }
+);
+
+const deleteAutoWaiverRevocationRequested = (state) => {
+  state.deleteRevocationSubmitMaskState = false;
+};
+
+const deleteAutoWaiverRevocationFulfilled = (state) => {
+  state.deleteRevocationSubmitMaskState = true;
+};
+
+const deleteAutoWaiverRevocationFailed = (state, { payload }) => {
+  state.deleteRevocationSubmitMaskState = null;
+  state.deleteRevocationSubmitError = Messages.getHttpErrorMessage(payload);
+};
+
 const automatedWaiversRevocationSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
-  reducers: { clearAutoWaiverRevocationMaskState },
+  reducers: {
+    clearAutoWaiverRevocationMaskState,
+    saveDeleteRevocationMaskTimerDone: propSet('deleteRevocationSubmitMaskState', null),
+  },
   extraReducers: {
     [createAutoWaiverRevocation.pending]: createAutoWaiverRevocationRequested,
     [createAutoWaiverRevocation.fulfilled]: createAutoWaiverRevocationFulfilled,
     [createAutoWaiverRevocation.rejected]: createAutoWaiverRevocationFailed,
+
+    [loadAutoWaiverRevocation.pending]: loadAutoWaiverRevocationRequested,
+    [loadAutoWaiverRevocation.fulfilled]: loadAutoWaiverRevocationFulfilled,
+    [loadAutoWaiverRevocation.rejected]: loadAutoWaiverRevocationFailed,
+
+    [deleteAutoWaiverRevocation.pending]: deleteAutoWaiverRevocationRequested,
+    [deleteAutoWaiverRevocation.fulfilled]: deleteAutoWaiverRevocationFulfilled,
+    [deleteAutoWaiverRevocation.rejected]: deleteAutoWaiverRevocationFailed,
   },
 });
 
@@ -120,6 +215,8 @@ const getScanIdFromApplicationReport = (reportParameters) => {
 export const actions = {
   ...automatedWaiversRevocationSlice.actions,
   createAutoWaiverRevocation,
+  loadAutoWaiverRevocation,
+  deleteAutoWaiverRevocation,
 };
 
 export default automatedWaiversRevocationSlice.reducer;

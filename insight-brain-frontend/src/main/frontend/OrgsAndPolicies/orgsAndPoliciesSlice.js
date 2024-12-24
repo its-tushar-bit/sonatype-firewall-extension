@@ -36,6 +36,7 @@ import ownersTreeSlice from 'MainRoot/OrgsAndPolicies/ownersTreeSlice';
 import importSbomModalSlice from 'MainRoot/OrgsAndPolicies/importSbomModal/importSbomModalSlice';
 import sbomsTileSlice from 'MainRoot/OrgsAndPolicies/ownerSummary/sbomsTile/sbomsTileSlice.js';
 import automatedWaiversSlice from 'MainRoot/OrgsAndPolicies/automatedWaiversSlice';
+import automatedWaiversRevocationsSlice from 'MainRoot/OrgsAndPolicies/automatedWaiversRevocationsSlice';
 
 export default combineReducers({
   root: rootSlice,
@@ -74,4 +75,5 @@ export default combineReducers({
   ownersTree: ownersTreeSlice,
   sbomsTile: sbomsTileSlice,
   waivers: automatedWaiversSlice,
+  autoWaiverRevocations: automatedWaiversRevocationsSlice,
 });

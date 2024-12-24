@@ -107,7 +107,6 @@ import latestReportForStageSlice from 'MainRoot/applicationReport/latestReportFo
 import sbomApplicationsPageSlice from 'MainRoot/sbomManager/features/sbomApplicationsPage/sbomApplicationsPageSlice';
 import sbomExportSlice from 'MainRoot/sbomManager/features/sbomExport/sbomExportSlice';
 import autoWaiverDetailsSlice from 'MainRoot/waivers/waiverDetails/autoWaiverDetailsSlice';
-import autoWaiverRevocationsSlice from 'MainRoot/OrgsAndPolicies/automatedWaiversRevocationsSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -213,5 +212,4 @@ export default combineReducers({
   latestReportForStage: latestReportForStageSlice,
   sbomApplicationsPage: sbomApplicationsPageSlice,
   autoWaiverDetails: autoWaiverDetailsSlice,
-  autoWaiverRevocations: autoWaiverRevocationsSlice,
 });

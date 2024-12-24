@@ -13,7 +13,7 @@ import { getAutoWaiversConfigurationURL, getAutoWaiversConfigurationURLWaiver } 
 import AutoWaiversConfiguration from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiversConfiguration';
 import { fireEvent } from '@testing-library/react';
 
-describe('Waivers Configuration Component', () => {
+describe('Auto Waivers Configuration Component', () => {
   let axiosMock, renderComponent;
 
   const preloadedState = {
@@ -61,7 +61,7 @@ describe('Waivers Configuration Component', () => {
       ).toBeVisible();
     });
 
-    expect(axiosMock.history.get.length).toBe(2);
+    expect(axiosMock.history.get.length).toBe(3);
   });
 
   it('renders the "Max. Threat Level" label', async () => {
@@ -69,14 +69,14 @@ describe('Waivers Configuration Component', () => {
 
     expect(await screen.findByText('Max. Threat Level')).toBeVisible();
 
-    expect(axiosMock.history.get.length).toBe(2);
+    expect(axiosMock.history.get.length).toBe(3);
   });
 
   it('renders the update button', async () => {
     render(<AutoWaiversConfiguration />);
     expect(await screen.findByRole('button', { name: 'Update' })).toBeVisible();
 
-    expect(axiosMock.history.get.length).toBe(2);
+    expect(axiosMock.history.get.length).toBe(3);
   });
 
   it('renders checkbox depending on the state of "noPathForward"', async () => {
@@ -88,7 +88,7 @@ describe('Waivers Configuration Component', () => {
     expect(noPathForwardCheckbox).toBeInTheDocument();
     expect(noPathForwardCheckbox).not.toBeChecked();
 
-    expect(axiosMock.history.get.length).toBe(2);
+    expect(axiosMock.history.get.length).toBe(3);
   });
 
   it('renders LicenseLockScreenForWaivers when auto waiver feature flag is disabled', async () => {
@@ -346,5 +346,172 @@ describe('Waivers Configuration Component', () => {
     fireEvent.click(updateButton);
 
     expect(await screen.findByRole('button', { name: /3 - Moderate/i })).toBeVisible();
+  });
+
+  it('renders exclusion log section', async () => {
+    axiosMock.onGet(getAutoWaiversConfigurationURL('application', 'app')).reply(200, {
+      isInherited: false,
+      isAutoWaiverEnabled: true,
+      autoPolicyWaiverId: 'some-id',
+      threatLevel: 7,
+    });
+
+    axiosMock.onGet(getAutoWaiversConfigurationURLWaiver('application', 'app', 'some-id')).reply(200, {
+      pathForward: true,
+      reachable: false,
+      threatLevel: 7,
+      autoPolicyWaiverId: 'some-id',
+    });
+
+    axiosMock.onGet(`/api/v2/autoPolicyWaiverRevocations/application/app/some-id`).reply(200, [
+      {
+        createTime: '2024-12-15T03:26:55.418+0000',
+        threatLevel: 7,
+        policyName: 'Security-Medium',
+        componentDisplayName: 'com.example:test:1.0.0',
+        vulnerabilityIdentifiers: 'SONATYPE-1234',
+        autoPolicyWaiverId: 'some-id',
+        autoPolicyWaiverRevocationId: 'rev-id-1',
+      },
+    ]);
+
+    renderComponent();
+
+    expect(await screen.findByRole('heading', { name: 'Exclusion Log' })).toBeVisible();
+    expect(await screen.findByText('Security-Medium')).toBeVisible();
+    expect(await screen.findByText('com.example:test:1.0.0')).toBeVisible();
+    expect(await screen.findByText('SONATYPE-1234')).toBeVisible();
+  });
+
+  it('handles empty exclusion log', async () => {
+    axiosMock.onGet(getAutoWaiversConfigurationURL('application', 'app')).reply(200, {
+      isInherited: false,
+      isAutoWaiverEnabled: true,
+      autoPolicyWaiverId: 'some-id',
+      threatLevel: 7,
+    });
+
+    axiosMock.onGet(getAutoWaiversConfigurationURLWaiver('application', 'app', 'some-id')).reply(200, {
+      pathForward: true,
+      reachable: false,
+      threatLevel: 7,
+      autoPolicyWaiverId: 'some-id',
+    });
+
+    axiosMock.onGet(`/api/v2/autoPolicyWaiverRevocations/application/app/some-id`).reply(200, []);
+
+    renderComponent();
+
+    expect(await screen.findByText('No exclusions found')).toBeVisible();
+  });
+
+  it('successfully deletes an exclusion', async () => {
+    axiosMock.onGet(getAutoWaiversConfigurationURL('application', 'app')).reply(200, {
+      isInherited: false,
+      isAutoWaiverEnabled: true,
+      autoPolicyWaiverId: 'some-id',
+      threatLevel: 7,
+    });
+
+    axiosMock.onGet(getAutoWaiversConfigurationURLWaiver('application', 'app', 'some-id')).reply(200, {
+      pathForward: true,
+      reachable: false,
+      threatLevel: 7,
+      autoPolicyWaiverId: 'some-id',
+    });
+
+    const exclusion = {
+      createTime: '2024-12-15T03:26:55.418+0000',
+      threatLevel: 7,
+      policyName: 'Security-Medium',
+      componentDisplayName: 'com.example:test:1.0.0',
+      vulnerabilityIdentifiers: 'SONATYPE-1234',
+      autoPolicyWaiverId: 'some-id',
+      autoPolicyWaiverRevocationId: 'rev-id-1',
+    };
+
+    axiosMock
+      .onGet(`/api/v2/autoPolicyWaiverRevocations/application/app/some-id`)
+      .replyOnce(200, [exclusion])
+      .onGet(`/api/v2/autoPolicyWaiverRevocations/application/app/some-id`)
+      .reply(200, []);
+    axiosMock.onDelete(`/api/v2/autoPolicyWaiverRevocations/application/app/some-id/rev-id-1`).reply(200);
+
+    renderComponent();
+    expect(
+      screen.queryByText('Click Continue to resume automated waiver eligibility for this violation')
+    ).not.toBeInTheDocument();
+
+    const deleteButton = await screen.findByRole('button', { name: /delete/i });
+    fireEvent.click(deleteButton);
+
+    expect(
+      await screen.findByText('Click Continue to resume automated waiver eligibility for this violation')
+    ).toBeVisible();
+
+    const confirmButton = await screen.findByRole('button', { name: 'Continue' });
+    fireEvent.click(confirmButton);
+
+    await waitFor(() => {
+      expect(axiosMock.history.delete.length).toBe(1);
+      expect(axiosMock.history.delete[0].url).toContain(
+        '/api/v2/autoPolicyWaiverRevocations/application/app/some-id/rev-id-1'
+      );
+    });
+
+    expect(await screen.findByText('No exclusions found')).toBeVisible();
+    expect(screen.queryByText('Security-Medium')).not.toBeInTheDocument();
+    expect(screen.queryByText('com.example:test:1.0.0')).not.toBeInTheDocument();
+    expect(screen.queryByText('SONATYPE-1234')).not.toBeInTheDocument();
+  });
+
+  it('handles exclusion deletion error', async () => {
+    axiosMock.onGet(getAutoWaiversConfigurationURL('application', 'app')).reply(200, {
+      isInherited: false,
+      isAutoWaiverEnabled: true,
+      autoPolicyWaiverId: 'some-id',
+      threatLevel: 7,
+    });
+
+    axiosMock.onGet(getAutoWaiversConfigurationURLWaiver('application', 'app', 'some-id')).reply(200, {
+      pathForward: true,
+      reachable: false,
+      threatLevel: 7,
+      autoPolicyWaiverId: 'some-id',
+    });
+
+    const exclusion = {
+      createTime: '2024-12-15T03:26:55.418+0000',
+      threatLevel: 7,
+      policyName: 'Security-Medium',
+      componentDisplayName: 'com.example:test:1.0.0',
+      vulnerabilityIdentifiers: 'SONATYPE-1234',
+      autoPolicyWaiverId: 'some-id',
+      autoPolicyWaiverRevocationId: 'rev-id-1',
+    };
+
+    axiosMock.onGet(`/api/v2/autoPolicyWaiverRevocations/application/app/some-id`).reply(200, [exclusion]);
+    axiosMock
+      .onDelete(`/api/v2/autoPolicyWaiverRevocations/application/app/some-id/rev-id-1`)
+      .reply(400, { message: 'Failed to delete exclusion' });
+
+    renderComponent();
+    expect(
+      screen.queryByText('Click Continue to resume automated waiver eligibility for this violation')
+    ).not.toBeInTheDocument();
+
+    const deleteButton = await screen.findByRole('button', { name: /delete/i });
+    fireEvent.click(deleteButton);
+
+    expect(
+      await screen.findByText('Click Continue to resume automated waiver eligibility for this violation')
+    ).toBeVisible();
+
+    const confirmButton = await screen.findByRole('button', { name: 'Continue' });
+    fireEvent.click(confirmButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('An error occurred saving data. Failed to delete exclusion')).toBeVisible();
+    });
   });
 });

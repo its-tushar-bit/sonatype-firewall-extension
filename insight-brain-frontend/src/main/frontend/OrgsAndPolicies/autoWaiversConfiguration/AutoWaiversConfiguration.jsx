@@ -29,6 +29,9 @@ import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import LicenseLockScreenForAutoWaivers from './LicenseLockScreenForAutoWaivers';
 import ConfirmationModal from 'MainRoot/legal/application/ConfirmationModal';
 import ThreatDropdownSelector from 'MainRoot/react/ThreatDropdownSelector';
+import ExclusionLogTable from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/ExclusionLogTable';
+import PropTypes from 'prop-types';
+import { selectRevocations } from 'MainRoot/OrgsAndPolicies/automatedWaviersRevocationsSelector';
 
 const AutoWaiversConfiguration = () => {
   const dispatch = useDispatch();
@@ -37,7 +40,9 @@ const AutoWaiversConfiguration = () => {
   const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
   const isSbomManager = useSelector(selectIsSbomManager);
 
-  const doLoad = () => dispatch(actions.loadAutoWaiversConfigurationPage());
+  const doLoad = () => {
+    dispatch(actions.loadAllAutoWaiverData());
+  };
 
   useEffect(() => {
     doLoad();
@@ -46,7 +51,7 @@ const AutoWaiversConfiguration = () => {
   return (
     <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
       {isDeveloperDashboardEnabled && isAutoWaiversEnabled && !isSbomManager ? (
-        <AutoWaiversConfigurationContents />
+        <AutoWaiversConfigurationContents refreshData={doLoad} />
       ) : (
         <LicenseLockScreenForAutoWaivers />
       )}
@@ -54,17 +59,24 @@ const AutoWaiversConfiguration = () => {
   );
 };
 
-function AutoWaiversConfigurationContents() {
+function AutoWaiversConfigurationContents({ refreshData }) {
   const dispatch = useDispatch();
   const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] = useState(false);
   const setThreatLevel = (val) => dispatch(actions.setThreatLevel(val));
 
   const waiversConfigPage = useSelector(selectWaiversConfigPage);
+  const exclusions = useSelector(selectRevocations);
   let { loading, loadError, isDirty, submitMaskState, submitError } = useSelector(selectWaiversSlice);
   const reachable = waiversConfigPage?.reachable ?? false;
   const pathForward = waiversConfigPage?.pathForward ?? false;
-  const threatLevel = waiversConfigPage?.threatLevel ?? setThreatLevel(7);
+  const threatLevel = waiversConfigPage?.threatLevel ?? 7;
   const hasExistingWaiver = waiversConfigPage?.autoPolicyWaiverId != null;
+
+  useEffect(() => {
+    if (waiversConfigPage?.threatLevel == null) {
+      setThreatLevel(7);
+    }
+  }, [waiversConfigPage]);
 
   if (waiversConfigPage?.isInherited === null || waiversConfigPage?.isInherited === true) {
     isDirty = true;
@@ -95,8 +107,6 @@ function AutoWaiversConfigurationContents() {
     return undefined;
   };
 
-  const doLoad = () => dispatch(actions.loadAutoWaiversConfigurationPage());
-
   return (
     <>
       <NxPageTitle>
@@ -105,7 +115,7 @@ function AutoWaiversConfigurationContents() {
           Limit disruptions by deprioritizing low-threat violations until a remediation path is available.
         </NxPageTitle.Description>
       </NxPageTitle>
-      <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
+      <NxLoadWrapper loading={loading} error={loadError} retryHandler={refreshData}>
         <NxTile aria-label="Configure Auto-Waiver">
           <NxStatefulForm
             submitBtnText={shouldDeleteAutoWaiver() ? 'Delete Auto Waiver' : 'Update'}
@@ -137,6 +147,11 @@ function AutoWaiversConfigurationContents() {
             </NxFieldset>
           </NxStatefulForm>
         </NxTile>
+
+        <NxTile className="iq-exclusion-log-tile">
+          <NxH2>Exclusion Log</NxH2>
+          <ExclusionLogTable exclusions={exclusions || []} refreshTable={refreshData} />
+        </NxTile>
       </NxLoadWrapper>
       {isDeleteConfirmationModalOpen && (
         <ConfirmationModal
@@ -152,5 +167,9 @@ function AutoWaiversConfigurationContents() {
     </>
   );
 }
+
+AutoWaiversConfigurationContents.propTypes = {
+  refreshData: PropTypes.func.isRequired,
+};
 
 export default AutoWaiversConfiguration;

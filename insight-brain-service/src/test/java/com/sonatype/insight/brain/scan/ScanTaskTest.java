@@ -193,7 +193,7 @@ public class ScanTaskTest
     task.run();
 
     verify(scanPolicyEvaluator).evaluate(eq(app), eq(scanReceipt.getScanId()), match(stage),
-        eq(ScanTriggerType.WEB_UI), eq(ClientScanType.SONATYPE));
+        eq(ScanTriggerType.WEB_UI), eq(ClientScanType.SONATYPE), eq(false));
   }
 
   @Test
@@ -218,7 +218,7 @@ public class ScanTaskTest
     results.notifiableViolations = new ArrayList<>();
     results.allViolations = new ArrayList<>();
     when(scanPolicyEvaluator.evaluate(eq(app), eq(scanReceipt.getScanId()), match(stage),
-        eq(ScanTriggerType.WEB_UI), eq(ClientScanType.SONATYPE))).thenReturn(results);
+        eq(ScanTriggerType.WEB_UI), eq(ClientScanType.SONATYPE), eq(false))).thenReturn(results);
 
     task.run();
 

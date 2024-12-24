@@ -237,7 +237,7 @@ class ScanTask
       persistedScanTicketDAO.update(toPersistedScanTicket());
       // The ScanPolicyEvaluator will fetch the report if it's not there
       ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(app, scanReceipt.getScanId(), stage,
-          ScanTriggerType.WEB_UI, scanResult.getClientScanType());
+          ScanTriggerType.WEB_UI, scanResult.getClientScanType(), false);
       if (sendNotifications) {
         policyAlertNotifier.sendNotifications(app, results);
       }

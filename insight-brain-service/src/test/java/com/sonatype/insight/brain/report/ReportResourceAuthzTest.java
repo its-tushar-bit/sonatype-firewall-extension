@@ -51,7 +51,8 @@ public class ReportResourceAuthzTest
     String scanId = "scanId";
     mockReport(scanId, "/ReportResourceTest/report");
     ScanPolicyEvaluator scanPolicyEvaluator = getCLMServer().getInstance(ScanPolicyEvaluator.class);
-    scanPolicyEvaluator.evaluate(app, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(app, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
 
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
 

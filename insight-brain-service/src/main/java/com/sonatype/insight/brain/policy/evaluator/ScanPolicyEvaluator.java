@@ -126,6 +126,9 @@ public class ScanPolicyEvaluator
   public static final String REEVALUATE_NOT_ALLOWED_FOR_OUT_OF_DATE_SCAN_MESSAGE =
       "Could not Re-Evaluate this report because it is out of date. Navigate to the latest evaluation for this stage.";
 
+  public static final String SKIPPING_AUTO_WAIVERS_NOT_ALLOWED_FOR_PRIMARY_EVALUATIONS =
+      "Auto-waivers can only be skipped in re-evaluations not primary policy evaluations.";
+
   private final InsightWork work;
 
   private final ReportService reportService;
@@ -264,26 +267,27 @@ public class ScanPolicyEvaluator
       final Application application,
       final String scanId,
       final Stage stage,
-      ScanTriggerType scanTriggerType,
-      ClientScanType clientScanType)
+      final ScanTriggerType scanTriggerType,
+      final ClientScanType clientScanType,
+      final boolean skipAutoWaivers)
       throws IOException
   {
     return doEvaluate(application, scanId, stage, scanTriggerType, null, null, false /* forMonitoring */,
-        clientScanType);
+        clientScanType, skipAutoWaivers);
   }
 
   public ScanPolicyEvaluatorResults evaluate(
       final Application application,
       final String scanId,
       final Stage stage,
-      ScanTriggerType scanTriggerType,
-      String clientUserAgent,
-      String clientInstanceId,
-      ClientScanType clientScanType)
+      final ScanTriggerType scanTriggerType,
+      final String clientUserAgent,
+      final String clientInstanceId,
+      final ClientScanType clientScanType)
       throws IOException
   {
     return doEvaluate(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
-        false /* forMonitoring */, clientScanType);
+        false /* forMonitoring */, clientScanType, false /* skipAutoWaivers */);
   }
 
   public ScanPolicyEvaluatorResults evaluateForMonitoring(
@@ -295,7 +299,7 @@ public class ScanPolicyEvaluator
       throws IOException
   {
     return doEvaluate(application, scanId, stage, scanTriggerType, null, null, true /* forMonitoring */,
-        clientScanType);
+        clientScanType, false /* skipAutoWaivers */);
   }
 
   /*
@@ -306,11 +310,12 @@ public class ScanPolicyEvaluator
       final Application application,
       final String scanId,
       final Stage stage,
-      ScanTriggerType scanTriggerType,
-      String clientUserAgent,
-      String clientInstanceId,
+      final ScanTriggerType scanTriggerType,
+      final String clientUserAgent,
+      final String clientInstanceId,
       boolean forMonitoring,
-      ClientScanType clientScanType) throws IOException
+      final ClientScanType clientScanType,
+      final boolean skipAutoWaivers) throws IOException
   {
     log.debug(
         "Evaluating policies for application ID {}, scan ID {}, stage {}, scan trigger type {}, for monitoring {}.",
@@ -339,7 +344,7 @@ public class ScanPolicyEvaluator
     ReportComponentData reportComponentData = reportComponentService.fetchReportAndComponents(application, scanId);
 
     return performPolicyEvaluation(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
-        forMonitoring, clientScanType, reportComponentData);
+        forMonitoring, clientScanType, reportComponentData, skipAutoWaivers);
   }
 
   private void fetchAndPersistRemediationRecommendations(
@@ -439,7 +444,8 @@ public class ScanPolicyEvaluator
       List<Component> components,
       PolicyViolationTelemetryCollector telemetryCollector,
       ApplicationReport applicationReport,
-      ClientScanType clientScanType) throws IOException
+      ClientScanType clientScanType,
+      final boolean skipAutoWaivers) throws IOException
   {
     String appId = app.getId();
     long start = System.currentTimeMillis();
@@ -479,17 +485,31 @@ public class ScanPolicyEvaluator
       List<AutoPolicyWaiverRevocation> autoPolicyWaiverRevocations =
           getApplicableAutoPolicyWaiverRevocations(autoPolicyWaiver);
 
+      List<PolicyViolation> autoWaivedPolicyViolations = Collections.emptyList();
+      boolean skipAutoWaiversForReevaluation = skipAutoWaivers && isReevaluation;
+      if (skipAutoWaiversForReevaluation) {
+        autoWaivedPolicyViolations =
+            policyViolationDAO.getAutoWaivedByApplicationIdAndStageId(appId,
+                stage.getStageTypeId());
+        policyViolationDAO.loadConstraintFacts(autoWaivedPolicyViolations);
+      }
+      else if (!isReevaluation && skipAutoWaivers) {
+        throw new BadRequestException(SKIPPING_AUTO_WAIVERS_NOT_ALLOWED_FOR_PRIMARY_EVALUATIONS);
+      }
+
       // Convert the policy alerts into policy violations
       List<PolicyAlert> allPolicyAlerts = new ArrayList<>();
       allPolicyAlerts.addAll(policyResults.getActiveAlerts());
       allPolicyAlerts.addAll(policyResults.getWaivedAlerts());
       Map<String, Owner> policyIdPolicyOwnerMap = new HashMap();
+
       for (PolicyAlert policyAlert : allPolicyAlerts) {
         PolicyFact policyFact = policyAlert.getTrigger();
         Policy policy = policyDAO.getByIdNotNull(policyFact.getPolicyId());
         Owner ownerPolicy = ownerDAO.getById(policy.getOwnerId());
         policyIdPolicyOwnerMap.put(policy.getId(), ownerPolicy);
         PolicyThreatCategory threatCategory = policy.getThreatCategory();
+
         for (ComponentFact componentFact : policyFact.getComponentFacts()) {
           PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, policy.getId(), policy.getName(),
               policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
@@ -518,29 +538,43 @@ public class ScanPolicyEvaluator
           }
 
           if (canEvaluateWithAutoWaiver(autoPolicyWaiver, policyViolation)) {
-            Component component =
-                findComponentByComponentIdentifier(components, policyViolation.getComponentIdentifier());
-            boolean violationShouldBeAutoWaived = evaluateAutoPolicyWaiver(
-                appId,
-                component,
-                policyViolation,
-                autoPolicyWaiver,
-                autoPolicyWaiverRevocations,
-                stage.getStageTypeId(),
-                scanId);
-            if (violationShouldBeAutoWaived) {
-              policyViolation.setWaiveTime(policyEvaluation.getTime());
-              policyViolation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+            Owner owner = ownerDAO.getById(autoPolicyWaiver.getOwnerId());
 
-              Owner owner = ownerDAO.getById(autoPolicyWaiver.getOwnerId());
+            if (skipAutoWaiversForReevaluation) {
 
-              if (owner != null) {
-                autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, owner.getType(),
-                    AutoPolicyWaiverAction.APPLY, policyViolation);
-              }
-              else {
-                autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, null,
-                    AutoPolicyWaiverAction.APPLY, policyViolation);
+              autoWaivedPolicyViolations.stream()
+                  .filter(violation ->
+                    PolicyViolationComparator.COMPARATOR.compare(violation, policyViolation) == 0)
+                  .forEach(violation -> {
+                    policyViolation.setWaiveTime(violation.getWaiveTime());
+                    policyViolation.setAutoPolicyWaiverId(violation.getAutoPolicyWaiverId());
+                    autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, owner != null ? owner.getType() : null,
+                        AutoPolicyWaiverAction.APPLY, policyViolation);
+                  });
+            }
+            else {
+              Component component =
+                  findComponentByComponentIdentifier(components, policyViolation.getComponentIdentifier());
+              boolean violationShouldBeAutoWaived = evaluateAutoPolicyWaiver(
+                  appId,
+                  component,
+                  policyViolation,
+                  autoPolicyWaiver,
+                  autoPolicyWaiverRevocations,
+                  stage.getStageTypeId(),
+                  scanId);
+              if (violationShouldBeAutoWaived) {
+                policyViolation.setWaiveTime(policyEvaluation.getTime());
+                policyViolation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+
+                if (owner != null) {
+                  autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, owner.getType(),
+                      AutoPolicyWaiverAction.APPLY, policyViolation);
+                }
+                else {
+                  autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, null,
+                      AutoPolicyWaiverAction.APPLY, policyViolation);
+                }
               }
             }
           }
@@ -1293,15 +1327,16 @@ public class ScanPolicyEvaluator
   }
 
   public ScanPolicyEvaluatorResults performPolicyEvaluation(
-      Application application,
-      String scanId,
-      Stage stage,
-      ScanTriggerType scanTriggerType,
-      String clientUserAgent,
-      String clientInstanceId,
-      boolean forMonitoring,
-      ClientScanType clientScanType,
-      ReportComponentData reportComponentData) throws IOException
+      final Application application,
+      final String scanId,
+      final Stage stage,
+      final ScanTriggerType scanTriggerType,
+      final String clientUserAgent,
+      final String clientInstanceId,
+      final boolean forMonitoring,
+      final ClientScanType clientScanType,
+      final ReportComponentData reportComponentData,
+      final boolean skipAutoWaivers) throws IOException
   {
 
     sendEvaluationTelemetry(application.getId(), stage.getStageTypeId(), scanTriggerType,
@@ -1319,7 +1354,8 @@ public class ScanPolicyEvaluator
 
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
         processPolicyResults(application, scanId, stage, scanTriggerType, policies, forMonitoring, policyResults,
-            reportComponentData.components, telemetryCollector, reportComponentData.applicationReport, clientScanType);
+            reportComponentData.components, telemetryCollector, reportComponentData.applicationReport,
+            clientScanType, skipAutoWaivers);
 
     telemetrySender.send(telemetryCollector.getTelemetryData());
 

@@ -349,6 +349,7 @@ import org.junit.rules.ExternalResource;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
+import static com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation.ALL_VERSIONS;
 import static com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation.EXACT_COMPONENT;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
@@ -1796,6 +1797,22 @@ public class TemporaryEntity
     autoPolicyWaiverRevocation.setScanId("fakeScanId");
     autoPolicyWaiverRevocation.setHash("fakeHashValue");
     autoPolicyWaiverRevocation.setComponentMatchStrategy(EXACT_COMPONENT);
+    autoPolicyWaiverRevocationDAO.insert(autoPolicyWaiverRevocation);
+    return autoPolicyWaiverRevocation;
+  }
+
+  public AutoPolicyWaiverRevocation newAutoPolicyWaiverRevocationForAllVersions(String ownerId,
+      String autoPolicyWaiverId, String scanId, String packageUrl)
+  {
+    AutoPolicyWaiverRevocation autoPolicyWaiverRevocation = new AutoPolicyWaiverRevocation();
+    autoPolicyWaiverRevocation.setOwnerId(ownerId);
+    autoPolicyWaiverRevocation.setAutoPolicyWaiverId(autoPolicyWaiverId);
+    autoPolicyWaiverRevocation.setCreatorId("fakeCreatorId");
+    autoPolicyWaiverRevocation.setCreatorName("fakeCreatorName");
+    autoPolicyWaiverRevocation.setCreateTime(new Date());
+    autoPolicyWaiverRevocation.setScanId(scanId);
+    autoPolicyWaiverRevocation.setAssociatedPackageUrl(packageUrl);
+    autoPolicyWaiverRevocation.setComponentMatchStrategy(ALL_VERSIONS);
     autoPolicyWaiverRevocationDAO.insert(autoPolicyWaiverRevocation);
     return autoPolicyWaiverRevocation;
   }

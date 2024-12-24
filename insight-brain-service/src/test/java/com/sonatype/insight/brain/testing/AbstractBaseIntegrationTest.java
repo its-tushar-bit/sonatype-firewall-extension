@@ -38,6 +38,7 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -561,6 +562,12 @@ public abstract class AbstractBaseIntegrationTest
   {
     hdsRespondWith(componentSummary).atUri(UriBuilder.fromPath("rest/component/summary")
         .queryParam("componentIdentifier", URLEncoder.encode(toJson(componentIdentifier), "UTF-8")).build());
+  }
+
+  protected void mockGetVersionsByComponentCI() {
+    ComponentDetailsList results = new ComponentDetailsList();
+    results.setList(List.of());
+    hdsRespondWith(results).atUri("rest/ci/componentDetails/list");
   }
 
   protected void mockGetDependencies(ComponentDependenciesDTO componentDependenciesDTO) {

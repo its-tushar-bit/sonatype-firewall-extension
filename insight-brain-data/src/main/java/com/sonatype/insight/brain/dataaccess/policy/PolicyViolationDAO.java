@@ -797,4 +797,11 @@ public class PolicyViolationDAO
       return results;
     }
   }
+
+  public List<PolicyViolation> getAutoWaivedByApplicationIdAndStageId(final String appId, final String stageTypeId) {
+    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2" + //
+        " AND entity.fixTime IS NULL AND entity.waiveTime IS NOT NULL AND entity.autoPolicyWaiverId IS NOT NULL";
+    return getList(sQuery, appId, stageTypeId);
+  }
 }

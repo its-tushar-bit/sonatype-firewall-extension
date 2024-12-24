@@ -132,7 +132,7 @@ public class ScanTaskStateTest
         any())).thenReturn(scanReciept);
 
     when(scanPolicyEvaluator.evaluate(any(), any(), any(), eq(ScanTriggerType.WEB_UI),
-        eq(ClientScanType.SONATYPE))).then(captureState);
+        eq(ClientScanType.SONATYPE), eq(false))).then(captureState);
 
     task.run();
 

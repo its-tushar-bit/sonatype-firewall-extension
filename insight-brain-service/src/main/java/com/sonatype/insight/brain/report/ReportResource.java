@@ -26,14 +26,6 @@ import java.util.zip.ZipFile;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -41,6 +33,15 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Produces;
+import javax.ws.rs.PUT;
+import javax.ws.rs.QueryParam;
 
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
@@ -331,7 +332,8 @@ public class ReportResource
   public Response reevaluatePolicy(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId")
       final String applicationPublicId,
-      @PathParam("scanId") final String scanId) throws IOException
+      @PathParam("scanId") final String scanId,
+      @DefaultValue("false") @QueryParam("skipAutoWaivers") final Boolean skipAutoWaivers) throws IOException
   {
     AuditData.get().setScanId(scanId);
 
@@ -344,7 +346,7 @@ public class ReportResource
     }
 
     scanPolicyEvaluator.evaluate(application, scanId, new Stage(policyEvaluation.getStageTypeId()),
-        policyEvaluation.getScanTriggerType(), policyEvaluation.getClientScanType());
+        policyEvaluation.getScanTriggerType(), policyEvaluation.getClientScanType(), skipAutoWaivers);
 
     return Response.ok().build();
   }

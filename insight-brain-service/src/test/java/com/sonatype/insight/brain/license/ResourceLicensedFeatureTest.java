@@ -280,7 +280,8 @@ public class ResourceLicensedFeatureTest
       map.put(ReportResource.class.getDeclaredMethod(
           "reevaluatePolicy",
           String.class,
-          String.class
+          String.class,
+          Boolean.class
       ), LicensedFeature.APPLICATION_EVALUATION);
       map.put(ReportResource.class.getDeclaredMethod(
           "printReport",

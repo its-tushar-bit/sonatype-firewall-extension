@@ -46,7 +46,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
-import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.AggregateFile;
@@ -261,9 +260,6 @@ public class ScanPolicyEvaluatorTest
   private ComponentInfoService mockComponentInfoService;
 
   @Inject
-  private ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
-
-  @Inject
   private TestProductLicense testProductLicense;
 
   @Inject
@@ -309,7 +305,8 @@ public class ScanPolicyEvaluatorTest
     String scanId = simulateReportIsAvailable("report");
 
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results.evaluation).isNotNull();
     assertThat(results.evaluation.getApplicationId()).isEqualTo(application.getId());
@@ -326,7 +323,8 @@ public class ScanPolicyEvaluatorTest
     newSecurityPolicy();
 
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results.allViolations).hasSize(36).filteredOn(PolicyViolation::isFixed).isEmpty();
     assertThat(results.activeViolations).hasSize(36);
@@ -339,7 +337,8 @@ public class ScanPolicyEvaluatorTest
     Policy policy = newSecurityPolicy();
 
     ScanPolicyEvaluatorResults results1 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     for (PolicyViolation violation : results1.activeViolations) {
       assertThat(violation.getPolicyName()).isEqualTo(policy.getName());
     }
@@ -352,7 +351,8 @@ public class ScanPolicyEvaluatorTest
 
     String scanId2 = simulateReportIsAvailable("report");
     ScanPolicyEvaluatorResults results2 =
-        scanPolicyEvaluator.evaluate(application, scanId2, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId2, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results2.activeViolations)
         .allSatisfy(violation -> assertThat(violation.getPolicyName()).isEqualTo(policy.getName()));
     List<PolicyViolation> persistedViolations2 = policyViolationDAO.getByApplicationId(application.getId());
@@ -368,7 +368,8 @@ public class ScanPolicyEvaluatorTest
     PolicyWaiver waiver = tempEntity.newWaiver("f0776db1593e215146d2", policy.getId(), application.getId());
 
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results.activeViolations).hasSize(33).allSatisfy(violation -> {
       assertThat(violation.getHash()).isNotEqualTo(waiver.getHash());
@@ -398,7 +399,8 @@ public class ScanPolicyEvaluatorTest
 
     tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     List<PolicyViolation> autoWaivedViolations = results.autoWaivedViolations;
     assertThat(autoWaivedViolations).hasSize(0);
@@ -437,7 +439,8 @@ public class ScanPolicyEvaluatorTest
 
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, true);
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     List<PolicyViolation> autoWaivedViolations = results.autoWaivedViolations;
     assertThat(autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
@@ -483,7 +486,8 @@ public class ScanPolicyEvaluatorTest
 
     tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, true);
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     List<PolicyViolation> autoWaivedViolations = results.autoWaivedViolations;
     assertThat(autoWaivedViolations).hasSize(27);
@@ -511,7 +515,8 @@ public class ScanPolicyEvaluatorTest
 
     tempEntity.newAutoPolicyWaiver(application.getId(), 10, false, true);
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results.autoWaivedViolations).hasSize(0);
     assertThat(results.activeViolations).hasSize(20);
@@ -538,7 +543,8 @@ public class ScanPolicyEvaluatorTest
     AutoPolicyWaiver appWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 8, false, false);
     tempEntity.newAutoPolicyWaiver(application.getOrganizationId(), 4, false, false);
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results.autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
       assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(appWaiver.getId());
       assertThat(autoWaivedViolation.getWaiveTime()).isNotNull();
@@ -569,7 +575,8 @@ public class ScanPolicyEvaluatorTest
     //auto policy waiver threat level to 7
     tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     List<PolicyViolation> autoWaivedViolations = results.autoWaivedViolations;
     assertThat(autoWaivedViolations).hasSize(0);
@@ -624,7 +631,8 @@ public class ScanPolicyEvaluatorTest
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
 
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results.activeViolations).hasSize(36).allSatisfy(activeViolation -> {
       assertThat(activeViolation.getPolicyId()).isEqualTo(securityPolicyTwo.getId());
@@ -671,7 +679,8 @@ public class ScanPolicyEvaluatorTest
     tempEntity.newAutoPolicyWaiver(application.getId(), 10, false, false);
 
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results.autoWaivedViolations).hasSize(36);
   }
@@ -707,7 +716,8 @@ public class ScanPolicyEvaluatorTest
         ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
 
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results.allViolations).hasSize(36);
     assertThat(results.autoWaivedViolations).hasSize(28);
@@ -758,7 +768,8 @@ public class ScanPolicyEvaluatorTest
     );
 
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results.allViolations).hasSize(36);
     assertThat(results.autoWaivedViolations).hasSize(27);
@@ -787,7 +798,8 @@ public class ScanPolicyEvaluatorTest
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 10, false, false);
 
     ScanPolicyEvaluatorResults evalOne =
-        scanPolicyEvaluator.evaluate(application, scanIdOne, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanIdOne, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     PolicyViolation targetViolation = evalOne.autoWaivedViolations.get(0);
 
     AutoPolicyWaiverRevocation revocation = new AutoPolicyWaiverRevocation();
@@ -809,7 +821,8 @@ public class ScanPolicyEvaluatorTest
     autoPolicyWaiverRevocationDAO.insert(revocation);
 
     ScanPolicyEvaluatorResults evalTwo =
-        scanPolicyEvaluator.evaluate(application, scanIdTwo, stageTwo, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanIdTwo, stageTwo, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(evalTwo.allViolations).hasSize(3);
     assertThat(evalTwo.autoWaivedViolations).hasSize(2);
     assertThat(evalTwo.activeViolations).hasSize(1).allSatisfy(violation -> {
@@ -842,7 +855,8 @@ public class ScanPolicyEvaluatorTest
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 10, false, false);
 
     ScanPolicyEvaluatorResults evalOne =
-        scanPolicyEvaluator.evaluate(application, scanIdOne, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanIdOne, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     PolicyViolation targetViolation = evalOne.autoWaivedViolations.get(0);
 
     AutoPolicyWaiverRevocation revocation = new AutoPolicyWaiverRevocation();
@@ -864,7 +878,8 @@ public class ScanPolicyEvaluatorTest
     autoPolicyWaiverRevocationDAO.insert(revocation);
 
     ScanPolicyEvaluatorResults evalTwo =
-        scanPolicyEvaluator.evaluate(application, scanIdTwo, stageTwo, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanIdTwo, stageTwo, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(evalTwo.allViolations).hasSize(36);
     assertThat(evalTwo.autoWaivedViolations).hasSize(36);
@@ -899,7 +914,8 @@ public class ScanPolicyEvaluatorTest
         ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
 
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     // The revocation does not apply to the component with violations, so all violations should be auto-waived
     assertThat(results.autoWaivedViolations).hasSize(36);
@@ -944,7 +960,8 @@ public class ScanPolicyEvaluatorTest
     );
 
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     // The revocation does not apply to the component with violations, so all violations should be auto-waived
     assertThat(results.autoWaivedViolations).hasSize(36);
@@ -973,7 +990,8 @@ public class ScanPolicyEvaluatorTest
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 10, false, false);
 
     ScanPolicyEvaluatorResults evalOne =
-        scanPolicyEvaluator.evaluate(application, scanIdOne, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanIdOne, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     PolicyViolation targetViolation = evalOne.autoWaivedViolations.get(0);
 
     AutoPolicyWaiverRevocation revocation = new AutoPolicyWaiverRevocation();
@@ -994,13 +1012,114 @@ public class ScanPolicyEvaluatorTest
     autoPolicyWaiverRevocationDAO.insert(revocation);
 
     ScanPolicyEvaluatorResults evalTwo =
-        scanPolicyEvaluator.evaluate(application, scanIdTwo, stageTwo, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanIdTwo, stageTwo, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE,false);
 
     assertThat(evalTwo.allViolations).hasSize(36);
     assertThat(evalTwo.autoWaivedViolations).hasSize(36);
     assertThat(evalTwo.activeViolations).hasSize(0);
   }
-  
+
+  @Test
+  public void testReEvaluate_Results_WithoutSkippingAutoWaivers() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    /*
+     * Run policy evaluation for the first time
+     */
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
+
+    tempEntity.newAutoPolicyWaiver(application.getId(), 10,
+        false, false);
+
+    ScanPolicyEvaluatorResults reevaluationResults = scanPolicyEvaluator.evaluate(application,
+        scanId,
+        stage,
+        ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
+
+    /*
+    * Auto-waivers were not skipped so they should be applied
+     */
+    assertThat(reevaluationResults.allViolations).hasSize(36);
+    assertThat(reevaluationResults.autoWaivedViolations).hasSize(36);
+    assertThat(reevaluationResults.activeViolations).hasSize(0);
+  }
+
+  @Test
+  public void testReEvaluate_Results_SkippingAutoWaivers() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    /*
+     * Run policy evaluation for the first time
+     */
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
+
+    tempEntity.newAutoPolicyWaiver(application.getId(), 10,
+        false, false);
+
+    ScanPolicyEvaluatorResults reevaluationResults = scanPolicyEvaluator.evaluate(application,
+        scanId,
+        stage,
+        ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, true);
+
+    /*
+     * Auto-waivers were skipped so they should not be applied
+     */
+    assertThat(reevaluationResults.allViolations).hasSize(36);
+    assertThat(reevaluationResults.autoWaivedViolations).hasSize(0);
+    assertThat(reevaluationResults.activeViolations).hasSize(36);
+  }
+
+  @Test
+  public void testReEvaluate_Results_SkippingAutoWaiversWithoutReevaluation_ThrowsError() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    /*
+     * Run policy evaluation for the first time
+     */
+    assertThatThrownBy(() -> scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, true))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Auto-waivers can only be skipped in re-evaluations not primary policy evaluations.");
+  }
+
   @Test
   public void testEvaluate_Results_LegacyViolations() throws Exception {
     application = tempEntity.newApplicationWithParent();
@@ -1030,7 +1149,8 @@ public class ScanPolicyEvaluatorTest
     policyDAO.update(policy);
 
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     results.activeViolations.forEach(policyViolation -> {
       assertThat(policyViolation.isLegacyViolationApplied()).isFalse();
@@ -1053,7 +1173,8 @@ public class ScanPolicyEvaluatorTest
     policyDAO.update(policy);
 
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     if (expectLegacyViolations) {
       assertThat(results.activeViolations).hasSize(0);
@@ -1104,7 +1225,8 @@ public class ScanPolicyEvaluatorTest
     String scanId1 = simulateReportIsAvailable("report");
     Stage stage1 = new Stage(Stage.ID_BUILD);
     ScanPolicyEvaluatorResults results1 =
-        scanPolicyEvaluator.evaluate(application, scanId1, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId1, stage1, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results1.activeViolations).hasSize(0);
     List<PolicyViolation> inactiveViolations = getInactiveViolations(results1);
     assertThat(inactiveViolations).hasSize(36).allSatisfy(inactiveViolation -> {
@@ -1118,14 +1240,16 @@ public class ScanPolicyEvaluatorTest
     // Evaluate again. No policy violations should be legacy.
     String scanId2 = simulateReportIsAvailable("report");
     ScanPolicyEvaluatorResults results2 =
-        scanPolicyEvaluator.evaluate(application, scanId2, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId2, stage1, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results2.activeViolations).hasSize(36);
 
     // Evaluate for a different stage. No policy violations should be legacy.
     String scanId3 = simulateReportIsAvailable("report");
     Stage stage2 = new Stage(Stage.ID_RELEASE);
     ScanPolicyEvaluatorResults results3 =
-        scanPolicyEvaluator.evaluate(application, scanId3, stage2, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId3, stage2, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results3.activeViolations).hasSize(36);
   }
 
@@ -1138,7 +1262,8 @@ public class ScanPolicyEvaluatorTest
     String scanId1 = simulateReportIsAvailable("report");
     Stage stage1 = new Stage(Stage.ID_COMPLIANCE);
     ScanPolicyEvaluatorResults results1 =
-        scanPolicyEvaluator.evaluate(application, scanId1, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId1, stage1, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results1.activeViolations).hasSize(36).allSatisfy(inactiveViolation -> {
       assertThat(inactiveViolation.getLegacyViolationTime()).isNull();
       assertThat(inactiveViolation.isLegacyViolationApplied()).isFalse();
@@ -1153,7 +1278,8 @@ public class ScanPolicyEvaluatorTest
     // Evaluate again. No policy violations(old policy violations and new policy violations) should be legacy.
     String scanId2 = simulateReportIsAvailable("report");
     ScanPolicyEvaluatorResults results2 =
-        scanPolicyEvaluator.evaluate(application, scanId2, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId2, stage1, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results2.activeViolations).hasSize(36).allSatisfy(inactiveViolation -> {
       assertThat(inactiveViolation.getLegacyViolationTime()).isNull();
       assertThat(inactiveViolation.isLegacyViolationApplied()).isFalse();
@@ -1180,7 +1306,8 @@ public class ScanPolicyEvaluatorTest
     String scanId1 = simulateReportIsAvailable("report");
     Stage stage1 = new Stage(Stage.ID_BUILD);
     ScanPolicyEvaluatorResults results1 =
-        scanPolicyEvaluator.evaluate(application, scanId1, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId1, stage1, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results1.activeViolations).hasSize(36);
   }
 
@@ -1197,7 +1324,8 @@ public class ScanPolicyEvaluatorTest
     String scanId1 = simulateReportIsAvailable("report");
     Stage stage1 = new Stage(Stage.ID_BUILD);
     ScanPolicyEvaluatorResults results1 =
-        scanPolicyEvaluator.evaluate(application, scanId1, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId1, stage1, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results1.activeViolations).hasSize(0);
     List<PolicyViolation> inactiveViolations = getInactiveViolations(results1);
     assertThat(inactiveViolations).hasSize(36).allSatisfy(inactiveViolation -> {
@@ -1210,7 +1338,8 @@ public class ScanPolicyEvaluatorTest
     // Evaluate again with license without legacy violations. Policy violations continue to be legacy.
     String scanId2 = simulateReportIsAvailable("report");
     ScanPolicyEvaluatorResults results2 =
-        scanPolicyEvaluator.evaluate(application, scanId2, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId2, stage1, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results2.activeViolations).hasSize(0);
     inactiveViolations = getInactiveViolations(results2);
     assertThat(inactiveViolations).hasSize(36).allSatisfy(inactiveViolation -> {
@@ -1228,19 +1357,22 @@ public class ScanPolicyEvaluatorTest
     // 1st evaluation. The report contains one component that triggers the policy, so there is one notifiable violation.
     String scanId = simulateReportIsAvailable("testEvaluate_Results_NotifiableViolations/before");
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results.activeViolations).hasSize(1);
     assertThat(results.notifiableViolations).hasSize(1);
 
     // 2nd evaluation. Nothing changed, so there are no new violations, so no notifiable violations.
-    results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     assertThat(results.activeViolations).hasSize(1);
     assertThat(results.notifiableViolations).isEmpty();
 
     // 3rd evaluation. The report contains a new component that triggers the policy, so there is one new notifiable
     // violation.
     scanId = simulateReportIsAvailable("testEvaluate_Results_NotifiableViolations/after");
-    results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     assertThat(results.activeViolations).hasSize(2);
     assertThat(results.notifiableViolations).hasSize(1);
     assertThat(results.evaluation.getCommitHash()).isNull();
@@ -1256,7 +1388,8 @@ public class ScanPolicyEvaluatorTest
     newSecurityPolicy();
 
     ScanPolicyEvaluatorResults results1 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results1.activeViolations).hasSize(36);
     assertThat(results1.notifiableViolations).hasSize(36);
@@ -1264,7 +1397,8 @@ public class ScanPolicyEvaluatorTest
     AutoPolicyWaiver autoWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 10, false, false);
 
     ScanPolicyEvaluatorResults results2 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     //auto waived all the security violations
     assertThat(results2.activeViolations).hasSize(0);
@@ -1274,7 +1408,8 @@ public class ScanPolicyEvaluatorTest
     autoPolicyWaiverDAO.delete(autoWaiver);
 
     ScanPolicyEvaluatorResults results3 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results3.activeViolations).hasSize(36);
     assertThat(results3.autoWaivedViolations).hasSize(0);
@@ -1293,7 +1428,8 @@ public class ScanPolicyEvaluatorTest
     asyncEventBus.register(handler);
 
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(handler.getLatch().await(1, SECONDS)).isTrue();
     ApplicationEvaluationEvent event = handler.getEvent();
@@ -1319,7 +1455,8 @@ public class ScanPolicyEvaluatorTest
     String scanId = simulateReportIsAvailable("report");
     asyncEventBus.register(policyAlertHandler);
 
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
 
     assertThat(policyAlertHandler.getLatch().await(5, SECONDS)).isFalse();
   }
@@ -1335,7 +1472,8 @@ public class ScanPolicyEvaluatorTest
     asyncEventBus.register(policyAlertHandler);
 
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(policyAlertHandler.getLatch().await(5, SECONDS)).isTrue();
     PolicyAlertEvent event = policyAlertHandler.getEvent();
@@ -1362,7 +1500,8 @@ public class ScanPolicyEvaluatorTest
 
     String scanId1 = simulateReportIsAvailable("report");
     File scanFile1 = createScanFile(application, scanId1);
-    scanPolicyEvaluator.evaluate(application, scanId1, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId1, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     assertThat(scanFile1).isFile();
 
     // Make sure we don't have two evaluations at exactly the same time
@@ -1370,7 +1509,8 @@ public class ScanPolicyEvaluatorTest
 
     String scanId2 = simulateReportIsAvailable("report");
     File scanFile2 = createScanFile(application, scanId2);
-    scanPolicyEvaluator.evaluate(application, scanId2, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId2, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     assertThat(scanFile1).doesNotExist();
     assertThat(scanFile2).isFile();
   }
@@ -1384,7 +1524,8 @@ public class ScanPolicyEvaluatorTest
 
     String scanId1 = simulateReportIsAvailable("report");
     File scanFile1 = createScanFile(application, scanId1);
-    scanPolicyEvaluator.evaluate(application, scanId1, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId1, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     assertThat(scanFile1).isFile();
 
     // Make sure we don't have two evaluations at exactly the same time
@@ -1392,7 +1533,8 @@ public class ScanPolicyEvaluatorTest
 
     String scanId2 = simulateReportIsAvailable("report");
     File scanFile2 = createScanFile(application, scanId2);
-    scanPolicyEvaluator.evaluate(application, scanId2, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId2, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     assertThat(scanFile1).isFile();
     assertThat(scanFile2).isFile();
   }
@@ -1403,13 +1545,15 @@ public class ScanPolicyEvaluatorTest
 
     String scanId = simulateReportIsAvailable("report");
     File scanFile = createScanFile(application, scanId);
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     assertThat(scanFile).isFile();
 
     // Make sure we don't have two evaluations at exactly the same time
     waitForTimeAdvance();
 
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     assertThat(scanFile).isFile();
   }
 
@@ -1420,7 +1564,8 @@ public class ScanPolicyEvaluatorTest
     // Evaluate a scan.
     String scanId = simulateReportIsAvailable("report");
     createScanFile(application, scanId);
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
 
     // Create a fake PDF report.
     FileReportEntity reportPdf =
@@ -1432,7 +1577,8 @@ public class ScanPolicyEvaluatorTest
     waitForTimeAdvance();
 
     // Re-evaluate and check that the PDF report was deleted.
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     assertThat(reportPdf.getFile()).doesNotExist();
   }
 
@@ -1442,7 +1588,8 @@ public class ScanPolicyEvaluatorTest
 
     String scanId1 = simulateReportIsAvailable("report");
     File scanFile1 = createScanFile(application, scanId1);
-    scanPolicyEvaluator.evaluate(application, scanId1, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId1, stage1, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     assertThat(scanFile1).isFile();
 
     // Make sure we don't have two evaluations at exactly the same time
@@ -1451,7 +1598,8 @@ public class ScanPolicyEvaluatorTest
     Stage stage2 = new Stage(Stage.ID_RELEASE);
     String scanId2 = simulateReportIsAvailable("report");
     File scanFile2 = createScanFile(application, scanId2);
-    scanPolicyEvaluator.evaluate(application, scanId2, stage2, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId2, stage2, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     assertThat(scanFile1).isFile();
     assertThat(scanFile2).isFile();
   }
@@ -1463,14 +1611,16 @@ public class ScanPolicyEvaluatorTest
     Policy policy = newSecurityPolicy();
 
     ScanPolicyEvaluatorResults results1 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results1.allViolations).hasSize(36);
 
     policyDAO.delete(policy);
 
     ScanPolicyEvaluatorResults results2 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results2.allViolations).hasSize(0);
     List<PolicyViolation> allViolations = policyViolationDAO.getByApplicationId(application.getId());
@@ -1505,7 +1655,8 @@ public class ScanPolicyEvaluatorTest
     tempEntity.newPolicy(securityPolicyTwo);
 
     ScanPolicyEvaluatorResults results1 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     Date openTime = results1.evaluation.getTime();
 
     assertThat(results1.activeViolations).hasSize(72);
@@ -1513,7 +1664,8 @@ public class ScanPolicyEvaluatorTest
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
 
     ScanPolicyEvaluatorResults results2 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results2.activeViolations).hasSize(36).allSatisfy(activeViolation -> {
       assertThat(activeViolation.getAutoPolicyWaiverId()).isNull();
@@ -1534,7 +1686,8 @@ public class ScanPolicyEvaluatorTest
     autoPolicyWaiverDAO.delete(autoPolicyWaiver);
 
     ScanPolicyEvaluatorResults results3 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results3.activeViolations).hasSize(72).allSatisfy(unwaivedViolation -> {
       assertThat(unwaivedViolation.getFixTime()).isNull();
@@ -1565,7 +1718,8 @@ public class ScanPolicyEvaluatorTest
     // add auto waiver and evaluate
     AutoPolicyWaiver autoPolicyWaiverOne = tempEntity.newAutoPolicyWaiver(application.getId(), 6, false, false);
     ScanPolicyEvaluatorResults results1 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     List<PolicyViolation> autoWaivedViolations = results1.autoWaivedViolations;
     assertThat(autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
@@ -1580,7 +1734,8 @@ public class ScanPolicyEvaluatorTest
     // delete auto waiver and evaluate
     autoPolicyWaiverDAO.delete(autoPolicyWaiverOne);
     ScanPolicyEvaluatorResults results2 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results2.autoWaivedViolations).hasSize(0);
     assertThat(results2.activeViolations).hasSize(36).allSatisfy(activeViolation -> {
       assertThat(activeViolation.getAutoPolicyWaiverId()).isNull();
@@ -1590,7 +1745,8 @@ public class ScanPolicyEvaluatorTest
     // add another auto waiver and evaluate
     AutoPolicyWaiver autoPolicyWaiverTwo = tempEntity.newAutoPolicyWaiver(application.getId(), 3, false, false);
     ScanPolicyEvaluatorResults results3 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results3.autoWaivedViolations).hasSize(0);
     assertThat(results3.activeViolations).hasSize(36).allSatisfy(activeViolation -> {
       assertThat(activeViolation.getAutoPolicyWaiverId()).isNull();
@@ -1601,7 +1757,8 @@ public class ScanPolicyEvaluatorTest
     autoPolicyWaiverDAO.delete(autoPolicyWaiverTwo);
     AutoPolicyWaiver autoPolicyWaiverThree = tempEntity.newAutoPolicyWaiver(application.getId(), 8, false, false);
     ScanPolicyEvaluatorResults results4 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results4.autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
       assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(results2.evaluation.getTime());
       assertThat(autoWaivedViolation.getFixTime()).isNull();
@@ -1631,7 +1788,8 @@ public class ScanPolicyEvaluatorTest
     // add auto policy waiver and evaluate
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 8, false, false);
     ScanPolicyEvaluatorResults results1 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results1.activeViolations).hasSize(0);
     List<PolicyViolation> autoWaivedViolations = results1.autoWaivedViolations;
     assertThat(autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
@@ -1646,7 +1804,8 @@ public class ScanPolicyEvaluatorTest
     // add policy waiver and evaluate
     PolicyWaiver waiver = tempEntity.newWaiver("f0776db1593e215146d2", securityPolicy.getId(), application.getId());
     ScanPolicyEvaluatorResults results2 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results2.activeViolations).hasSize(0);
     assertThat(results2.waivedViolations).hasSize(3).allSatisfy(waivedViolation -> {
       assertThat(waivedViolation.getHash()).isEqualTo(waiver.getHash());
@@ -1669,7 +1828,8 @@ public class ScanPolicyEvaluatorTest
     // remove policy waiver and evaluate
     policyWaiverDAO.delete(waiver);
     ScanPolicyEvaluatorResults results3 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results3.activeViolations).hasSize(0);
     assertThat(results3.waivedViolations).hasSize(0);
     assertThat(results3.autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
@@ -1707,7 +1867,8 @@ public class ScanPolicyEvaluatorTest
     // add policy waiver and evaluate
     PolicyWaiver waiver = tempEntity.newWaiver("f0776db1593e215146d2", securityPolicy.getId(), application.getId());
     ScanPolicyEvaluatorResults results1 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results1.activeViolations).hasSize(33);
     assertThat(results1.waivedViolations).hasSize(3).allSatisfy(waivedViolation -> {
       assertThat(waivedViolation.getHash()).isEqualTo(waiver.getHash());
@@ -1723,7 +1884,8 @@ public class ScanPolicyEvaluatorTest
     // add auto waiver and evaluate
     AutoPolicyWaiver autoPolicyWaiverOne = tempEntity.newAutoPolicyWaiver(application.getId(), 8, false, false);
     ScanPolicyEvaluatorResults results2 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results2.activeViolations).hasSize(0);
     assertThat(results2.waivedViolations).hasSize(0);
     assertThat(results2.autoWaivedViolations).hasSize(33).allSatisfy(autoWaivedViolation -> {
@@ -1738,7 +1900,8 @@ public class ScanPolicyEvaluatorTest
     // delete auto waiver and evaluate
     autoPolicyWaiverDAO.delete(autoPolicyWaiverOne);
     ScanPolicyEvaluatorResults results3 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results3.activeViolations).hasSize(33);
     assertThat(results3.autoWaivedViolations).hasSize(0);
     assertThat(results3.waivedViolations).hasSize(0);
@@ -1746,7 +1909,8 @@ public class ScanPolicyEvaluatorTest
     // delete policy waiver and evaluate
     policyWaiverDAO.delete(waiver);
     ScanPolicyEvaluatorResults results4 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results4.autoWaivedViolations).hasSize(0);
     assertThat(results4.waivedViolations).hasSize(0);
     assertThat(results4.activeViolations).hasSize(36);
@@ -1754,7 +1918,8 @@ public class ScanPolicyEvaluatorTest
     // add auto waiver and evaluate
     AutoPolicyWaiver autoPolicyWaiverTwo = tempEntity.newAutoPolicyWaiver(application.getId(), 8, false, false);
     ScanPolicyEvaluatorResults results5 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results5.activeViolations).hasSize(0);
     assertThat(results5.waivedViolations).hasSize(0);
     assertThat(results5.autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
@@ -1777,7 +1942,8 @@ public class ScanPolicyEvaluatorTest
     // add policy waiver and evaluate
     PolicyWaiver waiverTwo = tempEntity.newWaiver("f0776db1593e215146d2", securityPolicy.getId(), application.getId());
     ScanPolicyEvaluatorResults results6 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results6.activeViolations).hasSize(0);
     assertThat(results6.waivedViolations).hasSize(3).allSatisfy(waivedViolation -> {
       assertThat(waivedViolation.getHash()).isEqualTo(waiverTwo.getHash());
@@ -1822,14 +1988,16 @@ public class ScanPolicyEvaluatorTest
     tempEntity.newPolicy(securityPolicyTwo);
 
     ScanPolicyEvaluatorResults results1 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results1.activeViolations).hasSize(72);
 
     // add auto waiver and evaluate
     AutoPolicyWaiver autoPolicyWaiverOne = tempEntity.newAutoPolicyWaiver(application.getId(), 5, false, false);
     ScanPolicyEvaluatorResults results2 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results2.activeViolations).hasSize(36);
     assertThat(results2.autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
       assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(results1.evaluation.getTime());
@@ -1843,7 +2011,8 @@ public class ScanPolicyEvaluatorTest
     // remove auto waive and evaluate
     autoPolicyWaiverDAO.delete(autoPolicyWaiverOne);
     ScanPolicyEvaluatorResults results3 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results3.autoWaivedViolations).hasSize(0);
     assertThat(results3.activeViolations).hasSize(72);
 
@@ -1855,7 +2024,8 @@ public class ScanPolicyEvaluatorTest
     // add ineffective auto waiver and evaluate
     tempEntity.newAutoPolicyWaiver(application.getId(), 3, false, false);
     ScanPolicyEvaluatorResults results4 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results4.autoWaivedViolations).hasSize(0);
     assertThat(results4.activeViolations).hasSize(72);
   }
@@ -1891,14 +2061,16 @@ public class ScanPolicyEvaluatorTest
     tempEntity.newWaiver("f0776db1593e215146d2", securityPolicyOne.getId(), application.getId());
 
     ScanPolicyEvaluatorResults results1 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results1.activeViolations).hasSize(89);
     assertThat(results1.waivedViolations).hasSize(3);
 
     // add auto waiver and evaluate
     AutoPolicyWaiver autoPolicyWaiverOne = tempEntity.newAutoPolicyWaiver(application.getId(), 8, false, false);
     ScanPolicyEvaluatorResults results2 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results2.activeViolations).hasSize(56);
     assertThat(results2.autoWaivedViolations).hasSize(33).allSatisfy(autoWaivedViolation -> {
       assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(results1.evaluation.getTime());
@@ -1913,7 +2085,8 @@ public class ScanPolicyEvaluatorTest
     // remove auto waive and evaluate
     autoPolicyWaiverDAO.delete(autoPolicyWaiverOne);
     ScanPolicyEvaluatorResults results3 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results3.autoWaivedViolations).hasSize(0);
     assertThat(results3.activeViolations).hasSize(89);
     assertThat(results3.waivedViolations).hasSize(0);
@@ -1921,7 +2094,8 @@ public class ScanPolicyEvaluatorTest
     // add ineffective auto waiver and evaluate
     tempEntity.newAutoPolicyWaiver(application.getId(), 1, false, false);
     ScanPolicyEvaluatorResults results4 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results4.autoWaivedViolations).hasSize(0);
     assertThat(results4.activeViolations).hasSize(89);
     assertThat(results3.waivedViolations).hasSize(0);
@@ -1943,7 +2117,8 @@ public class ScanPolicyEvaluatorTest
     tempEntity.newPolicy(securityPolicy);
 
     ScanPolicyEvaluatorResults results1 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     Date openTime = results1.evaluation.getTime();
 
     assertThat(results1.activeViolations).hasSize(36);
@@ -1952,7 +2127,8 @@ public class ScanPolicyEvaluatorTest
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
 
     ScanPolicyEvaluatorResults results2 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results2.activeViolations).hasSize(0);
 
@@ -1977,7 +2153,8 @@ public class ScanPolicyEvaluatorTest
     policyWaiverDAO.delete(waiver);
 
     ScanPolicyEvaluatorResults results3 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results3.waivedViolations).hasSize(0);
     assertThat(results3.autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
@@ -2013,7 +2190,8 @@ public class ScanPolicyEvaluatorTest
     tempEntity.newPolicy(securityPolicy);
 
     ScanPolicyEvaluatorResults results1 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     Date openTime = results1.evaluation.getTime();
 
     assertThat(results1.activeViolations).hasSize(36);
@@ -2021,7 +2199,8 @@ public class ScanPolicyEvaluatorTest
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
 
     ScanPolicyEvaluatorResults results2 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results2.activeViolations).hasSize(0);
 
@@ -2038,7 +2217,8 @@ public class ScanPolicyEvaluatorTest
     autoPolicyWaiverDAO.delete(autoPolicyWaiver);
 
     ScanPolicyEvaluatorResults results3 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results3.activeViolations).hasSize(36).allSatisfy(unwaivedViolation -> {
       assertThat(unwaivedViolation.getOpenTime()).isEqualTo(results3.evaluation.getTime());
@@ -2057,7 +2237,8 @@ public class ScanPolicyEvaluatorTest
     Policy policy = newSecurityPolicy();
 
     ScanPolicyEvaluatorResults results1 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     Date openTime = results1.evaluation.getTime();
 
     assertThat(results1.activeViolations).hasSize(36);
@@ -2065,7 +2246,8 @@ public class ScanPolicyEvaluatorTest
     PolicyWaiver waiver = tempEntity.newWaiver("f0776db1593e215146d2", policy.getId(), application.getId());
 
     ScanPolicyEvaluatorResults results2 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results2.activeViolations).hasSize(33);
     List<PolicyViolation> waivedViolations = policyViolationDAO
@@ -2083,7 +2265,8 @@ public class ScanPolicyEvaluatorTest
     policyWaiverDAO.delete(waiver);
 
     ScanPolicyEvaluatorResults results3 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results3.activeViolations).hasSize(36);
     List<PolicyViolation> unfixedViolations = policyViolationDAO
@@ -2114,7 +2297,8 @@ public class ScanPolicyEvaluatorTest
     Policy policy = newSecurityPolicy();
 
     ScanPolicyEvaluatorResults results1 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     Date openTime = results1.evaluation.getTime();
 
     assertThat(results1.activeViolations).hasSize(36);
@@ -2122,7 +2306,8 @@ public class ScanPolicyEvaluatorTest
     PolicyWaiver waiver = tempEntity.newWaiver("f0776db1593e215146d2", policy.getId(), application.getId(), "waiver1");
 
     ScanPolicyEvaluatorResults results2 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results2.activeViolations).hasSize(33);
     List<PolicyViolation> waivedViolations = policyViolationDAO
@@ -2141,7 +2326,8 @@ public class ScanPolicyEvaluatorTest
     PolicyWaiver waiver2 = tempEntity.newWaiver("f0776db1593e215146d2", policy.getId(), application.getId(), "waiver2");
 
     ScanPolicyEvaluatorResults results3 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results3.activeViolations).hasSize(33);
     waivedViolations = policyViolationDAO
@@ -2163,7 +2349,8 @@ public class ScanPolicyEvaluatorTest
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
 
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.WEB_UI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.WEB_UI,
+        ClientScanType.SONATYPE, false);
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(mockTelemetrySender, times(2)).send(telemetryDataArgumentCaptor.capture());
@@ -2417,7 +2604,8 @@ public class ScanPolicyEvaluatorTest
 
     // Evaluate the policy.
     String scanId = simulateReportIsAvailable("testEvaluate_BeforeAndAfterAddingConditionTriggerData/report");
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
 
     // There should be only one policy violation (the existing one).
     List<PolicyViolation> policyViolationsAfter = policyViolationDAO.getByApplicationId(application.getId());
@@ -2551,7 +2739,8 @@ public class ScanPolicyEvaluatorTest
     String scanId = simulateReportIsAvailable("report");
 
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(1);
     assertContainsPolicyViolation(ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version), hash,
@@ -2590,7 +2779,8 @@ public class ScanPolicyEvaluatorTest
 
     // Evaluate policy
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(2);
     assertContainsPolicyViolation(componentIdentifier, hash, policy, constraint1, Action.ID_FAIL,
@@ -2607,7 +2797,8 @@ public class ScanPolicyEvaluatorTest
 
     // Evaluate policy
     scanPolicyEvaluatorResults =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(0);
   }
@@ -2628,7 +2819,8 @@ public class ScanPolicyEvaluatorTest
 
     // Evaluate policy
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(1);
     assertContainsPolicyViolation(ComponentIdentifier.createMavenCoordinates("org.mortbay.jetty", "jetty", "6.1.15"),
@@ -2650,7 +2842,8 @@ public class ScanPolicyEvaluatorTest
 
     // Evaluate policy
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(scanPolicyEvaluatorResults.allViolations).hasSize(3);
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(2);
@@ -2672,7 +2865,7 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_InvalidStage() {
     assertThatExceptionOfType(InvalidStageException.class)
         .isThrownBy(() -> scanPolicyEvaluator.evaluate(application, "scanid", new Stage("foobar"), ScanTriggerType.CLI,
-            ClientScanType.SONATYPE))
+            ClientScanType.SONATYPE, false))
         .withMessage("Invalid stage id=foobar");
   }
 
@@ -2681,7 +2874,7 @@ public class ScanPolicyEvaluatorTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(
             () -> scanPolicyEvaluator.evaluate(application, "scanId", new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
-                ClientScanType.SONATYPE))
+                ClientScanType.SONATYPE, false))
         .withMessage("Could not download the report for scan ID scanId");
 
     PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
@@ -2696,7 +2889,7 @@ public class ScanPolicyEvaluatorTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(
             () -> scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
-                ClientScanType.SONATYPE))
+                ClientScanType.SONATYPE, false))
         .withMessage("Unable to evaluate policy, the scan " + scanId + " could not be processed.");
 
     PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
@@ -2719,7 +2912,8 @@ public class ScanPolicyEvaluatorTest
 
     // Evaluate policy
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(1);
     assertContainsPolicyViolation(componentIdentifier, hash, policy, constraint, Action.ID_FAIL,
@@ -2775,7 +2969,8 @@ public class ScanPolicyEvaluatorTest
     String scanId = simulateReportIsAvailable("ManuallyIdentifiedComponent/report");
     tempEntity.newClaimedComponent(hash, componentIdentifier);
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(2);
     assertContainsPolicyViolation(componentIdentifier, hash, policy1, constraintLicense1, Action.ID_FAIL,
         LicenseConditionType.ID, scanPolicyEvaluatorResults.activeViolations);
@@ -2798,7 +2993,8 @@ public class ScanPolicyEvaluatorTest
 
     // Evaluate policy
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(3);
     assertContainsPolicyViolation(ComponentIdentifier.createMavenCoordinates("org.webjars", "select2", "3.2"), hash,
@@ -2830,7 +3026,8 @@ public class ScanPolicyEvaluatorTest
 
     // Evaluate policy
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(9);
     ComponentIdentifier componentIdentifier = ComponentIdentifier
@@ -2870,7 +3067,8 @@ public class ScanPolicyEvaluatorTest
     String scanId = simulateReportIsAvailable("report");
 
     // Evaluate policy
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
         stage.getStageTypeId());
     List<PolicyViolation> policyViolations1 = policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(),
@@ -2889,7 +3087,8 @@ public class ScanPolicyEvaluatorTest
     policy.getConstraints().get(0).getConditions().get(0).setValue("maven:commons-dbcp:commons-dbcp:1.4");
     policyDAO.update(policy);
     // Evaluate policy again for the same scan
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     PolicyEvaluation policyEvaluation2 = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation1.getId()).isNotEqualTo(policyEvaluation2.getId());
@@ -2912,7 +3111,7 @@ public class ScanPolicyEvaluatorTest
     // Evaluate policy for the Build stage
     String scanBuildId = simulateReportIsAvailable("report");
     scanPolicyEvaluator.evaluate(application, scanBuildId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
-        ClientScanType.SONATYPE);
+        ClientScanType.SONATYPE, false);
     PolicyEvaluation policyEvaluationBuild = policyEvaluationDAO
         .getLastByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
     List<PolicyViolation> policyViolationsBuild = policyViolationDAO
@@ -2925,7 +3124,7 @@ public class ScanPolicyEvaluatorTest
     // Evaluate policy for the Release stage
     String scanReleaseId = simulateReportIsAvailable("report");
     scanPolicyEvaluator.evaluate(application, scanReleaseId, new Stage(Stage.ID_RELEASE),
-        ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
     PolicyEvaluation policyEvaluationRelease = policyEvaluationDAO
         .getLastByApplicationIdAndStageId(application.getId(), Stage.ID_RELEASE);
     List<PolicyViolation> policyViolationsRelease = policyViolationDAO
@@ -2949,7 +3148,8 @@ public class ScanPolicyEvaluatorTest
     assertThat(applicationComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stage1.getStageTypeId()))
         .isEmpty();
     String scanId1 = simulateReportIsAvailable("PersistApplicationComponents/report1");
-    scanPolicyEvaluator.evaluate(application, scanId1, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId1, stage1, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     List<ApplicationComponent> appComponents1 =
         applicationComponentDAO.getByApplicationIdAndStageTypeId(application.getId(),
             stage1.getStageTypeId());
@@ -2965,7 +3165,8 @@ public class ScanPolicyEvaluatorTest
     assertThat(applicationComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stage2.getStageTypeId()))
         .isEmpty();
     String scanId2 = simulateReportIsAvailable("PersistApplicationComponents/report2");
-    scanPolicyEvaluator.evaluate(application, scanId2, stage2, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId2, stage2, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     List<ApplicationComponent> appComponents2 =
         applicationComponentDAO.getByApplicationIdAndStageTypeId(application.getId(),
             stage2.getStageTypeId());
@@ -2985,7 +3186,8 @@ public class ScanPolicyEvaluatorTest
     // Evaluate again for the first stage. It should replace the app<->component assocs for the first stage and it
     // should not touch the app<->component assocs for the second stage.
     String scanId3 = simulateReportIsAvailable("PersistApplicationComponents/report3");
-    scanPolicyEvaluator.evaluate(application, scanId3, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId3, stage1, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     List<ApplicationComponent> appComponents3 =
         applicationComponentDAO.getByApplicationIdAndStageTypeId(application.getId(),
             stage1.getStageTypeId());
@@ -3013,7 +3215,8 @@ public class ScanPolicyEvaluatorTest
 
     // Evaluate policy
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator
-        .evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        .evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(scanPolicyEvaluatorResults.allViolations).hasSize(3);
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(2);
@@ -3068,7 +3271,7 @@ public class ScanPolicyEvaluatorTest
     // Evaluate policy
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
         scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
-            ClientScanType.SONATYPE);
+            ClientScanType.SONATYPE, false);
 
     assertThat(scanPolicyEvaluatorResults.allViolations).hasSize(3);
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(0);
@@ -3106,7 +3309,8 @@ public class ScanPolicyEvaluatorTest
 
     // Evaluate policy
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator
-        .evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        .evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(scanPolicyEvaluatorResults.allViolations).hasSize(3);
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(2);
@@ -3134,7 +3338,8 @@ public class ScanPolicyEvaluatorTest
 
     String scanBuildId = simulateReportIsAvailable("report");
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator
-        .evaluate(application, scanBuildId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        .evaluate(application, scanBuildId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     PolicyEvaluationResult evaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(results.evaluation,
         results.allViolations, true);
     assertThat(evaluationResult.getAlerts()).hasSize(1);
@@ -3149,7 +3354,8 @@ public class ScanPolicyEvaluatorTest
     testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
     String scanBuildId = simulateReportIsAvailable("report");
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator
-        .evaluate(application, scanBuildId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        .evaluate(application, scanBuildId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     PolicyEvaluationResult evaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(results.evaluation,
         results.allViolations, true);
     assertThat(evaluationResult.getAlerts()).hasSize(1);
@@ -3166,20 +3372,23 @@ public class ScanPolicyEvaluatorTest
 
     // First evaluation, all policy violations are new, all logged
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations,
         currentUser.getUsernameOrSystem());
     policyViolationLoggerOutput.clear();
 
     // Second evaluation, all policy violations are the same, none logged
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
 
     assertPolicyViolationLogDTOs(0);
 
     policyDAO.delete(policy);
     // Third evaluation, all policy violations are fixed, all logged
-    results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
 
     assertPolicyViolationsLogged(PolicyViolationLogEvent.FIX, results.evaluation.getTime(),
         policyViolationDAO.getByApplicationId(application.getId()), currentUser.getUsernameOrSystem());
@@ -3213,7 +3422,8 @@ public class ScanPolicyEvaluatorTest
     AutoPolicyWaiver autoWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
 
     ScanPolicyEvaluatorResults results1 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     assertThat(results1.allViolations).hasSize(72);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results1.evaluation.getTime(), results1.allViolations,
@@ -3227,7 +3437,8 @@ public class ScanPolicyEvaluatorTest
 
     autoPolicyWaiverDAO.delete(autoWaiver);
     ScanPolicyEvaluatorResults results2 =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results2.allViolations).hasSize(72);
     assertThat(results2.activeViolations).hasSize(72);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.UNAUTOWAIVE, results2.evaluation.getTime(),
@@ -3247,7 +3458,7 @@ public class ScanPolicyEvaluatorTest
     String scanId = simulateReportIsAvailable("testEvaluate_PolicyViolationLogger_WaivePolicyViolations/report");
     ScanPolicyEvaluatorResults results =
         scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
-            ClientScanType.SONATYPE);
+            ClientScanType.SONATYPE, false);
     assertThat(results.allViolations).hasSize(2);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations,
         currentUser.getUsernameOrSystem());
@@ -3265,7 +3476,7 @@ public class ScanPolicyEvaluatorTest
     PolicyWaiver licensePolicyWaiver = tempEntity.newWaiver(licensePolicy.getId(), application.getId());
     scanId = simulateReportIsAvailable("testEvaluate_PolicyViolationLogger_WaivePolicyViolations/report");
     results = scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
-        ClientScanType.SONATYPE);
+        ClientScanType.SONATYPE, false);
     assertThat(results.allViolations).hasSize(2);
     List<PolicyViolation> newWaivedViolations =
         filterPolicyViolationsByPolicyId(results.allViolations, licensePolicy.getId());
@@ -3280,7 +3491,7 @@ public class ScanPolicyEvaluatorTest
     policyWaiverDAO.delete(licensePolicyWaiver);
     scanId = simulateReportIsAvailable("testEvaluate_PolicyViolationLogger_WaivePolicyViolations/report");
     results = scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
-        ClientScanType.SONATYPE);
+        ClientScanType.SONATYPE, false);
     assertThat(results.allViolations).hasSize(2);
     assertThat(results.activeViolations).hasSize(1);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.UNWAIVE, results.evaluation.getTime(),
@@ -3314,7 +3525,7 @@ public class ScanPolicyEvaluatorTest
         "testEvaluate_PolicyViolationLogger_LegacyGrantedAndRevokedPolicyViolations/report");
     ScanPolicyEvaluatorResults results =
         scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
-            ClientScanType.SONATYPE);
+            ClientScanType.SONATYPE, false);
     assertThat(results.allViolations).hasSize(2);
     assertThat(results.activeViolations).hasSize(1);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations,
@@ -3332,18 +3543,20 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_DoesNotAllowReevalutionForNonLatestScan() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     // Make sure we don't have two evaluations at exactly the same time
     waitForTimeAdvance();
     scanPolicyEvaluator.evaluate(application, simulateReportIsAvailable("report"), stage,
-        ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
     newSecurityPolicy();
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     clearInvocations(mockTelemetrySender);
 
     assertThatThrownBy(() ->
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE))
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false))
         .hasMessage(REEVALUATE_NOT_ALLOWED_FOR_OUT_OF_DATE_SCAN_MESSAGE);
 
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
@@ -3432,7 +3645,7 @@ public class ScanPolicyEvaluatorTest
 
       ScanPolicyEvaluatorResults results = scanPolicyEvaluator
           .evaluate(application, simulateReportIsAvailable("LogPolicyViolationPolicyConditionTriggers"),
-              new Stage(Stage.ID_BUILD), ScanTriggerType.CLI, ClientScanType.SONATYPE);
+              new Stage(Stage.ID_BUILD), ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
 
       assertThat(results.allViolations).hasSize(conditions.size());
       assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations,
@@ -3471,7 +3684,7 @@ public class ScanPolicyEvaluatorTest
 
     // When evaluate policies
     scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
-        ClientScanType.SONATYPE);
+        ClientScanType.SONATYPE, false);
 
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
@@ -3529,7 +3742,7 @@ public class ScanPolicyEvaluatorTest
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator
         .evaluate(application, simulateReportIsAvailable("LogPolicyViolationPolicyConditionTriggers"),
-            new Stage(Stage.ID_BUILD), ScanTriggerType.CLI, ClientScanType.SONATYPE);
+            new Stage(Stage.ID_BUILD), ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
 
     assertThat(results.allViolations).isNotEmpty();
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations,
@@ -3547,7 +3760,8 @@ public class ScanPolicyEvaluatorTest
     clearInvocations(mockTelemetrySender);
 
     // When running the first evaluation
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
 
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
@@ -3560,7 +3774,8 @@ public class ScanPolicyEvaluatorTest
     policyDAO.delete(policy);
     clearInvocations(mockTelemetrySender);
     // And running the second evaluation to have all policy violations fixed
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
 
     // Then all policy violations are collected for telemetry
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
@@ -3576,7 +3791,8 @@ public class ScanPolicyEvaluatorTest
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("testEvaluate_StoresAggregateFiles");
 
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
 
     List<ApplicationComponent> applicationComponents =
         applicationComponentDAO.getByApplicationId(application.getId());
@@ -3605,7 +3821,8 @@ public class ScanPolicyEvaluatorTest
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("testEvaluate_StoresApplicationComponentLicenses");
 
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
 
     List<ApplicationComponent> applicationComponents =
         applicationComponentDAO.getByApplicationId(application.getId());
@@ -3652,7 +3869,7 @@ public class ScanPolicyEvaluatorTest
 
     // When evaluate policies
     scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
-        ClientScanType.SONATYPE);
+        ClientScanType.SONATYPE, false);
 
     // Then there should be two policy violations, of which one is waived.
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
@@ -3667,7 +3884,7 @@ public class ScanPolicyEvaluatorTest
     // When waive the other policy and evaluate policies again
     PolicyWaiver licensePolicyWaiver = tempEntity.newWaiver(licensePolicy.getId(), application.getId());
     scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
-        ClientScanType.SONATYPE);
+        ClientScanType.SONATYPE, false);
 
     // Then there should be two waived policy violations, one already waived and one newly waived.
     // Only one should be collected for telemetry
@@ -3681,7 +3898,7 @@ public class ScanPolicyEvaluatorTest
     // When remove the waiver for one of the policies and evaluate policies again.
     policyWaiverDAO.delete(licensePolicyWaiver);
     scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
-        ClientScanType.SONATYPE);
+        ClientScanType.SONATYPE, false);
     // Then there should be an unwaived violation collected for telemetry
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     telemetryDataList = telemetryDataArgumentCaptor.getValue();
@@ -3700,7 +3917,8 @@ public class ScanPolicyEvaluatorTest
 
     // When running the first evaluation
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     // Then new violations are created
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(36);
@@ -3711,7 +3929,8 @@ public class ScanPolicyEvaluatorTest
     clearInvocations(mockTelemetrySender);
     // And running the second evaluation to have all policy violations fixed
     scanPolicyEvaluatorResults =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
 
     // Then all policy violations are reported as fixed and no active
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(0);
@@ -3729,7 +3948,7 @@ public class ScanPolicyEvaluatorTest
     // When evaluate policies
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
         scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
-            ClientScanType.SONATYPE);
+            ClientScanType.SONATYPE, false);
 
     // There should be one waived violation
     assertThat(scanPolicyEvaluatorResults.waivedViolations).hasSize(1);
@@ -3739,7 +3958,7 @@ public class ScanPolicyEvaluatorTest
     tempEntity.newWaiver(licensePolicy.getId(), application.getId());
     scanPolicyEvaluatorResults =
         scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
-            ClientScanType.SONATYPE);
+            ClientScanType.SONATYPE, false);
 
     // The second violation should be reported as waived
     assertThat(scanPolicyEvaluatorResults.waivedViolations).hasSize(1);
@@ -3767,7 +3986,8 @@ public class ScanPolicyEvaluatorTest
 
     String scanId = simulateReportIsAvailable("report");
     File scanFile = createScanFile(application, scanId);
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     assertThat(scanFile).isFile();
 
     // Make sure we don't have two evaluations at exactly the same time
@@ -3783,7 +4003,8 @@ public class ScanPolicyEvaluatorTest
       policyViolationDAO.update(policyViolation);
     });
 
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
 
     policyViolationDAO.getByApplicationId(application.getId())
         .forEach(policyViolation -> assertThat(policyViolation.isLegacyViolationApplied()).isFalse());
@@ -3801,7 +4022,8 @@ public class ScanPolicyEvaluatorTest
     // First evaluation creates legacy violation
     String scanId1 = simulateReportIsAvailable("report");
     Stage stage1 = new Stage(Stage.ID_BUILD);
-    scanPolicyEvaluator.evaluate(application, scanId1, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId1, stage1, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
 
     // Run second evaluation which will use violations from the first evaluation. This is where the constraint violation
     // was triggered
@@ -3810,7 +4032,8 @@ public class ScanPolicyEvaluatorTest
     restoreConstraintFactsToPreMigratedState();
 
     ScanPolicyEvaluatorResults results2 =
-        scanPolicyEvaluator.evaluate(application, scanId2, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+        scanPolicyEvaluator.evaluate(application, scanId2, stage1, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
     assertThat(results2.activeViolations).isNotEmpty();
   }
 
@@ -3825,7 +4048,7 @@ public class ScanPolicyEvaluatorTest
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.performPolicyEvaluation(
         application, scanId, stage, ScanTriggerType.CLI, "testUserAgent", "testClientId",
-        false, ClientScanType.SONATYPE, reportComponentData
+        false, ClientScanType.SONATYPE, reportComponentData, false
     );
 
     assertNotNull(results);
@@ -3848,7 +4071,7 @@ public class ScanPolicyEvaluatorTest
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.performPolicyEvaluation(
         application, scanId, stage, ScanTriggerType.CLI, "testUserAgent", "testClientId",
-        false, ClientScanType.SONATYPE, reportComponentData
+        false, ClientScanType.SONATYPE, reportComponentData, false
     );
 
     assertNotNull(results);
@@ -3889,7 +4112,8 @@ public class ScanPolicyEvaluatorTest
 
     String scanId = simulateReportIsAvailable("report");
     File scanFile = createScanFile(application, scanId);
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
     assertThat(scanFile).isFile();
 
     // Make sure we don't have two evaluations at exactly the same time
@@ -3911,7 +4135,8 @@ public class ScanPolicyEvaluatorTest
       scanId = simulateReportIsAvailable("report");
       scanFile = createScanFile(application, scanId);
     }
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
 
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();

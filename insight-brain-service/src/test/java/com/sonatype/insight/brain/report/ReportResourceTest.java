@@ -42,17 +42,21 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.hds.TestNamedComponentDetails;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
@@ -100,6 +104,8 @@ public class ReportResourceTest
 
   private PolicyEvaluationDAO policyEvaluationDAO;
 
+  private PolicyViolationDAO policyViolationDAO;
+
   private PolicyDAO policyDAO;
 
   private ApplicationDAO applicationDAO;
@@ -112,6 +118,7 @@ public class ReportResourceTest
     policyEvaluationDAO = lookup(PolicyEvaluationDAO.class);
     policyDAO = lookup(PolicyDAO.class);
     applicationDAO = lookup(ApplicationDAO.class);
+    policyViolationDAO = lookup(PolicyViolationDAO.class);
 
     app = tempEntity.newApplicationWithParent("ReportResourceTest_AppId");
   }
@@ -743,6 +750,156 @@ public class ReportResourceTest
     assertThat(policyEvaluation.isReevaluation()).isFalse();
 
     assertNotifications(notifications, 1, 5000);
+  }
+
+  @Test
+  public void testReevaluateReport_withoutSkippingAutoWaivers() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    final String scanId = "ReportResourceTest_ScanId";
+    mockReport(scanId, "/ReportResourceTest/report");
+    mockGetVersionsByComponentCI();
+    createScanFile(app.getId(), scanId);
+
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO
+        .getLastByApplicationIdAndScanId(app.getId(), scanId);
+    assertThat(policyEvaluation).isNull();
+
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(app.getId(), 8, false, true);
+    final Constraint constraint = new Constraint("C1", "testReevaluateReport constraint 1", LogicalOperator.AND);
+    final Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
+    constraint.addCondition(condition);
+    final Policy policy = new Policy("P1", "testReevaluateReport policy1");
+    policy.setOwnerId(app.getId());
+    policy.setThreatLevel(6);
+    policy.addConstraint(constraint);
+    tempEntity.newPolicy(policy);
+    final Stage stage = new Stage(Stage.ID_BUILD);
+
+    // Evaluate policy
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
+        .query("scanId", scanId).body(stage).post();
+    assertResponseStatus(200, response);
+
+    policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    assertThat(policyEvaluation).isNotNull();
+    assertThat(policyEvaluation.getScanId()).isEqualTo(scanId);
+    assertThat(policyEvaluation.getStageTypeId()).isEqualTo(Stage.ID_BUILD);
+    assertThat(System.currentTimeMillis() - policyEvaluation.getTime().getTime()).isLessThan(60 * 1000);
+    assertThat(policyEvaluation.isReevaluation()).isFalse();
+
+    List<PolicyViolation> autoWaivedPolicyViolations =
+        policyViolationDAO.getAutoWaivedByApplicationIdAndStageId(app.getId(),
+        Stage.ID_BUILD);
+
+    Thread.sleep(1);
+
+    /*
+     * Creating revocations for all waived violations
+     */
+    autoWaivedPolicyViolations.forEach(policyViolation -> {
+      tempEntity.newAutoPolicyWaiverRevocationForAllVersions(app.getId(),
+          autoPolicyWaiver.getId(), scanId,
+          PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()).getPackageUrl());
+    });
+
+    // ReEvaluate
+    response = restRequest(app.getPublicId(), scanId).path("{scanId}/reevaluatePolicy").post();
+    assertResponseStatus(200, response);
+
+    PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(),
+        scanId);
+    assertThat(policyReEvaluation).isNotNull();
+    assertThat(policyReEvaluation.getScanId()).isEqualTo(scanId);
+    assertThat(policyReEvaluation.getStageTypeId()).isEqualTo(Stage.ID_BUILD);
+    assertThat(policyReEvaluation.getTime().getTime()).isGreaterThan(policyEvaluation.getTime().getTime());
+    assertThat(policyReEvaluation.isReevaluation()).isTrue();
+
+    autoWaivedPolicyViolations =
+        policyViolationDAO.getAutoWaivedByApplicationIdAndStageId(app.getId(),
+            Stage.ID_BUILD);
+    /*
+     * Because auto-waivers were not skipped then auto-waived violations should not be present
+     * since a revocation was added for all of them.
+     */
+    assertThat(autoWaivedPolicyViolations).isEmpty();
+  }
+
+  @Test
+  public void testReevaluateReport_skippingAutoWaivers() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    final String scanId = "ReportResourceTest_ScanId";
+    mockReport(scanId, "/ReportResourceTest/report");
+    mockGetVersionsByComponentCI();
+    createScanFile(app.getId(), scanId);
+
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO
+        .getLastByApplicationIdAndScanId(app.getId(), scanId);
+    assertThat(policyEvaluation).isNull();
+
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(app.getId(), 8, false, true);
+    final Constraint constraint = new Constraint("C1", "testReevaluateReport constraint 1", LogicalOperator.AND);
+    final Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
+    constraint.addCondition(condition);
+    final Policy policy = new Policy("P1", "testReevaluateReport policy1");
+    policy.setOwnerId(app.getId());
+    policy.setThreatLevel(6);
+    policy.addConstraint(constraint);
+    tempEntity.newPolicy(policy);
+    final Stage stage = new Stage(Stage.ID_BUILD);
+
+    // Evaluate policy
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
+        .query("scanId", scanId).body(stage).post();
+    assertResponseStatus(200, response);
+
+    policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    assertThat(policyEvaluation).isNotNull();
+    assertThat(policyEvaluation.getScanId()).isEqualTo(scanId);
+    assertThat(policyEvaluation.getStageTypeId()).isEqualTo(Stage.ID_BUILD);
+    assertThat(System.currentTimeMillis() - policyEvaluation.getTime().getTime()).isLessThan(60 * 1000);
+    assertThat(policyEvaluation.isReevaluation()).isFalse();
+
+    List<PolicyViolation> autoWaivedPolicyViolations =
+        policyViolationDAO.getAutoWaivedByApplicationIdAndStageId(app.getId(),
+            Stage.ID_BUILD);
+
+    Thread.sleep(1);
+
+    /*
+     * Creating revocations for all waived violations
+     */
+    autoWaivedPolicyViolations.forEach(policyViolation -> {
+      tempEntity.newAutoPolicyWaiverRevocationForAllVersions(app.getId(),
+          autoPolicyWaiver.getId(), scanId,
+          PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()).getPackageUrl());
+    });
+
+    // ReEvaluate
+    response =
+        restRequest(app.getPublicId(), scanId).path("{scanId}/reevaluatePolicy")
+            .query("skipAutoWaivers", true).post();
+    assertResponseStatus(200, response);
+
+    PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(),
+        scanId);
+    assertThat(policyReEvaluation).isNotNull();
+    assertThat(policyReEvaluation.getScanId()).isEqualTo(scanId);
+    assertThat(policyReEvaluation.getStageTypeId()).isEqualTo(Stage.ID_BUILD);
+    assertThat(policyReEvaluation.getTime().getTime()).isGreaterThan(policyEvaluation.getTime().getTime());
+    assertThat(policyReEvaluation.isReevaluation()).isTrue();
+
+    List<PolicyViolation> reevaluatedAutoPolicyViolations =
+        policyViolationDAO.getAutoWaivedByApplicationIdAndStageId(app.getId(),
+            Stage.ID_BUILD);
+
+    /*
+     * Because auto-waivers were skipped then same auto-waived violations should be present
+     * the revocation logic wouldn't be applied in this case and everything is copied from
+     * last report
+     */
+    assertThat(reevaluatedAutoPolicyViolations).hasSize(autoWaivedPolicyViolations.size());
   }
 
   @Test

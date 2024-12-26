@@ -1001,7 +1001,7 @@ public class Auth0ManagementAPITest
     verify(mockUsersEntity).listByEmail(emailCaptor.capture(), fieldsFilterCaptor.capture());
     verify(listUsersMockRequest).execute();
     assertThat(emailCaptor.getValue()).isEqualTo(email);
-    assertFilterIsTheExpected(fieldsFilterCaptor.getValue(), "email,user_id,identities");
+    assertFilterIsTheExpected(fieldsFilterCaptor.getValue(), "email,user_id,identities,user_metadata");
   }
 
   @Test
@@ -1153,7 +1153,7 @@ public class Auth0ManagementAPITest
 
     assertCapturedUserIsTheExpected(email, firstName, lastName);
     assertThat(emailCaptor.getValue()).isEqualTo(email);
-    assertFilterIsTheExpected(fieldsFilterCaptor.getValue(), "email,user_id,identities");
+    assertFilterIsTheExpected(fieldsFilterCaptor.getValue(), "email,user_id,identities,user_metadata");
   }
 
   private void verifyNewUserWasNotCreated(final String email)
@@ -1165,7 +1165,7 @@ public class Auth0ManagementAPITest
     verify(listUsersMockRequest).execute();
 
     assertThat(emailCaptor.getValue()).isEqualTo(email);
-    assertFilterIsTheExpected(fieldsFilterCaptor.getValue(), "email,user_id,identities");
+    assertFilterIsTheExpected(fieldsFilterCaptor.getValue(), "email,user_id,identities,user_metadata");
   }
 
   private void verifyDeleteUserRequestWasSent(final String email, final String userId) throws Exception {
@@ -1177,7 +1177,7 @@ public class Auth0ManagementAPITest
 
     assertThat(userIdCaptor.getValue()).isEqualTo(userId);
     assertThat(emailCaptor.getValue()).isEqualTo(email);
-    assertFilterIsTheExpected(fieldsFilterCaptor.getValue(), "email,user_id,identities");
+    assertFilterIsTheExpected(fieldsFilterCaptor.getValue(), "email,user_id,identities,user_metadata");
   }
 
   private void verifyDeleteUserRequestWasNotSent(final String email)
@@ -1189,7 +1189,7 @@ public class Auth0ManagementAPITest
     verify(listUsersMockRequest).execute();
 
     assertThat(emailCaptor.getValue()).isEqualTo(email);
-    assertFilterIsTheExpected(fieldsFilterCaptor.getValue(), "email,user_id,identities");
+    assertFilterIsTheExpected(fieldsFilterCaptor.getValue(), "email,user_id,identities,user_metadata");
   }
 
   private void verifyPasswordChangeTicketRequestWasSent() throws Exception {

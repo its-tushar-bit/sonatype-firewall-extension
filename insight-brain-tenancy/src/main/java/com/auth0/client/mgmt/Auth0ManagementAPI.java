@@ -457,7 +457,7 @@ public class Auth0ManagementAPI
     }
 
     try {
-      UserFilter filter = new UserFilter().withFields("email,user_id,identities", true);
+      UserFilter filter = new UserFilter().withFields("email,user_id,identities,user_metadata", true);
       return users().listByEmail(email, filter).execute().stream()
           .filter(user -> user.getIdentities().stream().map(Identity::getConnection)
               .anyMatch(connectionName::equals)).findFirst().orElse(null);

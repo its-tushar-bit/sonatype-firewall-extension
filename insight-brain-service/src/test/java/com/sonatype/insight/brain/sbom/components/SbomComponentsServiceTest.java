@@ -469,7 +469,6 @@ public class SbomComponentsServiceTest
         .zipReport("/SbomComponentsServiceTest", tempDir), reportFile);
 
     BomPageSbomSummaryDTO resultDto = service.getSbomSummaryForComponents(app.getId(), sbomMetadata.getSbomVersion());
-    assertThat(resultDto.getAnnotatedPercentage()).isEqualTo(66.7);
     assertThat(resultDto.getLow()).isEqualTo(1);
     assertThat(resultDto.getHigh()).isEqualTo(1);
     assertThat(resultDto.getMedium()).isEqualTo(1);
@@ -508,7 +507,6 @@ public class SbomComponentsServiceTest
         .zipReport("/SbomComponentsServiceTest", tempDir), reportFile);
 
     BomPageSbomSummaryDTO resultDto = service.getSbomSummaryForComponents(app.getId(), sbomMetadata.getSbomVersion());
-    assertThat(resultDto.getAnnotatedPercentage()).isEqualTo(66.7);
     assertThat(resultDto.getLow()).isEqualTo(2);
     assertThat(resultDto.getHigh()).isEqualTo(0);
     assertThat(resultDto.getMedium()).isEqualTo(1);
@@ -575,7 +573,6 @@ public class SbomComponentsServiceTest
     assertThat(bomPageSbomSummaryDTO.getHigh()).isEqualTo(null);
     assertThat(bomPageSbomSummaryDTO.getCritical()).isEqualTo(null);
     assertThat(bomPageSbomSummaryDTO.getDependencyType()).isEqualTo(null);
-    assertThat(bomPageSbomSummaryDTO.getAnnotatedPercentage()).isEqualTo(null);
     assertThat(bomPageSbomSummaryDTO.getReleaseStatusPercentage()).isEqualTo(null);
     assertThat(bomPageSbomSummaryDTO.getPolicyViolationSummary()).isEqualTo(null);
   }
@@ -621,7 +618,6 @@ public class SbomComponentsServiceTest
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, thirdPartyScan.getScanId());
 
     BomPageSbomSummaryDTO resultDto = service.getSbomSummaryForComponents(app.getId(), sbomMetadata.getSbomVersion());
-    assertThat(resultDto.getAnnotatedPercentage()).isEqualTo(33.3);
     assertThat(resultDto.getLow()).isEqualTo(2);
     assertThat(resultDto.getHigh()).isEqualTo(2);
     assertThat(resultDto.getMedium()).isEqualTo(2);

@@ -21,8 +21,6 @@ public class BomPageSbomSummaryDTO
 
   private SbomPolicyViolationSummaryDTO policyViolationSummary;
 
-  private Double annotatedPercentage;
-
   private Double releaseStatusPercentage;
 
   public BomPageSbomSummaryDTO() {
@@ -35,8 +33,7 @@ public class BomPageSbomSummaryDTO
     medium = Long.parseLong(String.valueOf(array[2]));
     high = Long.parseLong(String.valueOf(array[3]));
     critical = Long.parseLong(String.valueOf(array[4]));
-    annotatedPercentage = array[5] != null ? ((Number)array[5]).doubleValue() : null;
-    this.releaseStatusPercentage = array[6] != null ? ((Number)array[6]).doubleValue() : null;
+    this.releaseStatusPercentage = array[5] != null ? ((Number)array[5]).doubleValue() : null;
   }
 
   public Double getReleaseStatusPercentage() {
@@ -83,10 +80,6 @@ public class BomPageSbomSummaryDTO
     return critical;
   }
 
-  public Double getAnnotatedPercentage() {
-    return annotatedPercentage;
-  }
-
   public void setLow(final Long low) {
     this.low = low;
   }
@@ -99,14 +92,9 @@ public class BomPageSbomSummaryDTO
     this.critical = critical;
   }
 
-  public void setAnnotatedPercentage(final Double annotatedPercentage) {
-    this.annotatedPercentage = annotatedPercentage;
-  }
-
   public void setAllValuesToNull() {
     this.setDependencyType(null);
     this.setPolicyViolationSummary(null);
-    this.setAnnotatedPercentage(null);
     this.setNone(null);
     this.setCritical(null);
     this.setMedium(null);

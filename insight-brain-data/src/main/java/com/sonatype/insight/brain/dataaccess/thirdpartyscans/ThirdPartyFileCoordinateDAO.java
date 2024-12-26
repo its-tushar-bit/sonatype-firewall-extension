@@ -278,8 +278,6 @@ public class ThirdPartyFileCoordinateDAO
         " COUNT(CASE WHEN (cs.severity BETWEEN ?4 AND ?5) THEN 1 END) as medium," + //
         " COUNT(CASE WHEN (cs.severity BETWEEN ?6 AND ?7) THEN 1 END) as high," + //
         " COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END) as critical," + //
-        " ROUND((COUNT(CASE WHEN (vex.coordinate_security_id IS NOT NULL) THEN 1 END)) * 100" +
-        " / NULLIF(COUNT(cs.coordinate_security_id)::decimal, 0), 1) as annotatedPercentage," +
         " COALESCE(ROUND((COUNT(CASE WHEN (vex.coordinate_security_id IS NOT NULL AND cs.severity >= ?6) THEN 1 END))" +
         "* 100 / NULLIF(COUNT(CASE WHEN (cs.coordinate_security_id IS NOT NULL AND cs.severity >= ?6) THEN 1 END)" +
         "::decimal, 0), 1), 100) as releaseStatusPercentage" + //

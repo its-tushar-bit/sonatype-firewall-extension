@@ -252,7 +252,6 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
 
     assertResponseStatus(Status.OK.getStatusCode(), response);
     BomPageSbomSummaryDTO resultDto = response.getBody(BomPageSbomSummaryDTO.class);
-    assertThat(resultDto.getAnnotatedPercentage()).isEqualTo(66.7);
     assertThat(resultDto.getLow()).isEqualTo(1);
     assertThat(resultDto.getHigh()).isEqualTo(1);
     assertThat(resultDto.getMedium()).isEqualTo(1);
@@ -305,7 +304,6 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
 
     assertResponseStatus(Status.OK.getStatusCode(), response);
     BomPageSbomSummaryDTO resultDto = response.getBody(BomPageSbomSummaryDTO.class);
-    assertThat(resultDto.getAnnotatedPercentage()).isEqualTo(33.3);
     assertThat(resultDto.getLow()).isEqualTo(2);
     assertThat(resultDto.getHigh()).isEqualTo(2);
     assertThat(resultDto.getMedium()).isEqualTo(2);

@@ -1625,7 +1625,6 @@ public class ThirdPartyFileCoordinateDAOTest
     BomPageSbomSummaryDTO result = thirdPartyFileCoordinateDAO.getSbomVunerabilitySummaryForComponents(
         app.getId(), sbomMetadata.getSbomVersion());
 
-    assertThat(result.getAnnotatedPercentage()).isEqualTo(null);
     assertThat(result.getNone()).isEqualTo(0L);
     assertThat(result.getLow()).isEqualTo(0L);
     assertThat(result.getHigh()).isEqualTo(0L);
@@ -1685,7 +1684,6 @@ public class ThirdPartyFileCoordinateDAOTest
     BomPageSbomSummaryDTO result = thirdPartyFileCoordinateDAO.getSbomVunerabilitySummaryForComponents(
         app.getId(), sbomMetadata.getSbomVersion());
 
-    assertThat(result.getAnnotatedPercentage()).isEqualTo(66.7);
     assertThat(result.getNone()).isEqualTo(0L);
     assertThat(result.getLow()).isEqualTo(1L);
     assertThat(result.getHigh()).isEqualTo(1L);

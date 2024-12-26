@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -45,7 +44,6 @@ import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDe
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.TRANSITIVE;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.UNSPECIFIED;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ThirdPartyFileCoordinateDAOTest
@@ -54,8 +52,6 @@ public class ThirdPartyFileCoordinateDAOTest
   private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
   private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
-
-  private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   private ThirdPartyFileCoordinate fileCoordinate;
 
@@ -69,7 +65,6 @@ public class ThirdPartyFileCoordinateDAOTest
     super.setup();
     thirdPartyCoordinateSecurityDAO = daoFactory.createThirdPartyCoordinateSecurityDAO();
     thirdPartyFileCoordinateDAO = daoFactory.createThirdPartyFileCoordinateDAO();
-    thirdPartySbomMetadataDAO = daoFactory.createThirdPartySbomMetadataDAO();
     thirdPartyCoordinateLicenseDAO = daoFactory.createThirdPartyCoordinateLicenseDAO();
     fileCoordinate = tempEntity.newThirdPartyFileCoordinate();
     thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
@@ -279,126 +274,6 @@ public class ThirdPartyFileCoordinateDAOTest
         coordinateC.getHash())).isNull();
     assertThat(thirdPartyFileCoordinateDAO.getBySbomMetadataIdAndComponentHash(thirdPartySbomMetadataC.getId(),
         coordinateC.getHash())).isNotNull();
-  }
-
-  @Test
-  @PostgresTest
-  public void testGetSbomApplicationVulnerabilities() {
-    Organization organization1 = tempEntity.newOrganization("org1");
-    Application application = tempEntity.newApplication(organization1.getId());
-
-    ThirdPartyFile file1 = tempEntity.newThirdPartyFile("CycloneDX-bom.xml");
-    ThirdPartyFile file2 = tempEntity.newThirdPartyFile("SPDX-spdx.json");
-    ThirdPartyFile file3 = tempEntity.newThirdPartyFile("file.json");
-
-    ThirdPartySbomMetadata sbom1 =
-        tempEntity.newThirdPartySbomMetadata(file1.getId(), application.getId(), ACTIVE, file1.getFilename());
-    ThirdPartySbomMetadata sbom2 =
-        tempEntity.newThirdPartySbomMetadata(file2.getId(), application.getId(), uuid().substring(0, 10), ACTIVE,
-            file2.getFilename(), "SPDX", "JSON", "1.5", new Date(), false);
-
-    tempEntity.newThirdPartySbomMetadata(file3.getId(), application.getId(), PENDING, file3.getFilename());
-
-    ThirdPartyFileCoordinate c1 = tempEntity.newThirdPartyFileCoordinate(file1, "s1", "f1", "n1", "v1");
-    ThirdPartyFileCoordinate c2 = tempEntity.newThirdPartyFileCoordinate(file2, "s2", "f2", "n2", "v2");
-    ThirdPartyFileCoordinate c3 = tempEntity.newThirdPartyFileCoordinate(file3, "s3", "f3", "n3", "v3");
-
-    tempEntity.newThirdPartyCoordinateSecurity(c1, "r1", sbom1.getId(), "d1", "l1", 3.5F, "sd1", "f1");
-    tempEntity.newThirdPartyCoordinateSecurity(c1, "r2", sbom1.getId(), "d2", "l2", 7.5F, "sd2", "f2");
-    tempEntity.newThirdPartyCoordinateSecurity(c2, "r3", sbom2.getId(), "d3", "l3", 1.5F, "sd3", "f3");
-    tempEntity.newThirdPartyCoordinateSecurity(c2, "r4", sbom2.getId(), "d4", "l4", 0.5F, "sd4", "f4");
-    tempEntity.newThirdPartyCoordinateSecurity(c2, "r5", sbom2.getId(), "d5", "l5", 4.7F, "sd5", "f5");
-    tempEntity.newThirdPartyCoordinateSecurity(c2, "r6", sbom2.getId(), "d6", "l6", 0F, "sd6", "f6");
-    tempEntity.newThirdPartyCoordinateSecurity(c3, "r7", "d7", "l7", 1F, "sd7", "f7");
-
-    ThirdPartySbomMetadataSummaryListDTO result =
-        thirdPartyFileCoordinateDAO.getSbomApplicationVulnerabilities(application.getId(), "asc", 5, 1);
-
-    assertThat(result).isNotNull();
-    assertThat(result.getTotalResultsCount()).isEqualTo(2);
-
-    List<ThirdPartySbomMetadataSummaryDTO> results = result.getResults();
-    Collections.sort(results, Comparator.comparingInt(ThirdPartySbomMetadataSummaryDTO::getHigh));
-
-    assertThat(results).hasSize(2);
-    assertThat(results.get(0).getLow()).isEqualTo(2);
-    assertThat(results.get(0).getMedium()).isEqualTo(1);
-    assertThat(results.get(0).getNone()).isEqualTo(1);
-    assertThat(results.get(1).getLow()).isEqualTo(1);
-    assertThat(results.get(1).getHigh()).isEqualTo(1);
-
-    // test pagination
-    result = thirdPartyFileCoordinateDAO.getSbomApplicationVulnerabilities(application.getId(), "desc", 1, 1);
-    assertThat(result).isNotNull();
-    assertThat(result.getTotalResultsCount()).isEqualTo(2);
-
-    results = result.getResults();
-    assertThat(results).hasSize(1);
-
-    ThirdPartySbomMetadataSummaryDTO dto = results.get(0);
-    assertThat(dto.getApplicationVersion()).isEqualTo(sbom2.getSbomVersion());
-    assertThat(dto.getImportDate().toInstant()).isEqualTo(sbom2.getCreatedAt().toInstant());
-    assertThat(dto.getSpec()).isEqualTo(sbom2.getSpec());
-    assertThat(dto.getSpecVersion()).isEqualTo(sbom2.getSpecVersion());
-    assertThat(dto.getIsValid()).isEqualTo(false);
-    assertThat(dto.getLow()).isEqualTo(2);
-    assertThat(dto.getMedium()).isEqualTo(1);
-    assertThat(dto.getNone()).isEqualTo(1);
-
-    result = thirdPartyFileCoordinateDAO.getSbomApplicationVulnerabilities(application.getId(), "desc", 1, 2);
-    assertThat(result).isNotNull();
-    assertThat(result.getTotalResultsCount()).isEqualTo(2);
-
-    results = result.getResults();
-    assertThat(results).hasSize(1);
-
-    dto = results.get(0);
-    assertThat(dto.getApplicationVersion()).isEqualTo(sbom1.getSbomVersion());
-    assertThat(dto.getImportDate().toInstant()).isEqualTo(sbom1.getCreatedAt().toInstant());
-    assertThat(dto.getSpec()).isEqualTo(sbom1.getSpec());
-    assertThat(dto.getSpecVersion()).isEqualTo(sbom1.getSpecVersion());
-    assertThat(dto.getIsValid()).isEqualTo(true);
-    assertThat(dto.getLow()).isEqualTo(1);
-    assertThat(dto.getHigh()).isEqualTo(1);
-  }
-
-  @Test
-  @PostgresTest
-  public void testGetSbomApplicationVulnerabilities_nullIsValid() {
-    Organization organization1 = tempEntity.newOrganization("org1");
-    Application application = tempEntity.newApplication(organization1.getId());
-    ThirdPartyFile file1 = tempEntity.newThirdPartyFile("CycloneDX-bom.xml");
-
-    ThirdPartySbomMetadata sbomNullIsValid = new ThirdPartySbomMetadata();
-    sbomNullIsValid.setSerialNumber(uuid().substring(0, 10));
-    sbomNullIsValid.setSpec("CycloneDx");
-    sbomNullIsValid.setSpecFormat("XML");
-    sbomNullIsValid.setSpecVersion("1.5");
-    sbomNullIsValid.setStatus(ACTIVE);
-    sbomNullIsValid.setSbomVersion(uuid().substring(0, 10));
-    sbomNullIsValid.setApplicationId(application.getId());
-    sbomNullIsValid.setFilename("file.json");
-    sbomNullIsValid.setThirdPartyFileId(file1.getId());
-    sbomNullIsValid.setCreatedAt(new Date());
-    sbomNullIsValid.setScanType("SBOM");
-
-    try {
-      thirdPartySbomMetadataDAO.insert(sbomNullIsValid);
-
-      ThirdPartySbomMetadataSummaryListDTO result =
-          thirdPartyFileCoordinateDAO.getSbomApplicationVulnerabilities(application.getId(), "asc", 5, 1);
-
-      assertThat(result).isNotNull();
-      assertThat(result.getTotalResultsCount()).isEqualTo(1);
-      List<ThirdPartySbomMetadataSummaryDTO> results = result.getResults();
-
-      ThirdPartySbomMetadataSummaryDTO dto = results.get(0);
-      assertThat(dto.getApplicationVersion()).isEqualTo(sbomNullIsValid.getSbomVersion());
-      assertThat(dto.getIsValid()).isEqualTo(true);
-    }
-    finally {
-      thirdPartySbomMetadataDAO.delete(sbomNullIsValid);
-    }
   }
 
   @Test

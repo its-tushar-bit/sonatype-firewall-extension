@@ -26,6 +26,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomVersionsApplicationSortableField;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
@@ -437,7 +438,8 @@ public class ApiSbomServiceTest
     tempEntity.newThirdPartyCoordinateSecurity(c2, "r4", sbom2.getId(), "d4", "l4", 0.5F, "sd4", "f4");
 
     ThirdPartySbomMetadataSummaryListDTO resultList =
-        service.getSbomMetadataSummaryForApplication(application.getId(), "asc", 5, 1);
+        service.getSbomMetadataSummaryForApplication(application.getId(), "asc", 5, 1,
+            SbomVersionsApplicationSortableField.IMPORT_DATE, true);
     assertThat(resultList).isNotNull();
     assertThat(resultList.getTotalResultsCount()).isEqualTo(2);
 
@@ -450,6 +452,28 @@ public class ApiSbomServiceTest
     assertThat(results.get(0).getLow()).isEqualTo(2);
     assertThat(results.get(1).getLow()).isEqualTo(1);
     assertThat(results.get(1).getHigh()).isEqualTo(1);
+
+    resultList =
+        service.getSbomMetadataSummaryForApplication(application.getId(), "asc", 5, 1,
+            SbomVersionsApplicationSortableField.RELEASE_STATUS, true);
+    assertThat(resultList.getResults()).isSortedAccordingTo(
+        Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getReleaseStatusPercentage));
+    resultList =
+        service.getSbomMetadataSummaryForApplication(application.getId(), "asc", 5, 1,
+            SbomVersionsApplicationSortableField.RELEASE_STATUS, false);
+    assertThat(resultList.getResults()).isSortedAccordingTo(
+        Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getReleaseStatusPercentage).reversed());
+    resultList =
+        service.getSbomMetadataSummaryForApplication(application.getId(), "desc", 5, 1,
+            SbomVersionsApplicationSortableField.RELEASE_STATUS, false);
+    assertThat(resultList.getResults()).isSortedAccordingTo(
+        Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getReleaseStatusPercentage).reversed());
+
+    resultList =
+        service.getSbomMetadataSummaryForApplication(application.getId(), "desc", 5, 1,
+            null, true);
+    assertThat(resultList.getResults()).isSortedAccordingTo(
+        Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getImportDate).reversed());
   }
 
   @Test

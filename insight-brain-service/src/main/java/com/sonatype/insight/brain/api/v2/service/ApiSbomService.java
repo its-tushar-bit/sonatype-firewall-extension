@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomComponentSortableField;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomVersionsApplicationSortableField;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
@@ -135,6 +136,8 @@ public class ApiSbomService
 
   private final SbomPolicyService sbomPolicyService;
 
+  private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
   @Inject
   public ApiSbomService(
       final ThirdPartySbomMetadataDAO dao,
@@ -149,7 +152,8 @@ public class ApiSbomService
       final SbomMetadataUtils sbomMetadataUtils,
       final ProductLicense productLicense,
       final SbomExporterProvider sbomExporterProvider,
-      final SbomPolicyService sbomPolicyService)
+      final SbomPolicyService sbomPolicyService,
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO)
   {
     this.dao = dao;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
@@ -164,6 +168,7 @@ public class ApiSbomService
     this.productLicense = productLicense;
     this.sbomExporterProvider = sbomExporterProvider;
     this.sbomPolicyService = sbomPolicyService;
+    this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -372,10 +377,14 @@ public class ApiSbomService
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
       String sortByDate,
       int pageSize,
-      int page)
+      int page,
+      SbomVersionsApplicationSortableField sortBy,
+      boolean asc)
   {
     validatePagination(pageSize, page);
-    return thirdPartyFileCoordinateDAO.getSbomApplicationVulnerabilities(applicationId, sortByDate, pageSize, page);
+    return thirdPartySbomMetadataDAO.getSbomApplicationVulnerabilities(applicationId, pageSize, page,
+        sortBy != null ? sortBy : SbomVersionsApplicationSortableField.IMPORT_DATE,
+        sortBy != null ? asc : StringUtils.equalsIgnoreCase(sortByDate, "asc"));
   }
 
   @Authorize(permission = Permission.READ)

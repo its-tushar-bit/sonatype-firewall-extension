@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomVersionsApplicationSortableField;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -86,14 +87,16 @@ public class ApiSbomServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetSbomMetadataSummaryForApplication_Unauthenticated() {
-    apiSbomService.getSbomMetadataSummaryForApplication("app1", "asc", 1, 2);
+    apiSbomService.getSbomMetadataSummaryForApplication("app1", "asc", 1, 2,
+        SbomVersionsApplicationSortableField.IMPORT_DATE, true);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetSbomMetadataSummaryForApplication_Unauthorized() {
     login();
     Application application = tempEntity.newApplicationWithParent();
-    apiSbomService.getSbomMetadataSummaryForApplication(application.getId(), "asc", 1, 2);
+    apiSbomService.getSbomMetadataSummaryForApplication(application.getId(), "asc", 1, 2,
+        SbomVersionsApplicationSortableField.IMPORT_DATE, true);
   }
 
   @Test
@@ -101,7 +104,8 @@ public class ApiSbomServiceAuthzTest
   public void testGetSbomMetadataSummaryForApplication_Authorized() {
     Application application = tempEntity.newApplicationWithParent();
     grantReadPermission(application.getId());
-    apiSbomService.getSbomMetadataSummaryForApplication(application.getId(), "asc", 1, 2);
+    apiSbomService.getSbomMetadataSummaryForApplication(application.getId(), "asc", 1, 2,
+        SbomVersionsApplicationSortableField.IMPORT_DATE, true);
   }
 
   @Test(expected = UnauthenticatedException.class)

@@ -440,6 +440,104 @@ public class ThirdPartySbomMetadataDAO
     return query.toString();
   }
 
+  public ThirdPartySbomMetadataSummaryListDTO getSbomApplicationVulnerabilities(
+      String applicationId,
+      int pageSize,
+      int page,
+      SbomVersionsApplicationSortableField sortBy,
+      boolean asc)
+  {
+    String sQuery = "" + //
+        "SELECT sm.sbom_version," + //
+        "       sm.spec," + //
+        "       sm.spec_version," + //
+        "       sm.created_at," + //
+        "       sm.is_valid," + //
+        "       COUNT(CASE WHEN (cs.severity = ?1) THEN 1 END) AS vulnerabilityNone," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?2 AND ?3) THEN 1 END) AS vulnerabilityLow," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?4 AND ?5) THEN 1 END) AS vulnerabilityMedium," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?6 AND ?7) THEN 1 END) AS vulnerabilityHigh," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END) AS vulnerabilityCritical," + //
+        "       COUNT(*) OVER() AS full_count," + //
+        "       COALESCE(ROUND((COUNT(CASE WHEN (vex.coordinate_security_id IS NOT NULL" + //
+        "           AND cs.severity >= ?6) THEN 1 END)) * 100 / NULLIF(COUNT(CASE WHEN " + //
+        "           (cs.coordinate_security_id IS NOT NULL AND cs.severity >= ?6) THEN 1 END)"  + //
+        "           ::decimal, 0), 1), 100) as releaseStatusPercentage" + //
+        " FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
+        "  LEFT JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
+        "    ON cs.sbom_metadata_id = sm.sbom_metadata_id" + //
+        "  LEFT JOIN " +  getDatabaseSchema() + ".vulnerability_exploitability vex" + //
+        "    ON cs.coordinate_security_id = vex.coordinate_security_id" + //
+        " WHERE sm.application_id = ?10" + //
+        "   AND sm.status = ?11" + //
+        " GROUP BY sm.sbom_version, sm.spec, sm.spec_version, sm.created_at, sm.is_valid";
+    sQuery += generateOrderBySortFieldSelectedSbomsByApplication(sortBy , asc);
+
+    int offset = (page - 1) * pageSize;
+    ThirdPartySbomMetadataSummaryListDTO result = new ThirdPartySbomMetadataSummaryListDTO();
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query paginationQuery = createPaginationQueryWithScoreRangeParams(
+          applicationId, pageSize, sQuery, offset, tx);
+      paginationQuery.setParameter(11, ThirdPartySbomMetadataStatus.ACTIVE.name());
+
+      try (Stream<Object[]> resultsStream = paginationQuery.getResultStream()) {
+        result.setResults(resultsStream.peek(array -> {
+          if (result.getTotalResultsCount() == 0) {
+            result.setTotalResultsCount(((Long) array[10]).intValue());
+          }
+        }).map(ThirdPartySbomMetadataSummaryDTO::new).collect(Collectors.toList()));
+      }
+      return result;
+    }
+  }
+
+  private javax.persistence.Query createPaginationQueryWithScoreRangeParams(
+      final String searchParam,
+      final int pageSize,
+      final String sQuery,
+      final int offset,
+      final TransactionContext tx)
+  {
+    javax.persistence.Query paginationQuery = createPaginationNativeQuery(tx, sQuery, offset, pageSize);
+    paginationQuery.setParameter(1, NONE.getStartScoreRange());
+    paginationQuery.setParameter(2, LOW.getStartScoreRange());
+    paginationQuery.setParameter(3, LOW.getEndScoreRange());
+    paginationQuery.setParameter(4, MEDIUM.getStartScoreRange());
+    paginationQuery.setParameter(5, MEDIUM.getEndScoreRange());
+    paginationQuery.setParameter(6, HIGH.getStartScoreRange());
+    paginationQuery.setParameter(7, HIGH.getEndScoreRange());
+    paginationQuery.setParameter(8, CRITICAL.getStartScoreRange());
+    paginationQuery.setParameter(9, CRITICAL.getEndScoreRange());
+    paginationQuery.setParameter(10, searchParam);
+    return paginationQuery;
+  }
+
+  private String generateOrderBySortFieldSelectedSbomsByApplication(
+      SbomVersionsApplicationSortableField sortBy,
+      boolean asc)
+  {
+    StringBuilder query = new StringBuilder();
+    String order = asc ? "ASC" : "DESC";
+    switch (sortBy) {
+      case IMPORT_DATE:
+        query.append(" ORDER BY sm.created_at " + order);
+        break;
+      case RELEASE_STATUS:
+        query.append(" ORDER BY releaseStatusPercentage " + order);
+        break;
+      case VULNERABILITY:
+        query.append(" ORDER BY vulnerabilityCritical ").append(order)
+            .append(" , vulnerabilityHigh ").append(order)
+            .append(" , vulnerabilityMedium ").append(order)
+            .append(" , vulnerabilityLow ").append(order);
+        break;
+      default:
+        break;
+    }
+    return query.toString();
+  }
+
   public void makeSbomActiveIfExist(String scanId) {
     ThirdPartySbomMetadata sbomMetadata = getByScanId(scanId);
     if (sbomMetadata != null) {

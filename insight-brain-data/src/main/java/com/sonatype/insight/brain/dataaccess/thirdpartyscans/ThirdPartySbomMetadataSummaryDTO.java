@@ -34,6 +34,8 @@ public class ThirdPartySbomMetadataSummaryDTO
 
   private Boolean isValid;
 
+  private double releaseStatusPercentage;
+
   public ThirdPartySbomMetadataSummaryDTO() {
     // for Jackson
   }
@@ -50,6 +52,7 @@ public class ThirdPartySbomMetadataSummaryDTO
     medium = longToInt(array[7]);
     high = longToInt(array[8]);
     critical = longToInt(array[9]);
+    releaseStatusPercentage = ((Number) array[11]).doubleValue();
   }
 
   public String getApplicationVersion() {
@@ -134,5 +137,13 @@ public class ThirdPartySbomMetadataSummaryDTO
 
   private int longToInt(Object number) {
     return ((Long) number).intValue();
+  }
+
+  public double getReleaseStatusPercentage() {
+    return releaseStatusPercentage;
+  }
+
+  public void setReleaseStatusPercentage(final double releaseStatusPercentage) {
+    this.releaseStatusPercentage = releaseStatusPercentage;
   }
 }

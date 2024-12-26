@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomComponentSortableField;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomVersionsApplicationSortableField;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
 import com.sonatype.insight.brain.hds.HdsClient;
@@ -176,16 +177,25 @@ public class ApiSbomResource
       @Parameter(description = "The internal id of the application", required = true)
       @PathParam("applicationId") String applicationId,
 
-      @Parameter(description = "Sort results by import date. Allowed values [asc|desc]. default = asc")
+      @Deprecated
+      @Parameter(description = "Deprecated, use sortBy and asc instead."
+          + " Sort results by import date. Allowed values [asc|desc]. default = asc",
+          deprecated = true)
       @DefaultValue("asc") @QueryParam("sortByDate") String sortByDate,
 
       @Parameter(description = "Number of items to return by page. default = 10")
       @DefaultValue("10") @QueryParam("pageSize") int pageSize,
 
       @Parameter(description = "Current page number. default = 1")
-      @DefaultValue("1") @QueryParam("page") int page)
+      @DefaultValue("1") @QueryParam("page") int page,
+
+      @Parameter(description = "Criteria to sort the results. default = IMPORT_DATE, when used sortByDate is ignored")
+      @DefaultValue("import_date") @QueryParam("sortBy") SbomVersionsApplicationSortableField sortBy,
+
+      @Parameter(description = "Order mode ASC=true or DESC=false. default = true")
+      @DefaultValue("true") @QueryParam("asc") boolean asc)
   {
-    return apiSbomService.getSbomMetadataSummaryForApplication(applicationId, sortByDate, pageSize, page);
+    return apiSbomService.getSbomMetadataSummaryForApplication(applicationId, sortByDate, pageSize, page, sortBy, asc);
   }
 
   @Operation(summary = "Gets the components found in a specific sbom version",

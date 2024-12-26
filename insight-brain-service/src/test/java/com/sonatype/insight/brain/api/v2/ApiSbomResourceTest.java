@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequest
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomComponentSortableField;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomVersionsApplicationSortableField;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -238,10 +239,14 @@ public class ApiSbomResourceTest
     ThirdPartyFileCoordinate c1 = tempEntity.newThirdPartyFileCoordinate(file1, "s1", "f1", "n1", "v1");
     ThirdPartyFileCoordinate c2 = tempEntity.newThirdPartyFileCoordinate(file2, "s2", "f2", "n2", "v2");
 
-    tempEntity.newThirdPartyCoordinateSecurity(c1, "r1", sbom1.getId(), "d1", "l1", 3.5F, "sd1", "f1");
+    ThirdPartyCoordinateSecurity cs1 =
+        tempEntity.newThirdPartyCoordinateSecurity(c1, "r1", sbom1.getId(), "d1", "l1", 3.5F, "sd1", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(c1, "r2", sbom1.getId(), "d2", "l2", 7.5F, "sd2", "f2");
     tempEntity.newThirdPartyCoordinateSecurity(c2, "r3", sbom2.getId(), "d3", "l3", 1.5F, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(c2, "r4", sbom2.getId(), "d4", "l4", 0.5F, "sd4", "f4");
+
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(cs1, cs1.getRefId(),
+        "state", "justification", "response", "detail");
 
     HttpResponse response = restRequest().path(ApiSbomResource.SBOMS_APPLICATION_PATH)
         .parameter(app.getId()).get();
@@ -271,6 +276,39 @@ public class ApiSbomResourceTest
     assertThat(thirdPartySbomMetadataSummaryDTOListOrdered.get(0).getLow()).isEqualTo(2);
     assertThat(thirdPartySbomMetadataSummaryDTOListOrdered.get(1).getLow()).isEqualTo(1);
     assertThat(thirdPartySbomMetadataSummaryDTOListOrdered.get(1).getHigh()).isEqualTo(1);
+
+    response = restRequest().path(ApiSbomResource.SBOMS_APPLICATION_PATH)
+        .parameter(app.getId())
+        .query("sortBy", SbomVersionsApplicationSortableField.RELEASE_STATUS)
+        .get();
+    assertResponseStatus(200, response);
+    result = response.getBody(ThirdPartySbomMetadataSummaryListDTO.class);
+    assertThat(result.getTotalResultsCount()).isEqualTo(2);
+    assertThat(result.getResults().get(0).getSpecVersion()).isEqualTo(sbom1.getSpecVersion());
+    assertThat(result.getResults()).isSortedAccordingTo(
+        Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getReleaseStatusPercentage));
+
+    response = restRequest().path(ApiSbomResource.SBOMS_APPLICATION_PATH)
+        .parameter(app.getId())
+        .query("sortBy", SbomVersionsApplicationSortableField.RELEASE_STATUS)
+        .query("asc", false)
+        .get();
+    assertResponseStatus(200, response);
+    result = response.getBody(ThirdPartySbomMetadataSummaryListDTO.class);
+    assertThat(result.getTotalResultsCount()).isEqualTo(2);
+    assertThat(result.getResults().get(1).getSpecVersion()).isEqualTo(sbom2.getSpecVersion());
+    assertThat(result.getResults()).isSortedAccordingTo(
+        Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getReleaseStatusPercentage).reversed());
+    response = restRequest().path(ApiSbomResource.SBOMS_APPLICATION_PATH)
+        .parameter(app.getId())
+        .query("sortByDate", "desc")
+        .get();
+    assertResponseStatus(200, response);
+    assertThat(result.getTotalResultsCount()).isEqualTo(2);
+    assertThat(result.getResults().get(1).getSpecVersion()).isEqualTo(sbom2.getSpecVersion());
+    assertThat(result.getResults()).isSortedAccordingTo(
+        Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getImportDate).reversed());
+
   }
 
   @Test

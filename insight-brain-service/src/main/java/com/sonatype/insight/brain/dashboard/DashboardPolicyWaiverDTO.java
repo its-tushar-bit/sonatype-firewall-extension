@@ -13,6 +13,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.utils.CsvWritable;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -20,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import static java.util.Objects.nonNull;
 
 /**
  * @since 1.147
@@ -65,6 +68,8 @@ public class DashboardPolicyWaiverDTO
 
   public boolean isExpireWhenRemediationAvailable = false;
 
+  public PolicyWaiverReason policyWaiverReason;
+
   @JsonProperty(access = Access.READ_ONLY)
   public ComponentDisplayName getDisplayName() {
     return this.componentIdentifier == null
@@ -74,7 +79,8 @@ public class DashboardPolicyWaiverDTO
   static String getCsvHeader() {
     return "Waiver Id, Threat level, Created Date, Expiration Date, Policy Id, Policy Name, Policy Constraints, " +
         "Scope Type, Scope Id, Scope Name, Component Match Strategy, Component Hash, Component Name, " +
-        "Upgrade, Created by Id, Created by Name,Comment, Is Auto Waiver, Is Expire When Remediation Available Waiver";
+        "Upgrade, Created by Id, Created by Name,Comment, Is Auto Waiver, "   +
+        "Is Expire When Remediation Available Waiver, Waiver Reason Id, Waiver Reason Text";
   }
 
   public static String getComponentUpgradeAvailableValueCSVExport(Boolean isComponentUpgradeAvailable) {
@@ -94,6 +100,17 @@ public class DashboardPolicyWaiverDTO
     final String waivedComponentUpgradeAvailableValueCsv =
         getComponentUpgradeAvailableValueCSVExport(componentUpgradeAvailable);
 
+    final String policyWaiverReasonId;
+    final String policyWaiverReasonText;
+    if (nonNull(policyWaiverReason)) {
+      policyWaiverReasonId = StringUtils.defaultString(policyWaiverReason.getId());
+      policyWaiverReasonText = StringUtils.defaultString(policyWaiverReason.getReasonText());
+    }
+    else {
+      policyWaiverReasonId = "";
+      policyWaiverReasonText = "";
+    }
+
     final String commentsCsv =
         CsvWritable.quoteFieldWhenSpecialCsvCharactersPresent(
             CsvWritable.escapeDoubleQuotes(StringUtils.defaultString(comment)));
@@ -103,7 +120,7 @@ public class DashboardPolicyWaiverDTO
     return CsvWritable.joiner.join(id, threatLevel, createTimeCsv, expiryTimeCsv, policyIdCsv, policyNameCsv,
         constraintFactsJsonCsv, ownerType, ownerId, ownerName, componentMatchStrategy, componentHashCsv, displayNameCsv,
         waivedComponentUpgradeAvailableValueCsv, creatorIdCsv, creatorNameCsv, commentsCsv, isAutoWaiver,
-        isExpireWhenRemediationAvailable);
+        isExpireWhenRemediationAvailable, policyWaiverReasonId, policyWaiverReasonText);
   }
 
   private String getConstraintFactsJsonCsv() {

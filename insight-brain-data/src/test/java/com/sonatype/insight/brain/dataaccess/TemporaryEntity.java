@@ -1955,6 +1955,22 @@ public class TemporaryEntity
     return waiver;
   }
 
+  public PolicyWaiver newWaiverWithExistingReason(
+      String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts,
+      String comment,
+      String reasonId)
+  {
+    PolicyWaiverReason policyWaiverReason = waiverReasonDAO.getById(reasonId);
+    PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, constraintFacts, comment);
+    waiver.setWaiverReasonId(policyWaiverReason.getId());
+    fillAdditionalFixedData(hash, waiver);
+    waiverDAO.insert(waiver);
+    return waiver;
+  }
+
   public PolicyWaiverReason newWaiverReason(String type, String reasonText) {
     PolicyWaiverReason policyWaiverReason = new PolicyWaiverReason(type, reasonText);
     waiverReasonDAO.insert(policyWaiverReason);

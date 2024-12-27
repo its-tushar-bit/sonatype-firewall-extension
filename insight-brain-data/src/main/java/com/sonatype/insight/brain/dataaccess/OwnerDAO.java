@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -12,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -33,15 +35,18 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerImpl;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
@@ -65,11 +70,13 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.apache.commons.collections4.CollectionUtils;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 @Named
 @Singleton
 public class OwnerDAO
+    extends AbstractOperationalSqlDAO<Owner>
 {
   private final ApplicationDAO appDAO;
 
@@ -113,6 +120,8 @@ public class OwnerDAO
 
   @Inject
   public OwnerDAO(
+      final OperationalDataStore operationalDataStore,
+      final SearchIndexManager searchIndexManager,
       final ApplicationDAO appDAO,
       final OrganizationDAO orgDAO,
       final RepositoryDAO repoDAO,
@@ -134,6 +143,7 @@ public class OwnerDAO
       final Provider<VulnerabilityCustomCvssSeverityDAO> vulnerabilityCustomCvssSeverityDAOProvider,
       final Provider<CallFlowAnalysisConfigDAO> callFlowAnalysisConfigDAOProvider)
   {
+    super(operationalDataStore, searchIndexManager);
     this.appDAO = appDAO;
     this.orgDAO = orgDAO;
     this.repoDAO = repoDAO;
@@ -156,6 +166,7 @@ public class OwnerDAO
     this.callFlowAnalysisConfigDAOProvider = callFlowAnalysisConfigDAOProvider;
   }
 
+  @Override
   public Owner getById(TransactionContext tx, String id) {
     if (RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(id)) {
       return RepositoryContainer.SINGLETON;
@@ -180,12 +191,14 @@ public class OwnerDAO
     return repoManagerDAO.getById(tx, id);
   }
 
+  @Override
   public Owner getById(String id) {
     try (TransactionContext tx = appDAO.createTransactionContext()) {
       return getById(tx, id);
     }
   }
 
+  @Override
   public Owner getByIdNotNull(String id) {
     Owner owner = getById(id);
     if (owner == null) {
@@ -463,7 +476,7 @@ public class OwnerDAO
 
     // Cascade to policy monitoring
     List<PolicyMonitoring> policyMonitorings = policyMonitoringDAO.getByOwnerId(tx, owner.getId());
-    if (CollectionUtils.isNotEmpty(policyMonitorings)) {
+    if (isNotEmpty(policyMonitorings)) {
       for (PolicyMonitoring policyMonitoring : policyMonitorings) {
         policyMonitoringDAO.delete(tx, policyMonitoring);
       }
@@ -550,6 +563,228 @@ public class OwnerDAO
   public List<String> getOwnerIds(String ownerId) {
     Owner owner = getById(ownerId);
     return getOwnerIds(owner);
+  }
+
+  public List<Owner> getAllAppsAndOrgs() {
+    final String sQuery = """
+        SELECT
+          application.public_id as public_id,
+          application.name as name,
+          application.organization_id as parent_owner_id,
+          application.application_id as id,
+          false as have_children,
+          'APPLICATION' as type
+          FROM %s.application application
+        UNION
+        SELECT
+            org.organization_id as public_id,
+            org.name as name,
+            org.parent_organization_id as parent_owner_id,
+            org.organization_id as id,
+            true as have_children,
+            'ORGANIZATION' as type
+          FROM %s.organization org;
+        """.formatted(getDatabaseSchema(), getDatabaseSchema());
+
+    try (TransactionContext tx = createTransactionContext()) {
+      final javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      query.setMaxResults(MAX_ALLOWED_DB_RESULTS);
+
+      try (Stream<Object[]> resultStream = query.getResultStream()) {
+        return resultStream.map(values -> {
+          return new OwnerImpl(
+              (String) values[0], // public id
+              (String) values[1], // name
+              (String) values[2], // parent owner id
+              (Boolean) values[4], // can have children
+              OwnerType.fromString((String) values[5]), // type
+              (String) values[3]); // id
+        }).collect(Collectors.toList());
+      }
+    }
+  }
+
+  public List<Owner> getOwnersByAppTagsAndOrgs(
+      final Set<String> applicationIds,
+      final Set<String> tagIds,
+      final Set<String> organizationsIds
+  )
+  {
+    if (isEmpty(applicationIds) && isEmpty(tagIds) && isEmpty(organizationsIds)) {
+      return Collections.emptyList();
+    }
+
+    final StringJoiner queryUnionizer = new StringJoiner("\nUNION\n");
+
+    if (isNotEmpty(applicationIds) || isNotEmpty(tagIds)) {
+      queryUnionizer.add(getApplicationsForOwnersByAppAndTagIdsQuery(applicationIds, tagIds));
+    }
+
+    if (isNotEmpty(organizationsIds)) {
+      queryUnionizer.add(getOrganizationsQuery(applicationIds, tagIds, organizationsIds));
+    }
+
+    final String sQuery = queryUnionizer.toString();
+
+    try (TransactionContext tx = createTransactionContext()) {
+      final javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      query.setMaxResults(MAX_ALLOWED_DB_RESULTS);
+
+      return performQueryForOwnersByAppAndTagIds(query, applicationIds, tagIds, organizationsIds);
+    }
+  }
+
+  private String getApplicationsForOwnersByAppAndTagIdsQuery(
+      final Set<String> applicationIds,
+      final Set<String> tagIds
+  )
+  {
+    final String getApplicationsTemplate = """
+          SELECT
+            DISTINCT application.public_id,
+            application.name,
+            application.organization_id as parent_owner_id,
+            application.application_id as id,
+            false as have_children,
+            ''APPLICATION'' as type
+          FROM {0}.application application
+          LEFT OUTER JOIN {0}.application_tag application_tag
+            ON application_tag.application_id = application.application_id
+          {1}
+          """;
+
+    return MessageFormat.format(
+        getApplicationsTemplate,
+        getDatabaseSchema(),
+        getWhereClauseForOwnersByAppAndTagIds(applicationIds, tagIds)
+    );
+  }
+
+  private String getOrganizationsQuery(
+      final Set<String> applicationIds,
+      final Set<String> tagIds,
+      final Set<String> organizationsIds
+  )
+  {
+    final int startForOrgIds = getOrgIdsOffset(applicationIds, tagIds);
+
+    final String sQuery = """
+              SELECT org.organization_id as public_id,
+              org.name as name,
+              org.parent_organization_id as parent_owner_id,
+              org.organization_id as id,
+              true as have_children,
+              'ORGANIZATION' as type
+            FROM %s.organization org
+        """.formatted(getDatabaseSchema());
+
+    if (isNotEmpty(organizationsIds)) {
+      return sQuery +
+          " WHERE organization_id IN %s".formatted(buildPositionalParameters(organizationsIds, startForOrgIds));
+    }
+    else {
+      return sQuery;
+    }
+  }
+
+  private String getWhereClauseForOwnersByAppAndTagIds(
+      final Set<String> applicationIds,
+      final Set<String> tagIds
+  )
+  {
+    final boolean hasTags = isNotEmpty(tagIds);
+    final boolean hasApplicationIds = isNotEmpty(applicationIds);
+    final int startForTagIds = getTagIdOffset(applicationIds);
+
+    if (!hasTags && !hasApplicationIds) {
+      return "";
+    }
+
+    if (hasApplicationIds && hasTags) {
+      // application ids and tags
+      return """
+          WHERE application.application_id IN %s AND (
+            %s
+          )
+          """.formatted(
+              buildPositionalParameters(applicationIds, 1),
+              getTagIdConditionalExpressionForOwnersByAppAndTagIds(tagIds, startForTagIds));
+    }
+    else if (!hasApplicationIds) {
+      // only tags
+      return "WHERE " + getTagIdConditionalExpressionForOwnersByAppAndTagIds(tagIds, startForTagIds);
+    }
+    else {
+      // only application id
+      return "WHERE application.application_id IN " +
+          buildPositionalParameters(applicationIds, 1);
+    }
+  }
+
+  private String getTagIdConditionalExpressionForOwnersByAppAndTagIds(
+      final Set<String> tagIds,
+      final int startForTagIds
+  )
+  {
+    final boolean includeAppsWithNoTags = tagIds.contains(null);
+
+    // includes all apps that have one of the supplied tags associated or that have no tags associated
+    if (includeAppsWithNoTags) {
+      return "application_tag.tag_id IN " + buildPositionalParameters(tagIds, startForTagIds) +
+          " OR application_tag.tag_id IS NULL";
+    }
+    else {
+      return "application_tag.tag_id IN " + buildPositionalParameters(tagIds, startForTagIds);
+    }
+  }
+
+  private List<Owner> performQueryForOwnersByAppAndTagIds(
+      final javax.persistence.Query query,
+      final Set<String> applicationIds,
+      final Set<String> tagIds,
+      final Set<String> organizationIds
+  )
+  {
+    if (isNotEmpty(applicationIds)) {
+      addPositionalParameters(query, applicationIds, 1);
+    }
+
+    if (isNotEmpty(tagIds)) {
+      final int startForTagIds = isNotEmpty(applicationIds) ? applicationIds.size() + 1 : 1;
+      addPositionalParameters(query, tagIds, startForTagIds);
+    }
+
+    if (isNotEmpty(organizationIds)) {
+      addPositionalParameters(query, organizationIds, getOrgIdsOffset(applicationIds, tagIds));
+    }
+
+    try (Stream<Object[]> resultStream = query.getResultStream()) {
+      return resultStream.map(values -> {
+        return new OwnerImpl(
+          (String) values[0], // public id
+          (String) values[1], // name
+          (String) values[2], // parent owner id
+          (Boolean) values[4], // can have children
+          OwnerType.fromString((String) values[5]), // type
+          (String) values[3]); // id
+      }).collect(Collectors.toList());
+    }
+  }
+
+  private int getTagIdOffset(Set<String> applicationIds) {
+    return isNotEmpty(applicationIds) ? applicationIds.size() + 1 : 1;
+  }
+
+  private int getOrgIdsOffset(Set<String> applicationIds, Set<String> tagIds) {
+    if (isEmpty(applicationIds) && isEmpty(tagIds)) {
+      return 1;
+    }
+    else if (isEmpty(tagIds)) {
+      return getTagIdOffset(applicationIds);
+    }
+    else {
+      return getTagIdOffset(applicationIds) + tagIds.size() + 1;
+    }
   }
 
   /**

@@ -18,15 +18,16 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.dashboard.ExpirationDate.NEVER;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class H2PolicyWaiverServiceAuthzTest
+public class PolicyWaiverServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   private RisksFilterDTOBuilder risksFilterDTOBuilder;
 
   @Inject
-  private H2PolicyWaiverService dashboardPolicyWaiverService;
+  private PolicyWaiverService dashboardPolicyWaiverService;
 
   private Organization parentOrg;
 
@@ -41,7 +42,7 @@ public class H2PolicyWaiverServiceAuthzTest
     tempEntity.newWaiver(policy.getId(), parentOrg.getId());
     tempEntity.newWaiver(policy.getId(), RepositoryContainer.REPOSITORY_CONTAINER_ID);
     tempEntity.newWaiver(policy.getId(), repository.getId());
-    tempEntity.newWaiver(policy.getId(), Organization.ROOT_ORGANIZATION_ID);
+    tempEntity.newWaiver(policy.getId(), ROOT_ORGANIZATION_ID);
 
     risksFilterDTOBuilder = new RisksFilterDTOBuilder().withApplicationIds(Collections.emptySet())
         .withOrganizationIds(Collections.emptySet()).withPageSize(10);
@@ -102,7 +103,7 @@ public class H2PolicyWaiverServiceAuthzTest
 
   @Test
   public void getDashboardPolicyWaivers_ImplicitAllWaiversFilter_Authorized() {
-    grantReadPermission(Organization.ROOT_ORGANIZATION_ID);
+    grantReadPermission(ROOT_ORGANIZATION_ID);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
     assertThat(dashboardPolicyWaivers.numResults)
@@ -152,6 +153,7 @@ public class H2PolicyWaiverServiceAuthzTest
   @Test
   public void getDashboardPolicyWaivers_ExplicitParentOrganizationFilter_Authorized() {
     grantReadPermission(parentOrg.getId());
+
     risksFilterDTOBuilder
         .withOrganizationIds(Collections.singleton(org.getId()));
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =

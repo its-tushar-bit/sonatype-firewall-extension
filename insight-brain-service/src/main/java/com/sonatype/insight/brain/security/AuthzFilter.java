@@ -12,6 +12,7 @@ import java.lang.annotation.Target;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -47,6 +48,11 @@ public @interface AuthzFilter
      * An existing {@link RepositoryManager} entity.
      */
     REPOSITORY_MANAGER,
+
+    /**
+     * An existing {@link Owner} entity.
+     */
+    APPLICATION_OR_ORGANIZATION,
   }
 
   /**

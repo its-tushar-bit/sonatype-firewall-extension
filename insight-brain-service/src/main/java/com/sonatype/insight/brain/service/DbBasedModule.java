@@ -13,8 +13,6 @@ import com.sonatype.insight.brain.dashboard.DashboardViolationRiskService;
 import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.H2ComponentRiskService;
 import com.sonatype.insight.brain.dashboard.H2DashboardViolationRiskService;
-import com.sonatype.insight.brain.dashboard.H2PolicyWaiverService;
-import com.sonatype.insight.brain.dashboard.PolicyWaiverService;
 import com.sonatype.insight.brain.dashboard.PostgresApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.PostgresComponentRiskService;
 import com.sonatype.insight.brain.dashboard.PostgresDashboardViolationRiskService;
@@ -44,15 +42,11 @@ public class DbBasedModule
       bind(DashboardViolationRiskService.class).to(H2DashboardViolationRiskService.class);
       bind(DashboardComponentRiskService.class).to(H2ComponentRiskService.class);
       bind(ApplicationRiskService.class).to(H2ApplicationRiskService.class);
-      bind(PolicyWaiverService.class).to(H2PolicyWaiverService.class);
     }
     else {
+      bind(DashboardViolationRiskService.class).to(PostgresDashboardViolationRiskService.class);
       bind(DashboardComponentRiskService.class).to(PostgresComponentRiskService.class);
       bind(ApplicationRiskService.class).to(PostgresApplicationRiskService.class);
-      bind(DashboardViolationRiskService.class).to(PostgresDashboardViolationRiskService.class);
-      bind(PolicyWaiverService.class).to(H2PolicyWaiverService.class);
-      // TODO - update as tickets of CLM-32515 are completed
-      //bind(PolicyWaiverService.class).to(PostgresPolicyWaiverService.class);
     }
   }
 }

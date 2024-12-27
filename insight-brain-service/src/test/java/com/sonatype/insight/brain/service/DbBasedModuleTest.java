@@ -11,7 +11,6 @@ import com.sonatype.insight.brain.dashboard.DashboardViolationRiskService;
 import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.H2ComponentRiskService;
 import com.sonatype.insight.brain.dashboard.H2DashboardViolationRiskService;
-import com.sonatype.insight.brain.dashboard.H2PolicyWaiverService;
 import com.sonatype.insight.brain.dashboard.PolicyWaiverService;
 import com.sonatype.insight.brain.dashboard.PostgresApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.PostgresComponentRiskService;
@@ -46,7 +45,6 @@ public class DbBasedModuleTest
     assertThat(dashboardViolationRiskService).isInstanceOf(H2DashboardViolationRiskService.class);
     assertThat(dashboardComponentRiskService).isInstanceOf(H2ComponentRiskService.class);
     assertThat(applicationRiskService).isInstanceOf(H2ApplicationRiskService.class);
-    assertThat(policyWaiverService).isInstanceOf(H2PolicyWaiverService.class);
   }
 
   @Test
@@ -55,7 +53,6 @@ public class DbBasedModuleTest
     assertThat(dashboardViolationRiskService).isInstanceOf(H2DashboardViolationRiskService.class);
     assertThat(dashboardComponentRiskService).isInstanceOf(H2ComponentRiskService.class);
     assertThat(applicationRiskService).isInstanceOf(H2ApplicationRiskService.class);
-    assertThat(policyWaiverService).isInstanceOf(H2PolicyWaiverService.class);
   }
 
   @Test
@@ -64,7 +61,5 @@ public class DbBasedModuleTest
     assertThat(dashboardViolationRiskService).isInstanceOf(PostgresDashboardViolationRiskService.class);
     assertThat(dashboardComponentRiskService).isInstanceOf(PostgresComponentRiskService.class);
     assertThat(applicationRiskService).isInstanceOf(PostgresApplicationRiskService.class);
-    // TODO - update as Postgres implementations are merged
-    assertThat(policyWaiverService).isInstanceOf(H2PolicyWaiverService.class);
   }
 }

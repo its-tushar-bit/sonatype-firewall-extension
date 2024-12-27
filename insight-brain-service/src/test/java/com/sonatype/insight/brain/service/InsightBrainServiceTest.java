@@ -32,8 +32,6 @@ import com.sonatype.insight.brain.dashboard.DashboardViolationRiskService;
 import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.H2ComponentRiskService;
 import com.sonatype.insight.brain.dashboard.H2DashboardViolationRiskService;
-import com.sonatype.insight.brain.dashboard.H2PolicyWaiverService;
-import com.sonatype.insight.brain.dashboard.PolicyWaiverService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.hds.TelemetryId;
@@ -526,6 +524,5 @@ public class InsightBrainServiceTest
     assertThat(getCLMServer().getInstance(DashboardComponentRiskService.class))
             .isInstanceOf(H2ComponentRiskService.class);
     assertThat(getCLMServer().getInstance(ApplicationRiskService.class)).isInstanceOf(H2ApplicationRiskService.class);
-    assertThat(getCLMServer().getInstance(PolicyWaiverService.class)).isInstanceOf(H2PolicyWaiverService.class);
   }
 }

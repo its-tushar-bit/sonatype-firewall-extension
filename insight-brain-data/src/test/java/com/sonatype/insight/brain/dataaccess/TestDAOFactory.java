@@ -581,7 +581,8 @@ public class TestDAOFactory
     PolicyMonitoringDAO policyMonitoringDAO = createPolicyMonitoringDAO();
     SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO = createSecurityVulnerabilityOverrideDAO();
 
-    return new OwnerDAO(appDAO, orgDAO, repoDAO, repoManagerDAO, policyWaiverDAOProvider, licenseOverrideDAOProvider,
+    return new OwnerDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager, appDAO, orgDAO, repoDAO,
+        repoManagerDAO, policyWaiverDAOProvider, licenseOverrideDAOProvider,
         securityVulnerabilityOverrideDAO, policyDAOProvider, dataRetentionPolicyDAO, policyMonitoringDAO,
         componentCopyrightDAOProvider, componentLegalFileDAOProvider, componentObligationDAOProvider,
         componentObligationAttributionDAOProvider, vulnerabilityGroupDAOProvider,

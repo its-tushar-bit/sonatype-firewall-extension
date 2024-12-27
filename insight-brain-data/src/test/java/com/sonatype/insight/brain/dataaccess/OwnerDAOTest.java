@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
@@ -28,6 +29,7 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerab
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
 
+import com.google.common.collect.Sets;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -415,5 +417,313 @@ public class OwnerDAOTest
 
     assertThat(ownerDAO.getDescendantOrSelfApplicationIds(rootOrganization)).containsExactlyInAnyOrder(
         application1.getId(), application2.getId(), application3.getId(), application4.getId(), application.getId());
+  }
+
+  @Test
+  public void testGetOwnersByAppTagsAndOrgs_shouldReturnEmptyListGivenAllIdSetsEmpty() {
+    // create some apps and orgs, that won't be returned
+    final var rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    final var organization1 = tempEntity.newOrganization("org-1", rootOrganization);
+    final var organization2 = tempEntity.newOrganization("org-2", organization1);
+    tempEntity.newApplication(organization1.getId());
+    tempEntity.newApplication(organization2.getId());
+    tempEntity.newApplication(rootOrganization.getId());
+
+    var results = ownerDAO.getOwnersByAppTagsAndOrgs(null, null, null);
+    assertThat(results).isEmpty();
+
+    results = ownerDAO.getOwnersByAppTagsAndOrgs(Sets.newHashSet(), Sets.newHashSet(), Sets.newHashSet());
+    assertThat(results).isEmpty();
+  }
+
+  @Test
+  public void testGetOwnersByAppTagsAndOrgs_shouldReturnOnlyAppsAndTheirParentsGivenOnlyAppIdsSupplied() {
+    final var rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    final var tree1Organization1 = tempEntity.newOrganization("tree-1-org-1", rootOrganization);
+    final var tree1Organization2 = tempEntity.newOrganization("tree-1-org-2", tree1Organization1);
+
+    // two apps along a tree, we should get these apps and their parents
+    final var app1 = tempEntity.newApplication(tree1Organization2.getId());
+    final var app2 = tempEntity.newApplication(rootOrganization.getId());
+
+    // some apps in tree 1, that are specified by our query and should not be returned
+    tempEntity.newApplication(tree1Organization1.getId());
+    tempEntity.newApplication(rootOrganization.getId());
+
+    final var results = ownerDAO.getOwnersByAppTagsAndOrgs(
+        Sets.newHashSet(app1.getId(), app2.getId()),
+        null,
+        Sets.newHashSet());
+
+    assertOwnersEqualInAnyOrder(
+        results,
+        app1,
+        app2);
+  }
+
+  @Test
+  public void testGetOwnersByAppTagsAndOrgs_shouldReturnOnlyAppsWithSpecifiedTagsAndTheirParentsWhenProvided() {
+    final var rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    final var tree1Organization1 = tempEntity.newOrganization("tree1-org1", rootOrganization);
+    final var tree1Organization2 = tempEntity.newOrganization("tree1-org2", tree1Organization1);
+
+    final var app1 = tempEntity.newApplication(tree1Organization1.getId());
+    final var app2 = tempEntity.newApplication(tree1Organization2.getId());
+    final var app3 = tempEntity.newApplication(rootOrganization.getId());
+
+    // an app with a tag not in our list, which will not be in our results
+    final var app4 = tempEntity.newApplication(rootOrganization.getId());
+
+    // an app with no tag will not be in the results
+    tempEntity.newApplication(rootOrganization.getId());
+
+    final var tag1 = tempEntity.newTag(rootOrganization.getId());
+    final var tag2 = tempEntity.newTag(rootOrganization.getId());
+    final var tag3 = tempEntity.newTag(rootOrganization.getId());
+
+    tempEntity.newApplicationTag(app1.getId(), tag1.getId());
+    tempEntity.newApplicationTag(app2.getId(), tag2.getId());
+    tempEntity.newApplicationTag(app3.getId(), tag2.getId());
+
+    // we will not ask for apps matching tag3 in our query
+    tempEntity.newApplicationTag(app4.getId(), tag3.getId());
+
+    final var results = ownerDAO.getOwnersByAppTagsAndOrgs(
+        null,
+        Sets.newHashSet(tag1.getId(), tag2.getId()),
+        Sets.newHashSet());
+
+    assertOwnersEqualInAnyOrder(
+        results,
+        app1,
+        app2,
+        app3);
+  }
+
+  @Test
+  public void testGetOwnersByAppTagsAndOrgs_shouldReturnOnlyAppsWithoutTagsWhenNullIsInTagList() {
+    final var rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    final var tree1Organization1 = tempEntity.newOrganization("tree1-org1", rootOrganization);
+    final var tree1Organization2 = tempEntity.newOrganization("tree1-org2", tree1Organization1);
+
+    final var app1 = tempEntity.newApplication(tree1Organization1.getId());
+    final var app2 = tempEntity.newApplication(tree1Organization2.getId());
+    final var app3 = tempEntity.newApplication(rootOrganization.getId());
+    final var app4 = tempEntity.newApplication(rootOrganization.getId());
+
+    final var app5 = tempEntity.newApplication(rootOrganization.getId()); // should be in result set because no tag
+
+    final var tag1 = tempEntity.newTag(rootOrganization.getId());
+    final var tag2 = tempEntity.newTag(rootOrganization.getId());
+
+    tempEntity.newApplicationTag(app1.getId(), tag1.getId()); // should be in result set because matching tag
+
+    tempEntity.newApplicationTag(app2.getId(), tag2.getId());
+    tempEntity.newApplicationTag(app3.getId(), tag2.getId());
+    tempEntity.newApplicationTag(app4.getId(), tag2.getId());
+
+    final var results = ownerDAO.getOwnersByAppTagsAndOrgs(
+        null,
+        Sets.newHashSet(tag1.getId(), null),
+        Sets.newHashSet());
+
+    // includes app1 because it has tag1 in addition to any apps with no tags
+    // tree1Organization2 won't be included because our matching apps are linked lower in the tree than this
+    assertOwnersEqualInAnyOrder(
+        results,
+        app1,
+        app5,
+        application // this is created by AbstractDbDAOTest and included because not tagged
+    );
+  }
+
+  @Test
+  public void testGetOwnersByAppTagsAndOrgs_shouldReturnOnlyIntersectionOfAppIdsAndTagsAndTheirParentsWhenBothGiven() {
+    final var rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    final var tree1Organization1 = tempEntity.newOrganization("tree1-org1", rootOrganization);
+    final var tree1Organization2 = tempEntity.newOrganization("tree1-org2", tree1Organization1);
+
+    final var app1 = tempEntity.newApplication(tree1Organization1.getId());
+    final var app2 = tempEntity.newApplication(tree1Organization2.getId());
+    final var app3 = tempEntity.newApplication(rootOrganization.getId());
+    final var app4 = tempEntity.newApplication(rootOrganization.getId());
+    final var app5 = tempEntity.newApplication(rootOrganization.getId());
+    final var app6 = tempEntity.newApplication(rootOrganization.getId());
+
+    final var tag1 = tempEntity.newTag(rootOrganization.getId());
+    final var tag2 = tempEntity.newTag(rootOrganization.getId());
+    final var tag3 = tempEntity.newTag(rootOrganization.getId());
+    tempEntity.newApplicationTag(app1.getId(), tag1.getId());
+    tempEntity.newApplicationTag(app2.getId(), tag2.getId());
+    tempEntity.newApplicationTag(app3.getId(), tag2.getId());
+    tempEntity.newApplicationTag(app4.getId(), tag2.getId());
+    tempEntity.newApplicationTag(app6.getId(), tag3.getId());
+
+    // a second branch off root that will not be in our results as no apps on it will match
+    final var tree2Organization1 = tempEntity.newOrganization("tree2-org1", rootOrganization);
+    final var tree2Organization2 = tempEntity.newOrganization("tree2-org2", tree2Organization1);
+    // we'll ask for this appId, but it's not tagged so will not intersect with our tag list
+    final var app7 = tempEntity.newApplication(tree2Organization2.getId());
+
+    var results = ownerDAO.getOwnersByAppTagsAndOrgs(
+        Sets.newHashSet(app2.getId(), app3.getId(), app4.getId(), app5.getId(), app6.getId(), app7.getId()),
+        Sets.newHashSet(tag2.getId(), tag3.getId()),
+        Sets.newHashSet());
+
+    assertThat(results.stream().map(Owner::getId))
+        .containsExactlyInAnyOrder(
+            app2.getId(),
+            app3.getId(),
+            app4.getId(),
+            app6.getId());
+
+    // also includes app 5 and app7 with its tree if we add a null to tags, so that it includes non tagged
+    results = ownerDAO.getOwnersByAppTagsAndOrgs(
+        Sets.newHashSet(app2.getId(), app3.getId(), app4.getId(), app5.getId(), app6.getId(), app7.getId()),
+        Sets.newHashSet(tag2.getId(), tag3.getId(), null),
+        Sets.newHashSet());
+
+    assertOwnersEqualInAnyOrder(
+        results,
+            app2,
+            app3,
+            app4,
+            app5,
+            app6,
+            app7);
+  }
+
+  @Test
+  public void testGetOwnersByAppTagsAndOrgs_shouldReturnBothMatchingOrgsAndApps() {
+    final var rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    final var tree1Organization1 = tempEntity.newOrganization("tree1-org1", rootOrganization);
+    final var tree1Organization2 = tempEntity.newOrganization("tree1-org2", tree1Organization1);
+
+    final var app1 = tempEntity.newApplication(rootOrganization.getId());
+    final var app2 = tempEntity.newApplication(tree1Organization2.getId());
+    tempEntity.newApplication(tree1Organization2.getId());
+
+    var results = ownerDAO.getOwnersByAppTagsAndOrgs(
+        Sets.newHashSet(app1.getId(), app2.getId()),
+        Sets.newHashSet(),
+        Sets.newHashSet(tree1Organization1.getId(), rootOrganization.getId()));
+
+    assertOwnersEqualInAnyOrder(
+        results,
+        app1,
+        app2,
+        tree1Organization1,
+        rootOrganization);
+  }
+
+  @Test
+  public void testGetOwnersByAppTagsAndOrgs_shouldReturnMatchingOrgsWhenOnlyOrgsArePassed() {
+    final var rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    final var tree1Organization1 = tempEntity.newOrganization("tree1-org1", rootOrganization);
+    final var tree1Organization2 = tempEntity.newOrganization("tree1-org2", tree1Organization1);
+
+    tempEntity.newApplication(rootOrganization.getId());
+    tempEntity.newApplication(tree1Organization2.getId());
+    tempEntity.newApplication(tree1Organization2.getId());
+
+    var results = ownerDAO.getOwnersByAppTagsAndOrgs(
+        Sets.newHashSet(),
+        Sets.newHashSet(),
+        Sets.newHashSet(tree1Organization1.getId(), rootOrganization.getId()));
+
+    assertOwnersEqualInAnyOrder(
+        results,
+        tree1Organization1,
+        rootOrganization);
+  }
+
+  @Test
+  public void testGetOwnersByAppTagsAndOrgs_shouldReturnMatchingAppsMatchingTagsAndIdPlusOrgsWhenAllProvided() {
+    final var rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    final var tree1Organization1 = tempEntity.newOrganization("tree1-org1", rootOrganization);
+    final var tree1Organization2 = tempEntity.newOrganization("tree1-org2", tree1Organization1);
+
+    final var tag1 = tempEntity.newTag(rootOrganization.getId(), "tag1");
+    final var tag2 = tempEntity.newTag(rootOrganization.getId(), "tag2");
+
+    // specified and tag matches will be returned
+    final var app1 = tempEntity.newApplication(tree1Organization2.getId());
+    tempEntity.newApplicationTag(app1.getId(), tag1.getId());
+
+    // specified in ids but tag does not match, won't be returned
+    final var app2 = tempEntity.newApplication(tree1Organization2.getId());
+    tempEntity.newApplicationTag(app2.getId(), tag2.getId());
+
+    // specified and un-tagged, will be returned
+    final var app3 = tempEntity.newApplication(tree1Organization2.getId());
+
+    // matching tag but id not specified, won't be returned
+    final var app4 = tempEntity.newApplication(tree1Organization2.getId());
+    tempEntity.newApplicationTag(app4.getId(), tag1.getId());
+
+    // un-tagged, but not specified in app ids, will not be returned
+    tempEntity.newApplication(tree1Organization2.getId());
+
+    var results = ownerDAO.getOwnersByAppTagsAndOrgs(
+        Sets.newHashSet(app1.getId(), app2.getId(), app3.getId()),
+        Sets.newHashSet(tag1.getId(), null),
+        Sets.newHashSet(tree1Organization1.getId(), rootOrganization.getId()));
+
+    assertOwnersEqualInAnyOrder(
+        results,
+        app1,
+        app3,
+        tree1Organization1,
+        rootOrganization);
+  }
+
+  @Test
+  public void testGetAll_shouldReturnAllAppsAndOrgsAppsAndOrganizationsAsOwners() {
+    final var rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    final var tree1Organization1 = tempEntity.newOrganization("tree1-org1", rootOrganization);
+    final var tree1Organization2 = tempEntity.newOrganization("tree1-org2", tree1Organization1);
+
+    final var tree2Organization1 = tempEntity.newOrganization("tree2-org1", rootOrganization);
+    final var tree2Organization2 = tempEntity.newOrganization("tree2-org2", tree1Organization1);
+
+    final var tree3Organization1 = tempEntity.newOrganization("tree3-org1", rootOrganization);
+
+    final var app1 = tempEntity.newApplication(rootOrganization.getId());
+    final var app2 = tempEntity.newApplication(tree2Organization2.getId());
+    final var app3 = tempEntity.newApplication(tree1Organization1.getId());
+
+    final var results = ownerDAO.getAllAppsAndOrgs();
+
+    assertOwnersEqualInAnyOrder(results,
+        rootOrganization,
+        tree1Organization1,
+        tree1Organization2,
+        tree2Organization1,
+        tree2Organization2,
+        tree3Organization1,
+        app1,
+        app2,
+        app3,
+        application,
+        organization);
+  }
+
+  private void assertOwnersEqualInAnyOrder(final List<Owner> actual, final Owner... expected) {
+    assertThat(actual)
+        .usingElementComparator((a, b) -> {
+          if (
+              Objects.equals(a.getId(), b.getId()) &&
+              Objects.equals(a.getName(), b.getName()) &&
+              Objects.equals(a.getParentOwnerId(), b.getParentOwnerId()) &&
+              Objects.equals(a.getType(), b.getType()) &&
+              Objects.equals(a.getPublicId(), b.getPublicId()) &&
+              a.canHaveChildren() == b.canHaveChildren()
+          ) {
+            return 0;
+          }
+
+          return  -1;
+        })
+        .containsExactlyInAnyOrder(expected);
   }
 }

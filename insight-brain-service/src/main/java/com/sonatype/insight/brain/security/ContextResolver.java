@@ -150,6 +150,13 @@ class ContextResolver
     }
   };
 
+  final ContextIdResolver<Owner> resolveForApplicationOrOrganization = new ContextIdResolver<Owner>() {
+    @Override
+    public Iterable<String> resolveContextIds(final Owner owner) {
+      return resolveContextIdsForOwner(owner);
+    }
+  };
+
   private final ContextIdResolver<String> resolverForOrganizationId = new ContextIdResolver<>()
   {
     @Override

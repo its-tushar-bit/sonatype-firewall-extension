@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -708,8 +709,10 @@ public class DashboardResourceTest
         tempEntity.newWaiver("hash", policy.getId(), app.getId(), Collections.singletonList(sourceConstraintFact),
             PackageUrlIdentifier.toPackageUrl(identifier), ComponentMatcherStrategyForWaiver.EXACT_COMPONENT,
             "comment");
+    PolicyWaiverReason waiverReason = tempEntity.newWaiverReason("system", "Something");
     PolicyWaiver secondPolicyWaiver =
-        tempEntity.newWaiver("hash2", policy.getId(), org.getId(), "waiver at org level");
+        tempEntity.newWaiverWithExistingReason("hash2", policy.getId(), org.getId(), null, "waiver at org level",
+                waiverReason.getId());
 
     RisksFilterDTO filter = new RisksFilterDTO();
     HttpResponse response = restRequest().path(GET_POLICY_WAIVERS_EXPORT_PATH).part("filter", filter).post();
@@ -720,16 +723,16 @@ public class DashboardResourceTest
         ComponentDisplayNameUtil.fromIdentifier(policyWaiver.getComponentIdentifier());
     String[] lines = response.getBodyText().split("\r\n");
     String expectedFirstLine =
-        format("%s,5,%s,%s,%s,%s,%s,application,%s,%s,EXACT_COMPONENT,hash,%s,%s,%s,%s,comment,%s,%s",
+        format("%s,5,%s,%s,%s,%s,%s,application,%s,%s,EXACT_COMPONENT,hash,%s,%s,%s,%s,comment,%s,%s,%s,%s",
             policyWaiver.getId(), csvTimestampFormatter.format(policyWaiver.getCreateTime()),/*no expiry*/"",
             policy.getId(), policy.getName(), expectedConstraints, app.getId(), app.getName(), expectedComponentName,
-            "", policyWaiver.getCreatorId(), policyWaiver.getCreatorName(), false, false);
+            "", policyWaiver.getCreatorId(), policyWaiver.getCreatorName(), false, false, "", "");
     String expectedSecondLine =
-        format("%s,5,%s,%s,%s,%s,%s,organization,%s,%s,EXACT_COMPONENT,hash2,%s,%s,%s,%s,%s,%s,%s",
+        format("%s,5,%s,%s,%s,%s,%s,organization,%s,%s,EXACT_COMPONENT,hash2,%s,%s,%s,%s,%s,%s,%s,%s,%s",
         secondPolicyWaiver.getId(), csvTimestampFormatter.format(secondPolicyWaiver.getCreateTime()),/*no expiry*/"",
         policy.getId(), policy.getName(), "", org.getId(), org.getName(), "", "",
         secondPolicyWaiver.getCreatorId(), secondPolicyWaiver.getCreatorName(), secondPolicyWaiver.getComment(), false,
-            false);
+            false, waiverReason.getId(), waiverReason.getReasonText());
 
     assertThat(lines).containsExactly(DashboardPolicyWaiverDTO.getCsvHeader(), expectedFirstLine, expectedSecondLine);
 
@@ -740,19 +743,21 @@ public class DashboardResourceTest
         .query("includeAutoWaivers", true).post();
     assertResponseOkAndCsvHeadersSet(response, "results-waivers");
     lines = response.getBodyText().split("\r\n");
-    expectedFirstLine = format("%s,5,%s,%s,%s,%s,%s,application,%s,%s,EXACT_COMPONENT,hash,%s,%s,%s,%s,comment,%s,%s",
+    expectedFirstLine =
+            format("%s,5,%s,%s,%s,%s,%s,application,%s,%s,EXACT_COMPONENT,hash,%s,%s,%s,%s,comment,%s,%s,%s,%s",
         policyWaiver.getId(), csvTimestampFormatter.format(policyWaiver.getCreateTime()),/*no expiry*/"",
         policy.getId(), policy.getName(), expectedConstraints, app.getId(), app.getName(), expectedComponentName,
-        "", policyWaiver.getCreatorId(), policyWaiver.getCreatorName(), false, false);
-    expectedSecondLine = format("%s,5,%s,%s,%s,%s,%s,organization,%s,%s,EXACT_COMPONENT,hash2,%s,%s,%s,%s,%s,%s,%s",
+        "", policyWaiver.getCreatorId(), policyWaiver.getCreatorName(), false, false, "", "");
+    expectedSecondLine =
+            format("%s,5,%s,%s,%s,%s,%s,organization,%s,%s,EXACT_COMPONENT,hash2,%s,%s,%s,%s,%s,%s,%s,%s,%s",
         secondPolicyWaiver.getId(), csvTimestampFormatter.format(secondPolicyWaiver.getCreateTime()),/*no expiry*/"",
         policy.getId(), policy.getName(), "", org.getId(), org.getName(), "", "",
         secondPolicyWaiver.getCreatorId(), secondPolicyWaiver.getCreatorName(), secondPolicyWaiver.getComment(), false,
-        false);
-    String expectedThirdLine = format("%s,7,%s,%s,%s,%s,%s,application,%s,%s,DEFAULT,%s,%s,%s,%s,%s,%s,%s,%s",
+        false, waiverReason.getId(), waiverReason.getReasonText());
+    String expectedThirdLine = format("%s,7,%s,%s,%s,%s,%s,application,%s,%s,DEFAULT,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
         autoPolicyWaiver.getId(), csvTimestampFormatter.format(autoPolicyWaiver.getCreateTime()),/*no expiry*/"",
         "", "", "", app.getId(), app.getName(), "", "", "",
-        autoPolicyWaiver.getCreatorId(), autoPolicyWaiver.getCreatorName(), "", true, false);
+        autoPolicyWaiver.getCreatorId(), autoPolicyWaiver.getCreatorName(), "", true, false, "", "");
 
     assertThat(lines).containsExactly(DashboardPolicyWaiverDTO.getCsvHeader(), expectedFirstLine, expectedSecondLine,
         expectedThirdLine);

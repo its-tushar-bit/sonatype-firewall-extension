@@ -334,6 +334,27 @@ public class OrganizationDAO
     }
   }
 
+  /**
+   * @param ownerType if known, specify the OwnerType here for improved performance, this assumes all IDs in your
+   *                  list are of the same owner type
+   *
+   * @return all organization ancestors of the specified owners. If the specified owner
+   * is itself an organization, it is included in the returned collection.
+   */
+  public List<Organization> getAllParentOrganizations(List<String> ownerIds, OwnerType ownerType) {
+    String sQuery = "SELECT org FROM Organization org, OwnerAncestor oa " +
+        "WHERE org.id = oa.ancestorId AND oa.id in (?1) " +
+        "AND oa.ancestorType = com.sonatype.insight.brain.model.OwnerType.ORGANIZATION " +
+        (ownerType == null ? "" : "AND oa.ownerType = ?2 ");
+
+    if (ownerType == null) {
+      return getList(sQuery, ownerIds);
+    }
+    else {
+      return getList(sQuery, ownerIds, ownerType);
+    }
+  }
+
   public List<Organization> getAllParentOrganizations(String ownerId, OwnerType ownerType) {
     try (TransactionContext tx = createTransactionContext()) {
       return getAllParentOrganizations(tx, ownerId, ownerType);

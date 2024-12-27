@@ -86,7 +86,7 @@ public class DashboardWaiversTest
   private static final String CSV_HEADERS = "Waiver Id, Threat level, Created Date, Expiration Date," +
       " Policy Id, Policy Name, Policy Constraints, Scope Type, Scope Id, Scope Name," +
       " Component Match Strategy, Component Hash, Component Name, Upgrade, Created by Id, Created by Name,Comment, " +
-      "Is Auto Waiver, Is Expire When Remediation Available Waiver";
+      "Is Auto Waiver, Is Expire When Remediation Available Waiver, Waiver Reason Id, Waiver Reason Text";
 
   private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -1415,7 +1415,7 @@ public class DashboardWaiversTest
         "Group1 : Artifact1 : 1.2.3," +
         DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
             policyWaiver.isComponentUpgradeAvailable()) +
-        ",testuser,Test User,comment org,false,false";
+        ",testuser,Test User,comment org,false,false,,";
 
     String waiver2String = policyWaiver1.getId() + ",3," + dateFormatCsv.format(Date.from(threeDaysAgo)) + "," +
         dateFormatCsv.format(Date.from(fiveDaysFromNow)) + "," + policyWaiver1.getPolicyId() +
@@ -1423,7 +1423,7 @@ public class DashboardWaiversTest
         "Group1 : Artifact1 : 1.2.3," +
         DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
             policyWaiver1.isComponentUpgradeAvailable()) +
-        ",testuser,Test User,comment app 2,false,false";
+        ",testuser,Test User,comment app 2,false,false,,";
 
     String waiver3String = policyWaiver3.getId() + ",9," + dateFormatCsv.format(Date.from(sixDaysAgo)) +
         "," + dateFormatCsv.format(Date.from(sixDaysFromNow)) + "," + policyWaiver3.getPolicyId() +
@@ -1431,7 +1431,7 @@ public class DashboardWaiversTest
         "Group1 : Artifact1 : 1.2.3," +
         DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
             policyWaiver3.isComponentUpgradeAvailable()) +
-        ",testuser,Test User,org all components,false,false";
+        ",testuser,Test User,org all components,false,false,,";
 
     String waiver4String = policyWaiver4.getId() + ",9," + dateFormatCsv.format(Date.from(sevenDaysAgo)) + "," +
         dateFormatCsv.format(Date.from(sevenDaysFromNow)) + "," + policyWaiver4.getPolicyId() +
@@ -1439,7 +1439,7 @@ public class DashboardWaiversTest
         "Group1 : Artifact1 : 1.2.3," +
         DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
             policyWaiver4.isComponentUpgradeAvailable()) +
-        ",testuser,Test User,app all versions,false,false";
+        ",testuser,Test User,app all versions,false,false,,";
 
     String waiverRepoString =
         policyWaiver6.getId() + ",7," + dateFormatCsv.format(Date.from(nineDaysAgo)) + "," +
@@ -1448,7 +1448,7 @@ public class DashboardWaiversTest
             "Group1 : Artifact1 : 1.2.3," +
             DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
                 policyWaiver6.isComponentUpgradeAvailable()) +
-            ",testuser,Test User,comment repo,false,false";
+            ",testuser,Test User,comment repo,false,false,,";
 
     String waiverRepoContainerString =
         policyWaiver7.getId() + ",9," + dateFormatCsv.format(Date.from(fourteenDaysAgo)) + "," +
@@ -1458,7 +1458,7 @@ public class DashboardWaiversTest
             "Group1 : Artifact1 : 1.2.3," +
             DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
                 policyWaiver7.isComponentUpgradeAvailable()) +
-            ",testuser,Test User,comment repo container,false,false";
+            ",testuser,Test User,comment repo container,false,false,,";
 
     String waiver5String = policyWaiver5.getId() + ",4," + dateFormatCsv.format(Date.from(eightDaysAgo)) + "," +
         dateFormatCsv.format(Date.from(eightDaysFromNow)) + "," + policyWaiver5.getPolicyId() +
@@ -1466,21 +1466,21 @@ public class DashboardWaiversTest
         "," + rootOrg.getName() + ",EXACT_COMPONENT,hash6,Group1 : Artifact1 : 1.2.3," +
         DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
             policyWaiver5.isComponentUpgradeAvailable()) +
-        ",testuser,Test User,comment root org,false,false";
+        ",testuser,Test User,comment root org,false,false,,";
 
     String waiver6String = policyWaiver2.getId() + ",3," + dateFormatCsv.format(Date.from(fiveDaysAgo)) + ",," +
         policyWaiver2.getPolicyId() + ",Policy 3,,application," + policyWaiver2.getOwnerId() +
         ",App 1,EXACT_COMPONENT,hash3,Group1 : Artifact1 : 1.2.3," +
         DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
             policyWaiver2.isComponentUpgradeAvailable()) +
-        ",testuser,Test User,comment app 1,false,false";
+        ",testuser,Test User,comment app 1,false,false,,";
 
     String waiverParentOrgString = policyWaiver8.getId() + ",9," + dateFormatCsv.format(Date.from(thirtyDaysAgo)) +
         "," + dateFormatCsv.format(Date.from(thirtyDaysFromNow)) + "," + policyWaiver8.getPolicyId() +
         ",Policy 2,,organization," + policyWaiver8.getOwnerId() +
         ",Parent Org 1,EXACT_COMPONENT,hash9,Group1 : Artifact1 : 1.2.3," +
         DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
-            policyWaiver8.isComponentUpgradeAvailable()) + ",testuser,Test User,comment parent org,false,false";
+            policyWaiver8.isComponentUpgradeAvailable()) + ",testuser,Test User,comment parent org,false,false,,";
 
     switch (sortByColumn) {
       case "threat":
@@ -1535,7 +1535,7 @@ public class DashboardWaiversTest
         "Group1 : Artifact1 : 1.2.3," +
         DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
             policyWaiver.isComponentUpgradeAvailable()) +
-        ",,,,false,false";
+        ",,,,false,false,,";
 
     String waiver2String = policyWaiver1.getId() + ",7," + dateFormatCsv.format(Date.from(threeDaysAgo)) + ",,"
         + policyWaiver1.getPolicyId() +
@@ -1543,7 +1543,7 @@ public class DashboardWaiversTest
         "Group1 : Artifact1 : 1.2.3," +
         DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
             policyWaiver1.isComponentUpgradeAvailable()) +
-        ",,,,false,false";
+        ",,,,false,false,,";
 
     String waiver3String = policyWaiver3.getId() + ",7," + dateFormatCsv.format(Date.from(sixDaysAgo)) +
         ",," + policyWaiver3.getPolicyId() +
@@ -1551,7 +1551,7 @@ public class DashboardWaiversTest
         "Group1 : Artifact1 : 1.2.3," +
         DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
             policyWaiver3.isComponentUpgradeAvailable()) +
-        ",,,,false,false";
+        ",,,,false,false,,";
 
     String waiver4String = policyWaiver4.getId() + ",7," + dateFormatCsv.format(Date.from(sevenDaysAgo)) + ",,"
         + policyWaiver4.getPolicyId() +
@@ -1559,7 +1559,7 @@ public class DashboardWaiversTest
         "Group1 : Artifact1 : 1.2.3," +
         DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
             policyWaiver4.isComponentUpgradeAvailable()) +
-        ",,,,false,false";
+        ",,,,false,false,,";
 
     String waiverRepoString =
         policyWaiver6.getId() + ",7," + dateFormatCsv.format(Date.from(nineDaysAgo)) + ",,"
@@ -1568,7 +1568,7 @@ public class DashboardWaiversTest
             "Group1 : Artifact1 : 1.2.3," +
             DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
                 policyWaiver6.isComponentUpgradeAvailable()) +
-            ",,,,false,false";
+            ",,,,false,false,,";
 
     String waiverRepoContainerString =
         policyWaiver7.getId() + ",7," + dateFormatCsv.format(Date.from(fourteenDaysAgo)) + ",,"
@@ -1578,7 +1578,7 @@ public class DashboardWaiversTest
             "Group1 : Artifact1 : 1.2.3," +
             DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
                 policyWaiver7.isComponentUpgradeAvailable()) +
-            ",,,,false,false";
+            ",,,,false,false,,";
 
     String waiver5String = policyWaiver5.getId() + ",7," + dateFormatCsv.format(Date.from(eightDaysAgo)) + ",,"
         + policyWaiver5.getPolicyId() +
@@ -1586,21 +1586,21 @@ public class DashboardWaiversTest
         "," + rootOrg.getName() + ",EXACT_COMPONENT,hash6,Group1 : Artifact1 : 1.2.3," +
         DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
             policyWaiver5.isComponentUpgradeAvailable()) +
-        ",,,,false,false";
+        ",,,,false,false,,";
 
     String waiver6String = policyWaiver2.getId() + ",7," + dateFormatCsv.format(Date.from(fiveDaysAgo)) + ",," +
         policyWaiver2.getPolicyId() + ",Policy 1,,application," + policyWaiver2.getOwnerId() +
         ",App 1,EXACT_COMPONENT,hash3,Group1 : Artifact1 : 1.2.3," +
         DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
             policyWaiver2.isComponentUpgradeAvailable()) +
-        ",,,,false,false";
+        ",,,,false,false,,";
 
     String waiverParentOrgString = policyWaiver8.getId() + ",7," + dateFormatCsv.format(Date.from(thirtyDaysAgo)) +
         ",," + policyWaiver8.getPolicyId() +
         ",Policy 1,,organization," + policyWaiver8.getOwnerId() +
         ",Parent Org 1,EXACT_COMPONENT,hash9,Group1 : Artifact1 : 1.2.3," +
         DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
-            policyWaiver8.isComponentUpgradeAvailable()) + ",,,,false,false";
+            policyWaiver8.isComponentUpgradeAvailable()) + ",,,,false,false,,";
 
     switch (sortByColumn) {
       case "threat":

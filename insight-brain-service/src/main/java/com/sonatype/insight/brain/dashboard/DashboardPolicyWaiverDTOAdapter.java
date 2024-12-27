@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
 
 public class DashboardPolicyWaiverDTOAdapter
@@ -33,7 +34,7 @@ public class DashboardPolicyWaiverDTOAdapter
     this.includeDetails = includeDetails;
   }
 
-  public DashboardPolicyWaiverDTO toDto(PolicyWaiver policyWaiver) {
+  public DashboardPolicyWaiverDTO toDto(PolicyWaiver policyWaiver, PolicyWaiverReason policyWaiverReason) {
     DashboardPolicyWaiverDTO dto = new DashboardPolicyWaiverDTO();
     dto.id = policyWaiver.getId();
     dto.threatLevel = policiesById.get(policyWaiver.getPolicyId()).getThreatLevel();
@@ -60,6 +61,7 @@ public class DashboardPolicyWaiverDTOAdapter
       dto.constraintFacts = policyWaiver.getConstraintFacts();
       dto.creatorId = policyWaiver.getCreatorId();
       dto.creatorName = policyWaiver.getCreatorName();
+      dto.policyWaiverReason = policyWaiverReason;
     }
 
     return dto;

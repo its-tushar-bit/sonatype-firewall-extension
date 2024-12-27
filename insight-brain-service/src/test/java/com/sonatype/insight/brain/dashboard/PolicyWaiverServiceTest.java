@@ -79,12 +79,9 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class H2PolicyWaiverServiceTest
+public class PolicyWaiverServiceTest
     extends AbstractComponentTest
 {
-  @Inject
-  private H2PolicyWaiverService dashboardPolicyWaiverService;
-
   @Inject
   private TestProductLicense testProductLicense;
 
@@ -105,6 +102,9 @@ public class H2PolicyWaiverServiceTest
   private Policy policy;
 
   private RisksFilterDTOBuilder risksFilterDTOBuilder;
+
+  @Inject
+  private PolicyWaiverService dashboardPolicyWaiverService;
 
   @Before
   public void beforeEach() {

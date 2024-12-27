@@ -75,6 +75,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Rule;
@@ -1019,6 +1020,91 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     assertThat(dao.getAllParentOrganizations(app21.getId(), null))
         .extracting(Organization::getId)
         .containsExactly(org2.getId(), ROOT_ORGANIZATION_ID);
+  }
+
+  @Test
+  public void testGetAllParentOrganizations_ByList() {
+    final var org1 = tempEntity.newOrganization("org-1");
+    final var org2 = tempEntity.newOrganization("org-1-1", org1);
+    final var org3 = tempEntity.newOrganization("org-1-2", org2);
+    Application app1 = tempEntity.newApplication(org3.getId());
+    Application app2 = tempEntity.newApplication(org2.getId());
+
+    final var org4 = tempEntity.newOrganization("org-2");
+    final var org5 = tempEntity.newOrganization("org-2-1", org4);
+    final var org6 = tempEntity.newOrganization("org-2-2", org5);
+    Application app3 = tempEntity.newApplication(org6.getId());
+
+    // === For App Orgs ==
+    var results = dao.getAllParentOrganizations(
+        Lists .newArrayList(org3.getId()),
+        OwnerType.ORGANIZATION);
+
+    assertThat(results.stream().map(Organization::getId).collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder(ROOT_ORGANIZATION_ID, org1.getId(), org2.getId(), org3.getId());
+
+    results = dao.getAllParentOrganizations(
+        Lists .newArrayList(org6.getId()),
+        OwnerType.ORGANIZATION);
+
+    assertThat(results.stream().map(Organization::getId).collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder(ROOT_ORGANIZATION_ID, org6.getId(), org5.getId(), org4.getId());
+
+    results = dao.getAllParentOrganizations(
+        Lists .newArrayList(org3.getId(), org6.getId()),
+        OwnerType.ORGANIZATION);
+
+    assertThat(results.stream().map(Organization::getId).collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder(
+            ROOT_ORGANIZATION_ID,
+            org1.getId(), org2.getId(), org3.getId(),
+            org6.getId(), org5.getId(), org4.getId());
+
+    results = dao.getAllParentOrganizations(
+        Lists .newArrayList(org2.getId(), org4.getId()),
+        OwnerType.ORGANIZATION);
+
+    assertThat(results.stream().map(Organization::getId).collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder(ROOT_ORGANIZATION_ID, org1.getId(), org2.getId(), org4.getId());
+
+    // === For App Ids ==
+    results = dao.getAllParentOrganizations(
+        Lists .newArrayList(app1.getId()),
+        OwnerType.APPLICATION);
+
+    assertThat(results.stream().map(Organization::getId).collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder(ROOT_ORGANIZATION_ID, org1.getId(), org2.getId(), org3.getId());
+
+    results = dao.getAllParentOrganizations(
+        Lists .newArrayList(app2.getId()),
+        OwnerType.APPLICATION);
+
+    assertThat(results.stream().map(Organization::getId).collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder(ROOT_ORGANIZATION_ID, org1.getId(), org2.getId());
+
+    results = dao.getAllParentOrganizations(
+        Lists .newArrayList(app2.getId(), app3.getId()),
+        OwnerType.APPLICATION);
+
+    assertThat(results.stream().map(Organization::getId).collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder(
+            ROOT_ORGANIZATION_ID, org1.getId(), org2.getId(), org6.getId(), org5.getId(), org4.getId());
+
+    // empty if the ids don't match  the type provided
+    results = dao.getAllParentOrganizations(
+        Lists .newArrayList(app1.getId()),
+        OwnerType.ORGANIZATION);
+
+    assertThat(results).isEmpty();
+
+    // === No Owner Type Allows Mixed Ids ===
+    results = dao.getAllParentOrganizations(
+        Lists .newArrayList(app2.getId(), org6.getId()),
+        null);
+
+    assertThat(results.stream().map(Organization::getId).collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder(
+            ROOT_ORGANIZATION_ID, org1.getId(), org2.getId(), org6.getId(), org5.getId(), org4.getId());
   }
 
   @Test

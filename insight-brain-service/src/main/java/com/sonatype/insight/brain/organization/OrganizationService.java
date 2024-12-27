@@ -10,10 +10,11 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.PathParam;
@@ -27,6 +28,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.security.Authorize;
@@ -41,13 +43,13 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
+import static java.util.Objects.nonNull;
 
 /**
  * @since 1.11.0
@@ -217,14 +219,6 @@ public class OrganizationService
     }
   }
 
-  private void fillAllParentOrgs(final Owner owner, Map<String, Organization> parentOrgs) {
-    Collection<Organization> parents = organizationDAO.getAllParentOrganizations(owner.getId(), owner.getType());
-
-    for (Organization parent : parents) {
-      parentOrgs.put(parent.getId(), parent);
-    }
-  }
-
   public Map<String, Organization> getAllParentOrgsNoAuthz(Collection<? extends Owner> owners) {
     return getAllParentOrgsNoAuthz(owners, null);
   }
@@ -233,13 +227,34 @@ public class OrganizationService
       Collection<? extends Owner> owners,
       Map<String, Organization> knownParentOrgs)
   {
+    return getAllParentOrgsNoAuthz(owners, knownParentOrgs, null);
+  }
+
+  // you can pass the owner type if it's known and consistent for all entries in the owners collection
+  public Map<String, Organization> getAllParentOrgsNoAuthz(
+      Collection<? extends Owner> owners,
+      Map<String, Organization> knownParentOrgs,
+      final OwnerType ownerType)
+  {
     if (CollectionUtils.isEmpty(owners)) {
       return Collections.emptyMap();
     }
 
-    Map<String, Organization> parentOrgs = MapUtils.isNotEmpty(knownParentOrgs) ? knownParentOrgs : new HashMap<>();
-    owners.forEach(owner -> fillAllParentOrgs(owner, parentOrgs));
-    return parentOrgs;
+    List<String> needsFetch = owners.stream()
+        .map(owner -> owner.getId())
+        .filter(Objects::nonNull)
+        .toList();
+
+    final Map<String, Organization> results = organizationDAO.getAllParentOrganizations(needsFetch, ownerType)
+        .stream()
+        .collect(
+            Collectors.toMap(Owner::getId, Function.identity(), (existing, replacement) -> existing));
+
+    if (nonNull(knownParentOrgs)) {
+      results.putAll(knownParentOrgs);
+    }
+
+    return results;
   }
 
   private void deleteOrganizationIconFolder(Organization organization) {

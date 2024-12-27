@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -65,25 +66,33 @@ public class DashboardPolicyWaiverDTOAdapterTest
   @Test
   public void testPolicyWaiverToDTO_ExcludeDetails() {
     dtoAdapter = new DashboardPolicyWaiverDTOAdapter(policiesById, ownersById, false);
-    DashboardPolicyWaiverDTO dto = dtoAdapter.toDto(testPolicyWaiver);
+    DashboardPolicyWaiverDTO dto = dtoAdapter.toDto(
+        testPolicyWaiver,
+        new PolicyWaiverReason("system", "Other"));
 
     assertPolicyWaiverWithoutDetails(dto,testPolicyWaiver);
     assertThat(dto.comment).isNull();
     assertThat(dto.constraintFacts).isNull();
     assertThat(dto.creatorId).isNull();
     assertThat(dto.creatorName).isNull();
+    assertThat(dto.policyWaiverReason).isNull();
   }
 
   @Test
   public void testPolicyWaiverToDTO_IncludeDetails() {
     dtoAdapter = new DashboardPolicyWaiverDTOAdapter(policiesById, ownersById, true);
-    DashboardPolicyWaiverDTO dto = dtoAdapter.toDto(testPolicyWaiver);
+
+    final var policyWaiverReason = new PolicyWaiverReason("system", "Other");
+    DashboardPolicyWaiverDTO dto = dtoAdapter.toDto(
+        testPolicyWaiver,
+        policyWaiverReason);
 
     assertPolicyWaiverWithoutDetails(dto,testPolicyWaiver);
     assertThat(dto.comment).isEqualTo(testPolicyWaiver.getComment());
     assertThat(dto.constraintFacts).isEqualTo(testPolicyWaiver.getConstraintFacts());
     assertThat(dto.creatorId).isEqualTo(testPolicyWaiver.getCreatorId());
     assertThat(dto.creatorName).isEqualTo(testPolicyWaiver.getCreatorName());
+    assertThat(dto.policyWaiverReason).isEqualTo(policyWaiverReason);
   }
 
   @Test

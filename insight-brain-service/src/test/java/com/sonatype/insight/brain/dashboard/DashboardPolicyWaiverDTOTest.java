@@ -37,7 +37,7 @@ public class DashboardPolicyWaiverDTOTest
     final String expectedHeaders = "Waiver Id, Threat level, Created Date, Expiration Date, Policy Id, Policy Name, " +
         "Policy Constraints, Scope Type, Scope Id, Scope Name, Component Match Strategy, Component Hash, " +
         "Component Name, Upgrade, Created by Id, Created by Name,Comment, Is Auto Waiver, " +
-        "Is Expire When Remediation Available Waiver";
+        "Is Expire When Remediation Available Waiver, Waiver Reason Id, Waiver Reason Text";
     String actualHeaders = DashboardPolicyWaiverDTO.getCsvHeader();
     assertThat(actualHeaders).isEqualTo(expectedHeaders);
   }
@@ -81,6 +81,10 @@ public class DashboardPolicyWaiverDTOTest
     expectedLine.append("false"); /* is auto waiver */
     addJoiner(expectedLine);
     expectedLine.append("false"); /* is auto expiry waiver */
+    addJoiner(expectedLine);
+    expectedLine.append(""); /* waiver reason id */
+    addJoiner(expectedLine);
+    expectedLine.append(""); /* waiver reason text */
 
     assertThat(dtoAsCSV).isEqualTo(expectedLine.toString());
   }
@@ -131,6 +135,10 @@ public class DashboardPolicyWaiverDTOTest
     expectedLine.append("false"); /* is auto waiver */
     addJoiner(expectedLine);
     expectedLine.append("false"); /* is auto expiry waiver */
+    addJoiner(expectedLine);
+    expectedLine.append(""); /* waiver reason id */
+    addJoiner(expectedLine);
+    expectedLine.append(""); /* waiver reason text */
 
     assertThat(dtoAsCSV).isEqualTo(expectedLine.toString());
   }

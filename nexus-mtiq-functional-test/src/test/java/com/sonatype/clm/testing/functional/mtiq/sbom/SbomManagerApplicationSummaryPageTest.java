@@ -157,9 +157,9 @@ public class SbomManagerApplicationSummaryPageTest
     ElementsCollection paginationButtons = sbomsTile.paginationButtons();
     paginationButtons.get(0).shouldHave(text("1"));
     paginationButtons.get(5).shouldHave(text("6"));
+    sbomsTile.tableBodyRowsColumns(0).get(0).shouldHave(text("test-version"));
+    paginationButtons.get(5).shouldHave(text("6")).click();
     sbomsTile.tableBodyRowsColumns(0).get(0).shouldHave(text("test-version-49"));
-    paginationButtons.get(2).shouldHave(text("3")).click();
-    sbomsTile.tableBodyRowsColumns(0).get(0).shouldHave(text("test-version-29"));
   }
 
   @Test

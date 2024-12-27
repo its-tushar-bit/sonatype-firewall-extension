@@ -29,8 +29,6 @@ public class SbomApplicationSummaryDTO
 
   private SbomPolicyViolationSummaryDTO policyViolationSummary;
 
-  private Double annotatedPercentage;
-
   private Double releaseStatusPercentage;
 
   public SbomApplicationSummaryDTO(Object[] result,
@@ -50,8 +48,7 @@ public class SbomApplicationSummaryDTO
     sbomVulnerabilitiesSummaryDTO.setCritical((Long)result[9]);
     this.policyViolationSummary = policyViolationSummary;
     this.vulnerabilitySummary = sbomVulnerabilitiesSummaryDTO;
-    annotatedPercentage = result[10] == null ? null : ((Number)result[10]).doubleValue();
-    releaseStatusPercentage = result[12] == null ? null : ((Number)result[12]).doubleValue();
+    releaseStatusPercentage = result[11] == null ? null : ((Number)result[11]).doubleValue();
   }
 
   //for Jackson
@@ -73,8 +70,7 @@ public class SbomApplicationSummaryDTO
     sbomVulnerabilitiesSummaryDTO.setCritical((Long)result[9]);
     this.policyViolationSummary = null;
     this.vulnerabilitySummary = sbomVulnerabilitiesSummaryDTO;
-    annotatedPercentage = result[10] == null ? null : ((Number)result[10]).doubleValue();
-    releaseStatusPercentage = result[12] == null ? null : ((Number)result[12]).doubleValue();
+    releaseStatusPercentage = result[11] == null ? null : ((Number)result[11]).doubleValue();
   }
 
   public Double getReleaseStatusPercentage() {
@@ -143,13 +139,5 @@ public class SbomApplicationSummaryDTO
 
   public void setSbomVersion(final String sbomVersion) {
     this.sbomVersion = sbomVersion;
-  }
-
-  public Double getAnnotatedPercentage() {
-    return annotatedPercentage;
-  }
-
-  public void setAnnotatedPercentage(final Double annotatedPercentage) {
-    this.annotatedPercentage = annotatedPercentage;
   }
 }

@@ -279,8 +279,6 @@ public class ThirdPartySbomMetadataDAO
         "  COUNT(CASE WHEN (cs.severity BETWEEN ?4 AND ?5) THEN 1 END) AS vulnerabilityMedium, " + //
         "  COUNT(CASE WHEN (cs.severity BETWEEN ?6 AND ?7) THEN 1 END) AS vulnerabilityHigh, " + //
         "  COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END) AS vulnerabilityCritical, " + //
-        " ROUND((COUNT(CASE WHEN (vex.coordinate_security_id IS NOT NULL) THEN 1 END)) * 100" + //
-        " / NULLIF(COUNT(cs.coordinate_security_id)::decimal, 0), 1) as annotatedPercentage, " + //
         " COUNT(*) OVER() AS full_count," + //
         " COALESCE(ROUND((COUNT(CASE WHEN (vex.coordinate_security_id IS NOT NULL AND cs.severity >= ?6) THEN 1 END))" +
         "* 100 / NULLIF(COUNT(CASE WHEN (cs.coordinate_security_id IS NOT NULL AND cs.severity >= ?6) THEN 1 END)" +
@@ -319,7 +317,7 @@ public class ThirdPartySbomMetadataDAO
           ((Stream<Object[]>) paginationQuery.getResultStream())
               .peek(array -> {
                 if (result.getTotalCount() == 0) {
-                  result.setTotalCount(( (Long) array[11]).intValue());
+                  result.setTotalCount(( (Long) array[10]).intValue());
                 }
               })
               .map(SbomApplicationSummaryDTO::new)

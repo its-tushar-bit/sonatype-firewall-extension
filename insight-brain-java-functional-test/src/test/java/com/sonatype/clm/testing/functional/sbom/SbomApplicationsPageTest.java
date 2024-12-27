@@ -221,19 +221,6 @@ public class SbomApplicationsPageTest
   }
 
   @Test
-  public void testApplicationsPage__sortByPercentageAnnotated() throws Exception {
-    setSbomApplicationsTableData();
-    refreshOrOpen(SbomApplicationsPage.url());
-    waitUntilUrl(SbomApplicationsPage.url());
-    SbomApplicationsTable applicationsTable = SbomApplicationsPage.sbomApplicationsTable();
-    applicationsTable.table().shouldBe(visible);
-    applicationsTable.columnHeader(5).shouldHave(text("ANNOTATED")).click();
-    verifySortOrderPercentageAnnotated(true, applicationsTable); //verify asc
-    applicationsTable.columnHeader(5).shouldHave(text("ANNOTATED")).click();
-    verifySortOrderPercentageAnnotated(false, applicationsTable);
-  }
-
-  @Test
   public void testApplicationsPage__sortByVulnerabilities() throws Exception {
     setSbomApplicationsTableData();
     refreshOrOpen(SbomApplicationsPage.url());
@@ -264,19 +251,6 @@ public class SbomApplicationsPageTest
       else {
         assertThat(comparison).isGreaterThanOrEqualTo(0);
       }
-    }
-  }
-
-  private void verifySortOrderPercentageAnnotated(boolean ascending, SbomApplicationsTable applicationsRow) {
-    String expectedValue;
-    for (int i = 0; i < 50; i++) {
-      if (ascending) {
-        expectedValue = (i < 45) ? "0%" : "7.1%";
-      }
-      else {
-        expectedValue = (i < 30) ? "7.1%" : "0%";
-      }
-      applicationsRow.percentageAnnotatedColumn(i).shouldHave(text(expectedValue));
     }
   }
 

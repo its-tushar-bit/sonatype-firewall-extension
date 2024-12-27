@@ -135,7 +135,6 @@ public class ApplicationsServiceTest
     assertThat(resultDtoList.getApplications()).hasSize(1);
     assertThat(resultDtoList.getTotalCount()).isEqualTo(1);
     SbomApplicationSummaryDTO applicationPageApplicationSummaryDTO = resultDtoList.getApplications().get(0);
-    assertThat(applicationPageApplicationSummaryDTO.getAnnotatedPercentage()).isEqualTo(28.6);
     assertThat(applicationPageApplicationSummaryDTO.getReleaseStatusPercentage()).isEqualTo(25.0);
     assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getNone())
         .isEqualTo(1);
@@ -242,7 +241,6 @@ public class ApplicationsServiceTest
     assertThat(resultDtoList.getApplications()).hasSize(1);
     assertThat(resultDtoList.getTotalCount()).isEqualTo(1);
     SbomApplicationSummaryDTO applicationPageApplicationSummaryDTO1 = resultDtoList.getApplications().get(0);
-    assertThat(applicationPageApplicationSummaryDTO1.getAnnotatedPercentage()).isEqualTo(100);
     assertThat(applicationPageApplicationSummaryDTO1.getReleaseStatusPercentage()).isEqualTo(100);
     assertThat(applicationPageApplicationSummaryDTO1.getVulnerabilitySummary().getNone())
         .isEqualTo(0);

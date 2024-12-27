@@ -508,7 +508,6 @@ public class ThirdPartySbomMetadataDAOTest
     assertThat(resultDtoList.getApplications()).hasSize(1);
     assertThat(resultDtoList.getTotalCount()).isEqualTo(1);
     SbomApplicationSummaryDTO applicationPageApplicationSummaryDTO = resultDtoList.getApplications().get(0);
-    assertThat(applicationPageApplicationSummaryDTO.getAnnotatedPercentage()).isEqualTo(28.6);
     assertThat(applicationPageApplicationSummaryDTO.getReleaseStatusPercentage()).isEqualTo(25.0);
     assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getNone())
         .isEqualTo(1);

@@ -9,7 +9,7 @@ import { NxModal, NxH2, NxStatefulForm, NxP } from '@sonatype/react-shared-compo
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from 'MainRoot/OrgsAndPolicies/automatedWaiversRevocationsSlice';
 import { createPortal } from 'react-dom';
-import { selectAutomatedWaiversRevocationSlice } from 'MainRoot/OrgsAndPolicies/automatedWaviersRevocationsSelector';
+import { selectAutomatedWaiversRevocationSlice } from 'MainRoot/OrgsAndPolicies/automatedWaiversRevocationsSelector';
 
 export default function DeleteExclusionModal({ showModal, onClose, autoPolicyWaiverId, autoPolicyWaiverRevocationId }) {
   const dispatch = useDispatch();

@@ -7,9 +7,11 @@ import React from 'react';
 import { fireEvent, render, screen, axiosMockAdapter, waitFor } from 'TestRoot/SpecUtil';
 import DeleteAutoWaiverModal from 'MainRoot/waivers/DeleteAutoWaiverModal';
 import { getAutoWaiverRevocationsUrl } from 'MainRoot/util/CLMLocation';
+import * as automatedWaiversRevocationsSelector from 'MainRoot/OrgsAndPolicies/automatedWaiversRevocationsSelector';
 
 describe('DeleteAutoWaiverModal', () => {
   let onCloseMock = jest.fn();
+  let setShowModalMock = jest.fn();
   let axiosMock;
   let defaultPreloadedState;
 
@@ -198,7 +200,45 @@ describe('DeleteAutoWaiverModal', () => {
     });
   });
 
-  function renderComponent(isRoot = false, props = { showModal: true, onClose: onCloseMock }) {
+  it('closes the modal after saving', async () => {
+    renderComponent();
+
+    const confirmationCheckbox = screen.getByRole('checkbox', { name: 'Remove auto-waiver' });
+    fireEvent.click(confirmationCheckbox);
+
+    const submitButton = screen.getByRole('button', { name: 'Submit' });
+    fireEvent.click(submitButton);
+
+    jest.spyOn(automatedWaiversRevocationsSelector, 'selectAutomatedWaiversRevocationSlice').mockReturnValue({
+      submitMaskState: true,
+      submitError: null,
+    });
+
+    await waitFor(() => {
+      expect(axiosMock.history.post.length).toBe(1);
+      expect(axiosMock.history.post[0].data).toBe(
+        JSON.stringify({
+          ownerId: 'application-owner-id',
+          applicationPublicId: 'application-public-id',
+          scanId: 'example-scan-id',
+          policyViolationId: undefined,
+          autoPolicyWaiverId: 'example-auto-waiver-id',
+          matchStrategy: 'POLICY_VIOLATION',
+        })
+      );
+      expect(axiosMock.history.post[0].url).toBe(
+        '/api/v2/autoPolicyWaiverRevocations/application/application-owner-id'
+      );
+
+      expect(setShowModalMock).toHaveBeenCalledWith(false);
+      expect(setShowModalMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  function renderComponent(
+    isRoot = false,
+    props = { showModal: true, onClose: onCloseMock, setShowModal: setShowModalMock }
+  ) {
     return render(<DeleteAutoWaiverModal {...props} />, { preloadedState: defaultPreloadedState(isRoot) });
   }
 });

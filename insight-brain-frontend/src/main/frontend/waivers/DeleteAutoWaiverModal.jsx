@@ -18,9 +18,9 @@ import {
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from 'MainRoot/OrgsAndPolicies/automatedWaiversRevocationsSlice';
-import { selectAutomatedWaiversRevocationSlice } from 'MainRoot/OrgsAndPolicies/automatedWaviersRevocationsSelector';
+import { selectAutomatedWaiversRevocationSlice } from 'MainRoot/OrgsAndPolicies/automatedWaiversRevocationsSelector';
 
-export default function DeleteAutoWaiverModal({ showModal, onClose }) {
+export default function DeleteAutoWaiverModal({ showModal, setShowModal, onClose }) {
   const dispatch = useDispatch();
   const { submitMaskState, submitError } = useSelector(selectAutomatedWaiversRevocationSlice);
   const [isDeleteAutoWaiverConfirmed, toggleDeleteWaiverConfirmation] = useToggle(false);
@@ -34,6 +34,12 @@ export default function DeleteAutoWaiverModal({ showModal, onClose }) {
       dispatch(actions.clearAutoWaiverRevocationMaskState());
     }
   }, [showModal]);
+
+  useEffect(() => {
+    if (submitMaskState === true) {
+      setShowModal(false);
+    }
+  }, [submitMaskState]);
 
   return (
     <>
@@ -78,5 +84,6 @@ const validationError = (isDeleteAutoWaiverConfirmed) => {
 
 DeleteAutoWaiverModal.propTypes = {
   showModal: PropTypes.bool.isRequired,
+  setShowModal: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
 };

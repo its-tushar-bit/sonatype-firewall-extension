@@ -7,7 +7,7 @@
 import {
   selectAutomatedWaiversRevocationSlice,
   selectRevocations,
-} from 'MainRoot/OrgsAndPolicies/automatedWaviersRevocationsSelector';
+} from 'MainRoot/OrgsAndPolicies/automatedWaiversRevocationsSelector';
 
 describe('automatedWaiversRevocationsSelectors', () => {
   let mockState;

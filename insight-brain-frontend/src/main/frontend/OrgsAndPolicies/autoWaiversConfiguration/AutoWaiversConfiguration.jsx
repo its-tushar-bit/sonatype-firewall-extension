@@ -33,7 +33,7 @@ import ConfirmationModal from 'MainRoot/legal/application/ConfirmationModal';
 import ThreatDropdownSelector from 'MainRoot/react/ThreatDropdownSelector';
 import ExclusionLogTable from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/ExclusionLogTable';
 import PropTypes from 'prop-types';
-import { selectRevocations } from 'MainRoot/OrgsAndPolicies/automatedWaviersRevocationsSelector';
+import { selectRevocations } from 'MainRoot/OrgsAndPolicies/automatedWaiversRevocationsSelector';
 
 const AutoWaiversConfiguration = () => {
   const dispatch = useDispatch();

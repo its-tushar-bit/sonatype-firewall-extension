@@ -168,7 +168,11 @@ export default function ListWaiversTable(props) {
             >
               <NxFontAwesomeIcon icon={faCog} />
             </NxButton>
-            <DeleteAutoWaiverModal onClose={handleCloseAutoWaiverModal} showModal={showDeleteAutoWaiverModal} />
+            <DeleteAutoWaiverModal
+              onClose={handleCloseAutoWaiverModal}
+              setShowModal={setShowDeleteAutoWaiverModal}
+              showModal={showDeleteAutoWaiverModal}
+            />
           </div>
         </NxTableCell>
       </NxTableRow>

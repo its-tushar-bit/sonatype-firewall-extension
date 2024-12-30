@@ -72,6 +72,14 @@ public class ApplicationReportPage
     return child("#reevaluate-report-button");
   }
 
+  public SelenideElement fullReevaluateButton() {
+    return child("#full-reevaluate-report-button");
+  }
+
+  public SelenideElement quickReevaluateButton() {
+    return child("#quick-reevaluate-report-button");
+  }
+
   public NxDropdown optionsDropdown() {
     return new NxDropdown("#iq-report-options-dropdown");
   }

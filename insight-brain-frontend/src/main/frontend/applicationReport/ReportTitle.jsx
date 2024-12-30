@@ -4,21 +4,19 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import classnames from 'classnames';
 import moment from 'moment-timezone';
 import { filter, join, pipe } from 'ramda';
-import { faFilePdf, faSync, faFile, faFileCode } from '@fortawesome/pro-solid-svg-icons';
+import { faFilePdf, faFile, faFileCode } from '@fortawesome/pro-solid-svg-icons';
 import {
   NxStatefulDropdown,
   NxDropdownDivider,
-  NxButton,
   NxTooltip,
   NxFontAwesomeIcon,
   NxTextLink,
 } from '@sonatype/react-shared-components';
 import faFilterList from '../../frontend/img/icon-filter-list.svg';
-
 import { selectApplicationReportMetaData, selectSelectedReport } from './applicationReportSelectors';
 import {
   selectRouterCurrentParams,
@@ -27,14 +25,9 @@ import {
   selectPrioritiesPageName,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { reevaluateReport as reevaluateR } from './applicationReportActions';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-
 import { getDownloadPdfUrl, getExportCycloneDxUrl, getExportSpdxUrl } from 'MainRoot/util/CLMLocation';
-import {
-  selectIsLatestReportForStageRequestPending,
-  selectLatestReportForStageId,
-} from 'MainRoot/applicationReport/latestReportForStageSelectors';
+import ReevaluationModal from 'MainRoot/applicationReport/ReevaluationModal';
 
 const renderDescription = (metadataDetails) => {
   const { scanTriggerType, forMonitoring, reevaluation, reportTime, commitHash } = metadataDetails;
@@ -89,7 +82,7 @@ export default function ReportTitle() {
   return (
     <div className="nx-page-title">
       <div className="nx-btn-bar">
-        <ReEvaluationButton />
+        <ReevaluationModal />
 
         <NxStatefulDropdown
           id="iq-report-options-dropdown"
@@ -148,46 +141,4 @@ export default function ReportTitle() {
       <div className="nx-page-title__description">{renderDescription(metadataDetails)}</div>
     </div>
   );
-}
-
-function ReEvaluationButton() {
-  const { scanId } = useSelector(selectRouterCurrentParams);
-  const isLatestReportForStageRequestPending = useSelector(selectIsLatestReportForStageRequestPending);
-  const latestReportId = useSelector(selectLatestReportForStageId);
-
-  const dispatch = useDispatch();
-
-  const reevaluateReport = (...args) => dispatch(reevaluateR(...args));
-
-  return (
-    <NxTooltip title={getTooltipMessage()}>
-      <span>
-        <NxButton
-          id="reevaluate-report-button"
-          className="nx-btn--tertiary"
-          onClick={reevaluateReport}
-          disabled={shouldDisableReevaluation()}
-        >
-          <NxFontAwesomeIcon icon={faSync} />
-          <span>Re-Evaluate Report</span>
-        </NxButton>
-      </span>
-    </NxTooltip>
-  );
-
-  function isSameAsCurrentScan() {
-    return latestReportId === scanId;
-  }
-
-  function shouldDisableReevaluation() {
-    return isLatestReportForStageRequestPending || !isSameAsCurrentScan();
-  }
-
-  function getTooltipMessage() {
-    if (shouldDisableReevaluation()) {
-      return 'Re-Evaluation is only allowed on the latest scan of a given stage.';
-    } else {
-      return null;
-    }
-  }
 }

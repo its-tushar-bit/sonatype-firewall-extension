@@ -6,7 +6,7 @@
 import React from 'react';
 import moment from 'moment-timezone';
 
-import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
+import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import ReportTitle from 'MainRoot/applicationReport/ReportTitle';
 
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
@@ -210,6 +210,22 @@ describe('ReportTitle', () => {
 
     fireEvent.click(reevaluateReport);
     expect(mockedReevaluateReport).toHaveBeenCalled();
+  });
+
+  it('show reevaluation modal when the auto waiver feature flag is enabled', () => {
+    jest.spyOn(productFeaturesSelectors, 'selectIsAutoWaiversEnabled').mockReturnValue(true);
+    renderComponent();
+    const reevaluateReport = screen.getByRole('button', { name: 'Re-Evaluate Report' });
+    expect(reevaluateReport).toBeVisible();
+    expect(reevaluateReport).not.toBeDisabled();
+
+    fireEvent.click(reevaluateReport);
+    expect(screen.getByRole('heading', { name: 'Re-Evaluate Options' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Quick Re-Evaluate' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Re-Evaluate' })).toBeInTheDocument();
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByRole('heading', { name: 'Re-Evaluate Options' })).toBeInTheDocument();
   });
 
   it('should disable reevaluateReport button when there is a newer report for the same stage', () => {

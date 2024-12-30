@@ -379,6 +379,7 @@ public class ComponentDetailsTest
 
   @Test
   public void testComponentDetails_ClaimTabContent() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     mockHdsResponseForClaimedComponent();
     refreshOrOpen(ComponentDetailsPage.urlToClaim(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
@@ -405,6 +406,7 @@ public class ComponentDetailsTest
     MainHeader.backButton().click();
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
     reportPage.reevaluateButton().click();
+    reportPage.fullReevaluateButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
@@ -434,6 +436,7 @@ public class ComponentDetailsTest
     MainHeader.backButton().click();
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
     reportPage.reevaluateButton().click();
+    reportPage.fullReevaluateButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
@@ -587,6 +590,7 @@ public class ComponentDetailsTest
     MainHeader.backButton().click();
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
     reportPage.reevaluateButton().click();
+    reportPage.fullReevaluateButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));

@@ -795,6 +795,7 @@ public class ApplicationReportTest
 
   @Test
   public void testReevaluate() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     Policy licenseBanned = policyDAO.getByName("License-Banned").get(0);
     tempEntity.newWaiver(licenseBanned.getId(), app.getId());
 
@@ -803,6 +804,7 @@ public class ApplicationReportTest
     reportPage.resultRow(1).waiverIndicator().shouldNotBe(visible);
 
     reportPage.reevaluateButton().click();
+    reportPage.fullReevaluateButton().click();
     FormMask.seeAndWaitForDismissal();
 
     reportPage.headers().componentNameFilterInput().shouldHave(value("mycila"));

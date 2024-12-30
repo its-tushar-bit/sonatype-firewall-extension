@@ -317,7 +317,7 @@ export function setExactValueFilter(fieldName, allowedValues) {
 export const selectRootAncestor = payloadParamActionCreator(SELECT_ROOT_ANCESTOR);
 export const unselectRootAncestor = noPayloadActionCreator(UNSELECT_ROOT_ANCESTOR);
 
-export function reevaluateReport() {
+export function reevaluateReport(skipAutoWaivers = false) {
   return (dispatch, getState) => {
     const state = getState();
     const reportParameters = selectReportParameters(state);
@@ -327,8 +327,10 @@ export function reevaluateReport() {
       type: REEVALUATE_REPORT_REQUESTED,
     });
 
+    const reevaluateUrl = getReportReevaluateUrl(appId, scanId) + (skipAutoWaivers ? '?skipAutoWaivers=true' : '');
+
     return axios
-      .post(getReportReevaluateUrl(appId, scanId))
+      .post(reevaluateUrl)
       .then(() => {
         dispatch(reevaluateReportFulfilled());
         return dispatch(loadReport(true));

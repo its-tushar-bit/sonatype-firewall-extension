@@ -88,6 +88,10 @@ const loadAutoWaiversConfigurationPage = createAsyncThunk(
       }
       const response = await axios.get(getAutoWaiversConfigurationURL(ownerType, ownerId));
       if (response.data.isInherited === true || response.data.isAutoWaiverEnabled === false) {
+        if (response.data.autoPolicyWaiverId === null) {
+          return response.data;
+        }
+
         //get the inherited data
         const inheritedOwnerType = response.data.autoPolicyWaiverOwnerType;
         const inheritedOwnerId = response.data.autoPolicyWaiverOwnerId;

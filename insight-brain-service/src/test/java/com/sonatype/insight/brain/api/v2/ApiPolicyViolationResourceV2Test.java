@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStagePolicyViolationComponentDTO;
-import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverRevocationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverExclusionDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -38,8 +38,8 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -68,12 +68,12 @@ public class ApiPolicyViolationResourceV2Test
 {
   private PolicyViolationDAO policyViolationDAO;
 
-  private AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO;
+  private AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
 
   @Before
   public void setUp() {
     policyViolationDAO = lookup(PolicyViolationDAO.class);
-    autoPolicyWaiverRevocationDAO = lookup(AutoPolicyWaiverRevocationDAO.class);
+    autoPolicyWaiverExclusionDAO = lookup(AutoPolicyWaiverExclusionDAO.class);
   }
 
   @Test
@@ -510,7 +510,7 @@ public class ApiPolicyViolationResourceV2Test
   }
 
   @Test
-  public void testGetApplicableAutoWaiver_whenRevocationAppliedOnAppLevelAutoPolicyWaiver() throws Exception {
+  public void testGetApplicableAutoWaiver_whenExclusionAppliedOnAppLevelAutoPolicyWaiver() throws Exception {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
     Organization newOrg = tempEntity.newOrganization("NewOrg");
@@ -526,8 +526,8 @@ public class ApiPolicyViolationResourceV2Test
     violation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
 
     policyViolationDAO.update(violation);
-    AutoPolicyWaiverRevocation autoPolicyWaiverRevocation =
-        tempEntity.newAutoPolicyWaiverRevocation(
+    AutoPolicyWaiverExclusion autoPolicyWaiverExclusion =
+        tempEntity.newAutoPolicyWaiverExclusion(
             ownerId,
             "fakeCreatorId",
             "fakeCreatorName",
@@ -535,7 +535,7 @@ public class ApiPolicyViolationResourceV2Test
             autoPolicyWaiver.getId(),
             evaluation.getScanId(),
             "hash",
-            ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+            ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
         .path(ApiPolicyViolationResourceV2.VIOLATIONID +
@@ -545,8 +545,8 @@ public class ApiPolicyViolationResourceV2Test
 
     assertResponseStatus(204, response);
 
-    //remove revocation
-    autoPolicyWaiverRevocationDAO.delete(autoPolicyWaiverRevocation);
+    //remove exclusion
+    autoPolicyWaiverExclusionDAO.delete(autoPolicyWaiverExclusion);
 
     response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
@@ -570,7 +570,7 @@ public class ApiPolicyViolationResourceV2Test
   }
 
   @Test
-  public void testGetApplicableAutoWaiver_whenRevocationAppliedOnOrgLevelAutoPolicyWaiver() throws Exception {
+  public void testGetApplicableAutoWaiver_whenExclusionAppliedOnOrgLevelAutoPolicyWaiver() throws Exception {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
     Organization newOrg = tempEntity.newOrganization("NewOrg");
@@ -588,7 +588,7 @@ public class ApiPolicyViolationResourceV2Test
 
     policyViolationDAO.update(violation);
 
-    tempEntity.newAutoPolicyWaiverRevocation(
+    tempEntity.newAutoPolicyWaiverExclusion(
         ownerId,
         "fakeCreatorId",
         "fakeCreatorName",
@@ -596,7 +596,7 @@ public class ApiPolicyViolationResourceV2Test
         autoPolicyWaiver.getId(),
         evaluation.getScanId(),
         "hash",
-        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
         .path(ApiPolicyViolationResourceV2.VIOLATIONID +
@@ -609,7 +609,7 @@ public class ApiPolicyViolationResourceV2Test
 
   //ALL VERSIONS
   @Test
-  public void testGetApplicableAutoWaiver_ALL_VERSION_whenRevocationAppliedOnAppLevelAutoPolicyWaiver()
+  public void testGetApplicableAutoWaiver_ALL_VERSION_whenExclusionAppliedOnAppLevelAutoPolicyWaiver()
       throws Exception
   {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
@@ -632,7 +632,7 @@ public class ApiPolicyViolationResourceV2Test
     ComponentIdentifier diffVersionIdentifier =
         ComponentIdentifier.createMavenCoordinates("group", "artifact", "2.0", "c1", "jar");
 
-    tempEntity.newAutoPolicyWaiverRevocation(
+    tempEntity.newAutoPolicyWaiverExclusion(
         ownerId,
         "fakeCreatorId",
         "fakeCreatorName",
@@ -640,7 +640,7 @@ public class ApiPolicyViolationResourceV2Test
         autoPolicyWaiver.getId(),
         evaluation.getScanId(),
         "hash",
-        ComponentMatcherStrategyForRevocation.ALL_VERSIONS,
+        ComponentMatcherStrategyForExclusion.ALL_VERSIONS,
         null,
         null,
         null,

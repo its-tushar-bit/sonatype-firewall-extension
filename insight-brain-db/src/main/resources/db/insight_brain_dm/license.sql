@@ -303,6 +303,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('BotDe
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('BotDetect-ASP.Net-Captcha-3.0.16.X-EULA','BotDetect-ASP.Net-Captcha-3.0.16.X-EULA','BotDetect ASP.NET CAPTCHA v3.0.16.X End User License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('BotDetect-License','BotDetect-License','BotDetect License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Botpress-Proprietary-License-1.0','Botpress-Proprietary-License-1.0','Botpress-Proprietary-License-1.0');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Botpress-Proprietary-License-UNSPECIFIED','Botpress-Proprietary-License','Botpress-Proprietary-License-Style Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Bouncer-Technologies-Inc-No-Cost-SLA','Bouncer-Technologies-Inc-No-Cost-SLA','Bouncer Technologies Inc No-Cost Software License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Bouncycastle-license','Bouncycastle-license','Bouncycastle license');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('bpmn-io-License','bpmn-io-License','bpmn.io License');
@@ -772,6 +773,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('DuoCo
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Durwella-Unplugged-Viz-EULA','Durwella-Unplugged-Viz-EULA','Durwella Unplugged Viz End User License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('dvipdfm','dvipdfm','dvipdfm License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('DWTFYWWI-1.0','DWTFYWWI-1.0','Do Whatever The F*ck You Want With It License Version 1.0');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('DWTFYWWI-UNSPECIFIED','DWTFYWWI','DWTFYWWI-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Dyade','Dyade','Dyade Public License 1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Dynamic-.NET-TWAIN-LA','Dynamic-.NET-TWAIN-LA','Dynamic.NET TWAIN License Agreement - Release Date 07-04-2018');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Dynamic-Particle-System-Framework-EULA','Dynamic-Particle-System-Framework-EULA','Dynamic Particle System Framework End User License Agreement');
@@ -1448,6 +1450,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('libut
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('LicenseSpot-TOS','LicenseSpot-TOS','LicenseSpot Terms of Service');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('LightStreamer-SLA','LightStreamer-SLA','LightStreamer Software License Agreement - Release Date March-2019');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('LIL-1.0','LIL-1.0','The Lil License v1');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('LIL-UNSPECIFIED','LIL','LIL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('LiLiQ-P-1.1','LiLiQ-P-1.1','Quebec Free and Open-Source Licence - Version 1.1 - Permissive');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('LiLiQ-R-1.1','LiLiQ-R-1.1','Quebec Free and Open-Source Licence - Version 1.1 - Reciprocity');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('LiLiQ-RPlus-1.1','LiLiQ-RPlus-1.1','Quebec Free and Open-Source Licence - Version 1.1 - Strong Reciprocity');

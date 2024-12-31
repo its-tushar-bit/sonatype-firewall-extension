@@ -156,12 +156,12 @@ export default function ListWaiversTable(props) {
           <NxReadOnly.Label>Author</NxReadOnly.Label>
           <NxReadOnly.Data className="iq-auto-waiver-table__author">{autoWaiver?.creatorName || '- -'}</NxReadOnly.Data>
         </NxTableCell>
-        <NxTableCell className="iq-auto-waiver-table__revocation">
+        <NxTableCell className="iq-auto-waiver-table__exclusion">
           <div className="nx-btn-bar">
             <NxButton
               variant="icon-only"
               title="Remove auto-waiver for this policy violation"
-              className="list-auto-waiver-row__revocation-btn"
+              className="list-auto-waiver-row__exclusion-btn"
               onClick={() => {
                 setShowDeleteAutoWaiverModal(true);
               }}

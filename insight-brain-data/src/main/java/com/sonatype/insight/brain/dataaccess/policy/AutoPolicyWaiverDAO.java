@@ -13,7 +13,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -22,15 +22,15 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class AutoPolicyWaiverDAO
     extends AbstractOperationalSqlDAO<AutoPolicyWaiver>
 {
-  private final AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO;
+  private final AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
   
   @Inject
   public AutoPolicyWaiverDAO(
       final OperationalDataStore operationalDataStore,
-      final AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO)
+      final AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO)
   {
     super(operationalDataStore);
-    this.autoPolicyWaiverRevocationDAO = autoPolicyWaiverRevocationDAO;
+    this.autoPolicyWaiverExclusionDAO = autoPolicyWaiverExclusionDAO;
   }
 
   public List<AutoPolicyWaiver> getByOwnerId(String ownerId) {
@@ -73,9 +73,9 @@ public class AutoPolicyWaiverDAO
   
   @Override
   public void delete(TransactionContext tx, AutoPolicyWaiver autoPolicyWaiver) {
-    for (AutoPolicyWaiverRevocation autoPolicyWaiverRevocation : autoPolicyWaiverRevocationDAO
+    for (AutoPolicyWaiverExclusion autoPolicyWaiverExclusion : autoPolicyWaiverExclusionDAO
         .getByOwnerIdAndAutoPolicyWaiverId(autoPolicyWaiver.getOwnerId(), autoPolicyWaiver.getId())) {
-      autoPolicyWaiverRevocationDAO.delete(autoPolicyWaiverRevocation);
+      autoPolicyWaiverExclusionDAO.delete(autoPolicyWaiverExclusion);
     }
     super.delete(tx, autoPolicyWaiver);
   }

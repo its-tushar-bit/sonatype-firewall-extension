@@ -34,7 +34,8 @@ public class PublicApiPaths
 
   public static final String AUTO_POLICY_WAIVER_PATH = API_VERSION_PATH_V2 + "autoPolicyWaivers";
   
-  public static final String AUTO_POLICY_WAIVER_REVOCATION_PATH = API_VERSION_PATH_V2 + "autoPolicyWaiverRevocations";
+  public static final String AUTO_POLICY_WAIVER_EXCLUSION_PATH = API_VERSION_PATH_V2 +
+      "autoPolicyWaiverExclusions";
 
   public static final String POLICY_WAIVER_PATH = API_VERSION_PATH_V2 + "policyWaivers";
 

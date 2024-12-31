@@ -14,7 +14,7 @@ import {
   getAutoWaiversConfigurationURLWaiver,
 } from 'MainRoot/util/CLMLocation';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
-import { actions as automatedWaiversRevocationsActions } from 'MainRoot/OrgsAndPolicies/automatedWaiversRevocationsSlice';
+import { actions as automatedWaiversExlusionsActions } from 'MainRoot/OrgsAndPolicies/automatedWaiversExclusionsSlice';
 import { selectSelectedOwnerTypeAndId, selectOwnerProperties } from './orgsAndPoliciesSelectors';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { selectWaivers } from 'MainRoot/OrgsAndPolicies/automatedWaiversSelectors';
@@ -237,7 +237,7 @@ const deleteAutoWaiver = createAsyncThunk(
 
 const loadAllAutoWaiverData = createAsyncThunk(`${REDUCER_NAME}/loadAllWaiverData`, async (_, { dispatch }) => {
   await dispatch(loadAutoWaiversConfigurationPage());
-  await dispatch(automatedWaiversRevocationsActions.loadAutoWaiverRevocation());
+  await dispatch(automatedWaiversExlusionsActions.loadAutoWaiverExclusion());
 });
 
 function setThreatLevel(state, { payload }) {

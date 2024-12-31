@@ -129,7 +129,7 @@ public class ListWaiversTable
     }
 
     public SelenideElement revocationButton() {
-      return child(".list-auto-waiver-row__revocation-btn");
+      return child(".list-auto-waiver-row__exclusion-btn");
     }
   }
 }

@@ -11,8 +11,8 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationRequestDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationResponseDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverExclusionRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverExclusionResponseDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -39,15 +39,15 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverRevocationResource.BY_AUTO_POLICY_WAIVER_REVOCATION_ID_PATH;
-import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverRevocationResource.OWNERS_PATH;
-import static com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation.EXACT_COMPONENT;
+import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverExclusionResource.BY_AUTO_POLICY_WAIVER_EXCLUSION_ID_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverExclusionResource.OWNERS_PATH;
+import static com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion.EXACT_COMPONENT;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ApiAutoPolicyWaiverRevocationAuditTest
+public class ApiAutoPolicyWaiverExclusionAuditTest
     extends AbstractAuditTest
 {
   protected static ReportService reportService = mock(ReportService.class);
@@ -92,7 +92,7 @@ public class ApiAutoPolicyWaiverRevocationAuditTest
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
         createPolicyThreats(Lists.newArrayList(component1Threats)));
 
-    ApiAutoPolicyWaiverRevocationRequestDTO dto = new ApiAutoPolicyWaiverRevocationRequestDTO();
+    ApiAutoPolicyWaiverExclusionRequestDTO dto = new ApiAutoPolicyWaiverExclusionRequestDTO();
     dto.applicationPublicId = app.getPublicId();
     dto.ownerId = app.getOrganizationId();
     dto.scanId = eval.getScanId();
@@ -101,17 +101,18 @@ public class ApiAutoPolicyWaiverRevocationAuditTest
     dto.matchStrategy = EXACT_COMPONENT;
 
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + OWNERS_PATH)
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + OWNERS_PATH)
         .parameter(OwnerType.ORGANIZATION, org.getId())
         .body(dto)
         .post();
 
     assertResponseStatus(200, response);
-    ApiAutoPolicyWaiverRevocationResponseDTO responseDTO =
-        response.getBody(ApiAutoPolicyWaiverRevocationResponseDTO.class);
+    ApiAutoPolicyWaiverExclusionResponseDTO responseDTO =
+        response.getBody(ApiAutoPolicyWaiverExclusionResponseDTO.class);
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_AUTO_WAIVER_REVOCATION, null);
     assertOrganizationData(auditDTO, org);
-    assertCustomData(auditDTO, "autoPolicyWaiverRevocationId", responseDTO.autoPolicyWaiverRevocationId);
+    assertCustomData(auditDTO, "autoPolicyWaiverRevocationId",
+        responseDTO.autoPolicyWaiverExclusionId);
   }
 
   @Test
@@ -119,7 +120,7 @@ public class ApiAutoPolicyWaiverRevocationAuditTest
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
 
-    ApiAutoPolicyWaiverRevocationRequestDTO dto = new ApiAutoPolicyWaiverRevocationRequestDTO();
+    ApiAutoPolicyWaiverExclusionRequestDTO dto = new ApiAutoPolicyWaiverExclusionRequestDTO();
     dto.applicationPublicId = application.getPublicId();
     dto.ownerId = application.getId();
     dto.scanId = "scanId";
@@ -128,7 +129,7 @@ public class ApiAutoPolicyWaiverRevocationAuditTest
     dto.matchStrategy = EXACT_COMPONENT;
 
     restRequest().with(unauthorizedUser())
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + OWNERS_PATH)
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + OWNERS_PATH)
         .parameter(OwnerType.APPLICATION, application.getId())
         .body(dto)
         .post();
@@ -141,46 +142,46 @@ public class ApiAutoPolicyWaiverRevocationAuditTest
   public void testDeleteAutoPolicyWaiverRevocation_Application() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation =
-        tempEntity.newAutoPolicyWaiverRevocation(app.getId(), autoPolicyWaiver.getId());
+    AutoPolicyWaiverExclusion exclusion =
+        tempEntity.newAutoPolicyWaiverExclusion(app.getId(), autoPolicyWaiver.getId());
 
     restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + BY_AUTO_POLICY_WAIVER_REVOCATION_ID_PATH)
-        .parameter(OwnerType.APPLICATION, app.getId(), autoPolicyWaiver.getId(), revocation.getId())
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + BY_AUTO_POLICY_WAIVER_EXCLUSION_ID_PATH)
+        .parameter(OwnerType.APPLICATION, app.getId(), autoPolicyWaiver.getId(), exclusion.getId())
         .delete();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_AUTO_WAIVER_REVOCATION, null);
     assertApplicationData(auditDTO, app);
-    assertCustomData(auditDTO, "autoPolicyWaiverRevocationId", revocation.getId());
+    assertCustomData(auditDTO, "autoPolicyWaiverRevocationId", exclusion.getId());
   }
 
   @Test
-  public void testDeleteAutoPolicyWaiverRevocation_Organization() throws Exception {
+  public void testDeleteAutoPolicyWaiverExclusion_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(organization.getId());
-    AutoPolicyWaiverRevocation revocation =
-        tempEntity.newAutoPolicyWaiverRevocation(organization.getId(), autoPolicyWaiver.getId());
+    AutoPolicyWaiverExclusion exclusion =
+        tempEntity.newAutoPolicyWaiverExclusion(organization.getId(), autoPolicyWaiver.getId());
 
     restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + BY_AUTO_POLICY_WAIVER_REVOCATION_ID_PATH)
-        .parameter(OwnerType.ORGANIZATION, organization.getId(), autoPolicyWaiver.getId(), revocation.getId())
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + BY_AUTO_POLICY_WAIVER_EXCLUSION_ID_PATH)
+        .parameter(OwnerType.ORGANIZATION, organization.getId(), autoPolicyWaiver.getId(), exclusion.getId())
         .delete();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_AUTO_WAIVER_REVOCATION, null);
     assertOrganizationData(auditDTO, organization);
-    assertCustomData(auditDTO, "autoPolicyWaiverRevocationId", revocation.getId());
+    assertCustomData(auditDTO, "autoPolicyWaiverRevocationId", exclusion.getId());
   }
 
   @Test
-  public void testDeleteAutoPolicyWaiverRevocation_Unauthorized() throws Exception {
+  public void testDeleteAutoPolicyWaiverExclusion_Unauthorized() throws Exception {
     Organization organization = tempEntity.newOrganization();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(organization.getId());
-    AutoPolicyWaiverRevocation revocation =
-        tempEntity.newAutoPolicyWaiverRevocation(organization.getId(), autoPolicyWaiver.getId());
+    AutoPolicyWaiverExclusion exclusion =
+        tempEntity.newAutoPolicyWaiverExclusion(organization.getId(), autoPolicyWaiver.getId());
 
     restRequest().with(unauthorizedUser())
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + BY_AUTO_POLICY_WAIVER_REVOCATION_ID_PATH)
-        .parameter(OwnerType.ORGANIZATION, organization.getId(), autoPolicyWaiver.getId(), revocation.getId())
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + BY_AUTO_POLICY_WAIVER_EXCLUSION_ID_PATH)
+        .parameter(OwnerType.ORGANIZATION, organization.getId(), autoPolicyWaiver.getId(), exclusion.getId())
         .delete();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_AUTO_WAIVER_REVOCATION, "unauthorized");

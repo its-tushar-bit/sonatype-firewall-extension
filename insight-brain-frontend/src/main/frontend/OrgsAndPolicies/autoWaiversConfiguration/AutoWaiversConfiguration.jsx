@@ -33,7 +33,7 @@ import ConfirmationModal from 'MainRoot/legal/application/ConfirmationModal';
 import ThreatDropdownSelector from 'MainRoot/react/ThreatDropdownSelector';
 import ExclusionLogTable from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/ExclusionLogTable';
 import PropTypes from 'prop-types';
-import { selectRevocations } from 'MainRoot/OrgsAndPolicies/automatedWaiversRevocationsSelector';
+import { selectExclusions } from 'MainRoot/OrgsAndPolicies/automatedWaiversExclusionsSelector';
 
 const AutoWaiversConfiguration = () => {
   const dispatch = useDispatch();
@@ -67,7 +67,7 @@ function AutoWaiversConfigurationContents({ refreshData }) {
   const setThreatLevel = (val) => dispatch(actions.setThreatLevel(val));
 
   const waiversConfigPage = useSelector(selectWaiversConfigPage);
-  const exclusions = useSelector(selectRevocations);
+  const exclusions = useSelector(selectExclusions);
   let { loading, loadError, isDirty, submitMaskState, submitError } = useSelector(selectWaiversSlice);
   const reachable = waiversConfigPage?.reachable ?? false;
   const pathForward = waiversConfigPage?.pathForward ?? false;

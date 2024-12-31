@@ -10,11 +10,11 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverExclusionRequestDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -31,18 +31,18 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation.EXACT_COMPONENT;
+import static com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion.EXACT_COMPONENT;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-public class ApiAutoPolicyWaiverRevocationServiceAuthzTest
+public class ApiAutoPolicyWaiverExclusionServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Mock
   private ReportService reportService;
 
   @Inject
-  private ApiAutoPolicyWaiverRevocationService apiAutoPolicyWaiverRevocationService;
+  private ApiAutoPolicyWaiverExclusionService apiAutoPolicyWaiverExclusionService;
 
   @Override
   public void configure(Binder binder) {
@@ -51,22 +51,22 @@ public class ApiAutoPolicyWaiverRevocationServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testAddAutoPolicyWaiverRevocation_Unauthenticated() {
+  public void testAddAutoPolicyWaiverExclusion_Unauthenticated() {
     Application app = tempEntity.newApplicationWithParent();
-    ApiAutoPolicyWaiverRevocationRequestDTO dto = new ApiAutoPolicyWaiverRevocationRequestDTO();
-    apiAutoPolicyWaiverRevocationService.addAutoPolicyWaiverRevocation(OwnerType.APPLICATION, app.getId(), dto);
+    ApiAutoPolicyWaiverExclusionRequestDTO dto = new ApiAutoPolicyWaiverExclusionRequestDTO();
+    apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testAddAutoPolicyWaiverRevocation_Unauthorized() {
+  public void testAddAutoPolicyWaiverExclusion_Unauthorized() {
     login();
     Application app = tempEntity.newApplicationWithParent();
-    ApiAutoPolicyWaiverRevocationRequestDTO dto = new ApiAutoPolicyWaiverRevocationRequestDTO();
-    apiAutoPolicyWaiverRevocationService.addAutoPolicyWaiverRevocation(OwnerType.APPLICATION, app.getId(), dto);
+    ApiAutoPolicyWaiverExclusionRequestDTO dto = new ApiAutoPolicyWaiverExclusionRequestDTO();
+    apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto);
   }
 
   @Test
-  public void testAddAutoPolicyWaiverRevocation_Authorized() {
+  public void testAddAutoPolicyWaiverExclusion_Authorized() {
     Application app = tempEntity.newApplicationWithParent();
     grantPermission(app.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
 
@@ -84,7 +84,7 @@ public class ApiAutoPolicyWaiverRevocationServiceAuthzTest
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
         createPolicyThreats(Lists.newArrayList(component1Threats)));
 
-    ApiAutoPolicyWaiverRevocationRequestDTO dto = new ApiAutoPolicyWaiverRevocationRequestDTO();
+    ApiAutoPolicyWaiverExclusionRequestDTO dto = new ApiAutoPolicyWaiverExclusionRequestDTO();
     dto.applicationPublicId = app.getPublicId();
     dto.ownerId = app.getId();
     dto.scanId = eval.getScanId();
@@ -92,50 +92,51 @@ public class ApiAutoPolicyWaiverRevocationServiceAuthzTest
     dto.autoPolicyWaiverId = waiver.getId();
     dto.matchStrategy = EXACT_COMPONENT;
 
-    apiAutoPolicyWaiverRevocationService.addAutoPolicyWaiverRevocation(OwnerType.APPLICATION, app.getId(), dto);
+    apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testDeleteAutoPolicyWaiverRevocation_Unauthenticated() {
+  public void testDeleteAutoPolicyWaiverExclusion_Unauthenticated() {
     Application app = tempEntity.newApplicationWithParent();
-    apiAutoPolicyWaiverRevocationService.deleteAutoPolicyWaiverRevocation(
+    apiAutoPolicyWaiverExclusionService.deleteAutoPolicyWaiverExclusion(
         OwnerType.APPLICATION,
         app.getId(),
-        "fakeRevocationId");
+        "fakeExclusionId");
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testDeleteAutoPolicyWaiverRevocation_Unauthorized() {
+  public void testDeleteAutoPolicyWaiverExclusion_Unauthorized() {
     login();
     Application app = tempEntity.newApplicationWithParent();
-    apiAutoPolicyWaiverRevocationService.deleteAutoPolicyWaiverRevocation(
+    apiAutoPolicyWaiverExclusionService.deleteAutoPolicyWaiverExclusion(
         OwnerType.APPLICATION,
         app.getId(),
-        "fakeRevocationId");
+        "fakeExclusionId");
   }
 
   @Test
-  public void testDeleteAutoPolicyWaiverRevocation_Authorized() {
+  public void testDeleteAutoPolicyWaiverExclusion_Authorized() {
     Application app = tempEntity.newApplicationWithParent();
     grantPermission(app.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    apiAutoPolicyWaiverRevocationService.deleteAutoPolicyWaiverRevocation(
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(),
+        waiver.getId());
+    apiAutoPolicyWaiverExclusionService.deleteAutoPolicyWaiverExclusion(
         OwnerType.APPLICATION,
         app.getId(),
-        revocation.getId());
+        exclusion.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetAutoPolicyWaiverExclusionLogData_Unauthenticated() {
-    apiAutoPolicyWaiverRevocationService.getAutoPolicyWaiverRevocations(
+    apiAutoPolicyWaiverExclusionService.getAutoPolicyWaiverExclusions(
         OwnerType.APPLICATION, "ownerId", "autoPolicyWaiverId", 1, 10);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetAutoPolicyWaiverExclusionLogData_Unauthorized() {
     login();
-    apiAutoPolicyWaiverRevocationService.getAutoPolicyWaiverRevocations(
+    apiAutoPolicyWaiverExclusionService.getAutoPolicyWaiverExclusions(
         OwnerType.APPLICATION, app.getId(), "autoPolicyWaiverId", 1, 10);
   }
 
@@ -143,7 +144,7 @@ public class ApiAutoPolicyWaiverRevocationServiceAuthzTest
   public void testGetAutoPolicyWaiverExclusionLogData_Authorized() {
     grantReadPermission(app.getId());
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    apiAutoPolicyWaiverRevocationService.getAutoPolicyWaiverRevocations(
+    apiAutoPolicyWaiverExclusionService.getAutoPolicyWaiverExclusions(
         OwnerType.APPLICATION, app.getId(), waiver.getId(), 1, 10);
   }
 

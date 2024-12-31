@@ -17,21 +17,21 @@ import {
 } from '@sonatype/react-shared-components';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
-import { actions } from 'MainRoot/OrgsAndPolicies/automatedWaiversRevocationsSlice';
-import { selectAutomatedWaiversRevocationSlice } from 'MainRoot/OrgsAndPolicies/automatedWaiversRevocationsSelector';
+import { actions } from 'MainRoot/OrgsAndPolicies/automatedWaiversExclusionsSlice';
+import { selectAutomatedWaiversExclusionSlice } from 'MainRoot/OrgsAndPolicies/automatedWaiversExclusionsSelector';
 
 export default function DeleteAutoWaiverModal({ showModal, setShowModal, onClose }) {
   const dispatch = useDispatch();
-  const { submitMaskState, submitError } = useSelector(selectAutomatedWaiversRevocationSlice);
+  const { submitMaskState, submitError } = useSelector(selectAutomatedWaiversExclusionSlice);
   const [isDeleteAutoWaiverConfirmed, toggleDeleteWaiverConfirmation] = useToggle(false);
 
   const handleSubmit = () => {
-    dispatch(actions.createAutoWaiverRevocation());
+    dispatch(actions.createAutoWaiverExclusion());
   };
 
   useEffect(() => {
     if (!showModal) {
-      dispatch(actions.clearAutoWaiverRevocationMaskState());
+      dispatch(actions.clearAutoWaiverExclusionMaskState());
     }
   }, [showModal]);
 
@@ -46,7 +46,7 @@ export default function DeleteAutoWaiverModal({ showModal, setShowModal, onClose
       {showModal && (
         <NxModal id="iq-delete-auto-waiver-modal" variant="narrow" onCancel={onClose}>
           <NxModal.Header>
-            <NxH2>Remove Auto-Waiver</NxH2>
+            <NxH2>Remove Automated Waiver</NxH2>
           </NxModal.Header>
           <NxModal.Content>
             <NxStatefulForm
@@ -54,7 +54,7 @@ export default function DeleteAutoWaiverModal({ showModal, setShowModal, onClose
               onSubmit={handleSubmit}
               onCancel={onClose}
               validationErrors={validationError(isDeleteAutoWaiverConfirmed)}
-              submitMaskMessage="Creating auto-waiver revocation"
+              submitMaskMessage="Creating auto-waiver exclusion..."
               submitMaskState={submitMaskState}
               submitError={submitError}
             >
@@ -67,7 +67,7 @@ export default function DeleteAutoWaiverModal({ showModal, setShowModal, onClose
                 onChange={toggleDeleteWaiverConfirmation}
                 isChecked={isDeleteAutoWaiverConfirmed}
               >
-                Remove auto-waiver
+                Remove auto-waiver from this violation
               </NxCheckbox>
               <NxInfoAlert>Removing this waiver does not disable all automated waivers.</NxInfoAlert>
             </NxStatefulForm>

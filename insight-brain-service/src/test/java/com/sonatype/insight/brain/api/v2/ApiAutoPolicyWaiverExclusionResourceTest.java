@@ -14,16 +14,16 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationRequestDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationResponseDTO;
-import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverRevocationDAO;
+import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverExclusionRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverExclusionResponseDTO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverExclusionDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -46,19 +46,19 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
-import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverRevocationResource.BY_AUTO_POLICY_WAIVER_ID_PATH;
-import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverRevocationResource.OWNERS_PATH;
-import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverRevocationResource.BY_AUTO_POLICY_WAIVER_REVOCATION_ID_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverExclusionResource.BY_AUTO_POLICY_WAIVER_ID_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverExclusionResource.OWNERS_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverExclusionResource.BY_AUTO_POLICY_WAIVER_EXCLUSION_ID_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ApiAutoPolicyWaiverRevocationResourceTest
+public class ApiAutoPolicyWaiverExclusionResourceTest
     extends AbstractResourceTest
 {
-  private AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO;
+  private AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
 
   private PolicyViolationDAO policyViolationDAO;
   
@@ -72,7 +72,7 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
   
   @Before
   public void setUp() {
-    autoPolicyWaiverRevocationDAO = lookup(AutoPolicyWaiverRevocationDAO.class);
+    autoPolicyWaiverExclusionDAO = lookup(AutoPolicyWaiverExclusionDAO.class);
     policyViolationDAO = lookup(PolicyViolationDAO.class);
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
     licenseManager.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
@@ -86,33 +86,33 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
   }
 
   @Test
-  public void testDeleteAutoPolicyWaiverRevocation() throws Exception {
+  public void testDeleteAutoPolicyWaiverExclusion() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
-    AutoPolicyWaiverRevocation revocation =
-        tempEntity.newAutoPolicyWaiverRevocation(application.getId(), autoPolicyWaiver.getId());
+    AutoPolicyWaiverExclusion exclusion =
+        tempEntity.newAutoPolicyWaiverExclusion(application.getId(), autoPolicyWaiver.getId());
 
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + BY_AUTO_POLICY_WAIVER_REVOCATION_ID_PATH)
-        .parameter(OwnerType.APPLICATION, application.getId(), autoPolicyWaiver.getId(), revocation.getId())
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + BY_AUTO_POLICY_WAIVER_EXCLUSION_ID_PATH)
+        .parameter(OwnerType.APPLICATION, application.getId(), autoPolicyWaiver.getId(), exclusion.getId())
         .delete();
 
     assertResponseStatus(204, response);
-    assertThat(autoPolicyWaiverRevocationDAO.getById(revocation.getId())).isNull();
+    assertThat(autoPolicyWaiverExclusionDAO.getById(exclusion.getId())).isNull();
   }
 
   @Test
-  public void testDeleteAutoPolicyWaiverRevocation_FeatureFlag() throws Exception {
+  public void testDeleteAutoPolicyWaiverExclusion_FeatureFlag() throws Exception {
     //when feature flag is disabled
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
-    AutoPolicyWaiverRevocation revocation =
-        tempEntity.newAutoPolicyWaiverRevocation(application.getId(), autoPolicyWaiver.getId());
+    AutoPolicyWaiverExclusion exclusion =
+        tempEntity.newAutoPolicyWaiverExclusion(application.getId(), autoPolicyWaiver.getId());
 
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + BY_AUTO_POLICY_WAIVER_REVOCATION_ID_PATH)
-        .parameter(OwnerType.APPLICATION, application.getId(), autoPolicyWaiver.getId(), revocation.getId())
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + BY_AUTO_POLICY_WAIVER_EXCLUSION_ID_PATH)
+        .parameter(OwnerType.APPLICATION, application.getId(), autoPolicyWaiver.getId(), exclusion.getId())
         .delete();
 
     assertResponseStatus(400, response);
@@ -121,34 +121,34 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
 
     response = restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + BY_AUTO_POLICY_WAIVER_REVOCATION_ID_PATH)
-        .parameter(OwnerType.APPLICATION, application.getId(), autoPolicyWaiver.getId(), revocation.getId())
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + BY_AUTO_POLICY_WAIVER_EXCLUSION_ID_PATH)
+        .parameter(OwnerType.APPLICATION, application.getId(), autoPolicyWaiver.getId(), exclusion.getId())
         .delete();
 
     assertResponseStatus(204, response);
-    assertThat(autoPolicyWaiverRevocationDAO.getById(autoPolicyWaiver.getId())).isNull();
+    assertThat(autoPolicyWaiverExclusionDAO.getById(autoPolicyWaiver.getId())).isNull();
   }
 
   @Test
-  public void testDeleteAutoPolicyWaiverRevocation_MissingDeveloperDashboardFeature() throws Exception {
+  public void testDeleteAutoPolicyWaiverExclusion_MissingDeveloperDashboardFeature() throws Exception {
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(false);
     setMissingFeature(LicensedFeature.DEVELOPER_DASHBOARD);
 
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
-    AutoPolicyWaiverRevocation revocation =
-        tempEntity.newAutoPolicyWaiverRevocation(application.getId(), autoPolicyWaiver.getId());
+    AutoPolicyWaiverExclusion exclusion =
+        tempEntity.newAutoPolicyWaiverExclusion(application.getId(), autoPolicyWaiver.getId());
 
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + BY_AUTO_POLICY_WAIVER_REVOCATION_ID_PATH)
-        .parameter(OwnerType.APPLICATION, application.getId(), autoPolicyWaiver.getId(), revocation.getId())
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + BY_AUTO_POLICY_WAIVER_EXCLUSION_ID_PATH)
+        .parameter(OwnerType.APPLICATION, application.getId(), autoPolicyWaiver.getId(), exclusion.getId())
         .delete();
 
     assertResponseStatus(HttpStatus.PAYMENT_REQUIRED_402, response);
   }
 
   @Test
-  public void testAddAutoPolicyWaiverRevocation_Application() throws Exception {
+  public void testAddAutoPolicyWaiverExclusion_Application() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
     Policy policy = tempEntity.newPolicy(application.getOrganizationId());
@@ -156,13 +156,13 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(application.getId(), "stageId", "scanId", new Date());
     PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, identifier, "fake", "fake");
 
-    ApiAutoPolicyWaiverRevocationRequestDTO revocation = new ApiAutoPolicyWaiverRevocationRequestDTO();
-    revocation.ownerId = application.getId();
-    revocation.autoPolicyWaiverId = autoPolicyWaiver.getId();
-    revocation.applicationPublicId = application.getPublicId();
-    revocation.scanId = "scanId";
-    revocation.policyViolationId = violation.getId();
-    revocation.matchStrategy = ComponentMatcherStrategyForRevocation.EXACT_COMPONENT;
+    ApiAutoPolicyWaiverExclusionRequestDTO exclusion = new ApiAutoPolicyWaiverExclusionRequestDTO();
+    exclusion.ownerId = application.getId();
+    exclusion.autoPolicyWaiverId = autoPolicyWaiver.getId();
+    exclusion.applicationPublicId = application.getPublicId();
+    exclusion.scanId = "scanId";
+    exclusion.policyViolationId = violation.getId();
+    exclusion.matchStrategy = ComponentMatcherStrategyForExclusion.EXACT_COMPONENT;
 
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         identifier,
@@ -173,20 +173,20 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
         createPolicyThreats(Lists.newArrayList(component1Threats)));
     
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + OWNERS_PATH)
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + OWNERS_PATH)
         .parameter(OwnerType.APPLICATION, application.getId())
-        .body(revocation)
+        .body(exclusion)
         .post();
     
     assertResponseStatus(200, response);
-    AutoPolicyWaiverRevocation resultingRevocation =
-        autoPolicyWaiverRevocationDAO.getByOwnerIdAndAutoPolicyWaiverIdAndHash(
+    AutoPolicyWaiverExclusion resultingExclusion =
+        autoPolicyWaiverExclusionDAO.getByOwnerIdAndAutoPolicyWaiverIdAndHash(
             application.getId(), autoPolicyWaiver.getId(), violation.getHash());
-    assertThat(resultingRevocation).isNotNull();
+    assertThat(resultingExclusion).isNotNull();
   }
 
   @Test
-  public void testAddAutoPolicyWaiverRevocation_Organization() throws Exception {
+  public void testAddAutoPolicyWaiverExclusion_Organization() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(app.getOrganizationId());
     Policy policy = tempEntity.newPolicy(app.getOrganizationId());
@@ -202,29 +202,29 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
         createPolicyThreats(Lists.newArrayList(component1Threats)));
 
-    ApiAutoPolicyWaiverRevocationRequestDTO revocation = new ApiAutoPolicyWaiverRevocationRequestDTO();
-    revocation.ownerId = app.getOrganizationId();
-    revocation.autoPolicyWaiverId = autoPolicyWaiver.getId();
-    revocation.applicationPublicId = app.getPublicId();
-    revocation.scanId = "scanId";
-    revocation.policyViolationId = violation.getId();
-    revocation.matchStrategy = ComponentMatcherStrategyForRevocation.EXACT_COMPONENT;
+    ApiAutoPolicyWaiverExclusionRequestDTO exclusion = new ApiAutoPolicyWaiverExclusionRequestDTO();
+    exclusion.ownerId = app.getOrganizationId();
+    exclusion.autoPolicyWaiverId = autoPolicyWaiver.getId();
+    exclusion.applicationPublicId = app.getPublicId();
+    exclusion.scanId = "scanId";
+    exclusion.policyViolationId = violation.getId();
+    exclusion.matchStrategy = ComponentMatcherStrategyForExclusion.EXACT_COMPONENT;
     
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + OWNERS_PATH)
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + OWNERS_PATH)
         .parameter(OwnerType.ORGANIZATION, app.getOrganizationId())
-        .body(revocation)
+        .body(exclusion)
         .post();
 
     assertResponseStatus(200, response);
-    AutoPolicyWaiverRevocation resultingRevocation =
-        autoPolicyWaiverRevocationDAO.getByOwnerIdAndAutoPolicyWaiverIdAndHash(
+    AutoPolicyWaiverExclusion resultingExclusion =
+        autoPolicyWaiverExclusionDAO.getByOwnerIdAndAutoPolicyWaiverIdAndHash(
             app.getOrganizationId(), autoPolicyWaiver.getId(), violation.getHash());
-    assertThat(resultingRevocation).isNotNull();
+    assertThat(resultingExclusion).isNotNull();
   }
 
   @Test
-  public void testAddAutoPolicyWaiverRevocation_FeatureFlag() throws Exception {
+  public void testAddAutoPolicyWaiverExclusion_FeatureFlag() throws Exception {
     //when feature flag is disabled
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
     Application application = tempEntity.newApplicationWithParent();
@@ -234,13 +234,13 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(application.getId(), "stageId", "scanId", new Date());
     PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, identifier, "fake", "fake");
 
-    ApiAutoPolicyWaiverRevocationRequestDTO revocation = new ApiAutoPolicyWaiverRevocationRequestDTO();
-    revocation.ownerId = application.getId();
-    revocation.autoPolicyWaiverId = autoPolicyWaiver.getId();
-    revocation.applicationPublicId = application.getPublicId();
-    revocation.scanId = "scanId";
-    revocation.policyViolationId = violation.getId();
-    revocation.matchStrategy = ComponentMatcherStrategyForRevocation.EXACT_COMPONENT;
+    ApiAutoPolicyWaiverExclusionRequestDTO exclusion = new ApiAutoPolicyWaiverExclusionRequestDTO();
+    exclusion.ownerId = application.getId();
+    exclusion.autoPolicyWaiverId = autoPolicyWaiver.getId();
+    exclusion.applicationPublicId = application.getPublicId();
+    exclusion.scanId = "scanId";
+    exclusion.policyViolationId = violation.getId();
+    exclusion.matchStrategy = ComponentMatcherStrategyForExclusion.EXACT_COMPONENT;
 
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         identifier,
@@ -251,9 +251,9 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
         createPolicyThreats(Lists.newArrayList(component1Threats)));
     
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + OWNERS_PATH)
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + OWNERS_PATH)
         .parameter(OwnerType.APPLICATION, application.getId())
-        .body(revocation)
+        .body(exclusion)
         .post();
 
     assertResponseStatus(400, response);
@@ -262,58 +262,58 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
 
     response = restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + OWNERS_PATH)
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + OWNERS_PATH)
         .parameter(OwnerType.APPLICATION, application.getId())
-        .body(revocation)
+        .body(exclusion)
         .post();
 
     assertResponseStatus(200, response);
-    AutoPolicyWaiverRevocation resultingRevocation =
-        autoPolicyWaiverRevocationDAO.getByOwnerIdAndAutoPolicyWaiverIdAndHash(
+    AutoPolicyWaiverExclusion resultingExclusion =
+        autoPolicyWaiverExclusionDAO.getByOwnerIdAndAutoPolicyWaiverIdAndHash(
             application.getId(), autoPolicyWaiver.getId(), violation.getHash());
-    assertThat(resultingRevocation).isNotNull();
+    assertThat(resultingExclusion).isNotNull();
   }
 
   @Test
-  public void testAddAutoPolicyWaiverRevocation_MissingDeveloperDashboardFeature() throws Exception {
+  public void testAddAutoPolicyWaiverExclusion_MissingDeveloperDashboardFeature() throws Exception {
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(false);
     setMissingFeature(LicensedFeature.DEVELOPER_DASHBOARD);
 
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
-    ApiAutoPolicyWaiverRevocationResponseDTO revocation = new ApiAutoPolicyWaiverRevocationResponseDTO();
-    revocation.ownerId = application.getId();
-    revocation.autoPolicyWaiverId = autoPolicyWaiver.getId();
-    revocation.hash = "hash";
+    ApiAutoPolicyWaiverExclusionResponseDTO exclusion = new ApiAutoPolicyWaiverExclusionResponseDTO();
+    exclusion.ownerId = application.getId();
+    exclusion.autoPolicyWaiverId = autoPolicyWaiver.getId();
+    exclusion.hash = "hash";
 
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + OWNERS_PATH)
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + OWNERS_PATH)
         .parameter(OwnerType.APPLICATION, application.getId())
-        .body(revocation)
+        .body(exclusion)
         .post();
 
     assertResponseStatus(HttpStatus.PAYMENT_REQUIRED_402, response);
   }
 
   @Test
-  public void testAddAutoPolicyWaiverRevocation_IncompleteDto() throws Exception {
+  public void testAddAutoPolicyWaiverExclusion_IncompleteDto() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
-    ApiAutoPolicyWaiverRevocationResponseDTO revocation = new ApiAutoPolicyWaiverRevocationResponseDTO();
-    revocation.ownerId = application.getId();
-    revocation.autoPolicyWaiverId = autoPolicyWaiver.getId();
+    ApiAutoPolicyWaiverExclusionResponseDTO exclusion = new ApiAutoPolicyWaiverExclusionResponseDTO();
+    exclusion.ownerId = application.getId();
+    exclusion.autoPolicyWaiverId = autoPolicyWaiver.getId();
 
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + OWNERS_PATH)
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + OWNERS_PATH)
         .parameter(OwnerType.APPLICATION, application.getId())
-        .body(revocation)
+        .body(exclusion)
         .post();
 
     assertResponseStatus(400, response);
   }
 
   @Test
-  public void testGetAutoPolicyWaiverRevocations() throws Exception {
+  public void testGetAutoPolicyWaiverExclusions() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(app.getOrganizationId());
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
@@ -343,14 +343,14 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
     policyViolationDAO.update(violation);
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
 
-    tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
+    tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
 
     HttpResponse responseOne = restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + BY_AUTO_POLICY_WAIVER_ID_PATH)
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + BY_AUTO_POLICY_WAIVER_ID_PATH)
         .parameter(OwnerType.APPLICATION, app.getId(), waiver.getId())
         .query("page", 1)
         .query("pageSize", 3)
@@ -358,15 +358,15 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
 
     assertResponseStatus(200, responseOne);
 
-    List<ApiAutoPolicyWaiverRevocationResponseDTO> revocations =
-        responseOne.getBodyList(ApiAutoPolicyWaiverRevocationResponseDTO.class);
-    assertThat(revocations).hasSize(3).allSatisfy(revocation -> {
-      assertThat(revocation.ownerId).isEqualTo(app.getId());
-      assertThat(revocation.autoPolicyWaiverId).isEqualTo(waiver.getId());
+    List<ApiAutoPolicyWaiverExclusionResponseDTO> exclusions =
+        responseOne.getBodyList(ApiAutoPolicyWaiverExclusionResponseDTO.class);
+    assertThat(exclusions).hasSize(3).allSatisfy(exclusion -> {
+      assertThat(exclusion.ownerId).isEqualTo(app.getId());
+      assertThat(exclusion.autoPolicyWaiverId).isEqualTo(waiver.getId());
     });
 
     HttpResponse responseTwo = restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + BY_AUTO_POLICY_WAIVER_ID_PATH)
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + BY_AUTO_POLICY_WAIVER_ID_PATH)
         .parameter(OwnerType.APPLICATION, app.getId(), waiver.getId())
         .query("page", 2)
         .query("pageSize", 3)
@@ -374,22 +374,22 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
 
     assertResponseStatus(200, responseTwo);
 
-    List<ApiAutoPolicyWaiverRevocationResponseDTO> revocationsTwo =
-        responseTwo.getBodyList(ApiAutoPolicyWaiverRevocationResponseDTO.class);
+    List<ApiAutoPolicyWaiverExclusionResponseDTO> exclusionsTwo =
+        responseTwo.getBodyList(ApiAutoPolicyWaiverExclusionResponseDTO.class);
 
-    assertThat(revocationsTwo).hasSize(2).allSatisfy(revocation -> {
-      assertThat(revocation.ownerId).isEqualTo(app.getId());
-      assertThat(revocation.autoPolicyWaiverId).isEqualTo(waiver.getId());
+    assertThat(exclusionsTwo).hasSize(2).allSatisfy(exclusion -> {
+      assertThat(exclusion.ownerId).isEqualTo(app.getId());
+      assertThat(exclusion.autoPolicyWaiverId).isEqualTo(waiver.getId());
     });
   }
 
   @Test
-  public void testGetAutoPolicyWaiverRevocationsWithFeatureDisabled() throws Exception {
+  public void testGetAutoPolicyWaiverExclusionsWithFeatureDisabled() throws Exception {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
     Application app = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + BY_AUTO_POLICY_WAIVER_ID_PATH)
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + BY_AUTO_POLICY_WAIVER_ID_PATH)
         .parameter(OwnerType.APPLICATION, app.getId(), waiver.getId())
         .query("page", 1)
         .query("pageSize", 10)
@@ -399,13 +399,13 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
   }
 
   @Test
-  public void testGetAutoPolicyWaiverRevocations_FeatureFlag() throws Exception {
+  public void testGetAutoPolicyWaiverExclusions_FeatureFlag() throws Exception {
     //when feature flag is disabled
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
     Application app = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + BY_AUTO_POLICY_WAIVER_ID_PATH)
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + BY_AUTO_POLICY_WAIVER_ID_PATH)
         .parameter(OwnerType.APPLICATION, app.getId(), waiver.getId())
         .query("page", 1)
         .query("pageSize", 10)
@@ -417,7 +417,7 @@ public class ApiAutoPolicyWaiverRevocationResourceTest
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
 
     response = restRequest()
-        .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + BY_AUTO_POLICY_WAIVER_ID_PATH)
+        .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + BY_AUTO_POLICY_WAIVER_ID_PATH)
         .parameter(OwnerType.APPLICATION, app.getId(), waiver.getId())
         .query("page", 1)
         .query("pageSize", 10)

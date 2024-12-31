@@ -10,7 +10,7 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion;
 import com.sonatype.insight.json.store.ApiDateFormat;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -19,10 +19,10 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 /**
  * @since 1.83
  */
-public class ApiAutoPolicyWaiverRevocationResponseDTO
+public class ApiAutoPolicyWaiverExclusionResponseDTO
 {
   @JsonInclude(Include.NON_EMPTY)
-  public String autoPolicyWaiverRevocationId;
+  public String autoPolicyWaiverExclusionId;
 
   @JsonInclude(Include.NON_EMPTY)
   public String ownerId;
@@ -41,7 +41,7 @@ public class ApiAutoPolicyWaiverRevocationResponseDTO
   
   public String scanId;
 
-  public ComponentMatcherStrategyForRevocation componentMatchStrategy;
+  public ComponentMatcherStrategyForExclusion componentMatchStrategy;
 
   public String policyViolationId;
 

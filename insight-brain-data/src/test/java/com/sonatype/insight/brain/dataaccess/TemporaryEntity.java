@@ -99,7 +99,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverRevocationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverExclusionDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -239,8 +239,8 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -349,8 +349,8 @@ import org.junit.rules.ExternalResource;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
-import static com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation.ALL_VERSIONS;
-import static com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation.EXACT_COMPONENT;
+import static com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion.ALL_VERSIONS;
+import static com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion.EXACT_COMPONENT;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
@@ -623,7 +623,7 @@ public class TemporaryEntity
 
   private AutoPolicyWaiverDAO autoPolicyWaiverDAO;
 
-  private AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO;
+  private AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
   
   private OAuth2ConfigurationDAO oAuth2ConfigurationDAO;
 
@@ -865,7 +865,7 @@ public class TemporaryEntity
       delete(dashboardFilterDAO.getAll(), dashboardFilterDAO);
       delete(userFilterDAO.getAll(), userFilterDAO);
       delete(sourceControlOrganizationImportEventDAO.getAll(), sourceControlOrganizationImportEventDAO);
-      delete(autoPolicyWaiverRevocationDAO.getAll(), autoPolicyWaiverRevocationDAO);
+      delete(autoPolicyWaiverExclusionDAO.getAll(), autoPolicyWaiverExclusionDAO);
       delete(autoPolicyWaiverDAO.getAll(), autoPolicyWaiverDAO);
       delete(policyDAO.getAll(), entity -> policyDAO.getById(entity.getId()), policyDAO::delete);
       List<Organization> orgs = orgDAO.getAll().stream()
@@ -1787,37 +1787,39 @@ public class TemporaryEntity
     return autoPolicyWaiver;
   }
 
-  public AutoPolicyWaiverRevocation newAutoPolicyWaiverRevocation(String ownerId, String autoPolicyWaiverId) {
-    AutoPolicyWaiverRevocation autoPolicyWaiverRevocation = new AutoPolicyWaiverRevocation();
-    autoPolicyWaiverRevocation.setOwnerId(ownerId);
-    autoPolicyWaiverRevocation.setAutoPolicyWaiverId(autoPolicyWaiverId);
-    autoPolicyWaiverRevocation.setCreatorId("fakeCreatorId");
-    autoPolicyWaiverRevocation.setCreatorName("fakeCreatorName");
-    autoPolicyWaiverRevocation.setCreateTime(new Date());
-    autoPolicyWaiverRevocation.setScanId("fakeScanId");
-    autoPolicyWaiverRevocation.setHash("fakeHashValue");
-    autoPolicyWaiverRevocation.setComponentMatchStrategy(EXACT_COMPONENT);
-    autoPolicyWaiverRevocationDAO.insert(autoPolicyWaiverRevocation);
-    return autoPolicyWaiverRevocation;
+  public AutoPolicyWaiverExclusion newAutoPolicyWaiverExclusion(String ownerId,
+                                                         String autoPolicyWaiverId)
+  {
+    AutoPolicyWaiverExclusion autoPolicyWaiverExclusion = new AutoPolicyWaiverExclusion();
+    autoPolicyWaiverExclusion.setOwnerId(ownerId);
+    autoPolicyWaiverExclusion.setAutoPolicyWaiverId(autoPolicyWaiverId);
+    autoPolicyWaiverExclusion.setCreatorId("fakeCreatorId");
+    autoPolicyWaiverExclusion.setCreatorName("fakeCreatorName");
+    autoPolicyWaiverExclusion.setCreateTime(new Date());
+    autoPolicyWaiverExclusion.setScanId("fakeScanId");
+    autoPolicyWaiverExclusion.setHash("fakeHashValue");
+    autoPolicyWaiverExclusion.setComponentMatchStrategy(EXACT_COMPONENT);
+    autoPolicyWaiverExclusionDAO.insert(autoPolicyWaiverExclusion);
+    return autoPolicyWaiverExclusion;
   }
 
-  public AutoPolicyWaiverRevocation newAutoPolicyWaiverRevocationForAllVersions(String ownerId,
+  public AutoPolicyWaiverExclusion newAutoPolicyWaiverExclusionForAllVersions(String ownerId,
       String autoPolicyWaiverId, String scanId, String packageUrl)
   {
-    AutoPolicyWaiverRevocation autoPolicyWaiverRevocation = new AutoPolicyWaiverRevocation();
-    autoPolicyWaiverRevocation.setOwnerId(ownerId);
-    autoPolicyWaiverRevocation.setAutoPolicyWaiverId(autoPolicyWaiverId);
-    autoPolicyWaiverRevocation.setCreatorId("fakeCreatorId");
-    autoPolicyWaiverRevocation.setCreatorName("fakeCreatorName");
-    autoPolicyWaiverRevocation.setCreateTime(new Date());
-    autoPolicyWaiverRevocation.setScanId(scanId);
-    autoPolicyWaiverRevocation.setAssociatedPackageUrl(packageUrl);
-    autoPolicyWaiverRevocation.setComponentMatchStrategy(ALL_VERSIONS);
-    autoPolicyWaiverRevocationDAO.insert(autoPolicyWaiverRevocation);
-    return autoPolicyWaiverRevocation;
+    AutoPolicyWaiverExclusion autoPolicyWaiverExclusion = new AutoPolicyWaiverExclusion();
+    autoPolicyWaiverExclusion.setOwnerId(ownerId);
+    autoPolicyWaiverExclusion.setAutoPolicyWaiverId(autoPolicyWaiverId);
+    autoPolicyWaiverExclusion.setCreatorId("fakeCreatorId");
+    autoPolicyWaiverExclusion.setCreatorName("fakeCreatorName");
+    autoPolicyWaiverExclusion.setCreateTime(new Date());
+    autoPolicyWaiverExclusion.setScanId(scanId);
+    autoPolicyWaiverExclusion.setAssociatedPackageUrl(packageUrl);
+    autoPolicyWaiverExclusion.setComponentMatchStrategy(ALL_VERSIONS);
+    autoPolicyWaiverExclusionDAO.insert(autoPolicyWaiverExclusion);
+    return autoPolicyWaiverExclusion;
   }
 
-  public AutoPolicyWaiverRevocation newAutoPolicyWaiverRevocation(
+  public AutoPolicyWaiverExclusion newAutoPolicyWaiverExclusion(
       String ownerId,
       String creatorId,
       String creatorName,
@@ -1825,9 +1827,9 @@ public class TemporaryEntity
       String autoPolicyWaiverId,
       String scanId,
       String hash,
-      ComponentMatcherStrategyForRevocation matchStrategy)
+      ComponentMatcherStrategyForExclusion matchStrategy)
   {
-    AutoPolicyWaiverRevocation autoPolicyWaiverRevocation = new AutoPolicyWaiverRevocation(
+    AutoPolicyWaiverExclusion autoPolicyWaiverExclusion = new AutoPolicyWaiverExclusion(
         ownerId,
         creatorId,
         creatorName,
@@ -1837,11 +1839,11 @@ public class TemporaryEntity
         hash,
         matchStrategy
     );
-    autoPolicyWaiverRevocationDAO.insert(autoPolicyWaiverRevocation);
-    return autoPolicyWaiverRevocation;
+    autoPolicyWaiverExclusionDAO.insert(autoPolicyWaiverExclusion);
+    return autoPolicyWaiverExclusion;
   }
 
-  public AutoPolicyWaiverRevocation newAutoPolicyWaiverRevocation(
+  public AutoPolicyWaiverExclusion newAutoPolicyWaiverExclusion(
       String ownerId,
       String creatorId,
       String creatorName,
@@ -1849,7 +1851,7 @@ public class TemporaryEntity
       String autoPolicyWaiverId,
       String scanId,
       String hash,
-      ComponentMatcherStrategyForRevocation matchStrategy,
+      ComponentMatcherStrategyForExclusion matchStrategy,
       String policyViolationId,
       Integer threatLevel,
       String vulnerabilityIdentifiers,
@@ -1859,7 +1861,7 @@ public class TemporaryEntity
       ComponentIdentifier componentIdentifier,
       List<ConstraintFact> constraintFacts)
   {
-    AutoPolicyWaiverRevocation autoPolicyWaiverRevocation = new AutoPolicyWaiverRevocation(
+    AutoPolicyWaiverExclusion autoPolicyWaiverExclusion = new AutoPolicyWaiverExclusion(
         ownerId,
         creatorId,
         creatorName,
@@ -1869,16 +1871,16 @@ public class TemporaryEntity
         hash,
         matchStrategy
     );
-    autoPolicyWaiverRevocation.setPolicyViolationId(policyViolationId);
-    autoPolicyWaiverRevocation.setThreatLevel(threatLevel);
-    autoPolicyWaiverRevocation.setVulnerabilityIdentifiers(vulnerabilityIdentifiers);
-    autoPolicyWaiverRevocation.setPolicyName(policyName);
-    autoPolicyWaiverRevocation.setComponentDisplayName(componentDisplayName);
-    autoPolicyWaiverRevocation.setPolicyId(policyId);
-    autoPolicyWaiverRevocation.setComponentIdentifier(componentIdentifier);
-    autoPolicyWaiverRevocation.setConstraintFacts(constraintFacts);
-    autoPolicyWaiverRevocationDAO.insert(autoPolicyWaiverRevocation);
-    return autoPolicyWaiverRevocation;
+    autoPolicyWaiverExclusion.setPolicyViolationId(policyViolationId);
+    autoPolicyWaiverExclusion.setThreatLevel(threatLevel);
+    autoPolicyWaiverExclusion.setVulnerabilityIdentifiers(vulnerabilityIdentifiers);
+    autoPolicyWaiverExclusion.setPolicyName(policyName);
+    autoPolicyWaiverExclusion.setComponentDisplayName(componentDisplayName);
+    autoPolicyWaiverExclusion.setPolicyId(policyId);
+    autoPolicyWaiverExclusion.setComponentIdentifier(componentIdentifier);
+    autoPolicyWaiverExclusion.setConstraintFacts(constraintFacts);
+    autoPolicyWaiverExclusionDAO.insert(autoPolicyWaiverExclusion);
+    return autoPolicyWaiverExclusion;
   }
   
   public AutoPolicyWaiver newAutoPolicyWaiver(AutoPolicyWaiver autoPolicyWaiver) {
@@ -5784,7 +5786,7 @@ public class TemporaryEntity
     waiverDAO = daoFactory.createPolicyWaiverDAO();
     waiverReasonDAO = daoFactory.createPolicyWaiverReasonDAO();
     autoPolicyWaiverDAO = daoFactory.createAutoPolicyWaiverDAO();
-    autoPolicyWaiverRevocationDAO = daoFactory.createAutoPolicyWaiverRevocationDAO();
+    autoPolicyWaiverExclusionDAO = daoFactory.createAutoPolicyWaiverExclusionDAO();
     callFlowAnalysisConfigDAO = daoFactory.createCallFlowAnalysisConfigDAO();
     ldapServerDAO = daoFactory.createLdapServerDAO();
     ldapConnectionDAO = daoFactory.createLdapConnectionDAO();

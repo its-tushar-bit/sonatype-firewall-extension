@@ -42,7 +42,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverRevocationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverExclusionDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -62,7 +62,7 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -70,7 +70,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
-import com.sonatype.insight.brain.policy.AutoPolicyWaiverRevocationMatcherWrapper;
+import com.sonatype.insight.brain.policy.AutoPolicyWaiverExclusionMatcherWrapper;
 import com.sonatype.insight.brain.policy.LegacyViolationService;
 import com.sonatype.insight.brain.policy.PathForwardInspector;
 import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLogger;
@@ -149,7 +149,7 @@ public class ScanPolicyEvaluator
 
   private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
 
-  private final AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO;
+  private final AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
 
   private final OwnerDAO ownerDAO;
 
@@ -205,7 +205,7 @@ public class ScanPolicyEvaluator
       final PolicyEvaluationDAO policyEvaluationDAO,
       final PolicyWaiverDAO policyWaiverDAO,
       final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
-      final AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO,
+      final AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO,
       final OwnerDAO ownerDAO,
       final ComponentPolicyEvaluator componentPolicyEvaluator,
       final ApplicationEvaluationEventService applicationEvaluationEventService,
@@ -238,7 +238,7 @@ public class ScanPolicyEvaluator
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyWaiverDAO = policyWaiverDAO;
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
-    this.autoPolicyWaiverRevocationDAO = autoPolicyWaiverRevocationDAO;
+    this.autoPolicyWaiverExclusionDAO = autoPolicyWaiverExclusionDAO;
     this.ownerDAO = ownerDAO;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.applicationEvaluationEventService = applicationEvaluationEventService;
@@ -482,8 +482,8 @@ public class ScanPolicyEvaluator
       results.autoWaivedViolations = new ArrayList<>();
 
       AutoPolicyWaiver autoPolicyWaiver = getApplicableAutoPolicyWaiver(appId);
-      List<AutoPolicyWaiverRevocation> autoPolicyWaiverRevocations =
-          getApplicableAutoPolicyWaiverRevocations(autoPolicyWaiver);
+      List<AutoPolicyWaiverExclusion> autoPolicyWaiverExclusions =
+          getApplicableAutoPolicyWaiverExclusions(autoPolicyWaiver);
 
       List<PolicyViolation> autoWaivedPolicyViolations = Collections.emptyList();
       boolean skipAutoWaiversForReevaluation = skipAutoWaivers && isReevaluation;
@@ -560,7 +560,7 @@ public class ScanPolicyEvaluator
                   component,
                   policyViolation,
                   autoPolicyWaiver,
-                  autoPolicyWaiverRevocations,
+                  autoPolicyWaiverExclusions,
                   stage.getStageTypeId(),
                   scanId);
               if (violationShouldBeAutoWaived) {
@@ -1377,20 +1377,20 @@ public class ScanPolicyEvaluator
       Component component,
       PolicyViolation policyViolation,
       AutoPolicyWaiver autoPolicyWaiver,
-      List<AutoPolicyWaiverRevocation> autoPolicyWaiverRevocations,
+      List<AutoPolicyWaiverExclusion> autoPolicyWaiverExclusions,
       String stageId,
       String scanId)
   {
     if (hasPolicyWaiver(policyViolation)) {
       return false;
     }
-    if (hasApplicableAutoWaiverRevocation(policyViolation, autoPolicyWaiverRevocations)) {
+    if (hasApplicableAutoWaiverExclusion(policyViolation, autoPolicyWaiverExclusions)) {
       return false;
     }
     if (!doesViolationMeetThreatLevelCriteria(policyViolation, autoPolicyWaiver)) {
       return false;
     }
-    if (hasApplicableAutoWaiverRevocation(policyViolation, autoPolicyWaiverRevocations)) {
+    if (hasApplicableAutoWaiverExclusion(policyViolation, autoPolicyWaiverExclusions)) {
       return false;
     }
     return !componentHavePathForward(appId, component, autoPolicyWaiver, stageId, scanId);
@@ -1436,7 +1436,7 @@ public class ScanPolicyEvaluator
     return null;
   }
 
-  private List<AutoPolicyWaiverRevocation> getApplicableAutoPolicyWaiverRevocations(AutoPolicyWaiver autoPolicyWaiver) {
+  private List<AutoPolicyWaiverExclusion> getApplicableAutoPolicyWaiverExclusions(AutoPolicyWaiver autoPolicyWaiver) {
     if (autoPolicyWaiver == null) {
       return Collections.emptyList();
     }
@@ -1444,19 +1444,20 @@ public class ScanPolicyEvaluator
     if (!features.contains(SystemConfigurationPropertyFeature.AUTO_WAIVERS)) {
       return Collections.emptyList();
     }
-    List<AutoPolicyWaiverRevocation> revocations =
-        autoPolicyWaiverRevocationDAO.getByOwnerIdAndAutoPolicyWaiverId(autoPolicyWaiver.getOwnerId(),
+    List<AutoPolicyWaiverExclusion> exclusions =
+        autoPolicyWaiverExclusionDAO.getByOwnerIdAndAutoPolicyWaiverId(autoPolicyWaiver.getOwnerId(),
             autoPolicyWaiver.getId());
-    return revocations;
+    return exclusions;
   }
 
-  private boolean hasApplicableAutoWaiverRevocation(
+  private boolean hasApplicableAutoWaiverExclusion(
       PolicyViolation policyViolation,
-      List<AutoPolicyWaiverRevocation> autoPolicyWaiverRevocations)
+      List<AutoPolicyWaiverExclusion> autoPolicyWaiverExclusions)
   {
     policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
-    for (AutoPolicyWaiverRevocation revocation : autoPolicyWaiverRevocations) {
-      AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    for (AutoPolicyWaiverExclusion exclusion : autoPolicyWaiverExclusions) {
+      AutoPolicyWaiverExclusionMatcherWrapper wrapper =
+          new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
       if (wrapper.matchesViolation(policyViolation)) {
         return true;
       }

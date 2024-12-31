@@ -14,13 +14,13 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 
 @Named
 @Singleton
-public class AutoPolicyWaiverRevocationTelemetryCollector
+public class AutoPolicyWaiverExclusionTelemetryCollector
     implements TelemetryCollector
 {
-  private final AutoPolicyWaiverRevocationTelemetryMetrics metrics;
+  private final AutoPolicyWaiverExclusionTelemetryMetrics metrics;
 
   @Inject
-  public AutoPolicyWaiverRevocationTelemetryCollector(AutoPolicyWaiverRevocationTelemetryMetrics metrics) {
+  public AutoPolicyWaiverExclusionTelemetryCollector(AutoPolicyWaiverExclusionTelemetryMetrics metrics) {
     this.metrics = metrics;
   }
 

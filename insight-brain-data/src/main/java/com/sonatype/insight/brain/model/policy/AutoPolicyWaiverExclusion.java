@@ -30,7 +30,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Entity
 @Table(name = "auto_policy_waiver_revocation")
-public class AutoPolicyWaiverRevocation
+public class AutoPolicyWaiverExclusion
     implements HasStringId
 {
   @Id
@@ -59,7 +59,7 @@ public class AutoPolicyWaiverRevocation
   private String scanId;
 
   @Column(name = "component_match_strategy")
-  private ComponentMatcherStrategyForRevocation componentMatchStrategy;
+  private ComponentMatcherStrategyForExclusion componentMatchStrategy;
 
   @Column(name = "policy_violation_id")
   private String policyViolationId;
@@ -91,10 +91,10 @@ public class AutoPolicyWaiverRevocation
   @Transient
   private ComponentIdentifier componentIdentifier;
 
-  public AutoPolicyWaiverRevocation() {
+  public AutoPolicyWaiverExclusion() {
   }
 
-  public AutoPolicyWaiverRevocation(
+  public AutoPolicyWaiverExclusion(
       String ownerId,
       String creatorId,
       String creatorName,
@@ -102,7 +102,7 @@ public class AutoPolicyWaiverRevocation
       String autoPolicyWaiverId,
       String scanId,
       String hash,
-      ComponentMatcherStrategyForRevocation componentMatchStrategy,
+      ComponentMatcherStrategyForExclusion componentMatchStrategy,
       String policyViolationId,
       Integer threatLevel,
       String vulnerabilityIdentifiers,
@@ -124,7 +124,7 @@ public class AutoPolicyWaiverRevocation
     setConstraintFacts(constraintFacts);
   }
 
-  public AutoPolicyWaiverRevocation(
+  public AutoPolicyWaiverExclusion(
       String ownerId,
       String creatorId,
       String creatorName,
@@ -132,14 +132,14 @@ public class AutoPolicyWaiverRevocation
       String autoPolicyWaiverId,
       String scanId,
       String hash,
-      ComponentMatcherStrategyForRevocation componentMatchStrategy
+      ComponentMatcherStrategyForExclusion componentMatchStrategy
   )
   {
     this(ownerId, creatorId, creatorName, createTime, autoPolicyWaiverId, scanId, hash);
     setComponentMatchStrategy(componentMatchStrategy);
   }
 
-  public AutoPolicyWaiverRevocation(
+  public AutoPolicyWaiverExclusion(
       String ownerId,
       String creatorId,
       String creatorName,
@@ -223,11 +223,11 @@ public class AutoPolicyWaiverRevocation
     this.scanId = scanId;
   }
 
-  public ComponentMatcherStrategyForRevocation getComponentMatchStrategy() {
+  public ComponentMatcherStrategyForExclusion getComponentMatchStrategy() {
     return componentMatchStrategy;
   }
 
-  public void setComponentMatchStrategy(ComponentMatcherStrategyForRevocation componentMatchStrategy) {
+  public void setComponentMatchStrategy(ComponentMatcherStrategyForExclusion componentMatchStrategy) {
     this.componentMatchStrategy = componentMatchStrategy;
   }
 
@@ -337,7 +337,7 @@ public class AutoPolicyWaiverRevocation
     return constraintFacts;
   }
 
-  public enum ComponentMatcherStrategyForRevocation
+  public enum ComponentMatcherStrategyForExclusion
   {
     EXACT_COMPONENT,
     ALL_VERSIONS,

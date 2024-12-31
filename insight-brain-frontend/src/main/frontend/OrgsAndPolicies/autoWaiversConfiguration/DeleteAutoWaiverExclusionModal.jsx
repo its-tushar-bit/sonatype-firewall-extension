@@ -7,20 +7,20 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { NxModal, NxH2, NxStatefulForm, NxP } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
-import { actions } from 'MainRoot/OrgsAndPolicies/automatedWaiversRevocationsSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/automatedWaiversExclusionsSlice';
 import { createPortal } from 'react-dom';
-import { selectAutomatedWaiversRevocationSlice } from 'MainRoot/OrgsAndPolicies/automatedWaiversRevocationsSelector';
+import { selectAutomatedWaiversExclusionSlice } from 'MainRoot/OrgsAndPolicies/automatedWaiversExclusionsSelector';
 
-export default function DeleteExclusionModal({ showModal, onClose, autoPolicyWaiverId, autoPolicyWaiverRevocationId }) {
+export default function DeleteExclusionModal({ showModal, onClose, autoPolicyWaiverId, autoPolicyWaiverExclusionId }) {
   const dispatch = useDispatch();
-  const { deleteRevocationSubmitMaskState, deleteRevocationSubmitError } = useSelector(
-    selectAutomatedWaiversRevocationSlice
+  const { deleteExclusionSubmitMaskState, deleteExclusionSubmitError } = useSelector(
+    selectAutomatedWaiversExclusionSlice
   );
   const handleSubmit = () => {
     dispatch(
-      actions.deleteAutoWaiverRevocation({
+      actions.deleteAutoWaiverExclusion({
         autoPolicyWaiverId,
-        autoPolicyWaiverRevocationId,
+        autoPolicyWaiverExclusionId,
       })
     );
   };
@@ -28,7 +28,7 @@ export default function DeleteExclusionModal({ showModal, onClose, autoPolicyWai
   if (!showModal) return null;
 
   return createPortal(
-    <NxModal id="iq-delete-auto-waiver-revocation-modal" variant="narrow" onCancel={onClose}>
+    <NxModal id="iq-delete-auto-waiver-exclusion-modal" variant="narrow" onCancel={onClose}>
       <NxModal.Header>
         <NxH2>Delete Exclusion</NxH2>
       </NxModal.Header>
@@ -38,8 +38,8 @@ export default function DeleteExclusionModal({ showModal, onClose, autoPolicyWai
           onSubmit={handleSubmit}
           onCancel={onClose}
           submitMaskMessage="Deleting exclusion..."
-          submitMaskState={deleteRevocationSubmitMaskState}
-          submitError={deleteRevocationSubmitError}
+          submitMaskState={deleteExclusionSubmitMaskState}
+          submitError={deleteExclusionSubmitError}
           submitBtnText="Continue"
         >
           <NxP>Click Continue to resume automated waiver eligibility for this violation</NxP>
@@ -54,5 +54,5 @@ DeleteExclusionModal.propTypes = {
   showModal: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   autoPolicyWaiverId: PropTypes.string.isRequired,
-  autoPolicyWaiverRevocationId: PropTypes.string.isRequired,
+  autoPolicyWaiverExclusionId: PropTypes.string.isRequired,
 };

@@ -479,7 +479,7 @@ describe('Auto Waivers Configuration Component', () => {
       autoPolicyWaiverId: 'some-id',
     });
 
-    axiosMock.onGet(`/api/v2/autoPolicyWaiverRevocations/application/app/some-id`).reply(200, [
+    axiosMock.onGet(`/api/v2/autoPolicyWaiverExclusions/application/app/some-id`).reply(200, [
       {
         createTime: '2024-12-15T03:26:55.418+0000',
         threatLevel: 7,
@@ -487,7 +487,7 @@ describe('Auto Waivers Configuration Component', () => {
         componentDisplayName: 'com.example:test:1.0.0',
         vulnerabilityIdentifiers: 'SONATYPE-1234',
         autoPolicyWaiverId: 'some-id',
-        autoPolicyWaiverRevocationId: 'rev-id-1',
+        autoPolicyWaiverExclusionId: 'exc-id-1',
       },
     ]);
 
@@ -514,7 +514,7 @@ describe('Auto Waivers Configuration Component', () => {
       autoPolicyWaiverId: 'some-id',
     });
 
-    axiosMock.onGet(`/api/v2/autoPolicyWaiverRevocations/application/app/some-id`).reply(200, []);
+    axiosMock.onGet(`/api/v2/autoPolicyWaiverExclusions/application/app/some-id`).reply(200, []);
 
     renderComponent();
 
@@ -543,15 +543,15 @@ describe('Auto Waivers Configuration Component', () => {
       componentDisplayName: 'com.example:test:1.0.0',
       vulnerabilityIdentifiers: 'SONATYPE-1234',
       autoPolicyWaiverId: 'some-id',
-      autoPolicyWaiverRevocationId: 'rev-id-1',
+      autoPolicyWaiverExclusionId: 'exc-id-1',
     };
 
     axiosMock
-      .onGet(`/api/v2/autoPolicyWaiverRevocations/application/app/some-id`)
+      .onGet(`/api/v2/autoPolicyWaiverExclusions/application/app/some-id`)
       .replyOnce(200, [exclusion])
-      .onGet(`/api/v2/autoPolicyWaiverRevocations/application/app/some-id`)
+      .onGet(`/api/v2/autoPolicyWaiverExclusions/application/app/some-id`)
       .reply(200, []);
-    axiosMock.onDelete(`/api/v2/autoPolicyWaiverRevocations/application/app/some-id/rev-id-1`).reply(200);
+    axiosMock.onDelete(`/api/v2/autoPolicyWaiverExclusions/application/app/some-id/exc-id-1`).reply(200);
 
     renderComponent();
     expect(
@@ -571,7 +571,7 @@ describe('Auto Waivers Configuration Component', () => {
     await waitFor(() => {
       expect(axiosMock.history.delete.length).toBe(1);
       expect(axiosMock.history.delete[0].url).toContain(
-        '/api/v2/autoPolicyWaiverRevocations/application/app/some-id/rev-id-1'
+        '/api/v2/autoPolicyWaiverExclusions/application/app/some-id/exc-id-1'
       );
     });
 
@@ -603,12 +603,12 @@ describe('Auto Waivers Configuration Component', () => {
       componentDisplayName: 'com.example:test:1.0.0',
       vulnerabilityIdentifiers: 'SONATYPE-1234',
       autoPolicyWaiverId: 'some-id',
-      autoPolicyWaiverRevocationId: 'rev-id-1',
+      autoPolicyWaiverExclusionId: 'exc-id-1',
     };
 
-    axiosMock.onGet(`/api/v2/autoPolicyWaiverRevocations/application/app/some-id`).reply(200, [exclusion]);
+    axiosMock.onGet(`/api/v2/autoPolicyWaiverExclusions/application/app/some-id`).reply(200, [exclusion]);
     axiosMock
-      .onDelete(`/api/v2/autoPolicyWaiverRevocations/application/app/some-id/rev-id-1`)
+      .onDelete(`/api/v2/autoPolicyWaiverExclusions/application/app/some-id/exc-id-1`)
       .reply(400, { message: 'Failed to delete exclusion' });
 
     renderComponent();

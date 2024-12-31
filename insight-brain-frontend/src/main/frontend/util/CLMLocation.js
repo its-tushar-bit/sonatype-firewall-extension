@@ -1441,8 +1441,8 @@ export const getAutoWaiversConfigurationURLWaiver = (ownerType, ownerId, waiverI
   return uriTemplate`/api/v2/autoPolicyWaivers/${ownerType}/${ownerId}/${waiverId}`;
 };
 
-export const getAutoWaiverRevocationsUrl = (ownerType, ownerId) => {
-  return uriTemplate`/api/v2/autoPolicyWaiverRevocations/${ownerType}/${ownerId}`;
+export const getAutoWaiverExclusionsUrl = (ownerType, ownerId) => {
+  return uriTemplate`/api/v2/autoPolicyWaiverExclusions/${ownerType}/${ownerId}`;
 };
 
 export const getNotificationWebhooksUrl = (ownerType, ownerId) => {

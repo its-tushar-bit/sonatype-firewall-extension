@@ -10,8 +10,8 @@ import java.util.Objects;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.policy.comparison.ConstraintFactsListComparator;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -19,21 +19,21 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AutoPolicyWaiverRevocationMatcherWrapper
+public class AutoPolicyWaiverExclusionMatcherWrapper
 {
-  private static final Logger log = LoggerFactory.getLogger(AutoPolicyWaiverRevocationMatcherWrapper.class);
+  private static final Logger log = LoggerFactory.getLogger(AutoPolicyWaiverExclusionMatcherWrapper.class);
 
-  private final AutoPolicyWaiverRevocation autoPolicyWaiverRevocation;
+  private final AutoPolicyWaiverExclusion autoPolicyWaiverExclusion;
 
-  public AutoPolicyWaiverRevocationMatcherWrapper(AutoPolicyWaiverRevocation autoPolicyWaiverRevocation) {
-    this.autoPolicyWaiverRevocation = autoPolicyWaiverRevocation;
+  public AutoPolicyWaiverExclusionMatcherWrapper(AutoPolicyWaiverExclusion autoPolicyWaiverExclusion) {
+    this.autoPolicyWaiverExclusion = autoPolicyWaiverExclusion;
   }
 
   public boolean matchesViolation(PolicyViolation policyViolation) {
-    ComponentMatcherStrategyForRevocation componentMatcherStrategy =
-        autoPolicyWaiverRevocation.getComponentMatchStrategy() == null ?
-            ComponentMatcherStrategyForRevocation.EXACT_COMPONENT :
-            autoPolicyWaiverRevocation.getComponentMatchStrategy();
+    ComponentMatcherStrategyForExclusion componentMatcherStrategy =
+        autoPolicyWaiverExclusion.getComponentMatchStrategy() == null ?
+            ComponentMatcherStrategyForExclusion.EXACT_COMPONENT :
+            autoPolicyWaiverExclusion.getComponentMatchStrategy();
 
     policyViolationNotNull(policyViolation);
     ComponentFact componentFact =
@@ -56,7 +56,7 @@ public class AutoPolicyWaiverRevocationMatcherWrapper
     }
   }
 
-  private AutoPolicyWaiverRevocationMatcherWrapper componentFactNotNull(ComponentFact componentFact) {
+  private AutoPolicyWaiverExclusionMatcherWrapper componentFactNotNull(ComponentFact componentFact) {
     if (componentFact == null) {
       throw new RuntimeException("componentFact is required but got null instead");
     }
@@ -65,7 +65,7 @@ public class AutoPolicyWaiverRevocationMatcherWrapper
     }
   }
 
-  private AutoPolicyWaiverRevocationMatcherWrapper policyViolationNotNull(PolicyViolation policyViolation) {
+  private AutoPolicyWaiverExclusionMatcherWrapper policyViolationNotNull(PolicyViolation policyViolation) {
     if (policyViolation == null) {
       throw new RuntimeException("policyViolation is required but got null instead");
     }
@@ -75,34 +75,35 @@ public class AutoPolicyWaiverRevocationMatcherWrapper
   }
 
   private boolean matchesComponentHash(ComponentFact componentFact) {
-    return autoPolicyWaiverRevocation.getHash().equals(componentFact.getHash());
+    return autoPolicyWaiverExclusion.getHash().equals(componentFact.getHash());
   }
 
   private boolean matchesComponentIdentifier(ComponentFact componentFact) {
-    ComponentIdentifier revocationComponentIdentifier = autoPolicyWaiverRevocation.getComponentIdentifier();
+    ComponentIdentifier exclusionComponentIdentifier =
+        autoPolicyWaiverExclusion.getComponentIdentifier();
     ComponentIdentifier componentFactComponentIdentifier = componentFact.getComponentIdentifier();
 
-    if (revocationComponentIdentifier == null || componentFactComponentIdentifier == null) {
+    if (exclusionComponentIdentifier == null || componentFactComponentIdentifier == null) {
       return false;
     }
 
     try {
-      revocationComponentIdentifier.ensureComplete();
+      exclusionComponentIdentifier.ensureComplete();
       componentFactComponentIdentifier.ensureComplete();
     }
     catch (InvalidComponentIdentifierException e) {
-      return compareWhenMissingRequiredCoordinates(revocationComponentIdentifier, componentFactComponentIdentifier);
+      return compareWhenMissingRequiredCoordinates(exclusionComponentIdentifier, componentFactComponentIdentifier);
     }
 
-    return revocationComponentIdentifier.compareTo(componentFactComponentIdentifier) == 0;
+    return exclusionComponentIdentifier.compareTo(componentFactComponentIdentifier) == 0;
   }
 
   boolean compareWhenMissingRequiredCoordinates(
-      ComponentIdentifier revocationIdentifier,
+      ComponentIdentifier exclusionIdentifier,
       ComponentIdentifier componentIdentifier)
   {
     return componentIdentifier.getCoordinates().entrySet().stream()
-        .allMatch(compCoord -> compCoord.getValue().equals(revocationIdentifier.get(compCoord.getKey())));
+        .allMatch(compCoord -> compCoord.getValue().equals(exclusionIdentifier.get(compCoord.getKey())));
   }
 
   private boolean isDifferentFormat(ComponentIdentifier compIdentif, ComponentIdentifier waiverIdentif) {
@@ -110,21 +111,21 @@ public class AutoPolicyWaiverRevocationMatcherWrapper
   }
 
   private boolean matchesAllVersionsOfComponent(ComponentFact componentFact) {
-    if (autoPolicyWaiverRevocation.getComponentIdentifier() == null ||
+    if (autoPolicyWaiverExclusion.getComponentIdentifier() == null ||
         componentFact.getComponentIdentifier() == null ||
         isDifferentFormat(componentFact.getComponentIdentifier(),
-            autoPolicyWaiverRevocation.getComponentIdentifier())) {
+            autoPolicyWaiverExclusion.getComponentIdentifier())) {
       return false;
     }
 
     ComponentIdentifier waiverAllVersionsComponentIdentifier =
-        autoPolicyWaiverRevocation.getComponentIdentifier().createAlternativeVersion("*");
+        autoPolicyWaiverExclusion.getComponentIdentifier().createAlternativeVersion("*");
     try {
       waiverAllVersionsComponentIdentifier.ensureComplete();
     }
     catch (InvalidComponentIdentifierException e) {
       log.warn("Failed to ensureComplete for purl {} with the following error: {}",
-          autoPolicyWaiverRevocation.getAssociatedPackageUrl(), e.getMessage());
+          autoPolicyWaiverExclusion.getAssociatedPackageUrl(), e.getMessage());
     }
 
     ComponentIdentifier componentFactComponentIdentifier =
@@ -144,32 +145,32 @@ public class AutoPolicyWaiverRevocationMatcherWrapper
 
   private boolean matchesPolicyViolation(PolicyViolation policyViolation) {
     // Policy ID
-    if (autoPolicyWaiverRevocation.getPolicyId() == null || policyViolation.getPolicyId() == null) {
+    if (autoPolicyWaiverExclusion.getPolicyId() == null || policyViolation.getPolicyId() == null) {
       return false;
     }
-    if (autoPolicyWaiverRevocation.getPolicyId().compareTo(policyViolation.getPolicyId()) != 0) {
+    if (autoPolicyWaiverExclusion.getPolicyId().compareTo(policyViolation.getPolicyId()) != 0) {
       return false;
     }
 
     // Threat level
-    if (autoPolicyWaiverRevocation.getThreatLevel() == null) {
+    if (autoPolicyWaiverExclusion.getThreatLevel() == null) {
       return false;
     }
-    if (autoPolicyWaiverRevocation.getThreatLevel() != policyViolation.getThreatLevel()) {
+    if (autoPolicyWaiverExclusion.getThreatLevel() != policyViolation.getThreatLevel()) {
       return false;
     }
 
     // Hash and component identifier
-    if (autoPolicyWaiverRevocation.getHash() == null || policyViolation.getHash() == null) {
+    if (autoPolicyWaiverExclusion.getHash() == null || policyViolation.getHash() == null) {
       return false;
     }
-    if (!Objects.equals(autoPolicyWaiverRevocation.getHash(), policyViolation.getHash())) {
+    if (!Objects.equals(autoPolicyWaiverExclusion.getHash(), policyViolation.getHash())) {
       return false;
     }
     
     try {
-      autoPolicyWaiverRevocation.getComponentIdentifier().ensureComplete();
-      if (autoPolicyWaiverRevocation.getComponentIdentifier().compareTo(policyViolation.getComponentIdentifier()) !=
+      autoPolicyWaiverExclusion.getComponentIdentifier().ensureComplete();
+      if (autoPolicyWaiverExclusion.getComponentIdentifier().compareTo(policyViolation.getComponentIdentifier()) !=
           0) {
         return false;
       }
@@ -179,12 +180,12 @@ public class AutoPolicyWaiverRevocationMatcherWrapper
     }
     try {
       // Constraint facts
-      if (autoPolicyWaiverRevocation.getConstraintFacts() == null || policyViolation.getConstraintFacts() == null) {
+      if (autoPolicyWaiverExclusion.getConstraintFacts() == null || policyViolation.getConstraintFacts() == null) {
         return false;
       }
       return ConstraintFactsListComparator.CONSTRAINT_FACTS_LIST_COMPARATOR.compare(
           policyViolation.getConstraintFacts(),
-          autoPolicyWaiverRevocation.getConstraintFacts()
+          autoPolicyWaiverExclusion.getConstraintFacts()
       ) == 0;
     }
     catch (NullPointerException e) {

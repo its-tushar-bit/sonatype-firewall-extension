@@ -795,10 +795,10 @@ public class ReportResourceTest
     Thread.sleep(1);
 
     /*
-     * Creating revocations for all waived violations
+     * Creating exclusions for all waived violations
      */
     autoWaivedPolicyViolations.forEach(policyViolation -> {
-      tempEntity.newAutoPolicyWaiverRevocationForAllVersions(app.getId(),
+      tempEntity.newAutoPolicyWaiverExclusionForAllVersions(app.getId(),
           autoPolicyWaiver.getId(), scanId,
           PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()).getPackageUrl());
     });
@@ -820,7 +820,7 @@ public class ReportResourceTest
             Stage.ID_BUILD);
     /*
      * Because auto-waivers were not skipped then auto-waived violations should not be present
-     * since a revocation was added for all of them.
+     * since a exclusion was added for all of them.
      */
     assertThat(autoWaivedPolicyViolations).isEmpty();
   }
@@ -868,10 +868,10 @@ public class ReportResourceTest
     Thread.sleep(1);
 
     /*
-     * Creating revocations for all waived violations
+     * Creating exclusions for all waived violations
      */
     autoWaivedPolicyViolations.forEach(policyViolation -> {
-      tempEntity.newAutoPolicyWaiverRevocationForAllVersions(app.getId(),
+      tempEntity.newAutoPolicyWaiverExclusionForAllVersions(app.getId(),
           autoPolicyWaiver.getId(), scanId,
           PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()).getPackageUrl());
     });
@@ -896,7 +896,7 @@ public class ReportResourceTest
 
     /*
      * Because auto-waivers were skipped then same auto-waived violations should be present
-     * the revocation logic wouldn't be applied in this case and everything is copied from
+     * the exclusion logic wouldn't be applied in this case and everything is copied from
      * last report
      */
     assertThat(reevaluatedAutoPolicyViolations).hasSize(autoWaivedPolicyViolations.size());

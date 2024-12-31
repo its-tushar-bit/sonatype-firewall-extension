@@ -41,7 +41,7 @@ export default function ExclusionLogTable({ exclusions, refreshTable }) {
       <NxTable.Body emptyMessage={'No exclusions found'}>
         {exclusions.map((exclusion) => (
           <ExclusionLogTableRow
-            key={`${exclusion.autoPolicyWaiverId}-${exclusion.autoPolicyWaiverRevocationId}`}
+            key={`${exclusion.autoPolicyWaiverId}-${exclusion.autoPolicyWaiverExclusionId}`}
             exclusion={exclusion}
             refreshTable={refreshTable}
           />
@@ -63,7 +63,7 @@ ExclusionLogTable.propTypes = {
     PropTypes.shape({
       createTime: PropTypes.string.isRequired,
       autoPolicyWaiverId: PropTypes.string.isRequired,
-      autoPolicyWaiverRevocationId: PropTypes.string.isRequired,
+      autoPolicyWaiverExclusionId: PropTypes.string.isRequired,
       threatLevel: PropTypes.number.isRequired,
       policyName: PropTypes.string,
       componentDisplayName: PropTypes.string,

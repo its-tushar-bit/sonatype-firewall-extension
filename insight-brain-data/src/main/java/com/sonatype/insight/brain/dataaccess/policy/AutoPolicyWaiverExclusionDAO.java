@@ -12,18 +12,18 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 @Named
 @Singleton
-public class AutoPolicyWaiverRevocationDAO
-    extends AbstractOperationalSqlDAO<AutoPolicyWaiverRevocation>
+public class AutoPolicyWaiverExclusionDAO
+    extends AbstractOperationalSqlDAO<AutoPolicyWaiverExclusion>
 {
   PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
 
   @Inject
-  public AutoPolicyWaiverRevocationDAO(
+  public AutoPolicyWaiverExclusionDAO(
       final OperationalDataStore operationalDataStore,
       final PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO)
   {
@@ -31,31 +31,31 @@ public class AutoPolicyWaiverRevocationDAO
     this.policyViolationConstraintFactsDAO = policyViolationConstraintFactsDAO;
   }
 
-  public List<AutoPolicyWaiverRevocation> getByOwnerId(String ownerId) {
+  public List<AutoPolicyWaiverExclusion> getByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerId(tx, ownerId);
     }
   }
 
-  public List<AutoPolicyWaiverRevocation> getByOwnerId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT entity FROM AutoPolicyWaiverRevocation entity" +
+  public List<AutoPolicyWaiverExclusion> getByOwnerId(TransactionContext tx, String ownerId) {
+    String sQuery = "SELECT entity FROM AutoPolicyWaiverExclusion entity" +
         " WHERE entity.ownerId=?1";
     return getList(tx, sQuery, ownerId);
   }
 
-  public List<AutoPolicyWaiverRevocation> getByOwnerIdAndHash(String ownerId, String hash) {
+  public List<AutoPolicyWaiverExclusion> getByOwnerIdAndHash(String ownerId, String hash) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerIdAndHash(tx, ownerId, hash);
     }
   }
 
-  public List<AutoPolicyWaiverRevocation> getByOwnerIdAndHash(TransactionContext tx, String ownerId, String hash) {
-    String sQuery = "SELECT entity FROM AutoPolicyWaiverRevocation entity" +
+  public List<AutoPolicyWaiverExclusion> getByOwnerIdAndHash(TransactionContext tx, String ownerId, String hash) {
+    String sQuery = "SELECT entity FROM AutoPolicyWaiverExclusion entity" +
         " WHERE entity.ownerId=?1 AND entity.hash=?2";
     return getList(tx, sQuery, ownerId, hash);
   }
 
-  public List<AutoPolicyWaiverRevocation> getByOwnerIdAndAutoPolicyWaiverId(
+  public List<AutoPolicyWaiverExclusion> getByOwnerIdAndAutoPolicyWaiverId(
       String ownerId,
       String autoPolicyWaiverId)
   {
@@ -64,17 +64,17 @@ public class AutoPolicyWaiverRevocationDAO
     }
   }
 
-  public List<AutoPolicyWaiverRevocation> getByOwnerIdAndAutoPolicyWaiverId(
+  public List<AutoPolicyWaiverExclusion> getByOwnerIdAndAutoPolicyWaiverId(
       TransactionContext tx,
       String ownerId,
       String autoPolicyWaiverId)
   {
-    String sQuery = "SELECT entity FROM AutoPolicyWaiverRevocation entity" +
+    String sQuery = "SELECT entity FROM AutoPolicyWaiverExclusion entity" +
         " WHERE entity.ownerId=?1 AND entity.autoPolicyWaiverId=?2";
     return getList(tx, sQuery, ownerId, autoPolicyWaiverId);
   }
 
-  public AutoPolicyWaiverRevocation getByOwnerIdAndAutoPolicyWaiverIdAndHash(
+  public AutoPolicyWaiverExclusion getByOwnerIdAndAutoPolicyWaiverIdAndHash(
       String ownerId,
       String autoPolicyWaiverId,
       String hash
@@ -85,19 +85,19 @@ public class AutoPolicyWaiverRevocationDAO
     }
   }
 
-  public AutoPolicyWaiverRevocation getByOwnerIdAndAutoPolicyWaiverIdAndHash(
+  public AutoPolicyWaiverExclusion getByOwnerIdAndAutoPolicyWaiverIdAndHash(
       TransactionContext tx,
       String ownerId,
       String autoPolicyWaiverId,
       String hash
   )
   {
-    String sQuery = "SELECT entity FROM AutoPolicyWaiverRevocation entity" +
+    String sQuery = "SELECT entity FROM AutoPolicyWaiverExclusion entity" +
         " WHERE entity.ownerId=?1 AND entity.autoPolicyWaiverId=?2 AND entity.hash=?3";
     return get(tx, sQuery, ownerId, autoPolicyWaiverId, hash);
   }
 
-  public AutoPolicyWaiverRevocation getByOwnerIdPolicyViolation(
+  public AutoPolicyWaiverExclusion getByOwnerIdPolicyViolation(
       String ownerId,
       String autoPolicyWaiverId,
       String policyViolationId)
@@ -107,18 +107,18 @@ public class AutoPolicyWaiverRevocationDAO
     }
   }
 
-  public AutoPolicyWaiverRevocation getByOwnerIdPolicyViolation(
+  public AutoPolicyWaiverExclusion getByOwnerIdPolicyViolation(
       TransactionContext tx,
       String ownerId,
       String autoPolicyWaiverId,
       String policyViolationId)
   {
-    String sQuery = "SELECT entity FROM AutoPolicyWaiverRevocation entity" +
+    String sQuery = "SELECT entity FROM AutoPolicyWaiverExclusion entity" +
         " WHERE entity.ownerId=?1 AND entity.autoPolicyWaiverId=?2 AND entity.policyViolationId=?3";
     return get(tx, sQuery, ownerId, autoPolicyWaiverId, policyViolationId);
   }
 
-  public List<AutoPolicyWaiverRevocation> getByOwnerIdAndAutoPolicyWaiverIdPaginated(
+  public List<AutoPolicyWaiverExclusion> getByOwnerIdAndAutoPolicyWaiverIdPaginated(
       String ownerId,
       String autoPolicyWaiverId,
       int page,
@@ -130,7 +130,7 @@ public class AutoPolicyWaiverRevocationDAO
   }
 
   @SuppressWarnings("unchecked")
-  public List<AutoPolicyWaiverRevocation> getByOwnerIdAndAutoPolicyWaiverIdPaginated(
+  public List<AutoPolicyWaiverExclusion> getByOwnerIdAndAutoPolicyWaiverIdPaginated(
       TransactionContext tx,
       String ownerId,
       String autoPolicyWaiverId,
@@ -154,7 +154,7 @@ public class AutoPolicyWaiverRevocationDAO
       final TransactionContext tx)
   {
     int offset = (page - 1) * pageSize;
-    String sQuery = "SELECT entity FROM AutoPolicyWaiverRevocation entity" +
+    String sQuery = "SELECT entity FROM AutoPolicyWaiverExclusion entity" +
         " WHERE entity.ownerId=?1 AND entity.autoPolicyWaiverId=?2";
     javax.persistence.Query paginatedQuery = createPaginationQuery(tx, sQuery, offset, pageSize);
     paginatedQuery.setParameter(1, ownerId);

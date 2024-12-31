@@ -10,8 +10,8 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Before;
@@ -25,14 +25,14 @@ public class AutoPolicyWaiverDAOTest
 {
   private AutoPolicyWaiverDAO dao;
 
-  private AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO;
+  private AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
 
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createAutoPolicyWaiverDAO();
-    autoPolicyWaiverRevocationDAO = daoFactory.createAutoPolicyWaiverRevocationDAO();
+    autoPolicyWaiverExclusionDAO = daoFactory.createAutoPolicyWaiverExclusionDAO();
   }
 
   @Test
@@ -108,7 +108,7 @@ public class AutoPolicyWaiverDAOTest
   }
 
   @Test
-  public void testDelete_CascadesToAutoPolicyWaiverRevocations() {
+  public void testDelete_CascadesToAutoPolicyWaiverExclusions() {
     AutoPolicyWaiver autoPolicyWaiverInstanceOne = new AutoPolicyWaiver(
         "fake",
         7,
@@ -131,7 +131,7 @@ public class AutoPolicyWaiverDAOTest
     );
     dao.insert(autoPolicyWaiverInstanceTwo);
 
-    AutoPolicyWaiverRevocation revocationOne = new AutoPolicyWaiverRevocation(
+    AutoPolicyWaiverExclusion exclusionOne = new AutoPolicyWaiverExclusion(
         "fake",
         "creatorId",
         "creatorName",
@@ -139,11 +139,11 @@ public class AutoPolicyWaiverDAOTest
         autoPolicyWaiverInstanceOne.getId(),
         "fakeScanId",
         "fakeHash",
-        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
     );
-    autoPolicyWaiverRevocationDAO.insert(revocationOne);
+    autoPolicyWaiverExclusionDAO.insert(exclusionOne);
 
-    AutoPolicyWaiverRevocation revocationTwo = new AutoPolicyWaiverRevocation(
+    AutoPolicyWaiverExclusion exclusionTwo = new AutoPolicyWaiverExclusion(
         "other",
         "creator",
         "creator",
@@ -151,19 +151,19 @@ public class AutoPolicyWaiverDAOTest
         autoPolicyWaiverInstanceTwo.getId(),
         "otherScanId",
         "otherHash",
-        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
     );
-    autoPolicyWaiverRevocationDAO.insert(revocationTwo);
+    autoPolicyWaiverExclusionDAO.insert(exclusionTwo);
 
     dao.delete(autoPolicyWaiverInstanceOne);
 
     List<AutoPolicyWaiver> autoPolicyWaivers = dao.getAll();
     assertThat(autoPolicyWaivers).hasSize(1);
 
-    List<AutoPolicyWaiverRevocation> autoPolicyWaiverRevocations =
-        autoPolicyWaiverRevocationDAO.getAll();
-    assertThat(autoPolicyWaiverRevocations).hasSize(1).allSatisfy(revocationInstance -> {
-      assertThat(revocationInstance.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiverInstanceTwo.getId());
+    List<AutoPolicyWaiverExclusion> autoPolicyWaiverExclusions =
+        autoPolicyWaiverExclusionDAO.getAll();
+    assertThat(autoPolicyWaiverExclusions).hasSize(1).allSatisfy(exclusionInstance -> {
+      assertThat(exclusionInstance.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiverInstanceTwo.getId());
     });
   }
 }

@@ -14,7 +14,7 @@ import {
   NxButton,
 } from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
-import DeleteExclusionModal from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/DeleteAutoWaiverRevocationModal';
+import DeleteExclusionModal from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/DeleteAutoWaiverExclusionModal';
 
 export default function ExclusionLogTableRow({ exclusion }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -26,7 +26,7 @@ export default function ExclusionLogTableRow({ exclusion }) {
     componentDisplayName,
     vulnerabilityIdentifiers,
     autoPolicyWaiverId,
-    autoPolicyWaiverRevocationId,
+    autoPolicyWaiverExclusionId,
   } = exclusion;
 
   const formattedCreateTime = moment(createTime).format('YYYY-MM-DD');
@@ -63,7 +63,7 @@ export default function ExclusionLogTableRow({ exclusion }) {
             <NxButton
               variant="icon-only"
               title="delete"
-              key={`${autoPolicyWaiverId}-${autoPolicyWaiverRevocationId}--delete`}
+              key={`${autoPolicyWaiverId}-${autoPolicyWaiverExclusionId}--delete`}
               className="iq-auto-waivers-exclusion-log__delete-btn"
               onClick={() => setIsDeleteModalOpen(true)}
             >
@@ -76,7 +76,7 @@ export default function ExclusionLogTableRow({ exclusion }) {
         showModal={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         autoPolicyWaiverId={autoPolicyWaiverId}
-        autoPolicyWaiverRevocationId={autoPolicyWaiverRevocationId}
+        autoPolicyWaiverExclusionId={autoPolicyWaiverExclusionId}
       />
     </>
   );
@@ -86,7 +86,7 @@ ExclusionLogTableRow.propTypes = {
   exclusion: PropTypes.shape({
     createTime: PropTypes.string.isRequired,
     autoPolicyWaiverId: PropTypes.string.isRequired,
-    autoPolicyWaiverRevocationId: PropTypes.string.isRequired,
+    autoPolicyWaiverExclusionId: PropTypes.string.isRequired,
     threatLevel: PropTypes.number.isRequired,
     policyName: PropTypes.string,
     componentDisplayName: PropTypes.string,

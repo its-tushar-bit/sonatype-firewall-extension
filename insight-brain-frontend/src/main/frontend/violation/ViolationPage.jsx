@@ -213,7 +213,7 @@ export default function ViolationPage(props) {
               <NxTabPanel>
                 <div id="applicable-waivers-tile">
                   <NxH3>
-                    <b> Active and expired waivers applicable to this violation of {violationDetails?.policyName}</b>
+                    <b> Waivers applicable to this violation of {violationDetails?.policyName}</b>
                   </NxH3>
                   <ListWaiversTable violationDetails={violationDetails} unknownComponentName={componentDisplayName} />
                 </div>

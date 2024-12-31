@@ -59,7 +59,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseLicenseInternal
 import com.sonatype.insight.brain.dataaccess.lock.PostgresAdvisoryLockDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverRevocationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverExclusionDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.LastPolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
@@ -432,7 +432,7 @@ public interface DAOFactory
   
   AutoPolicyWaiverDAO createAutoPolicyWaiverDAO();
   
-  AutoPolicyWaiverRevocationDAO createAutoPolicyWaiverRevocationDAO();
+  AutoPolicyWaiverExclusionDAO createAutoPolicyWaiverExclusionDAO();
   
   MalwareDefenseMetricsDAO createMalwareDefenseMetricsDAO();
 

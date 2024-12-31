@@ -25,8 +25,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverResource.BY_AUTO_POLICY_WAIVER_ID_PATH;
-import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverResource.OWNERS_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyExclusionResource.BY_AUTO_POLICY_WAIVER_ID_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiAutoPolicyExclusionResource.OWNERS_PATH;
 import static org.mockito.Mockito.when;
 
 public class ApiAutoPolicyWaiverAuditTest

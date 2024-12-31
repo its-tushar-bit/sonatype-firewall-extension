@@ -17,18 +17,18 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverRevocationAdapter;
-import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationResponseDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationRequestDTO;
+import com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverExclusionAdapter;
+import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverExclusionResponseDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverExclusionRequestDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverRevocationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverExclusionDAO;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -38,8 +38,8 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.CurrentUser;
-import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverRevocationTelemetry.AutoPolicyWaiverRevocationAction;
-import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverRevocationTelemetryMetrics;
+import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverExclusionTelemetry.AutoPolicyWaiverExclusionAction;
+import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverExclusionTelemetryMetrics;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -48,11 +48,11 @@ import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ApiAutoPolicyWaiverRevocationService
+public class ApiAutoPolicyWaiverExclusionService
 {
   private final ReportService reportService;
 
-  private final AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO;
+  private final AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
 
   private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
 
@@ -62,39 +62,39 @@ public class ApiAutoPolicyWaiverRevocationService
 
   private final CurrentUser currentUser;
 
-  private final AutoPolicyWaiverRevocationTelemetryMetrics autoPolicyWaiverRevocationTelemetryMetrics;
+  private final AutoPolicyWaiverExclusionTelemetryMetrics autoPolicyWaiverExclusionTelemetryMetrics;
 
   private static final Pattern CVE_REGEX_PATTERN = Pattern.compile("((CVE|SONATYPE|sonatype)-\\d+-\\d+)");
 
   private static final List<String> SECURITY_CONDITIONS = ImmutableList
       .of(SecurityVulnerabilitySeverityConditionType.ID, SecurityVulnerabilityStatusConditionType.ID);
 
-  private static final Logger log = LoggerFactory.getLogger(ApiAutoPolicyWaiverRevocationService.class);
+  private static final Logger log = LoggerFactory.getLogger(ApiAutoPolicyWaiverExclusionService.class);
 
   @Inject
-  public ApiAutoPolicyWaiverRevocationService(
+  public ApiAutoPolicyWaiverExclusionService(
       ReportService reportService,
-      AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO,
+      AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO,
       AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       ApplicationDAO applicationDAO,
       OrganizationDAO organizationDAO,
       CurrentUser currentUser,
-      AutoPolicyWaiverRevocationTelemetryMetrics autoPolicyWaiverRevocationTelemetryMetrics)
+      AutoPolicyWaiverExclusionTelemetryMetrics autoPolicyWaiverExclusionTelemetryMetrics)
   {
     this.reportService = reportService;
-    this.autoPolicyWaiverRevocationDAO = autoPolicyWaiverRevocationDAO;
+    this.autoPolicyWaiverExclusionDAO = autoPolicyWaiverExclusionDAO;
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
     this.currentUser = currentUser;
-    this.autoPolicyWaiverRevocationTelemetryMetrics = autoPolicyWaiverRevocationTelemetryMetrics;
+    this.autoPolicyWaiverExclusionTelemetryMetrics = autoPolicyWaiverExclusionTelemetryMetrics;
   }
 
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
-  public ApiAutoPolicyWaiverRevocationResponseDTO addAutoPolicyWaiverRevocation(
+  public ApiAutoPolicyWaiverExclusionResponseDTO addAutoPolicyWaiverExclusion(
       @AuthzContext(Key.TYPE) OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) String ownerId,
-      ApiAutoPolicyWaiverRevocationRequestDTO requestDTO)
+      ApiAutoPolicyWaiverExclusionRequestDTO requestDTO)
   {
     checkOwnerType(ownerType, ownerId);
     validateAutoPolicyWaiver(ownerType, ownerId, requestDTO.autoPolicyWaiverId);
@@ -120,87 +120,88 @@ public class ApiAutoPolicyWaiverRevocationService
       throw new BadRequestException("Component not found in scan");
     }
 
-    // Initialize revocation and add basic details
-    AutoPolicyWaiverRevocation newRevocation = new AutoPolicyWaiverRevocation();
-    newRevocation.setOwnerId(ownerId);
-    newRevocation.setCreatorId(currentUser.getUserPrincipal().getUsername());
-    newRevocation.setCreatorName(currentUser.getUserPrincipal().getDisplayName());
-    newRevocation.setCreateTime(new Date());
-    newRevocation.setAutoPolicyWaiverId(requestDTO.autoPolicyWaiverId);
-    newRevocation.setPolicyViolationId(requestDTO.policyViolationId);
-    newRevocation.setScanId(requestDTO.scanId);
-    newRevocation.setComponentMatchStrategy(requestDTO.matchStrategy);
+    // Initialize exclusion and add basic details
+    AutoPolicyWaiverExclusion newExclusion = new AutoPolicyWaiverExclusion();
+    newExclusion.setOwnerId(ownerId);
+    newExclusion.setCreatorId(currentUser.getUserPrincipal().getUsername());
+    newExclusion.setCreatorName(currentUser.getUserPrincipal().getDisplayName());
+    newExclusion.setCreateTime(new Date());
+    newExclusion.setAutoPolicyWaiverId(requestDTO.autoPolicyWaiverId);
+    newExclusion.setPolicyViolationId(requestDTO.policyViolationId);
+    newExclusion.setScanId(requestDTO.scanId);
+    newExclusion.setComponentMatchStrategy(requestDTO.matchStrategy);
 
     // Attributes shared for all strategies; only needed for exclusion log in the UI
-    newRevocation.setPolicyName(policyViolation.policyName);
-    newRevocation.setThreatLevel(policyViolation.policyThreatLevel);
-    newRevocation.setComponentDisplayName(
+    newExclusion.setPolicyName(policyViolation.policyName);
+    newExclusion.setThreatLevel(policyViolation.policyThreatLevel);
+    newExclusion.setComponentDisplayName(
         ComponentDisplayNameUtil.fromIdentifier(component.componentIdentifier).toString());
     try {
 
       List<ConstraintFact> constraintFacts =
           Arrays.asList(JsonUtils.parse(policyViolation.constraintFactsJson, ConstraintFact[].class));
-      newRevocation.setVulnerabilityIdentifiers(getCveIdentifiers(constraintFacts));
+      newExclusion.setVulnerabilityIdentifiers(getCveIdentifiers(constraintFacts));
       component.componentIdentifier.ensureComplete();
-      newRevocation.setComponentIdentifier(component.componentIdentifier);
+      newExclusion.setComponentIdentifier(component.componentIdentifier);
 
       // Set attributes based on the match strategy - ALL_VERSIONS does not require any extra data
-      if (requestDTO.matchStrategy == ComponentMatcherStrategyForRevocation.POLICY_VIOLATION) {
-        newRevocation.setPolicyId(policyViolation.policyId);
-        newRevocation.setHash(component.hash);
-        newRevocation.setConstraintFacts(constraintFacts);
-        log.debug("Revoking policy violation for component {} with hash {}", component.componentIdentifier,
+      if (requestDTO.matchStrategy == ComponentMatcherStrategyForExclusion.POLICY_VIOLATION) {
+        newExclusion.setPolicyId(policyViolation.policyId);
+        newExclusion.setHash(component.hash);
+        newExclusion.setConstraintFacts(constraintFacts);
+        log.debug("Excluding policy violation for component {} with hash {}",
+            component.componentIdentifier,
             component.hash);
       }
-      else if (requestDTO.matchStrategy == ComponentMatcherStrategyForRevocation.EXACT_COMPONENT) {
-        newRevocation.setHash(component.hash);
-        log.debug("Revoking policy violation for exact component {} with hash {}",
+      else if (requestDTO.matchStrategy == ComponentMatcherStrategyForExclusion.EXACT_COMPONENT) {
+        newExclusion.setHash(component.hash);
+        log.debug("Excluding policy violation for exact component {} with hash {}",
             component.componentIdentifier,
             component.hash);
       }
       else {
-        log.debug("Revoking policy violation for all versions of component {}",
+        log.debug("Excluding policy violation for all versions of component {}",
             component.componentIdentifier);
       }
 
-      checkForExistingRecord(newRevocation);
+      checkForExistingRecord(newExclusion);
 
-      autoPolicyWaiverRevocationDAO.insert(newRevocation);
-      auditAutoPolicyWaiverRevocation(newRevocation);
-      log.debug("Added auto policy waiver revocation {}", newRevocation.getId());
-      autoPolicyWaiverRevocationTelemetryMetrics.collect(newRevocation, ownerType,
-          AutoPolicyWaiverRevocationAction.CREATE);
-      return ApiAutoPolicyWaiverRevocationAdapter.convertToDTO(newRevocation);
+      autoPolicyWaiverExclusionDAO.insert(newExclusion);
+      auditAutoPolicyWaiverRevocation(newExclusion);
+      log.debug("Added auto policy waiver exclusion {}", newExclusion.getId());
+      autoPolicyWaiverExclusionTelemetryMetrics.collect(newExclusion, ownerType,
+          AutoPolicyWaiverExclusionAction.CREATE);
+      return ApiAutoPolicyWaiverExclusionAdapter.convertToDTO(newExclusion);
     }
     catch (IOException e) {
-      throw new BadRequestException("Couldn't add auto-waiver revocation. Failed to parse " +
+      throw new BadRequestException("Couldn't add auto-waiver exclusion. Failed to parse " +
           "constraint facts JSON", e);
     }
   }
 
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
-  public void deleteAutoPolicyWaiverRevocation(
+  public void deleteAutoPolicyWaiverExclusion(
       @AuthzContext(Key.TYPE) OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) String ownerId,
-      String autoPolicyWaiverRevocationId)
+      String autoPolicyWaiverExclusionId)
   {
     checkOwnerType(ownerType, ownerId);
-    AutoPolicyWaiverRevocation autoPolicyWaiverRevocation =
-        autoPolicyWaiverRevocationDAO.getByIdNotNull(autoPolicyWaiverRevocationId);
-    if (!ownerId.equals(autoPolicyWaiverRevocation.getOwnerId())) {
-      throw new NotFoundException("Cannot find an auto policy waiver revocation with ID "
-          + autoPolicyWaiverRevocationId + " for " + ownerType
+    AutoPolicyWaiverExclusion autoPolicyWaiverExclusion =
+        autoPolicyWaiverExclusionDAO.getByIdNotNull(autoPolicyWaiverExclusionId);
+    if (!ownerId.equals(autoPolicyWaiverExclusion.getOwnerId())) {
+      throw new NotFoundException("Cannot find an auto policy waiver exclusion with ID "
+          + autoPolicyWaiverExclusionId + " for " + ownerType
           + " with ID " + ownerId);
     }
-    auditAutoPolicyWaiverRevocation(autoPolicyWaiverRevocation);
-    autoPolicyWaiverRevocationDAO.delete(autoPolicyWaiverRevocation);
-    log.debug("Deleted auto policy waiver revocation {}", autoPolicyWaiverRevocationId);
-    autoPolicyWaiverRevocationTelemetryMetrics.collect(autoPolicyWaiverRevocation, ownerType,
-        AutoPolicyWaiverRevocationAction.DELETE);
+    auditAutoPolicyWaiverRevocation(autoPolicyWaiverExclusion);
+    autoPolicyWaiverExclusionDAO.delete(autoPolicyWaiverExclusion);
+    log.debug("Deleted auto policy waiver exclusion {}", autoPolicyWaiverExclusionId);
+    autoPolicyWaiverExclusionTelemetryMetrics.collect(autoPolicyWaiverExclusion, ownerType,
+        AutoPolicyWaiverExclusionAction.DELETE);
   }
 
   @Authorize(permission = Permission.READ)
-  public List<ApiAutoPolicyWaiverRevocationResponseDTO> getAutoPolicyWaiverRevocations(
+  public List<ApiAutoPolicyWaiverExclusionResponseDTO> getAutoPolicyWaiverExclusions(
       @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.INTERNAL_ID) String ownerId,
       String autoPolicyWaiverId,
@@ -209,17 +210,17 @@ public class ApiAutoPolicyWaiverRevocationService
   )
   {
     checkOwnerType(ownerType, ownerId);
-    List<AutoPolicyWaiverRevocation> revocations =
-        autoPolicyWaiverRevocationDAO.getByOwnerIdAndAutoPolicyWaiverIdPaginated(
+    List<AutoPolicyWaiverExclusion> exclusions =
+        autoPolicyWaiverExclusionDAO.getByOwnerIdAndAutoPolicyWaiverIdPaginated(
             ownerId,
             autoPolicyWaiverId,
             page,
             pageSize
         );
 
-    List<ApiAutoPolicyWaiverRevocationResponseDTO> results = new ArrayList<>();
-    for (AutoPolicyWaiverRevocation revocation : revocations) {
-      results.add(ApiAutoPolicyWaiverRevocationAdapter.convertToDTO(revocation));
+    List<ApiAutoPolicyWaiverExclusionResponseDTO> results = new ArrayList<>();
+    for (AutoPolicyWaiverExclusion exclusion : exclusions) {
+      results.add(ApiAutoPolicyWaiverExclusionAdapter.convertToDTO(exclusion));
     }
     return results;
   }
@@ -253,7 +254,7 @@ public class ApiAutoPolicyWaiverRevocationService
     }
   }
 
-  private void validateRequestDto(ApiAutoPolicyWaiverRevocationRequestDTO requestDTO) {
+  private void validateRequestDto(ApiAutoPolicyWaiverExclusionRequestDTO requestDTO) {
     if (requestDTO == null) {
       throw new BadRequestException("request body is required");
     }
@@ -281,14 +282,14 @@ public class ApiAutoPolicyWaiverRevocationService
     if (requestDTO.ownerId.length() > 50) {
       throw new BadRequestException("ownerId exceeds maximum length of 50 characters");
     }
-    ComponentMatcherStrategyForRevocation strategy = requestDTO.matchStrategy;
+    ComponentMatcherStrategyForExclusion strategy = requestDTO.matchStrategy;
     if (strategy == null) {
       throw new BadRequestException("matchStrategy is required");
     }
   }
 
-  private void auditAutoPolicyWaiverRevocation(AutoPolicyWaiverRevocation autoPolicyWaiverRevocation) {
-    AuditData.get().setData("autoPolicyWaiverRevocationId", autoPolicyWaiverRevocation.getId());
+  private void auditAutoPolicyWaiverRevocation(AutoPolicyWaiverExclusion autoPolicyWaiverExclusion) {
+    AuditData.get().setData("autoPolicyWaiverRevocationId", autoPolicyWaiverExclusion.getId());
   }
 
   String getCveIdentifiers(List<ConstraintFact> constraintFacts) {
@@ -330,14 +331,15 @@ public class ApiAutoPolicyWaiverRevocationService
     return "/applicationReport/" + applicationId + "/" + scanId + "/policy";
   }
 
-  private void checkForExistingRecord(AutoPolicyWaiverRevocation newRevocation) {
-    AutoPolicyWaiverRevocation existingRevocation = autoPolicyWaiverRevocationDAO.getByOwnerIdPolicyViolation(
-        newRevocation.getOwnerId(),
-        newRevocation.getAutoPolicyWaiverId(),
-        newRevocation.getPolicyViolationId()
+  private void checkForExistingRecord(AutoPolicyWaiverExclusion newExclusion) {
+    AutoPolicyWaiverExclusion existingExclusion =
+        autoPolicyWaiverExclusionDAO.getByOwnerIdPolicyViolation(
+        newExclusion.getOwnerId(),
+        newExclusion.getAutoPolicyWaiverId(),
+        newExclusion.getPolicyViolationId()
     );
-    if (existingRevocation != null) {
-      throw new BadRequestException("Revocation already exists for this policy violation");
+    if (existingExclusion != null) {
+      throw new BadRequestException("Exclusion already exists for this policy violation");
     }
   }
 }

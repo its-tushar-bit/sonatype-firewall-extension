@@ -8,9 +8,9 @@ import { prop } from 'ramda';
 import { selectOrgsAndPoliciesSlice } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { createSelector } from '@reduxjs/toolkit';
 
-export const selectAutomatedWaiversRevocationSlice = createSelector(
+export const selectAutomatedWaiversExclusionSlice = createSelector(
   selectOrgsAndPoliciesSlice,
-  prop('autoWaiverRevocations')
+  prop('autoWaiverExclusions')
 );
 
-export const selectRevocations = createSelector(selectAutomatedWaiversRevocationSlice, prop('data'));
+export const selectExclusions = createSelector(selectAutomatedWaiversExclusionSlice, prop('data'));

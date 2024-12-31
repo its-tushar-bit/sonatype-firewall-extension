@@ -37,7 +37,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverRevocationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverExclusionDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
@@ -63,8 +63,8 @@ import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -202,7 +202,7 @@ public class ScanPolicyEvaluatorTest
   private AutoPolicyWaiverDAO autoPolicyWaiverDAO;
   
   @Inject
-  private AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO;
+  private AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
 
   @Inject
   private PolicyWaiverDAO policyWaiverDAO;
@@ -662,7 +662,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_Results_AutoWaivedViolations_NoRevocations() throws Exception {
+  public void testEvaluate_Results_AutoWaivedViolations_NoExclusions() throws Exception {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -686,10 +686,10 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_Results_AutoWaivedViolations_RevocationsApply_ExactComponent() throws Exception {
+  public void testEvaluate_Results_AutoWaivedViolations_ExclusionsApply_ExactComponent() throws Exception {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
 
-    // The revocation will apply to tomcat-util version 5.5.23 only. The violation for v5.4.23 will be auto-waived
+    // The exclusion will apply to tomcat-util version 5.5.23 only. The violation for v5.4.23 will be auto-waived
     String componentIdentifier = "maven: {artifactId=tomcat-util, groupId=tomcat, version=5.5.23}";
     String componentHash = "1249e25aebb15358bedd";
 
@@ -705,7 +705,7 @@ public class ScanPolicyEvaluatorTest
     tempEntity.newPolicy(securityPolicy);
 
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 10, false, false);
-    tempEntity.newAutoPolicyWaiverRevocation(
+    tempEntity.newAutoPolicyWaiverExclusion(
         application.getId(),
         "creatorId",
         "creatorName",
@@ -713,7 +713,7 @@ public class ScanPolicyEvaluatorTest
         autoPolicyWaiver.getId(),
         scanId,
         componentHash,
-        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
 
     ScanPolicyEvaluatorResults results =
         scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
@@ -728,10 +728,10 @@ public class ScanPolicyEvaluatorTest
   }
   
   @Test
-  public void testEvaluate_Results_AutoWaivedViolations_RevocationsApply_AllVersions() throws Exception {
+  public void testEvaluate_Results_AutoWaivedViolations_ExclusionsApply_AllVersions() throws Exception {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
 
-    // The revocation will apply to all versions of tomcat-util. Report contains violations for 5.4.23 & 5.5.23
+    // The exclusion will apply to all versions of tomcat-util. Report contains violations for 5.4.23 & 5.5.23
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
     
@@ -748,7 +748,7 @@ public class ScanPolicyEvaluatorTest
 
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 10, false, false);
 
-    tempEntity.newAutoPolicyWaiverRevocation(
+    tempEntity.newAutoPolicyWaiverExclusion(
         application.getId(),
         "creatorId",
         "creatorName",
@@ -756,7 +756,7 @@ public class ScanPolicyEvaluatorTest
         autoPolicyWaiver.getId(),
         scanId,
         null,
-        ComponentMatcherStrategyForRevocation.ALL_VERSIONS,
+        ComponentMatcherStrategyForExclusion.ALL_VERSIONS,
         null,
         null,
         null,
@@ -779,7 +779,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_Results_AutoWaivedViolations_RevocationsApply_PolicyViolation() throws Exception {
+  public void testEvaluate_Results_AutoWaivedViolations_ExclusionsApply_PolicyViolation() throws Exception {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -802,23 +802,23 @@ public class ScanPolicyEvaluatorTest
             ClientScanType.SONATYPE, false);
     PolicyViolation targetViolation = evalOne.autoWaivedViolations.get(0);
 
-    AutoPolicyWaiverRevocation revocation = new AutoPolicyWaiverRevocation();
-    revocation.setOwnerId(application.getId());
-    revocation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
-    revocation.setCreateTime(new Date());
-    revocation.setCreatorName("fakeName");
-    revocation.setCreatorId("fakeId");
-    revocation.setScanId(scanIdOne);
-    revocation.setPolicyId(targetViolation.getPolicyId());
-    revocation.setPolicyName(targetViolation.getPolicyName());
-    revocation.setPolicyViolationId(targetViolation.getId());
-    revocation.setThreatLevel(targetViolation.getThreatLevel());
-    revocation.setComponentIdentifier(targetViolation.getComponentIdentifier());
-    revocation.setHash(targetViolation.getHash());
+    AutoPolicyWaiverExclusion exclusion = new AutoPolicyWaiverExclusion();
+    exclusion.setOwnerId(application.getId());
+    exclusion.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+    exclusion.setCreateTime(new Date());
+    exclusion.setCreatorName("fakeName");
+    exclusion.setCreatorId("fakeId");
+    exclusion.setScanId(scanIdOne);
+    exclusion.setPolicyId(targetViolation.getPolicyId());
+    exclusion.setPolicyName(targetViolation.getPolicyName());
+    exclusion.setPolicyViolationId(targetViolation.getId());
+    exclusion.setThreatLevel(targetViolation.getThreatLevel());
+    exclusion.setComponentIdentifier(targetViolation.getComponentIdentifier());
+    exclusion.setHash(targetViolation.getHash());
 
-    revocation.setConstraintFacts(targetViolation.getConstraintFacts());
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
-    autoPolicyWaiverRevocationDAO.insert(revocation);
+    exclusion.setConstraintFacts(targetViolation.getConstraintFacts());
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.POLICY_VIOLATION);
+    autoPolicyWaiverExclusionDAO.insert(exclusion);
 
     ScanPolicyEvaluatorResults evalTwo =
         scanPolicyEvaluator.evaluate(application, scanIdTwo, stageTwo, ScanTriggerType.CLI,
@@ -826,15 +826,15 @@ public class ScanPolicyEvaluatorTest
     assertThat(evalTwo.allViolations).hasSize(3);
     assertThat(evalTwo.autoWaivedViolations).hasSize(2);
     assertThat(evalTwo.activeViolations).hasSize(1).allSatisfy(violation -> {
-      assertThat(violation.getPolicyId()).isEqualTo(revocation.getPolicyId());
-      assertThat(violation.getHash()).isEqualTo(revocation.getHash());
-      assertThat(violation.getThreatLevel()).isEqualTo(revocation.getThreatLevel());
-      assertThat(violation.getComponentIdentifier()).isEqualTo(revocation.getComponentIdentifier());
+      assertThat(violation.getPolicyId()).isEqualTo(exclusion.getPolicyId());
+      assertThat(violation.getHash()).isEqualTo(exclusion.getHash());
+      assertThat(violation.getThreatLevel()).isEqualTo(exclusion.getThreatLevel());
+      assertThat(violation.getComponentIdentifier()).isEqualTo(exclusion.getComponentIdentifier());
     });
   }
   
   @Test
-  public void testEvaluate_Results_AutoWaivedViolations_RevocationsApply_PolicyViolation_incompleteComponent()
+  public void testEvaluate_Results_AutoWaivedViolations_ExclusionsApply_PolicyViolation_incompleteComponent()
       throws Exception
   {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
@@ -859,23 +859,23 @@ public class ScanPolicyEvaluatorTest
             ClientScanType.SONATYPE, false);
     PolicyViolation targetViolation = evalOne.autoWaivedViolations.get(0);
 
-    AutoPolicyWaiverRevocation revocation = new AutoPolicyWaiverRevocation();
-    revocation.setOwnerId(application.getId());
-    revocation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
-    revocation.setCreateTime(new Date());
-    revocation.setCreatorName("fakeName");
-    revocation.setCreatorId("fakeId");
-    revocation.setScanId(scanIdOne);
-    revocation.setPolicyId(targetViolation.getPolicyId());
-    revocation.setPolicyName(targetViolation.getPolicyName());
-    revocation.setPolicyViolationId(targetViolation.getId());
-    revocation.setThreatLevel(targetViolation.getThreatLevel());
-    revocation.setComponentIdentifier(targetViolation.getComponentIdentifier());
-    revocation.setHash(targetViolation.getHash());
+    AutoPolicyWaiverExclusion exclusion = new AutoPolicyWaiverExclusion();
+    exclusion.setOwnerId(application.getId());
+    exclusion.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+    exclusion.setCreateTime(new Date());
+    exclusion.setCreatorName("fakeName");
+    exclusion.setCreatorId("fakeId");
+    exclusion.setScanId(scanIdOne);
+    exclusion.setPolicyId(targetViolation.getPolicyId());
+    exclusion.setPolicyName(targetViolation.getPolicyName());
+    exclusion.setPolicyViolationId(targetViolation.getId());
+    exclusion.setThreatLevel(targetViolation.getThreatLevel());
+    exclusion.setComponentIdentifier(targetViolation.getComponentIdentifier());
+    exclusion.setHash(targetViolation.getHash());
     
-    revocation.setConstraintFacts(targetViolation.getConstraintFacts());
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
-    autoPolicyWaiverRevocationDAO.insert(revocation);
+    exclusion.setConstraintFacts(targetViolation.getConstraintFacts());
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.POLICY_VIOLATION);
+    autoPolicyWaiverExclusionDAO.insert(exclusion);
 
     ScanPolicyEvaluatorResults evalTwo =
         scanPolicyEvaluator.evaluate(application, scanIdTwo, stageTwo, ScanTriggerType.CLI,
@@ -887,7 +887,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_Results_AutoWaivedViolations_RevocationsDoNotApply_ExactComponent() throws Exception {
+  public void testEvaluate_Results_AutoWaivedViolations_ExclusionsDoNotApply_ExactComponent() throws Exception {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -903,7 +903,7 @@ public class ScanPolicyEvaluatorTest
 
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 10, false, false);
 
-    tempEntity.newAutoPolicyWaiverRevocation(
+    tempEntity.newAutoPolicyWaiverExclusion(
         application.getId(),
         "creatorId",
         "creatorName",
@@ -911,18 +911,18 @@ public class ScanPolicyEvaluatorTest
         autoPolicyWaiver.getId(),
         scanId,
         "someHash",
-        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
 
     ScanPolicyEvaluatorResults results =
         scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
             ClientScanType.SONATYPE, false);
 
-    // The revocation does not apply to the component with violations, so all violations should be auto-waived
+    // The exclusion does not apply to the component with violations, so all violations should be auto-waived
     assertThat(results.autoWaivedViolations).hasSize(36);
   }
 
   @Test
-  public void testEvaluate_Results_AutoWaivedViolations_RevocationsDoNotApply_AllVersions() throws Exception {
+  public void testEvaluate_Results_AutoWaivedViolations_ExclusionsDoNotApply_AllVersions() throws Exception {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -940,7 +940,7 @@ public class ScanPolicyEvaluatorTest
 
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 10, false, false);
 
-    tempEntity.newAutoPolicyWaiverRevocation(
+    tempEntity.newAutoPolicyWaiverExclusion(
         application.getId(),
         "creatorId",
         "creatorName",
@@ -948,7 +948,7 @@ public class ScanPolicyEvaluatorTest
         autoPolicyWaiver.getId(),
         scanId,
         null,
-        ComponentMatcherStrategyForRevocation.ALL_VERSIONS,
+        ComponentMatcherStrategyForExclusion.ALL_VERSIONS,
         null,
         null,
         null,
@@ -963,15 +963,15 @@ public class ScanPolicyEvaluatorTest
         scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
             ClientScanType.SONATYPE, false);
 
-    // The revocation does not apply to the component with violations, so all violations should be auto-waived
+    // The exclusion does not apply to the component with violations, so all violations should be auto-waived
     assertThat(results.autoWaivedViolations).hasSize(36);
   }
 
   @Test
-  public void testEvaluate_Results_AutoWaivedViolations_RevocationsDoNotApply_PolicyViolation() throws Exception {
+  public void testEvaluate_Results_AutoWaivedViolations_ExclusionsDoNotApply_PolicyViolation() throws Exception {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
 
-    // The revocation will apply to all versions of tomcat-util. Report contains violations for 5.4.23 & 5.5.23
+    // The exclusion will apply to all versions of tomcat-util. Report contains violations for 5.4.23 & 5.5.23
     String componentPackageUrl = "pkg:maven/tomcat/tomcat-util@5.5.23";
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -994,22 +994,22 @@ public class ScanPolicyEvaluatorTest
             ClientScanType.SONATYPE, false);
     PolicyViolation targetViolation = evalOne.autoWaivedViolations.get(0);
 
-    AutoPolicyWaiverRevocation revocation = new AutoPolicyWaiverRevocation();
-    revocation.setOwnerId(application.getId());
-    revocation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
-    revocation.setCreateTime(new Date());
-    revocation.setCreatorName("fakeName");
-    revocation.setCreatorId("fakeId");
-    revocation.setScanId(scanIdOne);
-    revocation.setPolicyId(securityPolicy.getId());
-    revocation.setPolicyName(securityPolicy.getName());
-    revocation.setPolicyViolationId(targetViolation.getId());
-    revocation.setThreatLevel(targetViolation.getThreatLevel());
-    revocation.setAssociatedPackageUrl(componentPackageUrl);
-    revocation.setHash("someOtherHash");
-    revocation.setConstraintFacts(targetViolation.getConstraintFacts());
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
-    autoPolicyWaiverRevocationDAO.insert(revocation);
+    AutoPolicyWaiverExclusion exclusion = new AutoPolicyWaiverExclusion();
+    exclusion.setOwnerId(application.getId());
+    exclusion.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+    exclusion.setCreateTime(new Date());
+    exclusion.setCreatorName("fakeName");
+    exclusion.setCreatorId("fakeId");
+    exclusion.setScanId(scanIdOne);
+    exclusion.setPolicyId(securityPolicy.getId());
+    exclusion.setPolicyName(securityPolicy.getName());
+    exclusion.setPolicyViolationId(targetViolation.getId());
+    exclusion.setThreatLevel(targetViolation.getThreatLevel());
+    exclusion.setAssociatedPackageUrl(componentPackageUrl);
+    exclusion.setHash("someOtherHash");
+    exclusion.setConstraintFacts(targetViolation.getConstraintFacts());
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.POLICY_VIOLATION);
+    autoPolicyWaiverExclusionDAO.insert(exclusion);
 
     ScanPolicyEvaluatorResults evalTwo =
         scanPolicyEvaluator.evaluate(application, scanIdTwo, stageTwo, ScanTriggerType.CLI,

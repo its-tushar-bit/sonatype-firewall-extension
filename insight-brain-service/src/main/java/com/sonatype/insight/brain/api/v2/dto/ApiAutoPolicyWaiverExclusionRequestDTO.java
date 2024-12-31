@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion;
 
-public class ApiAutoPolicyWaiverRevocationRequestDTO
+public class ApiAutoPolicyWaiverExclusionRequestDTO
 {
   public String applicationPublicId;
   
@@ -19,5 +19,5 @@ public class ApiAutoPolicyWaiverRevocationRequestDTO
   
   public String autoPolicyWaiverId;
   
-  public ComponentMatcherStrategyForRevocation matchStrategy;
+  public ComponentMatcherStrategyForExclusion matchStrategy;
 }

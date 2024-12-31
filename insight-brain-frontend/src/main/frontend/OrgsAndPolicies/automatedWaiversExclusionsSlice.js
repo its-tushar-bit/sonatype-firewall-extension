@@ -7,7 +7,7 @@ import axios from 'axios';
 import { prop } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { getAutoWaiverRevocationsUrl } from 'MainRoot/util/CLMLocation';
+import { getAutoWaiverExclusionsUrl } from 'MainRoot/util/CLMLocation';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { selectApplicableAutoWaiver, selectViolationDetails } from 'MainRoot/violation/violationSelectors';
 import { selectReportParameters } from 'MainRoot/applicationReport/applicationReportSelectors';
@@ -16,7 +16,7 @@ import { selectOwnerProperties, selectSelectedOwnerTypeAndId } from 'MainRoot/Or
 import { selectWaivers } from 'MainRoot/OrgsAndPolicies/automatedWaiversSelectors';
 import { propSet } from 'MainRoot/util/jsUtil';
 
-const REDUCER_NAME = 'autoWaiversRevocationConfiguration';
+const REDUCER_NAME = 'autoWaiversExclusionConfiguration';
 
 export const initialState = {
   loading: false,
@@ -26,31 +26,31 @@ export const initialState = {
   isDirty: false,
   submitMaskState: null,
   submitError: null,
-  deleteRevocationSubmitMaskState: null,
-  deleteRevocationSubmitError: null,
+  deleteExclusionSubmitMaskState: null,
+  deleteExclusionSubmitError: null,
 };
 
-const createAutoWaiverRevocationRequested = (state) => {
+const createAutoWaiverExclusionRequested = (state) => {
   state.submitMaskState = false;
 };
 
-const createAutoWaiverRevocationFulfilled = (state) => {
+const createAutoWaiverExclusionFulfilled = (state) => {
   state.submitMaskState = true;
   state.isDirty = false;
 };
 
-const createAutoWaiverRevocationFailed = (state, { payload }) => {
+const createAutoWaiverExclusionFailed = (state, { payload }) => {
   state.submitMaskState = null;
   state.submitError = Messages.getHttpErrorMessage(payload);
 };
 
-const clearAutoWaiverRevocationMaskState = (state) => {
+const clearAutoWaiverExclusionMaskState = (state) => {
   state.submitMaskState = null;
   state.submitError = null;
 };
 
-const createAutoWaiverRevocation = createAsyncThunk(
-  `${REDUCER_NAME}/createAutoWaiverRevocation`,
+const createAutoWaiverExclusion = createAsyncThunk(
+  `${REDUCER_NAME}/createAutoWaiverExclusion`,
   async (_, { getState, dispatch, rejectWithValue }) => {
     const state = getState();
     const violationDetails = selectViolationDetails(state);
@@ -76,17 +76,17 @@ const createAutoWaiverRevocation = createAsyncThunk(
     };
 
     return axios
-      .post(getAutoWaiverRevocationsUrl(validatedOwnerType, ownerId), putData)
+      .post(getAutoWaiverExclusionsUrl(validatedOwnerType, ownerId), putData)
       .then(() => {
         prop('data');
-        startSaveMaskSuccessTimer(dispatch, actions.clearAutoWaiverRevocationMaskState);
+        startSaveMaskSuccessTimer(dispatch, actions.clearAutoWaiverExclusionMaskState);
       })
       .catch(rejectWithValue);
   }
 );
 
-const loadAutoWaiverRevocation = createAsyncThunk(
-  `${REDUCER_NAME}/loadAutoWaiverRevocation`,
+const loadAutoWaiverExclusion = createAsyncThunk(
+  `${REDUCER_NAME}/loadAutoWaiverExclusion`,
   async (_, { getState, dispatch, rejectWithValue }) => {
     try {
       await dispatch(rootActions.loadSelectedOwner());
@@ -105,7 +105,7 @@ const loadAutoWaiverRevocation = createAsyncThunk(
       }
 
       const response = await axios.get(
-        `/api/v2/autoPolicyWaiverRevocations/${ownerType}/${ownerId}/${autoPolicyWaiverId}`
+        `/api/v2/autoPolicyWaiverExclusions/${ownerType}/${ownerId}/${autoPolicyWaiverId}`
       );
 
       return response.data;
@@ -115,73 +115,73 @@ const loadAutoWaiverRevocation = createAsyncThunk(
   }
 );
 
-const loadAutoWaiverRevocationRequested = (state) => {
+const loadAutoWaiverExclusionRequested = (state) => {
   state.loading = true;
   state.error = null;
 };
 
-const loadAutoWaiverRevocationFulfilled = (state, { payload }) => {
+const loadAutoWaiverExclusionFulfilled = (state, { payload }) => {
   state.loading = true;
   state.data = payload;
   state.error = null;
 };
 
-const loadAutoWaiverRevocationFailed = (state, { payload }) => {
+const loadAutoWaiverExclusionFailed = (state, { payload }) => {
   state.data = null;
   state.loading = false;
   state.error = Messages.getHttpErrorMessage(payload);
 };
 
-const deleteAutoWaiverRevocation = createAsyncThunk(
-  `${REDUCER_NAME}/deleteRevocation`,
-  async ({ autoPolicyWaiverId, autoPolicyWaiverRevocationId }, { getState, dispatch, rejectWithValue }) => {
+const deleteAutoWaiverExclusion = createAsyncThunk(
+  `${REDUCER_NAME}/deleteExclusion`,
+  async ({ autoPolicyWaiverId, autoPolicyWaiverExclusionId }, { getState, dispatch, rejectWithValue }) => {
     const state = getState();
     const { ownerType, ownerId } = selectSelectedOwnerTypeAndId(state);
 
     return axios
       .delete(
-        `/api/v2/autoPolicyWaiverRevocations/${ownerType}/${ownerId}/${autoPolicyWaiverId}/${autoPolicyWaiverRevocationId}`
+        `/api/v2/autoPolicyWaiverExclusions/${ownerType}/${ownerId}/${autoPolicyWaiverId}/${autoPolicyWaiverExclusionId}`
       )
       .then(() => {
-        startSaveMaskSuccessTimer(dispatch, actions.saveDeleteRevocationMaskTimerDone);
-        dispatch(actions.loadAutoWaiverRevocation());
+        startSaveMaskSuccessTimer(dispatch, actions.saveDeleteExclusionMaskTimerDone);
+        dispatch(actions.loadAutoWaiverExclusion());
       })
       .catch(rejectWithValue);
   }
 );
 
-const deleteAutoWaiverRevocationRequested = (state) => {
-  state.deleteRevocationSubmitMaskState = false;
+const deleteAutoWaiverExclusionRequested = (state) => {
+  state.deleteExclusionSubmitMaskState = false;
 };
 
-const deleteAutoWaiverRevocationFulfilled = (state) => {
-  state.deleteRevocationSubmitMaskState = true;
+const deleteAutoWaiverExclusionFulfilled = (state) => {
+  state.deleteExclusionSubmitMaskState = true;
 };
 
-const deleteAutoWaiverRevocationFailed = (state, { payload }) => {
-  state.deleteRevocationSubmitMaskState = null;
-  state.deleteRevocationSubmitError = Messages.getHttpErrorMessage(payload);
+const deleteAutoWaiverExclusionFailed = (state, { payload }) => {
+  state.deleteExclusionSubmitMaskState = null;
+  state.deleteExclusionSubmitError = Messages.getHttpErrorMessage(payload);
 };
 
-const automatedWaiversRevocationSlice = createSlice({
+const automatedWaiversExclusionSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
-    clearAutoWaiverRevocationMaskState,
-    saveDeleteRevocationMaskTimerDone: propSet('deleteRevocationSubmitMaskState', null),
+    clearAutoWaiverExclusionMaskState,
+    saveDeleteExclusionMaskTimerDone: propSet('deleteExclusionSubmitMaskState', null),
   },
   extraReducers: {
-    [createAutoWaiverRevocation.pending]: createAutoWaiverRevocationRequested,
-    [createAutoWaiverRevocation.fulfilled]: createAutoWaiverRevocationFulfilled,
-    [createAutoWaiverRevocation.rejected]: createAutoWaiverRevocationFailed,
+    [createAutoWaiverExclusion.pending]: createAutoWaiverExclusionRequested,
+    [createAutoWaiverExclusion.fulfilled]: createAutoWaiverExclusionFulfilled,
+    [createAutoWaiverExclusion.rejected]: createAutoWaiverExclusionFailed,
 
-    [loadAutoWaiverRevocation.pending]: loadAutoWaiverRevocationRequested,
-    [loadAutoWaiverRevocation.fulfilled]: loadAutoWaiverRevocationFulfilled,
-    [loadAutoWaiverRevocation.rejected]: loadAutoWaiverRevocationFailed,
+    [loadAutoWaiverExclusion.pending]: loadAutoWaiverExclusionRequested,
+    [loadAutoWaiverExclusion.fulfilled]: loadAutoWaiverExclusionFulfilled,
+    [loadAutoWaiverExclusion.rejected]: loadAutoWaiverExclusionFailed,
 
-    [deleteAutoWaiverRevocation.pending]: deleteAutoWaiverRevocationRequested,
-    [deleteAutoWaiverRevocation.fulfilled]: deleteAutoWaiverRevocationFulfilled,
-    [deleteAutoWaiverRevocation.rejected]: deleteAutoWaiverRevocationFailed,
+    [deleteAutoWaiverExclusion.pending]: deleteAutoWaiverExclusionRequested,
+    [deleteAutoWaiverExclusion.fulfilled]: deleteAutoWaiverExclusionFulfilled,
+    [deleteAutoWaiverExclusion.rejected]: deleteAutoWaiverExclusionFailed,
   },
 });
 
@@ -213,10 +213,10 @@ const getScanIdFromApplicationReport = (reportParameters) => {
 };
 
 export const actions = {
-  ...automatedWaiversRevocationSlice.actions,
-  createAutoWaiverRevocation,
-  loadAutoWaiverRevocation,
-  deleteAutoWaiverRevocation,
+  ...automatedWaiversExclusionSlice.actions,
+  createAutoWaiverExclusion,
+  loadAutoWaiverExclusion,
+  deleteAutoWaiverExclusion,
 };
 
-export default automatedWaiversRevocationSlice.reducer;
+export default automatedWaiversExclusionSlice.reducer;

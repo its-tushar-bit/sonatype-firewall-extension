@@ -6,37 +6,37 @@
 package com.sonatype.insight.brain.telemetry;
 
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public record AutoPolicyWaiverRevocationTelemetry(
-    String autoPolicyWaiverRevocationId,
+public record AutoPolicyWaiverExclusionTelemetry(
+    String autoPolicyWaiverExclusionId,
     OwnerType ownerType,
     String ownerId,
     Integer threadLevel,
     String autoPolicyWaiverId,
-    AutoPolicyWaiverRevocationAction action
+    AutoPolicyWaiverExclusionAction action
 )
 {
-  public AutoPolicyWaiverRevocationTelemetry(
-      AutoPolicyWaiverRevocation autoPolicyWaiverRevocation,
-      OwnerType ownerType, AutoPolicyWaiverRevocationAction action)
+  public AutoPolicyWaiverExclusionTelemetry(
+      AutoPolicyWaiverExclusion autoPolicyWaiverExclusion,
+      OwnerType ownerType, AutoPolicyWaiverExclusionAction action)
   {
     this(
-        autoPolicyWaiverRevocation.getId(),
+        autoPolicyWaiverExclusion.getId(),
         ownerType,
-        autoPolicyWaiverRevocation.getOwnerId(),
-        autoPolicyWaiverRevocation.getThreatLevel(),
-        autoPolicyWaiverRevocation.getAutoPolicyWaiverId(),
+        autoPolicyWaiverExclusion.getOwnerId(),
+        autoPolicyWaiverExclusion.getThreatLevel(),
+        autoPolicyWaiverExclusion.getAutoPolicyWaiverId(),
         action);
   }
 
   @Override
   public int hashCode() {
     return new HashCodeBuilder()
-        .append(autoPolicyWaiverRevocationId)
+        .append(autoPolicyWaiverExclusionId)
         .append(ownerType)
         .append(ownerId)
         .append(threadLevel)
@@ -47,9 +47,9 @@ public record AutoPolicyWaiverRevocationTelemetry(
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof AutoPolicyWaiverRevocationTelemetry telemetry) {
+    if (obj instanceof AutoPolicyWaiverExclusionTelemetry telemetry) {
       return new EqualsBuilder()
-          .append(autoPolicyWaiverRevocationId, telemetry.autoPolicyWaiverRevocationId)
+          .append(autoPolicyWaiverExclusionId, telemetry.autoPolicyWaiverExclusionId)
           .append(ownerType, telemetry.ownerType)
           .append(ownerId, telemetry.ownerId)
           .append(threadLevel, telemetry.threadLevel)
@@ -60,7 +60,7 @@ public record AutoPolicyWaiverRevocationTelemetry(
     return false;
   }
 
-  public enum AutoPolicyWaiverRevocationAction
+  public enum AutoPolicyWaiverExclusionAction
   {
     CREATE,
     DELETE

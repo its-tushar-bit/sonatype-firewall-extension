@@ -5,17 +5,17 @@
  */
 
 import {
-  selectAutomatedWaiversRevocationSlice,
-  selectRevocations,
-} from 'MainRoot/OrgsAndPolicies/automatedWaiversRevocationsSelector';
+  selectAutomatedWaiversExclusionSlice,
+  selectExclusions,
+} from 'MainRoot/OrgsAndPolicies/automatedWaiversExclusionsSelector';
 
-describe('automatedWaiversRevocationsSelectors', () => {
+describe('automatedWaiversExclusionsSelectors', () => {
   let mockState;
 
   beforeEach(() => {
     mockState = {
       orgsAndPolicies: {
-        autoWaiverRevocations: {
+        autoWaiverExclusions: {
           loading: false,
           loadError: null,
           data: null,
@@ -23,22 +23,22 @@ describe('automatedWaiversRevocationsSelectors', () => {
           isDirty: false,
           submitMaskState: null,
           submitError: null,
-          deleteRevocationSubmitMaskState: null,
-          deleteRevocationSubmitError: null,
+          deleteExclusionSubmitMaskState: null,
+          deleteExclusionSubmitError: null,
         },
       },
     };
   });
 
-  describe('automatedWaiversRevocationsSlice', () => {
-    it('selects autoWaiverRevocations', () => {
+  describe('automatedWaiversExclusionsSlice', () => {
+    it('selects autoWaiverExclusions', () => {
       const emptyAppState = {
         orgsAndPolicies: {
-          autoWaiverRevocations: null,
+          autoWaiverExclusions: null,
         },
       };
 
-      const selected = selectAutomatedWaiversRevocationSlice(mockState);
+      const selected = selectAutomatedWaiversExclusionSlice(mockState);
 
       expect(selected).toEqual({
         loading: false,
@@ -48,25 +48,25 @@ describe('automatedWaiversRevocationsSelectors', () => {
         isDirty: false,
         submitMaskState: null,
         submitError: null,
-        deleteRevocationSubmitMaskState: null,
-        deleteRevocationSubmitError: null,
+        deleteExclusionSubmitMaskState: null,
+        deleteExclusionSubmitError: null,
       });
 
-      const emptySelected = selectAutomatedWaiversRevocationSlice(emptyAppState);
+      const emptySelected = selectAutomatedWaiversExclusionSlice(emptyAppState);
       expect(emptySelected).toEqual(null);
     });
 
-    it('select revocations', () => {
+    it('select exclusions', () => {
       mockState = {
         orgsAndPolicies: {
-          autoWaiverRevocations: {
+          autoWaiverExclusions: {
             loading: false,
             loadError: null,
             data: {
-              revocations: [
+              exclusions: [
                 {
                   autoPolicyWaiverId: 1,
-                  autoPolicyWaiverRevocationId: 'revocation1',
+                  autoPolicyWaiverExclusionId: 'exclusion1',
                   createTime: '2021-01-01',
                   threatLevel: 7,
                   policyName: 'policy1',
@@ -75,7 +75,7 @@ describe('automatedWaiversRevocationsSelectors', () => {
                 },
                 {
                   autoPolicyWaiverId: 2,
-                  autoPolicyWaiverRevocationId: 'revocation2',
+                  autoPolicyWaiverExclusionId: 'exclusion2',
                   createTime: '2021-01-02',
                   threatLevel: 8,
                   policyName: 'policy2',
@@ -88,20 +88,20 @@ describe('automatedWaiversRevocationsSelectors', () => {
             isDirty: false,
             submitMaskState: null,
             submitError: null,
-            deleteRevocationSubmitMaskState: null,
-            deleteRevocationSubmitError: null,
+            deleteExclusionSubmitMaskState: null,
+            deleteExclusionSubmitError: null,
           },
         },
       };
 
-      selectAutomatedWaiversRevocationSlice(mockState);
+      selectAutomatedWaiversExclusionSlice(mockState);
 
-      const revocations = selectRevocations(mockState);
-      expect(revocations).toEqual({
-        revocations: [
+      const exclusions = selectExclusions(mockState);
+      expect(exclusions).toEqual({
+        exclusions: [
           {
             autoPolicyWaiverId: 1,
-            autoPolicyWaiverRevocationId: 'revocation1',
+            autoPolicyWaiverExclusionId: 'exclusion1',
             createTime: '2021-01-01',
             threatLevel: 7,
             policyName: 'policy1',
@@ -110,7 +110,7 @@ describe('automatedWaiversRevocationsSelectors', () => {
           },
           {
             autoPolicyWaiverId: 2,
-            autoPolicyWaiverRevocationId: 'revocation2',
+            autoPolicyWaiverExclusionId: 'exclusion2',
             createTime: '2021-01-02',
             threatLevel: 8,
             policyName: 'policy2',

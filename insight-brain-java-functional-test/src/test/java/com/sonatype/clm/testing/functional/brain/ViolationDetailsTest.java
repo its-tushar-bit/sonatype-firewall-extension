@@ -311,7 +311,7 @@ public class ViolationDetailsTest
     applicableWaiversInfoTile.shouldBe(visible);
     similarWaiversInfoTile.shouldNotBe(visible);
     applicableWaiversInfoTile.waiverListHeader().shouldBe(visible)
-        .shouldHave(exactText("Active and expired waivers applicable to this violation of " + policyName));
+        .shouldHave(exactText("Waivers applicable to this violation of " + policyName));
     applicableWaiversInfoTile.getApplicableWaiversTable().shouldBe(visible);
 
     // Switch tabs, check visibility
@@ -361,7 +361,7 @@ public class ViolationDetailsTest
     applicableWaiversTile.shouldBe(visible);
     similarWaiversInfoTile.shouldNotBe(visible);
     applicableWaiversTile.waiverListHeader().shouldBe(visible)
-        .shouldHave(exactText("Active and expired waivers applicable to this violation of " + policyName));
+        .shouldHave(exactText("Waivers applicable to this violation of " + policyName));
 
     // Switch tabs, check visibility
     similarWaiversTab.click();

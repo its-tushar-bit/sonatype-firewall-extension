@@ -13,8 +13,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -29,15 +29,15 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class AutoPolicyWaiverRevocationMatcherWrapperTest
+public class AutoPolicyWaiverExclusionMatcherWrapperTest
     extends AbstractComponentTest
 {
   @Test
   public void testMatcherWrapper_MatchesViolation_null_POLICY_VIOLATION() {
     Application app = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     assertThatThrownBy(() -> wrapper.matchesViolation(null))
         .isInstanceOf(RuntimeException.class)
@@ -48,9 +48,9 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
   public void testMatcherWrapper_MatchesViolation_null_EXACT_COMPONENT() {
     Application app = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     assertThatThrownBy(() -> wrapper.matchesViolation(null))
         .isInstanceOf(RuntimeException.class)
@@ -61,9 +61,9 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
   public void testMatcherWrapper_MatchesViolation_null_ALL_VERSIONS() {
     Application app = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.ALL_VERSIONS);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     assertThatThrownBy(() -> wrapper.matchesViolation(null))
         .isInstanceOf(RuntimeException.class)
@@ -79,11 +79,11 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHashValue", "fake");
 
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(
         app.getId(), waiver.getId());
-    revocation.setComponentIdentifier(identifier);
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    exclusion.setComponentIdentifier(identifier);
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     assertThat(wrapper.matchesViolation(policyViolation)).isTrue();
   }
@@ -97,10 +97,10 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, null, "fake");
 
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setComponentIdentifier(identifier);
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setComponentIdentifier(identifier);
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     assertThat(wrapper.matchesViolation(policyViolation)).isTrue();
   }
@@ -120,10 +120,10 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
         tempEntity.newPolicyViolation(eval, policy, componentIdentifier, "fakeHash", "fake");
 
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setComponentIdentifier(componentIdentifier);
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setComponentIdentifier(componentIdentifier);
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     policyViolation.setHash(null);
     policyViolation.setComponentIdentifier(componentIdentifier);
@@ -139,10 +139,10 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "otherHash", "fake");
 
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setComponentIdentifier(identifier);
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setComponentIdentifier(identifier);
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.ALL_VERSIONS);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     assertThat(wrapper.matchesViolation(policyViolation)).isTrue();
   }
@@ -157,10 +157,10 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
     policyViolation.setComponentIdentifier(null);
 
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setComponentIdentifier(identifier);
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setComponentIdentifier(identifier);
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.ALL_VERSIONS);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     assertThat(wrapper.matchesViolation(policyViolation)).isFalse();
   }
@@ -181,10 +181,10 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "otherHash", "fake");
 
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setComponentIdentifier(identifier);
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setComponentIdentifier(identifier);
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.ALL_VERSIONS);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     assertThatNoException().isThrownBy(() -> wrapper.matchesViolation(policyViolation));
   }
@@ -200,10 +200,10 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "otherHash", "fake");
 
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setComponentIdentifier(identifier);
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setComponentIdentifier(identifier);
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.ALL_VERSIONS);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     assertThat(wrapper.matchesViolation(policyViolation)).isTrue();
   }
@@ -220,10 +220,10 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
         tempEntity.newPolicyViolation(eval, policy, componentIdentifier, "otherHash", "fake");
 
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setComponentIdentifier(componentIdentifier);
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setComponentIdentifier(componentIdentifier);
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.ALL_VERSIONS);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     assertThat(wrapper.matchesViolation(policyViolation)).isTrue();
   }
@@ -249,16 +249,16 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
     Application app = tempEntity.newApplicationWithParent();
 
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setComponentIdentifier(componentIdentifierSame);
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setComponentIdentifier(componentIdentifierSame);
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.ALL_VERSIONS);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     Assertions.assertThat(wrapper
-        .compareWhenMissingRequiredCoordinates(revocation
+        .compareWhenMissingRequiredCoordinates(exclusion
             .getComponentIdentifier(), componentIdentifierSame)).isTrue();
     Assertions.assertThat(wrapper
-        .compareWhenMissingRequiredCoordinates(revocation
+        .compareWhenMissingRequiredCoordinates(exclusion
             .getComponentIdentifier(), componentIdentifierOther)).isFalse();
   }
 
@@ -271,13 +271,13 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHash", "fake");
 
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setPolicyId("fakePolicyId");
-    revocation.setThreatLevel(policyViolation.getThreatLevel());
-    revocation.setHash(policyViolation.getHash());
-    revocation.setComponentIdentifier(identifier);
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setPolicyId("fakePolicyId");
+    exclusion.setThreatLevel(policyViolation.getThreatLevel());
+    exclusion.setHash(policyViolation.getHash());
+    exclusion.setComponentIdentifier(identifier);
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.POLICY_VIOLATION);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     assertThat(wrapper.matchesViolation(policyViolation)).isFalse();
   }
@@ -292,13 +292,13 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
     policyViolation.setPolicyId(null);
 
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setPolicyId(policy.getId());
-    revocation.setThreatLevel(policyViolation.getThreatLevel());
-    revocation.setHash(policyViolation.getHash());
-    revocation.setComponentIdentifier(identifier);
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setPolicyId(policy.getId());
+    exclusion.setThreatLevel(policyViolation.getThreatLevel());
+    exclusion.setHash(policyViolation.getHash());
+    exclusion.setComponentIdentifier(identifier);
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.POLICY_VIOLATION);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     assertThat(wrapper.matchesViolation(policyViolation)).isFalse();
   }
@@ -312,13 +312,13 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHash", "fake");
 
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setPolicyId(policy.getId());
-    revocation.setThreatLevel(10);
-    revocation.setHash(policyViolation.getHash());
-    revocation.setComponentIdentifier(identifier);
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setPolicyId(policy.getId());
+    exclusion.setThreatLevel(10);
+    exclusion.setHash(policyViolation.getHash());
+    exclusion.setComponentIdentifier(identifier);
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.POLICY_VIOLATION);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     assertThat(wrapper.matchesViolation(policyViolation)).isFalse();
   }
@@ -332,13 +332,13 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHash", "fake");
 
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setPolicyId(policy.getId());
-    revocation.setThreatLevel(null);
-    revocation.setHash(policyViolation.getHash());
-    revocation.setComponentIdentifier(identifier);
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setPolicyId(policy.getId());
+    exclusion.setThreatLevel(null);
+    exclusion.setHash(policyViolation.getHash());
+    exclusion.setComponentIdentifier(identifier);
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.POLICY_VIOLATION);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     assertThat(wrapper.matchesViolation(policyViolation)).isFalse();
   }
@@ -352,13 +352,13 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHash", "fake");
 
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setPolicyId(policy.getId());
-    revocation.setThreatLevel(policyViolation.getThreatLevel());
-    revocation.setHash("anotherHashValue");
-    revocation.setComponentIdentifier(identifier);
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setPolicyId(policy.getId());
+    exclusion.setThreatLevel(policyViolation.getThreatLevel());
+    exclusion.setHash("anotherHashValue");
+    exclusion.setComponentIdentifier(identifier);
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.POLICY_VIOLATION);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     assertThat(wrapper.matchesViolation(policyViolation)).isFalse();
   }
@@ -372,13 +372,13 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, null, "fake");
 
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setPolicyId(policy.getId());
-    revocation.setThreatLevel(policyViolation.getThreatLevel());
-    revocation.setHash("anotherHashValue");
-    revocation.setComponentIdentifier(identifier);
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setPolicyId(policy.getId());
+    exclusion.setThreatLevel(policyViolation.getThreatLevel());
+    exclusion.setHash("anotherHashValue");
+    exclusion.setComponentIdentifier(identifier);
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.POLICY_VIOLATION);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     assertThat(wrapper.matchesViolation(policyViolation)).isFalse();
   }
@@ -392,13 +392,13 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHash", "fake");
 
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setPolicyId(policy.getId());
-    revocation.setThreatLevel(policyViolation.getThreatLevel());
-    revocation.setHash(policyViolation.getHash());
-    revocation.setComponentIdentifier(identifier);
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setPolicyId(policy.getId());
+    exclusion.setThreatLevel(policyViolation.getThreatLevel());
+    exclusion.setHash(policyViolation.getHash());
+    exclusion.setComponentIdentifier(identifier);
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.POLICY_VIOLATION);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     assertThat(wrapper.matchesViolation(policyViolation)).isFalse();
   }
@@ -412,13 +412,13 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
     PolicyViolation policyViolationOne = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHash", "fake");
 
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setPolicyId(policy.getId());
-    revocation.setThreatLevel(policyViolationOne.getThreatLevel());
-    revocation.setHash(policyViolationOne.getHash());
-    revocation.setComponentIdentifier(identifier);
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setPolicyId(policy.getId());
+    exclusion.setThreatLevel(policyViolationOne.getThreatLevel());
+    exclusion.setHash(policyViolationOne.getHash());
+    exclusion.setComponentIdentifier(identifier);
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.POLICY_VIOLATION);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     PolicyViolation policyViolationTwo = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHash", "fake");
 
@@ -438,13 +438,13 @@ public class AutoPolicyWaiverRevocationMatcherWrapperTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "fakeHash", "fake");
 
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    AutoPolicyWaiverRevocation revocation = tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
-    revocation.setPolicyId(policy.getId());
-    revocation.setThreatLevel(policyViolation.getThreatLevel());
-    revocation.setHash(policyViolation.getHash());
-    revocation.setComponentIdentifier(identifier);
-    revocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.POLICY_VIOLATION);
-    AutoPolicyWaiverRevocationMatcherWrapper wrapper = new AutoPolicyWaiverRevocationMatcherWrapper(revocation);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
+    exclusion.setPolicyId(policy.getId());
+    exclusion.setThreatLevel(policyViolation.getThreatLevel());
+    exclusion.setHash(policyViolation.getHash());
+    exclusion.setComponentIdentifier(identifier);
+    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.POLICY_VIOLATION);
+    AutoPolicyWaiverExclusionMatcherWrapper wrapper = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion);
 
     assertThat(wrapper.matchesViolation(policyViolation)).isFalse();
   }

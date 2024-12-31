@@ -22,7 +22,7 @@ describe('Exclusion Log', () => {
           componentDisplayName: 'com.example:test:1.0.0',
           vulnerabilityIdentifiers: 'SONATYPE-1234',
           autoPolicyWaiverId: 'waiver-id-1',
-          autoPolicyWaiverRevocationId: 'revocation-id-1',
+          autoPolicyWaiverExclusionId: 'exclusion-id-1',
         },
         {
           createTime: moment().subtract(2, 'days').format(),
@@ -31,7 +31,7 @@ describe('Exclusion Log', () => {
           componentDisplayName: 'org.example:other:2.0.0',
           vulnerabilityIdentifiers: 'SONATYPE-5678',
           autoPolicyWaiverId: 'waiver-id-1',
-          autoPolicyWaiverRevocationId: 'revocation-id-2',
+          autoPolicyWaiverExclusionId: 'exclusion-id-2',
         },
       ],
       refreshTable: jest.fn(),

@@ -61,7 +61,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseLicenseInternal
 import com.sonatype.insight.brain.dataaccess.lock.PostgresAdvisoryLockDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverRevocationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverExclusionDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.LastPolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
@@ -1154,14 +1154,14 @@ public class TestDAOFactory
 
   @Override
   public AutoPolicyWaiverDAO createAutoPolicyWaiverDAO() {
-    AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO = createAutoPolicyWaiverRevocationDAO();
-    return new AutoPolicyWaiverDAO(dataStoreProvider.getOperationalDataStore(), autoPolicyWaiverRevocationDAO);
+    AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO = createAutoPolicyWaiverExclusionDAO();
+    return new AutoPolicyWaiverDAO(dataStoreProvider.getOperationalDataStore(), autoPolicyWaiverExclusionDAO);
   }
 
   @Override
-  public AutoPolicyWaiverRevocationDAO createAutoPolicyWaiverRevocationDAO() {
+  public AutoPolicyWaiverExclusionDAO createAutoPolicyWaiverExclusionDAO() {
     PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO = createPolicyViolationConstraintFactsDAO();
-    return new AutoPolicyWaiverRevocationDAO(dataStoreProvider.getOperationalDataStore(),
+    return new AutoPolicyWaiverExclusionDAO(dataStoreProvider.getOperationalDataStore(),
         policyViolationConstraintFactsDAO);
   }
 

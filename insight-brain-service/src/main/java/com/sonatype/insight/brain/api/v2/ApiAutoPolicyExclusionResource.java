@@ -42,7 +42,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "Auto Policy Waivers",
     description = "Use this REST API to create, modify and retrieve auto policy waivers.")
 @ProductLicenseEnforcementPoint(LicensedFeature.DEVELOPER_DASHBOARD)
-public class ApiAutoPolicyWaiverResource
+public class ApiAutoPolicyExclusionResource
 {
   private final ApiAutoPolicyWaiverService apiAutoPolicyWaiverService;
 
@@ -53,7 +53,7 @@ public class ApiAutoPolicyWaiverResource
   static final String BY_AUTO_POLICY_WAIVER_ID_PATH = OWNERS_PATH + "/{autoPolicyWaiverId}";
 
   @Inject
-  public ApiAutoPolicyWaiverResource(ApiAutoPolicyWaiverService apiAutoPolicyWaiverService) {
+  public ApiAutoPolicyExclusionResource(ApiAutoPolicyWaiverService apiAutoPolicyWaiverService) {
     this.apiAutoPolicyWaiverService = apiAutoPolicyWaiverService;
   }
 

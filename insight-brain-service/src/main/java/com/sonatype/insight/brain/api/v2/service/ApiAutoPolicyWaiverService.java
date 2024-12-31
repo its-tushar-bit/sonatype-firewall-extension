@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverRevocationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverExclusionDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -27,10 +27,10 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.AutoPolicyWaiverRevocationMatcherWrapper;
+import com.sonatype.insight.brain.policy.AutoPolicyWaiverExclusionMatcherWrapper;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -61,7 +61,7 @@ public class ApiAutoPolicyWaiverService
 
   private final AutoPolicyWaiverTelemetryMetrics autoPolicyWaiverTelemetryMetrics;
 
-  private final AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO;
+  private final AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
 
   private static final Logger log = LoggerFactory.getLogger(ApiAutoPolicyWaiverService.class);
 
@@ -74,7 +74,7 @@ public class ApiAutoPolicyWaiverService
       OwnerDAO ownerDAO,
       CurrentUser currentUser,
       AutoPolicyWaiverTelemetryMetrics autoPolicyWaiverTelemetryMetrics,
-      AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO
+      AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO
   )
   {
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
@@ -84,7 +84,7 @@ public class ApiAutoPolicyWaiverService
     this.ownerDAO = ownerDAO;
     this.currentUser = currentUser;
     this.autoPolicyWaiverTelemetryMetrics = autoPolicyWaiverTelemetryMetrics;
-    this.autoPolicyWaiverRevocationDAO = autoPolicyWaiverRevocationDAO;
+    this.autoPolicyWaiverExclusionDAO = autoPolicyWaiverExclusionDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -278,25 +278,25 @@ public class ApiAutoPolicyWaiverService
     String autoPolicyWaiverOwnerId = autoPolicyWaiver.getOwnerId();
     if (autoPolicyWaiver != null) {
       policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
-      List<AutoPolicyWaiverRevocation> autoPolicyWaiverRevocations =
-          autoPolicyWaiverRevocationDAO.getByOwnerIdAndAutoPolicyWaiverId(
+      List<AutoPolicyWaiverExclusion> autoPolicyWaiverExclusions =
+          autoPolicyWaiverExclusionDAO.getByOwnerIdAndAutoPolicyWaiverId(
               autoPolicyWaiverOwnerId,
               autoPolicyWaiver.getId()
           );
 
-      boolean allRevocationsInvalid = true;
-      for (AutoPolicyWaiverRevocation revocation : autoPolicyWaiverRevocations) {
-        boolean matches = new AutoPolicyWaiverRevocationMatcherWrapper(revocation)
+      boolean allExclusionsInvalid = true;
+      for (AutoPolicyWaiverExclusion exclusion : autoPolicyWaiverExclusions) {
+        boolean matches = new AutoPolicyWaiverExclusionMatcherWrapper(exclusion)
             .matchesViolation(policyViolation);
 
-        if (matches || (revocation.getPolicyViolationId() != null &&
-            revocation.getPolicyViolationId().equals(violationId))) {
-          allRevocationsInvalid = false;
+        if (matches || (exclusion.getPolicyViolationId() != null &&
+            exclusion.getPolicyViolationId().equals(violationId))) {
+          allExclusionsInvalid = false;
           break;
         }
       }
 
-      if (allRevocationsInvalid) {
+      if (allExclusionsInvalid) {
         Owner owner = ownerDAO.getById(autoPolicyWaiverOwnerId);
         return ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver, owner);
       }

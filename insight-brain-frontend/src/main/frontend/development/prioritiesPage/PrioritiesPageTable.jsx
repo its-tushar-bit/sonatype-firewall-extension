@@ -134,10 +134,11 @@ export default function PrioritiesPageTable() {
           onChange={filterByComponentName}
           value={componentNameFilterValue}
         />
-
-        <NxToggle onChange={handleActionToggleChange} isChecked={filterOnPolicyActionsValue} disabled={forMonitoring}>
-          Fail/Warn Policy Actions only
-        </NxToggle>
+        <NxTooltip title={forMonitoring && 'Continous Monitoring'}>
+          <NxToggle onChange={handleActionToggleChange} isChecked={filterOnPolicyActionsValue} disabled={forMonitoring}>
+            Fail/Warn Policy Actions only
+          </NxToggle>
+        </NxTooltip>
       </div>
       <NxTile.Content>
         <div className="nx-table-container">

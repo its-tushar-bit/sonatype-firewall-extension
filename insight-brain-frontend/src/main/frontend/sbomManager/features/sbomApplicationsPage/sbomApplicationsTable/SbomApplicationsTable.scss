@@ -15,22 +15,37 @@
   }
 
   &__application-name {
-    max-width: 250px;
+    max-width: 225px;
   }
 
   &__latest-version {
     max-width: 125px;
   }
 
-  &__annotated-percentage {
+  &__releaseStatusPercentage {
     display: flex;
-    gap: var(--nx-spacing-base);
+    gap: var(--nx-spacing-2x);
     align-items: center;
+    font-size: var(--nx-font-size-xs);
+  }
+
+  &__releaseStatusPercentageDonut {
+    height: 24px;
+
+    .nx-binary-donut-chart__arc {
+      stroke: var(--nx-swatch-teal-40);
+    }
   }
 
   &__licenses {
     text-wrap: wrap;
     word-break: break-all;
+  }
+
+  .nx-table-row--filter-header {
+    .sbom-manager-applications-table__filter-input {
+      width: 225px;
+    }
   }
 
   &__pagination-section {

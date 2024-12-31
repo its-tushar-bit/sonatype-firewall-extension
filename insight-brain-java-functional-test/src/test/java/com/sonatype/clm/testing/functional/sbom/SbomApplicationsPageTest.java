@@ -93,12 +93,12 @@ public class SbomApplicationsPageTest
     applicationsTable.columnHeader(1).shouldHave(
         text("LATEST VERSION"));
     applicationsTable.columnHeader(2).shouldHave(
+        text("RELEASE STATUS"));
+    applicationsTable.columnHeader(3).shouldHave(
         text("IMPORT DATE"));
-    applicationsTable.columnHeader(3).shouldHave(text("VULNERABILITIES"));
-    applicationsTable.columnHeader(4).shouldHave(
-        text("VIOLATIONS"));
+    applicationsTable.columnHeader(4).shouldHave(text("VULNERABILITIES"));
     applicationsTable.columnHeader(5).shouldHave(
-        text("ANNOTATED"));
+        text("VIOLATIONS"));
     ElementsCollection tableRows = applicationsTable.tableBodyRows();
     tableRows.shouldHave(sizeGreaterThan(49));
     applicationsTable.footer().shouldBe(visible);
@@ -151,27 +151,27 @@ public class SbomApplicationsPageTest
     // sort desc by default -> newest first
     ElementsCollection tableRows = applicationsTable.tableBodyRows();
     ElementsCollection paginationButtons = applicationsTable.paginationButtons();
-    tableRows.get(0).findAll("td").get(2).shouldHave(text("a day ago"));
-    tableRows.get(8).findAll("td").get(2).shouldHave(text("9 days ago"));
-    tableRows.get(49).findAll("td").get(2).shouldHave(text("2 months ago"));
+    tableRows.get(0).findAll("td").get(3).shouldHave(text("a day ago"));
+    tableRows.get(8).findAll("td").get(3).shouldHave(text("9 days ago"));
+    tableRows.get(49).findAll("td").get(3).shouldHave(text("2 months ago"));
     paginationButtons.get(1).shouldHave(text("2")).click();
-    tableRows.get(24).findAll("td").get(2).shouldHave(text("2 months ago"));
+    tableRows.get(24).findAll("td").get(3).shouldHave(text("2 months ago"));
 
     // sort asc
     refreshOrOpen(SbomApplicationsPage.url());
     paginationButtons.get(0).shouldHave(text("1")).click();
-    applicationsTable.columnHeader(2).click();
-    tableRows.get(0).findAll("td").get(2).shouldHave(text("2 months ago"));
-    tableRows.get(49).findAll("td").get(2).shouldHave(text("a month ago"));
+    applicationsTable.columnHeader(3).click();
+    tableRows.get(0).findAll("td").get(3).shouldHave(text("2 months ago"));
+    tableRows.get(49).findAll("td").get(3).shouldHave(text("a month ago"));
     paginationButtons.get(1).shouldHave(text("2")).click();
-    tableRows.get(24).findAll("td").get(2).shouldHave(text("a day ago"));
+    tableRows.get(24).findAll("td").get(3).shouldHave(text("a day ago"));
 
     // sort desc
     paginationButtons.get(0).shouldHave(text("1")).click();
-    applicationsTable.columnHeader(2).click();
-    tableRows.get(0).findAll("td").get(2).shouldHave(text("a day ago"));
-    tableRows.get(8).findAll("td").get(2).shouldHave(text("9 days ago"));
-    tableRows.get(49).findAll("td").get(2).shouldHave(text("2 months ago"));
+    applicationsTable.columnHeader(3).click();
+    tableRows.get(0).findAll("td").get(3).shouldHave(text("a day ago"));
+    tableRows.get(8).findAll("td").get(3).shouldHave(text("9 days ago"));
+    tableRows.get(49).findAll("td").get(3).shouldHave(text("2 months ago"));
   }
 
   @Test
@@ -221,6 +221,19 @@ public class SbomApplicationsPageTest
   }
 
   @Test
+  public void testApplicationsPage__sortByReleaseStatus() throws Exception {
+    setSbomApplicationsTableData();
+    refreshOrOpen(SbomApplicationsPage.url());
+    waitUntilUrl(SbomApplicationsPage.url());
+    SbomApplicationsTable applicationsTable = SbomApplicationsPage.sbomApplicationsTable();
+    applicationsTable.table().shouldBe(visible);
+    applicationsTable.columnHeader(2).shouldHave(text("RELEASE STATUS")).click();
+    verifySortOrderReleaseStatus(true, applicationsTable); //verify asc
+    applicationsTable.columnHeader(2).shouldHave(text("RELEASE STATUS")).click();
+    verifySortOrderReleaseStatus(false, applicationsTable);
+  }
+
+  @Test
   public void testApplicationsPage__sortByVulnerabilities() throws Exception {
     setSbomApplicationsTableData();
     refreshOrOpen(SbomApplicationsPage.url());
@@ -228,10 +241,10 @@ public class SbomApplicationsPageTest
     SbomApplicationsTable applicationsTable = SbomApplicationsPage.sbomApplicationsTable();
     applicationsTable.table().shouldBe(visible);
 
-    applicationsTable.columnHeader(3).shouldHave(text("VULNERABILITIES")).click();
+    applicationsTable.columnHeader(4).shouldHave(text("VULNERABILITIES")).click();
     Selenide.sleep(1000);
     verifySortOrderVulnerabilities(true, applicationsTable); //verify asc
-    applicationsTable.columnHeader(3).shouldHave(text("VULNERABILITIES")).click();
+    applicationsTable.columnHeader(4).shouldHave(text("VULNERABILITIES")).click();
     Selenide.sleep(1000);
     verifySortOrderVulnerabilities(false, applicationsTable); //verify DESC
   }
@@ -251,6 +264,20 @@ public class SbomApplicationsPageTest
       else {
         assertThat(comparison).isGreaterThanOrEqualTo(0);
       }
+    }
+  }
+
+  private void verifySortOrderReleaseStatus(boolean ascending, SbomApplicationsTable applicationsRow) {
+    String expectedValue;
+    int rowsHighOrCriticalVulnerabilities = 23;
+    for (int i = 0; i < 50; i++) {
+      if (ascending) {
+        expectedValue = (i < rowsHighOrCriticalVulnerabilities) ? "57.1%" : "100%";
+      }
+      else {
+        expectedValue = "100%";
+      }
+      applicationsRow.releaseStatusColumn(i).shouldHave(text(expectedValue));
     }
   }
 
@@ -287,42 +314,43 @@ public class SbomApplicationsPageTest
           SbomSpecification.CYCLONEDX.name(),
           SbomFormat.XML.name(),
           "0.0", today);
+
       ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
       PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
       ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
-          "s1", packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
-          "h1", packageUrlIdentifier1.getPackageUrl());
+          "s2", packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
+          "h2", packageUrlIdentifier1.getPackageUrl());
 
-      ThirdPartyCoordinateSecurity coordinateSecurity1 = tempEntity.newThirdPartyCoordinateSecurity(coordinate1,
-          "cve-2", sbomMetadata.getId(), "description2", "link2", CvssV3Severity.LOW.getEndScoreRange(),
+      tempEntity.newThirdPartyCoordinateSecurity(coordinate1,
+          "cve-1", sbomMetadata.getId(), "description1", "link1", CvssV3Severity.LOW.getStartScoreRange(),
           CvssV3Severity.LOW.getDisplayName(), "fix1");
-
-      ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("p2", "v2");
-      PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
-      ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
-          "s2", packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
-          "h2", packageUrlIdentifier2.getPackageUrl());
-
-      tempEntity.newThirdPartyCoordinateSecurity(coordinate2,
-          "cve-2", sbomMetadata.getId(), "description2", "link2", CvssV3Severity.LOW.getStartScoreRange(),
-          CvssV3Severity.LOW.getDisplayName(), "fix2");
-      tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-3", sbomMetadata.getId(), "description3", "link3",
-          CvssV3Severity.LOW.getStartScoreRange() + 0.2f, CvssV3Severity.LOW.getDisplayName(), "fix3");
-      tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-4", sbomMetadata.getId(), "description4", "link4",
-          CvssV3Severity.LOW.getStartScoreRange() + 1f, CvssV3Severity.LOW.getDisplayName(), "fix4");
-      tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-5", sbomMetadata.getId(), "description5", "link5",
-          CvssV3Severity.LOW.getEndScoreRange(), CvssV3Severity.LOW.getDisplayName(), "fix5");
-      tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-6", sbomMetadata.getId(), "description6", "link6",
-          CvssV3Severity.LOW.getEndScoreRange() - 0.1f, CvssV3Severity.LOW.getDisplayName(), "fix6");
-      tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-7", sbomMetadata.getId(), "description7", "link7",
-          CvssV3Severity.LOW.getEndScoreRange(), CvssV3Severity.LOW.getDisplayName(), "fix7");
+      tempEntity.newThirdPartyCoordinateSecurity(coordinate1, "cve-2", sbomMetadata.getId(), "description2", "link2",
+          CvssV3Severity.LOW.getStartScoreRange() + 0.2f, CvssV3Severity.LOW.getDisplayName(), "fix2");
+      tempEntity.newThirdPartyCoordinateSecurity(coordinate1, "cve-3", sbomMetadata.getId(), "description3", "link3",
+          CvssV3Severity.LOW.getStartScoreRange() + 1f, CvssV3Severity.LOW.getDisplayName(), "fix3");
+      tempEntity.newThirdPartyCoordinateSecurity(coordinate1, "cve-4", sbomMetadata.getId(), "description4", "link4",
+          CvssV3Severity.LOW.getEndScoreRange(), CvssV3Severity.LOW.getDisplayName(), "fix4");
+      tempEntity.newThirdPartyCoordinateSecurity(coordinate1, "cve-5", sbomMetadata.getId(), "description5", "link5",
+          CvssV3Severity.LOW.getEndScoreRange() - 0.1f, CvssV3Severity.LOW.getDisplayName(), "fix5");
+      tempEntity.newThirdPartyCoordinateSecurity(coordinate1, "cve-6", sbomMetadata.getId(), "description6", "link6",
+          CvssV3Severity.LOW.getEndScoreRange(), CvssV3Severity.LOW.getDisplayName(), "fix6");
 
       if (i < 30) {
-        insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity1);
         for (int j = 4; j <= 10; j++) {
-          tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "r-" + i + j, sbomMetadata.getId(), "description7",
-              "link7",
-              Math.min(i, 10), "severity", "fix7");
+          ThirdPartyCoordinateSecurity coordinateSecurity = 
+              tempEntity.newThirdPartyCoordinateSecurity(
+                  coordinate1,
+                  "r-" + i + j,
+                  sbomMetadata.getId(),
+                  "description7",
+                  "link7",
+                  Math.min(i, 10),
+                  "severity",
+                  "fix7"
+              );
+          if (j <= 7) {
+            insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity); 
+          }
         }
       }
     }

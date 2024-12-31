@@ -28,7 +28,7 @@ const applicationTemplate = (applicationName, sbomVersion) =>
       moderate: 222,
       low: 111,
     },
-    annotatedPercentage: 0.5,
+    releaseStatusPercentage: 1.0,
   });
 
 const mockApplications = Object.freeze([
@@ -352,23 +352,6 @@ describe('sbomApplicationsTableSlice', function () {
       const newState2 = reducer(newState, {
         type: 'sbomApplicationsTable/setSortByAndCycleDirection',
         payload: SORT_BY_FIELDS.latestVersion,
-      });
-
-      expect(newState2.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.DESC);
-    });
-
-    it('should set sortBy and cycle sortDirection for SORT_BY_FIELDS.annotated', () => {
-      const newState = reducer(initialState, {
-        type: 'sbomApplicationsTable/setSortByAndCycleDirection',
-        payload: SORT_BY_FIELDS.annotated,
-      });
-
-      expect(newState.sortConfiguration.sortBy).toBe(SORT_BY_FIELDS.annotated);
-      expect(newState.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.ASC);
-
-      const newState2 = reducer(newState, {
-        type: 'sbomApplicationsTable/setSortByAndCycleDirection',
-        payload: SORT_BY_FIELDS.annotated,
       });
 
       expect(newState2.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.DESC);

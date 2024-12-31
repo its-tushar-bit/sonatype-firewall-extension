@@ -40,7 +40,7 @@ describe('SbomApplicationsTable', () => {
       severe: 333 + count,
       critical: 444 + count,
     },
-    annotatedPercentage: count,
+    releaseStatusPercentage: count,
   });
 
   const generateResponse = (totalCount = 2) => ({
@@ -94,22 +94,22 @@ describe('SbomApplicationsTable', () => {
     const firstRowCells = within(firstRow).getAllByRole('cell');
     expect(firstRowCells[0]).toHaveTextContent('app-name-0');
     expect(firstRowCells[1]).toHaveTextContent('sbom-version-0');
+    expect(firstRowCells[2]).toHaveTextContent(/0%/);
     // The text content for each severity pill is contained in 3 divs:
     // • One div with the severity text
     // • One div for the actual severity
     // • One div with the overflow text in this case is set at 100 so the overflow text is 99+
     // The expected text of the vulnerabilities cell is the combinations of all of these.
-    expect(firstRowCells[3]).toHaveTextContent('Critical5999+High4999+Medium3999+');
-    expect(firstRowCells[4]).toHaveTextContent('Critical444999+Severe333999+Moderate222999+');
-    expect(firstRowCells[5]).toHaveTextContent(/0%/);
+    expect(firstRowCells[4]).toHaveTextContent('Critical5999+High4999+Medium3999+');
+    expect(firstRowCells[5]).toHaveTextContent('Critical444999+Severe333999+Moderate222999+');
 
     const secondRow = tableRows[3];
     const secondRowCells = within(secondRow).getAllByRole('cell');
     expect(secondRowCells[0]).toHaveTextContent('app-name-1');
     expect(secondRowCells[1]).toHaveTextContent('sbom-version-1');
-    expect(firstRowCells[3]).toHaveTextContent('Critical5999+High4999+Medium3999+');
-    expect(secondRowCells[4]).toHaveTextContent('Critical445999+Severe334999+Moderate223999+');
-    expect(secondRowCells[5]).toHaveTextContent(/1%/);
+    expect(secondRowCells[2]).toHaveTextContent(/1%/);
+    expect(firstRowCells[4]).toHaveTextContent('Critical5999+High4999+Medium3999+');
+    expect(secondRowCells[5]).toHaveTextContent('Critical445999+Severe334999+Moderate223999+');
   });
 
   describe('Pagination Status', () => {

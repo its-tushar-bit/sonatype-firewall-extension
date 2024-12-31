@@ -21,7 +21,7 @@ export const SORT_BY_FIELDS = Object.freeze({
   latestVersion: 'latest_sbom_version',
   importDate: 'import_date',
   vulnerabilities: 'vulnerability',
-  annotated: 'percentage_annotated',
+  releaseStatusPercentage: 'release_status_percentage',
 });
 
 export const SORT_DIRECTION = Object.freeze({

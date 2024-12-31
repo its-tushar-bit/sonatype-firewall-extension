@@ -105,6 +105,19 @@ export default function SbomApplicationsTable() {
                 </NxTextLink>
               </NxTooltip>
             </NxTable.Cell>
+            <NxTable.Cell>
+              {typeof application.releaseStatusPercentage === 'number' ? (
+                <div className="sbom-manager-applications-table__releaseStatusPercentage">
+                  <NxBinaryDonutChart
+                    className="sbom-manager-applications-table__releaseStatusPercentageDonut"
+                    value={application.releaseStatusPercentage}
+                    aria-label={`${application.releaseStatusPercentage}% release ready`}
+                    innerRadiusPercent={80}
+                  />
+                  <span>{application.releaseStatusPercentage}%</span>
+                </div>
+              ) : null}
+            </NxTable.Cell>
             <NxTable.Cell> {moment(application.importDate).fromNow()}</NxTable.Cell>
             <NxTable.Cell>
               {application.vulnerabilitySummary ? (
@@ -124,17 +137,6 @@ export default function SbomApplicationsTable() {
                   severeCount={application.policyViolationSummary.severe}
                   moderateCount={application.policyViolationSummary.moderate}
                 />
-              ) : null}
-            </NxTable.Cell>
-            <NxTable.Cell>
-              {typeof application.annotatedPercentage === 'number' ? (
-                <div className="sbom-manager-applications-table__annotated-percentage">
-                  <NxBinaryDonutChart
-                    value={application.annotatedPercentage}
-                    aria-label={`${application.annotatedPercentage}% annotated`}
-                  />
-                  <span>{application.annotatedPercentage}%</span>
-                </div>
               ) : null}
             </NxTable.Cell>
           </NxTable.Row>
@@ -208,10 +210,12 @@ export default function SbomApplicationsTable() {
           <NxTable.Row>
             <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.name)}>Name</NxTable.Cell>
             <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.latestVersion)}>Latest Version</NxTable.Cell>
+            <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.releaseStatusPercentage)}>
+              Release Status
+            </NxTable.Cell>
             <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.importDate)}>Import Date</NxTable.Cell>
             <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.vulnerabilities)}>vulnerabilities</NxTable.Cell>
             <NxTable.Cell>Violations</NxTable.Cell>
-            <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.annotated)}>Annotated</NxTable.Cell>
           </NxTable.Row>
           <NxTable.Row isFilterHeader>
             <NxTable.Cell>

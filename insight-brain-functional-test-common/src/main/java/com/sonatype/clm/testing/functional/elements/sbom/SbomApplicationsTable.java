@@ -39,9 +39,9 @@ public class SbomApplicationsTable
     return children("table tbody tr");
   }
 
-  public SelenideElement percentageAnnotatedColumn(int row) {
+  public SelenideElement releaseStatusColumn(int row) {
     return tableBodyRows().get(row)
-        .find(".sbom-manager-applications-table__annotated-percentage");
+        .find(".sbom-manager-applications-table__releaseStatusPercentage");
   }
 
   public ElementsCollection vulnerabilitiesColumns(int row) {

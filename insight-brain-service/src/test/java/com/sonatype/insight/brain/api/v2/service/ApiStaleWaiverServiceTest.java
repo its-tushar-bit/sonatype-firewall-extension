@@ -36,10 +36,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.*;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
@@ -129,8 +126,8 @@ public class ApiStaleWaiverServiceTest
         policyWaiver3.getId(), policyWaiver3.getComment(), date);
 
     // stale waivers
-    PolicyWaiver policyWaiver4 = tempEntity.newWaiver("hash4", policy.getId(), repo.getId(),
-        constraintFacts2, "stale waiver comment1");
+    PolicyWaiver policyWaiver4 = tempEntity.newWaiverWithReason("hash4", policy.getId(), repo.getId(),
+        constraintFacts2, "stale waiver comment1", "system", "Some reason");
     PolicyWaiver policyWaiver5 = tempEntity.newWaiver("hash5", policy.getId(), Organization.ROOT_ORGANIZATION_ID,
         constraintFacts1, "stale waiver comment2");
     PolicyWaiver policyWaiver6 = tempEntity.newWaiver("hash6", policy.getId(),
@@ -145,7 +142,7 @@ public class ApiStaleWaiverServiceTest
     // stale waiver at repo scope
     ApiStaleWaiverDTO staleWaiver = staleRepositoryWaivers.get(0);
     assertStalePolicyWaiver(staleWaiver, policyWaiver4, policy, repo.getPublicId(), OwnerType.REPOSITORY.toString(),
-        true, constraintFact2);
+        true, constraintFact2, "Some reason");
 
     // stale waiver at root organization scope
     staleWaiver = staleRepositoryWaivers.get(1);
@@ -217,6 +214,20 @@ public class ApiStaleWaiverServiceTest
       boolean hasConstraintFacts,
       ConstraintFact constraintFact)
   {
+    assertStalePolicyWaiver(staleWaiver, policyWaiver, policy, ownerName, ownerType, hasConstraintFacts,
+            constraintFact, null);
+  }
+
+  private void assertStalePolicyWaiver(
+      ApiStaleWaiverDTO staleWaiver,
+      PolicyWaiver policyWaiver,
+      Policy policy,
+      String ownerName,
+      String ownerType,
+      boolean hasConstraintFacts,
+      ConstraintFact constraintFact,
+      String resonText)
+  {
     assertThat(staleWaiver).isNotNull();
     assertThat(staleWaiver.waiverId).isEqualTo(policyWaiver.getId());
     assertThat(staleWaiver.policyId).isEqualTo(policyWaiver.getPolicyId());
@@ -228,6 +239,14 @@ public class ApiStaleWaiverServiceTest
     assertThat(staleWaiver.scopeOwnerType).isEqualTo(ownerType);
     assertThat(staleWaiver.creatorId).isEqualTo("testuser");
     assertThat(staleWaiver.creatorName).isEqualTo("Test User");
+    if (resonText != null) {
+      assertThat(staleWaiver.policyWaiverReasonId).isNotNull();
+      assertThat(staleWaiver.reasonText).isEqualTo(resonText);
+    }
+    else {
+      assertThat(staleWaiver.policyWaiverReasonId).isNull();
+      assertThat(staleWaiver.reasonText).isNull();
+    }
 
     if (hasConstraintFacts) {
       assertThat(staleWaiver.constraintFacts).hasSize(1);
@@ -503,6 +522,19 @@ public class ApiStaleWaiverServiceTest
       final String expectedOwnerId,
       final String expectedOwnerName)
   {
+    assertStaleWaiver(staleWaiverDTO, expectedPolicy, expectedWaiver, expectedOwnerType, expectedOwnerId,
+            expectedOwnerName, null);
+  }
+
+  private void assertStaleWaiver(
+      final ApiStaleWaiverDTO staleWaiverDTO,
+      final Policy expectedPolicy,
+      final PolicyWaiver expectedWaiver,
+      final String expectedOwnerType,
+      final String expectedOwnerId,
+      final String expectedOwnerName,
+      final String reasonText)
+  {
     assertThat(staleWaiverDTO).isNotNull();
     assertThat(staleWaiverDTO.waiverId).isEqualTo(expectedWaiver.getId());
     assertThat(staleWaiverDTO.policyId).isEqualTo(expectedPolicy.getId());
@@ -516,6 +548,14 @@ public class ApiStaleWaiverServiceTest
     assertThat(staleWaiverDTO.creatorId).isNotNull();
     assertThat(staleWaiverDTO.creatorId).isEqualTo(expectedWaiver.getCreatorId());
     assertThat(staleWaiverDTO.creatorName).isEqualTo(expectedWaiver.getCreatorName());
+    if (reasonText != null) {
+      assertThat(staleWaiverDTO.policyWaiverReasonId).isNotNull();
+      assertThat(staleWaiverDTO.reasonText).isEqualTo(reasonText);
+    }
+    else {
+      assertThat(staleWaiverDTO.policyWaiverReasonId).isNull();
+      assertThat(staleWaiverDTO.reasonText).isNull();
+    }
   }
 
   private void assertConstraintFacts(List<ApiConstraintFactDTO> constraintFacts) {
@@ -552,14 +592,15 @@ public class ApiStaleWaiverServiceTest
 
     // unapplied waiver
     PolicyWaiver unappliedWaiverWithoutConstraintFacts =
-        tempEntity.newWaiver("h4", policy.getId(), app.getId(), "Some comments here");
+        tempEntity.newWaiverWithReason("h4", policy.getId(), app.getId(), null, "Some comments here",
+                "system", "Some reason");
 
     List<ApiStaleWaiverDTO> staleWaivers = apiStaleWaiverService.getStaleWaivers();
 
     assertThat(staleWaivers).hasSize(1);
     ApiStaleWaiverDTO staleWaiver = staleWaivers.get(0);
     assertStaleWaiver(staleWaiver, policy, unappliedWaiverWithoutConstraintFacts, "application", app.getId(),
-        app.getName());
+        app.getName(), "Some reason");
     assertThat(staleWaiver.constraintFacts).isEmpty();
 
     // now apply the stale waiver

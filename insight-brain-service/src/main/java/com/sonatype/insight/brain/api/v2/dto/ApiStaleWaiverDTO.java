@@ -63,4 +63,14 @@ public class ApiStaleWaiverDTO
    */
   @JsonInclude(Include.NON_EMPTY)
   public ApiStaleEvaluationsDTO staleEvaluations;
+
+  /**
+   * @since 1.187
+   */
+  public String reasonText;
+
+  /**
+   * @since 1.187
+   */
+  public String policyWaiverReasonId;
 }

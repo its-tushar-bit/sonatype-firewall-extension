@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.dataaccess.PolicyEvaluationRequiredException;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -53,6 +54,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.organization.ApplicationService;
@@ -98,6 +100,8 @@ public class ApiStaleWaiverService
 
   private final ApplicationDAO applicationDAO;
 
+  private final PolicyWaiverReasonDAO policyWaiverReasonDAO;
+
   @Inject
   public ApiStaleWaiverService(OwnerDAO ownerDAO,
       PolicyDAO policyDAO,
@@ -109,7 +113,8 @@ public class ApiStaleWaiverService
       ApplicationService applicationService,
       PolicyViolationLoader policyViolationLoader,
       RepositoryComponentDAO repositoryComponentDAO,
-      ApplicationDAO applicationDAO)
+      ApplicationDAO applicationDAO,
+      PolicyWaiverReasonDAO policyWaiverReasonDAO)
   {
     this.ownerDAO = ownerDAO;
     this.policyDAO = policyDAO;
@@ -122,6 +127,7 @@ public class ApiStaleWaiverService
     this.policyViolationLoader = policyViolationLoader;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.applicationDAO = applicationDAO;
+    this.policyWaiverReasonDAO = policyWaiverReasonDAO;
   }
 
   public List<ApiStaleWaiverDTO> getStaleWaivers() {
@@ -149,6 +155,9 @@ public class ApiStaleWaiverService
         authorizedApplications.stream().map(Application::getId).collect(Collectors.toCollection(HashSet::new));
     staleWaivers.addAll(getStaleApplicationWaivers(allUsedPolicyWaiverIds, authorizedApplications));
 
+    Map<String, PolicyWaiverReason> policyWaiversReasons = policyWaiverReasonDAO
+            .getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
+
     List<PolicyEvaluation> evaluations = policyEvaluationDAO.getAllLast();
 
     // evaluations is read-only, creating a copy to sort
@@ -170,7 +179,8 @@ public class ApiStaleWaiverService
     for (PolicyWaiver policyWaiver : staleWaivers) {
       ApiStaleWaiverDTO staleWaiverDTO =
           createApiStaleWaiverDTO(policyIdToNameMap, policyWaiver, lastEvaluationsByAppId, lastEvaluations,
-              allApplicationsMap, authorizedApplicationIds, oldestEvalTimesByRepoId, authorizedReposMap);
+              allApplicationsMap, authorizedApplicationIds, oldestEvalTimesByRepoId, authorizedReposMap,
+                  policyWaiversReasons);
       staleWaiverDTOs.add(staleWaiverDTO);
     }
 
@@ -366,7 +376,8 @@ public class ApiStaleWaiverService
       final Map<String, Application> allApplications,
       final Set<String> authorizedApplicationIds,
       final Map<String, RepositoryWithDate> oldestEvalTimesByRepoId,
-      final Map<String, Repository> authorizedReposMap)
+      final Map<String, Repository> authorizedReposMap,
+      final Map<String, PolicyWaiverReason> policyWaiversReasons)
   {
     ApiStaleWaiverDTO staleWaiverDTO = new ApiStaleWaiverDTO();
     staleWaiverDTO.waiverId = policyWaiver.getId();
@@ -377,6 +388,10 @@ public class ApiStaleWaiverService
     staleWaiverDTO.comment = policyWaiver.getComment();
     staleWaiverDTO.creatorId = policyWaiver.getCreatorId();
     staleWaiverDTO.creatorName = policyWaiver.getCreatorName();
+    staleWaiverDTO.policyWaiverReasonId = policyWaiver.getWaiverReasonId();
+    if (policyWaiversReasons.containsKey(policyWaiver.getWaiverReasonId())) {
+      staleWaiverDTO.reasonText = policyWaiversReasons.get(policyWaiver.getWaiverReasonId()).getReasonText();
+    }
 
     List<ConstraintFact> constraintFacts = policyWaiver.getConstraintFacts();
     // older/legacy policy waivers do not have constraint facts

@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.report.FileReportEntity;
+import com.sonatype.insight.brain.report.FileReportPdf;
 import com.sonatype.insight.brain.report.ReportPdf;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent;
@@ -140,7 +140,7 @@ public class PdfGeneratorTest
     );
 
     String pdfContent = generatePdfAndStripText(reportPdf, pdfData, Context.SBOM, 1, 13);
-    assertThat(((FileReportEntity) reportPdf).getFile()).isFile();
+    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
 
     assertSbomPdfCommonSections(pdfContent);
     assertThat(pdfContent)
@@ -184,7 +184,7 @@ public class PdfGeneratorTest
     );
 
     String pdfContent = generatePdfAndStripText(reportPdf, pdfData, Context.SBOM, 1, 13);
-    assertThat(((FileReportEntity) reportPdf).getFile()).isFile();
+    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
 
     assertSbomPdfCommonSections(pdfContent);
     assertThat(pdfContent)
@@ -263,7 +263,7 @@ public class PdfGeneratorTest
     );
 
     String pdfContent = generatePdfAndStripText(reportPdf, pdfData, Context.LIFECYCLE, 1, 13);
-    assertThat(((FileReportEntity) reportPdf).getFile()).isFile();
+    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
 
     assertCommonSections(pdfContent);
     assertThat(pdfContent)
@@ -339,7 +339,7 @@ public class PdfGeneratorTest
     generateReportFile();
     PdfGenerator.generate(reportPdf, pdfData);
 
-    assertThat(((FileReportEntity) reportPdf).getFile()).isFile();
+    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
   }
 
   @Test
@@ -356,7 +356,7 @@ public class PdfGeneratorTest
     generateReportFile();
     PdfGenerator.generate(reportPdf, pdfData);
 
-    assertThat(((FileReportEntity) reportPdf).getFile()).isFile();
+    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
   }
 
   @Test
@@ -375,7 +375,7 @@ public class PdfGeneratorTest
     generateReportFile();
     PdfGenerator.generate(reportPdf, pdfData);
 
-    assertThat(((FileReportEntity) reportPdf).getFile()).isFile();
+    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
   }
 
   @Test
@@ -392,7 +392,7 @@ public class PdfGeneratorTest
     generateReportFile();
     PdfGenerator.generate(reportPdf, pdfData);
 
-    assertThat(((FileReportEntity) reportPdf).getFile()).isFile();
+    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
   }
 
   @Test
@@ -411,7 +411,7 @@ public class PdfGeneratorTest
     generateReportFile();
     PdfGenerator.generate(reportPdf, pdfData);
 
-    assertThat(((FileReportEntity) reportPdf).getFile()).isFile();
+    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
   }
 
   @Test
@@ -431,7 +431,7 @@ public class PdfGeneratorTest
     generateReportFile();
     PdfGenerator.generate(reportPdf, pdfData);
 
-    assertThat(((FileReportEntity) reportPdf).getFile()).isFile();
+    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
   }
 
   @Test
@@ -450,7 +450,7 @@ public class PdfGeneratorTest
     generateReportFile();
     PdfGenerator.generate(reportPdf, pdfData);
 
-    assertThat(((FileReportEntity) reportPdf).getFile()).isFile();
+    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
   }
 
   @Test
@@ -472,7 +472,7 @@ public class PdfGeneratorTest
 
     PdfGenerator.generate(reportPdf, pdfData);
 
-    assertThat(((FileReportEntity) reportPdf).getFile()).isFile();
+    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
   }
 
   @Test

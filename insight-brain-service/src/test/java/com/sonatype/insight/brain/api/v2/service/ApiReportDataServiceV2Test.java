@@ -37,7 +37,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.report.FileReportEntity;
+import com.sonatype.insight.brain.report.FileApplicationReport;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
@@ -84,17 +84,17 @@ public class ApiReportDataServiceV2Test
 
   private String scanId;
 
-  private FileReportEntity reportZip;
+  private FileApplicationReport reportZip;
 
   private PolicyEvaluation policyEvaluation;
 
-  private FileReportEntity makeReportFile() throws Exception {
+  private FileApplicationReport makeReportFile() throws Exception {
     File reportFile = work.getReportFile(app.getId(), scanId);
     reportFile.getParentFile().mkdirs();
     try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(reportFile.toPath()))) {
       zos.putNextEntry(new ZipEntry("index.html"));
     }
-    return new FileReportEntity(reportFile);
+    return new FileApplicationReport(reportFile);
   }
 
   private void makeReport(String resource) throws Exception {

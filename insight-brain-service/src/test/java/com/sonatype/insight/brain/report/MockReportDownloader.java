@@ -53,10 +53,10 @@ public class MockReportDownloader
         ReportEntity reportFile = (ReportEntity) invocation.getArguments()[1];
         if (reportResourceName.endsWith(".zip")) {
           FileUtils.copyURLToFile(getClass().getResource(reportResourceName),
-              ((FileReportEntity) reportFile).getFile());
+              ((FileApplicationReport) reportFile).getFile());
         }
         else {
-          zipResourceDir(reportResourceName, ((FileReportEntity) reportFile).getFile());
+          zipResourceDir(reportResourceName, ((FileApplicationReport) reportFile).getFile());
         }
         return true;
       }

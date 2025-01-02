@@ -58,7 +58,7 @@ public class ReportServiceDataTest
     tempEntity.newLicenseThreatGroup(org.getId(), "My group 2", 5, "GPL-2.0");
     tempEntity.newLicenseThreatGroup(org.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");
 
-    FileReportEntity reportZip = new FileReportEntity(new File(tempDir.getRoot(), "test"));
+    FileApplicationReport reportZip = new FileApplicationReport(new File(tempDir.getRoot(), "test"));
 
     createReportService().writeLicenseThreatsToReportFile(app, reportZip);
 

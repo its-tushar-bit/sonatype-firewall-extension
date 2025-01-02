@@ -33,7 +33,7 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.report.FileReportEntity;
+import com.sonatype.insight.brain.report.FileApplicationReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -115,7 +115,7 @@ public class ThirdPartyComponentDAOTest
 
   @Test
   public void testGetData() {
-    FileReportEntity appReport = new FileReportEntity(zipReportDir("/ThirdPartyComponentDAOTest/report"));
+    FileApplicationReport appReport = new FileApplicationReport(zipReportDir("/ThirdPartyComponentDAOTest/report"));
     mockReportEntries("/ThirdPartyComponentDAOTest/report", THIRD_PARTY_BOM_JSON_FILENAME,
         THIRD_PARTY_LICENSE_JSON_FILENAME, THIRD_PARTY_SECURITY_JSON_FILENAME);
     final Map<String, ThirdPartyReportComponentDTO> data = dao.getData(appReport);
@@ -176,7 +176,7 @@ public class ThirdPartyComponentDAOTest
 
   @Test
   public void testGetData_InvalidContent() {
-    FileReportEntity appReport = new FileReportEntity(zipReportDir("/ThirdPartyComponentDAOTest/invalid"));
+    FileApplicationReport appReport = new FileApplicationReport(zipReportDir("/ThirdPartyComponentDAOTest/invalid"));
     mockReportEntries("/ThirdPartyComponentDAOTest/invalid", THIRD_PARTY_BOM_JSON_FILENAME);
     final Map<String, ThirdPartyReportComponentDTO> data = dao.getData(appReport);
     assertThat(data).isNotNull();
@@ -198,7 +198,7 @@ public class ThirdPartyComponentDAOTest
         THIRD_PARTY_LICENSE_JSON_FILENAME, THIRD_PARTY_SECURITY_JSON_FILENAME);
     String scanId = "scanId";
     String appId = "appId";
-    when(reportService.getReport(appId, scanId)).thenReturn(new FileReportEntity(reportZip));
+    when(reportService.getReport(appId, scanId)).thenReturn(new FileApplicationReport(reportZip));
 
     final List<ComponentDetails> allVersions = dao.getAllVersions(appId, testData.get(hashGlibc), scanId).getList();
 
@@ -214,7 +214,7 @@ public class ThirdPartyComponentDAOTest
         THIRD_PARTY_LICENSE_JSON_FILENAME, THIRD_PARTY_SECURITY_JSON_FILENAME);
     String scanId = "scanId";
     String appId = "appId";
-    when(reportService.getReport(appId, scanId)).thenReturn(new FileReportEntity(reportZip));
+    when(reportService.getReport(appId, scanId)).thenReturn(new FileApplicationReport(reportZip));
 
     List<ComponentDetails> result = dao.getAllVersions(appId, testData.get(hashApt), scanId).getList();
     assertThat(result).hasSize(1);
@@ -231,7 +231,7 @@ public class ThirdPartyComponentDAOTest
         THIRD_PARTY_LICENSE_JSON_FILENAME, THIRD_PARTY_SECURITY_JSON_FILENAME);
     String scanId = "scanId";
     String appId = "appId";
-    when(reportService.getReport(appId, scanId)).thenReturn(new FileReportEntity(reportZip));
+    when(reportService.getReport(appId, scanId)).thenReturn(new FileApplicationReport(reportZip));
 
     List<ComponentDetails> result =
         dao.getAllVersions(appId, componentIdentifierFrom("unknown", "unknown", "0.0"), scanId).getList();
@@ -245,7 +245,7 @@ public class ThirdPartyComponentDAOTest
         THIRD_PARTY_LICENSE_JSON_FILENAME, THIRD_PARTY_SECURITY_JSON_FILENAME);
     String scanId = "scanId";
     String appId = "appId";
-    when(reportService.getReport(appId, scanId)).thenReturn(new FileReportEntity(reportZip));
+    when(reportService.getReport(appId, scanId)).thenReturn(new FileApplicationReport(reportZip));
 
     final NamedComponentDetails componentDetails =
         dao.getComponentDetailsByIdentifier(testData.get(hashGlibc), appId, scanId);
@@ -267,7 +267,7 @@ public class ThirdPartyComponentDAOTest
 
     Tenant tenant1 = testAsNewTenant(testName, t1 -> {
 
-      when(reportService.getReport(tenant1AppId, tenant1ScanId)).thenReturn(new FileReportEntity(reportZip));
+      when(reportService.getReport(tenant1AppId, tenant1ScanId)).thenReturn(new FileApplicationReport(reportZip));
       componentDetails[0] = dao.getComponentDetailsByIdentifier(testData.get(hashGlibc), tenant1AppId, tenant1ScanId);
 
       mockRunnable.run();
@@ -283,7 +283,7 @@ public class ThirdPartyComponentDAOTest
 
     Tenant tenant2 = testAsNewTenant(testName, t2 -> {
 
-      when(reportService.getReport(tenant2AppId, tenant2ScanId)).thenReturn(new FileReportEntity(reportZip));
+      when(reportService.getReport(tenant2AppId, tenant2ScanId)).thenReturn(new FileApplicationReport(reportZip));
       componentDetails[0] = dao.getComponentDetailsByIdentifier(testData.get(hashGlibc), tenant2AppId, tenant2ScanId);
 
       mockRunnable.run();
@@ -316,7 +316,7 @@ public class ThirdPartyComponentDAOTest
     String referenceId = "CVE-2018-1000001";
     String scanId = "scanId";
     String appId = "appId";
-    when(reportService.getReport(appId, scanId)).thenReturn(new FileReportEntity(reportZip));
+    when(reportService.getReport(appId, scanId)).thenReturn(new FileApplicationReport(reportZip));
 
     @SuppressWarnings("deprecation")
     SecurityVulnerabilityDetails securityDetails =
@@ -337,7 +337,7 @@ public class ThirdPartyComponentDAOTest
     String referenceId = "CVE-2018-fake-non-existing";
     String scanId = "scanId";
     String appId = "appId";
-    when(reportService.getReport(appId, scanId)).thenReturn(new FileReportEntity(reportZip));
+    when(reportService.getReport(appId, scanId)).thenReturn(new FileApplicationReport(reportZip));
 
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(
@@ -353,7 +353,7 @@ public class ThirdPartyComponentDAOTest
     String referenceId = "CVE-2018-1000001";
     String scanId = "scanId";
     String appId = "appId";
-    when(reportService.getReport(appId, scanId)).thenReturn(new FileReportEntity(reportZip));
+    when(reportService.getReport(appId, scanId)).thenReturn(new FileApplicationReport(reportZip));
 
     SecurityVulnerabilityData vulnerabilityDetails =
         dao.getVulnerabilityData(testData.get(hashGlibc), appId, scanId, referenceId);
@@ -373,7 +373,7 @@ public class ThirdPartyComponentDAOTest
     String referenceId = "fake-id";
     String scanId = "scanId";
     String appId = "appId";
-    when(reportService.getReport(appId, scanId)).thenReturn(new FileReportEntity(reportZip));
+    when(reportService.getReport(appId, scanId)).thenReturn(new FileApplicationReport(reportZip));
 
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> dao.getVulnerabilityData(testData.get(hashGlibc), appId, scanId, referenceId))
@@ -386,7 +386,7 @@ public class ThirdPartyComponentDAOTest
         THIRD_PARTY_LICENSE_JSON_FILENAME, THIRD_PARTY_SECURITY_JSON_FILENAME);
     String scanId = "scanId";
     String appId = "appId";
-    when(reportService.getReport(appId, scanId)).thenReturn(new FileReportEntity(reportZip));
+    when(reportService.getReport(appId, scanId)).thenReturn(new FileApplicationReport(reportZip));
 
     final ComponentSummary componentSummary =
         dao.getComponentSummary(identifier, appId, scanId);
@@ -407,7 +407,7 @@ public class ThirdPartyComponentDAOTest
         THIRD_PARTY_LICENSE_JSON_FILENAME, THIRD_PARTY_SECURITY_JSON_FILENAME);
     String scanId = "scanId";
     String appId = "appId";
-    when(reportService.getReport(appId, scanId)).thenReturn(new FileReportEntity(reportZip));
+    when(reportService.getReport(appId, scanId)).thenReturn(new FileApplicationReport(reportZip));
 
     Map<String, String> coordinates = new HashMap<>();
     coordinates.put(ComponentIdentifier.VERSION, "2.24-11+deb9u3");
@@ -435,7 +435,7 @@ public class ThirdPartyComponentDAOTest
         THIRD_PARTY_LICENSE_JSON_FILENAME, THIRD_PARTY_SECURITY_JSON_FILENAME);
     String scanId = "scanId";
     String appId = "appId";
-    when(reportService.getReport(appId, scanId)).thenReturn(new FileReportEntity(reportZip));
+    when(reportService.getReport(appId, scanId)).thenReturn(new FileApplicationReport(reportZip));
 
     Map<String, String> coordinates = new HashMap<>();
     coordinates.put(ComponentIdentifier.VERSION, "1.4.7");
@@ -456,7 +456,7 @@ public class ThirdPartyComponentDAOTest
         THIRD_PARTY_LICENSE_JSON_FILENAME, THIRD_PARTY_SECURITY_JSON_FILENAME);
     String scanId = "scanId";
     String appId = "appId";
-    when(reportService.getReport(appId, scanId)).thenReturn(new FileReportEntity(reportZip));
+    when(reportService.getReport(appId, scanId)).thenReturn(new FileApplicationReport(reportZip));
 
     Map<String, String> coordinates = new HashMap<>();
     coordinates.put(ComponentIdentifier.VERSION, "1.4.8");
@@ -523,7 +523,8 @@ public class ThirdPartyComponentDAOTest
 
   @Test
   public void testUpdateReport_scenario1_havingVulnerabilityOnHDS_analysisDataIsIncluded() throws Exception {
-    FileReportEntity appReport = new FileReportEntity(zipReportDir("/ThirdPartyComponentDAOTest/vex/scenario1/report"));
+    FileApplicationReport appReport =
+        new FileApplicationReport(zipReportDir("/ThirdPartyComponentDAOTest/vex/scenario1/report"));
     mockReportEntries("/ThirdPartyComponentDAOTest/vex/scenario1/report", THIRD_PARTY_BOM_JSON_FILENAME,
         THIRD_PARTY_LICENSE_JSON_FILENAME, THIRD_PARTY_SECURITY_JSON_FILENAME);
     ContainerNode<?> bomJsonData = getContainerNode(appReport, BOM_JSON_FILENAME);
@@ -552,7 +553,8 @@ public class ThirdPartyComponentDAOTest
 
   @Test
   public void testUpdateReport_scenario2_havingVulnerabilityOnThirdParty_analysisDataIsIncluded() throws Exception {
-    FileReportEntity appReport = new FileReportEntity(zipReportDir("/ThirdPartyComponentDAOTest/vex/scenario2/report"));
+    FileApplicationReport appReport =
+        new FileApplicationReport(zipReportDir("/ThirdPartyComponentDAOTest/vex/scenario2/report"));
     mockReportEntries("/ThirdPartyComponentDAOTest/vex/scenario2/report", THIRD_PARTY_BOM_JSON_FILENAME,
         THIRD_PARTY_LICENSE_JSON_FILENAME, THIRD_PARTY_SECURITY_JSON_FILENAME);
     ContainerNode<?> bomJsonData = getContainerNode(appReport, BOM_JSON_FILENAME);
@@ -581,7 +583,8 @@ public class ThirdPartyComponentDAOTest
 
   @Test
   public void testUpdateReport_scenario3_havingNoVulnerabilityOnHDS_analysisDataIsNotIncluded() throws Exception {
-    FileReportEntity appReport = new FileReportEntity(zipReportDir("/ThirdPartyComponentDAOTest/vex/scenario3/report"));
+    FileApplicationReport appReport =
+        new FileApplicationReport(zipReportDir("/ThirdPartyComponentDAOTest/vex/scenario3/report"));
     mockReportEntries("/ThirdPartyComponentDAOTest/vex/scenario3/report", BOM_JSON_FILENAME, DATA_JSON_FILENAME,
         SUMMARY_JSON_FILENAME, LICENSES_JSON_FILENAME, SECURITY_JSON_FILENAME);
     ContainerNode<?> bomJsonData = getContainerNode(appReport, BOM_JSON_FILENAME);
@@ -605,7 +608,8 @@ public class ThirdPartyComponentDAOTest
 
   @Test
   public void testUpdateReport_scenario4_multipleComponentWithSameVulnerability() throws Exception {
-    FileReportEntity appReport = new FileReportEntity(zipReportDir("/ThirdPartyComponentDAOTest/vex/scenario4/report"));
+    FileApplicationReport appReport =
+        new FileApplicationReport(zipReportDir("/ThirdPartyComponentDAOTest/vex/scenario4/report"));
     mockReportEntries("/ThirdPartyComponentDAOTest/vex/scenario4/report", THIRD_PARTY_BOM_JSON_FILENAME,
         THIRD_PARTY_LICENSE_JSON_FILENAME, THIRD_PARTY_SECURITY_JSON_FILENAME);
     ContainerNode<?> bomJsonData = getContainerNode(appReport, BOM_JSON_FILENAME);
@@ -696,7 +700,9 @@ public class ThirdPartyComponentDAOTest
     assertThat(analysis.get("detail").textValue()).isEqualTo("Analysis for CVE-2021-41496");
   }
 
-  private ContainerNode<?> getContainerNode(final FileReportEntity reportFile, final String name) throws IOException {
+  private ContainerNode<?> getContainerNode(final FileApplicationReport reportFile, final String name)
+      throws IOException
+  {
     // When the archive is closed, all InputStreams retrieved from this archive are also closed.
     try (final ZipFile archive = new ZipFile(reportFile.getFile())) {
       final ZipEntry entry = archive.getEntry(name);

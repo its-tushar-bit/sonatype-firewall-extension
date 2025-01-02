@@ -66,9 +66,9 @@ public class ReportDownloader
         // Create the parent dir after the client returns with success
         // to ensure dir is not created for unknown scanId (or other errors)
         Files.createDirectories(
-            ((FileReportEntity) tempApplicationReport).getFile().getAbsoluteFile().getParentFile().toPath());
+            ((FileApplicationReport) tempApplicationReport).getFile().getAbsoluteFile().getParentFile().toPath());
         try (OutputStream os = new BufferedOutputStream(
-            Files.newOutputStream(((FileReportEntity) tempApplicationReport).getFile().toPath()))) {
+            Files.newOutputStream(((FileApplicationReport) tempApplicationReport).getFile().toPath()))) {
           IOUtils.copy(is, os);
           return true;
         }
@@ -81,7 +81,7 @@ public class ReportDownloader
       // don't leave an incomplete file around
       log.error(e.getMessage(), e);
       try {
-        fileCleaner.delete(((FileReportEntity) tempApplicationReport).getFile());
+        fileCleaner.delete(((FileApplicationReport) tempApplicationReport).getFile());
       }
       catch (FileDeletionException fde) {
         log.error("Could not delete incomplete report: {}", tempApplicationReport, fde);

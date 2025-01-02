@@ -73,7 +73,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.TestProductLicenseRule;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.report.FileReportEntity;
+import com.sonatype.insight.brain.report.FileApplicationReport;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
@@ -534,7 +534,7 @@ public abstract class AbstractBaseIntegrationTest
           .getReportDir(evaluation.getApplicationId(), evaluation.getScanId()).toPath();
       Files.createDirectories(reportDir);
       Files.write(reportDir.resolve("report.zip"), Collections.singletonList("report.zip"));
-      var reportZip = new FileReportEntity(reportDir.resolve("report.zip").toFile());
+      var reportZip = new FileApplicationReport(reportDir.resolve("report.zip").toFile());
       try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(reportZip.getFile().toPath()))) {
         zos.putNextEntry(new ZipEntry("index.html"));
       }

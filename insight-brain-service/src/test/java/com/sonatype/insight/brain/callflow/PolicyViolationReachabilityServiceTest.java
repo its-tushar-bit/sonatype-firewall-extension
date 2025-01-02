@@ -28,7 +28,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
-import com.sonatype.insight.brain.report.FileReportEntity;
+import com.sonatype.insight.brain.report.FileApplicationReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -71,7 +71,8 @@ public class PolicyViolationReachabilityServiceTest
 
     assertThat(policyViolation.getReachabilityStatus()).isNull();
 
-    FileReportEntity reportZip = new FileReportEntity(insightWork.getReportFile(application.getId(), scanId));
+    FileApplicationReport
+        reportZip = new FileApplicationReport(insightWork.getReportFile(application.getId(), scanId));
     Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers =
         getReachableVulnerabilitiesByPurlIdentifiers();
 
@@ -111,7 +112,8 @@ public class PolicyViolationReachabilityServiceTest
     assertThat(policyViolation.getReachabilityStatus()).isNull();
     assertThat(waivedPolicyViolation.getReachabilityStatus()).isNull();
 
-    FileReportEntity reportZip = new FileReportEntity(insightWork.getReportFile(application.getId(), scanId));
+    FileApplicationReport
+        reportZip = new FileApplicationReport(insightWork.getReportFile(application.getId(), scanId));
     Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers =
         getReachableVulnerabilitiesByPurlIdentifiers();
 
@@ -146,7 +148,8 @@ public class PolicyViolationReachabilityServiceTest
 
     assertThat(policyViolation.getReachabilityStatus()).isNull();
 
-    FileReportEntity reportFile = new FileReportEntity(insightWork.getReportFile(application.getId(), scanId));
+    FileApplicationReport
+        reportFile = new FileApplicationReport(insightWork.getReportFile(application.getId(), scanId));
     Map<PackageUrlIdentifier, Set<String>> emptyReachableVulnerabilities = new HashMap<>();
 
     policyViolationReachabilityService.updateReachabilityStatusForPolicyViolations(application.getId(), scanId,

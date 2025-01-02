@@ -118,7 +118,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.report.FileReportDataStore;
-import com.sonatype.insight.brain.report.FileReportEntity;
+import com.sonatype.insight.brain.report.FileApplicationReport;
 import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.repository.RepositoryQueryService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -3301,7 +3301,7 @@ public class ApiLicenseLegalServiceTest
       Path reportDir = insightWork.getReportDir(evaluation.getApplicationId(), evaluation.getScanId()).toPath();
       Files.createDirectories(reportDir);
       Files.write(reportDir.resolve("report.zip"), Collections.singletonList("report.zip"));
-      var reportZip = new FileReportEntity(reportDir.resolve("report.zip").toFile());
+      var reportZip = new FileApplicationReport(reportDir.resolve("report.zip").toFile());
       try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(reportZip.getFile().toPath()))) {
         zos.putNextEntry(new ZipEntry("index.html"));
       }

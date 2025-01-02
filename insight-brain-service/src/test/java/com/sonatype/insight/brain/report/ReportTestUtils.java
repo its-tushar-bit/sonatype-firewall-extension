@@ -41,7 +41,7 @@ public class ReportTestUtils
       List<PolicyViolation> policyViolations) throws IOException
   {
     PolicyThreats policyThreats = PolicyThreatsAdapter.createPolicyThreats(policyViolations, null, null);
-    FileReportEntity reportZip = new FileReportEntity(insightWork.getReportFile(appId, scanId));
+    FileApplicationReport reportZip = new FileApplicationReport(insightWork.getReportFile(appId, scanId));
     reportZip.putEntry(ScanPolicyEvaluator.POLICY_THREATS_FILENAME, JsonUtils.generate(policyThreats));
   }
 }

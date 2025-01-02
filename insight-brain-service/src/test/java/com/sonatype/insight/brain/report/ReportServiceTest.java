@@ -251,7 +251,7 @@ public class ReportServiceTest
     createReportFile();
 
     ReportService reportService = createReportService();
-    FileReportEntity report = ((FileReportEntity) reportService.fetchReport(app, scanId));
+    FileApplicationReport report = ((FileApplicationReport) reportService.fetchReport(app, scanId));
     assertThat(report).isNotNull();
     assertThat(report.getFile()).isFile();
     assertThat(report.getFile().getName()).isEqualTo("report.zip");
@@ -267,11 +267,11 @@ public class ReportServiceTest
     when(thirdPartyDataServiceSpy.getScanData(scanId))
         .thenReturn(new ThirdPartyApplicationReportDTO());
 
-    FileReportEntity report = ((FileReportEntity) reportService.fetchReport(app, scanId));
+    FileApplicationReport report = ((FileApplicationReport) reportService.fetchReport(app, scanId));
     assertThat(report).isNotNull();
     assertThat(report.getFile()).isFile();
     assertThat(report.getFile().getName()).isEqualTo("report.zip");
-    verify(reportDownloader).downloadReport(eq(scanId), any(FileReportEntity.class), eq(2100), eq(5));
+    verify(reportDownloader).downloadReport(eq(scanId), any(FileApplicationReport.class), eq(2100), eq(5));
   }
 
   @Test
@@ -279,7 +279,7 @@ public class ReportServiceTest
     mockReportDownloader.mockDownloadReport(scanId, "/ReportServiceTest/report-with-third-party-data");
     ReportService reportService = createReportService();
 
-    FileReportEntity reportZip = ((FileReportEntity) reportService.fetchReport(app, scanId));
+    FileApplicationReport reportZip = ((FileApplicationReport) reportService.fetchReport(app, scanId));
 
     // Verify bom.json
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(app);
@@ -389,7 +389,7 @@ public class ReportServiceTest
   public void testGetReport_Exists() throws Exception {
     createReportFile();
     ReportService reportService = createReportService();
-    FileReportEntity appReport = ((FileReportEntity) reportService.getReport(app.getId(), scanId));
+    FileApplicationReport appReport = ((FileApplicationReport) reportService.getReport(app.getId(), scanId));
     assertThat(appReport).isNotNull();
     assertThat(appReport.getFile()).isFile();
     assertThat(appReport.getFile().getName()).isEqualTo("report.zip");
@@ -602,7 +602,7 @@ public class ReportServiceTest
 
   @Test
   public void testIncludeThirdPartyData() throws Exception {
-    final FileReportEntity appReport = new FileReportEntity(zipReportDir("/ReportServiceTest/report"));
+    final FileApplicationReport appReport = new FileApplicationReport(zipReportDir("/ReportServiceTest/report"));
 
     ThirdPartyApplicationReportDTO dto = new ThirdPartyApplicationReportDTO();
     final ComponentIdentifier coord = ComponentIdentifier.createRpmCoordinates("n1", "v1", "a1");
@@ -619,8 +619,8 @@ public class ReportServiceTest
 
   @Test
   public void testProcessThirdPartyData_withInfrastructureAsCodeMergedWithExisting() throws Exception {
-    final FileReportEntity appReport =
-        new FileReportEntity(zipReportDir("/ReportServiceTest/report-with-third-party-iac"));
+    final FileApplicationReport appReport =
+        new FileApplicationReport(zipReportDir("/ReportServiceTest/report-with-third-party-iac"));
     createReportFile(app.getId(), scanId, appReport.getFile());
     ReportService reportService = createReportService();
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
@@ -650,7 +650,7 @@ public class ReportServiceTest
 
     ReportService reportService = createReportService();
 
-    FileReportEntity reportZip = ((FileReportEntity) reportService.fetchReport(app, scanId));
+    FileApplicationReport reportZip = ((FileApplicationReport) reportService.fetchReport(app, scanId));
 
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(app);
     ReportEntry licenseReportEntry = reportZip.getEntry(LICENSES_JSON_FILENAME);
@@ -676,7 +676,7 @@ public class ReportServiceTest
   @Test
   public void testProcessThirdPartyData_Lifecycle_thirdPartyScanDataDeleted() throws Exception {
     productLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    final FileReportEntity appReport = new FileReportEntity(zipReportDir("/ReportServiceTest/report"));
+    final FileApplicationReport appReport = new FileApplicationReport(zipReportDir("/ReportServiceTest/report"));
     createReportFile(app.getId(), scanId, appReport.getFile());
     ReportService reportService = createReportService();
     tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId);
@@ -703,8 +703,8 @@ public class ReportServiceTest
   public void testProcessThirdPartyData_SBOMManagerEnabled_reportNotDeleted() throws Exception {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
-    final FileReportEntity appReport =
-        new FileReportEntity(zipReportDir("/ReportServiceTest/report-with-third-party-iac"));
+    final FileApplicationReport appReport =
+        new FileApplicationReport(zipReportDir("/ReportServiceTest/report-with-third-party-iac"));
     createReportFile(app.getId(), scanId, appReport.getFile());
     ReportService reportService = createReportService();
     tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, scanId);
@@ -733,7 +733,7 @@ public class ReportServiceTest
 
   @Test
   public void testProcessThirdPartyData_MaxSbomLimitNotReached_reportNotDeleted() throws Exception {
-    final FileReportEntity appReport = new FileReportEntity(zipReportDir("/ReportServiceTest/report"));
+    final FileApplicationReport appReport = new FileApplicationReport(zipReportDir("/ReportServiceTest/report"));
     createReportFile(app.getId(), scanId, appReport.getFile());
     ReportService reportService = createReportService();
     tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, scanId);
@@ -767,8 +767,8 @@ public class ReportServiceTest
   public void testProcessThirdPartyData_MaxSbomLimitReached_reportDeleted() throws Exception {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
-    final FileReportEntity appReport =
-        new FileReportEntity(zipReportDir("/ReportServiceTest/report-with-third-party-iac"));
+    final FileApplicationReport appReport =
+        new FileApplicationReport(zipReportDir("/ReportServiceTest/report-with-third-party-iac"));
     createReportFile(app.getId(), scanId, appReport.getFile());
     ReportService reportService = createReportService();
     tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, scanId);
@@ -905,7 +905,7 @@ public class ReportServiceTest
     validatePolicyValidationOwner(policyThreats.aaData);
   }
 
-  private void assertThatReportZipContains(FileReportEntity zipFile, final String thirdPartyFile) {
+  private void assertThatReportZipContains(FileApplicationReport zipFile, final String thirdPartyFile) {
     assertThat(Stream.of(new TFile(zipFile.getFile()).listFiles()).anyMatch(f -> f.getName().endsWith(thirdPartyFile)))
         .isTrue();
   }

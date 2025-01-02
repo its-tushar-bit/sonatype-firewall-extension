@@ -60,17 +60,21 @@ public class FileReportDataStore
 
   @Override
   public ApplicationReport getApplicationReport(final String appId, final String scanId) {
-    return new FileReportEntity(insightWork.getReportFile(appId, scanId));
+    return new FileApplicationReport(insightWork.getReportFile(appId, scanId));
   }
 
   @Override
-  public FileReportEntity getReportEntityByName(final String applicationId, final String scanId, final String name) {
-    return new FileReportEntity(new File(insightWork.getReportDir(applicationId, scanId), name));
+  public FileApplicationReport getReportEntityByName(
+      final String applicationId,
+      final String scanId,
+      final String name)
+  {
+    return new FileApplicationReport(new File(insightWork.getReportDir(applicationId, scanId), name));
   }
 
   @Override
   public ReportPdf getReportPdf(final String appId, final String scanId) {
-    return getReportEntityByName(appId, scanId, REPORT_FILE_NAME);
+    return new FileReportPdf(new File(insightWork.getReportDir(appId, scanId), REPORT_FILE_NAME));
   }
 
   /**
@@ -80,10 +84,10 @@ public class FileReportDataStore
    * @param reportFile
    * @return
    */
-  private FileReportEntity tempReport(final ApplicationReport reportFile) {
+  private FileApplicationReport tempReport(final ApplicationReport reportFile) {
     final File tempFile =
-        FileUtils.createTempFile("temp-", ".zip", ((FileReportEntity) reportFile).getFile().getParentFile());
-    return new FileReportEntity(tempFile);
+        FileUtils.createTempFile("temp-", ".zip", ((FileApplicationReport) reportFile).getFile().getParentFile());
+    return new FileApplicationReport(tempFile);
   }
 
   /**
@@ -95,6 +99,6 @@ public class FileReportDataStore
    * @throws IOException
    */
   private void rename(final ApplicationReport tempFile, final ApplicationReport reportFile) throws IOException {
-    FileUtils.rename(((FileReportEntity) tempFile).getFile(), ((FileReportEntity) reportFile).getFile());
+    FileUtils.rename(((FileApplicationReport) tempFile).getFile(), ((FileApplicationReport) reportFile).getFile());
   }
 }

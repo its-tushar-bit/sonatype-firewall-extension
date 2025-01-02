@@ -36,7 +36,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.report.FileReportDataStore;
-import com.sonatype.insight.brain.report.FileReportEntity;
+import com.sonatype.insight.brain.report.FileApplicationReport;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
@@ -971,7 +971,7 @@ public class ApiLegalReportResourceV2Test
       Path reportDir = getCLMServer().getInstance(InsightWork.class).getReportDir(applicationId, scanId).toPath();
       Files.createDirectories(reportDir);
       Files.write(reportDir.resolve("report.zip"), Collections.singletonList("report.zip"));
-      var reportZip = new FileReportEntity(reportDir.resolve("report.zip").toFile());
+      var reportZip = new FileApplicationReport(reportDir.resolve("report.zip").toFile());
       String[] filenames = {
           ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME,
           ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME,

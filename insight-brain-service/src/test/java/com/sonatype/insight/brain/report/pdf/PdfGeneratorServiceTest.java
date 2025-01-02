@@ -31,7 +31,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
-import com.sonatype.insight.brain.report.FileReportEntity;
+import com.sonatype.insight.brain.report.FileReportPdf;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
@@ -104,7 +104,8 @@ public class PdfGeneratorServiceTest
     Response response = pdfGeneratorService.printReport(application.getPublicId(), scanId);
 
     // Validate content type and check the actual content is really a PDF.
-    FileReportEntity reportPdf = (FileReportEntity) PdfGenerator.getPdfFile(reportService, application.getId(), scanId);
+    FileReportPdf
+        reportPdf = ((FileReportPdf) PdfGenerator.getPdfFile(reportService, application.getId(), scanId));
     String expectedFilename = application.getName() + "-" + StageTypes.BUILD.getName() + "-" +
         new SimpleDateFormat("yyyyMMdd-HHmmss").format(policyEvaluation.getTime()) + ".pdf";
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo(
@@ -131,7 +132,8 @@ public class PdfGeneratorServiceTest
     FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorServiceTest/report", tempDir), reportFile);
 
     // Pretend the print attempt crashed with OOME, which usually leaves an empty PDF file around.
-    FileReportEntity reportPdf = (FileReportEntity) PdfGenerator.getPdfFile(reportService, application.getId(), scanId);
+    FileReportPdf
+        reportPdf = (FileReportPdf) PdfGenerator.getPdfFile(reportService, application.getId(), scanId);
     reportPdf.getFile().createNewFile();
     assertThat(reportPdf.getFile()).isFile();
 
@@ -173,7 +175,8 @@ public class PdfGeneratorServiceTest
     Response response = pdfGeneratorService.printSbomReport(application.getPublicId(), sbomMetadata.getSbomVersion());
 
     // Validate content type and check the actual content is really a PDF.
-    FileReportEntity reportPdf = (FileReportEntity) PdfGenerator.getPdfFile(reportService, application.getId(), scanId);
+    FileReportPdf
+        reportPdf = (FileReportPdf) PdfGenerator.getPdfFile(reportService, application.getId(), scanId);
     String expectedFilename = application.getName() + "-" + sbomMetadata.getSbomVersion() + ".pdf";
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo(
         HttpHeaderUtils.buildContentDispositionHeaderValue(expectedFilename));
@@ -209,7 +212,8 @@ public class PdfGeneratorServiceTest
     Response response = pdfGeneratorService.printSbomReport(application.getPublicId(), sbomMetadata.getSbomVersion());
 
     // Validate content type and check the actual content is really a PDF.
-    FileReportEntity reportPdf = (FileReportEntity) PdfGenerator.getPdfFile(reportService, application.getId(), scanId);
+    FileReportPdf
+        reportPdf = (FileReportPdf) PdfGenerator.getPdfFile(reportService, application.getId(), scanId);
     String expectedFilename = application.getName() + "-" + sbomMetadata.getSbomVersion() + ".pdf";
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo(
         HttpHeaderUtils.buildContentDispositionHeaderValue(expectedFilename));

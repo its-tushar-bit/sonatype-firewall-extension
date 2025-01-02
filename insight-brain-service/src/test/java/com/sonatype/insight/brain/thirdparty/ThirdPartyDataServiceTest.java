@@ -41,7 +41,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.report.FileReportEntity;
+import com.sonatype.insight.brain.report.FileApplicationReport;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -361,8 +361,8 @@ public class ThirdPartyDataServiceTest
 
   @Test
   public void testProcessThirdPartyData_withInfrastructureAsCodeSavesVulnerabilities() throws Exception {
-    FileReportEntity appReport =
-        new FileReportEntity(zipReportDir("/ThirdPartyDataServiceTest/report-with-third-party-iac"));
+    FileApplicationReport appReport =
+        new FileApplicationReport(zipReportDir("/ThirdPartyDataServiceTest/report-with-third-party-iac"));
 
     ThirdPartyApplicationReportDTO dto = handler.loadThirdPartyInfrastructureAsCodeData(appReport, "app-id");
     assertThat(dto).isNotNull();
@@ -453,8 +453,8 @@ public class ThirdPartyDataServiceTest
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
     tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
-    FileReportEntity appReport =
-        new FileReportEntity(
+    FileApplicationReport appReport =
+        new FileApplicationReport(
             Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-iac", tempDir).toURI())
                 .toFile());
 
@@ -475,8 +475,8 @@ public class ThirdPartyDataServiceTest
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
     tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
-    FileReportEntity appReport =
-        new FileReportEntity(
+    FileApplicationReport appReport =
+        new FileApplicationReport(
             Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-iac", tempDir).toURI())
                 .toFile());
 
@@ -495,8 +495,8 @@ public class ThirdPartyDataServiceTest
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
-    FileReportEntity appReport =
-        new FileReportEntity(
+    FileApplicationReport appReport =
+        new FileApplicationReport(
             Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-iac", tempDir).toURI())
                 .toFile());
 

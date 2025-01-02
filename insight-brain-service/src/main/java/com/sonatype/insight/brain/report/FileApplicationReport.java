@@ -7,11 +7,8 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -45,41 +42,16 @@ import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME;
 
-public class FileReportEntity
-    implements ReportPdf, ApplicationReport
+public class FileApplicationReport
+    extends AbstractFileReportEntity
+    implements ApplicationReport
 {
-  private static final Logger log = LoggerFactory.getLogger(FileReportEntity.class);
+  private static final Logger log = LoggerFactory.getLogger(FileApplicationReport.class);
 
   public static final String CACHE_DIRECTORY_NAME = "report.cache";
 
-  private final File file;
-
-  public FileReportEntity(final File file) {
-    this.file = file;
-  }
-
-  public File getFile() {
-    return file;
-  }
-
-  @Override
-  public boolean exists() {
-    return file.exists();
-  }
-
-  @Override
-  public void deleteIfExists() throws IOException {
-    Files.deleteIfExists(file.toPath());
-  }
-
-  @Override
-  public boolean canCreate() {
-    return !file.isFile() || file.length() == 0;
-  }
-
-  @Override
-  public OutputStream getOutputStream() throws IOException {
-    return new FileOutputStream(file);
+  public FileApplicationReport(final File file) {
+    super(file);
   }
 
   @Override
@@ -88,17 +60,7 @@ public class FileReportEntity
   }
 
   @Override
-  public long length() {
-    return file.length();
-  }
-
-  @Override
-  public InputStream getInputStream() throws IOException {
-    return new FileInputStream(file);
-  }
-
-  @Override
-  public ReportEntry getEntry(final String name) throws IOException  {
+  public ReportEntry getEntry(final String name) throws IOException {
     if (name.contains("../") || name.contains("..\\")) {
       // legit callers use normalized paths, no directory traversal into restricted areas
       return null;
@@ -121,9 +83,7 @@ public class FileReportEntity
   }
 
   @Override
-  public void saveReportEntry(String entryFileName, ContainerNode<?> jsonData)
-      throws IOException
-  {
+  public void saveReportEntry(String entryFileName, ContainerNode<?> jsonData) throws IOException {
     long start = System.currentTimeMillis();
 
     cache(getCacheFile(entryFileName), JsonUtils.generate(jsonData));
@@ -161,7 +121,7 @@ public class FileReportEntity
     // Starting with release 1.168, we serve shared resources for legacy report from the jar
     // HDS does not include these files in the report.zip when IQ client is v1.168 or higher
     String resource = "/com/sonatype/insight/brain/legacy.report/" + name;
-    try (InputStream stream = FileReportEntity.class.getResourceAsStream(resource)) {
+    try (InputStream stream = FileApplicationReport.class.getResourceAsStream(resource)) {
       if (stream != null) {
         return new ReportEntry(name, new Date().getTime(), IOUtils.toByteArray(stream));
       }
@@ -193,8 +153,8 @@ public class FileReportEntity
     String filename = "index.html";
     ReportEntry reportEntry = extractEntry(filename);
     String originalIndexHtmlContent = new String(reportEntry.buf, StandardCharsets.UTF_8);
-    String augmentedIndexHtmlContent = originalIndexHtmlContent.replace("applicationId = ''", "applicationId = '"
-        + application.getPublicId() + "'");
+    String augmentedIndexHtmlContent =
+        originalIndexHtmlContent.replace("applicationId = ''", "applicationId = '" + application.getPublicId() + "'");
     if (!augmentedIndexHtmlContent.equals(originalIndexHtmlContent)) {
       cache(getCacheFile(filename), augmentedIndexHtmlContent.getBytes(StandardCharsets.UTF_8));
     }
@@ -230,9 +190,7 @@ public class FileReportEntity
   }
 
   @Override
-  public void appendToReport(final ThirdPartyApplicationReportDTO dto)
-      throws IOException
-  {
+  public void appendToReport(final ThirdPartyApplicationReportDTO dto) throws IOException {
     Map<String, Object> env = new HashMap<>();
     env.put("create", "false");
     env.put("useTempFile", Boolean.TRUE); //to avoid large byte streams created in memory

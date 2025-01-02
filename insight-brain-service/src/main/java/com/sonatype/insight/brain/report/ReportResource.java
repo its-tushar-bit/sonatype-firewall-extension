@@ -411,7 +411,7 @@ public class ReportResource
             PolicyAlert[].class));
 
     File updatedFile = Files.createTempFile("report", ".zip").toFile();
-    try (ReportBundleUpdater updater = new ReportBundleUpdater(((FileReportEntity) applicationReport).getFile(),
+    try (ReportBundleUpdater updater = new ReportBundleUpdater(((FileApplicationReport) applicationReport).getFile(),
         updatedFile, new FilenameMapping("^.*\\.json$", dataPath + "$0"))) {
 
       addLegacyReportArtifacts(updater);
@@ -426,14 +426,14 @@ public class ReportResource
 
       // FIXME: This breaks the abstraction and needs cleaned up to not care about caching
       File[] cachedFiles =
-          FileReportEntity.getCacheDir(((FileReportEntity) applicationReport).getFile()).listFiles();
+          FileApplicationReport.getCacheDir(((FileApplicationReport) applicationReport).getFile()).listFiles();
       if (cachedFiles != null) {
         for (File cachedFile : cachedFiles) {
           updater.add(dataPath + cachedFile.getName(), cachedFile);
         }
       }
 
-      try (ZipFile zipFile = new ZipFile(((FileReportEntity) applicationReport).getFile())) {
+      try (ZipFile zipFile = new ZipFile(((FileApplicationReport) applicationReport).getFile())) {
         ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(app);
 
         for (Enumeration<? extends ZipEntry> en = zipFile.entries(); en.hasMoreElements();) {

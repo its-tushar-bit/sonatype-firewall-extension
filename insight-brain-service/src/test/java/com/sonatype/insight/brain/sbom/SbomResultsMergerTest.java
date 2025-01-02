@@ -41,7 +41,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.report.FileReportEntity;
+import com.sonatype.insight.brain.report.FileApplicationReport;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -160,8 +160,8 @@ public class SbomResultsMergerTest
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(tpVuln, "FG-R00229", "resolved", "code_not_reachable",
         "will_not_fix,update", null);
 
-    FileReportEntity appReport =
-        new FileReportEntity(
+    FileApplicationReport appReport =
+        new FileApplicationReport(
             mockReportZipWithUpdatedThirdPartyData("/SbomResultsMergerTest/report-for-binary-scan-with-thirdparty",
                 tpComponent));
 
@@ -294,7 +294,7 @@ public class SbomResultsMergerTest
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(null, "1", file, PENDING);
 
-    final FileReportEntity appReport = new FileReportEntity(Paths.get(ReportHelper.zipReport(
+    final FileApplicationReport appReport = new FileApplicationReport(Paths.get(ReportHelper.zipReport(
         "/SbomResultsMergerTest/report-for-binary-scan", tempDir).toURI()).toFile());
 
     merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
@@ -480,7 +480,7 @@ public class SbomResultsMergerTest
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(null, "1", file, PENDING);
 
-    final FileReportEntity appReport = new FileReportEntity(Paths.get(ReportHelper.zipReport(
+    final FileApplicationReport appReport = new FileApplicationReport(Paths.get(ReportHelper.zipReport(
             "/SbomResultsMergerTest/report-for-binary-scan-duplicated-vulnerabilities", tempDir)
         .toURI()).toFile());
 
@@ -577,8 +577,8 @@ public class SbomResultsMergerTest
       sbomComponent.setPackageUrl("pkg:pypi/citrus/orange@1.0.1?extension=whl&qualifier=py2.py3-none-any");
       sbomComponent.setIdentificationSources("SBOM");
       thirdPartyFileCoordinateDAO.insert(sbomComponent);
-      final FileReportEntity appReport =
-          new FileReportEntity(
+      final FileApplicationReport appReport =
+          new FileApplicationReport(
               Paths.get(ReportHelper.zipReport("/SbomResultsMergerTest/report-with-multiple-results", tempDir).toURI())
                   .toFile());
 
@@ -679,8 +679,8 @@ public class SbomResultsMergerTest
 
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
-    final FileReportEntity appReport =
-        new FileReportEntity(Paths.get(
+    final FileApplicationReport appReport =
+        new FileApplicationReport(Paths.get(
                 ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-security-data", tempDir).toURI())
             .toFile());
 
@@ -837,8 +837,8 @@ public class SbomResultsMergerTest
 
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
-    final FileReportEntity appReport =
-        new FileReportEntity(Paths.get(ReportHelper
+    final FileApplicationReport appReport =
+        new FileApplicationReport(Paths.get(ReportHelper
             .zipReport("/SbomResultsMergerTest/report-with-third-party-security-data",
                 tempDir).toURI()).toFile());
 
@@ -948,8 +948,8 @@ public class SbomResultsMergerTest
 
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
-    final FileReportEntity appReport =
-        new FileReportEntity(Paths.get(ReportHelper
+    final FileApplicationReport appReport =
+        new FileApplicationReport(Paths.get(ReportHelper
             .zipReport("/SbomResultsMergerTest/report-with-invalid-purl",
                 tempDir).toURI()).toFile());
 
@@ -982,8 +982,8 @@ public class SbomResultsMergerTest
 
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
-    final FileReportEntity appReport =
-        new FileReportEntity(Paths.get(ReportHelper
+    final FileApplicationReport appReport =
+        new FileApplicationReport(Paths.get(ReportHelper
             .zipReport("/SbomResultsMergerTest/report-with-third-party-license-data",
                 tempDir).toURI()).toFile());
 
@@ -1046,8 +1046,8 @@ public class SbomResultsMergerTest
 
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
-    final FileReportEntity appReport =
-        new FileReportEntity(
+    final FileApplicationReport appReport =
+        new FileApplicationReport(
             Paths.get(ReportHelper.zipReport("/SbomResultsMergerTest/report-with-python-components", tempDir).toURI())
                 .toFile());
 
@@ -1126,7 +1126,7 @@ public class SbomResultsMergerTest
     Application app = tempEntity.newApplicationWithParent();
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(app.getId(), "1", file, PENDING);
 
-    final FileReportEntity appReport = new FileReportEntity(Paths.get(ReportHelper.zipReport(
+    final FileApplicationReport appReport = new FileApplicationReport(Paths.get(ReportHelper.zipReport(
         "/SbomResultsMergerTest/report-with-python-components", tempDir).toURI()).toFile());
 
     merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
@@ -1206,8 +1206,8 @@ public class SbomResultsMergerTest
 
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
-    final FileReportEntity appReport =
-        new FileReportEntity(
+    final FileApplicationReport appReport =
+        new FileApplicationReport(
             Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-dependencies", tempDir).toURI()).toFile());
 
     merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
@@ -1275,8 +1275,8 @@ public class SbomResultsMergerTest
 
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, ACTIVE);
 
-    final FileReportEntity appReport =
-        new FileReportEntity(Paths.get(ReportHelper
+    final FileApplicationReport appReport =
+        new FileApplicationReport(Paths.get(ReportHelper
             .zipReport("/SbomResultsMergerTest/report-with-third-party-security-data",
                 tempDir).toURI()).toFile());
 
@@ -1307,7 +1307,7 @@ public class SbomResultsMergerTest
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(null, "1", file, PENDING);
     sbomMetadata.setOriginalBinaryFileName(filename);
 
-    FileReportEntity appReport = new FileReportEntity(Paths.get(ReportHelper.zipReport(
+    FileApplicationReport appReport = new FileApplicationReport(Paths.get(ReportHelper.zipReport(
         "/SbomResultsMergerTest/report-for-binary-scan", tempDir).toURI()).toFile());
 
     merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
@@ -1322,7 +1322,7 @@ public class SbomResultsMergerTest
     sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(null, "2", file, PENDING);
     sbomMetadata.setOriginalBinaryFileName(filename);
 
-    appReport = new FileReportEntity(Paths.get(ReportHelper.zipReport(
+    appReport = new FileApplicationReport(Paths.get(ReportHelper.zipReport(
         "/SbomResultsMergerTest/report-for-binary-scan", tempDir).toURI()).toFile());
 
     merger.mergeResults(sbomMetadata, SCAN_ID, appReport);

@@ -26,6 +26,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * hard-coded assumptions about the policy file contents.  Mainly, that the number of entities in the JSON matches the
  * number of entities in the database tables after the import.
  */
+@Category(ReferencePolicyImportIntegrationTest.class)
 public class ReferencePolicyImportIntegrationTest
     extends AbstractBrainServiceIntegrationTest
 {
@@ -75,7 +77,8 @@ public class ReferencePolicyImportIntegrationTest
    * required sql files. Run the test again with the refreshed files and the test should be passing. Do not forget to
    * commit and push the new sql files generated.
    *
-   * There will most likely be applitools differences. Accept the ones that are caused by the added licenses.
+   * This is currently configured to only run on main with the @Category annotation. There is an option in parameter
+   * to the Jenkins builds that will allow this test to run for PRs that have changed the test
    */
   @Test
   @ManualIqServerInit

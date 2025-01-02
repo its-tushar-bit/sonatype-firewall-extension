@@ -46,6 +46,7 @@ make(
       mavenOptions = addBuildCacheOptions(mavenOptions, isBuildCachingEnabled())
 
       mavenOptions += " -DskipTests"
+      mavenOptions += getRunRefPolicyImportIntTestMavenOption()
 
       mavenCommon.put('mavenOptions', mavenOptions)
 
@@ -170,7 +171,10 @@ void configureBranchJob() {
           name: 'dynamicPolicyEvaluationEnabled'),
       booleanParam(defaultValue: mtiqImagePushEnabledByDefault,
           description: 'If checked will push the MTIQ Docker image to RSC for this branch',
-          name: 'mtiqImagePushEnabled')
+          name: 'mtiqImagePushEnabled'),
+      booleanParam(defaultValue: false,
+          description: 'If checked will run ReferencePolicyImportIntegrationTest for snapshot builds of feature branches',
+          name: 'runRefPolicyImportIntTest')
       ]
 
   // Jenkins unfortunately will overwrite any parameters defined at the folder level using this dynamic approach for
@@ -403,6 +407,7 @@ Map<String, Closure> createFunctionalTests(
           mavenOptions += " -Dfailsafe.rerunFailingTestsCount=2"
           mavenOptions += " -Dfailsafe.failOnFlakeCount=5"
           mavenOptions += " --threads 4"
+          mavenOptions += getRunRefPolicyImportIntTestMavenOption()
           Map<String, ?> testConfig = testConfig(mavenOptions, "${mavenModule}/pom.xml")
           // We just want to execute tests so directly invoke goals.
           mvn testConfig, 'failsafe:integration-test failsafe:verify'
@@ -459,6 +464,7 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex,
           mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
           mavenOptions += " -Pbuildsupport-sonar-coverage "
           mavenOptions += " --threads 4"
+          mavenOptions += getRunRefPolicyImportIntTestMavenOption()
           mavenOptions = addBuildCacheOptions(mavenOptions, false)
 
           Map<String, ?> testConfig = testConfig(mavenOptions, null, jdk)
@@ -488,6 +494,7 @@ Map<String, Closure> createMtiqUnitTests(String stageName, String jdk, List<Stri
           mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
           mavenOptions += " -Pbuildsupport-sonar-coverage "
           mavenOptions += " --threads 4"
+          mavenOptions += getRunRefPolicyImportIntTestMavenOption()
           mavenOptions = addBuildCacheOptions(mavenOptions, false)
 
           Map<String, ?> testConfig = testConfig(mavenOptions, null, jdk)
@@ -549,4 +556,11 @@ boolean isMergeQueueBranch(env) {
   String branchName = env.BRANCH_NAME ?: gitBranch(env)
 
   return branchName != null && branchName.startsWith('gh-readonly-queue/main/pr-')
+}
+
+String getRunRefPolicyImportIntTestMavenOption() {
+  if (!isDeployBranch(env, 'main') && !params.runRefPolicyImportIntTest) {
+    return " -DexcludedGroups=ReferencePolicyImportIntegrationTest"
+  }
+  return ""
 }

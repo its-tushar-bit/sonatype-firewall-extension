@@ -16,7 +16,8 @@ public class PreReleaseVersionParser
   // If no match is found, the version can be considered stable.
   private static final String PRE_RELEASE_VERSION_REGEX =
       "^[\\d.\\-]+[mba]\\d+$|[.\\-][mba]\\d+$|((rc|cr)[+\\-.\\d]|(rc|cr)\\b]|(rc|cr)$|milestone|alpha|beta|pre[\\-.]" +
-          "?|preview|prerel|pre[_\\-]release|snapshot|eap|gamma|feature|dev|^[\\d.\\-_]*fc[\\-.\\d]*$|demo)[\\d$]*";
+          "?|preview|prerel|pre[_\\-]release|snapshot|eap|gamma|feature|dev|ea[\\-.\\d]*$|nightly|canary" +
+          "|^[\\d.\\-_]*fc[\\-.\\d]*$|demo)[\\d$]*";
 
   private PreReleaseVersionParser() {
     // Utility class

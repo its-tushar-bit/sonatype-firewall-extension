@@ -50,7 +50,16 @@ public class PreReleaseVersionParserTest
       "feature_1850_01",
       "1.2-a1",
       "1.2-b3",
-      "1.2-m1"
+      "1.2-m1",
+      "1.2.3-canary",
+      "2.0.0-canary.1",
+      "3.1.4-canary-2",
+      "1.2.3-nightly",
+      "4.0.0-nightly.1",
+      "6.0.2-nightly-2",
+      "1.2.3-ea",
+      "2.0.0-ea1",
+      "3.1.4-ea-2"
   );
 
   private static final List<String> RELEASE_VERSIONS = List.of(

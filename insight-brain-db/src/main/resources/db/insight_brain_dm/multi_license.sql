@@ -1651,6 +1651,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Godspeed-SAL-1.0','Godspeed-SAL-1.0','Godspeed Source Available License 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Golfstar-Games-EULA','Golfstar-Games-EULA','Golfstar Games End User License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Gong-API-Policy-TOS-UD05242024','Gong-API-Policy-TOS-UD05242024','Gong API Policy and Terms of Service - Updated Date 05-24-2024');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Gong-API-Policy-TOS-UNSPECIFIED','Gong-API-Policy-TOS','Gong-API-Policy-TOS-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Good-Boy','Good-Boy','Good-Boy License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Good-Boy-MIT','Good-Boy or MIT','Dual License Consisting of Good-Boy License and MIT');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Google-APIs-TOS-RD12092011','Google-APIs-TOS-RD12092011','Google APIs Terms of Service Release Date December 9 2011');
@@ -2050,6 +2051,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Inno-Setup-License','Inno-Setup-License','Inno Setup License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Instabug-TOS','Instabug-TOS','Instabug Terms of Service');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Intapp-Supplemental-SL-Terms-UD04232024','Intapp-Supplemental-SL-Terms-UD04232024','Integration Appliance, Inc. License Terms for Supplemental Software  - Updated Date 04-23-2024');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Intapp-Supplemental-SL-Terms-UNSPECIFIED','Intapp-Supplemental-SL-Terms','Intapp-Supplemental-SL-Terms-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Intel','Intel','Intel Open Source License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Intel-ACPI','Intel-ACPI','Intel ACPI Software License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Intel-AI-Developer-PCL','Intel-AI-Developer-PCL','Intel AI Developer Program Content License');
@@ -2176,11 +2178,14 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Kindred-STAC-UNSPECIFIED','Kindred-STAC','Kindred-STAC-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Kirby-Copilot-Plugin-LA-UD03272024','Kirby-Copilot-Plugin-LA-UD03272024','Kirby Copilot Plugin License Agreement - Updated Date 03-27-2024');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Kirby-Copilot-Plugin-LA-UD11132024','Kirby-Copilot-Plugin-LA-UD11132024','Kirby Copilot Plugin License Agreement - Updated Date 11-13-2024');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Kirby-Copilot-Plugin-LA-UNSPECIFIED','Kirby-Copilot-Plugin-LA','Kirby-Copilot-Plugin-LA-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Kirby-EULA-V11122024','Kirby-EULA-V11122024','Kirby End User License Agreement - Version 11-12-2024');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Kirby-LPP-CTP-LA-UD06062024','Kirby-LPP-CTP-LA-UD06062024','Kirby Live Preview Plugin and Content Translator Plugin License Agreement - Updated Date 06-06-2024');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Kirby-LPP-CTP-LA-UD11132024','Kirby-LPP-CTP-LA-UD11132024','Kirby Live Preview Plugin and Content Translator Plugin License Agreement - Updated Date 11-13-2024');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Kirby-LPP-CTP-LA-UNSPECIFIED','Kirby-LPP-CTP-LA','Kirby-LPP-CTP-LA-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Kirby-SEO-Audit-Plugin-LA-UD03272024','Kirby-SEO-Audit-Plugin-LA-UD03272024','Kirby SEO Audit Plugin License Agreement - Updated Date 03-27-2024');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Kirby-SEO-Audit-Plugin-LA-UD11132024','Kirby-SEO-Audit-Plugin-LA-UD11132024','Kirby SEO Audit Plugin License Agreement - Updated Date 11-13-2024');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Kirby-SEO-Audit-Plugin-LA-UNSPECIFIED','Kirby-SEO-Audit-Plugin-LA','Kirby-SEO-Audit-Plugin-LA-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('KKBOX-Developer-TOU-RD10272017','KKBOX-Developer-TOU-RD10272017','KKBOX Developer Terms of Use - Release Date 10-27-2017');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('KLM-Pre-Trained-ML','KLM-Pre-Trained-ML','KLM Pre Trained Model License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('KLO128-D3ORM-EULA','KLO128-D3ORM-EULA','KLO128 Solutions D3ORM Software End User License Agreement');
@@ -2745,6 +2750,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Neural-Magic-DSCLA-UNSPECIFIED','Neural-Magic-DSCLA','Neural-Magic-DSCLA-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Neural-Magic-Engine-LA-RD01282021','Neural-Magic-Engine-LA-RD01282021','Neural Magic Engine License Agreement - Release Date 01-28-2021');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Neural-Magic-Master-SLSA-UD07012024','Neural-Magic-Master-SLSA-UD07012024','Neural Magic Master Software License and Services Agreement - Updated Date 07-01-2024');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Neural-Magic-Master-SLSA-UNSPECIFIED','Neural-Magic-Master-SLSA','Neural-Magic-Master-SLSA-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('NeuralFit-TAC','NeuralFit-TAC','NeuralFit Terms and Conditions');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('NeuroSpeech-UIA-for-XF-EULA-RD-02-26-2010','NeuroSpeech-UIA-for-XF-EULA-RD-02-26-2010','NeuroSpeech User Interface Atoms for Xamarin Forms End User License Agreement - Release Date February 26, 2010');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Nevron-Open-Vision-.NET-LA','Nevron-Open-Vision-.NET-LA','Nevron Open Vision for .NET License Agreement');
@@ -3062,6 +3068,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Pixelnetica-TOU','Pixelnetica-TOU','Pixelnetica Terms of Use');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PixelPin-TOU','PixelPin-TOU','PixelPin Terms of Use - Release Date 03-01-2013');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PixelRidge-BEGPULSE-1.3','PixelRidge-BEGPULSE-1.3','PixelRidge Business Exclusive General Public Use License for Software Executables Version 1.3');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PixelRidge-BEGPULSE-UNSPECIFIED','PixelRidge-BEGPULSE','PixelRidge-BEGPULSE-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Pizzaware','Pizzaware','Pizzaware License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('pkgconf','pkgconf','pkgconf License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Play-Integrity-API-TOS','Play-Integrity-API-TOS','Play Integrity API Terms of Service');
@@ -3343,6 +3350,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Siaqodb-EULA','Siaqodb-EULA','Siaqodb End User License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Siemens-Inner-SL-1.1','Siemens-Inner-SL-1.1','Siemens Inner Source License v1.1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Siemens-Inner-SL-1.4','Siemens-Inner-SL-1.4','Siemens Inner Source License v1.4');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Siemens-Inner-SL-UNSPECIFIED','Siemens-Inner-SL','Siemens-Inner-SL-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Signiant-SDK-LA-RD08012022','Signiant-SDK-LA-RD08012022','Signiant SDK License Agreement - Release Date 08-01-2022');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('SigParser-Platform-License-TOS-RD04272021','SigParser-Platform-License-TOS-RD04272021','SigParser Platform License and Terms of Service - Release Date 04-27-2021');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('SIL-RAIL-M-License-1.0','SIL-RAIL-M-License-1.0','SIL RAIL-M License Version 1.0');

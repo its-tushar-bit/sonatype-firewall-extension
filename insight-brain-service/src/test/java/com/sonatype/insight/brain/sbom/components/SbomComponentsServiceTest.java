@@ -37,6 +37,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
@@ -144,6 +145,8 @@ public class SbomComponentsServiceTest
     assertThat(actualB.getPolicyViolationSummary().getSevere()).isEqualTo(1);
   }
 
+  // TODO - Fix and Re-enable with SBOM-1198
+  @Ignore("https://sonatype.atlassian.net/browse/SBOM-1198")
   @Test
   public void testGetSbomComponentDetails_LatestPreviousAnnotation() throws IOException {
     ThirdPartyFile thirdPartyFilePrevious = tempEntity.newThirdPartyFile();

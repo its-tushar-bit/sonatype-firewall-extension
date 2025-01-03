@@ -19,7 +19,7 @@ import {
   translateViolationsSortFields,
   translateWaiversSortFields,
 } from './services/sortFieldsUtils';
-import { createDashboardDataRequestPayload } from './utils/dashboard.utils.module';
+import { createDashboardDataRequestPayload } from './utils/dashboardUtils';
 import {
   APPLICATIONS_RESULTS_TYPE,
   COMPONENTS_RESULTS_TYPE,

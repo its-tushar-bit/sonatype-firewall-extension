@@ -6,7 +6,6 @@
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import configurationModule from './configuration/module';
 import legacyConfigurationModule from './LegacyConfigurationModule';
-import directivesModule from './directives/module';
 import dashboardModule from './dashboard/dashboard.module';
 import componentDetailsModule from './componentDetails/module';
 import dependencyTreeModule from './DependencyTree/module';
@@ -48,7 +47,6 @@ export default angular
     SecurityModule.name,
     RoleModule.name,
     ownerManagerModule.name,
-    directivesModule.name,
     labsModule.name,
     configurationModule.name,
     legacyConfigurationModule.name,

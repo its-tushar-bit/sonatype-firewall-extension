@@ -20,7 +20,7 @@ import {
   getWaiversAndAutoWaiversUrl,
 } from '../../util/CLMLocation';
 
-import { createDashboardDataRequestPayload } from '../utils/dashboard.utils.module';
+import { createDashboardDataRequestPayload } from '../utils/dashboardUtils';
 import { createClassyBrew } from '../utils/classybrew.factory';
 
 export const MAX_RESULTS = 100;

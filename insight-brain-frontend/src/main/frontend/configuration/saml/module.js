@@ -23,17 +23,4 @@ export default angular
         },
       });
     },
-  ])
-  .directive('onFileChangeSaml', function () {
-    return {
-      restrict: 'A',
-      scope: false,
-      link: function (scope, elem, attr) {
-        angular.element(elem).bind('change', function () {
-          scope.file = elem[0].files[0];
-          scope.$apply(attr.onFileChangeSaml);
-          elem[0].value = '';
-        });
-      },
-    };
-  });
+  ]);

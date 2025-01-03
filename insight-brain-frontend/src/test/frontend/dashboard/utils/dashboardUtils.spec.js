@@ -3,18 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import dashboardUtilsModule from '../../../../main/frontend/dashboard/utils/dashboard.utils.module';
+import { createDashboardDataRequestPayload } from 'MainRoot/dashboard/utils/dashboardUtils';
 
-describe('dashboard.utils.module', function () {
-  beforeEach(angular.mock.module(dashboardUtilsModule.name));
-
+describe('dashboardUtils', function () {
   describe('createDashboardDataRequestPayload()', function () {
-    var createDashboardDataRequestPayload;
-
-    beforeEach(inject(function ($injector) {
-      createDashboardDataRequestPayload = $injector.get('createDashboardDataRequestPayload');
-    }));
-
     it('sets pageSize as specified', function () {
       expect(createDashboardDataRequestPayload(null, 1)).toEqual({
         pageSize: 1,

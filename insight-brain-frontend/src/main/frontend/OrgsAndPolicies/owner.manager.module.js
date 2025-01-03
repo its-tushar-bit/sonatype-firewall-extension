@@ -9,7 +9,6 @@ import CLMLocationModule from '../util/CLMLocation';
 import utilityServicesModule from '../utility/services/utility.services.module';
 import utilityModule from '../utility/utility.module';
 import permissionServiceModule from '../utilAngular/PermissionService';
-import validatorsModule from '../utilAngular/Validators';
 import OwnerSideNav from 'MainRoot/OrgsAndPolicies/ownerSideNav/OwnerSideNav';
 import OwnersTreePage from 'MainRoot/OrgsAndPolicies/ownersTreePage/OwnersTreePage';
 import InsufficientPermissionOwnerHierarchyTree from 'MainRoot/OrgsAndPolicies/insufficientPermissionOwnerHierarchyTree/InsufficientPermissionOwnerHierarchyTree';
@@ -45,7 +44,6 @@ export default angular
     permissionServiceModule.name,
     CLMLocationModule.name,
     utilityServicesModule.name,
-    validatorsModule.name,
   ])
   .component('ownerSideNav', iqReact2Angular(OwnerSideNav, [], ['$ngRedux', '$state']))
   .component('ownersTreePage', iqReact2Angular(OwnersTreePage, [], ['$ngRedux', '$state']))

@@ -13,7 +13,6 @@ import {
   DASHBOARD_PAGE_SIZE,
   getWaiversAndAutoWaivers,
 } from '../services/dashboard.data.service';
-import dashboardServicesModule from '../services/module';
 import { isNil, partial } from 'ramda';
 import {
   APPLICATIONS_RESULTS_TYPE,
@@ -184,7 +183,3 @@ function getServiceMethod(resultsType, autoWaiversFeature) {
       throw new Error('dashboard results is not supported for ' + resultsType);
   }
 }
-
-export default angular
-  .module('dashboardResultsActionsModule', [dashboardServicesModule.name])
-  .value('dashboardResultsActions', { loadResults, sortResults });

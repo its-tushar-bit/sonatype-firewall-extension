@@ -4,27 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import ClassyBrew from './classybrew.factory';
-import windowEventsFactory from './windowEventsFactory';
-import emptyToEnd from './filters/emptyToEnd.filter';
-import stageFilter from './filters/stageFilter.filter';
-import stageTypeSort from './filters/stageTypeSort.filter';
-import removeDashes from './filters/removeDashes.filter';
-import wrapWith from './filters/wrap.with.filter';
 import { setToArray } from '../../util/jsUtil';
-import ComponentDisplayModule from '../../ComponentDisplay/module';
-
-export default angular
-  .module('dashboard.utils', ['ui.router', ComponentDisplayModule.name])
-  .value('createDashboardDataRequestPayload', createDashboardDataRequestPayload)
-  .value('extractColumn', extractColumn)
-  .factory('ClassyBrew', ClassyBrew)
-  .factory('windowEventsFactory', windowEventsFactory)
-  .filter('emptyToEnd', emptyToEnd)
-  .filter('stageFilter', stageFilter)
-  .filter('stageTypeSort', stageTypeSort)
-  .filter('removeDashes', removeDashes)
-  .filter('wrapWith', wrapWith);
 
 export function createDashboardDataRequestPayload(filter, pageSize, sortFields, page) {
   var params = {};
@@ -54,12 +34,4 @@ export function createDashboardDataRequestPayload(filter, pageSize, sortFields, 
     }
   }
   return params;
-}
-
-export function extractColumn(orderedColumn) {
-  if (orderedColumn.indexOf('-') === 0) {
-    return orderedColumn.substring(1);
-  } else {
-    return orderedColumn;
-  }
 }

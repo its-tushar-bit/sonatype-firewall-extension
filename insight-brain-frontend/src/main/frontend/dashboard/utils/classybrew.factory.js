@@ -72,4 +72,3 @@ export const createClassyBrew = getClassyBrew();
 export default function ClassyBrew($window) {
   return { create: getClassyBrew($window) };
 }
-ClassyBrew.$inject = ['$window'];

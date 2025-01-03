@@ -6,7 +6,6 @@
  */
 /* global angularDebug */
 import commonServicesModule from './utilAngular/CommonServices';
-import formsModule from './FormsModule';
 import CLMLocationModule from './util/CLMLocation';
 import { httpInterceptors, unauthenticatedResponseHttpInterceptor } from './utilAngular/HttpInterceptors';
 import IqHttpInterceptorsModule from './utilAngular/IqHttpInterceptors';
@@ -85,7 +84,6 @@ export const InitModule = angular
       httpInterceptors.name,
       IqHttpInterceptorsModule.name,
       dashboardModule.name,
-      formsModule.name,
       SessionSecurityModule.name,
       pendoModule.name,
       externalLinkModule.name,

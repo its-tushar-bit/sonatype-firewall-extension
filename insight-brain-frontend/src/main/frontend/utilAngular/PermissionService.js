@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import CLMContextLocationModule from './CLMContextLocation';
+import CLMContextLocationModule, { getPermissionContextTestUrl } from './CLMContextLocation';
 import { getProductFeaturesUrl } from '../util/CLMLocation';
 
 var module = angular.module('PermissionServiceModule', [CLMContextLocationModule.name]);
@@ -19,7 +19,7 @@ module.service('PermissionService', [
       isContextAuthorized: function (permissions, ownerType, ownerId) {
         const deferred = $q.defer();
 
-        $http.put(CLMContextLocations.getPermissionContextTestUrl(ownerType, ownerId), permissions).then(
+        $http.put(getPermissionContextTestUrl(ownerType, ownerId), permissions).then(
           function (data) {
             deferred.resolve(permissions.length === data.data.length);
           },

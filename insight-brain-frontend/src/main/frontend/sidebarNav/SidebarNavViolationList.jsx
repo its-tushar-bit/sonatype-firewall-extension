@@ -8,7 +8,7 @@ import * as PropTypes from 'prop-types';
 import { NxThreatIndicator } from '@sonatype/react-shared-components';
 import classnames from 'classnames';
 
-import { UPDATE_DIMENSIONS_TIMEOUT } from '../utilAngular/AngularCommon';
+import { UPDATE_DIMENSIONS_TIMEOUT } from '../util/constants';
 import { getArtifactName } from '../util/componentNameUtils';
 
 export default function SidebarNavViolationList(props) {

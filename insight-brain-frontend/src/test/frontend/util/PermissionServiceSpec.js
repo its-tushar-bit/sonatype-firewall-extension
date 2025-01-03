@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import permissionServiceModule from '../../../main/frontend/utilAngular/PermissionService';
+import { getPermissionContextTestUrl } from '../../../main/frontend/utilAngular/CLMContextLocation';
 
 describe('PermissionService.js', function () {
   var successSpy, errorSpy;
@@ -83,9 +84,7 @@ describe('PermissionService.js', function () {
 
   describe('isContextAuthorized', function () {
     it('Single Perm, Allowed', inject(function (PermissionService, CLMContextLocations, $httpBackend) {
-      $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'), ['ADMIN'])
-        .respond(['ADMIN']);
+      $httpBackend.expectPUT(getPermissionContextTestUrl('repository_container'), ['ADMIN']).respond(['ADMIN']);
       PermissionService.isContextAuthorized(['ADMIN'], 'repository_container').then(successSpy, errorSpy);
       $httpBackend.flush();
       expect(successSpy).toHaveBeenCalledWith(true);
@@ -93,9 +92,7 @@ describe('PermissionService.js', function () {
     }));
 
     it('Single Perm, Disallowed', inject(function (PermissionService, CLMContextLocations, $httpBackend) {
-      $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'), ['ADMIN'])
-        .respond([]);
+      $httpBackend.expectPUT(getPermissionContextTestUrl('repository_container'), ['ADMIN']).respond([]);
       PermissionService.isContextAuthorized(['ADMIN'], 'repository_container').then(successSpy, errorSpy);
       $httpBackend.flush();
       expect(successSpy).toHaveBeenCalledWith(false);
@@ -104,7 +101,7 @@ describe('PermissionService.js', function () {
 
     it('Multiple Perms, Allowed', inject(function (PermissionService, CLMContextLocations, $httpBackend) {
       $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'), ['ADMIN', 'ADMIN2'])
+        .expectPUT(getPermissionContextTestUrl('repository_container'), ['ADMIN', 'ADMIN2'])
         .respond(['ADMIN', 'ADMIN2']);
       PermissionService.isContextAuthorized(['ADMIN', 'ADMIN2'], 'repository_container').then(successSpy, errorSpy);
       $httpBackend.flush();
@@ -114,7 +111,7 @@ describe('PermissionService.js', function () {
 
     it('Multiple Perms, Disallowed', inject(function (PermissionService, CLMContextLocations, $httpBackend) {
       $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'), ['ADMIN', 'ADMIN2'])
+        .expectPUT(getPermissionContextTestUrl('repository_container'), ['ADMIN', 'ADMIN2'])
         .respond(['ADMIN2']);
       PermissionService.isContextAuthorized(['ADMIN', 'ADMIN2'], 'repository_container').then(successSpy, errorSpy);
       $httpBackend.flush();
@@ -128,7 +125,7 @@ describe('PermissionService.js', function () {
       $httpBackend
     ) {
       $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'), ['ADMIN', 'ADMIN2'])
+        .expectPUT(getPermissionContextTestUrl('repository_container'), ['ADMIN', 'ADMIN2'])
         .respond(['ADMIN2', 'ADMIN']);
       PermissionService.isContextAuthorized(['ADMIN', 'ADMIN2'], 'repository_container').then(successSpy, errorSpy);
       $httpBackend.flush();
@@ -138,7 +135,7 @@ describe('PermissionService.js', function () {
 
     it('Server Error', inject(function (PermissionService, CLMContextLocations, $httpBackend) {
       $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'), ['ADMIN', 'ADMIN2'])
+        .expectPUT(getPermissionContextTestUrl('repository_container'), ['ADMIN', 'ADMIN2'])
         .respond(500, 'foo');
       PermissionService.isContextAuthorized(['ADMIN', 'ADMIN2'], 'repository_container').then(successSpy, errorSpy);
       $httpBackend.flush();

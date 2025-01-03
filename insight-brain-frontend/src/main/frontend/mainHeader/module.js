@@ -6,7 +6,6 @@
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import utilityServicesModule from '../utility/services/utility.services.module';
 import pendoModule from '../pendo/module';
-import angularCommonModule from '../utilAngular/AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
 import permissionServiceModule from '../utilAngular/PermissionService';
 import telemetryServiceModule from '../services/telemetryService';
@@ -21,7 +20,6 @@ export default angular
   .module('mainHeader', [
     'ui.router',
     'ui.validate',
-    angularCommonModule.name,
     CLMLocationModule.name,
     permissionServiceModule.name,
     'ngSanitize',

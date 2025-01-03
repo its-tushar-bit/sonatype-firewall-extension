@@ -7,8 +7,6 @@ import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
 import CLMLocationsModule from '../util/CLMLocation';
 import utilityModule from '../utility/utility.module';
-import utilityDirectivesModule from '../utility/directives/utility.directives.module';
-import ComponentDisplayModule from '../ComponentDisplay/module';
 import selectedComponentServiceModule from '../services/selectedComponentService';
 import waiversModule from '../waivers/module';
 
@@ -22,8 +20,6 @@ export default angular
   .module('applicationReportModule', [
     CLMLocationsModule.name,
     utilityModule.name,
-    utilityDirectivesModule.name,
-    ComponentDisplayModule.name,
     selectedComponentServiceModule.name,
     waiversModule.name,
     'ngRedux',

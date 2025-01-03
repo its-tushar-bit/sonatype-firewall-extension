@@ -3,18 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-iq-org-app-picker-angular {
-  display: block;
-}
-
-iq-org-app-picker {
-  display: block;
-
-  .nx-collapsible-items {
-    padding-right: 8px;
-  }
-}
-
 #application-filter {
   .iq-limited-apps-warning-icon {
     color: var(--nx-color-alert-warning);

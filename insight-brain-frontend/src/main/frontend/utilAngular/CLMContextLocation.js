@@ -48,9 +48,7 @@ locationModule.factory('CLMContextLocations', [
   'OrganizationId',
   '$state',
   'BaseUrl',
-  '$window',
-  'CLMLocations',
-  function (appId, orgId, $state, baseUrl, $window, CLMLocations) {
+  function (appId, orgId, $state, baseUrl) {
     // checks to see if the dot-delimited state name includes the specified part
     const includesNamePart = (part, str) => contains(part, split('.', str));
 
@@ -62,16 +60,8 @@ locationModule.factory('CLMContextLocations', [
       return includesNamePart('organization', $state.current.name);
     }
 
-    function isRepositories() {
-      return includesNamePart('repositories', $state.current.name);
-    }
-
     function isRepositoryContainer() {
       return includesNamePart('management.view.repository_container', $state.current.name);
-    }
-
-    function isRootOrg() {
-      return isOrganization() && $state.params.organizationId === 'ROOT_ORGANIZATION_ID';
     }
 
     function getServicePath() {
@@ -100,14 +90,6 @@ locationModule.factory('CLMContextLocations', [
       }
     }
 
-    function getLdapConfig(ldapId) {
-      var url = baseUrl.get() + '/rest/config/ldap';
-      if (ldapId) {
-        url += '/' + ldapId;
-      }
-      return url;
-    }
-
     const getId = (raw) => {
       if (isApplication()) {
         return getApplicationId(raw);
@@ -125,171 +107,8 @@ locationModule.factory('CLMContextLocations', [
     };
 
     return {
-      getLabelsUrl: function () {
-        return baseUrl.get() + '/api/v2/labels/' + getServicePathWithId();
-      },
-
-      getApplicableLabelsUrl: function () {
-        return baseUrl.get() + '/api/v2/labels/' + getServicePathWithId() + '/applicable';
-      },
-
-      getDeleteLabelsUrl: function (label) {
-        return baseUrl.get() + '/api/v2/labels/' + getServicePathWithId() + '/' + encodeURIComponent(label.id);
-      },
-
-      getLicenseGroupsUrl: function (ownerId, ownerType) {
-        return (
-          baseUrl.get() + '/rest/licenseThreatGroup/' + (ownerId ? ownerType + '/' + ownerId : getServicePathWithId())
-        );
-      },
-
-      getApplicableLicenseGroupsUrl: function () {
-        return baseUrl.get() + '/rest/licenseThreatGroup/' + getServicePathWithId() + '/applicable';
-      },
-
-      getDeleteLicenseGroupUrl: function (group) {
-        return (
-          baseUrl.get() + '/rest/licenseThreatGroup/' + getServicePathWithId() + '/' + encodeURIComponent(group.id)
-        );
-      },
-
-      getLicenseGroupLicensesUrl: function (group) {
-        return baseUrl.get() + '/rest/licenseThreatGroupLicense/' + getServicePathWithId() + '/' + group.id;
-      },
-
-      getPolicyUrl: function (ownerType, ownerId) {
-        return baseUrl.get() + '/rest/policy/' + (ownerType || getServicePath()) + '/' + (ownerId || getId());
-      },
-
-      getEntitiesUrl: function () {
-        return baseUrl.get() + '/rest/' + getServicePath();
-      },
-
-      getEntityUrl: function () {
-        return baseUrl.get() + '/rest/' + getServicePathWithId();
-      },
-
-      getAddIconUrl: function (ownerType, ownerId) {
-        let servicePath = ownerType ? encodeURIComponent(ownerType) : getServicePath();
-        return (
-          baseUrl.get() +
-          '/rest/' +
-          servicePath +
-          '/icon/' +
-          encodeURIComponent(ownerId) +
-          (!$window.FormData ? '?noFormData=true' : '')
-        );
-      },
-
-      getEntityId: function () {
-        return isApplication() ? appId.raw() : isOrganization() ? orgId.raw() : 'global';
-      },
-
-      getOwnerImageUrl,
-
-      getApplicablePolicies: function () {
-        return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/applicable';
-      },
-
-      getRoleMappingUrl: function (roleId) {
-        return baseUrl.get() + '/rest/membershipMapping/' + getServicePathWithId() + (roleId ? '/role/' + roleId : '');
-      },
-
-      getFindUsersUrl: function (type, typeId) {
-        var servicePath = null;
-        if (type && typeId) {
-          servicePath = window.encodeURIComponent(type) + '/' + window.encodeURIComponent(typeId);
-        } else {
-          servicePath = getServicePathWithId();
-        }
-        return baseUrl.get() + '/rest/user/' + servicePath + '/query';
-      },
-
-      getImportPolicyUrl: function () {
-        return (
-          baseUrl.get() +
-          '/rest/policy/' +
-          getServicePathWithId() +
-          '/import' +
-          (!$window.FormData ? '?noFormData=true' : '')
-        );
-      },
-
-      getCategoriesUrl: function () {
-        return CLMLocations.getCategoriesUrl(getServicePath(), getId(true));
-      },
-
-      getApplicableCategoriesUrl: function () {
-        let servicePath = getServicePath();
-        return (
-          CLMLocations.getCategoriesUrl(servicePath, getId(true)) +
-          (servicePath === 'organization' ? '/applicable' : '')
-        );
-      },
-
-      getApplicationCategoriesUrl: function () {
-        return baseUrl.get() + '/api/v2/applicationCategories/organization/' + getId();
-      },
-
-      getPolicyTagUrl: function (policyId) {
-        return baseUrl.get() + '/rest/appliedTag/policy/' + encodeURIComponent(policyId) + '/' + getServicePathWithId();
-      },
-
       getPermissionTestUrl: function (global) {
         return baseUrl.get() + '/rest/user/permissions/' + (global ? 'global/global' : getServicePathWithId());
-      },
-
-      getOwnerDetailsUrl: function () {
-        return baseUrl.get() + '/rest/sidebar/' + getServicePathWithId() + '/details';
-      },
-
-      getPermissionContextTestUrl,
-
-      getLdapConnectionConfig: function () {
-        return getLdapConfig($state.params.ldapId) + '/connection';
-      },
-
-      getLdapConnectionTest: function () {
-        return getLdapConfig($state.params.ldapId) + '/testConnection';
-      },
-
-      getLdapLoginTest: function () {
-        return getLdapConfig($state.params.ldapId) + '/testLogin';
-      },
-
-      getLdapUserMappingConfig: function () {
-        return getLdapConfig($state.params.ldapId) + '/userMapping';
-      },
-
-      getLdapUserMappingTest: function () {
-        return getLdapConfig($state.params.ldapId) + '/testUserMapping';
-      },
-
-      getLdapConfig,
-
-      getLegacyViolationURL: function () {
-        return `${baseUrl.get()}/rest/legacyViolations/${getServicePathWithId()}`;
-      },
-
-      getRetentionPoliciesUrl: function (orgId) {
-        return `${baseUrl.get()}/api/v2/dataRetentionPolicies/organizations/${encodeURIComponent(orgId)}`;
-      },
-
-      getSamlConfigurationUrl: function () {
-        return `${baseUrl.get()}/api/v2/config/saml`;
-      },
-
-      getNotificationWebhooksUrl: function () {
-        return `${baseUrl.get()}/rest/config/webhook/policy/${getServicePathWithId()}`;
-      },
-
-      isApplication: isApplication,
-      isOrganization: isOrganization,
-      isRootOrg: isRootOrg,
-      isRepositories: isRepositories,
-      isRepositoryContainer: isRepositoryContainer,
-      isGlobal: function () {
-        return !isApplication() && !isOrganization();
       },
     };
   },

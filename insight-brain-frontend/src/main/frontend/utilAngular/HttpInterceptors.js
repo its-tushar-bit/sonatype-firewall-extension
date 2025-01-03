@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import angularCommonModule from './AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
 import utilityServicesModule from '../utility/services/utility.services.module';
 import loginModalModule from 'MainRoot/user/LoginModal/module';
@@ -79,7 +78,6 @@ httpInterceptors.config([
 export var unauthenticatedResponseHttpInterceptor = angular
   .module('UnauthenticatedResponseHttpInterceptor', [
     httpInterceptors.name,
-    angularCommonModule.name,
     'ui.bootstrap',
     CLMLocationModule.name,
     utilityServicesModule.name,

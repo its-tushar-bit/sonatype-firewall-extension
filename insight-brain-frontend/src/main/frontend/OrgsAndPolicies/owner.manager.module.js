@@ -5,24 +5,17 @@
  */
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
-import formsModule from '../FormsModule';
-import angularCommonModule from '../utilAngular/AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
-import utilityDirectivesModule from '../utility/directives/utility.directives.module';
 import utilityServicesModule from '../utility/services/utility.services.module';
 import utilityModule from '../utility/utility.module';
 import permissionServiceModule from '../utilAngular/PermissionService';
 import validatorsModule from '../utilAngular/Validators';
-import storesModule from '../utilAngular/Stores';
-import roleMembershipModule from '../role.membership/role.membership.module';
 import OwnerSideNav from 'MainRoot/OrgsAndPolicies/ownerSideNav/OwnerSideNav';
 import OwnersTreePage from 'MainRoot/OrgsAndPolicies/ownersTreePage/OwnersTreePage';
 import InsufficientPermissionOwnerHierarchyTree from 'MainRoot/OrgsAndPolicies/insufficientPermissionOwnerHierarchyTree/InsufficientPermissionOwnerHierarchyTree';
 import OwnerSummary from 'MainRoot/OrgsAndPolicies/ownerSummary/OwnerSummary';
-import sourceControlModule from './sourceControlConfiguration/module';
 import viewTemplate from 'MainRoot/owner.manager/state/owner.manager.view.html';
 import editTemplate from 'MainRoot/owner.manager/state/owner.manager.edit.html';
-import SourceControlService from './sourceControlConfiguration/source.control.service';
 import RepositoriesSummaryView from 'MainRoot/OrgsAndPolicies/repositories/RepositoriesSummaryView';
 import RepositoryManagerSummaryView from 'MainRoot/OrgsAndPolicies/repositories/RepositoryManagerSummaryView';
 import RepositorySummaryView from 'MainRoot/OrgsAndPolicies/repositorySummaryView/RepositorySummaryView';
@@ -46,19 +39,13 @@ import WaiversConfiguration from 'MainRoot/OrgsAndPolicies/autoWaiversConfigurat
 
 export default angular
   .module('owner.manager.module', [
-    storesModule.name,
     'ui.bootstrap',
     'ui.router',
-    angularCommonModule.name,
-    formsModule.name,
     utilityModule.name,
-    utilityDirectivesModule.name,
     permissionServiceModule.name,
     CLMLocationModule.name,
     utilityServicesModule.name,
     validatorsModule.name,
-    roleMembershipModule.name,
-    sourceControlModule.name,
   ])
   .component('ownerSideNav', iqReact2Angular(OwnerSideNav, [], ['$ngRedux', '$state']))
   .component('ownersTreePage', iqReact2Angular(OwnersTreePage, [], ['$ngRedux', '$state']))
@@ -66,7 +53,6 @@ export default angular
     'insufficientPermissionOwnerHierarchyTree',
     iqReact2Angular(InsufficientPermissionOwnerHierarchyTree, [], ['$ngRedux', '$state'])
   )
-  .service('SourceControlService', SourceControlService)
   .component('ownerSummary', iqReact2Angular(OwnerSummary, [], ['$ngRedux', '$state']))
   .component('repositoriesSummaryView', iqReact2Angular(RepositoriesSummaryView, [], ['$ngRedux', '$state']))
   .component('repositoryManagerSummaryView', iqReact2Angular(RepositoryManagerSummaryView, [], ['$ngRedux', '$state']))

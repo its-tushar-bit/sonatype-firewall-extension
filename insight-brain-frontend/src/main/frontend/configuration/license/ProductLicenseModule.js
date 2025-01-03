@@ -4,12 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
-import angularCommonModule from '../../utilAngular/AngularCommon';
 import CLMLocationModule from '../../util/CLMLocation';
 import ProductLicenseContainer from './ProductLicenseContainer';
 
 export default angular
-  .module('ProductLicense', ['ui.router', angularCommonModule.name, CLMLocationModule.name])
+  .module('ProductLicense', ['ui.router', CLMLocationModule.name])
   .component('productLicenseDetail', iqReact2Angular(ProductLicenseContainer, [], ['$ngRedux']))
   .config([
     '$stateProvider',

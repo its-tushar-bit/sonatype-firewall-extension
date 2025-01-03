@@ -28,7 +28,6 @@
 @use 'iq-quarantine-indicator';
 @use 'iq-dependency-indicators';
 @use 'iq-counter';
-@use '../role.membership/role.membership.view';
 @use 'iq-text-indicators.scss';
 @use 'iq-threat-bar';
 @use 'iq-pagination';
@@ -815,39 +814,6 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
 
 #migrate-organization-wrapper {
   margin-left: 48px;
-}
-
-/*
-  #Copied Tooltip
-*/
-.copied-tooltip {
-  > .tooltip-arrow {
-    border-bottom-color: #46a546 !important;
-
-    &:after {
-      border-bottom-color: $iq-off-white !important;
-    }
-  }
-
-  > .tooltip-content {
-    // This is a wrapper around the extra content, since Bootstrap tooltip overwrites the tooltip-inner with the title
-    background-color: $iq-off-white;
-    border: 1px solid #46a546;
-    color: #46a546;
-    padding: 4px 8px 4px 8px;
-
-    i {
-      padding-right: 8px;
-    }
-
-    .tooltip-inner {
-      // Clear bootstrap styles
-      background-color: transparent;
-      border: none;
-      color: inherit;
-      padding: 0;
-    }
-  }
 }
 
 // Begin from multi-select.css

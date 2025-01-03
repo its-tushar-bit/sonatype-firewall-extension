@@ -64,6 +64,22 @@ services.service('Messages', function () {
   return Messages;
 });
 
+services.service('Modal', [
+  '$modal',
+  function ($modal) {
+    return {
+      open(config) {
+        return $modal.open({
+          windowClass: 'iq-modal',
+          backdropClass: 'iq-modal-backdrop',
+          animation: false,
+          ...config,
+        });
+      },
+    };
+  },
+]);
+
 /**
  * English language phrases for elapsed time.
  */

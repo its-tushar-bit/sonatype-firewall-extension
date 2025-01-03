@@ -10,7 +10,7 @@ import classnames from 'classnames';
 import { NxThreatIndicator, NxOverflowTooltip, NxSmallTag } from '@sonatype/react-shared-components';
 import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
 
-import { UPDATE_DIMENSIONS_TIMEOUT } from 'MainRoot/utilAngular/AngularCommon';
+import { UPDATE_DIMENSIONS_TIMEOUT } from 'MainRoot/util/constants';
 import { displayWaiverScope, isWaiverAllVersionsOrExact } from 'MainRoot/util/waiverUtils';
 
 export default function SidebarNavWaiversList({ currentWaiverId, waivers, onClick, scrollToSelection }) {

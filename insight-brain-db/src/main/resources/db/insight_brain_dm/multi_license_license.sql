@@ -3234,6 +3234,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-GNAT-exception','GPL-2.0-with-GNAT-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-libpri-OpenH323-exception','GPL-2.0-with-libpri-OpenH323-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-Linux-syscall-note','GPL-2.0-with-Linux-syscall-note');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-OpenSSL-exception','GPL-2.0-with-OpenSSL-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-Universal-FOSS-exception-1.0','GPL-2.0-with-Universal-FOSS-exception-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-x11vnc-OpenSSL-exception','GPL-2.0-with-x11vnc-OpenSSL-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0','GPL-3.0');

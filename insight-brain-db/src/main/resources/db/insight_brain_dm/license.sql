@@ -1052,6 +1052,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-GNAT-exception','GPL-2.0-with-GNAT-exception','GNU General Public License v2.0 w/GNAT exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-libpri-OpenH323-exception','GPL-2.0-with-libpri-OpenH323-exception','GNU General Public License v2.0 w/libpri OpenH323 exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-Linux-syscall-note','GPL-2.0-with-Linux-syscall-note','GPL-2.0 with Linux Syscall Note');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-OpenSSL-exception','GPL-2.0-with-OpenSSL-exception','GNU General Public License v2.0 w/OpenSSL exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-Universal-FOSS-exception-1.0','GPL-2.0-with-Universal-FOSS-exception-1.0','GPL-2.0 with Universal FOSS Exception, Version 1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-x11vnc-OpenSSL-exception','GPL-2.0-with-x11vnc-OpenSSL-exception','GNU General Public License v2.0 w/x11vnc OpenSSL exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0','GPL-3.0','GNU General Public License v3.0 only');

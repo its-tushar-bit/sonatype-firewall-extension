@@ -37,7 +37,7 @@
     <hds.version>2.54.45</hds.version>
     <slf4j.version>2.0.13</slf4j.version>
     <!-- logback 1.4.x requires Java 11 -->
-    <logback.version>1.3.14</logback.version>
+    <logback.version>1.3.15</logback.version>
     <jackson.version>2.18.1</jackson.version>
     <openjpa.version>3.2.2</openjpa.version>
     <!-- shiro 2.x requires Java 11 -->

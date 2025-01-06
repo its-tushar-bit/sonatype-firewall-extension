@@ -46,12 +46,12 @@ describe('PrioritiesPageTable', () => {
 
     axiosMock
       .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
-        params: { pageSize: DEFAULT_PAGE_SIZE, page: 1, componentNameFilter: '', filterOnPolicyActions: true },
+        params: { pageSize: DEFAULT_PAGE_SIZE, page: 1, componentNameFilter: '', filterOnPolicyActions: false },
       })
       .reply(200, mockResponsePage1);
     axiosMock
       .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
-        params: { pageSize: DEFAULT_PAGE_SIZE, page: 2, componentNameFilter: '', filterOnPolicyActions: true },
+        params: { pageSize: DEFAULT_PAGE_SIZE, page: 2, componentNameFilter: '', filterOnPolicyActions: false },
       })
       .reply(200, mockResponsePage2);
 
@@ -68,7 +68,7 @@ describe('PrioritiesPageTable', () => {
       pageSize: DEFAULT_PAGE_SIZE,
       page: 1,
       componentNameFilter: '',
-      filterOnPolicyActions: true,
+      filterOnPolicyActions: false,
     });
 
     const table = screen.getByRole('table');
@@ -91,7 +91,7 @@ describe('PrioritiesPageTable', () => {
   it('renders an error within the table when network call fails', async () => {
     axiosMock
       .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
-        params: { pageSize: DEFAULT_PAGE_SIZE, page: 1, componentNameFilter: '', filterOnPolicyActions: true },
+        params: { pageSize: DEFAULT_PAGE_SIZE, page: 1, componentNameFilter: '', filterOnPolicyActions: false },
       })
       .reply(500, 'some_error');
 
@@ -108,7 +108,7 @@ describe('PrioritiesPageTable', () => {
   it('clicking the retry button on error alert makes correct network request', async () => {
     axiosMock
       .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
-        params: { pageSize: DEFAULT_PAGE_SIZE, page: 1, componentNameFilter: '', filterOnPolicyActions: true },
+        params: { pageSize: DEFAULT_PAGE_SIZE, page: 1, componentNameFilter: '', filterOnPolicyActions: false },
       })
       .reply(500, 'Error');
 
@@ -123,7 +123,7 @@ describe('PrioritiesPageTable', () => {
       pageSize: DEFAULT_PAGE_SIZE,
       page: 1,
       componentNameFilter: '',
-      filterOnPolicyActions: true,
+      filterOnPolicyActions: false,
     });
 
     const retryBtn = within(table).getByRole('button');
@@ -135,7 +135,7 @@ describe('PrioritiesPageTable', () => {
       pageSize: DEFAULT_PAGE_SIZE,
       page: 1,
       componentNameFilter: '',
-      filterOnPolicyActions: true,
+      filterOnPolicyActions: false,
     });
   });
 
@@ -186,7 +186,7 @@ describe('PrioritiesPageTable', () => {
   describe('empty message when there are no priorities', () => {
     beforeEach(() => axiosMock.reset());
 
-    it('renders the right message by default (when fail/warn toggle is on)', async () => {
+    it('renders the right message by default (when fail/warn toggle is off)', async () => {
       const resp = generateMockResponseByPage(1, []);
       axiosMock.onGet(getPrioritiesPageTableData(publicAppId, scanId)).reply(200, resp);
 
@@ -197,7 +197,7 @@ describe('PrioritiesPageTable', () => {
         pageSize: DEFAULT_PAGE_SIZE,
         page: 1,
         componentNameFilter: '',
-        filterOnPolicyActions: true,
+        filterOnPolicyActions: false,
       });
 
       const table = await screen.findByRole('table');
@@ -207,12 +207,10 @@ describe('PrioritiesPageTable', () => {
       expect(rows.length).toBe(2);
 
       const rowWithMessage = rows[1];
-      expect(rowWithMessage).toHaveTextContent(
-        'No violations with Fail/Warn policy actions were found during this evaluation.'
-      );
+      expect(rowWithMessage).toHaveTextContent('All clear! No violations were found during this evaluation.');
     });
 
-    it('renders the right message (when fail/warn toggle is off)', async () => {
+    it('renders the right message (when fail/warn toggle is on)', async () => {
       const resp = generateMockResponseByPage(1, []);
       axiosMock.onGet(getPrioritiesPageTableData(publicAppId, scanId)).reply(200, resp);
 
@@ -221,7 +219,7 @@ describe('PrioritiesPageTable', () => {
           currentParams: {
             publicAppId,
             scanId,
-            filterOnPolicyActions: 'false',
+            filterOnPolicyActions: 'true',
           },
           currentState: {
             name: 'prioritiesPageFromReports',
@@ -235,7 +233,7 @@ describe('PrioritiesPageTable', () => {
         pageSize: DEFAULT_PAGE_SIZE,
         page: 1,
         componentNameFilter: '',
-        filterOnPolicyActions: false,
+        filterOnPolicyActions: true,
       });
 
       const table = await screen.findByRole('table');
@@ -243,13 +241,15 @@ describe('PrioritiesPageTable', () => {
 
       const toggle = screen.getByRole('switch', { name: 'Fail/Warn Policy Actions only' });
       expect(toggle).toBeInTheDocument();
-      expect(toggle).not.toBeChecked();
+      expect(toggle).toBeChecked();
 
       const rows = screen.getAllByRole('row');
       expect(rows.length).toBe(2);
 
       const rowWithMessage = rows[1];
-      expect(rowWithMessage).toHaveTextContent('All clear! No violations were found during this evaluation.');
+      expect(rowWithMessage).toHaveTextContent(
+        'No violations with Fail/Warn policy actions were found during this evaluation.'
+      );
     });
   });
 
@@ -293,7 +293,7 @@ describe('PrioritiesPageTable', () => {
 
       axiosMock
         .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
-          params: { pageSize: DEFAULT_PAGE_SIZE, page: 1, componentNameFilter: 'ABC' },
+          params: { pageSize: DEFAULT_PAGE_SIZE, page: 1, componentNameFilter: 'ABC', filterOnPolicyActions: false },
         })
         .reply(200, filteredResponse);
 
@@ -303,8 +303,12 @@ describe('PrioritiesPageTable', () => {
         pageSize: DEFAULT_PAGE_SIZE,
         page: 1,
         componentNameFilter: '',
-        filterOnPolicyActions: true,
+        filterOnPolicyActions: false,
       });
+
+      const toggle = screen.getByRole('switch', { name: 'Fail/Warn Policy Actions only' });
+      expect(toggle).toBeInTheDocument();
+      expect(toggle).not.toBeChecked();
 
       const table = await screen.findByRole('table');
       expect(table).toBeInTheDocument();
@@ -318,7 +322,7 @@ describe('PrioritiesPageTable', () => {
       expect(stateGoSpy).toHaveBeenCalledWith('prioritiesPageFromReports', {
         publicAppId,
         scanId,
-        filterOnPolicyActions: true,
+        filterOnPolicyActions: '',
         componentNameFilter: 'ABC',
       });
     });
@@ -329,7 +333,7 @@ describe('PrioritiesPageTable', () => {
           currentParams: {
             publicAppId,
             scanId,
-            filterOnPolicyActions: true,
+            filterOnPolicyActions: false,
             componentNameFilter: 'some_component_name',
           },
         },
@@ -341,7 +345,7 @@ describe('PrioritiesPageTable', () => {
         pageSize: DEFAULT_PAGE_SIZE,
         page: 1,
         componentNameFilter: 'some_component_name',
-        filterOnPolicyActions: true,
+        filterOnPolicyActions: false,
       });
     });
   });
@@ -354,7 +358,7 @@ describe('PrioritiesPageTable', () => {
         pageSize: DEFAULT_PAGE_SIZE,
         page: 1,
         componentNameFilter: '',
-        filterOnPolicyActions: true,
+        filterOnPolicyActions: false,
       };
 
       expect(axiosMock.history.get.length).toBe(1);
@@ -366,14 +370,14 @@ describe('PrioritiesPageTable', () => {
 
       const toggle = screen.getByRole('switch', { name: 'Fail/Warn Policy Actions only' });
       expect(toggle).toBeInTheDocument();
-      expect(toggle).toBeChecked();
+      expect(toggle).not.toBeChecked();
 
       fireEvent.click(toggle);
 
       expect(stateGoSpy).toHaveBeenCalledWith('prioritiesPageFromReports', {
         publicAppId,
         scanId,
-        filterOnPolicyActions: false,
+        filterOnPolicyActions: true,
         componentNameFilter: '',
       });
     });
@@ -472,7 +476,7 @@ describe('PrioritiesPageTable', () => {
       pageSize: DEFAULT_PAGE_SIZE,
       page: 1,
       componentNameFilter: '',
-      filterOnPolicyActions: true,
+      filterOnPolicyActions: false,
     });
 
     const table = await screen.findByRole('table');
@@ -523,7 +527,7 @@ describe('PrioritiesPageTable', () => {
         pageSize: DEFAULT_PAGE_SIZE,
         page: 1,
         componentNameFilter: '',
-        filterOnPolicyActions: true,
+        filterOnPolicyActions: false,
       });
 
       const table = await screen.findByRole('table');
@@ -543,7 +547,7 @@ describe('PrioritiesPageTable', () => {
         pageSize: DEFAULT_PAGE_SIZE,
         page: 2,
         componentNameFilter: '',
-        filterOnPolicyActions: true,
+        filterOnPolicyActions: false,
       });
 
       await screen.findByRole('table');
@@ -560,7 +564,7 @@ describe('PrioritiesPageTable', () => {
         pageSize: DEFAULT_PAGE_SIZE,
         page: 1,
         componentNameFilter: '',
-        filterOnPolicyActions: true,
+        filterOnPolicyActions: false,
       });
     });
   });

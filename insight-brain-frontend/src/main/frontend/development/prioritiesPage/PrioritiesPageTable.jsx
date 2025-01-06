@@ -43,6 +43,8 @@ export default function PrioritiesPageTable() {
     filterOnPolicyActions: filterOnPolicyActionsValue,
   } = useSelector(selectPrioritiesPageSlice);
 
+  const hasPolicyAction = priorities?.find((priority) => priority.action === 'fail' || priority.action === 'warn');
+
   const metadata = useSelector(selectApplicationReportMetaData);
   const { forMonitoring } = metadata || {};
 
@@ -50,11 +52,7 @@ export default function PrioritiesPageTable() {
   const currentPage = pageCount && pageCount > 0 ? page - 1 : null;
   const { publicAppId, scanId, filterOnPolicyActions, componentNameFilter } = useSelector(selectRouterCurrentParams);
 
-  const getDerivedActionFilter = () => {
-    if (filterOnPolicyActions === 'true') return true;
-    return filterOnPolicyActions !== 'false';
-  };
-
+  const derivedActionFilter = filterOnPolicyActions === 'true' ? true : false;
   const derivedComponentName = isNil(componentNameFilter) ? '' : componentNameFilter;
 
   const setPage = (page) => dispatch(actions.setPage(page));
@@ -73,12 +71,12 @@ export default function PrioritiesPageTable() {
         stateGo(currentRouteName, {
           publicAppId,
           scanId,
-          filterOnPolicyActions: false,
+          filterOnPolicyActions: '',
           componentNameFilter: derivedComponentName,
         })
       );
     } else {
-      dispatch(actions.setFilterOnPolicyActions(getDerivedActionFilter()));
+      dispatch(actions.setFilterOnPolicyActions(derivedActionFilter));
     }
     dispatch(actions.setComponentNameFilter(derivedComponentName));
 
@@ -95,7 +93,7 @@ export default function PrioritiesPageTable() {
         stateGo(currentRouteName, {
           publicAppId,
           scanId,
-          filterOnPolicyActions,
+          filterOnPolicyActions: filterOnPolicyActionsValue ? true : '',
           componentNameFilter: value,
         })
       );
@@ -105,14 +103,13 @@ export default function PrioritiesPageTable() {
 
   const handleActionToggleChange = () => {
     dispatch(actions.setFilterOnPolicyActions(!filterOnPolicyActionsValue));
-
-    // if initial toggle state is true, clicking the toggle adds the actionFilter query param
-    // if initial toggle state is false, clicking on the toggle removes the actionFilter query param
+    // if initial toggle state is false, clicking the toggle adds the actionFilter query param
+    // if initial toggle state is true, clicking on the toggle removes the actionFilter query param
     dispatch(
       stateGo(currentRouteName, {
         publicAppId,
         scanId,
-        filterOnPolicyActions: filterOnPolicyActionsValue ? false : '',
+        filterOnPolicyActions: !filterOnPolicyActionsValue ? true : '',
         componentNameFilter: derivedComponentName,
       })
     );
@@ -164,7 +161,7 @@ export default function PrioritiesPageTable() {
               error={loadErrorTableData}
               emptyMessage={getEmptyMessage()}
             >
-              <DataRows dataset={priorities} />
+              <DataRows dataset={priorities} hasPolicyAction={!!hasPolicyAction} />
             </NxTable.Body>
           </NxTable>
           <div className="nx-table-container__footer">
@@ -181,7 +178,7 @@ export default function PrioritiesPageTable() {
   );
 }
 
-function DataRows({ dataset }) {
+function DataRows({ dataset, hasPolicyAction }) {
   const dispatch = useDispatch();
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
   const setSelectedComponent = (idx) => dispatch(selectComponent(idx));
@@ -210,6 +207,13 @@ function DataRows({ dataset }) {
       dispatchComponentDetailsPage(componentHash);
     };
 
-    return <PrioritiesPageRow key={componentHash} component={component} onClick={onRowClick} />;
+    return (
+      <PrioritiesPageRow
+        key={componentHash}
+        component={component}
+        onClick={onRowClick}
+        hasPolicyAction={hasPolicyAction}
+      />
+    );
   });
 }

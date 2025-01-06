@@ -193,7 +193,7 @@ function initialState() {
     publicAppId: null,
     scanId: null,
     componentNameFilter: '',
-    filterOnPolicyActions: true,
+    filterOnPolicyActions: false,
   };
 }
 

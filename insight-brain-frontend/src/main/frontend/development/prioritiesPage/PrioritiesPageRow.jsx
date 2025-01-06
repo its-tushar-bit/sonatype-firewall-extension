@@ -52,7 +52,7 @@ export const recommendationTypeMap = {
   'recommended-non-breaking-with-dependencies': 'Recommended non-breaking with dependencies version',
 };
 
-export default function PrioritiesPageRow({ component, onClick }) {
+export default function PrioritiesPageRow({ component, onClick, hasPolicyAction }) {
   const dispatch = useDispatch();
 
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
@@ -145,7 +145,7 @@ export default function PrioritiesPageRow({ component, onClick }) {
         <span className="iq-priorities-page-policy-details">
           <span
             className={
-              forMonitoring
+              forMonitoring || !hasPolicyAction
                 ? 'iq-priorities-page-policy-details__desc-ignore-policy-action'
                 : 'iq-priorities-page-policy-details__desc'
             }
@@ -237,4 +237,5 @@ PrioritiesPageRow.propTypes = {
     highestThreatPolicyConstraintName: PropTypes.string,
   }).isRequired,
   onClick: PropTypes.func.isRequired,
+  hasPolicyAction: PropTypes.bool,
 };

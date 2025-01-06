@@ -93,7 +93,7 @@ function PrioritiesPageContents() {
 
   return (
     <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={doLoad}>
-      {metadata && (
+      {metadata && reportParametersExist && (
         <>
           <PrioritiesPageHeader />
           <PrioritiesPageTable />

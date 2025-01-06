@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
+
 import javax.inject.Inject;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -115,9 +116,10 @@ public class PdfGeneratorServiceTest
     assertThat(
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
         .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
-    InputStream inputStream = reportPdf.getInputStream();
-    assertThat(toByteArray(((InputStream) response.getEntity()))).isEqualTo(toByteArray(inputStream));
-    inputStream.close();
+    try (InputStream inputStreamReportPdf = reportPdf.getInputStream();
+        InputStream inputStreamResponse = (InputStream) response.getEntity()) {
+      assertThat(toByteArray(inputStreamResponse)).isEqualTo(toByteArray(inputStreamReportPdf));
+    }
     assertThat(new String(Files.readAllBytes(reportPdf.getFile().toPath()), 0, 1024,
         StandardCharsets.US_ASCII)).contains("%PDF-");
   }
@@ -149,9 +151,10 @@ public class PdfGeneratorServiceTest
     assertThat(
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
         .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
-    InputStream inputStream = reportPdf.getInputStream();
-    assertThat(toByteArray(((InputStream) response.getEntity()))).isEqualTo(toByteArray(inputStream));
-    inputStream.close();
+    try (InputStream inputStreamReportPdf = reportPdf.getInputStream();
+        InputStream inputStreamResponse = (InputStream) response.getEntity()) {
+      assertThat(toByteArray(inputStreamResponse)).isEqualTo(toByteArray(inputStreamReportPdf));
+    }
     assertThat(new String(Files.readAllBytes(reportPdf.getFile().toPath()), 0, 1024,
         StandardCharsets.US_ASCII)).contains("%PDF-");
   }
@@ -186,9 +189,10 @@ public class PdfGeneratorServiceTest
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
         .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
 
-    InputStream inputStream = reportPdf.getInputStream();
-    assertThat(toByteArray(((InputStream) response.getEntity()))).isEqualTo(toByteArray(inputStream));
-    inputStream.close();
+    try (InputStream inputStreamReportPdf = reportPdf.getInputStream();
+        InputStream inputStreamResponse = (InputStream) response.getEntity()) {
+      assertThat(toByteArray(inputStreamResponse)).isEqualTo(toByteArray(inputStreamReportPdf));
+    }
     assertThat(new String(Files.readAllBytes(reportPdf.getFile().toPath()), 0, 1024,
         StandardCharsets.US_ASCII)).contains("%PDF-");
   }
@@ -222,9 +226,10 @@ public class PdfGeneratorServiceTest
     assertThat(
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
         .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
-    InputStream inputStream = reportPdf.getInputStream();
-    assertThat(toByteArray(((InputStream) response.getEntity()))).isEqualTo(toByteArray(inputStream));
-    inputStream.close();
+    try (InputStream inputStreamReportPdf = reportPdf.getInputStream();
+        InputStream inputStreamResponse = (InputStream) response.getEntity()) {
+      assertThat(toByteArray(inputStreamResponse)).isEqualTo(toByteArray(inputStreamReportPdf));
+    }
     assertThat(
         new String(Files.readAllBytes(reportPdf.getFile().toPath()), 0, 1024,
             StandardCharsets.US_ASCII)).contains(

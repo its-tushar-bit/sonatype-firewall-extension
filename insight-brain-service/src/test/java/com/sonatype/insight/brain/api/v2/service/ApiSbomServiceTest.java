@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
@@ -29,6 +30,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomVersionsApplicationSortableField;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
@@ -55,6 +57,7 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.Zipper;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
+import com.sonatype.insight.brain.utils.ExistingFilesHelper;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.utils.Retry;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
@@ -118,6 +121,9 @@ public class ApiSbomServiceTest
   private ThirdPartySbomMetadataDAO dao;
 
   @Inject
+  private ThirdPartyFileDAO thirdPartyFileDAO;
+
+  @Inject
   private ThirdPartyScanDAO thirdPartyScanDao;
 
   @Inject
@@ -134,6 +140,9 @@ public class ApiSbomServiceTest
 
   @Inject
   private TestProductLicense testProductLicense;
+
+  @Inject
+  private ExistingFilesHelper existingFilesHelper;
 
   @Mock
   private HdsClient mockHdsClient;
@@ -1124,12 +1133,14 @@ public class ApiSbomServiceTest
 
   @Test
   public void testImportSbom_ValidFile_SPDX() throws IOException {
+    String expectedVersion = "76b10b862e7b42009f2415097620928c";
+    String userFilename = "file.txt";
     mockHdsForImportWithDelayedReportDownload(50);
 
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/spdx.json")) {
-      Response response = service.importSbom(app.getId(), inputStream, "file.txt", false,
+      Response response = service.importSbom(app.getId(), inputStream, userFilename, false,
           DUMMY_USER_AGENT, null, false);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       assertThat(ticketDTO).isNotNull();
@@ -1137,18 +1148,20 @@ public class ApiSbomServiceTest
           .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
 
       policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
-      assertSuccessfulSBOMImportState(app, null, ticketDTO);
+      assertSuccessfulSBOMImportState(app, expectedVersion, userFilename, ticketDTO);
     }
   }
 
   @Test
   public void testImportSbom_ValidFile_SPDX_IgnoreValidationError() throws IOException {
+    String expectedVersion = "76b10b862e7b42009f2415097620928c";
+    String userFilename = "file.txt";
     mockHdsForImportWithDelayedReportDownload(50);
 
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/spdx.json")) {
-      Response response = service.importSbom(app.getId(), inputStream, "file.txt", false,
+      Response response = service.importSbom(app.getId(), inputStream, userFilename, false,
           DUMMY_USER_AGENT, null, true);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       assertThat(ticketDTO).isNotNull();
@@ -1156,19 +1169,20 @@ public class ApiSbomServiceTest
           .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
 
       policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
-      assertSuccessfulSBOMImportState(app, null, ticketDTO);
+      assertSuccessfulSBOMImportState(app, expectedVersion, userFilename, ticketDTO);
     }
   }
-  
+
   @Test
   public void testImportSbom_ValidFile_SPDX_CustomVersion() throws IOException {
+    String applicationVersion = "my_application_version";
+    String userFilename = "file.txt";
     mockHdsForImportWithDelayedReportDownload(50);
 
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/spdx.json")) {
-      String applicationVersion = "my_application_version";
-      Response response = service.importSbom(app.getId(), inputStream, "file.txt", false,
+      Response response = service.importSbom(app.getId(), inputStream, userFilename, false,
           DUMMY_USER_AGENT, applicationVersion, false);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       assertThat(ticketDTO).isNotNull();
@@ -1176,19 +1190,21 @@ public class ApiSbomServiceTest
           .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
 
       policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
-      assertSuccessfulSBOMImportState(app, applicationVersion, ticketDTO);
+      assertSuccessfulSBOMImportState(app, applicationVersion, userFilename, ticketDTO);
     }
   }
 
   @Test
   public void testImportSbom_InvalidFile_SPDX_IgnoreValidationError() throws IOException {
+    String expectedVersion = "76b10b862e7b42009f2415097620928c";
+    String userFilename = "file.txt";
     mockHdsForImportWithDelayedReportDownload(50);
 
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/invalid-spdx.json")) {
-      Response response = service.importSbom(app.getId(), inputStream, "file.txt", false,
+      Response response = service.importSbom(app.getId(), inputStream, userFilename, false,
           DUMMY_USER_AGENT, null, true);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       assertThat(ticketDTO).isNotNull();
@@ -1196,12 +1212,14 @@ public class ApiSbomServiceTest
           .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
 
       policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
-      assertSuccessfulSBOMImportState(app, null, ticketDTO, false);
+      assertSuccessfulSBOMImportState(app, expectedVersion, userFilename, ticketDTO, false);
     }
   }
 
   @Test
   public void testImportSbom_ValidFile_CycloneDX() throws IOException {
+    String expectedVersion = "2.36.19-SNAPSHOT";
+    String userFilename = "third-party-simple-bom.xml";
     mockHdsForImportWithDelayedReportDownload(50);
 
     Application app = tempEntity.newApplicationWithParent();
@@ -1209,7 +1227,7 @@ public class ApiSbomServiceTest
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
       Response response =
-          service.importSbom(app.getId(), inputStream, "third-party-simple-bom.xml", false, DUMMY_USER_AGENT, null,
+          service.importSbom(app.getId(), inputStream, userFilename, false, DUMMY_USER_AGENT, null,
               false);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       assertThat(ticketDTO).isNotNull();
@@ -1217,12 +1235,14 @@ public class ApiSbomServiceTest
           .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
 
       policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
-      assertSuccessfulSBOMImportState(app, null, ticketDTO);
+      assertSuccessfulSBOMImportState(app, expectedVersion, userFilename, ticketDTO);
     }
   }
 
   @Test
   public void testImportSbom_ValidFile_CycloneDX_IgnoreValidationError() throws IOException {
+    String expectedVersion = "2.36.19-SNAPSHOT";
+    String userFilename = "third-party-simple-bom.xml";
     mockHdsForImportWithDelayedReportDownload(50);
 
     Application app = tempEntity.newApplicationWithParent();
@@ -1230,7 +1250,7 @@ public class ApiSbomServiceTest
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
       Response response =
-          service.importSbom(app.getId(), inputStream, "third-party-simple-bom.xml", false, DUMMY_USER_AGENT, null,
+          service.importSbom(app.getId(), inputStream, userFilename, false, DUMMY_USER_AGENT, null,
               true);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       assertThat(ticketDTO).isNotNull();
@@ -1238,13 +1258,14 @@ public class ApiSbomServiceTest
           .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
 
       policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
-      assertSuccessfulSBOMImportState(app, null, ticketDTO);
+      assertSuccessfulSBOMImportState(app, expectedVersion, userFilename, ticketDTO);
     }
   }
 
   @Test
   public void testImportSbom_ValidFile_CycloneDX_CustomVersion() throws IOException {
     mockHdsForImportWithDelayedReportDownload(50);
+    String userFilename = "third-party-simple-bom.xml";
 
     Application app = tempEntity.newApplicationWithParent();
 
@@ -1252,7 +1273,7 @@ public class ApiSbomServiceTest
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
       String applicationVersion = "my_application_version";
       Response response =
-          service.importSbom(app.getId(), inputStream, "third-party-simple-bom.xml", false, DUMMY_USER_AGENT,
+          service.importSbom(app.getId(), inputStream, userFilename, false, DUMMY_USER_AGENT,
               applicationVersion, false);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       assertThat(ticketDTO).isNotNull();
@@ -1260,12 +1281,14 @@ public class ApiSbomServiceTest
           .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
 
       policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
-      assertSuccessfulSBOMImportState(app, applicationVersion, ticketDTO);
+      assertSuccessfulSBOMImportState(app, applicationVersion, userFilename, ticketDTO);
     }
   }
 
   @Test
   public void testImportSbom_InvalidFile_CycloneDX_IgnoreValidationError() throws IOException {
+    String expectedVersion = "2.36.19-SNAPSHOT";
+    String userFilename = "invalid-third-party-simple-bom.xml";
     mockHdsForImportWithDelayedReportDownload(50);
 
     Application app = tempEntity.newApplicationWithParent();
@@ -1273,14 +1296,14 @@ public class ApiSbomServiceTest
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/invalid-third-party-simple-bom.xml")) {
       Response response =
-          service.importSbom(app.getId(), inputStream, "invalid-third-party-simple-bom.xml", false, DUMMY_USER_AGENT,
+          service.importSbom(app.getId(), inputStream, userFilename, false, DUMMY_USER_AGENT,
               null, true);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       assertThat(ticketDTO).isNotNull();
       assertThat(ticketDTO.statusUrl).isNotEmpty().startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
 
       policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
-      assertSuccessfulSBOMImportState(app, null, ticketDTO, false);
+      assertSuccessfulSBOMImportState(app, expectedVersion, userFilename, ticketDTO, false);
     }
   }
 
@@ -1298,6 +1321,8 @@ public class ApiSbomServiceTest
           "", false)
       ).withMessage("applicationVersion cannot be blank and must be between 1 and 200 characters.");
     }
+
+    assertExistingSbomFiles();
   }
 
   @Test
@@ -1314,6 +1339,8 @@ public class ApiSbomServiceTest
           " ", false)
       ).withMessage("applicationVersion cannot be blank and must be between 1 and 200 characters.");
     }
+
+    assertExistingSbomFiles();
   }
 
   @Test
@@ -1330,11 +1357,14 @@ public class ApiSbomServiceTest
           StringUtils.repeat('a', 201), false)
       ).withMessage("applicationVersion cannot be blank and must be between 1 and 200 characters.");
     }
+
+    assertExistingSbomFiles();
   }
 
   @Test
   public void testImportSbom_MaxLengthVersion() throws Exception {
     mockHdsForImportWithDelayedReportDownload(50);
+    String userFilename = "third-party-simple-bom.xml";
 
     Application app = tempEntity.newApplicationWithParent();
 
@@ -1344,7 +1374,7 @@ public class ApiSbomServiceTest
       Response response = service.importSbom(
           app.getId(),
           inputStream,
-          "third-party-simple-bom.xml",
+          userFilename,
           true,
           DUMMY_USER_AGENT,
           applicationVersion,
@@ -1355,7 +1385,7 @@ public class ApiSbomServiceTest
           .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
 
       policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
-      assertSuccessfulSBOMImportState(app, applicationVersion, ticketDTO);
+      assertSuccessfulSBOMImportState(app, applicationVersion, userFilename, ticketDTO);
     }
   }
 
@@ -1371,7 +1401,150 @@ public class ApiSbomServiceTest
                   null, false))
           .withMessage("You have exceeded the licensed limit of 0 sboms.");
     }
+    assertExistingSbomFiles();
+
     testProductLicense.reset();
+  }
+
+  @Test
+  public void testImport_ValidFile_StripsPathDirs() throws Exception {
+    String expectedVersion = "2.36.19-SNAPSHOT";
+    String userFilename = "foo/third-party-simple-bom.xml";
+    mockHdsForImportWithDelayedReportDownload(50);
+
+    Application app = tempEntity.newApplicationWithParent();
+
+    try (InputStream inputStream = getClass().getResourceAsStream(
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+      Response response =
+          service.importSbom(app.getId(), inputStream, userFilename, false, DUMMY_USER_AGENT, null,
+              false);
+      ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
+      assertThat(ticketDTO).isNotNull();
+      assertThat(ticketDTO.statusUrl).isNotEmpty()
+          .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
+
+      policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
+
+      assertSuccessfulSBOMImportState(app, expectedVersion, "third-party-simple-bom.xml", ticketDTO);
+    }
+  }
+
+  @Test
+  public void testImport_ValidFile_StripsAbsolutePath() throws Exception {
+    String expectedVersion = "2.36.19-SNAPSHOT";
+    String userFilename = "/third-party-simple-bom.xml";
+    mockHdsForImportWithDelayedReportDownload(50);
+
+    Application app = tempEntity.newApplicationWithParent();
+
+    try (InputStream inputStream = getClass().getResourceAsStream(
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+      Response response =
+          service.importSbom(app.getId(), inputStream, userFilename, false, DUMMY_USER_AGENT, null,
+              false);
+      ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
+      assertThat(ticketDTO).isNotNull();
+      assertThat(ticketDTO.statusUrl).isNotEmpty()
+          .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
+
+      policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
+
+      assertSuccessfulSBOMImportState(app, expectedVersion, "third-party-simple-bom.xml", ticketDTO);
+    }
+  }
+
+  @Test
+  public void testImport_ValidFile_StripsDotDotDirs() throws Exception {
+    String expectedVersion = "2.36.19-SNAPSHOT";
+    String userFilename = "../../third-party-simple-bom.xml";
+    mockHdsForImportWithDelayedReportDownload(50);
+
+    Application app = tempEntity.newApplicationWithParent();
+
+    try (InputStream inputStream = getClass().getResourceAsStream(
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+      Response response =
+          service.importSbom(app.getId(), inputStream, userFilename, false, DUMMY_USER_AGENT, null,
+              false);
+      ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
+      assertThat(ticketDTO).isNotNull();
+      assertThat(ticketDTO.statusUrl).isNotEmpty()
+          .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
+
+      policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
+
+      assertSuccessfulSBOMImportState(app, expectedVersion, "third-party-simple-bom.xml", ticketDTO);
+    }
+  }
+
+  @Test
+  public void testImport_ValidFile_FailsOnDotDotPath() throws Exception {
+    String userFilename = "..";
+
+    Application app = tempEntity.newApplicationWithParent();
+
+    try (InputStream inputStream = getClass().getResourceAsStream(
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->  service.importSbom(
+          app.getId(),
+          inputStream,
+          userFilename,
+          false,
+          DUMMY_USER_AGENT,
+          null,
+          false
+      ));
+    }
+
+    assertExistingSbomFiles();
+  }
+
+  @Test
+  public void testImport_ValidFile_FailsOnDotDotFinalPath() throws Exception {
+    String userFilename = "third-party-simple-bom.xml/..";
+
+    Application app = tempEntity.newApplicationWithParent();
+
+    try (InputStream inputStream = getClass().getResourceAsStream(
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->  service.importSbom(
+          app.getId(),
+          inputStream,
+          userFilename,
+          false,
+          DUMMY_USER_AGENT,
+          null,
+          false
+      ));
+    }
+
+    assertExistingSbomFiles();
+  }
+
+  @Test
+  public void testImport_ValidFile_FailsOnDotFinalPath() throws Exception {
+    String userFilename = "third-party-simple-bom.xml/.";
+
+    Application app = tempEntity.newApplicationWithParent();
+
+    try (InputStream inputStream = getClass().getResourceAsStream(
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->  service.importSbom(
+          app.getId(),
+          inputStream,
+          userFilename,
+          false,
+          DUMMY_USER_AGENT,
+          null,
+          false
+      ));
+    }
+
+    assertExistingSbomFiles();
   }
 
   @Test
@@ -1387,6 +1560,8 @@ public class ApiSbomServiceTest
               false))
           .withMessage("Importing binary files for SBOM Manager is disabled.");
     }
+
+    assertExistingSbomFiles();
   }
 
   @Test
@@ -1400,6 +1575,8 @@ public class ApiSbomServiceTest
               false))
           .withMessage("Provided file type is not a supported SBOM file type.");
     }
+
+    assertExistingSbomFiles();
   }
 
   @Test
@@ -1426,13 +1603,17 @@ public class ApiSbomServiceTest
       assertThat(thirdPartyScan).isNotNull();
       assertThat(thirdPartyScan.getScanRequestId()).isEqualTo(ticketDTO.requestId);
 
-      ThirdPartySbomMetadata thirdPartySbomMetadata = dao.getByThirdPartyFileId(thirdPartyScan.getThirdPartyFileId());
-      assertSbomMetadata(thirdPartySbomMetadata, app, "index.html");
-
       policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
+
+      ThirdPartySbomMetadata thirdPartySbomMetadata = dao.getByThirdPartyFileId(thirdPartyScan.getThirdPartyFileId());
+
+      assertSbomMetadata(thirdPartySbomMetadata, app,
+          filename -> assertThat(filename).matches("index\\.\\d+\\.json\\.gz"));
+
+      assertExistingSbomFiles("%s/%s".formatted(app.getId(), thirdPartySbomMetadata.getFilename()));
     }
   }
-  
+
   @Test
   public void testScanAndEvaluateBinaryFile_CustomVersion() throws IOException {
     mockHdsForImportWithDelayedReportDownload(50);
@@ -1459,11 +1640,15 @@ public class ApiSbomServiceTest
       assertThat(thirdPartyScan).isNotNull();
       assertThat(thirdPartyScan.getScanRequestId()).isEqualTo(ticketDTO.requestId);
 
+      policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
+
       ThirdPartySbomMetadata thirdPartySbomMetadata = dao.getByThirdPartyFileId(thirdPartyScan.getThirdPartyFileId());
-      assertSbomMetadata(thirdPartySbomMetadata, app, "index.html");
       assertThat(thirdPartySbomMetadata.getSbomVersion()).isEqualTo(applicationVersion);
 
-      policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
+      assertSbomMetadata(thirdPartySbomMetadata, app,
+          filename -> assertThat(filename).isEqualTo("index.my_application_version.json.gz"));
+
+      assertExistingSbomFiles("%s/%s".formatted(app.getId(), thirdPartySbomMetadata.getFilename()));
     }
   }
 
@@ -1491,11 +1676,12 @@ public class ApiSbomServiceTest
       assertThat(thirdPartyScan).isNotNull();
       assertThat(thirdPartyScan.getScanRequestId()).isEqualTo(ticketDTO.requestId);
 
+      policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
+
       ThirdPartySbomMetadata thirdPartySbomMetadata = dao.getByThirdPartyFileId(thirdPartyScan.getThirdPartyFileId());
 
-      assertSbomMetadata(thirdPartySbomMetadata, app, "binary-scan.zip");
-
-      policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
+      assertSbomMetadata(thirdPartySbomMetadata, app,
+          filename -> assertThat(filename).matches("binary-scan\\.\\d+\\.json\\.gz"));
 
       List<ThirdPartyFileCoordinate> tpComponents =
           thirdPartyFileCoordinateDAO.getBySbomMetadataId(thirdPartySbomMetadata.getId());
@@ -1509,11 +1695,13 @@ public class ApiSbomServiceTest
       //ne each from clair, cdx, and spdx
       assertThat(tpVulnerabilities).hasSize(3)
           .extracting("refId").containsExactlyInAnyOrder("CVE-2007-2353", "CVE-2019-3462", "CVE-2007-2353");
+
+      assertExistingSbomFiles("%s/%s".formatted(app.getId(), thirdPartySbomMetadata.getFilename()));
     }
   }
 
   @Test
-  public void testImport_CDX_Json_BadStructure() {
+  public void testImport_CDX_Json_BadStructure() throws Exception {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> importInvalidSbom("cdx-bad-structure.json", false))
         .withMessage("""
@@ -1522,19 +1710,23 @@ public class ApiSbomServiceTest
             Line: 11, Column: 3, Error: Unexpected close marker ']': expected '}' \
             (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); \
             line: 6, column: 2])""");
+
+    assertExistingSbomFiles();
   }
 
   @Test
-  public void testImport_CDX_Xml_BadStructure() {
+  public void testImport_CDX_Xml_BadStructure() throws Exception {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> importInvalidSbom("cdx-bad-structure.xml", false))
         .withMessage("""
             Not a valid CycloneDX SBOM file.
             Line: 9, Column: 1, Error: The end-tag for element type "components" must end with a '>' delimiter.""");
+
+    assertExistingSbomFiles();
   }
 
   @Test
-  public void testImport_SPDX_Json_BadStructure() {
+  public void testImport_SPDX_Json_BadStructure() throws Exception {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> importInvalidSbom("spdx-bad-structure.json", false))
         .withMessage("""
@@ -1542,19 +1734,23 @@ public class ApiSbomServiceTest
             Line: 20, Column: 3, Error: Unexpected close marker ']': expected '}' \
             (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); \
             line: 15, column: 2])""");
+
+    assertExistingSbomFiles();
   }
 
   @Test
-  public void testImport_SPDX_Xml_BadStructure() {
+  public void testImport_SPDX_Xml_BadStructure() throws Exception {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> importInvalidSbom("spdx-bad-structure.xml", false))
         .withMessage("""
             Not a valid SPDX SBOM file.
             Error: Misplaced '<' at 606 [character 1 line 20]""");
+
+    assertExistingSbomFiles();
   }
 
   @Test
-  public void testImport_CDX_Json_BadStructure_IgnoreValidationError() {
+  public void testImport_CDX_Json_BadStructure_IgnoreValidationError() throws Exception {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> importInvalidSbom("cdx-bad-structure.json", true))
         .withMessage("""
@@ -1563,19 +1759,23 @@ public class ApiSbomServiceTest
             Line: 11, Column: 3, Error: Unexpected close marker ']': expected '}' \
             (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); \
             line: 6, column: 2])""");
+
+    assertExistingSbomFiles();
   }
 
   @Test
-  public void testImport_CDX_Xml_BadStructure_IgnoreValidationError() {
+  public void testImport_CDX_Xml_BadStructure_IgnoreValidationError() throws Exception {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> importInvalidSbom("cdx-bad-structure.xml", true))
         .withMessage("""
             Not a valid CycloneDX SBOM file.
             Line: 9, Column: 1, Error: The end-tag for element type "components" must end with a '>' delimiter.""");
+
+    assertExistingSbomFiles();
   }
 
   @Test
-  public void testImport_SPDX_Json_BadStructure_IgnoreValidationError() {
+  public void testImport_SPDX_Json_BadStructure_IgnoreValidationError()  throws Exception {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> importInvalidSbom("spdx-bad-structure.json", true))
         .withMessage("""
@@ -1583,19 +1783,23 @@ public class ApiSbomServiceTest
             Line: 20, Column: 3, Error: Unexpected close marker ']': expected '}' \
             (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); \
             line: 15, column: 2])""");
+
+    assertExistingSbomFiles();
   }
 
   @Test
-  public void testImport_SPDX_Xml_BadStructure_IgnoreValidationError() {
+  public void testImport_SPDX_Xml_BadStructure_IgnoreValidationError() throws Exception {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> importInvalidSbom("spdx-bad-structure.xml", true))
         .withMessage("""
             Not a valid SPDX SBOM file.
             Error: Misplaced '<' at 606 [character 1 line 20]""");
+
+    assertExistingSbomFiles();
   }
 
   @Test
-  public void testImport_CDX_Json_Invalid() {
+  public void testImport_CDX_Json_Invalid() throws Exception {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> importInvalidSbom("cdx-invalid.json", false))
         .withMessage("""
@@ -1614,20 +1818,24 @@ public class ApiSbomServiceTest
             Line: 55, Column: 6, Path: $.components[12], Error: required property 'type' not found
             Line: 59, Column: 6, Path: $.components[13], Error: required property 'type' not found
             Line: 63, Column: 6, Path: $.components[14], Error: required property 'type' not found""");
+
+    assertExistingSbomFiles();
   }
 
   @Test
-  public void testImport_CDX_Xml_Invalid() {
+  public void testImport_CDX_Xml_Invalid() throws Exception {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> importInvalidSbom("cdx-invalid.xml", false))
         .withMessage("""
             Not a valid CycloneDX SBOM file.
             Line: 8, Column: 16, Path: //bom[1]/components[1], Error: cvc-complex-type.4: \
             Attribute 'type' must appear on element 'component'.""");
+
+    assertExistingSbomFiles();
   }
 
   @Test
-  public void testImport_SPDX_Json_Invalid() {
+  public void testImport_SPDX_Json_Invalid() throws Exception {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> importInvalidSbom("spdx-invalid.json", false))
         .withMessage("""
@@ -1636,16 +1844,20 @@ public class ApiSbomServiceTest
             Line: 19, Column: 4, Path: $.packages[2], Error: required property 'downloadLocation' not found
             Line: 1, Column: 2, Path: $, Error: required property 'creationInfo' not found
             Line: 1, Column: 2, Path: $, Error: required property 'dataLicense' not found""");
+
+    assertExistingSbomFiles();
   }
 
   @Test
-  public void testImport_SPDX_Xml_Invalid() {
+  public void testImport_SPDX_Xml_Invalid() throws Exception {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> importInvalidSbom("spdx-invalid.xml", false))
         .withMessage("""
             Not a valid SPDX SBOM file.
             Error: Missing required Creator
             Error: Missing required data license""");
+
+    assertExistingSbomFiles();
   }
 
   @Test
@@ -1672,8 +1884,38 @@ public class ApiSbomServiceTest
     assertThatNoException().isThrownBy(() -> importInvalidSbom("spdx-invalid.xml", true));
   }
 
+  @Test
+  public void testImport_Invalid_ExplicitVersion_IgnoreValidationError() throws Exception {
+    mockHdsForImportWithDelayedReportDownload(50);
+    assertThatNoException().isThrownBy(() -> importInvalidSbomWithExplicitVersion("cdx-invalid.xml", "1.0", true));
+  }
+
+  @Test
+  public void testImport_Invalid_VersionFromFile_IgnoreValidationError() throws Exception {
+    mockHdsForImportWithDelayedReportDownload(50);
+    assertThatNoException().isThrownBy(() ->
+        importInvalidSbom("cdx-invalid-with-version.xml", null, "a140fd3c3ded4bb0a640dc31e2904dc9", true));
+  }
+
+  private void importInvalidSbomWithExplicitVersion(
+      final String fileName,
+      final String explicitVersion,
+      final boolean ignoreValidationError) throws Exception
+  {
+    importInvalidSbom(fileName, explicitVersion, explicitVersion, ignoreValidationError);
+  }
+
   private void importInvalidSbom(
       final String fileName,
+      final boolean ignoreValidationError) throws Exception
+  {
+    importInvalidSbom(fileName, null, null, ignoreValidationError);
+  }
+
+  private void importInvalidSbom(
+      final String fileName,
+      final String explicitVersion,
+      final String expectedVersion,
       final boolean ignoreValidationError) throws Exception
   {
     Application app = tempEntity.newApplicationWithParent();
@@ -1685,33 +1927,34 @@ public class ApiSbomServiceTest
           fileName,
           false,
           DUMMY_USER_AGENT,
-          null,
+          explicitVersion,
           ignoreValidationError
       );
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       assertThat(ticketDTO).isNotNull();
       assertThat(ticketDTO.statusUrl).isNotEmpty().startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
       policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
-      assertSuccessfulSBOMImportState(app, null, ticketDTO, false);
+      assertSuccessfulSBOMImportState(app, expectedVersion, fileName, ticketDTO, false);
     }
   }
 
   private static void assertSbomMetadata(
       final ThirdPartySbomMetadata thirdPartySbomMetadata,
       final Application app,
-      final String expected)
+      final Consumer<String> filenameAssertion)
   {
     assertThat(thirdPartySbomMetadata).isNotNull();
     assertThat(thirdPartySbomMetadata.getApplicationId()).isEqualTo(app.getId());
     assertThat(thirdPartySbomMetadata.getSbomVersion()).isNotNull();
-    assertThat(thirdPartySbomMetadata.getFilename()).isEqualTo(expected);
     assertThat(thirdPartySbomMetadata.getSpec()).isEqualTo(SbomSpecification.CYCLONEDX.toString());
     assertThat(thirdPartySbomMetadata.getSpecFormat()).isEqualTo(SbomFormat.JSON.toString());
     assertThat(thirdPartySbomMetadata.getSpecVersion()).isEqualTo(ExportSpecification.DEFAULT.getVersion());
-    assertThat(thirdPartySbomMetadata.getStatus()).isEqualTo(PENDING);
+    assertThat(thirdPartySbomMetadata.getStatus()).isEqualTo(ACTIVE);
     assertThat(thirdPartySbomMetadata.getCreatedAt()).isNotNull();
     assertThat(thirdPartySbomMetadata.getScanType()).isEqualTo(SbomScanType.BINARY.toString());
     assertThat(thirdPartySbomMetadata.getMetadataJson()).isNotEmpty();
+
+    filenameAssertion.accept(thirdPartySbomMetadata.getFilename());
   }
 
   @Test
@@ -1839,21 +2082,29 @@ public class ApiSbomServiceTest
   }
 
   private void assertSuccessfulSBOMImportState(
-      final Application app, final String applicationVersion, final ApiThirdPartyScanTicketDTO ticketDTO)
+      final Application app,
+      final String applicationVersion,
+      final String expectedThirdPartyFilename,
+      final ApiThirdPartyScanTicketDTO ticketDTO) throws IOException
   {
-    assertSuccessfulSBOMImportState(app, applicationVersion, ticketDTO, true);
+    assertSuccessfulSBOMImportState(app, applicationVersion, expectedThirdPartyFilename, ticketDTO, true);
   }
 
   private void assertSuccessfulSBOMImportState(
       final Application app,
       final String applicationVersion,
+      final String expectedThirdPartyFilename,
       final ApiThirdPartyScanTicketDTO ticketDTO,
-      final boolean isValid)
+      final boolean isValid) throws IOException
   {
     ApiSbomStatusDTO importStatus = service.getImportStatus(app.getId(), ticketDTO.requestId);
     assertThat(importStatus.version).isNotNull();
     ThirdPartySbomMetadata sbomMetadata = dao.getByApplicationIdAndSbomVersion(app.getId(), importStatus.version);
-    if (applicationVersion != null) {
+    if (applicationVersion == null) {
+      // expect auto-generated timestamp-based version
+      assertThat(sbomMetadata.getSbomVersion()).matches("\\d+");
+    }
+    else {
       assertThat(sbomMetadata.getSbomVersion()).isEqualTo(applicationVersion);
     }
     assertThat(sbomMetadata).isNotNull()
@@ -1861,9 +2112,18 @@ public class ApiSbomServiceTest
         .hasFieldOrPropertyWithValue("isValid", isValid);
     ThirdPartyScan tpScan = thirdPartyScanDao.getByThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
     assertThat(tpScan.getFilteredScanFile()).isNotNull();
+
+    var thirdPartyFile = thirdPartyFileDAO.getById(sbomMetadata.getThirdPartyFileId());
+    assertThat(thirdPartyFile.getFilename()).isEqualTo(expectedThirdPartyFilename);
+
+    assertExistingSbomFiles("%s/%s".formatted(app.getId(), sbomMetadata.getFilename()));
   }
 
   private String expectedContentIn(String fileName) throws Exception {
     return readFileToString(this.getClass(), fileName);
+  }
+
+  private void assertExistingSbomFiles(String... expectedPaths) throws IOException {
+    existingFilesHelper.assertExistingSbomFiles(expectedPaths);
   }
 }

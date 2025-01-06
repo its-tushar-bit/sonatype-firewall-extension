@@ -208,7 +208,10 @@ public class InsightWork
   public File getSbomDir(final String appId) {
     return getSbomDir(appId, true);
   }
-  
+
+  /**
+   * Parent dir of all "temporary" SBOM storage
+   */
   public File getSbomTempDir() {
     File sbomTempDir = new File(getSbomDir(), "temp");
     if (!sbomTempDir.exists()) {
@@ -220,5 +223,39 @@ public class InsightWork
       }
     }
     return sbomTempDir;
+  }
+
+  /**
+   * Directory where SBOM uploads are stored briefly during the processing of a single REST call. Files here should
+   * have random names and not last longer than a single REST call
+   */
+  public File getSbomTransientDir() {
+    File sbomTransientDir = new File(getSbomTempDir(), "transient");
+    if (!sbomTransientDir.exists()) {
+      try {
+        Files.createDirectories(sbomTransientDir.toPath());
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException("Failed creating SBOM temporary directory", e);
+      }
+    }
+    return sbomTransientDir;
+  }
+
+  /**
+   * Directory where binaries uploaded as SBOMs are stored by the detectSbom REST call, so that they can be picked
+   * up by the importSbom REST call. importSbom deletes these files.
+   */
+  public File getSbomPersistentTempDir() {
+    File sbomPersistentTempDir = new File(getSbomTempDir(), "persistent");
+    if (!sbomPersistentTempDir.exists()) {
+      try {
+        Files.createDirectories(sbomPersistentTempDir.toPath());
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException("Failed creating SBOM temporary directory", e);
+      }
+    }
+    return sbomPersistentTempDir;
   }
 }

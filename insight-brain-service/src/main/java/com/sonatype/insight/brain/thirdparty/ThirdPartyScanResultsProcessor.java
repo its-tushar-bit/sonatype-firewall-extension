@@ -9,22 +9,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
-import java.io.StringWriter;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -38,35 +28,30 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.stream.util.EventReaderDelegate;
 
-import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
 import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.utils.CheckedIllegalArgumentException;
 import com.sonatype.insight.brain.utils.Xpp3Util;
 import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.scan.file.SbomProcessingException;
-import com.sonatype.insight.scan.file.UnsupportedSbomException;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.scan.model.io.XStreamFactory;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import com.thoughtworks.xstream.XStream;
-import io.dropwizard.logback.shaded.guava.annotations.VisibleForTesting;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -103,15 +88,13 @@ public class ThirdPartyScanResultsProcessor
 
   private final ThirdPartyResultHandlerFactory thirdPartyResultHandlerFactory;
 
-  private final InsightWork insightWork;
-
   private final ProductLicense productLicense;
 
   private final SbomFileDetector sbomFileDetector;
 
-  private final DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
-
   private final SbomMetadataUtils sbomMetadataUtils;
+
+  private final ThirdPartyPersistenceService thirdPartyPersistenceService;
 
   @Inject
   public ThirdPartyScanResultsProcessor(
@@ -120,20 +103,20 @@ public class ThirdPartyScanResultsProcessor
       ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       TelemetrySender telemetrySender,
       ThirdPartyResultHandlerFactory thirdPartyResultHandlerFactory,
-      InsightWork insightWork,
       ProductLicense productLicense,
       SbomFileDetector sbomFileDetector,
-      SbomMetadataUtils sbomMetadataUtils)
+      SbomMetadataUtils sbomMetadataUtils,
+      ThirdPartyPersistenceService thirdPartyPersistenceService)
   {
     this.telemetrySender = telemetrySender;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
-    this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
+    this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.thirdPartyResultHandlerFactory = thirdPartyResultHandlerFactory;
-    this.insightWork = insightWork;
     this.productLicense = productLicense;
     this.sbomFileDetector = sbomFileDetector;
     this.sbomMetadataUtils = sbomMetadataUtils;
+    this.thirdPartyPersistenceService = thirdPartyPersistenceService;
   }
 
   public String filterAndSaveData(
@@ -271,8 +254,7 @@ public class ThirdPartyScanResultsProcessor
     String lastModified = itemElement.getAttribute("lastModified");
     String sha1 = itemElement.getAttribute("sha1");
 
-    ThirdPartyFile thirdPartyFile = storeOrResolveThirdPartyFile(path, scanContext);
-    storeSbomFileIfApplicable(contentType, itemElement, contentElement, scanContext);
+    var thirdPartyFile = storeSbom(itemElement, contentElement, scanContext);
 
     ItemContentType contentItemType = ItemContentType.valueOf(contentType);
     if (ItemContentType.CONTAINER_URI.equals(contentItemType)) {
@@ -284,25 +266,22 @@ public class ThirdPartyScanResultsProcessor
         thirdPartyFile);
   }
 
-  private ThirdPartyFile storeOrResolveThirdPartyFile(String path, ThirdPartyScanContext scanContext) {
-    if (SbomScanType.BINARY.equals(scanContext.getScanType())
-        && scanContext.getSbomMetadataId() != null
-        && scanContext.getThirdPartyFileId() != null
-        && ComplianceStageType.ID.equals(scanContext.getStageType())) {
-      return thirdPartyFileDAO.getById(scanContext.getThirdPartyFileId());
+  private ThirdPartyScan ensureThirdPartyScanIsSaved(ThirdPartyFile thirdPartyFile, ThirdPartyScanContext scanContext) {
+    ThirdPartyScan thirdPartyScan = thirdPartyScanDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    if (thirdPartyScan == null) {
+      thirdPartyScan = thirdPartyPersistenceService.associateWithScan(thirdPartyFile, scanContext.getScanRequestId());
     }
-    return saveNewScan(path, scanContext);
-  }
+    else {
+      var scanContextScanId = scanContext.getThirdPartyScanId();
+      if (scanContextScanId != null && !scanContextScanId.equals(thirdPartyScan.getId())) {
+        throw new IllegalStateException("""
+            Already-saved ThirdPartyScan does not match information being processed in ThirdPartyScanResultsProcessor: \
+            %s != %s""".formatted(thirdPartyScan.getId(), scanContextScanId));
+      }
+    }
 
-  private ThirdPartyFile saveNewScan(String path, ThirdPartyScanContext scanContext) {
-    ThirdPartyFile thirdPartyFile = new ThirdPartyFile(path, new Date());
-    thirdPartyFileDAO.insert(thirdPartyFile);
-    ThirdPartyScan thirdPartyScan =
-        new ThirdPartyScan(thirdPartyFile.getId(), scanContext.getScanRequestId(), new Date());
-    thirdPartyScanDAO.insert(thirdPartyScan);
     scanContext.setThirdPartyScanId(thirdPartyScan.getId());
-    scanContext.setThirdPartyFileId(thirdPartyFile.getId());
-    return thirdPartyFile;
+    return thirdPartyScan;
   }
 
   private void compressScanFile(File filteredFile, File scanFile) throws IOException {
@@ -392,126 +371,116 @@ public class ThirdPartyScanResultsProcessor
     return thirdPartyResultHandlerFactory.newHandler(contentItemType, thirdPartyScanContext);
   }
 
-  private void storeSbomFileIfApplicable(
-      String contentType,
+  /**
+   * Stores the SBOM contents and high-level database records (ThirdPartySbomMetadata, ThirdPartyFile, and
+   * ThirdPartyScan) as appropriate for this type of scan. Specifically, the ThirdPartySbomMetadata will only
+   * be saved for COMPLIANCE stage scans (i.e. SBOM Manager uploads) and not for Lifecycle scans. Additionally,
+   * records that have already been saved will not be duplicated, in order to facilitate the two-step
+   * workflow in SBOM Manager where the ThirdPartySbomMetadata and ThirdPartyFile records are saved in one REST
+   * call and the evaluation is done in a second REST call (this class is involved only in the second REST call).
+   * ThirdPartySbomMetadata records that are created here will have a PENDING status.
+   *
+   * @return the saved ThirdPartyFile, or null if an error occurs.
+   * The ThirdPartySbomMetadata will be null if this is a Lifecycle scan for which the SBOM metadata should not
+   * be stored.
+   */
+  private ThirdPartyFile storeSbom(
       Xpp3Dom itemElement,
       Xpp3Dom contentElement,
       ThirdPartyScanContext scanContext)
   {
-    if (canStoreSbom(contentType, scanContext)) {
-      String sbomContent = storeSbom(scanContext, itemElement, contentElement);
-      if (scanContext.getSbomFileName() != null && sbomContent != null) {
-        saveThirdPartySbomMetadata(scanContext, sbomContent);
+    boolean shouldStoreSbomMetadata = shouldStoreAsSbom(scanContext);
+    ThirdPartyFile thirdPartyFile = null;
+    ThirdPartySbomMetadata sbomMetadata = null;
+    var sbomContent = contentElement.getValue();
+    var filename = itemElement.getAttribute("path");
+
+    try {
+      if (shouldStoreSbomMetadata) {
+        // SBOM Manager upload
+        if (scanContext.getSbomMetadataId() == null) {
+          SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(sbomContent, true);
+          ImmutablePair<ThirdPartySbomMetadata, ThirdPartyFile> entities;
+
+          if (sbomDetectionResult.isSbom) {
+            entities = thirdPartyPersistenceService.saveSbomManagerSbomFromScan(
+                sbomContent,
+                filename,
+                scanContext.getApplicationId(),
+                sbomDetectionResult
+            );
+          }
+          else {
+            entities = thirdPartyPersistenceService.saveSbomManagerBinaryFromScan(
+                sbomContent,
+                filename,
+                scanContext.getApplicationId(),
+                sbomDetectionResult
+            );
+          }
+
+          sbomMetadata = entities.getLeft();
+          thirdPartyFile = entities.getRight();
+
+          thirdPartyPersistenceService.setSbomMetadataStatusToPending(sbomMetadata);
+
+          scanContext.markSbomSavedForScan();
+          scanContext.setSbomMetadataId(sbomMetadata.getId());
+          scanContext.setThirdPartyFileId(thirdPartyFile.getId());
+
+          // it will be null if SbomFileDetector determines that the file isn't an SBOM at all
+          if (sbomDetectionResult.isValid != null) {
+            scanContext.setIsValid(sbomDetectionResult.isValid);
+          }
+        }
+        else {
+          sbomMetadata = thirdPartySbomMetadataDAO.getByIdNotNull(scanContext.getSbomMetadataId());
+          thirdPartyFile = thirdPartyFileDAO.getByIdNotNull(sbomMetadata.getThirdPartyFileId());
+          if (scanContext.getThirdPartyFileId() == null) {
+            scanContext.setThirdPartyFileId(thirdPartyFile.getId());
+          }
+        }
       }
+      else {
+        // Lifecycle scan
+
+        thirdPartyFile = thirdPartyPersistenceService.saveLifecycleSbomFromScan(filename);
+
+        // Note: in LC multiple SBOMs present in the scan will be saved separately, so there may be multiple
+        // ThirdPartyFiles.  The scan context just holds the id of the most recently saved one
+        scanContext.setThirdPartyFileId(thirdPartyFile.getId());
+      }
+
+      if (scanContext.getThirdPartyFileId() != null &&
+          !scanContext.getThirdPartyFileId().equals(thirdPartyFile.getId())) {
+        throw new IllegalStateException("""
+            Already-saved ThirdPartyFile does not match information being processed in ThirdPartyScanResultsProcessor: \
+            %s != %s""".formatted(scanContext.getThirdPartyFileId(), thirdPartyFile.getId()));
+      }
+
+      ensureThirdPartyScanIsSaved(thirdPartyFile, scanContext);
+
+      return thirdPartyFile;
+    }
+    catch (IOException | CheckedIllegalArgumentException e) {
+      log.error("there was an error while trying to store sbom file {}", scanContext.getScanFile().getName(), e);
+      return null;
     }
   }
 
-  private boolean canStoreSbom(String contentType, ThirdPartyScanContext scanContext) {
-    ItemContentType contentItemType = ItemContentType.valueOf(contentType);
-
-    //for now we persist only the first sbom for sbom manager support when there are multiple sboms in the scan.
+  /**
+   * @return whether or not the ThirdPartySbomMetadata and actual SBOM file contents should be persisted for this
+   * scan.
+   */
+  private boolean shouldStoreAsSbom(ThirdPartyScanContext scanContext) {
     return productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)
         && !sbomMetadataUtils.hasMaxSbomLimitBeenReached()
-        && isStageTypeSupported(scanContext)
-        && (ItemContentType.SBOM.equals(contentItemType) || ItemContentType.SPDX.equals(contentItemType))
-        && !scanContext.isSbomSavedForScan()
-        && !SbomScanType.BINARY.equals(scanContext.getScanType());
+        && isStageTypeSupported(scanContext);
   }
 
   private boolean isStageTypeSupported(ThirdPartyScanContext scanContext) {
     return scanContext.getStageType().equalsIgnoreCase(ComplianceStageType.ID)
         && productLicense.getStageTypes().stream()
         .anyMatch(stageType -> stageType.getId().equalsIgnoreCase(ComplianceStageType.ID));
-  }
-
-  private String storeSbom(
-      ThirdPartyScanContext scanContext,
-      Xpp3Dom itemElement,
-      Xpp3Dom contentElement)
-  {
-    StringWriter stringWriter = new StringWriter();
-    try {
-      File sbomDir = insightWork.getSbomDir(scanContext.getApplicationId());
-      Files.createDirectories(sbomDir.toPath().normalize());
-      final Path tempFilePath =
-          Files.createTempFile(sbomDir.toPath().normalize(), UUID.randomUUID().toString().replace("-", ""),
-              "." + FilenameUtils.getExtension(itemElement.getAttribute("path")) + ".gz");
-      try (InputStream sbomContent = IOUtils.toInputStream(contentElement.getValue(), Charset.defaultCharset());
-           GzipCompressorOutputStream outputStream = new GzipCompressorOutputStream(
-               Files.newOutputStream(tempFilePath))) {
-        IOUtils.copy(sbomContent, outputStream);
-        scanContext.markSbomSavedForScan();
-        scanContext.setSbomFileName(tempFilePath.getFileName().toString());
-        sbomContent.reset();
-        IOUtils.copy(sbomContent, stringWriter, StandardCharsets.UTF_8);
-        return stringWriter.toString();
-      }
-    }
-    catch (IOException e) {
-      log.error("there was an error while trying to store sbom file {}", scanContext.getScanFile().getName(), e);
-    }
-    return null;
-  }
-
-  private void saveThirdPartySbomMetadata(ThirdPartyScanContext scanContext, String sbomContent) {
-    try {
-      // We want the SBOM detection result to be saved even if the SBOM is invalid
-      SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(sbomContent, true);
-      if (sbomDetectionResult == null || sbomDetectionResult.summary == null) {
-        throw new SbomProcessingException("SBOM metadata could not be identified.");
-      }
-      ThirdPartySbomMetadata thirdPartySbomMetadata = getSbomMetadataEntity(scanContext, sbomDetectionResult);
-      sbomMetadataUtils.insertThirdPartySbomMetadataWithRetry(thirdPartySbomMetadata);
-      scanContext.setSbomMetadataId(thirdPartySbomMetadata.getId());
-
-      AuditData.get().setSbomVersion(thirdPartySbomMetadata, SbomAction.CREATE);
-    }
-    catch (SbomProcessingException | UnsupportedSbomException ex) {
-      log.debug("there was an error while trying to save sbom metadata", ex);
-    }
-  }
-
-  @VisibleForTesting
-  ThirdPartySbomMetadata getSbomMetadataEntity(
-      ThirdPartyScanContext scanContext,
-      SbomDetectionResult sbomDetectionResult)
-  {
-    ThirdPartySbomMetadata sbomMetadata = new ThirdPartySbomMetadata();
-    sbomMetadata.setApplicationId(scanContext.getApplicationId());
-    sbomMetadata.setThirdPartyFileId(scanContext.getThirdPartyFileId());
-    sbomMetadata.setFilename(scanContext.getSbomFileName());
-    sbomMetadata.setSbomVersion(getApplicationVersion(
-        scanContext.getApplicationId(), scanContext.getApplicationVersion(), sbomDetectionResult));
-    sbomMetadata.setIsValid(scanContext.isValid());
-    sbomMetadata.setSerialNumber(sbomDetectionResult.summary.serialNumber);
-    sbomMetadata.setSpec(sbomDetectionResult.summary.specification);
-    sbomMetadata.setSpecFormat(sbomDetectionResult.summary.format);
-    sbomMetadata.setSpecVersion(sbomDetectionResult.summary.version);
-    sbomMetadata.setMetadataJson(sbomDetectionResult.summary.creationDetails);
-    sbomMetadata.setCreatedAt(new Date());
-    sbomMetadata.setStatus(ThirdPartySbomMetadataStatus.PENDING);
-    sbomMetadata.setScanType(SbomScanType.SBOM.name());
-    return sbomMetadata;
-  }
-
-  private String getApplicationVersion(
-      String applicationId,
-      String applicationVersion,
-      SbomDetectionResult sbomDetectionResult)
-  {
-    Optional<String> resolvedApplicationVersion = Optional
-        .ofNullable(applicationVersion)
-        .or(() -> Optional.ofNullable(sbomDetectionResult.summary.applicationVersion))
-        .map(version -> version.isEmpty() ? null : version);
-
-    return resolvedApplicationVersion
-        .map(version ->
-            thirdPartySbomMetadataDAO.getByApplicationId(applicationId).stream()
-                .filter(sbom -> version.equals(sbom.getSbomVersion()))
-                .findFirst()
-                .map(existingSbomApplicationVersion -> String.join("_",
-                    existingSbomApplicationVersion.getSbomVersion(), dtFormatter.format(LocalDateTime.now())))
-                .orElse(version))
-        .orElseGet(() -> dtFormatter.format(LocalDateTime.now()));
   }
 }

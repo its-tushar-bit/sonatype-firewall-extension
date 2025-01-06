@@ -39,7 +39,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
@@ -65,7 +64,6 @@ import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.organization.ApplicationContactLoader;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -75,21 +73,17 @@ import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.sbom.SbomSpecification;
-import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -150,9 +144,6 @@ public class PolicyEvaluateServiceTest
   private PolicyEvaluationHelper policyEvaluationHelper;
 
   @Inject
-  private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
-
-  @Inject
   private TestProductLicense testProductLicense;
 
   @Inject
@@ -202,10 +193,9 @@ public class PolicyEvaluateServiceTest
     assertThatNoException().isThrownBy(() -> policyEvaluateService.evaluateWithPolling(
         IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(ID_BUILD)));
 
-    File mockedFile = mock(File.class);
-    when(mockedFile.getName()).thenReturn("test-file.xml");
+    File file = new File("test-file.xml");
     when(mockScanHandler.createTempScanFile(any(HttpServletRequest.class), any(Application.class)))
-        .thenReturn(mockedFile);
+        .thenReturn(file);
     HttpServletRequest mockedReq = mock(HttpServletRequest.class);
     assertThatNoException().isThrownBy(() -> policyEvaluateService.evaluateWithPolling(
         IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, mockedReq, new Stage(ID_COMPLIANCE)));
@@ -991,28 +981,6 @@ public class PolicyEvaluateServiceTest
     assertThat(notifications.get(0).getSubject()).contains("Policy");
 
     assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
-  }
-
-  @Test
-  public void testEvaluateWithPolling_CLI_SbomManager_ComplianceStage() throws IOException {
-    File mockedFile = mock(File.class);
-    when(mockedFile.getName()).thenReturn("test-file.xml");
-    when(mockScanHandler.createTempScanFile(any(HttpServletRequest.class), any(Application.class)))
-        .thenReturn(mockedFile);
-    HttpServletRequest mockedReq = mock(HttpServletRequest.class);
-    PolicyEvaluationReceipt policyEvaluationReceipt = policyEvaluateService.evaluateWithPolling(
-        IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, mockedReq, new Stage(ID_COMPLIANCE));
-    assertThat(policyEvaluationReceipt.getStatusId()).isNotEmpty();
-
-    List<ThirdPartySbomMetadata> sbomMetadataList = thirdPartySbomMetadataDAO.getByApplicationId(app.getId());
-    assertThat(sbomMetadataList).isNotEmpty().hasSize(1);
-    ThirdPartySbomMetadata sbomMetadata = sbomMetadataList.get(0);
-    assertThat(sbomMetadata.getSbomVersion()).isNotEmpty();
-    assertThat(sbomMetadata.getFilename()).isEqualTo("test-file.xml");
-    assertThat(sbomMetadata.getScanType()).isEqualTo(SbomScanType.BINARY.toString());
-    assertThat(sbomMetadata.getSpec()).isEqualTo(SbomSpecification.CYCLONEDX.toString());
-    assertThat(sbomMetadata.getSpecFormat()).isEqualTo(SbomFormat.JSON.toString());
-    assertThat(sbomMetadata.getSpecVersion()).isEqualTo(ExportSpecification.DEFAULT.getVersion());
   }
 
   @Test

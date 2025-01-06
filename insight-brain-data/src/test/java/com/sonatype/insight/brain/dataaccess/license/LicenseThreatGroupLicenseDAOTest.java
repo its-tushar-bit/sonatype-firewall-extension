@@ -107,7 +107,7 @@ public class LicenseThreatGroupLicenseDAOTest
     licenseThreatGroupLicense.setLicenseThreatGroupId(group.getId());
     licenseThreatGroupLicense.setLicenseId("BAZINGAAA");
     assertThatThrownBy(() -> dao.insert(licenseThreatGroupLicense)).isInstanceOf(NotFoundException.class)
-        .hasMessage("A license with ID 'BAZINGAAA' does not exist.");
+        .hasMessage("License with ID BAZINGAAA does not exist.");
   }
 
   @Test

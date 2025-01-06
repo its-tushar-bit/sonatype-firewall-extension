@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.model.HasStringId;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -229,6 +230,26 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
     javax.persistence.Query query = tx.createNativeQuery(sQuery);
     query.setFirstResult(offset).setMaxResults(pageSize);
     return query;
+  }
+
+  @Override
+  public T getById(TransactionContext tx, String id) {
+    String sQuery = "SELECT entity FROM " + getEntityName() + " entity WHERE entity.id=?1";
+    return get(tx, sQuery, id);
+  }
+
+  public T getByIdNotNull(TransactionContext tx, String id) {
+    T entity = getById(tx, id);
+    if (entity == null) {
+      throw new NotFoundException(getEntityName() + " with ID " + id + " does not exist.");
+    }
+    return entity;
+  }
+
+  public T getByIdNotNull(String id) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByIdNotNull(tx, id);
+    }
   }
 
   protected abstract DataStore getDataStore();

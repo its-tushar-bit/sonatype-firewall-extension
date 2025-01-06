@@ -63,7 +63,6 @@ public class SbomImportResourceTest
         .post();
     assertResponseStatus(200, response);
     SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
-    assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getSbomSummary()).isNotNull();
     assertThat(actual.getSbomSummary().applicationName).isEqualTo("iq_application_vuln");
     assertThat(actual.getSbomSummary().applicationVersion).isEqualTo("a140fd3c3ded4bb0a640dc31e2904dc9");
@@ -89,7 +88,6 @@ public class SbomImportResourceTest
         .post();
     SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
     assertResponseStatus(200, response);
-    assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getSbomSummary()).isNotNull();
     assertThat(actual.getSbomSummary().applicationName).isEqualTo("sonatype:iq_application_vuln");
     assertThat(actual.getSbomSummary().applicationVersion).isEqualTo("a140fd3c3ded4bb0a640dc31e2904dc9");
@@ -116,7 +114,6 @@ public class SbomImportResourceTest
         .post();
     SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
     assertResponseStatus(200, response);
-    assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getSbomSummary()).isNull();
     assertThat(actual.getScanType()).isEqualTo(SbomScanType.BINARY);
     assertThat(actual.getIsValid()).isNull();
@@ -136,7 +133,6 @@ public class SbomImportResourceTest
 
     assertResponseStatus(200, response);
     SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
-    assertThat(actual.getRequestId()).isEmpty();
     assertThat(actual.getSbomSummary()).isNotNull();
     assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
     assertThat(actual.getIsValid()).isFalse();
@@ -157,7 +153,6 @@ public class SbomImportResourceTest
 
     SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
     assertResponseStatus(200, response);
-    assertThat(actual.getRequestId()).isEmpty();
     assertThat(actual.getSbomSummary()).isNotNull();
     assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
     assertThat(actual.getIsValid()).isFalse();
@@ -179,7 +174,6 @@ public class SbomImportResourceTest
 
     assertResponseStatus(200, response);
     SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
-    assertThat(actual.getRequestId()).isEmpty();
     assertThat(actual.getSbomSummary()).isNotNull();
     assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
     assertThat(actual.getIsValid()).isFalse();
@@ -200,7 +194,6 @@ public class SbomImportResourceTest
 
     SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
     assertResponseStatus(200, response);
-    assertThat(actual.getRequestId()).isEmpty();
     assertThat(actual.getSbomSummary()).isNotNull();
     assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
     assertThat(actual.getIsValid()).isFalse();
@@ -221,7 +214,6 @@ public class SbomImportResourceTest
 
     assertResponseStatus(200, response);
     SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
-    assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getIsValid()).isFalse();
     assertThat(actual.getIsValidationErrorIgnorable()).isTrue();
     assertThat(actual.getSbomSummary()).isNotNull();
@@ -249,7 +241,6 @@ public class SbomImportResourceTest
 
     SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
     assertResponseStatus(200, response);
-    assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getIsValid()).isFalse();
     assertThat(actual.getIsValidationErrorIgnorable()).isTrue();
     assertThat(actual.getSbomSummary()).isNotNull();
@@ -285,13 +276,23 @@ public class SbomImportResourceTest
   }
 
   @Test
-  public void testImportDetectedSbom_InvalidRequestId() throws Exception {
-    HttpResponse response = restRequest()
-        .path(SbomImportResource.COMMIT_PATH)
-        .parameter(application.getId(), "requestId")
+  public void testImportDetectedSbom_InvalidApplicationVersion() throws Exception {
+    mockHdsReportDownload();
+
+    URL resource = SbomImportResourceTest.class.getResource("/SbomImportResourceTest/valid-spdx-bom.json");
+    File sbom = new File(Objects.requireNonNull(resource).getFile());
+    restRequest()
+        .parameter(application.getId())
+        .part("file", sbom.getName(), Files.readAllBytes(sbom.toPath()))
+        .path(SbomImportResource.DETECT_PATH)
         .post();
 
-    assertResponseStatus(400, response);
+    HttpResponse importResponse = restRequest()
+        .path(SbomImportResource.COMMIT_PATH)
+        .parameter(application.getId(), "invalidVersion")
+        .post();
+
+    assertResponseStatus(404, importResponse);
   }
 
   @Test
@@ -329,7 +330,7 @@ public class SbomImportResourceTest
 
     HttpResponse responseCommit = restRequest()
         .path(SbomImportResource.COMMIT_PATH)
-        .parameter(application.getId(), actual.getRequestId())
+        .parameter(application.getId(), actual.getSavedVersion())
         .post();
 
     ApiThirdPartyScanTicketDTO responseCommitBody = responseCommit.getBody(ApiThirdPartyScanTicketDTO.class);

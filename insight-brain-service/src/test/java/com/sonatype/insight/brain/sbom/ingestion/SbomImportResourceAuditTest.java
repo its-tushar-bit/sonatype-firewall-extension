@@ -52,13 +52,13 @@ public class SbomImportResourceAuditTest
 
     HttpResponse responseCommit = restRequest()
         .path(SbomImportResource.RESOURCE_PATH, SbomImportResource.COMMIT_PATH)
-        .parameter(app.getId(), actual.getRequestId())
+        .parameter(app.getId(), actual.getSbomSummary().applicationVersion)
         .post();
     assertResponseStatus(202, responseCommit);
     List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.CREATE_SBOM_VERSION, 1, null);
     assertCustomData(auditDTOs.get(0), "applicationId", app.getId());
     assertCustomData(auditDTOs.get(0), "sbomVersion", "a140fd3c3ded4bb0a640dc31e2904dc9");
-    assertCustomData(auditDTOs.get(0), "status", "PENDING");
+    assertCustomData(auditDTOs.get(0), "status", "UPLOADED");
     assertCustomData(auditDTOs.get(0), "operation", "CREATE");
     assertCustomData(auditDTOs.get(0), "stageId", "compliance");
 
@@ -68,22 +68,5 @@ public class SbomImportResourceAuditTest
 
   private String getStatusId(String statusUrl) {
     return statusUrl.substring(statusUrl.lastIndexOf("/") + 1);
-  }
-
-  @Test
-  public void testImportDetectedSbom_RequestNotFound() throws Exception {
-    testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    HttpResponse responseCommit = restRequest()
-        .path(SbomImportResource.RESOURCE_PATH, SbomImportResource.COMMIT_PATH)
-        .parameter(app.getId(),
-            "U0JPTS1mYWxzZS14bWwtU0JPTS05MTFkNjE5NTFlOTQ0Mjk0YmE2MDRiOGE5ZmRiZDNjZi1maWxlLnppcA==")
-        .post();
-    assertResponseStatus(404, responseCommit);
-    List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.CREATE_SBOM_VERSION, 1, "not-found");
-    assertCustomData(auditDTOs.get(0), "applicationId", app.getId());
-    assertCustomData(auditDTOs.get(0), "sbomVersion", null);
-    assertCustomData(auditDTOs.get(0), "status", null);
-    assertCustomData(auditDTOs.get(0), "operation", null);
-    assertCustomData(auditDTOs.get(0), "stageId", null);
   }
 }

@@ -5,13 +5,9 @@
  */
 package com.sonatype.insight.brain.sbom.ingestion;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.UUID;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -20,9 +16,14 @@ import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
@@ -31,24 +32,22 @@ import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
+import com.sonatype.insight.brain.utils.CheckedIllegalArgumentException;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
-import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.sbom.ingestion.SbomRequestIdElements.decodeFromRequestId;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService.PersistencePath.TrustedAutoDeletingTempPath;
 
 @Named
 @Singleton
@@ -58,9 +57,11 @@ public class SbomImportService
 
   private final ApplicationDAO applicationDAO;
 
-  private final SbomScanEvaluator sbomScanEvaluator;
+  private final ThirdPartySbomMetadataDAO sbomMetadataDAO;
 
-  private final InsightWork insightWork;
+  private final ThirdPartyFileDAO thirdPartyFileDAO;
+
+  private final SbomScanEvaluator sbomScanEvaluator;
 
   private final SbomFileDetector sbomFileDetector;
 
@@ -72,31 +73,37 @@ public class SbomImportService
 
   private final TelemetryUtils telemetryUtils;
 
+  private final ThirdPartyPersistenceService thirdPartyPersistenceService;
+
   @Inject
   public SbomImportService(
       ApplicationDAO applicationDAO,
+      ThirdPartySbomMetadataDAO sbomMetadataDAO,
+      ThirdPartyFileDAO thirdPartyFileDAO,
       SbomScanEvaluator sbomScanEvaluator,
-      InsightWork insightWork,
       SbomFileDetector sbomFileDetector,
       SbomMetadataUtils sbomMetadataUtils,
       ProductLicense productLicense,
       TelemetryUtils telemetryUtils,
-      TelemetrySender telemetrySender)
+      TelemetrySender telemetrySender,
+      ThirdPartyPersistenceService thirdPartyPersistenceService)
   {
     this.applicationDAO = applicationDAO;
+    this.sbomMetadataDAO = sbomMetadataDAO;
+    this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.sbomScanEvaluator = sbomScanEvaluator;
-    this.insightWork = insightWork;
     this.sbomFileDetector = sbomFileDetector;
     this.sbomMetadataUtils = sbomMetadataUtils;
     this.productLicense = productLicense;
     this.telemetryUtils = telemetryUtils;
     this.telemetrySender = telemetrySender;
+    this.thirdPartyPersistenceService = thirdPartyPersistenceService;
   }
 
   @Authorize(permission = Permission.WRITE)
   public SbomDetectionResultDTO detectSbom(
       @AuthzContext(Key.APPLICATION_ID) String applicationId,
-      InputStream sbom,
+      InputStream sbomStream,
       String originalFilename,
       boolean ignoreValidationError)
   {
@@ -108,102 +115,117 @@ public class SbomImportService
           + " sboms.");
     }
 
-    String fileNameUUID = UUID.randomUUID().toString().replace("-", "");
-    String tempFilename = String.format("%s-%s", fileNameUUID, originalFilename);
-    File tempSbomFile = new File(insightWork.getSbomTempDir(), tempFilename);
-    try (OutputStream outputStream = Files.newOutputStream(tempSbomFile.toPath())) {
-      IOUtils.copy(sbom, outputStream);
-      log.debug("Saved file for detection at {}", tempSbomFile.getPath());
-    }
-    catch (IOException e) {
-      if (tempSbomFile.exists()) {
-        String deletionResult = tempSbomFile.delete() ? "succeeded" : "failed";
-        log.debug("Deleting file located at {} due to an error {}", tempSbomFile.getPath(), deletionResult);
+    // A temp file that lasts only the duration of this method call, used only to avoid reading the whole
+    // SBOM into memory at once
+    try (var tempSbomPath = thirdPartyPersistenceService.writeToTransientStorage(sbomStream, originalFilename)) {
+      log.debug("Saved file for detection at {}", tempSbomPath);
+
+      SbomDetectionResult result =
+          sbomFileDetector.getSbomDetectionResult(tempSbomPath.getPath(), ignoreValidationError);
+
+      if (StringUtils.isNotEmpty(result.errorMessage)) {
+        // telemetry for when there aren't validation errors is sent elsewhere. SBOM-1113 will consolidate this.
+        sendTelemetry(result);
       }
-      throw new InternalServerException("Internal error saving the supplied file", e);
-    }
 
-    SbomDetectionResult result = sbomFileDetector.getSbomDetectionResult(tempSbomFile, ignoreValidationError);
-
-    SbomRequestIdElements idElements;
-    if (result.isSbom && StringUtils.isNotEmpty(result.errorMessage)) {
-      sendTelemetry(result);
-      deleteTempFile(tempSbomFile, result.errorMessage);
-      return new SbomDetectionResultDTO("", SbomScanType.SBOM, result);
-    }
-    else if (result.isSbom) {
-      String sbomSpecification = result.summary != null ? result.summary.specification : "";
-      idElements = new SbomRequestIdElements(fileNameUUID, originalFilename, SbomFormat.forMimeType(result.mimeType),
-          sbomMetadataUtils.determineItemContentType(sbomSpecification), result.isValid);
-    }
-    else {
-      if (SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.isEnabled()) {
-        idElements = new SbomRequestIdElements(fileNameUUID, originalFilename);
+      if (Boolean.FALSE.equals(result.isValidationErrorIgnorable)) {
+        // don't attempt to save if there was an unignorable validation error
+        return new SbomDetectionResultDTO(SbomScanType.SBOM, result);
+      }
+      else if (result.isSbom) {
+        String savedVersion = saveSbomManagerSbomOrBinary(tempSbomPath, originalFilename, applicationId, result);
+        return new SbomDetectionResultDTO(SbomScanType.SBOM, result, savedVersion);
+      }
+      else if (SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.isEnabled()) {
+        String savedVersion = saveSbomManagerSbomOrBinary(tempSbomPath, originalFilename, applicationId, result);
+        return new SbomDetectionResultDTO(SbomScanType.BINARY, result, savedVersion);
       }
       else {
-        deleteTempFile(tempSbomFile, "Importing binary files for SBOM Manager is disabled.");
         throw new BadRequestException("Importing binary files for SBOM Manager is disabled.");
       }
     }
-
-    return new SbomDetectionResultDTO(idElements, result);
+    catch (IOException e) {
+      throw new InternalServerException("Internal server error detecting SBOM", e);
+    }
+    catch (CheckedIllegalArgumentException e) {
+      throw new BadRequestException(e);
+    }
   }
 
   @Authorize(permission = Permission.WRITE)
   public Response importDetectedSbom(
       @AuthzContext(Key.APPLICATION_ID) String applicationId,
-      String requestId,
+      String applicationVersion,
       String clientUserAgent)
   {
-    if (sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
-      throw new PaymentRequiredException("You have exceeded the licensed limit of " + productLicense.getMaxSboms()
-          + " sboms.");
+    ThirdPartySbomMetadata sbomMetadata =
+        sbomMetadataDAO.getByApplicationIdAndSbomVersion(applicationId, applicationVersion);
+
+    if (sbomMetadata == null) {
+      throw new NotFoundException("SBOM with applicationId " + applicationId + " and version " + applicationVersion
+          + " does not exist");
+    }
+    else if (sbomMetadata.getStatus() != ThirdPartySbomMetadataStatus.UPLOADED) {
+      throw new BadRequestException("SBOM with applicationId " + applicationId + " and version " + applicationVersion
+          + " is not in UPLOADED state");
     }
 
-    SbomRequestIdElements idElements = decodeFromRequestId(requestId);
-    if (idElements == null) {
-      throw new BadRequestException("Request with id " + requestId + " does not exist");
-    }
+    ThirdPartyFile thirdPartyFile = thirdPartyFileDAO.getByIdNotNull(sbomMetadata.getThirdPartyFileId());
 
-    Path tmpImportFilePath = insightWork.getSbomTempDir().toPath().resolve(idElements.getStoredFileName());
-    if (!Files.exists(tmpImportFilePath)) {
-      throw new NotFoundException("Request with id " + requestId + " does not exist");
-    }
-
-    Path tmpDir = null;
     try {
-      //copy the file to a new directory to avoid name conflicts in case of concurrent imports with the same file name
-      tmpDir = Files.createTempDirectory(insightWork.getSbomTempDir().toPath(), null);
-      File tmpFileToScan = new File(tmpDir.toFile(), idElements.getOriginalFileName());
-      FileUtils.copyFile(tmpImportFilePath.toFile(), tmpFileToScan);
+      var importTicket = switch (SbomScanType.valueOf(sbomMetadata.getScanType())) {
+        case SBOM -> importSbom(sbomMetadata, clientUserAgent);
+        case BINARY -> importBinary(sbomMetadata, thirdPartyFile, clientUserAgent);
+      };
 
-      if (SbomScanType.SBOM.equals(idElements.getScanType())) {
-        ApiThirdPartyScanTicketDTO importTicket = sbomScanEvaluator.evaluateSbom(applicationId, tmpFileToScan,
-            idElements.getSbomFormat(), idElements.getContentType(), ScanTriggerType.SBOM_UI, clientUserAgent, null,
-            idElements.isSbomValid());
-
-        return Response.status(Status.ACCEPTED).entity(importTicket).build();
-      }
-      else { //Binary
-        ApiThirdPartyScanTicketDTO scanTicketDTO = sbomScanEvaluator.evaluateBinary(applicationId, tmpFileToScan,
-            ScanTriggerType.SBOM_UI, clientUserAgent, null);
-        return Response.status(Status.ACCEPTED).entity(scanTicketDTO).build();
-      }
+      return Response.status(Status.ACCEPTED).entity(importTicket).build();
     }
     catch (IOException e) {
       throw new InternalServerException("Internal server error importing SBOM", e);
     }
-    finally {
-      if (tmpDir != null) {
-        try {
-          Files.deleteIfExists(tmpDir);
-          Files.delete(tmpImportFilePath);
-        }
-        catch (IOException e) {
-          log.error("error deleting temporary sbom file", e);
-        }
-      }
-    }
+  }
+
+  /**
+   * @return The version under which the SBOM was saved in the database
+   */
+  private String saveSbomManagerSbomOrBinary(
+      TrustedAutoDeletingTempPath tempSbomPath,
+      String originalFilename,
+      String applicationId,
+      SbomDetectionResult result) throws IOException, CheckedIllegalArgumentException
+  {
+    var sbomMetadata = thirdPartyPersistenceService.saveSbomManagerSbomOrBinary(
+        tempSbomPath,
+        originalFilename,
+        applicationId,
+        result
+    ).getLeft();
+
+    return sbomMetadata.getSbomVersion();
+  }
+
+  private ApiThirdPartyScanTicketDTO importSbom(
+      ThirdPartySbomMetadata sbomMetadata,
+      String clientUserAgent) throws IOException
+  {
+    return sbomScanEvaluator.evaluateSbom(sbomMetadata, ScanTriggerType.SBOM_UI, clientUserAgent);
+  }
+
+  private ApiThirdPartyScanTicketDTO importBinary(
+      ThirdPartySbomMetadata sbomMetadata,
+      ThirdPartyFile thirdPartyFile,
+      String clientUserAgent) throws IOException
+  {
+    ApiThirdPartyScanTicketDTO retval = sbomScanEvaluator.evaluateBinary(
+        sbomMetadata,
+        thirdPartyFile,
+        ScanTriggerType.SBOM_UI,
+        clientUserAgent
+    );
+
+    thirdPartyPersistenceService.deletePersistentTempBinary(sbomMetadata, thirdPartyFile);
+
+    return retval;
   }
 
   private void sendTelemetry(final SbomDetectionResult result) {
@@ -221,12 +243,5 @@ public class SbomImportService
             SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled(),
             result.isValid != null && result.isValid);
     telemetrySender.send(thirdPartyScanComponentInfoTelemetryData);
-  }
-
-  private void deleteTempFile(File tempFile, String errorMessage) {
-    if (tempFile.exists()) {
-      String deletionResult = tempFile.delete() ? "succeeded" : "failed";
-      log.debug("Deleting file due to an error, {}, {} ", errorMessage, deletionResult);
-    }
   }
 }

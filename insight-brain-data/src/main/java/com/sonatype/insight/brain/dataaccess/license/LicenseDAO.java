@@ -71,14 +71,6 @@ public class LicenseDAO
     return license;
   }
 
-  public License getByIdNotNull(String id) {
-    License license = getById(id);
-    if (license == null) {
-      throw new NotFoundException("A license with ID '" + id + "' does not exist.");
-    }
-    return license;
-  }
-
   // Visible for test
   public void load() {
     synchronized (this.getClass()) {

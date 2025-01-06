@@ -87,7 +87,7 @@ const uploadFile = createAsyncThunk(`${REDUCER_NAME}/uploadFile`, (_, { dispatch
       if (data.scanType === 'SBOM' && isNonEmptyString(data.errorMessage)) {
         return rejectWithValue(data);
       }
-      dispatch(actions.commitFile(data.requestId));
+      dispatch(actions.commitFile(data.savedVersion));
       return data;
     })
     .catch(rejectWithValue);
@@ -100,26 +100,29 @@ const uploadFilePending = (state) => {
 const uploadFileFulfilled = (state, { payload }) => {
   state.importState = IMPORT_STATE.UPLOADING_COMMITTING;
   if (payload.sbomSummary) {
-    state.sbomSummary.versionId = payload.sbomSummary.applicationVersion;
+    state.sbomSummary.versionId = payload.savedVersion;
     state.sbomSummary.totalComponents = payload.sbomSummary.componentCount;
     state.sbomSummary.totalVulnerabilities = payload.sbomSummary.vulnerabilityCount;
   }
   state.scanType = payload.scanType;
 };
 
-const commitFile = createAsyncThunk(`${REDUCER_NAME}/commitFile`, async (requestId, { getState, rejectWithValue }) => {
-  const state = getState();
-  const appId = selectSelectedOwnerId(state);
-  return axios
-    .post(getCommitImportedSbomUrl(appId, requestId))
-    .then(({ data }) => {
-      if (isNonEmptyString(data.errorMessage)) {
-        return rejectWithValue(data);
-      }
-      return data;
-    })
-    .catch(rejectWithValue);
-});
+const commitFile = createAsyncThunk(
+  `${REDUCER_NAME}/commitFile`,
+  async (applicationVersion, { getState, rejectWithValue }) => {
+    const state = getState();
+    const appId = selectSelectedOwnerId(state);
+    return axios
+      .post(getCommitImportedSbomUrl(appId, applicationVersion))
+      .then(({ data }) => {
+        if (isNonEmptyString(data.errorMessage)) {
+          return rejectWithValue(data);
+        }
+        return data;
+      })
+      .catch(rejectWithValue);
+  }
+);
 
 const commitFilePending = (state) => {
   state.importState = IMPORT_STATE.UPLOADING_COMMITTING;

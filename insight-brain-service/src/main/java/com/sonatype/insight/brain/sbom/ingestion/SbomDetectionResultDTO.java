@@ -16,8 +16,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 public class SbomDetectionResultDTO
 {
-  private String requestId;
-
   private SbomSummary sbomSummary;
 
   private String errorMessage;
@@ -25,6 +23,12 @@ public class SbomDetectionResultDTO
   private List<String> validationErrors;
 
   private SbomScanType scanType;
+
+  /**
+   * The version under which the SBOM was saved in the database. Will often be the same as summary.applicationVersion,
+   * but may be different in case that field is blank or a new version had to be used to avoid a conflict.
+   */
+  private String savedVersion;
 
   @JsonInclude(Include.NON_EMPTY)
   private Boolean isValid;
@@ -36,41 +40,18 @@ public class SbomDetectionResultDTO
     // jackson
   }
 
-  public SbomDetectionResultDTO(SbomRequestIdElements idElements, SbomDetectionResult sbomDetectionResult) {
-    this(idElements.encodeRequestId(), sbomDetectionResult.summary, sbomDetectionResult.errorMessage,
-        sbomDetectionResult.validationErrors, idElements.getScanType(), sbomDetectionResult.isValidationErrorIgnorable,
-        sbomDetectionResult.isValid);
+  public SbomDetectionResultDTO(SbomScanType scanType, SbomDetectionResult sbomDetectionResult) {
+    this(scanType, sbomDetectionResult, null);
   }
 
-  public SbomDetectionResultDTO(String requestId, SbomScanType scanType, SbomDetectionResult sbomDetectionResult) {
-    this(requestId, sbomDetectionResult.summary, sbomDetectionResult.errorMessage, sbomDetectionResult.validationErrors,
-        scanType, sbomDetectionResult.isValidationErrorIgnorable, sbomDetectionResult.isValid);
-  }
-
-  public SbomDetectionResultDTO(
-      String requestId,
-      SbomSummary sbomSummary,
-      String errorMessage,
-      List<String> validationErrors,
-      SbomScanType scanType,
-      Boolean isValidationErrorIgnorable,
-      Boolean isValid)
-  {
-    this.requestId = requestId;
-    this.sbomSummary = sbomSummary;
-    this.errorMessage = errorMessage;
-    this.validationErrors = validationErrors;
+  public SbomDetectionResultDTO(SbomScanType scanType, SbomDetectionResult sbomDetectionResult, String savedVersion) {
+    this.sbomSummary = sbomDetectionResult.summary;
+    this.errorMessage = sbomDetectionResult.errorMessage;
+    this.validationErrors = sbomDetectionResult.validationErrors;
     this.scanType = scanType;
-    this.isValidationErrorIgnorable = isValidationErrorIgnorable;
-    this.isValid = isValid;
-  }
-
-  public String getRequestId() {
-    return requestId;
-  }
-
-  public void setRequestId(String requestId) {
-    this.requestId = requestId;
+    this.isValidationErrorIgnorable = sbomDetectionResult.isValidationErrorIgnorable;
+    this.isValid = sbomDetectionResult.isValid;
+    this.savedVersion = savedVersion;
   }
 
   public SbomSummary getSbomSummary() {
@@ -119,5 +100,13 @@ public class SbomDetectionResultDTO
 
   public void setIsValidationErrorIgnorable(Boolean isValidationErrorIgnorable) {
     this.isValidationErrorIgnorable = isValidationErrorIgnorable;
+  }
+
+  public String getSavedVersion() {
+    return savedVersion;
+  }
+
+  public void setSavedVersion(String savedVersion) {
+    this.savedVersion = savedVersion;
   }
 }

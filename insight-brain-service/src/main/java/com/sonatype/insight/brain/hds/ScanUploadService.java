@@ -222,6 +222,12 @@ public class ScanUploadService
     if (scanContext != null) {
       thirdPartyScanContext.setApplicationVersion(scanContext.applicationVersion());
       thirdPartyScanContext.setIsValid(scanContext.isValid());
+
+      var sbomMetadataId = scanContext.sbomMetadataId();
+      if (sbomMetadataId != null) {
+        thirdPartyScanContext.setSbomMetadataId(sbomMetadataId);
+        thirdPartyScanContext.markSbomSavedForScan();
+      }
     }
     else {
       thirdPartyScanContext.setIsValid(true);

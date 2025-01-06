@@ -51,7 +51,7 @@ public class SbomImportServiceAuthzTest
     SbomDetectionResultDTO dto =
         sbomImportService.detectSbom(application.getId(), new ByteArrayInputStream(new byte[1]),
             TEST_FILENAME, false);
-    assertThat(dto.getRequestId()).isNotEmpty();
+    assertThat(dto.getSavedVersion()).isNotEmpty();
   }
 
   @Test(expected = UnauthenticatedException.class)

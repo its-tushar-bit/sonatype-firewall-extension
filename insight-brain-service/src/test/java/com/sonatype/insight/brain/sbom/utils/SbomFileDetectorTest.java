@@ -5,12 +5,11 @@
  */
 package com.sonatype.insight.brain.sbom.utils;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Objects;
 
@@ -20,7 +19,6 @@ import com.sonatype.insight.brain.db.rule.DatabaseRule;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.policy.evaluator.AbstractPolicyEvaluationTest;
 
-import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -116,7 +114,8 @@ public class SbomFileDetectorTest
         "Line: 22, Column: 16, Path: //bom[1]/components[1]/component[1], Error: cvc-complex-type.2.4.a: Invalid content was found starting with element '{\"http://cyclonedx.org/schema/bom/1.4\":version}'. One of '{\"http://cyclonedx.org/schema/bom/1.4\":name}' is expected."
     );
     SbomDetectionResult expected = createExpectedResult(true, false, true, "application/xml",
-        "Not a valid CycloneDX SBOM file.", expectedErrors, null, "CycloneDx", "xml", 0, 0, null, null);
+        "Not a valid CycloneDX SBOM file.", expectedErrors, "1.4", "CycloneDx", "xml", 1, 1,
+        "insight-scanner", "2.36.19-SNAPSHOT");
     checkSbomMetadata("cyclonedx-invalid-v1_4-xml.tmp", expected);
   }
 
@@ -217,7 +216,8 @@ public class SbomFileDetectorTest
     );
     SbomDetectionResult expected =
         createExpectedResult(true, false, true, "application/xml", "Not a valid CycloneDX SBOM file.",
-            expectedErrors, null, "CycloneDx", "xml", 0, 0, null, null);
+            expectedErrors, "1.4", "CycloneDx", "xml", 592, 24,
+            "nodered/node-red", "sha256:337760fdb5d3d442185827379c33f6c414fbe5212fe2c108963d91d6c000318e");
     checkSbomMetadata("cyclonedx-invalid-2-xml.tmp", expected);
   }
 
@@ -228,7 +228,8 @@ public class SbomFileDetectorTest
             "Line: 1, Column: 2, Path: $, Error: required property 'name' not found");
     SbomDetectionResult expected =
         createExpectedResult(true, false, true, "application/json", "Not a valid SPDX SBOM file.",
-            expectedErrors, null, "SPDX","json", 0, 0, null, null);
+            expectedErrors, "2.3", "SPDX","json", 6, 13,
+            "sonatype:iq_application_SCM Test 1", "76b10b862e7b42009f2415097620928c");
     checkSbomMetadata("spdx-invalid-json.tmp", expected);
   }
 
@@ -273,22 +274,22 @@ public class SbomFileDetectorTest
 
   @Test
   public void testGetSbomMetadata_Other_Text_UnsafeContent_CycloneDx() throws IOException {
-    File fileToDetect = getTestFile("unsafe-plain-text-cdx.tt");
-    String sbomContent = FileUtils.readFileToString(fileToDetect, StandardCharsets.UTF_8);
+    Path fileToDetect = getTestPath("unsafe-plain-text-cdx.tt");
+    String sbomContent = Files.readString(fileToDetect);
     assertThat(detector.isPlainTextValidXml(sbomContent)).isFalse();
   }
 
   @Test
   public void testGetSbomMetadata_Other_Text_UnsafeContent_SPDX() throws IOException {
-    File fileToDetect = getTestFile("unsafe-plain-text-spdx.tt");
-    String sbomContent = FileUtils.readFileToString(fileToDetect, StandardCharsets.UTF_8);
+    Path fileToDetect = getTestPath("unsafe-plain-text-spdx.tt");
+    String sbomContent = Files.readString(fileToDetect);
     assertThat(detector.isPlainTextValidXml(sbomContent)).isFalse();
   }
 
   @Test
   public void testGetSbomMetadata_Other_Text_SafeContent() throws IOException {
-    File fileToDetect = getTestFile("safe-plain-text.tt");
-    String sbomContent = FileUtils.readFileToString(fileToDetect, StandardCharsets.UTF_8);
+    Path fileToDetect = getTestPath("safe-plain-text.tt");
+    String sbomContent = Files.readString(fileToDetect);
     assertThat(detector.isPlainTextValidXml(sbomContent)).isTrue();
   }
 
@@ -359,7 +360,7 @@ public class SbomFileDetectorTest
   private void checkSbomMetadataUsingFile(
       String fileName, SbomDetectionResult expected, boolean ignoreValidationError)
   {
-    File fileToDetect = getTestFile(fileName);
+    Path fileToDetect = getTestPath(fileName);
     SbomDetectionResult resultFromFile = detector.getSbomDetectionResult(fileToDetect, ignoreValidationError);
 
     verifySbomDetectionResult(resultFromFile, expected);
@@ -368,9 +369,9 @@ public class SbomFileDetectorTest
   private void checkSbomMetadataUsingString(
       String fileName, SbomDetectionResult expected, boolean ignoreValidationError) throws Exception
   {
-    File fileToDetect = getTestFile(fileName);
+    Path fileToDetect = getTestPath(fileName);
     SbomDetectionResult resultFromFile =
-        detector.getSbomDetectionResult(Files.readString(fileToDetect.toPath(), StandardCharsets.UTF_8),
+        detector.getSbomDetectionResult(Files.readString(fileToDetect),
             ignoreValidationError);
 
     verifySbomDetectionResult(resultFromFile, expected);
@@ -379,7 +380,7 @@ public class SbomFileDetectorTest
   private void checkSbomMetadataUsingFileWithGenericExtension(
       String fileName, SbomDetectionResult expected, boolean ignoreValidationError) throws Exception
   {
-    File fileToDetect = copyFileWithGenericExtension(getTestFile(fileName));
+    Path fileToDetect = copyFileWithGenericExtension(getTestPath(fileName));
     SbomDetectionResult resultFromFile = detector.getSbomDetectionResult(fileToDetect, ignoreValidationError);
 
     verifySbomDetectionResult(resultFromFile, expected);
@@ -397,9 +398,10 @@ public class SbomFileDetectorTest
     checkSbomMetadata(fileName, expected, false);
   }
 
-  private File copyFileWithGenericExtension(File file) throws Exception {
-    File target = tempDir.newFile(file.getName().substring(0, file.getName().lastIndexOf('.')) + ".tmp");
-    FileUtils.copyFile(file, target);
+  private Path copyFileWithGenericExtension(Path file) throws Exception {
+    String filename = file.getFileName().toString();
+    Path target = tempDir.newFile(filename.substring(0, filename.lastIndexOf('.')) + ".tmp").toPath();
+    Files.copy(file, target, StandardCopyOption.REPLACE_EXISTING);
     return target;
   }
 
@@ -486,7 +488,7 @@ public class SbomFileDetectorTest
         expected.summary.format = format;
       }
     }
-    else if (expected.isSbom) {
+    if (expected.isSbom && !Boolean.FALSE.equals(isValidationErrorIgnorable)) {
       expected.summary = new SbomSummary();
       expected.summary.version = version;
       expected.summary.specification = specification;
@@ -523,12 +525,8 @@ public class SbomFileDetectorTest
     }
   }
 
-  private File getTestFile(final String fileName) {
+  private Path getTestPath(final String fileName) {
     URL resource = SbomFileDetectorTest.class.getResource("/SbomFileDetectorTest/" + fileName);
-    return new File(Objects.requireNonNull(resource).getFile());
-  }
-
-  private InputStream getInputStreamFromFile(final String fileName) {
-    return SbomFileDetectorTest.class.getResourceAsStream("/SbomFileDetectorTest/" + fileName);
+    return Path.of(Objects.requireNonNull(resource).getFile());
   }
 }

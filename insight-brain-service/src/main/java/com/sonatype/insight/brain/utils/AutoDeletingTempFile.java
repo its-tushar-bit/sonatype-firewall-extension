@@ -18,6 +18,10 @@ public class AutoDeletingTempFile
     file = Files.createTempFile(null, null);
   }
 
+  public AutoDeletingTempFile(Path dir, String extension) throws IOException {
+    file = Files.createTempFile(dir, null, extension == null ? null : "." + extension);
+  }
+
   public Path getPath() {
     return file;
   }
@@ -25,5 +29,10 @@ public class AutoDeletingTempFile
   @Override
   public void close() throws IOException {
     Files.deleteIfExists(file);
+  }
+
+  @Override
+  public String toString() {
+    return file.toString();
   }
 }

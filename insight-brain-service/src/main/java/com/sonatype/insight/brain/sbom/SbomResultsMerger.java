@@ -7,10 +7,8 @@ package com.sonatype.insight.brain.sbom;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -29,7 +27,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.zip.GZIPOutputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -44,7 +41,6 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -70,6 +66,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -89,7 +86,6 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -155,7 +151,7 @@ public class SbomResultsMerger
 
   private final ThirdPartyScanDAO thirdPartyScanDAO;
 
-  private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+  private final ThirdPartyPersistenceService thirdPartyPersistenceService;
 
   private final SbomMetadataUtils sbomMetadataUtils;
 
@@ -192,7 +188,7 @@ public class SbomResultsMerger
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
       final ThirdPartyScanDAO thirdPartyScanDAO,
-      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
+      final ThirdPartyPersistenceService thirdPartyPersistenceService,
       final SbomMetadataUtils sbomMetadataUtils,
       final ApplicationDAO applicationDAO,
       final TelemetrySender telemetrySender,
@@ -204,7 +200,7 @@ public class SbomResultsMerger
     this.thirdPartyVulnerabilityExploitabilityExchangeDAO = thirdPartyVulnerabilityExploitabilityExchangeDAO;
     this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
-    this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
+    this.thirdPartyPersistenceService = thirdPartyPersistenceService;
     this.sbomMetadataUtils = sbomMetadataUtils;
     this.applicationDAO = applicationDAO;
     this.telemetrySender = telemetrySender;
@@ -790,17 +786,8 @@ public class SbomResultsMerger
     }
 
     String bomAsString = generateBomString(originalBom);
-    int index = binaryFileName.lastIndexOf(".") == -1 ? binaryFileName.length() : binaryFileName.lastIndexOf(".");
-    String compressedBinaryFileName =
-        binaryFileName.substring(0, index) + "." + thirdPartySbomMetadata.getSbomVersion() + ".json.gz";
-    File sbomDirectory = insightWork.getSbomDir(thirdPartySbomMetadata.getApplicationId());
-    File compressedSbom = new File(sbomDirectory, compressedBinaryFileName);
-    try (InputStream inputStream = new ByteArrayInputStream(bomAsString.getBytes());
-         OutputStream outputStream = new GZIPOutputStream(new FileOutputStream(compressedSbom))) {
-      IOUtils.copy(inputStream, outputStream);
-      // We need to do this to seamlessly integrate into our SBOM exporter logic
-      thirdPartySbomMetadata.setFilename(compressedBinaryFileName);
-      thirdPartySbomMetadataDAO.update(thirdPartySbomMetadata);
+    try (InputStream inputStream = new ByteArrayInputStream(bomAsString.getBytes())) {
+      thirdPartyPersistenceService.saveSbomForBinary(inputStream, thirdPartySbomMetadata);
     }
   }
 

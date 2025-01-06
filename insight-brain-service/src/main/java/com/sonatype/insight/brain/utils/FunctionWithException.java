@@ -3,11 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.model.thirdpartyscans;
+package com.sonatype.insight.brain.utils;
 
-public enum ThirdPartySbomMetadataStatus
+@FunctionalInterface
+public interface FunctionWithException<I, O, E extends Throwable>
 {
-  UPLOADED,
-  PENDING,
-  ACTIVE
+  O apply(I input) throws E;
 }

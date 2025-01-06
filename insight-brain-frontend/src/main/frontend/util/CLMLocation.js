@@ -1106,8 +1106,8 @@ export function getImportSbomUrl(applicationId) {
   return uriTemplate`/rest/sbom/detect/${applicationId}`;
 }
 
-export function getCommitImportedSbomUrl(applicationId, requestId) {
-  return uriTemplate`/rest/sbom/commit/${applicationId}/${requestId}`;
+export function getCommitImportedSbomUrl(applicationId, applicationVersion) {
+  return uriTemplate`/rest/sbom/commit/${applicationId}/${applicationVersion}`;
 }
 
 export function getSbomPolicyViolationReportUrl(applicationPublicId, sbomVersion, fileCoordinateId, hash) {

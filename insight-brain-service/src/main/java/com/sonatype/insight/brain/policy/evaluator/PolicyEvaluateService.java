@@ -34,7 +34,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
@@ -270,20 +269,10 @@ public class PolicyEvaluateService
 
     ScanContext scanContext = null;
     if (stageTypeService.getLicensedStageTypes().contains(StageTypes.COMPLIANCE)
-        && stage.getStageTypeId().equals(Stage.ID_COMPLIANCE)) {
-      if (sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
-        throw new PaymentRequiredException(
-            "You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.");
-      }
-      else {
-        ThirdPartySbomMetadata sbomMetadata = sbomMetadataUtils.createAndSaveBinaryThirdPartyData(
-            app.getId(),
-            tempScanFile.getName(),
-            null,
-            statusId
-        );
-        scanContext = new ScanContext.Builder().applicationVersion(sbomMetadata.getSbomVersion()).isValid(true).build();
-      }
+        && stage.getStageTypeId().equals(Stage.ID_COMPLIANCE)
+        && sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
+      throw new PaymentRequiredException(
+          "You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.");
     }
 
     evaluateWithPolling(statusId, app, clientScanType, stage, getScanTriggerType(integrationType),

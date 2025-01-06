@@ -40,7 +40,7 @@ public class SbomImportResource
 
   public static final String DETECT_PATH = "/detect/{applicationId}";
 
-  public static final String COMMIT_PATH = "/commit/{applicationId}/{requestId}";
+  public static final String COMMIT_PATH = "/commit/{applicationId}/{applicationVersion}";
 
   private final SbomImportService sbomImportService;
 
@@ -54,6 +54,7 @@ public class SbomImportResource
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.APPLICATION_JSON)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Audited(AuditEvent.CREATE_SBOM_VERSION)
   public SbomDetectionResultDTO detectSbom(
       @PathParam("applicationId") String applicationId,
       @FormDataParam("file") InputStream sbom,
@@ -68,12 +69,11 @@ public class SbomImportResource
   @Path(COMMIT_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
-  @Audited(AuditEvent.CREATE_SBOM_VERSION)
   public Response importDetectedSbom(
       @PathParam("applicationId") String applicationId,
-      @PathParam("requestId") String requestId,
+      @PathParam("applicationVersion") String applicationVersion,
       @Context HttpServletRequest req)
   {
-    return sbomImportService.importDetectedSbom(applicationId, requestId, HdsClient.getClientUserAgent(req));
+    return sbomImportService.importDetectedSbom(applicationId, applicationVersion, HdsClient.getClientUserAgent(req));
   }
 }

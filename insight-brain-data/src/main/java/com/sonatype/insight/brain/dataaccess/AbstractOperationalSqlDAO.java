@@ -19,7 +19,6 @@ import java.util.function.Function;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.model.HasStringId;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -127,26 +126,6 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
 
   protected boolean detectTestEntityLeaks() {
     return System.getProperty("detectTestEntityLeaks") != null;
-  }
-
-  @Override
-  public T getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM " + getEntityName() + " entity WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  public T getByIdNotNull(TransactionContext tx, String id) {
-    T entity = getById(tx, id);
-    if (entity == null) {
-      throw new NotFoundException(getEntityName() + " with ID " + id + " does not exist.");
-    }
-    return entity;
-  }
-
-  public T getByIdNotNull(String id) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByIdNotNull(tx, id);
-    }
   }
 
   public List<T> getAll(TransactionContext tx) {

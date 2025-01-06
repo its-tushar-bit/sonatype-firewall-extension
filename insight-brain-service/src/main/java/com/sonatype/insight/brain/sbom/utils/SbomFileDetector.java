@@ -79,14 +79,13 @@ public class SbomFileDetector
   private static final SAXParserFactory saxParserFactory;
 
   public SbomDetectionResult getSbomDetectionResult(String sbomString, boolean ignoreValidationError) {
-
     if (StringUtils.isBlank(sbomString)) {
       return sbomDetectionErrorResult("Provided content is not recognizable as an SBOM.", null);
     }
 
     try (AutoDeletingTempFile tempFile = new AutoDeletingTempFile()) {
-      Path file = Files.writeString(tempFile.getPath(), sbomString);
-      return detect(file.toFile(), ignoreValidationError);
+      Path path = Files.writeString(tempFile.getPath(), sbomString);
+      return getSbomDetectionResult(path, ignoreValidationError);
     }
     catch (IOException e) {
       log.error("error detecting SBOM metadata", e);
@@ -94,11 +93,9 @@ public class SbomFileDetector
     }
   }
 
-  public SbomDetectionResult getSbomDetectionResult(final File sbomFile, final boolean ignoreValidationError) {
-    return detect(sbomFile, ignoreValidationError);
-  }
+  public SbomDetectionResult getSbomDetectionResult(final Path sbomPath, final boolean ignoreValidationError) {
+    File sbomFile = sbomPath == null ? null : sbomPath.toFile();
 
-  private SbomDetectionResult detect(final File sbomFile, final boolean ignoreValidationError) {
     if (sbomFile == null || !sbomFile.exists() || sbomFile.length() == 0) {
       return sbomDetectionErrorResult("Invalid SBOM file input.", null);
     }
@@ -178,17 +175,11 @@ public class SbomFileDetector
         sbomResult.isValid = false;
         sbomResult.isValidationErrorIgnorable = true;
 
-        if (shouldIgnoreValidationError(ignoreValidationError)) {
-          spdxDocument = ThirdPartyUtils.parseSpdxWithNoValidation(sbom, Objects.requireNonNull(sbomFormat));
-        }
-        else {
+        spdxDocument = ThirdPartyUtils.parseSpdxWithNoValidation(sbom, Objects.requireNonNull(sbomFormat));
+
+        if (!shouldIgnoreValidationError(ignoreValidationError)) {
           sbomResult.errorMessage = "Not a valid SPDX SBOM file.";
           sbomResult.validationErrors = getErrors(e);
-          sbomResult.summary = new SbomSummary();
-          sbomResult.summary.specification = SbomSpecification.SPDX.toString();
-          sbomResult.summary.format = sbomFormat.toString();
-
-          return sbomResult;
         }
       }
 
@@ -230,17 +221,11 @@ public class SbomFileDetector
         sbomResult.isValid = false;
         sbomResult.isValidationErrorIgnorable = true;
 
-        if (shouldIgnoreValidationError(ignoreValidationError)) {
-          bom = ThirdPartyUtils.parseCycloneDxWithNoValidation(fileContent, Objects.requireNonNull(sbomFormat));
-        }
-        else {
+        bom = ThirdPartyUtils.parseCycloneDxWithNoValidation(fileContent, Objects.requireNonNull(sbomFormat));
+
+        if (!shouldIgnoreValidationError(ignoreValidationError)) {
           sbomResult.errorMessage = "Not a valid CycloneDX SBOM file.";
           sbomResult.validationErrors = getErrors(e);
-          sbomResult.summary = new SbomSummary();
-          sbomResult.summary.specification = SbomSpecification.CYCLONEDX.toString();
-          sbomResult.summary.format = sbomFormat.toString();
-
-          return sbomResult;
         }
       }
 

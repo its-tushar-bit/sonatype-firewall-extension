@@ -19,6 +19,9 @@ public class SbomSummary
 
   public String applicationName;
 
+  /**
+   * The version detected from the SBOM file. Not necessarily the version saved in `sbom_metadata.sbom_version`.
+   */
   public String applicationVersion;
 
   public String serialNumber;

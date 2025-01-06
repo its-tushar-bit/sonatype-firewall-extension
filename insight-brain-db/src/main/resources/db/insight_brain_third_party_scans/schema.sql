@@ -4,13 +4,23 @@ CREATE TABLE IF NOT EXISTS test_table (
   name varchar(50) NOT NULL
 );
 
+-- In SBOM Manager: represents an upload
+-- In Lifecycle: represents an SBOM found within a scan. Note that in Lifecycle this record is deleted after report
+-- processing completes.
 CREATE TABLE third_party_file (
   third_party_file_id VARCHAR(50) NOT NULL,
+
+  -- In SBOM Manager: the user-provided filename for the SBOM file. Not the name where it is stored on the server.
+  -- In Lifecycle: the name of the file as it was within the scan.xml
   filename VARCHAR(1000) NULL,
   create_time TIMESTAMP NOT NULL,
   CONSTRAINT third_party_file_pk PRIMARY KEY (third_party_file_id)
 );
 
+-- In SBOM Manager: represents the scan of an upload
+-- In Lifecycle: represents the scan within which an SBOM was found. However for reasons unknown, a separate
+-- third_party_scan row is created for each SBOM file within the scan, rather than one row per scan, associated
+-- with many third_party_file rows. Note that in Lifecycle this record is deleted after report processing completes.
 CREATE TABLE third_party_scan (
   third_party_scan_id VARCHAR(50) NOT NULL,
   third_party_file_id VARCHAR(50) NOT NULL,
@@ -119,11 +129,18 @@ CREATE TABLE vulnerability_exploitability (
       REFERENCES coordinate_security (coordinate_security_id)
 );
 
+-- In SBOM Manager: in conjunction with third_party_file, represents an upload
+-- In Lifecycle: unused
 CREATE TABLE sbom_metadata (
     sbom_metadata_id VARCHAR(50) NOT NULL,
     third_party_file_id VARCHAR(50) NOT NULL,
     application_id VARCHAR(50) NOT NULL,
-    file_name VARCHAR(200) NOT NULL,
+
+    -- The basename of the file where the SBOM contents are stored on the server. Not the user-provided name of the SBOM
+    -- file. Null if the SBOM contents are not (yet) stored, which can be the case with binary files scanned as SBOMs
+    -- when they are still in the UPLOADED status. Once an SBOM is generated for a binary, the basename of that
+    -- generated SBOM file is stored here. The binary file itself is not stored long-term at all.
+    file_name VARCHAR(200),
     serial_number VARCHAR(2000),
     spec VARCHAR(50) NOT NULL,
     spec_format VARCHAR(50) NOT NULL,
@@ -135,6 +152,9 @@ CREATE TABLE sbom_metadata (
     scan_type VARCHAR(20) NOT NULL,
     validation_skipped BOOLEAN,
     is_valid BOOLEAN,
+
+    -- The user-provided filename for the SBOM file. Not the name where it is stored on the server.
+    -- Seemingly redundant with third_party_file.filename; more investigation needed.
     original_binary_file_name TEXT,
     CONSTRAINT sbom_metadata_pk PRIMARY KEY (sbom_metadata_id),
     CONSTRAINT sbom_metadata_third_party_file_fk FOREIGN KEY (third_party_file_id)

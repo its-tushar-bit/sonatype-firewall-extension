@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.persistence.LockModeType;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -35,6 +36,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.InternalServerException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO.createPaginationNativeQuery;
@@ -71,6 +73,16 @@ public class ThirdPartySbomMetadataDAO
     String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity " + //
         " WHERE entity.id=?1";
     return get(sQuery, id);
+  }
+
+  public ThirdPartySbomMetadata getByIdForUpdate(TransactionContext tx, String id) {
+    String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity WHERE entity.id=?1";
+
+    var sbomMetadata = get(tx, sQuery, LockModeType.PESSIMISTIC_WRITE, id);
+    if (sbomMetadata == null) {
+      throw new NotFoundException(getEntityName() + " with ID " + id + " does not exist.");
+    }
+    return sbomMetadata;
   }
 
   public List<ThirdPartySbomMetadata> getAll() {

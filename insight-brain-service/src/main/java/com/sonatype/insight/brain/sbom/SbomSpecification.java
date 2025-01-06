@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.sbom;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.sonatype.insight.scan.model.ItemContentType;
+
 public enum SbomSpecification
 {
   CYCLONEDX("CycloneDx"), SPDX("SPDX");
@@ -26,6 +28,10 @@ public enum SbomSpecification
       return SPDX;
     }
     return null;
+  }
+
+  public ItemContentType toItemContentType() {
+    return this == CYCLONEDX ? ItemContentType.SBOM : ItemContentType.SPDX;
   }
 
   @Override

@@ -188,7 +188,6 @@ describe('ImportSbomModal', () => {
     describe('Summary', () => {
       it('shows post upload details for SBOM', async () => {
         axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply(200, {
-          requestId: 'request-id',
           sbomSummary: {
             specification: 'CycloneDx',
             format: 'json',
@@ -200,10 +199,11 @@ describe('ImportSbomModal', () => {
             serialNumber: 'urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79',
             creationDetails: null,
           },
+          savedVersion: '1.2.3_2024',
           scanType: 'SBOM',
           errorMessage: null,
         });
-        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', 'request-id')).reply(201, {});
+        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', '1.2.3_2024')).reply(201, {});
 
         renderComponent();
 
@@ -217,7 +217,7 @@ describe('ImportSbomModal', () => {
         expect(applicationNameLabel.parentElement.querySelector('dd')).toHaveTextContent('testApplicationName');
 
         const versionIdTextBox = screen.getByRole('textbox', { name: /version id/i });
-        expect(versionIdTextBox).toHaveValue('1.2.3');
+        expect(versionIdTextBox).toHaveValue('1.2.3_2024');
         expect(versionIdTextBox).toBeDisabled();
 
         const totalComponentsLabel = screen.getByText('Total Components').closest('dt');
@@ -248,12 +248,12 @@ describe('ImportSbomModal', () => {
 
       it('shows post upload details for BINARY', async () => {
         axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply(200, {
-          requestId: 'request-id',
+          savedVersion: '1.2.3',
           sbomSummary: null,
           scanType: 'BINARY',
           errorMessage: null,
         });
-        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', 'request-id')).reply(201, {});
+        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', '1.2.3')).reply(201, {});
 
         renderComponent();
 
@@ -493,7 +493,6 @@ describe('ImportSbomModal', () => {
 
       it('should execute import if skipValidation selected when there are ignorable validation errors', async () => {
         axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply(200, {
-          requestId: 'request-id',
           sbomSummary: {
             specification: 'CycloneDx',
             format: 'json',
@@ -505,10 +504,11 @@ describe('ImportSbomModal', () => {
             serialNumber: 'urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79',
             creationDetails: null,
           },
+          savedVersion: '1.2.3_2024',
           scanType: 'SBOM',
           errorMessage: null,
         });
-        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', 'request-id')).reply(201, {});
+        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', '1.2.3_2024')).reply(201, {});
 
         const file = createTestFile();
         renderComponent({
@@ -558,7 +558,7 @@ describe('ImportSbomModal', () => {
         expect(applicationNameLabel.parentElement.querySelector('dd')).toHaveTextContent('testApplicationName');
 
         const versionIdTextBox = screen.getByRole('textbox', { name: /version id/i });
-        expect(versionIdTextBox).toHaveValue('1.2.3');
+        expect(versionIdTextBox).toHaveValue('1.2.3_2024');
         expect(versionIdTextBox).toBeDisabled();
 
         const totalComponentsLabel = screen.getByText('Total Components').closest('dt');

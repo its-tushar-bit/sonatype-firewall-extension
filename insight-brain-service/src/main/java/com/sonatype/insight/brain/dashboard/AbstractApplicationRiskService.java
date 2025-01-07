@@ -18,19 +18,16 @@ import com.sonatype.insight.brain.audit.AuditService;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
-import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
-import com.sonatype.insight.brain.security.AuthzFilter;
 
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
@@ -45,8 +42,6 @@ abstract class AbstractApplicationRiskService
 
   private final OrganizationDAO organizationDAO;
 
-  private final ApplicationDAO applicationDAO;
-
   private final PolicyViolationLoader policyViolationLoader;
 
   private final DashboardUtils dashboardUtils;
@@ -56,23 +51,15 @@ abstract class AbstractApplicationRiskService
   public AbstractApplicationRiskService(
       final ApplicationService applicationService,
       final OrganizationDAO organizationDAO,
-      final ApplicationDAO applicationDAO,
       final PolicyViolationLoader policyViolationLoader,
       final DashboardUtils dashboardUtils,
       final AuditService auditService)
   {
     this.applicationService = applicationService;
     this.organizationDAO = organizationDAO;
-    this.applicationDAO = applicationDAO;
     this.policyViolationLoader = policyViolationLoader;
     this.dashboardUtils = dashboardUtils;
     this.auditService = auditService;
-  }
-
-  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  @Override
-  public List<Application> getApplicationsWithReadPermission() {
-    return applicationDAO.getAll();
   }
 
   @Override

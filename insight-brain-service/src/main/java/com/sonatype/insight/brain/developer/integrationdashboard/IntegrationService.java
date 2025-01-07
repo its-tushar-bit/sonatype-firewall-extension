@@ -20,7 +20,7 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
-import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusDTO;
@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.organization.ApplicationSourceControlService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -44,9 +45,9 @@ import org.apache.commons.lang3.StringUtils;
 @Named
 public class IntegrationService
 {
-  private final H2ApplicationRiskService applicationRiskService;
-
   private final ApplicationSourceControlService applicationSourceControlService;
+
+  private final ApplicationDAO applicationDAO;
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
@@ -56,14 +57,14 @@ public class IntegrationService
 
   @Inject
   public IntegrationService(
-      final H2ApplicationRiskService applicationRiskService,
       final ApplicationSourceControlService applicationSourceControlService,
+      final ApplicationDAO applicationDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO,
       final TelemetrySender telemetrySender)
   {
-    this.applicationRiskService = applicationRiskService;
     this.applicationSourceControlService = applicationSourceControlService;
+    this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.sourceControlDefaultBranchCommitHistoryDAO = sourceControlDefaultBranchCommitHistoryDAO;
     this.telemetrySender = telemetrySender;
@@ -96,7 +97,7 @@ public class IntegrationService
     final boolean paginateEarly = optionalFilterAppsByScmIntegration == null;
     final int skipCount = (filter.getPage() - 1) * filter.getPageSize();
 
-    final List<Application> applications = applicationRiskService.getApplicationsWithReadPermission();
+    final List<Application> applications = getApplicationsWithReadPermission();
 
     final List<Application> filteredApps =
         StringUtils.isNotEmpty(filter.getOptionalFilterApplicationNamesBy()) ? applications.stream()
@@ -182,6 +183,11 @@ public class IntegrationService
       @SuppressWarnings("unused") @AuthzContext(Key.ID) String ownerId)
   {
     // The @Authorize annotation provides the implementation for this function
+  }
+
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
+  List<Application> getApplicationsWithReadPermission() {
+    return applicationDAO.getAll();
   }
 
   private static boolean matchesFilter(final String applicationName, final String filter) {

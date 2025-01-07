@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -53,7 +54,7 @@ public class PostgresApplicationRiskService
       final DashboardUtils dashboardUtils,
       final AuditService auditService)
   {
-    super(applicationService, organizationDAO, applicationDAO, policyViolationLoader, dashboardUtils, auditService);
+    super(applicationService, organizationDAO, policyViolationLoader, dashboardUtils, auditService);
     this.dashboardUtils = dashboardUtils;
     this.applicationService = applicationService;
     this.auditService = auditService;

@@ -9,7 +9,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.audit.AuditService;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
@@ -22,11 +21,10 @@ public class H2ApplicationRiskService
   public H2ApplicationRiskService(
       final ApplicationService applicationService,
       final OrganizationDAO organizationDAO,
-      final ApplicationDAO applicationDAO,
       final PolicyViolationLoader policyViolationLoader,
       final DashboardUtils dashboardUtils,
       final AuditService auditService)
   {
-    super(applicationService, organizationDAO, applicationDAO, policyViolationLoader, dashboardUtils, auditService);
+    super(applicationService, organizationDAO, policyViolationLoader, dashboardUtils, auditService);
   }
 }

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import java.util.List;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
@@ -29,6 +28,4 @@ public interface ApplicationRiskService
       int pageSize);
 
   ApplicationRiskScoreDTO getRiskForApp(final Application application, final Set<StageType> stageTypes);
-
-  List<Application> getApplicationsWithReadPermission();
 }

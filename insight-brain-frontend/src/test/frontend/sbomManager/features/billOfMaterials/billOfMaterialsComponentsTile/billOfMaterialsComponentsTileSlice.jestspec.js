@@ -36,7 +36,7 @@ const componentTemplate = ({ hash, name, dependencyType }) =>
     vulnerabilitySeverityMediumCount: 2,
     vulnerabilitySeverityHighCount: 3,
     vulnerabilitySeverityCriticalCount: 4,
-    percentageAnnotated: 50.0,
+    releaseStatusPercentage: 20.0,
     policyViolationCount: 123,
   });
 
@@ -296,18 +296,18 @@ describe('billOfMaterialsComponentsTileSlice', function () {
 
       const newState1 = reducer(newState0, {
         type: 'billOfMaterialsComponentsTile/setSortByAndCycleDirection',
-        payload: SORT_BY_FIELDS.percentageAnnotated,
+        payload: SORT_BY_FIELDS.releaseStatusPercentage,
       });
 
-      expect(newState1.sortConfiguration.sortBy).toBe(SORT_BY_FIELDS.percentageAnnotated);
+      expect(newState1.sortConfiguration.sortBy).toBe(SORT_BY_FIELDS.releaseStatusPercentage);
       expect(newState1.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.ASC);
 
       const newState2 = reducer(newState1, {
         type: 'billOfMaterialsComponentsTile/setSortByAndCycleDirection',
-        payload: SORT_BY_FIELDS.percentageAnnotated,
+        payload: SORT_BY_FIELDS.releaseStatusPercentage,
       });
 
-      expect(newState2.sortConfiguration.sortBy).toBe(SORT_BY_FIELDS.percentageAnnotated);
+      expect(newState2.sortConfiguration.sortBy).toBe(SORT_BY_FIELDS.releaseStatusPercentage);
       expect(newState2.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.DESC);
 
       const newState3 = reducer(newState2, {

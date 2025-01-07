@@ -35,9 +35,9 @@ public class ComponentsTile
     return tableBodyRows().get(row).findAll(".nx-small-threat-counter__count");
   }
 
-  public SelenideElement percentageAnnotatedColumn(int row) {
+  public SelenideElement releaseStatusPercentageColumn(int row) {
     return tableBodyRows().get(row)
-        .find(".sbom-manager-bill-of-materials-components-tile__percentage-annotated");
+        .find(".sbom-manager-bill-of-materials-components-tile__release-status-percentage");
   }
 
   public SelenideElement nameColum(int row) {

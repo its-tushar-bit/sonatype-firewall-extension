@@ -67,7 +67,7 @@ describe('BillOfMaterialsComponentsTile', () => {
     matchStateId,
     vulnerabilities,
     licenses,
-    percentageAnnotated,
+    releaseStatusPercentage,
     policyViolationCount,
   }) =>
     Object.freeze({
@@ -94,7 +94,7 @@ describe('BillOfMaterialsComponentsTile', () => {
       vulnerabilitySeverityMediumCount: vulnerabilities[2],
       vulnerabilitySeverityHighCount: vulnerabilities[3],
       vulnerabilitySeverityCriticalCount: vulnerabilities[4],
-      percentageAnnotated,
+      releaseStatusPercentage,
       policyViolationCount,
     });
 
@@ -109,7 +109,7 @@ describe('BillOfMaterialsComponentsTile', () => {
         ['BSD', 'BSD'],
         ['Apache', 'Apache'],
       ],
-      percentageAnnotated: 0,
+      releaseStatusPercentage: 0,
       policyViolationCount: 111,
     },
     {
@@ -122,7 +122,7 @@ describe('BillOfMaterialsComponentsTile', () => {
         ['MIT', null],
         ['Public', 'Public'],
       ],
-      percentageAnnotated: 50.5,
+      releaseStatusPercentage: 20,
       policyViolationCount: 222,
     },
     {
@@ -135,7 +135,7 @@ describe('BillOfMaterialsComponentsTile', () => {
         ['Beer', null],
         ['GNU', null],
       ],
-      percentageAnnotated: 100,
+      releaseStatusPercentage: 100,
       policyViolationCount: 333,
     },
   ];
@@ -319,7 +319,7 @@ describe('BillOfMaterialsComponentsTile', () => {
       expect(secondRowCells[0]).toHaveTextContent('T');
       expect(secondRowCells[1]).toHaveTextContent('com.package.bob : artifact-id : 1.2.3');
       expect(secondRowCells[2]).toHaveTextContent('Critical899+Severe799+Moderate699+Low599+');
-      expect(secondRowCells[3]).toHaveTextContent(/50.5%/);
+      expect(secondRowCells[3]).toHaveTextContent(/20%/);
       expect(secondRowCells[4]).toHaveTextContent('MIT, Public');
 
       const thirdRow = tableRows[3];
@@ -681,7 +681,7 @@ describe('BillOfMaterialsComponentsTile', () => {
       expect(secondRowCells[1]).toHaveTextContent('com.package.bob : artifact-id : 1.2.3');
       expect(secondRowCells[2]).toHaveTextContent('Critical899+Severe799+Moderate699+Low599+');
       expect(secondRowCells[3]).toHaveTextContent('222');
-      expect(secondRowCells[4]).toHaveTextContent(/50.5%/);
+      expect(secondRowCells[4]).toHaveTextContent(/20%/);
       expect(secondRowCells[5]).toHaveTextContent('MIT, Public');
 
       const thirdRow = tableRows[3];

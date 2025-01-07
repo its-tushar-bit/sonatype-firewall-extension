@@ -29,10 +29,18 @@
     margin-bottom: 5px;
   }
 
-  &__percentage-annotated {
+  &__release-status-percentage {
     display: flex;
     gap: var(--nx-spacing-base);
     align-items: center;
+  }
+
+  &__release-status-percentage-donut {
+    height: 30px;
+
+    .nx-binary-donut-chart__arc {
+      stroke: var(--nx-swatch-teal-40);
+    }
   }
 
   &__licenses {

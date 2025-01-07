@@ -216,12 +216,14 @@ export default function BillOfMaterialsComponentsTile() {
             </NxTable.Cell>
             {isSbomPoliciesSupported && <NxTable.Cell>{component.policyViolationCount}</NxTable.Cell>}
             <NxTable.Cell>
-              <div className="sbom-manager-bill-of-materials-components-tile__percentage-annotated">
+              <div className="sbom-manager-bill-of-materials-components-tile__release-status-percentage">
                 <NxBinaryDonutChart
-                  value={component.percentageAnnotated}
-                  aria-label={`${component.percentageAnnotated}% annotated`}
+                  className="sbom-manager-bill-of-materials-components-tile__release-status-percentage-donut"
+                  value={component.releaseStatusPercentage}
+                  aria-label={`${component.releaseStatusPercentage}% release ready`}
+                  innerRadiusPercent={80}
                 />
-                <span>{component.percentageAnnotated}%</span>
+                <span>{component.releaseStatusPercentage}%</span>
               </div>
             </NxTable.Cell>
             <NxTable.Cell>
@@ -324,8 +326,8 @@ export default function BillOfMaterialsComponentsTile() {
                   Vulnerabilities
                 </NxTable.Cell>
                 {isSbomPoliciesSupported && <NxTable.Cell>Violations</NxTable.Cell>}
-                <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.percentageAnnotated)}>
-                  Percentage Annotated
+                <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.releaseStatusPercentage)}>
+                  Release Status
                 </NxTable.Cell>
                 <NxTable.Cell>License</NxTable.Cell>
               </NxTable.Row>

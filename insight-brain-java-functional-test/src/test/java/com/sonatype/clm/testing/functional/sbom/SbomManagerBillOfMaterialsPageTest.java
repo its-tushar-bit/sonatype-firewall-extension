@@ -348,7 +348,7 @@ public class SbomManagerBillOfMaterialsPageTest
     componentsTile.columnHeader(3).shouldHave(
         text("VIOLATIONS"));
     componentsTile.columnHeader(4).shouldHave(
-        text("PERCENTAGE ANNOTATED"));
+        text("RELEASE STATUS"));
     componentsTile.columnHeader(5).shouldHave(
         text("LICENSE"));
     ElementsCollection tableRows = componentsTile.tableBodyRows();
@@ -372,7 +372,7 @@ public class SbomManagerBillOfMaterialsPageTest
     componentsTile.columnHeader(0).shouldHave(text("TYPE"));
     componentsTile.columnHeader(1).shouldHave(text("NAME"));
     componentsTile.columnHeader(2).shouldHave(text("VULNERABILITIES"));
-    componentsTile.columnHeader(3).shouldHave(text("PERCENTAGE ANNOTATED"));
+    componentsTile.columnHeader(3).shouldHave(text("RELEASE STATUS"));
     componentsTile.columnHeader(4).shouldHave(text("LICENSE"));
     ElementsCollection tableRows = componentsTile.tableBodyRows();
     tableRows.shouldHave(sizeGreaterThan(49));
@@ -490,7 +490,7 @@ public class SbomManagerBillOfMaterialsPageTest
   @Test
   @Ignore
   // SBOM-1143
-  public void testBillOfMaterial_ComponentsTileSortByPercentageAnnotated() {
+  public void testBillOfMaterial_ComponentsTileSortByReleaseStatusPercentage() {
     insertComponentsTileSbomData();
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
 
@@ -498,13 +498,13 @@ public class SbomManagerBillOfMaterialsPageTest
 
     ComponentsTile componentsTile = SbomManagerBillOfMaterialsPage.componentsTile();
     componentsTile.columnHeader(4).shouldHave(
-        text("PERCENTAGE ANNOTATED")).click();
+        text("RELEASE STATUS")).click();
 
     waitUntilComponentsTileSpinnerGone();
 
     verifySortOrder(true, componentsTile);
     componentsTile.columnHeader(4).shouldHave(
-        text("PERCENTAGE ANNOTATED")).click();
+        text("RELEASE STATUS")).click();
 
     waitUntilComponentsTileSpinnerGone();
 
@@ -594,7 +594,7 @@ public class SbomManagerBillOfMaterialsPageTest
     componentsTile.columnHeader(3).shouldHave(
             text("VIOLATIONS"));
     componentsTile.columnHeader(4).shouldHave(
-            text("PERCENTAGE ANNOTATED"));
+            text("RELEASE STATUS"));
     componentsTile.columnHeader(5).shouldHave(
             text("LICENSE"));
   }
@@ -705,10 +705,10 @@ public class SbomManagerBillOfMaterialsPageTest
     String descendingExpected = ascending ? "100%" : "0%";
     for (int i = 0; i < 50; i++) {
       if (i < 30) {
-        componentsTile.percentageAnnotatedColumn(i).shouldHave(text(ascendingExpected));
+        componentsTile.releaseStatusPercentageColumn(i).shouldHave(text(ascendingExpected));
       }
       else {
-        componentsTile.percentageAnnotatedColumn(i).shouldHave(text(descendingExpected));
+        componentsTile.releaseStatusPercentageColumn(i).shouldHave(text(descendingExpected));
       }
     }
   }

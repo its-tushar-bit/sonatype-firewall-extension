@@ -34,7 +34,7 @@ export const COMPONENTS_PER_PAGE = 50;
 export const SORT_BY_FIELDS = Object.freeze({
   type: 'type',
   vulnerabilities: 'vulnerabilities',
-  percentageAnnotated: 'percentage_annotated',
+  releaseStatusPercentage: 'release_status_percentage',
   displayName: 'display_name',
 });
 

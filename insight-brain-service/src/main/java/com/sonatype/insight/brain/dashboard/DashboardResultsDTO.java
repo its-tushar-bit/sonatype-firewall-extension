@@ -19,13 +19,4 @@ public class DashboardResultsDTO<T>
   public int numResults;
 
   public boolean hasNextPage = false;
-
-  public DashboardResultsDTO() {
-  }
-
-  public DashboardResultsDTO(final List<T> dashboardResults, final int numResults, final boolean hasNextPage) {
-    this.dashboardResults = dashboardResults;
-    this.numResults = numResults;
-    this.hasNextPage = hasNextPage;
-  }
 }

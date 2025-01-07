@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -17,7 +16,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -65,17 +63,16 @@ import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -700,79 +697,6 @@ public class ApplicationDAOTest
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.APPLICATION);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(app.getId());
-  }
-
-  @Test
-  public void testGetApplicationsWithoutCITriggeredEvaluations() {
-    final Application application2 = tempEntity.newApplication(organization.getId());
-    final Application application3 = tempEntity.newApplication(organization.getId());
-    final Application application4 = tempEntity.newApplication(organization.getId());
-    final Application application5 = tempEntity.newApplication(organization.getId());
-
-    // app and app2: CI evals
-    // app3 and app4: non-CI evals (1 before cut off)
-    // app5: no evals
-    final Calendar now = Calendar.getInstance();
-    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-1",
-        false, false, false, now.getTime(), "hash-1", ScanTriggerType.CONTINUOUS_INTEGRATION);
-    now.add(Calendar.MINUTE, 10);
-
-    tempEntity.newPolicyEvaluation(application2.getId(), Stage.ID_BUILD, "scan-build-2",
-        false, false, false, now.getTime(), "hash-2", ScanTriggerType.CONTINUOUS_INTEGRATION);
-    now.add(Calendar.MINUTE, 10);
-
-    tempEntity.newPolicyEvaluation(application3.getId(), Stage.ID_BUILD, "scan-build-3",
-        false, false, false, now.getTime(), "hash-3", ScanTriggerType.CLI);
-
-    // 09/27/2010
-    final Date preSinceUtcDate = new Date(1285556400000L);
-    tempEntity.newPolicyEvaluation(application4.getId(), Stage.ID_BUILD, "scan-build-4",
-        false, false, false, preSinceUtcDate, "hash-4", ScanTriggerType.CONTINUOUS_INTEGRATION);
-
-    // 09/27/2019
-    final Date sinceUtcDate = new Date(1569553200000L);
-
-    final List<String> expectedAppsWithoutCI =
-        Arrays.asList(application3.getId(), application4.getId(), application5.getId());
-    final List<String> actualAppsWithoutCI =
-        applicationDAO.getApplicationsWithoutCITriggeredEvaluations(sinceUtcDate, "");
-
-    assertThat(actualAppsWithoutCI)
-        .hasSameElementsAs(expectedAppsWithoutCI);
-  }
-
-  @Test
-  public void testGetApplicationsWithoutCITriggeredEvaluations_FilterAppName() {
-    final Application appWithMatchingName = tempEntity.newApplication("Foo", "bar", organization.getId());
-    tempEntity.newApplication("Bar", "foo", organization.getId());
-
-    final List<String> appsWithoutCI =
-        applicationDAO.getApplicationsWithoutCITriggeredEvaluations(new Date(), "oo");
-
-    assertThat(appsWithoutCI).hasSize(1);
-    assertThat(appsWithoutCI.get(0)).isEqualTo(appWithMatchingName.getId());
-  }
-
-  @Test
-  public void testGetApplicationsWithoutCITriggeredEvaluations_FilterAppNameCaseInsensitive() {
-    final Application appWithMatchingName =
-        tempEntity.newApplication("FooBar", "bar", organization.getId());
-
-    final List<String> appsWithoutCI =
-        applicationDAO.getApplicationsWithoutCITriggeredEvaluations(new Date(), "fOobAR");
-
-    assertThat(appsWithoutCI).hasSize(1);
-    assertThat(appsWithoutCI.get(0)).isEqualTo(appWithMatchingName.getId());
-  }
-
-  @Test
-  public void testGetApplicationsWithoutCITriggeredEvaluations_FilterAppNameWithNoMatch() {
-    tempEntity.newApplication("Foo", "bar", organization.getId());
-
-    final List<String> appsWithoutCI =
-        applicationDAO.getApplicationsWithoutCITriggeredEvaluations(new Date(), "bar");
-
-    assertThat(appsWithoutCI).isEmpty();
   }
 
   // Cascade Delete Tests

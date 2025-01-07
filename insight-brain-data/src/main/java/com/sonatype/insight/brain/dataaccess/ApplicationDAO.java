@@ -11,7 +11,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -19,6 +18,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -58,7 +58,6 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -558,45 +557,6 @@ public class ApplicationDAO
 
   public static String normalizePublicId(String publicId) {
     return publicId.trim().toLowerCase(Locale.ENGLISH);
-  }
-
-  @SuppressWarnings("unchecked")
-  public List<String> getApplicationsWithoutCITriggeredEvaluations(final Date sinceUtcDate, final String nameFilter) {
-    /*
-    Apps without CI can be defined as:
-      Apps with evaluations != CI but not if having at least 1 eval == CI
-    + Apps with no evaluations
-    = Apps without CI integration
-
-    Get a list of applications that are not found in the list of applications with CI evals
-     */
-    final StringBuilder appsWithoutCIQuery = new StringBuilder("SELECT DISTINCT app.application_id" +
-        " FROM " + getDatabaseSchema() + ".application app" +
-        " LEFT JOIN (" +
-        "    SELECT DISTINCT peci.application_id" +
-        "    FROM " + getDatabaseSchema() + ".policy_evaluation peci" +
-        "    WHERE peci.scan_trigger_type = ?1" +
-        "    AND peci.reevaluation = false" +
-        "    AND peci.for_monitoring = false" +
-        "    AND peci.for_obsolete_scan = false" +
-        "    AND peci.time >= ?2" +
-        ") pe ON app.application_id = pe.application_id" +
-        " WHERE pe.application_id IS NULL");
-
-    final boolean hasNameFilter = StringUtils.isNotEmpty(nameFilter);
-    if (hasNameFilter) {
-      appsWithoutCIQuery.append(" AND LOWER(app.name) LIKE LOWER(CONCAT('%', ?3, '%'))");
-    }
-
-    try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(appsWithoutCIQuery.toString());
-      query.setParameter(1, ScanTriggerType.CONTINUOUS_INTEGRATION.name());
-      query.setParameter(2, sinceUtcDate);
-      if (hasNameFilter) {
-        query.setParameter(3, nameFilter);
-      }
-      return query.getResultList();
-    }
   }
 
   public Application getByIdOrPublicIdNotNull(final String idOrPublicId) {

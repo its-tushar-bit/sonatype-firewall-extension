@@ -8,11 +8,9 @@ package com.sonatype.insight.brain.dashboard;
 import java.util.List;
 import java.util.Set;
 
-import com.sonatype.insight.brain.api.v2.dto.ApplicationTotalRiskDTO;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
-import com.sonatype.insight.brain.dataaccess.CIApplicationFilter;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.StageType;
 
@@ -29,10 +27,6 @@ public interface ApplicationRiskService
       String orderBy,
       int page,
       int pageSize);
-
-  DashboardResultsDTO<ApplicationTotalRiskDTO> getCIApplicationRisk(final CIApplicationFilter filter);
-
-  List<ApplicationRiskScoreDTO> getRiskForApplicationsWithReadPermissions();
 
   ApplicationRiskScoreDTO getRiskForApp(final Application application, final Set<StageType> stageTypes);
 

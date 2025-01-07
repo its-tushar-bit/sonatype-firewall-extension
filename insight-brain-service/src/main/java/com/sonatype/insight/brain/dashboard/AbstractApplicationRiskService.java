@@ -8,27 +8,19 @@ package com.sonatype.insight.brain.dashboard;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
-import com.sonatype.insight.brain.api.v2.dto.ApplicationTotalRiskDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditService;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.CIApplicationFilter;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -38,11 +30,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
-import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
-import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
@@ -81,66 +69,10 @@ abstract class AbstractApplicationRiskService
     this.auditService = auditService;
   }
 
-  /**
-   * @since 1.11.0
-   */
-  @Override
-  public DashboardResultsDTO<ApplicationRiskScoreDTO> getApplicationRisks(
-      final Set<String> organizationIds,
-      final Set<String> applicationIds,
-      final Set<String> stageIds,
-      final Set<String> tagIds,
-      final PolicyThreatCategoryFilter policyThreatCategoryFilter,
-      final PolicyThreatLevelFilter policyThreatLevelFilter,
-      final PolicyViolationStateFilter policyViolationStateFilter,
-      final String orderBy,
-      int page,
-      int pageSize)
-  {
-    return getApplicationRisks(organizationIds, applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
-        policyThreatLevelFilter, policyViolationStateFilter, orderBy, page, pageSize, false, false);
-  }
-
-  @Override
-  public DashboardResultsDTO<ApplicationTotalRiskDTO> getCIApplicationRisk(final CIApplicationFilter filter) {
-    checkReadPermission(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
-
-    if (filter.getPage() < 0 || filter.getPageSize() <= 0) {
-      throw new BadRequestException("Page and page size must be greater than 0");
-    }
-
-    final List<String> appsWithoutCI =
-        applicationDAO.getApplicationsWithoutCITriggeredEvaluations(filter.getSinceUtcTimestamp(),
-            filter.getOptionalFilterApplicationNamesBy());
-    final DashboardResultsDTO<ApplicationRiskScoreDTO> fullResults =
-        getApplicationRisksUnfiltered(new HashSet<>(appsWithoutCI), filter.getOptionalOrderBy(), filter.getPage(),
-            filter.getPageSize());
-    final List<ApplicationTotalRiskDTO> totalRiskResults =
-        fullResults.dashboardResults.stream().map(applicationRiskScoreDTO ->
-            new ApplicationTotalRiskDTO(applicationRiskScoreDTO.applicationId,
-                applicationRiskScoreDTO.applicationName,
-                applicationRiskScoreDTO.totalApplicationRisk.totalRisk)).collect(Collectors.toList());
-
-    return new DashboardResultsDTO<>(totalRiskResults, fullResults.numResults, fullResults.hasNextPage);
-  }
-
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
   @Override
   public List<Application> getApplicationsWithReadPermission() {
     return applicationDAO.getAll();
-  }
-
-  @Override
-  public List<ApplicationRiskScoreDTO> getRiskForApplicationsWithReadPermissions() {
-    final List<Application> appsToSearch = getApplicationsWithReadPermission();
-
-    return getRiskForProvidedApps(
-        appsToSearch,
-        Collections.emptySet(),
-        null,
-        null,
-        null,
-        true);
   }
 
   @Override
@@ -169,8 +101,7 @@ abstract class AbstractApplicationRiskService
       final Set<String> stageIds,
       final PolicyThreatCategoryFilter policyThreatCategoryFilter,
       final PolicyThreatLevelFilter policyThreatLevelFilter,
-      final PolicyViolationStateFilter policyViolationStateFilter,
-      final boolean includeZeroRisk
+      final PolicyViolationStateFilter policyViolationStateFilter
   )
   {
     final Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
@@ -179,32 +110,14 @@ abstract class AbstractApplicationRiskService
         policyViolationLoader.getViolations(appsToSearch, stageTypes, false, policyThreatLevelFilter,
             policyThreatCategoryFilter, policyViolationStateFilter);
 
-    return createApplicationRiskScores(appViews, includeZeroRisk);
+    return createApplicationRiskScores(appViews);
   }
 
-  private DashboardResultsDTO<ApplicationRiskScoreDTO> getApplicationRisksUnfiltered(
-      final Set<String> applicationIds,
-      final String orderBy,
-      int page,
-      int pageSize)
-  {
-    return getApplicationRisks(
-        Collections.emptySet(),
-        applicationIds,
-        Collections.emptySet(),
-        Collections.emptySet(),
-        new PolicyThreatCategoryFilter(),
-        new PolicyThreatLevelFilter(0, 10),
-        new PolicyViolationStateFilter(),
-        orderBy,
-        page,
-        pageSize,
-        true,
-        true
-    );
-  }
-
-  private DashboardResultsDTO<ApplicationRiskScoreDTO> getApplicationRisks(
+  /**
+   * @since 1.11.0
+   */
+  @Override
+  public DashboardResultsDTO<ApplicationRiskScoreDTO> getApplicationRisks(
       final Set<String> organizationIds,
       final Set<String> applicationIds,
       final Set<String> stageIds,
@@ -214,9 +127,7 @@ abstract class AbstractApplicationRiskService
       final PolicyViolationStateFilter policyViolationStateFilter,
       final String orderBy,
       int page,
-      int pageSize,
-      boolean includeZeroRisk,
-      boolean excludeOrgIdsAndTagIds)
+      int pageSize)
   {
     dashboardUtils.validateDashboardLicensedAndEnabledForApplications();
 
@@ -224,9 +135,7 @@ abstract class AbstractApplicationRiskService
 
     ApplicationRiskScoreDTOComparator applicationRiskComparator = new ApplicationRiskScoreDTOComparator(orderBy);
     List<Application> appsToSearch =
-        excludeOrgIdsAndTagIds ? applicationDAO.getByIds(applicationIds) :
-            applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds,
-                tagIds);
+        applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, tagIds);
     log.debug("Loaded {} applications", appsToSearch.size());
 
     AuditData.get() //
@@ -241,8 +150,7 @@ abstract class AbstractApplicationRiskService
         stageIds,
         policyThreatCategoryFilter,
         policyThreatLevelFilter,
-        policyViolationStateFilter,
-        includeZeroRisk
+        policyViolationStateFilter
     );
 
     applicationRiskScoreDTOs.sort(applicationRiskComparator);
@@ -265,15 +173,12 @@ abstract class AbstractApplicationRiskService
     return result;
   }
 
-  private List<ApplicationRiskScoreDTO> createApplicationRiskScores(
-      Collection<ApplicationView> appViews,
-      boolean includeZeroRisk)
-  {
+  private List<ApplicationRiskScoreDTO> createApplicationRiskScores(Collection<ApplicationView> appViews) {
     List<ApplicationRiskScoreDTO> applicationRiskScores = new ArrayList<>(appViews.size());
     for (ApplicationView appView : appViews) {
       final ApplicationRiskScoreDTO applicationRiskScore = createApplicationRiskScore(
           appView,
-          includeZeroRisk
+          false // returnNullAndSkipStageViewCalculationsWhenRiskIsZero
       );
 
       if (applicationRiskScore != null) {
@@ -288,19 +193,6 @@ abstract class AbstractApplicationRiskService
       final boolean returnNullAndSkipStageViewCalculationsWhenRiskIsZero
   )
   {
-    return createApplicationRiskScore(
-        appView,
-        returnNullAndSkipStageViewCalculationsWhenRiskIsZero,
-        new HashMap<>()
-    );
-  }
-
-  private ApplicationRiskScoreDTO createApplicationRiskScore(
-      final ApplicationView appView,
-      final boolean returnNullAndSkipStageViewCalculationsWhenRiskIsZero,
-      final Map<String, String> orgNames
-  )
-  {
     // We must limit ourselves only to the organization name in order to avoid leaking other information
     // to users which may not have READ access to organization details. Organization names can still be
     // shown in exports similar to how we show organization names in the sidebar via the SidebarService.
@@ -310,8 +202,7 @@ abstract class AbstractApplicationRiskService
     }
 
     String organizationId = appView.getApplication().getOrganizationId();
-    String orgName = orgNames.computeIfAbsent(organizationId,
-        orgId -> organizationDAO.getByIdNotNull(orgId).getName());
+    String orgName = organizationDAO.getByIdNotNull(organizationId).getName();
 
     final Application application = appView.getApplication();
 
@@ -388,12 +279,5 @@ abstract class AbstractApplicationRiskService
       risk.lowRisk += threatLevel;
     }
     risk.totalRisk += threatLevel;
-  }
-
-  @Authorize(permission = Permission.READ)
-  void checkReadPermission(
-      @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
-      @SuppressWarnings("unused") @AuthzContext(Key.ID) String ownerId)
-  {
   }
 }

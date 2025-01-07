@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -156,7 +157,7 @@ public class IntegrationService
     final List<IntegrationStatusDTO> enrichedSummaries = possiblyPaginatedSummaries.stream()
         // Set Automated Source Control Feedback status
         .map(statusDTO -> statusDTO.setAutomatedSourceControlFeedbackEnabled(
-            !applicationSourceControlService.isAutomatedSourceControlFeedbackDisabledForApp(
+            applicationSourceControlService.isAutomatedSourceControlFeedbackEnabledForApp(
                 statusDTO.getApplicationId())))
         // Optionally filter on SCM Integration status
         .filter(statusDTO ->

@@ -49,6 +49,7 @@ export default function SbomApplicationsTable() {
   } = useSelector(selectSbomApplicationsTable);
 
   useEffect(() => {
+    dispatch(actions.resetConfigurations());
     dispatch(actions.setSortByAndDirection(pick(['sortBy', 'sortDirection'], routerCurrentParams ?? {})));
     loadApplications();
   }, [routerCurrentParams]);

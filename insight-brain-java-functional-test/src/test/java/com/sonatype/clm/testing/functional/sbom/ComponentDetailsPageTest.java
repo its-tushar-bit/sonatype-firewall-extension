@@ -46,10 +46,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 
 public class ComponentDetailsPageTest
     extends AbstractFunctionalTest
@@ -211,7 +211,7 @@ public class ComponentDetailsPageTest
     sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 0).shouldHave(text("9")).click();
 
     sbomManagerComponentDetailsPage.policyViolationDetailsDrawer.shouldBe(visible);
-    
+
     PolicyViolationDetailsDrawer.PolicyViolationConstraintInfo policyViolationConstraintInfo
         = PolicyViolationDetailsDrawer.policyViolationConstraintInfo();
     policyViolationConstraintInfo.title().shouldHave(text("Policy Constraint"));
@@ -225,7 +225,7 @@ public class ComponentDetailsPageTest
 
     assertVulnerabilityDetailsInsidePolicyViolationDetailsDrawer(vulnerabilityDetails);
   }
-  
+
   @Test
   public void testFeatureEnabled_policyViolationDetailsDrawer_violationDetailsTile() {
     setTestData();
@@ -242,16 +242,16 @@ public class ComponentDetailsPageTest
     sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 0).shouldHave(text("9")).click();
 
     sbomManagerComponentDetailsPage.policyViolationDetailsDrawer.shouldBe(visible);
-    
+
     PolicyViolationDetailsDrawer.SbomManagerViolationDetailsTile sbomManagerViolationDetailsTile
         = PolicyViolationDetailsDrawer.sbomManagerViolationDetailsTile();
-    
+
     sbomManagerViolationDetailsTile.shouldBe(visible);
-    
+
     sbomManagerViolationDetailsTile.threatLevelValue().shouldHave(text("9"));
-    
+
     sbomManagerViolationDetailsTile.policyTypeValue().shouldHave(text("Security"));
-    
+
   }
 
   @Test
@@ -282,7 +282,7 @@ public class ComponentDetailsPageTest
   public void testFeatureEnabled_opensVulnerabilityDetailsPopover_issueLink_checkContent_Sonatype() {
     testOrganization = tempEntity.newOrganization();
     testApplication = tempEntity.newApplication(testOrganization.getId());
-    setVulnerabilityTablesData(minimumDataSet(), true, "Sonatype", false);
+    setVulnerabilityTablesData(minimumDataSet(), true, "Sonatype", false, false);
     mockHdsResponseForVulnerabilityDetails();
 
     refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
@@ -532,7 +532,7 @@ public class ComponentDetailsPageTest
 
   @Test
   public void testFeatureEnabled_opensCopyAnnotationModal_cancelAndSubmitButtons() {
-    setTestDataWithSecondaryData(false);
+    setTestDataWithSecondaryData(false, false);
 
     lookup(SbomComponentsService.class).getSbomComponentDetails(
         testApplication.getId(),
@@ -579,8 +579,53 @@ public class ComponentDetailsPageTest
   }
 
   @Test
+  public void testCopyFromVexAnnotationWithNoResponse() {
+    setTestDataWithSecondaryData(false, true);
+
+    lookup(SbomComponentsService.class).getSbomComponentDetails(
+        testApplication.getId(),
+        thirdPartySbomMetadata.getSbomVersion(),
+        thirdPartyFileCoordinate.getHash()
+    );
+
+    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
+        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+
+    SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnData(1, 5);
+    actionButtonFirstRowColumn.shouldBe(visible);
+    ElementsCollection rowButtons = actionButtonFirstRowColumn.findAll("button");
+    SelenideElement ellipsisButton = rowButtons.get(0);
+    ellipsisButton.shouldBe(visible);
+    ellipsisButton.click();
+
+    SelenideElement copyAnnotationButton = rowButtons.get(2);
+    copyAnnotationButton.shouldBe(visible);
+    copyAnnotationButton.shouldHave(text("Copy Annotation"));
+
+    copyAnnotationButton.click();
+
+    CopyAnnotationModal copyModal = sbomManagerComponentDetailsPage.copyAnnotationModal();
+    copyModal.shouldBe(visible);
+
+    copyModal.header().shouldBe(visible).shouldHave(text("Copy annotation for DEF-456"));
+    copyModal.body().shouldBe(visible).shouldHave(text(
+        "Are you sure you want to copy \"Exploitable\" annotation for DEF-456 from previous version mockVersionId_2?"
+    ));
+    copyModal.cancelButton().shouldBe(visible).shouldHave(text("Cancel"));
+    copyModal.submitButton().shouldBe(visible).shouldHave(text("Copy"));
+    copyModal.cancelButton().click();
+    copyModal.shouldNotBe(visible);
+    ellipsisButton.click();
+    copyAnnotationButton.click();
+    copyModal.submitButton().click();
+    copyModal.successModal().shouldBe(visible);
+    copyModal.shouldNotBe(visible);
+  }
+
+  @Test
   public void testFeatureEnabled_opensCopyAnnotationModal_multipleResponses() {
-    setTestDataWithSecondaryData(true);
+    setTestDataWithSecondaryData(true, false);
 
     refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
         .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
@@ -633,16 +678,19 @@ public class ComponentDetailsPageTest
   private void setTestData() {
     testOrganization = tempEntity.newOrganization();
     testApplication = tempEntity.newApplication(testOrganization.getId());
-    setVulnerabilityTablesData(minimumDataSet(), true, "SBOM", false);
+    setVulnerabilityTablesData(minimumDataSet(), true, "SBOM", false, false);
   }
 
   private void setTestDataWithMultipleResponsesInVexAnnotation() {
     testOrganization = tempEntity.newOrganization();
     testApplication = tempEntity.newApplication(testOrganization.getId());
-    setVulnerabilityTablesData(minimumDataSet(), true, "SBOM", true);
+    setVulnerabilityTablesData(minimumDataSet(), true, "SBOM", true, false);
   }
 
-  private void setTestDataWithSecondaryData(final boolean multipleResponsesInVexAnnotation) {
+  private void setTestDataWithSecondaryData(
+      final boolean multipleResponsesInVexAnnotation,
+      final boolean withNullResponseInVexAnnotation)
+  {
     testOrganization = tempEntity.newOrganization();
     testApplication = tempEntity.newApplication(testOrganization.getId());
 
@@ -663,8 +711,10 @@ public class ComponentDetailsPageTest
         file, "SBOM", "maven", "testComponent", "1.2", TEST_COMPONENT_HASH, TEST_COMPONENT_PURL
     );
 
-    setVulnerabilityTablesData(fileCoordinate, true, "SBOM", multipleResponsesInVexAnnotation);
-    setVulnerabilityTablesData(minimumDataSet(), false, "SBOM", multipleResponsesInVexAnnotation);
+    setVulnerabilityTablesData(fileCoordinate, true, "SBOM", multipleResponsesInVexAnnotation,
+        withNullResponseInVexAnnotation);
+    setVulnerabilityTablesData(minimumDataSet(), false, "SBOM", multipleResponsesInVexAnnotation,
+        withNullResponseInVexAnnotation);
   }
 
   private ThirdPartyFileCoordinate minimumDataSet() {
@@ -711,7 +761,8 @@ public class ComponentDetailsPageTest
       ThirdPartyFileCoordinate thirdPartyFileCoordinate,
       boolean withVexAnnotations,
       String identificationSource,
-      boolean withMultipleResponsesInVexAnnotation)
+      boolean withMultipleResponsesInVexAnnotation,
+      boolean withNullResponseInVexAnnotation)
   {
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "ABC-123", null, "test vulnerability",
         "http://123.xyz", 5.6d, "testUser", "source", "v:1", "test severity", "123", "m1", "r1", "a1",
@@ -723,7 +774,10 @@ public class ComponentDetailsPageTest
         identificationSource);
     if (withVexAnnotations) {
       tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityDEF456, "DEF-456", "exploitable",
-          "code_not_present", withMultipleResponsesInVexAnnotation ? "rollback,update" : "rollback", "test vex detail");
+          "code_not_present",
+          withMultipleResponsesInVexAnnotation ? "rollback,update" :
+              (withNullResponseInVexAnnotation ? null : "rollback"),
+          "test vex detail");
     }
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "CVE-4812", null, "test vulnerability",
         "http://12345.xyz", 1.5d, "testUser", "source", "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H", "testSeverity",
@@ -814,7 +868,7 @@ public class ComponentDetailsPageTest
       vexAnnotationDrawer.annotationDetails().shouldHave(text(annotationDetails));
     }
   }
-  
+
   public void assertVulnerabilityDetailsInsidePolicyViolationDetailsDrawer(
       PolicyViolationDetailsDrawer.VulnerabilityDetails vulnerabilityDetails
   )

@@ -1527,14 +1527,14 @@ public class ThirdPartyFileCoordinateDAOTest
       final String format,
       final String name,
       final String version,
-      final String thirdPartyFileId, final ThirdPartyFileCoordinate entity)
+      final String thirdPartyFileId,
+      final ThirdPartyFileCoordinate entity)
   {
     assertThat(entity.getHash()).isEqualTo(hash);
     assertThat(entity.getSource()).isEqualTo(source);
     assertThat(entity.getName()).isEqualTo(name);
     assertThat(entity.getFormat()).isEqualTo(format);
     assertThat(entity.getVersion()).isEqualTo(version);
-    assertThat(entity.getThirdPartyFileId()).isEqualTo(thirdPartyFileId);
     assertThat(entity.getThirdPartyFileId()).isEqualTo(thirdPartyFileId);
   }
 

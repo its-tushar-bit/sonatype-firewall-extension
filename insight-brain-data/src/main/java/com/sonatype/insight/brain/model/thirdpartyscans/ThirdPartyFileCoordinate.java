@@ -68,6 +68,9 @@ public class ThirdPartyFileCoordinate
   @Column(name = "third_party_file_id")
   private String thirdPartyFileId;
 
+  @Column(name = "component_ref")
+  private String componentRef;
+
   @Column(name = "cpe")
   private String cpe;
 
@@ -156,6 +159,14 @@ public class ThirdPartyFileCoordinate
 
   public void setThirdPartyFileId(String thirdPartyFileId) {
     this.thirdPartyFileId = thirdPartyFileId;
+  }
+
+  public String getComponentRef() {
+    return componentRef;
+  }
+
+  public void setComponentRef(String componentRef) {
+    this.componentRef = componentRef;
   }
 
   public String getCpe() {

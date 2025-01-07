@@ -913,7 +913,6 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   @PostgresTest
-  @Ignore("To be fixed with SBOM-1201")
   public void testGetSbomApplicationVulnerabilities() {
     Organization organization1 = tempEntity.newOrganization("org1");
     Application application = tempEntity.newApplication(organization1.getId());
@@ -937,6 +936,19 @@ public class ThirdPartySbomMetadataDAOTest
 
     ThirdPartySbomMetadata sbom5 =
         tempEntity.newThirdPartySbomMetadata(file4.getId(), application.getId(), ACTIVE, file5.getFilename());
+
+    // Ensure the ThirdPartySbomMetadata entity creation times are ascending and different
+    long now = System.currentTimeMillis();
+    sbom1.setCreatedAt(new Date(now));
+    sbom2.setCreatedAt(new Date(now + 1));
+    sbom3.setCreatedAt(new Date(now + 2));
+    sbom4.setCreatedAt(new Date(now + 3));
+    sbom5.setCreatedAt(new Date(now + 4));
+    dao.update(sbom1);
+    dao.update(sbom2);
+    dao.update(sbom3);
+    dao.update(sbom4);
+    dao.update(sbom5);
 
     ThirdPartyFileCoordinate c1 = tempEntity.newThirdPartyFileCoordinate(file1, "s1", "f1", "n1", "v1");
     ThirdPartyFileCoordinate c2 = tempEntity.newThirdPartyFileCoordinate(file2, "s2", "f2", "n2", "v2");

@@ -482,7 +482,6 @@ public class ReportService
     applicationReport.embedApplicationPublicId(application);
 
     applyComponentRelatedChanges(application, applicationReport, repositoryMatcher, telemetrySender, telemetryUtils);
-    applicationReport.cacheThirdPartyData();
 
     // these data items have already had changes applied as part of applyComponentRelatedChanges above
     final ContainerNode<?> security = JsonUtils.parse(applicationReport.getEntry(SECURITY_JSON_FILENAME).buf);

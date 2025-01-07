@@ -7,18 +7,12 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
 
 import com.fasterxml.jackson.databind.node.ContainerNode;
-
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME;
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME;
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME;
 
 public interface ApplicationReport
     extends ReportEntity
@@ -37,9 +31,6 @@ public interface ApplicationReport
 
   String POLICY_THREATS = "policythreats.json";
 
-  List<String> THIRD_PARTY_CACHED_FILES = Arrays.asList(THIRD_PARTY_BOM_JSON_FILENAME,
-      THIRD_PARTY_SECURITY_JSON_FILENAME, THIRD_PARTY_LICENSE_JSON_FILENAME);
-
   ReportEntry getEntry(final String name) throws IOException;
 
   void putEntry(String name, byte[] buf) throws IOException;
@@ -54,8 +45,6 @@ public interface ApplicationReport
   ReportEntry extractEntry(String name) throws IOException;
 
   void embedApplicationPublicId(Application application) throws IOException;
-
-  void cacheThirdPartyData();
 
   void deletePdfReport();
 

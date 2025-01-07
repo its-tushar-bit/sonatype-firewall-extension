@@ -664,7 +664,7 @@ public class PolicyMonitorTest
 
     File reportFile = insightWork.getReportFile(app.getId(), newScanId);
     assertThat(reportFile).isFile();
-    File parentDir = new File(reportFile.getParentFile() + "/report.cache");
+    File parentDir = new File(reportFile.getParentFile() + "/additional.files");
 
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME);
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME);
@@ -811,7 +811,7 @@ public class PolicyMonitorTest
 
     File reportFile = insightWork.getReportFile(app.getId(), newScanId);
     assertThat(reportFile).isFile();
-    File parentDir = new File(reportFile.getParentFile() + "/report.cache");
+    File parentDir = new File(reportFile.getParentFile() + "/additional.files");
 
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME);
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME);

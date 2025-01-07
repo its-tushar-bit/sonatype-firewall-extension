@@ -9,18 +9,12 @@ package com.sonatype.insight.brain.report;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Writer;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -50,6 +44,13 @@ public class FileApplicationReport
 
   public static final String CACHE_DIRECTORY_NAME = "report.cache";
 
+  /*
+  Files were previously added to the report.zip. Instead of adding to the zip, keep additional files in a separate
+  directory instead of the report.cache directory so that they're not removed when running a re-evaluation. These should
+  be considered just as durable as the report.zip itself
+*/
+  public static final String ADDITIONAL_FILES_DIRECTORY_NAME = "additional.files";
+
   public FileApplicationReport(final File file) {
     super(file);
   }
@@ -68,6 +69,10 @@ public class FileApplicationReport
     final File cacheFile = getCacheFile(name);
     if (cacheFile.canRead()) {
       return new ReportEntry(name, cacheFile.lastModified(), fetch(cacheFile));
+    }
+    final File additionalFile = getAdditionalFile(name);
+    if (additionalFile.canRead()) {
+      return new ReportEntry(name, additionalFile.lastModified(), fetch(additionalFile));
     }
     return extractEntry(name);
   }
@@ -137,9 +142,22 @@ public class FileApplicationReport
     return f;
   }
 
+  public File getAdditionalFile(final String name) {
+    File f = new File(getOrCreateAdditionalFilesDir(file), name);
+    log.trace("Report entry file: {}", f.getAbsolutePath());
+    return f;
+  }
+
   static File getCacheDir(final File reportFile) {
     File file = new File(reportFile.getParentFile(), CACHE_DIRECTORY_NAME);
     log.trace("Cache dir: {}", file.getAbsolutePath());
+    return file;
+  }
+
+  static File getOrCreateAdditionalFilesDir(final File reportFile) {
+    File file = new File(reportFile.getParentFile(), ADDITIONAL_FILES_DIRECTORY_NAME);
+    file.mkdirs();
+    log.trace("Report Files dir: {}", file.getAbsolutePath());
     return file;
   }
 
@@ -161,21 +179,6 @@ public class FileApplicationReport
   }
 
   @Override
-  public void cacheThirdPartyData() {
-    THIRD_PARTY_CACHED_FILES.forEach(filename -> {
-      try {
-        final ReportEntry entry = getEntry(filename);
-        if (entry != null) {
-          cache(getCacheFile(filename), entry.buf);
-        }
-      }
-      catch (IOException e) {
-        log.error("Error reading third party data from report file: {}", getLocation(), e);
-      }
-    });
-  }
-
-  @Override
   public void deletePdfReport() {
     File pdfReportFile = new File(file.getParentFile(), PdfGenerator.REPORT_FILE_NAME);
     try {
@@ -191,23 +194,16 @@ public class FileApplicationReport
 
   @Override
   public void appendToReport(final ThirdPartyApplicationReportDTO dto) throws IOException {
-    Map<String, Object> env = new HashMap<>();
-    env.put("create", "false");
-    env.put("useTempFile", Boolean.TRUE); //to avoid large byte streams created in memory
-    Path archivePath = file.toPath();
-    URI archiveUri = URI.create("jar:" + archivePath.toUri());
-    try (FileSystem fs = FileSystems.newFileSystem(archiveUri, env)) {
-      appendFileToReportZip(fs, THIRD_PARTY_BOM_JSON_FILENAME, dto.billOfMaterials);
-      appendFileToReportZip(fs, THIRD_PARTY_SECURITY_JSON_FILENAME, dto.securityRows);
-      appendFileToReportZip(fs, THIRD_PARTY_LICENSE_JSON_FILENAME, dto.licenseRows);
-    }
+    appendFileToReport(THIRD_PARTY_BOM_JSON_FILENAME, dto.billOfMaterials);
+    appendFileToReport(THIRD_PARTY_SECURITY_JSON_FILENAME, dto.securityRows);
+    appendFileToReport(THIRD_PARTY_LICENSE_JSON_FILENAME, dto.licenseRows);
   }
 
-  private void appendFileToReportZip(final FileSystem fs, final String filename, final List<?> data)
+  private void appendFileToReport(final String filename, final List<?> data)
       throws IOException
   {
-    Path newFile = fs.getPath(filename);
-    try (Writer writer = Files.newBufferedWriter(newFile, StandardCharsets.UTF_8, StandardOpenOption.CREATE)) {
+    Path newFile = new File(getOrCreateAdditionalFilesDir(file), filename).toPath();
+    try (var writer = Files.newBufferedWriter(newFile, StandardCharsets.UTF_8, StandardOpenOption.CREATE)) {
       writer.write(new String(JsonUtils.generate(JsonUtils.aaData(data)), StandardCharsets.UTF_8));
     }
   }

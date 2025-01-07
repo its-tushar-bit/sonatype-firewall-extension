@@ -87,7 +87,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
-import de.schlichtherle.truezip.file.TFile;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -612,9 +611,9 @@ public class ReportServiceTest
 
     createReportService().includeThirdPartyData(appReport, dto);
 
-    assertThatReportZipContains(appReport, "thirdparty-bom.json");
-    assertThatReportZipContains(appReport, "thirdparty-security.json");
-    assertThatReportZipContains(appReport, "thirdparty-license.json");
+    assertThatReportFilesContains(appReport, "thirdparty-bom.json");
+    assertThatReportFilesContains(appReport, "thirdparty-security.json");
+    assertThatReportFilesContains(appReport, "thirdparty-license.json");
   }
 
   @Test
@@ -905,8 +904,9 @@ public class ReportServiceTest
     validatePolicyValidationOwner(policyThreats.aaData);
   }
 
-  private void assertThatReportZipContains(FileApplicationReport zipFile, final String thirdPartyFile) {
-    assertThat(Stream.of(new TFile(zipFile.getFile()).listFiles()).anyMatch(f -> f.getName().endsWith(thirdPartyFile)))
+  private void assertThatReportFilesContains(FileApplicationReport appReport, final String thirdPartyFile) {
+    File reportFilesDir = appReport.getFile().getParentFile().toPath().resolve("additional.files").toFile();
+    assertThat(Stream.of(reportFilesDir.listFiles()).anyMatch(f -> f.getName().endsWith(thirdPartyFile)))
         .isTrue();
   }
 

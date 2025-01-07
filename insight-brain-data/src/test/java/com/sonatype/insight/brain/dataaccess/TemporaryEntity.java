@@ -2517,6 +2517,21 @@ public class TemporaryEntity
     return policyEvaluation;
   }
 
+  public PolicyEvaluation newPolicyEvaluation(
+      String applicationId,
+      String stageTypeId,
+      String scanId,
+      String commitHash,
+      String branchName)
+  {
+    PolicyEvaluation policyEvaluation =
+        new PolicyEvaluation(applicationId, stageTypeId, scanId, "system", ScanTriggerType.CLI);
+    policyEvaluation.setCommitHash(commitHash);
+    policyEvaluation.setBranchName(branchName);
+    policyEvaluationDAO.insert(policyEvaluation);
+    return policyEvaluation;
+  }
+
   public PolicyEvaluation newPolicyEvaluation(String applicationId, String stageTypeId, String scanId) {
     PolicyEvaluation policyEvaluation =
         new PolicyEvaluation(applicationId, stageTypeId, scanId, "system", ScanTriggerType.CLI);

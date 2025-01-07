@@ -461,8 +461,9 @@ public class ScanPolicyEvaluator
       AuditData.get().setIsReevaluation(isReevaluation);
       PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
           forMonitoring, currentUser.getUsernameOrSystem(), scanTriggerType, clientScanType);
-      policyEvaluation.setCommitHash(
-          extractCommitHash(applicationReport.getEntry(DATA_JSON_FILENAME)));
+      final ReportEntry dataJsonEntry = applicationReport.getEntry(DATA_JSON_FILENAME);
+      policyEvaluation.setCommitHash(extractField(dataJsonEntry, "commitHash"));
+      policyEvaluation.setBranchName(extractField(dataJsonEntry, "branchName"));
       PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx,
           appId, stage.getStageTypeId());
       boolean isForLatestScan = true;
@@ -1119,7 +1120,6 @@ public class ScanPolicyEvaluator
     final List<PolicyViolation> activeViolations = scanPolicyEvaluatorResults.activeViolations;
     final List<PolicyViolation> waivedViolations = scanPolicyEvaluatorResults.waivedViolations;
     final List<PolicyViolation> fixedViolations = scanPolicyEvaluatorResults.fixedViolations;
-    String commitHash = policyEvaluation.getCommitHash();
 
     PolicyEvaluationResult policyEvaluationResult =
         createPolicyEvaluationResult(policyEvaluation, components, activeViolations, true);
@@ -1132,9 +1132,9 @@ public class ScanPolicyEvaluator
         policyEvaluation.getScanId(), policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring(),
         components, fixedViolations);
 
-    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, commitHash, application);
+    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, application);
     policyAlertEventService
-        .postEvent(policyEvaluation, policyEvaluationResult, commitHash, application, waivedAlerts, fixedAlerts);
+        .postEvent(policyEvaluation, policyEvaluationResult, application, waivedAlerts, fixedAlerts);
   }
 
   private int getTotalComponentCount(PolicyEvaluation policyEvaluation) {
@@ -1237,11 +1237,11 @@ public class ScanPolicyEvaluator
     return attributes;
   }
 
-  private String extractCommitHash(ReportEntry dataReportEntry) throws IOException {
+  private String extractField(ReportEntry dataReportEntry, String fieldName) throws IOException {
     if (null == dataReportEntry) {
       return null;
     }
-    return JsonUtils.parse(dataReportEntry.buf).path("commitHash").asText(null);
+    return JsonUtils.parse(dataReportEntry.buf).path(fieldName).asText(null);
   }
 
   private void logPolicyViolations(List<PolicyViolation> policyViolations, String policyProperty) {

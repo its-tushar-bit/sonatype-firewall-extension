@@ -314,6 +314,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(results.evaluation.getScanId()).isEqualTo(scanId);
     assertThat(results.evaluation.getCommitHash()).isEqualTo("testCommitHash");
     assertThat(results.evaluation.getScanTriggerType()).isEqualTo(ScanTriggerType.CLI);
+    assertThat(results.evaluation.getBranchName()).isEqualTo("testBranchName");
   }
 
   @Test
@@ -1376,6 +1377,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(results.activeViolations).hasSize(2);
     assertThat(results.notifiableViolations).hasSize(1);
     assertThat(results.evaluation.getCommitHash()).isNull();
+    assertThat(results.evaluation.getBranchName()).isNull();
   }
 
   @Test
@@ -1445,6 +1447,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(event.moderateComponentCount).isEqualTo(0);
     assertThat(event.outcome).isEqualTo(Action.ID_FAIL);
     assertThat(event.commitHash).isEqualTo("testCommitHash");
+    assertThat(event.branchName).isEqualTo("testBranchName");
   }
 
   @Test

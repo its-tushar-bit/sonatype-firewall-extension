@@ -64,7 +64,6 @@ public class PolicyAlertEventService
   public void postEvent(
       final PolicyEvaluation policyEvaluation,
       final PolicyEvaluationResult policyEvaluationResult,
-      final String commitHash,
       final Application application,
       final List<PolicyAlert> waivedAlerts,
       final List<PolicyAlert> fixedAlerts)
@@ -73,7 +72,7 @@ public class PolicyAlertEventService
       final ApplicationSummary applicationSummary = populateApplicationSummary(policyEvaluation);
       final ApplicationEvaluationEvent applicationEvaluationEvent =
           ApplicationEvaluationEventService
-              .buildEvent(policyEvaluation, policyEvaluationResult, commitHash, currentUser, application);
+              .buildEvent(policyEvaluation, policyEvaluationResult, currentUser, application);
 
       // group by target
       Map<String, List<PolicyFact>> groupedAlerts = policyEvaluationResult.getAlerts().stream()

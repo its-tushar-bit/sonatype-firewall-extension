@@ -363,6 +363,7 @@ public class ReportService
     metadata.setScanTriggerType(evaluation.getScanTriggerType().getDisplayName());
     metadata.setReevaluation(evaluation.isReevaluation());
     metadata.setForMonitoring(evaluation.isForMonitoring());
+    metadata.setBranchName(evaluation.getBranchName());
 
     if (productLicense.hasFeature(LicensedFeature.DEVELOPER_DASHBOARD)) {
       final ApplicationRiskScoreDTO applicationRiskScoreDTO = applicationRiskService.getRiskForApp(application,

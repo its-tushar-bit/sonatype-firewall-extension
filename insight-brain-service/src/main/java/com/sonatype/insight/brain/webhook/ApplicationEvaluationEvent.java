@@ -55,6 +55,13 @@ public class ApplicationEvaluationEvent
    */
   public boolean isForLatestScan;
 
+  /**
+   * Set only if available from underlying data
+   *
+   * @since 1.186.0
+   */
+  public String branchName;
+
   @Override
   public String toString() {
     return getClass().getName() + "{policyEvaluationId=" + policyEvaluationId + "}";

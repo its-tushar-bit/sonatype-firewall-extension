@@ -48,6 +48,7 @@ public class ApplicationEvaluationEventServiceTest
     policyEvaluation.setApplicationId(application.getId());
     policyEvaluation.setScanId("reportId");
     policyEvaluation.setTime(time);
+    policyEvaluation.setCommitHash("commitHash");
 
     final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
     policyEvaluationResult.setAffectedComponentCount(1);
@@ -59,7 +60,7 @@ public class ApplicationEvaluationEventServiceTest
         new TestEventHandler<>(new CountDownLatch(1), ApplicationEvaluationEvent.class);
     asyncEventBus.register(handler);
 
-    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, "commitHash", application);
+    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, application);
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     ApplicationEvaluationEvent event = handler.getEvent();
     assertThat(event).isNotNull();
@@ -96,7 +97,7 @@ public class ApplicationEvaluationEventServiceTest
         new TestEventHandler<>(new CountDownLatch(1), ApplicationEvaluationEvent.class);
     asyncEventBus.register(handler);
 
-    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, null, application);
+    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, application);
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     ApplicationEvaluationEvent event = handler.getEvent();
     assertThat(event.outcome).isEqualTo(ApplicationEvaluationEvent.ACTION_ID_NONE);
@@ -118,7 +119,7 @@ public class ApplicationEvaluationEventServiceTest
         new TestEventHandler<>(new CountDownLatch(1), ApplicationEvaluationEvent.class);
     asyncEventBus.register(handler);
 
-    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, null, application);
+    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, application);
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     ApplicationEvaluationEvent event = handler.getEvent();
     assertThat(event.outcome).isEqualTo(Action.ID_WARN);
@@ -141,7 +142,7 @@ public class ApplicationEvaluationEventServiceTest
         new TestEventHandler<>(new CountDownLatch(1), ApplicationEvaluationEvent.class);
     asyncEventBus.register(handler);
 
-    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, null, application);
+    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, application);
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     ApplicationEvaluationEvent event = handler.getEvent();
     assertThat(event.outcome).isEqualTo(Action.ID_FAIL);
@@ -153,7 +154,7 @@ public class ApplicationEvaluationEventServiceTest
     Application app = tempEntity.newApplicationWithParent();
     when(subject.getPrincipal()).thenThrow(new RuntimeException("testing"));
 
-    applicationEvaluationEventService.postEvent(new PolicyEvaluation(), new PolicyEvaluationResult(), null, app);
+    applicationEvaluationEventService.postEvent(new PolicyEvaluation(), new PolicyEvaluationResult(), app);
 
     verify(subject, atLeastOnce()).getPrincipal();
   }

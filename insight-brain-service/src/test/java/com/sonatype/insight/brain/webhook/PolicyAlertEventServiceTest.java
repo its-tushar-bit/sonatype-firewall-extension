@@ -72,7 +72,7 @@ public class PolicyAlertEventServiceTest
     asyncEventBus.register(handler);
 
     policyAlertEventService
-        .postEvent(policyEvaluation, policyEvaluationResult, "commitHash", application, Collections.emptyList(),
+        .postEvent(policyEvaluation, policyEvaluationResult, application, Collections.emptyList(),
             Collections.emptyList());
 
     // policyAlertEvent is posted
@@ -108,7 +108,7 @@ public class PolicyAlertEventServiceTest
     asyncEventBus.register(handler);
 
     policyAlertEventService
-        .postEvent(policyEvaluation, policyEvaluationResult, null, application, Collections.emptyList(),
+        .postEvent(policyEvaluation, policyEvaluationResult, application, Collections.emptyList(),
             Collections.emptyList());
 
     // no event is posted
@@ -126,7 +126,7 @@ public class PolicyAlertEventServiceTest
     asyncEventBus.register(handler);
 
     policyAlertEventService
-        .postEvent(policyEvaluation, policyEvaluationResult, null, application, Collections.emptyList(),
+        .postEvent(policyEvaluation, policyEvaluationResult, application, Collections.emptyList(),
             Collections.emptyList());
 
     // events for target1 are grouped into a single event
@@ -148,7 +148,7 @@ public class PolicyAlertEventServiceTest
     asyncEventBus.register(handler);
 
     policyAlertEventService
-        .postEvent(policyEvaluation, policyEvaluationResult, null, application, Collections.emptyList(),
+        .postEvent(policyEvaluation, policyEvaluationResult, application, Collections.emptyList(),
             Collections.emptyList());
 
     // 3 events are received
@@ -169,7 +169,7 @@ public class PolicyAlertEventServiceTest
 
     // Post event for eval with no active violations, but some fixed violations
     policyAlertEventService
-        .postEvent(policyEvaluation, policyEvaluationResult, null, application, Collections.emptyList(),
+        .postEvent(policyEvaluation, policyEvaluationResult, application, Collections.emptyList(),
             alerts);
 
     // Event without any policy facts is received
@@ -191,7 +191,7 @@ public class PolicyAlertEventServiceTest
 
     // Post event for eval with no active violations, but some waived violations
     policyAlertEventService
-        .postEvent(policyEvaluation, policyEvaluationResult, null, application, alerts, Collections.emptyList());
+        .postEvent(policyEvaluation, policyEvaluationResult, application, alerts, Collections.emptyList());
 
     // Event without any policy facts is received
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
@@ -222,6 +222,7 @@ public class PolicyAlertEventServiceTest
     policyEvaluation.setStageTypeId("stageTypeId");
     policyEvaluation.setApplicationId(application.getId());
     policyEvaluation.setTime(time);
+    policyEvaluation.setCommitHash("commitHash");
     return policyEvaluation;
   }
 }

@@ -42,12 +42,11 @@ public class ApplicationEvaluationEventService
   public void postEvent(
       final PolicyEvaluation policyEvaluation,
       final PolicyEvaluationResult policyEvaluationResult,
-      final String commitHash,
       final Application application)
   {
     try {
       ApplicationEvaluationEvent event =
-          buildEvent(policyEvaluation, policyEvaluationResult, commitHash, currentUser, application);
+          buildEvent(policyEvaluation, policyEvaluationResult, currentUser, application);
       asyncEventBus.post(event);
     }
     catch (RuntimeException e) {
@@ -58,7 +57,6 @@ public class ApplicationEvaluationEventService
   static ApplicationEvaluationEvent buildEvent(
       final PolicyEvaluation policyEvaluation,
       final PolicyEvaluationResult policyEvaluationResult,
-      final String commitHash, 
       final CurrentUser currentUser,
       final Application application)
   {
@@ -69,8 +67,9 @@ public class ApplicationEvaluationEventService
     event.evaluationDate = policyEvaluation.getTime();
     event.initiator = currentUser.getUsernameOrSystem();
     event.reportId = policyEvaluation.getScanId();
-    event.commitHash = commitHash;
+    event.commitHash = policyEvaluation.getCommitHash();
     event.isForLatestScan = !policyEvaluation.isForObsoleteScan();
+    event.branchName = policyEvaluation.getBranchName();
               
     event.affectedComponentCount = policyEvaluationResult.getAffectedComponentCount();
     event.criticalComponentCount = policyEvaluationResult.getCriticalComponentCount();

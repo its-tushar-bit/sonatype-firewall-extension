@@ -31,6 +31,8 @@ public class ReportMetadataDTO
 
   private int totalRisk = -1;
 
+  private String branchName;
+
   public Date getReportTime() {
     return reportTime;
   }
@@ -109,5 +111,13 @@ public class ReportMetadataDTO
 
   public int getTotalRisk() {
     return this.totalRisk;
+  }
+
+  public String getBranchName() {
+    return branchName;
+  }
+
+  public void setBranchName(String branchName) {
+    this.branchName = branchName;
   }
 }

@@ -418,6 +418,7 @@ public class ReportServiceTest
     final String scanId1 = "ScanId1";
     final String scanId2 = "ScanId2";
     String commitHash = "0b1bbd94b2edbacd441f170ecd59a178e334868f";
+    String branchName = "test-branch";
 
     productLicense.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
 
@@ -427,7 +428,8 @@ public class ReportServiceTest
     createReportFile(app.getId(), scanId2, zipReportDir("/ReportResourceTest/report"));
 
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId1);
-    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId2, commitHash);
+    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId2, commitHash,
+        branchName);
 
     Policy appPolicy1 = tempEntity.newPolicy(app.getId(), "app owned policy1", 5);
     tempEntity.newPolicyViolation(eval1, appPolicy1, appPolicy1.getThreatLevel() + 1,
@@ -454,6 +456,7 @@ public class ReportServiceTest
     assertThat(metadata.isForMonitoring()).isFalse();
     assertThat(metadata.isReevaluation()).isFalse();
     assertThat(metadata.getTotalRisk()).isEqualTo(-1);
+    assertThat(metadata.getBranchName()).isNull();
 
     // Verify Response for scan 2
     metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
@@ -470,6 +473,7 @@ public class ReportServiceTest
     assertThat(metadata.isForMonitoring()).isFalse();
     assertThat(metadata.isReevaluation()).isFalse();
     assertThat(metadata.getTotalRisk()).isEqualTo(-1);
+    assertThat(metadata.getBranchName()).isEqualTo(branchName);
 
     // Verify response for monitoring/re-evaluation
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId2,
@@ -488,6 +492,7 @@ public class ReportServiceTest
     assertThat(metadata.isForMonitoring()).isTrue();
     assertThat(metadata.isReevaluation()).isTrue();
     assertThat(metadata.getTotalRisk()).isEqualTo(-1);
+    assertThat(metadata.getBranchName()).isNull();
 
     // Unknown scan id
     assertThatExceptionOfType(NotFoundException.class)
@@ -500,6 +505,7 @@ public class ReportServiceTest
     final String scanId1 = "ScanId1";
     final String scanId2 = "ScanId2";
     String commitHash = "0b1bbd94b2edbacd441f170ecd59a178e334868f";
+    String branchName = "test-branch";
 
     // ReportResource.getReport requires a report.zip to exist when evaluations exist
     createReportFile(app.getId(), scanId1, zipReportDir("/ReportResourceTest/report-expanded_coverage_false"));
@@ -507,7 +513,8 @@ public class ReportServiceTest
     createReportFile(app.getId(), scanId2, zipReportDir("/ReportResourceTest/report"));
 
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId1);
-    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId2, commitHash);
+    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId2, commitHash,
+        branchName);
 
     Policy appPolicy1 = tempEntity.newPolicy(app.getId(), "app owned policy1", 5);
     PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, appPolicy1, appPolicy1.getThreatLevel() + 1,
@@ -534,6 +541,7 @@ public class ReportServiceTest
     assertThat(metadata.isForMonitoring()).isFalse();
     assertThat(metadata.isReevaluation()).isFalse();
     assertThat(metadata.getTotalRisk()).isEqualTo(violation1.getThreatLevel());
+    assertThat(metadata.getBranchName()).isNull();
 
     // Verify Response for scan 2
     metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
@@ -550,6 +558,7 @@ public class ReportServiceTest
     assertThat(metadata.isForMonitoring()).isFalse();
     assertThat(metadata.isReevaluation()).isFalse();
     assertThat(metadata.getTotalRisk()).isEqualTo(violation2.getThreatLevel());
+    assertThat(metadata.getBranchName()).isEqualTo(branchName);
 
     // Verify response for monitoring/re-evaluation
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId2,
@@ -568,6 +577,7 @@ public class ReportServiceTest
     assertThat(metadata.isForMonitoring()).isTrue();
     assertThat(metadata.isReevaluation()).isTrue();
     assertThat(metadata.getTotalRisk()).isEqualTo(violation1.getThreatLevel());
+    assertThat(metadata.getBranchName()).isNull();
 
     // Unknown scan id
     assertThatExceptionOfType(NotFoundException.class)

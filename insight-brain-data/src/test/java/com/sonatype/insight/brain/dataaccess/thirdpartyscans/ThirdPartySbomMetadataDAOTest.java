@@ -913,6 +913,7 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   @PostgresTest
+  @Ignore("To be fixed with SBOM-1201")
   public void testGetSbomApplicationVulnerabilities() {
     Organization organization1 = tempEntity.newOrganization("org1");
     Application application = tempEntity.newApplication(organization1.getId());

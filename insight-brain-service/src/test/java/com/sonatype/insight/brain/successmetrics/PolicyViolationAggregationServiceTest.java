@@ -489,6 +489,52 @@ public class PolicyViolationAggregationServiceTest
   }
 
   @Test
+  public void testGeneratePolicyViolationAggregations_OnlyConstraintFactsAreDifferent() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getId(), "test policy", 10);
+    // for weekly aggregations - make sure we have enough days in the week to work with
+    DateTime now = new DateTime().withDayOfMonth(1).plusWeeks(2).withDayOfWeek(4);
+
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan1",
+        now.minusHours(72).toDate());
+    // two distinct violations
+    tempEntity.newPolicyViolation(eval, policy, null, "hash", "reason1");
+    tempEntity.newPolicyViolation(eval, policy, null, "hash", "reason2");
+
+    service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), now, true);
+
+    PolicyViolationAggregation aggregation = aggregationDAO
+        .getMostRecentByApplicationIdAndTimePeriod(app.getId(), WEEK);
+
+    assertViolationsDifferentConstraintFacts(aggregation);
+
+    aggregation = aggregationDAO.getMostRecentByApplicationIdAndTimePeriod(app.getId(), MONTH);
+
+    assertViolationsDifferentConstraintFacts(aggregation);
+  }
+
+  private void assertViolationsDifferentConstraintFacts(PolicyViolationAggregation aggregation) {
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getDiscoveredAsTable());
+    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL)).isEqualTo(1);
+
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getFixedAsTable());
+    assertThat(aggregation.getFixedCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL)).isEqualTo(0);
+
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getWaivedAsTable());
+    assertThat(aggregation.getWaivedCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL)).isEqualTo(0);
+
+    assertThat(aggregation.getResolvedCountCriticalThreat()).isEqualTo(0);
+    assertThat(aggregation.getResolvedCountSevereThreat()).isEqualTo(0);
+    assertThat(aggregation.getResolvedCountModerateThreat()).isEqualTo(0);
+    assertThat(aggregation.getResolvedCountLowThreat()).isEqualTo(0);
+
+    assertThat(aggregation.getMttrCriticalThreat()).isNull();
+    assertThat(aggregation.getMttrSevereThreat()).isNull();
+    assertThat(aggregation.getMttrModerateThreat()).isNull();
+    assertThat(aggregation.getMttrLowThreat()).isNull();
+  }
+
+  @Test
   public void testGeneratePolicyViolationAggregations_ViolationOneWeekAgoFromMidMonth() {
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(app.getId(), "test policy", 10);

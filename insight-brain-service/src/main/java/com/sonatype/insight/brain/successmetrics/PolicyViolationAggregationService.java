@@ -390,6 +390,7 @@ public class PolicyViolationAggregationService
 
     List<PolicyViolation> violations = policyViolationDAO.getActiveByApplicationIdAndStageIdsAndTimeRange(applicationId,
         stageTypeIds, from, upTo);
+    policyViolationDAO.loadConstraintFacts(violations);
 
     List<PolicyViolation> violationsActiveAtBeginning = violations.stream()
         .filter(v -> v.getOpenTime().compareTo(from) < 0)

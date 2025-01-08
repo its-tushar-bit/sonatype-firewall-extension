@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -106,12 +107,12 @@ import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.DependencyResolver.FIELD_ANALYZER_FEATURES;
-import static com.sonatype.insight.brain.report.DependencyResolver.MATCH_STATE;
 import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.DependencyResolver.FIELD_ANALYZER_FEATURES;
+import static com.sonatype.insight.brain.report.DependencyResolver.MATCH_STATE;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxLicenseFromDbData;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxProperty;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxVulnerabilityFromDbData;
@@ -789,11 +790,6 @@ public class SbomResultsMerger
     try (InputStream inputStream = new ByteArrayInputStream(bomAsString.getBytes())) {
       thirdPartyPersistenceService.saveSbomForBinary(inputStream, thirdPartySbomMetadata);
     }
-  }
-
-  private void updateComponentIdentifiedAsSonatype(final ThirdPartyFileCoordinate sbomComponent) {
-    sbomComponent.addIdentificationSource(IdentificationSource.SONATYPE.getId());
-    thirdPartyFileCoordinateDAO.update(sbomComponent);
   }
 
   private void updateComponentDependencyType(final ThirdPartyFileCoordinate sbomComponent) {

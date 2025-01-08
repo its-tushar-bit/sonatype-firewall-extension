@@ -371,16 +371,6 @@ public class PullRequestCommentingHashBuilderTest
       return this;
     }
 
-    public PolicyViolationDiffBuilder withConstraintFactsPerViolation(int constraintFactsPerViolation) {
-      this.constraintFactsPerViolation = constraintFactsPerViolation;
-      return this;
-    }
-
-    public PolicyViolationDiffBuilder withConditionFactsPerConstraintFact(int conditionFactsPerConstraintFact) {
-      this.conditionFactsPerConstraintFact = conditionFactsPerConstraintFact;
-      return this;
-    }
-
     public PolicyViolationDiffBuilder withNoReferencesForConditionFacts() {
       conditionFactsHaveReferences = false;
       return this;

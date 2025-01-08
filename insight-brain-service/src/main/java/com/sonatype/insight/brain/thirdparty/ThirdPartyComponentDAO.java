@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -38,10 +39,9 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ApplicationReport;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -90,8 +90,6 @@ public class ThirdPartyComponentDAO
   public static final ObjectMapper MAPPER = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-  private final InsightWork work;
-
   // For testing visibility
   final TenantReference<Cache<String, Table<String, ComponentIdentifier, ThirdPartyReportComponentDTO>>>
       componentCache;
@@ -101,11 +99,7 @@ public class ThirdPartyComponentDAO
   private Provider<ReportService> reportServiceProvider;
 
   @Inject
-  public ThirdPartyComponentDAO(
-      final InsightWork work,
-      final Provider<ReportService> reportServiceProvider)
-  {
-    this.work = work;
+  public ThirdPartyComponentDAO(final Provider<ReportService> reportServiceProvider) {
     this.reportServiceProvider = reportServiceProvider;
     componentCache = new TenantReference<>(() -> CacheBuilder.newBuilder()
         .expireAfterAccess(1, TimeUnit.DAYS)

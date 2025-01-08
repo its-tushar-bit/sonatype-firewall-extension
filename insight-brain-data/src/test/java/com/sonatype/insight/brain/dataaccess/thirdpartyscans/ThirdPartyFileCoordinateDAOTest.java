@@ -632,18 +632,18 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(dtos).hasSize(5);
     assertThat(dtos.get(0).getName()).isEqualTo("p1");
     assertThat(dtos.get(0).getPercentageAnnotated()).isEqualTo(100.0);
-    assertThat(dtos.get(0).getReleaseStatusPercentage()).isEqualTo(100.0);;
+    assertThat(dtos.get(0).getReleaseStatusPercentage()).isEqualTo(100.0);
     assertThat(dtos.get(1).getName()).isEqualTo("p3");
     assertThat(dtos.get(1).getPercentageAnnotated()).isEqualTo(66.7);
-    assertThat(dtos.get(1).getReleaseStatusPercentage()).isEqualTo(100.0);;
+    assertThat(dtos.get(1).getReleaseStatusPercentage()).isEqualTo(100.0);
     assertThat(dtos.get(2).getName()).isEqualTo("p2");
     assertThat(dtos.get(2).getPercentageAnnotated()).isEqualTo(50.0);
     assertThat(dtos.get(3).getName()).isEqualTo("p5");
     assertThat(dtos.get(3).getPercentageAnnotated()).isEqualTo(0);
-    assertThat(dtos.get(3).getReleaseStatusPercentage()).isEqualTo(100.0);;
+    assertThat(dtos.get(3).getReleaseStatusPercentage()).isEqualTo(100.0);
     assertThat(dtos.get(4).getName()).isEqualTo("p4");
     assertThat(dtos.get(4).getPercentageAnnotated()).isEqualTo(0);
-    assertThat(dtos.get(4).getReleaseStatusPercentage()).isEqualTo(100.0);;
+    assertThat(dtos.get(4).getReleaseStatusPercentage()).isEqualTo(100.0);
 
     // Percentages in ascending order
     result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId(), null,

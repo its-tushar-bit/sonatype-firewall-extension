@@ -13,6 +13,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
@@ -27,7 +28,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -131,8 +131,6 @@ public class SbomRegressionTest
 
   private Application app;
 
-  private InsightWork insightWork;
-
   public SbomRegressionTest(
       final String importSpec,
       final String importSpecVersion,
@@ -184,7 +182,6 @@ public class SbomRegressionTest
   @Before
   public void before() throws Exception {
     setFeatures(LicensedFeature.SBOM_MANAGER);
-    insightWork = lookup(InsightWork.class);
     app = tempEntity.newApplicationWithParent();
   }
 

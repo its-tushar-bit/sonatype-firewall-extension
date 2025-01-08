@@ -87,6 +87,7 @@ public class HasFeatureMethodInterceptorTest
   @HasFeature(SystemConfigurationPropertyFeature.CODE_INSIGHTS)
   private class TestClassWithClassAnnotation
   {
+    @SuppressWarnings("unused")
     public String stubMethodWithoutAnnotation(String arg0) {
       return arg0;
     }

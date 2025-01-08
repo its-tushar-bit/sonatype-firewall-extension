@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.sbom.utils;
 import java.io.File;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.net.URISyntaxException;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -167,7 +167,7 @@ public class SbomMetadataUtilsTest
     }).withMessage("unable to read supplied sbom");
   }
 
-  private InputStream getSbomStream(final String fileName) throws URISyntaxException {
+  private InputStream getSbomStream(final String fileName) {
     return getClass().getResourceAsStream("/SbomMetadataUtilsTest/" + fileName);
   }
 }

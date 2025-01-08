@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -297,30 +298,6 @@ public class ThirdPartyFileCoordinateDAO
       Object[] result = (Object[]) query.getSingleResult();
 
       return new BomPageSbomSummaryDTO(result);
-    }
-  }
-
-  private Double getSbomReleaseStatusPercentage(String applicationId, String sbomVersion) {
-    String sQuery = "" + //
-        "SELECT ROUND((COUNT(CASE WHEN (vex.coordinate_security_id IS NOT NULL) THEN 1 END)) * 100" + //
-        " / NULLIF(COUNT(cs.coordinate_security_id)::decimal, 0), 1) as annotatedPercentage" + //
-        " FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
-        " LEFT JOIN insight_brain_third_party_scans.coordinate_security cs" + //
-        " ON cs.sbom_metadata_id = sm.sbom_metadata_id" + //
-        " LEFT JOIN insight_brain_third_party_scans.vulnerability_exploitability vex" + //
-        " ON cs.coordinate_security_id = vex.coordinate_security_id" + //
-        " WHERE sm.application_id = ?1" + //
-        " AND sm.sbom_version = ?2" + //
-        " AND  cs.severity > ?3";
-
-    try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = createNativeQuery(tx, sQuery,
-          applicationId,
-          sbomVersion,
-          HIGH.getStartScoreRange());
-      Object result = query.getSingleResult();
-
-      return result != null ? ((Number)result).doubleValue() : null;
     }
   }
 

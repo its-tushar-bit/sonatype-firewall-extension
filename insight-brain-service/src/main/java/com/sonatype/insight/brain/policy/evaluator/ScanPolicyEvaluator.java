@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -77,9 +78,9 @@ import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLog
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -183,8 +184,6 @@ public class ScanPolicyEvaluator
 
   private final FeaturesService featuresService;
 
-  private final ComponentInfoService componentInfoService;
-
   private final ReportComponentService reportComponentService;
 
   private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
@@ -255,7 +254,6 @@ public class ScanPolicyEvaluator
     this.telemetryUtils = telemetryUtils;
     this.developmentPrioritizationRemediationService = developmentPrioritizationRemediationService;
     this.featuresService = featuresService;
-    this.componentInfoService = componentInfoService;
     this.reportComponentService = reportComponentService;
     componentInfoService.setToolName("ci");
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;

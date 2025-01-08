@@ -36,7 +36,6 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.report.FileApplicationReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.Zipper;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -63,8 +62,8 @@ import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILE
 import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.SUMMARY_JSON_FILENAME;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME;
@@ -93,9 +92,6 @@ public class ThirdPartyComponentDAOTest
   public TestName testName = new TestName();
 
   @Mock
-  private InsightWork insightWork;
-
-  @Mock
   private ReportService reportService;
 
   private ThirdPartyComponentDAO dao;
@@ -109,8 +105,8 @@ public class ThirdPartyComponentDAOTest
       hashApt, componentIdentifierFrom("debian-9", "apt", "1.4.8"));
 
   @Before
-  public void before() throws URISyntaxException, IOException {
-    dao = new ThirdPartyComponentDAO(insightWork, () -> reportService);
+  public void before() {
+    dao = new ThirdPartyComponentDAO(() -> reportService);
   }
 
   @Test

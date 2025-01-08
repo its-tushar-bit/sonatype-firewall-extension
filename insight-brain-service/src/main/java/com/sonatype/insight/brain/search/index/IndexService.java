@@ -22,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -61,9 +62,9 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.LuceneComponents;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
@@ -72,7 +73,6 @@ import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightJob;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.tenancy.AllTenantsJob;
 import com.sonatype.insight.brain.tenancy.Tenant;
@@ -168,8 +168,6 @@ public class IndexService
 
   private final SearchIndexChangeDAO searchIndexChangeDAO;
 
-  private final InsightWork insightWork;
-
   private final TelemetrySender telemetrySender;
 
   private final VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher;
@@ -236,7 +234,6 @@ public class IndexService
       OwnerDAO ownerDAO,
       PolicyDAO policyDAO,
       SearchIndexChangeDAO searchIndexChangeDAO,
-      InsightWork insightWork,
       TelemetrySender telemetrySender,
       VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher,
       TaskScheduler taskScheduler,
@@ -258,7 +255,6 @@ public class IndexService
     this.ownerDAO = ownerDAO;
     this.policyDAO = policyDAO;
     this.searchIndexChangeDAO = searchIndexChangeDAO;
-    this.insightWork = insightWork;
     this.telemetrySender = telemetrySender;
     this.vulnerabilityDescriptionFetcher = vulnerabilityDescriptionFetcher;
     this.taskScheduler = taskScheduler;

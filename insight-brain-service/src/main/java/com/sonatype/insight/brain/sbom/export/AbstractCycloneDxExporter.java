@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.sbom.export;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -443,7 +442,7 @@ public abstract class AbstractCycloneDxExporter
     }
   }
 
-  protected PdfData convertToPdfData(Bom bom) throws IOException {
+  protected PdfData convertToPdfData(Bom bom) {
     PdfData pdfData = new PdfData();
     pdfData.baseUrl = getBaseUrl();
     pdfData.title = getTitle();
@@ -636,7 +635,7 @@ public abstract class AbstractCycloneDxExporter
    * can be either a hash or a purl, or both pointing to the same violation. This helps to provide a fallback if in case
    * no match for purl to match based on hash
    */
-  private MultiValuedMap<String, PdfComponentPolicyViolation> getPolicyViolationsData() throws IOException {
+  private MultiValuedMap<String, PdfComponentPolicyViolation> getPolicyViolationsData() {
     MultiValuedMap<String, PdfComponentPolicyViolation> mapped = new ArrayListValuedHashMap<>();
     Application app = getApplication();
     ThirdPartyScan tpScan = getThirdPartyScan();

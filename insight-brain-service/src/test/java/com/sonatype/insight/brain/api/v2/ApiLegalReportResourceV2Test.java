@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
@@ -35,7 +34,6 @@ import com.sonatype.insight.brain.model.legal.AttributionReportTemplate;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.report.FileReportDataStore;
 import com.sonatype.insight.brain.report.FileApplicationReport;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -58,9 +56,6 @@ public class ApiLegalReportResourceV2Test
     extends AbstractResourceTest
 {
   private static final String EMPTY_JSON_ARRAY = "[]";
-
-  @Inject
-  private FileReportDataStore reportUtils;
 
   @Override
   protected HttpRequest restRequest() {

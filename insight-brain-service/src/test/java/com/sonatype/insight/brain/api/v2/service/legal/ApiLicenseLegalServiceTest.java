@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -117,7 +118,6 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.report.FileReportDataStore;
 import com.sonatype.insight.brain.report.FileApplicationReport;
 import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.repository.RepositoryQueryService;
@@ -288,9 +288,6 @@ public class ApiLicenseLegalServiceTest
 
   @Inject
   private TelemetryUtils telemetryUtils;
-
-  @Inject
-  private FileReportDataStore reportUtils;
 
   @Override
   public void configure(Binder binder) {

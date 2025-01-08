@@ -1674,16 +1674,6 @@ public class DashboardWaiversTest
     table.firstWaiver().threatNumber().shouldHave(text("7"));
   }
 
-  private void changePage(int page) {
-    DashboardPage.waiversView().paginationButtons().get(page).click();
-
-    new FluentWait<>(getWebDriver())
-        .withTimeout(Duration.ofSeconds(240))
-        .pollingEvery(Duration.ofSeconds(2))
-        .ignoring(NoSuchElementException.class)
-        .until(ExpectedConditions.visibilityOf(table.firstWaiver().policy()));
-  }
-
   private void newFluentWait() {
     new FluentWait<>(getWebDriver())
         .withTimeout(Duration.ofSeconds(240))

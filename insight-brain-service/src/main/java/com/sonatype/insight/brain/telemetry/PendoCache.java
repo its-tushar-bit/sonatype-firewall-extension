@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -137,7 +138,7 @@ public class PendoCache
     }
   }
 
-  private InputStream loadFromHds(String path) throws IOException {
+  private InputStream loadFromHds(String path) {
     return hdsClient.get(InputStream.class, path);
   }
 

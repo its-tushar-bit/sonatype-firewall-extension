@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.report.pdf;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.core.HttpHeaders;
@@ -42,7 +43,6 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -70,8 +70,6 @@ public class PdfGeneratorService
 
   private final SbomExporterProvider sbomExporterProvider;
 
-  private final InsightWork insightWork;
-
   @Inject
   public PdfGeneratorService(
       final ApplicationDAO applicationDAO,
@@ -83,8 +81,7 @@ public class PdfGeneratorService
       final ClusterLockManager clusterLockManager,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final ThirdPartyScanDAO thirdPartyScanDAO,
-      final SbomExporterProvider sbomExporterProvider,
-      final InsightWork insightWork)
+      final SbomExporterProvider sbomExporterProvider)
   {
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -96,7 +93,6 @@ public class PdfGeneratorService
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.sbomExporterProvider = sbomExporterProvider;
-    this.insightWork = insightWork;
   }
 
   @Authorize(permission = Permission.READ)

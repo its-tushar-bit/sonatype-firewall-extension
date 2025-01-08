@@ -26,16 +26,6 @@ import javax.inject.Singleton;
 import javax.persistence.EntityExistsException;
 import javax.persistence.RollbackException;
 
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.codehaus.plexus.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Streams;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
@@ -58,6 +48,16 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.scan.file.SbomFormat;
+
+import com.google.common.collect.Streams;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.codehaus.plexus.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class aims to have centralized responsibility for persisting high-level ThirdParty/SBOM data to the database and
@@ -284,7 +284,7 @@ public class ThirdPartyPersistenceService
       String sbomContents,
       String scanPath,
       String applicationId,
-      SbomDetectionResult detectionResult) throws IOException, CheckedIllegalArgumentException
+      SbomDetectionResult detectionResult) throws IOException
   {
     if (detectionResult.isSbom) {
       throw new IllegalArgumentException("sbomContents must represent a binary, not an SBOM");
@@ -303,7 +303,7 @@ public class ThirdPartyPersistenceService
    * embedded in a scan.xml from a lifecycle scan of a binary) and so does not persist the SBOM contents to disk
    * or create a ThirdPartySbomMetadata record
    */
-  public ThirdPartyFile saveLifecycleSbomFromScan(String scanPath) throws IOException {
+  public ThirdPartyFile saveLifecycleSbomFromScan(String scanPath) {
     try (var tx = thirdPartyFileDAO.createTransactionContext()) {
       tx.begin();
       var retval = saveThirdPartyFileToDB(tx, new PersistencePath.UnsafePath(scanPath));
@@ -776,7 +776,7 @@ public class ThirdPartyPersistenceService
       PersistencePath userPath,
       String applicationId,
       String applicationVersion,
-      SbomDetectionResult detectionResult) throws IOException
+      SbomDetectionResult detectionResult)
   {
     try (var tx = sbomMetadataDAO.createTransactionContext()) {
       tx.begin();
@@ -802,7 +802,7 @@ public class ThirdPartyPersistenceService
       PersistencePath userPath,
       String applicationId,
       String applicationVersion,
-      SbomDetectionResult detectionResult) throws IOException
+      SbomDetectionResult detectionResult)
   {
     var retval = saveSbomMetadataToDB(
         tx,
@@ -903,7 +903,7 @@ public class ThirdPartyPersistenceService
       String applicationId,
       String applicationVersion,
       SbomScanType scanType,
-      SbomDetectionResult detectionResult) throws IOException
+      SbomDetectionResult detectionResult)
   {
     var thirdPartyFile = saveThirdPartyFileToDB(tx, userPath);
 

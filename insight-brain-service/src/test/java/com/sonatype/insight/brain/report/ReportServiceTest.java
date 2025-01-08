@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.AnalysisSource;
@@ -213,9 +214,6 @@ public class ReportServiceTest
 
   @Inject
   private ProprietaryConfigService proprietaryConfigService;
-
-  @Inject
-  private MultiLicenseDAO multiLicenseDaoFromFactory;
 
   @Before
   public void before() {

@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService.PersistencePath.TrustedAutoDeletingTempPath;
 import com.sonatype.insight.brain.utils.CheckedIllegalArgumentException;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.InternalServerException;
@@ -46,8 +47,6 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService.PersistencePath.TrustedAutoDeletingTempPath;
 
 @Named
 @Singleton
@@ -209,7 +208,7 @@ public class SbomImportService
 
   private ApiThirdPartyScanTicketDTO importSbom(
       ThirdPartySbomMetadata sbomMetadata,
-      String clientUserAgent) throws IOException
+      String clientUserAgent)
   {
     return sbomScanEvaluator.evaluateSbom(sbomMetadata, ScanTriggerType.SBOM_UI, clientUserAgent);
   }

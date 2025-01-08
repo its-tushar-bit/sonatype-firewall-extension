@@ -48,6 +48,7 @@ import com.sonatype.insight.brain.utils.ExistingFilesHelper;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.utils.Retry;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.scan.file.SbomFormat;
@@ -1144,6 +1145,83 @@ public class SbomImportServiceTest
     assertExistingSbomFiles("%s/%s".formatted(application.getId(), sbomMetadata.getFilename()));
   }
 
+  @Test
+  public void testImportDetectedSbom_SBOM_Success_Version_Override() throws Exception {
+    mockHdsReportDownload();
+    InputStream file =
+        SbomImportServiceTest.class.getResourceAsStream("/SbomImportServiceTest/valid-cyclonedx-bom.xml");
+
+    var detectionResult =
+        sbomImportService.detectSbom(application.getId(), file, "valid-cyclonedx-bom.xml", false);
+
+    assertThat(detectionResult.getSavedVersion()).isNotEqualTo("1.2.3.4");
+
+    Response response = sbomImportService.importDetectedSbom(
+        application.getId(),
+        detectionResult.getSavedVersion(),
+        "1.2.3.4",
+        "clientUserAgent"
+    );
+    assertThat(response).isNotNull();
+
+    assertThat(response.getStatus()).isEqualTo(Status.ACCEPTED.getStatusCode());
+    assertThat(response.getEntity()).isNotNull();
+    ApiThirdPartyScanTicketDTO status = (ApiThirdPartyScanTicketDTO) response.getEntity();
+    assertThat(status.statusUrl).isNotEmpty()
+        .startsWith("api/v2/sbom/applications/" + application.getId() + "/status/");
+
+    policyEvaluationHelper.awaitEvaluationCompleted(application.getId(), status.requestId);
+
+    var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(application.getId(), "1.2.3.4");
+    assertExistingSbomFiles("%s/%s".formatted(application.getId(), sbomMetadata.getFilename()));
+  }
+
+  @Test
+  public void testImportDetectedSbom_SBOM_Success_Version_Override_Blank() throws Exception {
+    InputStream file =
+        SbomImportServiceTest.class.getResourceAsStream("/SbomImportServiceTest/valid-cyclonedx-bom.xml");
+
+    var detectionResult =
+        sbomImportService.detectSbom(application.getId(), file, "valid-cyclonedx-bom.xml", false);
+
+    assertThatThrownBy(() -> sbomImportService.importDetectedSbom(
+        application.getId(),
+        detectionResult.getSavedVersion(),
+        "   ",
+        "clientUserAgent"
+    )).isInstanceOf(BadRequestException.class);
+  }
+
+  @Test
+  public void testImportDetectedSbom_SBOM_Success_Version_Override_Conflict() throws Exception {
+    mockHdsReportDownload();
+    InputStream file1 =
+        SbomImportServiceTest.class.getResourceAsStream("/SbomImportServiceTest/valid-cyclonedx-bom.xml");
+
+    var detectionResult1 =
+        sbomImportService.detectSbom(application.getId(), file1, "valid-cyclonedx-bom.xml", false);
+
+    sbomImportService.importDetectedSbom(
+        application.getId(),
+        detectionResult1.getSavedVersion(),
+        "1.2.3.4",
+        "clientUserAgent"
+    );
+
+    InputStream file2 =
+        SbomImportServiceTest.class.getResourceAsStream("/SbomImportServiceTest/valid-cyclonedx-bom.xml");
+
+    var detectionResult2 =
+        sbomImportService.detectSbom(application.getId(), file2, "valid-cyclonedx-bom.xml", false);
+
+    assertThatThrownBy(() -> sbomImportService.importDetectedSbom(
+        application.getId(),
+        detectionResult2.getSavedVersion(),
+        "1.2.3.4",
+        "clientUserAgent"
+    )).isInstanceOf(ConflictException.class);
+  }
+
   public SbomDetectionResultDTO testImportDetectedSbom_Success(
       String fileName,
       SbomScanType scanType,
@@ -1160,6 +1238,7 @@ public class SbomImportServiceTest
     Response response = sbomImportService.importDetectedSbom(
         application.getId(),
         detectionResult.getSavedVersion(),
+        null,
         "clientUserAgent"
     );
     assertThat(response).isNotNull();
@@ -1179,7 +1258,7 @@ public class SbomImportServiceTest
   public void testImportDetectedSbom_Failure_InvalidApplicationId() throws IOException {
     assertThrows("Application with id applicationId does not exist", NotFoundException.class,
         () ->
-            sbomImportService.importDetectedSbom("notAnApplicationId", "1", "userAgent"));
+            sbomImportService.importDetectedSbom("notAnApplicationId", "1", null, "userAgent"));
 
     assertExistingSbomFiles();
   }
@@ -1191,7 +1270,7 @@ public class SbomImportServiceTest
     assertThrows(
         "SBOM with applicationId %s and version %s does not exist".formatted(application.getId(), invalidVersion),
         NotFoundException.class,
-        () -> sbomImportService.importDetectedSbom(application.getId(), invalidVersion, "userAgent"));
+        () -> sbomImportService.importDetectedSbom(application.getId(), invalidVersion, null, "userAgent"));
 
     assertExistingSbomFiles();
   }

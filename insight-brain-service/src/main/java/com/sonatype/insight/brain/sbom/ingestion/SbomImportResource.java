@@ -71,9 +71,19 @@ public class SbomImportResource
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
   public Response importDetectedSbom(
       @PathParam("applicationId") String applicationId,
+
+      // the app version that was detected and returned in the detectSbom response
       @PathParam("applicationVersion") String applicationVersion,
+
+      // the version that the user wants to use instead of the detected one. Optional
+      @QueryParam("applicationVersionOverride") String applicationVersionOverride,
       @Context HttpServletRequest req)
   {
-    return sbomImportService.importDetectedSbom(applicationId, applicationVersion, HdsClient.getClientUserAgent(req));
+    return sbomImportService.importDetectedSbom(
+        applicationId,
+        applicationVersion,
+        applicationVersionOverride,
+        HdsClient.getClientUserAgent(req)
+    );
   }
 }

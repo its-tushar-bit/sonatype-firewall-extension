@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -31,6 +32,8 @@ public class SbomImportResourceTest
 {
   private Application application;
 
+  private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
   private PolicyEvaluationHelper policyEvaluationHelper;
 
   @Before
@@ -45,6 +48,7 @@ public class SbomImportResourceTest
     application = tempEntity.newApplicationWithParent();
 
     policyEvaluationHelper = lookup(PolicyEvaluationHelper.class);
+    thirdPartySbomMetadataDAO = lookup(ThirdPartySbomMetadataDAO.class);
   }
 
   @Override
@@ -297,25 +301,114 @@ public class SbomImportResourceTest
 
   @Test
   public void testImportDetectedSbom_BINARY_Success() throws Exception {
-    testImportDetectedSbom_Success("binary.jar", false);
+    testImportDetectedSbom_Success("binary.jar", false, null);
   }
 
   @Test
   public void testImportDetectedSbom_SBOM_Success() throws Exception {
-    testImportDetectedSbom_Success("valid-spdx-bom.json", false);
+    testImportDetectedSbom_Success("valid-spdx-bom.json", false, "a140fd3c3ded4bb0a640dc31e2904dc9");
   }
 
   @Test
   public void testImportDetectedSbom_SkipSpdxSbomValidation_Success() throws Exception {
-    testImportDetectedSbom_Success("invalid-spdx-bom.json", true);
+    testImportDetectedSbom_Success("invalid-spdx-bom.json", true, null);
   }
 
   @Test
   public void testImportDetectedSbom_SkipCycloneDxSbomValidation_Success() throws Exception {
-    testImportDetectedSbom_Success("invalid-cyclonedx-bom.xml", true);
+    testImportDetectedSbom_Success("invalid-cyclonedx-bom.xml", true, "a140fd3c3ded4bb0a640dc31e2904dc9");
   }
 
-  private void testImportDetectedSbom_Success(String fileName, boolean ignoreValidationError) throws Exception {
+  @Test
+  public void testImportDetectedSbom_ApplicationVersionOverride() throws Exception {
+    mockHdsReportDownload();
+
+    URL resource = SbomImportResourceTest.class.getResource("/SbomImportResourceTest/valid-spdx-bom.json");
+    File sbom = new File(Objects.requireNonNull(resource).getFile());
+    HttpResponse responseDetect = restRequest()
+        .parameter(application.getId())
+        .part("file", sbom.getName(), Files.readAllBytes(sbom.toPath()))
+        .path(SbomImportResource.DETECT_PATH)
+        .post();
+    SbomDetectionResultDTO actual = responseDetect.getBody(SbomDetectionResultDTO.class);
+
+    HttpResponse responseCommit = restRequest()
+        .path(SbomImportResource.COMMIT_PATH)
+        .parameter(application.getId(), actual.getSavedVersion())
+        .query("applicationVersionOverride", "1.2.3.4")
+        .post();
+
+    ApiThirdPartyScanTicketDTO responseCommitBody = responseCommit.getBody(ApiThirdPartyScanTicketDTO.class);
+
+    assertResponseStatus(202, responseCommit);
+    assertThat(responseCommitBody).isNotNull();
+    assertThat(responseCommitBody.statusUrl).isNotEmpty();
+    assertThat(responseCommitBody.statusUrl).startsWith("api/v2/sbom/applications/" + application.getId() + "/status/");
+
+    policyEvaluationHelper.awaitEvaluationCompleted(application.getId(), getStatusId(responseCommitBody.statusUrl));
+
+    var sbomMetadatas = thirdPartySbomMetadataDAO.getByApplicationId(application.getId());
+    assertThat(sbomMetadatas).hasSize(1);
+    assertThat(sbomMetadatas.get(0).getSbomVersion()).isEqualTo("1.2.3.4");
+  }
+
+  @Test
+  public void testImportDetectedSbom_ApplicationVersionOverride_Blank() throws Exception {
+    URL resource = SbomImportResourceTest.class.getResource("/SbomImportResourceTest/valid-spdx-bom.json");
+    File sbom = new File(Objects.requireNonNull(resource).getFile());
+    HttpResponse responseDetect = restRequest()
+        .parameter(application.getId())
+        .part("file", sbom.getName(), Files.readAllBytes(sbom.toPath()))
+        .path(SbomImportResource.DETECT_PATH)
+        .post();
+    SbomDetectionResultDTO actual = responseDetect.getBody(SbomDetectionResultDTO.class);
+
+    HttpResponse responseCommit = restRequest()
+        .path(SbomImportResource.COMMIT_PATH)
+        .parameter(application.getId(), actual.getSavedVersion())
+        .query("applicationVersionOverride", "    ")
+        .post();
+
+    assertResponseStatus(400, responseCommit);
+  }
+
+  @Test
+  public void testImportDetectedSbom_ApplicationVersionOverride_Conflict() throws Exception {
+    URL resource = SbomImportResourceTest.class.getResource("/SbomImportResourceTest/valid-spdx-bom.json");
+    File sbom = new File(Objects.requireNonNull(resource).getFile());
+    HttpResponse responseDetect1 = restRequest()
+        .parameter(application.getId())
+        .part("file", sbom.getName(), Files.readAllBytes(sbom.toPath()))
+        .path(SbomImportResource.DETECT_PATH)
+        .post();
+    SbomDetectionResultDTO actual1 = responseDetect1.getBody(SbomDetectionResultDTO.class);
+    restRequest()
+        .path(SbomImportResource.COMMIT_PATH)
+        .parameter(application.getId(), actual1.getSavedVersion())
+        .query("applicationVersionOverride", "1.2.3.4")
+        .post();
+
+    HttpResponse responseDetect2 = restRequest()
+        .parameter(application.getId())
+        .part("file", sbom.getName(), Files.readAllBytes(sbom.toPath()))
+        .path(SbomImportResource.DETECT_PATH)
+        .post();
+    SbomDetectionResultDTO actual2 = responseDetect2.getBody(SbomDetectionResultDTO.class);
+
+    HttpResponse responseCommit2 = restRequest()
+        .path(SbomImportResource.COMMIT_PATH)
+        .parameter(application.getId(), actual2.getSavedVersion())
+        .query("applicationVersionOverride", "1.2.3.4")
+        .post();
+
+    assertResponseStatus(409, responseCommit2);
+  }
+
+  private void testImportDetectedSbom_Success(
+      String fileName,
+      boolean ignoreValidationError,
+      String expectedVersion) throws Exception
+  {
     mockHdsReportDownload();
 
     URL resource = SbomImportResourceTest.class.getResource("/SbomImportResourceTest/" + fileName);
@@ -341,6 +434,12 @@ public class SbomImportResourceTest
     assertThat(responseCommitBody.statusUrl).startsWith("api/v2/sbom/applications/" + application.getId() + "/status/");
 
     policyEvaluationHelper.awaitEvaluationCompleted(application.getId(), getStatusId(responseCommitBody.statusUrl));
+
+    var sbomMetadatas = thirdPartySbomMetadataDAO.getByApplicationId(application.getId());
+    assertThat(sbomMetadatas).hasSize(1);
+    if (expectedVersion != null) {
+      assertThat(sbomMetadatas.get(0).getSbomVersion()).isEqualTo(expectedVersion);
+    }
   }
 
   private String getStatusId(String statusUrl) {

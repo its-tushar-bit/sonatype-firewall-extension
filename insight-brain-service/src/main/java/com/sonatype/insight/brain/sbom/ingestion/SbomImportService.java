@@ -156,6 +156,7 @@ public class SbomImportService
   public Response importDetectedSbom(
       @AuthzContext(Key.APPLICATION_ID) String applicationId,
       String applicationVersion,
+      String applicationVersionOverride,
       String clientUserAgent)
   {
     ThirdPartySbomMetadata sbomMetadata =
@@ -177,6 +178,8 @@ public class SbomImportService
         case SBOM -> importSbom(sbomMetadata, clientUserAgent);
         case BINARY -> importBinary(sbomMetadata, thirdPartyFile, clientUserAgent);
       };
+
+      handleVersionOverride(sbomMetadata, applicationVersionOverride);
 
       return Response.status(Status.ACCEPTED).entity(importTicket).build();
     }
@@ -226,6 +229,19 @@ public class SbomImportService
     thirdPartyPersistenceService.deletePersistentTempBinary(sbomMetadata, thirdPartyFile);
 
     return retval;
+  }
+
+  private void handleVersionOverride(ThirdPartySbomMetadata sbomMetadata, String applicationVersionOverride) {
+    // While it isn't this class' job to do validation of the new value per se, it is this class' job to assess whether
+    // the user was even trying to update the version in the first place.
+    if (StringUtils.isNotEmpty(applicationVersionOverride)) {
+      try {
+        thirdPartyPersistenceService.updateApplicationVersion(sbomMetadata, applicationVersionOverride);
+      }
+      catch (CheckedIllegalArgumentException e) {
+        throw new BadRequestException(e);
+      }
+    }
   }
 
   private void sendTelemetry(final SbomDetectionResult result) {

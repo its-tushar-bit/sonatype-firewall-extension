@@ -56,23 +56,21 @@ public class SbomImportServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testImportDetectedSbom_Unauthenticated() {
-    sbomImportService.importDetectedSbom("abcd", "abcd", "userAgent");
+    sbomImportService.importDetectedSbom("abcd", "abcd", null, "userAgent");
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testImportDetectedSbom_Unauthorized() {
     login();
     Application application = tempEntity.newApplicationWithParent();
-    sbomImportService.importDetectedSbom(application.getId(), "abcd", "userAgent");
+    sbomImportService.importDetectedSbom(application.getId(), "abcd", null, "userAgent");
   }
 
   @Test(expected = NotFoundException.class)
   public void testImportDetectedSbom_Authorized() {
     grantWritePermission();
     Application application = tempEntity.newApplicationWithParent();
-    Response response = sbomImportService.importDetectedSbom(application.getId(),
-        "U0JPTS1mYWxzZS1qc29uLVNCT00tYWUyNmJmZjhmMjExNGI2MjlkNjFkNjI2ZmQ1Y2FiYzctdGVzdF9ib20uanNvbg==",
-        "userAgent");
+    Response response = sbomImportService.importDetectedSbom(application.getId(), "abcd", null, "userAgent");
     ApiThirdPartyScanTicketDTO status = (ApiThirdPartyScanTicketDTO) response.getEntity();
     policyEvaluationHelper.awaitEvaluationFinished(application.getId(), status.requestId);
   }

@@ -31,6 +31,7 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +55,7 @@ import com.sonatype.insight.brain.utils.CheckedIllegalArgumentException;
 import com.sonatype.insight.brain.utils.FunctionWithException;
 import com.sonatype.insight.brain.utils.SupplierWithException;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.scan.file.SbomFormat;
 
@@ -494,6 +496,43 @@ public class ThirdPartyPersistenceService
     catch (Exception e) {
       deleteFileDueToException(compressedSbomPath, e);
       throw e;
+    }
+  }
+
+  /**
+   * Updates the `sbomVersion` field on the given ThirdPartySbomMetadata record to the specified value and saves
+   * it to the database. If the new version is the same as the current version, no changes are made.
+   *
+   * @throws CheckedIllegalArgumentException if applicationVersion is null, empty, or only whitespace
+   * @throws ConflictException if applicationVersion conflicts with an existing saved version on another record
+   */
+  public void updateApplicationVersion(
+      ThirdPartySbomMetadata sbomMetadata,
+      String applicationVersion) throws CheckedIllegalArgumentException
+  {
+    if (StringUtils.isBlank(applicationVersion)) {
+      throw new CheckedIllegalArgumentException("applicationVersion must not be blank");
+    }
+    else if (!applicationVersion.equals(sbomMetadata.getSbomVersion())) {
+      try (var tx = sbomMetadataDAO.createTransactionContext()) {
+        tx.begin();
+
+        sbomMetadata.setSbomVersion(applicationVersion);
+        sbomMetadataDAO.update(tx, sbomMetadata);
+
+        var auditData = AuditData.get();
+        auditData.setSbomVersion(sbomMetadata, SbomAction.UPDATE);
+
+        tx.commit();
+      }
+      catch (EntityExistsException | RollbackException e) {
+        if (e instanceof EntityExistsException || e.getCause() instanceof EntityExistsException) {
+          throw new ConflictException("Version %s already exists".formatted(applicationVersion), e);
+        }
+        else {
+          throw e;
+        }
+      }
     }
   }
 

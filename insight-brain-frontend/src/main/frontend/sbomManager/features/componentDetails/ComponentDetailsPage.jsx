@@ -310,97 +310,99 @@ export default function ComponentDetailsPage() {
       )}
       <NxPageMain id="sbom-manager-component-details" className={'sbom-component-details nx-viewport-sized'}>
         <MenuBarStatefulBreadcrumb />
-        <NxLoadWrapper
-          retryHandler={load}
-          loading={isProductFeaturesLoading || isLoading}
-          error={errorLoadingProductFeatures || noSbomManagerEnabledError || loadError}
-        >
-          {componentDetails && (
-            <div className="nx-viewport-sized__scrollable nx-scrollable sbom-component-details-page__content">
-              <ComponentDetailsHeader>
-                <Title id="component-details-title">{componentDetails.displayName}</Title>
-                <ComponentDetailsSbomInfo {...componentDetails.metadata} />
-                <ComponentDetailsTags
-                  dependencyType={componentDetails.dependencyType.toLowerCase()}
-                  format={componentDetails.componentIdentifier?.format}
-                  isInnerSource={componentDetails.isInnerSource}
-                  labels={componentDetails.labels}
-                  filename={isNilOrEmpty(componentDetails?.filenames) ? '' : componentDetails?.filenames[0]}
-                  matchState={componentDetails?.matchState?.toLowerCase()}
-                />
-                {componentDetails.packageUrl && (
-                  <NxTag className="nx-tag sbom-nx-tag" color="sky">
-                    <span className="purl-container">{componentDetails.packageUrl}</span>
-                    {'  '}
-                    <NxTooltip title={!isPurlCopied ? 'Copy PackageURL to clipboard' : 'Copied'}>
-                      <span
-                        className="copy-icon-container"
-                        data-testid="copyIconContainer"
-                        onClick={() => copyToClipboard(componentDetails.packageUrl)}
-                      >
-                        <NxFontAwesomeIcon
-                          className={'sbom-copy-icon'}
-                          icon={faCopy}
+        <div className="nx-viewport-sized__scrollable nx-scrollable sbom-component-details-page__content">
+          <NxLoadWrapper
+            retryHandler={load}
+            loading={isProductFeaturesLoading || isLoading}
+            error={errorLoadingProductFeatures || noSbomManagerEnabledError || loadError}
+          >
+            {componentDetails && (
+              <div>
+                <ComponentDetailsHeader>
+                  <Title id="component-details-title">{componentDetails.displayName}</Title>
+                  <ComponentDetailsSbomInfo {...componentDetails.metadata} />
+                  <ComponentDetailsTags
+                    dependencyType={componentDetails.dependencyType.toLowerCase()}
+                    format={componentDetails.componentIdentifier?.format}
+                    isInnerSource={componentDetails.isInnerSource}
+                    labels={componentDetails.labels}
+                    filename={isNilOrEmpty(componentDetails?.filenames) ? '' : componentDetails?.filenames[0]}
+                    matchState={componentDetails?.matchState?.toLowerCase()}
+                  />
+                  {componentDetails.packageUrl && (
+                    <NxTag className="nx-tag sbom-nx-tag" color="sky">
+                      <span className="purl-container">{componentDetails.packageUrl}</span>
+                      {'  '}
+                      <NxTooltip title={!isPurlCopied ? 'Copy PackageURL to clipboard' : 'Copied'}>
+                        <span
+                          className="copy-icon-container"
+                          data-testid="copyIconContainer"
                           onClick={() => copyToClipboard(componentDetails.packageUrl)}
-                        />
-                      </span>
-                    </NxTooltip>
-                  </NxTag>
+                        >
+                          <NxFontAwesomeIcon
+                            className={'sbom-copy-icon'}
+                            icon={faCopy}
+                            onClick={() => copyToClipboard(componentDetails.packageUrl)}
+                          />
+                        </span>
+                      </NxTooltip>
+                    </NxTag>
+                  )}
+                </ComponentDetailsHeader>
+                {componentDetails.vulnerabilitySummary && (
+                  <ComponentSummary
+                    vulnerabilitySummary={componentDetails.vulnerabilitySummary}
+                    policyViolationSummary={componentDetails.policyViolationSummary}
+                    isSbomPoliciesSupported={isSbomPoliciesSupported}
+                  ></ComponentSummary>
                 )}
-              </ComponentDetailsHeader>
-              {componentDetails.vulnerabilitySummary && (
-                <ComponentSummary
-                  vulnerabilitySummary={componentDetails.vulnerabilitySummary}
-                  policyViolationSummary={componentDetails.policyViolationSummary}
-                  isSbomPoliciesSupported={isSbomPoliciesSupported}
-                ></ComponentSummary>
-              )}
-              <NxTabs activeTab={activeTabIndex} onTabSelect={setActiveTabIndex}>
-                <NxTabList>
-                  <NxTab>Vulnerability</NxTab>
-                  {isSbomPoliciesSupported && <NxTab>Policy Violations</NxTab>}
-                </NxTabList>
-                <NxTabPanel>
-                  <VulnerabilitiesTile
-                    tableUniqueIdentifier={'disclosedVulnerabilities'}
-                    vulnerabilities={componentDetails?.disclosedVulnerabilities}
-                    openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
-                    openVexAnnotationModal={openVexAnnotationModal}
-                    analysisStatusesOptions={analysisStatusesOptions}
-                    justificationsOptions={justificationsOptions}
-                    responsesOptions={responsesOptions}
-                    sortConfiguration={disclosedVulnerabilitiesSortConfiguration}
-                    toggleSortDirection={cycleDisclosedVulnerabilitiesSortDirection}
-                    onDeleteOptionClick={openDeleteModal}
-                    onCopyOptionClick={openCopyModal}
-                  ></VulnerabilitiesTile>
-                  <VulnerabilitiesTile
-                    tableUniqueIdentifier={'sonatypeIdentifiedVulnerabilities'}
-                    vulnerabilities={componentDetails?.sonatypeIdentifiedVulnerabilities}
-                    isDisclosedVulnerabilities={false}
-                    openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
-                    openVexAnnotationModal={openVexAnnotationModal}
-                    analysisStatusesOptions={analysisStatusesOptions}
-                    justificationsOptions={justificationsOptions}
-                    responsesOptions={responsesOptions}
-                    sortConfiguration={additionalVulnerabilitiesSortConfiguration}
-                    toggleSortDirection={cycleAdditionalVulnerabilitiesSortDirection}
-                    onDeleteOptionClick={openDeleteModal}
-                    onCopyOptionClick={openCopyModal}
-                  ></VulnerabilitiesTile>
-                  <ComponentDetailsDependencyTreeTile
-                    componentDetails={componentDetails}
-                  ></ComponentDetailsDependencyTreeTile>
-                </NxTabPanel>
-                {isSbomPoliciesSupported && (
+                <NxTabs activeTab={activeTabIndex} onTabSelect={setActiveTabIndex}>
+                  <NxTabList>
+                    <NxTab>Vulnerability</NxTab>
+                    {isSbomPoliciesSupported && <NxTab>Policy Violations</NxTab>}
+                  </NxTabList>
                   <NxTabPanel>
-                    <PolicyViolationsTile applicationPublicId={applicationPublicId} sbomVersion={sbomVersion} />
+                    <VulnerabilitiesTile
+                      tableUniqueIdentifier={'disclosedVulnerabilities'}
+                      vulnerabilities={componentDetails?.disclosedVulnerabilities}
+                      openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
+                      openVexAnnotationModal={openVexAnnotationModal}
+                      analysisStatusesOptions={analysisStatusesOptions}
+                      justificationsOptions={justificationsOptions}
+                      responsesOptions={responsesOptions}
+                      sortConfiguration={disclosedVulnerabilitiesSortConfiguration}
+                      toggleSortDirection={cycleDisclosedVulnerabilitiesSortDirection}
+                      onDeleteOptionClick={openDeleteModal}
+                      onCopyOptionClick={openCopyModal}
+                    ></VulnerabilitiesTile>
+                    <VulnerabilitiesTile
+                      tableUniqueIdentifier={'sonatypeIdentifiedVulnerabilities'}
+                      vulnerabilities={componentDetails?.sonatypeIdentifiedVulnerabilities}
+                      isDisclosedVulnerabilities={false}
+                      openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
+                      openVexAnnotationModal={openVexAnnotationModal}
+                      analysisStatusesOptions={analysisStatusesOptions}
+                      justificationsOptions={justificationsOptions}
+                      responsesOptions={responsesOptions}
+                      sortConfiguration={additionalVulnerabilitiesSortConfiguration}
+                      toggleSortDirection={cycleAdditionalVulnerabilitiesSortDirection}
+                      onDeleteOptionClick={openDeleteModal}
+                      onCopyOptionClick={openCopyModal}
+                    ></VulnerabilitiesTile>
+                    <ComponentDetailsDependencyTreeTile
+                      componentDetails={componentDetails}
+                    ></ComponentDetailsDependencyTreeTile>
                   </NxTabPanel>
-                )}
-              </NxTabs>
-            </div>
-          )}
-        </NxLoadWrapper>
+                  {isSbomPoliciesSupported && (
+                    <NxTabPanel>
+                      <PolicyViolationsTile applicationPublicId={applicationPublicId} sbomVersion={sbomVersion} />
+                    </NxTabPanel>
+                  )}
+                </NxTabs>
+              </div>
+            )}
+          </NxLoadWrapper>
+        </div>
         <SbomVulnerabilityDetailsPopover
           toggleVulnerabilityPopoverWithEffects={closeVulnerabilityDetailsModal}
           showVulnerabilityDetailPopover={isPopoverOpen}
@@ -426,7 +428,7 @@ export default function ComponentDetailsPage() {
             onCancel={cancelCopyModal}
           ></CopyAnnotationModal>
         )}
-        <ComponentDetailsFooter {...pagination} />
+        {!isLoading && <ComponentDetailsFooter {...pagination} />}
       </NxPageMain>
     </>
   );

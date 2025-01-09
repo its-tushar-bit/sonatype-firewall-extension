@@ -20,6 +20,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -28,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.model.HasComponentId;
@@ -35,6 +37,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.security.Authorize;
@@ -68,6 +71,8 @@ public class PolicyWaiverResource
 
   private final PolicyWaiverDAO policyWaiverDAO;
 
+  private final PolicyWaiverReasonDAO policyWaiverReasonDAO;
+
   private final PolicyDAO policyDAO;
 
   private final IdUtils idUtils;
@@ -79,6 +84,7 @@ public class PolicyWaiverResource
       final ApplicationComponentDAO applicationComponentDAO,
       final PolicyWaiverDAO policyWaiverDAO,
       final PolicyDAO policyDAO,
+      final PolicyWaiverReasonDAO policyWaiverReasonDAO,
       final IdUtils idUtils)
   {
     this.ownerDAO = ownerDAO;
@@ -86,6 +92,7 @@ public class PolicyWaiverResource
     this.applicationComponentDAO = applicationComponentDAO;
     this.policyWaiverDAO = policyWaiverDAO;
     this.policyDAO = policyDAO;
+    this.policyWaiverReasonDAO = policyWaiverReasonDAO;
     this.idUtils = idUtils;
   }
 
@@ -131,13 +138,17 @@ public class PolicyWaiverResource
     Function<String, String> policyNameLoader =
         policyId -> policyNamesById.computeIfAbsent(policyId, id -> policyDAO.getById(id).getName());
 
+    Map<String, PolicyWaiverReason> policyWaiverReasonMap = policyWaiverReasonDAO
+            .getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
+
     AppliedWaivers result = new AppliedWaivers();
     ComponentIdentifier componentIdentifier = null;
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       if (componentIdentifier == null) {
         componentIdentifier = getComponentIdentifierFromOwnerAndHash(owner, hash);
       }
-      result.add(owner, getApplicableWaivers(owner.getId(), hash, policyNameLoader, componentIdentifier));
+      result.add(owner, getApplicableWaivers(owner.getId(), hash, policyNameLoader, componentIdentifier,
+              policyWaiverReasonMap));
     }
 
     return result;
@@ -147,7 +158,8 @@ public class PolicyWaiverResource
       String ownerId,
       String hash,
       Function<String, String> policyNameLoader,
-      ComponentIdentifier componentIdentifier)
+      ComponentIdentifier componentIdentifier,
+      Map<String, PolicyWaiverReason> policyWaiverReasonMap)
   {
     PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
     List<PolicyWaiver> waivers =
@@ -169,6 +181,10 @@ public class PolicyWaiverResource
       dto.setAssociatedPackageUrl(waiver.getAssociatedPackageUrl());
       dto.setComponentMatchStrategy(waiver.getComponentMatchStrategy());
       dto.setExpireWhenRemediationAvailable(waiver.isExpireWhenRemediationAvailable());
+      if (waiver.getWaiverReasonId() != null) {
+        dto.policyWaiverReasonId = waiver.getWaiverReasonId();
+        dto.reasonText = policyWaiverReasonMap.get(waiver.getWaiverReasonId()).getReasonText();
+      }
       dtos.add(dto);
     }
     return dtos;
@@ -265,5 +281,15 @@ public class PolicyWaiverResource
       extends PolicyWaiver
   {
     public String policyName;
+
+    public String reasonText;
+
+    public String policyWaiverReasonId;
+
+    @JsonIgnore
+    @Override
+    public String getWaiverReasonId() {
+      return null;
+    }
   }
 }

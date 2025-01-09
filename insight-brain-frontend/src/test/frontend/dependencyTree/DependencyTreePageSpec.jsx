@@ -32,6 +32,7 @@ describe('DependencyTreePage', () => {
     spyOn(RouterStateContext, 'useRouterState').and.returnValue({
       get: jasmine.createSpy('useRouterState.get'),
       href: jasmine.createSpy('useRouterState.href'),
+      includes: jasmine.createSpy('useRouterState.includes'),
     });
     renderComponent = () => render(<DependencyTreePage />);
   });

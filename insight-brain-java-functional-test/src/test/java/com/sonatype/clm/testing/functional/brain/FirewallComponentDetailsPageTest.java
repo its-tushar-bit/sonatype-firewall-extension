@@ -3028,7 +3028,8 @@ public class FirewallComponentDetailsPageTest
     refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
     waitUntilSpinnersGone();
 
-    waiversPagesFromRepositoryComponentDetailsPage_commonBackButtonsAssertions("#/firewall/repository/");
+    waiversPagesFromRepositoryComponentDetailsPage_commonBackButtonsAssertions(
+        "#/malware-defense/repository/");
   }
 
   @Test

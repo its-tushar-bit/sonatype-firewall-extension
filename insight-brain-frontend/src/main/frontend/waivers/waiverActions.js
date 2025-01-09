@@ -35,11 +35,13 @@ import {
   selectIsFirewallOrRepository,
   selectRouterCurrentParams,
   selectCurrentRouteName,
+  selectIsStandaloneFirewall,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { gotoWaiver, setSidebarNavListData } from 'MainRoot/sidebarNav/sidebarNavListActions';
 import { loadExistingWaiversData } from 'MainRoot/firewall/firewallActions';
 import { selectComponentDetailsViolationsSlice } from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 import { compose, prop } from 'ramda';
+import { FIREWALL_FIREWALLPAGE_WAIVERS, FIREWALL_WAIVER_DETAILS } from 'MainRoot/constants/states';
 
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED';
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED';
@@ -363,7 +365,7 @@ const loadSimilarWaiversFulfilled = payloadParamActionCreator(WAIVERS_LOAD_SIMIL
 const loadSimilarWaiversFailed = payloadParamActionCreator(WAIVERS_LOAD_SIMILAR_WAIVERS_FAILED);
 const deleteWaiverMaskTimerDone = noPayloadActionCreator(WAIVERS_DELETE_MASK_TIMER_DONE);
 
-export const filterDataByIdAndRedirectToNextWaiverOrDashboard = (waiverList, waiverId) => {
+export const filterDataByIdAndRedirectToNextWaiverOrDashboard = (waiverList, waiverId, isStandaloneFirewall) => {
   return (dispatch) => {
     let idIndex = -1;
     const newWaiverList = waiverList.filter(({ id }, index) => {
@@ -373,10 +375,11 @@ export const filterDataByIdAndRedirectToNextWaiverOrDashboard = (waiverList, wai
     });
 
     if (waiverList.length === 1 || idIndex === -1) {
-      dispatch(stateGo('dashboard.overview.waivers'));
+      const stateToGo = isStandaloneFirewall ? FIREWALL_FIREWALLPAGE_WAIVERS : 'dashboard.overview.waivers';
+      dispatch(stateGo(stateToGo));
     } else {
       const nextItem = idIndex + 1 === waiverList.length ? waiverList[0] : waiverList[idIndex + 1];
-      dispatch(gotoWaiver(nextItem.ownerId, nextItem.ownerType, nextItem.id));
+      dispatch(gotoWaiver(nextItem.ownerId, nextItem.ownerType, nextItem.id, isStandaloneFirewall));
     }
     dispatch(setSidebarNavListData(newWaiverList));
   };
@@ -394,6 +397,8 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
       ? state.componentDetailsPolicyViolations.selectedPolicyViolation?.policyViolationId
       : state.violation.violationDetails?.policyViolationId;
 
+    const isStandaloneFirewall = selectIsStandaloneFirewall(state);
+
     const endpointUrl = deleteWaiverUrl(ownerType, ownerId, waiverId);
 
     return axios
@@ -402,8 +407,10 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
         dispatch(deleteWaiverFulfilled());
         const routerName = selectCurrentRouteName(state);
         setTimeout(() => {
-          if (routerName === 'waiver.details') {
-            dispatch(filterDataByIdAndRedirectToNextWaiverOrDashboard(sidebarNavList.data, waiverId));
+          if (routerName === 'waiver.details' || routerName === FIREWALL_WAIVER_DETAILS) {
+            dispatch(
+              filterDataByIdAndRedirectToNextWaiverOrDashboard(sidebarNavList.data, waiverId, isStandaloneFirewall)
+            );
           }
           dispatch(deleteWaiverMaskTimerDone());
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);

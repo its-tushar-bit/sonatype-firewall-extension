@@ -22,8 +22,9 @@ import {
   setQuarantineGridPolicyFilterWithProprietaryNameConflict,
   setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode,
 } from './firewallActions';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 
-function mapStateToProps({ firewall }) {
+function mapStateToProps({ firewall, router }) {
   return {
     ...pick(['showWelcomeModal'], firewall),
     ...pick(['isShowConfigurationModal', 'loadError'], firewall.viewState),
@@ -62,6 +63,7 @@ function mapStateToProps({ firewall }) {
     ),
     ...firewall.quarantineGridState,
     ...firewall.policiesState,
+    router,
   };
 }
 
@@ -80,6 +82,7 @@ const mapDispatchToProps = {
   goToRepositoryComponentDetailsPage,
   setQuarantineGridPolicyFilterWithProprietaryNameConflict,
   setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode,
+  stateGo,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(FirewallPage);

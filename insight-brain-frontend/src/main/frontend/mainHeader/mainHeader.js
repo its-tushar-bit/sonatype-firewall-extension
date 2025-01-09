@@ -26,8 +26,11 @@ import {
   selectIsSsoIdpManagedBySonatype,
   selectIsOrgsAndAppsEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectIsSbomManagerOnlyLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
-import { selectIsStandaloneDeveloper } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectIsSbomManagerOnlyLicense,
+  selectIsFirewallOnlyLicense,
+} from 'MainRoot/productFeatures/productLicenseSelectors';
+import { selectIsStandaloneDeveloper, selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 /* global clmServerVersion */
 const globalMajorMinorVersion = (clmServerVersion ? `${clmServerVersion}` : '').split('.').splice(0, 2).join('.');
@@ -112,7 +115,9 @@ export const mapStateToThis = (state) => ({
   isSingleTenant: selectTenantMode(state) !== 'multi-tenant',
   isSbomManagerOnlyLicense: selectIsSbomManagerOnlyLicense(state),
   isStandaloneDeveloper: selectIsStandaloneDeveloper(state),
+  isStandaloneFirewall: selectIsStandaloneFirewall(state),
   isOrgsAndAppsEnabled: selectIsOrgsAndAppsEnabled(state),
+  isFirewallOnlyLicense: selectIsFirewallOnlyLicense(state),
 });
 
 MainHeaderController.$inject = [

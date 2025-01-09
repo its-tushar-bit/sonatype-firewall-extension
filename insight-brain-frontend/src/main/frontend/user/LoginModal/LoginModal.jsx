@@ -86,7 +86,11 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
   };
 
   const isShowCancel =
-    includes(routeState.name, ['vulnerabilitySearchDetail', 'vulnerabilitySearch', 'quarantinedComponentReport']) &&
+    includes(routeState.name, [
+      'vulnerabilitySearchDetail',
+      'vulnerabilitySearch',
+      'firewall.quarantinedComponentReport',
+    ]) &&
     isUnauthenticatedPagesEnabled &&
     isLicensed;
 

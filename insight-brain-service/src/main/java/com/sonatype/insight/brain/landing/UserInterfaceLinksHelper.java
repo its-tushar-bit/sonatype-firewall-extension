@@ -55,7 +55,8 @@ public class UserInterfaceLinksHelper
 
   public static final String LATEST_VERSION_SBOM_REPORT_PATH = "cycloneDx/{applicationId}/reports/{scanId}";
 
-  public static final String QUARANTINED_COMPONENT_REPORT_PATH = "repositories/quarantinedComponent/{token}";
+  public static final String QUARANTINED_COMPONENT_REPORT_PATH =
+      "malware-defense/repositories/quarantinedComponent/{token}";
 
   public static final String LATEST_VERSION_SPDX_REPORT_PATH = "spdx/{applicationId}/reports/{scanId}";
 

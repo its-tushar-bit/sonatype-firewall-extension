@@ -152,6 +152,7 @@ describe('EditWebhook', () => {
       spyOn(routerContext, 'useRouterState').and.returnValue({
         get: jasmine.createSpy('get').and.returnValue({ data: { title: 'foo' } }),
         href: jasmine.createSpy('href'),
+        includes: jasmine.createSpy('includes'),
       });
 
       loadWebhookPageSpy = jasmine.createSpy('loadWebhookPage');

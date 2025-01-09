@@ -62,7 +62,7 @@ public class UserInterfaceLinksResourceTest
   @Test
   public void testLinkToFirewallHome() throws Exception {
     HttpResponse response = get(UserInterfaceLinksHelper.FIREWALL_HOME_PATH);
-    assertRedirect(response, ASSET_INDEX_PATH_NO_SLASH + "#/firewall");
+    assertRedirect(response, ASSET_INDEX_PATH_NO_SLASH + "#/malware-defense/dashboard");
   }
 
   @Test
@@ -334,9 +334,10 @@ public class UserInterfaceLinksResourceTest
   @Test
   public void testLinkToQuarantinedComponentReport() throws Exception {
     String url = UserInterfaceLinksHelper.getQuarantinedComponentReportPath("token");
-    assertThat(url).isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/repositories/quarantinedComponent/token");
+    assertThat(url).isEqualTo(
+        UserInterfaceLinksHelper.RESOURCE_PATH + "/malware-defense/repositories/quarantinedComponent/token");
     HttpResponse response = get(UserInterfaceLinksHelper.QUARANTINED_COMPONENT_REPORT_PATH, "token");
-    assertRedirect(response, "assets/index.html#/repositories/quarantinedComponent/token");
+    assertRedirect(response, "assets/index.html#/malware-defense/repositories/quarantinedComponent/token");
   }
 
   @Test

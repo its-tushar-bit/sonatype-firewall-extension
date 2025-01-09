@@ -20,6 +20,7 @@ import {
   selectRouteParamsFromSecurityTab,
   selectIsSbomManager,
   selectIsManagementViewRouterState,
+  selectIsStandaloneFirewall,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('routerSelectors', function () {
@@ -250,6 +251,48 @@ describe('routerSelectors', function () {
 
       expect(selectIsSbomManager(state)).toBe(false);
       expect(selectIsSbomManager(state2)).toBe(false);
+    });
+  });
+
+  describe('selectIsStandaloneFirewall', function () {
+    it('returns true if the route state name starts with "firewall."', function () {
+      const state = {
+        router: {
+          currentState: {
+            name: 'firewall.foo',
+          },
+        },
+      };
+      const state2 = {
+        router: {
+          currentState: {
+            name: 'firewall',
+          },
+        },
+      };
+
+      expect(selectIsStandaloneFirewall(state)).toBe(true);
+      expect(selectIsStandaloneFirewall(state2)).toBe(true);
+    });
+
+    it('returns false if the route state name does not start with "firewall."', function () {
+      const state = {
+        router: {
+          currentState: {
+            name: 'asdf.foo',
+          },
+        },
+      };
+      const state2 = {
+        router: {
+          currentState: {
+            name: 'foo.firewall',
+          },
+        },
+      };
+
+      expect(selectIsStandaloneFirewall(state)).toBe(false);
+      expect(selectIsStandaloneFirewall(state2)).toBe(false);
     });
   });
 

@@ -28,7 +28,7 @@ public class FirewallAutoUnquarantinePage
   }
 
   public static String url() {
-    return BaseUrl.resolvePageUrl("/firewall/autoReleaseQuarantine");
+    return BaseUrl.resolvePageUrl("/malware-defense/autoReleaseQuarantine");
   }
 
   public SelenideElement title() {

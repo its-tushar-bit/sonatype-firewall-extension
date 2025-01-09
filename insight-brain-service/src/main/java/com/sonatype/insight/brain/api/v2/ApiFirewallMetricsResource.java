@@ -26,7 +26,7 @@ import com.codahale.metrics.annotation.Timed;
 @Path(ApiFirewallMetricsResource.RESOURCE_PATH)
 public class ApiFirewallMetricsResource
 {
-  public static final String RESOURCE_PATH = "/api/v2/firewall/metrics/embedded";
+  public static final String RESOURCE_PATH = "/api/v2/malware-defense/metrics/embedded";
 
   private final ApiFirewallMetricsService apiFirewallMetricsService;
 

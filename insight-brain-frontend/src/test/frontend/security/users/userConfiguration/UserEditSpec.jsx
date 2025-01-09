@@ -51,6 +51,7 @@ describe('UserEdit', () => {
     spyOn(routerContext, 'useRouterState').and.returnValue({
       href: () => {},
       get: getSpy,
+      includes: () => false,
     });
     getShallowComponent = enzymeUtils.getShallowComponent(UserEdit, minimalProps);
     getMountedComponent = enzymeUtils.getMountedComponent(UserEdit, minimalProps);

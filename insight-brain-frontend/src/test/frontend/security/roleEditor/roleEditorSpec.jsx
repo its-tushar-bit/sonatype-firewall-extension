@@ -31,6 +31,7 @@ describe('RoleEditor', () => {
     stateMock = {
       get: stateGetSpy,
       href: () => {},
+      includes: () => false,
     };
     spyOn(routerContext, 'useRouterState').and.returnValue(stateMock);
     minimalProps = {

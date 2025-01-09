@@ -147,7 +147,7 @@ public class FirewallPageComponents
     public SelenideElement getComponentDetailsPageLinkFromRow(int rowIndex) {
       return tableBody().find("tr:nth-child(" + (rowIndex + 1) + ") td:nth-child(4) .nx-text-link");
     }
-    
+
     public NxTableHeader quarantineTimeHeader() {
       return new NxTableHeader("#quarantineTime-header");
     }
@@ -255,5 +255,13 @@ public class FirewallPageComponents
 
   public static CipModal cipModal() {
     return new CipModal("#cip-modal");
+  }
+
+  public static class FirewallWaiversTable
+      extends BasicElement<FirewallWaiversTable>
+  {
+    public FirewallWaiversTable(String rootSelector) {
+      super(rootSelector, "#firewall-waivers-tab-panel");
+    }
   }
 }

@@ -29,5 +29,15 @@ RouterStateProvider.propTypes = {
 
 export const useRouterState = () => {
   const routerState = useContext(RouterStateContext);
-  return routerState;
+
+  return {
+    ...routerState,
+    href: (params, others) => {
+      if (routerState.includes('firewall') && typeof params === 'string' && !params.startsWith('firewall')) {
+        return routerState.href('firewall.' + params, others);
+      }
+
+      return routerState.href(params, others);
+    },
+  };
 };

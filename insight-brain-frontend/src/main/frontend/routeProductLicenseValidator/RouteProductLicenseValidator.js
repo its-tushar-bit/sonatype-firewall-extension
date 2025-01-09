@@ -4,7 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { nameStartsWithSbomManager, isSbomManagerOnlyLicenseProduct } from 'MainRoot/sbomManager/sbomManagerUtil';
+import {
+  isFirewallOnlyLicenseProduct,
+  isNotFirewallLicenseProduct,
+} from 'MainRoot/productFeatures/productLicenseSelectors';
 import { loadIfNotYetLoaded } from 'MainRoot/utility/services/ProductLicense';
+import { nameStartsWithFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const NON_PROTECTED_PATHS = ['home', 'root', 'productlicense', 'gettingStarted', 'proxyConfig'];
 const PERMITTED_SBOM_MANAGER_PATHS = [
@@ -44,9 +49,18 @@ async function isPathPermitted(state) {
     return false;
   }
 
+  const isNotFirewall = isNotFirewallLicenseProduct(productLicense?.products);
+  const isFirewallOnly = isFirewallOnlyLicenseProduct(productLicense?.products);
+  const hasFirewallPrefix = nameStartsWithFirewall(state?.name);
+
+  if ((isNotFirewall && hasFirewallPrefix) || (isFirewallOnly && !hasFirewallPrefix)) {
+    return false;
+  }
+
   if (isSbomManagerOnlyLicenseProduct(productLicense.products)) {
     return checkSbomManagerOnlyLicensePaths(state.name);
   }
+
   return true;
 }
 

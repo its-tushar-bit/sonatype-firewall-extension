@@ -59,7 +59,7 @@ describe('LoginModal', () => {
     };
 
     mockRouteStateNameIncludesQuaratineComponent = {
-      name: 'quarantinedComponentReport',
+      name: 'firewall.quarantinedComponentReport',
     };
 
     minimalProps = {

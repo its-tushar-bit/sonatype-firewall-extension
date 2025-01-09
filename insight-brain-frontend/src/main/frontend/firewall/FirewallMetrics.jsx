@@ -6,8 +6,9 @@
 
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { NxTile, NxTextLink, NxGrid, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
 import { faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
+import { NxTile, NxTextLink, NxGrid, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
+
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 const FirewallMetricsContent = (props) => {
@@ -66,11 +67,11 @@ export default function FirewallMetrics(props) {
     onSupplyChainAttacksBlockedLinkClick,
     onNamespaceAttacksBlockedLinkClick,
     onComponentsQuarantinedLinkClick,
+    onViewWaivedComponentsClick,
   } = props;
 
   const uiRouterState = useRouterState();
   const componentsAutoReleasedLink = uiRouterState.href('firewall.firewallAutoUnquarantinePage');
-  const waivedComponentsLink = uiRouterState.href('dashboard.overview.waivers');
 
   return (
     <NxTile id="firewall-metrics" className="nx-grid iq-firewall-metrics">
@@ -135,8 +136,9 @@ export default function FirewallMetrics(props) {
             tooltipTitle="Firewall has waived the failing policy violations for these components."
             value={waivedComponents}
             valueLabel="Last 12 months"
-            link={waivedComponentsLink}
+            link="#"
             linkLabel="View waived components"
+            onLinkButtonClick={onViewWaivedComponentsClick}
           />
         </NxGrid.Column>
       </NxGrid.Row>
@@ -157,4 +159,6 @@ FirewallMetrics.propTypes = {
   onSupplyChainAttacksBlockedLinkClick: PropTypes.func.isRequired,
   onNamespaceAttacksBlockedLinkClick: PropTypes.func.isRequired,
   onComponentsQuarantinedLinkClick: PropTypes.func.isRequired,
+
+  onViewWaivedComponentsClick: PropTypes.func.isRequired,
 };

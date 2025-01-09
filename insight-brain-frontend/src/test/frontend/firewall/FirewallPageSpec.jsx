@@ -7,9 +7,9 @@ import * as enzymeUtils from '../enzymeUtils';
 import React from 'react';
 import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
 import FirewallStatus from '../../../main/frontend/firewall/FirewallStatus';
-import FirewallQuarantineTable from '../../../main/frontend/firewall/FirewallQuarantineTable';
 import FirewallWelcomeModal from '../../../main/frontend/firewall/FirewallWelcomeModal';
 import FirewallMetrics from 'MainRoot/firewall/FirewallMetrics';
+import FirewallTabs from 'MainRoot/firewall/FirewallTabs';
 
 describe('FirewallPage', function () {
   let minimalProps,
@@ -136,34 +136,57 @@ describe('FirewallPage', function () {
   });
 
   it('scrolls when FirewallMetrics "details" links are clicked', function () {
-    const scrollIntoViewMock = jasmine.createSpy('scrollIntoView');
-    const getElementByIdMock = jasmine.createSpy('getElementById').and.returnValue({
-      scrollIntoView: scrollIntoViewMock,
-    });
-    const getElementById = document.getElementById;
-    document.getElementById = getElementByIdMock;
+    jasmine.clock().install();
+
+    const clickTabMock = jasmine.createSpy('clickTab');
+    const scrollToPanelMock = jasmine.createSpy('scrollToPanel');
+    const millisToScrollToPanel = 100;
 
     const component = getMountedComponent();
     const metrics = component.find(FirewallMetrics);
     const button1 = metrics.find('#firewall-metrics-content-supply-chain-attacks-blocked').find('button.nx-text-link');
     const button2 = metrics.find('#firewall-metrics-content-namespace-attacks-blocked').find('button.nx-text-link');
     const button3 = metrics.find('#firewall-metrics-content-components-quarantined').find('button.nx-text-link');
+    const button4 = metrics.find('#firewall-metrics-content-components-waived').find('button.nx-text-link');
 
     expect(button1).toExist();
     expect(button2).toExist();
+    expect(button3).toExist();
+    expect(button4).toExist();
+
+    const firewallTabsFuncRefs = component.find(FirewallTabs).get(0).ref;
+    firewallTabsFuncRefs.current.clickTab = clickTabMock;
+    firewallTabsFuncRefs.current.scrollToPanel = scrollToPanelMock;
 
     button1.simulate('click');
-    expect(getElementByIdMock).toHaveBeenCalledWith('firewall-quarantine-table');
-    expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: 'smooth' });
-    expect(scrollIntoViewMock.calls.count()).toBe(1);
+    expect(clickTabMock).toHaveBeenCalledTimes(1);
+    expect(clickTabMock).toHaveBeenCalledWith('quarantine');
+    jasmine.clock().tick(millisToScrollToPanel);
+    expect(scrollToPanelMock).toHaveBeenCalledTimes(1);
+    expect(scrollToPanelMock).toHaveBeenCalledWith('quarantine');
 
     button2.simulate('click');
-    expect(scrollIntoViewMock.calls.count()).toBe(2);
+    expect(clickTabMock).toHaveBeenCalledTimes(2);
+    expect(clickTabMock).toHaveBeenCalledWith('quarantine');
+    jasmine.clock().tick(millisToScrollToPanel);
+    expect(scrollToPanelMock).toHaveBeenCalledTimes(2);
+    expect(scrollToPanelMock).toHaveBeenCalledWith('quarantine');
 
     button3.simulate('click');
-    expect(scrollIntoViewMock.calls.count()).toBe(3);
+    expect(clickTabMock).toHaveBeenCalledTimes(3);
+    expect(clickTabMock).toHaveBeenCalledWith('quarantine');
+    jasmine.clock().tick(millisToScrollToPanel);
+    expect(scrollToPanelMock).toHaveBeenCalledTimes(3);
+    expect(scrollToPanelMock).toHaveBeenCalledWith('quarantine');
 
-    document.getElementById = getElementById;
+    button4.simulate('click');
+    expect(clickTabMock).toHaveBeenCalledTimes(4);
+    expect(clickTabMock).toHaveBeenCalledWith('waivers');
+    jasmine.clock().tick(millisToScrollToPanel);
+    expect(scrollToPanelMock).toHaveBeenCalledTimes(4);
+    expect(scrollToPanelMock).toHaveBeenCalledWith('waivers');
+
+    jasmine.clock().uninstall();
   });
 
   it('calls setQuarantineGridPolicyFilter when filterPolicies is greater than 0', function () {
@@ -211,7 +234,7 @@ describe('FirewallPage', function () {
 
   it('renders a FirewallQuarantineTable', function () {
     const component = getShallowComponent(),
-      card = component.find(FirewallQuarantineTable);
+      card = component.find(FirewallTabs);
 
     expect(card).toExist();
   });

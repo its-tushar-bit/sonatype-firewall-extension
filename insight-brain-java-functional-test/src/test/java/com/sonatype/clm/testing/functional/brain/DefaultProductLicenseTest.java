@@ -116,7 +116,7 @@ public class DefaultProductLicenseTest
     ProductLicensePage.products().shouldHave(texts("Sonatype Repository Firewall"));
 
     SidebarNavigation.openNavigationSidebar();
-    SidebarNavigation.productLogo().shouldHave(attribute("alt", "Repository Firewall"));
+    SidebarNavigation.productLogo().shouldHave(attribute("alt", "sonatype firewall"));
     eyesWatcher.eyesCheck("Nexus Firewall Logo");
   }
 

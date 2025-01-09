@@ -38,7 +38,7 @@ export default function FirewallAutoUnquarantinePage(props) {
   return (
     <main id="firewall-auto-unquarantine-page" className="nx-page-main">
       <LoadWrapper loading={!dataLoaded} error={loadError} retryHandler={loadAutoUnquarantineData}>
-        <MenuBarBackButton stateName="firewall.firewallPage" text="Back to Quarantine" />
+        <MenuBarBackButton stateName="firewall.firewallPage" />
         {isShowConfigurationModal && <FirewallConfigurationModalContainer />}
         <div className="nx-page-title">
           <h1 className="nx-h1">Auto Release from Quarantine</h1>

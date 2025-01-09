@@ -37,6 +37,7 @@ describe('CreateLdap', () => {
     spyOn(routerContext, 'useRouterState').and.returnValue({
       href: () => {},
       get: getSpy,
+      includes: () => false,
     });
 
     getShallowComponent = enzymeUtils.getShallowComponent(CreateLdap, minimalProps);

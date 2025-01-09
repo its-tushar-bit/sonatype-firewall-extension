@@ -7,6 +7,8 @@
 import { loadFilter } from '../dashboard/filter/dashboardFilterActions';
 import { payloadParamActionCreator } from '../util/reduxUtil';
 import { stateGo } from '../reduxUiRouter/routerActions';
+import { FIREWALL_FIREWALLPAGE_WAIVERS, FIREWALL_WAIVER_DETAILS } from 'MainRoot/constants/states';
+import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const LOAD_SIDEBAR_NAV_LIST_REQUESTED = 'LOAD_SIDEBAR_NAV_LIST_REQUESTED';
 export const LOAD_SIDEBAR_NAV_LIST_FULFILLED = 'LOAD_SIDEBAR_NAV_LIST_FULFILLED';
@@ -73,14 +75,19 @@ function loadWaivers(dispatch, getState, sidebarReference) {
       return dispatch(loadSidebarNavListFailed(`Unknown sidebarReference: ${sidebarReference}`));
   }
 
+  const state = getState();
+  const isStandaloneFirewall = selectIsStandaloneFirewall(state);
+  const backButtonStateName = isStandaloneFirewall ? FIREWALL_FIREWALLPAGE_WAIVERS : 'dashboard.overview.waivers';
+
   return filterPromise
     .then(() => {
-      const { dashboard } = getState();
+      const state = getState();
+      const { dashboard } = state;
       return dispatch(
         loadSidebarNavListFulfilled({
           data: dashboard.waivers.results,
           contentType: 'waivers',
-          backButtonStateName: 'dashboard.overview.waivers',
+          backButtonStateName: backButtonStateName,
         })
       );
     })
@@ -91,12 +98,14 @@ export function gotoNewVulnerability(id) {
   return stateGo('sidebarView.violation', { id });
 }
 
-export function gotoWaiver(ownerId, ownerType, waiverId) {
-  return stateGo('waiver.details', { ownerId, ownerType, waiverId });
+export function gotoWaiver(ownerId, ownerType, waiverId, isStandaloneFirewall) {
+  const stateToGo = isStandaloneFirewall ? FIREWALL_WAIVER_DETAILS : 'waiver.details';
+  return stateGo(stateToGo, { ownerId, ownerType, waiverId });
 }
 
-export function goToWaiverWithType(ownerId, ownerType, waiverId, type) {
-  return stateGo('waiver.details', { ownerId, ownerType, waiverId, type });
+export function goToWaiverWithType(ownerId, ownerType, waiverId, type, isStandaloneFirewall) {
+  const stateToGo = isStandaloneFirewall ? FIREWALL_WAIVER_DETAILS : 'waiver.details';
+  return stateGo(stateToGo, { ownerId, ownerType, waiverId, type });
 }
 
 export const setSidebarNavListData = payloadParamActionCreator(SET_SIDEBAR_NAV_LIST_DATA);

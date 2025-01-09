@@ -117,9 +117,16 @@ describe('SidebarNavWaiversList', function () {
 
   function validateNavListItems(ulChild, waiver, expectedThreatClass) {
     const { policyName, threatLevel, ownerName, ownerType, ownerId, id, componentMatchStrategy, isAutoWaiver } = waiver;
+    const isStandaloneFirewall = false;
 
     fireEvent.click(ulChild);
-    expect(onClickSpy).toHaveBeenCalledWith(ownerId, ownerType, id, isAutoWaiver ? 'autoWaiver' : 'waiver');
+    expect(onClickSpy).toHaveBeenCalledWith(
+      ownerId,
+      ownerType,
+      id,
+      isAutoWaiver ? 'autoWaiver' : 'waiver',
+      isStandaloneFirewall
+    );
 
     expect(ulChild).toHaveClass('nx-list__item');
     expect(ulChild.children.length).toEqual(3);

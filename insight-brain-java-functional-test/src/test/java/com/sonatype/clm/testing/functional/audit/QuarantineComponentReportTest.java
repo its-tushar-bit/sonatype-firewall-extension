@@ -817,12 +817,8 @@ public class QuarantineComponentReportTest
     MainHeader.loginButton().shouldNotBe(visible);
 
     // LEFT NAV MENU
-    SidebarNavigation.dashboardNavigationButton().shouldBe(visible);
-    SidebarNavigation.reportingNavigationButton().shouldBe(visible);
-    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
-    SidebarNavigation.labsNavigationButton().shouldBe(visible);
-    SidebarNavigation.firewallNavigationButton().shouldBe(visible);
-    SidebarNavigation.legalNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallDashboardNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallRepositoriesNavigationButton().shouldBe(visible);
 
     quarantineReportPage.getQuarantineReportComponentOverviewTile().shouldBe(visible);
     quarantineReportPage.getViolationsTable().should(visible);

@@ -6,10 +6,11 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallQuarantineTable;
-import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallStatus;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallMetrics;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallMetricsContent;
+import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallQuarantineTable;
+import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallStatus;
+import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallWaiversTable;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -27,7 +28,7 @@ public class FirewallPage
   }
 
   public static String url() {
-    return BaseUrl.resolvePageUrl("/firewall");
+    return BaseUrl.resolvePageUrl("/malware-defense/dashboard");
   }
 
   public SelenideElement title() {
@@ -60,5 +61,9 @@ public class FirewallPage
 
   public ElementsCollection getAllLoadingSpinners() {
     return children(".nx-loading-spinner");
+  }
+
+  public FirewallWaiversTable firewallWaiversTable() {
+    return new FirewallWaiversTable(ROOT);
   }
 }

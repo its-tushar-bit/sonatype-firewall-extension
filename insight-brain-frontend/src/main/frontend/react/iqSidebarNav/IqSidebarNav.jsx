@@ -19,7 +19,6 @@ import {
   faHome,
   faMicroscope,
   faSearch,
-  faShieldCheck,
   faSitemap,
   faChartPieAlt,
 } from '@fortawesome/pro-solid-svg-icons';
@@ -32,6 +31,7 @@ import { isLeftNavigationOpen, setLeftNavigationOpen } from '../../util/preferen
 import SbomManagerSidebar from 'MainRoot/sbomManager/sidebar/SbomManagerSidebar';
 import SonatypeDeveloperSidebar from 'MainRoot/development/SonatypeDeveloperSidebar';
 import DefaultEmptyIqSidebar from 'MainRoot/react/iqSidebarNav/DefaultEmptyIqSidebar';
+import FirewallSidebar from 'MainRoot/firewall/FirewallSidebar';
 
 function IqSidebarNav(props) {
   const uiRouterState = useRouterState();
@@ -47,7 +47,6 @@ function IqSidebarNav(props) {
     isReportsListAvailable,
     isSuccessMetricsEnabled,
     isAdvancedSearchEnabled,
-    isFirewallEnabled,
     isLegalEnabled,
     isApiPageEnabled,
     isShowVersionEnabled,
@@ -59,6 +58,8 @@ function IqSidebarNav(props) {
     isSbomManagerOnlyLicense,
     isProductsLoading,
     isStandaloneDeveloper,
+    isStandaloneFirewall,
+    isFirewallOnlyLicense,
   } = props;
   const logo = getProductLogo(productEdition);
 
@@ -73,7 +74,6 @@ function IqSidebarNav(props) {
   const successMetricsHref = uiRouterState.href('labs.successMetrics');
   const vulnSearchHref = uiRouterState.href('vulnerabilitySearch');
   const advSearchHref = uiRouterState.href('advancedSearch');
-  const firewallHref = uiRouterState.href('firewall.firewallPage');
   const legalHref = uiRouterState.href('legal.dashboard');
 
   const isSelected = (entryName) => {
@@ -81,7 +81,6 @@ function IqSidebarNav(props) {
   };
 
   const isVulnerabilitySearchSelected = isSelected('vulnerabilitySearch') || isSelected('vulnerabilitySearchDetail');
-  const isFirewallSelected = isSelected('firewall') || isSelected('firewallAutoUnquarantine');
   const isReportsSelected = isSelected('violations') || isSelected('transitiveViolations');
 
   useEffect(() => {
@@ -98,6 +97,8 @@ function IqSidebarNav(props) {
   const sonatypeDeveloperSidebar = (
     <SonatypeDeveloperSidebar isLoggedIn={isLoggedIn} isAdvancedSearchEnabled={isAdvancedSearchEnabled} />
   );
+  const sonatypeFirewallSidebar = <FirewallSidebar isLoggedIn={isLoggedIn} />;
+
   const iqSidebar = (
     <NxGlobalSidebar
       isOpen={isOpen}
@@ -108,7 +109,7 @@ function IqSidebarNav(props) {
       logoAltText={productEdition}
       logoLink={logoHref}
     >
-      {isLoggedIn && !isProductsLoading && (
+      {isLoggedIn && !isProductsLoading && !isStandaloneFirewall && (
         <NxGlobalSidebarNavigation id="global-sidebar-buttons">
           {(isDashboardAvailable || isDashboardWaiversAvailable) && (
             <NxGlobalSidebarNavigationLink
@@ -162,15 +163,6 @@ function IqSidebarNav(props) {
               icon={faSearch}
               text="Advanced Search"
               href={advSearchHref}
-            />
-          )}
-          {isLicensed && isFirewallEnabled && (
-            <NxGlobalSidebarNavigationLink
-              isSelected={isFirewallSelected}
-              id="firewall-navigation-button"
-              icon={faShieldCheck}
-              text="Firewall"
-              href={firewallHref}
             />
           )}
           {isLicensed && isLegalEnabled && (
@@ -228,6 +220,8 @@ function IqSidebarNav(props) {
     return sbomManagerSidebar;
   } else if (isStandaloneDeveloper) {
     return sonatypeDeveloperSidebar;
+  } else if (isStandaloneFirewall || isFirewallOnlyLicense) {
+    return sonatypeFirewallSidebar;
   }
 
   return iqSidebar;
@@ -257,5 +251,7 @@ IqSidebarNav.propTypes = {
   isSbomManagerOnlyLicense: PropTypes.bool,
   isProductsLoading: PropTypes.bool,
   isStandaloneDeveloper: PropTypes.bool,
+  isStandaloneFirewall: PropTypes.bool,
+  isFirewallOnlyLicense: PropTypes.bool,
 };
 export default IqSidebarNav;

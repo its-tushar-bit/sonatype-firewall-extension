@@ -14,7 +14,7 @@ describe('routerMiddleware', function () {
 
       successSpy = jasmine.createSpy('successSpy');
       next = jasmine.createSpy('next').and.returnValue('nextReturnValue');
-      $state = jasmine.createSpyObj('$state', ['go', 'reload', 'transitionTo']);
+      $state = jasmine.createSpyObj('$state', ['go', 'reload', 'transitionTo', 'includes']);
       $provide.service('$state', function () {
         return $state;
       });

@@ -462,7 +462,7 @@ public abstract class AbstractRepositoryResourceTest
     assertResponseStatus(200, response);
 
     assertThat(response.getBody(QuarantinedComponentReport.class).getReportUrl())
-        .matches("ui/links/repositories/quarantinedComponent/.+");
+        .matches("ui/links/malware-defense/repositories/quarantinedComponent/.+");
   }
 
   @Test

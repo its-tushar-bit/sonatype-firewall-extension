@@ -207,16 +207,6 @@ describe('IqSidebarNav', function () {
       assertNavSectionContainsLink('href-advancedSearch', 'Advanced Search', 'magnifying-glass');
     });
 
-    it('renders a link to Firewall when isLicensed and isFirewallEnabled are true', function () {
-      renderComponent({
-        isLoggedIn: true,
-        isFirewallEnabled: true,
-        isLicensed: true,
-      });
-
-      assertNavSectionContainsLink('href-firewall.firewallPage', 'Firewall', 'shield-check');
-    });
-
     it('does not render a link to the Dashboard when neither isDashboardAvailable nor isDashboardWaiversAvailable are true', function () {
       renderComponent({
         isLoggedIn: true,
@@ -330,20 +320,6 @@ describe('IqSidebarNav', function () {
         renderComponent(propsForRenderingAllLinks);
 
         assertLinkPresentAndSelected('Advanced Search');
-      });
-
-      it('renders Firewall link as selected when the state matches firewall', function () {
-        mockSelectedLink('firewall');
-        renderComponent(propsForRenderingAllLinks);
-
-        assertLinkPresentAndSelected('Firewall');
-      });
-
-      it('renders Firewall link as selected when the state matches firewallAutoUnquarantine', function () {
-        mockSelectedLink('firewallAutoUnquarantine');
-        renderComponent(propsForRenderingAllLinks);
-
-        assertLinkPresentAndSelected('Firewall');
       });
 
       it('renders Legal link as selected when the state matches', function () {

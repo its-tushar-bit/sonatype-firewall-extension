@@ -81,6 +81,7 @@ describe('Report Page component', () => {
     routerContextMock = {
       href: jest.fn().mockReturnValue('mockValue'),
       get: jest.fn().mockReturnValue('mockGetValue'),
+      includes: jest.fn(() => false),
     };
     jest.spyOn(routerContext, 'useRouterState').mockReturnValue(routerContextMock);
 

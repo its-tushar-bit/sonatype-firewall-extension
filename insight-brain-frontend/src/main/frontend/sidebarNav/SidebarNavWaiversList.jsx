@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 
@@ -12,13 +12,17 @@ import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
 
 import { UPDATE_DIMENSIONS_TIMEOUT } from 'MainRoot/util/constants';
 import { displayWaiverScope, isWaiverAllVersionsOrExact } from 'MainRoot/util/waiverUtils';
+import { useSelector } from 'react-redux';
+import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function SidebarNavWaiversList({ currentWaiverId, waivers, onClick, scrollToSelection }) {
   const SCROLL_TIMEOUT = UPDATE_DIMENSIONS_TIMEOUT + 100;
   // Have to access `useRef` and `useEffect` through the React object due to testing limitations
-  const selectedElementRef = React.useRef(null);
+  const selectedElementRef = useRef(null);
 
-  React.useEffect(() => {
+  const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
+
+  useEffect(() => {
     if (!scrollToSelection) {
       return;
     }
@@ -59,7 +63,7 @@ export default function SidebarNavWaiversList({ currentWaiverId, waivers, onClic
   const handleClick = (item) => {
     const { ownerType, ownerId } = item;
     const waiverType = item.isAutoWaiver ? 'autoWaiver' : 'waiver';
-    onClick(ownerId, ownerType, policyWaiverId(item), waiverType);
+    onClick(ownerId, ownerType, policyWaiverId(item), waiverType, isStandaloneFirewall);
   };
 
   const listItems = waivers.map((item) => (

@@ -10,6 +10,9 @@ import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
 import UpgradeAvailableIndicator from 'MainRoot/react/upgradeAvailableIndicator/UpgradeAvailableIndicator';
 import { NxTable, NxThreatIndicator, NxOverflowTooltip, NxSmallTag } from '@sonatype/react-shared-components';
 import { isWaiverAllVersionsOrExact, shouldShowUpgradeIndicator } from 'MainRoot/util/waiverUtils';
+import { FIREWALL_WAIVER_DETAILS } from 'MainRoot/constants/states';
+import { useSelector } from 'react-redux';
+import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
   const {
@@ -26,9 +29,12 @@ export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
     isExpireWhenRemediationAvailable,
   } = waiver;
 
+  const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
+
   const goToWaiverDetails = () => {
     const waiverType = waiver.isAutoWaiver ? 'autoWaiver' : 'waiver';
-    stateGo('waiver.details', {
+    const stateToGo = isStandaloneFirewall ? FIREWALL_WAIVER_DETAILS : 'waiver.details';
+    stateGo(stateToGo, {
       waiverId,
       ownerId,
       ownerType,
@@ -114,10 +120,12 @@ export const waiverPropTypes = PropTypes.shape({
   componentMatchStrategy: PropTypes.string,
   componentUpgradeAvailable: PropTypes.bool,
   isAutoWaiver: PropTypes.bool,
+  componentIdentifier: PropTypes.object,
 });
 
 DashboardWaiversTableRow.propTypes = {
   stateGo: PropTypes.func.isRequired,
   waiver: waiverPropTypes,
   page: PropTypes.number,
+  isStandaloneFirewall: PropTypes.bool,
 };

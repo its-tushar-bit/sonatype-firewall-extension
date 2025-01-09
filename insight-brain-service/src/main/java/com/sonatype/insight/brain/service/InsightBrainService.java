@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.filter.ThrowableHandler;
+import com.sonatype.insight.brain.firewall.FirewallRedirectFilter;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.metrics.CustomMetrics;
@@ -536,6 +537,7 @@ public class InsightBrainService
     addServletFilter(env, AuthenticationLoggingFilter.class, AuthenticationLoggingFilter.URL_PATTERN);
     addServletFilter(env, CspHeaderFilter.class, CspHeaderFilter.URL_PATTERN);
     addServletFilter(env, CspFrameHeaderFilter.class, CspFrameHeaderFilter.URL_PATTERN);
+    addServletFilter(env, FirewallRedirectFilter.class, "/*");
   }
 
   protected void addServletFilter(Environment env, Class<? extends Filter> filterType, String... urlPatterns) {

@@ -21,7 +21,11 @@ const MenuBarBackButton = ({ stateName, text, href }) => {
 
   // Back button rendering and routing
   const uiRouterState = useRouterState();
-  const targetState = stateName ? uiRouterState.get(stateName) : null;
+  const resolvedStateName =
+    stateName && !stateName.includes('firewall') && uiRouterState.includes('firewall')
+      ? `firewall.${stateName}`
+      : stateName;
+  const targetState = resolvedStateName ? uiRouterState.get(resolvedStateName) : null;
   const hrefToNavigate = href || (targetState && uiRouterState.href(targetState));
   const targetPageTitle = pathOr(null, ['data', 'title'], targetState);
 

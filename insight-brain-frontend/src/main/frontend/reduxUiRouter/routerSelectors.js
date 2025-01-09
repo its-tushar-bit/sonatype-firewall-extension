@@ -33,6 +33,7 @@ const nameIncludesRepositories = includesNamePart('repositories');
 const nameIncludesRepository = includesNamePartSeparateByDot('repository');
 const nameIncludesFirewall = includesNamePart('firewall');
 const nameStartsWithDeveloper = (stringToSearch = '') => stringToSearch.startsWith('developer');
+export const nameStartsWithFirewall = (stringToSearch = '') => stringToSearch.startsWith('firewall');
 const nameIncludesRepositoryContainer = includesNamePart('repository_container');
 const nameIncludesRepositoryManager = includesNamePart('repository_manager');
 const nameIncludesCategory = includesNamePart('category');
@@ -113,6 +114,8 @@ export const selectIsDependencyTreePageFromPrioritiesPage = createSelector(selec
     'componentDetailsPageWithinPrioritiesPageContainerFromReports.dependencyTree',
   ].includes(currentRouteName)
 );
+
+export const selectIsStandaloneFirewall = createSelector(selectCurrentRouteName, nameStartsWithFirewall);
 
 // we can access to component details page from application report but also from firewall or repository results view,
 // so this is used to find out if the route is a firewall route or repository route
@@ -226,7 +229,10 @@ export const selectOwnerInfo = createSelector(
 
 export const selectIsManagementViewRouterState = createSelector(
   selectRouterState,
-  (currentState) => currentState.name === 'management.view' || currentState.name === 'sbomManager.management.view'
+  (currentState) =>
+    currentState.name === 'management.view' ||
+    currentState.name === 'sbomManager.management.view' ||
+    currentState.name === 'firewall.management.view'
 );
 
 export const selectIncludesManagementView = createSelector(

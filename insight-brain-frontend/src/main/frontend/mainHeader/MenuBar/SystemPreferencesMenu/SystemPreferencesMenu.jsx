@@ -32,7 +32,9 @@ export const SystemPreferencesMenu = ({
   isSsoIdpManagedBySonatype = false,
   isSingleTenant = false,
   isSbomManagerOnlyLicense = false,
+  isStandaloneFirewall = false,
   isOrgsAndAppsEnabled = false,
+  isFirewallOnlyLicense = false,
 }) => {
   const {
     CONFIGURE_SYSTEM = false,
@@ -42,6 +44,8 @@ export const SystemPreferencesMenu = ({
   } = permissions;
 
   const isSbomManager = useSelector(selectIsSbomManager);
+  const firewallPrefix = isFirewallOnlyLicense ? 'firewall' : '';
+  const sbomManagerPrefix = isSbomManager ? 'sbomManager' : '';
 
   return (
     <MenuButton icon={faCog} iconLabel="System Preferences" id="system-configuration-menu">
@@ -50,19 +54,26 @@ export const SystemPreferencesMenu = ({
         stateName="users"
         id="system-configuration-users"
         showIf={CONFIGURE_SYSTEM && (isSingleTenant || isSsoIdpManagedBySonatype)}
+        prefix={firewallPrefix}
       >
         Users
       </NavLink>
-      <NavLink stateName="rolesList" id="system-configuration-roles" showIf={VIEW_ROLES}>
+      <NavLink stateName="rolesList" id="system-configuration-roles" showIf={VIEW_ROLES} prefix={firewallPrefix}>
         Roles
       </NavLink>
-      <NavLink stateName="administrators" id="system-configuration-administrators" showIf={CONFIGURE_SYSTEM}>
+      <NavLink
+        stateName="administrators"
+        id="system-configuration-administrators"
+        showIf={CONFIGURE_SYSTEM}
+        prefix={firewallPrefix}
+      >
         Administrators
       </NavLink>
       <NavLink
         stateName="productlicense"
         id="system-configuration-product-license"
         showIf={CONFIGURE_SYSTEM && isProductLicenseConfigurationEnabled}
+        prefix={firewallPrefix}
       >
         Product License
       </NavLink>
@@ -70,29 +81,38 @@ export const SystemPreferencesMenu = ({
         stateName="ldap-list"
         id="system-configuration-ldap"
         showIf={CONFIGURE_SYSTEM && isLdapConfigurationEnabled}
+        prefix={firewallPrefix}
       >
         LDAP
       </NavLink>
-      <NavLink stateName="saml" id="system-configuration-saml" showIf={CONFIGURE_SYSTEM && isSamlConfigurationEnabled}>
+      <NavLink
+        stateName="saml"
+        id="system-configuration-saml"
+        showIf={CONFIGURE_SYSTEM && isSamlConfigurationEnabled}
+        prefix={firewallPrefix}
+      >
         SAML
       </NavLink>
       <NavLink
         stateName="waivedComponentUpgradesConfiguration"
         id="system-configuration-waived-component-upgrades"
         showIf={CONFIGURE_SYSTEM && isMonitoringSupported && !isSbomManagerOnlyLicense}
+        prefix={firewallPrefix}
       >
         Waived Components
       </NavLink>
       <NavLink
         stateName="atlassianCrowdConfiguration"
         showIf={CONFIGURE_SYSTEM && isCrowdIntegrationEnabled && !isSbomManagerOnlyLicense}
+        prefix={firewallPrefix}
       >
         Atlassian Crowd
       </NavLink>
       <NavLink
-        stateName={`${isSbomManager ? 'sbomManager.' : ''}mailConfig`}
+        stateName="mailConfig"
         id="system-configuration-email"
         showIf={CONFIGURE_SYSTEM && isEmailConfigurationEnabled}
+        prefix={firewallPrefix || sbomManagerPrefix}
       >
         Email
       </NavLink>
@@ -100,6 +120,7 @@ export const SystemPreferencesMenu = ({
         stateName="proxyConfig"
         id="system-configuration-proxy"
         showIf={CONFIGURE_SYSTEM && isProxyConfigurationEnabled}
+        prefix={firewallPrefix}
       >
         Proxy
       </NavLink>
@@ -111,6 +132,7 @@ export const SystemPreferencesMenu = ({
               id="system-configuration-webhooks"
               disabled={!isWebhooksSupported}
               showIf={isWebhookConfigurationEnabled}
+              prefix={firewallPrefix}
             >
               Webhooks
             </NavLink>
@@ -121,6 +143,7 @@ export const SystemPreferencesMenu = ({
         stateName="systemNoticeConfiguration"
         id="system-configuration-system-notice"
         showIf={CONFIGURE_SYSTEM && isSystemNoticeConfigurationEnabled}
+        prefix={firewallPrefix}
       >
         System Notice
       </NavLink>
@@ -128,7 +151,12 @@ export const SystemPreferencesMenu = ({
         stateName="successMetricsConfiguration"
         id="system-configuration-success-metrics"
         showIf={
-          CONFIGURE_SYSTEM && isSuccessMetricsConfigurationEnabled && !isSbomManagerOnlyLicense && isOrgsAndAppsEnabled
+          CONFIGURE_SYSTEM &&
+          isSuccessMetricsConfigurationEnabled &&
+          !isSbomManagerOnlyLicense &&
+          isOrgsAndAppsEnabled &&
+          !isStandaloneFirewall &&
+          !isFirewallOnlyLicense
         }
       >
         Success Metrics
@@ -139,7 +167,9 @@ export const SystemPreferencesMenu = ({
         showIf={
           MANAGE_AUTOMATIC_APPLICATION_CREATION &&
           isAutomaticApplicationConfigurationEnabled &&
-          !isSbomManagerOnlyLicense
+          !isSbomManagerOnlyLicense &&
+          !isStandaloneFirewall &&
+          !isFirewallOnlyLicense
         }
       >
         Automatic Applications
@@ -147,21 +177,34 @@ export const SystemPreferencesMenu = ({
       <NavLink
         stateName="automaticSourceControlConfiguration"
         id="system-configuration-automatic-scm-configuration"
-        showIf={MANAGE_AUTOMATIC_SCM_CONFIGURATION && isAutomaticScmConfigurationEnabled && !isSbomManagerOnlyLicense}
+        showIf={
+          MANAGE_AUTOMATIC_SCM_CONFIGURATION &&
+          isAutomaticScmConfigurationEnabled &&
+          !isSbomManagerOnlyLicense &&
+          !isStandaloneFirewall &&
+          !isFirewallOnlyLicense
+        }
       >
         Automatic SCM Configuration
       </NavLink>
       <NavLink
-        stateName={`${isSbomManager ? 'sbomManager.' : ''}baseUrlConfiguration`}
+        stateName="baseUrlConfiguration"
         id="system-configuration-base-url"
         showIf={CONFIGURE_SYSTEM && isBaseUrlConfigurationEnabled}
+        prefix={firewallPrefix || sbomManagerPrefix}
       >
         Base URL
       </NavLink>
       <NavLink
         stateName="advancedSearchConfig"
         id="system-configuration-advanced-search"
-        showIf={CONFIGURE_SYSTEM && isAdvancedSearchConfigurationEnabled && !isSbomManagerOnlyLicense}
+        showIf={
+          CONFIGURE_SYSTEM &&
+          isAdvancedSearchConfigurationEnabled &&
+          !isSbomManagerOnlyLicense &&
+          !isStandaloneFirewall &&
+          !isFirewallOnlyLicense
+        }
       >
         Advanced Search
       </NavLink>
@@ -199,6 +242,8 @@ SystemPreferencesMenu.propTypes = {
   isSbomManagerOnlyLicense: PropTypes.bool,
   isFirewallLicense: PropTypes.bool,
   isorgsAndAppsEnabled: PropTypes.bool,
+  isStandaloneFirewall: PropTypes.bool,
+  isFirewallOnlyLicense: PropTypes.bool,
 };
 
 const EarlyAccessLinks = ({ children }) => {

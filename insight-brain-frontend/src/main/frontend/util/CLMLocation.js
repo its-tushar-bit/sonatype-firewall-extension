@@ -355,15 +355,15 @@ export function getReportMetadataUrl(applicationPublicId, scanId) {
 }
 
 export function getFirewallConfigurationUrl() {
-  return uriTemplate`/api/v2/firewall/releaseQuarantine/configuration`;
+  return uriTemplate`/api/v2/malware-defense/releaseQuarantine/configuration`;
 }
 
 export function getFirewallTileMetricsUrl() {
-  return uriTemplate`/api/v2/firewall/metrics/embedded`;
+  return uriTemplate`/api/v2/malware-defense/metrics/embedded`;
 }
 
 export function getFirewallReleaseQuarantineSummaryUrl() {
-  return uriTemplate`/api/v2/firewall/releaseQuarantine/summary`;
+  return uriTemplate`/api/v2/malware-defense/releaseQuarantine/summary`;
 }
 
 export function getRetentionPoliciesUrl(orgId) {
@@ -505,7 +505,7 @@ export function getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sort
 
   params = params.length === 0 ? '' : '?' + params;
 
-  return uriTemplate`/api/v2/firewall/components/autoReleasedFromQuarantine` + params;
+  return uriTemplate`/api/v2/malware-defense/components/autoReleasedFromQuarantine` + params;
 }
 
 export function getFirewallQuarantineListUrl(
@@ -531,11 +531,11 @@ export function getFirewallQuarantineListUrl(
 
   params = params.length === 0 ? '' : '?' + params;
 
-  return uriTemplate`/api/v2/firewall/components/quarantined` + params;
+  return uriTemplate`/api/v2/malware-defense/components/quarantined` + params;
 }
 
 export function getFirewallQuarantineSummaryUrl() {
-  return uriTemplate`/api/v2/firewall/quarantine/summary`;
+  return uriTemplate`/api/v2/malware-defense/quarantine/summary`;
 }
 
 export function getProductFeaturesUrl() {
@@ -555,7 +555,7 @@ export function getOAuth2Enabled() {
 }
 
 export function getQuarantinedComponentViewAnonymousAccessEnabledState() {
-  return uriTemplate`/api/v2/firewall/quarantinedComponentView/configuration/anonymousAccess/`;
+  return uriTemplate`/api/v2/malware-defense/quarantinedComponentView/configuration/anonymousAccess/`;
 }
 
 /*
@@ -1469,9 +1469,9 @@ export const getRepositoryListUrl = (repositoryManagerId) =>
 export const getSupportedRepositoriesFormat = () => uriTemplate`/rest/integration/repositories/evaluate/ignorePatterns`;
 
 export const getRepositoryManagerById = (repositoryManagerId) =>
-  uriTemplate`/api/v2/firewall/repositoryManagers/${repositoryManagerId}`;
+  uriTemplate`/api/v2/malware-defense/repositoryManagers/${repositoryManagerId}`;
 
-export const getRepositoryContainer = () => uriTemplate`/api/v2/firewall/repositoryContainer`;
+export const getRepositoryContainer = () => uriTemplate`/api/v2/malware-defense/repositoryContainer`;
 
 export const getConfigureRepositoriesUrl = (repositoryManagerId) =>
   uriTemplate`/rest/repositories/repositoryManager/${repositoryManagerId}/configureRepositories`;

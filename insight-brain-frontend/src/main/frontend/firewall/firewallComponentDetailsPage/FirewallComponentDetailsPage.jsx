@@ -23,7 +23,7 @@ import FirewallLegalTab from 'MainRoot/firewall/firewallComponentDetailsPage/leg
 import FirewallLabelsTab from 'MainRoot/firewall/firewallComponentDetailsPage/labels/FirewallLabelsTab';
 import FirewallPolicyViolationDetailsPopover from './policyViolations/policyViolationsTile/FirewallPolicyViolationDetailsPopover';
 
-import { selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectFirewallComponentDetailsPageRouteParams,
   selectFirewallComponentDetailsPage,
@@ -58,7 +58,7 @@ export default function FirewallComponentDetailsPage() {
   const componentDetailsPageResponseState = useSelector(selectFirewallComponentDetailsPage);
   const routeParams = useSelector(selectFirewallComponentDetailsPageRouteParams);
   const labels = useSelector(selectLabels);
-  const isFirewall = useSelector(selectIsFirewall);
+  const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
   const loadComponentDetails = (routeParams) => dispatch(firewallActions.loadComponentDetails(routeParams));
   const loadComponentPolicyViolations = (pathname, repositoryId) =>
     dispatch(firewallActions.loadComponentPolicyViolations(pathname, repositoryId));
@@ -76,7 +76,7 @@ export default function FirewallComponentDetailsPage() {
   let backButtonParams = {};
   const uiRouterState = useRouterState();
 
-  if (isFirewall) {
+  if (isStandaloneFirewall) {
     backButtonParams = { text: 'Back to Firewall Dashboard', stateName: 'firewall.firewallPage' };
   } else {
     const href = '#' + uiRouterState.get('repository-report').url.replace('{repositoryId}', routeParams.repositoryId);

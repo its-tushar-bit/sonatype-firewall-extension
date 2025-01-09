@@ -30,7 +30,7 @@ import {
 import { Messages } from '../utilAngular/CommonServices';
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { actions as componentDetailsLicenseDetectionsTileActions } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
-import { selectRepositoryId, selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectRepositoryId, selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as componentDetailsActions } from 'MainRoot/componentDetails/componentDetailsSlice';
 import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
@@ -682,7 +682,7 @@ export function selectComponent(componentIndex) {
 
 export function onComponentDetailsPageTabChange(tabId) {
   return (dispatch, getState) => {
-    const abstractRouteName = selectIsFirewall(getState()) ? 'firewall' : 'repository';
+    const abstractRouteName = selectIsStandaloneFirewall(getState()) ? 'firewall' : 'repository';
     return dispatch(stateGo(`${abstractRouteName}.componentDetailsPage.${tabId}`));
   };
 }
@@ -699,7 +699,7 @@ export function onGoToRepositoryComponentWaiversPage(violationId) {
       componentDisplayName,
     } = selectFirewallComponentDetailsPageRouteParams(getState());
     dispatch(
-      stateGo(`${selectIsFirewall(getState()) ? 'firewall' : 'repository'}.violationWaivers`, {
+      stateGo(`${selectIsStandaloneFirewall(getState()) ? 'firewall' : 'repository'}.violationWaivers`, {
         repositoryId,
         componentIdentifier,
         componentHash,
@@ -790,7 +790,7 @@ export function goToRepositoryComponentDetailsPage(
 ) {
   return (dispatch, getState) => {
     dispatch(
-      stateGo(`${selectIsFirewall(getState()) ? 'firewall' : 'repository'}.componentDetailsPage`, {
+      stateGo(`${selectIsStandaloneFirewall(getState()) ? 'firewall' : 'repository'}.componentDetailsPage`, {
         repositoryId,
         componentIdentifier: JSON.stringify(componentIdentifier),
         componentHash,

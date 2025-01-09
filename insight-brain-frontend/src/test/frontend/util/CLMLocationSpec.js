@@ -618,7 +618,7 @@ describe('CLMLocation.js', function () {
   });
 
   it('should return the firewall release quarantine url with params', function () {
-    let urlStart = '/api/v2/firewall/components/autoReleasedFromQuarantine?',
+    let urlStart = '/api/v2/malware-defense/components/autoReleasedFromQuarantine?',
       page = 1,
       pageSize = 12,
       sortBy = 'quarantineTime',
@@ -636,7 +636,7 @@ describe('CLMLocation.js', function () {
   });
 
   it('should return the firewall tile metrics url', function () {
-    expect(CLMLocation.getFirewallTileMetricsUrl()).toBe('/api/v2/firewall/metrics/embedded');
+    expect(CLMLocation.getFirewallTileMetricsUrl()).toBe('/api/v2/malware-defense/metrics/embedded');
   });
 
   describe('ComponentCopyrightDetails', function () {
@@ -1134,7 +1134,7 @@ describe('CLMLocation.js', function () {
   describe('getQuarantinedComponentViewAnonymousAccessEnabledState', () => {
     it('returns url for anonymous access configuration', () => {
       expect(clmLocation.getQuarantinedComponentViewAnonymousAccessEnabledState()).toEqual(
-        '/api/v2/firewall/quarantinedComponentView/configuration/anonymousAccess/'
+        '/api/v2/malware-defense/quarantinedComponentView/configuration/anonymousAccess/'
       );
     });
   });
@@ -1412,22 +1412,22 @@ describe('CLMLocation.js', function () {
 
   describe('getFirewallQuarantineListUrl', () => {
     it('should return a URL to get the firewall quarantine list', () => {
-      expect(CLMLocation.getFirewallQuarantineListUrl()).toBe('/api/v2/firewall/components/quarantined');
+      expect(CLMLocation.getFirewallQuarantineListUrl()).toBe('/api/v2/malware-defense/components/quarantined');
     });
 
     it('should return a URL to get the firewall quarantine list with parameters', () => {
       expect(CLMLocation.getFirewallQuarantineListUrl(1, 2, 'field', true, 'id', 'name', 'publicId', 1)).toBe(
-        '/api/v2/firewall/components/quarantined?page=1&pageSize=2&sortBy=field&asc=true&policyId=id&componentName=name&repositoryPublicId=publicId&quarantineTime=1'
+        '/api/v2/malware-defense/components/quarantined?page=1&pageSize=2&sortBy=field&asc=true&policyId=id&componentName=name&repositoryPublicId=publicId&quarantineTime=1'
       );
     });
 
     it('handles a single parameter correctly', () => {
-      expect(CLMLocation.getFirewallQuarantineListUrl(2)).toBe('/api/v2/firewall/components/quarantined?page=2');
+      expect(CLMLocation.getFirewallQuarantineListUrl(2)).toBe('/api/v2/malware-defense/components/quarantined?page=2');
     });
 
     it('handles a different parameter order correctly', () => {
       expect(CLMLocation.getFirewallQuarantineListUrl(null, 3, 'field')).toBe(
-        '/api/v2/firewall/components/quarantined?pageSize=3&sortBy=field'
+        '/api/v2/malware-defense/components/quarantined?pageSize=3&sortBy=field'
       );
     });
   });
@@ -1476,7 +1476,7 @@ describe('CLMLocation.js', function () {
 
   describe('getRepositoryContainerUrl', () => {
     it('returns the url for the repository container', () => {
-      const expectedUrl = '/api/v2/firewall/repositoryContainer';
+      const expectedUrl = '/api/v2/malware-defense/repositoryContainer';
 
       expect(clmLocation.getRepositoryContainer()).toEqual(expectedUrl);
     });

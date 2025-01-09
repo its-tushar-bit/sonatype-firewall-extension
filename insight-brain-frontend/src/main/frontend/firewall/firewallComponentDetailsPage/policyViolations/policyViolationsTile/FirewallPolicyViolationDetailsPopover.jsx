@@ -25,7 +25,7 @@ import {
   selectFirewallIsLoading,
   selectHasPermissionToAddWaivers,
 } from 'MainRoot/firewall/firewallSelectors';
-import { selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function FirewallPolicyViolationDetailsPopover() {
   const dispatch = useDispatch();
@@ -35,7 +35,7 @@ export default function FirewallPolicyViolationDetailsPopover() {
   const unsetRowClick = () => dispatch(actions.unsetViolationsDetailRowClicked());
   const unsetShowViolationsDetailPopover = () => dispatch(actions.unsetShowViolationsDetailPopover());
   const isViolationsDetailPopoverOpen = useSelector(selectIsViolationsDetailPopoverOpen);
-  const isFirewall = useSelector(selectIsFirewall);
+  const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
   const selectedPolicyViolation = useSelector(selectSelectedPolicyViolation);
   const redirectionProps = useSelector(selectAddWaiverFromFirewallRedirectionProps);
   const { activeWaivers } = useSelector(selectApplicableWaivers);
@@ -49,7 +49,7 @@ export default function FirewallPolicyViolationDetailsPopover() {
 
   const redirectToAddWaiverPage = () => {
     dispatch(
-      stateGo(`${isFirewall ? 'firewall' : 'repository'}.addWaiver`, {
+      stateGo(`${isStandaloneFirewall ? 'firewall' : 'repository'}.addWaiver`, {
         ...redirectionProps,
         violationId: policyDetail.policyViolationId,
       })

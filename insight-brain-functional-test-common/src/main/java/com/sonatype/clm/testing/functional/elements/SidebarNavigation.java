@@ -93,6 +93,18 @@ public class SidebarNavigation
     return new MainHeaderNavigationButton("#data-insights-button");
   }
 
+  public static MainHeaderNavigationButton firewallDashboardNavigationButton() {
+    return new MainHeaderNavigationButton("#sonatype-firewall-dashboard-navigation-button");
+  }
+
+  public static MainHeaderNavigationButton firewallRepositoriesNavigationButton() {
+    return new MainHeaderNavigationButton("#sonatype-firewall-repositories-navigation-button");
+  }
+
+  public static MainHeaderNavigationButton firewallReportsNavigationButton() {
+    return new MainHeaderNavigationButton("#sonatype-firewall-reports-navigation-button");
+  }
+
   public static MainHeaderNavigationButton sbomManagerDashboardNavigationButton() {
     return new MainHeaderNavigationButton("#sbom-manager-dashboard-navigation-button");
   }

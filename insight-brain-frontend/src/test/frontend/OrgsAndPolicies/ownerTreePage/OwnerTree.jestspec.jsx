@@ -27,7 +27,7 @@ describe('OwnerTree', () => {
   };
 
   beforeEach(() => {
-    routerContext = { href: () => {} };
+    routerContext = { href: () => {}, includes: jest.fn(() => false) };
     jest.spyOn(routerContext, 'href').mockImplementation(fakeRouterState);
     ownersMap = getOwnersMap(3, false);
     state = {

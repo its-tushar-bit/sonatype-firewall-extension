@@ -23,7 +23,7 @@ import vulnerabilitySearchModule from './vulnerabilitySearch/module';
 import vulnerabilityCustomizeModule from './vulnerabilityCustomize/module';
 import violationPageModule from './violation/module';
 import waiversModule from './waivers/module';
-import firewallModule from './firewall/module';
+import standaloneFirewallModule from './firewall/firewall.module';
 import firewallOnboardingModule from './firewallOnboarding/module';
 import quarantinedComponentReportModule from './quarantinedComponentReport/module';
 import SystemNoticeContainer from './systemNotice/SystemNoticeContainer';
@@ -58,7 +58,6 @@ export default angular
     vulnerabilityCustomizeModule.name,
     violationPageModule.name,
     waiversModule.name,
-    firewallModule.name,
     firewallOnboardingModule.name,
     componentDetailsModule.name,
     dependencyTreeModule.name,
@@ -76,5 +75,6 @@ export default angular
     prioritiesPageModule.name,
     advancedSearchModule.name,
     developerModule.name,
+    standaloneFirewallModule.name,
   ])
   .component('systemNotice', iqReact2Angular(SystemNoticeContainer, [], ['$ngRedux']));

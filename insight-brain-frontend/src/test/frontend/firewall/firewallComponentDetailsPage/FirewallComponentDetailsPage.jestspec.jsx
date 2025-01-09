@@ -68,6 +68,7 @@ describe('ComponentDetails', () => {
     const routerContext = {
       href: jest.fn(() => '#'),
       get: jest.fn(() => '#'),
+      includes: jest.fn(() => false),
     };
 
     renderComponent = (preloadedState = defaultPreloadedState) =>

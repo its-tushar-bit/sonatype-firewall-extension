@@ -53,6 +53,7 @@ describe('UserAdd', () => {
     spyOn(routerContext, 'useRouterState').and.returnValue({
       href: () => {},
       get: getSpy,
+      includes: () => false,
     });
     getShallowComponent = enzymeUtils.getShallowComponent(UserFormAdd, minimalProps);
   });

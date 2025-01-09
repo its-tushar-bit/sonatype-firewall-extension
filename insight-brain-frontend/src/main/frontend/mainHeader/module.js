@@ -65,6 +65,8 @@ export default angular
         'isSbomManagerOnlyLicense',
         'isStandaloneDeveloper',
         'isOrgsAndAppsEnabled',
+        'isStandaloneFirewall',
+        'isFirewallOnlyLicense',
       ],
       ['$ngRedux', 'userActions', '$state']
     )

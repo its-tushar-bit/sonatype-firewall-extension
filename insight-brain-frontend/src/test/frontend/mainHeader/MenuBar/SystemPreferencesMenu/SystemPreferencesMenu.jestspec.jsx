@@ -66,166 +66,291 @@ describe('SystemPreferencesMenu', () => {
     expect(screen.getByText('System Notice')).toBeInTheDocument();
   });
 
-  it('should not display "Waived Components" if "isSbomManagerOnlyLicense" is true', () => {
-    render(
-      <SystemPreferencesMenu permissions={permissions} isMonitoringSupported={true} isSbomManagerOnlyLicense={true} />
-    );
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-    expect(screen.queryByText('Waived Components')).toBeNull();
+  describe('sbomManagerOnly license', () => {
+    it('should not display "Waived Components" if "isSbomManagerOnlyLicense" is true', () => {
+      render(
+        <SystemPreferencesMenu permissions={permissions} isMonitoringSupported={true} isSbomManagerOnlyLicense={true} />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Waived Components')).toBeNull();
+    });
+
+    it('should display "Waived Components" if "isSbomManagerOnlyLicense" is false', () => {
+      render(
+        <SystemPreferencesMenu
+          permissions={permissions}
+          isMonitoringSupported={true}
+          isSbomManagerOnlyLicense={false}
+        />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Waived Components')).toBeInTheDocument();
+    });
+
+    it('should not display "Atlassian Crowd" if "isSbomManagerOnlyLicense" is true', () => {
+      render(
+        <SystemPreferencesMenu
+          permissions={permissions}
+          isCrowdIntegrationEnabled={true}
+          isSbomManagerOnlyLicense={true}
+        />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Atlassian Crowd')).toBeNull();
+    });
+
+    it('should display "Atlassian Crowd" if "isSbomManagerOnlyLicense" is false', () => {
+      render(
+        <SystemPreferencesMenu
+          permissions={permissions}
+          isCrowdIntegrationEnabled={true}
+          isSbomManagerOnlyLicense={false}
+        />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Atlassian Crowd')).toBeInTheDocument();
+    });
+
+    it('should not display "Success Metrics" if "isSbomManagerOnlyLicense" is true', () => {
+      render(
+        <SystemPreferencesMenu
+          permissions={permissions}
+          isSuccessMetricsConfigurationEnabled={true}
+          isSbomManagerOnlyLicense={true}
+        />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Success Metrics')).toBeNull();
+    });
+
+    it('should display "Success Metrics" if "isSbomManagerOnlyLicense" is false', () => {
+      render(
+        <SystemPreferencesMenu
+          permissions={permissions}
+          isSuccessMetricsConfigurationEnabled={true}
+          isSbomManagerOnlyLicense={false}
+          isOrgsAndAppsEnabled={true}
+        />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Success Metrics')).toBeInTheDocument();
+    });
+
+    it('should not display "Automatic Applications" if "isSbomManagerOnlyLicense" is true', () => {
+      render(
+        <SystemPreferencesMenu
+          permissions={permissions}
+          isAutomaticApplicationConfigurationEnabled={true}
+          isSbomManagerOnlyLicense={true}
+          isOrgsAndAppsEnabled={false}
+        />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Automatic Applications')).toBeNull();
+    });
+
+    it('should display "Automatic Applications" if "isSbomManagerOnlyLicense" is false', () => {
+      render(
+        <SystemPreferencesMenu
+          permissions={permissions}
+          isAutomaticApplicationConfigurationEnabled={true}
+          isSbomManagerOnlyLicense={false}
+        />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Automatic Applications')).toBeInTheDocument();
+    });
+
+    it('should not display "Automatic SCM Configuration" if "isSbomManagerOnlyLicense" is true', () => {
+      render(
+        <SystemPreferencesMenu
+          permissions={permissions}
+          isAutomaticScmConfigurationEnabled={true}
+          isSbomManagerOnlyLicense={true}
+        />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Automatic SCM Configuration')).toBeNull();
+    });
+
+    it('should display "Automatic SCM Configuration" if "isSbomManagerOnlyLicense" is false', () => {
+      render(
+        <SystemPreferencesMenu
+          permissions={permissions}
+          isAutomaticScmConfigurationEnabled={true}
+          isSbomManagerOnlyLicense={false}
+        />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Automatic SCM Configuration')).toBeInTheDocument();
+    });
+
+    it('should not display "Advanced Search" if "isSbomManagerOnlyLicense" is true', () => {
+      render(
+        <SystemPreferencesMenu
+          permissions={permissions}
+          isAdvancedSearchConfigurationEnabled={true}
+          isSbomManagerOnlyLicense={true}
+        />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Advanced Search')).toBeNull();
+    });
+
+    it('should display "Advanced Search" if "isSbomManagerOnlyLicense" is false', () => {
+      render(
+        <SystemPreferencesMenu
+          permissions={permissions}
+          isAdvancedSearchConfigurationEnabled={true}
+          isSbomManagerOnlyLicense={false}
+        />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Advanced Search')).toBeInTheDocument();
+    });
   });
 
-  it('should display "Waived Components" if "isSbomManagerOnlyLicense" is false', () => {
-    render(
-      <SystemPreferencesMenu permissions={permissions} isMonitoringSupported={true} isSbomManagerOnlyLicense={false} />
+  describe('standalone firewall', () => {
+    it.each(['isStandaloneFirewall', 'isFirewallOnlyLicense'])(
+      'should not display "Success Metrics" if %s is true',
+      (item) => {
+        render(
+          <SystemPreferencesMenu
+            permissions={permissions}
+            isSuccessMetricsConfigurationEnabled={true}
+            {...{ [item]: true }}
+          />
+        );
+        const button = screen.getByRole('button');
+        fireEvent.click(button);
+        expect(screen.queryByText('Success Metrics')).toBeNull();
+      }
     );
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-    expect(screen.queryByText('Waived Components')).toBeInTheDocument();
-  });
 
-  it('should not display "Atlassian Crowd" if "isSbomManagerOnlyLicense" is true', () => {
-    render(
-      <SystemPreferencesMenu
-        permissions={permissions}
-        isCrowdIntegrationEnabled={true}
-        isSbomManagerOnlyLicense={true}
-      />
+    it.each(['isStandaloneFirewall', 'isFirewallOnlyLicense'])(
+      'should display "Success Metrics" if %s is false',
+      (item) => {
+        render(
+          <SystemPreferencesMenu
+            permissions={permissions}
+            isSuccessMetricsConfigurationEnabled={true}
+            isStandaloneFirewall={false}
+            isOrgsAndAppsEnabled={true}
+            {...{ [item]: false }}
+          />
+        );
+        const button = screen.getByRole('button');
+        fireEvent.click(button);
+        expect(screen.queryByText('Success Metrics')).toBeInTheDocument();
+      }
     );
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-    expect(screen.queryByText('Atlassian Crowd')).toBeNull();
-  });
 
-  it('should display "Atlassian Crowd" if "isSbomManagerOnlyLicense" is false', () => {
-    render(
-      <SystemPreferencesMenu
-        permissions={permissions}
-        isCrowdIntegrationEnabled={true}
-        isSbomManagerOnlyLicense={false}
-      />
+    it.each(['isStandaloneFirewall', 'isFirewallOnlyLicense'])(
+      'should not display "Automatic Applications" if %s is true',
+      (item) => {
+        render(
+          <SystemPreferencesMenu
+            permissions={permissions}
+            isAutomaticApplicationConfigurationEnabled={true}
+            {...{ [item]: true }}
+          />
+        );
+        const button = screen.getByRole('button');
+        fireEvent.click(button);
+        expect(screen.queryByText('Automatic Applications')).toBeNull();
+      }
     );
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-    expect(screen.queryByText('Atlassian Crowd')).toBeInTheDocument();
-  });
 
-  it('should not display "Success Metrics" if "isSbomManagerOnlyLicense" is true', () => {
-    render(
-      <SystemPreferencesMenu
-        permissions={permissions}
-        isSuccessMetricsConfigurationEnabled={true}
-        isSbomManagerOnlyLicense={true}
-      />
+    it.each(['isStandaloneFirewall', 'isFirewallOnlyLicense'])(
+      'should display "Automatic Applications" if %s is false',
+      (item) => {
+        render(
+          <SystemPreferencesMenu
+            permissions={permissions}
+            isAutomaticApplicationConfigurationEnabled={true}
+            {...{ [item]: false }}
+          />
+        );
+        const button = screen.getByRole('button');
+        fireEvent.click(button);
+        expect(screen.queryByText('Automatic Applications')).toBeInTheDocument();
+      }
     );
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-    expect(screen.queryByText('Success Metrics')).toBeNull();
-  });
 
-  it('should display "Success Metrics" if "isSbomManagerOnlyLicense" is false and isOrgsAndAppsEnabled is true', () => {
-    render(
-      <SystemPreferencesMenu
-        permissions={permissions}
-        isSuccessMetricsConfigurationEnabled={true}
-        isSbomManagerOnlyLicense={false}
-        isOrgsAndAppsEnabled={true}
-      />
+    it.each(['isStandaloneFirewall', 'isFirewallOnlyLicense'])(
+      'should not display "Automatic SCM Configuration" if %s is true',
+      (item) => {
+        render(
+          <SystemPreferencesMenu
+            permissions={permissions}
+            isAutomaticScmConfigurationEnabled={true}
+            {...{ [item]: true }}
+          />
+        );
+        const button = screen.getByRole('button');
+        fireEvent.click(button);
+        expect(screen.queryByText('Automatic SCM Configuration')).toBeNull();
+      }
     );
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-    expect(screen.queryByText('Success Metrics')).toBeInTheDocument();
-  });
 
-  it('should not display "Success Metrics" if "isSbomManagerOnlyLicense" is true or isOrgsAndAppsEnabled is false', () => {
-    render(
-      <SystemPreferencesMenu
-        permissions={permissions}
-        isSuccessMetricsConfigurationEnabled={true}
-        isSbomManagerOnlyLicense={true}
-        isOrgsAndAppsEnabled={false}
-      />
+    it.each(['isStandaloneFirewall', 'isFirewallOnlyLicense'])(
+      'should display "Automatic SCM Configuration" if %s is false',
+      (item) => {
+        render(
+          <SystemPreferencesMenu
+            permissions={permissions}
+            isAutomaticScmConfigurationEnabled={true}
+            {...{ [item]: false }}
+          />
+        );
+        const button = screen.getByRole('button');
+        fireEvent.click(button);
+        expect(screen.queryByText('Automatic SCM Configuration')).toBeInTheDocument();
+      }
     );
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-    expect(screen.queryByText('Success Metrics')).toBeNull();
-  });
 
-  it('should not display "Automatic Applications" if "isSbomManagerOnlyLicense" is true', () => {
-    render(
-      <SystemPreferencesMenu
-        permissions={permissions}
-        isAutomaticApplicationConfigurationEnabled={true}
-        isSbomManagerOnlyLicense={true}
-      />
+    it.each(['isStandaloneFirewall', 'isFirewallOnlyLicense'])(
+      'should not display "Advanced Search" if %s is true',
+      (item) => {
+        render(
+          <SystemPreferencesMenu
+            permissions={permissions}
+            isAdvancedSearchConfigurationEnabled={true}
+            {...{ [item]: true }}
+          />
+        );
+        const button = screen.getByRole('button');
+        fireEvent.click(button);
+        expect(screen.queryByText('Advanced Search')).toBeNull();
+      }
     );
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-    expect(screen.queryByText('Automatic Applications')).toBeNull();
-  });
 
-  it('should display "Automatic Applications" if "isSbomManagerOnlyLicense" is false', () => {
-    render(
-      <SystemPreferencesMenu
-        permissions={permissions}
-        isAutomaticApplicationConfigurationEnabled={true}
-        isSbomManagerOnlyLicense={false}
-      />
+    it.each(['isStandaloneFirewall', 'isFirewallOnlyLicense'])(
+      'should display "Advanced Search" if %s is false',
+      (item) => {
+        render(
+          <SystemPreferencesMenu
+            permissions={permissions}
+            isAdvancedSearchConfigurationEnabled={true}
+            {...{ [item]: false }}
+          />
+        );
+        const button = screen.getByRole('button');
+        fireEvent.click(button);
+        expect(screen.queryByText('Advanced Search')).toBeInTheDocument();
+      }
     );
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-    expect(screen.queryByText('Automatic Applications')).toBeInTheDocument();
-  });
-
-  it('should not display "Automatic SCM Configuration" if "isSbomManagerOnlyLicense" is true', () => {
-    render(
-      <SystemPreferencesMenu
-        permissions={permissions}
-        isAutomaticScmConfigurationEnabled={true}
-        isSbomManagerOnlyLicense={true}
-      />
-    );
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-    expect(screen.queryByText('Automatic SCM Configuration')).toBeNull();
-  });
-
-  it('should display "Automatic SCM Configuration" if "isSbomManagerOnlyLicense" is false', () => {
-    render(
-      <SystemPreferencesMenu
-        permissions={permissions}
-        isAutomaticScmConfigurationEnabled={true}
-        isSbomManagerOnlyLicense={false}
-      />
-    );
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-    expect(screen.queryByText('Automatic SCM Configuration')).toBeInTheDocument();
-  });
-
-  it('should not display "Advanced Search" if "isSbomManagerOnlyLicense" is true', () => {
-    render(
-      <SystemPreferencesMenu
-        permissions={permissions}
-        isAdvancedSearchConfigurationEnabled={true}
-        isSbomManagerOnlyLicense={true}
-      />
-    );
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-    expect(screen.queryByText('Advanced Search')).toBeNull();
-  });
-
-  it('should display "Advanced Search" if "isSbomManagerOnlyLicense" is false', () => {
-    render(
-      <SystemPreferencesMenu
-        permissions={permissions}
-        isAdvancedSearchConfigurationEnabled={true}
-        isSbomManagerOnlyLicense={false}
-      />
-    );
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-    expect(screen.queryByText('Advanced Search')).toBeInTheDocument();
   });
 });

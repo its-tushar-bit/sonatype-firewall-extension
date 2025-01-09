@@ -24,9 +24,14 @@ import {
   selectIsIntegratedEnterpriseReportingSupported,
   selectLoadingFeatures,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectIsSbomManager, selectIsStandaloneDeveloper } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectIsStandaloneFirewall,
+  selectIsSbomManager,
+  selectIsStandaloneDeveloper,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectIsSbomManagerOnlyLicense,
+  selectIsFirewallOnlyLicense,
   selectLoadingProducts,
 } from 'MainRoot/productFeatures/productLicenseSelectors';
 
@@ -55,6 +60,8 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
   vm.isSbomManagerOnlyLicense = false;
   vm.isProductsLoading = false;
   vm.isStandaloneDeveloper = false;
+  vm.isStandaloneFirewall = false;
+  vm.isFirewallOnlyLicense = false;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
 
@@ -129,6 +136,8 @@ function mapStateToThis(state) {
     isSbomManagerOnlyLicense: selectIsSbomManagerOnlyLicense(state),
     isProductsLoading: selectLoadingProducts(state),
     isStandaloneDeveloper: selectIsStandaloneDeveloper(state),
+    isStandaloneFirewall: selectIsStandaloneFirewall(state),
+    isFirewallOnlyLicense: selectIsFirewallOnlyLicense(state),
   };
 }
 

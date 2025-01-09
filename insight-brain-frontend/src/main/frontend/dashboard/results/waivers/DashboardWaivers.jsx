@@ -6,6 +6,7 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectDashboardFilter, selectWaiversResults } from '../../dashboardSelectors';
+import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   loadWaiverResults,
   sortWaiversResults,
@@ -32,8 +33,8 @@ export default function DashboardWaivers() {
     filtersAreDirty,
     appliedFilter: { maxDaysOld },
   } = useSelector(selectDashboardFilter);
+  const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
   const waivers = useSelector(selectWaiversResults);
-
   const waiverSelector = useSelector(prop('waivers'));
 
   const isLoading = (!waivers.results && !waivers.error) || waiverSelector.waiverReasons.loading;
@@ -60,7 +61,7 @@ export default function DashboardWaivers() {
   };
 
   useEffect(() => {
-    if (!filterLoading && !needsAcknowledgement) {
+    if (isStandaloneFirewall || (!filterLoading && !needsAcknowledgement)) {
       loadWaivers();
     }
   }, [filterLoading, needsAcknowledgement]);

@@ -4,16 +4,19 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { useEffect } from 'react';
-import { compose, identity } from 'ramda';
-import LoadWrapper from '../react/LoadWrapper';
-import FirewallStatus from './FirewallStatus';
-import FirewallQuarantineTable from './FirewallQuarantineTable';
+import React, { useEffect, useRef } from 'react';
+
+import { compose } from 'ramda';
 import * as PropTypes from 'prop-types';
-import FirewallConfigurationModalContainer from './config/FirewallConfigurationModalContainer';
-import FirewallWelcomeModal from './FirewallWelcomeModal';
-import FirewallMetrics from './FirewallMetrics';
 import { NxPageTitle, NxH1 } from '@sonatype/react-shared-components';
+
+import FirewallStatus from './FirewallStatus';
+import LoadWrapper from '../react/LoadWrapper';
+import FirewallMetrics from './FirewallMetrics';
+import FirewallWelcomeModal from './FirewallWelcomeModal';
+import FirewallTabs from 'MainRoot/firewall/FirewallTabs';
+import { QUARANTINE, WAIVERS } from 'MainRoot/firewall/firewallConstants';
+import FirewallConfigurationModalContainer from './config/FirewallConfigurationModalContainer';
 
 export default function FirewallPage(props) {
   // Actions
@@ -50,13 +53,30 @@ export default function FirewallPage(props) {
 
   const { filterPolicies } = props;
 
+  const firewallTabsFuncRefs = useRef();
+
   useEffect(() => {
     loadFirewallData();
     initializeWelcomeModal();
   }, []);
 
-  const scrollToQuarantineTable = () =>
-    document.getElementById('firewall-quarantine-table').scrollIntoView({ behavior: 'smooth' });
+  const setQuarantineGridPolicyFilterEmpty = () => {
+    if (filterPolicies?.length !== 0) {
+      setQuarantineGridPolicyFilter([]);
+    }
+  };
+
+  const scrollToQuarantineTable = () => {
+    firewallTabsFuncRefs?.current?.clickTab(QUARANTINE);
+    setTimeout(() => firewallTabsFuncRefs?.current?.scrollToPanel(QUARANTINE), 100);
+  };
+
+  const onViewQuarantinedComponentsClick = (filterFn) => compose(scrollToQuarantineTable, filterFn);
+
+  const onViewWaivedComponentsClick = () => {
+    firewallTabsFuncRefs?.current?.clickTab(WAIVERS);
+    setTimeout(() => firewallTabsFuncRefs?.current?.scrollToPanel(WAIVERS), 100);
+  };
 
   return (
     <main id="firewall-page" className="nx-page-main">
@@ -83,20 +103,16 @@ export default function FirewallPage(props) {
           componentsAutoReleased={componentsAutoReleased}
           saferVersionsSelectedAutomatically={safeVersionsSelected}
           waivedComponents={waivedComponents}
-          onNamespaceAttacksBlockedLinkClick={compose(
-            scrollToQuarantineTable,
+          onNamespaceAttacksBlockedLinkClick={onViewQuarantinedComponentsClick(
             setQuarantineGridPolicyFilterWithProprietaryNameConflict
           )}
-          onSupplyChainAttacksBlockedLinkClick={compose(
-            scrollToQuarantineTable,
+          onSupplyChainAttacksBlockedLinkClick={onViewQuarantinedComponentsClick(
             setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode
           )}
-          onComponentsQuarantinedLinkClick={compose(
-            scrollToQuarantineTable,
-            filterPolicies.length > 0 ? () => setQuarantineGridPolicyFilter([]) : identity
-          )}
+          onComponentsQuarantinedLinkClick={onViewQuarantinedComponentsClick(setQuarantineGridPolicyFilterEmpty)}
+          onViewWaivedComponentsClick={onViewWaivedComponentsClick}
         />
-        <FirewallQuarantineTable {...props} />
+        <FirewallTabs ref={firewallTabsFuncRefs} {...props} />
       </LoadWrapper>
     </main>
   );
@@ -130,4 +146,6 @@ FirewallPage.propTypes = {
   uiRouterState: PropTypes.shape({
     href: PropTypes.func.isRequired,
   }),
+  isStandaloneFirewall: PropTypes.bool,
+  stateGo: PropTypes.func.isRequired,
 };

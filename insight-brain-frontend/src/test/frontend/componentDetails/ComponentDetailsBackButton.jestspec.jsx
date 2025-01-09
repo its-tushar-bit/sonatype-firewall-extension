@@ -28,6 +28,7 @@ describe('ComponentDetailsBackButton', () => {
         }
         return stateName;
       }),
+      includes: jest.fn(() => false),
     };
 
     jest.spyOn(routerContext, 'useRouterState').mockReturnValue(routerContextMock);

@@ -97,5 +97,65 @@ describe('RouteProductLicenseValidator handleOnEnterPermissions', () => {
         });
       }
     );
+
+    describe('the products are firewall only', () => {
+      it(`calls handleOnEnterPermissions and stateServiceTargetFn without the firewall prefix in the state name`, async () => {
+        mockProductLicenseResponse = {
+          products: ['Sonatype Repository Firewall', 'Sonatype Firewall for Artifactory'],
+        };
+        expect(await handleOnEnterPermissions(mockStateServiceTargetFn, { name: 'some-random-path' })).toEqual('home');
+        expect(mockStateServiceTargetFn).toHaveBeenCalled();
+      });
+
+      it(`calls handleOnEnterPermissions and returns true with the firewall prefix in the state name`, async () => {
+        mockProductLicenseResponse = {
+          products: ['Sonatype Repository Firewall', 'Sonatype Firewall for Artifactory'],
+        };
+        expect(await handleOnEnterPermissions(mockStateServiceTargetFn, { name: 'firewall.some-random-path' })).toEqual(
+          true
+        );
+        expect(mockStateServiceTargetFn).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('the products are not firewall only', () => {
+      it(`calls handleOnEnterPermissions and returns true without the firewall prefix in the state name`, async () => {
+        mockProductLicenseResponse = {
+          products: ['Sonatype Repository Firewall', 'Sonatype SBOM Manager'],
+        };
+        expect(await handleOnEnterPermissions(mockStateServiceTargetFn, { name: 'some-random-path' })).toEqual(true);
+        expect(mockStateServiceTargetFn).not.toHaveBeenCalled();
+      });
+
+      it(`calls handleOnEnterPermissions and returns true with the firewall prefix in the state name`, async () => {
+        mockProductLicenseResponse = {
+          products: ['Sonatype Repository Firewall', 'Sonatype SBOM Manager'],
+        };
+        expect(await handleOnEnterPermissions(mockStateServiceTargetFn, { name: 'firewall.some-random-path' })).toEqual(
+          true
+        );
+        expect(mockStateServiceTargetFn).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('the products not contain firewall', () => {
+      it(`calls handleOnEnterPermissions and returns true without the firewall prefix in the state name`, async () => {
+        mockProductLicenseResponse = {
+          products: ['Sonatype Lifecycle SaaS', 'Sonatype SBOM Manager'],
+        };
+        expect(await handleOnEnterPermissions(mockStateServiceTargetFn, { name: 'some-random-path' })).toEqual(true);
+        expect(mockStateServiceTargetFn).not.toHaveBeenCalled();
+      });
+
+      it(`calls handleOnEnterPermissions and stateServiceTargetFn with the firewall prefix in the state name`, async () => {
+        mockProductLicenseResponse = {
+          products: ['Sonatype Lifecycle SaaS', 'Sonatype SBOM Manager'],
+        };
+        expect(await handleOnEnterPermissions(mockStateServiceTargetFn, { name: 'firewall.some-random-path' })).toEqual(
+          'home'
+        );
+        expect(mockStateServiceTargetFn).toHaveBeenCalled();
+      });
+    });
   });
 });

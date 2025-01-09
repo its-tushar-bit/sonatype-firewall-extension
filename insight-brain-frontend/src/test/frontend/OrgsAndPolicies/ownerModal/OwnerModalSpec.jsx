@@ -325,7 +325,7 @@ describe('OwnerModal', () => {
 
   beforeEach(() => {
     mock = axiosMockAdapter();
-    routerContext = { href: null };
+    routerContext = { href: null, includes: () => false };
     spyOn(routerContext, 'href').and.callFake((url, params) => {
       if (url.includes('scmOnboardingOrg')) {
         const organizationId = params.organizationId;

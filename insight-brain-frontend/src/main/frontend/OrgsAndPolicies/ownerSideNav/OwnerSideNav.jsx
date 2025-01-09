@@ -46,6 +46,7 @@ import {
   selectRepositoryId,
   selectRouterCurrentParams,
   selectIsSbomManager,
+  selectIsStandaloneFirewall,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectIsScmEnabled,
@@ -80,6 +81,7 @@ export default function OwnerSideNav() {
   } = useSelector(selectOwnerSideNavSlice);
   const loadingOwnerSummary = useSelector(selectOwnerSummaryLoading);
   const isSbomManager = useSelector(selectIsSbomManager);
+  const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
   const isRootOrganization = useSelector(selectIsRootOrganization);
   const isOrganizationTopOfHierarchyForUser = useSelector(selectIsOrganizationTopOfHierarchyForUser);
   const isOrganization = useSelector(selectIsOrganization);
@@ -418,7 +420,7 @@ export default function OwnerSideNav() {
           return (
             <>
               <header className="iq-orgs-and-policies-summary-sidebar__header" data-testid="sidebar-header">
-                {isOrgsAndAppsEnabled && (
+                {isOrgsAndAppsEnabled && !isStandaloneFirewall && (
                   <NxFilterInput
                     searchIcon
                     id="owner-sidebar-filter"
@@ -450,7 +452,7 @@ export default function OwnerSideNav() {
                         {renderRepositories(displayedOrganization.repositoryIds)}
                       </>
                     )}
-                    {isOrgsAndAppsEnabled && (
+                    {isOrgsAndAppsEnabled && !isStandaloneFirewall && (
                       <>
                         {renderOrganizations(displayedOrganization)}
                         {renderApplications(displayedOrganization)}
@@ -459,7 +461,7 @@ export default function OwnerSideNav() {
                   </>
                 )}
               </nav>
-              {(isOrgsAndAppsEnabled || isFirewallSupported) && (
+              {isOrgsAndAppsEnabled && !isStandaloneFirewall && (
                 <footer className="iq-orgs-and-policies-summary-sidebar__footer">
                   <a href={treeViewPageHref} className="nx-btn nx-btn--tertiary iq-tree-view-button">
                     <NxFontAwesomeIcon icon={faFolderTree} />

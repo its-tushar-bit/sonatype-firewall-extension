@@ -18,15 +18,17 @@ const setupPortalContainer = () => {
 describe('MenuBarBackButton', function () {
   setupPortalContainer();
 
-  let getShallowComponent, mockState, stateGetSpy, stateHrefSpy, mockData;
+  let getShallowComponent, mockState, stateGetSpy, stateHrefSpy, stateIncludesSpy, mockData;
 
   beforeEach(() => {
     mockData = { data: { title: 'some page' } };
     stateGetSpy = jasmine.createSpy('$state.get').and.returnValue(mockData);
     stateHrefSpy = jasmine.createSpy('$state.href').and.returnValue('/noop');
+    stateIncludesSpy = jasmine.createSpy('$state.includes').and.returnValue(false);
     mockState = {
       get: stateGetSpy,
       href: stateHrefSpy,
+      includes: stateIncludesSpy,
     };
     spyOn(routerContext, 'useRouterState').and.returnValue(mockState);
 

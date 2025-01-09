@@ -18,7 +18,6 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxTableHeader;
-import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.FirewallAutoUnquarantinePage;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
@@ -361,16 +360,6 @@ public class FirewallPageTest
     componentsAutoSelected.value().shouldHave(text("20Last 12 months"));
     componentsAutoSelected.link().click();
     Selenide.switchTo().window(1);
-
-    Selenide.switchTo().window(0);
-
-    FirewallMetricsContent componentsWaived
-        = page.firewallMetricsContent("#firewall-metrics-content-components-waived");
-    componentsWaived.shouldBe(visible);
-    componentsWaived.value().shouldHave(text("30Last 12 months"));
-    componentsWaived.link().click();
-    // Confirm you're on the dashboard's waivers tab by confirming that its selected
-    assertThat(DashboardPage.waiversTab().getElement().attr("aria-selected")).isEqualTo("true");
   }
 
   @Test
@@ -723,7 +712,7 @@ public class FirewallPageTest
     FirewallQuarantineTable firewallQuarantineTable = page.firewallQuarantineTable();
     // We initially have 3 rows
     firewallQuarantineTable.tableBodyRows().shouldHave(size(3));
-    firewallQuarantineTable.tableBodyRows().shouldHave(texts( "g : b1 : v", "g : a : v", "g : a : v"));
+    firewallQuarantineTable.tableBodyRows().shouldHave(texts("g : b1 : v", "g : a : v", "g : a : v"));
     // One character in the component name search should not trigger the search
     firewallQuarantineTable.componentNameInput().sendKeys("b");
     firewallQuarantineTable.tableBodyRows().shouldHave(size(3));
@@ -854,7 +843,7 @@ public class FirewallPageTest
   private Policy createTestPolicyWithCondition(
       String name,
       boolean withSecurityVulnerabilityCategoryMaliciousCodeCondition,
-      boolean withProprietaryNameConflictCondition )
+      boolean withProprietaryNameConflictCondition)
   {
     Policy policy = new Policy(name, name);
     policy.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
@@ -878,7 +867,7 @@ public class FirewallPageTest
   public void testFirewallPage_QuarantineStatusCount() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager("1");
     tempEntity.newProxyRepository(repositoryManager, "proxyRepo1", "maven", true, true);
-    tempEntity.newProxyRepository(repositoryManager, "proxyRepo2", "npm",true, false);
+    tempEntity.newProxyRepository(repositoryManager, "proxyRepo2", "npm", true, false);
     tempEntity.newHostedRepository(repositoryManager, "hostedRepo2", "maven", false);
     tempEntity.newHostedRepository(repositoryManager, "hostedRepo1", "npm", true);
 
@@ -891,5 +880,34 @@ public class FirewallPageTest
         .shouldBe(visible);
 
     eyesWatcher.eyesCheck("Firewall Status - Quarantine Status Count");
+  }
+
+  @Test
+  public void testFirewallPage_shouldShowProperTableWhenMetricIsClicked() {
+    refreshOrOpen(FirewallPage.url());
+
+    String quarantinedComponentsMetricId = "#firewall-metrics-content-components-quarantined";
+    FirewallMetricsContent componentsQuarantinedMetric
+        = page.firewallMetricsContent(quarantinedComponentsMetricId);
+    componentsQuarantinedMetric.link().click();
+    page.firewallQuarantineTable().shouldBe(visible);
+
+    String namespaceAttacksBlockedMetricId = "#firewall-metrics-content-namespace-attacks-blocked";
+    FirewallMetricsContent namespaceAttacksBlockedMetric
+        = page.firewallMetricsContent(namespaceAttacksBlockedMetricId);
+    namespaceAttacksBlockedMetric.link().click();
+    page.firewallQuarantineTable().shouldBe(visible);
+
+    String supplyChainAttacksBlockedMetricId = "#firewall-metrics-content-supply-chain-attacks-blocked";
+    FirewallMetricsContent supplyChainAttacksBlockedMetric
+        = page.firewallMetricsContent(supplyChainAttacksBlockedMetricId);
+    supplyChainAttacksBlockedMetric.link().click();
+    page.firewallQuarantineTable().shouldBe(visible);
+
+    String componentsWaivedMetricId = "#firewall-metrics-content-components-waived";
+    FirewallMetricsContent componentsWaivedMetric
+        = page.firewallMetricsContent(componentsWaivedMetricId);
+    componentsWaivedMetric.link().click();
+    page.firewallWaiversTable().shouldBe(visible);
   }
 }

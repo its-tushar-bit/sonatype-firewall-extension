@@ -91,5 +91,9 @@ dashboardModule.config([
     $urlServiceProvider.rules.when('/dashboard/newest-risk', (matchValues, _urlParts, router) =>
       router.stateService.go('dashboard.overview.violations', matchValues)
     );
+
+    $urlServiceProvider.rules.when('/repositories/quarantinedComponent/{token}', (matchValues, _urlParts, router) =>
+      router.stateService.go('firewall.quarantinedComponentReport', matchValues)
+    );
   },
 ]);

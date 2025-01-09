@@ -110,7 +110,7 @@ public class UserInterfaceLinksResource
   public Response linkToFirewallHome() {
     UriBuilder uriBuilder = baseUrl.redirect()
         .path(ASSET_INDEX_PATH)
-        .fragment("/firewall");
+        .fragment("/malware-defense/dashboard");
     return redirect(uriBuilder);
   }
 

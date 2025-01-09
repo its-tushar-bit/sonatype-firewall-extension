@@ -123,7 +123,7 @@ describe('RepositoryPane', function () {
       },
     };
 
-    routerContext = { href: null };
+    routerContext = { href: null, includes: () => false };
     spyOn(routerContext, 'href').and.callFake(fakeRouterState);
 
     mockAxiosCalls.onGet(ownerListUrl).reply(200, ownerListPayload);

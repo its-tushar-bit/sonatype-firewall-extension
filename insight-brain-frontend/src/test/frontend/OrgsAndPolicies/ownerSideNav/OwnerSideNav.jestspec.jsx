@@ -115,7 +115,7 @@ describe('OwnerSideNav', () => {
       },
     };
 
-    routerContext = { href: () => {} };
+    routerContext = { href: () => {}, includes: jest.fn(() => false) };
     jest.spyOn(routerContext, 'href').mockImplementation(fakeRouterState);
 
     mockAxiosCalls.onGet(ownerListUrl).reply(200, ownerListPayload);
@@ -455,6 +455,7 @@ describe('OwnerSideNav', () => {
         productFeatures: {
           productFeatures: {
             firewall: true,
+            'orgs-and-apps': true,
           },
         },
         router: {
@@ -973,6 +974,7 @@ describe('OwnerSideNav', () => {
         productFeatures: {
           productFeatures: {
             firewall: true,
+            'orgs-and-apps': true,
           },
         },
         router: {
@@ -1759,7 +1761,7 @@ describe('OwnerSideNav', () => {
         },
         router: {
           currentState: {
-            name: 'management.view.organization',
+            name: 'firewall.management.view.organization',
           },
           currentParams: {
             organizationId: rootOrg.id,
@@ -1786,6 +1788,7 @@ describe('OwnerSideNav', () => {
 
       expect(screen.queryByPlaceholderText('Org or App Name')).toBeNull();
       expect(screen.queryByTestId('organizations-add')).toBeNull();
+      expect(screen.queryByText('Tree View')).toBeNull();
     });
   });
 

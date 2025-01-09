@@ -177,28 +177,6 @@ public class SidebarNavigationTest
   }
 
   @Test
-  public void testFirewallNavigationButton_ShowByDefault() {
-    SidebarNavigation.firewallNavigationButton().shouldBe(visible);
-  }
-
-  @Test
-  public void testFirewallNavigationButton_FeaturesUnavailableHidden() {
-    setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
-    refresh();
-    SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
-    testProductLicense.reset();
-    setMissingFeature(LicensedFeature.RELEASE_INTEGRITY);
-    refresh();
-    SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
-  }
-
-  @Test
-  public void testNavigation_ToFirewall() {
-    SidebarNavigation.firewallNavigationButton().shouldBe(visible).click();
-    waitUntilUrl(FirewallPage.url());
-  }
-
-  @Test
   public void testLegalNavigationButton_HiddenByDefault() {
     setMissingFeature(LicensedFeature.ADVANCED_LEGAL_PACK);
 
@@ -281,16 +259,8 @@ public class SidebarNavigationTest
 
     refresh();
 
-    SidebarNavigation.dashboardNavigationButton().shouldBe(visible);
-    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
-    SidebarNavigation.reportingNavigationButton().shouldBe(hidden);
-    SidebarNavigation.labsNavigationButton().shouldBe(hidden);
-    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
-    SidebarNavigation.advancedSearchNavigationButton().shouldBe(visible);
-    SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
-    SidebarNavigation.legalNavigationButton().shouldBe(hidden);
-    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallDashboardNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallRepositoriesNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -305,16 +275,8 @@ public class SidebarNavigationTest
 
     refresh();
 
-    SidebarNavigation.dashboardNavigationButton().shouldBe(visible);
-    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
-    SidebarNavigation.reportingNavigationButton().shouldBe(hidden);
-    SidebarNavigation.labsNavigationButton().shouldBe(hidden);
-    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
-    SidebarNavigation.advancedSearchNavigationButton().shouldBe(visible);
-    SidebarNavigation.firewallNavigationButton().shouldBe(visible);
-    SidebarNavigation.legalNavigationButton().shouldBe(hidden);
-    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallDashboardNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallRepositoriesNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -372,16 +334,8 @@ public class SidebarNavigationTest
 
     refresh();
 
-    SidebarNavigation.dashboardNavigationButton().shouldBe(visible);
-    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
-    SidebarNavigation.reportingNavigationButton().shouldBe(hidden);
-    SidebarNavigation.labsNavigationButton().shouldBe(hidden);
-    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
-    SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
-    SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
-    SidebarNavigation.legalNavigationButton().shouldBe(hidden);
-    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallDashboardNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallRepositoriesNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -397,16 +351,8 @@ public class SidebarNavigationTest
 
     refresh();
 
-    SidebarNavigation.dashboardNavigationButton().shouldBe(visible);
-    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
-    SidebarNavigation.reportingNavigationButton().shouldBe(hidden);
-    SidebarNavigation.labsNavigationButton().shouldBe(hidden);
-    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
-    SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
-    SidebarNavigation.firewallNavigationButton().shouldBe(visible);
-    SidebarNavigation.legalNavigationButton().shouldBe(hidden);
-    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallDashboardNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallRepositoriesNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -569,16 +515,8 @@ public class SidebarNavigationTest
 
     refresh();
 
-    SidebarNavigation.dashboardNavigationButton().shouldBe(visible);
-    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
-    SidebarNavigation.reportingNavigationButton().shouldBe(hidden);
-    SidebarNavigation.labsNavigationButton().shouldBe(hidden);
-    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
-    SidebarNavigation.advancedSearchNavigationButton().shouldBe(visible);
-    SidebarNavigation.firewallNavigationButton().shouldBe(visible);
-    SidebarNavigation.legalNavigationButton().shouldBe(hidden);
-    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallDashboardNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallRepositoriesNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -592,17 +530,11 @@ public class SidebarNavigationTest
 
     refresh();
 
-    SidebarNavigation.dashboardNavigationButton().shouldBe(visible).click();
-    waitUntilUrl(DashboardPage.urlToWaivers());
-
-    SidebarNavigation.policiesNavigationButton().shouldBe(visible).click();
-    waitUntilUrl(OwnerSummaryPage.url());
-
-    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible).click();
-    waitUntilUrl(VulnerabilitySearchPage.url());
-
-    SidebarNavigation.firewallNavigationButton().shouldBe(visible).click();
+    SidebarNavigation.firewallDashboardNavigationButton().shouldBe(visible).click();
     waitUntilUrl(FirewallPage.url());
+
+    SidebarNavigation.firewallRepositoriesNavigationButton().shouldBe(visible).click();
+    waitUntilUrl(OwnerSummaryPage.url().replace("#/", "#/malware-defense/"));
   }
 
   @Test
@@ -622,16 +554,8 @@ public class SidebarNavigationTest
 
     refresh();
 
-    SidebarNavigation.dashboardNavigationButton().shouldBe(visible);
-    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
-    SidebarNavigation.reportingNavigationButton().shouldBe(hidden);
-    SidebarNavigation.labsNavigationButton().shouldBe(hidden);
-    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
-    SidebarNavigation.advancedSearchNavigationButton().shouldBe(visible);
-    SidebarNavigation.legalNavigationButton().shouldBe(hidden);
-    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
-    SidebarNavigation.firewallNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallDashboardNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallRepositoriesNavigationButton().shouldBe(visible);
     waitUntilUrl(FirewallPage.url());
   }
 
@@ -651,21 +575,15 @@ public class SidebarNavigationTest
     // This is the cog menu
     SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
 
-    SidebarNavigation.dashboardNavigationButton().shouldBe(visible).click();
-    waitUntilUrl(DashboardPage.urlToWaivers());
+    SidebarNavigation.firewallDashboardNavigationButton().shouldBe(visible).click();
+    waitUntilUrl(FirewallPage.url());
 
     systemConfigMenu.dropdownToggle().click();
     systemConfigMenu.productLicense().shouldBe(visible).click();
-    waitUntilUrl(ProductLicensePage.url());
+    waitUntilUrl(ProductLicensePage.url().replace("#/", "#/malware-defense/"));
 
-    SidebarNavigation.policiesNavigationButton().shouldBe(visible).click();
-    waitUntilUrl(OwnerSummaryPage.url());
-
-    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible).click();
-    waitUntilUrl(VulnerabilitySearchPage.url());
-
-    SidebarNavigation.firewallNavigationButton().shouldBe(visible).click();
-    waitUntilUrl(FirewallPage.url());
+    SidebarNavigation.firewallRepositoriesNavigationButton().shouldBe(visible).click();
+    waitUntilUrl(OwnerSummaryPage.url().replace("#/", "#/malware-defense/"));
   }
 
   private void enableAdvancedSearch() {

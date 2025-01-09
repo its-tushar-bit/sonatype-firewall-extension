@@ -50,6 +50,7 @@ describe('withLdapHeader', () => {
     spyOn(routerContext, 'useRouterState').and.returnValue({
       href: () => {},
       get: getSpy,
+      includes: () => false,
     });
 
     getShallowComponent = enzymeUtils.getShallowComponent(withLdapHeader(Wrapped, { formId: 'ldap-edit-connection' }), {

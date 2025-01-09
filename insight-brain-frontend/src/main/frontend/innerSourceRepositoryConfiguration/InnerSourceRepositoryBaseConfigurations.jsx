@@ -45,6 +45,7 @@ import InnerSourceRepositoryDeleteConfigurationModal from 'MainRoot/innerSourceR
 import { actions as deleteModalActions } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryDeleteConfigurationModalSlice';
 
 import { selectOwnerTypeAndOwnerId } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSelectors';
+import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as configurationModalActions } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSlice';
 
 import { faPen, faPlus, faTrash } from '@fortawesome/pro-solid-svg-icons';
@@ -73,6 +74,7 @@ export default function InnerSourceRepositoryBaseConfigurations() {
   const ownerId = ownerTypeAndOwnerId?.ownerId;
   const ownerPublicId = useSelector(selectOwnerPublicId);
   const isDirty = useSelector(selectIsDirty);
+  const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
 
   const load = () => dispatch(actions.load());
   const save = () => dispatch(actions.save());
@@ -104,10 +106,11 @@ export default function InnerSourceRepositoryBaseConfigurations() {
   };
 
   const getBackHref = () => {
+    const firewallPrefix = isStandaloneFirewall ? 'malware-defense/' : '';
     if (ownerType === 'application') {
-      return `#/management/view/${ownerType}/${ownerPublicId}`;
+      return `#/${firewallPrefix}management/view/${ownerType}/${ownerPublicId}`;
     }
-    return `#/management/view/${ownerType}/${ownerId}`;
+    return `#/${firewallPrefix}management/view/${ownerType}/${ownerId}`;
   };
 
   const getAddOrEditTooltip = (defaultMessage, mustUpdateEnabledMessage) => {

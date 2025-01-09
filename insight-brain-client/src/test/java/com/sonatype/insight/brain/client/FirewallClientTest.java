@@ -434,7 +434,8 @@ public class FirewallClientTest
         new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID,
             FirewallClient.NEXUS_RESOURCE_PATH);
     QuarantinedComponentReport quarantinedComponentReport = client.getQuarantinedComponentReport("path");
-    assertThat(quarantinedComponentReport.getReportUrl()).matches("ui/links/repositories/quarantinedComponent/.+");
+    assertThat(quarantinedComponentReport.getReportUrl())
+        .matches("ui/links/malware-defense/repositories/quarantinedComponent/.+");
   }
 
   @Test

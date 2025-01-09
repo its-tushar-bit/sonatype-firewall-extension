@@ -8,7 +8,16 @@ import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { useRouterState } from '../../../react/RouterStateContext';
 
-export const NavLink = ({ stateName, children, href, showIf = true, openInNewTab, disabled, ...props }) => {
+export const NavLink = ({
+  stateName,
+  children,
+  href,
+  showIf = true,
+  prefix = '',
+  openInNewTab,
+  disabled,
+  ...props
+}) => {
   const { href: hrefFromStateName, includes } = useRouterState();
   if (!showIf) {
     return null;
@@ -17,7 +26,9 @@ export const NavLink = ({ stateName, children, href, showIf = true, openInNewTab
     active: includes(stateName),
     disabled: disabled,
   });
-  let linkHref = stateName ? hrefFromStateName(stateName) : href;
+  const resolvedPrefix = prefix && !prefix.endsWith('.') ? `${prefix}.` : prefix;
+
+  let linkHref = stateName ? hrefFromStateName(resolvedPrefix + stateName) : href;
   if (disabled) {
     linkHref = undefined;
   }
@@ -40,6 +51,7 @@ NavLink.propTypes = {
   href: PropTypes.string,
   className: PropTypes.string,
   showIf: PropTypes.bool,
+  prefix: PropTypes.string,
   openInNewTab: PropTypes.bool,
   disabled: PropTypes.bool,
 };

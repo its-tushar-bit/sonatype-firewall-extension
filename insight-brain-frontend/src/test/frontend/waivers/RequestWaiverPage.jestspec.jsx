@@ -84,6 +84,7 @@ describe('RequestWaiverPage', function () {
         }
         return '#';
       }),
+      includes: jest.fn(() => false),
     };
 
     mock.onGet(getApplicableWaiversUrl(violationId)).reply(200, { activeWaivers: [], expiredWaivers: [] });

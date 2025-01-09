@@ -25,11 +25,15 @@ const deriveComponentNameFromDisplayNameWithoutVersion = pipe(
   join('')
 );
 
-export const getComponentName = ({ displayName, filename, filenames }) =>
+export const getComponentName = ({ displayName, filename, filenames, componentIdentifier, componentName }) =>
   (isPathname(displayName) && getFilenameFromPath(deriveComponentNameFromDisplayName(displayName))) ||
   (displayName && deriveComponentNameFromDisplayName(displayName)) ||
   filename ||
   (filenames && deriveComponentNameFromFilenames(filenames)) ||
+  (componentIdentifier?.coordinates?.packageId &&
+    componentIdentifier?.coordinates?.version &&
+    `${componentIdentifier.coordinates.packageId} : ${componentIdentifier.coordinates.version}`) ||
+  componentName ||
   COMPONENT_UNKNOWN_LABEL;
 
 export const getArtifactName = ({ displayName, filename }) =>
@@ -52,10 +56,18 @@ export const getFilenameFromPath = (filenamePath) => {
   return filenamePath;
 };
 
-export const getComponentNameWithoutVersion = ({ displayName, filename, filenames }) =>
+export const getComponentNameWithoutVersion = ({
+  displayName,
+  filename,
+  filenames,
+  componentIdentifier,
+  componentName,
+}) =>
   (displayName && deriveComponentNameFromDisplayNameWithoutVersion(displayName)) ||
   filename ||
   (filenames && deriveComponentNameFromFilenames(filenames)) ||
+  componentIdentifier?.coordinates?.packageId ||
+  componentName ||
   COMPONENT_UNKNOWN_LABEL;
 
 export const isUnknownComponent = (component) => getComponentName(component) === COMPONENT_UNKNOWN_LABEL;

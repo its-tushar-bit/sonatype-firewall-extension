@@ -19,12 +19,6 @@
   > tbody {
     .nx-table-row {
       .nx-cell {
-        white-space: normal;
-        overflow-wrap: anywhere;
-        @supports not (overflow-wrap: anywhere) {
-          word-break: break-all;
-        }
-
         ul {
           margin: 0;
           padding: 0;

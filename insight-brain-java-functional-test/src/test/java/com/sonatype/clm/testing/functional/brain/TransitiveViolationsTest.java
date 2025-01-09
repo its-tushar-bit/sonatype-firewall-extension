@@ -50,10 +50,10 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.ReportTestUtils;
-import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import com.codeborne.selenide.Condition;
@@ -73,19 +73,13 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
-import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TransitiveViolationsTest
     extends AbstractFunctionalTest
 {
-  @BeforeClass
-  public static void beforeClass() {
-    refreshOrOpen(DashboardPage.url());
-    loginAsAdmin();
-  }
-
   private Organization rootOrganization;
 
   private Organization organization;
@@ -99,6 +93,12 @@ public class TransitiveViolationsTest
   private PolicyEvaluation policyEvaluation;
 
   private List<PolicyViolation> policyViolations;
+
+  @BeforeClass
+  public static void beforeClass() {
+    refreshOrOpen(DashboardPage.url());
+    loginAsAdmin();
+  }
 
   @Before
   public void before() throws Exception {
@@ -467,7 +467,8 @@ public class TransitiveViolationsTest
     Policy appPolicy = tempEntity.newPolicy(application.getId(), "appPolicy");
     Policy orgPolicy = tempEntity.newPolicy(organization.getId(), "orgPolicy");
     Policy rootOrgPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "rootOrgPolicy");
-    Date creationDate = simpleDateFormat.parse("2000-05-01");
+    Date creationDate = Date.from(Instant.now());
+    String dateString = simpleDateFormat.format(creationDate);
     PolicyWaiver appPolicyWaiver = tempEntity.newWaiver("hash2", appPolicy.getId(), application.getId(),
         getConstraintFacts(appPolicy), EXACT_COMPONENT, "comment", creationDate);
     PolicyWaiver orgPolicyWaiver = tempEntity.newWaiver("hash3", orgPolicy.getId(), organization.getId(),
@@ -480,41 +481,55 @@ public class TransitiveViolationsTest
     componentWaiversPopover.componentWaiversPopoverTable().getRows().shouldHave(size(3));
 
     ElementsCollection appPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable().getRows()
-        .find(Condition.text(application.getName())).findAll("td").shouldHave(size(7));
-    appPolicyWaiverCells.get(0).shouldHave(Condition.text(appPolicy.getName()
-        + '\n' + appPolicyWaiver.getConstraintFacts().get(0).getConstraintName()));
-    appPolicyWaiverCells.get(1).shouldHave(Condition.text(simpleDateFormat.format(appPolicyWaiver.getCreateTime())));
-    appPolicyWaiverCells.get(2)
-        .shouldHave(Condition.text(application.getType().name() + " - " + application.getName()));
-    appPolicyWaiverCells.get(3).shouldHave(Condition.text("g : atransitivey : v"));
-    appPolicyWaiverCells.get(4).shouldHave(Condition.text(appPolicyWaiver.getCreatorName()));
-    appPolicyWaiverCells.get(5).shouldHave(Condition.text(appPolicyWaiver.getComment()));
+        .find(Condition.text(application.getName())).findAll("td").shouldHave(size(3));
+    appPolicyWaiverCells.get(0).shouldHave(Condition.text("Created\n" +
+        dateString + "\n" +
+        "Expiration\n" +
+        "Does not expire"));
+    appPolicyWaiverCells.get(1).shouldHave(Condition.text("Scope\n" +
+        application.getType().name() + " - " + application.getName() + "\n" +
+        "Component\n" +
+        "g : atransitivey : v\n" +
+        "Reason\n" +
+        "—\n" +
+        "Comment\n" +
+        appPolicyWaiver.getComment() + "\n" +
+        "Author\n" +
+        appPolicyWaiver.getCreatorName()));
 
     ElementsCollection orgPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable().getRows()
-        .find(Condition.text(organization.getName())).findAll("td").shouldHave(size(7));
-    orgPolicyWaiverCells.get(0).shouldHave(Condition.text(orgPolicy.getName()
-        + '\n' + orgPolicyWaiver.getConstraintFacts().get(0).getConstraintName()));
-    orgPolicyWaiverCells.get(1).shouldHave(Condition.text(simpleDateFormat.format(orgPolicyWaiver.getCreateTime())));
-    orgPolicyWaiverCells.get(2)
-        .shouldHave(Condition.text(organization.getType().name() + " - " + organization.getName()));
-    orgPolicyWaiverCells.get(3).shouldHave(Condition.text("g : ZtransitiveY : v"));
-    orgPolicyWaiverCells.get(4).shouldHave(Condition.text(orgPolicyWaiver.getCreatorName()));
-    orgPolicyWaiverCells.get(5).shouldHave(Condition.text("- -"));
+        .find(Condition.text(organization.getName())).findAll("td").shouldHave(size(3));
+    orgPolicyWaiverCells.get(0).shouldHave(Condition.text("Created\n" +
+        dateString + "\n" +
+        "Expiration\n" +
+        "Does not expire"));
+    orgPolicyWaiverCells.get(1).shouldHave(Condition.text("Scope\n" +
+        organization.getType().name() + " - " + organization.getName() + "\n" +
+        "Component\n" +
+        "g : ZtransitiveY : v\n" +
+        "Reason\n" +
+        "—\n" +
+        "Author\n" +
+        orgPolicyWaiver.getCreatorName()));
 
     ElementsCollection rootOrgPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable().getRows()
-        .find(Condition.text(rootOrganization.getName())).findAll("td").shouldHave(size(7));
-    rootOrgPolicyWaiverCells.get(0).shouldHave(Condition.text(rootOrgPolicy.getName()
-        + '\n' + rootOrgPolicyWaiver.getConstraintFacts().get(0).getConstraintName()));
-    rootOrgPolicyWaiverCells.get(1)
-        .shouldHave(Condition.text(simpleDateFormat.format(rootOrgPolicyWaiver.getCreateTime())));
-    rootOrgPolicyWaiverCells.get(2).shouldHave(Condition.text(rootOrganization.getName()));
-    rootOrgPolicyWaiverCells.get(3).shouldHave(Condition.text("All"));
-    rootOrgPolicyWaiverCells.get(4).shouldHave(Condition.text(rootOrgPolicyWaiver.getCreatorName()));
-    rootOrgPolicyWaiverCells.get(5).shouldHave(Condition.text("- -"));
+        .find(Condition.text(rootOrganization.getName())).findAll("td").shouldHave(size(3));
+    rootOrgPolicyWaiverCells.get(0).shouldHave(Condition.text("Created\n" +
+        dateString + "\n" +
+        "Expiration\n" +
+        "Does not expire"));
+    rootOrgPolicyWaiverCells.get(1).shouldHave(Condition.text("Scope\n" +
+        rootOrganization.getName() + "\n" +
+        "Component\n" +
+        "All\n" +
+        "Reason\n" +
+        "—\n" +
+        "Author\n" +
+        rootOrgPolicyWaiver.getCreatorName()));
 
     eyesWatcher.eyesCheck();
 
-    orgPolicyWaiverCells.get(6).find(".iq-component-violations-waivers-table__delete-btn").click();
+    orgPolicyWaiverCells.get(2).find(".list-waivers-row__delete-btn").click();
     DeleteWaiverModal deleteWaiverModal = new DeleteWaiverModal();
     deleteWaiverModal.yesButton().click();
     componentWaiversPopover.componentWaiversPopoverTable().getRows().shouldHave(size(2));

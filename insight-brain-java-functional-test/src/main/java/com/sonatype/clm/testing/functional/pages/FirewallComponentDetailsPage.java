@@ -13,11 +13,11 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.componentdetails.FirewallPolicyViolationsTable;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ManageLabelsContentTab;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
-import com.sonatype.clm.testing.functional.elements.componentdetails.ManageLabelsContentTab;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -107,6 +107,14 @@ public class FirewallComponentDetailsPage
     return getBaseUrl(component, LABELS_TAB_ID, false);
   }
 
+  public static FirewallPolicyViolationsTable getFirewallPolicyViolationsTable() {
+    return FirewallPolicyViolationsTable.getPolicyViolationsTableForParent(ROOT);
+  }
+
+  public static PolicyViolationsTable getPolicyViolationsTable() {
+    return PolicyViolationsTable.getPolicyViolationsTableForParent(".component-waivers");
+  }
+
   public SelenideElement title() {
     return child(FIREWALL_COMPONENT_DETAILS_PAGE_TITLE);
   }
@@ -179,14 +187,6 @@ public class FirewallComponentDetailsPage
     return children(".iq-policy-violation-row .nx-cell").get(index);
   }
 
-  public static FirewallPolicyViolationsTable getFirewallPolicyViolationsTable() {
-    return FirewallPolicyViolationsTable.getPolicyViolationsTableForParent(ROOT);
-  }
-
-  public static PolicyViolationsTable getPolicyViolationsTable() {
-    return PolicyViolationsTable.getPolicyViolationsTableForParent(".component-waivers");
-  }
-
   public ElementsCollection getClickableVersionsInVersionExplorer() {
     return children("#aiVersionChartViz > svg:nth-child(1) > g:nth-child(1) > g:nth-child(23) > g:nth-child(1) > rect");
   }
@@ -220,7 +220,7 @@ public class FirewallComponentDetailsPage
   }
 
   public SelenideElement getDeleteWaiverButton() {
-    return child(".iq-component-violations-waivers-table__delete-btn");
+    return child(".list-waivers-row__delete-btn");
   }
 
   public SelenideElement getDeleteWaiverModal() {

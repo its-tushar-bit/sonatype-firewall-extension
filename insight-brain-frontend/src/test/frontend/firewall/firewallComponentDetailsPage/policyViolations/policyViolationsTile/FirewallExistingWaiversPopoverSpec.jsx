@@ -6,7 +6,7 @@
 
 import React from 'react';
 import moment from 'moment';
-import { render, screen } from 'TestRoot/SpecUtil';
+import { render, screen, within } from 'TestRoot/SpecUtil';
 import { STANDARD_DATE_FORMAT } from 'MainRoot/util/dateUtils';
 import FirewallExistingWaiversPopover from 'MainRoot/firewall/firewallComponentDetailsPage/policyViolations/policyViolationsTile/FirewallExistingWaiversPopover';
 
@@ -81,20 +81,16 @@ describe('FirewallExistingWaiversPopover', () => {
     ];
     renderComponent({ ...minimalProps, showViolationsDetailPopover: true, waivers: waiversData });
     expect(screen.getByRole('table')).toBeVisible();
-    expect(screen.getByRole('columnheader', { name: 'Policy/Constraint' })).toBeVisible();
-    expect(screen.getByRole('columnheader', { name: 'Created' })).toBeVisible();
-    expect(screen.getByRole('columnheader', { name: 'Scope' })).toBeVisible();
-    expect(screen.getByRole('columnheader', { name: 'Components' })).toBeVisible();
-    expect(screen.getByRole('columnheader', { name: 'Created by' })).toBeVisible();
-    expect(screen.getByRole('columnheader', { name: 'Comment' })).toBeVisible();
+    expect(screen.getByRole('columnheader', { name: 'DURATION' })).toBeVisible();
+    expect(screen.getByRole('columnheader', { name: 'WAIVER DETAILS' })).toBeVisible();
+    expect(screen.getByRole('columnheader', { name: '' })).toBeVisible();
 
-    const componentRaws = screen.getAllByRole('row');
-    expect(componentRaws.length).toBeGreaterThanOrEqual(1);
-
-    expect(screen.getByRole('cell', { name: `Admin BuiltIn` })).toBeVisible();
-    expect(screen.getByRole('cell', { name: `Repository - maven-central` })).toBeVisible();
-    expect(
-      screen.getByRole('cell', { name: moment.parseZone(expectedTime).format(STANDARD_DATE_FORMAT) })
-    ).toBeVisible();
+    const componentRows = screen.getAllByRole('row');
+    expect(componentRows.length).toBeGreaterThanOrEqual(1);
+    const firstRow = componentRows[1];
+    const cells = within(firstRow).getAllByRole('cell');
+    expect(cells[0]).toHaveTextContent(moment.parseZone(expectedTime).format(STANDARD_DATE_FORMAT));
+    expect(cells[1]).toHaveTextContent('Admin BuiltIn');
+    expect(cells[1]).toHaveTextContent('Repository - maven-central');
   });
 });

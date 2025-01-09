@@ -592,19 +592,15 @@ describe('FirewallLegalTab', () => {
     fireEvent.click(viewExistingWaiversButton);
     expect(viewExistingWaiversButton).toBeVisible();
     expect(screen.queryByText(/Component Waivers/)).toBeVisible();
-    expect(screen.queryByText(/Policy\/Constraint/)).toBeVisible();
     expect(screen.queryAllByText(/Created/)[0]).toBeVisible();
     expect(screen.queryByText(/Scope/)).toBeVisible();
-    expect(screen.queryByText(/Components/)).toBeVisible();
-    expect(screen.queryByText(/Created by/)).toBeVisible();
+    expect(screen.queryAllByText(/Component/)[1]).toBeVisible();
+    expect(screen.queryByText(/Author/)).toBeVisible();
     expect(screen.queryByText(/Comment/)).toBeVisible();
 
-    expect(screen.queryAllByText(/Luis Policy/)[1]).toBeVisible();
-    expect(screen.queryAllByText(/Apache 1 not allowed/)[1]).toBeVisible();
     expect(screen.queryByText(/2022-10-07/)).toBeVisible();
-    expect(screen.queryByText(/Admin BuiltIn/)).toBeVisible();
     expect(screen.queryByText(/Repository - maven-central/)).toBeVisible();
-    expect(screen.queryByText(/Comment/)).toBeVisible();
+    expect(screen.queryByText(/Admin BuiltIn/)).toBeVisible();
     expect(screen.queryByText(/license waiver test/)).toBeVisible();
   });
 

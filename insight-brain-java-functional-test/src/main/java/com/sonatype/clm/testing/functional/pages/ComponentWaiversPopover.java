@@ -41,13 +41,13 @@ public class ComponentWaiversPopover
 
     public static final String ROW_SELECTOR = "tbody .nx-table-row";
 
+    private ComponentWaiversPopoverTable(String selectorWithParent) {
+      super(selectorWithParent);
+    }
+
     private static ComponentWaiversPopoverTable getTableForParent(String parentSelector) {
       String combinedSelector = SelectorUtils.createSelector(parentSelector, TABLE_ROOT);
       return new ComponentWaiversPopoverTable(combinedSelector);
-    }
-
-    private ComponentWaiversPopoverTable(String selectorWithParent) {
-      super(selectorWithParent);
     }
 
     public ElementsCollection getRows() {
@@ -58,8 +58,8 @@ public class ComponentWaiversPopover
       return child("tbody > tr:nth-child(" + rowIndex + ")");
     }
 
-    public ComponentWaiversPopoverTableRow row(int index) {
-      return new ComponentWaiversPopoverTableRow(childSelector(ROW_SELECTOR, nthChild(index)));
+    public WaiverRow row(int index) {
+      return new WaiverRow(childSelector(ROW_SELECTOR, nthChild(index)));
     }
 
     public ElementsCollection getCellsByNthRow(int rowIndex) {
@@ -67,7 +67,7 @@ public class ComponentWaiversPopover
     }
 
     public SelenideElement deleteWaiverButton(int rowIndex) {
-      return getRow(rowIndex).find(".iq-component-violations-waivers-table__delete-btn");
+      return getRow(rowIndex).find(".list-waivers-row__delete-btn");
     }
 
     public SelenideElement emptyTableMessage() {
@@ -75,39 +75,35 @@ public class ComponentWaiversPopover
     }
   }
 
-  public static class ComponentWaiversPopoverTableRow
-      extends BasicElement<ComponentWaiversPopoverTableRow>
+  public static class WaiverRow
+      extends BasicElement<WaiverRow>
   {
-    public ComponentWaiversPopoverTableRow(String selector) {
+    public WaiverRow(String selector) {
       super(selector);
     }
 
-    public SelenideElement policyConstraint() {
-      return child(".nx-cell", nthChild(1));
-    }
-
     public SelenideElement dateCreated() {
-      return child(".nx-cell", nthChild(2));
+      return child(".waiver-row-date-created");
     }
 
     public SelenideElement scope() {
-      return child(".nx-cell", nthChild(3));
+      return child(".waiver-row-scope");
     }
 
     public SelenideElement components() {
-      return child(".nx-cell", nthChild(4));
+      return child(".waiver-row-component");
     }
 
     public SelenideElement createdBy() {
-      return child(".nx-cell", nthChild(5));
+      return child(".waiver-row-author");
     }
 
     public SelenideElement comments() {
-      return child(".nx-cell", nthChild(6));
+      return child(".waiver-row-author");
     }
 
     public SelenideElement deleteButton() {
-      return child(".iq-component-violations-waivers-table__delete-btn");
+      return child(".list-waivers-row__delete-btn");
     }
   }
 }

@@ -18,7 +18,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -781,8 +780,6 @@ public class ComponentDetailsTest
     violationDetailPopover.similarWaiversTab().shouldBe(visible).click();
     similarWaiversTable.rows().shouldHave(size(4));
     eyesWatcher.eyesCheck("Similar waivers tab");
-    ListSimilarWaiversTableRow similarWaiversTableRow = similarWaiversTable.row(1);
-    similarWaiversTableRow.conditions().shouldHave(text("bar"));
     PolicyViolationSimilarWaiversInfoTile similarWaiversInfoTile =
         violationDetailPopover.similarWaiversInfoTile();
     similarWaiversInfoTile.filterDropdown().click();
@@ -921,12 +918,18 @@ public class ComponentDetailsTest
 
     SelenideElement row1 = componentWaiversTable.getRow(1);
     ElementsCollection row1Cells = row1.findAll(".nx-cell");
-    row1Cells.shouldHave(texts("License-Banned\nLicense not approved in any situation",
-        dateString,
-        "Application - ApplicationReportTest",
-        "com.mycila : license-maven-plugin : 2.11",
-        "Admin BuiltIn",
-        "- -",
+    row1Cells.shouldHave(texts("Created\n" +
+            dateString + "\n" +
+            "Expiration\n" +
+            "Does not expire",
+        "Scope\n" +
+            "Application - ApplicationReportTest\n" +
+            "Component\n" +
+            "com.mycila : license-maven-plugin : 2.11\n" +
+            "Reason\n" +
+            "—\n" +
+            "Author\n" +
+            "Admin BuiltIn",
         ""));
     eyesWatcher.eyesCheck("component details violations tab component waivers popover");
     componentWaiversTable.deleteWaiverButton(1).click();
@@ -1743,7 +1746,7 @@ public class ComponentDetailsTest
     WaiverApplierForReport.waiveViolationFromTable(policyViolationsTable, 1);
   }
 
-  public static void waitUntilSpinnersGone() {
+  private static void waitUntilSpinnersGone() {
     final var pageLoadSpinner = $(".nx-loading-spinner");
     pageLoadSpinner.shouldNotBe(visible, Duration.ofSeconds(10));
   }

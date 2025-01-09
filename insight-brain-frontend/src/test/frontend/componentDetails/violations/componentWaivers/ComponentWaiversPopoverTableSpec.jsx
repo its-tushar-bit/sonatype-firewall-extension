@@ -6,15 +6,15 @@
 import * as enzymeUtils from '../../../enzymeUtils';
 import { NxButton, NxFontAwesomeIcon, NxTableBody, NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 
-import ComponentWaiversPopoverTable, {
-  ComponentWaiversTableRow,
-} from 'MainRoot/componentDetails/ViolationsTableTile/componentWaivers/ComponentWaiversPopoverTable';
+import ComponentWaiversPopoverTable from 'MainRoot/componentDetails/ViolationsTableTile/componentWaivers/ComponentWaiversPopoverTable';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 import { waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
 import { formatDate, STANDARD_DATE_FORMAT } from 'MainRoot/util/dateUtils';
+import WaiverRow from 'MainRoot/waivers/WaiverRow';
+import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
 
 describe('ComponentWaiversPopover', function () {
-  let minimalProps, getShallowComponent;
+  let minimalProps, getShallowComponent, getMountedComponent;
   const waiverCreateTime = new Date(1627942284167);
   const waiverCreateDate = formatDate(waiverCreateTime, STANDARD_DATE_FORMAT);
 
@@ -68,6 +68,7 @@ describe('ComponentWaiversPopover', function () {
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ComponentWaiversPopoverTable, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(ComponentWaiversPopoverTable, minimalProps);
   });
 
   const assertDeleteWaiverBtn = (cell, waiver) => {
@@ -87,43 +88,39 @@ describe('ComponentWaiversPopover', function () {
     expect(tableBody.children.length).toBe(1);
   });
 
-  it('renders a ComponentWaiversTableRow per each waiver', () => {
-    const component = getShallowComponent().dive();
+  it('renders a WaiverRow per each waiver', () => {
+    const component = getMountedComponent();
     const tableBody = component.find(NxTableBody);
-    const rows = tableBody.find(ComponentWaiversTableRow);
+    const rows = tableBody.find(WaiverRow);
     expect(rows.length).toBe(3);
 
-    const row1 = rows.at(0).dive().find(NxTableRow);
+    const row1 = rows.at(0).find(NxTableRow);
     const cellsRow1 = row1.find(NxTableCell);
-    expect(cellsRow1.length).toBe(7);
-    expect(cellsRow1.at(0).dive()).toHaveText('policyName1constraint-1');
-    expect(cellsRow1.at(1).dive()).toHaveText(waiverCreateDate);
-    expect(cellsRow1.at(2).dive()).toHaveText('Application - owner1');
-    expect(cellsRow1.at(3).dive()).toHaveText('A component name : 1.0');
-    expect(cellsRow1.at(4).dive()).toHaveText('- -');
-    expect(cellsRow1.at(5).dive()).toHaveText('- -');
-    assertDeleteWaiverBtn(cellsRow1.at(6), minimalProps.waivers[0]);
+    expect(cellsRow1.length).toBe(3);
+    expect(cellsRow1.at(0)).toIncludeText(waiverCreateDate);
+    expect(cellsRow1.at(1)).toIncludeText('Application - owner1');
+    expect(cellsRow1.at(1).find(ComponentDisplay)).toIncludeText('A component name : 1.0');
+    expect(cellsRow1.at(1)).toIncludeText('—');
+    assertDeleteWaiverBtn(cellsRow1.at(2), minimalProps.waivers[0]);
 
-    const row2 = rows.at(1).dive().find(NxTableRow);
+    const row2 = rows.at(1).find(NxTableRow);
     const cellsRow2 = row2.find(NxTableCell);
-    expect(cellsRow2.length).toBe(7);
-    expect(cellsRow2.at(0).dive()).toHaveText('policyName2constraint-2');
-    expect(cellsRow2.at(1).dive()).toHaveText(waiverCreateDate);
-    expect(cellsRow2.at(2).dive()).toHaveText('Organization - owner1');
-    expect(cellsRow2.at(3).dive()).toHaveText('All');
-    expect(cellsRow1.at(4).dive()).toHaveText('- -');
-    expect(cellsRow2.at(5).dive()).toHaveText('Some comment');
-    assertDeleteWaiverBtn(cellsRow2.at(6), minimalProps.waivers[1]);
+    expect(cellsRow2.length).toBe(3);
+    expect(cellsRow2.at(0)).toIncludeText(waiverCreateDate);
+    expect(cellsRow2.at(1)).toIncludeText('Organization - owner1');
+    expect(cellsRow2.at(1)).toIncludeText('All');
+    expect(cellsRow1.at(1)).toIncludeText('—');
+    expect(cellsRow2.at(1)).toIncludeText('Some comment');
+    assertDeleteWaiverBtn(cellsRow2.at(2), minimalProps.waivers[1]);
 
-    const row3 = rows.at(2).dive().find(NxTableRow);
+    const row3 = rows.at(2).find(NxTableRow);
     const cellsRow3 = row3.find(NxTableCell);
-    expect(cellsRow3.length).toBe(7);
-    expect(cellsRow3.at(0).dive()).toHaveText('policyName3constraint-3');
-    expect(cellsRow3.at(1).dive()).toHaveText(waiverCreateDate);
-    expect(cellsRow3.at(2).dive()).toHaveText('Application - owner1');
-    expect(cellsRow3.at(3).dive()).toHaveText('A component name (all versions)');
-    expect(cellsRow3.at(4).dive()).toHaveText('creator name');
-    expect(cellsRow3.at(5).dive()).toHaveText('- -');
-    assertDeleteWaiverBtn(cellsRow3.at(6), minimalProps.waivers[2]);
+    expect(cellsRow3.length).toBe(3);
+    expect(cellsRow3.at(0)).toIncludeText(waiverCreateDate);
+    expect(cellsRow3.at(1)).toIncludeText('Application - owner1');
+    expect(cellsRow3.at(1).find(ComponentDisplay)).toIncludeText('A component name (all versions)');
+    expect(cellsRow3.at(1)).toIncludeText('creator name');
+    expect(cellsRow3.at(1)).toIncludeText('—');
+    assertDeleteWaiverBtn(cellsRow3.at(2), minimalProps.waivers[2]);
   });
 });

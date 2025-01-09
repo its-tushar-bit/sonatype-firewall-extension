@@ -66,10 +66,6 @@ public class ListSimilarWaiversTable
       return child(TABLE_CELL_SELECTOR, ".iq-similar-waivers-table__component");
     }
 
-    public SelenideElement conditions() {
-      return child(TABLE_CELL_SELECTOR, ".iq-similar-waivers-table__conditions");
-    }
-
     public SelenideElement comments() {
       return child(TABLE_CELL_SELECTOR, ".iq-similar-waivers-table__comment");
     }

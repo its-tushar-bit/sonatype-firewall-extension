@@ -50,6 +50,12 @@ describe('componentNameUtils', function () {
       expect(componentName).toEqual('foo.jar, bar.jar');
     });
 
+    it('sets up a component name from componentName', function () {
+      const component = { componentName: 'some component name' };
+      const componentName = getComponentName(component);
+      expect(componentName).toEqual('some component name');
+    });
+
     it('assigns unknown to components without any identification', function () {
       const component = {};
       const componentName = getComponentName(component);
@@ -65,6 +71,19 @@ describe('componentNameUtils', function () {
       };
       const componentName = getComponentName(component);
       expect(componentName).toEqual('asd.jpg');
+    });
+
+    it('sets up a component name from componentIdentifier', function () {
+      const component = {
+        componentIdentifier: {
+          coordinates: {
+            packageId: 'asd',
+            version: '123',
+          },
+        },
+      };
+      const componentName = getComponentName(component);
+      expect(componentName).toEqual('asd : 123');
     });
   });
 
@@ -155,6 +174,25 @@ describe('componentNameUtils', function () {
       };
       const allVersionsComponentName = getComponentNameWithoutVersion(component);
       expect(allVersionsComponentName).toEqual('foo.jar, bar.jar');
+    });
+
+    it('sets up a component name from componentIdentifier', function () {
+      const component = {
+        componentIdentifier: {
+          coordinates: {
+            packageId: 'asd',
+            version: '123',
+          },
+        },
+      };
+      const componentName = getComponentNameWithoutVersion(component);
+      expect(componentName).toEqual('asd');
+    });
+
+    it('sets up a component name from componentName', function () {
+      const component = { componentName: 'some component name' };
+      const allVersionsComponentName = getComponentNameWithoutVersion(component);
+      expect(allVersionsComponentName).toEqual('some component name');
     });
 
     it('assigns unknown to components without any identification', function () {

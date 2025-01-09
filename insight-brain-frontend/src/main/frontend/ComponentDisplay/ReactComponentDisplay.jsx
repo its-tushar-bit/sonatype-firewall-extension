@@ -15,16 +15,25 @@ import { getComponentName, getComponentNameWithoutVersion } from '../util/compon
 /**
  * The React implementation of the component-display angular component
  */
-export default function ComponentDisplay({ component, truncate, matcherStrategy, displayTextIfUnknown }) {
+export default function ComponentDisplay({
+  component,
+  truncate,
+  matcherStrategy,
+  displayTextIfUnknown,
+  componentName: incomingComponentName,
+  componentNameWithoutVersion: incomingComponentNameWithoutVersion,
+}) {
   const textTag = isFilenameOrUnknown(component) ? 'em' : 'span',
     divClass = classnames('iq-component-display', {
       'truncate-ellipsis': truncate,
     });
 
-  const componentName =
-    matcherStrategy === waiverMatcherStrategy.ALL_VERSIONS
-      ? `${getComponentNameWithoutVersion(component)} (all versions)`
-      : getComponentName(component);
+  const componentName = getComponentNameToRender(
+    component,
+    matcherStrategy,
+    incomingComponentNameWithoutVersion,
+    incomingComponentName
+  );
 
   return (
     <NxOverflowTooltip>
@@ -38,6 +47,16 @@ export default function ComponentDisplay({ component, truncate, matcherStrategy,
     </NxOverflowTooltip>
   );
 }
+// Because this component is being used by several tables across the project the component name can be passed in as a prop or calculated by other props
+// This is why the data can be obtained from the component prop or from a direct props
+const getComponentNameToRender = (component, matcherStrategy, componentNameWithoutVersion, componentName) => {
+  const matcherStrategyWithFallback = component?.componentMatchStrategy ?? matcherStrategy;
+  if (matcherStrategyWithFallback === waiverMatcherStrategy.ALL_VERSIONS) {
+    return `${componentNameWithoutVersion || getComponentNameWithoutVersion(component)} (all versions)`;
+  } else {
+    return componentName || getComponentName(component);
+  }
+};
 
 export const componentPropTypes = {
   filename: PropTypes.string,
@@ -57,4 +76,6 @@ ComponentDisplay.propTypes = {
   component: PropTypes.shape(componentPropTypes),
   matcherStrategy: PropTypes.string,
   displayTextIfUnknown: PropTypes.string,
+  componentName: PropTypes.string,
+  componentNameWithoutVersion: PropTypes.string,
 };

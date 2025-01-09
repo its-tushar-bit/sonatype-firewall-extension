@@ -6,7 +6,6 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import * as PropTypes from 'prop-types';
-import moment from 'moment';
 import {
   NxTextLink,
   NxTable,
@@ -14,12 +13,9 @@ import {
   NxTableCell,
   NxTableHead,
   NxTableRow,
-  NxReadOnly,
 } from '@sonatype/react-shared-components';
 
-import { displayWaiverScope, formatWaiverDetails, isWaiverAllVersionsOrExact } from 'MainRoot/util/waiverUtils';
-import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
-import { STANDARD_DATE_FORMAT } from 'MainRoot/util/dateUtils';
+import { formatWaiverDetails } from 'MainRoot/util/waiverUtils';
 import { selectViolationFilteredSimilarWaivers, selectViolationSlice } from 'MainRoot/violation/violationSelectors';
 import { selectIsFirewallOrRepository } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
@@ -28,6 +24,7 @@ import {
   selectSelectedViolationId,
 } from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 import { loadSimilarWaivers } from './waiverActions';
+import WaiverRow from './WaiverRow';
 
 const EmptyMessage = ({ similarWaivers }) =>
   similarWaivers.length === 0 ? (
@@ -60,67 +57,13 @@ export default function ListSimilarWaiversTable() {
   const renderSimilarWaiver = (similarWaiver) => {
     const { reasons } = formatWaiverDetails(similarWaiver);
     return (
-      <NxTableRow key={similarWaiver.policyWaiverId}>
-        <NxTableCell>
-          <NxReadOnly.Label>Created</NxReadOnly.Label>
-          <NxReadOnly.Data className="iq-similar-waivers-table__created visual-testing-ignore">
-            {moment(similarWaiver.createTime).format(STANDARD_DATE_FORMAT)}
-          </NxReadOnly.Data>
-
-          <NxReadOnly.Label className="iq-similar-waivers-table__expiration-label">Expiration</NxReadOnly.Label>
-          <NxReadOnly.Data className="iq-similar-waivers-table__expiration visual-testing-ignore">
-            {similarWaiver.expiryTime ? moment(similarWaiver.expiryTime).format(STANDARD_DATE_FORMAT) : 'Never'}
-          </NxReadOnly.Data>
-        </NxTableCell>
-        <NxTableCell>
-          <NxReadOnly.Label>Scope</NxReadOnly.Label>
-          <NxReadOnly.Data className="iq-similar-waivers-table__scope">
-            {displayWaiverScope(similarWaiver)}
-          </NxReadOnly.Data>
-
-          <NxReadOnly.Label>Component</NxReadOnly.Label>
-          <NxReadOnly.Data className="iq-similar-waivers-table__component">
-            {isWaiverAllVersionsOrExact(similarWaiver) ? (
-              <ComponentDisplay
-                component={similarWaiver}
-                truncate={false}
-                matcherStrategy={similarWaiver.matcherStrategy}
-                displayTextIfUnknown={unknownComponentName}
-              />
-            ) : (
-              'All'
-            )}
-          </NxReadOnly.Data>
-
-          {reasons.length > 0 && (
-            <>
-              <NxReadOnly.Label>Conditions</NxReadOnly.Label>
-              <NxReadOnly.Data className="iq-similar-waivers-table__conditions">
-                {reasons.map((reason, index) => (
-                  <p key={index}>{reason}</p>
-                ))}
-              </NxReadOnly.Data>
-            </>
-          )}
-          <>
-            <NxReadOnly.Label>Reason</NxReadOnly.Label>
-            <NxReadOnly.Data className="iq-waivers-table__reason">
-              {similarWaiver.reasonText ?? '\u2014'}
-            </NxReadOnly.Data>
-          </>
-          {similarWaiver.comment && (
-            <>
-              <NxReadOnly.Label>Comment</NxReadOnly.Label>
-              <NxReadOnly.Data className="iq-similar-waivers-table__comment">{similarWaiver.comment}</NxReadOnly.Data>
-            </>
-          )}
-
-          <NxReadOnly.Label>Author</NxReadOnly.Label>
-          <NxReadOnly.Data className="iq-similar-waivers-table__author">
-            {similarWaiver?.creatorName || '- -'}
-          </NxReadOnly.Data>
-        </NxTableCell>
-      </NxTableRow>
+      <WaiverRow
+        waiver={similarWaiver}
+        unknownComponentName={unknownComponentName}
+        reasons={reasons}
+        isSimilarWaiver
+        key={similarWaiver.policyWaiverId}
+      />
     );
   };
 

@@ -118,7 +118,7 @@ describe('ListSimilarWaiversTable', () => {
       const row3Level = rows[2];
       const row3Cells = within(row3Level).getAllByRole('cell');
       expect(row3Cells.length).toBe(2);
-      expect(row3Cells[0]).toHaveTextContent('Created2023-01-11ExpirationNever');
+      expect(row3Cells[0]).toHaveTextContent('Created2023-01-11ExpirationDoes not expire');
       expect(row3Cells[1]).toHaveTextContent(
         'ScopeApplication - AppComponentorg.apache.logging.log4j : log4j-core : 2.15.0Reasonmitigated externallyCommentwaiver at app levelAuthorTerraria'
       );

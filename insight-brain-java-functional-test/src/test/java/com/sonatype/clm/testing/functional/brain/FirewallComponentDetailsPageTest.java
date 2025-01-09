@@ -56,7 +56,7 @@ import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
-import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTableRow;
+import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.WaiverRow;
 import com.sonatype.clm.testing.functional.pages.CustomizeVulnerabilityDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
@@ -104,6 +104,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
@@ -200,7 +201,7 @@ public class FirewallComponentDetailsPageTest
     repositoryManager = tempEntity.newRepositoryManager();
     repository = tempEntity.newRepository(repositoryManager, "repositoryPublicId");
     date = new Date();
-    app = tempEntity.newApplication( "publicId", tempEntity.newOrganization().getId());
+    app = tempEntity.newApplication("publicId", tempEntity.newOrganization().getId());
 
     configurationService = lookup(Configuration.class);
     assertThat(configurationService.isALPObservedLicenseDetectionEnabled()).isTrue();
@@ -1452,13 +1453,21 @@ public class FirewallComponentDetailsPageTest
 
     ElementsCollection waiversTableCells = componentWaiversTable.getCellsByNthRow(1);
 
-    waiversTableCells.shouldHave(size(7));
-    waiversTableCells.get(0).shouldHave(text("Component-Unknown Unknown 3rd party component"));
-    waiversTableCells.get(1).shouldHave(text(waiverCreateDateString));
-    waiversTableCells.get(2).shouldHave(text("Organization - Root Organization"));
-    waiversTableCells.get(3).shouldBe(text("unknownComponent (unknownComponent)"));
-    waiversTableCells.get(4).shouldBe(text("Test User"));
-    waiversTableCells.get(5).shouldBe(text("Test comment for waiver"));
+    waiversTableCells.shouldHave(size(3));
+    waiversTableCells.get(0).shouldHave(text("Created\n" +
+        waiverCreateDateString + "\n" +
+        "Expiration\n" +
+        "Does not expire"));
+    waiversTableCells.get(1).shouldHave(Condition.text("Scope\n" +
+        "Organization - Root Organization\n" +
+        "Component\n" +
+        "unknownComponent (unknownComponent)\n" +
+        "Reason\n" +
+        "—\n" +
+        "Comment\n" +
+        "Test comment for waiver\n" +
+        "Author\n" +
+        "Test User"));
   }
 
   public void testViolationTabWaiverTable(String url) {
@@ -1481,13 +1490,21 @@ public class FirewallComponentDetailsPageTest
 
     ElementsCollection waiversTableCells = componentWaiversTable.getCellsByNthRow(1);
 
-    waiversTableCells.shouldHave(size(7));
-    waiversTableCells.get(0).shouldHave(text("Security-Low Security-low constraint"));
-    waiversTableCells.get(1).shouldHave(text(waiverCreateDateString));
-    waiversTableCells.get(2).shouldHave(text("Organization - Root Organization"));
-    waiversTableCells.get(3).shouldBe(text("com.lingocoder : abi.cli : 0.5.2"));
-    waiversTableCells.get(4).shouldBe(text("Test User"));
-    waiversTableCells.get(5).shouldBe(text("Test comment for waiver"));
+    waiversTableCells.shouldHave(size(3));
+    waiversTableCells.get(0).shouldHave(text("Created\n" +
+        waiverCreateDateString + "\n" +
+        "Expiration\n" +
+        "Does not expire"));
+    waiversTableCells.get(1).shouldHave(text("Scope\n" +
+        "Organization - Root Organization\n" +
+        "Component\n" +
+        "com.lingocoder : abi.cli : 0.5.2\n" +
+        "Reason\n" +
+        "—\n" +
+        "Comment\n" +
+        "Test comment for waiver\n" +
+        "Author\n" +
+        "Test User"));
   }
 
   private void testLegalTabPolicyViolationsTable() {
@@ -2694,7 +2711,7 @@ public class FirewallComponentDetailsPageTest
 
     ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
     ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
-    ComponentWaiversPopoverTableRow row = componentWaiversTable.row(1);
+    WaiverRow row = componentWaiversTable.row(1);
 
     row.scope().shouldHave(text("Repository Managers"));
   }
@@ -2720,7 +2737,6 @@ public class FirewallComponentDetailsPageTest
     ListSimilarWaiversTable similarWaiversTable = similarWaiversTile.getSimilarWaiversTable();
     similarWaiversTable.rows().shouldHave(size(1));
     similarWaiversTable.row(1).components().shouldHave(text("com.lingocoder : abi.cli (all versions)"));
-    similarWaiversTable.row(1).conditions().shouldHave(text("security vulnerability severity >= 4.3"));
     similarWaiversTable.row(1).scope().shouldHave(text(app.getName()));
     similarWaiversTable.row(1).comments().shouldHave(text("Test comment for waiver"));
     eyesWatcher.eyesCheck("Firewall Component Details Page - Similar Waivers Tab");
@@ -2768,7 +2784,7 @@ public class FirewallComponentDetailsPageTest
 
     ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
     ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
-    ComponentWaiversPopoverTableRow row = componentWaiversTable.row(2);
+    WaiverRow row = componentWaiversTable.row(2);
     row.deleteButton().click();
 
     firewallComponentDetailsPage.getDeleteWaiverModal().shouldBe(visible);
@@ -2871,7 +2887,7 @@ public class FirewallComponentDetailsPageTest
 
     ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
     ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
-    ComponentWaiversPopoverTableRow row = componentWaiversTable.row(2);
+    WaiverRow row = componentWaiversTable.row(2);
     row.deleteButton().click();
 
     firewallComponentDetailsPage.getDeleteWaiverModal().shouldBe(visible);

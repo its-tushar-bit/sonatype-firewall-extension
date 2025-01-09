@@ -3,18 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useState } from 'react';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import * as PropTypes from 'prop-types';
-import classnames from 'classnames';
-import moment from 'moment';
 import { curry, descend, map, prop, sort } from 'ramda';
 
 import {
-  NxButton,
-  NxFontAwesomeIcon,
-  NxReadOnly,
-  NxSmallTag,
   NxTable,
   NxTableBody,
   NxTableCell,
@@ -22,165 +16,40 @@ import {
   NxTableRow,
   NxTextLink,
 } from '@sonatype/react-shared-components';
-import { faTrashAlt, faCog } from '@fortawesome/free-solid-svg-icons';
-
-import ComponentDisplay from '../ComponentDisplay/ReactComponentDisplay';
 import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
 import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfo';
 import { Messages } from '../utilAngular/CommonServices';
-import { displayWaiverScope, isWaiverAllVersionsOrExact } from '../util/waiverUtils';
-import { STANDARD_DATE_FORMAT } from 'MainRoot/util/dateUtils';
 import { setWaiverToDelete } from 'MainRoot/waivers/waiverActions';
 import DeleteWaiverModalContainer from 'MainRoot/waivers/deleteWaiverModal/DeleteWaiverModalContainer';
 import { selectWaiverToDelete } from 'MainRoot/waivers/deleteWaiverModal/deleteWaiverSelector';
 import { selectApplicableAutoWaiver, selectApplicableWaivers } from 'MainRoot/violation/violationSelectors';
 import { loadApplicableAutoWaiver, loadApplicableWaivers } from 'MainRoot/violation/violationActions';
 import { selectViolationSlice } from './requestWaiverSelectors';
-import { capitalize } from 'MainRoot/util/jsUtil';
-import DeleteAutoWaiverModal from 'MainRoot/waivers/DeleteAutoWaiverModal';
+import WaiverRow from './WaiverRow';
 
-export default function ListWaiversTable(props) {
-  const { violationDetails, unknownComponentName } = props;
-
-  const [showDeleteAutoWaiverModal, setShowDeleteAutoWaiverModal] = useState(false);
+export default function ListWaiversTable({ violationDetails, unknownComponentName }) {
   const dispatch = useDispatch();
 
   const { activeWaivers, expiredWaivers } = useSelector(selectApplicableWaivers);
   const { loadingApplicableWaivers, loadApplicableWaiversError } = useSelector(selectViolationSlice);
   const { autoWaiver, loadingAutoWaiver, loadAutoWaiverError } = useSelector(selectApplicableAutoWaiver);
   const waiverToDelete = useSelector(selectWaiverToDelete);
-  const getExpirationDate = (waiver) => {
-    if (waiver.expiryTime) {
-      return waiver.expireWhenRemediationAvailable
-        ? 'Upgrade Available'
-        : moment(waiver.expiryTime).format(STANDARD_DATE_FORMAT);
-    }
-    return waiver.expireWhenRemediationAvailable ? 'When Remediation Available' : 'Does not expire';
-  };
+
   const displayWaiverInTableRow = curry((isWaiverExpired, waiver) => {
-    const rowClass = classnames({
-      'list-waivers-row--expired': isWaiverExpired,
-    });
-    const key = waiver.policyWaiverId;
     return (
-      <NxTableRow className={rowClass} key={key}>
-        <NxTableCell>
-          <NxReadOnly.Label>Created</NxReadOnly.Label>
-          <NxReadOnly.Data className="iq-waivers-table__created visual-testing-ignore">
-            {moment(waiver.createTime).format(STANDARD_DATE_FORMAT)}
-          </NxReadOnly.Data>
-
-          <NxReadOnly.Label>Expiration</NxReadOnly.Label>
-          <NxReadOnly.Data className="iq-waivers-table__expiration visual-testing-ignore">
-            {getExpirationDate(waiver)}
-          </NxReadOnly.Data>
-        </NxTableCell>
-        <NxTableCell>
-          <NxReadOnly.Label>Scope</NxReadOnly.Label>
-          <NxReadOnly.Data className="iq-waivers-table__scope">{displayWaiverScope(waiver)}</NxReadOnly.Data>
-
-          <NxReadOnly.Label>Component</NxReadOnly.Label>
-          <NxReadOnly.Data className="iq-waivers-table__component">
-            {isWaiverAllVersionsOrExact(waiver) ? (
-              <ComponentDisplay
-                component={violationDetails}
-                truncate={false}
-                matcherStrategy={waiver.matcherStrategy}
-                displayTextIfUnknown={unknownComponentName}
-              />
-            ) : (
-              'All'
-            )}
-          </NxReadOnly.Data>
-
-          <>
-            <NxReadOnly.Label>Reason</NxReadOnly.Label>
-            <NxReadOnly.Data className="iq-waivers-table__reason">{waiver.reasonText ?? '\u2014'}</NxReadOnly.Data>
-          </>
-
-          {waiver.comment && (
-            <>
-              <NxReadOnly.Label>Comment</NxReadOnly.Label>
-              <NxReadOnly.Data className="iq-waivers-table__comment">{waiver.comment}</NxReadOnly.Data>
-            </>
-          )}
-
-          <NxReadOnly.Label>Author</NxReadOnly.Label>
-          <NxReadOnly.Data className="iq-waivers-table__author">{waiver?.creatorName || '- -'}</NxReadOnly.Data>
-        </NxTableCell>
-        <NxTableCell className="iq-waivers-table__delete">
-          <div className="nx-btn-bar">
-            <NxButton
-              variant="icon-only"
-              title="delete"
-              key={key}
-              className="list-waivers-row__delete-btn"
-              onClick={() => dispatch(setWaiverToDelete(waiver))}
-            >
-              <NxFontAwesomeIcon icon={faTrashAlt} />
-            </NxButton>
-          </div>
-        </NxTableCell>
-      </NxTableRow>
+      <WaiverRow
+        waiver={waiver}
+        isWaiverExpired={isWaiverExpired}
+        violationDetails={violationDetails}
+        unknownComponentName={unknownComponentName}
+        deleteWaiver={deleteWaiver}
+        key={waiver.policyWaiverId}
+      />
     );
   });
 
-  const displayAutoWaiverRow = (autoWaiver) => {
-    if (!autoWaiver) return null;
-    const autoKey = `auto_waiver-${autoWaiver.autoPolicyWaiverId}`;
-    return (
-      <NxTableRow className="list-auto-waiver-row" key={autoKey}>
-        <NxTableCell>
-          <NxReadOnly.Label>Created</NxReadOnly.Label>
-          <NxReadOnly.Data className="iq-auto-waiver-table__created visual-testing-ignore">
-            {moment(autoWaiver.createTime).format(STANDARD_DATE_FORMAT)}
-          </NxReadOnly.Data>
-
-          <NxReadOnly.Label>Expiration</NxReadOnly.Label>
-          <NxReadOnly.Data className="iq-auto-waiver-table__expiration">
-            <NxSmallTag color="green">Auto</NxSmallTag>
-          </NxReadOnly.Data>
-        </NxTableCell>
-        <NxTableCell>
-          <NxReadOnly.Label>Scope</NxReadOnly.Label>
-          <NxReadOnly.Data className="iq-auto-waiver-table__scope">
-            {capitalize(autoWaiver.ownerType)} - {autoWaiver.ownerName}
-          </NxReadOnly.Data>
-
-          <NxReadOnly.Label>Component</NxReadOnly.Label>
-          <NxReadOnly.Data className="iq-auto-waiver-table__component">Any Component</NxReadOnly.Data>
-
-          <NxReadOnly.Label>Version</NxReadOnly.Label>
-          <NxReadOnly.Data className="iq-auto-waiver-table__version">Current or latest non-violating</NxReadOnly.Data>
-
-          <NxReadOnly.Label>Author</NxReadOnly.Label>
-          <NxReadOnly.Data className="iq-auto-waiver-table__author">{autoWaiver?.creatorName || '- -'}</NxReadOnly.Data>
-        </NxTableCell>
-        <NxTableCell className="iq-auto-waiver-table__exclusion">
-          <div className="nx-btn-bar">
-            <NxButton
-              variant="icon-only"
-              title="Remove auto-waiver for this policy violation"
-              className="list-auto-waiver-row__exclusion-btn"
-              onClick={() => {
-                setShowDeleteAutoWaiverModal(true);
-              }}
-            >
-              <NxFontAwesomeIcon icon={faCog} />
-            </NxButton>
-            <DeleteAutoWaiverModal
-              onClose={handleCloseAutoWaiverModal}
-              setShowModal={setShowDeleteAutoWaiverModal}
-              showModal={showDeleteAutoWaiverModal}
-            />
-          </div>
-        </NxTableCell>
-      </NxTableRow>
-    );
-  };
-
-  const handleCloseAutoWaiverModal = () => {
-    setShowDeleteAutoWaiverModal(false);
+  const deleteWaiver = (waiver) => {
+    dispatch(setWaiverToDelete(waiver));
   };
 
   const emptyMessage = (
@@ -218,7 +87,7 @@ export default function ListWaiversTable(props) {
           error={Messages.getHttpErrorMessage(error)}
           retryHandler={retryHandler}
         >
-          {autoWaiver && displayAutoWaiverRow(autoWaiver)}
+          {autoWaiver && <WaiverRow waiver={autoWaiver} isAutoWaiver />}
           {activeWaivers && map(displayWaiverInTableRow(false), sort(descend(prop('createTime')), activeWaivers))}
           {expiredWaivers && map(displayWaiverInTableRow(true), sort(descend(prop('createTime')), expiredWaivers))}
         </NxTableBody>

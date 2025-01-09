@@ -37,7 +37,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
@@ -145,20 +144,19 @@ public class SbomComponentsServiceTest
     assertThat(actualB.getPolicyViolationSummary().getSevere()).isEqualTo(1);
   }
 
-  // TODO - Fix and Re-enable with SBOM-1198
-  @Ignore("https://sonatype.atlassian.net/browse/SBOM-1198")
   @Test
   public void testGetSbomComponentDetails_LatestPreviousAnnotation() throws IOException {
     ThirdPartyFile thirdPartyFilePrevious = tempEntity.newThirdPartyFile();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
 
+    long now = System.currentTimeMillis();
     ThirdPartySbomMetadata sbomMetadataPrevious =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFilePrevious.getId(), app.getId(), ACTIVE,
-            thirdPartyFilePrevious.getFilename());
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFilePrevious.getId(), app.getId(),"1.0.0", ACTIVE,
+            thirdPartyFilePrevious.getFilename(), "CycloneDx", "XML", "1.5", new Date(now - 1));
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE,
-            thirdPartyFile.getFilename());
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(),"1.0.1", ACTIVE,
+            thirdPartyFile.getFilename(), "CycloneDx", "XML", "1.5", new Date(now + 1));
     ThirdPartyFileCoordinate previousComponentA =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFilePrevious, "s1", "f1", "n1", "v1", "1249e25aebb15358bedd",
             "pkg:f1/group/n1@v1?type=jar", Collections.emptyList(), Collections.emptyList(), null);
@@ -177,8 +175,9 @@ public class SbomComponentsServiceTest
     ThirdPartyCoordinateSecurity vulnerabilityB =
         tempEntity.newThirdPartyCoordinateSecurity(componentA, "cve2", "d2", "l2", 7, "f2", "v2", "cvs2", "sd2",
             "cwes2", "m2", "r2", "ad2", "SBOM,Sonatype");
-    tempEntity.newThirdPartyCoordinateSecurity(previousComponentA, "cve3", "d3", "l3", 5, "f3", "v3", "cvs3", "sd3",
-        "cwes3", "m3", "r3", "ad3", "Sonatype");
+    ThirdPartyCoordinateSecurity vulnerabilityC =
+        tempEntity.newThirdPartyCoordinateSecurity(previousComponentA, "cve3", "d3", "l3", 5, "f3", "v3", "cvs3", "sd3",
+            "cwes3", "m3", "r3", "ad3", "Sonatype");
     tempEntity.newThirdPartyCoordinateSecurity(componentA, "cve3", "d3", "l3", 5, "f3", "v3", "cvs3", "sd3",
         "cwes3", "m3", "r3", "ad3", "Sonatype");
     tempEntity.newThirdPartyCoordinateSecurity(componentB, "cve1", "d1", "l1", 6, "f1", "v1", "cvs1", "sd1",
@@ -193,7 +192,7 @@ public class SbomComponentsServiceTest
         "code_not_reachable1b", "response1b", "detail1b");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityB, "cve2", "resolved2a",
         "code_not_reachable2a", "response2a", "detail2a");
-    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(previousVulnerabilityA, "cve3", "resolved3a",
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityC, "cve3", "resolved3a",
         "code_not_reachable3a", "response3a", "detail3a");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityE, "cve2", "resolved2b",
         "code_not_reachable2b", "response2b", "detail2b");

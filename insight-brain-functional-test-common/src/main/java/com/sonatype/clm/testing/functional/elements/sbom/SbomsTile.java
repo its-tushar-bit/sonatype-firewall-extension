@@ -19,6 +19,10 @@ public class SbomsTile
     super("#owner-pill-sboms");
   }
 
+  public SelenideElement table() {
+    return child(".nx-table");
+  }
+
   public ElementsCollection rows() {
     return children(".nx-table-row");
   }
@@ -33,6 +37,11 @@ public class SbomsTile
 
   public ElementsCollection tableBodyRowsColumns(int row) {
     return tableBodyRows().get(row).findAll("td");
+  }
+
+  public SelenideElement releaseStatusColumn(int row) {
+    return tableBodyRows().get(row)
+        .find(".sbom-manager-owner-summary-sboms-tile-table__releaseStatusPercentage");
   }
 
   public SelenideElement columnHeader(int column) {

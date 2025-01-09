@@ -9,6 +9,10 @@ import SbomsTile from 'MainRoot/OrgsAndPolicies/ownerSummary/sbomsTile/SbomsTile
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 import { getDownloadSbomFileUrl, getSbomsByApplicationUrl } from 'MainRoot/util/CLMLocation';
 import moment from 'moment';
+import {
+  SORT_BY_FIELDS,
+  defaultSortConfiguration,
+} from 'MainRoot/OrgsAndPolicies/ownerSummary/sbomsTile/sbomsTileSlice';
 
 describe('SbomsTile', () => {
   let axiosMock, initialState;
@@ -27,14 +31,15 @@ describe('SbomsTile', () => {
           },
         },
         sbomsTile: {
-          results: null,
-          numResults: null,
+          sboms: null,
+          sbomsTotalCount: null,
           loading: false,
           error: null,
           currentPage: 0,
           pageCount: 0,
           selectedVersionForActions: null,
           applicationId: null,
+          sortConfiguration: { ...defaultSortConfiguration },
         },
       },
     };
@@ -58,7 +63,7 @@ describe('SbomsTile', () => {
 
     it('renders the loading error if an error happens', async () => {
       axiosMock
-        .onGet(getSbomsByApplicationUrl(applicationId, 10, 1))
+        .onGet(getSbomsByApplicationUrl(applicationId, 1, 10, SORT_BY_FIELDS.importDate, false))
         .reply(() => Promise.reject({ response: { data: 'Error' } }));
       renderComponent(initialState);
       const errorAlert = await screen.findByRole('alert');
@@ -67,7 +72,7 @@ describe('SbomsTile', () => {
     });
 
     it('renders the empty message when an application has no SBOMs', async () => {
-      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 10, 1)).reply(200, {
+      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 1, 10, SORT_BY_FIELDS.importDate, false)).reply(200, {
         applicationId: applicationId,
         results: [],
         totalResultsCount: 0,
@@ -88,7 +93,7 @@ describe('SbomsTile', () => {
 
       const importDate = moment(new Date('2020-01-01T12:00:00.000+00:00')).format('YYYY-MM-DD HH:mm:ss');
 
-      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 10, 1)).reply(200, {
+      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 1, 10, SORT_BY_FIELDS.importDate, false)).reply(200, {
         applicationId: applicationId,
         results: [
           {
@@ -101,6 +106,7 @@ describe('SbomsTile', () => {
             medium: 2,
             high: 3,
             critical: 4,
+            releaseStatusPercentage: 31.0,
           },
         ],
         totalResultsCount: 0,
@@ -121,12 +127,13 @@ describe('SbomsTile', () => {
       One div with the overflow text in this case is sett at 100 so the overflow text is 99+
       The expected text of the vulnerabilities cell is the combinations pf all of this */
       expect(rowCells[1]).toHaveTextContent('Critical499+Severe399+Moderate299+Low199+');
-      expect(rowCells[2]).toHaveTextContent('SPDX 2.1');
-      expect(rowCells[3]).toHaveTextContent(importDate);
+      expect(rowCells[2]).toHaveTextContent(31.0);
+      expect(rowCells[3]).toHaveTextContent('SPDX 2.1');
+      expect(rowCells[4]).toHaveTextContent(importDate);
     });
 
     it('only renders the SBOM InvalidSbomIndicator on an invalid row', async () => {
-      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 10, 1)).reply(200, {
+      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 1, 10, SORT_BY_FIELDS.importDate, false)).reply(200, {
         applicationId: applicationId,
         results: [
           {
@@ -140,6 +147,7 @@ describe('SbomsTile', () => {
             high: 3,
             critical: 4,
             isValid: true,
+            releaseStatusPercentage: 0.0,
           },
           {
             applicationVersion: 'app456',
@@ -152,6 +160,7 @@ describe('SbomsTile', () => {
             high: 3,
             critical: 4,
             isValid: false,
+            releaseStatusPercentage: 0.0,
           },
         ],
         totalResultsCount: 0,
@@ -179,79 +188,8 @@ describe('SbomsTile', () => {
       ).toBeInTheDocument();
     });
 
-    it('sorts SBOMs by Import Date', async () => {
-      const newestSbom = {
-        applicationVersion: 'newest.version',
-        spec: 'SPDX',
-        specVersion: '2.1',
-        importDate: '2020-01-01T12:00:00.000+00:00',
-        none: 0,
-        low: 1,
-        medium: 2,
-        high: 3,
-        critical: 4,
-      };
-      const oldestSbom = {
-        applicationVersion: 'oldest.version',
-        spec: 'SPDX',
-        specVersion: '2.1',
-        importDate: '2020-01-01T12:00:00.000+00:00',
-        none: 0,
-        low: 1,
-        medium: 2,
-        high: 3,
-        critical: 4,
-      };
-
-      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 10, 1, 'desc')).reply(200, {
-        applicationId: applicationId,
-        results: [newestSbom, oldestSbom],
-        totalResultsCount: 1,
-      });
-      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 10, 1, 'asc')).reply(200, {
-        applicationId: applicationId,
-        results: [oldestSbom, newestSbom],
-        totalResultsCount: 1,
-      });
-      renderComponent(initialState);
-
-      // The table has its own loader spinner so we have to assert that it is gone before we can start querying the table's content
-      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
-      let tableRows = await screen.findAllByRole('row');
-
-      // Descending
-      const importDateHeader = await screen.findByRole('columnheader', { name: /Import Date/i });
-      expect(importDateHeader).toBeInTheDocument();
-      fireEvent.click(importDateHeader);
-
-      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
-      tableRows = await screen.findAllByRole('row');
-
-      let firstRow = tableRows[1];
-      let rowCells = within(firstRow).getAllByRole('cell');
-      expect(rowCells[0]).toHaveTextContent('newest.version');
-
-      let secondRow = tableRows[2];
-      rowCells = within(secondRow).getAllByRole('cell');
-      expect(rowCells[0]).toHaveTextContent('oldest.version');
-
-      // Ascending
-      fireEvent.click(importDateHeader);
-
-      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
-      tableRows = await screen.findAllByRole('row');
-
-      firstRow = tableRows[1];
-      rowCells = within(firstRow).getAllByRole('cell');
-      expect(rowCells[0]).toHaveTextContent('oldest.version');
-
-      secondRow = tableRows[2];
-      rowCells = within(secondRow).getAllByRole('cell');
-      expect(rowCells[0]).toHaveTextContent('newest.version');
-    });
-
     it("renders SBOM row's dropdown correctly for a valid SBOM", async () => {
-      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 10, 1)).reply(200, {
+      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 1, 10, SORT_BY_FIELDS.importDate, false)).reply(200, {
         applicationId: applicationId,
         results: [
           {
@@ -265,6 +203,7 @@ describe('SbomsTile', () => {
             high: 3,
             critical: 4,
             isValid: true,
+            releaseStatusPercentage: 0.0,
           },
         ],
         totalResultsCount: 1,
@@ -287,7 +226,7 @@ describe('SbomsTile', () => {
     });
 
     it("renders SBOM row's dropdown correctly for a invalid SBOM", async () => {
-      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 10, 1)).reply(200, {
+      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 1, 10, SORT_BY_FIELDS.importDate, false)).reply(200, {
         applicationId: applicationId,
         results: [
           {
@@ -347,7 +286,7 @@ describe('SbomsTile', () => {
               resolveFn = resolve;
             })
         );
-        axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 10, 1)).reply(200, {
+        axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 1, 10, SORT_BY_FIELDS.importDate, false)).reply(200, {
           applicationId: applicationId,
           results: [
             {
@@ -406,7 +345,7 @@ describe('SbomsTile', () => {
     });
 
     it('renders the correct amount of rows', async () => {
-      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 10, 1)).reply(200, {
+      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 1, 10, SORT_BY_FIELDS.importDate, false)).reply(200, {
         applicationId: applicationId,
         results: [
           {
@@ -530,7 +469,7 @@ describe('SbomsTile', () => {
     });
 
     it('renders the correct amount pagination buttons', async () => {
-      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 10, 1)).reply(200, {
+      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 1, 10, SORT_BY_FIELDS.importDate, false)).reply(200, {
         applicationId: applicationId,
         results: [
           {
@@ -567,7 +506,7 @@ describe('SbomsTile', () => {
 
   describe('has a delete SBOM modal that', () => {
     beforeEach(async () => {
-      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 10, 1)).reply(200, {
+      axiosMock.onGet(getSbomsByApplicationUrl(applicationId, 1, 10, SORT_BY_FIELDS.importDate, false)).reply(200, {
         applicationId: applicationId,
         results: [
           {
@@ -580,6 +519,8 @@ describe('SbomsTile', () => {
             medium: 2,
             high: 3,
             critical: 4,
+            isValid: true,
+            releaseStatusPercentage: 0.0,
           },
         ],
         totalResultsCount: 0,

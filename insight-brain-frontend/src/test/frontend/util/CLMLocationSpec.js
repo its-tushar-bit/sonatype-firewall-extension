@@ -1527,12 +1527,13 @@ describe('CLMLocation.js', function () {
   describe('getSbomsByApplicationUrl', () => {
     it('should return the correct URL with the given parameters', () => {
       const applicationId = 'abc123';
-      const sortDir = 'desc';
+      const sortBy = 'import_date';
+      const asc = false;
       const pageSize = 10;
       const page = 0;
-      const expectedURL = `/api/v2/sbom/applications/${applicationId}?sortByDate=${sortDir}&pageSize=${pageSize}&page=${page}`;
+      const expectedURL = `/api/v2/sbom/applications/${applicationId}?page=${page}&pageSize=${pageSize}&sortBy=${sortBy}&asc=${asc}`;
 
-      expect(clmLocation.getSbomsByApplicationUrl(applicationId, pageSize, page, sortDir)).toBe(expectedURL);
+      expect(clmLocation.getSbomsByApplicationUrl(applicationId, page, pageSize, sortBy, asc)).toBe(expectedURL);
     });
   });
 

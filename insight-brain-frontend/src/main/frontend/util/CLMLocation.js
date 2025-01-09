@@ -1509,8 +1509,15 @@ export const getAddWaiverUiLink = (violationId, comments) => {
 
 export const getDeveloperDashboardGraphsData = () => uriTemplate`/rest/integrations/stats/usage-over-time`;
 
-export const getSbomsByApplicationUrl = (applicationId, pageSize, page, sortDir) =>
-  uriTemplate`/api/v2/sbom/applications/${applicationId}?sortByDate=${sortDir}&pageSize=${pageSize}&page=${page}`;
+export const getSbomsByApplicationUrl = (applicationId, page, pageSize, sortBy, asc) => {
+  const rawParams = {
+    page,
+    pageSize,
+    sortBy,
+    asc,
+  };
+  return uriTemplate`/api/v2/sbom/applications/${applicationId}?` + toURIParams(rawParams);
+};
 
 export const getDownloadSbomFileUrl = (applicationId, applicationVersion, state = 'original', specification) => {
   const params = compose(toURIParams, reject(isNil))({ state, specification });

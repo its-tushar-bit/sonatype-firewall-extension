@@ -7,10 +7,7 @@ package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import java.sql.JDBCType;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -38,8 +35,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO.createPaginationNativeQuery;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.utils.CvssV3Severity.CRITICAL;
 import static com.sonatype.insight.brain.utils.CvssV3Severity.HIGH;
 import static com.sonatype.insight.brain.utils.CvssV3Severity.LOW;
@@ -173,12 +170,11 @@ public class ThirdPartySbomMetadataDAO
     return getSingle(Long.class, sQuery, ACTIVE);
   }
 
-  public List<ThirdPartySbomMetadata> getPendingSbomsOlderThanDuration(Duration pendingTimeLimit) {
-    Date limitDate = Timestamp.valueOf(LocalDateTime.now().minus(pendingTimeLimit));
-    String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity " //
-        + "WHERE entity.status=com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING "
-        + "AND entity.createdAt <= ?1";
-    return getList(sQuery, limitDate);
+  public List<ThirdPartySbomMetadata> getInactiveSbomsBeforeOrAt(Date date) {
+    String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity"
+        + " WHERE entity.status <> com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE"
+        + " AND entity.createdAt <= ?1";
+    return getList(sQuery, date);
   }
 
   public boolean hasSbomMetadata(String scanId) {

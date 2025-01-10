@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.time.Duration;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -53,6 +52,7 @@ import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.uuid;
 import static com.sonatype.insight.brain.db.IdUtil.newUUID;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.UPLOADED;
 import static com.sonatype.insight.brain.utils.SbomMetadataBuilder.buildMetadataJson;
 import static com.sonatype.insight.brain.utils.SbomMetadataBuilder.newSbomMetadataBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -714,18 +714,26 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
-  public void testGetPendingSbomsOlderThanDuration_pendingSboms() {
+  public void testGetInactiveSbomsBeforeOrAt_inactiveSboms() {
     Date now = new Date();
     Date twoDaysAgo = DateUtils.addDays(now, -2);
     Date twentyFourHoursAgo = DateUtils.addDays(now, -1);
     Date twoMonthsAgo = DateUtils.addMonths(now, -2);
     Date threeHoursAgo = DateUtils.addHours(now, -3);
 
+    ThirdPartySbomMetadata twoDaysAgoUploadedMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withStatus(UPLOADED)
+        .withCreatedAt(twoDaysAgo).build();
+    assertThat(twoDaysAgoUploadedMetadata.getId()).isNotNull();
     ThirdPartySbomMetadata twoDaysAgoPendingMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withStatus(PENDING)
         .withCreatedAt(twoDaysAgo).build();
     assertThat(twoDaysAgoPendingMetadata.getId()).isNotNull();
 
+    ThirdPartySbomMetadata twentyFourHoursAgoUploadedMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withStatus(UPLOADED)
+        .withCreatedAt(twentyFourHoursAgo).build();
+    assertThat(twentyFourHoursAgoUploadedMetadata.getId()).isNotNull();
     ThirdPartySbomMetadata twentyFourHoursAgoPendingMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withStatus(PENDING)
         .withCreatedAt(twentyFourHoursAgo).build();
@@ -736,23 +744,33 @@ public class ThirdPartySbomMetadataDAOTest
         .withCreatedAt(twoMonthsAgo).build();
     assertThat(twoMonthsAgoActiveMetadata.getId()).isNotNull();
 
+    ThirdPartySbomMetadata threeHoursAgoUploadedMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withStatus(UPLOADED)
+        .withCreatedAt(threeHoursAgo).build();
+    assertThat(threeHoursAgoUploadedMetadata.getId()).isNotNull();
     ThirdPartySbomMetadata threeHoursAgoPendingMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withStatus(PENDING)
         .withCreatedAt(threeHoursAgo).build();
     assertThat(threeHoursAgoPendingMetadata.getId()).isNotNull();
 
     assertThat(dao.getAll()).isNotNull()
-        .hasSize(4);
+        .hasSize(7);
 
-    List<ThirdPartySbomMetadata> sbomMetadataList = dao.getPendingSbomsOlderThanDuration(Duration.ofHours(24));
+    List<ThirdPartySbomMetadata> sbomMetadataList = dao.getInactiveSbomsBeforeOrAt(DateUtils.addDays(now, -1));
 
-    assertThat(sbomMetadataList).hasSize(2);
-    assertThat(sbomMetadataList).extracting(ThirdPartySbomMetadata::getId)
-        .containsExactlyInAnyOrder(twoDaysAgoPendingMetadata.getId(), twentyFourHoursAgoPendingMetadata.getId());
+    assertThat(sbomMetadataList).hasSize(4);
+    assertThat(sbomMetadataList)
+        .extracting(ThirdPartySbomMetadata::getId)
+        .containsExactlyInAnyOrder(
+            twoDaysAgoUploadedMetadata.getId(),
+            twoDaysAgoPendingMetadata.getId(),
+            twentyFourHoursAgoUploadedMetadata.getId(),
+            twentyFourHoursAgoPendingMetadata.getId()
+        );
   }
 
   @Test
-  public void testGetPendingSbomsOlderThanDuration_noPendingSboms() {
+  public void testGetInactiveSbomsBeforeOrAt_noInactiveSboms() {
     Date now = new Date();
     Date twoDaysAgo = DateUtils.addDays(now, -2);
     Date twoMonthsAgo = DateUtils.addMonths(now, -2);
@@ -775,7 +793,7 @@ public class ThirdPartySbomMetadataDAOTest
     assertThat(dao.getAll())
         .hasSize(3);
 
-    List<ThirdPartySbomMetadata> sbomMetadataList = dao.getPendingSbomsOlderThanDuration(Duration.ofHours(24));
+    List<ThirdPartySbomMetadata> sbomMetadataList = dao.getInactiveSbomsBeforeOrAt(DateUtils.addDays(now, -1));
 
     assertThat(sbomMetadataList).hasSize(0);
   }

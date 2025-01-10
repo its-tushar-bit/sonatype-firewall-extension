@@ -15,11 +15,11 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.UUID;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -52,8 +52,11 @@ import com.sonatype.insight.scan.file.SbomFormat;
 import com.google.common.collect.Streams;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.AgeFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
@@ -537,6 +540,39 @@ public class ThirdPartyPersistenceService
   }
 
   /**
+   * Deletes the given SBOM metadata entity and all known associated data including other related entities and files.
+   */
+  public void deleteSbomMetadataAndAssociatedFiles(ThirdPartySbomMetadata sbomMetadata) throws IOException {
+    try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
+      tx.begin();
+      ThirdPartyFile thirdPartyFile = thirdPartyFileDAO.getById(sbomMetadata.getThirdPartyFileId());
+      // Deleting the corresponding ThirdPartyFile will cascade to the SBOM metadata and all other child records
+      thirdPartyFileDAO.delete(tx, thirdPartyFile);
+      deleteSbomFile(sbomMetadata);
+      if (SbomScanType.BINARY.name().equals(sbomMetadata.getScanType())) {
+        deletePersistentTempBinary(sbomMetadata, thirdPartyFile);
+      }
+      tx.commit();
+    }
+  }
+
+  /**
+   * Attempts to delete all SBOM temporary transient files that are older than the given date. 
+   * If it fails to delete one file, it will still attempt to delete the other files.
+   * Any failures are logged but IOExceptions are not thrown by this method.
+   */
+  public void tryDeleteSbomTemporaryTransientFilesOlderThan(Date date) {
+    Collection<File> files = FileUtils.listFiles(
+        insightWork.getSbomTransientDir(),
+        new AgeFileFilter(date),
+        TrueFileFilter.INSTANCE
+    );
+    for (File file : files) {
+      tryDeleteFileIfExists(file.toPath());
+    }
+  }
+
+  /**
    * Save the SBOM file or binary to the database and disk storage. SBOM files are saved to permanent storage, while
    * binary files are saved to a persistent temporary location where they can be retrieved later for scanning.
    */
@@ -764,6 +800,9 @@ public class ThirdPartyPersistenceService
     }
     catch (Exception e) {
       deleteFileDueToException(persistentTempStoragePath, e);
+      if (persistentTempStoragePath != null) {
+        deleteFileDueToException(persistentTempStoragePath.getParent(), e);
+      }
       throw e;
     }
   }
@@ -1030,5 +1069,20 @@ public class ThirdPartyPersistenceService
     return insightWork.getSbomPersistentTempDir().toPath()
         .resolve(sbomMetadata.getId())
         .resolve(userPath.toString());
+  }
+
+  private void deleteSbomFile(ThirdPartySbomMetadata sbomMetadata) throws IOException {
+    if (sbomMetadata.getFilename() != null) {
+      Files.deleteIfExists(getSbomPermanentStoragePath(sbomMetadata));
+    }
+  }
+
+  private void tryDeleteFileIfExists(Path path) {
+    try {
+      Files.deleteIfExists(path);
+    }
+    catch (IOException e) {
+      log.error("Failed to delete file {}.", path, e);
+    }
   }
 }

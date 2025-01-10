@@ -5,13 +5,9 @@
  */
 package com.sonatype.insight.brain.sbom;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
@@ -21,13 +17,11 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
-import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 
 import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
@@ -37,7 +31,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This class is intended to delete all data associated with ThirdPartySbomMetadata entities (sbom_metadata table rows)
- * which have had a PENDING status for at least 24 hours indicating they have failed.
+ * which have not reached the ACTIVE state after existing for at least 24 hours, indicating they have failed or were
+ * abandoned by the user.
  */
 @Named
 @Singleton
@@ -53,11 +48,11 @@ public class PendingSbomMetadataCleaner
 
   private static final String TASK_NAME = "PendingSbomMetadataCleanerTask";
 
-  private static final Duration MAXIMUM_ALLOWED_HOURS_IN_PENDING_STATE = Duration.ofHours(24);
+  private static final Duration MAXIMUM_ALLOWED_HOURS_IN_INACTIVE_STATE = Duration.ofHours(24);
 
-  private static final String DESCRIPTION = "Delete for all data associated with ThirdPartySbomMetadata entities " +
-      "(sbom_metadata table rows) which have had a PENDING status for at least " +
-      MAXIMUM_ALLOWED_HOURS_IN_PENDING_STATE + " hours.";
+  private static final String DESCRIPTION = "Delete all data associated with ThirdPartySbomMetadata entities " +
+      "(sbom_metadata table rows) which have been inactive for at least " +
+      MAXIMUM_ALLOWED_HOURS_IN_INACTIVE_STATE + " hours.";
 
   // Visible for testing
   static final int EXECUTION_HOUR = 1;
@@ -66,9 +61,7 @@ public class PendingSbomMetadataCleaner
 
   private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
-  private final ThirdPartyFileDAO thirdPartyFileDAO;
-
-  private final InsightWork insightWork;
+  private final ThirdPartyPersistenceService thirdPartyPersistenceService;
 
   public boolean disableForTesting;
 
@@ -76,14 +69,12 @@ public class PendingSbomMetadataCleaner
   public PendingSbomMetadataCleaner(
       TaskScheduler taskScheduler,
       ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
-      InsightWork insightWork,
-      ThirdPartyFileDAO thirdPartyFileDAO)
+      ThirdPartyPersistenceService thirdPartyPersistenceService)
   {
     super(TASK_NAME);
     this.taskScheduler = taskScheduler;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
-    this.thirdPartyFileDAO = thirdPartyFileDAO;
-    this.insightWork = insightWork;
+    this.thirdPartyPersistenceService = thirdPartyPersistenceService;
   }
 
   @Override
@@ -99,47 +90,32 @@ public class PendingSbomMetadataCleaner
 
   @Override
   public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
-    pendingSbomMetadataCleaner();
+    execute();
   }
 
   @Override
-  public void execute(JobExecutionContext context) {
-    execute(this::pendingSbomMetadataCleaner, log, String.format("Error in %s", JOB_NAME));
+  public void execute(final JobExecutionContext context) {
+    execute(this::execute, log, String.format("Error in %s", JOB_NAME));
   }
 
-  private void pendingSbomMetadataCleaner() {
+  private void execute() {
     log.info("Starting {} - {}", JOB_NAME, DESCRIPTION);
     long startTime = System.currentTimeMillis();
 
-    thirdPartySbomMetadataDAO.getPendingSbomsOlderThanDuration(MAXIMUM_ALLOWED_HOURS_IN_PENDING_STATE)
-        .forEach(this::deletePendingSbomMetadata);
+    Date cutoffDate = new Date(Instant.now().toEpochMilli() - MAXIMUM_ALLOWED_HOURS_IN_INACTIVE_STATE.toMillis());
+    List<ThirdPartySbomMetadata> toDelete = thirdPartySbomMetadataDAO.getInactiveSbomsBeforeOrAt(cutoffDate);
+    for (ThirdPartySbomMetadata sbomMetadata : toDelete) {
+      try {
+        thirdPartyPersistenceService.deleteSbomMetadataAndAssociatedFiles(sbomMetadata);
+      }
+      catch (Exception e) {
+        log.error("Failed to delete SBOM metadata with ID '{}' all known associated data.", sbomMetadata.getId(), e);
+      }
+    }
+    thirdPartyPersistenceService.tryDeleteSbomTemporaryTransientFilesOlderThan(cutoffDate);
 
     long duration = System.currentTimeMillis() - startTime;
     log.debug("Finished {} after {} ms.", JOB_NAME, duration);
-  }
-
-  private void deletePendingSbomMetadata(final ThirdPartySbomMetadata sbomMetadata) {
-    try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
-      tx.begin();
-      thirdPartyFileDAO.delete(tx, sbomMetadata.getThirdPartyFileId());
-      deleteFileIfExists(sbomMetadata);
-      tx.commit();
-    }
-    catch (IOException e) {
-      log.error("Error deleting sbom file {}, sbom cleanup will be retried later.", sbomMetadata.getFilename(), e);
-    }
-  }
-
-  private void deleteFileIfExists(final ThirdPartySbomMetadata sbomMetadata) throws IOException {
-    Path sbomPath =
-        new File(insightWork.getSbomDir(sbomMetadata.getApplicationId()), sbomMetadata.getFilename()).toPath();
-    try {
-      Files.delete(sbomPath);
-    }
-    catch (NoSuchFileException e) {
-      log.warn("Sbom file {} for app {} didn't exist when trying to delete it.", sbomMetadata.getFilename(),
-          sbomMetadata.getApplicationId());
-    }
   }
 
   @Override

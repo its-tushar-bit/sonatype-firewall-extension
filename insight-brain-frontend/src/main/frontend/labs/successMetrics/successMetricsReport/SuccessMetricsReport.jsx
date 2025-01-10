@@ -57,6 +57,7 @@ const SuccessMetricsReport = ({
   deleteMaskState,
   deleteError,
   deleteReport,
+  successMetricsStageId,
 }) => {
   const {
     currentParams: { successMetricsReportId },
@@ -98,7 +99,7 @@ const SuccessMetricsReport = ({
               ${applicationCounts.activeApplications}
               application${isSingleApplicationReport ? '' : 's'}, evaluated over the past
               ${monthCount} ${monthCount === 1 ? 'month' : 'months'},
-              aggregated and deduplicated over the source, build, stage release, release, and operate stages. Last
+              ${getStageInfoText()}. Last
               updated
               ${formatDate(lastUpdated, includeLatestData ? DATE_FORMAT_WITH_TIME : DATE_FORMAT)}.
             `
@@ -180,6 +181,14 @@ const SuccessMetricsReport = ({
       )}
     </Fragment>
   );
+
+  function getStageInfoText() {
+    if (successMetricsStageId) {
+      return `for evaluations of the ${successMetricsStageId} stage`;
+    } else {
+      return 'aggregated and deduplicated over the source, build, stage release, release, and operate stages';
+    }
+  }
 };
 
 SuccessMetricsReport.propTypes = {
@@ -201,6 +210,7 @@ SuccessMetricsReport.propTypes = {
   applicationCounts: applicationCountsShape,
   violationCounts: PropTypes.arrayOf(violationCountsShape),
   violationsByCategoryWeeks: PropTypes.arrayOf(violationsByCategoryShape),
+  successMetricsStageId: PropTypes.string,
   router: PropTypes.shape({
     currentParams: PropTypes.oneOfType([
       PropTypes.shape({

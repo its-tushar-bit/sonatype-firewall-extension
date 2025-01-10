@@ -6,7 +6,7 @@
 
 import { path } from 'ramda';
 import { connect } from 'react-redux';
-import * as SuccessMetricsReportListActions from './successMetricsReportSlice';
+import * as SuccessMetricsReportListActions from './successMetricsReportListSlice';
 import SuccessMetricsReportList from './SuccessMetricsReportList.jsx';
 
 export default connect(path(['successMetrics', 'successMetricsList']), { ...SuccessMetricsReportListActions })(

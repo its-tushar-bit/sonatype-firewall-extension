@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain.labs;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -19,8 +20,10 @@ import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.MttrTi
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationAveragesTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationsByCategoryTile;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
@@ -30,6 +33,7 @@ import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.joda.time.DateTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -78,8 +82,13 @@ public class SuccessMetricsChartsSingleApplicationTest
     refreshOrOpen(SuccessMetricsReportPage.url(successMetrics.getId()));
   }
 
+  @After
+  public void after() {
+    unsetSuccessMetricsStageId();
+  }
+
   @Test
-  public void testHeader() {
+  public void testHeader_whenStageIdNull() {
     SuccessMetricsReportPage successMetricsReportPage = new SuccessMetricsReportPage();
 
     successMetricsReportPage.should(appear);
@@ -89,6 +98,19 @@ public class SuccessMetricsChartsSingleApplicationTest
         .shouldHave(text("This report contains data for 1 application, evaluated over the "
             + "past 3 months, aggregated and deduplicated over the source, build, stage release, release, and operate "
             + "stages."));
+  }
+
+  @Test
+  public void testHeader_whenStageIdSet() {
+    setSuccessMetricsStageId("build");
+    SuccessMetricsReportPage successMetricsReportPage = new SuccessMetricsReportPage();
+
+    successMetricsReportPage.should(appear);
+    Header.root().shouldBe(visible);
+    Header.title().shouldHave(text("Test"));
+    Header.description()
+        .shouldHave(text("This report contains data for 1 application, evaluated over the past 3 months, for " +
+            "evaluations of the build stage."));
   }
 
   @Test
@@ -145,5 +167,19 @@ public class SuccessMetricsChartsSingleApplicationTest
 
     ComponentCountsTile.averages()
         .shouldHave(text("SuccessMetricsChart Test App1 contains 1 components."));
+  }
+
+  private void setSuccessMetricsStageId(final String stageId) {
+    ApiConfigurationService configurationService =
+        testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
+    configurationService.setConfigurationNoAuthz(
+        SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID,
+        stageId);
+  }
+
+  private void unsetSuccessMetricsStageId() {
+    ApiConfigurationService configurationService =
+        testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
+    configurationService.deleteConfigurationNoAuthz(Set.of(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID));
   }
 }

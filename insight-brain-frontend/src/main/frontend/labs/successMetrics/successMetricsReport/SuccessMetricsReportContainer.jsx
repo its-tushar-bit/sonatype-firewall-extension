@@ -5,7 +5,7 @@
  */
 
 import { connect } from 'react-redux';
-import * as successMetricsActions from './SuccessMetricsReportActions';
+import { actions } from './successMetricsReportSlice';
 import SuccessMetricsReport from './SuccessMetricsReport.jsx';
 
 export default connect(
@@ -13,5 +13,5 @@ export default connect(
     ...successMetricsReport,
     router,
   }),
-  { ...successMetricsActions }
+  { ...actions }
 )(SuccessMetricsReport);

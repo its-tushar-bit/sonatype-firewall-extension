@@ -9,7 +9,7 @@ import {
   load,
   initialState,
   SUCCESS_METRICS_DISABLED_MESSAGE,
-} from '../../../../main/frontend/labs/successMetrics/successMetricsReportSlice';
+} from 'MainRoot/labs/successMetrics/successMetricsReportListSlice';
 import { getSuccessMetricsConfigUrl, getSuccessMetricsReportsUrl } from '../../../../main/frontend/util/CLMLocation';
 
 describe('successMetricsReportListState', () => {

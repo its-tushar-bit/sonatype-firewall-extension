@@ -378,6 +378,10 @@ export function getReevaluateComponentUrl(repositoryId, hash) {
   return uriTemplate`/rest/repositories/${repositoryId}/evaluate/${hash}`;
 }
 
+export function getSuccessMetricsStageIdUrl() {
+  return uriTemplate`/api/v2/config?property=successMetricsStageId`;
+}
+
 export const getComponentLicensesUrl = ({
   clientType,
   ownerType,

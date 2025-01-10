@@ -4,10 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+// force a consistent timezone for the tests so that dates and times render constantly regardless of the host timezone
+process.env.TZ = 'America/New_York';
+
 module.exports = {
   roots: ['<rootDir>/src/main/frontend', '<rootDir>/src/test/frontend'],
   transformIgnorePatterns: [
-    '/node_modules/(?!(pretty-bytes|@react-hook|@sonatype|@nivo|d3-color|d3-interpolate|d3-scale-chromatic)/)',
+    '/node_modules/(?!(pretty-bytes|@react-hook|@sonatype|@nivo|d3-color|d3-interpolate|d3-scale-chromatic|lodash-es)/)',
   ],
   transform: {
     '\\.[jt]sx?$': [

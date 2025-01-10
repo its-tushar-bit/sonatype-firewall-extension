@@ -57,7 +57,7 @@ import userConfigurationReducer from '../security/users/usersReducer';
 import administratorsSlice from '../configuration/administrators/administratorsSlice';
 import waiveTransitiveViolationsReducer from '../violation/waiveTransitiveViolationsSlice';
 import componentDetailsViolationsReducer from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
-import successMetricsReportSlice from '../labs/successMetrics/successMetricsReportSlice';
+import successMetricsReportSlice from '../labs/successMetrics/successMetricsSlice';
 import productLicenseReducer from '../configuration/license/productLicenseReducer';
 import occurrencesPopoverReducer from '../componentDetails/overview/occurrencesPopover/occurrencesPopoverSlice';
 import ldapListReducer from '../configuration/ldap/ldapServersList/ldapListSlice';

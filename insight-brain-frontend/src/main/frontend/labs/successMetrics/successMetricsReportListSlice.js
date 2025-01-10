@@ -4,9 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createAction, createAsyncThunk, createReducer } from '@reduxjs/toolkit';
-import { combineReducers } from 'redux';
-import addSuccessMetricsReportReducer from './addSuccessMetricsReport/addSuccessMetricsReportReducer';
-import successMetricsReportReducer from './successMetricsReport/SuccessMetricsReportReducer';
 import axios from 'axios';
 import { merge } from 'ramda';
 import { getSuccessMetricsConfigUrl, getSuccessMetricsReportsUrl } from '../../util/CLMLocation';
@@ -49,10 +46,4 @@ export const successMetricsListReducer = createReducer(initialState, {
   [toggleAddModal.type]: (state) => {
     state.isAddModalOpen = !state.isAddModalOpen;
   },
-});
-
-export default combineReducers({
-  successMetricsList: successMetricsListReducer,
-  addSuccessMetricsReport: addSuccessMetricsReportReducer,
-  successMetricsReport: successMetricsReportReducer,
 });

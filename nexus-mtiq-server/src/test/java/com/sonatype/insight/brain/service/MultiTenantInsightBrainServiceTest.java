@@ -84,8 +84,6 @@ public class MultiTenantInsightBrainServiceTest
             .isInstanceOf(PostgresApplicationRiskService.class);
     assertThat(getCLMServer().getInstance(DashboardComponentRiskService.class))
             .isInstanceOf(PostgresComponentRiskService.class);
-    assertThat(getCLMServer().getInstance(ApplicationRiskService.class)).isInstanceOf(
-        PostgresApplicationRiskService.class);
   }
 
   @Override

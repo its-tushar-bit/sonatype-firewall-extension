@@ -6,18 +6,12 @@
 package com.sonatype.insight.brain.clients;
 
 import java.time.Duration;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
-import software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.SystemPropertyCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.internal.LazyAwsCredentialsProvider;
+import com.sonatype.insight.brain.aws.credentials.InsightAwsCredentialsProvider;
+
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
@@ -30,18 +24,10 @@ public class AwsSecretsManagerClient
 {
   private final SecretsManagerClient secretsClient;
 
-  public AwsSecretsManagerClient() {
+  @Inject
+  public AwsSecretsManagerClient(InsightAwsCredentialsProvider credentialsProvider) {
     this(SecretsManagerClient.builder()
-        .credentialsProvider(LazyAwsCredentialsProvider.create(
-            () -> AwsCredentialsProviderChain.builder().reuseLastProviderEnabled(true)
-                .credentialsProviders(new AwsCredentialsProvider[]{
-                    WebIdentityTokenFileCredentialsProvider.builder().asyncCredentialUpdateEnabled(false).build(),
-                    SystemPropertyCredentialsProvider.create(),
-                    EnvironmentVariableCredentialsProvider.create(),
-                    ProfileCredentialsProvider.create(),
-                    ContainerCredentialsProvider.builder().asyncCredentialUpdateEnabled(false).build(),
-                    InstanceProfileCredentialsProvider.builder().asyncCredentialUpdateEnabled(false).build(),
-                    }).build()))
+        .credentialsProvider(credentialsProvider.get())
         .httpClientBuilder(ApacheHttpClient.builder()
             .maxConnections(100)
             .connectionTimeout(Duration.ofSeconds(5)))

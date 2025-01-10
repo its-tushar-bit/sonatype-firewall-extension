@@ -21,7 +21,6 @@ import java.util.zip.ZipFile;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -83,15 +82,10 @@ public class FileApplicationReport
   }
 
   @Override
-  public void putEntry(final String name, final String text) throws IOException {
-    putEntry(name, text.getBytes(StandardCharsets.UTF_8));
-  }
-
-  @Override
   public void saveReportEntry(String entryFileName, ContainerNode<?> jsonData) throws IOException {
     long start = System.currentTimeMillis();
 
-    cache(getCacheFile(entryFileName), JsonUtils.generate(jsonData));
+    putEntry(entryFileName, JsonUtils.generate(jsonData));
 
     log.debug("saveReportEntry: {} in {} ms.", entryFileName, System.currentTimeMillis() - start);
   }
@@ -112,8 +106,7 @@ public class FileApplicationReport
     return Files.readAllBytes(cacheFile.toPath());
   }
 
-  @Override
-  public ReportEntry extractEntry(final String name) throws IOException {
+  private ReportEntry extractEntry(final String name) throws IOException {
     // When the archive is closed, all InputStreams retrieved from this archive are also closed.
     try (final ZipFile archive = new ZipFile(file)) {
       final ZipEntry entry = archive.getEntry(name);
@@ -164,18 +157,6 @@ public class FileApplicationReport
   private void cache(final File f, final byte[] buf) throws IOException {
     Files.createDirectories(f.getAbsoluteFile().getParentFile().toPath());
     Files.write(f.toPath(), buf);
-  }
-
-  @Override
-  public void embedApplicationPublicId(Application application) throws IOException {
-    String filename = "index.html";
-    ReportEntry reportEntry = extractEntry(filename);
-    String originalIndexHtmlContent = new String(reportEntry.buf, StandardCharsets.UTF_8);
-    String augmentedIndexHtmlContent =
-        originalIndexHtmlContent.replace("applicationId = ''", "applicationId = '" + application.getPublicId() + "'");
-    if (!augmentedIndexHtmlContent.equals(originalIndexHtmlContent)) {
-      cache(getCacheFile(filename), augmentedIndexHtmlContent.getBytes(StandardCharsets.UTF_8));
-    }
   }
 
   @Override

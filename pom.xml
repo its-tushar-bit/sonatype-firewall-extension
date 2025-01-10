@@ -1276,6 +1276,11 @@
         <version>${testcontainers.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>localstack</artifactId>
+        <version>${testcontainers.version}</version>
+      </dependency>
+      <dependency>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>bom</artifactId>
         <version>${aws.java.sdk.version}</version>
@@ -1337,6 +1342,7 @@
                   <exclude>**/src/test/data/manifest/*</exclude>
                   <exclude>**/src/test/data/module/**/*</exclude>
                   <exclude>**/releasenotes/assets/css/style.scss</exclude>
+                  <exclude>**/src/main/java/com/sonatype/insight/brain/aws/s3/S3OutputStream.java</exclude>
                 </excludes>
               </licenseSet>
             </licenseSets>

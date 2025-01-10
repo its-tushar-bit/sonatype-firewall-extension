@@ -302,11 +302,14 @@ describe('vulnerabilitiesSliceActions', () => {
     const extraQueryParameters = {
       ownerType: 'application',
       ownerId: 'appPublicId',
+      identificationSource: 'identificationSource',
+      scanId: 'currentScanId',
     };
     beforeEach(() => {
       spyOn(vulnerabilitiesSelectors, 'selectVulnerabityRefId').and.returnValue('2');
       spyOn(applicationReportSelectors, 'selectSelectedComponent').and.returnValue({
         componentIdentifier: expectedComponentIdentifier,
+        identificationSource: 'identificationSource',
       });
     });
 
@@ -447,6 +450,8 @@ describe('vulnerabilitiesSliceActions', () => {
         const extraQueryParameters = {
           ownerType: 'repository',
           ownerId: 'repo123',
+          identificationSource: 'identificationSource',
+          scanId: 'currentScanId',
         };
 
         const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl(
@@ -514,6 +519,8 @@ describe('vulnerabilitiesSliceActions', () => {
         const extraQueryParameters = {
           ownerType: 'repository',
           ownerId: 'repo123',
+          identificationSource: 'identificationSource',
+          scanId: 'currentScanId',
         };
 
         const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl(
@@ -583,6 +590,7 @@ describe('vulnerabilitiesSliceActions', () => {
       const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl('2', expectedComponentIdentifier, {
         ownerType: 'repository',
         ownerId: 'repositoryId',
+        identificationSource: 'identificationSource',
       });
       mockAxiosCalls({
         get: {

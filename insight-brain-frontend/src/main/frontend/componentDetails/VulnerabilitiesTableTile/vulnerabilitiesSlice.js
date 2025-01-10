@@ -22,7 +22,7 @@ import {
   selectFirewallVulnerabilitiesRequestData,
   selectVulnerabilityOverrideFormData,
 } from './vulnerabilitiesSelectors';
-import { selectRouteParamsFromSecurityTab } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectRouteParamsFromSecurityTab, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { validateMaxLength } from 'MainRoot/util/validationUtil';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
@@ -95,15 +95,19 @@ const loadFirewallVulnerabilities = createAsyncThunk(
 const loadVulnerabilityDetails = createAsyncThunk(
   `${REDUCER_NAME}/loadVulnerabilityDetails`,
   (_, { getState, rejectWithValue }) => {
-    const componentIdentifier = selectSelectedComponent(getState())?.componentIdentifier;
+    const component = selectSelectedComponent(getState());
+    const componentIdentifier = component?.componentIdentifier;
+    const identificationSource = component?.identificationSource;
+    const scanId = selectRouterCurrentParams(getState())?.scanId;
     const { ownerId, hash, isRepositoryComponent } = selectRouteParamsFromSecurityTab(getState());
     const ownerType = isRepositoryComponent ? 'repository' : 'application';
     const vulnerability = selectSelectedVulnerability(getState());
     const extraQueryParameters = {
       ownerType: ownerType,
       ownerId: ownerId,
+      identificationSource: identificationSource,
+      scanId: scanId,
     };
-
     const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl(
       vulnerability.refId,
       componentIdentifier,

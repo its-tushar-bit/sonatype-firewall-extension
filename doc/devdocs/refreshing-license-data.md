@@ -13,3 +13,9 @@ tests is not refreshed online and has to be maintained every now and then. To do
 and commit the files.
 
 Related PR can be found in: https://github.com/sonatype/insight-brain/pull/11348
+
+Now there's also a `runRefPolicyImportIntTest` parameter on Jenkins that is disabled by default and can be used to 
+run the `ReferencePolicyImportIntegrationTest` when modifying the test accordingly. Therefore, 
+there's no blocker to continuing feature work until the main pipeline is run.
+
+![img.png](img/jenkins-pipeline-build-view.png)

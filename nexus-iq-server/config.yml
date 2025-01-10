@@ -82,7 +82,6 @@ logging:
     org.zeroturnaround.exec: INFO
     org.eclipse.jgit: INFO
     com.networknt.schema: OFF
-    software.amazon.awssdk: WARN
   appenders:
     - type: console
       threshold: ${LOGGER_CONSOLE_THRESHOLD:-INFO}

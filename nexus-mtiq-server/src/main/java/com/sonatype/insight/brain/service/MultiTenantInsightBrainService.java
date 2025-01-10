@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.sonatype.insight.brain.configuration.webhook.WebhookService;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -24,7 +25,6 @@ import com.sonatype.insight.brain.api.admin.service.MultiTenantActiveRequestCoun
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.audit.AdminAuditContainerRequestFilter;
 import com.sonatype.insight.brain.clients.AwsSecretsManagerClient;
-import com.sonatype.insight.brain.configuration.webhook.WebhookService;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
 import com.sonatype.insight.brain.datadog.DatadogInterceptor;
@@ -54,6 +54,8 @@ import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionVal
 import com.sonatype.insight.brain.product.license.DefaultProductLicense;
 import com.sonatype.insight.brain.product.license.MultiTenantProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.report.FileReportDataStore;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.scheduler.MultiTenantQuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
@@ -305,6 +307,7 @@ public class MultiTenantInsightBrainService
         // For unclear reasons, since the switch to dropwizard-guicey leaving this binding null has prevented
         // the server from starting. A proper solution cound not be found, so just fill it in with a dummy value
         bind(File.class).annotatedWith(Names.named("licensing.access.file")).toInstance(new File("workaround"));
+        bind(ReportDataStore.class).to(FileReportDataStore.class);
       }
     });
 

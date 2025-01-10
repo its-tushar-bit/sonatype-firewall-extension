@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.report;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -151,7 +150,7 @@ public class ReportService
 
   private final ProprietaryConfigService proprietaryConfigService;
 
-  private final ReportDataStore reportDataStore;
+  private ReportDataStore reportDataStore;
 
   @Inject
   public ReportService(
@@ -449,6 +448,11 @@ public class ReportService
     return applicationReport.getEntry(name);
   }
 
+  @VisibleForTesting
+  public void setReportUtils(final ReportDataStore reportDataStore) {
+    this.reportDataStore = reportDataStore;
+  }
+
   public ReportEntity getVulnerabilitySignatureJson(final String applicationId, final String scanId)
       throws IOException
   {
@@ -476,7 +480,7 @@ public class ReportService
     // Start fresh by deleting any cached files.
     applicationReport.deleteCacheDir();
     applicationReport.deletePdfReport();
-    embedApplicationPublicId(applicationReport, application);
+    applicationReport.embedApplicationPublicId(application);
 
     applyComponentRelatedChanges(application, applicationReport, repositoryMatcher, telemetrySender, telemetryUtils);
 
@@ -486,7 +490,7 @@ public class ReportService
     final ContainerNode<?> partialMatched = JsonUtils.parse(applicationReport.getEntry("partialmatched.json").buf);
 
     Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier =
-        parseDependencyDepths(JsonUtils.parse(applicationReport.getEntry(DEPENDENCIES_JSON_FILENAME).buf));
+        parseDependencyDepths(JsonUtils.parse(applicationReport.extractEntry(DEPENDENCIES_JSON_FILENAME).buf));
 
     final ObjectNode data = JsonUtils.parse(applicationReport.getEntry(DATA_JSON_FILENAME).buf);
     final int[] securityCounts = getSecurityCounts(data);
@@ -571,19 +575,6 @@ public class ReportService
     applicationReport.saveReportEntry(DATA_JSON_FILENAME, data);
 
     log.debug("Applied changes to report in {} ms", System.currentTimeMillis() - start);
-  }
-
-  private void embedApplicationPublicId(final ApplicationReport applicationReport, final Application application)
-      throws IOException
-  {
-    String filename = "index.html";
-    ReportEntry reportEntry = applicationReport.getEntry(filename);
-    String originalIndexHtmlContent = new String(reportEntry.buf, StandardCharsets.UTF_8);
-    String augmentedIndexHtmlContent =
-        originalIndexHtmlContent.replace("applicationId = ''", "applicationId = '" + application.getPublicId() + "'");
-    if (!augmentedIndexHtmlContent.equals(originalIndexHtmlContent)) {
-      applicationReport.putEntry(filename, augmentedIndexHtmlContent.getBytes(StandardCharsets.UTF_8));
-    }
   }
 
   /**

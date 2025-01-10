@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -23,7 +24,6 @@ import com.sonatype.insight.brain.migration.ReverseProxyAuthenticationConfigurat
 import com.sonatype.insight.brain.migration.SourceControlConfigurationMigrator;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.security.AllowedIp;
-import com.sonatype.insight.brain.service.config.ReportDataStoreConfig;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -330,10 +330,6 @@ public class InsightConfig
    */
   @JsonProperty
   private String advancedSearchCSVExportDelimiter;
-
-  @Valid
-  @JsonProperty(value = "reportDataStore")
-  private ReportDataStoreConfig reportDataStoreConfig = new ReportDataStoreConfig();
 
   public ProxyServerConfigurationMigrator.ProxyConfig getProxyConfig() {
     return proxy;
@@ -964,13 +960,5 @@ public class InsightConfig
 
   public void setAdvancedSearchCSVExportDelimiter(String advancedSearchCSVExportDelimiter) {
     this.advancedSearchCSVExportDelimiter = advancedSearchCSVExportDelimiter;
-  }
-
-  public void setReportDataStoreConfig(ReportDataStoreConfig reportDataStoreConfig) {
-    this.reportDataStoreConfig = reportDataStoreConfig;
-  }
-
-  public ReportDataStoreConfig getReportDataStoreConfig() {
-    return reportDataStoreConfig;
   }
 }

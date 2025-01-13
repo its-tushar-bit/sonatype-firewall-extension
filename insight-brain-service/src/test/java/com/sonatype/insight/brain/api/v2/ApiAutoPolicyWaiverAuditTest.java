@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -34,6 +35,8 @@ public class ApiAutoPolicyWaiverAuditTest
   @Before
   public void setup() {
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
+    //feature flag
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
   }
 
   @After

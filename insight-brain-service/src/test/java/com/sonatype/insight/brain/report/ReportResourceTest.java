@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.hds.TestNamedComponentDetails;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
@@ -753,6 +754,8 @@ public class ReportResourceTest
 
   @Test
   public void testReevaluateReport_withoutSkippingAutoWaivers() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
     final String scanId = "ReportResourceTest_ScanId";
     mockReport(scanId, "/ReportResourceTest/report");
     mockGetVersionsByComponentCI();
@@ -824,6 +827,8 @@ public class ReportResourceTest
 
   @Test
   public void testReevaluateReport_skippingAutoWaivers() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
     final String scanId = "ReportResourceTest_ScanId";
     mockReport(scanId, "/ReportResourceTest/report");
     mockGetVersionsByComponentCI();

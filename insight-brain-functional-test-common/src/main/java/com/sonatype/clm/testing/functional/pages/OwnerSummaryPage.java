@@ -18,7 +18,6 @@ import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.OwnerSummaryTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.SourceControlTile;
-import com.sonatype.clm.testing.functional.elements.AutoWaiversTile;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -113,10 +112,6 @@ public class OwnerSummaryPage
 
   public static AccessTile accessTile() {
     return new AccessTile("#access-tile-pill-access");
-  }
-
-  public static AutoWaiversTile autoWaiversTile() {
-    return new AutoWaiversTile();
   }
 
   public static NavPills navigationPills() {

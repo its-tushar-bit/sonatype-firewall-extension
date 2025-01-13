@@ -1109,23 +1109,18 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
-  public void testEnabledByDefaultFeature_AutoWaivers() {
-    assertThat(
-        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.AUTO_WAIVERS))
-        .isNull();
-  }
+  public void testEnableFeature_AutoWaivers() {
+    service.enableFeature(AUTO_WAIVERS);
 
-  @Test
-  public void testDisabledFeature_AutoWaivers() {
-    service.disableFeature(AUTO_WAIVERS);
     assertThat(
         systemConfigurationPropertyDAO.getByName(AUTO_WAIVERS)
             .getValue())
-        .isEqualTo("false");
+        .isEqualTo("true");
   }
 
   @Test
   public void testEnableFeature_AutoWaivers_AlreadyEnabled() {
+    service.enableFeature(AUTO_WAIVERS);
     assertThatThrownBy(
         () -> service.enableFeature(
             AUTO_WAIVERS)).isInstanceOf(
@@ -1134,7 +1129,6 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testDisableFeature_AutoWaivers_AlreadyDisabled() {
-    service.disableFeature(AUTO_WAIVERS);
     assertThatThrownBy(
         () -> service.disableFeature(
             AUTO_WAIVERS)).isInstanceOf(

@@ -197,6 +197,7 @@ public class Configuration
         SystemConfigurationProperty.MALWARE_DEFENSE_API,
         SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI,
         SystemConfigurationProperty.SBOM_POLICIES,
+        SystemConfigurationProperty.AUTO_WAIVERS,
         SystemConfigurationProperty.NEW_SCAN_PROCESS)
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());

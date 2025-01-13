@@ -35,6 +35,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.authz.UnauthorizedException;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -65,6 +66,12 @@ public class ApiAutoPolicyWaiverServiceTest
   public void configure(Binder binder) {
     binder.bind(AutoPolicyWaiverTelemetryMetrics.class).toInstance(autoPolicyWaiverTelemetryMetrics);
     super.configure(binder);
+  }
+
+  @Before
+  public void setup() {
+    //feature flag default to true
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
   }
 
   @Test

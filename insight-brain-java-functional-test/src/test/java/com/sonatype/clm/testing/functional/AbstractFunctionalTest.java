@@ -323,6 +323,12 @@ public abstract class AbstractFunctionalTest
         enableDefaultPasswordWarning);
   }
 
+  public static void setEnableAutoWaiverCreation(boolean enableAutoWaiver) {
+    ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.AUTO_WAIVERS,
+        enableAutoWaiver);
+  }
+
   private static void initMocks() {
     try {
       Mockito.reset(jiraService);
@@ -385,6 +391,7 @@ public abstract class AbstractFunctionalTest
     log.info("Before: {}", testName.getMethodName());
     setEnableDefaultPasswordWarning(false);
     setBaseUrl(Configuration.baseUrl);
+    setEnableAutoWaiverCreation(true);
 
     persistedUserSessionDAO = lookup(PersistedUserSessionDAO.class);
     shiroSessionDAO = lookup(ShiroSessionDAO.class);

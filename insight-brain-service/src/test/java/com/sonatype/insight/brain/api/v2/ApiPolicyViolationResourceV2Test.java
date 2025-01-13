@@ -444,6 +444,7 @@ public class ApiPolicyViolationResourceV2Test
 
   @Test
   public void testGetApplicableAutoWaiver() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
     Organization newOrg = tempEntity.newOrganization("NewOrg");
     Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
@@ -485,6 +486,7 @@ public class ApiPolicyViolationResourceV2Test
 
   @Test
   public void testGetApplicableAutoWaiver_NoAutoPolicyWaiverApplied() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
     Organization newOrg = tempEntity.newOrganization("NewOrg");
     Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
@@ -509,6 +511,7 @@ public class ApiPolicyViolationResourceV2Test
 
   @Test
   public void testGetApplicableAutoWaiver_whenExclusionAppliedOnAppLevelAutoPolicyWaiver() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
     Organization newOrg = tempEntity.newOrganization("NewOrg");
     Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
@@ -568,6 +571,7 @@ public class ApiPolicyViolationResourceV2Test
 
   @Test
   public void testGetApplicableAutoWaiver_whenExclusionAppliedOnOrgLevelAutoPolicyWaiver() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
     Organization newOrg = tempEntity.newOrganization("NewOrg");
     Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
@@ -608,6 +612,7 @@ public class ApiPolicyViolationResourceV2Test
   public void testGetApplicableAutoWaiver_ALL_VERSION_whenExclusionAppliedOnAppLevelAutoPolicyWaiver()
       throws Exception
   {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
     Organization newOrg = tempEntity.newOrganization("NewOrg");
     Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());

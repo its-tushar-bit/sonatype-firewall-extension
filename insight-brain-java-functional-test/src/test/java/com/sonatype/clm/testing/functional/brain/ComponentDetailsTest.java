@@ -1001,7 +1001,6 @@ public class ComponentDetailsTest
     MainHeader.backButton().click();
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
     reportPage.reevaluateButton().click();
-    reportPage.fullReevaluateButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
@@ -1199,7 +1198,6 @@ public class ComponentDetailsTest
     MainHeader.backButton().click();
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
     reportPage.reevaluateButton().click();
-    reportPage.fullReevaluateButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));

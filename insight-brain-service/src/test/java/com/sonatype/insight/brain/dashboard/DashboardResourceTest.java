@@ -666,40 +666,32 @@ public class DashboardResourceTest
     tempEntity.newWaiver("hash", policy.getId(), app.getId(), "comment");
     tempEntity.newAutoPolicyWaiver(app.getId());
 
-    //Test without including auto waivers query param
+    //Test without including auto waivers
     HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
         .body(new RisksFilterDTO()).post();
 
     assertResponseStatus(200, response);
     DashboardResultsDTO<?> dto = response.getBody(DashboardResultsDTO.class);
+    assertThat(dto.dashboardResults).hasSize(1);
+
+    //Test with including auto waivers but feature flag is not enabled
+    response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
+        .body(new RisksFilterDTO())
+        .query("includeAutoWaivers", "true").post();
+
+    assertResponseStatus(400, response);
+
+    //Test with including auto waivers and feature flag is enabled
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
+        .body(new RisksFilterDTO())
+        .query("includeAutoWaivers", true).post();
+
+    assertResponseStatus(200, response);
+
+    dto = response.getBody(DashboardResultsDTO.class);
     assertThat(dto.dashboardResults).hasSize(2);
-
-    //Test with auto waivers query param set to false
-    response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
-        .body(new RisksFilterDTO())
-        .query("includeAutoWaivers", "false").post();
-
-    assertResponseStatus(200, response);
-    dto = response.getBody(DashboardResultsDTO.class);
-    assertThat(dto.dashboardResults).hasSize(1);
-
-    //Test without including auto waivers and feature flag is disabled
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
-    response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
-        .body(new RisksFilterDTO()).post();
-
-    assertResponseStatus(200, response);
-    dto = response.getBody(DashboardResultsDTO.class);
-    assertThat(dto.dashboardResults).hasSize(1);
-
-    //Test with auto waivers query param set to true and feature flag is disabled
-    response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
-        .body(new RisksFilterDTO())
-        .query("includeAutoWaivers", "false").post();
-
-    assertResponseStatus(200, response);
-    dto = response.getBody(DashboardResultsDTO.class);
-    assertThat(dto.dashboardResults).hasSize(1);
   }
 
   @Test
@@ -746,6 +738,7 @@ public class DashboardResourceTest
 
     //includeAutoWaivers
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(app.getId());
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     response = restRequest().path(GET_POLICY_WAIVERS_EXPORT_PATH).part("filter", filter)
         .query("includeAutoWaivers", true).post();
     assertResponseOkAndCsvHeadersSet(response, "results-waivers");

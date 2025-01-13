@@ -261,7 +261,7 @@ public class DashboardResource
   @ExceptionMetered(name = "getPolicyWaiversExceptionMeter")
   public DashboardResultsDTO<DashboardPolicyWaiverDTO> getPolicyWaivers(
       RisksFilterDTO risksFilterDTO,
-      @QueryParam("includeAutoWaivers") @DefaultValue("true") boolean includeAutoWaivers)
+      @QueryParam("includeAutoWaivers") boolean includeAutoWaivers)
   {
     if (risksFilterDTO == null) {
       throw new BadRequestException("Invalid filter supplied for request.");
@@ -280,7 +280,7 @@ public class DashboardResource
   @Audited(AuditEvent.EXPORT_DASHBOARD_WAIVER_LIST)
   public Response getPolicyWaiversExport(
       @FormDataParam("filter") RisksFilterDTO risksFilterDTO,
-      @QueryParam("includeAutoWaivers") @DefaultValue("true") boolean includeAutoWaivers) throws IOException
+      @QueryParam("includeAutoWaivers") @DefaultValue("false") boolean includeAutoWaivers) throws IOException
   {
     risksFilterDTO.pageSize = Integer.MAX_VALUE;
     risksFilterDTO.page = 0;

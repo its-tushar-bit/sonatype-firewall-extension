@@ -41,7 +41,7 @@ public abstract class AbstractMtiqSummaryViewTest
   public void testNavigationPills() {
     NavPills navPills = OwnerSummaryPage.navigationPills();
 
-    navPills.pills().shouldHave(size(10));
+    navPills.pills().shouldHave(size(11));
 
     navPills.appCategory().click();
     OwnerSummaryPage.categoryTile().shouldBe(visible);
@@ -72,5 +72,8 @@ public abstract class AbstractMtiqSummaryViewTest
 
     navPills.innerSource().should(exist);
     OwnerSummaryPage.innerSourceRepositoryTile().should(exist);
+
+    navPills.autoWaivers().should(exist);
+    OwnerSummaryPage.autoWaiversTile().should(exist);
   }
 }

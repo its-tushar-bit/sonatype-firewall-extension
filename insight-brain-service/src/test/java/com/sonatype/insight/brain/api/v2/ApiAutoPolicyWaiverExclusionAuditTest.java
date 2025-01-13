@@ -18,7 +18,6 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -62,7 +61,6 @@ public class ApiAutoPolicyWaiverExclusionAuditTest
   public void setup() {
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
     testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     Mockito.reset(reportService);
   }
 

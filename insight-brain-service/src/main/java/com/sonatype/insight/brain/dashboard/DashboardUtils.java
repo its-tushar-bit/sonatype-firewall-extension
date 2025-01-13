@@ -14,8 +14,8 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.api.v2.FeatureAlreadyDisabledException;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.StageTypeService;
@@ -63,10 +63,9 @@ public class DashboardUtils
     }
   }
 
-  void validateAutoWaiverFeatureFlag() {
-    if (systemConfigurationPropertyDAO.getByName(AUTO_WAIVERS) == null) {
-      throw new FeatureAlreadyDisabledException("The auto-waivers feature has been disabled.");
-    }
+  boolean isAutoWaiverFeatureFlagEnabled() {
+    SystemConfigurationProperty autoWaiver = systemConfigurationPropertyDAO.getByName(AUTO_WAIVERS);
+    return autoWaiver == null || (autoWaiver != null && autoWaiver.getValue().equalsIgnoreCase("true"));
   }
 
   Set<StageType> getStageTypes(Set<String> stageTypeIds) {

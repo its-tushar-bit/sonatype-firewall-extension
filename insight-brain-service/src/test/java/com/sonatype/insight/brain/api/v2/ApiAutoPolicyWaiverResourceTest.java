@@ -43,11 +43,9 @@ public class ApiAutoPolicyWaiverResourceTest
   public void setUp() {
     autoPolicyWaiverDAO = lookup(AutoPolicyWaiverDAO.class);
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
-    //feature flag default to true
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     licenseManager.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
   }
-  
+
   @After
   public void cleanup() {
     licenseManager.reset();
@@ -69,8 +67,6 @@ public class ApiAutoPolicyWaiverResourceTest
 
   @Test
   public void testDeleteAutoPolicyWaiver_FeatureFlag() throws Exception {
-    //when feature flag is disabled
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
 
@@ -79,18 +75,18 @@ public class ApiAutoPolicyWaiverResourceTest
         .parameter(OwnerType.APPLICATION, application.getId(), autoPolicyWaiver.getId())
         .delete();
 
-    assertResponseStatus(403, response);
+    assertResponseStatus(204, response);
+    assertThat(autoPolicyWaiverDAO.getById(autoPolicyWaiver.getId())).isNull();
 
-    //when feature flag is enabled
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+    //when feature flag is disabled
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
 
     response = restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/" + BY_AUTO_POLICY_WAIVER_ID_PATH)
         .parameter(OwnerType.APPLICATION, application.getId(), autoPolicyWaiver.getId())
         .delete();
 
-    assertResponseStatus(204, response);
-    assertThat(autoPolicyWaiverDAO.getById(autoPolicyWaiver.getId())).isNull();
+    assertResponseStatus(403, response);
   }
 
   @Test

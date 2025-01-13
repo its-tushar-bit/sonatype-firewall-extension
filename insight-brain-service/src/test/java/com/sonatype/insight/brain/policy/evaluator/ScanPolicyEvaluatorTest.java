@@ -200,7 +200,7 @@ public class ScanPolicyEvaluatorTest
 
   @Inject
   private AutoPolicyWaiverDAO autoPolicyWaiverDAO;
-  
+
   @Inject
   private AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
 
@@ -421,8 +421,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_PathForward_NoVersionChanges() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     doReturn(Pair.of(Lists.emptyList(), null))
         .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any());
@@ -455,8 +453,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_PathForward_WithVersionChanges() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     ComponentDetailsDTO tomcatComponentDetailsDTOV1 = new ComponentDetailsDTO();
     tomcatComponentDetailsDTOV1.componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
@@ -498,8 +494,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_PathForward_NonSecurityViolations() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     ComponentDetailsDTO tomcatComponentDetailsDTOV1 = new ComponentDetailsDTO();
     tomcatComponentDetailsDTOV1.componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
@@ -528,8 +522,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_MultipleAutoWaivers() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
 
@@ -558,8 +550,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_ThreatLevelOnly_noPolicyWaiver() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
 
@@ -602,8 +592,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_ThreatLevelOnly_withPolicyWaiver() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     // Basic setup
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
@@ -664,8 +652,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_NoExclusions() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
 
@@ -688,8 +674,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_ExclusionsApply_ExactComponent() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     // The exclusion will apply to tomcat-util version 5.5.23 only. The violation for v5.4.23 will be auto-waived
     String componentIdentifier = "maven: {artifactId=tomcat-util, groupId=tomcat, version=5.5.23}";
     String componentHash = "1249e25aebb15358bedd";
@@ -727,15 +711,13 @@ public class ScanPolicyEvaluatorTest
       assertThat(activeViolation.getComponentIdentifier().toString()).isEqualTo(componentIdentifier);
     });
   }
-  
+
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_ExclusionsApply_AllVersions() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     // The exclusion will apply to all versions of tomcat-util. Report contains violations for 5.4.23 & 5.5.23
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
-    
+
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
 
@@ -781,8 +763,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_ExclusionsApply_PolicyViolation() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     Stage stageTwo = new Stage(Stage.ID_DEVELOP);
     String scanIdOne = simulateReportIsAvailable("AutoWaiverRevocationsAlternate");
@@ -833,13 +813,11 @@ public class ScanPolicyEvaluatorTest
       assertThat(violation.getComponentIdentifier()).isEqualTo(exclusion.getComponentIdentifier());
     });
   }
-  
+
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_ExclusionsApply_PolicyViolation_incompleteComponent()
       throws Exception
   {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     Stage stageTwo = new Stage(Stage.ID_DEVELOP);
     String scanIdOne = simulateReportIsAvailable("AutoWaiverRevocations");
@@ -873,7 +851,7 @@ public class ScanPolicyEvaluatorTest
     exclusion.setThreatLevel(targetViolation.getThreatLevel());
     exclusion.setComponentIdentifier(targetViolation.getComponentIdentifier());
     exclusion.setHash(targetViolation.getHash());
-    
+
     exclusion.setConstraintFacts(targetViolation.getConstraintFacts());
     exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.POLICY_VIOLATION);
     autoPolicyWaiverExclusionDAO.insert(exclusion);
@@ -889,8 +867,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_ExclusionsDoNotApply_ExactComponent() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
 
@@ -924,13 +900,11 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_ExclusionsDoNotApply_AllVersions() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("group", "artifact", "2.0");
-    
+
     Policy securityPolicy = new Policy(null, "Security Policy");
     securityPolicy.setThreatLevel(8); // should not be auto waived
     securityPolicy.setOwnerId(application.getId());
@@ -970,8 +944,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_ExclusionsDoNotApply_PolicyViolation() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     // The exclusion will apply to all versions of tomcat-util. Report contains violations for 5.4.23 & 5.5.23
     String componentPackageUrl = "pkg:maven/tomcat/tomcat-util@5.5.23";
 
@@ -1023,8 +995,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testReEvaluate_Results_WithoutSkippingAutoWaivers() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
 
@@ -1061,8 +1031,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testReEvaluate_Results_SkippingAutoWaivers() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
 
@@ -1099,8 +1067,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testReEvaluate_Results_SkippingAutoWaiversWithoutReevaluation_ThrowsError() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
 
@@ -1382,8 +1348,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_NotifiableViolations_WithAutoWaiver_ThreatLevelOnly() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
 
@@ -1635,8 +1599,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_UpdateAutoWaivedViolations_MultiplePolicies_NoPolicyWaiver() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
 
@@ -1704,8 +1666,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_AddAndRemoveAutoWaiver_SinglePolicy_NoPolicyWaiver() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
 
@@ -1775,8 +1735,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_AddAndRemovePolicyWaiver_SinglePolicy_WithAutoWaiver() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
 
@@ -1854,8 +1812,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_AddAndRemoveAutoWaiver_SinglePolicy_WithPolicyWaiver() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
 
@@ -1968,8 +1924,6 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_AddAndRemoveAutoWaiver_MultiplePolicies_NoPolicyWaiver() throws Exception {
     // setup
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
 
@@ -2036,8 +1990,6 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_AddAndRemoveAutoWaiver_MultiplePolicies_WithPolicyWaiver() throws Exception {
     // setup
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
 
@@ -2106,8 +2058,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_UpdateAutoWaivedViolations_SinglePolicy_WithPolicyWaiver() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
 
@@ -2179,8 +2129,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_UpdateAutoWaivedViolations_SinglePolicy_NoPolicyWaiver() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
 
@@ -3399,7 +3347,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_PolicyViolationLogger_AutoWaiveAndUnAutoWaivePolicyViolations() throws Exception {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
 
     Stage stage = new Stage(Stage.ID_BUILD);

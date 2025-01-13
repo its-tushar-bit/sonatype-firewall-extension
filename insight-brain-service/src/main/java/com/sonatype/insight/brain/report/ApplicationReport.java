@@ -9,7 +9,6 @@ package com.sonatype.insight.brain.report;
 import java.io.IOException;
 import java.util.Properties;
 
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
 
 import com.fasterxml.jackson.databind.node.ContainerNode;
@@ -35,16 +34,10 @@ public interface ApplicationReport
 
   void putEntry(String name, byte[] buf) throws IOException;
 
-  void putEntry(String name, String text) throws IOException;
-
   void saveReportEntry(String entryFileName, ContainerNode<?> jsonData)
       throws IOException;
 
   ContainerNode<?> loadReportEntry(String entryFileName) throws IOException;
-
-  ReportEntry extractEntry(String name) throws IOException;
-
-  void embedApplicationPublicId(Application application) throws IOException;
 
   void deletePdfReport();
 

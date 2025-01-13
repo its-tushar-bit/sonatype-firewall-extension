@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.IOException;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;

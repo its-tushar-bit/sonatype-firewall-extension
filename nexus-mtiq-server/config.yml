@@ -98,6 +98,7 @@ logging:
     org.zeroturnaround.exec: INFO
     com.networknt.schema: OFF
     org.eclipse.jgit: INFO
+    software.amazon.awssdk: WARN
     com.sonatype.insight.audit:
       appenders:
         - type: console

@@ -15,6 +15,8 @@ public class SbomDetectionResult
 
   public String errorMessage;
 
+  public String filename;
+
   public String mimeType;
 
   public Boolean isValidationErrorIgnorable;

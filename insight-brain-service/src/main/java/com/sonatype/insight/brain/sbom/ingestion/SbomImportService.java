@@ -120,7 +120,7 @@ public class SbomImportService
       log.debug("Saved file for detection at {}", tempSbomPath);
 
       SbomDetectionResult result =
-          sbomFileDetector.getSbomDetectionResult(tempSbomPath.getPath(), ignoreValidationError);
+          sbomFileDetector.getSbomDetectionResult(tempSbomPath.getPath(), originalFilename, ignoreValidationError);
 
       if (StringUtils.isNotEmpty(result.errorMessage)) {
         // telemetry for when there aren't validation errors is sent elsewhere. SBOM-1113 will consolidate this.

@@ -469,8 +469,8 @@ public class ApiSbomService
     }
 
     try (var transientTempPath = thirdPartyPersistenceService.writeToTransientStorage(inputStream, fileName)) {
-      SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(transientTempPath.getPath(),
-          ignoreValidationError);
+      SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(
+          transientTempPath.getPath(), fileName, ignoreValidationError);
 
       if (isSaveableSbom(sbomDetectionResult, ignoreValidationError)) {
         ThirdPartySbomMetadata sbomMetadata = thirdPartyPersistenceService.saveSbomManagerSbomOrBinary(

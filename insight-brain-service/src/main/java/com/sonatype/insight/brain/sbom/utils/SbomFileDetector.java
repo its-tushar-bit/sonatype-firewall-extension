@@ -78,14 +78,18 @@ public class SbomFileDetector
 
   private static final SAXParserFactory saxParserFactory;
 
-  public SbomDetectionResult getSbomDetectionResult(String sbomString, boolean ignoreValidationError) {
+  public SbomDetectionResult getSbomDetectionResult(
+      String sbomString,
+      String originalFilename,
+      boolean ignoreValidationError)
+  {
     if (StringUtils.isBlank(sbomString)) {
       return sbomDetectionErrorResult("Provided content is not recognizable as an SBOM.", null);
     }
 
     try (AutoDeletingTempFile tempFile = new AutoDeletingTempFile()) {
       Path path = Files.writeString(tempFile.getPath(), sbomString);
-      return getSbomDetectionResult(path, ignoreValidationError);
+      return getSbomDetectionResult(path, originalFilename, ignoreValidationError);
     }
     catch (IOException e) {
       log.error("error detecting SBOM metadata", e);
@@ -93,7 +97,11 @@ public class SbomFileDetector
     }
   }
 
-  public SbomDetectionResult getSbomDetectionResult(final Path sbomPath, final boolean ignoreValidationError) {
+  public SbomDetectionResult getSbomDetectionResult(
+      final Path sbomPath,
+      final String originalFilename,
+      final boolean ignoreValidationError)
+  {
     File sbomFile = sbomPath == null ? null : sbomPath.toFile();
 
     if (sbomFile == null || !sbomFile.exists() || sbomFile.length() == 0) {
@@ -104,6 +112,7 @@ public class SbomFileDetector
     try {
       result = new SbomDetectionResult();
       result.mimeType = tika.detect(sbomFile);
+      result.filename = originalFilename;
       if (TEXT_PLAIN.equals(result.mimeType)) {
         String sbomStringContent = getSbomStringContent(sbomFile);
         if (isPlainTextValidJson(sbomStringContent)) {
@@ -172,6 +181,7 @@ public class SbomFileDetector
         sbomResult.isValid = true;
       }
       catch (SbomValidationException e) {
+        log.debug("Error validating SPDX SBOM, file name: {}, scan type: {}", sbomResult.filename, "SBOM", e);
         sbomResult.isValid = false;
         sbomResult.isValidationErrorIgnorable = true;
 
@@ -186,12 +196,14 @@ public class SbomFileDetector
       populateSpdxResult(sbomResult, sbomFormat, spdxDocument);
     }
     catch (UnsupportedSbomException e) {
+      log.debug("Error validating SPDX SBOM, file name: {}, scan type: {}", sbomResult.filename, "SBOM", e);
       sbomResult.isValid = false;
       sbomResult.isValidationErrorIgnorable = false;
       sbomResult.errorMessage = e.getMessage();
       sbomResult.validationErrors = getErrors(e);
     }
     catch (SbomProcessingException | InvalidSPDXAnalysisException e) {
+      log.debug("Error validating SPDX SBOM, file name: {}, scan type: {}", sbomResult.filename, "SBOM", e);
       sbomResult.isValid = false;
       sbomResult.isValidationErrorIgnorable = false;
       sbomResult.errorMessage = "Not a valid SPDX SBOM file.";
@@ -218,6 +230,7 @@ public class SbomFileDetector
         sbomResult.isValid = true;
       }
       catch (SbomValidationException e) {
+        log.debug("Error validating CycloneDX SBOM, file name: {}, scan type: {}", sbomResult.filename, "SBOM", e);
         sbomResult.isValid = false;
         sbomResult.isValidationErrorIgnorable = true;
 
@@ -232,12 +245,15 @@ public class SbomFileDetector
       populateCycloneDxResult(sbomResult, sbomFormat, bom);
     }
     catch (UnsupportedSbomException e) {
+      log.debug("Error validating CycloneDX SBOM, file name: {}, scan type: {}",
+          sbomResult.filename, "SBOM", e);
       sbomResult.isValid = false;
       sbomResult.isValidationErrorIgnorable = false;
       sbomResult.errorMessage = e.getMessage();
       sbomResult.validationErrors = getErrors(e);
     }
     catch (SbomProcessingException e) {
+      log.debug("Error validating CycloneDX SBOM, file name: {}, scan type: {}", sbomResult.filename, "SBOM", e);
       sbomResult.isValid = false;
       sbomResult.isValidationErrorIgnorable = false;
       sbomResult.errorMessage = "Not a valid CycloneDX SBOM file.";

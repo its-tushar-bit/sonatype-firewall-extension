@@ -399,7 +399,8 @@ public class ThirdPartyScanResultsProcessor
       if (shouldStoreSbomMetadata) {
         // SBOM Manager upload
         if (scanContext.getSbomMetadataId() == null) {
-          SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(sbomContent, true);
+          SbomDetectionResult sbomDetectionResult =
+              sbomFileDetector.getSbomDetectionResult(sbomContent, filename, true);
           ImmutablePair<ThirdPartySbomMetadata, ThirdPartyFile> entities;
 
           if (sbomDetectionResult.isSbom) {

@@ -361,7 +361,7 @@ public class SbomFileDetectorTest
       String fileName, SbomDetectionResult expected, boolean ignoreValidationError)
   {
     Path fileToDetect = getTestPath(fileName);
-    SbomDetectionResult resultFromFile = detector.getSbomDetectionResult(fileToDetect, ignoreValidationError);
+    SbomDetectionResult resultFromFile = detector.getSbomDetectionResult(fileToDetect, fileName, ignoreValidationError);
 
     verifySbomDetectionResult(resultFromFile, expected);
   }
@@ -371,8 +371,7 @@ public class SbomFileDetectorTest
   {
     Path fileToDetect = getTestPath(fileName);
     SbomDetectionResult resultFromFile =
-        detector.getSbomDetectionResult(Files.readString(fileToDetect),
-            ignoreValidationError);
+        detector.getSbomDetectionResult(Files.readString(fileToDetect), fileName, ignoreValidationError);
 
     verifySbomDetectionResult(resultFromFile, expected);
   }
@@ -381,7 +380,7 @@ public class SbomFileDetectorTest
       String fileName, SbomDetectionResult expected, boolean ignoreValidationError) throws Exception
   {
     Path fileToDetect = copyFileWithGenericExtension(getTestPath(fileName));
-    SbomDetectionResult resultFromFile = detector.getSbomDetectionResult(fileToDetect, ignoreValidationError);
+    SbomDetectionResult resultFromFile = detector.getSbomDetectionResult(fileToDetect, fileName, ignoreValidationError);
 
     verifySbomDetectionResult(resultFromFile, expected);
   }

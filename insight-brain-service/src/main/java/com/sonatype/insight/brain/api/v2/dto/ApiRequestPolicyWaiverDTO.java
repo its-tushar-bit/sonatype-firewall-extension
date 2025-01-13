@@ -10,6 +10,8 @@ package com.sonatype.insight.brain.api.v2.dto;
  */
 public class ApiRequestPolicyWaiverDTO
 {
+  public String reasonId;
+
   public String comment;
 
   public String policyViolationLink;

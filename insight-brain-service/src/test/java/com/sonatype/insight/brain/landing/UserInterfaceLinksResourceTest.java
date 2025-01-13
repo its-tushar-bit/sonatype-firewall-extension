@@ -206,6 +206,21 @@ public class UserInterfaceLinksResourceTest
   }
 
   @Test
+  public void testLinkToAddWaiverWithReasonId() throws Exception {
+    HttpResponse response = get(UserInterfaceLinksHelper.ADD_WAIVER_PATH +
+            "?reasonId=9b704ef5bc064fc29d7fe08a251ee9a6", "violationId");
+    assertRedirect(response, "assets/index.html#/addWaiver/violationId?reasonId=9b704ef5bc064fc29d7fe08a251ee9a6");
+  }
+
+  @Test
+  public void testLinkToAddWaiverWithCommentsAndReasonId() throws Exception {
+    HttpResponse response = get(UserInterfaceLinksHelper.ADD_WAIVER_PATH +
+            "?comments=some%20comments&reasonId=9b704ef5bc064fc29d7fe08a251ee9a6", "violationId");
+    assertRedirect(response, "assets/index.html#/addWaiver/violationId?comments=some%20comments" +
+            "&reasonId=9b704ef5bc064fc29d7fe08a251ee9a6");
+  }
+
+  @Test
   public void testLinkToSpdx() throws Exception {
     HttpResponse response = get(UserInterfaceLinksHelper.LATEST_VERSION_SPDX_REPORT_PATH, "appId", "scanId");
     assertRedirect(response, "api/v2/spdx/appId/reports/scanId");

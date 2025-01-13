@@ -40,6 +40,7 @@ import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -894,6 +895,54 @@ public class AddWaiverTest
       assertThat(waivers).hasSize(1);
       assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
       assertThat(waivers.get(0).getComment()).isEqualTo("preloaded comments");
+    }
+    finally {
+      cleanupCreatedWaivers(waivers);
+    }
+  }
+
+  @Test
+  public void testSubmit_WaiverWithPreloadedReason() {
+    List<PolicyWaiver> waivers = Collections.emptyList();
+    try {
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId(), null,
+              "9b704ef5bc064fc29d7fe08a251ee9a6"));
+
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.waiverReasonOptions().get(1).shouldBe(selected);
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
+
+      waivers = policyWaiverDAO.getApplicableToComponent(application.getId(), "hash1");
+      assertThat(waivers).hasSize(1);
+      assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+      assertThat(waivers.get(0).getWaiverReasonId()).isEqualTo("9b704ef5bc064fc29d7fe08a251ee9a6");
+    }
+    finally {
+      cleanupCreatedWaivers(waivers);
+    }
+  }
+
+  @Test
+  public void testSubmit_WaiverWithPreloadedCommentAndReason() {
+    List<PolicyWaiver> waivers = Collections.emptyList();
+    try {
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId(), "preloaded%20comments",
+              "9b704ef5bc064fc29d7fe08a251ee9a6"));
+
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.comments().shouldHave(text("preloaded comments"));
+      addWaiverPage.waiverReasonOptions().get(1).shouldBe(selected);
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
+
+      waivers = policyWaiverDAO.getApplicableToComponent(application.getId(), "hash1");
+      assertThat(waivers).hasSize(1);
+      assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+      assertThat(waivers.get(0).getComment()).isEqualTo("preloaded comments");
+      assertThat(waivers.get(0).getWaiverReasonId()).isEqualTo("9b704ef5bc064fc29d7fe08a251ee9a6");
     }
     finally {
       cleanupCreatedWaivers(waivers);

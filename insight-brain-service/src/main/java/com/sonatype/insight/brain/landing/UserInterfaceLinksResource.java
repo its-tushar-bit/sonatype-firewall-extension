@@ -288,14 +288,17 @@ public class UserInterfaceLinksResource
   @Path(ADD_WAIVER_PATH)
   public Response linkToAddWaiver(
       @PathParam("violationId") String violationId,
-      @QueryParam("comments") String comments)
+      @QueryParam("comments") String comments,
+      @QueryParam("reasonId") String reasonId)
   {
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.replaceQueryParam("comments");
+    uriBuilder.replaceQueryParam("reasonId");
     String fragment = "/addWaiver/{violationId}";
     fragment += comments != null ? "?comments={comments}" : "";
+    fragment += reasonId != null ? "&reasonId={reasonId}" : "";
     uriBuilder.path(ASSET_INDEX_PATH).fragment(fragment);
-    return redirect(uriBuilder, violationId, comments);
+    return redirect(uriBuilder, violationId, comments, reasonId);
   }
 
   @GET

@@ -854,6 +854,7 @@ public class ComponentDetailsTest
     requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("License not approved in any situation"));
     requestWaiverPage.requestWaiverReadOnlyData()
         .shouldHave(text("Found licenses in the 'Banned' license threat group ('AGPL-3.0')"));
+    requestWaiverPage.waiverReasonOptions().get(0).shouldBe(selected);
     requestWaiverPage.comments().shouldBe(empty);
     requestWaiverPage.saveButton().shouldBe(visible);
     requestWaiverPage.cancelButton().shouldBe(visible);

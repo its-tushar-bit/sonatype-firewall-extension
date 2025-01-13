@@ -15,6 +15,7 @@ import {
   NxFieldset,
   NxTextInput,
   NxWarningAlert,
+  NxFormSelect,
 } from '@sonatype/react-shared-components';
 import LoadWrapper from '../react/LoadWrapper';
 import AddAndRequestWaiversBackButton from './AddAndRequestWaiversBackButton';
@@ -26,12 +27,14 @@ import classNames from 'classnames';
 
 import {
   selectComments,
+  selectWaiverReasonId,
   selectLoadingViolation,
   selectSubmitError,
   selectSubmitMaskState,
   selectViolationDetails,
   selectViolationDetailsError,
   selectWaiverRequestWebhookState,
+  selectWaiverReasons,
 } from './requestWaiverSelectors';
 import {
   selectPreviousRouteName,
@@ -42,6 +45,7 @@ import {
 import { loadViolation as loadViolationAction } from 'MainRoot/violation/violationActions';
 import { actions } from './requestWaiverSlice';
 import { returnToAddWaiverOriginPage } from './waiverActions';
+import { actions as waiverActions } from './waiverSlice';
 import { selectViolationSlice } from '../violation/violationSelectors';
 
 const WaiverRequestWebhookAlert = () => {
@@ -70,20 +74,25 @@ const RequestWaiversPage = () => {
   const prevParams = useSelector(selectRouterPrevParams);
   const submitError = useSelector(selectSubmitError);
   const waiverComments = useSelector(selectComments);
+  const waiverReasonId = useSelector(selectWaiverReasonId);
   const submitMaskState = useSelector(selectSubmitMaskState);
   const { loadApplicableWaiversError, vulnerabilityDetailsError } = useSelector(selectViolationSlice);
   const { loading: webhookInfoLoading, error: webhookInfoError, waiverRequestWebhookAvailable } = useSelector(
     selectWaiverRequestWebhookState
   );
   const isStandaloneDeveloper = useSelector(selectIsStandaloneDeveloper);
+  const waiverReasons = useSelector(selectWaiverReasons);
 
   const loadViolation = (id) => dispatch(loadViolationAction(id));
   const getWaiverRequestWebhooks = () => dispatch(actions.getWaiverRequestWebhooks());
   const onSubmitAction = () => dispatch(actions.submitRequestWaiver({ policyViolationLink, addWaiverLink }));
   const cancelAction = () => dispatch(returnToAddWaiverOriginPage());
   const setWaiverComments = (comment) => dispatch(actions.setRequestWaiverComments(comment));
+  const setWaiverReasonId = (reasonId) => dispatch(actions.setWaiverReasonId(reasonId));
 
   const isSubmitButtonDisabled = webhookInfoLoading || !!webhookInfoError || !waiverRequestWebhookAvailable;
+
+  const waiverReasonsToRender = [{ id: '', reasonText: 'Select a reason', type: 'system' }, ...waiverReasons];
 
   const onSubmit = () => {
     if (!isSubmitButtonDisabled) {
@@ -114,6 +123,7 @@ const RequestWaiversPage = () => {
   };
 
   useEffect(() => {
+    dispatch(waiverActions.loadCachedWaiverReasons());
     dispatch(actions.clearInitState());
   }, []);
 
@@ -129,9 +139,13 @@ const RequestWaiversPage = () => {
     </dd>
   ));
 
+  const onReasonChange = (event) => {
+    setWaiverReasonId(event.currentTarget.value ?? null);
+  };
+
   const policyViolationLink = getPolicyViolationUiLink(violationId);
 
-  const addWaiverLink = getAddWaiverUiLink(violationId, waiverComments?.trimmedValue);
+  const addWaiverLink = getAddWaiverUiLink(violationId, waiverComments?.trimmedValue, waiverReasonId);
 
   const urlLinkEl = useRef();
   return (
@@ -169,6 +183,15 @@ const RequestWaiversPage = () => {
                   <dt className="nx-read-only__label">Conditions</dt>
                   {reasonsElements}
                 </dl>
+                <NxFieldset className="iq-request-waiver-form__reason" label="Reason">
+                  <NxFormSelect id="waiver-reason-select" onChange={onReasonChange}>
+                    {waiverReasonsToRender.map(({ id, reasonText }) => (
+                      <option key={id} value={id}>
+                        {reasonText}
+                      </option>
+                    ))}
+                  </NxFormSelect>
+                </NxFieldset>
                 <NxCodeSnippet
                   label="Policy Violation ID"
                   content={policyViolationId}

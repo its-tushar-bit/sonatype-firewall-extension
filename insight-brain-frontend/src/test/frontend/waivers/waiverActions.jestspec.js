@@ -553,6 +553,7 @@ describe('waiverActions', function () {
           expect(actions[4].payload).toEqual({
             waiverTargets: [{ type: 'type', id: 'id', name: 'name', label: 'Type' }],
             comments: undefined,
+            reasonId: undefined,
           });
           done();
         });
@@ -617,6 +618,7 @@ describe('waiverActions', function () {
           expect(actions[4].payload).toEqual({
             waiverTargets: [{ type: 'type', id: 'id', name: 'name', label: 'Type' }],
             comments: undefined,
+            reasonId: undefined,
           });
           done();
         });
@@ -717,6 +719,7 @@ describe('waiverActions', function () {
           expect(actions[4].payload).toEqual({
             waiverTargets: [{ type: 'type', id: 'id', name: 'name', label: 'Type' }],
             comments: 'preloaded%20Comment',
+            reasonId: undefined,
           });
           done();
         });
@@ -770,6 +773,169 @@ describe('waiverActions', function () {
           expect(actions[4].payload).toEqual({
             waiverTargets: [{ type: 'type', id: 'id', name: 'name', label: 'Type' }],
             comments: undefined,
+            reasonId: undefined,
+          });
+          done();
+        });
+      });
+
+      it('sets the preloaded reasonId from the url into the state, if on addwaiver route', (done) => {
+        jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
+        jest.spyOn(routerSelectors, 'selectIsFirewallOrRepository').mockReturnValue(false);
+        jest.spyOn(routerSelectors, 'selectRepositoryId').mockReturnValue('repositoryId');
+        jest.spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').mockReturnValue('repositoryId');
+
+        jest.spyOn(routerSelectors, 'selectCurrentRouteName').mockReturnValue('addWaiver');
+        jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({
+          violationId: 'policyViolationId',
+          repositoryPolicyId: 'repositoryPolicyId',
+          reasonId: 'idReason1',
+        });
+
+        const loadViolationDetailsUrl = getViolationDetailsUrl('foo'),
+          ownerContextHierarchyUrl = getOwnerContextHierarchyUrl('application', 'appPublicId', 'policyId'),
+          violationDetails = {
+            applicationPublicId: 'appPublicId',
+            policyId: 'policyId',
+          };
+        const waiverReasonsUrl = getPolicyWaiverReasonsUrl();
+        mockAxiosCalls({
+          get: {
+            [loadViolationDetailsUrl]: Promise.resolve({
+              data: violationDetails,
+            }),
+            [ownerContextHierarchyUrl]: Promise.resolve({
+              data: {
+                type: 'type',
+                id: 'id',
+                name: 'name',
+              },
+            }),
+            [waiverReasonsUrl]: Promise.resolve({
+              data: [{ id: 'idReason1', reasonText: 'Reason 1', type: 'system' }],
+            }),
+          },
+        });
+
+        store.dispatch(loadAddWaiverData('foo')).then(() => {
+          const actions = store.getActions();
+          expect(actions[1].type).toBe(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+          expect(actions[2].type).toBe('waivers/loadCachedWaiverReasons/pending');
+          expect(actions[3].type).toBe('waivers/loadCachedWaiverReasons/fulfilled');
+          expect(actions[3].payload).toEqual([{ id: 'idReason1', reasonText: 'Reason 1', type: 'system' }]);
+          expect(actions[4].type).toBe(WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED);
+          expect(actions[4].payload).toEqual({
+            waiverTargets: [{ type: 'type', id: 'id', name: 'name', label: 'Type' }],
+            comments: undefined,
+            reasonId: 'idReason1',
+          });
+          done();
+        });
+      });
+
+      it('skips the preloaded reasonId from the url into the state, if not on addwaiver route', (done) => {
+        jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
+        jest.spyOn(routerSelectors, 'selectIsFirewallOrRepository').mockReturnValue(false);
+        jest.spyOn(routerSelectors, 'selectRepositoryId').mockReturnValue('repositoryId');
+        jest.spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').mockReturnValue('repositoryId');
+
+        jest.spyOn(routerSelectors, 'selectCurrentRouteName').mockReturnValue('someOtherWaiverOrNonWaiverRoute');
+        jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({
+          violationId: 'policyViolationId',
+          repositoryPolicyId: 'repositoryPolicyId',
+          comments: 'preloaded%20Comment',
+        });
+
+        const loadViolationDetailsUrl = getViolationDetailsUrl('foo'),
+          ownerContextHierarchyUrl = getOwnerContextHierarchyUrl('application', 'appPublicId', 'policyId'),
+          violationDetails = {
+            applicationPublicId: 'appPublicId',
+            policyId: 'policyId',
+          };
+        const waiverReasonsUrl = getPolicyWaiverReasonsUrl();
+        mockAxiosCalls({
+          get: {
+            [loadViolationDetailsUrl]: Promise.resolve({
+              data: violationDetails,
+            }),
+            [ownerContextHierarchyUrl]: Promise.resolve({
+              data: {
+                type: 'type',
+                id: 'id',
+                name: 'name',
+              },
+            }),
+            [waiverReasonsUrl]: Promise.resolve({
+              data: [{ id: 'idReason1', reasonText: 'Reason 1', type: 'system' }],
+            }),
+          },
+        });
+
+        store.dispatch(loadAddWaiverData('foo')).then(() => {
+          const actions = store.getActions();
+          expect(actions[1].type).toBe(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+          expect(actions[2].type).toBe('waivers/loadCachedWaiverReasons/pending');
+          expect(actions[3].type).toBe('waivers/loadCachedWaiverReasons/fulfilled');
+          expect(actions[3].payload).toEqual([{ id: 'idReason1', reasonText: 'Reason 1', type: 'system' }]);
+          expect(actions[4].type).toBe(WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED);
+          expect(actions[4].payload).toEqual({
+            waiverTargets: [{ type: 'type', id: 'id', name: 'name', label: 'Type' }],
+            comments: undefined,
+          });
+          done();
+        });
+      });
+
+      it('sets the preloaded comments and reasonId from the url into the state, if on addwaiver route', (done) => {
+        jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
+        jest.spyOn(routerSelectors, 'selectIsFirewallOrRepository').mockReturnValue(false);
+        jest.spyOn(routerSelectors, 'selectRepositoryId').mockReturnValue('repositoryId');
+        jest.spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').mockReturnValue('repositoryId');
+
+        jest.spyOn(routerSelectors, 'selectCurrentRouteName').mockReturnValue('addWaiver');
+        jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({
+          violationId: 'policyViolationId',
+          repositoryPolicyId: 'repositoryPolicyId',
+          comments: 'preloaded%20Comment',
+          reasonId: 'idReason1',
+        });
+
+        const loadViolationDetailsUrl = getViolationDetailsUrl('foo'),
+          ownerContextHierarchyUrl = getOwnerContextHierarchyUrl('application', 'appPublicId', 'policyId'),
+          violationDetails = {
+            applicationPublicId: 'appPublicId',
+            policyId: 'policyId',
+          };
+        const waiverReasonsUrl = getPolicyWaiverReasonsUrl();
+        mockAxiosCalls({
+          get: {
+            [loadViolationDetailsUrl]: Promise.resolve({
+              data: violationDetails,
+            }),
+            [ownerContextHierarchyUrl]: Promise.resolve({
+              data: {
+                type: 'type',
+                id: 'id',
+                name: 'name',
+              },
+            }),
+            [waiverReasonsUrl]: Promise.resolve({
+              data: [{ id: 'idReason1', reasonText: 'Reason 1', type: 'system' }],
+            }),
+          },
+        });
+
+        store.dispatch(loadAddWaiverData('foo')).then(() => {
+          const actions = store.getActions();
+          expect(actions[1].type).toBe(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+          expect(actions[2].type).toBe('waivers/loadCachedWaiverReasons/pending');
+          expect(actions[3].type).toBe('waivers/loadCachedWaiverReasons/fulfilled');
+          expect(actions[3].payload).toEqual([{ id: 'idReason1', reasonText: 'Reason 1', type: 'system' }]);
+          expect(actions[4].type).toBe(WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED);
+          expect(actions[4].payload).toEqual({
+            waiverTargets: [{ type: 'type', id: 'id', name: 'name', label: 'Type' }],
+            comments: 'preloaded%20Comment',
+            reasonId: 'idReason1',
           });
           done();
         });

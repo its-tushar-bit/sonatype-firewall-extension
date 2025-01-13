@@ -1506,9 +1506,10 @@ export const getPolicyViolationUiLink = (violationId) => {
   return uriTemplate`/ui/links/policyViolation/${violationId}`;
 };
 
-export const getAddWaiverUiLink = (violationId, comments) => {
+export const getAddWaiverUiLink = (violationId, comments, reasonId) => {
   let commentParam = comments ? `?comments=${encodeURIComponent(comments)}` : '';
-  return uriTemplate`/ui/links/addWaiver/${violationId}` + commentParam;
+  let reasonIdParam = reasonId ? (comments ? '&' : '?') + `reasonId=${encodeURIComponent(reasonId)}` : '';
+  return uriTemplate`/ui/links/addWaiver/${violationId}` + commentParam + reasonIdParam;
 };
 
 export const getDeveloperDashboardGraphsData = () => uriTemplate`/rest/integrations/stats/usage-over-time`;

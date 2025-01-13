@@ -47,6 +47,7 @@ import org.mockito.internal.util.collections.Sets;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
@@ -117,6 +118,7 @@ public class RequestWaiverTest
     requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Test Constraint"));
     requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("sonatype-2017-0507"));
     requestWaiverPage.requestWaiverPolicyViolationId().shouldHave(text(policyViolation.getId()));
+    requestWaiverPage.waiverReasonOptions().get(0).shouldBe(selected);
     requestWaiverPage.comments().shouldBe(empty);
     requestWaiverPage.saveButton().shouldBe(visible);
     requestWaiverPage.cancelButton().shouldBe(visible);
@@ -224,6 +226,7 @@ public class RequestWaiverTest
         Sets.newSet(WebhookEventType.WAIVER_REQUEST), "");
     refreshOrOpen(RequestWaiverPage.url(policyViolation.getId()));
     requestWaiverPage.waiverRequestWebhookWarning().shouldNotBe(visible);
+    requestWaiverPage.waiverReasonSelect().selectOptionContainingText("Acknowledged violation");
     requestWaiverPage.comments().setValue("Some comments");
     requestWaiverPage.saveButton().shouldNotHave(cssClass("disabled")).click();
     NxSubmitMask.seeAndWaitForDismissal();

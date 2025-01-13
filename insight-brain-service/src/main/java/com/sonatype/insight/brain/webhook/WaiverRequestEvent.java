@@ -24,6 +24,10 @@ public class WaiverRequestEvent
 
   public String ownerId;
 
+  public String reasonId;
+
+  public String reasonText;
+
   @Override
   public String toString() {
     String jsonifiedFields =

@@ -24,11 +24,27 @@ public class AddWaiverPage
   public static final String ROOT = "#add-waiver-page";
 
   public static String url(String violationId) {
-    return BaseUrl.resolvePageUrl("/addWaiver/{id}", violationId);
+    return url(violationId, null);
   }
 
   public static String url(String violationId, String comments) {
-    return BaseUrl.resolvePageUrl("/addWaiver/{id}?comments={comments}", violationId, comments);
+    return url(violationId, comments, null);
+  }
+
+  public static String url(String violationId, String comments, String reasonId) {
+    if (comments != null && reasonId != null) {
+      return BaseUrl.resolvePageUrl("/addWaiver/{id}?comments={comments}&reasonId={reasonId}",
+              violationId, comments, reasonId);
+    }
+    else if (comments != null) {
+      return BaseUrl.resolvePageUrl("/addWaiver/{id}?comments={comments}", violationId, comments);
+    }
+    else if (reasonId != null) {
+      return BaseUrl.resolvePageUrl("/addWaiver/{id}?reasonId={reasonId}", violationId, reasonId);
+    }
+    else {
+      return BaseUrl.resolvePageUrl("/addWaiver/{id}", violationId);
+    }
   }
 
   public AddWaiverPage() {

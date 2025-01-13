@@ -826,6 +826,8 @@ public class ApiPolicyWaiverResourceTest
     ApiRequestPolicyWaiverDTO dto = new ApiRequestPolicyWaiverDTO();
     dto.addWaiverLink = "addWaiverLink";
     dto.policyViolationLink = "policyViolationLink";
+    dto.comment = "comment";
+    dto.reasonId = "9b704ef5bc064fc29d7fe08a251ee9a6";
     HttpResponse post = restRequest()
         .path(ApiPolicyWaiverResource.REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH)
         .parameter(policyViolation.getId())

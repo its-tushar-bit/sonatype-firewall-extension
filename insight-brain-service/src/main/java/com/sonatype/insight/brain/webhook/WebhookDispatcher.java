@@ -446,6 +446,8 @@ public class WebhookDispatcher
     payload.policyViolationId = event.policyViolationId;
     payload.policyViolationLink = event.policyViolationLink;
     payload.addWaiverLink = event.addWaiverLink;
+    payload.reasonId = event.reasonId;
+    payload.reasonText = event.reasonText;
 
     webhookClientUtil.post(webhook, WebhookEventType.WAIVER_REQUEST.getId(), payload);
   }

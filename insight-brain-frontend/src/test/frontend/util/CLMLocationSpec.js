@@ -1450,9 +1450,9 @@ describe('CLMLocation.js', function () {
 
   describe('getAddWaiverUiLink', () => {
     it('returns url for the add waiver form with a comment as a query param', () => {
-      const expectedUrl = '/ui/links/addWaiver/someViolationId?comments=new%20comment';
+      const expectedUrl = '/ui/links/addWaiver/someViolationId?comments=new%20comment&reasonId=reasonId';
 
-      expect(clmLocation.getAddWaiverUiLink('someViolationId', 'new comment')).toEqual(expectedUrl);
+      expect(clmLocation.getAddWaiverUiLink('someViolationId', 'new comment', 'reasonId')).toEqual(expectedUrl);
     });
   });
 

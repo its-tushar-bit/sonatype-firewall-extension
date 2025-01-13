@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.NxBackButton;
@@ -50,6 +51,14 @@ public class RequestWaiverPage
 
   public NxBackButton backButton() {
     return new NxBackButton("#menu-bar__back-button-container");
+  }
+
+  public SelenideElement waiverReasonSelect() {
+    return child("#waiver-reason-select");
+  }
+
+  public ElementsCollection waiverReasonOptions() {
+    return children("#waiver-reason-select option");
   }
 
   public SelenideElement comments() {

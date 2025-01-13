@@ -74,7 +74,7 @@ function routes($stateProvider) {
         title: 'Sonatype Developer - Add Waiver',
         isDirty: ['addWaiver', 'isDirty'],
       },
-      url: '/addWaiver/{violationId}?comments',
+      url: '/addWaiver/{violationId}?comments&reasonId',
     })
     .state('developer.requestWaiver', {
       component: 'requestWaiverPage',

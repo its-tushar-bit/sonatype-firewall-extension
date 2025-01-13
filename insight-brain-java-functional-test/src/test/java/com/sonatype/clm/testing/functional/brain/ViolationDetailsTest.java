@@ -66,6 +66,7 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.textCaseSensitive;
 import static com.codeborne.selenide.Condition.visible;
@@ -651,6 +652,7 @@ public class ViolationDetailsTest
     requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Test Constraint"));
     requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("sonatype-2017-0507"));
     requestWaiverPage.requestWaiverPolicyViolationId().shouldHave(text(securityPolicyViolation.getId()));
+    requestWaiverPage.waiverReasonOptions().get(0).shouldBe(selected);
     requestWaiverPage.comments().shouldBe(empty);
     requestWaiverPage.saveButton().shouldBe(visible);
     requestWaiverPage.cancelButton().shouldBe(visible);

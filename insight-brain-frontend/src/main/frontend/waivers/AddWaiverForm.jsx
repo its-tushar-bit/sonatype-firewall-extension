@@ -322,7 +322,7 @@ export default function AddWaiverForm(props) {
         <NxFieldset className="iq-add-waiver-form__reason" label="Reason">
           <NxFormSelect id="waiver-reason-select" onChange={onReasonChange}>
             {waiverReasonsToRender.map(({ id, reasonText }) => (
-              <option key={id} value={id}>
+              <option key={id} value={id} selected={waiverReasonId && id === waiverReasonId}>
                 {reasonText}
               </option>
             ))}

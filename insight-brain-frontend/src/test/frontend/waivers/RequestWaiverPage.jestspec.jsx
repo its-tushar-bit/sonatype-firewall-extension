@@ -67,6 +67,29 @@ describe('RequestWaiverPage', function () {
       selectedViolationId: violationId,
       violationDetails,
     },
+    waivers: {
+      waiverReasons: {
+        loading: false,
+        loadError: null,
+        data: [
+          {
+            id: '9b704ef5bc064fc29d7fe08a251ee9a6',
+            type: 'system',
+            reasonText: 'Acknowledged violation',
+          },
+          {
+            id: '42069f58114f4df8b435a40a415d2835',
+            type: 'system',
+            reasonText: 'Mitigated externally',
+          },
+          {
+            id: '39984de3d6e64f508df82b4cbfd72f70',
+            type: 'system',
+            reasonText: 'No upgrade path',
+          },
+        ],
+      },
+    },
   };
 
   beforeEach(() => {
@@ -181,6 +204,9 @@ describe('RequestWaiverPage', function () {
     const curlExampleField = screen.getByText(
       `curl -X POST -u user:pass -H "Content-Type: text/plain; charset=UTF-8" /api/v2/policyWaiver/someViolationId/application --data-binary 'waiver comment (optional)'`
     );
+    const reasonTitle = screen.getByText('Reason');
+    const dropdownFields = screen.getAllByRole('combobox');
+    const reasonField = dropdownFields[0];
     const commentsTitle = screen.getByText('Comments');
     const textboxFields = screen.getAllByRole('textbox');
     const commentsField = textboxFields[textboxFields.length - 1];
@@ -198,6 +224,8 @@ describe('RequestWaiverPage', function () {
     expect(policyViolationDetailsField).toBeVisible();
     expect(curlExampleTitle).toBeVisible();
     expect(curlExampleField).toBeVisible();
+    expect(reasonTitle).toBeVisible();
+    expect(reasonField.selectedIndex).toBe(0);
     expect(commentsTitle).toBeVisible();
     expect(commentsField.value).toBe('');
   });
@@ -275,13 +303,53 @@ describe('RequestWaiverPage', function () {
       expect(submitBtn).not.toHaveClass('disabled');
     });
 
-    it('submits the form successfully with a comment', async () => {
+    it('submits the form successfully with a comment and reason', async () => {
+      mockWaiverRequestWebhook();
+      mock
+        .onPost(saveRequestWaiverUrl(violationId), {
+          policyViolationLink: '/ui/links/policyViolation/someViolationId',
+          addWaiverLink:
+            '/ui/links/addWaiver/someViolationId?comments=new%20comment&reasonId=42069f58114f4df8b435a40a415d2835',
+          comment: 'new comment',
+          reasonId: '42069f58114f4df8b435a40a415d2835',
+        })
+        .reply(204);
+
+      // If the comments are not trimmed fail the test
+      mock.onAny().reply(400);
+
+      renderComponent(defaultPreloadedState);
+      const commentsTitle = await screen.findByText('Comments');
+      const textboxFields = screen.getAllByRole('textbox');
+      const commentsField = textboxFields[textboxFields.length - 1];
+      const reasonTitle = screen.getByText('Reason');
+      const dropdownFields = screen.getAllByRole('combobox');
+      const reasonField = dropdownFields[0];
+      expect(commentsTitle).toBeVisible();
+      expect(commentsField).toBeVisible();
+      expect(reasonTitle).toBeVisible();
+      expect(reasonField).toBeVisible();
+
+      //Comments are trimmed before sending them to backend
+      fireEvent.change(commentsField, { target: { value: '     new comment         ' } });
+      fireEvent.change(reasonField, { target: { value: '42069f58114f4df8b435a40a415d2835' } });
+      expect(commentsField.value).toBe('     new comment         ');
+      expect(reasonField.selectedIndex).toBe(2);
+      const submitBtn = screen.getByText('Submit');
+      fireEvent.click(submitBtn);
+
+      const success = await screen.findByText('Success!');
+      expect(success).toBeVisible();
+    });
+
+    it('submits the form successfully with only comment without reason', async () => {
       mockWaiverRequestWebhook();
       mock
         .onPost(saveRequestWaiverUrl(violationId), {
           policyViolationLink: '/ui/links/policyViolation/someViolationId',
           addWaiverLink: '/ui/links/addWaiver/someViolationId?comments=new%20comment',
           comment: 'new comment',
+          reasonId: null,
         })
         .reply(204);
 
@@ -305,13 +373,41 @@ describe('RequestWaiverPage', function () {
       expect(success).toBeVisible();
     });
 
-    it('submits the form successfully with no comment ', async () => {
+    it('submits the form successfully with only reason without comment', async () => {
+      mockWaiverRequestWebhook();
+      mock
+        .onPost(saveRequestWaiverUrl(violationId), {
+          policyViolationLink: '/ui/links/policyViolation/someViolationId',
+          addWaiverLink: '/ui/links/addWaiver/someViolationId?reasonId=42069f58114f4df8b435a40a415d2835',
+          comment: '',
+          reasonId: '42069f58114f4df8b435a40a415d2835',
+        })
+        .reply(204);
+
+      renderComponent(defaultPreloadedState);
+      const reasonTitle = await screen.findByText('Reason');
+      const dropdownFields = screen.getAllByRole('combobox');
+      const reasonField = dropdownFields[0];
+      expect(reasonTitle).toBeVisible();
+      expect(reasonField).toBeVisible();
+
+      fireEvent.change(reasonField, { target: { value: '42069f58114f4df8b435a40a415d2835' } });
+      expect(reasonField.selectedIndex).toBe(2);
+      const submitBtn = screen.getByText('Submit');
+      fireEvent.click(submitBtn);
+
+      const success = await screen.findByText('Success!');
+      expect(success).toBeVisible();
+    });
+
+    it('submits the form successfully with no comment or reason', async () => {
       mockWaiverRequestWebhook();
       mock
         .onPost(saveRequestWaiverUrl(violationId), {
           policyViolationLink: '/ui/links/policyViolation/someViolationId',
           addWaiverLink: '/ui/links/addWaiver/someViolationId',
           comment: '',
+          reasonId: null,
         })
         .reply(204);
 
@@ -334,8 +430,10 @@ describe('RequestWaiverPage', function () {
       mock
         .onPost(saveRequestWaiverUrl(violationId), {
           policyViolationLink: '/ui/links/policyViolation/someViolationId',
-          addWaiverLink: '/ui/links/addWaiver/someViolationId?comments=new%20comment%20%3C%3E',
+          addWaiverLink:
+            '/ui/links/addWaiver/someViolationId?comments=new%20comment%20%3C%3E&reasonId=42069f58114f4df8b435a40a415d2835',
           comment: 'new comment <>',
+          reasonId: '42069f58114f4df8b435a40a415d2835',
         })
         .reply(500, 'some saving error');
 
@@ -343,9 +441,16 @@ describe('RequestWaiverPage', function () {
       const commentsTitle = await screen.findByText('Comments');
       const textboxFields = screen.getAllByRole('textbox');
       const commentsField = textboxFields[textboxFields.length - 1];
+      const reasonTitle = await screen.findByText('Reason');
+      const dropdownFields = screen.getAllByRole('combobox');
+      const reasonField = dropdownFields[0];
       expect(commentsTitle).toBeVisible();
       expect(commentsField).toBeVisible();
+      expect(reasonTitle).toBeVisible();
+      expect(reasonField).toBeVisible();
       fireEvent.change(commentsField, { target: { value: 'new comment <>' } });
+      fireEvent.change(reasonField, { target: { value: '42069f58114f4df8b435a40a415d2835' } });
+      expect(reasonField.selectedIndex).toBe(2);
       expect(commentsField.value).toBe('new comment <>');
       const submitBtn = screen.getByText('Submit');
       fireEvent.click(submitBtn);

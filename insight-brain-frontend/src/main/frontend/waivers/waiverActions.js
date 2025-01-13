@@ -203,6 +203,7 @@ export function loadAddWaiverData(violationId) {
           loadAddWaiverDataFulfilled({
             waiverTargets: responses[0],
             comments: extractPreloadedCommentFromUrl(getState()),
+            reasonId: extractPreloadedReasonIdFromUrl(getState()),
           })
         );
       })
@@ -212,6 +213,10 @@ export function loadAddWaiverData(violationId) {
 
 const extractPreloadedCommentFromUrl = (state) => {
   return selectCurrentRouteName(state) === 'addWaiver' ? selectRouterCurrentParams(state)?.comments : undefined;
+};
+
+const extractPreloadedReasonIdFromUrl = (state) => {
+  return selectCurrentRouteName(state) === 'addWaiver' ? selectRouterCurrentParams(state)?.reasonId : undefined;
 };
 
 export function returnToAddWaiverOriginPage() {

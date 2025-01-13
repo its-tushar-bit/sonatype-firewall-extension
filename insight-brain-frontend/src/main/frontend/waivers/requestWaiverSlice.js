@@ -11,7 +11,7 @@ import { always, prop, isEmpty } from 'ramda';
 import { getWaiverRequestWebhooksCountUrl, saveRequestWaiverUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { selectViolationId } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectComments } from './requestWaiverSelectors';
+import { selectComments, selectWaiverReasonId } from './requestWaiverSelectors';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { propSet } from 'MainRoot/util/jsUtil';
 import { returnToAddWaiverOriginPage } from './waiverActions';
@@ -25,6 +25,7 @@ export const initialState = {
   isDirty: false,
   comments: rscInitialState(''),
   submitMaskState: null,
+  waiverReasonId: null,
   webhooks: {
     loading: false,
     error: null,
@@ -54,14 +55,20 @@ const setRequestWaiverComments = (state, { payload }) => {
   return computeIsDirty(state, payload);
 };
 
+const setWaiverReasonId = (state, { payload }) => {
+  state.waiverReasonId = payload ? payload : null;
+  return state;
+};
+
 const submitRequestWaiver = createAsyncThunk(
   `${REDUCER_NAME}/submitRequestWaiver`,
   ({ policyViolationLink, addWaiverLink }, { rejectWithValue, getState, dispatch }) => {
     const state = getState();
     const policyViolationId = selectViolationId(state);
     const comment = selectComments(state).trimmedValue;
+    const reasonId = selectWaiverReasonId(state);
     return axios
-      .post(saveRequestWaiverUrl(policyViolationId), { policyViolationLink, addWaiverLink, comment })
+      .post(saveRequestWaiverUrl(policyViolationId), { reasonId, policyViolationLink, addWaiverLink, comment })
       .then(({ data }) => {
         startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone).then(() => {
           dispatch(returnToAddWaiverOriginPage());
@@ -105,6 +112,7 @@ const requestWaiverSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
+    setWaiverReasonId,
     setRequestWaiverComments,
     clearInitState: always(initialState),
     saveMaskTimerDone: propSet('submitMaskState', null),

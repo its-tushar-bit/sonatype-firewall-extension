@@ -15,4 +15,8 @@ public class WaiverRequestPayload
   public String policyViolationLink;
 
   public String addWaiverLink;
+
+  public String reasonId;
+
+  public String reasonText;
 }

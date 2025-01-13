@@ -25,7 +25,7 @@ function routes($stateProvider) {
         title: 'Add Waiver',
         isDirty: ['addWaiver', 'isDirty'],
       },
-      url: '/addWaiver/{violationId}?comments',
+      url: '/addWaiver/{violationId}?comments&reasonId',
     })
     .state('requestWaiver', {
       component: 'requestWaiverPage',

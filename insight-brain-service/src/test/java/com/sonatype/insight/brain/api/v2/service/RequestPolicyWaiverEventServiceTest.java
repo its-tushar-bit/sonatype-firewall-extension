@@ -53,6 +53,7 @@ public class RequestPolicyWaiverEventServiceTest
       PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
 
       ApiRequestPolicyWaiverDTO dto = new ApiRequestPolicyWaiverDTO();
+      dto.reasonId = "9b704ef5bc064fc29d7fe08a251ee9a6";
       dto.comment = "waiver comment";
       dto.policyViolationLink = "policyViolationLink.com";
       dto.addWaiverLink = "addWaiverLink.com";
@@ -64,6 +65,7 @@ public class RequestPolicyWaiverEventServiceTest
       assertThat(event.initiator).isEqualTo(USERNAME);
       assertThat(event.timestamp).isNotNull();
       assertThat(event.comment).isEqualTo(dto.comment);
+      assertThat(event.reasonId).isEqualTo(dto.reasonId);
       assertThat(event.policyViolationId).isEqualTo(policyViolation.getId());
       assertThat(event.policyViolationLink).isEqualTo(dto.policyViolationLink);
       assertThat(event.addWaiverLink).isEqualTo(dto.addWaiverLink);

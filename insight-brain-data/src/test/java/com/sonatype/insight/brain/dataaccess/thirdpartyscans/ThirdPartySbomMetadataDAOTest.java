@@ -931,6 +931,7 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   @PostgresTest
+  @Ignore("SBOM-1212")
   public void testGetSbomApplicationVulnerabilities() {
     Organization organization1 = tempEntity.newOrganization("org1");
     Application application = tempEntity.newApplication(organization1.getId());

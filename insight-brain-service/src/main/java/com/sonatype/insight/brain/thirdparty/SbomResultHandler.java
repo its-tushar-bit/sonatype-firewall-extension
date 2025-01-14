@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;

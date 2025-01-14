@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.sonatype.insight.brain.thirdparty.SbomIdentityUtils;
+import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.SbomValidationException;

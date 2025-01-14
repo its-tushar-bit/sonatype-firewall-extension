@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.io.InputStream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -24,6 +23,11 @@ import com.sonatype.insight.brain.product.license.ProductLicenseService;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
@@ -33,6 +37,8 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 @Named
 @Timed
 @Path(PublicApiPaths.PRODUCT_LICENSE_RESOURCE_PATH)
+@Tag(name = "Product License",
+    description = "Use this REST API to manage a product license.")
 public class ApiProductLicenseResource
 {
   private final ProductLicenseService productLicenseService;
@@ -47,8 +53,18 @@ public class ApiProductLicenseResource
   @Produces(MediaType.TEXT_PLAIN)
   @UnlicensedPath
   @Audited(AuditEvent.INSTALL_LICENSE)
+  @Operation(description = "Use this method to install a product license" +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit System Configuration and Users",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "License installed successfully")
+      })
   public Response installLicense(
+      @Parameter(schema = @Schema(type = "string", format = "binary", description = "Your product license file"))
       @FormDataParam("file") InputStream inputStream,
+      @Parameter(hidden = true)
       @FormDataParam("file") FormDataContentDisposition fileDetail)
   {
     productLicenseService.installLicense(inputStream, fileDetail.getFileName());
@@ -57,6 +73,14 @@ public class ApiProductLicenseResource
 
   @DELETE
   @Audited(AuditEvent.UNINSTALL_LICENSE)
+  @Operation(description = "Use this method to uninstall a product license." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit System Configuration and Users",
+      responses = {
+          @ApiResponse(responseCode = "204",
+              description = "License uninstalled successfully")
+      })
   public void uninstallLicense() {
     productLicenseService.uninstallLicense();
   }

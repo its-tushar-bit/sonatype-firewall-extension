@@ -3,7 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { sortItemsByFields, sortWaiversByFields } from '../../util/sortUtils';
+import {
+  sortWaiversByFields,
+  caseInsensitiveComparator,
+  defaultComparator,
+  sortItemsByFieldsWithComparator,
+} from '../../util/sortUtils';
 import axios from 'axios';
 import {
   getApplicationRisks,
@@ -117,16 +122,21 @@ function sortResults(resultsType, sortFields) {
     if (!results || numResults > DASHBOARD_PAGE_SIZE) {
       return dispatch(loadResults(resultsType));
     } else {
-      // use sortWaiversByFields only for waivers in case expiryTime prop is null
-      const sortByType = {
-        waivers: sortWaiversByFields,
-        default: sortItemsByFields,
-      };
-
       // sort results in frontend
-      const sorted = sortByType[resultsType]
-        ? sortByType[resultsType](sortFields, results)
-        : sortByType.default(sortFields, results);
+      // use sortWaiversByFields only for waivers in case expiryTime prop is null
+      const sorted =
+        resultsType === WAIVERS_RESULTS_TYPE
+          ? sortWaiversByFields(sortFields, results)
+          : sortItemsByFieldsWithComparator(
+              (a, b) => {
+                if (typeof a === 'string' && typeof b === 'string') {
+                  return caseInsensitiveComparator(a, b);
+                }
+                return defaultComparator(a, b);
+              },
+              sortFields,
+              results
+            );
       dispatch(sortResultsFulfilled(resultsType, sorted));
       return Promise.resolve();
     }

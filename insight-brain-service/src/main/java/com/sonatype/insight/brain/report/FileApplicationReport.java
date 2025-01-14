@@ -27,6 +27,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.google.common.annotations.VisibleForTesting;
+import datadog.trace.api.Trace;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +60,7 @@ public class FileApplicationReport
     return file.getAbsolutePath();
   }
 
+  @Trace
   @Override
   public ReportEntry getEntry(final String name) throws IOException {
     if (name.contains("../") || name.contains("..\\")) {
@@ -76,11 +78,13 @@ public class FileApplicationReport
     return extractEntry(name);
   }
 
+  @Trace
   @Override
   public void putEntry(final String name, final byte[] buf) throws IOException {
     cache(getCacheFile(name), buf);
   }
 
+  @Trace
   @Override
   public void saveReportEntry(String entryFileName, ContainerNode<?> jsonData) throws IOException {
     long start = System.currentTimeMillis();
@@ -90,6 +94,7 @@ public class FileApplicationReport
     log.debug("saveReportEntry: {} in {} ms.", entryFileName, System.currentTimeMillis() - start);
   }
 
+  @Trace
   @Override
   public ContainerNode<?> loadReportEntry(String entryFileName) throws IOException {
     long start = System.currentTimeMillis();
@@ -102,10 +107,12 @@ public class FileApplicationReport
     return result;
   }
 
+  @Trace
   private byte[] fetch(final File cacheFile) throws IOException {
     return Files.readAllBytes(cacheFile.toPath());
   }
 
+  @Trace
   private ReportEntry extractEntry(final String name) throws IOException {
     // When the archive is closed, all InputStreams retrieved from this archive are also closed.
     try (final ZipFile archive = new ZipFile(file)) {
@@ -135,6 +142,7 @@ public class FileApplicationReport
     return f;
   }
 
+  @Trace
   public File getAdditionalFile(final String name) {
     File f = new File(getOrCreateAdditionalFilesDir(file), name);
     log.trace("Report entry file: {}", f.getAbsolutePath());
@@ -154,11 +162,13 @@ public class FileApplicationReport
     return file;
   }
 
+  @Trace
   private void cache(final File f, final byte[] buf) throws IOException {
     Files.createDirectories(f.getAbsoluteFile().getParentFile().toPath());
     Files.write(f.toPath(), buf);
   }
 
+  @Trace
   @Override
   public void deletePdfReport() {
     File pdfReportFile = new File(file.getParentFile(), PdfGenerator.REPORT_FILE_NAME);
@@ -173,6 +183,7 @@ public class FileApplicationReport
     }
   }
 
+  @Trace
   @Override
   public void appendToReport(final ThirdPartyApplicationReportDTO dto) throws IOException {
     appendFileToReport(THIRD_PARTY_BOM_JSON_FILENAME, dto.billOfMaterials);
@@ -189,6 +200,7 @@ public class FileApplicationReport
     }
   }
 
+  @Trace
   @Override
   public ReportType getType() throws IOException {
     try (final ZipFile archive = new ZipFile(file)) {
@@ -199,11 +211,13 @@ public class FileApplicationReport
     }
   }
 
+  @Trace
   @Override
   public void deleteCacheDir() throws FileDeletionException {
     new FileCleaner().delete(getCacheDir(file));
   }
 
+  @Trace
   @Override
   public Properties getTemplateProperties() throws IOException {
     try (ZipFile archive = new ZipFile(file)) {

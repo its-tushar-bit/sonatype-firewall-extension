@@ -23,6 +23,10 @@ import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * @since 1.143.0
@@ -31,6 +35,8 @@ import com.codahale.metrics.annotation.Timed;
 @Timed
 @Path(PublicApiPaths.ENDPOINTS_RESOURCE_PATH)
 @ProductLicenseEnforcementPoint(LicensedFeature.API_PAGE)
+@Tag(name = "Endpoints",
+    description = "This REST API returns the OpenAPI documentation for the specified IQ Server REST API.")
 @HasFeature(SystemConfigurationPropertyFeature.API_PAGE)
 public class ApiEndpointsResource
 {
@@ -43,7 +49,24 @@ public class ApiEndpointsResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public String getOpenAPI(@Context final Application application, @PathParam("apiType") final ApiType apiType) {
+  @Operation(description =
+      "Use this method to retrieve the OpenAPI documentation for the specified type of IQ Server " +
+          "REST API.",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains the OpenAPI documentation.",
+              useReturnTypeSchema = true)
+      })
+  public String getOpenAPI(
+      @Context final Application application,
+      @Parameter(description = "Select the type of the API." +
+          "<ul>" +
+          "<li> `public` APIs are Generally Available and fully supported by Sonatype.</li>" +
+          "<li> `experimental` APIs are not production " +
+          "ready, may change, and are not intended to be used in critical workloads.</li>" +
+          "</ul>")
+      @PathParam("apiType") final ApiType apiType)
+  {
     return apiEndpointsService.getOpenAPI(application, apiType);
   }
 }

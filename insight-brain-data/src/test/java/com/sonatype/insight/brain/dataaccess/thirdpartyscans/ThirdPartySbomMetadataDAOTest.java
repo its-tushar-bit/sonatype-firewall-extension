@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
@@ -453,6 +454,18 @@ public class ThirdPartySbomMetadataDAOTest
   @Test
   @PostgresTest
   public void testGetApplications_WithResults() {
+
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .withCreatedAt(new Date())
+        .build();
+
+    PolicyEvaluation policyEvaluationOlder = tempEntity.newPolicyEvaluation(application.getId(),
+        ComplianceStageType.ID, "scanId1AppOlder");
+    Policy policyOlder = tempEntity.newPolicy(application,8);
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluationOlder, policyOlder, "g1",
+        "a1", "v1", "h1", "r1");
+
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(application.getId())
         .withCreatedAt(new Date())
@@ -491,6 +504,10 @@ public class ThirdPartySbomMetadataDAOTest
 
     insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity2);
 
+    //fixed first policy violation
+    policyViolation.setFixTime(new Date());
+    tempEntity.updatePolicyViolation(policyViolation);
+
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
         ComplianceStageType.ID, "scanId1App1");
     Policy policy = tempEntity.newPolicy(application);
@@ -519,12 +536,13 @@ public class ThirdPartySbomMetadataDAOTest
         .isEqualTo(2);
     assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getCritical())
         .isEqualTo(2);
+
     assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
         .getCritical()).isEqualTo(0);
     assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
         .getSevere()).isEqualTo(1);
     assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
-        .getModerate()).isEqualTo(1);
+        .getModerate()).isEqualTo(0);
     assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
         .getLow()).isEqualTo(0);
   }

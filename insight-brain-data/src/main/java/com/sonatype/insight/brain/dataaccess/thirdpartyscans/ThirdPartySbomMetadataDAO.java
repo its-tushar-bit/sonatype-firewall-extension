@@ -9,7 +9,6 @@ import java.sql.JDBCType;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -350,45 +349,6 @@ public class ThirdPartySbomMetadataDAO
     }
     catch (SQLException e) {
       throw new InternalServerException(e);
-    }
-  }
-
-  public Map<String, SbomPolicyViolationSummaryDTO> getSbomPoliocyViolationSummaryForAnApplication(
-      Set<String> applicationIds)
-  {
-    String sQuery = "" + //
-        "SELECT application_id," +
-        " COUNT(CASE WHEN (threat_level >= ?1) THEN 1 END) AS policyViolationCritical," + //
-        " COUNT(CASE WHEN (threat_level >= ?2) THEN 1 END) AS policyViolationSevere," + //
-        " COUNT(CASE WHEN (threat_level >= ?3) THEN 1 END) AS policyViolationModerate," + //
-        " COUNT(CASE WHEN (threat_level < ?4) THEN 1 END) AS policyViolationLow" + //
-        " FROM " + operationalDataStore.getDatabaseSchema() + ".policy_violation" + //
-        " WHERE fix_time is null" +
-        " AND waive_time is null" +
-        " AND stage_type_id = ?5";
-    if (isNotEmpty(applicationIds)) {
-      sQuery += " AND application_id = ANY(array[?6])";
-    }
-    sQuery += " GROUP BY application_id";
-
-    try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = createNativeQuery(tx, sQuery,
-          8, 4, 2, 1.9, "compliance");
-      if (isNotEmpty(applicationIds)) {
-        query.setParameter(6, createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
-      }
-
-      Map<String, SbomPolicyViolationSummaryDTO> applicationIdResultMap = new HashMap<>();
-
-      List<Object[]> resultStreamList = (List<Object[]>) query.getResultStream().collect(Collectors.toList());
-      for (Object[] result: resultStreamList) {
-        applicationIdResultMap.put(String.valueOf(result[0]), new SbomPolicyViolationSummaryDTO(result));
-      }
-
-      return applicationIdResultMap;
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e);
     }
   }
 

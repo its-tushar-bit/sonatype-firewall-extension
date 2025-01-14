@@ -2352,6 +2352,17 @@ public class TemporaryEntity
     return newPolicy(owner.getId());
   }
 
+  public Policy newPolicy(Owner owner, int threatLevel) {
+    Policy policy = new Policy();
+    policy.setName("Policy " + uuid());
+    policy.setThreatLevel(threatLevel);
+    policy.setOwnerId(owner.getId());
+    Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    policy.addConstraint(constraint);
+    return newPolicy(policy);
+  }
+
   public Policy newPolicy(String ownerId, String name, Condition condition) {
     Policy policy = new Policy();
     policy.setName(name);

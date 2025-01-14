@@ -28,6 +28,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomPolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.tenancy.TenantAwareFunction;
 import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
@@ -569,20 +570,20 @@ public class PolicyViolationDAO
   {
     String sQuery = "" + //
         "SELECT application_id," +
-        " COUNT(CASE WHEN (threat_level >= ?1) THEN 1 END) AS policyViolationCritical," + //
-        " COUNT(CASE WHEN (threat_level >= ?2) THEN 1 END) AS policyViolationSevere," + //
-        " COUNT(CASE WHEN (threat_level >= ?3) THEN 1 END) AS policyViolationModerate," + //
-        " COUNT(CASE WHEN (threat_level < ?4) THEN 1 END) AS policyViolationLow" + //
+        " COUNT(CASE WHEN (threat_level >= 8) THEN 1 END) AS policyViolationCritical," + //
+        " COUNT(CASE WHEN (threat_level >= 4 and threat_level < 8) THEN 1 END) AS policyViolationSevere," + //
+        " COUNT(CASE WHEN (threat_level >= 2 and threat_level < 4) THEN 1 END) AS policyViolationModerate," + //
+        " COUNT(CASE WHEN (threat_level < 2) THEN 1 END) AS policyViolationLow" + //
         " FROM " + getDatabaseSchema() + ".policy_violation" + //
         " WHERE fix_time is null" + //
         " AND waive_time is null" + //
-        " AND stage_type_id = ?5" + //
-        " AND application_id = ANY(array[?6])" + //
+        " AND stage_type_id = ?1" + //
+        " AND application_id = ANY(array[?2])" + //
         " GROUP BY application_id";
 
     try (TransactionContext tx = createTransactionContext()) {
       javax.persistence.Query query = createNativeQuery(tx, sQuery,
-          8, 4, 2, 1.9, "compliance", createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
+          ComplianceStageType.ID, createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
 
       Map<String, SbomPolicyViolationSummaryDTO> applicationIdResultMap = new HashMap<>();
 

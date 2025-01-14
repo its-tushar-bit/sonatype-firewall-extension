@@ -129,7 +129,7 @@ public class ApplicationsAuthZTest
     assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
         .getSevere()).isEqualTo(1);
     assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
-        .getModerate()).isEqualTo(1);
+        .getModerate()).isEqualTo(0);
     assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
         .getLow()).isEqualTo(0);
   }

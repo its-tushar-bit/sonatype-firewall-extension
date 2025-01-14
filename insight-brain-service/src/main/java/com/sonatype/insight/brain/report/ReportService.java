@@ -82,6 +82,7 @@ import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import datadog.trace.api.Trace;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -202,6 +203,7 @@ public class ReportService
     this.reportDataStore = reportDataStore;
   }
 
+  @Trace
   public ApplicationReport fetchReport(final Application app, final String scanId) throws IOException {
     ApplicationReport applicationReport =
         reportDataStore.downloadReport(app.getId(), scanId, this::processThirdPartyData);
@@ -314,6 +316,7 @@ public class ReportService
     return reportEntry;
   }
 
+  @Trace
   public ApplicationReport getReport(final String appId, final String scanId) {
     ApplicationReport applicationReport = reportDataStore.getApplicationReport(appId, scanId);
     if (applicationReport.exists()) {
@@ -449,6 +452,7 @@ public class ReportService
     return applicationReport.getEntry(name);
   }
 
+  @Trace
   public ReportEntity getVulnerabilitySignatureJson(final String applicationId, final String scanId)
       throws IOException
   {
@@ -1083,6 +1087,7 @@ public class ReportService
     }
   }
 
+  @Trace
   public ReportPdf getPdfReport(final String appId, final String scanId) {
     return reportDataStore.getReportPdf(appId, scanId);
   }

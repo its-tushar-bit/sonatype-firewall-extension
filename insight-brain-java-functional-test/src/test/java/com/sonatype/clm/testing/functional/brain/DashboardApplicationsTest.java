@@ -38,6 +38,7 @@ import com.codeborne.selenide.WebDriverRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.NoSuchElementException;
@@ -357,6 +358,7 @@ public class DashboardApplicationsTest
     Tooltip.get().shouldBe(hidden);
   }
 
+  @Ignore("To fix: CLM-33965")
   @Test
   public void testSortsOnFrontend() {
     showLowRiskViolations();

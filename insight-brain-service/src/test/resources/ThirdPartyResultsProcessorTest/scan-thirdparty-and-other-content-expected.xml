@@ -78,6 +78,10 @@
             "value" : "e6b1000b94e835ffd37f"
           },
           {
+            "name" : "componentReference",
+            "value" : "990a6a3368b45b1119b2b2bc7d6404d21998f650"
+          },
+          {
             "name" : "sonatypeIdentifier",
             "value" : "1328a0b5323a4bdeb620a02e373ffee4"
           }
@@ -89,6 +93,10 @@
         "version" : "1",
         "purl" : "pkg:test/abc@1?qualifier=q",
         "properties" : [
+          {
+            "name" : "componentReference",
+            "value" : "c5a707deced093d73b77c6671572b838e19f0e29"
+          },
           {
             "name" : "sonatypeIdentifier",
             "value" : "dc4a51ae16cd4735a7297b7ea72f81d8"

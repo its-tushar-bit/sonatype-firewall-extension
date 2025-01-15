@@ -49,6 +49,10 @@
       "purl" : "pkg:maven/org.acme/web-framework@1.0.0?type=jar",
       "properties" : [
         {
+          "name" : "componentReference",
+          "value" : "66865e2ca32f070b6bb9f12ab867f5a43f2effb4"
+        },
+        {
           "name" : "sonatypeIdentifier",
           "value" : "e0f41189ec354b1591eb2e583fd051c8"
         }
@@ -63,6 +67,10 @@
       "purl" : "pkg:maven/org.acme/persistence@3.1.0?type=jar",
       "properties" : [
         {
+          "name" : "componentReference",
+          "value" : "2e1b7bea4f906cdf301d06b156e4c82a325a4f98"
+        },
+        {
           "name" : "sonatypeIdentifier",
           "value" : "fc1893ad7f9240a7a7dc2f71c1c19307"
         }
@@ -76,6 +84,10 @@
       "version" : "3.0.0",
       "purl" : "pkg:maven/org.acme/common-util@3.0.0?type=jar",
       "properties" : [
+        {
+          "name" : "componentReference",
+          "value" : "722a630146bed66a834c90f52ac7878194c92693"
+        },
         {
           "name" : "sonatypeIdentifier",
           "value" : "a43f20ac87854be782926fdb8aa1643d"

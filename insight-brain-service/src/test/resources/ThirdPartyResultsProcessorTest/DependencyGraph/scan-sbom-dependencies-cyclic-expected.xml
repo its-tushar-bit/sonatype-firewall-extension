@@ -48,6 +48,10 @@
       "purl" : "pkg:npm/b@1.0",
       "properties" : [
         {
+          "name" : "componentReference",
+          "value" : "e6d47e4c601271ca0d6979e34d4766f9c4424dc1"
+        },
+        {
           "name" : "sonatypeIdentifier",
           "value" : "d1522f492a3d4e47a43ecc4375e44c84"
         }
@@ -60,6 +64,10 @@
       "version" : "1.0",
       "purl" : "pkg:npm/c@1.0",
       "properties" : [
+        {
+          "name" : "componentReference",
+          "value" : "1e0abe74c8ecc912cedd016ae87854af64cd87ff"
+        },
         {
           "name" : "sonatypeIdentifier",
           "value" : "f1edf7f610f34ca49923f84d8b1d86ce"

@@ -228,7 +228,7 @@ public class SbomResultHandlerTest
             "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library",
             "pkg:generic/joda-time/joda-time@2.1.0?sbom_type=library");
     assertThat(components).extracting("properties.size")
-        .containsOnly(2, 2, 1, 2);
+        .containsOnly(3, 3, 2, 3);
     assertThat(components.get(1).getProperties())
         .flatExtracting(Property::getValue)
         .contains("e6b1000b94e835ffd37f");
@@ -252,7 +252,7 @@ public class SbomResultHandlerTest
     assertThat(components).extracting(Component::getVersion).containsOnly("9.0.14");
     assertThat(components).extracting(Component::getPurl)
         .containsExactly("pkg:generic/org.apache.tomcat/tomcat-catalina@9.0.14?sbom_type=library");
-    assertThat(components).extracting("properties.size").containsOnly(2);
+    assertThat(components).extracting("properties.size").containsOnly(3);
     assertThat(components.get(0).getProperties())
         .flatExtracting(Property::getValue)
         .contains("e7b1000b94e835ffd37f");
@@ -284,7 +284,7 @@ public class SbomResultHandlerTest
         "pkg:generic/django@1.2.3?sbom_type=library",
         "pkg:generic/joda-time/joda-time@2.1.0?sbom_type=library");
     assertThat(components).extracting("properties.size")
-        .containsOnly(2, 2, 2, 2, 1, 2);
+        .containsOnly(3, 3, 3, 3, 2, 3);
     assertThat(components.get(1).getProperties())
         .flatExtracting(Property::getValue)
         .contains("e6b1000b94e835ffd37f");
@@ -318,7 +318,7 @@ public class SbomResultHandlerTest
         "pkg:generic/joda-time/joda-time@2.1.0?sbom_type=library",
         "pkg:generic/django@1.2.3?sbom_type=library");
     assertThat(components).extracting("properties.size")
-        .containsOnly(2, 2, 2, 1, 2);
+        .containsOnly(3, 3, 3, 2, 3);
     assertThat(components.get(1).getProperties())
         .flatExtracting(Property::getValue)
         .contains("e6b1000b94e835ffd37f");
@@ -355,7 +355,7 @@ public class SbomResultHandlerTest
             "e8f33e424f3f4ed6db76a482fde1a5298970e442c531729119e37991884bdffab4f9426" +
                 "b7ee11fccd074eeda0634d71697d6f88a460dce0ac8d627a29f7d1282");
     assertThat(components).extracting("properties.size")
-        .containsOnly(2, 1);
+        .containsOnly(3, 2);
     assertThat(components.get(0).getProperties())
         .flatExtracting(Property::getValue)
         .contains("e6b1000b94e835ffd37f");
@@ -491,6 +491,24 @@ public class SbomResultHandlerTest
     List<Boolean> hasHashes = List.of(true);
     assertFilteredSbomFile(filteredContent, 1, true, hasHashes);
     assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId())).isEmpty();
+  }
+
+  @Test
+  public void testHandleAndFilterContents_componentReferenceValueGetsInsertedInDb() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-v1_4.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-v1_4.xml", null, null, null,
+            sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+
+    assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId())).isNotEmpty();
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(2);
+    assertThat(coordinates).extracting(ThirdPartyFileCoordinate::getComponentRef)
+            .containsExactlyInAnyOrder("621aa65ba425b9713382367e8491dc8f43f0d72d",
+            "ec9df88dda81aefdf115081b9b297eebbaa142fd");
   }
 
   @Test
@@ -771,7 +789,7 @@ public class SbomResultHandlerTest
     assertThat(actualFilteredBom.getComponents()).hasSize(1);
     Component actualComponent = actualFilteredBom.getComponents().get(0);
     assertThat(actualComponent.getName()).isEqualTo("django");
-    assertThat(actualComponent.getProperties()).size().isEqualTo(1);
+    assertThat(actualComponent.getProperties()).size().isEqualTo(2);
     assertThat(actualComponent.getProperties().get(0).getName()).isEqualTo(
         SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
     assertThat(actualComponent.getProperties().get(0).getValue()).isEqualTo("e6b1000b94e835ffd37f");
@@ -1964,6 +1982,11 @@ public class SbomResultHandlerTest
       assertThat(component.getExtensibleTypes()).isNull();
       assertThat(component.getExtensions()).isNull();
 
+      assertThat(component.getProperties().stream()
+          .filter(p -> p.getName().equals(SbomCycloneDxUtils.PROPERTY_COMPONENT_REFERENCE)).findFirst())
+          .isNotEmpty()
+          .satisfies(opt -> assertThat(opt.get().getValue()).isNotBlank());
+
       if (component.getPurl() != null) {
         assertThat(component.getProperties().stream()
             .filter(p -> p.getName().equals(SbomCycloneDxUtils.PROPERTY_SONATYPE_IDENTIFIER)).findFirst()
@@ -2108,11 +2131,11 @@ public class SbomResultHandlerTest
             "1884bdffab4f9426b7ee11fccd074eeda0634d71697d6f88a460dce0ac8d627a29f7d1282");
 
     assertThat(component3.getHashes()).isNull();
-    assertThat(component1.getProperties()).isNotNull().hasSize(1);
-    assertThat(component2.getProperties()).hasSize(2);
+    assertThat(component1.getProperties()).isNotNull().hasSize(2);
+    assertThat(component2.getProperties()).hasSize(3);
     assertThat(component2.getProperties().get(0).getName()).isEqualTo(SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
     assertThat(component2.getProperties().get(0).getValue()).isEqualTo("e6b1000b94e835ffd37f");
-    assertThat(component3.getProperties()).hasSize(2);
+    assertThat(component3.getProperties()).hasSize(3);
     assertThat(component3.getProperties().get(0).getName()).isEqualTo(SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
     assertThat(component3.getProperties().get(0).getValue()).isEqualTo("716e4909ac2db42da409");
   }

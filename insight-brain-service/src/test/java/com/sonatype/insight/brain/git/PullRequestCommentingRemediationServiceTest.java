@@ -37,6 +37,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -179,7 +180,8 @@ public class PullRequestCommentingRemediationServiceTest
     componentDetailsDTOs.add(componentDetailsDTO);
 
     when(mockComponentInfoService.getComponentDetailsForAllVersionsNoAuth(
-        any(), any(), any(), any(), any(), any(), any())).thenReturn(Pair.of(componentDetailsDTOs, null));
+        any(), any(), any(), any(), any(), any(), any(), anyBoolean()))
+        .thenReturn(Pair.of(componentDetailsDTOs, null));
   }
 
   private void componentRemediationServiceSetup(

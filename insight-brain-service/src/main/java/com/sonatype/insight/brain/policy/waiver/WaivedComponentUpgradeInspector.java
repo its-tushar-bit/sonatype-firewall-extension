@@ -151,7 +151,7 @@ public class WaivedComponentUpgradeInspector
 
     ApiComponentRemediationDTO suggestedRemediationForComponent =
         apiComponentRemediationService.getSuggestedRemediationForComponentNoAuthz(componentDTOV2, waiverOwnerType,
-            waiver.getOwnerId(), null, null, null, null);
+            waiver.getOwnerId(), null, null, null, null, false);
 
     return isRemediationAvailable(suggestedRemediationForComponent, waiver);
   }

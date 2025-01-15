@@ -109,7 +109,7 @@ public class ApiComponentRemediationService
       final Boolean includeParentRemediation)
   {
     return getSuggestedRemediationForComponentNoAuthz(componentDTO, ownerType, ownerId, stageId, identificationSource,
-        scanId, includeParentRemediation);
+        scanId, includeParentRemediation, false);
   }
 
   /**
@@ -124,7 +124,8 @@ public class ApiComponentRemediationService
       String stageId,
       final String identificationSource,
       final String scanId,
-      final Boolean includeParentRemediation)
+      final Boolean includeParentRemediation,
+      final boolean stableVersionsOnly)
   {
     if (OwnerType.REPOSITORY.equals(ownerType)) {
       if (stageId == null) {
@@ -180,12 +181,12 @@ public class ApiComponentRemediationService
 
     if (directParentComponentIdentifiers.isEmpty()) {
       dtos = componentInfoService.getComponentDetailsForAllVersionsNoAuth(owner, componentIdentifier, stageId,
-          identificationSource, scanId, null, componentDetailsLoader).getLeft();
+          identificationSource, scanId, null, componentDetailsLoader, stableVersionsOnly).getLeft();
     }
     else {
       Map<ComponentIdentifier, List<ComponentDetailsDTO>> componentDetailsForAllVersions =
           componentInfoService.getComponentDetailsForAllVersionsNoAuthBulk(owner, directParentComponentIdentifiers,
-              stageId, scanId, componentDetailsLoader);
+              stageId, scanId, componentDetailsLoader, stableVersionsOnly);
       parentComponentsToVersionsMap =
           mapComponentsAllVersionsFromBulk(componentDetailsForAllVersions, directParentComponentIdentifiers);
     }

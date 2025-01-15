@@ -104,7 +104,7 @@ public class PullRequestCommentingRemediationService
     ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(app);
 
     List<ComponentDetailsDTO> componentDetailsDTOs = componentInfoService.getComponentDetailsForAllVersionsNoAuth(app,
-        componentIdentifier, null, null, null, null, componentDetailsLoader).getLeft();
+        componentIdentifier, null, null, null, null, componentDetailsLoader, true).getLeft();
 
     ApiComponentRemediationValueDTO remediationValueDto =
         componentRemediationService.getSuggestedRemediation(componentIdentifier, componentDetailsDTOs,

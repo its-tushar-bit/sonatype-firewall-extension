@@ -2029,7 +2029,7 @@ public class DevelopmentPrioritiesServiceTest
 
     // === WHEN ===
     when(componentRemediationService.getSuggestedRemediationForComponentNoAuthz(
-        any(), any(), any(), any(), any(), any(), any()
+        any(), any(), any(), any(), any(), any(), any(), anyBoolean()
     )).thenReturn(createComponentRemediation());
     when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
         createApiReportRawDataDTOV2(Lists.newArrayList(component1, component2, component3, component4)));
@@ -2115,7 +2115,7 @@ public class DevelopmentPrioritiesServiceTest
 
     // === WHEN ===
     when(componentRemediationService.getSuggestedRemediationForComponentNoAuthz(
-        any(), any(), any(), any(), any(), any(), any()
+        any(), any(), any(), any(), any(), any(), any(), anyBoolean()
     )).thenReturn(createComponentRemediation());
     when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
         createApiReportRawDataDTOV2(Lists.newArrayList(component1, component2, component3,

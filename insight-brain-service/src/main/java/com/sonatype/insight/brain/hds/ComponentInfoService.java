@@ -399,7 +399,8 @@ public class ComponentInfoService
   {
     auditComponentAccess(identifier, null);
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    ComponentDetailsList componentDetailsList = getComponentDetailsList(identifier, null, null, null, null).getLeft();
+    ComponentDetailsList componentDetailsList = getComponentDetailsList(identifier, null, null, null, null,
+        false).getLeft();
     componentDetailsLoaderFactory.newInstance(app).augmentComponentDetails(componentDetailsList.getList(), matchState,
         null);
     return componentDetailsList;
@@ -418,7 +419,7 @@ public class ComponentInfoService
   {
     auditComponentAccess(componentIdentifier, null);
     return getComponentVersionInfoNoAuth(OwnerType.APPLICATION, applicationPublicId, componentIdentifier, null, null,
-        null, null, sourceEndpoint);
+        null, null, sourceEndpoint, false);
   }
 
   /**
@@ -438,7 +439,8 @@ public class ComponentInfoService
     auditComponentAccess(componentIdentifier, null);
     final Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentDetailsList componentDetailsList =
-        getComponentDetailsList(componentIdentifier, owner, null, null, null).getLeft();
+        getComponentDetailsList(componentIdentifier, owner, null, null, null,
+            false).getLeft();
     componentDetailsLoaderFactory.newInstance(owner).augmentComponentDetails(componentDetailsList.getList(), matchState,
         null);
     return componentDetailsList;
@@ -483,7 +485,7 @@ public class ComponentInfoService
     }
 
     return getComponentVersionInfoNoAuth(ownerType, ownerId, componentIdentifier, stageId, identificationSource, scanId,
-        dependencyType, COMPONENT_INFO);
+        dependencyType, COMPONENT_INFO, true);
   }
 
   public ComponentVersionInfoDTO getComponentVersionInfoNoAuth(
@@ -494,7 +496,8 @@ public class ComponentInfoService
       String identificationSource,
       String scanId,
       DependencyType dependencyType,
-      SourceEndpoint sourceEndpoint)
+      SourceEndpoint sourceEndpoint,
+      boolean stableVersionsOnly)
   {
     Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     // For performance, it's very important to use only one instance of ComponentDetailsLoader.
@@ -502,7 +505,7 @@ public class ComponentInfoService
     ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(owner);
     Pair<List<ComponentDetailsDTO>, RepositorySourceResponseDTO> result =
         getComponentDetailsForAllVersionsNoAuth(owner, componentIdentifier, stageId, identificationSource, scanId,
-            dependencyType, componentDetailsLoader);
+            dependencyType, componentDetailsLoader, stableVersionsOnly);
     List<ComponentDetailsDTO> componentDetailsDTOs = result.getLeft();
 
     ApiComponentRemediationValueDTO remediationDto;
@@ -526,10 +529,11 @@ public class ComponentInfoService
       List<ComponentIdentifier> componentIdentifiers,
       String stageId,
       String scanId,
-      ComponentDetailsLoader componentDetailsLoader)
+      ComponentDetailsLoader componentDetailsLoader,
+      boolean stableVersionsOnly)
   {
     Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsByComponentIdentifier =
-        getComponentDetailsListBulk(componentIdentifiers, owner, scanId);
+        getComponentDetailsListBulk(componentIdentifiers, owner, scanId, stableVersionsOnly);
 
     List<ComponentDetails> allComponentDetails = componentDetailsByComponentIdentifier.entrySet()
         .stream()
@@ -558,7 +562,8 @@ public class ComponentInfoService
   Map<ComponentIdentifier, List<ComponentDetails>> getComponentDetailsListBulk(
       List<ComponentIdentifier> componentIdentifiers,
       Owner owner,
-      String scanId)
+      String scanId,
+      boolean stableVersionsOnly)
   {
     long start = System.currentTimeMillis();
 
@@ -597,7 +602,7 @@ public class ComponentInfoService
         .collect(Collectors.toList());
 
     Map<ComponentIdentifier, List<ComponentDetails>> nonTerraformDetails
-        = getInformationVersionsHdsBulk(nonTerraformComponents);
+        = getInformationVersionsHdsBulk(nonTerraformComponents, stableVersionsOnly);
 
     // Unknown formats - Generic components
     Map<ComponentIdentifier, List<ComponentDetails>> unknownComponentDetails =
@@ -671,10 +676,12 @@ public class ComponentInfoService
       String identificationSource,
       String scanId,
       DependencyType dependencyType,
-      ComponentDetailsLoader componentDetailsLoader)
+      ComponentDetailsLoader componentDetailsLoader,
+      boolean stableVersionsOnly)
   {
     Pair<ComponentDetailsList, RepositorySourceResponseDTO> componentDetailsListAndSource =
-        getComponentDetailsList(componentIdentifier, owner, identificationSource, scanId, dependencyType);
+        getComponentDetailsList(componentIdentifier, owner, identificationSource, scanId, dependencyType,
+            stableVersionsOnly);
     List<ComponentDetails> componentDetailsList = componentDetailsListAndSource.getLeft().getList();
 
     // Fix match state to exact as there's no point propagating it to other versions.
@@ -795,7 +802,8 @@ public class ComponentInfoService
       Owner owner,
       String identificationSource,
       String scanId,
-      DependencyType dependencyType)
+      DependencyType dependencyType,
+      boolean stableVersionsOnly)
   {
     long start = System.currentTimeMillis();
 
@@ -813,7 +821,8 @@ public class ComponentInfoService
       }
       else {
         //If it's an InnerSource dependency, we check HDS first since it could also be an OpenSource component
-        componentDetailsList = getInformationVersionsHds(identifier, identificationSource, owner, scanId);
+        componentDetailsList = getInformationVersionsHds(identifier, identificationSource, owner, scanId,
+            stableVersionsOnly);
 
         boolean queryRepo =
             shouldGetFromRepositoryData(componentDetailsList, identifier, dependencyType, identificationSource);
@@ -960,13 +969,15 @@ public class ComponentInfoService
       final ComponentIdentifier identifier,
       final String identificationSource,
       final Owner owner,
-      final String scanId)
+      final String scanId,
+      boolean stableVersionsOnly)
   {
     String url = "rest/" + toolName + "/componentDetails/list";
     ComponentDetailsList componentDetailsList = new ComponentDetailsList();
     try {
-      componentDetailsList = hdsClient.get(ComponentDetailsList.class, url,
-          Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier)));
+      final Map<String, String> queryParams = Map.of("componentIdentifier",
+          ComponentIdentifierAdapter.toJson(identifier), "stableVersionsOnly", String.valueOf(stableVersionsOnly));
+      componentDetailsList = hdsClient.get(ComponentDetailsList.class, url, queryParams);
     }
     catch (BadRequestException e) {
       // try using third party data
@@ -1010,15 +1021,16 @@ public class ComponentInfoService
   }
 
   private Map<ComponentIdentifier, List<ComponentDetails>> getInformationVersionsHdsBulk(
-      List<ComponentIdentifier> componentIdentifiers)
+      List<ComponentIdentifier> componentIdentifiers, boolean stableVersionsOnly)
   {
     if (CollectionUtils.isEmpty(componentIdentifiers)) {
       log.warn("No component identifiers provided, unable to fetch versions from HDS");
       return Collections.emptyMap();
     }
 
+    final Map<String, String> queryParams = Map.of("stableVersionsOnly", String.valueOf(stableVersionsOnly));
     Map<String, List<String>> versionsByComponent =
-        hdsClient.post(Map.class, VERSIONS_BY_COMPONENT_ENDPOINT_URL, componentIdentifiers);
+        hdsClient.post(Map.class, VERSIONS_BY_COMPONENT_ENDPOINT_URL, componentIdentifiers, queryParams);
 
     log.debug("Fetched versions for {} components from HDS.", versionsByComponent.size());
 

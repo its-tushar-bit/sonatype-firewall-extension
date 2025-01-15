@@ -74,7 +74,7 @@ public class PathForwardInspector
     ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(app);
     List<ComponentDetailsDTO> componentDetailsDTOList =
         componentInfoService.getComponentDetailsForAllVersionsNoAuth(app,
-            componentIdentifier, stageId, null, scanId, null, componentDetailsLoader).getLeft();
+            componentIdentifier, stageId, null, scanId, null, componentDetailsLoader, true).getLeft();
 
     int currentComponentIndex = findCurrentComponentIndex(componentDetailsDTOList, componentIdentifier);
     if (currentComponentIndex == -1) {

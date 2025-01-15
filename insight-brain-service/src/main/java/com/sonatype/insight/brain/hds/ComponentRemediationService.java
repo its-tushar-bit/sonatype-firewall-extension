@@ -49,7 +49,6 @@ import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryMe
 import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
-import com.sonatype.insight.brain.version.PreReleaseVersionParser;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -60,11 +59,8 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
 
 /**
  * @since 1.83
@@ -462,7 +458,6 @@ public class ComponentRemediationService
   private List<ComponentDetailsDTO> nonViolatingVersions(int startingIndex, List<ComponentDetailsDTO> dtos) {
     return dtos.stream().parallel()
         .skip(startingIndex)
-        .filter(dto -> hasStableVersion(dto.componentIdentifier))
         .filter(dto -> dto.violatedPolicyCount == 0)
         .toList();
   }
@@ -470,7 +465,6 @@ public class ComponentRemediationService
   private List<ComponentDetailsDTO> nonFailingVersions(int startingIndex, List<ComponentDetailsDTO> dtos) {
     return dtos.stream().parallel()
         .skip(startingIndex)
-        .filter(dto -> hasStableVersion(dto.componentIdentifier))
         .filter(dto -> !hasFailAction(dto.policyAlerts))
         .toList();
   }
@@ -481,7 +475,6 @@ public class ComponentRemediationService
   {
     return dtos.stream().parallel()
         .skip(startingIndex)
-        .filter(dto -> hasStableVersion(dto.componentIdentifier))
         .filter(dto -> {
           Stream<Integer> stream;
           if (dto.policyMaxThreatLevelsByCategory == null) {
@@ -527,11 +520,8 @@ public class ComponentRemediationService
       final PackageUrlIdentifier versionPurl = PackageUrlIdentifier.fromComponentIdentifier(dto.componentIdentifier);
       if (CollectionUtils.isEmpty(dependencyAlerts.get(versionPurl)))
       {
-        final ComponentIdentifier cId = tryEnsureCompleteIdentifier(versionPurl);
-        if (hasStableVersion(cId)) {
-          dto.componentIdentifier = cId;
-          return Optional.of(dto);
-        }
+        dto.componentIdentifier = tryEnsureCompleteIdentifier(versionPurl);
+        return Optional.of(dto);
       }
     }
     return Optional.empty();
@@ -546,11 +536,8 @@ public class ComponentRemediationService
       List<PolicyAlert> policyAlerts = dependencyAlerts.get(versionPurl);
       if (policyAlerts == null || !hasFailAction(policyAlerts))
       {
-        final ComponentIdentifier cId = tryEnsureCompleteIdentifier(versionPurl);
-        if (hasStableVersion(cId)) {
-          dto.componentIdentifier = cId;
-          return Optional.of(dto);
-        }
+        dto.componentIdentifier = tryEnsureCompleteIdentifier(versionPurl);
+        return Optional.of(dto);
       }
     }
     return Optional.empty();
@@ -654,10 +641,5 @@ public class ComponentRemediationService
     return componentIdentifier.isMaven() &&
         productLicense.hasFeature(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES) &&
         SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isEnabled();
-  }
-
-  private static boolean hasStableVersion(final ComponentIdentifier componentIdentifier) {
-    return componentIdentifier != null && StringUtils.isNotEmpty(componentIdentifier.get(VERSION)) &&
-        PreReleaseVersionParser.isStable(componentIdentifier.get(VERSION));
   }
 }

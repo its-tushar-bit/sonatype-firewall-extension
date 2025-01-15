@@ -45,6 +45,7 @@ import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -133,7 +134,7 @@ public class WaivedComponentUpgradeInspectorTest
 
     verify(apiComponentRemediationService, Mockito.times(0)).getSuggestedRemediationForComponentNoAuthz(
         any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION), eq(app1.getId()), isNull(), isNull(), isNull(),
-        isNull());
+        isNull(), anyBoolean());
   }
 
   @Test
@@ -159,7 +160,7 @@ public class WaivedComponentUpgradeInspectorTest
 
     doReturn(getSimpleRemediationResponseWithSuggestion()).when(apiComponentRemediationService)
         .getSuggestedRemediationForComponentNoAuthz(any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
-            eq(app1.getId()), isNull(), isNull(), isNull(), isNull());
+            eq(app1.getId()), isNull(), isNull(), isNull(), isNull(), anyBoolean());
 
     waivedComponentUpgradeInspector.run();
 
@@ -185,7 +186,7 @@ public class WaivedComponentUpgradeInspectorTest
 
     verify(apiComponentRemediationService, Mockito.times(0)).getSuggestedRemediationForComponentNoAuthz(
         any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION), eq(app1.getId()), isNull(), isNull(), isNull(),
-        isNull());
+        isNull(), anyBoolean());
   }
 
   @Test
@@ -205,13 +206,13 @@ public class WaivedComponentUpgradeInspectorTest
 
     doReturn(simpleRemediationResponseWithSuggestion).when(apiComponentRemediationService)
         .getSuggestedRemediationForComponentNoAuthz(any(ApiComponentDTOV2.class), any(OwnerType.class),
-            eq(app1.getId()), isNull(), isNull(), isNull(), isNull());
+            eq(app1.getId()), isNull(), isNull(), isNull(), isNull(), anyBoolean());
 
     waivedComponentUpgradeInspector.run();
 
     verify(apiComponentRemediationService, Mockito.times(1)).getSuggestedRemediationForComponentNoAuthz(
         any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION), eq(app1.getId()), isNull(), isNull(), isNull(),
-        isNull());
+        isNull(), anyBoolean());
     waiver = policyWaiverDAO.getActiveByPolicyId(policy.getId()).get(0);
     assertThat(waiver.isComponentUpgradeAvailable()).isNull();
   }
@@ -230,13 +231,13 @@ public class WaivedComponentUpgradeInspectorTest
 
     doReturn(null).when(apiComponentRemediationService)
         .getSuggestedRemediationForComponentNoAuthz(any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
-            eq(app1.getId()), isNull(), isNull(), isNull(), isNull());
+            eq(app1.getId()), isNull(), isNull(), isNull(), isNull(), anyBoolean());
 
     waivedComponentUpgradeInspector.run();
 
     verify(apiComponentRemediationService, Mockito.times(1)).getSuggestedRemediationForComponentNoAuthz(
         any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION), eq(app1.getId()), isNull(), isNull(), isNull(),
-        isNull());
+        isNull(), anyBoolean());
     waiver = policyWaiverDAO.getActiveByPolicyId(policy.getId()).get(0);
     assertThat(waiver.isComponentUpgradeAvailable()).isNull();
   }
@@ -260,12 +261,13 @@ public class WaivedComponentUpgradeInspectorTest
 
     doReturn(simpleRemediationResponseWithSuggestion).when(apiComponentRemediationService)
         .getSuggestedRemediationForComponentNoAuthz(any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
-            eq(app1.getId()), isNull(), isNull(), isNull(), isNull());
+            eq(app1.getId()), isNull(), isNull(), isNull(), isNull(), anyBoolean());
 
     waivedComponentUpgradeInspector.run();
 
     verify(apiComponentRemediationService, Mockito.times(1)).getSuggestedRemediationForComponentNoAuthz(
-        any(ApiComponentDTOV2.class), any(OwnerType.class), eq(app1.getId()), isNull(), isNull(), isNull(), isNull());
+        any(ApiComponentDTOV2.class), any(OwnerType.class), eq(app1.getId()), isNull(), isNull(), isNull(), isNull(),
+        anyBoolean());
     waiver = policyWaiverDAO.getActiveByPolicyId(policy.getId()).get(0);
     assertThat(waiver.isComponentUpgradeAvailable()).isNull();
   }
@@ -289,10 +291,10 @@ public class WaivedComponentUpgradeInspectorTest
     tempEntity.newWaiver(waiver2);
     doThrow(new BadRequestException("Something happened while processing waiver")).when(apiComponentRemediationService)
         .getSuggestedRemediationForComponentNoAuthz(any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
-            eq(app1.getId()), isNull(), isNull(), isNull(), isNull());
+            eq(app1.getId()), isNull(), isNull(), isNull(), isNull(), anyBoolean());
     doThrow(new BadRequestException("Something happened while processing waiver")).when(apiComponentRemediationService)
         .getSuggestedRemediationForComponentNoAuthz(any(ApiComponentDTOV2.class), eq(OwnerType.ORGANIZATION),
-            eq(org.getId()), isNull(), isNull(), isNull(), isNull());
+            eq(org.getId()), isNull(), isNull(), isNull(), isNull(), anyBoolean());
 
     waivedComponentUpgradeInspector.run();
 
@@ -318,7 +320,7 @@ public class WaivedComponentUpgradeInspectorTest
     ApiComponentRemediationDTO simpleRemediationResponseWithSuggestion = getSimpleRemediationResponseWithSuggestion();
     doReturn(simpleRemediationResponseWithSuggestion).when(apiComponentRemediationService)
         .getSuggestedRemediationForComponentNoAuthz(any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
-            eq(app1.getId()), isNull(), isNull(), isNull(), isNull());
+            eq(app1.getId()), isNull(), isNull(), isNull(), isNull(), anyBoolean());
 
     modifyRemediationStrategyForResponse(simpleRemediationResponseWithSuggestion,
         ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
@@ -357,7 +359,7 @@ public class WaivedComponentUpgradeInspectorTest
     ApiComponentRemediationDTO simpleRemediationResponseWithSuggestion = getSimpleRemediationResponseWithSuggestion();
     doReturn(simpleRemediationResponseWithSuggestion).when(apiComponentRemediationService)
         .getSuggestedRemediationForComponentNoAuthz(any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
-            eq(app1.getId()), isNull(), isNull(), isNull(), isNull());
+            eq(app1.getId()), isNull(), isNull(), isNull(), isNull(), anyBoolean());
 
     modifyRemediationStrategyForResponse(simpleRemediationResponseWithSuggestion,
         ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);

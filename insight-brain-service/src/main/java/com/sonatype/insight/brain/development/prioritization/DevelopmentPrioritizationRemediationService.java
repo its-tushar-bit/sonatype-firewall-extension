@@ -133,7 +133,7 @@ public class DevelopmentPrioritizationRemediationService
 
     Map<ComponentIdentifier, List<ComponentDetailsDTO>> componentDetailsForAllVersionsNoAuthBulk =
         componentInfoService.getComponentDetailsForAllVersionsNoAuthBulk(app,
-            componentIdentifiers, stage, scanId, componentDetailsLoader);
+            componentIdentifiers, stage, scanId, componentDetailsLoader, true);
 
     return componentIdentifiers.stream().map(componentIdentifier -> {
       ComponentIdentifier pkgIdentifier = componentIdentifier.createAlternativeVersion(null);

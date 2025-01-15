@@ -65,6 +65,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -406,7 +407,7 @@ public class ApiComponentRemediationServiceTest
         componentIdentifier, scanId);
     doReturn(Pair.of(Collections.singletonList(componentDetailsDTO), null)).when(componentInfoServiceMock)
         .getComponentDetailsForAllVersionsNoAuth(any(), eq(componentIdentifier), eq(DevelopStageType.ID),
-            eq(identificationSource), eq(scanId), isNull(), any());
+            eq(identificationSource), eq(scanId), isNull(), any(), anyBoolean());
     ApiComponentRemediationDTO retVal = service
         .getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID,
             identificationSource, scanId, null);
@@ -742,7 +743,7 @@ public class ApiComponentRemediationServiceTest
 
   private void mockHdsGetComponentDetailsList(List<ComponentDetailsDTO> list, ComponentIdentifier componentIdentifier) {
     lenient().doReturn(Pair.of(list, null)).when(componentInfoServiceMock).getComponentDetailsForAllVersionsNoAuth(
-        any(), eq(componentIdentifier), any(), any(), any(), isNull(), any());
+        any(), eq(componentIdentifier), any(), any(), any(), isNull(), any(), anyBoolean());
   }
 
   private void mockHdsGetComponentDependencies(ComponentDependenciesDTO dependenciesDto) {
@@ -751,7 +752,8 @@ public class ApiComponentRemediationServiceTest
   }
 
   private void mockHdsGetVersionScoringData() {
-    lenient().when(hdsClientMock.post(eq(VersionScoringDTO[].class), eq(HDS_BULK_SCORE_VERSIONING_PATH), anyList()))
+    lenient().when(hdsClientMock.post(eq(VersionScoringDTO[].class), eq(HDS_BULK_SCORE_VERSIONING_PATH), anyList(),
+            eq(Map.of("stableVersionsOnly", "true"))))
         .thenReturn(new VersionScoringDTO[] {});
   }
 

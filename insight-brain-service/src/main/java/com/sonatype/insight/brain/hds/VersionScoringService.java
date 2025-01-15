@@ -68,8 +68,9 @@ public class VersionScoringService
   }
 
   private Collection<VersionScoringDTO> getVersionScoringNoAuth(Collection<ComponentIdentifier> componentIdentifiers) {
+    final Map<String, String> queryParams = Map.of("stableVersionsOnly", "true");
     final List<VersionScoringDTO> versionScoringData = List.of(
-        hdsClient.post(VersionScoringDTO[].class, HDS_BULK_SCORE_VERSIONING_PATH, componentIdentifiers)
+        hdsClient.post(VersionScoringDTO[].class, HDS_BULK_SCORE_VERSIONING_PATH, componentIdentifiers, queryParams)
     );
     log.debug("Received {} version scoring entries from HDS", versionScoringData.size());
     return versionScoringData;

@@ -55,7 +55,8 @@ public class VersionScoringServiceTest
     VersionScoringDTO[] responsePayload = new VersionScoringDTO[] {
       new VersionScoringDTO(component0, 1, 1, 10, versionMap)
     };
-    when(mockHdsClient.post(eq(VersionScoringDTO[].class), eq(HDS_BULK_SCORE_VERSIONING_PATH), eq(fromVersions)))
+    when(mockHdsClient.post(eq(VersionScoringDTO[].class), eq(HDS_BULK_SCORE_VERSIONING_PATH), eq(fromVersions),
+        eq(Map.of("stableVersionsOnly", "true"))))
         .thenReturn(responsePayload);
 
     Map<ComponentIdentifier, List<String>> sortedNonBreakingVersions =
@@ -92,7 +93,8 @@ public class VersionScoringServiceTest
         new VersionScoringDTO(component0, 1, 1, 10, versionMap0),
         new VersionScoringDTO(component1, 1, 1, 10, versionMap1)
     };
-    when(mockHdsClient.post(eq(VersionScoringDTO[].class), eq(HDS_BULK_SCORE_VERSIONING_PATH), eq(fromVersions)))
+    when(mockHdsClient.post(eq(VersionScoringDTO[].class), eq(HDS_BULK_SCORE_VERSIONING_PATH), eq(fromVersions),
+        eq(Map.of("stableVersionsOnly", "true"))))
         .thenReturn(responsePayload);
 
     Map<ComponentIdentifier, List<String>> sortedNonBreakingVersions =

@@ -29,6 +29,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -80,8 +81,8 @@ public class PathForwardInspectorTest
     componentDetailsDTO.violatedPolicyCount = 1;
 
     when(componentInfoServiceMock.getComponentDetailsForAllVersionsNoAuth(
-        any(), eq(MAVEN_COORDINATES_V1), eq("stageId"), any(), eq("scanId"), any(), any())).thenReturn(
-        Pair.of(Collections.singletonList(componentDetailsDTO), null));
+        any(), eq(MAVEN_COORDINATES_V1), eq("stageId"), any(), eq("scanId"), any(), any(), anyBoolean()))
+        .thenReturn(Pair.of(Collections.singletonList(componentDetailsDTO), null));
 
     boolean result =
         pathForwardInspector.containsUpgradeableVersion(MAVEN_COMPONENT_V1, application.getId(), "stageId", "scanId");
@@ -102,7 +103,7 @@ public class PathForwardInspectorTest
     componentDetailsDTO1.violatedPolicyCount = 1;
 
     when(componentInfoServiceMock.getComponentDetailsForAllVersionsNoAuth(
-        any(), eq(MAVEN_COORDINATES_V1), any(), any(), any(), any(), any())).thenReturn(
+        any(), eq(MAVEN_COORDINATES_V1), any(), any(), any(), any(), any(), anyBoolean())).thenReturn(
         Pair.of(Arrays.asList(componentDetailsDTO1, componentDetailsDTO3), null));
 
     boolean result =
@@ -115,6 +116,6 @@ public class PathForwardInspectorTest
 
     //should only call once, as the result is cached
     verify(componentInfoServiceMock, times(1)).getComponentDetailsForAllVersionsNoAuth(
-        any(), any(), eq("stageId"), any(), eq("scanId"), any(), any());
+        any(), any(), eq("stageId"), any(), eq("scanId"), any(), any(), anyBoolean());
   }
 }

@@ -525,7 +525,7 @@ public class HdsClient
 
   public <T> T post(Retry retry, Class<T> clazz, String path, Object jsonSerializableObject, String... uriParams) {
     return post(retry, null /* analytics */, clazz, path, null /* clientUserAgent */, jsonSerializableObject,
-        uriParams);
+        Map.of(), uriParams);
   }
 
   private HttpGet createGetRequest(String url, HdsClientAnalytics analytics, String clientUserAgent) {
@@ -553,7 +553,7 @@ public class HdsClient
       String... uriParams)
   {
     return post(retryCreator.apply(path), analytics, clazz, path, clientUserAgent, jsonSerializableObject,
-        uriParams);
+        Map.of(), uriParams);
   }
 
   public <T> T post(
@@ -563,9 +563,10 @@ public class HdsClient
       String path,
       final String clientUserAgent,
       Object jsonSerializableObject,
+      Map<String, String> queryParams,
       String... uriParams)
   {
-    HttpPost cloudReq = createPostRequest(buildUri(path, uriParams), analytics, clientUserAgent);
+    HttpPost cloudReq = createPostRequest(buildUri(path, queryParams, uriParams), analytics, clientUserAgent);
     HttpEntity entity;
     if (jsonSerializableObject instanceof byte[]) {
       entity = new ByteArrayEntity((byte[]) jsonSerializableObject, ContentType.APPLICATION_OCTET_STREAM);
@@ -577,6 +578,16 @@ public class HdsClient
     cloudReq.setHeader(HttpHeaders.ACCEPT, "application/json");
 
     return execute(retry, cloudReq, clazz);
+  }
+
+  public <T> T post(
+      Class<T> clazz,
+      String path,
+      Object jsonSerializableObject,
+      Map<String, String> queryParams)
+  {
+    return post(retryCreator.apply(path), null, clazz, path, null, jsonSerializableObject,
+        queryParams);
   }
 
   private HttpPut createPutRequest(String url, HdsClientAnalytics analytics, String clientUserAgent) {

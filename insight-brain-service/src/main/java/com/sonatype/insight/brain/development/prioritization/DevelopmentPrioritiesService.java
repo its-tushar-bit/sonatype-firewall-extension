@@ -303,7 +303,8 @@ public class DevelopmentPrioritiesService
                 stageId,
                 null,
                 scanId,
-                false
+                false,
+                true
             );
 
         if (apiComponentRemediationDTO != null) {

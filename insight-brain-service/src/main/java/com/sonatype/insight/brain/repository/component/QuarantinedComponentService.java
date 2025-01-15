@@ -185,7 +185,8 @@ public class QuarantinedComponentService
 
     return componentInfoService.getComponentVersionInfoNoAuth(OwnerType.REPOSITORY,
         repositoryComponent.getRepositoryId(), repositoryComponent.getComponentIdentifier(), Stage.ID_PROXY,
-        repositoryComponent.getIdentificationSourceId(), null, null, SourceEndpoint.QUARANTINED_COMPONENT);
+        repositoryComponent.getIdentificationSourceId(), null, null, SourceEndpoint.QUARANTINED_COMPONENT,
+        false);
   }
 
   NamedComponentDetails getQuarantinedComponentVersionDetails(

@@ -49,6 +49,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -131,7 +132,7 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
     List<ComponentIdentifier> componentIdentifiers = Collections.singletonList(componentIdentifier);
 
     when(mockComponentInfoService.getComponentDetailsForAllVersionsNoAuthBulk(
-            any(), eq(componentIdentifiers), eq("myStage"), eq("scanId"), any()))
+            any(), eq(componentIdentifiers), eq("myStage"), eq("scanId"), any(), anyBoolean()))
             .thenReturn(Collections.emptyMap());
 
     Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationList =
@@ -153,13 +154,13 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
     List<ComponentIdentifier> componentIdentifiers = Collections.singletonList(componentIdentifier);
 
     when(mockComponentInfoService.getComponentDetailsForAllVersionsNoAuthBulk(
-            any(), eq(componentIdentifiers), eq("myStage"), eq("scanId"), any()))
+            any(), eq(componentIdentifiers), eq("myStage"), eq("scanId"), any(), anyBoolean()))
             .thenReturn(Collections.singletonMap(
                 componentIdentifier.createAlternativeVersion(null), componentDetailsDTOs));
 
     when(mockComponentRemediationService.getSuggestedSelectedRemediation(
             eq(componentIdentifier), eq(componentDetailsDTOs),
-            any(), any(), any(), eq(false))).thenReturn(null);
+            any(), any(), any(), anyBoolean())).thenReturn(null);
 
     Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationList =
             service.getRemediationVersions(componentIdentifiers, application.getId(), "myStage", "scanId");
@@ -180,7 +181,7 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
     List<ComponentIdentifier> componentIdentifiers = Collections.singletonList(componentIdentifier);
 
     when(mockComponentInfoService.getComponentDetailsForAllVersionsNoAuthBulk(
-            any(), eq(componentIdentifiers), eq("myStage"), eq("scanId"), any()))
+            any(), eq(componentIdentifiers), eq("myStage"), eq("scanId"), any(), anyBoolean()))
             .thenReturn(Collections.singletonMap(componentIdentifier.createAlternativeVersion(null),
                 componentDetailsDTOs));
 
@@ -238,7 +239,7 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
         Arrays.asList(componentIdentifier, componentIdentifier1, componentIdentifier2a);
 
     when(mockComponentInfoService.getComponentDetailsForAllVersionsNoAuthBulk(
-        any(), eq(componentIdentifiers), eq("myStage"), eq("scanId"), any()))
+        any(), eq(componentIdentifiers), eq("myStage"), eq("scanId"), any(), anyBoolean()))
         .thenReturn(ImmutableMap.of(
             componentIdentifier.createAlternativeVersion(null), componentDetailsDTOs,
             componentIdentifier1.createAlternativeVersion(null), componentDetailsDTOs1,
@@ -355,7 +356,7 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
     }
     when(mockComponentRemediationService.getSuggestedSelectedRemediation(
         eq(componentIdentifier), eq(componentDetailsDTOList),
-        any(), any(), any(), eq(false))).thenReturn(remediationValueDto);
+        any(), any(), any(), anyBoolean())).thenReturn(remediationValueDto);
   }
 
   private ApiVersionChangeOptionDTO getApiVersionChangeOptionDTO(ComponentIdentifier componentIdentifier) {

@@ -44,7 +44,6 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.brain.version.PreReleaseVersionParser;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -1505,78 +1504,5 @@ public class ComponentRemediationServiceTest
             v11NextNonFailingWithDependencies)))
         .hasSize(3)
         .containsExactly(v11NextNoViolationsWithDependencies, v6NextNoViolations, v5NextNonFailing);
-  }
-
-  @Test
-  public void testGetSuggestedRemediation_FilterOutUnstableVersions() {
-    enableTransitiveSolver();
-    ComponentIdentifier cId1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "1.0.0-alpha", "", "jar");
-    ComponentIdentifier cId2 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "1.0.0-milestone", "", "jar");
-    ComponentIdentifier cId3 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "1.0.0", "", "jar");
-    PackageUrlIdentifier purl1 = PackageUrlIdentifier.fromComponentIdentifier(cId1);
-    PackageUrlIdentifier purl2 = PackageUrlIdentifier.fromComponentIdentifier(cId2);
-    PackageUrlIdentifier purl3 = PackageUrlIdentifier.fromComponentIdentifier(cId3);
-
-    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
-    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
-    dependenciesMap.put(purl1, Collections.singletonList(purl2));
-    dependenciesMap.put(purl2, Collections.singletonList(purl3));
-    dependenciesMap.put(purl3, Collections.emptyList());
-
-    ComponentDetails details1 = buildComponentDetails(cId1, Collections.singletonList(failAlert));
-    ComponentDetails details2 = buildComponentDetails(cId2, Collections.singletonList(warnAlert));
-    ComponentDetails details3 = buildComponentDetails(cId3, null);
-    detailsMap.put(purl1, details1);
-    detailsMap.put(purl2, details2);
-    detailsMap.put(purl3, details3);
-
-    ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
-    mockHdsGetComponentDependencies(returnDto);
-    mockLicenseFeature(true);
-
-    ComponentDetailsDTO dto1 = new ComponentDetailsDTO();
-    dto1.componentIdentifier = cId1;
-    dto1.violatedPolicyCount = 1;
-    dto1.breakingChangesCount = BREAKING_CHANGES_1;
-    ComponentDetailsDTO dto2 = new ComponentDetailsDTO();
-    dto2.componentIdentifier = cId2;
-    dto2.violatedPolicyCount = 1;
-    dto2.breakingChangesCount = BREAKING_CHANGES_2;
-    ComponentDetailsDTO dto3 = new ComponentDetailsDTO();
-    dto3.componentIdentifier = cId3;
-    dto3.violatedPolicyCount = 0;
-    dto3.breakingChangesCount = BREAKING_CHANGES_3;
-    List<ComponentDetailsDTO> allVersions = Arrays.asList(dto1, dto2, dto3);
-
-    ApiComponentRemediationValueDTO result = componentRemediationService.getSuggestedRemediation(cId1,
-        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org),
-        SourceEndpoint.API_COMPONENT_REMEDIATION);
-    assertThat(result.versionChanges).hasSize(1);
-    String version = result.versionChanges.get(0).getData().getComponent().componentIdentifier.toComponentIdentifier()
-        .get(ComponentIdentifier.VERSION);
-    // Only stable versions should be suggested
-    assertThat(PreReleaseVersionParser.isStable(version)).isTrue();
-    assertThat(version).isEqualTo(purl3.getVersion());
-
-    result = componentRemediationService.getSuggestedRemediation(cId2,
-        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org),
-        SourceEndpoint.API_COMPONENT_REMEDIATION);
-    assertThat(result.versionChanges).hasSize(1);
-    version = result.versionChanges.get(0).getData().getComponent().componentIdentifier.toComponentIdentifier()
-        .get(ComponentIdentifier.VERSION);
-    // Only stable versions should be suggested
-    assertThat(PreReleaseVersionParser.isStable(version)).isTrue();
-    assertThat(version).isEqualTo(purl3.getVersion());
-
-    result = componentRemediationService.getSuggestedRemediation(cId3,
-        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org),
-        SourceEndpoint.API_COMPONENT_REMEDIATION);
-
-    assertThat(result.versionChanges).hasSize(1);
-    version = result.versionChanges.get(0).getData().getComponent().componentIdentifier.toComponentIdentifier()
-        .get(ComponentIdentifier.VERSION);
-    // Only stable versions should be suggested
-    assertThat(PreReleaseVersionParser.isStable(version)).isTrue();
-    assertThat(version).isEqualTo(purl3.getVersion());
   }
 }

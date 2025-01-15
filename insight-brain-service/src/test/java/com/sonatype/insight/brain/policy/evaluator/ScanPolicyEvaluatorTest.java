@@ -177,6 +177,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
@@ -425,7 +426,7 @@ public class ScanPolicyEvaluatorTest
 
     doReturn(Pair.of(Lists.emptyList(), null))
         .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
-            any(), any(), any(), any(), any(), any(), any());
+            any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
@@ -468,11 +469,13 @@ public class ScanPolicyEvaluatorTest
 
     doReturn(Pair.of(Arrays.asList(tomcatComponentDetailsDTOV1, tomcatComponentDetailsDTOV2), null))
         .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
-            any(), eq(tomcatComponentDetailsDTOV1.componentIdentifier), any(), any(), any(), any(), any());
+            any(), eq(tomcatComponentDetailsDTOV1.componentIdentifier), any(), any(), any(), any(), any(),
+            anyBoolean());
 
     doReturn(Pair.of(Lists.emptyList(), null))
         .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
-            any(), not(eq(tomcatComponentDetailsDTOV1.componentIdentifier)), any(), any(), any(), any(), any());
+            any(), not(eq(tomcatComponentDetailsDTOV1.componentIdentifier)), any(), any(), any(), any(), any(),
+            anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
@@ -523,7 +526,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(results.activeViolations).hasSize(20);
 
     verify(mockComponentInfoService, times(0)).getComponentDetailsForAllVersionsNoAuth(
-        any(), any(), any(), any(), any(), any(), any());
+        any(), any(), any(), any(), any(), any(), any(), eq(true));
   }
 
   @Test

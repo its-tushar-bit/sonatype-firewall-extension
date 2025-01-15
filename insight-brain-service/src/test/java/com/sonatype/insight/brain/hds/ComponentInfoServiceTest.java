@@ -256,7 +256,8 @@ public class ComponentInfoServiceTest
     Map<String, List<String>> stringListMap =
         Collections.singletonMap(responsePath, Collections.singletonList(responseVersion));
 
-    when(hdsClientMock.post(Map.class, "rest/component/versions/list", componentIdentifiers))
+    when(hdsClientMock.post(Map.class, "rest/component/versions/list", componentIdentifiers, Map.of(
+        "stableVersionsOnly", "false")))
         .thenReturn(stringListMap);
   }
 
@@ -272,9 +273,18 @@ public class ComponentInfoServiceTest
       ComponentDetailsList hdsComponentDetailsList,
       ComponentIdentifier identifier)
   {
+    mockHdsGetComponentDetailsList(hdsComponentDetailsList, identifier, true);
+  }
+
+  private void mockHdsGetComponentDetailsList(
+      ComponentDetailsList hdsComponentDetailsList,
+      ComponentIdentifier identifier,
+      boolean stableVersionsOnly)
+  {
     when(hdsClientMock.get(ComponentDetailsList.class, "rest/" + TOOL_NAME +
             "/componentDetails/list",
-        Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier))))
+        Map.of("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier), "stableVersionsOnly",
+            String.valueOf(stableVersionsOnly))))
         .thenReturn(hdsComponentDetailsList);
   }
 
@@ -989,7 +999,8 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetailsList(hdsComponentDetailsList, componentIdentifier1);
 
     ComponentDetailsList componentDetailsList =
-        componentInfoService.getComponentDetailsList(componentIdentifier1, null, null, null, null).getLeft();
+        componentInfoService.getComponentDetailsList(componentIdentifier1, null, null, null, null,
+            true).getLeft();
     componentDetailsLoaderFactory.newInstance(application).augmentComponentDetails(componentDetailsList.getList(),
         MatchState.EXACT.getId(), null);
 
@@ -1050,7 +1061,7 @@ public class ComponentInfoServiceTest
   @Test
   public void testGetComponentDetailsListBulk_noComponents() {
     Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
-        componentInfoService.getComponentDetailsListBulk(Collections.emptyList(), null, null);
+        componentInfoService.getComponentDetailsListBulk(Collections.emptyList(), null, null, false);
 
     assertThat(componentDetailsMap).isEmpty();
   }
@@ -1073,7 +1084,7 @@ public class ComponentInfoServiceTest
 
     // Versions that come BEFORE the requested component identifiers should not be returned
     Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
-        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null, false);
     assertThat(componentDetailsMap).isEmpty();
   }
 
@@ -1095,7 +1106,7 @@ public class ComponentInfoServiceTest
     mockGetComponentDetailsListFromHds(Collections.singletonList(componentEvaluationData1));
     // Versions that equal the requested component identifiers should be returned
     Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
-        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null, false);
     assertThat(componentDetailsMap).hasSize(1);
   }
 
@@ -1118,7 +1129,7 @@ public class ComponentInfoServiceTest
 
     // Versions that come AFTER the requested component identifiers should be returned
     Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
-        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null, false);
     assertThat(componentDetailsMap).hasSize(1);
   }
 
@@ -1158,7 +1169,7 @@ public class ComponentInfoServiceTest
         asList(componentEvaluationData1, componentEvaluationData2, componentEvaluationData3));
 
     Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
-        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null, false);
 
     assertThat(componentDetailsMap).hasSize(3);
     ComponentDetails componentDetails = componentDetailsMap.get(componentIdentifier1).get(0);
@@ -1215,7 +1226,7 @@ public class ComponentInfoServiceTest
         .thenReturn(componentDetailsList);
 
     Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
-        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null, false);
 
     assertThat(componentDetailsMap).hasSize(1);
     ComponentDetails componentDetails = componentDetailsMap.get(componentIdentifier1).get(0);
@@ -1248,7 +1259,7 @@ public class ComponentInfoServiceTest
         asList(componentIdentifier1, componentIdentifier2, componentIdentifier3, componentIdentifier4);
 
     Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
-        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null, false);
 
     assertThat(componentDetailsMap).hasSize(3);
     assertGenericComponentDetails(componentDetailsMap.get(componentIdentifier1).get(0), componentIdentifier1);
@@ -1275,7 +1286,7 @@ public class ComponentInfoServiceTest
     mockComponentResolution(componentIdentifier3, application.getId());
 
     Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
-        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, "myScanId");
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, "myScanId", false);
 
     assertThat(componentDetailsMap).hasSize(3);
 
@@ -1370,7 +1381,7 @@ public class ComponentInfoServiceTest
             componentIdentifier5);
 
     Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
-        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, "myScanId");
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, "myScanId", false);
 
     assertThat(componentDetailsMap).hasSize(4);
 
@@ -1419,7 +1430,7 @@ public class ComponentInfoServiceTest
         asList(componentIdentifier1, componentIdentifier2, componentIdentifier3, componentIdentifier4);
 
     Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
-        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null, false);
 
     assertThat(componentDetailsMap).hasSize(3);
     assertGenericComponentDetails(componentDetailsMap.get(componentIdentifier1).get(0), componentIdentifier1);
@@ -1446,7 +1457,7 @@ public class ComponentInfoServiceTest
         asList(componentIdentifier1, componentIdentifier2, componentIdentifier3, componentIdentifier4deb);
 
     Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
-        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null, false);
 
     assertThat(componentDetailsMap).hasSize(3);
     assertGenericComponentDetails(componentDetailsMap.get(componentIdentifier1).get(0), componentIdentifier1);
@@ -1475,7 +1486,7 @@ public class ComponentInfoServiceTest
         asList(componentIdentifier1deb, componentIdentifier2deb);
 
     Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
-        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null, false);
 
     assertThat(componentDetailsMap).isEmpty();
 
@@ -2190,7 +2201,7 @@ public class ComponentInfoServiceTest
     ComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
-    mockHdsGetComponentDetailsList(hdsComponentDetailsList, MAVEN_A1_COORDINATES);
+    mockHdsGetComponentDetailsList(hdsComponentDetailsList, MAVEN_A1_COORDINATES, false);
     ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList_ReadPermission(
         owner.getType(), ownerId, MAVEN_A1_COORDINATES, MatchState.EXACT.getId());
     assertThat(componentDetailsList.getList()).hasSize(1);
@@ -2785,7 +2796,7 @@ public class ComponentInfoServiceTest
         .thenReturn(tpComponentDetails);
 
     ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList(
-        componentIdentifier1, application, identificationSource, scanId, null).getLeft();
+        componentIdentifier1, application, identificationSource, scanId, null, true).getLeft();
 
     assertThat(componentDetailsList).isNotNull();
     assertThat(componentDetailsList.getList()).hasSize(2);
@@ -2813,7 +2824,8 @@ public class ComponentInfoServiceTest
 
     when(hdsClientMock.get(ComponentDetailsList.class, "rest/" + TOOL_NAME +
             "/componentDetails/list",
-        Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier1))))
+        Map.of("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier1),
+            "stableVersionsOnly", "true")))
         .thenThrow(BadRequestException.class);
 
     ComponentDetails tpComponentDetails = newNamedComponentDetails(componentIdentifier1);
@@ -2830,7 +2842,7 @@ public class ComponentInfoServiceTest
         .thenReturn(thirdPartyComponentDetailsList);
 
     ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList(
-        componentIdentifier1, application, identificationSource, scanId, null).getLeft();
+        componentIdentifier1, application, identificationSource, scanId, null, true).getLeft();
 
     assertThat(componentDetailsList).isNotNull();
     assertThat(componentDetailsList.getList()).hasSize(1);
@@ -2856,12 +2868,14 @@ public class ComponentInfoServiceTest
 
     when(hdsClientMock.get(ComponentDetailsList.class, "rest/" + TOOL_NAME +
             "/componentDetails/list",
-        Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier1))))
+        Map.of("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier1),
+            "stableVersionsOnly", "true")))
         .thenThrow(BadRequestException.class);
 
     assertThatThrownBy(
         () -> componentInfoService
-            .getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId, dependencyType))
+            .getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId, dependencyType,
+                true))
         .isInstanceOf(BadRequestException.class);
   }
 
@@ -2891,7 +2905,7 @@ public class ComponentInfoServiceTest
 
     ComponentDetailsList componentDetailsList =
         componentInfoService.getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId,
-            null).getLeft();
+            null, true).getLeft();
 
     assertThat(componentDetailsList).isNotNull();
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
@@ -2932,7 +2946,7 @@ public class ComponentInfoServiceTest
 
     ComponentDetailsList componentDetailsList =
         componentInfoService.getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId,
-            null).getLeft();
+            null, true).getLeft();
 
     assertThat(componentDetailsList).isNotNull();
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
@@ -2955,7 +2969,8 @@ public class ComponentInfoServiceTest
     ComponentIdentifier componentIdentifier1 = new ComponentIdentifier("unknown", coordinates);
 
     assertThatThrownBy(
-        () -> componentInfoService.getComponentDetailsList(componentIdentifier1, application, null, null, null))
+        () -> componentInfoService.getComponentDetailsList(componentIdentifier1, application, null, null, null,
+            true))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Invalid format: unknown");
   }
@@ -3140,7 +3155,7 @@ public class ComponentInfoServiceTest
 
     ComponentDetailsList result =
         componentInfoService.getComponentDetailsList(componentIdentifier, app, "third-party", scanId,
-            DependencyType.DIRECT).getLeft();
+            DependencyType.DIRECT, true).getLeft();
 
     assertThat(result.getList()).containsExactly(componentDetails);
   }
@@ -3164,7 +3179,7 @@ public class ComponentInfoServiceTest
     details.setSecurityVulnerabilities(Collections.emptyList());
 
     ComponentDetailsList result = componentInfoService.getComponentDetailsList(componentIdentifier, app,
-        IdentificationSource.EXTERNAL_REPO.getId(), scanId, DependencyType.DIRECT).getLeft();
+        IdentificationSource.EXTERNAL_REPO.getId(), scanId, DependencyType.DIRECT, true).getLeft();
 
     assertThat(result.getList().get(0)).usingRecursiveComparison().isEqualTo(details);
   }
@@ -3233,7 +3248,8 @@ public class ComponentInfoServiceTest
   }
 
   private void mockHdsGetVersionScoringData() {
-    lenient().when(hdsClientMock.post(eq(VersionScoringDTO[].class), eq(HDS_BULK_SCORE_VERSIONING_PATH), anyList()))
+    lenient().when(hdsClientMock.post(eq(VersionScoringDTO[].class), eq(HDS_BULK_SCORE_VERSIONING_PATH), anyList(),
+            eq(Map.of("stableVersionsOnly", "true"))))
         .thenReturn(new VersionScoringDTO[] {});
   }
 }

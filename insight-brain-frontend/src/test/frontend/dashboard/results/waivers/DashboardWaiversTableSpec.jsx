@@ -17,10 +17,9 @@ describe('DashboardWaiversTable', function () {
     dashboardWaiversProps = {
       waivers: {
         error: null,
-        numResults: 5,
         hasNextPage: true,
         sortFields: ['expiryTime'],
-        pageCount: 5,
+        hasMultiplePages: true,
         page: 1,
         results: [
           {
@@ -127,7 +126,6 @@ describe('DashboardWaiversTable', function () {
     axiosMock = axiosMockAdapter();
     axiosMock.onPost(getWaiversUrl()).reply(200, {
       dashboardResults: [],
-      numResults: 150,
       hasNextPage: true,
     });
 
@@ -163,7 +161,6 @@ describe('DashboardWaiversTable', function () {
 
   it('renders an empty message on the NxTableBody if there are no components to display', () => {
     dashboardWaiversProps.waivers.results = [];
-    dashboardWaiversProps.waivers.numResults = 0;
     renderComponent(dashboardWaiversProps);
 
     expect(screen.getByText('No data available given the applied filters and permissions.')).toBeVisible();
@@ -171,7 +168,6 @@ describe('DashboardWaiversTable', function () {
 
   it('renders an empty message on the NxTableBody if there are no components to display in the last 20 days', () => {
     dashboardWaiversProps.waivers.results = [];
-    dashboardWaiversProps.waivers.numResults = 0;
     dashboardWaiversProps.maxDaysOld = 20;
     renderComponent(dashboardWaiversProps);
 

@@ -290,7 +290,6 @@ describe('dashboardFilterActions: non-angular', function () {
           [getNewestRisksUrl()]: Promise.resolve({
             data: {
               dashboardResults: 'results',
-              numResults: 3,
               hasNextPage: true,
               classyBrew: 'classyBrew',
             },
@@ -334,7 +333,6 @@ describe('dashboardFilterActions: non-angular', function () {
           payload: {
             resultsType: 'violations',
             results: 'results',
-            numResults: 3,
             hasNextPage: true,
             classyBrew: undefined,
           },

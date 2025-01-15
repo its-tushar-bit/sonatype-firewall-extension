@@ -67,7 +67,6 @@ describe('dashboard.data.service.spec', function () {
             derivedComponentName: 'Unknown',
           },
         ],
-        numResults: 2,
       };
 
       mockAxiosCalls({
@@ -77,14 +76,13 @@ describe('dashboard.data.service.spec', function () {
       });
 
       getNewestRisks(filter, [], 0).then(function (data) {
-        const { results, numResults } = data;
+        const { results } = data;
 
         expect(axios.post).toHaveBeenCalledWith(newRisksUrl, expectedRequestPayload);
         expect(results[0].hash).toBe('f60e9504841ba867a692');
         expect(results[0].derivedComponentName).toBe('foo : bar');
         expect(results[1].hash).toBe('1249e25aebb15358bedd');
         expect(results[1].derivedComponentName).toBe('Unknown');
-        expect(numResults).toBe(2);
         done();
       });
     });
@@ -101,7 +99,7 @@ describe('dashboard.data.service.spec', function () {
       mockAxiosCalls({
         post: {
           [newRisksUrl]: Promise.resolve({
-            data: { dashboardResults: [], numResults: 0 },
+            data: { dashboardResults: [] },
           }),
         },
       });
@@ -158,7 +156,6 @@ describe('dashboard.data.service.spec', function () {
             stages: [],
           },
         ],
-        numResults: 2,
       };
       const applicationRiskUrl = getApplicationRisksUrl(),
         expectedApplicationSeries = [1, 2, 3, 4, 5, 6];
@@ -170,10 +167,9 @@ describe('dashboard.data.service.spec', function () {
       });
 
       getApplicationRisks(filter, [], 0).then((response) => {
-        const { results, numResults, classyBrew } = response;
+        const { results, classyBrew } = response;
         expect(axios.post).toHaveBeenCalledWith(applicationRiskUrl, expectedRequestPayload);
         expect(results).toEqual(originalRisks);
-        expect(numResults).toEqual(2);
         expect(classyBrew).toEqual('classyBrew');
         expect(classyBrewSpy).toHaveBeenCalledWith(expectedApplicationSeries);
 
@@ -193,7 +189,7 @@ describe('dashboard.data.service.spec', function () {
       mockAxiosCalls({
         post: {
           [applicationsRiskUrl]: Promise.resolve({
-            data: { dashboardResults: [], numResults: 0 },
+            data: { dashboardResults: [] },
           }),
         },
       });
@@ -232,7 +228,6 @@ describe('dashboard.data.service.spec', function () {
             scoreSevere: 8,
           },
         ],
-        numResults: 2,
       };
       const componentRiskUrl = getComponentRisksUrl(),
         expectedComponentSeries = [12, 8];
@@ -244,7 +239,7 @@ describe('dashboard.data.service.spec', function () {
       });
 
       getComponentRisks(filter, [], 0).then(function (data) {
-        const { results, numResults, classyBrew } = data;
+        const { results, classyBrew } = data;
         expect(axios.post).toHaveBeenCalledWith(componentRiskUrl, { ...expectedRequestPayload, pageSize: 100 });
         expect(results[0].hash).toBe('f60e9504841ba867a692');
         expect(results[0].derivedComponentName).toBe('foo : bar');
@@ -252,7 +247,6 @@ describe('dashboard.data.service.spec', function () {
         expect(results[1].derivedComponentName).toBe('Unknown');
         expect(classyBrew).toEqual('classyBrew');
         expect(classyBrewSpy).toHaveBeenCalledWith(expectedComponentSeries);
-        expect(numResults).toBe(2);
         done();
       });
     });
@@ -277,7 +271,7 @@ describe('dashboard.data.service.spec', function () {
       mockAxiosCalls({
         post: {
           [componentRisksUrl]: Promise.resolve({
-            data: { dashboardResults: [], numResults: 0 },
+            data: { dashboardResults: [] },
           }),
         },
       });
@@ -327,7 +321,6 @@ describe('dashboard.data.service.spec', function () {
             displayName: 'commons-beanutils : commons-beanutils : 1.8.3',
           },
         ],
-        numResults: 2,
       };
       const waiverDetailsUrl = getWaiversUrl();
 
@@ -338,7 +331,7 @@ describe('dashboard.data.service.spec', function () {
       });
 
       getWaivers(filter, [], 0).then(function (data) {
-        const { results, numResults } = data;
+        const { results } = data;
         expect(axios.post).toHaveBeenCalledWith(waiverDetailsUrl, { ...expectedRequestPayload, pageSize: 100 });
         expect(results[0].id).toBe('35513cecc0214e0cb0207238dc1fba6e');
         expect(results[0].displayName).toBe('org.sonatype.nexus : nexus-rest-client');
@@ -352,7 +345,6 @@ describe('dashboard.data.service.spec', function () {
         expect(results[1].ownerType).toBe('application');
         expect(results[1].threatLevel).toBe(9);
         expect(results[1].policyName).toBe('Security-High');
-        expect(numResults).toBe(2);
         done();
       });
     });
@@ -376,7 +368,7 @@ describe('dashboard.data.service.spec', function () {
       mockAxiosCalls({
         post: {
           [waiversUrl]: Promise.resolve({
-            data: { dashboardResults: [], numResults: 0 },
+            data: { dashboardResults: [] },
           }),
         },
       });
@@ -414,7 +406,6 @@ describe('dashboard.data.service.spec', function () {
             displayName: 'commons-beanutils : commons-beanutils : 1.8.3',
           },
         ],
-        numResults: 2,
       };
       const autoWaiversUrl = getWaiversAndAutoWaiversUrl();
 
@@ -425,7 +416,7 @@ describe('dashboard.data.service.spec', function () {
       });
 
       getWaiversAndAutoWaivers(filter, [], 0).then(function (data) {
-        const { results, numResults } = data;
+        const { results } = data;
         expect(axios.post).toHaveBeenCalledWith(autoWaiversUrl, { ...expectedRequestPayload, pageSize: 100 });
         expect(results[0].id).toBe('35513cecc0214e0cb0207238dc1fba6e');
         expect(results[0].displayName).toBe('org.sonatype.nexus : nexus-rest-client');
@@ -439,7 +430,6 @@ describe('dashboard.data.service.spec', function () {
         expect(results[1].ownerType).toBe('application');
         expect(results[1].threatLevel).toBe(9);
         expect(results[1].policyName).toBe('Security-High');
-        expect(numResults).toBe(2);
         done();
       });
     });
@@ -463,7 +453,7 @@ describe('dashboard.data.service.spec', function () {
       mockAxiosCalls({
         post: {
           [autoWaiversUrl]: Promise.resolve({
-            data: { dashboardResults: [], numResults: 0 },
+            data: { dashboardResults: [] },
           }),
         },
       });

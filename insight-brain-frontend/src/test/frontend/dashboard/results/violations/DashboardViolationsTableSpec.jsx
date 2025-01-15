@@ -67,10 +67,9 @@ describe('DashboardViolationsTable', function () {
             firstOccurrenceTime: Date.now(),
           },
         ],
-        numResults: 3,
         hasNextPage: true,
         sortFields: ['-threatLevel', '-firstOccurrenceTime'],
-        pageCount: 1,
+        hasMultiplePages: true,
         page: 0,
       },
       setNextViolationsPage: setNextViolationsPageSpy,
@@ -353,7 +352,7 @@ describe('DashboardViolationsTable', function () {
     });
 
     it('does not render NxIndeterminatePagination component when there are no results', () => {
-      const props = set(lensPath(['violations', 'pageCount']), 0, minimalProps);
+      const props = set(lensPath(['violations', 'hasMultiplePages']), 0, minimalProps);
       const pagination = getShallowComponent(props).find(NxIndeterminatePagination);
       expect(pagination).not.toExist();
     });

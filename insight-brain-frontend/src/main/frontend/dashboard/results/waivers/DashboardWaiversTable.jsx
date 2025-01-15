@@ -19,7 +19,7 @@ const DEFAULT_SORT_FIELDS = [['-threatLevel'], ['createTime'], ['expiryTime'], [
 
 export default function DashboardWaiversTable(props) {
   const {
-    waivers: { results, hasNextPage, sortFields, error, pageCount, page },
+    waivers: { results, hasNextPage, sortFields, error, hasMultiplePages, page },
     sortWaivers,
     dispatchNexPage,
     dispatchPreviousPage,
@@ -28,7 +28,7 @@ export default function DashboardWaiversTable(props) {
     needsAcknowledgement,
     reload,
   } = props;
-  const currentPage = pageCount > 0 ? page : null;
+  const currentPage = hasMultiplePages ? page : null;
   const isLoading = !error && !results && !needsAcknowledgement,
     sortedColumn = extractSortFieldName(sortFields[0]),
     isSortReversed = sortFields[0].includes('-'),
@@ -158,7 +158,7 @@ DashboardWaiversTable.propTypes = {
     hasNextPage: PropTypes.bool,
     sortFields: PropTypes.arrayOf(PropTypes.string),
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
-    pageCount: PropTypes.number,
+    hasMultiplePages: PropTypes.bool,
     page: PropTypes.number,
   }),
 };

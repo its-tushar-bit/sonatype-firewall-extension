@@ -32,10 +32,9 @@ describe('DashboardWaivers', function () {
 
     waivers = {
       error: null,
-      numResults: 200,
       sortFields: ['expiryTime'],
       results: [],
-      pageCount: 2,
+      hasMultiplePages: true,
       page: 0,
     };
 
@@ -58,7 +57,7 @@ describe('DashboardWaivers', function () {
     }
 
     policyWaiversUrl = getWaiversUrl();
-    axiosMock.onPost(policyWaiversUrl).reply(200, { dashboardResults: waivers.results, numResults: 200 });
+    axiosMock.onPost(policyWaiversUrl).reply(200, { dashboardResults: waivers.results });
 
     renderComponent = (additionalProps = {}, preloadedState = initialState) =>
       render(<DashboardWaivers {...additionalProps} />, { preloadedState });

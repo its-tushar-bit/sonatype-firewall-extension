@@ -110,7 +110,7 @@ function generateComponentsSeries(components) {
 
 function dashboardResponseHandler(seriesGenerator) {
   return ({ data }) => {
-    const { dashboardResults, numResults, hasNextPage } = data;
+    const { dashboardResults, hasNextPage } = data;
     let series = undefined;
     if (typeof seriesGenerator === 'function') {
       series = seriesGenerator(dashboardResults);
@@ -118,7 +118,6 @@ function dashboardResponseHandler(seriesGenerator) {
     return {
       results: dashboardResults,
       ...(series && { classyBrew: createClassyBrew(series) }),
-      numResults,
       hasNextPage,
     };
   };

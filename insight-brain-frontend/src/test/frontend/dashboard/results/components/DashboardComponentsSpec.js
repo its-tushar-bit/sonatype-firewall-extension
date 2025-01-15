@@ -18,9 +18,9 @@ describe('DashboardComponents', function () {
       stateGo: jasmine.createSpy('stateGo'),
       componentResults: {
         results: [{ hash: 'hash1' }, { hash: 'hash2' }],
-        hasNextPage: true,
+        hasNextPage: false,
         sortFields: ['-score'],
-        pageCount: 1,
+        hasMultiplePages: false,
         currentPage: 0,
       },
     };
@@ -40,9 +40,9 @@ describe('DashboardComponents', function () {
     expect(table).toExist();
     expect(table).toHaveProp('componentResults', {
       results: [{ hash: 'hash1' }, { hash: 'hash2' }],
-      hasNextPage: true,
+      hasNextPage: false,
       sortFields: ['-score'],
-      pageCount: 1,
+      hasMultiplePages: false,
       currentPage: 0,
     });
     expect(table).toHaveProp('needsAcknowledgement', true);
@@ -115,7 +115,7 @@ describe('DashboardComponents', function () {
       filterLoading: false,
       needsAcknowledgement: false,
     };
-    minimalProps.componentResults.pageCount = 0;
+    minimalProps.componentResults.hasMultiplePages = false;
     minimalProps.componentResults.currentPage = 0;
 
     getMountedComponent(dashboardComponentProps);
@@ -127,7 +127,7 @@ describe('DashboardComponents', function () {
       filterLoading: true,
       needsAcknowledgement: false,
     };
-    minimalProps.componentResults.pageCount = 0;
+    minimalProps.componentResults.hasMultiplePages = false;
     minimalProps.componentResults.currentPage = 0;
 
     getMountedComponent(dashboardComponentProps);
@@ -139,7 +139,7 @@ describe('DashboardComponents', function () {
       filterLoading: false,
       needsAcknowledgement: true,
     };
-    minimalProps.componentResults.pageCount = 0;
+    minimalProps.componentResults.hasMultiplePages = false;
     minimalProps.componentResults.currentPage = 0;
 
     getMountedComponent(dashboardComponentProps);

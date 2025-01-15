@@ -15,46 +15,41 @@ import {
 import { LOAD_FILTER_REQUESTED } from './filter/dashboardFilterActions';
 import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 import { addWaiversScopeProp } from 'MainRoot/util/waiverUtils';
-import { DASHBOARD_PAGE_SIZE } from './services/dashboard.data.service';
 
 const initState = {
   currentTab: 'violations',
   violations: {
     results: null,
-    numResults: null,
     hasNextPage: false,
     error: null,
     sortFields: ['-firstOccurrenceTime', '-threatLevel'],
-    pageCount: 0,
+    hasMultiplePages: false,
     page: null,
   },
   components: {
     results: null,
-    numResults: null,
     hasNextPage: false,
     classyBrew: null,
     error: null,
     sortFields: ['-score'],
-    pageCount: 0,
+    hasMultiplePages: false,
     page: null,
   },
   applications: {
     results: null,
-    numResults: null,
     hasNextPage: false,
     classyBrew: null,
     error: null,
     sortFields: ['-totalApplicationRisk.totalRisk'],
-    pageCount: 0,
+    hasMultiplePages: false,
     page: null,
   },
   waivers: {
     results: null,
-    numResults: null,
     hasNextPage: false,
     error: null,
     sortFields: ['expiryTime'],
-    pageCount: 0,
+    hasMultiplePages: false,
     page: null,
   },
 };
@@ -71,21 +66,16 @@ export default function (state = initState, { type, payload }) {
       return resetResults(state, payload);
 
     case LOAD_RESULTS_FULFILLED: {
-      const { resultsType, results, numResults, hasNextPage, classyBrew } = payload;
+      const { resultsType, results, hasNextPage, classyBrew } = payload;
       // map results if type is waivers
       const mapResults = resultsType === 'waivers' && results ? addWaiversScopeProp(results) : results;
-      const pageCount = numResults ? Math.ceil(numResults / DASHBOARD_PAGE_SIZE) : 0;
-      const pageValue = state[resultsType].page ?? 0;
-      let page = null;
-      if (pageCount > 0) {
-        page = pageValue <= pageCount ? pageValue : 0;
-      }
+      let page = state[resultsType].page ?? 0;
+      let hasMultiplePages = page > 0 || hasNextPage;
       return updateResults(state, resultsType, {
         results: mapResults,
-        numResults,
         hasNextPage,
         classyBrew,
-        pageCount,
+        hasMultiplePages,
         page,
       });
     }
@@ -124,8 +114,8 @@ function resetResults(state, resultsType) {
 }
 
 function resetTabState(tabState, resetCounters) {
-  const numResults = resetCounters ? null : tabState.numResults;
-  return { ...tabState, results: null, numResults: numResults, error: null };
+  const hasMultiplePages = resetCounters ? null : tabState.hasMultiplePages;
+  return { ...tabState, results: null, hasMultiplePages: hasMultiplePages, error: null };
 }
 
 function resetAllTabs(state) {

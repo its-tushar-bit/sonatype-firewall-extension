@@ -15,7 +15,6 @@ import {
   getComponentRisks,
   getNewestRisks,
   getWaivers,
-  DASHBOARD_PAGE_SIZE,
   getWaiversAndAutoWaivers,
 } from '../services/dashboard.data.service';
 import { isNil, partial } from 'ramda';
@@ -36,10 +35,10 @@ export const SORT_RESULTS_FULFILLED = 'SORT_RESULTS_FULFILLED';
 export const RESET_ALL_TABS = 'RESET_ALL_TABS';
 export const DASHBOARD_SET_PAGE = 'DASHBOARD_SET_PAGE';
 
-function loadResultsFulfilled(resultsType, results, numResults, hasNextPage, classyBrew) {
+function loadResultsFulfilled(resultsType, results, hasNextPage, classyBrew) {
   return {
     type: LOAD_RESULTS_FULFILLED,
-    payload: { resultsType, results, numResults, hasNextPage, classyBrew },
+    payload: { resultsType, results, hasNextPage, classyBrew },
   };
 }
 
@@ -59,8 +58,8 @@ export function loadResults(resultsType) {
 
     return fetchResults(resultsType, getState())
       .then((data) => {
-        const { results, numResults, hasNextPage, classyBrew } = data;
-        dispatch(loadResultsFulfilled(resultsType, results, numResults, hasNextPage, classyBrew));
+        const { results, hasNextPage, classyBrew } = data;
+        dispatch(loadResultsFulfilled(resultsType, results, hasNextPage, classyBrew));
       })
       .catch((error) => {
         dispatch(loadResultsFailed(resultsType, error));
@@ -118,8 +117,8 @@ function sortResults(resultsType, sortFields) {
 
     const dashboardState = getState().dashboard;
     const results = dashboardState[resultsType].results;
-    const numResults = dashboardState[resultsType].numResults;
-    if (!results || numResults > DASHBOARD_PAGE_SIZE) {
+    const hasMultiplePages = dashboardState[resultsType].hasMultiplePages;
+    if (!results || hasMultiplePages) {
       return dispatch(loadResults(resultsType));
     } else {
       // sort results in frontend

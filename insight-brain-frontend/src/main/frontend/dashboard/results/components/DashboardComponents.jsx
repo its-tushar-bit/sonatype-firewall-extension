@@ -52,7 +52,6 @@ export default function DashboardComponents(props) {
 const dashboardResultsShape = PropTypes.shape({
   results: PropTypes.array,
   sortFields: PropTypes.arrayOf(PropTypes.string),
-  numResults: PropTypes.number,
   hasNextPage: PropTypes.bool,
   error: PropTypes.string,
   classyBrew: heatMapColorStylerPropTypes,

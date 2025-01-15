@@ -17,9 +17,9 @@ describe('DashboardViolations', function () {
     minimalProps = {
       violations: {
         results: {},
-        hasNextPage: true,
+        hasNextPage: false,
         sortFields: ['field'],
-        pageCount: 0,
+        hasMultiplePages: false,
         page: null,
       },
       appliedFilter: {
@@ -77,9 +77,9 @@ describe('DashboardViolations', function () {
       filtersAreDirty: true,
       violations: {
         results: null,
-        hasNextPage: true,
+        hasNextPage: false,
         sortFields: ['field'],
-        pageCount: 0,
+        hasMultiplePages: false,
         page: null,
       },
     });
@@ -91,10 +91,10 @@ describe('DashboardViolations', function () {
       filtersAreDirty: true,
       violations: {
         results: null,
-        hasNextPage: true,
+        hasNextPage: false,
         error: 'error',
         sortFields: ['field'],
-        pageCount: 0,
+        hasMultiplePages: false,
         page: null,
       },
     });

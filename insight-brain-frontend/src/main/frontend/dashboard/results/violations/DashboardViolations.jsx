@@ -59,7 +59,6 @@ export default function DashboardViolations(props) {
 
 const dashboardResultsShape = PropTypes.shape({
   results: PropTypes.array,
-  numResults: PropTypes.number,
   hasNextPage: PropTypes.bool,
   error: PropTypes.string,
   sortFields: PropTypes.arrayOf(PropTypes.string),

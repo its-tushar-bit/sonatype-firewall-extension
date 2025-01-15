@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { DASHBOARD_PAGE_SIZE } from 'MainRoot/dashboard/services/dashboard.data.service';
 import reduce from '../../../main/frontend/dashboard/dashboardReducer';
 
 describe('dashboardReducer', () => {
@@ -40,13 +39,13 @@ describe('dashboardReducer', () => {
     describe('Initial page tests', () => {
       it('shows page 0 for the violation table', () => {
         const { violations } = reduce(undefined, { type: 'UNKNOWN' });
-        expect(violations.pageCount).toBe(0);
+        expect(violations.hasMultiplePages).toBe(false);
         expect(violations.page).toBeNull();
       });
 
       it('shows page 0 for the applications table', () => {
         const { applications } = reduce(undefined, { type: 'UNKNOWN' });
-        expect(applications.pageCount).toBe(0);
+        expect(applications.hasMultiplePages).toBe(false);
         expect(applications.page).toBeNull();
       });
     });
@@ -55,18 +54,18 @@ describe('dashboardReducer', () => {
   const testResetsResults = (action) => {
     it('resets results', () => {
       const state = Object.freeze({
-        violations: { results: [], numResults: 3, error: 'foo' },
-        components: { results: [], numResults: 3, error: 'foo' },
-        applications: { results: [], numResults: 3, error: 'foo' },
-        waivers: { results: [], numResults: 3, error: 'foo' },
+        violations: { results: [], hasMultiplePages: false, error: 'foo' },
+        components: { results: [], hasMultiplePages: false, error: 'foo' },
+        applications: { results: [], hasMultiplePages: false, error: 'foo' },
+        waivers: { results: [], hasMultiplePages: false, error: 'foo' },
         other: otherObject,
       });
       const newState = reduce(state, action);
       expect(newState).toEqual({
-        violations: { results: null, numResults: null, error: null },
-        components: { results: null, numResults: null, error: null },
-        applications: { results: null, numResults: null, error: null },
-        waivers: { results: null, numResults: null, error: null },
+        violations: { results: null, hasMultiplePages: null, error: null },
+        components: { results: null, hasMultiplePages: null, error: null },
+        applications: { results: null, hasMultiplePages: null, error: null },
+        waivers: { results: null, hasMultiplePages: null, error: null },
         other: otherObject,
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
@@ -88,7 +87,7 @@ describe('dashboardReducer', () => {
   describe('LOAD_RESULTS_REQUESTED action', () => {
     it('resets violations state', () => {
       const state = Object.freeze({
-        violations: { results: [], numResults: 0, error: 'foo' },
+        violations: { results: [], error: 'foo' },
         components: { results: [], error: 'foo' },
         applications: { results: [], error: 'foo' },
         waivers: { results: [], error: 'foo' },
@@ -100,7 +99,6 @@ describe('dashboardReducer', () => {
       });
 
       expect(violations.results).toBeNull();
-      expect(violations.numResults).toBe(0);
       expect(violations.error).toBeNull();
       expect(components).toBe(state.components);
       expect(applications).toBe(state.applications);
@@ -112,7 +110,7 @@ describe('dashboardReducer', () => {
       const state = Object.freeze({
         violations: { results: [], error: 'foo' },
         components: { results: [], error: 'foo' },
-        applications: { results: [], numResults: 0, error: 'foo' },
+        applications: { results: [], error: 'foo' },
         waivers: { results: [], error: 'foo' },
         other: otherObject,
       });
@@ -122,7 +120,6 @@ describe('dashboardReducer', () => {
       });
 
       expect(applications.results).toBeNull();
-      expect(applications.numResults).toBe(0);
       expect(applications.error).toBeNull();
       expect(components).toBe(state.components);
       expect(violations).toBe(state.violations);
@@ -133,7 +130,7 @@ describe('dashboardReducer', () => {
     it('resets components state', () => {
       const state = Object.freeze({
         violations: { results: [], error: 'foo' },
-        components: { results: [], numResults: 0, error: 'foo' },
+        components: { results: [], error: 'foo' },
         applications: { results: [], error: 'foo' },
         waivers: { results: [], error: 'foo' },
         other: otherObject,
@@ -144,7 +141,6 @@ describe('dashboardReducer', () => {
       });
 
       expect(components.results).toBeNull();
-      expect(components.numResults).toBe(0);
       expect(components.error).toBeNull();
       expect(applications).toBe(state.applications);
       expect(violations).toBe(state.violations);
@@ -157,7 +153,7 @@ describe('dashboardReducer', () => {
         violations: { results: [], error: 'foo' },
         components: { results: [], error: 'foo' },
         applications: { results: [], error: 'foo' },
-        waivers: { results: [], numResults: 0, error: 'foo' },
+        waivers: { results: [], error: 'foo' },
         other: otherObject,
       });
       const { components, applications, violations, waivers, other } = reduce(state, {
@@ -166,7 +162,6 @@ describe('dashboardReducer', () => {
       });
 
       expect(waivers.results).toBeNull();
-      expect(waivers.numResults).toBe(0);
       expect(waivers.error).toBeNull();
       expect(components).toBe(state.components);
       expect(applications).toBe(state.applications);
@@ -178,7 +173,7 @@ describe('dashboardReducer', () => {
   describe('LOAD_RESULTS_FULFILLED action', () => {
     it('updates violations results', () => {
       const state = Object.freeze({
-        violations: { results: null, numResults: null },
+        violations: { results: null },
         components: { results: [] },
         applications: { results: [] },
         waivers: { results: [] },
@@ -189,13 +184,11 @@ describe('dashboardReducer', () => {
         payload: {
           resultsType: 'violations',
           results: [],
-          numResults: 0,
         },
       };
       const { violations, components, applications, waivers, other } = reduce(state, action);
 
       expect(violations.results).toBe(action.payload.results);
-      expect(violations.numResults).toBe(action.payload.numResults);
       expect(violations.classyBrew).toBeUndefined();
       expect(components).toBe(state.components);
       expect(applications).toBe(state.applications);
@@ -206,7 +199,7 @@ describe('dashboardReducer', () => {
     it('updates components results and classyBrew', () => {
       const state = Object.freeze({
         violations: { results: [] },
-        components: { results: null, numResults: 0, classyBrew: null },
+        components: { results: null, classyBrew: null },
         applications: { results: [] },
         waivers: { results: [] },
         other: otherObject,
@@ -216,14 +209,12 @@ describe('dashboardReducer', () => {
         payload: {
           resultsType: 'components',
           results: [],
-          numResults: 0,
           classyBrew: {},
         },
       };
       const { components, violations, applications, waivers, other } = reduce(state, action);
 
       expect(components.results).toBe(action.payload.results);
-      expect(components.numResults).toBe(action.payload.numResults);
       expect(components.classyBrew).toBe(action.payload.classyBrew);
       expect(violations).toBe(state.violations);
       expect(applications).toBe(state.applications);
@@ -235,7 +226,7 @@ describe('dashboardReducer', () => {
       const state = Object.freeze({
         violations: { results: [] },
         components: { results: [] },
-        applications: { results: null, numResults: null, classyBrew: null },
+        applications: { results: null, classyBrew: null },
         waivers: { results: [] },
         other: otherObject,
       });
@@ -244,14 +235,12 @@ describe('dashboardReducer', () => {
         payload: {
           resultsType: 'applications',
           results: [],
-          numResults: 0,
           classyBrew: {},
         },
       };
       const { components, violations, applications, waivers, other } = reduce(state, action);
 
       expect(applications.results).toBe(action.payload.results);
-      expect(applications.numResults).toBe(action.payload.numResults);
       expect(applications.classyBrew).toBe(action.payload.classyBrew);
       expect(violations).toBe(state.violations);
       expect(components).toBe(state.components);
@@ -264,7 +253,7 @@ describe('dashboardReducer', () => {
         violations: { results: [] },
         components: { results: [] },
         applications: { results: [] },
-        waivers: { results: null, numResults: null },
+        waivers: { results: null },
         other: otherObject,
       });
       const action = {
@@ -278,7 +267,6 @@ describe('dashboardReducer', () => {
               ownerType: 'application',
             },
           ],
-          numResults: 0,
           classyBrew: {},
         },
       };
@@ -286,7 +274,6 @@ describe('dashboardReducer', () => {
       const expectedWaiversResults = [{ ...action.payload.results[0], scope: 'Application - ownerName' }];
 
       expect(waivers.results).toEqual(expectedWaiversResults);
-      expect(waivers.numResults).toBe(action.payload.numResults);
       expect(violations).toBe(state.violations);
       expect(components).toBe(state.components);
       expect(applications).toBe(state.applications);
@@ -311,19 +298,19 @@ describe('dashboardReducer', () => {
 
     const testPaginationWithResults = (resultsType) => {
       const state = Object.freeze({
-        [resultsType]: { results: null, numResults: null, pageCount: 0, page: null },
+        [resultsType]: { results: null, hasMultiplePages: false, hasNextPage: false, page: null },
       });
       const action = {
         type: 'LOAD_RESULTS_FULFILLED',
         payload: {
           resultsType: resultsType,
           results: [...Array(10).keys()],
-          numResults: 100,
+          hasNextPage: false,
         },
       };
       const result = reduce(state, action)[resultsType];
 
-      expect(result.pageCount).toBe(Math.ceil(result.numResults / DASHBOARD_PAGE_SIZE));
+      expect(result.hasMultiplePages).toBe(false);
       expect(result.page).toBe(0);
     };
 
@@ -345,20 +332,20 @@ describe('dashboardReducer', () => {
 
     const testPaginationWithoutResults = (resultsType) => {
       const state = Object.freeze({
-        [resultsType]: { results: null, numResults: [1], pageCount: 1, page: 0 },
+        [resultsType]: { results: null, hasMultiplePages: false, hasNextPage: false, page: 0 },
       });
       const action = {
         type: 'LOAD_RESULTS_FULFILLED',
         payload: {
           resultsType: resultsType,
           results: [],
-          numResults: 0,
+          hasNextPage: false,
         },
       };
       const result = reduce(state, action)[resultsType];
 
-      expect(result.pageCount).toBe(0);
-      expect(result.page).toBeNull();
+      expect(result.hasMultiplePages).toBe(false);
+      expect(result.page).toBe(0);
     };
   });
 

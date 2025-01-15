@@ -25,7 +25,7 @@ import NeedsAcknowledgementInfoRow from '../NeedsAcknowledgementInfoRow';
 
 export default function DashboardApplicationsTable(props) {
   const {
-      applicationResults: { results, hasNextPage, sortFields, error, pageCount, page },
+      applicationResults: { results, hasNextPage, sortFields, error, hasMultiplePages, page },
       setNextApplicationsPage,
       setPreviousApplicationsPage,
       colorStyler,
@@ -33,7 +33,7 @@ export default function DashboardApplicationsTable(props) {
       reload,
       sortApplications,
     } = props,
-    currentPage = pageCount > 0 ? page : null,
+    currentPage = hasMultiplePages ? page : null,
     isLoading = !error && !results && !needsAcknowledgement,
     currentSortedColumnName = sortFields && extractSortFieldName(sortFields[0]),
     isCurrentColumnSortDescending = sortFields && sortFields[0].includes('-'),
@@ -144,11 +144,10 @@ export default function DashboardApplicationsTable(props) {
 DashboardApplicationsTable.propTypes = {
   applicationResults: PropTypes.shape({
     results: PropTypes.arrayOf(applicationPropTypes),
-    numResults: PropTypes.number,
     hasNextPage: PropTypes.bool,
     sortFields: PropTypes.arrayOf(PropTypes.string),
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
-    pageCount: PropTypes.number,
+    hasMultiplePages: PropTypes.bool,
     page: PropTypes.number,
   }),
   colorStyler: heatMapColorStylerPropTypes,

@@ -21,7 +21,7 @@ describe('DashboardApplications', function () {
           { applicationId: 'app2', totalApplicationRisk: {}, stageRisks: [] },
         ],
         sortFields: ['-totalApplicationRisk.totalRisk'],
-        pageCount: 1,
+        hasMultiplePages: false,
         page: 0,
       },
       setNextApplicationsPage: () => {},
@@ -36,12 +36,12 @@ describe('DashboardApplications', function () {
     const dashboardApplicationsProps = {
       applicationResults: {
         results: [{ applicationId: 'app1' }, { applicationId: 'app2' }],
-        hasNextPage: true,
+        hasNextPage: false,
         classyBrew: {
           isWhiteText: () => true,
           getColor: () => 'test-background-color',
         },
-        pageCount: 1,
+        hasMultiplePages: false,
         page: 0,
       },
       needsAcknowledgement: true,
@@ -53,9 +53,9 @@ describe('DashboardApplications', function () {
     expect(table).toExist();
     expect(table).toHaveProp('applicationResults', {
       results: [{ applicationId: 'app1' }, { applicationId: 'app2' }],
-      hasNextPage: true,
+      hasNextPage: false,
       classyBrew: jasmine.any(Object),
-      pageCount: 1,
+      hasMultiplePages: false,
       page: 0,
     });
     expect(table).toHaveProp('needsAcknowledgement', true);
@@ -94,7 +94,7 @@ describe('DashboardApplications', function () {
       filtersAreDirty: true,
       applicationResults: {
         results: null,
-        pageCount: 0,
+        hasMultiplePages: false,
         page: null,
       },
     });
@@ -107,7 +107,7 @@ describe('DashboardApplications', function () {
       applicationResults: {
         results: null,
         error: 'error',
-        pageCount: 0,
+        hasMultiplePages: false,
         page: null,
       },
     });

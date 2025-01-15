@@ -25,7 +25,7 @@ import { isNilOrEmpty } from '../../../util/jsUtil';
 
 export default function DashboardComponentsTable(props) {
   const {
-      componentResults: { results, hasNextPage, sortFields, error, pageCount, page },
+      componentResults: { results, hasNextPage, sortFields, error, hasMultiplePages, page },
       colorStyler,
       needsAcknowledgement,
       reload,
@@ -34,7 +34,7 @@ export default function DashboardComponentsTable(props) {
       setNextComponentsPage,
       setPreviousComponentsPage,
     } = props,
-    currentPage = pageCount > 0 ? page : null,
+    currentPage = hasMultiplePages ? page : null,
     isLoading = !error && !results && !needsAcknowledgement,
     currentSortedColumnName = sortFields && extractSortFieldName(sortFields[0]),
     isCurrentColumnSortDescending = sortFields && sortFields[0].includes('-'),
@@ -155,7 +155,7 @@ DashboardComponentsTable.propTypes = {
     hasNextPage: PropTypes.bool,
     sortFields: PropTypes.arrayOf(PropTypes.string),
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
-    pageCount: PropTypes.number,
+    hasMultiplePages: PropTypes.bool,
     page: PropTypes.number,
   }),
   colorStyler: heatMapColorStylerPropTypes,

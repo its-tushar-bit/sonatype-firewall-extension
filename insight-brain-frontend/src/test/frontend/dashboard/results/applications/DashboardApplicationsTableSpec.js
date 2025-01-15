@@ -37,7 +37,7 @@ describe('DashboardApplicationsTable', function () {
         results: [{ applicationId: 'app1' }, { applicationId: 'app2' }],
         hasNextPage: true,
         sortFields: ['-totalApplicationRisk.totalRisk'],
-        pageCount: 1,
+        hasMultiplePages: true,
         page: 0,
       },
       setNextApplicationsPage: setNextApplicationsPageSpy,
@@ -94,7 +94,7 @@ describe('DashboardApplicationsTable', function () {
       const dashboardApplicationsProps = {
         applicationResults: {
           results: [],
-          pageCount: 0,
+          hasMultiplePages: false,
           page: null,
         },
       };
@@ -110,7 +110,7 @@ describe('DashboardApplicationsTable', function () {
       const dashboardApplicationsProps = {
         applicationResults: {
           results: [],
-          pageCount: 0,
+          hasMultiplePages: false,
           page: null,
         },
         needsAcknowledgement: true,
@@ -129,7 +129,7 @@ describe('DashboardApplicationsTable', function () {
         applicationResults: {
           results: [],
           error: 'error while retrieving results',
-          pageCount: 0,
+          hasMultiplePages: false,
           page: null,
         },
       };
@@ -166,9 +166,8 @@ describe('DashboardApplicationsTable', function () {
     const defaultPropsForSortChecks = {
       applicationResults: {
         results: applicationsToDisplay,
-        numResults: 2,
         sortFields: ['-totalApplicationRisk.totalRisk'],
-        pageCount: 1,
+        hasMultiplePages: false,
         page: 0,
       },
     };
@@ -456,7 +455,7 @@ describe('DashboardApplicationsTable', function () {
           results: [],
           hasNextPage: false,
           sortFields: ['-totalApplicationRisk.totalRisk'],
-          pageCount: 1,
+          hasMultiplePages: false,
           page: null,
         },
         setNextApplicationsPage: setNextApplicationsPageSpy,
@@ -474,13 +473,13 @@ describe('DashboardApplicationsTable', function () {
         applicationResults: {
           results: [],
           sortFields: ['-totalApplicationRisk.totalRisk'],
-          pageCount: 0,
+          hasMultiplePages: false,
           page: null,
         },
         setNextApplicationsPage: setNextApplicationsPageSpy,
         setPreviousApplicationsPage: setPreviousApplicationsPageSpy,
       };
-      const props = set(lensPath(['applications', 'pageCount']), 0, minimalProps);
+      const props = set(lensPath(['applications', 'hasMultiplePages']), 0, minimalProps);
       const pagination = getShallowComponent(props).find(NxIndeterminatePagination);
       expect(pagination).not.toExist();
     });

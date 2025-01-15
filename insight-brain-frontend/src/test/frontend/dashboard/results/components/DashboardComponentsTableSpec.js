@@ -29,9 +29,9 @@ describe('DashboardComponentsTable', function () {
       stateGo: jasmine.createSpy('stateGo'),
       componentResults: {
         results: [{ hash: 'hash1' }, { hash: 'hash2' }],
-        hasNextPage: true,
+        hasNextPage: false,
         sortFields: ['-score'],
-        pageCount: 1,
+        hasMultiplePages: false,
         page: 0,
       },
     };
@@ -51,28 +51,14 @@ describe('DashboardComponentsTable', function () {
     beforeEach(function () {
       dashboardComponentMinProps = {
         componentResults: {
-          hasNexPage: true,
-          pageCount: 1,
+          hasNextPage: false,
+          hasMultiplePages: false,
           page: 0,
         },
       };
     });
 
-    it('renders a NxIndeterminatePagination with 1 page', function () {
-      const dashboardComponentTable = getShallowComponent(),
-        paginator = dashboardComponentTable.find(NxIndeterminatePagination);
-      expect(paginator).toExist();
-    });
-
-    it('does not render NxIndeterminatePagination component when there is no Next Page', function () {
-      minimalProps.componentResults.hasNextPage = false;
-      const dashboardComponentTable = getShallowComponent(),
-        paginator = dashboardComponentTable.find(NxIndeterminatePagination);
-      expect(paginator).not.toExist();
-    });
-
-    it('does not render NxIndeterminatePagination component when there are no results', function () {
-      minimalProps.componentResults.pageCount = 0;
+    it('does not render NxIndeterminatePagination with 1 page', function () {
       const dashboardComponentTable = getShallowComponent(),
         paginator = dashboardComponentTable.find(NxIndeterminatePagination);
       expect(paginator).not.toExist();
@@ -173,7 +159,7 @@ describe('DashboardComponentsTable', function () {
   describe('Column sorting', function () {
     const dashboardComponentMinProps = {
       componentResults: {
-        pageCount: 1,
+        hasMultiplePages: false,
         page: 0,
       },
     };

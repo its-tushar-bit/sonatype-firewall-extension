@@ -74,12 +74,12 @@ public class SbomComponentsServiceTest
         tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE,
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate componentA =
-        tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae43",thirdPartyFile, "s1",
+        tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae43", thirdPartyFile, "s1",
             "f1", "n1", "v1", "1249e25aebb15358bedd",
             "pkg:f1/group/n1@v1?type=jar", List.of("dependency:/bom.json/pkg:f1\\n1@v1"), null, null);
 
     ThirdPartyFileCoordinate componentB =
-        tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae42",thirdPartyFile, "s2",
+        tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae42", thirdPartyFile, "s2",
             "f2", "n2", "v2", "1249e25aebb15358bedw",
             "pkg:f2/group/n2@v2?type=jar",
             List.of("dependency:/bom.json/pkg:f1\\n1@v1,dependency:/bom.json/pkg:f2\\n2@v2"), null, "exact");
@@ -152,10 +152,10 @@ public class SbomComponentsServiceTest
 
     long now = System.currentTimeMillis();
     ThirdPartySbomMetadata sbomMetadataPrevious =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFilePrevious.getId(), app.getId(),"1.0.0", ACTIVE,
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFilePrevious.getId(), app.getId(), "1.0.0", ACTIVE,
             thirdPartyFilePrevious.getFilename(), "CycloneDx", "XML", "1.5", new Date(now - 1));
     ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(),"1.0.1", ACTIVE,
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "1.0.1", ACTIVE,
             thirdPartyFile.getFilename(), "CycloneDx", "XML", "1.5", new Date(now + 1));
     ThirdPartyFileCoordinate previousComponentA =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFilePrevious, "s1", "f1", "n1", "v1", "1249e25aebb15358bedd",
@@ -206,10 +206,6 @@ public class SbomComponentsServiceTest
     CDPSbomComponentDetailsDTO actualB =
         service.getSbomComponentDetails(app.getId(), sbomMetadata.getSbomVersion(), componentB.getHash());
 
-    VulnerabilityAnalysisForSbomVersion previousAnnotation1a =
-        new VulnerabilityAnalysisForSbomVersion(sbomMetadataPrevious.getSbomVersion(), "resolved1a",
-            "code_not_reachable1a", "response1a", null);
-
     VulnerabilityAnalysisForSbomVersion previousAnnotation3a =
         new VulnerabilityAnalysisForSbomVersion(sbomMetadataPrevious.getSbomVersion(), "resolved3a",
             "code_not_reachable3a", "response3a", null);
@@ -227,15 +223,118 @@ public class SbomComponentsServiceTest
         .endsWith("'detail3a'");
 
     assertThat(actualB.getDisclosedVulnerabilities()).hasSize(2);
-    assertThat(actualB.getDisclosedVulnerabilities().get(0).getLatestPreviousAnnotation()).isNotNull()
-        .usingRecursiveComparison()
-        .ignoringFields("detail")
-        .isEqualTo(previousAnnotation1a);
-    assertThat(actualB.getDisclosedVulnerabilities().get(0).getLatestPreviousAnnotation().getDetail())
-        .contains("'detail1a'");
+    assertThat(actualB.getDisclosedVulnerabilities().get(0).getLatestPreviousAnnotation()).isNull();
     assertThat(actualB.getDisclosedVulnerabilities().get(1).getLatestPreviousAnnotation()).isNull();
 
     assertThat(actualB.getSonatypeIdentifiedVulnerabilities()).isEmpty();
+  }
+
+  @Test
+  public void testGetSbomComponentDetails_LatestPreviousAnnotation_Components_SameAndDifferent_VersionsMatched()
+      throws IOException
+  {
+    ThirdPartyFile thirdPartyFilePrevious = tempEntity.newThirdPartyFile();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
+
+    long now = System.currentTimeMillis();
+
+    // SBOM versions
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFilePrevious.getId(), app.getId(), "1.0.0", ACTIVE,
+        thirdPartyFilePrevious.getFilename(), "CycloneDx", "XML", "1.6", new Date(now - 1));
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "1.0.1", ACTIVE,
+            thirdPartyFile.getFilename(), "CycloneDx", "XML", "1.6", new Date(now + 1));
+
+    // Components for previous sbom
+    ThirdPartyFileCoordinate componentAv1PreviousSbom =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFilePrevious, "s1", "f1", "componentA", "v1",
+            "1249e25aebb15358bedd",
+            "pkg:f1/group/componentA@v1?type=jar", Collections.emptyList(), Collections.emptyList(), null);
+
+    ThirdPartyFileCoordinate componentBv1PreviousSbom =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFilePrevious, "s1", "f2", "componentB", "v1",
+            "1249e25aebb15358b201",
+            "pkg:f1/group/componentB@v1?type=jar", Collections.emptyList(), Collections.emptyList(), null);
+
+    // Components for latest sbom
+    ThirdPartyFileCoordinate componentAv1LatestSbom =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "componentA", "v1", "1249e25aebb15358bedd",
+            "pkg:f1/group/componentA@v1?type=jar", Collections.emptyList(), Collections.emptyList(), null);
+
+    ThirdPartyFileCoordinate componentAv2LatestSbom =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "componentA",
+            "v2", "1249e25aebb15358be02", "pkg:f1/group/componentA@v2?type=jar",
+            Collections.emptyList(), Collections.emptyList(), null);
+
+    ThirdPartyFileCoordinate componentBv2LatestSbom =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s2", "f2", "componentB", "v2", "1249e25aebb15358b202",
+            "pkg:f2/group/componentB@v2?type=jar", Collections.emptyList(), Collections.emptyList(), null);
+
+    // Vulnerabilities for previous Sbom
+    ThirdPartyCoordinateSecurity cve1CompAv1PreviousSbom = tempEntity.newThirdPartyCoordinateSecurity(
+        componentAv1PreviousSbom, "CVE-1", "d1", "l1", 9, "f1", "v1",
+        "cvs1", "sd1", "cwes1", "m1", "r1", "ad1", "SBOM");
+
+    ThirdPartyCoordinateSecurity cve2CompBv1PreviousSbom = tempEntity.newThirdPartyCoordinateSecurity(
+        componentBv1PreviousSbom, "CVE-2", "d2", "l2", 9, "f2", "v2",
+        "cvs2", "sd2", "cwes2", "m2", "r2", "ad2", "SBOM");
+
+    // Vulnerabilities for latest Sbom
+    tempEntity.newThirdPartyCoordinateSecurity(
+        componentAv1LatestSbom, "CVE-1", "d1", "l1", 9, "f1", "v1",
+        "cvs1", "sd1", "cwes1", "m1", "r1", "ad1", "SBOM");
+
+    ThirdPartyCoordinateSecurity cve1CompAv2LatestSbom = tempEntity.newThirdPartyCoordinateSecurity(
+        componentAv2LatestSbom, "CVE-1", "d2", "l2", 9, "f2", "v2",
+        "cvs2", "sd2", "cwes2", "m2", "r2", "ad2", "SBOM");
+
+    tempEntity.newThirdPartyCoordinateSecurity(
+        componentBv2LatestSbom, "CVE-2", "d2", "l2", 9, "f2", "v2",
+        "cvs2", "sd2", "cwes2", "m2", "r2", "ad2", "SBOM");
+
+    // VEX for component A v1 on previous sbom version
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(cve1CompAv1PreviousSbom, "CVE-1", "resolved1a",
+        "code_not_reachable1a", "response1a", "detail1a");
+
+    //// VEX for component A v2 on latest sbom version
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(cve1CompAv2LatestSbom, "CVE-1", "resolved2a",
+        "code_not_reachable2a", "response2a", "detail2a");
+
+    // VEX for component B v1 on previous sbom version
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(cve2CompBv1PreviousSbom, "CVE-2", "resolved2b",
+        "code_not_reachable2b", "response2b", "detail2b");
+
+    File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper
+        .zipReport("/SbomComponentsServiceTest", tempDir), reportFile);
+    CDPSbomComponentDetailsDTO actualA =
+        service.getSbomComponentDetails(app.getId(), sbomMetadata.getSbomVersion(), componentAv1LatestSbom.getHash());
+
+    CDPSbomComponentDetailsDTO actualAv2 =
+        service.getSbomComponentDetails(app.getId(), sbomMetadata.getSbomVersion(), componentAv2LatestSbom.getHash());
+
+    CDPSbomComponentDetailsDTO actualB =
+        service.getSbomComponentDetails(app.getId(), sbomMetadata.getSbomVersion(), componentBv2LatestSbom.getHash());
+
+    // Matching component A with same version across 2 different SBOMs. Previous vulnerability found
+    assertThat(actualA.getDisclosedVulnerabilities()).hasSize(1);
+    VulnerabilityDetailsDTO cve1Found = actualA.getDisclosedVulnerabilities().get(0);
+    assertThat(cve1Found.getIssue()).isEqualTo("CVE-1");
+    assertVulnerabilityAnalysisForSbomVersion(cve1Found.getLatestPreviousAnnotation(), "1.0.0", "resolved1a",
+        "code_not_reachable1a", "response1a", "detail1a");
+
+    // Component A v2 is only defined in the most recent SBOM. No previous annotation found
+    VulnerabilityDetailsDTO cve1FoundAgain = actualAv2.getDisclosedVulnerabilities().get(0);
+    assertThat(cve1FoundAgain.getIssue()).isEqualTo("CVE-1");
+    assertThat(cve1FoundAgain.getLatestPreviousAnnotation()).isNull();
+
+    // Matching component B with different versions across 2 different SBOMs. Previous vulnerability found
+    assertThat(actualB.getDisclosedVulnerabilities()).hasSize(1);
+    VulnerabilityDetailsDTO cve2Found = actualB.getDisclosedVulnerabilities().get(0);
+    assertThat(cve2Found.getIssue()).isEqualTo("CVE-2");
+    assertVulnerabilityAnalysisForSbomVersion(cve2Found.getLatestPreviousAnnotation(), "1.0.0", "resolved2b",
+        "code_not_reachable2b", "response2b", "detail2b");
   }
 
   @Test
@@ -247,7 +346,7 @@ public class SbomComponentsServiceTest
     ThirdPartyFileCoordinate component =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");
 
-    assertThrows( "Could not find application with id anyApp" ,
+    assertThrows("Could not find application with id anyApp",
         NotFoundException.class,
         () -> service.getSbomComponentDetails("anyApp", sbomMetadata.getSbomVersion(), component.getHash()));
   }
@@ -256,11 +355,11 @@ public class SbomComponentsServiceTest
   public void testGetSbomComponentDetails_SbomVersionNotFound() {
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE,
-            thirdPartyFile.getFilename());
+        thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate component =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");
 
-    assertThrows( "Could not find SBOM version anySbomVersion for application " + app.getId(),
+    assertThrows("Could not find SBOM version anySbomVersion for application " + app.getId(),
         NotFoundException.class,
         () -> service.getSbomComponentDetails(app.getId(), "anySbomVersion", component.getHash()));
   }
@@ -273,7 +372,7 @@ public class SbomComponentsServiceTest
             thirdPartyFile.getFilename());
     tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");
 
-    assertThrows( "Could not find component by hash anyHash",
+    assertThrows("Could not find component by hash anyHash",
         NotFoundException.class,
         () -> service.getSbomComponentDetails(app.getId(), sbomMetadata.getSbomVersion(), "anyHash"));
   }
@@ -460,7 +559,7 @@ public class SbomComponentsServiceTest
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
             "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-            "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
+        "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity1,
         "r1", "s1", "j1", "r1", "d1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
@@ -601,13 +700,13 @@ public class SbomComponentsServiceTest
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1,
             "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1,
-            "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
+        "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2,
-            "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
+        "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2,
-            "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
+        "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2,
-            "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
+        "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity1,
         "r1", "s1", "j1", "r1", "d1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
@@ -640,7 +739,7 @@ public class SbomComponentsServiceTest
         .withThirdPartyFileId(thirdPartyScan.getThirdPartyFileId())
         .build();
     tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h1", "u1", ThirdPartyDependencyType.DIRECT);
+        "s", "SPDX", "n1", "v1", "h1", "u1", ThirdPartyDependencyType.DIRECT);
 
     File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
     FileUtils.copyURLToFile(ReportHelper
@@ -678,5 +777,22 @@ public class SbomComponentsServiceTest
     assertThat(resultDto.getPolicyViolationSummary().getModerate()).isEqualTo(0);
     assertThat(resultDto.getPolicyViolationSummary().getSevere()).isEqualTo(0);
     assertThat(resultDto.getPolicyViolationSummary().getLow()).isEqualTo(0);
+  }
+
+  private void assertVulnerabilityAnalysisForSbomVersion(
+      VulnerabilityAnalysisForSbomVersion retrievedVex,
+      String sbomVersion,
+      String analysisStatus,
+      String justification,
+      String response,
+      String detail)
+  {
+    assertThat(retrievedVex).isNotNull()
+        .extracting(VulnerabilityAnalysisForSbomVersion::getSbomVersion,
+            VulnerabilityAnalysisForSbomVersion::getAnalysisStatus,
+            VulnerabilityAnalysisForSbomVersion::getJustification,
+            VulnerabilityAnalysisForSbomVersion::getResponse)
+        .containsExactly(sbomVersion, analysisStatus, justification, response);
+    assertThat(retrievedVex.getDetail()).contains(detail);
   }
 }

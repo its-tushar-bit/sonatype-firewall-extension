@@ -145,9 +145,9 @@ public class SbomComponentsService
     componentDetailsDTO.setFilenames(component.getFilenamesList());
 
     componentDetailsDTO.setDisclosedVulnerabilities(
-        getVulnerabilitiesDetails(sbomMetadata, vulnerabilityList, vexAnnotationsMap, true));
+        getVulnerabilitiesDetails(sbomMetadata, vulnerabilityList, vexAnnotationsMap, component, true));
     componentDetailsDTO.setSonatypeIdentifiedVulnerabilities(
-        getVulnerabilitiesDetails(sbomMetadata, vulnerabilityList, vexAnnotationsMap, false));
+        getVulnerabilitiesDetails(sbomMetadata, vulnerabilityList, vexAnnotationsMap, component,false));
 
     try {
       PolicyThreats.Component componentFound = sbomPolicyService.getPolicyViolationsByFileCoordinateIdOrHash(
@@ -218,6 +218,7 @@ public class SbomComponentsService
       ThirdPartySbomMetadata sbomMetadata,
       List<ThirdPartyCoordinateSecurity> vulnerabilityList,
       Map<String, ThirdPartyVulnerabilityExploitabilityExchange> vexAnnotationsMap,
+      ThirdPartyFileCoordinate component,
       boolean disclosedVulnerabilities)
   {
     Predicate<ThirdPartyCoordinateSecurity> isDisclosedVulnerability =
@@ -250,8 +251,13 @@ public class SbomComponentsService
           else {
             // get vex of vulnerability that was previously annotated in an earlier, most recent, SBOM version
             vulnerabilityDetailsDTO.setLatestPreviousAnnotation(
-                vexDAO.getLatestVulnerabilityAnalysisByApplicationIdAndRefId(vulnerability.getRefId(),
-                    sbomMetadata.getApplicationId(), sbomMetadata.getCreatedAt()));
+                      vexDAO.getLatestVulnerabilityAnalysisByRefIdAndCoordinates(
+                          vulnerability.getRefId(),
+                          sbomMetadata.getApplicationId(),
+                          component.getName(),
+                          component.getFormat(),
+                          sbomMetadata.getCreatedAt())
+            );
           }
 
           return vulnerabilityDetailsDTO;

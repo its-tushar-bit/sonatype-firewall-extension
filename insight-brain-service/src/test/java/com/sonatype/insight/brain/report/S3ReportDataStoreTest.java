@@ -171,17 +171,7 @@ public class S3ReportDataStoreTest
 
     assertThat(applicationReport.exists()).isTrue();
 
-    List<ReportEntry> actualEntries =
-        List.of(applicationReport.getEntry("allartifacts.json"), applicationReport.getEntry("badges.json"),
-            applicationReport.getEntry("bom.json"), applicationReport.getEntry("data.json"),
-            applicationReport.getEntry("dependencies.json"), applicationReport.getEntry("index.html"),
-            applicationReport.getEntry("licenselist.json"), applicationReport.getEntry("licenses.json"),
-            applicationReport.getEntry("licensethreats.json"), applicationReport.getEntry("partialmatched.json"),
-            applicationReport.getEntry("popularity.json"), applicationReport.getEntry("security.json"),
-            applicationReport.getEntry("summary.json"));
-
-    assertThat(actualEntries)
-        .allSatisfy(reportEntry -> assertThat(reportEntry.buf).hasSizeGreaterThan(0));
+    reportFilesArePresent(applicationReport);
   }
 
   @Test
@@ -278,6 +268,9 @@ public class S3ReportDataStoreTest
 
     objectKeys = getObjectKeys(listObjectsV2Request);
     assertThat(objectKeys).isEmpty();
+
+    // make sure other report files are still present
+    reportFilesArePresent(applicationReport);
   }
 
   @Test
@@ -298,6 +291,25 @@ public class S3ReportDataStoreTest
     assertThat(reportPdf.exists()).isTrue();
     applicationReport.deletePdfReport();
     assertThat(reportPdf.exists()).isFalse();
+
+    reportFilesArePresent(applicationReport);
+  }
+
+  /**
+   * Make sure that the standard report files are present
+   */
+  private static void reportFilesArePresent(final S3ApplicationReport applicationReport) throws IOException {
+    List<ReportEntry> actualEntries =
+        List.of(applicationReport.getEntry("allartifacts.json"), applicationReport.getEntry("badges.json"),
+            applicationReport.getEntry("bom.json"), applicationReport.getEntry("data.json"),
+            applicationReport.getEntry("dependencies.json"), applicationReport.getEntry("index.html"),
+            applicationReport.getEntry("licenselist.json"), applicationReport.getEntry("licenses.json"),
+            applicationReport.getEntry("licensethreats.json"), applicationReport.getEntry("partialmatched.json"),
+            applicationReport.getEntry("popularity.json"), applicationReport.getEntry("security.json"),
+            applicationReport.getEntry("summary.json"));
+
+    assertThat(actualEntries)
+        .allSatisfy(reportEntry -> assertThat(reportEntry.buf).hasSizeGreaterThan(0));
   }
 
   @Test

@@ -14,7 +14,7 @@ const publicAppId = 'TestApp';
 const scanId = 'testScanId';
 
 describe('PrioritiesPageHeader', () => {
-  let renderComponent;
+  let renderComponent, routerContextMock;
 
   const metadata = {
     reportTime: 1702041439230,
@@ -28,6 +28,7 @@ describe('PrioritiesPageHeader', () => {
     },
     stageId: 'build',
     commitHash: null,
+    branchName: null,
     initiator: 'admin',
     scanTriggerType: 'Continuous Integration',
     totalRisk: 138,
@@ -63,24 +64,138 @@ describe('PrioritiesPageHeader', () => {
   };
 
   beforeEach(() => {
+    routerContextMock = {
+      href: jest.fn('href').mockImplementation((stateName) => stateName),
+      get: jest.fn('get').mockImplementation((state) => state),
+    };
+
+    jest.spyOn(routerStateContext, 'useRouterState').mockReturnValue(routerContextMock);
+
     renderComponent = (preloadedState) =>
       render(<PrioritiesPageHeader />, { preloadedState: preloadedState || defaultPreloadedState });
   });
 
-  it('renders a header with the app name', () => {
-    renderComponent();
-    expect(screen.getByRole('heading', { name: 'TestApp - Priorities' })).toBeInTheDocument();
+  describe('renders a header with correct title', () => {
+    it('when branchName is null, renders "X App - Priorities" title', () => {
+      renderComponent();
+      expect(screen.getByRole('heading', { name: 'TestApp - Priorities' })).toBeInTheDocument();
+    });
+
+    it('when branchName === main, renders "Main Branch Priorities" title', () => {
+      const preloadedState = {
+        applicationReport: {
+          ...defaultPreloadedState.applicationReport,
+          metadata: {
+            ...metadata,
+            branchName: 'main',
+          },
+        },
+      };
+      renderComponent(preloadedState);
+      expect(screen.getByRole('heading', { name: 'Main Branch Priorities' })).toBeInTheDocument();
+    });
+
+    it('when branchName === master, renders "Master Branch Priorities" title', () => {
+      const preloadedState = {
+        applicationReport: {
+          ...defaultPreloadedState.applicationReport,
+          metadata: {
+            ...metadata,
+            branchName: 'master',
+          },
+        },
+      };
+      renderComponent(preloadedState);
+      expect(screen.getByRole('heading', { name: 'Master Branch Priorities' })).toBeInTheDocument();
+    });
+
+    it('when branchName === develop, renders "Develop Branch Priorities" title', () => {
+      const preloadedState = {
+        applicationReport: {
+          ...defaultPreloadedState.applicationReport,
+          metadata: {
+            ...metadata,
+            branchName: 'develop',
+          },
+        },
+      };
+      renderComponent(preloadedState);
+      expect(screen.getByRole('heading', { name: 'Develop Branch Priorities' })).toBeInTheDocument();
+    });
+
+    it('when branchName is not null, renders "Feature Branch Priorities" title', () => {
+      const preloadedState = {
+        applicationReport: {
+          ...defaultPreloadedState.applicationReport,
+          metadata: {
+            ...metadata,
+            branchName: 'featureBranch',
+          },
+        },
+      };
+      renderComponent(preloadedState);
+      expect(screen.getByRole('heading', { name: 'Feature Branch Priorities' })).toBeInTheDocument();
+    });
+  });
+
+  describe('breadcrumbs', () => {
+    it('renders a "Developer Dashboard" link when navigated from the Developer Dashboard', async () => {
+      renderComponent();
+      const dashboardLink = await screen.findByRole('link', { name: /developer dashboard/i });
+      expect(dashboardLink).toBeInTheDocument();
+      expect(dashboardLink).toHaveAttribute('href', 'developer.dashboard');
+    });
+
+    it('renders a "Priorities" link when navigated from Priorities Reports page', async () => {
+      const preloadedState = {
+        router: {
+          ...defaultPreloadedState.router,
+          currentState: {
+            name: 'prioritiesPageFromReports',
+          },
+        },
+      };
+
+      renderComponent(preloadedState);
+      const prioritiesLink = await screen.findByRole('link', { name: /priorities/i });
+      expect(prioritiesLink).toBeInTheDocument();
+      expect(prioritiesLink).toHaveAttribute('href', 'developer.reports');
+    });
+
+    it('renders a "Developer Dashboard" link when navigated from an unknown page', async () => {
+      const preloadedState = {
+        router: {
+          ...defaultPreloadedState.router,
+          currentState: {
+            name: 'unknownState',
+          },
+        },
+      };
+
+      renderComponent(preloadedState);
+      const dashboardLink = await screen.findByRole('link', { name: /developer dashboard/i });
+      expect(dashboardLink).toBeInTheDocument();
+      expect(dashboardLink).toHaveAttribute('href', 'developer.dashboard');
+    });
+
+    it('renders the branchName if present', () => {
+      const branchName = 'testBranch';
+      const preloadedState = {
+        applicationReport: {
+          ...defaultPreloadedState.applicationReport,
+          metadata: {
+            ...metadata,
+            branchName,
+          },
+        },
+      };
+
+      renderComponent(preloadedState);
+      expect(screen.getByText(branchName)).toBeInTheDocument();
+    });
   });
 
   describe('header actions', () => {
-    beforeEach(() => {
-      const routerContextMock = {
-        href: jest.fn('href').mockImplementation((stateName) => stateName),
-        get: jest.fn('get').mockImplementation((state) => state),
-      };
-      jest.spyOn(routerStateContext, 'useRouterState').mockReturnValue(routerContextMock);
-    });
-
     describe('view dropdown', () => {
       it('renders a "View" dropdown with options', async () => {
         renderComponent();

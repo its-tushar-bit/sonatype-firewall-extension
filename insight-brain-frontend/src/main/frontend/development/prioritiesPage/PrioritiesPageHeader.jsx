@@ -13,17 +13,24 @@ import {
   NxH2,
   NxStatefulDropdown,
   NxTextLink,
+  NxOverflowTooltip,
 } from '@sonatype/react-shared-components';
-import { selectRouterCurrentParams, selectPrioritiesPageContainerName } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectRouterCurrentParams,
+  selectPrioritiesPageContainerName,
+  selectCurrentRouteName,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectApplicationReportMetaData,
   selectDependencyTreeIsAvailable,
   selectDependencyTreeUnavailableMessage,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
-import { faCheckCircle, faExclamationCircle, faExternalLinkAlt } from '@fortawesome/pro-solid-svg-icons';
+import { faCheckCircle, faCodeBranch, faExclamationCircle, faExternalLinkAlt } from '@fortawesome/pro-solid-svg-icons';
 import { faCopy } from '@fortawesome/pro-regular-svg-icons';
 import moment from 'moment';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { isNil } from 'ramda';
+import { capitalizeFirstLetter } from 'MainRoot/util/jsUtil';
 
 const stageMap = {
   build: 'Build',
@@ -35,12 +42,15 @@ const stageMap = {
 
 const COPY_STATUS_TOOLTIP_TIMEOUT = 1500;
 
+const commonDefaultBranchNames = ['master', 'main', 'develop'];
+
 const formatDate = (date) => moment(date).format('YYYY-MM-DD HH:mm:ss [UTC]ZZ');
 
 export default function PrioritiesPageHeader() {
   const uiRouterState = useRouterState();
 
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
+  const currentRouteName = useSelector(selectCurrentRouteName);
   const dependencyTreeIsAvailable = useSelector(selectDependencyTreeIsAvailable);
   const dependencyTreeUnavailableMessage = useSelector(selectDependencyTreeUnavailableMessage);
   const prioritiesPageContainerName = useSelector(selectPrioritiesPageContainerName);
@@ -54,7 +64,8 @@ export default function PrioritiesPageHeader() {
 
   const metadata = useSelector(selectApplicationReportMetaData);
 
-  const { scanTriggerType, forMonitoring, reevaluation, reportTime, commitHash, stageId, application } = metadata || {};
+  const { scanTriggerType, forMonitoring, reevaluation, reportTime, commitHash, stageId, application, branchName } =
+    metadata || {};
 
   const appName = application?.name;
   const triggerText = scanTriggerType
@@ -72,22 +83,52 @@ export default function PrioritiesPageHeader() {
     scanId,
   });
 
-  const reportsHref = uiRouterState.href('developer.reports');
+  const getDynamicHrefForBreadcrumbs = () => {
+    if (currentRouteName === 'prioritiesPageFromReports') {
+      return {
+        href: uiRouterState.href('developer.reports'),
+        text: 'Priorities',
+      };
+    }
+    return {
+      href: uiRouterState.href('developer.dashboard'),
+      text: 'Developer Dashboard',
+    };
+  };
+
+  const { href, text } = getDynamicHrefForBreadcrumbs();
+  const getTitle = () => {
+    if (isNil(branchName)) {
+      return `${appName} - Priorities`;
+    } else if (commonDefaultBranchNames.includes(branchName.toLowerCase())) {
+      return `${capitalizeFirstLetter(branchName)} Branch Priorities`;
+    } else {
+      return 'Feature Branch Priorities';
+    }
+  };
 
   return (
     <div className="iq-priorities-page-header" data-testid="iq-priorities-page-summary-section">
       <div className="iq-priorities-page-header-actions">
         <div className="iq-priorities-page-breadcrumbs">
-          <NxTextLink href={reportsHref}>Priorities</NxTextLink>
-          <span>/</span>
-          <span>{appName}</span>
-          {/* When Branch Info Is Available
-            <span>/</span>
-            <span>
-              <NxFontAwesomeIcon icon={faCodeBranch} /> <NxCode>main</NxCode>
-            </span> */}
+          <span className="iq-priorities-page-breadcrumbs-crumb">
+            <NxTextLink className="iq-priorities-page-breadcrumbs-crumb" href={href}>
+              {text}
+            </NxTextLink>
+          </span>
+          <span className="iq-priorities-page-breadcrumbs-crumb">{appName}</span>
+          {branchName && (
+            <>
+              <NxOverflowTooltip>
+                <span className="nx-truncate-ellipsis iq-priorities-page-branch-name iq-priorities-page-breadcrumbs-crumb">
+                  <NxFontAwesomeIcon icon={faCodeBranch} />
+                  <NxCode>{branchName}</NxCode>
+                </span>
+              </NxOverflowTooltip>
+            </>
+          )}
         </div>
-        <div className="iq-priorities-page-breadcrumbs-view-dropdown-container">
+        <div>
           <NxStatefulDropdown label="View" className="iq-priorities-page-view-dropdown">
             <a className="nx-dropdown-link" href={lifecycleReportHref} target="_blank" rel="noreferrer">
               <span>Lifecycle Report</span>
@@ -106,7 +147,7 @@ export default function PrioritiesPageHeader() {
         </div>
       </div>
       <div className="iq-priorities-page-header-title">
-        <NxH2>{appName} - Priorities</NxH2>
+        <NxH2>{getTitle()}</NxH2>
         <div className="iq-priorities-page-header-title-metadata">
           <TriggerText triggerText={triggerText} />
           <Timestamp reportTime={reportTime} />

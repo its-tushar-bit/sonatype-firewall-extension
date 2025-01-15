@@ -38,10 +38,23 @@ priorities-page {
     }
 
     .iq-priorities-page-header-actions {
+      align-items: center;
       .iq-priorities-page-breadcrumbs {
         display: flex;
         gap: var(--nx-spacing-2x);
         font-size: 14px;
+
+        .iq-priorities-page-breadcrumbs-crumb {
+          &::after {
+            content: '/';
+            margin-left: var(--nx-spacing-2x);
+            color: var(--nx-color-text-stark);
+          }
+
+          &:last-child::after {
+            content: none;
+          }
+        }
 
         svg {
           margin-left: 0;
@@ -49,6 +62,10 @@ priorities-page {
 
         .nx-code {
           font-size: 16px;
+        }
+
+        .iq-priorities-page-branch-name {
+          max-width: var(--nx-width-text-wrapping);
         }
       }
     }

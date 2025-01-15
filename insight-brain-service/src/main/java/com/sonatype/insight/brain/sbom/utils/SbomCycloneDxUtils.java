@@ -63,6 +63,8 @@ public class SbomCycloneDxUtils
 
   public static final String PROPERTY_SONATYPE_IDENTIFIER = "sonatypeIdentifier";
 
+  public static final String PROPERTY_COMPONENT_REFERENCE = "componentReference";
+
   public static final String VULNERABILITY_KEY = "vulnerabilities";
 
   private SbomCycloneDxUtils() {

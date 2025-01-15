@@ -57,6 +57,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.spdx.library.model.SpdxDocument;
 
+import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.entry;
@@ -110,7 +111,6 @@ public class SpdxResultHandlerTest
     thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
     thirdPartyScanContext = mock(ThirdPartyScanContext.class);
     multiLicenseDAO = daoFactory.createMultiLicenseDAO();
-
     spdxResultHandler =
         new SpdxResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
@@ -139,11 +139,12 @@ public class SpdxResultHandlerTest
             "pkg:generic/org.apache.logging.log4j/log4j-api@2.13.2?sbom_type=library",
             null);
     assertThat(components).extracting("properties.size")
-        .containsOnly(1, 1, 1, 1);
+        .containsOnly(2, 2, 2, 2);
     // 1 component hash was collected
     assertThat(components.get(3).getProperties())
         .flatExtracting(Property::getValue)
         .contains("9188560f22e0b73070d2");
+    assertComponentRef(thirdPartyFile.getId());
   }
 
   @Test
@@ -169,11 +170,12 @@ public class SpdxResultHandlerTest
             "pkg:generic/apache/log4j@2.11.2?update=rc3",
             null);
     assertThat(components).extracting("properties.size")
-        .containsOnly(1, 1, 1, 1, 1);
+        .containsOnly(2, 2, 2, 2, 2);
     // 1 component hash was collected
     assertThat(components.get(4).getProperties())
         .flatExtracting(Property::getValue)
         .contains("9188560f22e0b73070d2");
+    assertComponentRef(thirdPartyFile.getId());
   }
 
   @Test
@@ -190,10 +192,11 @@ public class SpdxResultHandlerTest
     assertThat(components).extracting(Component::getVersion).containsOnly("9.0.14");
     assertThat(components).extracting(Component::getPurl)
         .containsExactly("pkg:generic/tomcat-catalina@9.0.14?sbom_type=application");
-    assertThat(components).extracting("properties.size").containsOnly(2);
+    assertThat(components).extracting("properties.size").containsOnly(3);
     assertThat(components.get(0).getProperties())
         .flatExtracting(Property::getValue)
         .contains("e7b1000b94e835ffd37f");
+    assertComponentRef(thirdPartyFile.getId());
   }
 
   @Test
@@ -211,7 +214,7 @@ public class SpdxResultHandlerTest
 
     assertThat(components).extracting(Component::getPurl)
         .containsExactly("pkg:generic/red_inc./fonts-filesystem@2.0.5");
-
+    assertComponentRef(thirdPartyFile.getId());
     assertDebugLogOutput("Invalid purl: pkg:rpm/fonts-filesystem@2.0.5");
   }
 
@@ -295,6 +298,7 @@ public class SpdxResultHandlerTest
             "pkg:maven/org.hamcrest/hamcrest-core@1.3?type=jar",
             "pkg:maven/org.apache.logging.log4j/log4j-api@2.13.2?type=jar",
             "pkg:maven/org.yaml/snakeyaml@1.29?type=jar");
+    assertComponentRef(thirdPartyFile.getId());
   }
 
   @Test
@@ -318,6 +322,7 @@ public class SpdxResultHandlerTest
             "pkg:maven/org.hamcrest/hamcrest-core@1.3?type=jar",
             "pkg:maven/org.apache.logging.log4j/log4j-api@2.13.2?type=jar",
             "pkg:maven/org.yaml/snakeyaml@1.29?type=jar");
+    assertComponentRef(thirdPartyFile.getId());
   }
 
   @Test
@@ -339,6 +344,7 @@ public class SpdxResultHandlerTest
             "pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar",
             "pkg:generic/sonatype/iq_application_SCM%20Test%201@76b10b862e7b42009f2415097620928c?sbom_type=" +
                 "application");
+    assertComponentRef(thirdPartyFile.getId());
   }
 
   @Test
@@ -401,6 +407,7 @@ public class SpdxResultHandlerTest
           "Not Provided"
       );
     }
+    assertComponentRef(thirdPartyFile.getId());
   }
 
   @Test
@@ -441,6 +448,7 @@ public class SpdxResultHandlerTest
       assertThat(allSecurityRecords).allMatch(
           s -> s.getSbomMetadataId().equals(thirdPartyScanContext.getSbomMetadataId()));
     }
+    assertComponentRef(thirdPartyFile.getId());
   }
 
   @Test
@@ -452,7 +460,7 @@ public class SpdxResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = spdxResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 3, Algorithm.SHA_256);
-
+    assertComponentRef(thirdPartyFile.getId());
     SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(false);
   }
 
@@ -472,9 +480,9 @@ public class SpdxResultHandlerTest
     assertThat(actualFilteredBom.getComponents()).hasSize(1);
     Component actualComponent = actualFilteredBom.getComponents().get(0);
     assertThat(actualComponent.getName()).isEqualTo("django");
-    assertThat(actualComponent.getProperties()).size().isEqualTo(1);
-    assertThat(actualComponent.getProperties().get(0).getName()).isEqualTo(
-        SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
+    assertThat(actualComponent.getProperties()).size().isEqualTo(2);
+    assertThat(actualComponent.getProperties().get(0).getName())
+        .isEqualTo(SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
     assertThat(actualComponent.getProperties().get(0).getValue()).isEqualTo("9188560f22e0b73070d2");
     assertThat(actualComponent.getVersion()).isNull();
     assertThat(actualComponent.getHashes()).isNull();
@@ -522,6 +530,7 @@ public class SpdxResultHandlerTest
       assertParentAndChildDependency(rootDependencies, "pkg:maven/junit/junit@4.12?type=jar",
           "pkg:maven/org.hamcrest/hamcrest-core@1.3?type=jar");
     });
+    assertComponentRef(thirdPartyFile.getId());
   }
 
   @Test
@@ -542,6 +551,7 @@ public class SpdxResultHandlerTest
         new ThirdPartyFile("spdx-no-root.json", new Date()));
 
     assertThat(result).isEmpty();
+    assertComponentRef(thirdPartyFile.getId());
   }
 
   @Test
@@ -562,6 +572,7 @@ public class SpdxResultHandlerTest
         new ThirdPartyFile("spdx-no-dep-graph.json", new Date()));
 
     assertThat(result).isEmpty();
+    assertComponentRef(thirdPartyFile.getId());
   }
 
   private void assertParentAndChildDependency(
@@ -638,6 +649,8 @@ public class SpdxResultHandlerTest
     assertThat(componentInfoTelemetry.getHasDependencies()).isEqualTo(true);
     assertThat(componentInfoTelemetry.getValidLicensesCount()).isEqualTo(2);
     assertThat(componentInfoTelemetry.getInvalidLicensesCount()).isEqualTo(0);
+
+    assertComponentRef(thirdPartyFile.getId());
   }
 
   @Test
@@ -665,6 +678,8 @@ public class SpdxResultHandlerTest
     SbomComponentInfoTelemetry componentInfoTelemetry =
         (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
     assertThat(componentInfoTelemetry.getHasDependencies()).isEqualTo(false);
+
+    assertComponentRef(thirdPartyFile.getId());
   }
 
   @Test
@@ -699,6 +714,8 @@ public class SpdxResultHandlerTest
     assertThat(componentInfoTelemetry.getSwidCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getCoordinateCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("generic", 1), entry("maven", 1));
+
+    assertComponentRef(thirdPartyFile.getId());
   }
 
   @Test
@@ -734,6 +751,8 @@ public class SpdxResultHandlerTest
     assertThat(componentInfoTelemetry.getHashCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getCoordinateCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("generic", 3), entry("maven", 1));
+
+    assertComponentRef(thirdPartyFile.getId());
   }
 
   @Test
@@ -767,6 +786,8 @@ public class SpdxResultHandlerTest
     assertThat(componentInfoTelemetry.getContentType()).isEqualTo("XML");
     assertThat(componentInfoTelemetry.getSpec()).isEqualTo("SPDX");
     assertThat(componentInfoTelemetry.getSpecVersion()).isEqualTo("SPDX-2.3");
+
+    assertComponentRef(thirdPartyFile.getId());
   }
 
   private void assertCpeAndSwid(ThirdPartyScanContent content) throws Exception {
@@ -798,6 +819,8 @@ public class SpdxResultHandlerTest
             "\"tagId\":\"" + swidTagId + "\"}");
     assertThat(thirdPartyFileCoordinate.getIdentificationSources())
         .isEqualTo(SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE);
+
+    assertComponentRef(thirdPartyFile.getId());
   }
 
   private String getSbomFile(final String fileType, final String fileName) throws Exception {
@@ -834,7 +857,7 @@ public class SpdxResultHandlerTest
       assertThat(component.getType()).isNotNull();
       assertThat(component).satisfiesAnyOf(
           c -> assertThat(c.getVersion()).isNotNull(),
-          c -> assertThat(c.getProperties()).hasSize(1)
+          c -> assertThat(c.getProperties()).hasSize(2)
       );
 
       if (checksumAlgorithm != null) {
@@ -847,14 +870,24 @@ public class SpdxResultHandlerTest
 
       if (component.getPurl() != null && !component.getProperties().isEmpty()) {
         assertThat(component.getProperties().stream()
-            .filter(p -> p.getName().equals(SbomCycloneDxUtils.PROPERTY_SONATYPE_IDENTIFIER)).findFirst()
-            .orElse(null)).isNotNull();
+            .filter(property -> property.getName().equals(SbomCycloneDxUtils.PROPERTY_SONATYPE_IDENTIFIER))
+            .findFirst()).isNotEmpty().satisfies(property -> assertThat(property.get().getValue()).isNotBlank());
       }
+
+      assertThat(component.getProperties().stream().filter(p -> p.getName().equals(PROPERTY_COMPONENT_REFERENCE))
+          .findFirst()).isNotEmpty();
     }
     return bom;
   }
 
   private void assertDebugLogOutput(final String message) {
     assertThat(logOutput.getDebugMessages(loggerName)).contains(message);
+  }
+
+  private void assertComponentRef(String thirdPartyFileId) {
+    List<ThirdPartyFileCoordinate> thirdPartyFileCoordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFileId);
+    assertThat(thirdPartyFileCoordinates).isNotEmpty()
+        .allSatisfy(tpfc -> assertThat(tpfc.getComponentRef()).isNotBlank());
   }
 }

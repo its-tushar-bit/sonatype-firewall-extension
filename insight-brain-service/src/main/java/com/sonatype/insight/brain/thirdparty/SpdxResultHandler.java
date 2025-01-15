@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLice
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.sbom.export.SbomExportUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
@@ -87,6 +88,7 @@ import org.spdx.library.model.license.SpdxNoneLicense;
 import us.springett.parsers.cpe.util.Validate;
 
 import static com.sonatype.insight.brain.sbom.SbomSpecification.SPDX;
+import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REFERENCE;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedThirdPartyIdentificationSource;
 
 public class SpdxResultHandler
@@ -223,6 +225,9 @@ public class SpdxResultHandler
     try {
       Pair<ComponentIdentifier, Component> resolvedComponent = getResolvedComponent(spdxPackage, rootPackageId);
       if (resolvedComponent != null) {
+        String componentRef = SbomIdentityUtils.getComponentRef(spdxPackage);
+        resolvedComponent.getRight()
+            .addProperty(SbomExportUtils.createCycloneDxProperty(PROPERTY_COMPONENT_REFERENCE, componentRef));
         getCpe(spdxPackage).ifPresent(cpe -> {
           if (StringUtils.isNotEmpty(cpe) && Validate.cpe(cpe).isValid()) {
             resolvedComponent.getRight().setCpe(cpe);
@@ -239,8 +244,8 @@ public class SpdxResultHandler
         }
         else if (resolvedComponents.add(componentIdentifier)) {
           PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).ensureCompleteIdentifier();
-          String coordinateId =
-              saveComponent(thirdPartyFileId, thirdPartyIdentificationSource, spdxPackage, resolvedComponent, tx);
+          String coordinateId = saveComponent(thirdPartyFileId, thirdPartyIdentificationSource, spdxPackage,
+              resolvedComponent, componentRef, tx);
           if (StringUtils.isNotBlank(spdxPackage.getId())) {
             componentRefs.put(spdxPackage.getId(), coordinateId);
           }
@@ -268,6 +273,7 @@ public class SpdxResultHandler
       final String thirdPartyIdentificationSource,
       final SpdxPackage spdxPackage,
       final Pair<ComponentIdentifier, Component> resolvedComponent,
+      final String componentRef,
       final TransactionContext tx) throws InvalidSPDXAnalysisException, JsonProcessingException
   {
     Component component = resolvedComponent.getRight();
@@ -291,6 +297,9 @@ public class SpdxResultHandler
     if (component.getSwid() != null) {
       componentInfoTelemetry.incrementSwidCount();
       fileCoordinate.setSwid(ThirdPartyComponentDAO.MAPPER.writeValueAsString(component.getSwid()));
+    }
+    if (StringUtils.isNotEmpty(componentRef)) {
+      fileCoordinate.setComponentRef(componentRef);
     }
     fileCoordinate.setIdentificationSources(SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE);
     componentInfoTelemetry.incrementEcosystemCount(fileCoordinate.getFormat());

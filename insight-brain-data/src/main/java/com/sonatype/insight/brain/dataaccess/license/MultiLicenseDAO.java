@@ -78,6 +78,15 @@ public class MultiLicenseDAO
     return multiLicense;
   }
 
+  @Override
+  public MultiLicense getByIdNotNull(String id) {
+    MultiLicense license = getById(id);
+    if (license == null) {
+      throw new NotFoundException("A multi-license with ID '" + id + "' does not exist.");
+    }
+    return license;
+  }
+
   public MultiLicense getByName(String name) {
     if (multiLicensesByName == null) {
       load();

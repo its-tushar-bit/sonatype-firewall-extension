@@ -18,7 +18,7 @@ const mapStateToProps = ({ applicationReport, vulnerabilityDetailsModal, router 
   return {
     ...pick(['loadError', 'metadata', 'rawSortConfiguration'], applicationReport),
     ...pick(['vulnerabilityId'], vulnerabilityDetailsModal),
-    ...pick(['ownerId', 'scanId'], router.currentParams),
+    ...pick(['ownerId', 'scanId', 'publicId'], router.currentParams),
     displayedEntries: (reportRawData || {}).displayedEntries,
     pendingLoadsSize: applicationReport.pendingLoads.size,
     derivedComponentNameSubstringFilter: derivedComponentName,

@@ -12,7 +12,7 @@ import ApplicationReportRawDataTable, { tablePropTypes } from './ApplicationRepo
 import ApplicationReportRawDataHeader, { metadataPropType } from './ApplicationReportRawDataHeader';
 
 export default function ApplicationReportRawData(props) {
-  const { metadata, loadReportRawData, openVulnerabilityDetailsModal, scanId, ownerId } = props;
+  const { metadata, loadReportRawData, openVulnerabilityDetailsModal, scanId, publicId } = props;
 
   useEffect(() => {
     loadReportRawData();
@@ -24,9 +24,9 @@ export default function ApplicationReportRawData(props) {
       vulnerabilityId: securityCode,
       componentIdentifier,
       extraQueryParameters: {
-        identificationSource: identificationSource || '',
+        identificationSource: identificationSource,
         scanId,
-        ownerId,
+        ownerId: publicId,
         ownerType: 'application',
       },
     });

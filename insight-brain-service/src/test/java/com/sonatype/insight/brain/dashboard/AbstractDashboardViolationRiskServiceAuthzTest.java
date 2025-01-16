@@ -27,7 +27,6 @@ abstract class AbstractDashboardViolationRiskServiceAuthzTest
         .get(null, Collections.singleton(app.getId()), null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).isEmpty();
-    assertThat(result.numResults).isEqualTo(0);
     assertThat(result.hasNextPage).isEqualTo(false);
   }
 
@@ -39,7 +38,6 @@ abstract class AbstractDashboardViolationRiskServiceAuthzTest
         .get(null, Collections.singleton(app.getId()), null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).isEmpty();
-    assertThat(result.numResults).isEqualTo(0);
     assertThat(result.hasNextPage).isEqualTo(false);
   }
 
@@ -51,7 +49,6 @@ abstract class AbstractDashboardViolationRiskServiceAuthzTest
         .get(null, Collections.singleton(app.getId()), null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
   }
 
@@ -62,7 +59,6 @@ abstract class AbstractDashboardViolationRiskServiceAuthzTest
         .get(Collections.singleton(org.getId()), null, null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).isEmpty();
-    assertThat(result.numResults).isEqualTo(0);
     assertThat(result.hasNextPage).isEqualTo(false);
   }
 
@@ -74,7 +70,6 @@ abstract class AbstractDashboardViolationRiskServiceAuthzTest
         .get(Collections.singleton(org.getId()), null, null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).isEmpty();
-    assertThat(result.numResults).isEqualTo(0);
     assertThat(result.hasNextPage).isEqualTo(false);
   }
 
@@ -86,7 +81,6 @@ abstract class AbstractDashboardViolationRiskServiceAuthzTest
         .get(Collections.singleton(org.getId()), null, null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
   }
 
@@ -97,7 +91,6 @@ abstract class AbstractDashboardViolationRiskServiceAuthzTest
         getDashboardViolationRiskService().get(null, null, null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).isEmpty();
-    assertThat(result.numResults).isEqualTo(0);
     assertThat(result.hasNextPage).isEqualTo(false);
   }
 
@@ -109,7 +102,6 @@ abstract class AbstractDashboardViolationRiskServiceAuthzTest
         getDashboardViolationRiskService().get(null, null, null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).isEmpty();
-    assertThat(result.numResults).isEqualTo(0);
     assertThat(result.hasNextPage).isEqualTo(false);
   }
 
@@ -121,7 +113,6 @@ abstract class AbstractDashboardViolationRiskServiceAuthzTest
         getDashboardViolationRiskService().get(null, null, null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
   }
 

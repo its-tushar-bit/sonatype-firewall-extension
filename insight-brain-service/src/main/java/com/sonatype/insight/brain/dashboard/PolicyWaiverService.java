@@ -19,6 +19,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.audit.AuditData;
@@ -194,8 +195,6 @@ public class PolicyWaiverService
     filteredWaiverDTOs.sort(dashboardPolicyWaiverDTOComparator);
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> resultsDTO = new DashboardResultsDTO<>();
-    resultsDTO.numResults = filteredWaiverDTOs.size();
-
     if (filteredWaiverDTOs.isEmpty()) {
       resultsDTO.dashboardResults = new ArrayList<>();
     }
@@ -206,7 +205,6 @@ public class PolicyWaiverService
       resultsDTO.hasNextPage = pages.size() > (page + 1);
     }
 
-    AuditData.get().setData("resultRecordCount", resultsDTO.numResults);
     log.debug("getDashboardPolicyWaivers: Finished in {} ms", System.currentTimeMillis() - start);
 
     return resultsDTO;

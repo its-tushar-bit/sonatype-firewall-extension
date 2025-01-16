@@ -85,8 +85,6 @@ abstract class AbstractDashboardViolationRiskService
         load(applications, stageTypes, policyThreatCategoryFilter, policyThreatLevelFilter,
             policyViolationStateFilter, orderBy, minDate, page, pageSize);
 
-    AuditData.get().setData("resultRecordCount", result.numResults);
-
     log.debug("get finished in {} ms", System.currentTimeMillis() - start);
 
     return result;

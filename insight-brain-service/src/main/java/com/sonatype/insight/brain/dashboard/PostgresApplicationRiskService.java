@@ -102,10 +102,7 @@ public class PostgresApplicationRiskService
       dashboardResultsDTO.hasNextPage = applicationRiskScoreDTOs.size() > pageSize;
       dashboardResultsDTO.dashboardResults = dashboardResultsDTO.hasNextPage ?
           applicationRiskScoreDTOs.subList(0, applicationRiskScoreDTOs.size() - 1) : applicationRiskScoreDTOs;
-      dashboardResultsDTO.numResults = (page * pageSize) + applicationRiskScoreDTOs.size();
     }
-
-    AuditData.get().setData("resultRecordCount", dashboardResultsDTO.numResults);
 
     log.debug("getApplicationRisks finished in {} ms", System.currentTimeMillis() - start);
 

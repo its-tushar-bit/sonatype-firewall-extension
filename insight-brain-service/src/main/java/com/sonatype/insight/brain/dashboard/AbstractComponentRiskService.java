@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.organization.ApplicationService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,8 +66,6 @@ public abstract class AbstractComponentRiskService
 
     DashboardResultsDTO<ComponentRiskDTO> result = load(applications, stageIds, policyThreatCategoryFilter,
             policyThreatLevelFilter, policyViolationStateFilter, orderBy, page, pageSize);
-
-    AuditData.get().setData("resultRecordCount", result.numResults);
 
     log.debug("getComponentRisks finished in {} ms", System.currentTimeMillis() - start);
 

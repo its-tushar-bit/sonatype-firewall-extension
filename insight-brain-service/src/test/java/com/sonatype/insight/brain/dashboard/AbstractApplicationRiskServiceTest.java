@@ -104,7 +104,6 @@ abstract class AbstractApplicationRiskServiceTest
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = getApplicationRiskService()
         .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(2);
-    assertThat(result.numResults).isEqualTo(2);
     assertThat(result.hasNextPage).isEqualTo(false);
     assertThat(result.dashboardResults.get(0).getStageRiskScore(DevelopStageType.ID)).isNull();
     assertThat(result.dashboardResults.get(1).getStageRiskScore(DevelopStageType.ID)).isNull();
@@ -128,7 +127,6 @@ abstract class AbstractApplicationRiskServiceTest
         new LinkedHashSet<>(Arrays.asList(ReleaseStageType.ID, OperateStageType.ID, BuildStageType.ID,
             StageReleaseStageType.ID)), null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
     assertThat(appDTO.stageRisks).extracting(dto -> dto.stageTypeId).containsExactly(BuildStageType.ID,
@@ -143,7 +141,6 @@ abstract class AbstractApplicationRiskServiceTest
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null, null, "-TOTAL_RISK",
             0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
     assertThat(appDTO.stageRisks).hasSize(1);
@@ -161,7 +158,6 @@ abstract class AbstractApplicationRiskServiceTest
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
             new PolicyViolationStateFilter(PolicyViolationState.WAIVED), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
     assertThat(appDTO.stageRisks).hasSize(1);
@@ -175,7 +171,6 @@ abstract class AbstractApplicationRiskServiceTest
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
             new PolicyViolationStateFilter(PolicyViolationState.LEGACY_VIOLATION), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     appDTO = result.dashboardResults.get(0);
     assertThat(appDTO.stageRisks).hasSize(1);
@@ -186,7 +181,6 @@ abstract class AbstractApplicationRiskServiceTest
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
             new PolicyViolationStateFilter(PolicyViolationState.OPEN), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     appDTO = result.dashboardResults.get(0);
     assertThat(appDTO.stageRisks).hasSize(1);
@@ -199,7 +193,6 @@ abstract class AbstractApplicationRiskServiceTest
             new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.LEGACY_VIOLATION,
                 PolicyViolationState.OPEN), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     appDTO = result.dashboardResults.get(0);
     assertThat(appDTO.stageRisks).hasSize(1);
@@ -213,7 +206,6 @@ abstract class AbstractApplicationRiskServiceTest
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = getApplicationRiskService()
         .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, 1);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(2);
     assertThat(result.hasNextPage).isEqualTo(true);
   }
 
@@ -260,7 +252,6 @@ abstract class AbstractApplicationRiskServiceTest
         Collections.singleton(app1.getId()), null, null, null, null, null, "-TOTAL_RISK", 0, 100);
 
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
     assertThat(appDTO.stageRisks).hasSize(1);

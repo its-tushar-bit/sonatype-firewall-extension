@@ -5,6 +5,16 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditService;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
@@ -18,15 +28,6 @@ import com.sonatype.insight.brain.model.ApplicationComponentRisk;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.error.exception.BadRequestException;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Named
 public class PostgresComponentRiskService
@@ -84,7 +85,6 @@ public class PostgresComponentRiskService
     else {
       result.hasNextPage = dtos.size() > pageSize;
       result.dashboardResults = result.hasNextPage ? dtos.subList(0, dtos.size() - 1) : dtos;
-      result.numResults = (page * pageSize) + dtos.size();
     }
 
     return result;

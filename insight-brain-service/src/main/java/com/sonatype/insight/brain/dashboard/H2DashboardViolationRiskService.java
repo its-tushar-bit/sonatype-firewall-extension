@@ -182,12 +182,8 @@ public class H2DashboardViolationRiskService
       int pageSize)
   {
     DashboardResultsDTO<DashboardViolationRiskDTO> result = new DashboardResultsDTO<>();
-    // This is to match the numResults value for Postgres, were we extract max pageSize+1 records from the db.
-    // For CSV export, pageSize=Integer.MAX_VALUE.
-    result.numResults =
-        Math.min(riskDTOs.size(), pageSize < Integer.MAX_VALUE ? (page * pageSize) + pageSize + 1 : Integer.MAX_VALUE);
     if (riskDTOs.isEmpty()) {
-      result.dashboardResults = new ArrayList<>();
+      result.dashboardResults = List.of();
     }
     else {
       List<List<DashboardViolationRiskDTO>> pages = Lists.partition(riskDTOs, pageSize);

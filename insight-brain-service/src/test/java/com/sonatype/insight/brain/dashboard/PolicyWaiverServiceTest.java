@@ -19,6 +19,7 @@ import java.util.TreeMap;
 import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -141,13 +142,11 @@ public class PolicyWaiverServiceTest
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(10);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(true);
     assertThat(dashboardPolicyWaivers.dashboardResults.size()).isEqualTo(2);
 
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withPageSize(3).withPage(1);
     dashboardPolicyWaivers = dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(10);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(true);
     assertThat(dashboardPolicyWaivers.dashboardResults.size()).isEqualTo(3);
 
@@ -170,7 +169,6 @@ public class PolicyWaiverServiceTest
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(10);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(true);
     assertThat(dashboardPolicyWaivers.dashboardResults.size()).isEqualTo(2);
   }
@@ -189,7 +187,6 @@ public class PolicyWaiverServiceTest
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaiversForExport(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(10);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(true);
     assertThat(dashboardPolicyWaivers.dashboardResults.size()).isEqualTo(2);
   }
@@ -208,7 +205,6 @@ public class PolicyWaiverServiceTest
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaiversForExport(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(10);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(true);
     assertThat(dashboardPolicyWaivers.dashboardResults.size()).isEqualTo(2);
   }
@@ -234,7 +230,7 @@ public class PolicyWaiverServiceTest
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(2);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(2);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults.get(0).id).isEqualTo(policyWaiverApp2.getId());
     assertThat(dashboardPolicyWaivers.dashboardResults.get(1).id).isEqualTo(policyWaiverApp1.getId());
@@ -254,7 +250,6 @@ public class PolicyWaiverServiceTest
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withPageSize(2);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(10);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(true);
     assertThat(dashboardPolicyWaivers.dashboardResults.size()).isEqualTo(2);
   }
@@ -271,7 +266,7 @@ public class PolicyWaiverServiceTest
     risksFilterDTOBuilder.withOrganizationIds(Collections.singleton(org.getId())).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(2);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(2);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertPolicyWaiverWithoutDetails(dashboardPolicyWaivers.dashboardResults.get(0), policyWaiverApp1, org);
     assertPolicyWaiverWithoutDetails(dashboardPolicyWaivers.dashboardResults.get(1), policyWaiverParentOrg1, parentOrg);
@@ -286,7 +281,7 @@ public class PolicyWaiverServiceTest
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app2.getId())).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(2);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(2);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertPolicyWaiverWithoutDetails(dashboardPolicyWaivers.dashboardResults.get(0), policyWaiverApp2, app2);
     assertPolicyWaiverWithoutDetails(dashboardPolicyWaivers.dashboardResults.get(1), policyWaiverParentOrg1, parentOrg);
@@ -325,7 +320,7 @@ public class PolicyWaiverServiceTest
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(1);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(1);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
 
     assertPolicyWaiverWithoutDetails(dashboardPolicyWaivers.dashboardResults.get(0), policyWaiver, repository);
@@ -343,7 +338,7 @@ public class PolicyWaiverServiceTest
 
     dashboardPolicyWaivers = dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(1);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(1);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
 
     assertPolicyWaiverWithoutDetails(
@@ -403,7 +398,7 @@ public class PolicyWaiverServiceTest
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.withPageSize(10).build());
 
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(4);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(4);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
 
     // added afterwards to make sure that repo container still shows even with no repo waivers
@@ -427,7 +422,7 @@ public class PolicyWaiverServiceTest
     dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.withPageSize(10).build());
 
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(5);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(5);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
   }
 
@@ -444,7 +439,7 @@ public class PolicyWaiverServiceTest
     risksFilterDTOBuilder.withTagIds(Collections.singleton(applicationCategory.getId())).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(1);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(1);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertPolicyWaiverWithoutDetails(dashboardPolicyWaivers.dashboardResults.get(0), categorizedAppWaiver,
         categorizedApplication);
@@ -452,7 +447,7 @@ public class PolicyWaiverServiceTest
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app2.getId()));
     dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(0);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(0);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
   }
 
@@ -468,7 +463,7 @@ public class PolicyWaiverServiceTest
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(1);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(1);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults.get(0).id).isEqualTo(policyWaiverApp2.getId());
     assertPolicyWaiverWithoutDetails(dashboardPolicyWaivers.dashboardResults.get(0), policyWaiverApp2, app2);
@@ -486,7 +481,7 @@ public class PolicyWaiverServiceTest
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(1);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(1);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults.get(0).id).isEqualTo(policyWaiverApp2.getId());
     assertPolicyWaiverWithoutDetails(dashboardPolicyWaivers.dashboardResults.get(0), policyWaiverApp2, app2);
@@ -505,7 +500,7 @@ public class PolicyWaiverServiceTest
         .withExpirationDate(IN_7_DAYS).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(1);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(1);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults.get(0).id).isEqualTo(policyWaiverApp2.getId());
     assertThat(dashboardPolicyWaivers.dashboardResults.get(0).expiryTime)
@@ -516,7 +511,7 @@ public class PolicyWaiverServiceTest
     dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(2);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(2);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults.get(1).id).isEqualTo(oneMonthExpiringWaiver.getId());
     assertThat(dashboardPolicyWaivers.dashboardResults.get(1).expiryTime)
@@ -527,7 +522,7 @@ public class PolicyWaiverServiceTest
     dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(1);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(1);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults.get(0).id).isEqualTo(neverExpiringWaiver.getId());
     assertThat(dashboardPolicyWaivers.dashboardResults.get(0).expiryTime).isNull();
@@ -630,7 +625,7 @@ public class PolicyWaiverServiceTest
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(3);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(3);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults.get(0).id).isEqualTo(policyWaiverNearestExpire.getId());
     assertThat(dashboardPolicyWaivers.dashboardResults.get(1).id).isEqualTo(policyWaiverApp2.getId());
@@ -651,7 +646,7 @@ public class PolicyWaiverServiceTest
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(9);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(9);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
 
     IntConsumer assertConsumer =
@@ -675,7 +670,7 @@ public class PolicyWaiverServiceTest
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(5);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(5);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults.get(0).createTime).isEqualTo(getDateMinusDays(seedDate, 4));
     assertThat(dashboardPolicyWaivers.dashboardResults.get(1).createTime).isEqualTo(getDateMinusDays(seedDate, 3));
@@ -704,7 +699,7 @@ public class PolicyWaiverServiceTest
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(5);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(5);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults.get(0).expiryTime).isEqualTo(getDatePlusDays(seedDate, 4));
     assertThat(dashboardPolicyWaivers.dashboardResults.get(1).expiryTime).isEqualTo(getDatePlusDays(seedDate, 3));
@@ -731,7 +726,7 @@ public class PolicyWaiverServiceTest
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(5);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(5);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
 
     IntConsumer assertConsumer =
@@ -755,7 +750,7 @@ public class PolicyWaiverServiceTest
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(5);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(5);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults.get(0).ownerName).isEqualTo("Root Organization");
     assertThat(dashboardPolicyWaivers.dashboardResults.get(1).ownerName).isEqualTo(org.getName());
@@ -815,7 +810,7 @@ public class PolicyWaiverServiceTest
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(7);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(7);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults.get(0).componentIdentifier.toComponentIdentifier().toString())
         .isEqualTo(componentIdentifiers.get(0).toString());
@@ -847,7 +842,7 @@ public class PolicyWaiverServiceTest
     dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(7);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(7);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults.get(0).componentIdentifier.toComponentIdentifier().toString())
         .isEqualTo(componentIdentifiers.get(2).toString());
@@ -907,7 +902,7 @@ public class PolicyWaiverServiceTest
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaiversForExport(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(2);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(2);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults.get(0).id).isEqualTo(policyWaiverApp2.getId());
     assertThat(dashboardPolicyWaivers.dashboardResults.get(1).id).isEqualTo(policyWaiverApp1.getId());
@@ -971,9 +966,9 @@ public class PolicyWaiverServiceTest
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaivers.numResults)
+    assertThat(dashboardPolicyWaivers.dashboardResults)
         .as("It should include all the waivers.")
-        .isEqualTo(4);
+        .hasSize(4);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
 
     assertThat(dashboardPolicyWaivers.dashboardResults.get(0).hash)
@@ -1043,9 +1038,9 @@ public class PolicyWaiverServiceTest
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaivers.numResults)
+    assertThat(dashboardPolicyWaivers.dashboardResults)
         .as("It should include all the waivers.")
-        .isEqualTo(3);
+        .hasSize(3);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
 
     assertThat(dashboardPolicyWaivers.dashboardResults.get(0).hash)
@@ -1106,9 +1101,9 @@ public class PolicyWaiverServiceTest
                 .withPageSize(10)
                 .build());
 
-    assertThat(dashboardPolicyWaivers.numResults)
+    assertThat(dashboardPolicyWaivers.dashboardResults)
         .as("It should not add expired waiver to the result")
-        .isEqualTo(2);
+        .hasSize(2);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
 
     List<String> actualHashList =
@@ -1170,9 +1165,9 @@ public class PolicyWaiverServiceTest
                 .withPageSize(10)
                 .build());
 
-    assertThat(dashboardPolicyWaivers.numResults)
+    assertThat(dashboardPolicyWaivers.dashboardResults)
         .as("It should add expired waiver(s) to the result if ALL expiration date filter is selected.")
-        .isEqualTo(3);
+        .hasSize(3);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
   }
 
@@ -1207,9 +1202,9 @@ public class PolicyWaiverServiceTest
                 .withPageSize(10)
                 .build());
 
-    assertThat(dashboardPolicyWaivers.numResults)
+    assertThat(dashboardPolicyWaivers.dashboardResults)
         .as("It should get the app and all the parent orgs including the root org")
-        .isEqualTo(7);
+        .hasSize(7);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
   }
 
@@ -1223,13 +1218,13 @@ public class PolicyWaiverServiceTest
     // Test without including auto waivers
     DashboardResultsDTO<DashboardPolicyWaiverDTO> result =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), false);
-    assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     assertThat(result.dashboardResults.get(0).isAutoWaiver).isFalse();
 
     // Test including auto waivers
     result = dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
-    assertThat(result.numResults).isEqualTo(2);
+    assertThat(result.dashboardResults).hasSize(2);
     assertThat(result.hasNextPage).isEqualTo(false);
     assertThat(result.dashboardResults).extracting("isAutoWaiver").containsExactlyInAnyOrder(false, true);
   }
@@ -1245,7 +1240,7 @@ public class PolicyWaiverServiceTest
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> result =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
-    assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     assertThat(result.dashboardResults.get(0).threatLevel).isEqualTo(8);
   }
@@ -1260,12 +1255,12 @@ public class PolicyWaiverServiceTest
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> result =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
-    assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.hasNextPage).isEqualTo(false);
 
     risksFilterDTOBuilder.withPolicyThreatCategories(new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE));
     result = dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
-    assertThat(result.numResults).isEqualTo(0);
+    assertThat(result.dashboardResults).hasSize(0);
     assertThat(result.hasNextPage).isEqualTo(false);
   }
 
@@ -1279,7 +1274,7 @@ public class PolicyWaiverServiceTest
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> result =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
-    assertThat(result.numResults).isEqualTo(0);
+    assertThat(result.dashboardResults).hasSize(0);
     assertThat(result.hasNextPage).isEqualTo(false);
 
     //set reachable to true
@@ -1287,7 +1282,7 @@ public class PolicyWaiverServiceTest
     autoPolicyWaiverDAO.update(autoPolicyWaiver);
 
     result = dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
-    assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.hasNextPage).isEqualTo(false);
 
   }
@@ -1303,7 +1298,7 @@ public class PolicyWaiverServiceTest
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> result =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
-    assertThat(result.numResults).isEqualTo(2);
+    assertThat(result.dashboardResults).hasSize(2);
     assertThat(result.hasNextPage).isEqualTo(false);
     assertThat(result.dashboardResults).extracting("threatLevel").containsExactly(8, 5);
   }

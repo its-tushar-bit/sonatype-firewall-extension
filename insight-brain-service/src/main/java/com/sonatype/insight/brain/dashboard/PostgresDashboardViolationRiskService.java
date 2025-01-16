@@ -135,7 +135,6 @@ public class PostgresDashboardViolationRiskService
     if (rows.size() > pageSize) {
       result.hasNextPage = true;
     }
-    result.numResults = (page * pageSize) + rows.size();
     result.dashboardResults =
         rows.stream().limit(pageSize)
             .map(row -> toDashboardViolationRiskDTO(row, constraintFactsById.get(row.constraintFactsId))).toList();

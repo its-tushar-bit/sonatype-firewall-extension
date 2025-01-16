@@ -142,7 +142,6 @@ abstract class AbstractApplicationRiskService
 
     applicationRiskScoreDTOs.sort(applicationRiskComparator);
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = new DashboardResultsDTO<>();
-    result.numResults = applicationRiskScoreDTOs.size();
 
     if (applicationRiskScoreDTOs.isEmpty()) {
       result.dashboardResults = new ArrayList<>();
@@ -152,8 +151,6 @@ abstract class AbstractApplicationRiskService
       result.dashboardResults = page >= pages.size() ? new ArrayList<>() : pages.get(page);
       result.hasNextPage = pages.size() > (page + 1);
     }
-
-    AuditData.get().setData("resultRecordCount", result.numResults);
 
     log.debug("getApplicationRisks finished in {} ms", System.currentTimeMillis() - start);
 

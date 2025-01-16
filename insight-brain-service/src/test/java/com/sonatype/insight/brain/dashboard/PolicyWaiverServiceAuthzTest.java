@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.util.Collections;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.RisksFilterDTOBuilder;
@@ -53,7 +54,6 @@ public class PolicyWaiverServiceAuthzTest
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app.getId()));
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(0);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults).isEmpty();
   }
@@ -64,7 +64,6 @@ public class PolicyWaiverServiceAuthzTest
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app.getId()));
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(0);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults).isEmpty();
   }
@@ -75,18 +74,15 @@ public class PolicyWaiverServiceAuthzTest
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app.getId()));
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults)
-        .as("At app level we should get the app the org, the parent org and the root org")
-        .isEqualTo(4);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
-    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(4);
+    assertThat(dashboardPolicyWaivers.dashboardResults)
+        .as("At app level we should get the app the org, the parent org and the root org").hasSize(4);
   }
 
   @Test
   public void getDashboardPolicyWaivers_ImplicitAllWaiversFilter_Unauthenticated() {
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(0);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults).isEmpty();
   }
@@ -96,7 +92,6 @@ public class PolicyWaiverServiceAuthzTest
     login();
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(0);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults).isEmpty();
   }
@@ -106,11 +101,10 @@ public class PolicyWaiverServiceAuthzTest
     grantReadPermission(ROOT_ORGANIZATION_ID);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults)
-        .as("We should get the apps, the parent orgs, the root org and the repositories that the user have permission")
-        .isEqualTo(6);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
-    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(6);
+    assertThat(dashboardPolicyWaivers.dashboardResults)
+        .as("We should get the apps, the parent orgs, the root org and the repositories that the user have permission")
+        .hasSize(6);
   }
 
   @Test
@@ -119,7 +113,6 @@ public class PolicyWaiverServiceAuthzTest
         .withOrganizationIds(Collections.singleton(org.getId()));
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(0);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults).isEmpty();
   }
@@ -131,7 +124,6 @@ public class PolicyWaiverServiceAuthzTest
         .withOrganizationIds(Collections.singleton(org.getId()));
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(0);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults).isEmpty();
   }
@@ -143,11 +135,9 @@ public class PolicyWaiverServiceAuthzTest
         .withOrganizationIds(Collections.singleton(org.getId()));
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults)
-        .as("At the org level we should get the org, the parent org and the root org")
-        .isEqualTo(3);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
-    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(3);
+    assertThat(dashboardPolicyWaivers.dashboardResults)
+        .as("At the org level we should get the org, the parent org and the root org").hasSize(3);
   }
 
   @Test
@@ -158,11 +148,9 @@ public class PolicyWaiverServiceAuthzTest
         .withOrganizationIds(Collections.singleton(org.getId()));
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults)
-        .as("At the org level we should get the org, the parent org and the root org")
-        .isEqualTo(3);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
-    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(3);
+    assertThat(dashboardPolicyWaivers.dashboardResults)
+        .as("At the org level we should get the org, the parent org and the root org").hasSize(3);
   }
 
   @Test
@@ -171,7 +159,6 @@ public class PolicyWaiverServiceAuthzTest
         .withRepositoryIds(Collections.singleton(repository.getId()));
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isZero();
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults.size()).isZero();
   }
@@ -183,7 +170,6 @@ public class PolicyWaiverServiceAuthzTest
         .withRepositoryIds(Collections.singleton(repository.getId()));
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isZero();
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults.size()).isZero();
   }
@@ -195,11 +181,9 @@ public class PolicyWaiverServiceAuthzTest
         .withRepositoryIds(Collections.singleton(repository.getId()));
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults)
-        .as("At the repo level we should get the repo, the repo container and the root org")
-        .isEqualTo(3);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
-    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(3);
+    assertThat(dashboardPolicyWaivers.dashboardResults)
+        .as("At the repo level we should get the repo, the repo container and the root org").hasSize(3);
   }
 
   @Test
@@ -209,11 +193,9 @@ public class PolicyWaiverServiceAuthzTest
         .withRepositoryIds(Collections.singleton(RepositoryContainer.REPOSITORY_CONTAINER_ID));
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults)
-        .as("At the repo container level we should get the repo container and the root org")
-        .isEqualTo(2);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
-    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(2);
+    assertThat(dashboardPolicyWaivers.dashboardResults)
+        .as("At the repo container level we should get the repo container and the root org").hasSize(2);
   }
 
   @Test
@@ -221,7 +203,6 @@ public class PolicyWaiverServiceAuthzTest
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app.getId())).withExpirationDate(NEVER);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(0);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults).isEmpty();
   }
@@ -232,7 +213,6 @@ public class PolicyWaiverServiceAuthzTest
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app.getId())).withExpirationDate(NEVER);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(0);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
     assertThat(dashboardPolicyWaivers.dashboardResults).isEmpty();
   }
@@ -243,10 +223,8 @@ public class PolicyWaiverServiceAuthzTest
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app.getId())).withExpirationDate(NEVER);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults)
-        .as("At app level we should get the app the org, the parent org and the root org")
-        .isEqualTo(4);
     assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
-    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(4);
+    assertThat(dashboardPolicyWaivers.dashboardResults)
+        .as("At app level we should get the app the org, the parent org and the root org").hasSize(4);
   }
 }

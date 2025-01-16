@@ -16,7 +16,5 @@ public class DashboardResultsDTO<T>
 {
   public List<T> dashboardResults;
 
-  public int numResults;
-
   public boolean hasNextPage = false;
 }

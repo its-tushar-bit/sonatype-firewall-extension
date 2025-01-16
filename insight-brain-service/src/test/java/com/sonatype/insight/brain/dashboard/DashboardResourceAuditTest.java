@@ -153,7 +153,6 @@ public class DashboardResourceAuditTest
         new ApplicationCategoryAuditDTO(null, "(Uncategorized)"), new ApplicationCategoryAuditDTO(appCategory1),
         new ApplicationCategoryAuditDTO(appCategory2));
     assertCustomData(auditDTO, "inspectedApplicationCount", 2);
-    assertCustomData(auditDTO, "resultRecordCount", 1);
   }
 
   @Test
@@ -198,7 +197,6 @@ public class DashboardResourceAuditTest
     assertSelectedApplications(auditDTO);
     assertSelectedApplicationCategories(auditDTO);
     assertCustomData(auditDTO, "inspectedApplicationCount", 1);
-    assertCustomData(auditDTO, "resultRecordCount", 0);
   }
 
   @Test
@@ -258,7 +256,6 @@ public class DashboardResourceAuditTest
     dashboardRequest(DashboardResource.GET_POLICY_WAIVERS_PATH, risksFilterDTO);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_DASHBOARD_WAIVER_LIST, null);
-    assertCustomData(auditDTO, "resultRecordCount", 4);
     assertCustomData(auditDTO, "filteredOwnersCount", 5);
   }
 
@@ -271,7 +268,6 @@ public class DashboardResourceAuditTest
     dashboardRequest(DashboardResource.GET_POLICY_WAIVERS_PATH, risksFilterDTO);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_DASHBOARD_WAIVER_LIST, null);
-    assertCustomData(auditDTO, "resultRecordCount", 4);
     assertCustomData(auditDTO, "filteredOwnersCount", 6);
   }
 
@@ -304,7 +300,6 @@ public class DashboardResourceAuditTest
 
     // Should only have information regarding the repositories and the root org
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_DASHBOARD_WAIVER_LIST, null);
-    assertCustomData(auditDTO, "resultRecordCount", 1);
     assertCustomData(auditDTO, "filteredOwnersCount", 1);
   }
 
@@ -332,7 +327,6 @@ public class DashboardResourceAuditTest
     dashboardRequest(DashboardResource.GET_POLICY_WAIVERS_EXPORT_PATH, risksFilterDTO);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_DASHBOARD_WAIVER_LIST, null);
-    assertCustomData(auditDTO, "resultRecordCount", 4);
     assertCustomData(auditDTO, "filteredOwnersCount", 5);
   }
 
@@ -345,7 +339,6 @@ public class DashboardResourceAuditTest
     dashboardRequest(DashboardResource.GET_POLICY_WAIVERS_EXPORT_PATH, risksFilterDTO);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_DASHBOARD_WAIVER_LIST, null);
-    assertCustomData(auditDTO, "resultRecordCount", 4);
     assertCustomData(auditDTO, "filteredOwnersCount", 6);
   }
 

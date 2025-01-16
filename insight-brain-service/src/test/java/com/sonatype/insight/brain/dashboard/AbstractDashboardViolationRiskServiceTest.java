@@ -125,7 +125,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         .get(null, Collections.singleton(app2.getId()), null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     DashboardViolationRiskDTO riskDTO = result.dashboardResults.get(0);
     assertDashboardViolationRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
@@ -137,7 +136,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         .get(Collections.singleton(app2.getParentOwnerId()),
             null, null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     DashboardViolationRiskDTO riskDTO = result.dashboardResults.get(0);
     assertDashboardViolationRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
@@ -152,7 +150,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         Collections.singleton(ReleaseStageType.ID), null, null, null, null, null,
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     DashboardViolationRiskDTO riskDTO = result.dashboardResults.get(0);
     assertDashboardViolationRiskDTO(riskDTO, app1, org1, policyViolation, evaluation.getTime());
@@ -168,7 +165,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         .get(null, Collections.singleton(app2.getId()), null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     DashboardViolationRiskDTO riskDTO = result.dashboardResults.get(0);
     assertDashboardViolationRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
@@ -187,7 +183,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         .get(null, null, null, Collections.singleton(app2Tag.getId()), null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     DashboardViolationRiskDTO riskDTO = result.dashboardResults.get(0);
     assertDashboardViolationRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
@@ -204,7 +199,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         null, new PolicyThreatCategoryFilter(policyViolation.getThreatCategory()), null, null, null,
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     DashboardViolationRiskDTO riskDTO = result.dashboardResults.get(0);
     assertDashboardViolationRiskDTO(riskDTO, app1, org1, policyViolation, app1PolicyEvaluation.getTime());
@@ -218,7 +212,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
     DashboardResultsDTO<DashboardViolationRiskDTO> result = getDashboardViolationRiskService().get(null, null, null,
         null, null, new PolicyThreatLevelFilter(7, 7), null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     DashboardViolationRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(result.dashboardResults).hasSize(1);
@@ -234,7 +227,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         .get(null, null, null, null, null, null, new PolicyViolationStateFilter(PolicyViolationState.WAIVED),
             null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     DashboardViolationRiskDTO riskDTO = result.dashboardResults.get(0);
     assertDashboardViolationRiskDTO(riskDTO, app1, org1, waivedViolation, app1PolicyEvaluation.getTime());
@@ -247,7 +239,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         new PolicyViolationStateFilter(PolicyViolationState.LEGACY_VIOLATION), null,
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     riskDTO = result.dashboardResults.get(0);
     assertDashboardViolationRiskDTO(riskDTO, app1, org1, legacyViolation, app1PolicyEvaluation.getTime());
@@ -256,7 +247,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         .get(null, null, null, null, null, null, new PolicyViolationStateFilter(PolicyViolationState.OPEN),
             "-AGE,-THREAT_LEVEL", DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(3);
-    assertThat(result.numResults).isEqualTo(3);
     assertThat(result.hasNextPage).isEqualTo(false);
     assertDashboardViolationRiskDTO(result.dashboardResults.get(0), app2, org2, app2PolicyViolation,
         app2PolicyEvaluation.getTime());
@@ -269,7 +259,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.LEGACY_VIOLATION,
             PolicyViolationState.OPEN), "-AGE,-THREAT_LEVEL", DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(5);
-    assertThat(result.numResults).isEqualTo(5);
     assertThat(result.hasNextPage).isEqualTo(false);
     assertDashboardViolationRiskDTO(result.dashboardResults.get(0), app2, org2, app2PolicyViolation,
         app2PolicyEvaluation.getTime());
@@ -302,7 +291,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         .get(null, null, null, null, null, null, null, "-AGE,-THREAT_LEVEL",
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 1);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(2);
     assertThat(result.hasNextPage).isEqualTo(true);
     assertDashboardViolationRiskDTO(result.dashboardResults.get(0), app2, org2, app2PolicyViolation,
         app2PolicyEvaluation.getTime());
@@ -312,7 +300,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         .get(null, null, null, null, null, null, null, "-AGE,-THREAT_LEVEL",
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1, 1);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(3);
     assertThat(result.hasNextPage).isEqualTo(true);
     assertDashboardViolationRiskDTO(result.dashboardResults.get(0), app1, org1, app1PolicyViolation,
         app1PolicyEvaluation.getTime());
@@ -335,7 +322,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         .get(null, null, null, null, null, null, null, "-AGE,-THREAT_LEVEL",
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(3);
-    assertThat(result.numResults).isEqualTo(3);
     assertThat(result.hasNextPage).isEqualTo(false);
 
     DashboardViolationRiskDTO riskDTO0 = result.dashboardResults.get(0);
@@ -366,7 +352,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         Set.of(ReleaseStageType.ID, OperateStageType.ID), null, null, null, null, "-AGE",
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(2);
-    assertThat(result.numResults).isEqualTo(2);
     assertThat(result.hasNextPage).isEqualTo(false);
 
     DashboardViolationRiskDTO riskDTO = result.dashboardResults.get(0);
@@ -400,7 +385,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
     DashboardResultsDTO<DashboardViolationRiskDTO> result = getDashboardViolationRiskService().get(null,
         Collections.singleton(app.getId()), null, null, null, null, null, null, maxDaysOld, 0, 100);
     assertThat(result.dashboardResults).isEmpty();
-    assertThat(result.numResults).isEqualTo(0);
     assertThat(result.hasNextPage).isEqualTo(false);
 
     // then run a query with no date limit
@@ -409,7 +393,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         null, null, null,
         null, maxDaysOld, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     assertDashboardViolationRiskDTO(result.dashboardResults.get(0), app, org1, oldPolicyViolation,
         oldPolicyEvaluation.getTime());
@@ -457,7 +440,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         Collections.singleton(app.getId()), null, null, null, null, null, null,
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
 
     assertDashboardViolationRiskDTO(result.dashboardResults.get(0), app, org1, policyViolation1, firstOccurrenceTime);
@@ -473,7 +455,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         Collections.singleton(ReleaseStageType.ID), null, null, null, null, null,
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
 
     DashboardViolationRiskDTO riskDTO = result.dashboardResults.get(0);
@@ -489,7 +470,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         .get(null, null, Collections.singleton(ReleaseStageType.ID), null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     DashboardViolationRiskDTO riskDTO = result.dashboardResults.get(0);
     assertDashboardViolationRiskDTO(riskDTO, app1, org1, policyViolation, evaluation.getTime());
@@ -501,7 +481,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         .get(null, Collections.singleton(app2.getId()), null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     DashboardViolationRiskDTO riskDTO = result.dashboardResults.get(0);
     assertDashboardViolationRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
@@ -516,7 +495,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         .get(null, Collections.singleton(app2.getId()), null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     riskDTO = result.dashboardResults.get(0);
     assertDashboardViolationRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
@@ -528,7 +506,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         .get(null, Collections.singleton(app2.getId()), null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     riskDTO = result.dashboardResults.get(0);
     assertDashboardViolationRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
@@ -553,7 +530,6 @@ abstract class AbstractDashboardViolationRiskServiceTest
         0, 100);
 
     assertThat(result.dashboardResults).hasSize(2);
-    assertThat(result.numResults).isEqualTo(2);
     assertThat(result.hasNextPage).isEqualTo(false);
     DashboardViolationRiskDTO riskDTO1 = result.dashboardResults.get(0);
     assertDashboardViolationRiskDTO(riskDTO1, app, org1, violation1, evaluation.getTime());

@@ -37,7 +37,7 @@ public class FirewallRedirectFilter
     HttpServletResponse httpResponse = (HttpServletResponse) response;
 
     String requestUri = httpRequest.getRequestURI();
-    if (requestUri.startsWith("/" + DEPRECATED_FIREWALL_RESOURCE_PATH)) {
+    if (requestUri.contains("/" + DEPRECATED_FIREWALL_RESOURCE_PATH)) {
       requestUri = requestUri.replace(DEPRECATED_FIREWALL_RESOURCE_PATH, PublicApiPaths.FIREWALL_RESOURCE_PATH);
       httpResponse.sendRedirect(requestUri);
     }

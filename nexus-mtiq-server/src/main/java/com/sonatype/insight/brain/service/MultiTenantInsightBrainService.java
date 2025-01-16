@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.api.admin.service.MtiqScmNodeProcessor;
 import com.sonatype.insight.brain.api.admin.service.MultiTenantActiveRequestCounterFilter;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.audit.AdminAuditContainerRequestFilter;
+import com.sonatype.insight.brain.aws.credentials.MtiqAwsCredentialsProvider;
 import com.sonatype.insight.brain.clients.AwsSecretsManagerClient;
 import com.sonatype.insight.brain.configuration.webhook.WebhookService;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
@@ -106,6 +107,7 @@ import org.eclipse.sisu.inject.BeanLocator;
 import ru.vyarus.dropwizard.guice.GuiceBundle;
 import ru.vyarus.dropwizard.guice.module.installer.feature.jersey.ResourceInstaller;
 import ru.vyarus.dropwizard.guice.module.support.DropwizardAwareModule;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 public class MultiTenantInsightBrainService
     extends InsightBrainService
@@ -366,6 +368,8 @@ public class MultiTenantInsightBrainService
         bind(TelemetryCollectorsProvider.class).to(MultiTenantTelemetryCollectorsProvider.class);
 
         bind(FeaturesService.class).to(MTIQFeatureService.class);
+
+        bind(AwsCredentialsProvider.class).toProvider(MtiqAwsCredentialsProvider.class);
 
         bind(VersionService.class).to(MultiTenantVersionService.class);
 

@@ -19,34 +19,24 @@ import software.amazon.awssdk.auth.credentials.SystemPropertyCredentialsProvider
 import software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.internal.LazyAwsCredentialsProvider;
 
+/**
+ * MTIQ specific credentials provider to cut down on misleading errors in the logs from the default credential chain
+ */
 @Named
-public class InsightAwsCredentialsProvider
+public class MtiqAwsCredentialsProvider
     implements Provider<AwsCredentialsProvider>
 {
   @Override
   public AwsCredentialsProvider get() {
-    return LazyAwsCredentialsProvider.create(() -> {
-      try (var profileCredentialsProvider = ProfileCredentialsProvider.create();
-           var webIdentityTokenFileCredentialsProvider = WebIdentityTokenFileCredentialsProvider.builder()
-              .asyncCredentialUpdateEnabled(false)
-              .build();
-           var containerCredentialsProvider = ContainerCredentialsProvider.builder()
-               .asyncCredentialUpdateEnabled(false)
-               .build();
-           var instanceProfileCredentialsProvider = InstanceProfileCredentialsProvider.builder()
-               .asyncCredentialUpdateEnabled(false)
-               .build()) {
-
-        return AwsCredentialsProviderChain.builder().reuseLastProviderEnabled(true)
-            .credentialsProviders(
-                webIdentityTokenFileCredentialsProvider,
+    return LazyAwsCredentialsProvider.create(
+        () -> AwsCredentialsProviderChain.builder().reuseLastProviderEnabled(true)
+            .credentialsProviders(new AwsCredentialsProvider[]{
+                WebIdentityTokenFileCredentialsProvider.builder().asyncCredentialUpdateEnabled(false).build(),
                 SystemPropertyCredentialsProvider.create(),
                 EnvironmentVariableCredentialsProvider.create(),
-                profileCredentialsProvider,
-                containerCredentialsProvider,
-                instanceProfileCredentialsProvider
-            ).build();
-      }
-    });
+                ProfileCredentialsProvider.create(),
+                ContainerCredentialsProvider.builder().asyncCredentialUpdateEnabled(false).build(),
+                InstanceProfileCredentialsProvider.builder().asyncCredentialUpdateEnabled(false).build(),
+                }).build());
   }
 }

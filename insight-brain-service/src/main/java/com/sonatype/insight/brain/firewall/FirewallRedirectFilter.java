@@ -14,7 +14,6 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 
@@ -34,12 +33,11 @@ public class FirewallRedirectFilter
       throws IOException, ServletException
   {
     HttpServletRequest httpRequest = (HttpServletRequest) request;
-    HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-    String requestUri = httpRequest.getRequestURI();
-    if (requestUri.contains("/" + DEPRECATED_FIREWALL_RESOURCE_PATH)) {
-      requestUri = requestUri.replace(DEPRECATED_FIREWALL_RESOURCE_PATH, PublicApiPaths.FIREWALL_RESOURCE_PATH);
-      httpResponse.sendRedirect(requestUri);
+    String pathInfo = httpRequest.getPathInfo();
+    if (pathInfo != null && pathInfo.contains("/" + DEPRECATED_FIREWALL_RESOURCE_PATH)) {
+      pathInfo = pathInfo.replace(DEPRECATED_FIREWALL_RESOURCE_PATH, PublicApiPaths.FIREWALL_RESOURCE_PATH);
+      request.getRequestDispatcher(pathInfo).forward(request, response);
     }
     else {
       chain.doFilter(request, response);

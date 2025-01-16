@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.firewall;
 
 import javax.servlet.FilterChain;
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
@@ -37,6 +38,9 @@ public class FirewallRedirectFilterTest
   @Mock
   private FilterChain mockFilterChain;
 
+  @Mock
+  private RequestDispatcher mockRequestDispatcher;
+
   @Before
   public void setup() {
     MockitoAnnotations.openMocks(this);
@@ -44,17 +48,19 @@ public class FirewallRedirectFilterTest
 
   @Test
   public void testDoFilter_RedirectsDeprecatedFirewallPath() throws Exception {
-    when(mockHttpServletRequest.getRequestURI()).thenReturn("/api/v2/firewall/somePath");
+    when(mockHttpServletRequest.getPathInfo()).thenReturn("/api/v2/firewall/somePath");
+    when(mockHttpServletRequest.getRequestDispatcher(anyString())).thenReturn(mockRequestDispatcher);
 
     firewallRedirectFilter.doFilter(mockHttpServletRequest, mockHttpServletResponse, mockFilterChain);
 
-    verify(mockHttpServletResponse).sendRedirect("/" + PublicApiPaths.FIREWALL_RESOURCE_PATH + "/somePath");
+    verify(mockHttpServletRequest).getRequestDispatcher("/" + PublicApiPaths.FIREWALL_RESOURCE_PATH + "/somePath");
+    verify(mockRequestDispatcher).forward(mockHttpServletRequest, mockHttpServletResponse);
     verify(mockFilterChain, never()).doFilter(any(ServletRequest.class), any(ServletResponse.class));
   }
 
   @Test
   public void testDoFilter_AllowsNonDeprecatedFirewallPath() throws Exception {
-    when(mockHttpServletRequest.getRequestURI()).thenReturn("/api/v2/notFirewall/somePath");
+    when(mockHttpServletRequest.getPathInfo()).thenReturn("/api/v2/notFirewall/somePath");
 
     firewallRedirectFilter.doFilter(mockHttpServletRequest, mockHttpServletResponse, mockFilterChain);
 

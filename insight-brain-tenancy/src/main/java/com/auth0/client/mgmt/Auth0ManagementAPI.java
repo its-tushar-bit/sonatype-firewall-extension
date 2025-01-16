@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -235,7 +234,7 @@ public class Auth0ManagementAPI
     if (samlMetadata != null) {
       try {
         Path tempFile = Files.createTempFile(auth0ClientId + "-", "-samlmetadata.xml");
-        Files.write(tempFile, samlMetadata.getBytes(StandardCharsets.UTF_8));
+        Files.writeString(tempFile, samlMetadata);
         return tempFile.toFile();
       }
       catch (IOException e) {
@@ -482,12 +481,13 @@ public class Auth0ManagementAPI
     return user;
   }
 
-  private String generateCommonLangPassword() {
-    String upperCaseLetters = RandomStringUtils.random(3, 65, 90, true, true);
-    String lowerCaseLetters = RandomStringUtils.random(3, 97, 122, true, true);
-    String numbers = RandomStringUtils.randomNumeric(3);
-    String specialChar = RandomStringUtils.random(3, 33, 47, false, false);
-    String totalChars = RandomStringUtils.randomAlphanumeric(3);
+  private char[] generateCommonLangPassword() {
+    RandomStringUtils randomStringUtils = RandomStringUtils.secure();
+    String upperCaseLetters = randomStringUtils.next(3, 65, 90, true, true);
+    String lowerCaseLetters = randomStringUtils.next(3, 97, 122, true, true);
+    String numbers = randomStringUtils.nextNumeric(3);
+    String specialChar = randomStringUtils.next(3, 33, 47, false, false);
+    String totalChars = randomStringUtils.nextAlphanumeric(3);
     String combinedChars = upperCaseLetters.concat(lowerCaseLetters)
         .concat(numbers)
         .concat(specialChar)
@@ -496,10 +496,9 @@ public class Auth0ManagementAPI
         .mapToObj(c -> (char) c)
         .collect(Collectors.toCollection(ArrayList::new));
     Collections.shuffle(pwdChars);
-    String password = pwdChars.stream()
+    return pwdChars.stream()
         .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
-        .toString();
-    return password;
+        .toString().toCharArray();
   }
 
   public PasswordChangeTicket createPasswordChangeTicket(

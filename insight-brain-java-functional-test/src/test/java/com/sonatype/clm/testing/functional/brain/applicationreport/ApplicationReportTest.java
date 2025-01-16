@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -52,9 +53,9 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.model.HasStringId;
 
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.files.FileFilters;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.openjpa.enhance.PersistenceCapable;
@@ -62,7 +63,6 @@ import org.joda.time.format.DateTimeFormat;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -302,30 +302,26 @@ public class ApplicationReportTest
   }
 
   @Test
-  @Ignore // https://sonatype.atlassian.net/browse/CLM-31447
   public void testDownloadPdf() throws Exception {
     NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.shouldBe(visible).menu().shouldNotBe(visible);
     optionsDropdown.button().shouldHave(text("Options")).click();
 
-    long currentTimeout = Configuration.timeout;
-    File downloadedPdf;
-    try {
-      // generating the PDF takes awhile; increase the timeout to 20 seconds
-      Configuration.timeout = 20000;
+    SelenideElement selenideElement = optionsDropdown
+        .menu()
+        .shouldBe(visible)
+        .entries()
+        .shouldHave(size(6))
+        .first()
+        .shouldHave(text("Export PDF"));
 
-      downloadedPdf = optionsDropdown
-          .menu()
-          .shouldBe(visible)
-          .entries()
-          .shouldHave(size(7))
-          .first()
-          .shouldHave(text("Export PDF"))
-          .download();
-    }
-    finally {
-      Configuration.timeout = currentTimeout;
-    }
+    // A file filter is necessary here to ensure Selenide does not try to download the wrong file.
+    // In particular, without the filter, it may try to download a ".com.google.Chrome.XXXXXX" type file.
+    // This is a cache/partial download file and is deleted by Chrome when the download completes.
+    // If Selenide targets this file it can cause a "WebDriverException: Cannot find file", which will cause it
+    // to retry the download, but at this point the link has already been clicked and the menu is closed,
+    // so this will further cause a "ElementNotFound" error since it can't click the link again.
+    File downloadedPdf = selenideElement.download(Duration.ofSeconds(20).toMillis(), FileFilters.withExtension("pdf"));
 
     byte[] fileBeginning = new byte[4];
     try (FileInputStream stream = new FileInputStream(downloadedPdf)) {

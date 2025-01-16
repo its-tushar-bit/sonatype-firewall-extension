@@ -38,7 +38,6 @@ import com.codeborne.selenide.WebDriverRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.NoSuchElementException;
@@ -358,7 +357,6 @@ public class DashboardApplicationsTest
     Tooltip.get().shouldBe(hidden);
   }
 
-  @Ignore("To fix: CLM-33965")
   @Test
   public void testSortsOnFrontend() {
     showLowRiskViolations();
@@ -368,6 +366,8 @@ public class DashboardApplicationsTest
     createViolation(tempEntity.newApplication("app2", "2", org.getId()), BuildStageType.ID, 8);
 
     refresh();
+    newFluentWait();
+
     DashboardPage.dashboardContainer().shouldBe(visible);
 
     assertThat(table.applications().size()).isEqualTo(3);

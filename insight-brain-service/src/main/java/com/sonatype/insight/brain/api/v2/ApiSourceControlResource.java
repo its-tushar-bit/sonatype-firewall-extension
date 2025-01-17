@@ -20,8 +20,8 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.sourcecontrol.ApiSourceControlRepositoryUserDTO;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsResponseDTO;
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsDTO;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsResponseDTO;
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMatchingResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
@@ -337,6 +337,24 @@ public class ApiSourceControlResource
   @Produces(MediaType.APPLICATION_JSON)
   @Path(USER_MAPPINGS_BY_OWNER_PATH)
   @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
+  @Operation(description = "Use this method to retrieve SCM user mappings for an organization or application." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains:" +
+                  "<ul>" +
+                  "<li>`ownerInternalId` indicates the owner id for which the user mappings were created.</li>" +
+                  "<li>`inherited` is always `true` if the ownerType is application</li>" +
+                  "<li>`userMapping` is an object containing `role` and `mappings`." +
+                  "<ul>" +
+                  "<li> `role` indicates the role assigned to users during automatic role assignment.</li>" +
+                  "<li>`mappings` contain all existing user mappings from the SCM sytem to IQ.</li>" +
+                  "</ul>" +
+                  "</ul>",
+              useReturnTypeSchema = true)
+      })
   public SCMUserMappingsResponseDTO getUserMappingsByOwner(
       @Parameter(description = "Enter the value for ownerType.", required = true)
       @PathParam("ownerType") OwnerType ownerType,
@@ -351,9 +369,34 @@ public class ApiSourceControlResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_USER_MAPPINGS)
   @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
+  @Operation(description = "Use this method to apply user mappings from SCM (GitHub) to Lifecycle. The user mappings " +
+      "will be inherited by all child organizations and applications in the organization hierarchy. If a user " +
+      "mapping for an organization already exists, it will be replaced with new mappings provided here." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit IQ Elements",
+      responses = {
+          @ApiResponse(responseCode = "204",
+              description = "User mappings applied successfully." +
+                  "<ul>" +
+                  "<li>When multiple user mappings are specified in the body, and the first mapping fails,  " +
+                  "the next user mapping will be attempted.</li>" +
+                  "<li>If duplicate user mappings are specified, an error message will be displayed</li>" +
+                  "</ul>"
+          )
+      })
   public void addUserMappings(
+      @Parameter(description = "Enter the organizationId. Use `ROOT_ORGANIZATION_ID` for the root organization",
+          required = true)
       @PathParam("organizationId") String organizationId,
-      final SCMUserMappingsDTO scmUserMappingsDTO)
+      @RequestBody(description = "<ul>" +
+          "<li>Specify the `role` in lowercase, without whitespaces.</li>" +
+          "<li>`mappings` is an array of objects consisting of `from` and `to` fields.</li>" +
+          "<li>Allowed values for the `from` field are `SCM_USERNAME`, `SCM_EMAIL`, `SCM_FULLNAME`, `GITLOG_EMAIL`, " +
+          "`GITLOG_FULLNAME`.</li>" +
+          "<li>Allowed values for `to` field are `IQ_USERNAME`, `IQ_EMAIL`, `IQ_FULLNAME`.</li>" +
+          "<li>Any combination of `from` and `to` fields can be used.</li>" +
+          "</ul>") final SCMUserMappingsDTO scmUserMappingsDTO)
   {
     scmUserMappingService.addOrUpdateUserMappingByOrg(organizationId, scmUserMappingsDTO);
   }
@@ -362,7 +405,16 @@ public class ApiSourceControlResource
   @Path(USER_MAPPING_PER_ORGANIZATION_PATH)
   @Audited(AuditEvent.DELETE_USER_MAPPINGS)
   @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
+  @Operation(description = "Use this method to delete existing SCM user mappings for an organization." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit IQ Elements",
+      responses = {
+          @ApiResponse(responseCode = "204",
+              description = "User mappings deleted successfully.")
+      })
   public void deleteUserMappings(
+      @Parameter(description = "Enter the organizationId.", required = true)
       @PathParam("organizationId") String organizationId)
   {
     scmUserMappingService.deleteUserMappingByOrg(organizationId);

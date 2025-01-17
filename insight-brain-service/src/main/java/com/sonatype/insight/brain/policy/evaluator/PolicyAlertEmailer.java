@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.tenancy.TenantAwareOneTimeRunnable;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -159,7 +160,7 @@ public class PolicyAlertEmailer
     }), "PolicyAlertEmailNotifierForScan-" + scanId
 
     );
-    shutdownHandler.add(emailNotificationThread, 3);
+    shutdownHandler.add(emailNotificationThread, ShutdownPriority.NOTIFICATIONS);
     emailNotificationThread.start();
   }
 

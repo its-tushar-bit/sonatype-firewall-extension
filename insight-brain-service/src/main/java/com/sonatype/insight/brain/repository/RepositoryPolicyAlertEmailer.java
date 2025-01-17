@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyAlertEmailResolver;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -64,7 +65,7 @@ public class RepositoryPolicyAlertEmailer
     executor = new TenantThreadPoolExecutor(1000, 1000, 1L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
         new ThreadFactoryBuilder().setNameFormat("RepositoryPolicyAlertEmailNotifier-%d").build());
     executor.allowCoreThreadTimeOut(true);
-    shutdownHandler.add(executor, 3);
+    shutdownHandler.add(executor, ShutdownPriority.NOTIFICATIONS);
   }
 
   // Visible for testing

@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.test.LogOutput;
@@ -219,7 +220,7 @@ public class PolicyAlertScmNotifierTest
 
     // and the source control event service didn't have an event published to it
     verify(mockSourceControlEventPublisher, never()).publishEvent(any());
-    verify(mockShutdownHandler).add(threadArgumentCaptor.capture(), eq(3));
+    verify(mockShutdownHandler).add(threadArgumentCaptor.capture(), eq(ShutdownPriority.NOTIFICATIONS));
     assertThat(threadArgumentCaptor.getValue().getName()).startsWith("PolicyAlertScmNotifierForScan");
   }
 

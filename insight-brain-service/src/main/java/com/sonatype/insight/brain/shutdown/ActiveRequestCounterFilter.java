@@ -37,7 +37,7 @@ public class ActiveRequestCounterFilter
   ActiveRequestCounterFilter(final ShutdownHandler shutdownHandler, final LongAdder activeRequestsBeforeShutdown) {
     this.shutdownHandler = shutdownHandler;
     this.activeRequestsBeforeShutdown = activeRequestsBeforeShutdown;
-    this.shutdownHandler.add(() -> activeRequestsBeforeShutdown.sum() != 0, -2);
+    this.shutdownHandler.add(() -> activeRequestsBeforeShutdown.sum() != 0, ShutdownPriority.ACTIVE_REQUESTS);
   }
 
   public boolean isShutdownPath(final String path) {

@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
@@ -128,7 +129,7 @@ public class PolicyEvaluateService
     this.executor = buildExecutorService();
     this.stageTypeService = stageTypeService;
     this.sbomMetadataUtils = sbomMetadataUtils;
-    shutdownHandler.add(executor, 2);
+    shutdownHandler.add(executor, ShutdownPriority.POLICY_EVALUATIONS);
   }
 
   private ExecutorService buildExecutorService() {

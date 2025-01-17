@@ -57,7 +57,7 @@ public class ActiveRequestCounterFilterTest
 
   @Test
   public void testActiveRequestsFilter_AddsShutdownRequest() {
-    verify(mockShutdownHandler).add(booleanSupplierArgumentCaptor.capture(), eq(-2));
+    verify(mockShutdownHandler).add(booleanSupplierArgumentCaptor.capture(), eq(ShutdownPriority.ACTIVE_REQUESTS));
     BooleanSupplier booleanSupplier = booleanSupplierArgumentCaptor.getValue();
 
     when(mockLongAdder.sum()).thenReturn(1L);

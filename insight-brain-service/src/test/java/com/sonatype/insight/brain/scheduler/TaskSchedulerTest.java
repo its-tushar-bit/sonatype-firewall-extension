@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
@@ -122,7 +123,7 @@ public class TaskSchedulerTest
     List<TriggerListener> triggerListeners = scheduler.getListenerManager().getTriggerListeners();
     assertThat(triggerListeners).hasSize(1);
     assertThat(triggerListeners.get(0)).isInstanceOf(QuartzTriggerListener.class);
-    verify(mockShutdownHandler).add(scheduler, -1);
+    verify(mockShutdownHandler).add(scheduler, ShutdownPriority.QUARTZ_SCHEDULERS);
   }
 
   @Test

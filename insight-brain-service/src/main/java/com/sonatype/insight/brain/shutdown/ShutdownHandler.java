@@ -20,10 +20,6 @@ import java.util.function.BooleanSupplier;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.concurrent.LazyInitThreadPoolExecutor;
-import com.sonatype.insight.brain.eventbus.AsyncEventBusImpl;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
-import com.sonatype.insight.brain.repository.RepositoryPolicyAlertEmailer;
 import com.sonatype.insight.brain.utils.CheckedRunnable;
 import com.sonatype.insight.brain.utils.FIFOEntry;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -49,25 +45,13 @@ import org.slf4j.LoggerFactory;
  * if item1 invokes item2 asynchronously, then a {@link ShutdownRequest} for item1 should have a lower {@code order}
  * than a {@link ShutdownRequest} for item2.
  * <br /><br />
- * The current ordering has
- * <ol start="-2">
- *   <li>Active requests</li>
- *   <li>Quartz jobs (i.e. {@link Scheduler}s)</li>
- *   <li>Default (everything else)</li>
- *   <li>{@link LazyInitThreadPoolExecutor#getThreadPoolExecutor()}</li>
- *   <li>{@link PolicyEvaluateService#getExecutor()}</li>
- *   <li>Application notification {@link Thread}s (JIRA, email, SCM alerts) and repository policy emails
- *   {@link RepositoryPolicyAlertEmailer#getExecutor()}</li>
- *   <li>{@link AsyncEventBusImpl#getThreadPoolExecutor()}</li>
- * </ol>
+ * The current ordering can be seen in {@link ShutdownPriority}.
  */
 @Named
 @Singleton
 public class ShutdownHandler
 {
   private static final Logger log = LoggerFactory.getLogger(ShutdownHandler.class);
-
-  private static final int DEFAULT_ORDER = 0;
 
   private final ThreadFactory threadFactory;
 
@@ -119,11 +103,12 @@ public class ShutdownHandler
   }
 
   public void add(final ExecutorService executorService) {
-    add(executorService, DEFAULT_ORDER);
+    add(executorService, ShutdownPriority.DEFAULT);
   }
 
-  public void add(final ExecutorService executorService, final int order) {
-    addAndClean(new ExecutorServiceShutdownRequest(new WeakReference<>(executorService), order, getOrigin()));
+  public void add(final ExecutorService executorService, final ShutdownPriority shutdownPriority) {
+    addAndClean(new ExecutorServiceShutdownRequest(new WeakReference<>(executorService), shutdownPriority.ordinal(),
+        getOrigin()));
   }
 
   public void remove(final ExecutorService executorService) {
@@ -133,27 +118,27 @@ public class ShutdownHandler
   }
 
   public void add(final Thread thread) {
-    add(thread, DEFAULT_ORDER);
+    add(thread, ShutdownPriority.DEFAULT);
   }
 
-  public void add(final Thread thread, final int order) {
-    addAndClean(new ThreadShutdownRequest(new WeakReference<>(thread), order, getOrigin()));
+  public void add(final Thread thread, final ShutdownPriority shutdownPriority) {
+    addAndClean(new ThreadShutdownRequest(new WeakReference<>(thread), shutdownPriority.ordinal(), getOrigin()));
   }
 
   public void add(final Scheduler scheduler) {
-    add(scheduler, DEFAULT_ORDER);
+    add(scheduler, ShutdownPriority.DEFAULT);
   }
 
-  public void add(final Scheduler scheduler, final int order) {
-    addAndClean(new SchedulerShutdownRequest(new WeakReference<>(scheduler), order, getOrigin()));
+  public void add(final Scheduler scheduler, final ShutdownPriority shutdownPriority) {
+    addAndClean(new SchedulerShutdownRequest(new WeakReference<>(scheduler), shutdownPriority.ordinal(), getOrigin()));
   }
 
   public void add(final BooleanSupplier booleanSupplier) {
-    add(booleanSupplier, DEFAULT_ORDER);
+    add(booleanSupplier, ShutdownPriority.DEFAULT);
   }
 
-  public void add(final BooleanSupplier booleanSupplier, final int order) {
-    addAndClean(new BooleanSupplierShutdownRequest(booleanSupplier, order, getOrigin()));
+  public void add(final BooleanSupplier booleanSupplier, final ShutdownPriority shutdownPriority) {
+    addAndClean(new BooleanSupplierShutdownRequest(booleanSupplier, shutdownPriority.ordinal(), getOrigin()));
   }
 
   private String getOrigin() {

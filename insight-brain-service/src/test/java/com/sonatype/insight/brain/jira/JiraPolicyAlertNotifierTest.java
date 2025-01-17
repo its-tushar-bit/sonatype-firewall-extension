@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
@@ -143,7 +144,7 @@ public class JiraPolicyAlertNotifierTest
     assertThat(issueMeta).containsEntry("id", issueTypeId);
     String summary = jiraIssueCreateRequest.getField(JiraField.SUMMARY);
     assertThat(summary).isEqualTo("Nexus IQ: Application " + application.getName() + "; BUILD stage; 1 Policy alerts");
-    verify(mockShutdownHandler).add(threadArgumentCaptor.capture(), eq(3));
+    verify(mockShutdownHandler).add(threadArgumentCaptor.capture(), eq(ShutdownPriority.NOTIFICATIONS));
     assertThat(threadArgumentCaptor.getValue().getName()).startsWith("PolicyAlertJIRANotifierForScan");
   }
 

@@ -78,6 +78,7 @@ import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -207,7 +208,7 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testDefaultPolicyEvaluateService_AddsExecutorToShutdownHandler() {
-    verify(mockShutdownHandler).add(policyEvaluateService.getExecutor(), 2);
+    verify(mockShutdownHandler).add(policyEvaluateService.getExecutor(), ShutdownPriority.POLICY_EVALUATIONS);
   }
 
   private void assertPolicyEvaluation(

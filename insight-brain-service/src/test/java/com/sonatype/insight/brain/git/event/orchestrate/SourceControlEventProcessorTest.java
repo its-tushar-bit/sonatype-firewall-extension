@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.nexus.git.utils.api.GitException;
 
@@ -107,7 +108,7 @@ public class SourceControlEventProcessorTest
     LazyInitThreadPoolExecutor lazyInitThreadPoolExecutor = sourceControlEventProcessor.getLazyInitThreadPoolExecutor();
     ThreadPoolExecutor threadPoolExecutor = lazyInitThreadPoolExecutor.getThreadPoolExecutor();
 
-    verify(mockShutdownHandler).add(threadPoolExecutor, 1);
+    verify(mockShutdownHandler).add(threadPoolExecutor, ShutdownPriority.SOURCE_CONTROL_EVENT_PROCESSOR);
   }
 
   @Test

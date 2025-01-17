@@ -26,6 +26,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.utils.Retry;
 
@@ -124,7 +125,7 @@ public class TaskScheduler
       scheduler.setJobFactory(jobFactory);
       scheduler.addCalendar(NeverPastCalendar.CALENDAR_NAME, new NeverPastCalendar(), true, false);
       scheduler.getListenerManager().addTriggerListener(quartzTriggerListener);
-      shutdownHandler.add(scheduler, -1);
+      shutdownHandler.add(scheduler, ShutdownPriority.QUARTZ_SCHEDULERS);
       return scheduler;
     }
     catch (SchedulerException e) {

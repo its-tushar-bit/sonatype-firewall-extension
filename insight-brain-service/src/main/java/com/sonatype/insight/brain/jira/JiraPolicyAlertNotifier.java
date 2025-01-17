@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.tenancy.TenantAwareOneTimeRunnable;
 import com.sonatype.insight.brain.utils.TemplateUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -183,7 +184,7 @@ public class JiraPolicyAlertNotifier
         }
       }
     }), "PolicyAlertJIRANotifierForScan-" + scanId);
-    shutdownHandler.add(jiraNotificationThread, 3);
+    shutdownHandler.add(jiraNotificationThread, ShutdownPriority.NOTIFICATIONS);
     jiraNotificationThread.start();
   }
 

@@ -74,6 +74,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
@@ -223,7 +224,7 @@ public class PolicyAlertEmailerTest
             + " in stage " + eval.getStageTypeId()
             + ". There are either no recipients configured, or no new policy violations "
             + "for policies configured to send notifications"));
-    verify(mockShutdownHandler).add(threadArgumentCaptor.capture(), eq(3));
+    verify(mockShutdownHandler).add(threadArgumentCaptor.capture(), eq(ShutdownPriority.NOTIFICATIONS));
     assertThat(threadArgumentCaptor.getValue().getName()).startsWith("PolicyAlertEmailNotifierForScan");
   }
 

@@ -12,6 +12,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -84,7 +85,7 @@ public class LazyInitThreadPoolExecutor
         new LinkedBlockingQueue<>(taskQueueCapacity),
         threadFactory);
     localThreadPoolExecutor.allowCoreThreadTimeOut(true);
-    shutdownHandler.add(localThreadPoolExecutor, 1);
+    shutdownHandler.add(localThreadPoolExecutor, ShutdownPriority.SOURCE_CONTROL_EVENT_PROCESSOR);
     return localThreadPoolExecutor;
   }
 

@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 
 import org.junit.Test;
 import org.mockito.Mock;
@@ -32,6 +33,7 @@ public class AsyncEventBusProviderTest
     AsyncEventBusProvider asyncEventBusProvider = new AsyncEventBusProvider(mockConfiguration, mockShutdownHandler);
 
     assertThat(asyncEventBusProvider.get().getMaxPoolSize()).isEqualTo(AsyncEventBus.DEFAULT_MAX_POOL_SIZE + 1);
-    verify(mockShutdownHandler).add(asyncEventBusProvider.get().getThreadPoolExecutor(), 4);
+    verify(mockShutdownHandler).add(asyncEventBusProvider.get().getThreadPoolExecutor(),
+        ShutdownPriority.ASYNC_EVENT_BUS);
   }
 }

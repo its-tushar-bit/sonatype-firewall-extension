@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 
 import com.google.inject.Binder;
 import org.junit.Before;
@@ -86,7 +87,7 @@ public class RepositoryPolicyAlertEmailerTest
 
   @Test
   public void testRepositoryPolicyAlertEmailer_AddsExecutorToShutdownHandler() {
-    verify(mockShutdownHandler).add(emailer.getExecutor(), 3);
+    verify(mockShutdownHandler).add(emailer.getExecutor(), ShutdownPriority.NOTIFICATIONS);
   }
 
   @Test

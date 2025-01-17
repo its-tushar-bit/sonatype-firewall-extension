@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.tenancy.TenantAwareOneTimeRunnable;
@@ -278,7 +279,7 @@ public class PolicyAlertScmNotifier
     public void execute(final String scanId, Runnable runnable) {
       Thread scmNotificationThread =
           new Thread(new TenantAwareOneTimeRunnable(runnable), "PolicyAlertScmNotifierForScan-" + scanId);
-      shutdownHandler.add(scmNotificationThread, 3);
+      shutdownHandler.add(scmNotificationThread, ShutdownPriority.NOTIFICATIONS);
       scmNotificationThread.start();
     }
   }

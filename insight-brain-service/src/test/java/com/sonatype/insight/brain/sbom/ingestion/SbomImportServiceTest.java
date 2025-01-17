@@ -13,7 +13,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
@@ -26,14 +25,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
-import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import org.mockito.ArgumentCaptor;
+
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
@@ -42,9 +37,13 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.sbom.utils.SbomSummary;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.utils.ExistingFilesHelper;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -55,15 +54,14 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.model.ItemContentType;
-import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Binder;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.hds.ScanUploader.HDS_PATH;
@@ -420,7 +418,7 @@ public class SbomImportServiceTest
     String expectedApplicationVersion = "a140fd3c3ded4bb0a640dc31e2904dc9";
 
     URL resource = SbomImportServiceTest.class.getResource("/SbomImportServiceTest/valid-cyclonedx-bom.xml");
-    byte[] sbom = Files.readAllBytes(Path.of(Objects.requireNonNull(resource).getFile()));
+    byte[] sbom = Files.readAllBytes(new File(Objects.requireNonNull(resource).getFile()).toPath());
 
     // try to save the same SBOM 8 times at the same time and ensure that they all deconflict uniquely
     List<Callable<SbomDetectionResultDTO>> calls = Stream.<Callable<SbomDetectionResultDTO>>generate(() -> () -> {
@@ -453,7 +451,7 @@ public class SbomImportServiceTest
   @Test
   public void testDetectSbom_Success_VersionDeconflicting_noBuiltInVersion() throws Exception {
     URL resource = SbomImportServiceTest.class.getResource("/SbomImportServiceTest/no-version-cyclonedx-bom.xml");
-    byte[] sbom = Files.readAllBytes(Path.of(Objects.requireNonNull(resource).getFile()));
+    byte[] sbom = Files.readAllBytes(new File(Objects.requireNonNull(resource).getFile()).toPath());
 
     // try to save the same SBOM 8 times at the same time and ensure that they all deconflict uniquely
     List<Callable<SbomDetectionResultDTO>> calls = Stream.<Callable<SbomDetectionResultDTO>>generate(() -> () -> {
@@ -1165,13 +1163,11 @@ public class SbomImportServiceTest
         "clientUserAgent"
     );
     assertThat(response).isNotNull();
-
     assertThat(response.getStatus()).isEqualTo(Status.ACCEPTED.getStatusCode());
     assertThat(response.getEntity()).isNotNull();
     ApiThirdPartyScanTicketDTO status = (ApiThirdPartyScanTicketDTO) response.getEntity();
     assertThat(status.statusUrl).isNotEmpty()
         .startsWith("api/v2/sbom/applications/" + application.getId() + "/status/");
-
     policyEvaluationHelper.awaitEvaluationCompleted(application.getId(), status.requestId);
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(application.getId(), "1.2.3.4");
@@ -1203,12 +1199,19 @@ public class SbomImportServiceTest
     var detectionResult1 =
         sbomImportService.detectSbom(application.getId(), file1, "valid-cyclonedx-bom.xml", false);
 
-    sbomImportService.importDetectedSbom(
+    Response response = sbomImportService.importDetectedSbom(
         application.getId(),
         detectionResult1.getSavedVersion(),
         "1.2.3.4",
         "clientUserAgent"
     );
+    assertThat(response).isNotNull();
+    assertThat(response.getStatus()).isEqualTo(Status.ACCEPTED.getStatusCode());
+    assertThat(response.getEntity()).isNotNull();
+    ApiThirdPartyScanTicketDTO status = (ApiThirdPartyScanTicketDTO) response.getEntity();
+    assertThat(status.statusUrl).isNotEmpty()
+        .startsWith("api/v2/sbom/applications/" + application.getId() + "/status/");
+    policyEvaluationHelper.awaitEvaluationCompleted(application.getId(), status.requestId);
 
     InputStream file2 =
         SbomImportServiceTest.class.getResourceAsStream("/SbomImportServiceTest/valid-cyclonedx-bom.xml");
@@ -1244,13 +1247,11 @@ public class SbomImportServiceTest
         "clientUserAgent"
     );
     assertThat(response).isNotNull();
-
     assertThat(response.getStatus()).isEqualTo(Status.ACCEPTED.getStatusCode());
     assertThat(response.getEntity()).isNotNull();
     ApiThirdPartyScanTicketDTO status = (ApiThirdPartyScanTicketDTO) response.getEntity();
     assertThat(status.statusUrl).isNotEmpty()
         .startsWith("api/v2/sbom/applications/" + application.getId() + "/status/");
-
     policyEvaluationHelper.awaitEvaluationCompleted(application.getId(), status.requestId);
 
     return detectionResult;
@@ -1296,12 +1297,19 @@ public class SbomImportServiceTest
     InputStream file1 =
         SbomImportServiceTest.class.getResourceAsStream("/SbomImportServiceTest/valid-cyclonedx-bom.xml");
     var detectionResult1 = sbomImportService.detectSbom(application.getId(), file1, "valid-cyclonedx-bom.xml", false);
-    sbomImportService.importDetectedSbom(
+    Response response = sbomImportService.importDetectedSbom(
         application.getId(),
         detectionResult1.getSavedVersion(),
         "1.2.3.4",
         "clientUserAgent"
     );
+    assertThat(response).isNotNull();
+    assertThat(response.getStatus()).isEqualTo(Status.ACCEPTED.getStatusCode());
+    assertThat(response.getEntity()).isNotNull();
+    ApiThirdPartyScanTicketDTO status = (ApiThirdPartyScanTicketDTO) response.getEntity();
+    assertThat(status.statusUrl).isNotEmpty()
+        .startsWith("api/v2/sbom/applications/" + application.getId() + "/status/");
+    policyEvaluationHelper.awaitEvaluationCompleted(application.getId(), status.requestId);
 
     InputStream file2 =
         SbomImportServiceTest.class.getResourceAsStream("/SbomImportServiceTest/valid-cyclonedx-bom.xml");

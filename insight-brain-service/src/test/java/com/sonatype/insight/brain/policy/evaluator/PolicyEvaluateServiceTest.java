@@ -50,9 +50,11 @@ import com.sonatype.insight.brain.jira.JiraIssueCreateRequest.JiraIssueCreateRes
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -99,6 +101,7 @@ import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.CallsRealMethods;
 import org.mockito.invocation.InvocationOnMock;
 
+import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING;
 import static com.sonatype.clm.dto.model.policy.Stage.ID_BUILD;
 import static com.sonatype.clm.dto.model.policy.Stage.ID_COMPLIANCE;
 import static com.sonatype.insight.brain.Assert.assertNotifications;
@@ -166,6 +169,7 @@ public class PolicyEvaluateServiceTest
   @Override
   public void configure(Binder binder) {
     mockReportDownloader = new MockReportDownloader();
+
     binder.bind(ReportDownloader.class).toInstance(mockReportDownloader.getMock());
     mockJiraClientFactory = mock(JiraClientFactory.class);
     binder.bind(JiraClientFactory.class).toInstance(mockJiraClientFactory);
@@ -374,6 +378,7 @@ public class PolicyEvaluateServiceTest
     policyViolationDAO.update(policyViolation);
     scanId = simulateReportIsAvailable();
     ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);
+
     policyEvaluationResult =
         policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, ScanTriggerType.CLI);
     assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(7);
@@ -456,6 +461,7 @@ public class PolicyEvaluateServiceTest
 
     // Evaluate policy
     String scanId = simulateReportIsAvailable();
+
     ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
     PolicyEvaluationResult policyEvaluationResult =
         policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, ScanTriggerType.CLI);
@@ -534,6 +540,7 @@ public class PolicyEvaluateServiceTest
     final Stage stage = new Stage(Stage.ID_BUILD);
 
     String scanId = simulateReportIsAvailable();
+
     ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
 
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
@@ -615,7 +622,7 @@ public class PolicyEvaluateServiceTest
 
     final Stage stage = new Stage(Stage.ID_BUILD);
 
-    final String scanId = "scanId1";
+    String scanId = simulateReportIsAvailable();
 
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
 
@@ -649,23 +656,24 @@ public class PolicyEvaluateServiceTest
     PolicyEvaluationReceipt policyEvaluationReceipt =
         spyService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null, stage);
 
-    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+    PolicyEvaluationPollingResultDTO policyEvaluationPollingResult =
         waitForResult(app.getPublicId(), policyEvaluationReceipt.getStatusId(),
-            p -> p.getStatus().equals(PolicyEvaluationStatus.PENDING) && p.getScanReceipt() != null);
+            p -> p.status == PolicyEvaluationStatus.PENDING && p.scanReceipt != null);
 
-    assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.PENDING);
-    assertThat(policyEvaluationPollingResult.getReason()).isNull();
-    assertThat(policyEvaluationPollingResult.getResult()).isNull();
-    assertThat(policyEvaluationPollingResult.getScanReceipt()).usingRecursiveComparison().isEqualTo(scanReceipt);
+    assertThat(policyEvaluationPollingResult.status).isEqualTo(PolicyEvaluationStatus.PENDING);
+    assertThat(policyEvaluationPollingResult.reason).isNull();
+    assertThat(policyEvaluationPollingResult.result).isNull();
+    assertThat(policyEvaluationPollingResult.subStatus).isNull();
+    assertThat(policyEvaluationPollingResult.scanReceipt).usingRecursiveComparison().isEqualTo(scanReceipt);
   }
 
-  private PolicyEvaluationPollingResult waitForResult(
+  private PolicyEvaluationPollingResultDTO waitForResult(
       String appId,
       String scanId,
-      Function<PolicyEvaluationPollingResult, Boolean> readyTest) throws Exception
+      Function<PolicyEvaluationPollingResultDTO, Boolean> readyTest) throws Exception
   {
-    long endTime = System.currentTimeMillis() + 20000;
-    PolicyEvaluationPollingResult result;
+    long endTime = System.currentTimeMillis() + 50000;
+    PolicyEvaluationPollingResultDTO result;
     while (System.currentTimeMillis() < endTime) {
       result = policyEvaluateService.pollEvaluationResult(appId, scanId);
       if (readyTest.apply(result)) {
@@ -691,15 +699,35 @@ public class PolicyEvaluateServiceTest
     PolicyEvaluationReceipt receipt = policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(),
         ClientScanType.SONATYPE, null, new Stage(Stage.ID_BUILD));
 
-    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+    PolicyEvaluationPollingResultDTO policyEvaluationPollingResult =
         policyEvaluateService.pollEvaluationResult(app.getPublicId(), receipt.getStatusId());
     countDownLatch.countDown();
     assertThat(policyEvaluationPollingResult).isNotNull();
-    assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.PENDING);
-    assertThat(policyEvaluationPollingResult.getReason()).isNull();
-    assertThat(policyEvaluationPollingResult.getResult()).isNull();
-    assertThat(policyEvaluationPollingResult.getScanReceipt()).isNull();
-    assertThat(policyEvaluationPollingResult.getNextPollingIntervalInSeconds()).isEqualTo(5);
+    assertThat(policyEvaluationPollingResult.status).isEqualTo(PolicyEvaluationStatus.PENDING);
+    assertThat(policyEvaluationPollingResult.reason).isNull();
+    assertThat(policyEvaluationPollingResult.result).isNull();
+    assertThat(policyEvaluationPollingResult.subStatus).isNull();
+    assertThat(policyEvaluationPollingResult.scanReceipt).isNull();
+    assertThat(policyEvaluationPollingResult.nextPollingIntervalInSeconds).isEqualTo(5);
+  }
+
+  @Test
+  public void testCreatePolicyEvaluationPollingResultDTO_WithNewScanProcess_ShouldHandleResultSubStatus() {
+    PolicyEvaluationPollingResult result = new PolicyEvaluationPollingResult();
+    result.setSubStatus(COMPONENT_ANALYSIS_PENDING);
+
+    PersistedPolicyEvaluationPollingResult persistedResult = new PersistedPolicyEvaluationPollingResult("", "", result);
+
+    // before enabling, proof we don't get a sub status
+    PolicyEvaluationPollingResultDTO resultDTO =
+        policyEvaluateService.toPolicyEvaluationPollingResultDTO(persistedResult);
+    assertThat(resultDTO.subStatus).isNull();
+
+    // after enabling, proof we see the sub status
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+
+    resultDTO = policyEvaluateService.toPolicyEvaluationPollingResultDTO(persistedResult);
+    assertThat(resultDTO.subStatus).isEqualTo(result.getSubStatus());
   }
 
   @Test
@@ -800,7 +828,8 @@ public class PolicyEvaluateServiceTest
   public void testEvaluateWithPolling_AppPublicIdCaseInsensitive() throws Exception {
     Application app = tempEntity.newApplicationWithParent("THE-public-ID");
     ScanReceipt scanReceipt = new ScanReceipt();
-    scanReceipt.setScanId(simulateReportIsAvailable());
+    String scanId = simulateReportIsAvailable();
+    scanReceipt.setScanId(scanId);
 
     when(mockScanHandler.createTempScanFile(eq(null), any(Application.class))).thenReturn(mock(File.class));
     when(mockScanHandler

@@ -25,6 +25,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultDTO;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -94,7 +95,7 @@ public class ApplicationEvaluationResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(STATUS_PATH)
-  public PolicyEvaluationPollingResult pollEvaluationResult(
+  public PolicyEvaluationPollingResultDTO pollEvaluationResult(
       @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("statusId") final String statusId)
   {

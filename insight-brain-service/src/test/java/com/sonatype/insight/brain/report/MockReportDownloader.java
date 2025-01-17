@@ -29,9 +29,9 @@ public class MockReportDownloader
 
   /**
    * Simulates that a report (based on the specified resource) exists.
-   * 
+   *
    * @param reportResourceName can be a report.zip file or a directory that will be zipped up into a report.
-   * 
+   *
    * @return A generated scan ID that can be used in subsequent calls to evaluate policies.
    */
   public String mockDownloadReport(String reportResourceName) {
@@ -42,7 +42,7 @@ public class MockReportDownloader
 
   /**
    * Simulates that a report (based on the specified resource) associated with the specified scan ID exists.
-   * 
+   *
    * @param reportResourceName can be a report.zip file or a directory that will be zipped up into a report.
    */
   public void mockDownloadReport(String scanId, String reportResourceName) {

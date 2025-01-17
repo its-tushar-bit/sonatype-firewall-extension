@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import javax.inject.Inject;
@@ -20,15 +21,18 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
+import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.metrics.PolicyEvaluateServiceMetrics;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -48,9 +52,11 @@ import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
+import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.dropwizard.lifecycle.Managed;
 import io.micrometer.core.instrument.LongTaskTimer.Sample;
 import org.slf4j.Logger;
@@ -96,6 +102,8 @@ public class PolicyEvaluateService
 
   private final ProductLicense productLicense;
 
+  private final FeaturesService featuresService;
+  
   public boolean disablePollingIntervalForTesting = false;
 
   @Inject
@@ -113,7 +121,8 @@ public class PolicyEvaluateService
       PolicyEvaluateServiceMetrics policyEvaluateServiceMetrics,
       PolicyEvaluationUtil policyEvaluationUtil,
       SbomMetadataUtils sbomMetadataUtils,
-      ProductLicense productLicense)
+      ProductLicense productLicense,
+      FeaturesService featuresService)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
@@ -126,6 +135,7 @@ public class PolicyEvaluateService
     this.policyEvaluateServiceMetrics = policyEvaluateServiceMetrics;
     this.policyEvaluationUtil = policyEvaluationUtil;
     this.productLicense = productLicense;
+    this.featuresService = featuresService;
     this.executor = buildExecutorService();
     this.stageTypeService = stageTypeService;
     this.sbomMetadataUtils = sbomMetadataUtils;
@@ -406,7 +416,7 @@ public class PolicyEvaluateService
    * @since 1.69
    */
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  public PolicyEvaluationPollingResult pollEvaluationResult(
+  public PolicyEvaluationPollingResultDTO pollEvaluationResult(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
       String statusId)
   {
@@ -418,7 +428,8 @@ public class PolicyEvaluateService
           .format("Policy evaluation status with id %s for public application id %s was not found.", statusId,
               applicationPublicId));
     }
-    return persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
+
+    return toPolicyEvaluationPollingResultDTO(persistedPolicyEvaluationPollingResult);
   }
 
   /**
@@ -592,5 +603,34 @@ public class PolicyEvaluateService
    */
   protected int getNextPollingInterval() {
     return disablePollingIntervalForTesting ? 1 : NEXT_POLLING_INTERVAL_IN_SECONDS;
+  }
+
+  /**
+   * Make a DTO of the given {@link PolicyEvaluationPollingResult} instance with a potential sub status
+   * ({@link PolicyEvaluationSubStatus}), if the feature {@link SystemConfigurationPropertyFeature#NEW_SCAN_PROCESS} is
+   * enabled.
+   *
+   * @param persistedPolicyEvaluationPollingResult the {@link PolicyEvaluationPollingResult} to create a DTO from.
+   * @return a new instance of {@link PolicyEvaluationPollingResultDTO}
+   */
+  @VisibleForTesting
+  protected PolicyEvaluationPollingResultDTO toPolicyEvaluationPollingResultDTO(
+      final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult)
+  {
+    PolicyEvaluationPollingResult res = persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
+
+    PolicyEvaluationPollingResultDTO dto = new PolicyEvaluationPollingResultDTO();
+    dto.status = res.getStatus();
+    dto.result = res.getResult();
+    dto.reason = res.getReason();
+    dto.scanReceipt = res.getScanReceipt();
+    dto.nextPollingIntervalInSeconds = res.getNextPollingIntervalInSeconds();
+
+    Set<Feature> features = featuresService.getFeatures();
+    if (features.contains(SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS)) {
+      dto.subStatus = res.getSubStatus();
+    }
+
+    return dto;
   }
 }

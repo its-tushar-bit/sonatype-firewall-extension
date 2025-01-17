@@ -76,6 +76,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AEL-NC-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AEL-NC-NA-1.1','AEL-NC-NA-1.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Aerospike-MLA','Aerospike-MLA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AFL-1.0','AFL-1.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AFL-1.0-Artistic-1.0-Perl','AFL-1.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AFL-1.0-Artistic-1.0-Perl','Artistic-1.0-Perl');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AFL-1.1','AFL-1.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AFL-1.2','AFL-1.2');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AFL-2.0','AFL-2.0');
@@ -103,6 +105,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AFL-2.1
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AFL-2.1-GPL-2.0+','GPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AFL-2.1-LGPL-2.0','AFL-2.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AFL-2.1-LGPL-2.0','LGPL-2.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AFL-2.1-MIT','AFL-2.1');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AFL-2.1-MIT','MIT');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AFL-3.0','AFL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AFL-3.0-MIT','AFL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AFL-3.0-MIT','MIT');
@@ -2636,6 +2640,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EPL-2.0
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EPL-2.0-GPL-3.0','GPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EPL-2.0-GPL-3.0+','EPL-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EPL-2.0-GPL-3.0+','GPL-3.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EPL-2.0-GPL-3.0+-with-classpath-exception','EPL-2.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EPL-2.0-GPL-3.0+-with-classpath-exception','GPL-3.0-with-classpath-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EPL-2.0-LGPL-2.1+','EPL-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EPL-2.0-LGPL-2.1+','LGPL-2.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EPL-2.0-LGPL-2.1+','LGPL-3.0');
@@ -3460,11 +3466,15 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Highsof
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Hippocratic-1.0','Hippocratic-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Hippocratic-1.1','Hippocratic-1.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Hippocratic-1.2','Hippocratic-1.2');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Hippocratic-1.2-MIT','Hippocratic-1.2');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Hippocratic-1.2-MIT','MIT');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Hippocratic-2.0','Hippocratic-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Hippocratic-2.1','Hippocratic-2.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Hippocratic-3.0','Hippocratic-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Hippocratic-DNH-1.0','Hippocratic-DNH-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Hippocratic-UNSPECIFIED','Hippocratic-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Hippocratic-UNSPECIFIED-MIT','Hippocratic-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Hippocratic-UNSPECIFIED-MIT','MIT');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Hippojabe-SIG-MUL','Hippojabe-SIG-MUL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('HiQPdf-SLA','HiQPdf-SLA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('HL3-BDS','HL3-BDS');

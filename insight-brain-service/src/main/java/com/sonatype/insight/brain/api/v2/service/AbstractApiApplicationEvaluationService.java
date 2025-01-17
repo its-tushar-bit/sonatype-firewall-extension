@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import javax.ws.rs.core.UriBuilder;
 
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationResultDTOV2;
@@ -16,6 +15,7 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultDTO;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 
@@ -39,22 +39,22 @@ class AbstractApiApplicationEvaluationService
       String statusId)
   {
     Application application = applicationDAO.getById(applicationId);
-    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+    PolicyEvaluationPollingResultDTO dto = 
         policyEvaluateService.pollEvaluationResult(application.getPublicId(), statusId);
 
     ApiApplicationEvaluationResultDTOV2 result = new ApiApplicationEvaluationResultDTOV2();
-    result.status = policyEvaluationPollingResult.getStatus().name();
-    switch (policyEvaluationPollingResult.getStatus()) {
+    result.status = dto.status.name();
+    switch (dto.status) {
       case COMPLETED:
         String applicationPublicId = application.getPublicId();
-        String scanId = policyEvaluationPollingResult.getScanReceipt().getScanId();
+        String scanId = dto.scanReceipt.getScanId();
         result.reportPdfUrl = UserInterfaceLinksHelper.getPdfUrl(applicationPublicId, scanId);
         result.reportHtmlUrl = UserInterfaceLinksHelper.getReportUrl(applicationPublicId, scanId);
         result.embeddableReportHtmlUrl = UserInterfaceLinksHelper.getEmbeddableReportUrl(applicationPublicId, scanId);
         result.reportDataUrl = ApiReportDataResourceV2.getDataUrl(applicationPublicId, scanId);
         break;
       case FAILED:
-        result.reason = policyEvaluationPollingResult.getReason();
+        result.reason = dto.reason;
         break;
       default:
         break;

@@ -56,6 +56,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AEL-NC-NA-1.1','AEL-NC-NA-1.1','Anti-Exploitation License Noncommercial Nonattribution v1.1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Aerospike-MLA','Aerospike-MLA','Aerospike Master License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AFL-1.0','AFL-1.0','Academic Free License v1.0');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AFL-1.0-Artistic-1.0-Perl','AFL-1.0 or Artistic-1.0-Perl','Dual License Consisting of Academic Free License v1.0 and Artistic License 1.0 Perl');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AFL-1.1','AFL-1.1','Academic Free License v1.1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AFL-1.2','AFL-1.2','Academic Free License v1.2');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AFL-2.0','AFL-2.0','Academic Free License v2.0');
@@ -69,6 +70,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AFL-2.1-BSD-3-Clause','AFL-2.1 or BSD-3-Clause','Dual License Consisting of Academic Free License v2.1 and New BSD License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AFL-2.1-GPL-2.0+','AFL-2.1 or GPL-2.0+','Dual License Consisting of Academic Free License 2.1 and GPL 2.0 or later');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AFL-2.1-LGPL-2.0','AFL-2.1 or LGPL-2.0','Dual License Consisting of Academic Free License v2.1 and LGPL 2.0');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AFL-2.1-MIT','AFL-2.1 or MIT','Dual License Consisting of Academic Free License v2.1 and MIT');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AFL-3.0','AFL-3.0','Academic Free License v3.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AFL-3.0-MIT','AFL-3.0 or MIT','Dual License Consisting of Academic Free License v3.0 and MIT');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AFL-3.0-OSL-3.0','AFL-3.0 or OSL-3.0','Dual License Consisting of Academic Free License v3.0 and Open Software License 3.0');
@@ -1429,6 +1431,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('EPL-2.0-GPL-2.0-CPE','EPL-2.0 or GPL-2.0-CPE','Dual License Consisting of Eclipse Public License 2.0 and GPL-2.0-with-classpath exception');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('EPL-2.0-GPL-3.0','EPL-2.0 or GPL-3.0','Dual License Consisting of Eclipse Public License 2.0 and GPL 3.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('EPL-2.0-GPL-3.0+','EPL-2.0 or GPL-3.0+','Dual License Consisting of Eclipse Public License 2.0 and GPL 3.0 or later');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('EPL-2.0-GPL-3.0+-with-classpath-exception','EPL-2.0 or GPL-3.0+-with-classpath-exception','Dual License Consisting of Eclipse Public License 2.0 and GNU General Public License v3.0 or later w/Classpath exception');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('EPL-2.0-LGPL-2.1+','EPL-2.0 or LGPL-2.1+','Dual License Consisting of Eclipse Public License 2.0 and LGPL 2.1 or later');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('EPL-2.0-MIT','EPL-2.0 or MIT','Dual License Consisting of Eclipse Public License 2.0 and MIT');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('EPL-2.0-UNKNOWN','EPL-2.0 or Non-Standard','Dual License Consisting of Eclipse Public License 2.0 and Raw License String Could Not Be Mapped to a Standardized SPDX License');
@@ -1900,11 +1903,13 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Hippocratic-1.0','Hippocratic-1.0','Hippocratic License 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Hippocratic-1.1','Hippocratic-1.1','Hippocratic License 1.1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Hippocratic-1.2','Hippocratic-1.2','Hippocratic License 1.2');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Hippocratic-1.2-MIT','Hippocratic-1.2 or MIT','Dual License Consisting of Hippocratic License 1.2 and MIT');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Hippocratic-2.0','Hippocratic-2.0','Hippocratic License 2.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Hippocratic-2.1','Hippocratic-2.1','Hippocratic License 2.1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Hippocratic-3.0','Hippocratic-3.0','Hippocratic License 3.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Hippocratic-DNH-1.0','Hippocratic-DNH-1.0','Hippocratic - Do Not Harm - Version 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Hippocratic-UNSPECIFIED','Hippocratic','Hippocratic-Style License Not Identifiable by Sonatype');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Hippocratic-UNSPECIFIED-MIT','Hippocratic or MIT','Dual License Consisting of Hippocratic-Style License Not Identifiable by Sonatype and MIT');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Hippojabe-SIG-MUL','Hippojabe-SIG-MUL','Hippojabe Style Image Generator Model Usage License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('HiQPdf-SLA','HiQPdf-SLA','HiQPdf Software License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('HL3-BDS','HL3-BDS','Hippocratic License 3.0 - Boycott / Divestment / Sanctions module');

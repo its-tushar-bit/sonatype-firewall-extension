@@ -30,7 +30,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.api.v2.ApiSbomResource;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
@@ -54,6 +53,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
@@ -537,14 +537,14 @@ public class ApiSbomService
   public ApiSbomStatusDTO getImportStatus(
       @AuthzContext(Key.APPLICATION_ID) String applicationId, String importRequestId)
   {
-    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+    PolicyEvaluationPollingResultDTO dto =
         policyEvaluateService.pollEvaluationResult(applicationDAO.getById(applicationId).getPublicId(),
             importRequestId);
 
-    switch (policyEvaluationPollingResult.getStatus()) {
+    switch (dto.status) {
       case COMPLETED:
         List<ThirdPartyScan> scans =
-            thirdPartyScanDAO.getByScanId(policyEvaluationPollingResult.getScanReceipt().getScanId());
+            thirdPartyScanDAO.getByScanId(dto.scanReceipt.getScanId());
 
         if (scans.isEmpty() && sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
           throw new PaymentRequiredException(
@@ -560,13 +560,13 @@ public class ApiSbomService
 
         return apiSbomStatusDTO;
       case FAILED:
-        return new ApiSbomStatusDTO(policyEvaluationPollingResult.getReason());
+        return new ApiSbomStatusDTO(dto.reason);
       case PENDING:
         throw new NotFoundException("Sbom version import is still in progress");
       default:
         throw new IllegalStateException(String
             .format("Unexpected result %s with status id %s for application with id %s",
-                policyEvaluationPollingResult.getStatus(), importRequestId, applicationId));
+                dto.status, importRequestId, applicationId));
     }
   }
 

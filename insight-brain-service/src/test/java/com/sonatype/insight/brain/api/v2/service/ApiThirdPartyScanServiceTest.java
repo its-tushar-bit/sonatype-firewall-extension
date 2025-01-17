@@ -17,7 +17,6 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
@@ -33,6 +32,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultDTO;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -158,8 +158,8 @@ public class ApiThirdPartyScanServiceTest
 
   @Test
   public void testGetScanStatus_Pending() {
-    PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
-    policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.PENDING);
+    PolicyEvaluationPollingResultDTO policyEvaluationPollingResult = new PolicyEvaluationPollingResultDTO();
+    policyEvaluationPollingResult.status = PolicyEvaluationStatus.PENDING;
 
     when(mockPolicyEvaluateService.pollEvaluationResult(app.getPublicId(), "scanId"))
         .thenReturn(policyEvaluationPollingResult);
@@ -172,9 +172,9 @@ public class ApiThirdPartyScanServiceTest
 
   @Test
   public void testGetScanStatus_Failure() {
-    PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
-    policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.FAILED);
-    policyEvaluationPollingResult.setReason("HDS Upload Failure!");
+    PolicyEvaluationPollingResultDTO policyEvaluationPollingResult = new PolicyEvaluationPollingResultDTO();
+    policyEvaluationPollingResult.status = PolicyEvaluationStatus.FAILED;
+    policyEvaluationPollingResult.reason = "HDS Upload Failure!";
 
     when(mockPolicyEvaluateService.pollEvaluationResult(app.getPublicId(), "scanId"))
         .thenReturn(policyEvaluationPollingResult);
@@ -268,10 +268,10 @@ public class ApiThirdPartyScanServiceTest
     evaluationResult.setSeverePolicyViolationCount(openPolicyViolations.severe);
     evaluationResult.setLegacyViolationCount(legacyViolations);
 
-    PolicyEvaluationPollingResult pollingResult = new PolicyEvaluationPollingResult();
-    pollingResult.setScanReceipt(scanReceipt);
-    pollingResult.setStatus(PolicyEvaluationStatus.COMPLETED);
-    pollingResult.setResult(evaluationResult);
+    PolicyEvaluationPollingResultDTO pollingResult = new PolicyEvaluationPollingResultDTO();
+    pollingResult.scanReceipt = scanReceipt;
+    pollingResult.status = PolicyEvaluationStatus.COMPLETED;
+    pollingResult.result = evaluationResult;
 
     when(mockPolicyEvaluateService.pollEvaluationResult(app.getPublicId(), scanId))
         .thenReturn(pollingResult);

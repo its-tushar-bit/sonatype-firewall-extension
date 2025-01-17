@@ -17,7 +17,6 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -39,6 +38,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultDTO;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanResult;
@@ -217,14 +217,14 @@ public class ApiThirdPartyScanService
   {
     Application application = applicationDAO.getById(applicationId);
 
-    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+    PolicyEvaluationPollingResultDTO dto =
         policyEvaluateService.pollEvaluationResult(application.getPublicId(), scanRequestId);
 
-    switch (policyEvaluationPollingResult.getStatus()) {
+    switch (dto.status) {
       case COMPLETED:
-        return completed(application, policyEvaluationPollingResult);
+        return completed(application, dto);
       case FAILED:
-        return failed(policyEvaluationPollingResult);
+        return failed(dto);
       case PENDING:
         throw new NotFoundException(String
             .format("Report with status id %s for application with id %s is not ready.", scanRequestId,
@@ -232,15 +232,15 @@ public class ApiThirdPartyScanService
       default:
         throw new IllegalArgumentException(String
             .format("Unexpected result %s with status id %s for application with id %s",
-                policyEvaluationPollingResult.getStatus(), scanRequestId, applicationId));
+                dto.status, scanRequestId, applicationId));
     }
   }
 
   private ApiThirdPartyScanResultDTO completed(
       final Application application,
-      final PolicyEvaluationPollingResult policyEvaluationPollingResult)
+      final PolicyEvaluationPollingResultDTO policyEvaluationPollingResult)
   {
-    ScanReceipt scanReceipt = policyEvaluationPollingResult.getScanReceipt();
+    ScanReceipt scanReceipt = policyEvaluationPollingResult.scanReceipt;
     String reportUrl = scanReceipt.getReportUrl();
     String reportPdfUrl = scanReceipt.getPdfUrl();
     String reportDataUrl = scanReceipt.getDataUrl();
@@ -248,7 +248,7 @@ public class ApiThirdPartyScanService
         UserInterfaceLinksHelper.getEmbeddableReportUrl(application.getPublicId(), scanReceipt.getScanId());
 
     ApiPolicyAction outcome = ApiPolicyAction.NONE;
-    for (PolicyAlert alert : policyEvaluationPollingResult.getResult().getAlerts()) {
+    for (PolicyAlert alert : policyEvaluationPollingResult.result.getAlerts()) {
       PolicyFact trigger = alert.getTrigger();
       for (final Action action : alert.getActions()) {
         final String actionTypeId = action.getActionTypeId();
@@ -263,7 +263,7 @@ public class ApiThirdPartyScanService
       }
     }
 
-    PolicyEvaluationResult result = policyEvaluationPollingResult.getResult();
+    PolicyEvaluationResult result = policyEvaluationPollingResult.result;
 
     ApiEvaluationResultCounterDTO componentsAffected = buildResultCounter(result.getCriticalComponentCount(),
         result.getModerateComponentCount(), result.getSevereComponentCount());
@@ -283,8 +283,8 @@ public class ApiThirdPartyScanService
     return counter;
   }
 
-  private ApiThirdPartyScanResultDTO failed(final PolicyEvaluationPollingResult policyEvaluationPollingResult) {
-    return new ApiThirdPartyScanResultDTO(policyEvaluationPollingResult.getReason());
+  private ApiThirdPartyScanResultDTO failed(final PolicyEvaluationPollingResultDTO policyEvaluationPollingResult) {
+    return new ApiThirdPartyScanResultDTO(policyEvaluationPollingResult.reason);
   }
 
   public IdeUsersOverviewDTO getIdeUsersOverview(final Long sinceUtcTimestamp) {

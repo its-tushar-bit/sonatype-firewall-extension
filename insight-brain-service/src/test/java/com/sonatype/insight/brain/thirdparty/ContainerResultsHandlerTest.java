@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
-import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -28,6 +27,8 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabi
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
+import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -35,6 +36,7 @@ import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.cyclonedx.model.Bom;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -100,8 +102,16 @@ public class ContainerResultsHandlerTest
     String actualFilteredContent = containerResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     String expectedFiltered = loadResource("alpine-3.6-expected-bom.json");
 
-    assertThatJson(actualFilteredContent).whenIgnoringPaths("components[*].properties[*].value")
+    assertThatJson(actualFilteredContent).whenIgnoringPaths("components[*].properties[*].value",
+            "components[*].bom-ref")
         .isEqualTo(expectedFiltered);
+
+    assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId()))
+        .isNotEmpty().allSatisfy(cp -> assertThat(cp.getComponentRef()).isNotBlank());
+    Bom bom = ThirdPartySbomUtils.getFilteredBom(actualFilteredContent);
+    assertThat(bom.getComponents()).isNotEmpty().allSatisfy(component -> assertThat(component.getProperties().stream()
+        .filter(p -> SbomCycloneDxUtils.PROPERTY_COMPONENT_REFERENCE.equals(p.getName())).findFirst()).isNotEmpty()
+        .satisfies(optional -> assertThat(optional.get().getValue()).isNotBlank()));
   }
 
   @Test

@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
@@ -142,13 +143,14 @@ public class ContainerResultHandler
           ComponentIdentifier.createContainerCoordinates(module.getSource(), resourceId, module.getVersion());
       PackageUrlIdentifier packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
 
+      String bomRef = UUID.randomUUID().toString();
       Component component = new Component();
       component.setGroup(module.getSource());
       component.setName(resourceId);
       component.setVersion(module.getVersion());
       component.setType(Type.FILE);
       component.setPurl(packageUrlIdentifier.getPackageUrl());
-      component.setBomRef(packageUrlIdentifier.getPackageUrl());
+      component.setBomRef(bomRef);
       componentsToAdd.add(component);
       componentInfoTelemetry.incrementCoordinateCount();
 
@@ -186,11 +188,10 @@ public class ContainerResultHandler
             vuln.setAffects(new ArrayList<>());
           }
           vulnerabilityAffectsMap.putIfAbsent(vuln.getId(), new HashSet<>());
-          String packageUrl = packageUrlIdentifier.getPackageUrl();
-          if (!vulnerabilityAffectsMap.get(vuln.getId()).contains(packageUrl)) {
-            vulnerabilityAffectsMap.get(vuln.getId()).add(packageUrl);
+          if (!vulnerabilityAffectsMap.get(vuln.getId()).contains(bomRef)) {
+            vulnerabilityAffectsMap.get(vuln.getId()).add(bomRef);
             Affect affect = new Affect();
-            affect.setRef(packageUrl);
+            affect.setRef(bomRef);
             vuln.getAffects().add(affect);
           }
         }

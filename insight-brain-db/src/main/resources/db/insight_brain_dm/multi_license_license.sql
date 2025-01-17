@@ -2640,6 +2640,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EPL-2.0
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EPL-2.0-GPL-3.0','GPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EPL-2.0-GPL-3.0+','EPL-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EPL-2.0-GPL-3.0+','GPL-3.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EPL-2.0-GPL-3.0+-CPE','EPL-2.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EPL-2.0-GPL-3.0+-CPE','GPL-3.0-with-classpath-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EPL-2.0-GPL-3.0+-with-classpath-exception','EPL-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EPL-2.0-GPL-3.0+-with-classpath-exception','GPL-3.0-with-classpath-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EPL-2.0-LGPL-2.1+','EPL-2.0');
@@ -3238,6 +3240,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-font-exception','GPL-2.0-with-font-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-GCC-exception','GPL-2.0-with-GCC-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-GNAT-exception','GPL-2.0-with-GNAT-exception');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-GPL-CC-1.0','GPL-2.0-with-GPL-CC-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-libpri-OpenH323-exception','GPL-2.0-with-libpri-OpenH323-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-Linux-syscall-note','GPL-2.0-with-Linux-syscall-note');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-OpenSSL-exception','GPL-2.0-with-OpenSSL-exception');

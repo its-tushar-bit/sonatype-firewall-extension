@@ -179,6 +179,16 @@ const createAppState = {
   },
 };
 
+const sbomManagerCreateAppState = {
+  ...createAppState,
+  router: {
+    ...createAppState.router,
+    currentState: {
+      name: 'sbomManager.management.view.organization',
+    },
+  },
+};
+
 const editOrgState = {
   router: {
     currentState: {
@@ -487,6 +497,13 @@ describe('OwnerModal', () => {
       renderComponent(createAppState);
 
       expect(screen.getByText('New Application')).toBeVisible();
+    });
+
+    it('renders without Import Apps button when it is SBOM Manager', () => {
+      renderComponent(sbomManagerCreateAppState);
+      expect(screen.queryByRole('link', { name: 'Import Apps' })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Create' })).toBeVisible();
     });
 
     it('renders modal with correct content', () => {

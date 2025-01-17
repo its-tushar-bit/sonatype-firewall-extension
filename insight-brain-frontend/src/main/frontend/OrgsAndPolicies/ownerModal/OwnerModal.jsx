@@ -129,7 +129,7 @@ export default function OwnerModal({ shouldRedirectToNewOrg }) {
       <NxButton variant="tertiary" type="button" className="nx-form__cancel-btn" onClick={closeModalWithCheck}>
         Cancel
       </NxButton>
-      {!isEditMode && isApp && (
+      {!isSbomManager && !isEditMode && isApp && (
         <a href={scmOnboardingHref} className="nx-btn nx-btn--secondary">
           Import Apps
         </a>

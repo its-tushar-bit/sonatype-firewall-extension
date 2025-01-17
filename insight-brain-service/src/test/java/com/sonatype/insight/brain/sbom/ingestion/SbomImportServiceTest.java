@@ -27,6 +27,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
@@ -1285,6 +1287,39 @@ public class SbomImportServiceTest
     productLicense.reset();
 
     assertExistingSbomFiles();
+  }
+
+  @Test
+  public void testImportDetectedSbom_SBOM_VersionConflict_StaysInUploadedState() throws Exception {
+    mockHdsReportDownload();
+
+    InputStream file1 =
+        SbomImportServiceTest.class.getResourceAsStream("/SbomImportServiceTest/valid-cyclonedx-bom.xml");
+    var detectionResult1 = sbomImportService.detectSbom(application.getId(), file1, "valid-cyclonedx-bom.xml", false);
+    sbomImportService.importDetectedSbom(
+        application.getId(),
+        detectionResult1.getSavedVersion(),
+        "1.2.3.4",
+        "clientUserAgent"
+    );
+
+    InputStream file2 =
+        SbomImportServiceTest.class.getResourceAsStream("/SbomImportServiceTest/valid-cyclonedx-bom.xml");
+    var detectionResult2 = sbomImportService.detectSbom(application.getId(), file2, "valid-cyclonedx-bom.xml", false);
+
+    assertThatThrownBy(() ->
+        sbomImportService.importDetectedSbom(
+            application.getId(),
+            detectionResult2.getSavedVersion(),
+            "1.2.3.4",  // Try to use same version
+            "clientUserAgent"
+        ))
+        .isInstanceOf(ConflictException.class);
+
+    ThirdPartySbomMetadata metadata =
+        thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(application.getId(),
+            detectionResult2.getSavedVersion());
+    assertThat(metadata.getStatus()).isEqualTo(ThirdPartySbomMetadataStatus.UPLOADED);
   }
 
   private void assertTelemetryData(final String format,

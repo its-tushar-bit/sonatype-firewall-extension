@@ -85,4 +85,8 @@ public class ImportSbomModal
   public SelenideElement binaryFilename() {
     return child("#import-sbom-modal-filename");
   }
+
+  public SelenideElement versionInput() {
+    return child("#import-sbom-modal-version-input");
+  }
 }

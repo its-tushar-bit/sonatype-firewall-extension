@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { always, complement, compose, is, isNil, when } from 'ramda';
 import {
   NxButton,
@@ -22,13 +22,12 @@ import {
 
 import { selectSelectedOwnerName } from '../orgsAndPoliciesSelectors';
 import { selectImportSbomModalSlice } from './importSbomModalSelectors';
-import { actions, IMPORT_STATE } from './importSbomModalSlice';
 
 const ensureString = compose(when(complement(is(String)), toString), when(isNil, always('')));
 
 export default function SbomSummaryPage({ headerId, onClose }) {
   const applicationName = useSelector(selectSelectedOwnerName);
-  const { sbomSummary } = useSelector(selectImportSbomModalSlice);
+  const { sbomSummary, savedVersion } = useSelector(selectImportSbomModalSlice);
 
   return (
     <>
@@ -48,7 +47,7 @@ export default function SbomSummaryPage({ headerId, onClose }) {
           <NxTextInput
             name="version-id"
             title="Version Id"
-            value={ensureString(sbomSummary.versionId)}
+            value={ensureString(savedVersion)}
             isPristine={true}
             disabled
           />

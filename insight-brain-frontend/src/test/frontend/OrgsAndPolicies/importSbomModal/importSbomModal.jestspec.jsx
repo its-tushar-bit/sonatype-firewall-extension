@@ -42,7 +42,6 @@ describe('ImportSbomModal', () => {
             errorMessage: null,
             fileInputState: nxFileUploadStateHelpers.initialState(null),
             sbomSummary: {
-              versionId: null,
               totalComponents: null,
               totalVulnerabilities: null,
             },
@@ -158,7 +157,7 @@ describe('ImportSbomModal', () => {
       });
     });
 
-    describe('Uploading/Committing', () => {
+    describe('Uploading', () => {
       it('shows the correct content', async () => {
         axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply((config) => {
           const total = 1024; // Mocked file size
@@ -182,6 +181,128 @@ describe('ImportSbomModal', () => {
         expect(screen.queryByRole('button', { name: /Cancel/i })).not.toBeInTheDocument();
         expect(screen.queryByRole('button', { name: /Close/i })).not.toBeInTheDocument();
         expect(screen.queryByRole('button', { name: /Import/i })).not.toBeInTheDocument();
+      });
+    });
+
+    describe('VERSION_CONFIRM/COMMITTING', () => {
+      beforeEach(() => {
+        axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply(200, {
+          sbomSummary: {
+            specification: 'CycloneDx',
+            format: 'json',
+            version: '1.4',
+            componentCount: 1,
+            vulnerabilityCount: 2,
+            applicationName: null,
+            applicationVersion: '1.2.3',
+            serialNumber: 'urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79',
+            creationDetails: null,
+          },
+          savedVersion: '1.2.3_2024',
+          scanType: 'SBOM',
+          errorMessage: null,
+        });
+
+        renderComponent();
+
+        // Set up initial state by uploading file
+        setFileUploadValue(document.querySelector('input[type=file]'), createTestFile());
+        const initialImportButton = screen.getByRole('button', { name: /import/i });
+        fireEvent.click(initialImportButton);
+      });
+
+      it('shows the version confirmation page with correct content', async () => {
+        expect(screen.getByRole('dialog')).toHaveAccessibleName('File Uploaded. Import in Progress…');
+
+        const applicationNameLabel = (await screen.findByText('Application Name')).closest('dt');
+        expect(applicationNameLabel).toBeVisible();
+        expect(applicationNameLabel.nextElementSibling.tagName).toBe('DD');
+        expect(applicationNameLabel.nextElementSibling).toHaveTextContent('testApplicationName');
+
+        const versionInput = screen.getByRole('textbox', { name: 'Application Version' });
+        expect(versionInput).toHaveValue('1.2.3_2024');
+
+        expect(screen.getByRole('button', { name: /Cancel/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Import/i })).toBeInTheDocument();
+      });
+
+      it('shows validation error when trying to import with empty version', async () => {
+        const versionInput = screen.getByPlaceholderText('Enter version');
+        const importButton = screen.getByRole('button', { name: /Import/i });
+
+        fireEvent.change(versionInput, { target: { value: '' } });
+        fireEvent.click(importButton);
+
+        expect(
+          screen.getByText('There were validation errors. Invalid version input. Please enter a valid version format.')
+        );
+        expect(screen.getByText('Must be non-empty')).toBeInTheDocument();
+      });
+
+      it('allows retry with new version after conflict', async () => {
+        axiosMock
+          .onPost(getCommitImportedSbomUrl('testApplicationId', '1.2.3_2024'))
+          .replyOnce(409, 'Version 1.2.3_2024 already exists');
+
+        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', '1.2.3_2024', '2.0.0')).replyOnce(201, {});
+
+        let versionInput = screen.getByRole('textbox', { name: 'Application Version' });
+        expect(versionInput).toHaveValue('1.2.3_2024');
+
+        let importButton = screen.getByRole('button', { name: /Import/i });
+
+        fireEvent.click(importButton);
+        expect(
+          await screen.findByText('An error occurred saving data. Version 1.2.3_2024 already exists')
+        ).toBeInTheDocument();
+
+        versionInput = screen.getByRole('textbox', { name: 'Application Version' });
+        fireEvent.change(versionInput, { target: { value: '2.0.0' } });
+        importButton = screen.getByRole('button', { name: /Import/i });
+        fireEvent.click(importButton);
+
+        expect(
+          screen.queryByText('An error occurred saving data. Version 1.2.3_2024 already exists')
+        ).not.toBeInTheDocument();
+
+        //ensure we are on the summary page
+        const versionIdTextBox = await screen.findByRole('textbox', { name: /version id/i });
+        expect(versionIdTextBox).toHaveValue('2.0.0');
+        expect(versionIdTextBox).toBeDisabled();
+      });
+
+      it('allows user to override version', async () => {
+        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', '1.2.3_2024', '2.0.0')).replyOnce(201, {});
+
+        await screen.findByText('File Uploaded. Import in Progress…');
+
+        const versionInput = screen.getByPlaceholderText('Enter version');
+        expect(versionInput).toHaveValue('1.2.3_2024');
+
+        fireEvent.change(versionInput, { target: { value: '2.0.0' } });
+        expect(versionInput).toHaveValue('2.0.0');
+
+        const importButton = screen.getByRole('button', { name: 'Import' });
+        fireEvent.click(importButton);
+
+        //make sure we are on the summary page
+        const versionIdTextBox = await screen.findByRole('textbox', { name: /version id/i });
+        expect(versionIdTextBox).toHaveValue('2.0.0');
+        expect(versionIdTextBox).toBeDisabled();
+
+        expect(axiosMock.history.post).toHaveLength(2);
+        const commitFileCall = axiosMock.history.post[1];
+        expect(commitFileCall.url).toEqual(
+          '/rest/sbom/commit/testApplicationId/1.2.3_2024?applicationVersionOverride=2.0.0'
+        );
+      });
+
+      it('closes modal when Cancel is clicked', () => {
+        const cancelButton = screen.getByRole('button', { name: /Cancel/i });
+
+        fireEvent.click(cancelButton);
+
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
       });
     });
 
@@ -211,6 +332,12 @@ describe('ImportSbomModal', () => {
         const importButton = screen.getByRole('button', { name: /import/i });
 
         fireEvent.click(importButton);
+
+        // version confirm page
+        expect(await screen.findByText('File Uploaded. Import in Progress…')).toBeInTheDocument();
+
+        const confirmImportButton = screen.getByRole('button', { name: /import/i });
+        fireEvent.click(confirmImportButton);
 
         const applicationNameLabel = (await screen.findByText('Application Name')).closest('dt');
         expect(applicationNameLabel).toBeVisible();
@@ -261,6 +388,12 @@ describe('ImportSbomModal', () => {
         const importButton = screen.getByRole('button', { name: /import/i });
 
         fireEvent.click(importButton);
+
+        //version confirm page
+        expect(await screen.findByText('File Uploaded. Import in Progress…')).toBeInTheDocument();
+
+        const confirmImportButton = screen.getByRole('button', { name: /import/i });
+        fireEvent.click(confirmImportButton);
 
         expect(await screen.findByText('Application Name')).toBeVisible();
         expect(await screen.findByText('testApplicationName')).toBeVisible();
@@ -532,10 +665,10 @@ describe('ImportSbomModal', () => {
                 fileInputState: nxFileUploadStateHelpers.initialState(fakeFileList(file)),
                 uploadProgress: 0,
                 sbomSummary: {
-                  versionId: null,
                   totalComponents: null,
                   totalVulnerabilities: null,
                 },
+                savedVersion: '1.2.3_2024',
               },
             },
           },
@@ -552,6 +685,12 @@ describe('ImportSbomModal', () => {
         expect(importButton).toBeEnabled();
 
         fireEvent.click(importButton);
+
+        //version confirm page
+        expect(await screen.findByText('File Uploaded. Import in Progress…')).toBeInTheDocument();
+
+        const confirmImportButton = screen.getByRole('button', { name: /import/i });
+        fireEvent.click(confirmImportButton);
 
         const applicationNameLabel = (await screen.findByText('Application Name')).closest('dt');
         expect(applicationNameLabel).toBeVisible();

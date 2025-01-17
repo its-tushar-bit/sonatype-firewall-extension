@@ -3,27 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  NxButton,
-  NxCopyToClipboard,
-  NxDescriptionList,
-  NxErrorAlert,
-  NxFileUpload,
-  nxFileUploadStateHelpers,
-  NxFooter,
-  NxFormGroup,
-  NxH2,
-  NxInfoAlert,
-  NxModal,
-  NxP,
-  NxProgressBar,
-  NxTextInput,
-  NxTextLink,
-  NxWarningAlert,
-} from '@sonatype/react-shared-components';
-import { always, complement, compose, is, isNil, toString, when } from 'ramda';
+import { NxModal } from '@sonatype/react-shared-components';
 
 import { actions as toastActions } from 'MainRoot/toastContainer/toastSlice';
 
@@ -35,7 +17,7 @@ import ValidationErrorPage from './ValidationErrorPage';
 import UnknownErrorPage from './UnknownErrorPage';
 import SbomSummaryPage from './SbomSummaryPage';
 import BinarySummaryPage from './BinarySummaryPage';
-import { selectSelectedOwnerName } from '../orgsAndPoliciesSelectors';
+import VersionConfirmPage from 'MainRoot/OrgsAndPolicies/importSbomModal/VersionConfirmPage';
 
 const POST_IMPORT_TOAST_MESSAGE =
   'The file you uploaded is currently being evaluated and will be available on this page shortly. ' +
@@ -60,8 +42,11 @@ export default function ImportSbomModal() {
     case IMPORT_STATE.INITIAL:
       page = <UploadPage headerId={headerId} onCancel={closeModal} />;
       break;
-    case IMPORT_STATE.UPLOADING_COMMITTING:
+    case IMPORT_STATE.UPLOADING:
       page = <UploadProgressPage headerId={headerId} />;
+      break;
+    case IMPORT_STATE.VERSION_CONFIRM:
+      page = <VersionConfirmPage headerId={headerId} onCancel={closeModal} />;
       break;
     case IMPORT_STATE.ERROR:
       if (validationErrors?.length) {

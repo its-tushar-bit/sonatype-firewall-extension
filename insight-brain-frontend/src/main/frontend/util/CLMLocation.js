@@ -1110,8 +1110,13 @@ export function getImportSbomUrl(applicationId) {
   return uriTemplate`/rest/sbom/detect/${applicationId}`;
 }
 
-export function getCommitImportedSbomUrl(applicationId, applicationVersion) {
-  return uriTemplate`/rest/sbom/commit/${applicationId}/${applicationVersion}`;
+export function getCommitImportedSbomUrl(applicationId, applicationVersion, applicationVersionOverride) {
+  let url = uriTemplate`/rest/sbom/commit/${applicationId}/${applicationVersion}`;
+  if (applicationVersionOverride) {
+    const queryParams = toURIParams({ applicationVersionOverride });
+    url += `?${queryParams}`;
+  }
+  return url;
 }
 
 export function getSbomPolicyViolationReportUrl(applicationPublicId, sbomVersion, fileCoordinateId, hash) {

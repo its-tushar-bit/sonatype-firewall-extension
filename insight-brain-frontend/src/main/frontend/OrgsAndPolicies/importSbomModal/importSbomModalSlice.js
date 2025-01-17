@@ -6,13 +6,18 @@
 import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { allPass, always, complement, is, isEmpty, isNil } from 'ramda';
-import { nxFileUploadStateHelpers } from '@sonatype/react-shared-components';
+import {
+  combineValidationErrors,
+  nxFileUploadStateHelpers,
+  nxTextInputStateHelpers,
+} from '@sonatype/react-shared-components';
 
 import { getImportSbomUrl, getCommitImportedSbomUrl } from 'MainRoot/util/CLMLocation';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 import { selectSelectedOwnerId } from '../orgsAndPoliciesSelectors';
 import { selectSelectedFile, selectImportSbomModalSlice } from './importSbomModalSelectors';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { validateMaxLength, validateNonEmpty } from 'MainRoot/util/validationUtil';
 
 const DEFAULT_ERROR_MESSAGE = 'Encountered unexpected error while attempting to upload.';
 
@@ -20,15 +25,18 @@ const REDUCER_NAME = `${OWNER_ACTIONS}/importSbomModal`;
 
 const isNonEmptyString = allPass([is(String), complement(isEmpty)]);
 
+const MAX_VERSION_LENGTH = 1100;
+
 export const IMPORT_STATE = Object.freeze({
   INITIAL: null,
-  UPLOADING_COMMITTING: 0,
-  SUMMARY: 1,
+  UPLOADING: 0,
+  VERSION_CONFIRM: 1,
+  COMMITTING: 2,
+  SUMMARY: 3,
   ERROR: -1,
 });
 
 const sbomSummaryInitialState = Object.freeze({
-  versionId: null,
   totalComponents: null,
   totalVulnerabilities: null,
 });
@@ -44,6 +52,9 @@ export const initialState = Object.freeze({
   errorMessage: null,
   validationErrors: null,
   sbomSummary: sbomSummaryInitialState,
+  savedVersion: null,
+  versionTextInput: null,
+  submitError: null,
 });
 
 const setIsSkipValidation = (state, { payload }) => {
@@ -60,6 +71,19 @@ const setUploadProgress = (state, { payload }) => {
 
 const setSelectedFile = (state, { payload }) => {
   state.fileInputState = nxFileUploadStateHelpers.userInput(payload);
+};
+
+const setVersionTextInput = (state, { payload }) => {
+  state.versionTextInput = nxTextInputStateHelpers.userInput(validateVersion, payload);
+  state.submitError = null;
+};
+
+const validateVersion = (value) => {
+  return combineValidationErrors(validateNonEmpty(value), validateMaxLength(MAX_VERSION_LENGTH, value));
+};
+
+const setSavedVersion = (state, { payload }) => {
+  state.savedVersion = payload;
 };
 
 const uploadFile = createAsyncThunk(`${REDUCER_NAME}/uploadFile`, (_, { dispatch, getState, rejectWithValue }) => {
@@ -87,52 +111,27 @@ const uploadFile = createAsyncThunk(`${REDUCER_NAME}/uploadFile`, (_, { dispatch
       if (data.scanType === 'SBOM' && isNonEmptyString(data.errorMessage)) {
         return rejectWithValue(data);
       }
-      dispatch(actions.commitFile(data.savedVersion));
       return data;
     })
     .catch(rejectWithValue);
 });
 
 const uploadFilePending = (state) => {
-  state.importState = IMPORT_STATE.UPLOADING_COMMITTING;
+  state.importState = IMPORT_STATE.UPLOADING;
 };
 
 const uploadFileFulfilled = (state, { payload }) => {
-  state.importState = IMPORT_STATE.UPLOADING_COMMITTING;
+  state.importState = IMPORT_STATE.VERSION_CONFIRM;
   if (payload.sbomSummary) {
-    state.sbomSummary.versionId = payload.savedVersion;
     state.sbomSummary.totalComponents = payload.sbomSummary.componentCount;
     state.sbomSummary.totalVulnerabilities = payload.sbomSummary.vulnerabilityCount;
   }
+  state.versionTextInput = nxTextInputStateHelpers.initialState(payload.savedVersion);
   state.scanType = payload.scanType;
+  state.savedVersion = payload.savedVersion;
 };
 
-const commitFile = createAsyncThunk(
-  `${REDUCER_NAME}/commitFile`,
-  async (applicationVersion, { getState, rejectWithValue }) => {
-    const state = getState();
-    const appId = selectSelectedOwnerId(state);
-    return axios
-      .post(getCommitImportedSbomUrl(appId, applicationVersion))
-      .then(({ data }) => {
-        if (isNonEmptyString(data.errorMessage)) {
-          return rejectWithValue(data);
-        }
-        return data;
-      })
-      .catch(rejectWithValue);
-  }
-);
-
-const commitFilePending = (state) => {
-  state.importState = IMPORT_STATE.UPLOADING_COMMITTING;
-};
-
-const commitFileFulfilled = (state) => {
-  state.importState = IMPORT_STATE.SUMMARY;
-};
-
-const uploadOrCommitFileFailed = (state, { payload }) => {
+const uploadFileFailed = (state, { payload }) => {
   state.importState = IMPORT_STATE.ERROR;
   if (payload.errorMessage) {
     state.errorMessage = payload.errorMessage;
@@ -150,6 +149,45 @@ const uploadOrCommitFileFailed = (state, { payload }) => {
   }
 };
 
+const commitFile = createAsyncThunk(
+  `${REDUCER_NAME}/commitFile`,
+  async (applicationVersion, { dispatch, getState, rejectWithValue }) => {
+    const state = getState();
+    const appId = selectSelectedOwnerId(state);
+    const { savedVersion, versionTextInput } = selectImportSbomModalSlice(state);
+
+    const overrideVersion = versionTextInput.trimmedValue !== savedVersion ? versionTextInput.trimmedValue : null;
+    return axios
+      .post(getCommitImportedSbomUrl(appId, savedVersion, overrideVersion))
+      .then(({ data }) => {
+        if (isNonEmptyString(data.errorMessage)) {
+          return rejectWithValue(data);
+        }
+        //update the version id for next page render
+        if (overrideVersion) {
+          dispatch(actions.setSavedVersion(overrideVersion));
+        }
+        return data;
+      })
+      .catch(rejectWithValue);
+  }
+);
+
+const commitFilePending = (state) => {
+  state.importState = IMPORT_STATE.COMMITTING;
+  state.submitError = null;
+};
+
+const commitFileFulfilled = (state) => {
+  state.importState = IMPORT_STATE.SUMMARY;
+  state.submitError = null;
+};
+
+const commitFileFailed = (state, { payload }) => {
+  state.importState = IMPORT_STATE.VERSION_CONFIRM;
+  state.submitError = payload.response?.data?.errorMessage || Messages.getHttpErrorMessage(payload);
+};
+
 const importSbomModal = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -158,15 +196,17 @@ const importSbomModal = createSlice({
     setUploadProgress,
     setSelectedFile,
     setIsSkipValidation,
+    setSavedVersion,
+    setVersionTextInput,
     reset: always(initialState),
   },
   extraReducers: {
     [uploadFile.pending]: uploadFilePending,
     [uploadFile.fulfilled]: uploadFileFulfilled,
-    [uploadFile.rejected]: uploadOrCommitFileFailed,
+    [uploadFile.rejected]: uploadFileFailed,
     [commitFile.pending]: commitFilePending,
     [commitFile.fulfilled]: commitFileFulfilled,
-    [commitFile.rejected]: uploadOrCommitFileFailed,
+    [commitFile.rejected]: commitFileFailed,
   },
 });
 

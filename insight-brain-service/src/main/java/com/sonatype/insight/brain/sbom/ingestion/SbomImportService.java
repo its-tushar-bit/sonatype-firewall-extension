@@ -173,13 +173,12 @@ public class SbomImportService
     ThirdPartyFile thirdPartyFile = thirdPartyFileDAO.getByIdNotNull(sbomMetadata.getThirdPartyFileId());
 
     try {
+      handleVersionOverride(sbomMetadata, applicationVersionOverride);
+
       var importTicket = switch (SbomScanType.valueOf(sbomMetadata.getScanType())) {
         case SBOM -> importSbom(sbomMetadata, clientUserAgent);
         case BINARY -> importBinary(sbomMetadata, thirdPartyFile, clientUserAgent);
       };
-
-      handleVersionOverride(sbomMetadata, applicationVersionOverride);
-
       return Response.status(Status.ACCEPTED).entity(importTicket).build();
     }
     catch (IOException e) {

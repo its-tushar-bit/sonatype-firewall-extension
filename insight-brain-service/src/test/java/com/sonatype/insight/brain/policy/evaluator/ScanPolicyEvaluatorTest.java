@@ -16,6 +16,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import javax.inject.Inject;
@@ -537,7 +538,7 @@ public class ScanPolicyEvaluatorTest
     String scanId = simulateReportIsAvailable("report");
 
     Policy securityPolicy = new Policy(null, "Security Policy");
-    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setThreatLevel(8);
     securityPolicy.setOwnerId(application.getId());
     Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
@@ -673,7 +674,7 @@ public class ScanPolicyEvaluatorTest
     String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
 
     Policy securityPolicy = new Policy(null, "Security Policy");
-    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setThreatLevel(8);
     securityPolicy.setOwnerId(application.getId());
     Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
@@ -701,7 +702,7 @@ public class ScanPolicyEvaluatorTest
     String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
 
     Policy securityPolicy = new Policy(null, "Security Policy");
-    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setThreatLevel(8);
     securityPolicy.setOwnerId(application.getId());
     Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
@@ -792,7 +793,7 @@ public class ScanPolicyEvaluatorTest
     String scanIdTwo = simulateReportIsAvailable("AutoWaiverRevocationsAlternate");
 
     Policy securityPolicy = new Policy(null, "Security Policy");
-    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setThreatLevel(8);
     securityPolicy.setOwnerId(application.getId());
     Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
@@ -806,23 +807,14 @@ public class ScanPolicyEvaluatorTest
             ClientScanType.SONATYPE, false);
     PolicyViolation targetViolation = evalOne.autoWaivedViolations.get(0);
 
-    AutoPolicyWaiverExclusion exclusion = new AutoPolicyWaiverExclusion();
-    exclusion.setOwnerId(application.getId());
-    exclusion.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
-    exclusion.setCreateTime(new Date());
-    exclusion.setCreatorName("fakeName");
-    exclusion.setCreatorId("fakeId");
-    exclusion.setScanId(scanIdOne);
-    exclusion.setPolicyId(targetViolation.getPolicyId());
-    exclusion.setPolicyName(targetViolation.getPolicyName());
-    exclusion.setPolicyViolationId(targetViolation.getId());
-    exclusion.setThreatLevel(targetViolation.getThreatLevel());
-    exclusion.setComponentIdentifier(targetViolation.getComponentIdentifier());
-    exclusion.setHash(targetViolation.getHash());
-
-    exclusion.setConstraintFacts(targetViolation.getConstraintFacts());
-    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.POLICY_VIOLATION);
-    autoPolicyWaiverExclusionDAO.insert(exclusion);
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(
+        application.getId(),
+        "fakeId",
+        "fakeName",
+        autoPolicyWaiver.getId(),
+        scanIdOne,
+        targetViolation
+    );
 
     ScanPolicyEvaluatorResults evalTwo =
         scanPolicyEvaluator.evaluate(application, scanIdTwo, stageTwo, ScanTriggerType.CLI,
@@ -838,6 +830,111 @@ public class ScanPolicyEvaluatorTest
   }
   
   @Test
+  public void testEvaluate_Results_AutoWaivedViolations_MultiExclusionsApply_PolicyViolation() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    Stage stageTwo = new Stage(Stage.ID_DEVELOP);
+    String scanIdOne = simulateReportIsAvailable("AutoWaiverRevocationsAlternateMultiSecurity");
+    String scanIdTwo = simulateReportIsAvailable("AutoWaiverRevocationsAlternateMultiSecurity");
+
+    Policy securityPolicyOne = new Policy(null, "Security Policy One");
+    securityPolicyOne.setThreatLevel(9);
+    securityPolicyOne.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
+    Constraint constraintOne = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraintOne.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicyOne.addConstraint(constraintOne);
+    tempEntity.newPolicy(securityPolicyOne);
+
+    Policy securityPolicyTwo = new Policy(null, "Security Policy Two");
+    securityPolicyTwo.setThreatLevel(8);
+    securityPolicyTwo.setOwnerId(application.getId());
+    Constraint constraintTwo = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraintTwo.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicyTwo.addConstraint(constraintTwo);
+    tempEntity.newPolicy(securityPolicyTwo);
+
+    AutoPolicyWaiver rootAutoPolicyWaiver = tempEntity
+        .newAutoPolicyWaiver(Organization.ROOT_ORGANIZATION_ID, 10, false, false);
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 9, false, false);
+
+    ScanPolicyEvaluatorResults evalOne =
+        scanPolicyEvaluator.evaluate(application, scanIdOne, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
+
+    ComponentIdentifier gsonComponentIdentifier = ComponentIdentifier
+        .createMavenCoordinates("com.google.code.gson", "gson", "2.8.1", "", "jar");
+    Optional<PolicyViolation> optionalRootTargetViolation =
+        evalOne.autoWaivedViolations.stream()
+            .filter(
+                policyViolation -> policyViolation.getPolicyId().equals(securityPolicyOne.getId()) &&
+                    policyViolation.getComponentIdentifier().compareTo(gsonComponentIdentifier) == 0
+            )
+            .findFirst();
+
+    PolicyViolation rootTargetViolation = optionalRootTargetViolation.get();
+
+    AutoPolicyWaiverExclusion rootExclusion = tempEntity.newAutoPolicyWaiverExclusion(
+        Organization.ROOT_ORGANIZATION_ID,
+        "fakeId",
+        "fakeName",
+        rootAutoPolicyWaiver.getId(),
+        scanIdOne,
+        rootTargetViolation
+    );
+
+    ComponentIdentifier jacksonDatabindComponentIdentifier = ComponentIdentifier
+        .createMavenCoordinates("com.fasterxml.jackson.core", "jackson-databind", "2.9.8", "", "jar");
+    Optional<PolicyViolation> optionalTargetViolation =
+        evalOne.autoWaivedViolations.stream()
+            .filter(
+                policyViolation -> policyViolation.getPolicyId().equals(securityPolicyTwo.getId()) &&
+                    policyViolation.getComponentIdentifier().compareTo(jacksonDatabindComponentIdentifier) == 0
+            )
+            .findFirst();
+
+    PolicyViolation targetViolation = optionalTargetViolation.get();
+
+    AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(
+        application.getId(),
+        "fakeId",
+        "fakeName",
+        autoPolicyWaiver.getId(),
+        scanIdOne,
+        targetViolation
+    );
+
+    ScanPolicyEvaluatorResults evalTwo =
+        scanPolicyEvaluator.evaluate(application, scanIdTwo, stageTwo, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
+    assertThat(evalTwo.allViolations).hasSize(8);
+
+    // this will get auto waved violations, showing the lowest leave as the auto waiver
+    assertThat(evalTwo.autoWaivedViolations)
+        .hasSize(6)
+        .allSatisfy(autoWaivedViolation -> {
+          assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiver.getId());
+        });
+
+    // we end up here with 2 active violations, one for each policy and individual components
+    assertThat(evalTwo.activeViolations)
+        .hasSize(2)
+        .satisfiesOnlyOnce(violation -> {
+          assertThat(violation.getPolicyId()).isEqualTo(rootExclusion.getPolicyId());
+          assertThat(violation.getHash()).isEqualTo(rootExclusion.getHash());
+          assertThat(violation.getThreatLevel()).isEqualTo(rootExclusion.getThreatLevel());
+          assertThat(violation.getComponentIdentifier()).isEqualTo(rootExclusion.getComponentIdentifier());
+          assertThat(violation.getComponentIdentifier()).isEqualTo(gsonComponentIdentifier);
+        }).satisfiesOnlyOnce(violation -> {
+          assertThat(violation.getPolicyId()).isEqualTo(exclusion.getPolicyId());
+          assertThat(violation.getHash()).isEqualTo(exclusion.getHash());
+          assertThat(violation.getThreatLevel()).isEqualTo(exclusion.getThreatLevel());
+          assertThat(violation.getComponentIdentifier()).isEqualTo(exclusion.getComponentIdentifier());
+          assertThat(violation.getComponentIdentifier()).isEqualTo(jacksonDatabindComponentIdentifier);
+        });
+  }
+  
+  @Test
   public void testEvaluate_Results_AutoWaivedViolations_ExclusionsApply_PolicyViolation_incompleteComponent()
       throws Exception
   {
@@ -849,7 +946,7 @@ public class ScanPolicyEvaluatorTest
     String scanIdTwo = simulateReportIsAvailable("AutoWaiverRevocations");
 
     Policy securityPolicy = new Policy(null, "Security Policy");
-    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setThreatLevel(8);
     securityPolicy.setOwnerId(application.getId());
     Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
@@ -863,23 +960,14 @@ public class ScanPolicyEvaluatorTest
             ClientScanType.SONATYPE, false);
     PolicyViolation targetViolation = evalOne.autoWaivedViolations.get(0);
 
-    AutoPolicyWaiverExclusion exclusion = new AutoPolicyWaiverExclusion();
-    exclusion.setOwnerId(application.getId());
-    exclusion.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
-    exclusion.setCreateTime(new Date());
-    exclusion.setCreatorName("fakeName");
-    exclusion.setCreatorId("fakeId");
-    exclusion.setScanId(scanIdOne);
-    exclusion.setPolicyId(targetViolation.getPolicyId());
-    exclusion.setPolicyName(targetViolation.getPolicyName());
-    exclusion.setPolicyViolationId(targetViolation.getId());
-    exclusion.setThreatLevel(targetViolation.getThreatLevel());
-    exclusion.setComponentIdentifier(targetViolation.getComponentIdentifier());
-    exclusion.setHash(targetViolation.getHash());
-    
-    exclusion.setConstraintFacts(targetViolation.getConstraintFacts());
-    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.POLICY_VIOLATION);
-    autoPolicyWaiverExclusionDAO.insert(exclusion);
+    tempEntity.newAutoPolicyWaiverExclusion(
+        application.getId(),
+        "fakeId",
+        "fakeName",
+        autoPolicyWaiver.getId(),
+        scanIdOne,
+        targetViolation
+    );
 
     ScanPolicyEvaluatorResults evalTwo =
         scanPolicyEvaluator.evaluate(application, scanIdTwo, stageTwo, ScanTriggerType.CLI,
@@ -898,7 +986,7 @@ public class ScanPolicyEvaluatorTest
     String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
 
     Policy securityPolicy = new Policy(null, "Security Policy");
-    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setThreatLevel(8);
     securityPolicy.setOwnerId(application.getId());
     Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
@@ -935,7 +1023,7 @@ public class ScanPolicyEvaluatorTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("group", "artifact", "2.0");
     
     Policy securityPolicy = new Policy(null, "Security Policy");
-    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setThreatLevel(8);
     securityPolicy.setOwnerId(application.getId());
     Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
@@ -975,16 +1063,13 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_Results_AutoWaivedViolations_ExclusionsDoNotApply_PolicyViolation() throws Exception {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
 
-    // The exclusion will apply to all versions of tomcat-util. Report contains violations for 5.4.23 & 5.5.23
-    String componentPackageUrl = "pkg:maven/tomcat/tomcat-util@5.5.23";
-
     Stage stage = new Stage(Stage.ID_BUILD);
     Stage stageTwo = new Stage(Stage.ID_DEVELOP);
     String scanIdOne = simulateReportIsAvailable("AutoWaiverRevocations");
     String scanIdTwo = simulateReportIsAvailable("AutoWaiverRevocations");
 
     Policy securityPolicy = new Policy(null, "Security Policy");
-    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setThreatLevel(8);
     securityPolicy.setOwnerId(application.getId());
     Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
@@ -998,22 +1083,15 @@ public class ScanPolicyEvaluatorTest
             ClientScanType.SONATYPE, false);
     PolicyViolation targetViolation = evalOne.autoWaivedViolations.get(0);
 
-    AutoPolicyWaiverExclusion exclusion = new AutoPolicyWaiverExclusion();
-    exclusion.setOwnerId(application.getId());
-    exclusion.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
-    exclusion.setCreateTime(new Date());
-    exclusion.setCreatorName("fakeName");
-    exclusion.setCreatorId("fakeId");
-    exclusion.setScanId(scanIdOne);
-    exclusion.setPolicyId(securityPolicy.getId());
-    exclusion.setPolicyName(securityPolicy.getName());
-    exclusion.setPolicyViolationId(targetViolation.getId());
-    exclusion.setThreatLevel(targetViolation.getThreatLevel());
-    exclusion.setAssociatedPackageUrl(componentPackageUrl);
-    exclusion.setHash("someOtherHash");
-    exclusion.setConstraintFacts(targetViolation.getConstraintFacts());
-    exclusion.setComponentMatchStrategy(ComponentMatcherStrategyForExclusion.POLICY_VIOLATION);
-    autoPolicyWaiverExclusionDAO.insert(exclusion);
+    tempEntity.newAutoPolicyWaiverExclusion(
+        application.getId(),
+        "fakeId",
+        "fakeName",
+        autoPolicyWaiver.getId(),
+        scanIdOne,
+        "someOtherHash",
+        targetViolation
+    );
 
     ScanPolicyEvaluatorResults evalTwo =
         scanPolicyEvaluator.evaluate(application, scanIdTwo, stageTwo, ScanTriggerType.CLI,
@@ -1032,7 +1110,7 @@ public class ScanPolicyEvaluatorTest
     String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
 
     Policy securityPolicy = new Policy(null, "Security Policy");
-    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setThreatLevel(8);
     securityPolicy.setOwnerId(application.getId());
     Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
@@ -1070,7 +1148,7 @@ public class ScanPolicyEvaluatorTest
     String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
 
     Policy securityPolicy = new Policy(null, "Security Policy");
-    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setThreatLevel(8);
     securityPolicy.setOwnerId(application.getId());
     Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));

@@ -1882,6 +1882,54 @@ public class TemporaryEntity
     autoPolicyWaiverExclusionDAO.insert(autoPolicyWaiverExclusion);
     return autoPolicyWaiverExclusion;
   }
+
+  public AutoPolicyWaiverExclusion newAutoPolicyWaiverExclusion(
+      final String ownerId,
+      final String creatorId,
+      final String creatorName,
+      final String autoPolicyWaiverId,
+      final String scanId,
+      final PolicyViolation violation)
+  {
+    return newAutoPolicyWaiverExclusion(
+        ownerId,
+        creatorId,
+        creatorName,
+        autoPolicyWaiverId,
+        scanId,
+        violation.getHash(),
+        violation
+    );
+  }
+
+  public AutoPolicyWaiverExclusion newAutoPolicyWaiverExclusion(
+      final String ownerId,
+      final String creatorId,
+      final String creatorName,
+      final String autoPolicyWaiverId,
+      final String scanId,
+      final String hash,
+      final PolicyViolation violation)
+  {
+    return newAutoPolicyWaiverExclusion(
+        ownerId,
+        creatorId,
+        creatorName,
+        new Date(),
+        autoPolicyWaiverId,
+        scanId,
+        hash,
+        ComponentMatcherStrategyForExclusion.POLICY_VIOLATION,
+        violation.getId(),
+        violation.getThreatLevel(),
+        null,
+        violation.getPolicyName(),
+        null,
+        violation.getPolicyId(),
+        violation.getComponentIdentifier(),
+        violation.getConstraintFacts()
+    );
+  }
   
   public AutoPolicyWaiver newAutoPolicyWaiver(AutoPolicyWaiver autoPolicyWaiver) {
     autoPolicyWaiverDAO.insert(autoPolicyWaiver);

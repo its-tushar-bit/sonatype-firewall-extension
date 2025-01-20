@@ -480,9 +480,9 @@ public class ScanPolicyEvaluator
       results.waivedViolations = new ArrayList<>();
       results.autoWaivedViolations = new ArrayList<>();
 
-      AutoPolicyWaiver autoPolicyWaiver = getApplicableAutoPolicyWaiver(appId);
-      List<AutoPolicyWaiverExclusion> autoPolicyWaiverExclusions =
-          getApplicableAutoPolicyWaiverExclusions(autoPolicyWaiver);
+      List<String> ownerIds = getOwnerIds(appId);
+      AutoPolicyWaiver autoPolicyWaiver = getApplicableAutoPolicyWaiver(ownerIds);
+      List<AutoPolicyWaiverExclusion> autoPolicyWaiverExclusions = getApplicableAutoPolicyWaiverExclusions(ownerIds);
 
       List<PolicyViolation> autoWaivedPolicyViolations = Collections.emptyList();
       boolean skipAutoWaiversForReevaluation = skipAutoWaivers && isReevaluation;
@@ -1388,9 +1388,6 @@ public class ScanPolicyEvaluator
     if (!doesViolationMeetThreatLevelCriteria(policyViolation, autoPolicyWaiver)) {
       return false;
     }
-    if (hasApplicableAutoWaiverExclusion(policyViolation, autoPolicyWaiverExclusions)) {
-      return false;
-    }
     return !componentHavePathForward(appId, component, autoPolicyWaiver, stageId, scanId);
   }
 
@@ -1420,32 +1417,40 @@ public class ScanPolicyEvaluator
     return pathForwardInspector.containsUpgradeableVersion(component, appId, stageId, scanId);
   }
 
-  private AutoPolicyWaiver getApplicableAutoPolicyWaiver(String applicationId) {
-    final Set<Feature> features = featuresService.getFeatures();
-    if (features.contains(SystemConfigurationPropertyFeature.AUTO_WAIVERS)) {
-      List<String> ownerIds = ownerDAO.getOwnerIds(applicationId);
-      for (String id : ownerIds) {
-        List<AutoPolicyWaiver> autoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId(id);
-        if (!autoPolicyWaivers.isEmpty()) {
-          return autoPolicyWaivers.get(0);
-        }
+  private AutoPolicyWaiver getApplicableAutoPolicyWaiver(final List<String> ownerIds) {
+    for (String id : ownerIds) {
+      List<AutoPolicyWaiver> autoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId(id);
+      if (!autoPolicyWaivers.isEmpty()) {
+        return autoPolicyWaivers.get(0);
       }
     }
     return null;
   }
 
-  private List<AutoPolicyWaiverExclusion> getApplicableAutoPolicyWaiverExclusions(AutoPolicyWaiver autoPolicyWaiver) {
-    if (autoPolicyWaiver == null) {
-      return Collections.emptyList();
+  private List<AutoPolicyWaiverExclusion> getApplicableAutoPolicyWaiverExclusions(final List<String> ownerIds) {
+    final List<AutoPolicyWaiverExclusion> autoPolicyWaiverExclusions = new ArrayList<>();
+
+    for (String id : ownerIds) {
+      autoPolicyWaiverDAO.getByOwnerId(id).stream()
+          .filter(Objects::nonNull)
+          .forEach(autoPolicyWaiver ->
+              autoPolicyWaiverExclusions.addAll(
+                  autoPolicyWaiverExclusionDAO
+                      .getByOwnerIdAndAutoPolicyWaiverId(autoPolicyWaiver.getOwnerId(), autoPolicyWaiver.getId())
+              )
+      );
     }
+
+    return autoPolicyWaiverExclusions;
+  }
+
+  private List<String> getOwnerIds(final String applicationId) {
     final Set<Feature> features = featuresService.getFeatures();
-    if (!features.contains(SystemConfigurationPropertyFeature.AUTO_WAIVERS)) {
-      return Collections.emptyList();
+    if (features.contains(SystemConfigurationPropertyFeature.AUTO_WAIVERS)) {
+      return ownerDAO.getOwnerIds(applicationId);
     }
-    List<AutoPolicyWaiverExclusion> exclusions =
-        autoPolicyWaiverExclusionDAO.getByOwnerIdAndAutoPolicyWaiverId(autoPolicyWaiver.getOwnerId(),
-            autoPolicyWaiver.getId());
-    return exclusions;
+
+    return Collections.emptyList();
   }
 
   private boolean hasApplicableAutoWaiverExclusion(

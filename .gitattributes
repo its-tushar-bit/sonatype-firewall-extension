@@ -9,3 +9,6 @@
 
 # even on Windows, npm uses Unix-style line terminators
 package*.json eol=lf
+
+# some tests use tmp files as input
+*.tmp eol=lf

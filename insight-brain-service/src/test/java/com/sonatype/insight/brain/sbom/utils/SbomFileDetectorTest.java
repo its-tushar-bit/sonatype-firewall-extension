@@ -5,10 +5,11 @@
  */
 package com.sonatype.insight.brain.sbom.utils;
 
-import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Objects;
@@ -249,11 +250,11 @@ public class SbomFileDetectorTest
   }
 
   @Test
-  @SuppressWarnings("checkstyle:LineLength")
   public void testGetSbomMetadata_SPDX_InvalidXml() throws Exception {
     SbomDetectionResult expected =
         createExpectedResult(true, false, false, "application/xml", "Not a valid SPDX SBOM file.",
-            List.of("Error: Mismatched externalRefs and packages at 880 [character 12 line 21]"), null, "SPDX","xml", 0, 0, null, null);
+            List.of("Error: Mismatched externalRefs and packages at 880 [character 12 line 21]"), null, "SPDX", "xml",
+            0, 0, null, null);
     checkSbomMetadata("spdx-invalid-xml.tmp", expected);
   }
 
@@ -273,21 +274,21 @@ public class SbomFileDetectorTest
   }
 
   @Test
-  public void testGetSbomMetadata_Other_Text_UnsafeContent_CycloneDx() throws IOException {
+  public void testGetSbomMetadata_Other_Text_UnsafeContent_CycloneDx() throws Exception {
     Path fileToDetect = getTestPath("unsafe-plain-text-cdx.tt");
     String sbomContent = Files.readString(fileToDetect);
     assertThat(detector.isPlainTextValidXml(sbomContent)).isFalse();
   }
 
   @Test
-  public void testGetSbomMetadata_Other_Text_UnsafeContent_SPDX() throws IOException {
+  public void testGetSbomMetadata_Other_Text_UnsafeContent_SPDX() throws Exception {
     Path fileToDetect = getTestPath("unsafe-plain-text-spdx.tt");
     String sbomContent = Files.readString(fileToDetect);
     assertThat(detector.isPlainTextValidXml(sbomContent)).isFalse();
   }
 
   @Test
-  public void testGetSbomMetadata_Other_Text_SafeContent() throws IOException {
+  public void testGetSbomMetadata_Other_Text_SafeContent() throws Exception {
     Path fileToDetect = getTestPath("safe-plain-text.tt");
     String sbomContent = Files.readString(fileToDetect);
     assertThat(detector.isPlainTextValidXml(sbomContent)).isTrue();
@@ -358,7 +359,9 @@ public class SbomFileDetectorTest
   }
 
   private void checkSbomMetadataUsingFile(
-      String fileName, SbomDetectionResult expected, boolean ignoreValidationError)
+      String fileName,
+      SbomDetectionResult expected,
+      boolean ignoreValidationError) throws URISyntaxException
   {
     Path fileToDetect = getTestPath(fileName);
     SbomDetectionResult resultFromFile = detector.getSbomDetectionResult(fileToDetect, fileName, ignoreValidationError);
@@ -524,8 +527,8 @@ public class SbomFileDetectorTest
     }
   }
 
-  private Path getTestPath(final String fileName) {
+  private Path getTestPath(final String fileName) throws URISyntaxException {
     URL resource = SbomFileDetectorTest.class.getResource("/SbomFileDetectorTest/" + fileName);
-    return Path.of(Objects.requireNonNull(resource).getFile());
+    return Paths.get(Objects.requireNonNull(resource).toURI());
   }
 }

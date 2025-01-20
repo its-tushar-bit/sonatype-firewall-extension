@@ -137,9 +137,6 @@ public class PolicyWaiverService
   )
   {
     dashboardUtils.validateDashboardLicensedAndEnabled();
-    if (includeAutoWaivers) {
-      dashboardUtils.validateAutoWaiverFeatureFlag();
-    }
 
     long start = System.currentTimeMillis();
 
@@ -179,8 +176,9 @@ public class PolicyWaiverService
           filterPolicyWaiversAndBuildDTOs(policyWaivers, filteringPredicate, dtoAdapter, waiverReasonIdToWaiverReason);
       filteredWaiverDTOs.addAll(partialDTOs);
     }
+
     //auto waiver
-    if (includeAutoWaivers) {
+    if (includeAutoWaivers && dashboardUtils.isAutoWaiverFeatureFlagEnabled()) {
       Predicate<AutoPolicyWaiver> autoPolicyWaiverPredicate = getFilteringPredicateForAutoPolicyWaivers(owners.keySet())
           .and(getFilteringPredicateForAutoWaiverThreatLevel(policyThreatLevelRange))
           .and(getFilteringPredicateForAutoWaiverThreatCategory(policyThreatCategories))

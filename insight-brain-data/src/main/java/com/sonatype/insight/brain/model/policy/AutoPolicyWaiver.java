@@ -116,7 +116,7 @@ public class AutoPolicyWaiver
   }
 
   public Boolean isReachable() {
-    return reachable;
+    return reachable != null && reachable;
   }
 
   public void setReachable(Boolean reachable) {
@@ -124,7 +124,7 @@ public class AutoPolicyWaiver
   }
 
   public Boolean hasPathForward() {
-    return pathForward;
+    return pathForward != null && pathForward;
   }
 
   public void setPathForward(Boolean pathForward) {

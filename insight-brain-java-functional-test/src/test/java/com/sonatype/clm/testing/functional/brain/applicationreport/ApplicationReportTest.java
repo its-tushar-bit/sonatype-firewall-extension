@@ -584,6 +584,7 @@ public class ApplicationReportTest
     tempEntity.newWaiver(securityHigh.getId(), app.getId());
 
     reportPage.reevaluateButton().click();
+    reportPage.fullReevaluateButton().click();
     FormMask.seeAndWaitForDismissal();
 
     reportPage.headers().componentNameFilterInput().shouldHave(value("commons-fileupload"));
@@ -710,6 +711,7 @@ public class ApplicationReportTest
 
     reportPage.shouldBe(visible);
     reportPage.reevaluateButton().click();
+    reportPage.fullReevaluateButton().click();
     FormMask.seeAndWaitForDismissal();
     violations.shouldHave(size(EXPECTED_VIOLATIONS_COUNT));
 

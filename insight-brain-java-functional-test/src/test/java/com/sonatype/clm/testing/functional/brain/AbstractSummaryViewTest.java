@@ -171,10 +171,10 @@ public abstract class AbstractSummaryViewTest
     NavPills navPills = OwnerSummaryPage.navigationPills();
 
     if (OwnerType.APPLICATION.equals(currentOwner.getType())) {
-      navPills.pills().shouldHave(size(10));
+      navPills.pills().shouldHave(size(11));
     }
     else if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
-      navPills.pills().shouldHave(size(11));
+      navPills.pills().shouldHave(size(12));
     }
 
     navPills.appCategory().click();
@@ -211,6 +211,9 @@ public abstract class AbstractSummaryViewTest
 
     navPills.innerSource().click();
     OwnerSummaryPage.innerSourceRepositoryTile().shouldBe(visible);
+
+    navPills.autoWaivers().click();
+    OwnerSummaryPage.autoWaiversTile().shouldBe(visible);
   }
 
   @Test

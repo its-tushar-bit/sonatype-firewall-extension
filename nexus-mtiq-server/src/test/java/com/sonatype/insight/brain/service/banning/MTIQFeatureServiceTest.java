@@ -77,7 +77,7 @@ public class MTIQFeatureServiceTest
   public void testRegister_setsFeatureFlags() {
     underTest.register();
 
-    verify(service, times(27)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
+    verify(service, times(26)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
     List<String> disabledFlagSet = propertyKeyCaptor.getAllValues();
     assertThat(disabledFlagSet).containsExactlyInAnyOrder(getDisabledSystemConfigurationPropertyFeatures());
   }
@@ -198,7 +198,8 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER,
         SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION,
         SystemConfigurationPropertyFeature.NON_BREAKING_VERSION_SUGGESTION_TELEMETRY,
-        SystemConfigurationPropertyFeature.SBOM_POLICIES
+        SystemConfigurationPropertyFeature.SBOM_POLICIES,
+        SystemConfigurationPropertyFeature.AUTO_WAIVERS
     ).collect(toSet()).toArray(new SystemConfigurationPropertyFeature[]{});
   }
 

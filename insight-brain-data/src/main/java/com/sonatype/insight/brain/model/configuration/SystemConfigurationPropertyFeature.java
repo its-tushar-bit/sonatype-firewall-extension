@@ -222,7 +222,7 @@ public enum SystemConfigurationPropertyFeature
 
   SBOM_POLICIES(SystemConfigurationProperty.SBOM_POLICIES, false),
 
-  AUTO_WAIVERS(SystemConfigurationProperty.AUTO_WAIVERS, false),
+  AUTO_WAIVERS(SystemConfigurationProperty.AUTO_WAIVERS, true),
 
   NEW_SCAN_PROCESS(SystemConfigurationProperty.NEW_SCAN_PROCESS, false),
 

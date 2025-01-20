@@ -28,7 +28,6 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.RisksFilterDTOBuilder;
-import com.sonatype.insight.brain.api.v2.FeatureAlreadyDisabledException;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.builders.TestPolicyBuilder;
 import com.sonatype.insight.brain.dashboard.DashboardPolicyWaiverDTOComparator.DashboardPolicyWaiverOrderByEnum;
@@ -117,7 +116,6 @@ public class PolicyWaiverServiceTest
 
     risksFilterDTOBuilder = new RisksFilterDTOBuilder().withApplicationIds(Collections.emptySet())
         .withOrganizationIds(Collections.emptySet()).withPageSize(1);
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
   }
 
   @Test
@@ -1313,9 +1311,10 @@ public class PolicyWaiverServiceTest
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
 
     // Test including auto waivers but feature flag is disabled
-    ThrowingCallable functionCall =
-        () -> dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
-    assertThatExceptionOfType(FeatureAlreadyDisabledException.class).isThrownBy(functionCall);
+    DashboardResultsDTO resultsDTO =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
+    assertThat(resultsDTO).isNotNull();
+    assertThat(resultsDTO.dashboardResults).hasSize(1);
   }
 
   private PolicyWaiver createPolicyWaiverWithFullDetails(Application application) {

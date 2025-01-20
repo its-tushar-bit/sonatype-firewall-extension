@@ -12,14 +12,12 @@ import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.Before;
 import org.junit.Test;
 
 public class ApiAutoPolicyWaiverServiceAuthzTest
@@ -27,11 +25,6 @@ public class ApiAutoPolicyWaiverServiceAuthzTest
 {
   @Inject
   private ApiAutoPolicyWaiverService apiAutoPolicyWaiverService;
-
-  @Before
-  public void setup() {
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
-  }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetAutoPolicyWaiver_Unauthenticated() {

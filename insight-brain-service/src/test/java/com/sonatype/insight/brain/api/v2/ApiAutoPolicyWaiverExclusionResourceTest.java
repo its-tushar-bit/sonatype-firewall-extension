@@ -61,25 +61,24 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
   private AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
 
   private PolicyViolationDAO policyViolationDAO;
-  
+
   protected static ReportService reportService = mock(ReportService.class);
-  
+
   @Override
   public void configure(Binder binder) {
     binder.bind(ReportService.class).toInstance(reportService);
     super.configure(binder);
   }
-  
+
   @Before
   public void setUp() {
     autoPolicyWaiverExclusionDAO = lookup(AutoPolicyWaiverExclusionDAO.class);
     policyViolationDAO = lookup(PolicyViolationDAO.class);
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
     licenseManager.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     Mockito.reset(reportService);
   }
-  
+
   @After
   public void cleanup() {
     licenseManager.reset();
@@ -103,8 +102,6 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
 
   @Test
   public void testDeleteAutoPolicyWaiverExclusion_FeatureFlag() throws Exception {
-    //when feature flag is disabled
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
     AutoPolicyWaiverExclusion exclusion =
@@ -115,18 +112,18 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
         .parameter(OwnerType.APPLICATION, application.getId(), autoPolicyWaiver.getId(), exclusion.getId())
         .delete();
 
-    assertResponseStatus(400, response);
+    assertResponseStatus(204, response);
+    assertThat(autoPolicyWaiverExclusionDAO.getById(autoPolicyWaiver.getId())).isNull();
 
-    //when feature flag is enabled
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+    //when feature flag is disabled
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
 
     response = restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + BY_AUTO_POLICY_WAIVER_EXCLUSION_ID_PATH)
         .parameter(OwnerType.APPLICATION, application.getId(), autoPolicyWaiver.getId(), exclusion.getId())
         .delete();
 
-    assertResponseStatus(204, response);
-    assertThat(autoPolicyWaiverExclusionDAO.getById(autoPolicyWaiver.getId())).isNull();
+    assertResponseStatus(400, response);
   }
 
   @Test
@@ -171,13 +168,13 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
 
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
         createPolicyThreats(Lists.newArrayList(component1Threats)));
-    
+
     HttpResponse response = restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + OWNERS_PATH)
         .parameter(OwnerType.APPLICATION, application.getId())
         .body(exclusion)
         .post();
-    
+
     assertResponseStatus(200, response);
     AutoPolicyWaiverExclusion resultingExclusion =
         autoPolicyWaiverExclusionDAO.getByOwnerIdAndAutoPolicyWaiverIdAndHash(
@@ -193,7 +190,7 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
     PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, identifier, "fake", "fake");
-    
+
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         identifier,
         violation
@@ -209,7 +206,7 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
     exclusion.scanId = "scanId";
     exclusion.policyViolationId = violation.getId();
     exclusion.matchStrategy = ComponentMatcherStrategyForExclusion.EXACT_COMPONENT;
-    
+
     HttpResponse response = restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + OWNERS_PATH)
         .parameter(OwnerType.ORGANIZATION, app.getOrganizationId())
@@ -225,8 +222,6 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
 
   @Test
   public void testAddAutoPolicyWaiverExclusion_FeatureFlag() throws Exception {
-    //when feature flag is disabled
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
     Policy policy = tempEntity.newPolicy(application.getOrganizationId());
@@ -249,17 +244,22 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
 
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
         createPolicyThreats(Lists.newArrayList(component1Threats)));
-    
+
     HttpResponse response = restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + OWNERS_PATH)
         .parameter(OwnerType.APPLICATION, application.getId())
         .body(exclusion)
         .post();
 
-    assertResponseStatus(400, response);
+    assertResponseStatus(200, response);
 
-    //when feature flag is enabled
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+    AutoPolicyWaiverExclusion resultingExclusion =
+        autoPolicyWaiverExclusionDAO.getByOwnerIdAndAutoPolicyWaiverIdAndHash(
+            application.getId(), autoPolicyWaiver.getId(), violation.getHash());
+    assertThat(resultingExclusion).isNotNull();
+
+    //when feature flag is disabled
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
 
     response = restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + OWNERS_PATH)
@@ -267,11 +267,7 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
         .body(exclusion)
         .post();
 
-    assertResponseStatus(200, response);
-    AutoPolicyWaiverExclusion resultingExclusion =
-        autoPolicyWaiverExclusionDAO.getByOwnerIdAndAutoPolicyWaiverIdAndHash(
-            application.getId(), autoPolicyWaiver.getId(), violation.getHash());
-    assertThat(resultingExclusion).isNotNull();
+    assertResponseStatus(400, response);
   }
 
   @Test
@@ -400,8 +396,6 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
 
   @Test
   public void testGetAutoPolicyWaiverExclusions_FeatureFlag() throws Exception {
-    //when feature flag is disabled
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
     Application app = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
     HttpResponse response = restRequest()
@@ -411,10 +405,10 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
         .query("pageSize", 10)
         .get();
 
-    assertResponseStatus(400, response);
+    assertResponseStatus(200, response);
 
-    //when feature flag is enabled
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+    //when feature flag is disabled
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
 
     response = restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + BY_AUTO_POLICY_WAIVER_ID_PATH)
@@ -423,7 +417,7 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
         .query("pageSize", 10)
         .get();
 
-    assertResponseStatus(200, response);
+    assertResponseStatus(400, response);
   }
 
   private ConditionFact createSecurityStatusConditionFact(final String cve) {

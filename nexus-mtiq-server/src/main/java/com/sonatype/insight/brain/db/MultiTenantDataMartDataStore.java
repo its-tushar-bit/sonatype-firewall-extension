@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.db;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 
 import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
 import com.sonatype.insight.brain.db.datastore.AbstractDataStore;
@@ -16,6 +14,8 @@ import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.db.DatabaseConfig;
 
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.lock;
 
-import javax.persistence.LockModeType;
+import jakarta.persistence.LockModeType;
 
 import static com.sonatype.insight.brain.dataaccess.lock.ClusterLock.LockType.EXCLUSIVE;
 

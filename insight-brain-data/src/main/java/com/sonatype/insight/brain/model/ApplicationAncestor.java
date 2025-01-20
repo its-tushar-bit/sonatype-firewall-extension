@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.model;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 // JPA representation of the application_ancestor VIEW. This allows the view to be joined on in JPQL queries
 @Entity

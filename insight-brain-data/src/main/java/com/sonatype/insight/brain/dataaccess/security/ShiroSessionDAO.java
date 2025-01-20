@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentMap;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 
 import com.sonatype.insight.brain.model.security.PersistedUserSession;
 import com.sonatype.insight.brain.tenancy.TenantReference;

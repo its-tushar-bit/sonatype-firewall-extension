@@ -12,8 +12,6 @@ import java.util.concurrent.ConcurrentMap;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.persistence.EntityExistsException;
-import javax.persistence.PersistenceException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
@@ -25,6 +23,8 @@ import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.annotations.VisibleForTesting;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.PersistenceException;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;

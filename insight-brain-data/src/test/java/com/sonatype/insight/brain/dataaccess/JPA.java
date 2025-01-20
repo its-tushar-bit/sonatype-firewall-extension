@@ -5,7 +5,21 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.util.Comparator;
+import java.util.Date;
+
+import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
+
 public class JPA
 {
   public static final String[] IGNORE_FIELDS = {"pcStateManager", "pcDetachedState", "field", "sm"};
+
+  /**
+   * AssertJ config for recursive field-by-field asserts to be used for JPA entities that have java.util.Date fields.
+   * OpenJPA 4.x changed the way java.util.Date fields are stored in memory and, unfortunately, the equals() method
+   * doesn't work anymore. So we need to tell AssertJ to compare the epoch values for java.util.Date fields.
+   */
+  public static final RecursiveComparisonConfiguration RECURSIVE_COMPARISON_CONFIG =
+      RecursiveComparisonConfiguration.builder().withComparatorForType(Comparator.comparing(Date::getTime), Date.class)
+          .withIgnoredFieldsMatchingRegexes(JPA.IGNORE_FIELDS).build();
 }

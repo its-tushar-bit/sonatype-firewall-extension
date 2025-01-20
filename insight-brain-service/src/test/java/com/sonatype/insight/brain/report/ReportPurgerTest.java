@@ -23,8 +23,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.inject.Inject;
-import javax.persistence.LockModeType;
-import javax.persistence.OptimisticLockException;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.OptimisticLockException;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;

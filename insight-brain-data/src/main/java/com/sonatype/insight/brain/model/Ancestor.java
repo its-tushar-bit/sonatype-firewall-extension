@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.model;
 
-import javax.persistence.Column;
-import javax.persistence.MappedSuperclass;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
 
 /**
  * Superclass of OrganizationAncestor (a table) and the various *Ancestor VIEWs, which all have these fields in

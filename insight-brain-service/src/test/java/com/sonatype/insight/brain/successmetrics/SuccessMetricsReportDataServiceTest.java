@@ -16,8 +16,8 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import javax.inject.Inject;
-import javax.persistence.EntityExistsException;
-import javax.persistence.RollbackException;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.RollbackException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;

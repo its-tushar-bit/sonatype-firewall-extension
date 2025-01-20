@@ -123,7 +123,7 @@ public class RepositoryPolicyViolationDAO
             "       GROUP BY pathname) AS subquery";
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
       query.setParameter(1, repositoryId);
       Object[] result = (Object[]) query.getSingleResult();
       return new PolicyViolationSummary((Long) result[0], (Long) result[1], (Long) result[2]);
@@ -292,7 +292,7 @@ public class RepositoryPolicyViolationDAO
 
       int offset = (detailsFilter.page - 1) * detailsFilter.pageSize;
 
-      javax.persistence.Query query = tx.createNativeQuery(sQuery.toString());
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery.toString());
       addPositionalParameters(query, repositoryIds, repositoryIdsParamStartPosition);
       if (detailsFilter.threatLevelFilters != null && detailsFilter.threatLevelFilters.size() == 2) {
         query.setParameter(threatLevelFiltersParamStartPosition, detailsFilter.threatLevelFilters.get(0));
@@ -399,7 +399,7 @@ public class RepositoryPolicyViolationDAO
           " LIMIT " + pageSize +
           " OFFSET " + offset;
 
-      javax.persistence.Query query = tx.createNativeQuery(select3);
+      jakarta.persistence.Query query = tx.createNativeQuery(select3);
       addPositionalParameters(query, repositoryIds, repositoryIdsParamStartPosition);
       if (detailsFilter.threatLevelFilters != null && detailsFilter.threatLevelFilters.size() == 2) {
         query.setParameter(threatLevelFiltersParamStartPosition, detailsFilter.threatLevelFilters.get(0));
@@ -439,7 +439,7 @@ public class RepositoryPolicyViolationDAO
           " WHERE repository_id = ?1 AND active = true AND waived = false" + //
           " GROUP BY threat_level";
 
-      javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
       query.setParameter(1, repositoryId);
 
       return ((Stream<Object[]>) query.getResultStream()) //

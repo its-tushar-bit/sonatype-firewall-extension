@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.search.EmptySearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.db.IdUtil;
 import com.sonatype.insight.brain.db.datastore.DataStore;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -74,7 +75,7 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
 
   @Override
   protected List<T> getList(TransactionContext tx, String sQuery, Object... parameters) {
-    javax.persistence.Query query = this.createQuery(tx, sQuery, parameters);
+    jakarta.persistence.Query query = this.createQuery(tx, sQuery, parameters);
     query.setMaxResults(MAX_ALLOWED_DB_RESULTS);
 
     return query.getResultList();
@@ -83,7 +84,7 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
   public List<T> getPage(TransactionContext tx, String lastProcessedId, int pageSize) {
     String sQuery = "SELECT entity FROM " + getEntityName()
         + " entity WHERE entity.id > :lastProcessedId ORDER BY entity.id";
-    javax.persistence.Query query = tx.createQuery(sQuery);
+    jakarta.persistence.Query query = tx.createQuery(sQuery);
     query.setParameter("lastProcessedId", lastProcessedId);
     query.setMaxResults(pageSize);
     return query.getResultList();
@@ -196,13 +197,13 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
     }
   }
 
-  public static javax.persistence.Query createPaginationQuery(
+  public static jakarta.persistence.Query createPaginationQuery(
       TransactionContext tx,
       String sQuery,
       int offset,
       int pageSize)
   {
-    javax.persistence.Query query = tx.createQuery(sQuery);
+    jakarta.persistence.Query query = tx.createQuery(sQuery);
     query.setFirstResult(offset).setMaxResults(pageSize);
     return query;
   }
@@ -213,21 +214,21 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
    * {@link TransactionContext}. It also applies pagination by setting the starting offset
    * and the maximum number of results to return.
    *
-   * @param tx        the {@link TransactionContext} used to create the query. It must not be null.
-   * @param sQuery    the native SQL query string to execute. It must not be null or empty.
-   * @param offset    the starting position of the first result (zero-based). For example,
-   *                  to skip the first 10 results, set this to 10.
-   * @param pageSize  the maximum number of results to return. A positive integer specifies the page size.
-   * @return          a {@link javax.persistence.Query} object configured with the specified SQL query,
-   *                  offset, and page size.
+   * @param tx the {@link TransactionContext} used to create the query. It must not be null.
+   * @param sQuery the native SQL query string to execute. It must not be null or empty.
+   * @param offset the starting position of the first result (zero-based). For example,
+   *          to skip the first 10 results, set this to 10.
+   * @param pageSize the maximum number of results to return. A positive integer specifies the page size.
+   * @return a {@link jakarta.persistence.Query} object configured with the specified SQL query,
+   *         offset, and page size.
    */
-  public static javax.persistence.Query createNativePaginationQuery(
+  public static jakarta.persistence.Query createNativePaginationQuery(
       TransactionContext tx,
       String sQuery,
       int offset,
       int pageSize)
   {
-    javax.persistence.Query query = tx.createNativeQuery(sQuery);
+    jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
     query.setFirstResult(offset).setMaxResults(pageSize);
     return query;
   }

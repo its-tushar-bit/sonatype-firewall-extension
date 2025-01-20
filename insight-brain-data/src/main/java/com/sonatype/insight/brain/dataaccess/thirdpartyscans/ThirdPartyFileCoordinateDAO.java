@@ -19,7 +19,6 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.persistence.NoResultException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
@@ -32,6 +31,7 @@ import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.InternalServerException;
 
+import jakarta.persistence.NoResultException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -229,7 +229,7 @@ public class ThirdPartyFileCoordinateDAO
     int offset = (page - 1) * pageSize;
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query paginationQuery = createPaginationQueryWithScoreRangeParams(
+      jakarta.persistence.Query paginationQuery = createPaginationQueryWithScoreRangeParams(
           thirdPartyFileId, pageSize, sQuery, offset, tx);
       if (filterText != null && !filterText.isEmpty()) {
         filterText = filterText.trim();
@@ -291,9 +291,10 @@ public class ThirdPartyFileCoordinateDAO
         " AND sm.sbom_version = ?11";
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = createNativeQuery(tx, sQuery, NONE.getStartScoreRange(),LOW.getStartScoreRange(),
-          LOW.getEndScoreRange(), MEDIUM.getStartScoreRange(), MEDIUM.getEndScoreRange(), HIGH.getStartScoreRange(),
-          HIGH.getEndScoreRange(), CRITICAL.getStartScoreRange(), CRITICAL.getEndScoreRange(), applicationId, version);
+      jakarta.persistence.Query query = createNativeQuery(tx, sQuery, NONE.getStartScoreRange(),
+          LOW.getStartScoreRange(), LOW.getEndScoreRange(), MEDIUM.getStartScoreRange(), MEDIUM.getEndScoreRange(),
+          HIGH.getStartScoreRange(), HIGH.getEndScoreRange(), CRITICAL.getStartScoreRange(),
+          CRITICAL.getEndScoreRange(), applicationId, version);
 
       Object[] result = (Object[]) query.getSingleResult();
 
@@ -316,7 +317,7 @@ public class ThirdPartyFileCoordinateDAO
         "  AND sm.sbom_version = ?2";
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = createNativeQuery(tx, sQuery, applicationId, version);
+      jakarta.persistence.Query query = createNativeQuery(tx, sQuery, applicationId, version);
 
       Object[] result = (Object[]) query.getSingleResult();
 
@@ -340,7 +341,7 @@ public class ThirdPartyFileCoordinateDAO
         "  AND sm.sbom_version = ?2";
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = createNativeQuery(tx, sQuery, applicationId, version);
+      jakarta.persistence.Query query = createNativeQuery(tx, sQuery, applicationId, version);
 
       long result = (long) query.getSingleResult();
 
@@ -348,14 +349,14 @@ public class ThirdPartyFileCoordinateDAO
     }
   }
 
-  private javax.persistence.Query createPaginationQueryWithScoreRangeParams(
+  private jakarta.persistence.Query createPaginationQueryWithScoreRangeParams(
       final String searchParam,
       final int pageSize,
       final String sQuery,
       final int offset,
       final TransactionContext tx)
   {
-    javax.persistence.Query paginationQuery = createPaginationNativeQuery(tx, sQuery, offset, pageSize);
+    jakarta.persistence.Query paginationQuery = createPaginationNativeQuery(tx, sQuery, offset, pageSize);
     paginationQuery.setParameter(1, NONE.getStartScoreRange());
     paginationQuery.setParameter(2, LOW.getStartScoreRange());
     paginationQuery.setParameter(3, LOW.getEndScoreRange());
@@ -483,7 +484,7 @@ public class ThirdPartyFileCoordinateDAO
   private void setFilterParameters(
       String filterText,
       int index,
-      javax.persistence.Query paginationQuery)
+      jakarta.persistence.Query paginationQuery)
   {
     if (StringUtils.containsAny(filterText, " : ", " ")) {
       String[] coordinates = Arrays.stream(filterText.split("\\s+:\\s+|\\s+")) //

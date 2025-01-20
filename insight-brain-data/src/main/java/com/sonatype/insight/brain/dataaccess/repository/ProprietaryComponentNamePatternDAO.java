@@ -179,7 +179,7 @@ public class ProprietaryComponentNamePatternDAO
     }
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(sQuery.toString());
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery.toString());
       for (int iParam = 0; iParam < queryParams.size(); iParam++) {
         query.setParameter(iParam + 1, queryParams.get(iParam));
       }

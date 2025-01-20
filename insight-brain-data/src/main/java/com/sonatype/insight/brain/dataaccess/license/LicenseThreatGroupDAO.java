@@ -102,7 +102,7 @@ public class LicenseThreatGroupDAO
         " WHERE licenseThreatGroup.id=licenseThreatGroupLicense.licenseThreatGroupId" + //
         " AND licenseThreatGroup.ownerId IN (?1) AND licenseThreatGroupLicense.licenseId IN (?2)";
 
-    javax.persistence.Query query = tx.createQuery(sQuery);
+    jakarta.persistence.Query query = tx.createQuery(sQuery);
     query.setParameter(1, ownerIds);
     query.setParameter(2, licenseIds);
 

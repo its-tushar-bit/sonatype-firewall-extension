@@ -9,8 +9,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.DatabaseUtil;
@@ -19,6 +17,8 @@ import com.sonatype.insight.brain.db.SqlCallCounterMetrics;
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.db.DatabaseConfig;
 
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.openjpa.lib.jdbc.JDBCListener;
 import org.slf4j.Logger;

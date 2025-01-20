@@ -9,6 +9,7 @@ package com.sonatype.insight.brain.dataaccess.sast;
 import java.util.Date;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.model.sast.SastPullRequestComment;
 import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -46,7 +47,7 @@ public class SastPullRequestCommentDAOTest
     final SastPullRequestComment result = sastPullRequestCommentDAO.getById(sastPullRequestCommentId);
     assertThat(result)
         .isNotNull()
-        .usingRecursiveComparison()
+        .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
         .isEqualTo(sastPullRequestComment);
 
     // Update

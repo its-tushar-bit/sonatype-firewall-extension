@@ -11,12 +11,12 @@ import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
 import java.util.stream.Stream;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.Transient;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Transient;
 
 import com.sonatype.insight.brain.model.EnumIntegerTable;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -40,7 +40,7 @@ import static com.sonatype.insight.brain.utils.ThreatLevel.SEVERE;
  * @since 1.33
  */
 @Entity
-@javax.persistence.Table(name = "policy_violation_aggregation")
+@jakarta.persistence.Table(name = "policy_violation_aggregation")
 public class PolicyViolationAggregation
     implements HasStringId
 {

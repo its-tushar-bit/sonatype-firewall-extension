@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.concurrent;
 import java.util.Date;
 
 import javax.inject.Inject;
-import javax.persistence.EntityExistsException;
-import javax.persistence.RollbackException;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.RollbackException;
 
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.model.PerpetualLock;

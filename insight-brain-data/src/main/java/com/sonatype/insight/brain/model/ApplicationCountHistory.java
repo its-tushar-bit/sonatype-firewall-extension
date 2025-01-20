@@ -8,12 +8,13 @@ package com.sonatype.insight.brain.model;
 
 import java.util.Date;
 import java.util.StringJoiner;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "application_count_history")

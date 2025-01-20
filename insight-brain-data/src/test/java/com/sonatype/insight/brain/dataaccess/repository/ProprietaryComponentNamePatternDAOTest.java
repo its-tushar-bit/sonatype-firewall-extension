@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.EntityExistsException;
-import javax.persistence.PersistenceException;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.PersistenceException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.repository.RepositoryType;

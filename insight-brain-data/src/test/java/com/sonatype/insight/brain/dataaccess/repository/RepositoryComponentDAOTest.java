@@ -31,6 +31,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -758,9 +759,9 @@ public class RepositoryComponentDAOTest
     RepositoryComponent repositoryComponent1 = newQuarantinedRepositoryComponent(repository.getId(), "a1");
     newQuarantinedRepositoryComponent(repository.getId(), "a2");
 
-    assertThat(filter(null, "a1")).usingRecursiveFieldByFieldElementComparator()
+    assertThat(filter(null, "a1")).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactly(repositoryComponent1);
-    assertThat(filter(null, "A1")).usingRecursiveFieldByFieldElementComparator()
+    assertThat(filter(null, "A1")).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactly(repositoryComponent1);
   }
 
@@ -778,14 +779,16 @@ public class RepositoryComponentDAOTest
     newQuarantinedRepositoryComponentPolicyViolation(policy1, repositoryComponent3);
     newQuarantinedRepositoryComponentPolicyViolation(policy2, repositoryComponent4);
 
-    assertThat(filter(null, null)).usingRecursiveFieldByFieldElementComparator()
+    assertThat(filter(null, null)).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactlyInAnyOrder(repositoryComponent1, repositoryComponent2, repositoryComponent3,
             repositoryComponent4);
-    assertThat(filter(policy1.getId(), null)).usingRecursiveFieldByFieldElementComparator()
+    assertThat(filter(policy1.getId(), null))
+        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactlyInAnyOrder(repositoryComponent1, repositoryComponent3);
-    assertThat(filter(null, "a1")).usingRecursiveFieldByFieldElementComparator()
+    assertThat(filter(null, "a1")).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactlyInAnyOrder(repositoryComponent1, repositoryComponent2);
-    assertThat(filter(policy1.getId(), "a1")).usingRecursiveFieldByFieldElementComparator()
+    assertThat(filter(policy1.getId(), "a1"))
+        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactly(repositoryComponent1);
   }
 

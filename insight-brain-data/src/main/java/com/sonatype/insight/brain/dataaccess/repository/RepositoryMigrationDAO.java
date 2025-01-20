@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.dataaccess.repository;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.persistence.EntityExistsException;
-import javax.persistence.RollbackException;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.RollbackException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;

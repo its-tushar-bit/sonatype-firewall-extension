@@ -5,15 +5,14 @@
  */
 package com.sonatype.insight.brain.model;
 
-import javax.persistence.Cacheable;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
 import com.sonatype.insight.model.HasStringId;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Cacheable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import org.apache.openjpa.persistence.DataCache;
 
 @DataCache(timeout = 10000)

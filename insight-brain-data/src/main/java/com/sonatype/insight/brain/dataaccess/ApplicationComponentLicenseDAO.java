@@ -113,7 +113,7 @@ public class ApplicationComponentLicenseDAO
               : "") + //
           " GROUP BY ac.application_id, ac.hash, ac.component_id_format,ac.component_id_coordinates_json";
 
-      javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
       query.setParameter(1, Organization.ROOT_ORGANIZATION_ID);
       addPositionalParameters(query, stageTypeIds, 2);
       if (!requiresManualFilter) {
@@ -158,7 +158,7 @@ public class ApplicationComponentLicenseDAO
           " AND ac.stage_type_id IN " + buildPositionalParameters(stageTypeIds, 2) + //
           " GROUP BY ac.hash, ac.component_id_format,ac.component_id_coordinates_json";
 
-      javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
       query.setParameter(1, applicationId);
       addPositionalParameters(query, stageTypeIds, 2);
 

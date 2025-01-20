@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Date;
-import javax.persistence.EntityExistsException;
-import javax.persistence.RollbackException;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.RollbackException;
 
 import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.dataaccess.TransactionContext;

@@ -10,15 +10,14 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.model.HasStringId;
 
 import com.google.common.base.Joiner;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import org.apache.commons.lang3.StringUtils;
 
 /**

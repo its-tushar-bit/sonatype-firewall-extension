@@ -17,6 +17,7 @@ import java.util.stream.IntStream;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -875,14 +876,14 @@ public class ThirdPartySbomMetadataDAOTest
     List<ThirdPartySbomMetadata> results = dao.getByApplicationIdAndStatus(applicationId, ACTIVE, page, pageSize);
 
     assertThat(results).hasSize(2);
-    assertThat(results.get(0)).usingRecursiveComparison().isEqualTo(sbomMetadata3);
-    assertThat(results.get(1)).usingRecursiveComparison().isEqualTo(sbomMetadata2);
+    assertThat(results.get(0)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(sbomMetadata3);
+    assertThat(results.get(1)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(sbomMetadata2);
 
     page = 2;
     results = dao.getByApplicationIdAndStatus(applicationId, ACTIVE, page, pageSize);
 
     assertThat(results).hasSize(1);
-    assertThat(results.get(0)).usingRecursiveComparison().isEqualTo(sbomMetadata1);
+    assertThat(results.get(0)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(sbomMetadata1);
 
     page = 3;
     results = dao.getByApplicationIdAndStatus(applicationId, ACTIVE, page, pageSize);

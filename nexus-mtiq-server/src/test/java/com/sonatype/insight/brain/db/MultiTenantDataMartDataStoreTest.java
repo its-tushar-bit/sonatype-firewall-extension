@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.db;
 
 import java.util.concurrent.atomic.AtomicReference;
-import javax.persistence.EntityManagerFactory;
 
+import jakarta.persistence.EntityManagerFactory;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

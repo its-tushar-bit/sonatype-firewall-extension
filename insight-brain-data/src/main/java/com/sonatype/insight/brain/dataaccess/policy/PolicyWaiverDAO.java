@@ -296,7 +296,7 @@ public class PolicyWaiverDAO
         " GROUP BY CAST(pw.create_time AS DATE)";
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
       query.setParameter(1, ownerId);
       query.setParameter(2, date);
 

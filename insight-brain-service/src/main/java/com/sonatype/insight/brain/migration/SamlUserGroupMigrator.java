@@ -99,7 +99,7 @@ public class SamlUserGroupMigrator
   private List<SamlUser> getSamlUsersBatch(int batchNumber) {
     String sQuery = "SELECT entity FROM SamlUser entity ORDER BY entity.username";
     try (TransactionContext tx = samlUserDAO.createTransactionContext()) {
-      javax.persistence.Query paginationQuery =
+      jakarta.persistence.Query paginationQuery =
           createPaginationQuery(tx, sQuery, batchNumber * MAX_BATCH_SIZE, MAX_BATCH_SIZE);
       return paginationQuery.getResultList();
     }

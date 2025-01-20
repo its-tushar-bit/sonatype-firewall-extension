@@ -582,7 +582,7 @@ public class PolicyViolationDAO
         " GROUP BY application_id";
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = createNativeQuery(tx, sQuery,
+      jakarta.persistence.Query query = createNativeQuery(tx, sQuery,
           ComplianceStageType.ID, createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
 
       Map<String, SbomPolicyViolationSummaryDTO> applicationIdResultMap = new HashMap<>();
@@ -623,7 +623,7 @@ public class PolicyViolationDAO
     }
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(sQuery, Double.class);
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery, Double.class);
 
       query.setParameter(1, lookBackWindowDays);
       Double result = (Double)query.getSingleResult();
@@ -763,7 +763,7 @@ public class PolicyViolationDAO
     }
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(sQuery.toString());
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery.toString());
       addPositionalParameters(query, applicationIds, appIdsParamStartPosition);
       addPositionalParameters(query, stageTypeIds, stageIdsParamStartPosition);
       if (minDate != null) {

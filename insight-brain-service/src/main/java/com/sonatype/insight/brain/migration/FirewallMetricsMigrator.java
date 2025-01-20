@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.Query;
+import jakarta.persistence.Query;
 
 import com.sonatype.insight.brain.api.v2.ApiFirewallMetricsService;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;

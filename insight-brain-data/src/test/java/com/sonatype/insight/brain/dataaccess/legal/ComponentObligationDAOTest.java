@@ -57,7 +57,8 @@ public class ComponentObligationDAOTest
     assertThat(componentObligation.getId()).isNotNull();
 
     // Read
-    assertThat(dao.getById(componentObligation.getId())).usingRecursiveComparison().isEqualTo(componentObligation);
+    assertThat(dao.getById(componentObligation.getId())).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .isEqualTo(componentObligation);
 
     // Update
     componentObligation.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
@@ -68,7 +69,8 @@ public class ComponentObligationDAOTest
     componentObligation.setLastUpdatedByUsername("other");
     componentObligation.setLastUpdatedAt(now);
     dao.update(componentObligation);
-    assertThat(dao.getById(componentObligation.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(dao.getById(componentObligation.getId())).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .usingOverriddenEquals().isEqualTo(componentObligation);
 
     // Delete
@@ -154,7 +156,8 @@ public class ComponentObligationDAOTest
     tempEntity.newComponentObligation(ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"), application.getId(),
         "name3", "comment3", ObligationStatus.OPEN, "legalContentHash3");
 
-    assertThat(dao.getByOwnerId(organization.getId())).usingRecursiveFieldByFieldElementComparator()
+    assertThat(dao.getByOwnerId(organization.getId()))
+        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactlyInAnyOrder(componentObligation1, componentObligation2);
   }
 
@@ -175,7 +178,7 @@ public class ComponentObligationDAOTest
         organization.getId(), componentIdentifier, Collections.singleton(obligationName),
         componentObligation);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationName(organization.getId(), componentIdentifier,
-        obligationName)).usingRecursiveComparison().isEqualTo(componentObligation);
+        obligationName)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(componentObligation);
   }
 
   @Test
@@ -298,7 +301,8 @@ public class ComponentObligationDAOTest
     }
 
     assertThat(actual)
-        .usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(componentObligation);
+        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .containsExactlyInAnyOrder(componentObligation);
   }
 
   @Test
@@ -311,7 +315,7 @@ public class ComponentObligationDAOTest
     List<ComponentObligation> result =
         dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier);
     assertThat(result)
-        .usingRecursiveFieldByFieldElementComparatorIgnoringFields(JPA.IGNORE_FIELDS)
+        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactly(obligationOrg);
 
     ComponentObligation obligationApp1 = tempEntity.newComponentObligation(componentIdentifier, application.getId(),
@@ -321,7 +325,7 @@ public class ComponentObligationDAOTest
 
     result = dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier);
     assertThat(result)
-        .usingRecursiveFieldByFieldElementComparatorIgnoringFields(JPA.IGNORE_FIELDS)
+        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactlyInAnyOrder(obligationOrg, obligationApp1, obligationApp2);
   }
 

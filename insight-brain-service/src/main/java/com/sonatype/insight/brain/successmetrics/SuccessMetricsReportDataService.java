@@ -18,11 +18,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.persistence.EntityExistsException;
-import javax.persistence.RollbackException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -47,6 +46,8 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.brain.successmetrics.ApplicationCountsDTO.ThreatCategoryApplicationCount;
+import com.sonatype.insight.brain.successmetrics.AverageDiscoveredPolicyViolationsDTO.ThreatCategoryPolicyViolationsDTO;
 import com.sonatype.insight.brain.successmetrics.ComponentCountsDTO.ComponentCountDTO;
 import com.sonatype.insight.brain.utils.DateUtils;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -55,6 +56,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.RollbackException;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.YearMonth;
@@ -65,8 +68,6 @@ import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICEN
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
-import static com.sonatype.insight.brain.successmetrics.ApplicationCountsDTO.ThreatCategoryApplicationCount;
-import static com.sonatype.insight.brain.successmetrics.AverageDiscoveredPolicyViolationsDTO.ThreatCategoryPolicyViolationsDTO;
 
 /**
  * @since 1.39

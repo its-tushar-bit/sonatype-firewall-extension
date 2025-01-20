@@ -11,7 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.LockModeType;
+import jakarta.persistence.LockModeType;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.AbstractDataTest;

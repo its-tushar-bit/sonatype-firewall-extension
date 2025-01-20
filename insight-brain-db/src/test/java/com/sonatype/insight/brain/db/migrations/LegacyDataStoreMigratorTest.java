@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.db.migrations;
 
 import java.io.File;
 import java.util.zip.ZipFile;
-import javax.persistence.EntityManagerFactory;
+
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.H2DatabaseEngine;
 
+import jakarta.persistence.EntityManagerFactory;
 import org.apache.commons.lang3.NotImplementedException;
 import org.junit.Ignore;
 import org.junit.Rule;

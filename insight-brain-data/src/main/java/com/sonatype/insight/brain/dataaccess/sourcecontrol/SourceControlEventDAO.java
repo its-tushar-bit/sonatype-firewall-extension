@@ -14,7 +14,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.persistence.LockModeType;
+import jakarta.persistence.LockModeType;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -161,7 +161,7 @@ public class SourceControlEventDAO
         "WHERE entity.applicationId IN ?1 AND entity.createTime >= ?2 ORDER BY entity.createTime " +
         (ascending ? "ASC " : "DESC ");
     try (TransactionContext tx = createTransactionContext()) {
-      final javax.persistence.Query paginationQuery = createPaginationQuery(tx, sQuery, offset, limit);
+      final jakarta.persistence.Query paginationQuery = createPaginationQuery(tx, sQuery, offset, limit);
       paginationQuery.setParameter(1, applicationIds);
       paginationQuery.setParameter(2, createdOnOrAfter);
       return paginationQuery.getResultList();

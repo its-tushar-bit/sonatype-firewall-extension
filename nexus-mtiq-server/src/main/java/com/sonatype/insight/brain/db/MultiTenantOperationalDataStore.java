@@ -59,7 +59,7 @@ public class MultiTenantOperationalDataStore
 
     props.put("openjpa.DataCache", "true(CacheSize=8192, SoftReferenceSize=0, EnableStatistics=true)");
     props.put("openjpa.QueryCache", MultiTenantQueryCache.class.getName() + "(CacheSize=1000, SoftReferenceSize=0)");
-    props.put("javax.persistence.sharedCache.mode", DataCacheMode.ENABLE_SELECTIVE.name());
+    props.put("jakarta.persistence.sharedCache.mode", DataCacheMode.ENABLE_SELECTIVE.name());
     props.put("openjpa.RemoteCommitProvider", "sjvm");
   }
 

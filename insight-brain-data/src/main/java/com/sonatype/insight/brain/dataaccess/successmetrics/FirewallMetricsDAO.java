@@ -16,9 +16,9 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.persistence.EntityExistsException;
-import javax.persistence.LockModeType;
-import javax.persistence.RollbackException;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.RollbackException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractAggregationSqlDAO;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
@@ -77,7 +77,7 @@ public class FirewallMetricsDAO
           EnumSet.of(FirewallMetricsName.SUPPLY_CHAIN_ATTACKS_BLOCKED, FirewallMetricsName.NAMESPACE_ATTACKS_BLOCKED);
       LocalDate oneYearAgoDate = LocalDate.now().minusMonths(12);
 
-      javax.persistence.Query query = tx.createQuery(sQuery);
+      jakarta.persistence.Query query = tx.createQuery(sQuery);
       query.setParameter(1, firewallMetricsNamesForAllTime);
       query.setParameter(2, oneYearAgoDate);
 

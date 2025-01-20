@@ -81,7 +81,7 @@ public class SastScanDAO extends AbstractOperationalSqlDAO<SastScan>
         " AND scmEntity.branch_name = ?2";
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(sQuery, SastScan.class);
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery, SastScan.class);
       query.setParameter(1, applicationId);
       query.setParameter(2, branchName);
       return query.getResultList();

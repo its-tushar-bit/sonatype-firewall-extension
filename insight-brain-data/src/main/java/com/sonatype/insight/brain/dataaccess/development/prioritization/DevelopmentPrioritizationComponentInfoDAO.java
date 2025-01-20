@@ -85,7 +85,7 @@ public class DevelopmentPrioritizationComponentInfoDAO
     }
 
     sizeSafeBatches.forEach(sizeSafeBatch -> {
-      javax.persistence.Query query = buildBatchQuery(tx, sizeSafeBatch);
+      jakarta.persistence.Query query = buildBatchQuery(tx, sizeSafeBatch);
       query.executeUpdate();
     });
   }
@@ -95,7 +95,7 @@ public class DevelopmentPrioritizationComponentInfoDAO
     createQuery(sQuery, scanId).executeUpdate(tx);
   }
 
-  private javax.persistence.Query buildBatchQuery(
+  private jakarta.persistence.Query buildBatchQuery(
       final TransactionContext tx,
       final Collection<DevelopmentPrioritizationComponentInfo> developmentPrioritizationComponentInfoCollection)
   {
@@ -105,7 +105,7 @@ public class DevelopmentPrioritizationComponentInfoDAO
         " stage_release_status, release_status)" + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" + StringUtils.repeat(
         ", (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", developmentPrioritizationComponentInfoCollection.size() - 1);
 
-    javax.persistence.Query query = tx.createNativeQuery(qs);
+    jakarta.persistence.Query query = tx.createNativeQuery(qs);
     int pos = 0;
     for (DevelopmentPrioritizationComponentInfo componentInfo : developmentPrioritizationComponentInfoCollection) {
       if (StringUtils.isBlank(componentInfo.getId())) {

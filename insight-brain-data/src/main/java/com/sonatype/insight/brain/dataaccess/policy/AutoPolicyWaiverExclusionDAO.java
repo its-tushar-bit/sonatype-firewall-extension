@@ -137,7 +137,7 @@ public class AutoPolicyWaiverExclusionDAO
       int page,
       int pageSize)
   {
-    javax.persistence.Query paginatedQuery = createPaginatedGetByOwnerIdAndAutoPolicyWaiverIdQuery(
+    jakarta.persistence.Query paginatedQuery = createPaginatedGetByOwnerIdAndAutoPolicyWaiverIdQuery(
         pageSize,
         page,
         ownerId,
@@ -146,7 +146,7 @@ public class AutoPolicyWaiverExclusionDAO
     return paginatedQuery.getResultStream().toList();
   }
 
-  private javax.persistence.Query createPaginatedGetByOwnerIdAndAutoPolicyWaiverIdQuery(
+  private jakarta.persistence.Query createPaginatedGetByOwnerIdAndAutoPolicyWaiverIdQuery(
       final int pageSize,
       final int page,
       final String ownerId,
@@ -156,7 +156,7 @@ public class AutoPolicyWaiverExclusionDAO
     int offset = (page - 1) * pageSize;
     String sQuery = "SELECT entity FROM AutoPolicyWaiverExclusion entity" +
         " WHERE entity.ownerId=?1 AND entity.autoPolicyWaiverId=?2";
-    javax.persistence.Query paginatedQuery = createPaginationQuery(tx, sQuery, offset, pageSize);
+    jakarta.persistence.Query paginatedQuery = createPaginationQuery(tx, sQuery, offset, pageSize);
     paginatedQuery.setParameter(1, ownerId);
     paginatedQuery.setParameter(2, autoPolicyWaiverId);
     return paginatedQuery;

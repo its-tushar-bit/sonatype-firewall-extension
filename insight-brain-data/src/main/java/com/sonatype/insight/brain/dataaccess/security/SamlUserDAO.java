@@ -183,7 +183,7 @@ public class SamlUserDAO
             " saml_user.last_name, saml_user.email";
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
 
       ((Stream<Object[]>) query.getResultStream())
           .map(array -> {

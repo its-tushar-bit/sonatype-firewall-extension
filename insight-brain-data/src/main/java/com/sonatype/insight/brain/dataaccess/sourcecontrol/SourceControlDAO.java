@@ -268,7 +268,7 @@ public class SourceControlDAO
   private SourceControl buildCompositeSourceControlInPostgres(String applicationId) {
     // Single query to build Source Control instance for an application. Relies on Postgres-specific features
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(
+      jakarta.persistence.Query query = tx.createNativeQuery(
           injectSchemaName(BUILD_COMPOSITE_SOURCE_CONTROL), SourceControl.class
       );
       query.setParameter(1, applicationId);
@@ -371,7 +371,7 @@ public class SourceControlDAO
     try (TransactionContext txn = createTransactionContext()) {
       txn.begin();
 
-      javax.persistence.Query query = txn.createNativeQuery(injectSchemaName(
+      jakarta.persistence.Query query = txn.createNativeQuery(injectSchemaName(
           "SELECT owner_id FROM _SCHEMA_.source_control " +
               "WHERE owner_id != ?1 AND (token IS NOT NULL OR provider IS NOT NULL);"));
       query.setParameter(1, ROOT_ORGANIZATION_ID);
@@ -723,7 +723,7 @@ public class SourceControlDAO
         LocalDateTime.now().minusDays(EXTERNAL_EVALUATION_WINDOW_IN_DAYS).atZone(ZoneId.systemDefault()).toInstant());
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(injectSchemaName(SELECT_APPLICATIONS_FOR_SOURCE_SCAN));
+      jakarta.persistence.Query query = tx.createNativeQuery(injectSchemaName(SELECT_APPLICATIONS_FOR_SOURCE_SCAN));
       query.setParameter(1, scanLimitDate);
       query.setParameter(2, externalEvaluationLimitDate);
       List<String> initialOwnerIdList = query.getResultList();

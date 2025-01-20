@@ -5,11 +5,12 @@
  */
 package com.sonatype.insight.brain.db.datastore;
 
-import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.db.DatabaseConfig;
+
+import jakarta.persistence.EntityManagerFactory;
 
 /**
  * <b>Definition of an IQ store of data.</b>
@@ -58,7 +59,7 @@ import com.sonatype.insight.db.DatabaseConfig;
  *   <li>Database - A single database running on a PostgreSQL cluster.</li>
  *   <li>DataSource - we only want a single (large) connection pool so each of the 4 data store providers use the same
  *   `javax.sql.DataSource`. Connections are shared across tenants. Note that each tenant still has its own
- *   {@link javax.persistence.EntityManagerFactory}</li>
+ *   {@link jakarta.persistence.EntityManagerFactory}</li>
  *   <li>Schema - each tenant is in its own schema. The data store name is not used as the schema. It is tracked inside
  *   the `schema_version` table</li>
  * </ul>

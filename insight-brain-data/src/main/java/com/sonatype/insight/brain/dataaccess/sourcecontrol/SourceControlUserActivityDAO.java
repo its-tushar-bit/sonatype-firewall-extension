@@ -91,7 +91,7 @@ public class SourceControlUserActivityDAO
       final List<SourceControlUserActivity> batchActivities)
   {
     if (batchActivities.size() > 0) {
-      javax.persistence.Query query =
+      jakarta.persistence.Query query =
           tx.createNativeQuery(queryBuilder.getMassiveInsertNativeQuery(batchActivities.size()));
       int i = 0;
       for (SourceControlUserActivity userActivity : batchActivities) {
@@ -189,7 +189,7 @@ public class SourceControlUserActivityDAO
             "WHERE sourceControlUserActivity.sourceControlUserId = sourceControlUser.id " +
             "and sourceControlUserActivity.isSentToTelemetry = false ";
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createQuery(sQuery);
+      jakarta.persistence.Query query = tx.createQuery(sQuery);
       return ((Stream<Object[]>) query.getResultStream()).map(object -> {
         SourceControlUserActivityTelemetryDTO sourceControlUserActivityTelemetryDTO =
             new SourceControlUserActivityTelemetryDTO();

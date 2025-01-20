@@ -257,7 +257,7 @@ public class ApplicationDAO
     String sQuery = "SELECT app FROM Application app" +
         " ORDER BY app.publicIdLowercase";
     int offset = (page - 1) * pageSize;
-    javax.persistence.Query paginationQuery = createPaginationQuery(tx, sQuery, offset, pageSize);
+    jakarta.persistence.Query paginationQuery = createPaginationQuery(tx, sQuery, offset, pageSize);
     return paginationQuery.getResultList();
   }
 
@@ -429,7 +429,7 @@ public class ApplicationDAO
           .toList();
     }
     else {
-      javax.persistence.Query paginationQuery = createPaginationQuery(tx, sQuery, offset, pageSize);
+      jakarta.persistence.Query paginationQuery = createPaginationQuery(tx, sQuery, offset, pageSize);
       paginationQuery.setParameter(1, ancestorIds);
       return paginationQuery.getResultList();
     }
@@ -448,7 +448,7 @@ public class ApplicationDAO
         " ON app.application_id = aa.application_id" +
         " WHERE aa.ancestor_id = ANY(?)" +
         " ORDER BY app.public_id_lowercase";
-    javax.persistence.Query paginationQuery =
+    jakarta.persistence.Query paginationQuery =
         createPaginationNativeQuery(tx, Application.class, sQuery, offset, pageSize);
     java.sql.Array array;
     // Creating an sql Array to pass to the postgres specific ANY function
@@ -896,7 +896,7 @@ public class ApplicationDAO
         ORDER BY sort_column %s, lower(application_name)""".formatted(direction, sortClause, databaseSchema,
         whereClause, databaseSchema, databaseSchema, databaseSchema, databaseSchema, direction);
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
       int i = 1;
 
       query.setParameter(i++, minPolicyThreatLevel);

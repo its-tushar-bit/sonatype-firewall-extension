@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.dataaccess.configuration;
 
 import java.util.Comparator;
 import java.util.Map;
-import javax.persistence.EntityExistsException;
-import javax.persistence.PersistenceException;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.PersistenceException;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;

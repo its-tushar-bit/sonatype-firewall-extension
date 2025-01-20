@@ -587,7 +587,7 @@ public class OwnerDAO
         """.formatted(getDatabaseSchema(), getDatabaseSchema());
 
     try (TransactionContext tx = createTransactionContext()) {
-      final javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      final jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
       query.setMaxResults(MAX_ALLOWED_DB_RESULTS);
 
       try (Stream<Object[]> resultStream = query.getResultStream()) {
@@ -627,7 +627,7 @@ public class OwnerDAO
     final String sQuery = queryUnionizer.toString();
 
     try (TransactionContext tx = createTransactionContext()) {
-      final javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      final jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
       query.setMaxResults(MAX_ALLOWED_DB_RESULTS);
 
       return performQueryForOwnersByAppAndTagIds(query, applicationIds, tagIds, organizationsIds);
@@ -739,7 +739,7 @@ public class OwnerDAO
   }
 
   private List<Owner> performQueryForOwnersByAppAndTagIds(
-      final javax.persistence.Query query,
+      final jakarta.persistence.Query query,
       final Set<String> applicationIds,
       final Set<String> tagIds,
       final Set<String> organizationIds

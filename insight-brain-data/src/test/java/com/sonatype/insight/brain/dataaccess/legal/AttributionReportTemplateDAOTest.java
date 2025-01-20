@@ -71,7 +71,7 @@ public class AttributionReportTemplateDAOTest
     assertThat(attributionReportTemplate.getId()).isNotNull();
 
     // Read
-    assertThat(dao.getById(attributionReportTemplate.getId())).usingRecursiveComparison()
+    assertThat(dao.getById(attributionReportTemplate.getId())).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
         .isEqualTo(attributionReportTemplate);
 
     // Update

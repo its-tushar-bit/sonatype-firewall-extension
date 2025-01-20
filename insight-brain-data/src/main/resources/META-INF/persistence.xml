@@ -143,6 +143,7 @@
     <class>com.sonatype.insight.brain.model.MalwareDefenseMetrics</class>
     <class>com.sonatype.insight.brain.model.security.OidcToken</class>
     <properties>
+      <property name="jakarta.persistence.sharedCache.mode" value="ENABLE_SELECTIVE"/>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>
       <property name="openjpa.ConnectionDriverName" value="org.hsqldb.jdbcDriver"/>
@@ -179,6 +180,7 @@
     <class>com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal</class>
     <class>com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns</class>
     <properties>
+      <property name="jakarta.persistence.sharedCache.mode" value="ENABLE_SELECTIVE"/>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>
       <property name="openjpa.ConnectionDriverName" value="org.hsqldb.jdbcDriver"/>
@@ -208,6 +210,7 @@
     <class>com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData</class>
     <class>com.sonatype.insight.brain.model.successmetrics.FirewallMetrics</class>
     <properties>
+      <property name="jakarta.persistence.sharedCache.mode" value="ENABLE_SELECTIVE"/>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>
       <property name="openjpa.ConnectionDriverName" value="org.hsqldb.jdbcDriver"/>
@@ -241,6 +244,7 @@
     <class>com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata</class>
     <class>com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyUnknownComponent</class>
     <properties>
+      <property name="jakarta.persistence.sharedCache.mode" value="ENABLE_SELECTIVE"/>
       <property name="openjpa.Log" value="DefaultLevel=WARN, Tool=INFO"/>
       <property name="openjpa.jdbc.Schema" value="insight_brain_third_party_scans"/>
       <!--

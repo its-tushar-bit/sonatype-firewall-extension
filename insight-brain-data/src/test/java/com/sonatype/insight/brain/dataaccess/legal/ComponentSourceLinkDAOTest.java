@@ -47,7 +47,8 @@ public class ComponentSourceLinkDAOTest
     assertThat(componentSourceLink.getId()).isNotNull();
 
     // Read
-    assertThat(dao.getById(componentSourceLink.getId())).usingRecursiveComparison().isEqualTo(componentSourceLink);
+    assertThat(dao.getById(componentSourceLink.getId())).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .isEqualTo(componentSourceLink);
 
     // Update
     componentSourceLink.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
@@ -127,7 +128,7 @@ public class ComponentSourceLinkDAOTest
     tempEntity.newComponentSourceLink(componentIdentifier, application.getId());
 
     assertThat(dao.getByOwnerIdAndComponentIdentifier(organization.getId(), componentIdentifier))
-        .usingRecursiveComparison().isEqualTo(componentSourceLink);
+        .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(componentSourceLink);
   }
 
   @Test

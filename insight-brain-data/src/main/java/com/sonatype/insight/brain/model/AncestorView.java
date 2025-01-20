@@ -5,10 +5,10 @@
  */
 package com.sonatype.insight.brain.model;
 
-import javax.persistence.Column;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.MappedSuperclass;
+import jakarta.persistence.Column;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.MappedSuperclass;
 
 /**
  * Superclass of entities for the *_ancestor views, which all have ancestor_id, ancestor_type, and ancestor_distance

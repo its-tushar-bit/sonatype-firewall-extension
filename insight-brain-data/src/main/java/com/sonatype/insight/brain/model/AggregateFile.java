@@ -9,15 +9,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
 import com.sonatype.insight.model.HasStringId;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import org.apache.commons.lang3.StringUtils;
 
 /**

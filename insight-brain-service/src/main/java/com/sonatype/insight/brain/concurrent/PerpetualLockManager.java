@@ -11,14 +11,14 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.persistence.EntityExistsException;
-import javax.persistence.RollbackException;
 
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.brain.utils.DateUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.RollbackException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import javax.persistence.Query;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
@@ -33,9 +32,10 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
 
 import com.google.common.collect.Sets;
-import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
+import jakarta.persistence.Query;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -604,7 +604,7 @@ public class ApplicationComponentDAOTest
         componentIdentifier.createAlternativeVersion("v2"));
 
     assertThat(dao.getByApplicationIdAndComponentIdentifier(app1.getId(), componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator()
+        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactlyInAnyOrder(applicationComponent1, applicationComponent3, applicationComponent4);
   }
 

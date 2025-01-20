@@ -5,11 +5,11 @@
  */
 package com.sonatype.insight.brain.model;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
 
 // JPA representation of the owner_ancestor VIEW. This allows the view to be joined on in JPQL queries
 @Entity

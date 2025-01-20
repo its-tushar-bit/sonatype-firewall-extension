@@ -251,7 +251,7 @@ public class ApplicationComponentDAO
         sQuery += " AND ac.applicationId IN (?3)";
       }
 
-      javax.persistence.Query query = tx.createQuery(sQuery);
+      jakarta.persistence.Query query = tx.createQuery(sQuery);
       query.setParameter(1, stageTypeIds);
       query.setParameter(2, Organization.ROOT_ORGANIZATION_ID);
 
@@ -345,7 +345,7 @@ public class ApplicationComponentDAO
     }
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
 
       int i = 1;
       for (String appId : applicationIds) {

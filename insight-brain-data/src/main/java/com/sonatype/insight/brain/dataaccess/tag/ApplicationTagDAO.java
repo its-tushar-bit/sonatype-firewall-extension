@@ -95,7 +95,7 @@ public class ApplicationTagDAO
 
     try (TransactionContext tx = createTransactionContext()) {
       int offSet = (page - 1) * pageSize;
-      javax.persistence.Query nativeQuery = createNativePaginationQuery(tx, sQuery, offSet, pageSize);
+      jakarta.persistence.Query nativeQuery = createNativePaginationQuery(tx, sQuery, offSet, pageSize);
       List<Object[]> resultList = nativeQuery.getResultList();
       return resultList.stream()
           .map(result -> new ApplicationTagNameDTO((String) result[0], (String) result[1]))

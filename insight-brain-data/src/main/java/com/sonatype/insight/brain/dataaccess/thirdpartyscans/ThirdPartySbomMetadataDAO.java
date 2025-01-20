@@ -14,10 +14,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.persistence.LockModeType;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -33,6 +33,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataSt
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
+
+import jakarta.persistence.LockModeType;
 
 import static com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO.createPaginationNativeQuery;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
@@ -230,7 +232,7 @@ public class ThirdPartySbomMetadataDAO
     LocalDate lastYear = now.minusYears(1);
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = createNativeQuery(tx, sQuery, lastYear, lastMonth, lastWeek, ACTIVE.name());
+      jakarta.persistence.Query query = createNativeQuery(tx, sQuery, lastYear, lastMonth, lastWeek, ACTIVE.name());
       Object[] result = (Object[]) query.getSingleResult();
       return new ApiSbomApplicationsHistoryMetricDTO(result);
     }
@@ -260,7 +262,7 @@ public class ThirdPartySbomMetadataDAO
         "ORDER BY entity.createdAt DESC";
 
     int offset = (page - 1) * pageSize;
-    javax.persistence.Query paginationQuery = createPaginationQuery(tx, sQuery, offset, pageSize);
+    jakarta.persistence.Query paginationQuery = createPaginationQuery(tx, sQuery, offset, pageSize);
     paginationQuery.setParameter(1, applicationId);
     paginationQuery.setParameter(2, status);
     return paginationQuery.getResultList();
@@ -314,7 +316,8 @@ public class ThirdPartySbomMetadataDAO
     int offset = (page - 1) * pageSize;
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query paginationQuery = createPaginationQueryWithScoreRangeParams(pageSize, sQuery, offset, tx);
+      jakarta.persistence.Query paginationQuery =
+          createPaginationQueryWithScoreRangeParams(pageSize, sQuery, offset, tx);
       if (isNotEmpty(applicationIds)) {
         paginationQuery.setParameter(11, createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
       }
@@ -352,13 +355,13 @@ public class ThirdPartySbomMetadataDAO
     }
   }
 
-  private javax.persistence.Query createPaginationQueryWithScoreRangeParams(
+  private jakarta.persistence.Query createPaginationQueryWithScoreRangeParams(
       final int pageSize,
       final String sQuery,
       final int offset,
       final TransactionContext tx)
   {
-    javax.persistence.Query paginationQuery = createPaginationNativeQuery(tx, sQuery, offset, pageSize);
+    jakarta.persistence.Query paginationQuery = createPaginationNativeQuery(tx, sQuery, offset, pageSize);
     paginationQuery.setParameter(1, NONE.getStartScoreRange());
     paginationQuery.setParameter(2, LOW.getStartScoreRange());
     paginationQuery.setParameter(3, LOW.getEndScoreRange());
@@ -443,7 +446,7 @@ public class ThirdPartySbomMetadataDAO
     ThirdPartySbomMetadataSummaryListDTO result = new ThirdPartySbomMetadataSummaryListDTO();
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query paginationQuery = createPaginationQueryWithScoreRangeParams(
+      jakarta.persistence.Query paginationQuery = createPaginationQueryWithScoreRangeParams(
           applicationId, pageSize, sQuery, offset, tx);
       paginationQuery.setParameter(11, ThirdPartySbomMetadataStatus.ACTIVE.name());
 
@@ -458,14 +461,14 @@ public class ThirdPartySbomMetadataDAO
     }
   }
 
-  private javax.persistence.Query createPaginationQueryWithScoreRangeParams(
+  private jakarta.persistence.Query createPaginationQueryWithScoreRangeParams(
       final String searchParam,
       final int pageSize,
       final String sQuery,
       final int offset,
       final TransactionContext tx)
   {
-    javax.persistence.Query paginationQuery = createPaginationNativeQuery(tx, sQuery, offset, pageSize);
+    jakarta.persistence.Query paginationQuery = createPaginationNativeQuery(tx, sQuery, offset, pageSize);
     paginationQuery.setParameter(1, NONE.getStartScoreRange());
     paginationQuery.setParameter(2, LOW.getStartScoreRange());
     paginationQuery.setParameter(3, LOW.getEndScoreRange());

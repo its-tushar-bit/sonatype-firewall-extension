@@ -81,25 +81,25 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     }
   }
 
-  public static javax.persistence.Query createPaginationNativeQuery(
+  public static jakarta.persistence.Query createPaginationNativeQuery(
       TransactionContext tx,
       String sQuery,
       int offset,
       int pageSize)
   {
-    javax.persistence.Query query = tx.createNativeQuery(sQuery);
+    jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
     query.setFirstResult(offset).setMaxResults(pageSize);
     return query;
   }
 
-  public static <T> javax.persistence.Query createPaginationNativeQuery(
+  public static <T> jakarta.persistence.Query createPaginationNativeQuery(
       TransactionContext tx,
       Class<T> resultClass,
       String sQuery,
       int offset,
       int pageSize)
   {
-    javax.persistence.Query query = tx.createNativeQuery(sQuery, resultClass);
+    jakarta.persistence.Query query = tx.createNativeQuery(sQuery, resultClass);
     query.setFirstResult(offset).setMaxResults(pageSize);
     return query;
   }
@@ -118,7 +118,7 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     return "(" + joiner.toString() + ")";
   }
 
-  protected void addPositionalParameters(javax.persistence.Query query, Collection<?> collection, int startFrom) {
+  protected void addPositionalParameters(jakarta.persistence.Query query, Collection<?> collection, int startFrom) {
     for (Object object : collection) {
       query.setParameter(startFrom++, object);
     }

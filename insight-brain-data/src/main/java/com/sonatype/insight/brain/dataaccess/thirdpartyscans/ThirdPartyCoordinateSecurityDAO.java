@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import java.sql.JDBCType;
 import java.sql.SQLException;
-
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -118,9 +117,9 @@ public class ThirdPartyCoordinateSecurityDAO
         " LIMIT 10";
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = createNativeQuery(tx, sQuery, HIGH.getStartScoreRange(), HIGH.getEndScoreRange(),
-          CRITICAL.getStartScoreRange(), CRITICAL.getEndScoreRange(), createArrayOf(JDBCType.VARCHAR,
-              applicationIds.toArray()));
+      jakarta.persistence.Query query = createNativeQuery(tx, sQuery, HIGH.getStartScoreRange(),
+          HIGH.getEndScoreRange(), CRITICAL.getStartScoreRange(), CRITICAL.getEndScoreRange(),
+          createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
 
       List<RecentVulnerabilitiesDTO> dtos = ((Stream<Object[]>) query.getResultStream())
           .map(RecentVulnerabilitiesDTO::new).collect(Collectors.toList());
@@ -163,7 +162,7 @@ public class ThirdPartyCoordinateSecurityDAO
     }
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = createNativeQuery(tx, sQuery, LOW.getStartScoreRange(), LOW.getEndScoreRange(),
+      jakarta.persistence.Query query = createNativeQuery(tx, sQuery, LOW.getStartScoreRange(), LOW.getEndScoreRange(),
           MEDIUM.getStartScoreRange(), MEDIUM.getEndScoreRange(), HIGH.getStartScoreRange(), HIGH.getEndScoreRange(),
           CRITICAL.getStartScoreRange(), CRITICAL.getEndScoreRange(), "ACTIVE");
 
@@ -193,7 +192,7 @@ public class ThirdPartyCoordinateSecurityDAO
         " AND vex.vulnerability_exploitability_id IS NULL";
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = createNativeQuery(tx, sQuery, HIGH.getStartScoreRange(),
+      jakarta.persistence.Query query = createNativeQuery(tx, sQuery, HIGH.getStartScoreRange(),
           createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
       return (long) query.getSingleResult();
     }
@@ -227,7 +226,7 @@ public class ThirdPartyCoordinateSecurityDAO
         " )";
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = createNativeQuery(tx, sQuery, HIGH.getStartScoreRange(),
+      jakarta.persistence.Query query = createNativeQuery(tx, sQuery, HIGH.getStartScoreRange(),
           createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
       return (long) query.getSingleResult();
     }
@@ -253,7 +252,7 @@ public class ThirdPartyCoordinateSecurityDAO
         " )";
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = createNativeQuery(tx, sQuery, HIGH.getStartScoreRange(),
+      jakarta.persistence.Query query = createNativeQuery(tx, sQuery, HIGH.getStartScoreRange(),
           createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
 
       return (long) query.getSingleResult();
@@ -285,7 +284,7 @@ public class ThirdPartyCoordinateSecurityDAO
         " ORDER BY sm.created_at DESC LIMIT 7";
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = createNativeQuery(tx, sQuery, LOW.getStartScoreRange(),
+      jakarta.persistence.Query query = createNativeQuery(tx, sQuery, LOW.getStartScoreRange(),
           LOW.getEndScoreRange(), MEDIUM.getStartScoreRange(), MEDIUM.getEndScoreRange(), HIGH.getStartScoreRange(),
           HIGH.getEndScoreRange(), CRITICAL.getStartScoreRange(), CRITICAL.getEndScoreRange(), "ACTIVE",
           createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));

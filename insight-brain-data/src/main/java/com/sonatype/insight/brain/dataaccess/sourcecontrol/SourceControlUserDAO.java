@@ -67,7 +67,7 @@ public class SourceControlUserDAO
         isDatabasePostgresql() ? new PostgresqlSourceControlUserDAOQueryBuilder(dbSchema)
             : new DefaultSourceControlUserDAOQueryBuilder(dbSchema);
 
-    final javax.persistence.Query query =
+    final jakarta.persistence.Query query =
         tx.createNativeQuery(queryBuilder.getMassiveInsertNativeQuery(usersToInsert));
     int i = 0;
     for (SourceControlUser user : usersToInsert) {

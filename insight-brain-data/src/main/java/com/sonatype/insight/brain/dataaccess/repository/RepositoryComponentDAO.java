@@ -177,7 +177,7 @@ public class RepositoryComponentDAO
         "GROUP BY metrics_date";
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = createNativeQuery(tx, sQuery, date);
+      jakarta.persistence.Query query = createNativeQuery(tx, sQuery, date);
       query.setParameter(1, date);
       Stream<Object[]> result = query.getResultStream();
       return result.collect(Collectors.toMap(array -> ((java.sql.Date) array[0]).toLocalDate(),
@@ -194,7 +194,7 @@ public class RepositoryComponentDAO
         " GROUP BY CAST(rc.quarantine_time AS DATE)";
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
       query.setParameter(1, repositoryId);
       query.setParameter(2, date);
 
@@ -241,7 +241,7 @@ public class RepositoryComponentDAO
         " GROUP BY CAST(rc.unquarantine_time AS DATE)";
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
       query.setParameter(1, repositoryId);
       query.setParameter(2, date);
       query.setParameter(3, true);
@@ -321,7 +321,7 @@ public class RepositoryComponentDAO
 
       select2 += " LIMIT " + filter.pageSize + " OFFSET " + offset;
 
-      javax.persistence.Query query = tx.createNativeQuery(select2);
+      jakarta.persistence.Query query = tx.createNativeQuery(select2);
 
       setFilterParameters(query, filter, policyIds);
 
@@ -386,7 +386,7 @@ public class RepositoryComponentDAO
   }
 
   private void setFilterParameters(
-      javax.persistence.Query query,
+      jakarta.persistence.Query query,
       FirewallRepositoryComponentFilter filter,
       List<String> policyIds)
   {
@@ -485,7 +485,7 @@ public class RepositoryComponentDAO
     int offset = (filter.page - 1) * filter.pageSize;
     int parameterIndex = 1;
     try (TransactionContext tx = createTransactionContext()) {
-      final javax.persistence.Query paginationQuery =
+      final jakarta.persistence.Query paginationQuery =
           createPaginationQuery(tx, sQuery.toString(), offset, filter.pageSize);
 
       if (filterFieldsMapContainsField(filter, FirewallFilterableField.POLICY_ID)) {
@@ -547,7 +547,7 @@ public class RepositoryComponentDAO
           " WHERE repository_id = ?1 AND active = true AND waived = false" + //
           " AND threat_level >= ?2 AND threat_level <= ?3) inner_select_alias";
 
-      javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
       query.setParameter(1, repositoryId);
       query.setParameter(2, minPolicyThreatLevel);
       query.setParameter(3, maxPolicyThreatLevel);

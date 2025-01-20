@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.component;
 
 import java.time.Duration;
-import java.util.Comparator;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -16,7 +15,6 @@ import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,10 +26,6 @@ import static org.mockito.Mockito.when;
 public class RepositoryIdentifiedComponentDAOTest
     extends AbstractDbDAOTest
 {
-  private static final RecursiveComparisonConfiguration REPOSITORY_IDENTIFIED_COMPONENT_COMPARISON_CONFIG =
-      RecursiveComparisonConfiguration.builder().withComparatorForType(Comparator.comparing(Date::getTime), Date.class)
-          .withIgnoredFieldsMatchingRegexes(JPA.IGNORE_FIELDS).build();
-
   private RepositoryIdentifiedComponentDAO dao;
 
   @Before
@@ -52,7 +46,7 @@ public class RepositoryIdentifiedComponentDAOTest
     RepositoryIdentifiedComponent storedRepositoryIdentifiedComponent =
         dao.getByHash(repositoryIdentifiedComponent.getHash());
     assertThat(storedRepositoryIdentifiedComponent).usingRecursiveComparison(
-        REPOSITORY_IDENTIFIED_COMPONENT_COMPARISON_CONFIG).isEqualTo(repositoryIdentifiedComponent);
+        JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(repositoryIdentifiedComponent);
 
     // Update
     repositoryIdentifiedComponent.setComponentIdentifier(
@@ -62,7 +56,7 @@ public class RepositoryIdentifiedComponentDAOTest
     dao.update(repositoryIdentifiedComponent);
     storedRepositoryIdentifiedComponent = dao.getByHash(repositoryIdentifiedComponent.getHash());
     assertThat(storedRepositoryIdentifiedComponent).usingRecursiveComparison(
-        REPOSITORY_IDENTIFIED_COMPONENT_COMPARISON_CONFIG).isEqualTo(repositoryIdentifiedComponent);
+        JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(repositoryIdentifiedComponent);
 
     // Delete
     dao.delete(repositoryIdentifiedComponent);
@@ -79,7 +73,7 @@ public class RepositoryIdentifiedComponentDAOTest
         ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2"), new Date(2), new Date(3));
 
     assertThat(dao.getById(repositoryIdentifiedComponentA.getHash())).usingRecursiveComparison(
-        REPOSITORY_IDENTIFIED_COMPONENT_COMPARISON_CONFIG).isEqualTo(repositoryIdentifiedComponentA);
+        JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(repositoryIdentifiedComponentA);
   }
 
   @Test
@@ -91,7 +85,7 @@ public class RepositoryIdentifiedComponentDAOTest
         ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2"), new Date(2), new Date(3));
 
     assertThat(dao.getByHash(repositoryIdentifiedComponentA.getHash())).usingRecursiveComparison(
-        REPOSITORY_IDENTIFIED_COMPONENT_COMPARISON_CONFIG).isEqualTo(repositoryIdentifiedComponentA);
+        JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(repositoryIdentifiedComponentA);
   }
 
   @Test
@@ -122,7 +116,7 @@ public class RepositoryIdentifiedComponentDAOTest
 
     Date date = new Date();
     RepositoryIdentifiedComponent updated = dao.getByHashNotNullAndUpdateLastAccessTime(initial.getHash());
-    assertThat(updated).usingRecursiveComparison(REPOSITORY_IDENTIFIED_COMPONENT_COMPARISON_CONFIG)
+    assertThat(updated).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
         .ignoringFields("lastAccessTime").isEqualTo(initial);
     assertThat(updated.getLastAccessTime()).isAfterOrEqualTo(date);
   }
@@ -137,7 +131,7 @@ public class RepositoryIdentifiedComponentDAOTest
             ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2"), new Date(2), new Date(3));
 
     assertThat(dao.getAll()).usingRecursiveFieldByFieldElementComparator(
-            REPOSITORY_IDENTIFIED_COMPONENT_COMPARISON_CONFIG)
+        JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactlyInAnyOrder(repositoryIdentifiedComponentA, repositoryIdentifiedComponentB);
   }
 
@@ -157,7 +151,7 @@ public class RepositoryIdentifiedComponentDAOTest
     spy.deleteInfrequentlyAccessed(Duration.ofMillis(maxLastAccess));
 
     assertThat(spy.getAll()).usingRecursiveFieldByFieldElementComparator(
-            REPOSITORY_IDENTIFIED_COMPONENT_COMPARISON_CONFIG)
+        JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactlyInAnyOrder(repositoryIdentifiedComponent3, repositoryIdentifiedComponent4);
   }
 
@@ -170,7 +164,7 @@ public class RepositoryIdentifiedComponentDAOTest
 
     assertThat(result).isEqualTo(1);
     assertThat(dao.getAll()).usingRecursiveFieldByFieldElementComparator(
-        REPOSITORY_IDENTIFIED_COMPONENT_COMPARISON_CONFIG).containsExactly(repositoryIdentifiedComponent2);
+        JPA.RECURSIVE_COMPARISON_CONFIG).containsExactly(repositoryIdentifiedComponent2);
   }
 
   @Test
@@ -182,7 +176,7 @@ public class RepositoryIdentifiedComponentDAOTest
 
     assertThat(result).isEqualTo(1);
     assertThat(dao.getAll()).usingRecursiveFieldByFieldElementComparator(
-        REPOSITORY_IDENTIFIED_COMPONENT_COMPARISON_CONFIG).containsExactly(repositoryIdentifiedComponent2);
+        JPA.RECURSIVE_COMPARISON_CONFIG).containsExactly(repositoryIdentifiedComponent2);
   }
 
   @Test

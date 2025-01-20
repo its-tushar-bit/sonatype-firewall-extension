@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.dataaccess.configuration;
 
 import java.util.prefs.Preferences;
-import javax.persistence.EntityExistsException;
-import javax.persistence.PersistenceException;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.PersistenceException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.configuration.ProductLicense;

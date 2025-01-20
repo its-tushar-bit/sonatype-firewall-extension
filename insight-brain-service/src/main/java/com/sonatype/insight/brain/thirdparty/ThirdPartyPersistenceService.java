@@ -20,11 +20,10 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.UUID;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.persistence.EntityExistsException;
-import javax.persistence.RollbackException;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
@@ -50,6 +49,8 @@ import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.scan.file.SbomFormat;
 
 import com.google.common.collect.Streams;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.RollbackException;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.io.FileUtils;

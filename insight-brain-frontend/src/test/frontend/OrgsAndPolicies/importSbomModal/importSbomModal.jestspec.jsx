@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { nxFileUploadStateHelpers } from '@sonatype/react-shared-components';
+import { nxFileUploadStateHelpers, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 
 import ImportSbomModal from 'MainRoot/OrgsAndPolicies/importSbomModal/ImportSbomModal';
 import { IMPORT_STATE } from 'MainRoot/OrgsAndPolicies/importSbomModal/importSbomModalSlice';
@@ -625,22 +625,6 @@ describe('ImportSbomModal', () => {
       });
 
       it('should execute import if skipValidation selected when there are ignorable validation errors', async () => {
-        axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply(200, {
-          sbomSummary: {
-            specification: 'CycloneDx',
-            format: 'json',
-            version: '1.4',
-            componentCount: 1,
-            vulnerabilityCount: 2,
-            applicationName: 'Application Name',
-            applicationVersion: '1.2.3',
-            serialNumber: 'urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79',
-            creationDetails: null,
-          },
-          savedVersion: '1.2.3_2024',
-          scanType: 'SBOM',
-          errorMessage: null,
-        });
         axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', '1.2.3_2024')).reply(201, {});
 
         const file = createTestFile();
@@ -665,10 +649,18 @@ describe('ImportSbomModal', () => {
                 fileInputState: nxFileUploadStateHelpers.initialState(fakeFileList(file)),
                 uploadProgress: 0,
                 sbomSummary: {
-                  totalComponents: null,
-                  totalVulnerabilities: null,
+                  specification: 'CycloneDx',
+                  format: 'json',
+                  version: '1.4',
+                  totalComponents: 1,
+                  totalVulnerabilities: 2,
+                  applicationName: 'Application Name',
+                  applicationVersion: '1.2.3',
+                  serialNumber: 'urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79',
+                  creationDetails: null,
                 },
                 savedVersion: '1.2.3_2024',
+                versionTextInput: nxTextInputStateHelpers.initialState('1.2.3_2024'),
               },
             },
           },

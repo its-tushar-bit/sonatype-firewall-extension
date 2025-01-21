@@ -29,7 +29,7 @@ export default function ValidationErrorPage({ headerId, onCancel }) {
 
   const dispatch = useDispatch();
   const importAnyway = () => {
-    dispatch(actions.uploadFile());
+    dispatch(actions.versionConfirm());
   };
 
   const handleSkipValidation = () => {

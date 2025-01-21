@@ -196,6 +196,7 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
 
   @Test
   public void testImportSbomModal_fileUploadFail_ignorableValidationErrorButImportAnyway() {
+    assertThat(thirdPartySbomMetadataDAO.getAll()).isEmpty();
     refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
 
     SbomsTile sbomsTile = SbomManagerApplicationSummaryPage.sbomsTile();
@@ -226,18 +227,18 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
     importSbomModal.importSbomButton().shouldBe(visible, disabled);
     importSbomModal.cancelCloseButton().shouldBe(visible);
 
+    assertThat(thirdPartySbomMetadataDAO.getAll()).hasSize(1);
+
     importSbomModal.skipValidationCheckbox().shouldBe(visible).shouldNotBe(selected);
     importSbomModal.skipValidationCheckbox().click();
 
     importSbomModal.importSbomButton().shouldBe(visible, enabled).shouldHave(Condition.text("Import Anyway"));
     importSbomModal.importSbomButton().click();
 
-    importSbomModal.title().shouldHave(text("Import in progress…"));
-    NxProgressBar.seeProgressBarAndWaitForDismissal();
-
     //version confirm page
     importSbomModal.title().shouldHave(text("File Uploaded. Import in Progress…"));
     importSbomModal.versionInput().shouldBe(visible);
+    assertThat(thirdPartySbomMetadataDAO.getAll()).hasSize(1);
     importSbomModal.importSbomButton().shouldBe(enabled).click();
 
     importSbomModal.summaryApplicationName().shouldHave(text(application.getName()));

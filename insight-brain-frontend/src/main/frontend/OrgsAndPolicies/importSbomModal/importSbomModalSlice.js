@@ -120,15 +120,13 @@ const uploadFilePending = (state) => {
   state.importState = IMPORT_STATE.UPLOADING;
 };
 
+const versionConfirm = (state) => {
+  state.importState = IMPORT_STATE.VERSION_CONFIRM;
+};
+
 const uploadFileFulfilled = (state, { payload }) => {
   state.importState = IMPORT_STATE.VERSION_CONFIRM;
-  if (payload.sbomSummary) {
-    state.sbomSummary.totalComponents = payload.sbomSummary.componentCount;
-    state.sbomSummary.totalVulnerabilities = payload.sbomSummary.vulnerabilityCount;
-  }
-  state.versionTextInput = nxTextInputStateHelpers.initialState(payload.savedVersion);
-  state.scanType = payload.scanType;
-  state.savedVersion = payload.savedVersion;
+  recordSbomInformation(state, payload);
 };
 
 const uploadFileFailed = (state, { payload }) => {
@@ -147,6 +145,19 @@ const uploadFileFailed = (state, { payload }) => {
     state.validationErrors = payload.validationErrors;
     state.isValidationErrorIgnorable = payload.isValidationErrorIgnorable;
   }
+  if (payload.isValidationErrorIgnorable) {
+    recordSbomInformation(state, payload);
+  }
+};
+
+const recordSbomInformation = (state, payload) => {
+  if (payload.sbomSummary) {
+    state.sbomSummary.totalComponents = payload.sbomSummary.componentCount;
+    state.sbomSummary.totalVulnerabilities = payload.sbomSummary.vulnerabilityCount;
+  }
+  state.versionTextInput = nxTextInputStateHelpers.initialState(payload.savedVersion);
+  state.scanType = payload.scanType;
+  state.savedVersion = payload.savedVersion;
 };
 
 const commitFile = createAsyncThunk(
@@ -198,6 +209,7 @@ const importSbomModal = createSlice({
     setIsSkipValidation,
     setSavedVersion,
     setVersionTextInput,
+    versionConfirm,
     reset: always(initialState),
   },
   extraReducers: {

@@ -365,6 +365,7 @@ public class ClairScannerResultsHandlerTest
   {
     assertThat(coordinate.getFormat()).isEqualTo(getValidFormat(vulnerability.getNamespace()));
     assertThat(coordinate.getHash()).isNotBlank();
+    assertThat(coordinate.getComponentRef()).isNotBlank();
     assertThat(coordinate.getName()).isEqualTo(vulnerability.getFeatureName());
     assertThat(coordinate.getThirdPartyFileId()).isEqualTo(thirdPartyFile.getId());
     assertThat(coordinate.getVersion()).isEqualTo(vulnerability.getFeatureVersion());

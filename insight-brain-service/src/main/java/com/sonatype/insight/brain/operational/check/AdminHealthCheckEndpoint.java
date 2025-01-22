@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 
-import io.dropwizard.setup.AdminEnvironment;
+import io.dropwizard.core.setup.AdminEnvironment;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 

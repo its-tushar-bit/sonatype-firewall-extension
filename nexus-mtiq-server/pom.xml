@@ -231,7 +231,7 @@
                   <mainClass>com.sonatype.insight.brain.service.MultiTenantInsightBrainService</mainClass>
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                  <resource>META-INF/services/io.dropwizard.logging.AppenderFactory</resource>
+                  <resource>META-INF/services/io.dropwizard.logging.common.AppenderFactory</resource>
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                   <resource>META-INF/services/io.dropwizard.health.HealthFactory</resource>

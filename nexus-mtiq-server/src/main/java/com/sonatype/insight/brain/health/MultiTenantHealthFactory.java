@@ -9,12 +9,12 @@ import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.dropwizard.core.setup.AdminEnvironment;
 import io.dropwizard.health.DefaultHealthFactory;
 import io.dropwizard.health.HealthEnvironment;
 import io.dropwizard.jersey.setup.JerseyEnvironment;
 import io.dropwizard.jetty.setup.ServletEnvironment;
 import io.dropwizard.lifecycle.setup.LifecycleEnvironment;
-import io.dropwizard.setup.AdminEnvironment;
 
 /**
  * MTIQ uses the 'new style' health checks of DropWizard whereas on-prem IQ still uses the 'old style'.

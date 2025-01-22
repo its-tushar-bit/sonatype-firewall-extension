@@ -14,7 +14,7 @@ import com.sonatype.insight.test.networking.SslProperties;
 
 import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.jetty.HttpsConnectorFactory;
-import io.dropwizard.server.DefaultServerFactory;
+import io.dropwizard.core.server.DefaultServerFactory;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -247,6 +247,7 @@ public class LandingResourceTest
         applicationHttpsConnector.setUseForwardedHeaders(true);
         applicationHttpsConnector.setKeyStorePath(SslProperties.SERVER_STORE_FILE.getAbsolutePath());
         applicationHttpsConnector.setKeyStorePassword(SslProperties.KEY_STORE_PASSWORD);
+        applicationHttpsConnector.setDisableSniHostCheck(true);
         DefaultServerFactory defaultServerFactory = (DefaultServerFactory) config.getServerFactory();
         applicationHttpsConnector
             .setPort(((HttpConnectorFactory) defaultServerFactory.getApplicationConnectors().get(0)).getPort());

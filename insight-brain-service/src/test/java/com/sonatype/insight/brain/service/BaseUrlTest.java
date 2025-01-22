@@ -135,4 +135,47 @@ public class BaseUrlTest
     assertThatExceptionOfType(IllegalStateException.class)
         .isThrownBy(() -> baseUrl.getConfigured()).withMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
+
+  @Test
+  public void testGet_ForwardedProtoHttp() {
+    baseUrl.capture(httpRequest);
+    String host = "test.sonatype.com";
+
+    setBaseUrl("https://" + host, false);
+    when(httpRequest.getHeader("x-forwarded-proto")).thenReturn("http");
+    when(httpRequest.getRequestURL()).thenReturn(new StringBuffer("https://" + host));
+    when(httpRequest.getRequestURI()).thenReturn("");
+    when(httpRequest.getContextPath()).thenReturn("");
+
+    assertThat(baseUrl.get()).isEqualTo("http://" + host + "/");
+  }
+
+  @Test
+  public void testGet_ForwardedProtoHttps() {
+    baseUrl.capture(httpRequest);
+    String host = "test.sonatype.com";
+
+    setBaseUrl("http://" + host, false);
+    when(httpRequest.getHeader("x-forwarded-proto")).thenReturn("https");
+    when(httpRequest.getRequestURL()).thenReturn(new StringBuffer("http://" + host));
+    when(httpRequest.getRequestURI()).thenReturn("");
+    when(httpRequest.getContextPath()).thenReturn("");
+
+    assertThat(baseUrl.get()).isEqualTo("https://" + host + "/");
+  }
+
+  @Test
+  public void testGet_ForwardedProtoInvalid_ShouldUseScheme() {
+    baseUrl.capture(httpRequest);
+    String host = "test.sonatype.com";
+
+    setBaseUrl("http://" + host, false);
+    when(httpRequest.getHeader("x-forwarded-proto")).thenReturn("INVALID");
+    when(httpRequest.getRequestURL()).thenReturn(new StringBuffer("http://" + host));
+    when(httpRequest.getRequestURI()).thenReturn("");
+    when(httpRequest.getContextPath()).thenReturn("");
+    when(httpRequest.getScheme()).thenReturn("https");
+
+    assertThat(baseUrl.get()).isEqualTo("https://" + host + "/");
+  }
 }

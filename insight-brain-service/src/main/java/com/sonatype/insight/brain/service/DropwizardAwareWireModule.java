@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.service;
 import java.util.List;
 
 import com.google.inject.Module;
-import io.dropwizard.Configuration;
+import io.dropwizard.core.Configuration;
 import org.eclipse.sisu.wire.WireModule;
 
 /**

@@ -480,8 +480,8 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>io.dropwizard</groupId>
-      <artifactId>dropwizard-testing</artifactId>
+      <groupId>io.dropwizard.modules</groupId>
+      <artifactId>dropwizard-testing-junit4</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -680,14 +680,8 @@
     </dependency>
     <dependency>
       <groupId>com.github.tomakehurst</groupId>
-      <artifactId>wiremock-jre8</artifactId>
+      <artifactId>wiremock-jre8-standalone</artifactId>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.ow2.asm</groupId>
-          <artifactId>asm</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.atlassian.crowd.client</groupId>

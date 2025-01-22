@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Binder;
 import io.dropwizard.jetty.HttpConnectorFactory;
-import io.dropwizard.server.DefaultServerFactory;
+import io.dropwizard.core.server.DefaultServerFactory;
 import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;

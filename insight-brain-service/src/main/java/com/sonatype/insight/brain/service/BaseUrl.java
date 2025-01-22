@@ -12,6 +12,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriBuilder;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.http.HttpURI;
+import org.eclipse.jetty.http.HttpURI.Mutable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -19,6 +23,8 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @Singleton
 public class BaseUrl
 {
+  private static final Logger log = LoggerFactory.getLogger(BaseUrl.class);
+
   private static final String[] UNSAFE_CHARACTERS = new String[]{"{", "}"};
 
   private static final String[] ESCAPED_CHARACTERS = new String[]{"%7B", "%7D"};
@@ -90,7 +96,7 @@ public class BaseUrl
   private String tryGetBaseUriWithEndingForwardSlash() {
     try {
       HttpServletRequest httpRequest = getHttpRequest();
-      StringBuffer requestUrl = httpRequest.getRequestURL();
+      StringBuffer requestUrl = getRequestURL(httpRequest);
       String requestUri = httpRequest.getRequestURI();
       String contextPath = httpRequest.getContextPath();
       String url = requestUrl.substring(0, requestUrl.length() - requestUri.length() + contextPath.length());
@@ -102,6 +108,25 @@ public class BaseUrl
     catch (IllegalStateException e) {
       // no request in scope
       return null;
+    }
+  }
+
+  private static StringBuffer getRequestURL(final HttpServletRequest request) {
+    String proto = request.getHeader("x-forwarded-proto");
+
+    if (isBlank(proto)) {
+      return request.getRequestURL();
+    }
+    else {
+      if (!proto.equals("http") && !proto.equals("https")) {
+        log.warn("Invalid x-forwarded-proto header value: '{}'. Defaulting to request scheme '{}'",
+            proto, request.getScheme());
+
+        proto = request.getScheme();
+      }
+
+      Mutable updatedUrl = HttpURI.build(request.getRequestURL().toString()).scheme(proto);
+      return new StringBuffer(updatedUrl.asString());
     }
   }
 

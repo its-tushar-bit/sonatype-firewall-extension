@@ -55,17 +55,15 @@
     <sisu-inject.version>0.9.0.M3</sisu-inject.version>
     <clm.dto.model.version>1.58.39-01</clm.dto.model.version>
     <!-- The jetty.version must match (or be compatible with) the jersey version used by dropwizard -->
-    <!-- jetty 10.x requires Java 11 -->
-    <jetty.version>9.4.56.v20240826</jetty.version>
+    <jetty.version>10.0.24</jetty.version>
     <!-- The jakarta.servlet-api.version must match the jersey version used by dropwizard -->
     <jakarta.servlet-api.version>4.0.4</jakarta.servlet-api.version>
-    <!-- dropwizard 3.x and 4.x require Java 11 -->
-    <dropwizard.version>2.1.12</dropwizard.version>
-    <dropwizard-web.version>1.5.2</dropwizard-web.version>
-    <dropwizard-guicey.version>5.9.1</dropwizard-guicey.version>
+    <dropwizard.version>3.0.12</dropwizard.version>
+    <dropwizard-web.version>2.0.1</dropwizard-web.version>
+    <dropwizard-guicey.version>6.2.4</dropwizard-guicey.version>
     <guice.version>6.0.0</guice.version>
     <!-- The jersey.version must match the jersey version used by dropwizard -->
-    <jersey.version>2.41</jersey.version>
+    <jersey.version>2.46</jersey.version>
     <rt.jar>${java.home}/lib/rt.jar</rt.jar>
     <aether-util.version>1.13.1</aether-util.version>
     <drools.version>9.44.0.Final</drools.version>
@@ -854,24 +852,9 @@
         <version>${dropwizard.version}</version>
         <exclusions>
           <exclusion>
-            <!-- superfluous/unused dependency declaration in dropwizard-jersey:1.3.x -->
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-webapp</artifactId>
-          </exclusion>
-          <exclusion>
-            <!-- no need for this OSGi-fied duplicate of the standard JAR -->
-            <groupId>org.glassfish.hk2.external</groupId>
-            <artifactId>javax.inject</artifactId>
-          </exclusion>
-          <exclusion>
             <!-- no need for this OSGi-fied duplicate of the standard JAR -->
             <groupId>org.glassfish.hk2.external</groupId>
             <artifactId>aopalliance-repackaged</artifactId>
-          </exclusion>
-          <exclusion>
-            <!-- no XML in REST messages, just JSON -->
-            <groupId>org.glassfish.jersey.media</groupId>
-            <artifactId>jersey-media-jaxb</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -879,58 +862,21 @@
         <groupId>io.dropwizard</groupId>
         <artifactId>dropwizard-assets</artifactId>
         <version>${dropwizard.version}</version>
-        <exclusions>
-          <exclusion>
-            <!-- no need for this OSGi-fied duplicate of the standard JAR -->
-            <groupId>org.glassfish.hk2.external</groupId>
-            <artifactId>javax.inject</artifactId>
-          </exclusion>
-          <exclusion>
-            <!-- no need for this OSGi-fied duplicate of the standard JAR -->
-            <groupId>org.glassfish.hk2.external</groupId>
-            <artifactId>aopalliance-repackaged</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>io.dropwizard</groupId>
         <artifactId>dropwizard-forms</artifactId>
         <version>${dropwizard.version}</version>
-        <exclusions>
-          <exclusion>
-            <!-- no need for this OSGi-fied duplicate of the standard JAR -->
-            <groupId>org.glassfish.hk2.external</groupId>
-            <artifactId>javax.inject</artifactId>
-          </exclusion>
-          <exclusion>
-            <!-- no need for this OSGi-fied duplicate of the standard JAR -->
-            <groupId>org.glassfish.hk2.external</groupId>
-            <artifactId>aopalliance-repackaged</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
-        <groupId>io.dropwizard</groupId>
-        <artifactId>dropwizard-testing</artifactId>
+        <groupId>io.dropwizard.modules</groupId>
+        <artifactId>dropwizard-testing-junit4</artifactId>
         <version>${dropwizard.version}</version>
         <exclusions>
           <exclusion>
-            <groupId>org.glassfish.jersey.connectors</groupId>
-            <artifactId>jersey-grizzly-connector</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-          </exclusion>
-          <exclusion>
-            <!-- no need for this OSGi-fied duplicate of the standard JAR -->
-            <groupId>org.glassfish.hk2.external</groupId>
-            <artifactId>javax.inject</artifactId>
-          </exclusion>
-          <exclusion>
-            <!-- no need for this OSGi-fied duplicate of the standard JAR -->
-            <groupId>org.glassfish.hk2.external</groupId>
-            <artifactId>aopalliance-repackaged</artifactId>
+            <!-- no XML in REST messages, just JSON -->
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-jaxb</artifactId>
           </exclusion>
           <exclusion>
             <!-- Avoid conflicts with the version required by selenide -->
@@ -974,16 +920,6 @@
         <version>${jersey.version}</version>
         <exclusions>
           <exclusion>
-            <!-- no need for this OSGi-fied duplicate of the standard JAR -->
-            <groupId>org.glassfish.hk2.external</groupId>
-            <artifactId>javax.inject</artifactId>
-          </exclusion>
-          <exclusion>
-            <!-- not using dangerous EL expressions -->
-            <groupId>jakarta.el</groupId>
-            <artifactId>jakarta.el-api</artifactId>
-          </exclusion>
-          <exclusion>
             <!-- not using dangerous EL expressions -->
             <groupId>org.glassfish</groupId>
             <artifactId>jakarta.el</artifactId>
@@ -994,18 +930,6 @@
         <groupId>org.glassfish.jersey.media</groupId>
         <artifactId>jersey-media-multipart</artifactId>
         <version>${jersey.version}</version>
-        <exclusions>
-          <exclusion>
-            <!-- no need for this OSGi-fied duplicate of the standard JAR -->
-            <groupId>org.glassfish.hk2.external</groupId>
-            <artifactId>javax.inject</artifactId>
-          </exclusion>
-          <exclusion>
-            <!-- no need for this OSGi-fied duplicate of the standard JAR -->
-            <groupId>org.glassfish.hk2.external</groupId>
-            <artifactId>aopalliance-repackaged</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>jakarta.validation</groupId>
@@ -1232,7 +1156,7 @@
       </dependency>
       <dependency>
         <groupId>com.github.tomakehurst</groupId>
-        <artifactId>wiremock-jre8</artifactId>
+        <artifactId>wiremock-jre8-standalone</artifactId>
         <version>2.35.2</version>
         <scope>test</scope>
       </dependency>

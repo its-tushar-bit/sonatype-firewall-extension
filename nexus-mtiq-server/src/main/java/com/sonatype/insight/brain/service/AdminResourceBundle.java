@@ -7,11 +7,11 @@ package com.sonatype.insight.brain.service;
 
 import com.sonatype.insight.brain.health.MultiTenantHealthFactory;
 
-import io.dropwizard.ConfiguredBundle;
+import io.dropwizard.core.ConfiguredBundle;
+import io.dropwizard.core.setup.Environment;
 import io.dropwizard.jersey.DropwizardResourceConfig;
 import io.dropwizard.jersey.setup.JerseyContainerHolder;
 import io.dropwizard.jersey.setup.JerseyEnvironment;
-import io.dropwizard.setup.Environment;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.servlet.ServletContainer;
 
@@ -35,9 +35,9 @@ public class AdminResourceBundle
   }
 
   /**
-   * Override DropWizard health check setup. The default in {@link io.dropwizard.cli.EnvironmentCommand} passes in a
-   * {@link io.dropwizard.jetty.setup.ServletEnvironment} which registers it under port 8070. We want to register it on
-   * the admin port so need to use {@link io.dropwizard.setup.AdminEnvironment} instead.
+   * Override DropWizard health check setup. The default in {@link io.dropwizard.core.cli.EnvironmentCommand} passes in
+   * a {@link io.dropwizard.jetty.setup.ServletEnvironment} which registers it under port 8070. We want to register it
+   * on the admin port so need to use {@link io.dropwizard.core.setup.AdminEnvironment} instead.
    */
   private void setupHealthChecks(final InsightConfig configuration, final Environment environment) {
     MultiTenantInsightConfig multiTenantInsightConfig = (MultiTenantInsightConfig) configuration;

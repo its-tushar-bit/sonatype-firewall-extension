@@ -12,7 +12,7 @@
       "purl" : "pkg:generic/alpine%3A3.6.5/alpine-baselayout@3.0.4-r0?nexustype=container",
       "properties" : [
         {
-          "name": "componentReference",
+          "name": "componentRef",
           "value": "71743aa916b29f9eec45a13c6a851141bb504584"
         },
         {
@@ -30,7 +30,7 @@
       "purl" : "pkg:generic/alpine%3A3.6.5/alpine-keys@2.1-r1?nexustype=container",
       "properties" : [
         {
-          "name": "componentReference",
+          "name": "componentRef",
           "value": "50a5136fb857ad0b928f9b0b97f78863ab25bb03"
         },
         {
@@ -48,7 +48,7 @@
       "purl" : "pkg:generic/alpine%3A3.6.5/zlib@1.2.11-r0?nexustype=container",
       "properties" : [
         {
-          "name": "componentReference",
+          "name": "componentRef",
           "value": "7158290bdab1e17b25da8ec208a7b0744b21a524"
         },
         {
@@ -66,7 +66,7 @@
       "purl" : "pkg:generic/alpine%3A3.6.5/musl@1.1.16-r15?nexustype=container",
       "properties" : [
         {
-          "name": "componentReference",
+          "name": "componentRef",
           "value": "c4bd2cdb5b615ef6cb21721ffae912b6d8819b3b"
         },
         {
@@ -84,7 +84,7 @@
       "purl" : "pkg:generic/alpine%3A3.6.5/busybox@1.26.2-r11?nexustype=container",
       "properties" : [
         {
-          "name": "componentReference",
+          "name": "componentRef",
           "value": "c419e1e6e2ad3d9c30aabd17acb9a579e35c58d5"
         },
         {
@@ -102,7 +102,7 @@
       "purl" : "pkg:generic/alpine%3A3.6.5/libressl@2.5.5-r2?nexustype=container",
       "properties" : [
         {
-          "name": "componentReference",
+          "name": "componentRef",
           "value": "dc1e5b6bf13a23ebc349460f3e0caa933ad01499"
         },
         {
@@ -120,7 +120,7 @@
       "purl" : "pkg:generic/alpine%3A3.6.5/apk-tools@2.7.6-r0?nexustype=container",
       "properties" : [
         {
-          "name": "componentReference",
+          "name": "componentRef",
           "value": "18f70c375685b82245b68144ee3b44304219283a"
         },
         {
@@ -138,7 +138,7 @@
       "purl" : "pkg:generic/alpine%3A3.6.5/pax-utils@1.2.2-r0?nexustype=container",
       "properties" : [
         {
-          "name": "componentReference",
+          "name": "componentRef",
           "value": "f03a12b63d1af5b6d64b533f57e5436b5cf448ab"
         },
         {
@@ -156,7 +156,7 @@
       "purl" : "pkg:generic/alpine%3A3.6.5/libc-dev@0.7.1-r0?nexustype=container",
       "properties" : [
         {
-          "name": "componentReference",
+          "name": "componentRef",
           "value": "59b85f96f08ffbdf7c4a81a33742f26efb526014"
         },
         {

@@ -57,7 +57,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.spdx.library.model.SpdxDocument;
 
-import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REFERENCE;
+import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REF;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.entry;
@@ -874,7 +874,7 @@ public class SpdxResultHandlerTest
             .findFirst()).isNotEmpty().satisfies(property -> assertThat(property.get().getValue()).isNotBlank());
       }
 
-      assertThat(component.getProperties().stream().filter(p -> p.getName().equals(PROPERTY_COMPONENT_REFERENCE))
+      assertThat(component.getProperties().stream().filter(p -> p.getName().equals(PROPERTY_COMPONENT_REF))
           .findFirst()).isNotEmpty();
     }
     return bom;

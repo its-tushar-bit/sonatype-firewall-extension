@@ -365,10 +365,10 @@ public class SbomResultHandler
       Pair<ComponentIdentifier, Component> resolvedComponent = getResolvedComponent(sourceComponent);
       if (resolvedComponent != null) {
         String sourceSbomComponentCpe = sourceComponent.getCpe();
-        String componentReference = com.sonatype.insight.SbomIdentityUtils.getComponentRef(sourceComponent);
+        String componentRef = com.sonatype.insight.SbomIdentityUtils.getComponentRef(sourceComponent);
         resolvedComponent.getRight()
-            .addProperty(SbomExportUtils.createCycloneDxProperty(SbomCycloneDxUtils.PROPERTY_COMPONENT_REFERENCE,
-                componentReference));
+            .addProperty(SbomExportUtils.createCycloneDxProperty(SbomCycloneDxUtils.PROPERTY_COMPONENT_REF,
+                componentRef));
         if (sourceSbomComponentCpe != null) {
           if (StringUtils.isNotBlank(sourceSbomComponentCpe) && Validate.cpe(sourceSbomComponentCpe).isValid()) {
             resolvedComponent.getRight().setCpe(sourceComponent.getCpe());
@@ -387,7 +387,7 @@ public class SbomResultHandler
         else if (resolvedComponents.add(componentIdentifier)) {
           PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).ensureCompleteIdentifier();
           String coordinateId =
-              saveComponent(thirdPartyFileId, thirdPartyIdentificationSource, sourceComponent, componentReference,
+              saveComponent(thirdPartyFileId, thirdPartyIdentificationSource, sourceComponent, componentRef,
                   resolvedComponent, schemaVersion, tx);
           if (StringUtils.isNotBlank(sourceComponent.getBomRef())) {
             componentRefs.put(sourceComponent.getBomRef(), coordinateId);
@@ -580,7 +580,7 @@ public class SbomResultHandler
       final String thirdPartyFileId,
       final String thirdPartyIdentificationSource,
       final Component sourceComponent,
-      final String componentReference,
+      final String componentRef,
       final Pair<ComponentIdentifier, Component> resolvedComponent,
       final String schemaVersion,
       final TransactionContext tx) throws JsonProcessingException
@@ -601,7 +601,7 @@ public class SbomResultHandler
         componentIdentifier.getFormat(), component.getName(), component.getVersion(), thirdPartyFileId);
     fileCoordinate.setPackageUrl(component.getPurl());
     fileCoordinate.setCpe(component.getCpe());
-    fileCoordinate.setComponentRef(componentReference);
+    fileCoordinate.setComponentRef(componentRef);
     Swid swid = component.getSwid();
     if (swid != null) {
       fileCoordinate.setSwid(ThirdPartyComponentDAO.MAPPER.writeValueAsString(swid));

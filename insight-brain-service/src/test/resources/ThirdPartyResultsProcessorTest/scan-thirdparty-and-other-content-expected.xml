@@ -78,7 +78,7 @@
             "value" : "e6b1000b94e835ffd37f"
           },
           {
-            "name" : "componentReference",
+            "name" : "componentRef",
             "value" : "990a6a3368b45b1119b2b2bc7d6404d21998f650"
           },
           {
@@ -94,7 +94,7 @@
         "purl" : "pkg:test/abc@1?qualifier=q",
         "properties" : [
           {
-            "name" : "componentReference",
+            "name" : "componentRef",
             "value" : "c5a707deced093d73b77c6671572b838e19f0e29"
           },
           {

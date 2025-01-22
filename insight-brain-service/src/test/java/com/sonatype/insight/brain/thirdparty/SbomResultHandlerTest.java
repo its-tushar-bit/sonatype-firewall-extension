@@ -494,7 +494,7 @@ public class SbomResultHandlerTest
   }
 
   @Test
-  public void testHandleAndFilterContents_componentReferenceValueGetsInsertedInDb() throws Exception {
+  public void testHandleAndFilterContents_componentRefValueGetsInsertedInDb() throws Exception {
     String sbomContent = getSbomXmlFile("sbom-v1_4.xml");
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-v1_4.xml", null, null, null,
@@ -1983,7 +1983,7 @@ public class SbomResultHandlerTest
       assertThat(component.getExtensions()).isNull();
 
       assertThat(component.getProperties().stream()
-          .filter(p -> p.getName().equals(SbomCycloneDxUtils.PROPERTY_COMPONENT_REFERENCE)).findFirst())
+          .filter(p -> p.getName().equals(SbomCycloneDxUtils.PROPERTY_COMPONENT_REF)).findFirst())
           .isNotEmpty()
           .satisfies(opt -> assertThat(opt.get().getValue()).isNotBlank());
 

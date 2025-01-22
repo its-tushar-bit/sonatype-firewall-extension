@@ -88,7 +88,7 @@ import org.spdx.library.model.license.SpdxNoneLicense;
 import us.springett.parsers.cpe.util.Validate;
 
 import static com.sonatype.insight.brain.sbom.SbomSpecification.SPDX;
-import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REFERENCE;
+import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REF;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedThirdPartyIdentificationSource;
 
 public class SpdxResultHandler
@@ -227,7 +227,7 @@ public class SpdxResultHandler
       if (resolvedComponent != null) {
         String componentRef = SbomIdentityUtils.getComponentRef(spdxPackage);
         resolvedComponent.getRight()
-            .addProperty(SbomExportUtils.createCycloneDxProperty(PROPERTY_COMPONENT_REFERENCE, componentRef));
+            .addProperty(SbomExportUtils.createCycloneDxProperty(PROPERTY_COMPONENT_REF, componentRef));
         getCpe(spdxPackage).ifPresent(cpe -> {
           if (StringUtils.isNotEmpty(cpe) && Validate.cpe(cpe).isValid()) {
             resolvedComponent.getRight().setCpe(cpe);

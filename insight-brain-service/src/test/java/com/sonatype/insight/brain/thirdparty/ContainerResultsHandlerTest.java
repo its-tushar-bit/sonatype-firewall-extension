@@ -110,7 +110,7 @@ public class ContainerResultsHandlerTest
         .isNotEmpty().allSatisfy(cp -> assertThat(cp.getComponentRef()).isNotBlank());
     Bom bom = ThirdPartySbomUtils.getFilteredBom(actualFilteredContent);
     assertThat(bom.getComponents()).isNotEmpty().allSatisfy(component -> assertThat(component.getProperties().stream()
-        .filter(p -> SbomCycloneDxUtils.PROPERTY_COMPONENT_REFERENCE.equals(p.getName())).findFirst()).isNotEmpty()
+        .filter(p -> SbomCycloneDxUtils.PROPERTY_COMPONENT_REF.equals(p.getName())).findFirst()).isNotEmpty()
         .satisfies(optional -> assertThat(optional.get().getValue()).isNotBlank()));
   }
 

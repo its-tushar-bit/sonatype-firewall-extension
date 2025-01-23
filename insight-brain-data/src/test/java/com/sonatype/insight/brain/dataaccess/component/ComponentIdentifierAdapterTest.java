@@ -264,4 +264,31 @@ public class ComponentIdentifierAdapterTest
         ComponentIdentifierAdapter.formatAndJsonToComponentIdentifier("maven", null /* coordinatesJson */);
     assertThat(result).isNull();
   }
+
+  @Test
+  public void testParsePathToId_properlyHandlesBlankPaths() {
+    PackageUrlIdentifier identifier = ComponentIdentifierAdapter.parsePathToId(null);
+    assertThat(identifier).isNull();
+
+    identifier = ComponentIdentifierAdapter.parsePathToId("");
+    assertThat(identifier).isNull();
+  }
+
+  @Test
+  public void testParsePathToId_properlyHandlesPurlInPath() {
+    String path = "dependency:/some-1.tar.gz/x/app/bom.json/pkg:maven\\org.app\\lib@1?type=jar:123";
+    PackageUrlIdentifier identifier = ComponentIdentifierAdapter.parsePathToId(path);
+
+    assertThat(identifier).isNotNull();
+    assertThat(identifier.getPackageUrl()).isEqualTo("pkg:maven/org.app/lib@1?type=jar%3A123");
+  }
+
+  @Test
+  public void testParsePathToId_properlyHandlesComponentIdInPath() {
+    String path = "dependency:/some:pom:1/org.comp:app:jar:1";
+    PackageUrlIdentifier identifier = ComponentIdentifierAdapter.parsePathToId(path);
+
+    assertThat(identifier).isNotNull();
+    assertThat(identifier.getPackageUrl()).isEqualTo("pkg:maven/org.comp/app@1?type=jar");
+  }
 }

@@ -106,8 +106,9 @@ public class ComponentIdentifierAdapter
     }
     String searchString = "/" + PURL_PREFIX;
     if (StringUtils.contains(pathnames, searchString)) {
-      return new PackageUrlIdentifier(
-          StringUtils.substring(pathnames, pathnames.indexOf(searchString) + 1, pathnames.length()));
+      String pkg = StringUtils.substring(pathnames, pathnames.indexOf(searchString) + 1, pathnames.length())
+          .replace("\\", "/");
+      return new PackageUrlIdentifier(pkg);
     }
     else {
       String path = StringUtils.substringAfterLast(pathnames, "/");

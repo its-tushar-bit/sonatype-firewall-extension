@@ -2935,7 +2935,7 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
-  public void backButtonToFirewallDashboard_whenUserAccesByURL() {
+  public void backButtonToFirewallDashboard_whenUserAccessByURL() {
     FirewallPage firewallPage = new FirewallPage();
     FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
     String expectedComponentName = "com.lingocoder : abi.cli : 0.5.2";
@@ -2978,7 +2978,40 @@ public class FirewallComponentDetailsPageTest
     waitUntilSpinnersGone();
     firewallComponentDetailsPage.shouldBe(visible);
     firewallComponentDetailsPage.title().shouldHave(text(expectedComponentName));
-    MainHeader.backButton().shouldHave(text("Back to Repository results"));
+    MainHeader.backButton().shouldHave(text("Back to Repository Results"));
+    MainHeader.backButton().click();
+    RepositoryResultDetailPage.page().shouldBe(visible);
+    RepositoryResultDetailPage.table().row(1).component().shouldHave(text(expectedComponentName));
+    repositoryResultsTable.policyName().input().shouldHave(attribute("value", "Security"));
+  }
+
+  @Test
+  public void backButtonToRepositoryResultsView_whenUserCameFromMalwareDefenseRepositoryResultsView() {
+    FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
+    String expectedComponentName = "com.lingocoder : abi.cli : 0.5.2";
+    createAllTypePolicies();
+    ArrayList<RepositoryComponent> repositoryComponents = setupAllTestDataFor2QuarantinedComponents();
+    refreshOrOpen(RepositoryResultDetailPage.malewareDefenseUrl(repositoryComponents.get(0).getRepositoryId()));
+    RepositoryResultDetailPage.aggregateToggle().click();
+    waitUntilSpinnersGone();
+    RepositoryResultDetailPage.page().shouldBe(visible);
+    RepositoryResultTable repositoryResultsTable = new RepositoryResultTable();
+    repositoryResultsTable.policyName().input().setValue("Security");
+    SelenideElement quarantinedHeader = repositoryResultsTable.header().quarantined();
+    // sorted by quarantined date by null order
+    quarantinedHeader.click();
+    waitUntilSpinnersGone();
+    // sorted by quarantined date by asc order
+    quarantinedHeader.click();
+    waitUntilSpinnersGone();
+    // sorted by quarantined date by desc order
+    SelenideElement componentNameCell = RepositoryResultDetailPage.table().row(1).component();
+    componentNameCell.shouldHave(text(expectedComponentName));
+    componentNameCell.click();
+    waitUntilSpinnersGone();
+    firewallComponentDetailsPage.shouldBe(visible);
+    firewallComponentDetailsPage.title().shouldHave(text(expectedComponentName));
+    MainHeader.backButton().shouldHave(text("Back to Repository Results"));
     MainHeader.backButton().click();
     RepositoryResultDetailPage.page().shouldBe(visible);
     RepositoryResultDetailPage.table().row(1).component().shouldHave(text(expectedComponentName));
@@ -2995,7 +3028,7 @@ public class FirewallComponentDetailsPageTest
     waitUntilSpinnersGone();
     firewallComponentDetailsPage.shouldBe(visible);
     firewallComponentDetailsPage.title().shouldHave(text(expectedComponentName));
-    MainHeader.backButton().shouldHave(text("Back to Repository results"));
+    MainHeader.backButton().shouldHave(text("Back to Repository Results"));
     MainHeader.backButton().click();
     RepositoryResultDetailPage.page().shouldBe(visible);
     RepositoryResultDetailPage.table().row(0).component().shouldHave(text(expectedComponentName));

@@ -23,7 +23,7 @@ import FirewallLegalTab from 'MainRoot/firewall/firewallComponentDetailsPage/leg
 import FirewallLabelsTab from 'MainRoot/firewall/firewallComponentDetailsPage/labels/FirewallLabelsTab';
 import FirewallPolicyViolationDetailsPopover from './policyViolations/policyViolationsTile/FirewallPolicyViolationDetailsPopover';
 
-import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsStandaloneFirewall, selectRouterPrevState } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectFirewallComponentDetailsPageRouteParams,
   selectFirewallComponentDetailsPage,
@@ -59,6 +59,8 @@ export default function FirewallComponentDetailsPage() {
   const routeParams = useSelector(selectFirewallComponentDetailsPageRouteParams);
   const labels = useSelector(selectLabels);
   const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
+  const prevState = useSelector(selectRouterPrevState);
+
   const loadComponentDetails = (routeParams) => dispatch(firewallActions.loadComponentDetails(routeParams));
   const loadComponentPolicyViolations = (pathname, repositoryId) =>
     dispatch(firewallActions.loadComponentPolicyViolations(pathname, repositoryId));
@@ -73,15 +75,18 @@ export default function FirewallComponentDetailsPage() {
   const { componentDetails, isLoadingComponentDetails, componentDetailsError } = componentDetailsPageResponseState;
   const componentCoordinates =
     componentDetails?.displayName?.parts?.reduce((prev, part) => prev + part.value, '') || componentDisplayName;
-  let backButtonParams = {};
+
   const uiRouterState = useRouterState();
 
-  if (isStandaloneFirewall) {
-    backButtonParams = { text: 'Back to Firewall Dashboard', stateName: 'firewall.firewallPage' };
-  } else {
-    const href = '#' + uiRouterState.get('repository-report').url.replace('{repositoryId}', routeParams.repositoryId);
-    backButtonParams = { text: 'Back to Repository results', href };
-  }
+  const prevStateIsRepositoryReport = prevState?.name?.includes('firewall.repository-report');
+  const href = uiRouterState.href('firewall.repository-report', {
+    repositoryId: routeParams.repositoryId,
+  });
+
+  const backButtonParams =
+    !prevStateIsRepositoryReport && isStandaloneFirewall
+      ? { text: 'Back to Firewall Dashboard', stateName: 'firewall.firewallPage' }
+      : { text: 'Back to Repository Results', href };
 
   useEffect(() => {
     loadComponentDetails(routeParams);

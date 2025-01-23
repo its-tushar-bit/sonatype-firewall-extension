@@ -25,6 +25,10 @@ public class RepositoryResultDetailPage extends BasicElement<RepositoryResultDet
     return BaseUrl.resolvePageUrl("/repository/{repositoryId}/result", repositoryId);
   }
 
+  public static String malewareDefenseUrl(String repositoryId) {
+    return BaseUrl.resolvePageUrl("/malware-defense/repository/{repositoryId}/result", repositoryId);
+  }
+
   public static SelenideElement page() {
     return $("repository-results-summary-page");
   }

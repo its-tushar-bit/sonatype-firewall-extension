@@ -38,12 +38,16 @@ import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService.PersistencePath.TrustedAutoDeletingTempPath;
 import com.sonatype.insight.brain.utils.CheckedIllegalArgumentException;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.RollbackException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -172,17 +176,30 @@ public class SbomImportService
 
     ThirdPartyFile thirdPartyFile = thirdPartyFileDAO.getByIdNotNull(sbomMetadata.getThirdPartyFileId());
 
-    try {
-      handleVersionOverride(sbomMetadata, applicationVersionOverride);
+    try (TransactionContext tx = sbomMetadataDAO.createTransactionContext()) {
+      tx.begin();
+
+      handleVersionOverride(tx, sbomMetadata, applicationVersionOverride);
 
       var importTicket = switch (SbomScanType.valueOf(sbomMetadata.getScanType())) {
         case SBOM -> importSbom(sbomMetadata, clientUserAgent);
         case BINARY -> importBinary(sbomMetadata, thirdPartyFile, clientUserAgent);
       };
+
+      tx.commit();
       return Response.status(Status.ACCEPTED).entity(importTicket).build();
     }
     catch (IOException e) {
       throw new InternalServerException("Internal server error importing SBOM", e);
+    }
+    catch (EntityExistsException | RollbackException e) {
+      String conflictVersion = StringUtils.defaultIfEmpty(applicationVersionOverride, applicationVersion);
+      if (e instanceof EntityExistsException || e.getCause() instanceof EntityExistsException) {
+        throw new ConflictException("Version %s already exists".formatted(conflictVersion), e);
+      }
+      else {
+        throw e;
+      }
     }
   }
 
@@ -229,12 +246,16 @@ public class SbomImportService
     return retval;
   }
 
-  private void handleVersionOverride(ThirdPartySbomMetadata sbomMetadata, String applicationVersionOverride) {
+  private void handleVersionOverride(
+      TransactionContext tx,
+      ThirdPartySbomMetadata sbomMetadata,
+      String applicationVersionOverride)
+  {
     // While it isn't this class' job to do validation of the new value per se, it is this class' job to assess whether
     // the user was even trying to update the version in the first place.
     if (StringUtils.isNotEmpty(applicationVersionOverride)) {
       try {
-        thirdPartyPersistenceService.updateApplicationVersion(sbomMetadata, applicationVersionOverride);
+        thirdPartyPersistenceService.updateApplicationVersion(tx, sbomMetadata, applicationVersionOverride);
       }
       catch (CheckedIllegalArgumentException e) {
         throw new BadRequestException(e);

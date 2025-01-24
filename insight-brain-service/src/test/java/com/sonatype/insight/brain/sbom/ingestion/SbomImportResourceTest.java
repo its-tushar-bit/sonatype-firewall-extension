@@ -6,8 +6,11 @@
 package com.sonatype.insight.brain.sbom.ingestion;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Objects;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -17,7 +20,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -36,6 +41,8 @@ public class SbomImportResourceTest
 
   private PolicyEvaluationHelper policyEvaluationHelper;
 
+  private InsightWork insightWork;
+
   @Before
   public void before() throws Exception {
 
@@ -49,6 +56,7 @@ public class SbomImportResourceTest
 
     policyEvaluationHelper = lookup(PolicyEvaluationHelper.class);
     thirdPartySbomMetadataDAO = lookup(ThirdPartySbomMetadataDAO.class);
+    insightWork = lookup(InsightWork.class);
   }
 
   @Override
@@ -404,6 +412,56 @@ public class SbomImportResourceTest
     assertResponseStatus(409, responseCommit2);
   }
 
+  @Test
+  public void testImportDetectedSbom_FailureAfterVersionOverride_ShouldRollback() throws Exception {
+    SbomDetectionResultDTO detectionResult;
+    try (InputStream sbomStream =
+             SbomImportResourceTest.class.getResourceAsStream("/SbomImportResourceTest/valid-cyclonedx-bom.xml")) {
+      HttpResponse responseDetect = restRequest()
+          .parameter(application.getId())
+          .part("file", "valid-cyclonedx-bom.xml", sbomStream.readAllBytes())
+          .path(SbomImportResource.DETECT_PATH)
+          .post();
+      detectionResult = responseDetect.getBody(SbomDetectionResultDTO.class);
+      assertResponseStatus(200, responseDetect);
+    }
+
+    String originalVersion = detectionResult.getSavedVersion();
+    String overrideVersion = "1.2.3.4";
+
+    var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
+        application.getId(),
+        originalVersion
+    );
+    assertThat(sbomMetadata.getSbomVersion()).isEqualTo(originalVersion);
+    assertThat(sbomMetadata.getStatus()).isEqualTo(ThirdPartySbomMetadataStatus.UPLOADED);
+
+    removeExistingSbomFiles(
+        String.format("%s/%s", application.getId(), sbomMetadata.getFilename()));
+
+    HttpResponse responseCommit = restRequest()
+        .path(SbomImportResource.COMMIT_PATH)
+        .parameter(application.getId(), originalVersion)
+        .query("applicationVersionOverride", overrideVersion)
+        .post();
+
+    assertResponseStatus(500, responseCommit);
+
+    sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
+        application.getId(),
+        originalVersion
+    );
+    assertThat(sbomMetadata).isNotNull();
+    assertThat(sbomMetadata.getSbomVersion()).isEqualTo(originalVersion);
+    assertThat(sbomMetadata.getStatus()).isEqualTo(ThirdPartySbomMetadataStatus.UPLOADED);
+
+    var nonExistentMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
+        application.getId(),
+        overrideVersion
+    );
+    assertThat(nonExistentMetadata).isNull();
+  }
+
   private void testImportDetectedSbom_Success(
       String fileName,
       boolean ignoreValidationError,
@@ -449,5 +507,10 @@ public class SbomImportResourceTest
   private void mockHdsReportDownload() {
     URL resourceUrl = ReportHelper.zipReport("/ReportServiceTest/report-with-dependencies", tempDir);
     hdsRespondWith(resourceUrl).atUri("rest/application/analysis/SCAN-ID");
+  }
+
+  private void removeExistingSbomFiles(String filename) throws IOException {
+    Path sbomDir = insightWork.getSbomDir().toPath().toAbsolutePath();
+    Files.deleteIfExists(sbomDir.resolve(filename));
   }
 }

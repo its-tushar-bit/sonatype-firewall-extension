@@ -437,4 +437,8 @@ public interface DAOFactory
   MalwareDefenseMetricsDAO createMalwareDefenseMetricsDAO();
 
   OidcTokenDAO createOidcTokenDAO();
+
+  ComponentChangeDetectionConfigurationDAO createComponentChangeDetectionConfigurationDAO();
+
+  ComponentChangeDetectionEventDAO createComponentChangeDetectionEventDAO();
 }

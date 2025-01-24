@@ -1174,4 +1174,14 @@ public class TestDAOFactory
   public OidcTokenDAO createOidcTokenDAO() {
     return new OidcTokenDAO(dataStoreProvider.getOperationalDataStore());
   }
+
+  @Override
+  public ComponentChangeDetectionConfigurationDAO createComponentChangeDetectionConfigurationDAO() {
+    return new ComponentChangeDetectionConfigurationDAO();
+  }
+
+  @Override
+  public ComponentChangeDetectionEventDAO createComponentChangeDetectionEventDAO() {
+    return new ComponentChangeDetectionEventDAO();
+  }
 }

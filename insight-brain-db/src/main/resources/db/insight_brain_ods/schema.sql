@@ -607,7 +607,7 @@ CREATE TABLE proprietary_component_name_pattern (
   proprietary_component_name_pattern_id varchar(50) NOT NULL,
 
   format varchar(50) NOT NULL,
-  namespace_pattern varchar(200) NOT NULL,
+  namespace_pattern varchar(300) NOT NULL,
   name_pattern varchar(300) NOT NULL,
 
   repository_id varchar(50) NOT NULL,

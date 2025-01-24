@@ -2264,6 +2264,52 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
+  public void testAddProprietaryComponentNames_TooLongNameSpace() {
+    String repoManId = tempEntity.newRepositoryManager().getInstanceId();
+    String repoId = "hosted-repo";
+    String namespace = "a".repeat(301);
+    ProprietaryComponentNames proprietaryComponentNames =
+        new ProprietaryComponentNames("npm").addNames("sonatype*").addNamespaces(namespace);
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> getRepositoryService().addProprietaryComponentNames(repoManId, repoId, proprietaryComponentNames))
+        .withMessageContaining("Component " + namespace + " is too long. Maximum length is 300 characters.");
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames_TooLongName() {
+    String repoManId = tempEntity.newRepositoryManager().getInstanceId();
+    String repoId = "hosted-repo";
+    String name = "a".repeat(301);
+    ProprietaryComponentNames proprietaryComponentNames =
+        new ProprietaryComponentNames("npm").addNames(name).addNamespaces("@sonatype");
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> getRepositoryService().addProprietaryComponentNames(repoManId, repoId, proprietaryComponentNames))
+        .withMessageContaining("Component " + name + " is too long. Maximum length is 300 characters.");
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames_ProprietaryComponentNamesEmptyOrNull() {
+    String repoManId = tempEntity.newRepositoryManager().getInstanceId();
+    String repoId = "hosted-repo";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> getRepositoryService().addProprietaryComponentNames(repoManId, repoId, null))
+        .withMessageContaining("No component name patterns specified");
+
+    ProprietaryComponentNames proprietaryComponentNames = new ProprietaryComponentNames("format");
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> getRepositoryService().addProprietaryComponentNames(repoManId, repoId, proprietaryComponentNames))
+        .withMessageContaining("No component name patterns specified");
+  }
+
+  @Test
   public void testAddProprietaryComponentNames_FormatTranslation_Maven2() {
     testAddProprietaryComponentNames_FormatTranslation("maven2", "maven");
   }

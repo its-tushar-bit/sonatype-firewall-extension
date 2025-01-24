@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -78,6 +79,7 @@ import com.sonatype.insight.telemetry.SonatypeUserAgentUtil;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -858,6 +860,14 @@ public abstract class AbstractRepositoryService
       @AuthzContext(Key.REPOSITORY) Repository repository,
       ProprietaryComponentNames proprietaryComponentNames)
   {
+    if (proprietaryComponentNames == null || (CollectionUtils.isEmpty(proprietaryComponentNames.namespaces) &&
+        CollectionUtils.isEmpty(proprietaryComponentNames.names))) {
+      throw new BadRequestException("No component name patterns specified");
+    }
+
+    validatePatterns(proprietaryComponentNames.namespaces, "namespace");
+    validatePatterns(proprietaryComponentNames.names, "name");
+
     if (repository.getId() == null) {
       RepositoryManager repositoryManager = getOrCreateRepositoryManager(repositoryManagerInstanceId);
       repository.setRepositoryManagerId(repositoryManager.getId());
@@ -865,33 +875,46 @@ public abstract class AbstractRepositoryService
     }
 
     String format = translateRepositoryFormat(proprietaryComponentNames.format);
+    List<ProprietaryComponentNamePattern> patterns = addPatterns(repository, format, proprietaryComponentNames);
 
+    int added = proprietaryComponentNameDetector.addPatterns(format, patterns);
+    AuditData.get().setData("addedPatternCount", added);
+  }
+
+  private void validatePatterns(final Set<String> components, final String type) {
+    if (components != null) {
+      for (String component : components) {
+        validatePattern(type, component);
+      }
+    }
+  }
+
+  private List<ProprietaryComponentNamePattern> addPatterns(
+      Repository repository,
+      String format,
+      ProprietaryComponentNames proprietaryComponentNames)
+  {
     List<ProprietaryComponentNamePattern> patterns = new ArrayList<>();
     if (proprietaryComponentNames.namespaces != null) {
       for (String namespace : proprietaryComponentNames.namespaces) {
-        validatePattern("namespace", namespace);
         patterns.add(new ProprietaryComponentNamePattern(repository.getId(), format).withNamespacePattern(namespace));
       }
     }
     if (proprietaryComponentNames.names != null) {
       for (String name : proprietaryComponentNames.names) {
-        validatePattern("name", name);
         patterns.add(new ProprietaryComponentNamePattern(repository.getId(), format).withNamePattern(name));
       }
     }
-    if (patterns.isEmpty()) {
-      throw new BadRequestException("No component name patterns specified");
-    }
-    for (ProprietaryComponentNamePattern pattern : patterns) {
-      pattern.setRepositoryId(repository.getId());
-    }
-    int added = proprietaryComponentNameDetector.addPatterns(format, patterns);
-    AuditData.get().setData("addedPatternCount", added);
+    return patterns;
   }
 
   private void validatePattern(String type, String pattern) {
     if (StringUtils.isBlank(pattern)) {
       throw new BadRequestException("Empty component " + type + " pattern");
+    }
+    if (pattern.length() > 300) {
+      throw new BadRequestException(
+          "Component " + pattern + " is too long. Maximum length is 300 characters.");
     }
     int first = pattern.indexOf('*');
     int next = pattern.indexOf('*', first + 1);

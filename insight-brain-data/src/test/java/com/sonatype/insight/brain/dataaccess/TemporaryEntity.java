@@ -154,6 +154,7 @@ import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReport
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.dataaccess.telemetry.HistoricalTelemetryStateDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -305,6 +306,7 @@ import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.telemetry.HistoricalTelemetryState;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
@@ -624,7 +626,7 @@ public class TemporaryEntity
   private AutoPolicyWaiverDAO autoPolicyWaiverDAO;
 
   private AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
-  
+
   private OAuth2ConfigurationDAO oAuth2ConfigurationDAO;
 
   private OidcConfigurationDAO oidcConfigurationDAO;
@@ -638,6 +640,8 @@ public class TemporaryEntity
   private MalwareDefenseMetricsDAO malwareDefenseMetricsDAO;
 
   private OidcTokenDAO oidcTokenDAO;
+
+  private HistoricalTelemetryStateDAO historicalTelemetryStateDAO;
 
   private Collection<String> persistedUserSessionIds;
 
@@ -920,6 +924,8 @@ public class TemporaryEntity
       delete(scmUserMappingsDAO.getAll(), scmUserMappingsDAO);
       delete(malwareDefenseMetricsDAO.getAll(), malwareDefenseMetricsDAO);
       delete(oidcTokenDAO.getAll(), oidcTokenDAO);
+      delete(historicalTelemetryStateDAO.getAll(), historicalTelemetryStateDAO);
+
       restoreInitialWaiverReasons();
       productLicenseDAO.delete();
       firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
@@ -1930,7 +1936,7 @@ public class TemporaryEntity
         violation.getConstraintFacts()
     );
   }
-  
+
   public AutoPolicyWaiver newAutoPolicyWaiver(AutoPolicyWaiver autoPolicyWaiver) {
     autoPolicyWaiverDAO.insert(autoPolicyWaiver);
     return autoPolicyWaiver;
@@ -5822,6 +5828,34 @@ public class TemporaryEntity
     return scmUserMappings;
   }
 
+  public HistoricalTelemetryState newHistoricalTelemetryState(String purpose, Date cutoffDate, String status) {
+    HistoricalTelemetryState historicalTelemetryState = new HistoricalTelemetryState();
+    historicalTelemetryState.setId(purpose);
+    historicalTelemetryState.setCutoffDate(cutoffDate);
+    historicalTelemetryState.setCreated(new Date());
+    historicalTelemetryState.setStatus(status);
+    historicalTelemetryStateDAO.insert(historicalTelemetryState);
+    return historicalTelemetryStateDAO.getById(purpose);
+  }
+
+  public HistoricalTelemetryState newHistoricalTelemetryState(
+      String purpose,
+      Date cutoffDate,
+      int batchSize,
+      int minFreeMemoryMb,
+      String status)
+  {
+    HistoricalTelemetryState historicalTelemetryState = new HistoricalTelemetryState();
+    historicalTelemetryState.setId(purpose);
+    historicalTelemetryState.setCreated(new Date());
+    historicalTelemetryState.setCutoffDate(cutoffDate);
+    historicalTelemetryState.setBatchSize(batchSize);
+    historicalTelemetryState.setMinFreeMemoryMb(minFreeMemoryMb);
+    historicalTelemetryState.setStatus(status);
+    historicalTelemetryStateDAO.insert(historicalTelemetryState);
+    return historicalTelemetryState;
+  }
+
   private void initializeDAOs() {
     initializeOperationalDataStoreDAOs();
     initializeDataMartDataStoreDAOs();
@@ -5949,6 +5983,7 @@ public class TemporaryEntity
     scmUserMappingsDAO = daoFactory.createScmUserMappingsDAO();
     malwareDefenseMetricsDAO = daoFactory.createMalwareDefenseMetricsDAO();
     oidcTokenDAO = daoFactory.createOidcTokenDAO();
+    historicalTelemetryStateDAO = daoFactory.createHistoricalTelemetryStateDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {

@@ -5,7 +5,11 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.sql.Connection;
 import java.sql.JDBCType;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,6 +30,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -426,7 +432,7 @@ public class PolicyViolationDAO
           ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.DAO)).join();
     }
     else if (!applicationIds.isEmpty()) {
-      return getListWithSqlInClause(applicationIds, appIds ->  {
+      return getListWithSqlInClause(applicationIds, appIds -> {
         Object[] parameters = new Object[otherParameters.length + 1];
         System.arraycopy(otherParameters, 0, parameters, 1, otherParameters.length);
         parameters[0] = appIds;
@@ -557,6 +563,97 @@ public class PolicyViolationDAO
     return getSingle(Number.class, sQuery).intValue();
   }
 
+  /**
+   * This method streams the policy violations that were either still open at the cutoff date or were
+   * created, waived, fixed or resolved as legacy since the cutoff date.  IOW, we ignore any policy violations
+   * that were resolved in some fashion before the cutoff date.
+   *
+   * Using a native query as the JPA approach using Query.stream() actually fetches the entire result as a list
+   * and then streams the list, which would defeat the purpose of trying to limit memory footprint.
+   *
+   * @param cutoffDate the cutoff date
+   * @param fetchSize  hint to jdbc for the number of rows to get when more are needed
+   * @param consumer   the consumer to accept the policy violations
+   */
+  public void consumePolicyViolationsSinceDate(Date cutoffDate, int fetchSize, Consumer<PolicyViolation> consumer)
+      throws SQLException
+  {
+    String sQuery = String.format("""
+      SELECT policy_violation_id, application_id, policy_id, stage_type_id, open_time, fix_time, waive_time,
+        legacy_violation_time, threat_level, threat_category, component_id_format, component_id_coordinates_json
+      FROM %s.policy_violation
+      WHERE (open_time <= ? AND fix_time IS NULL AND waive_time IS NULL AND legacy_violation_time IS NULL)
+        OR open_time > ?
+        OR fix_time > ?
+        OR waive_time > ?
+        OR legacy_violation_time > ?
+      ORDER BY open_time ASC, policy_violation_id ASC
+        """, getDatabaseSchema());
+
+    Connection connection = null;
+    PreparedStatement statement = null;
+
+    try {
+      connection = getDataStore().getDataSource().getConnection();
+      statement = connection.prepareStatement(sQuery);
+      connection.setReadOnly(true);
+
+      statement.setFetchSize(fetchSize);
+      statement.setDate(1, new java.sql.Date(cutoffDate.getTime()));
+      statement.setDate(2, new java.sql.Date(cutoffDate.getTime()));
+      statement.setDate(3, new java.sql.Date(cutoffDate.getTime()));
+      statement.setDate(4, new java.sql.Date(cutoffDate.getTime()));
+      statement.setDate(5, new java.sql.Date(cutoffDate.getTime()));
+
+      try (ResultSet resultSet = statement.executeQuery()) {
+        while (resultSet.next()) {
+          PolicyViolation policyViolation = new PolicyViolation();
+          policyViolation.setId(resultSet.getString("policy_violation_id"));
+          policyViolation.setApplicationId(resultSet.getString("application_id"));
+          policyViolation.setPolicyId(resultSet.getString("policy_id"));
+          policyViolation.setStageTypeId(resultSet.getString("stage_type_id"));
+          policyViolation.setOpenTime(resultSet.getDate("open_time"));
+          policyViolation.setFixTime(resultSet.getDate("fix_time"));
+          policyViolation.setWaiveTime(resultSet.getDate("waive_time"));
+          policyViolation.setLegacyViolationTime(resultSet.getDate("legacy_violation_time"));
+          policyViolation.setThreatLevel(resultSet.getInt("threat_level"));
+
+          String threatCategory = resultSet.getString("threat_category");
+          if (StringUtils.isNotBlank(threatCategory)) {
+            policyViolation.setThreatCategory(
+                PolicyThreatCategory.getByName(resultSet.getString("threat_category").toLowerCase())
+            );
+          }
+
+          String format = resultSet.getString("component_id_format");
+          String coordinates = resultSet.getString("component_id_coordinates_json");
+          if (!StringUtils.isAnyBlank(format, coordinates)) {
+            policyViolation.setComponentIdentifier(
+                ComponentIdentifierAdapter.formatAndJsonToComponentIdentifier(
+                    resultSet.getString("component_id_format"),
+                    resultSet.getString("component_id_coordinates_json")
+                )
+            );
+          }
+          consumer.accept(policyViolation);
+        }
+      }
+      finally {
+        // tell the consumer we're done now
+        consumer.accept(null);
+      }
+    }
+    finally {
+      if (null != statement) {
+        statement.close();
+      }
+      if (null != connection) {
+        connection.setReadOnly(false);
+        connection.close();
+      }
+    }
+  }
+
   public List<PolicyViolation> getWaivedFixed() {
     final String sQuery = "SELECT entity" +
         " FROM PolicyViolation entity" +
@@ -588,7 +685,7 @@ public class PolicyViolationDAO
       Map<String, SbomPolicyViolationSummaryDTO> applicationIdResultMap = new HashMap<>();
 
       List<Object[]> resultStreamList = (List<Object[]>) query.getResultStream().collect(Collectors.toList());
-      for (Object[] result: resultStreamList) {
+      for (Object[] result : resultStreamList) {
         applicationIdResultMap.put(String.valueOf(result[0]), new SbomPolicyViolationSummaryDTO(result));
       }
 

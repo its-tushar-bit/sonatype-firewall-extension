@@ -117,6 +117,7 @@ import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReport
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.dataaccess.telemetry.HistoricalTelemetryStateDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -429,11 +430,11 @@ public interface DAOFactory
   PolicyViolationConstraintFactsDAO createPolicyViolationConstraintFactsDAO();
 
   ThirdPartyUnknownComponentDAO createThirdPartyUnknownComponentDAO();
-  
+
   AutoPolicyWaiverDAO createAutoPolicyWaiverDAO();
-  
+
   AutoPolicyWaiverExclusionDAO createAutoPolicyWaiverExclusionDAO();
-  
+
   MalwareDefenseMetricsDAO createMalwareDefenseMetricsDAO();
 
   OidcTokenDAO createOidcTokenDAO();
@@ -441,4 +442,6 @@ public interface DAOFactory
   ComponentChangeDetectionConfigurationDAO createComponentChangeDetectionConfigurationDAO();
 
   ComponentChangeDetectionEventDAO createComponentChangeDetectionEventDAO();
+
+  HistoricalTelemetryStateDAO createHistoricalTelemetryStateDAO();
 }

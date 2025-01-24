@@ -121,6 +121,7 @@ import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReport
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.dataaccess.telemetry.HistoricalTelemetryStateDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -1183,5 +1184,10 @@ public class TestDAOFactory
   @Override
   public ComponentChangeDetectionEventDAO createComponentChangeDetectionEventDAO() {
     return new ComponentChangeDetectionEventDAO();
+  }
+
+  @Override
+  public HistoricalTelemetryStateDAO createHistoricalTelemetryStateDAO() {
+    return new HistoricalTelemetryStateDAO(dataStoreProvider.getOperationalDataStore());
   }
 }

@@ -1892,7 +1892,7 @@ CREATE TABLE IF NOT EXISTS auto_policy_waiver_revocation (
     constraint_facts_json text NULL,
     CONSTRAINT auto_policy_waiver_revocation_pk
     PRIMARY KEY (auto_policy_waiver_revocation_id),
-    CONSTRAINT auto_policy_waiver_revocation_auto_waiver_fk 
+    CONSTRAINT auto_policy_waiver_revocation_auto_waiver_fk
     FOREIGN KEY (auto_policy_waiver_id) REFERENCES auto_policy_waiver(auto_policy_waiver_id)
 );
 
@@ -1925,4 +1925,25 @@ CREATE TABLE IF NOT EXISTS oidc_token
     oidc_token        text NOT NULL,
     registration_time timestamp NOT NULL,
     CONSTRAINT oidc_token_pk PRIMARY KEY (oidc_token_id)
+);
+
+-- since 1.187
+CREATE TABLE IF NOT EXISTS historical_telemetry_state (
+  historical_telemetry_state_id VARCHAR(50) NOT NULL,
+
+  batch_size INTEGER NOT NULL DEFAULT 1000,
+  min_free_memory_mb INTEGER NOT NULL DEFAULT 10,
+  cutoff_date DATE NOT NULL,
+
+  created TIMESTAMP NOT NULL,
+  start_time TIMESTAMP NULL,
+  last_updated TIMESTAMP NULL,
+
+  -- these 'last_record' fields are used to track the last record processed by the telemetry job
+  last_record_time TIMESTAMP NULL,
+  last_record_key VARCHAR(50) NULL,
+
+  status VARCHAR(15) NOT NULL,
+
+  CONSTRAINT historical_telemetry_state_pk PRIMARY KEY (historical_telemetry_state_id)
 );

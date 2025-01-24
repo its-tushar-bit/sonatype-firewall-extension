@@ -18,11 +18,11 @@ import java.util.concurrent.TimeUnit;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
+import com.sonatype.insight.brain.telemetry.PolicyViolationTelemetryBuilder;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -91,7 +91,7 @@ public class PolicyViolationTelemetryCollector
   static final String WAIVER_EXPIRATION = "waiver_expiration";
 
   static final String POLICY_WAIVER_ID = "policy_waiver_id";
-  
+
   static final String AUTO_POLICY_WAIVER_ID = "auto_policy_waiver_id";
 
   static final String FIX_BY_VERSION_CHANGE = "fix_by_version_change";
@@ -174,7 +174,7 @@ public class PolicyViolationTelemetryCollector
       telemetryDataList.add(telemetryData);
     }
   }
-  
+
   public void addTelemetryForUnAutoWaivedViolation(
       final PolicyViolation unwaivedPolicyViolation,
       final Component component,
@@ -189,10 +189,10 @@ public class PolicyViolationTelemetryCollector
       telemetryData.put(COUNT, -1);
       telemetryData.put(AUTO_POLICY_WAIVER_ID, oldAutoPolicyWaiverId);
 
-      telemetryDataList.add(telemetryData); 
+      telemetryDataList.add(telemetryData);
     }
   }
-  
+
   public void addTelemetryForWaivedViolation(PolicyViolation waivedPolicyViolation, Component component) {
     if (waivedPolicyViolation != null) {
       String policyWaiverId = waivedPolicyViolation.getPolicyWaiverId();
@@ -207,7 +207,7 @@ public class PolicyViolationTelemetryCollector
       telemetryDataList.add(telemetryData);
     }
   }
-  
+
   public void addTelemetryForAutoWaivedViolation(PolicyViolation waivedPolicyViolation, Component component) {
     if (waivedPolicyViolation != null) {
       String autoPolicyWaiverId = waivedPolicyViolation.getAutoPolicyWaiverId();
@@ -218,7 +218,7 @@ public class PolicyViolationTelemetryCollector
       telemetryData.put(WAIVE_TIME, timeOfPolicyEvaluation.getTime());
       telemetryData.put(AUTO_POLICY_WAIVER_ID, autoPolicyWaiverId);
       telemetryDataList.add(telemetryData);
-    } 
+    }
   }
 
   public void addTelemetryForConditionTypeViolation(
@@ -291,18 +291,10 @@ public class PolicyViolationTelemetryCollector
       PolicyViolation policyViolation,
       Component component)
   {
-    final TelemetryData telemetryData = new TelemetryData(telemetryPurpose)
-        .put(APPLICATION_ID, HdsClientAnalytics.obfuscate(policyViolation.getApplicationId()))
-        .put(STAGE, policyViolation.getStageTypeId())
-        .put(IS_SCM_ENABLED, isScmEnabled)
-        .put(COUNT, 1)
-        .put(OPEN_TIME, policyViolation.getOpenTime().getTime())
-        .put(POLICY_NAME, policyViolation.getPolicyName())
-        .put(POLICY_VIOLATION_ID, policyViolation.getId())
-        .put(TIME, computeTimeBetween(policyViolation.getOpenTime(), timeOfPolicyEvaluation))
-        .put(THREAT_CATEGORY, policyViolation.getThreatCategory().getName())
-        .put(THREAT_LEVEL, policyViolation.getThreatLevel());
-    telemetryUtils.includeRealApplicationId(telemetryData.getAttributes(), policyViolation.getApplicationId());
+    TelemetryData telemetryData = new PolicyViolationTelemetryBuilder(policyViolation, telemetryPurpose, telemetryUtils)
+        .withScmEnabled(isScmEnabled)
+        .withTime(computeTimeBetween(policyViolation.getOpenTime(), timeOfPolicyEvaluation))
+        .build();
 
     addComponentMetadata(telemetryData, policyViolation);
     addCVMetadata(telemetryData, policyViolation);

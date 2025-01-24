@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -40,9 +42,19 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAOTest.Created.CREATED_AFTER_CUTOFF;
+import static com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAOTest.Created.CREATED_BEFORE_CUTOFF;
+import static com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAOTest.PolicyViolationState.FIXED;
+import static com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAOTest.PolicyViolationState.LEGACY;
+import static com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAOTest.PolicyViolationState.OPEN;
+import static com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAOTest.PolicyViolationState.WAIVED;
+import static com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAOTest.Resolved.RESOLVED_AFTER_CUTOFF;
+import static com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAOTest.Resolved.RESOLVED_BEFORE_CUTOFF;
+import static com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAOTest.Resolved.UNRESOLVED;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -50,6 +62,27 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class PolicyViolationDAOTest
     extends AbstractDbDAOTest
 {
+  enum PolicyViolationState
+  {
+    OPEN,
+    FIXED,
+    WAIVED,
+    LEGACY
+  }
+
+  enum Created
+  {
+    CREATED_BEFORE_CUTOFF,
+    CREATED_AFTER_CUTOFF
+  }
+
+  enum Resolved
+  {
+    RESOLVED_BEFORE_CUTOFF,
+    RESOLVED_AFTER_CUTOFF,
+    UNRESOLVED
+  }
+
   private PolicyViolationDAO dao;
 
   private PolicyViolationConstraintFactsDAO constraintFactsDAO;
@@ -112,6 +145,57 @@ public class PolicyViolationDAOTest
 
     policyViolation = dao.getById(policyViolation.getId());
     assertThat(policyViolation).isNull();
+  }
+
+  @Test
+  public void testConsumePolicyViolationsSinceDate() throws SQLException {
+    // given: a number of policy violations with various dates and resolutions
+    final Date cutoffDate = DateUtils.addDays(new Date(), -10);
+    createPolicyViolations(cutoffDate, new Object[][] {            // expected in results?
+        { OPEN, CREATED_BEFORE_CUTOFF, UNRESOLVED },               //   yes
+        { OPEN, CREATED_AFTER_CUTOFF, UNRESOLVED },                //   yes
+        { FIXED, CREATED_BEFORE_CUTOFF, RESOLVED_AFTER_CUTOFF },   //   yes
+        { FIXED, CREATED_AFTER_CUTOFF, RESOLVED_AFTER_CUTOFF },    //   yes
+        { FIXED, CREATED_BEFORE_CUTOFF, RESOLVED_BEFORE_CUTOFF },  //   no - resolved before
+        { WAIVED, CREATED_BEFORE_CUTOFF, RESOLVED_AFTER_CUTOFF },  //   yes
+        { WAIVED, CREATED_AFTER_CUTOFF, RESOLVED_AFTER_CUTOFF },   //   yes
+        { WAIVED, CREATED_BEFORE_CUTOFF, RESOLVED_BEFORE_CUTOFF }, //   no - resolved before
+        { LEGACY, CREATED_BEFORE_CUTOFF, RESOLVED_AFTER_CUTOFF },  //   yes
+        { LEGACY, CREATED_AFTER_CUTOFF, RESOLVED_AFTER_CUTOFF },   //   yes
+        { LEGACY, CREATED_BEFORE_CUTOFF, RESOLVED_BEFORE_CUTOFF }, //   no - resolved before
+    });
+    final var batchSize = 5;
+
+    // when: stream the historical violations
+    var violations = new ArrayList<PolicyViolation>();
+    AtomicBoolean terminalViolationSent = new AtomicBoolean(false);
+    dao.consumePolicyViolationsSinceDate(cutoffDate, batchSize, policyViolation -> {
+      if (null == policyViolation) {
+        terminalViolationSent.set(true);
+      }
+      else {
+        violations.add(policyViolation);
+      }
+    });
+
+    // then: only the violations that are either still open or were opened or resolved after the cutoff date are
+    //       included
+    assertThat(terminalViolationSent.get()).isTrue();
+    assertThat(violations).hasSize(8);
+    for (PolicyViolation violation : violations) {
+      var openedBefore = violation.getOpenTime().before(cutoffDate) || violation.getOpenTime().equals(cutoffDate);
+      var openedAfter = !openedBefore;
+      var noFix = violation.getFixTime() == null;
+      var fixedAfter = !noFix && violation.getFixTime().after(cutoffDate);
+      var noWaiver = violation.getWaiveTime() == null;
+      var waivedAfter = !noWaiver && violation.getWaiveTime().after(cutoffDate);
+      var noLegacy = violation.getLegacyViolationTime() == null;
+      var legacyAfter = !noLegacy && violation.getLegacyViolationTime().after(cutoffDate);
+
+      var criteria = (openedBefore && noFix && noWaiver && noLegacy)
+          || openedAfter || fixedAfter || waivedAfter || legacyAfter;
+      assertThat(criteria).isTrue();
+    }
   }
 
   @Test
@@ -1635,5 +1719,52 @@ public class PolicyViolationDAOTest
         .containsExactlyInAnyOrder(waivedViolation1.getId(), expiredWaivedViolation.getId(), waivedViolation2.getId(),
             fixedViolation.getId())
         .doesNotContain(unfixedUnwaivedViolation.getId());
+  }
+
+  private void createPolicyViolations(Date cutoffDate, Object[][] data) {
+    final Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation;
+
+    for (PolicyViolationDefinition policyViolationDef : toPolicyViolations(data)) {
+      Date policyEvalDate = switch (policyViolationDef.created) {
+        case CREATED_BEFORE_CUTOFF -> DateUtils.addDays(cutoffDate, -1);
+        case CREATED_AFTER_CUTOFF -> DateUtils.addDays(cutoffDate, 1);
+      };
+
+      policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+          "PolicyViolationDAOTestScanId", policyEvalDate);
+
+      PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+      Date resolvedDate = switch (policyViolationDef.resolved) {
+        case RESOLVED_BEFORE_CUTOFF -> DateUtils.addDays(cutoffDate, -1);
+        case RESOLVED_AFTER_CUTOFF -> DateUtils.addDays(cutoffDate, 1);
+        default -> null;
+      };
+
+      if (null != resolvedDate) {
+        switch (policyViolationDef.violationState) {
+          case FIXED -> policyViolation.setFixTime(resolvedDate);
+          case WAIVED -> policyViolation.setWaiveTime(resolvedDate);
+          case LEGACY -> policyViolation.setLegacyViolationTime(resolvedDate);
+          default -> { }
+        }
+        dao.update(policyViolation);
+      }
+    }
+  }
+
+  private List<PolicyViolationDefinition> toPolicyViolations(Object[][] data) {
+    final List<PolicyViolationDefinition> result = new ArrayList<>(data.length);
+    for (Object[] row : data) {
+      result.add(new PolicyViolationDefinition(
+          (PolicyViolationState)row[0],
+          (Created)row[1],
+          (Resolved)row[2]));
+    }
+    return result;
+  }
+
+  private record PolicyViolationDefinition(PolicyViolationState violationState, Created created, Resolved resolved) {
   }
 }

@@ -79,7 +79,7 @@ public class MultiTenantUserService
     }
     catch (Exception e) {
       log.error(
-          "User creation or update failed for username: {}, auth0 applicationId:{}, connectionId: {}, " +
+          "User invitation failed for username: {}, auth0 applicationId:{}, connectionId: {}, " +
               "organizationId: {}",
           user.getUsername(),
           tenantMetadata.getApplicationId(),

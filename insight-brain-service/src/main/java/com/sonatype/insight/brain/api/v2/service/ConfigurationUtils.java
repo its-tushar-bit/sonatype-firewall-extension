@@ -323,14 +323,6 @@ public class ConfigurationUtils
     return Objects.toString(minutes, null);
   }
 
-  public static String idTokenCookieExpirationToString(Object expiration) {
-    int seconds = (int) expiration;
-    if (seconds <= 0) {
-      throw new RuntimeException("Id token cookie expiration time should be greater than 0.");
-    }
-    return Objects.toString(seconds, null);
-  }
-
   public static String parseRepositoryList(String repositoryList) {
     if (repositoryList == null) {
       return null;

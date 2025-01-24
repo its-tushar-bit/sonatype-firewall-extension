@@ -89,7 +89,6 @@ import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.OAuth2GroupDAO;
 import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.OAuth2UserGroupDAO;
-import com.sonatype.insight.brain.dataaccess.security.OidcTokenDAO;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
@@ -436,8 +435,6 @@ public interface DAOFactory
   AutoPolicyWaiverExclusionDAO createAutoPolicyWaiverExclusionDAO();
 
   MalwareDefenseMetricsDAO createMalwareDefenseMetricsDAO();
-
-  OidcTokenDAO createOidcTokenDAO();
 
   ComponentChangeDetectionConfigurationDAO createComponentChangeDetectionConfigurationDAO();
 

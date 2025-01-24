@@ -5,16 +5,16 @@
  */
 package com.sonatype.insight.brain.security.oauth2;
 
-import java.util.stream.Stream;
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.security.LoginErrorResponseHandler;
+import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -29,17 +29,6 @@ public class JwtAuthenticationFilter
 {
   private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class.getName());
 
-  public static final String ID_TOKEN_COOKIE = "IQ-ID-TOKEN";
-
-  public static final String LOGIN_REQUEST = "rest/user/session";
-
-  private final OidcTokenService oidcTokenService;
-
-  @Inject
-  public JwtAuthenticationFilter(OidcTokenService oidcTokenService) {
-    this.oidcTokenService = oidcTokenService;
-  }
-
   @Override
   protected boolean isLoginAttempt(ServletRequest request, ServletResponse response) {
     if (!SystemConfigurationPropertyFeature.OAUTH2_ENABLED.isEnabled()) {
@@ -48,29 +37,11 @@ public class JwtAuthenticationFilter
       return false;
     }
 
-    if (isLoginRequestWithCookie(request)) {
-      log.debug("Found cookie with the ID Token on a login request, Handling Authentication with OAuth2 Realm");
-      return true;
-    }
-
     return super.isLoginAttempt(request, response);
-  }
-
-  private boolean isLoginRequestWithCookie(final ServletRequest request) {
-    String oidcToken = getOidcToken(request);
-    String path = ((HttpServletRequest) request).getPathInfo();
-    return StringUtils.isNotBlank(oidcToken) && path != null && path.contains(LOGIN_REQUEST);
   }
 
   @Override
   protected AuthenticationToken createToken(ServletRequest request, ServletResponse response) {
-    String oidcToken = pullOidcToken(request);
-
-    if (StringUtils.isNotBlank(oidcToken)) {
-      log.debug("Attempting to execute login with ID Token");
-      return new ShiroJsonWebToken(oidcToken, true);
-    }
-
     String bearerToken = getTokenFromAuthzHeader(request);
     if (StringUtils.isNotBlank(bearerToken)) {
       log.debug("Attempting to execute login with auth header");
@@ -79,16 +50,6 @@ public class JwtAuthenticationFilter
 
     // Create an empty authentication token since there is no Authorization header or session token.
     return createBearerToken("", request);
-  }
-
-  private String getOidcToken(ServletRequest request) {
-    String tokenId = getAuthCookie(request, ID_TOKEN_COOKIE);
-    return oidcTokenService.getOidcToken(tokenId);
-  }
-
-  private String pullOidcToken(ServletRequest request) {
-    String tokenId = getAuthCookie(request, ID_TOKEN_COOKIE);
-    return oidcTokenService.pullOidcToken(tokenId);
   }
 
   private String getTokenFromAuthzHeader(ServletRequest request) {
@@ -104,6 +65,20 @@ public class JwtAuthenticationFilter
   }
 
   @Override
+  protected boolean sendChallenge(final ServletRequest request, final ServletResponse response) {
+    // in case of a failed login attempt, onLoginFailure() already sent the error response
+    if (response.isCommitted()) {
+      return false;
+    }
+    // for anonymous requests, send the auth challenge
+    // NOTE: We specifically avoid super.sendChallenge() as we do not want the WWW-Authenticate header set which would
+    // otherwise trigger browser-native login prompts instead of our own login UI
+    LoginErrorResponseHandler.sendError((HttpServletResponse) response,
+        new ErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
+    return false;
+  }
+
+  @Override
   protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
     if ((isLoginAttempt(request, response)) && !executeLogin(request, response)) {
       sendChallenge(request, response);
@@ -112,24 +87,5 @@ public class JwtAuthenticationFilter
 
     // if this wasn't a failed login attempt, continue filter chain, allowing other filters to do login
     return true;
-  }
-
-  private String getAuthCookie(final ServletRequest request, String authCookie) {
-    if (request instanceof HttpServletRequest) {
-      HttpServletRequest req = (HttpServletRequest) request;
-      Cookie[] cookies = req.getCookies();
-
-      if (cookies == null) {
-        return null;
-      }
-
-      return Stream.of(cookies)
-          .filter(cookie -> authCookie.equalsIgnoreCase(cookie.getName()))
-          .map(Cookie::getValue)
-          .findFirst()
-          .orElse(null);
-    }
-
-    return null;
   }
 }

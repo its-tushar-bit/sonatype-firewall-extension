@@ -5,16 +5,14 @@
  */
 package com.sonatype.insight.brain.security.oauth2;
 
+import java.io.PrintWriter;
 import javax.inject.Inject;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.insight.brain.dataaccess.security.OidcTokenDAO;
-import com.sonatype.insight.brain.db.IdUtil;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.model.security.OidcToken;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -39,22 +37,9 @@ public class JwtAuthenticationFilterTest
   @Inject
   private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-  @Inject
-  private OidcTokenDAO oidcTokenDAO;
-
   @Test
   public void testIsLoginAttempt_FalseWhenOAuthFeatureDisabled() {
     assertThat(jwtAuthenticationFilter.isLoginAttempt(null, null)).isFalse();
-  }
-
-  @Test
-  public void testIsLoginAttempt_FalseWhenOAuthFeatureEnabledAndNoBearerToken() {
-    SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
-
-    final HttpServletRequest request = mock(HttpServletRequest.class);
-    when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn("Basic user:password");
-
-    assertThat(jwtAuthenticationFilter.isLoginAttempt(request, null)).isFalse();
   }
 
   @Test
@@ -65,91 +50,6 @@ public class JwtAuthenticationFilterTest
     when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn("Bearer a-bearer-token");
 
     assertThat(jwtAuthenticationFilter.isLoginAttempt(request, null)).isTrue();
-  }
-
-  @Test
-  public void testIsLoginAttempt_TrueWhenTokenIdIsPresentInCookieAndOidcTokenIsOnDBAndIsLoginRequest() {
-    final String sub = "bob";
-    final String issuer = "https://an-idp.com";
-    final HttpServletRequest request = mock(HttpServletRequest.class);
-
-    SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
-    String token = jwtGenerator.generateJWT(sub, issuer);
-    OidcToken oidcToken = new OidcToken(token);
-    oidcTokenDAO.insert(oidcToken);
-
-    when(request.getCookies()).thenReturn(
-        new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, oidcToken.getId())});
-    when(request.getPathInfo()).thenReturn(JwtAuthenticationFilter.LOGIN_REQUEST);
-
-    assertThat(jwtAuthenticationFilter.isLoginAttempt(request, null)).isTrue();
-    verify(request).getCookies();
-  }
-
-  @Test
-  public void testIsLoginAttempt_FalseWhenTokenIdIsPresentInCookieAndOidcTokenIsNotOnDBAndIsLoginRequest() {
-    final HttpServletRequest request = mock(HttpServletRequest.class);
-
-    SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
-    String tokenId = IdUtil.newUUID();
-
-    when(request.getCookies()).thenReturn(
-        new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, tokenId)});
-    when(request.getPathInfo()).thenReturn(JwtAuthenticationFilter.LOGIN_REQUEST);
-
-    assertThat(jwtAuthenticationFilter.isLoginAttempt(request, null)).isFalse();
-    verify(request).getCookies();
-  }
-
-  @Test
-  public void testIsLoginAttempt_TrueWhenOidcTokenIsPresentInCookieAndIsLoginRequest() {
-    final String sub = "bob";
-    final String issuer = "https://an-idp.com";
-    final HttpServletRequest request = mock(HttpServletRequest.class);
-
-    SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
-    String token = jwtGenerator.generateJWT(sub, issuer);
-
-    when(request.getCookies()).thenReturn(new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, token)});
-    when(request.getPathInfo()).thenReturn(JwtAuthenticationFilter.LOGIN_REQUEST);
-
-    assertThat(jwtAuthenticationFilter.isLoginAttempt(request, null)).isTrue();
-    verify(request).getCookies();
-  }
-
-  @Test
-  public void testIsLoginAttempt_FalseWhenOidcTokenIsPresentInCookieAndIsNotLoginRequest() {
-    final String sub = "bob";
-    final String issuer = "https://an-idp.com";
-    final HttpServletRequest request = mock(HttpServletRequest.class);
-
-    SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
-    String token = jwtGenerator.generateJWT(sub, issuer);
-
-    when(request.getCookies()).thenReturn(new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, token)});
-    when(request.getPathInfo()).thenReturn("not/login/request/path");
-
-    assertThat(jwtAuthenticationFilter.isLoginAttempt(request, null)).isFalse();
-    verify(request).getCookies();
-  }
-
-  @Test
-  public void testIsLoginAttempt_FalseWhenTokenIdIsPresentInCookieAndIsNotLoginRequest() {
-    final String sub = "bob";
-    final String issuer = "https://an-idp.com";
-    final HttpServletRequest request = mock(HttpServletRequest.class);
-
-    SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
-    String token = jwtGenerator.generateJWT(sub, issuer);
-    OidcToken oidcToken = new OidcToken(token);
-    oidcTokenDAO.insert(oidcToken);
-
-    when(request.getCookies()).thenReturn(
-        new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, oidcToken.getId())});
-    when(request.getPathInfo()).thenReturn("not/login/request/path");
-
-    assertThat(jwtAuthenticationFilter.isLoginAttempt(request, null)).isFalse();
-    verify(request).getCookies();
   }
 
   @Test
@@ -167,43 +67,6 @@ public class JwtAuthenticationFilterTest
     ShiroJsonWebToken shiroJsonWebToken = (ShiroJsonWebToken) authenticationToken;
     assertThat(shiroJsonWebToken.getPrincipal().getIssuer()).isEqualTo(issuer);
     assertThat(shiroJsonWebToken.getPrincipal().getSubject()).isEqualTo(subject);
-  }
-
-  @Test
-  public void testCreateToken_ShouldCreateJwtToken_FromOidcToken() {
-    final String subject = "bob";
-    final String issuer = "https://an-idp.com";
-    final HttpServletRequest request = mock(HttpServletRequest.class);
-    String token = jwtGenerator.generateJWT(subject, issuer);
-    when(request.getCookies()).thenReturn(new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, token)});
-
-    AuthenticationToken authenticationToken = jwtAuthenticationFilter.createToken(request, null);
-
-    assertThat(authenticationToken).isInstanceOf(ShiroJsonWebToken.class);
-    ShiroJsonWebToken shiroJsonWebToken = (ShiroJsonWebToken) authenticationToken;
-    assertThat(shiroJsonWebToken.getPrincipal().getIssuer()).isEqualTo(issuer);
-    assertThat(shiroJsonWebToken.getPrincipal().getSubject()).isEqualTo(subject);
-    verify(request).getCookies();
-  }
-
-  @Test
-  public void testCreateToken_ShouldCreateJwtToken_FromTokenId() {
-    final String subject = "bob";
-    final String issuer = "https://an-idp.com";
-    final HttpServletRequest request = mock(HttpServletRequest.class);
-    String token = jwtGenerator.generateJWT(subject, issuer);
-    OidcToken oidcToken = new OidcToken(token);
-    oidcTokenDAO.insert(oidcToken);
-
-    when(request.getCookies()).thenReturn(
-        new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, oidcToken.getId())});
-    AuthenticationToken authenticationToken = jwtAuthenticationFilter.createToken(request, null);
-
-    assertThat(authenticationToken).isInstanceOf(ShiroJsonWebToken.class);
-    ShiroJsonWebToken shiroJsonWebToken = (ShiroJsonWebToken) authenticationToken;
-    assertThat(shiroJsonWebToken.getPrincipal().getIssuer()).isEqualTo(issuer);
-    assertThat(shiroJsonWebToken.getPrincipal().getSubject()).isEqualTo(subject);
-    verify(request).getCookies();
   }
 
   @Test
@@ -242,11 +105,14 @@ public class JwtAuthenticationFilterTest
     final String issuer = "https://an-idp.com";
     final HttpServletRequest request = mock(HttpServletRequest.class);
     final HttpServletResponse response = mock(HttpServletResponse.class);
+    final PrintWriter writer = mock(PrintWriter.class);
 
     String token = jwtGenerator.generateJWT(sub, issuer);
     when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(String.format("Bearer %s", token));
+    when(response.getWriter()).thenReturn(writer);
     doThrow(new AuthenticationException()).when(subject).login(any(AuthenticationToken.class));
 
     assertThat(jwtAuthenticationFilter.onAccessDenied(request, response)).isFalse();
+    verify(writer).print(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS);
   }
 }

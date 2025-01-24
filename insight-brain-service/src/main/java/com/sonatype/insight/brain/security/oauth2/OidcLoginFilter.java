@@ -5,26 +5,20 @@
  */
 package com.sonatype.insight.brain.security.oauth2;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.Map;
-import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpFilter;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
 import com.sonatype.insight.brain.security.LoginErrorResponseHandler;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -48,7 +42,10 @@ import com.nimbusds.openid.connect.sdk.Nonce;
 import com.nimbusds.openid.connect.sdk.OIDCTokenResponse;
 import com.nimbusds.openid.connect.sdk.OIDCTokenResponseParser;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.web.filter.authc.AuthenticationFilter;
 import org.eclipse.jetty.server.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +53,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class OidcLoginFilter
-    extends HttpFilter
+    extends AuthenticationFilter
 {
   private static final Logger log = LoggerFactory.getLogger(OidcLoginFilter.class.getName());
 
@@ -83,27 +80,25 @@ public class OidcLoginFilter
 
   private final BaseUrl baseUrl;
 
-  private final ApiConfigurationService configurationService;
-
-  private final OidcTokenService oidcTokenService;
-
   @Inject
   public OidcLoginFilter(
       BaseUrl baseUrl,
-      OidcConfigurationDAO oidcConfigurationDAO,
-      ApiConfigurationService configurationService,
-      OidcTokenService oidcTokenService)
+      OidcConfigurationDAO oidcConfigurationDAO)
   {
     this.oidcConfigurationDAO = oidcConfigurationDAO;
     this.baseUrl = baseUrl;
-    this.configurationService = configurationService;
-    this.oidcTokenService = oidcTokenService;
   }
 
   @Override
-  protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
-      throws IOException, ServletException
-  {
+  public boolean onPreHandle(ServletRequest request, ServletResponse response, Object mappedValue) throws Exception {
+    if (!SystemConfigurationPropertyFeature.OAUTH2_ENABLED.isEnabled()) {
+      // When OAuth2 feature is disabled we just ignore the token and continue to the next filter
+      // to handle authentication
+      return true;
+    }
+
+    HttpServletRequest req = (HttpServletRequest) request;
+    HttpServletResponse res = (HttpServletResponse) response;
     String path = req.getPathInfo();
     String hash = req.getParameter("hash");
     String encodedHash = StringUtils.isNotBlank(hash) ? URLEncoder.encode(hash, StandardCharsets.UTF_8) : hash;
@@ -117,14 +112,6 @@ public class OidcLoginFilter
         throw new AuthenticationException(OIDC_CONFIGURATION_INVALID);
       }
 
-      // Check if the ID Token exists
-      String oidcToken = getOidcToken(req);
-      if (StringUtils.isNotBlank(oidcToken)) {
-        String redirectUrl = buildRedirectUrl(INDEX_HTML, hash, false);
-        res.sendRedirect(redirectUrl);
-        return;
-      }
-
       // Handles the login request by sending an authentication request
       if (path.contains(OAUTH_LOGIN)) {
         String callbackUrl = buildRedirectUrl(OAUTH_CALLBACK, encodedHash, true);
@@ -135,13 +122,16 @@ public class OidcLoginFilter
       if (path.contains(OAUTH_CALLBACK)) {
         String callbackUrl = buildRedirectUrl(INDEX_HTML, encodedHash, true);
         String redirectUrl = buildRedirectUrl(INDEX_HTML, hash, false);
-        handleCallbackAndSetAuthCookie(req, res, oidcConfiguration, callbackUrl, redirectUrl);
+        handleCallbackAndCompleteAuthentication(req, res, oidcConfiguration, callbackUrl, redirectUrl);
       }
     }
     catch (AuthenticationException e) {
       ErrorResponse errorResponse = new ErrorResponse(Response.SC_UNAUTHORIZED, e.getMessage());
       LoginErrorResponseHandler.sendError(res, errorResponse);
     }
+
+    // Stop the filter chain, no other filter can handle the request
+    return false;
   }
 
   private String buildRedirectUrl(final String path, final String hash, final boolean useQueryParamForHash) {
@@ -164,13 +154,14 @@ public class OidcLoginFilter
   private void sendAuthorizationRequest(
       final HttpServletResponse res, final OidcConfiguration oidcConfiguration,
       final String callbackUrl)
-      throws IOException
   {
     AuthenticationRequest authorizeUrlRequest = buildAuthenticationRequest(oidcConfiguration, callbackUrl);
 
     String authorizeUrl = authorizeUrlRequest.toURI().toString();
 
-    res.sendRedirect(authorizeUrl);
+    // Redirect to the initial URL
+    res.setHeader("Location", authorizeUrl);
+    res.setStatus(HttpServletResponse.SC_FOUND);
   }
 
   private AuthenticationRequest buildAuthenticationRequest(
@@ -217,7 +208,7 @@ public class OidcLoginFilter
     }
   }
 
-  private void handleCallbackAndSetAuthCookie(
+  private void handleCallbackAndCompleteAuthentication(
       final HttpServletRequest req,
       final HttpServletResponse res,
       final OidcConfiguration oidcConfiguration,
@@ -241,15 +232,13 @@ public class OidcLoginFilter
         throw new AuthenticationException(error);
       }
 
-      int idTokenExpirationTime = (int) configurationService.getConfigurationNoAuthz(
-              Collections.singleton(SystemConfigurationProperty.ID_TOKEN_COOKIE_EXPIRATION_TIME_SECONDS))
-          .get(SystemConfigurationProperty.ID_TOKEN_COOKIE_EXPIRATION_TIME_SECONDS);
-
       OIDCTokenResponse successResponse = (OIDCTokenResponse) tokenResponse.toSuccessResponse();
-      String tokenId = oidcTokenService.registerOidcToken(successResponse.getOIDCTokens().getIDTokenString());
-      addSecureCookie(res, JwtAuthenticationFilter.ID_TOKEN_COOKIE, tokenId, idTokenExpirationTime);
+      String idToken = successResponse.getOIDCTokens().getIDTokenString();
+      completeAuthentication(idToken);
 
-      res.sendRedirect(redirectUrl);
+      // Redirect to the initial URL
+      res.setHeader("Location", redirectUrl);
+      res.setStatus(HttpServletResponse.SC_FOUND);
     }
     catch (Exception e) {
       log.error(ERROR_GETTING_TOKENS, e);
@@ -289,31 +278,13 @@ public class OidcLoginFilter
     }
   }
 
-  private void addSecureCookie(final HttpServletResponse res, String id, String token, int maxAge) {
-    Cookie cookie = new Cookie(id, token);
-    cookie.setPath("/");
-    cookie.setSecure(true);
-    cookie.setHttpOnly(true);
-    cookie.setMaxAge(maxAge);
-    res.addCookie(cookie);
+  private void completeAuthentication(final String idToken) {
+    Subject subject = SecurityUtils.getSubject();
+    subject.login(new ShiroJsonWebToken(idToken));
   }
 
-  private String getOidcToken(final HttpServletRequest request) {
-    String tokenId = getCookie(request, JwtAuthenticationFilter.ID_TOKEN_COOKIE);
-    return oidcTokenService.getOidcToken(tokenId);
-  }
-
-  private String getCookie(final HttpServletRequest request, String authCookie) {
-    Cookie[] cookies = request.getCookies();
-
-    if (cookies == null) {
-      return null;
-    }
-
-    return Stream.of(cookies)
-        .filter(cookie -> authCookie.equalsIgnoreCase(cookie.getName()))
-        .map(Cookie::getValue)
-        .findFirst()
-        .orElse(null);
+  @Override
+  protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
+    throw new IllegalStateException();
   }
 }

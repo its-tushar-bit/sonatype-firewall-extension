@@ -126,7 +126,6 @@ import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.OAuth2GroupDAO;
 import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.OAuth2UserGroupDAO;
-import com.sonatype.insight.brain.dataaccess.security.OidcTokenDAO;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
@@ -639,8 +638,6 @@ public class TemporaryEntity
 
   private MalwareDefenseMetricsDAO malwareDefenseMetricsDAO;
 
-  private OidcTokenDAO oidcTokenDAO;
-
   private HistoricalTelemetryStateDAO historicalTelemetryStateDAO;
 
   private Collection<String> persistedUserSessionIds;
@@ -923,7 +920,6 @@ public class TemporaryEntity
       delete(policyViolationConstraintFactsDAO.getAll(), policyViolationConstraintFactsDAO);
       delete(scmUserMappingsDAO.getAll(), scmUserMappingsDAO);
       delete(malwareDefenseMetricsDAO.getAll(), malwareDefenseMetricsDAO);
-      delete(oidcTokenDAO.getAll(), oidcTokenDAO);
       delete(historicalTelemetryStateDAO.getAll(), historicalTelemetryStateDAO);
 
       restoreInitialWaiverReasons();
@@ -5982,7 +5978,6 @@ public class TemporaryEntity
     policyViolationConstraintFactsDAO = daoFactory.createPolicyViolationConstraintFactsDAO();
     scmUserMappingsDAO = daoFactory.createScmUserMappingsDAO();
     malwareDefenseMetricsDAO = daoFactory.createMalwareDefenseMetricsDAO();
-    oidcTokenDAO = daoFactory.createOidcTokenDAO();
     historicalTelemetryStateDAO = daoFactory.createHistoricalTelemetryStateDAO();
   }
 

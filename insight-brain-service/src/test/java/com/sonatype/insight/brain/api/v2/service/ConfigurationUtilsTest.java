@@ -196,7 +196,7 @@ public class ConfigurationUtilsTest
   @Test
   public void testStringToAccessAllowlist_ThrowsException() {
     assertThatExceptionOfType(UncheckedIOException.class).isThrownBy(
-        () -> ConfigurationUtils.stringToAccessAllowlist("invalid_value"))
+            () -> ConfigurationUtils.stringToAccessAllowlist("invalid_value"))
         .withMessageContaining("Invalid json: invalid_value");
   }
 
@@ -204,9 +204,9 @@ public class ConfigurationUtilsTest
   public void testAccessAllowlistToString() {
     String listToString = ConfigurationUtils.accessAllowlistToString(getAllowlistMap(getAccessAllowlist()));
     assertEquals("[{\"ipAddress\":\"192.168.33.10\",\"description\":\"Test IPv4 address\"}," +
-        "{\"ipAddress\":\"8ed5:9e96:1da1:f53b:587e:9f4d:a7f9:817e\",\"description\":\"Test IPv6 address\"}," +
-        "{\"ipAddress\":\"15.177.0.0/18\",\"description\":\"Test IPv4 CIDR\"}," +
-        "{\"ipAddress\":\"2600:1f18:3fff:f800::/56\",\"description\":\"Test IPv6 CIDR\"}]",
+            "{\"ipAddress\":\"8ed5:9e96:1da1:f53b:587e:9f4d:a7f9:817e\",\"description\":\"Test IPv6 address\"}," +
+            "{\"ipAddress\":\"15.177.0.0/18\",\"description\":\"Test IPv4 CIDR\"}," +
+            "{\"ipAddress\":\"2600:1f18:3fff:f800::/56\",\"description\":\"Test IPv6 CIDR\"}]",
         listToString);
   }
 
@@ -226,7 +226,7 @@ public class ConfigurationUtilsTest
     allowlist.add(null);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> ConfigurationUtils.accessAllowlistToString(allowlist))
+            () -> ConfigurationUtils.accessAllowlistToString(allowlist))
         .withMessageContaining("Invalid IP addresses: [null]");
   }
 
@@ -254,7 +254,7 @@ public class ConfigurationUtilsTest
     List<Map<String, String>> allowlistMap = getAllowlistMap(allowlist);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> ConfigurationUtils.accessAllowlistToString(allowlistMap))
+            () -> ConfigurationUtils.accessAllowlistToString(allowlistMap))
         .withMessageContaining("Invalid IP addresses: [192.168.33.999, 192.168.33.1/31, 192.160.1.0/12, " +
             "192.128.1.0/10, 192.1.0.0/8, 2600:1f18:3fff:f800/56, 2600:1f18:3fff:f800::0001/56, null, , null]");
   }
@@ -288,7 +288,7 @@ public class ConfigurationUtilsTest
   @Test
   public void testUserAgentSuffix_NoControlCharactersToBlockHeaderInjection() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-      () -> ConfigurationUtils.userAgentSuffix("\nInjected-Header: Value"))
+            () -> ConfigurationUtils.userAgentSuffix("\nInjected-Header: Value"))
         .withMessageContaining(ConfigurationUtils.INVALID_USER_AGENT_SUFFIX_ERROR_MSG);
   }
 
@@ -327,28 +327,6 @@ public class ConfigurationUtilsTest
   }
 
   @Test
-  public void testIdTokenCookieExpirationToString_WithProperValue() {
-    String result = ConfigurationUtils.idTokenCookieExpirationToString(10);
-    assertEquals("10", result);
-  }
-
-  @Test
-  public void testIdTokenCookieExpirationToString_WithZero() {
-    assertThatThrownBy(() -> {
-      ConfigurationUtils.idTokenCookieExpirationToString(0);
-    }).isInstanceOf(RuntimeException.class)
-        .hasMessageEndingWith("Id token cookie expiration time should be greater than 0.");
-  }
-
-  @Test
-  public void testIdTokenCookieExpirationToString_WithNegativeNumber() {
-    assertThatThrownBy(() -> {
-      ConfigurationUtils.idTokenCookieExpirationToString(-2);
-    }).isInstanceOf(RuntimeException.class)
-        .hasMessageEndingWith("Id token cookie expiration time should be greater than 0.");
-  }
-
-  @Test
   public void testParseRepositoryList() {
     assertThat(ConfigurationUtils.parseRepositoryList("repo1,repo2")).isEqualTo("repo1,repo2");
   }
@@ -356,7 +334,7 @@ public class ConfigurationUtilsTest
   @Test
   public void testParseRepositoryList_invalidCharacters() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> ConfigurationUtils.parseRepositoryList("repo1,repo 2, repo3"))
+            () -> ConfigurationUtils.parseRepositoryList("repo1,repo 2, repo3"))
         .withMessageContaining(String.format(ConfigurationUtils.INVALID_CHARACTERS_ERROR_MSG, "repo 2"));
   }
 
@@ -373,21 +351,21 @@ public class ConfigurationUtilsTest
   @Test
   public void testPurgeScanFiles_InvalidValue() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> ConfigurationUtils.purgeScanFiles("foo-bar"))
-            .withMessageContaining(String.format(ConfigurationUtils.INVALID_PURGE_SCAN_FILES_VALUE_MSG, "foo-bar"));
+            () -> ConfigurationUtils.purgeScanFiles("foo-bar"))
+        .withMessageContaining(String.format(ConfigurationUtils.INVALID_PURGE_SCAN_FILES_VALUE_MSG, "foo-bar"));
   }
 
   @Test
   public void testPurgeScanFiles_nullValue() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> ConfigurationUtils.purgeScanFiles(null))
+            () -> ConfigurationUtils.purgeScanFiles(null))
         .withMessageContaining(String.format(ConfigurationUtils.INVALID_PURGE_SCAN_FILES_VALUE_MSG, (String) null));
   }
 
   @Test
   public void testPurgeScanFiles_withReports() {
     assertThat(ConfigurationUtils.purgeScanFiles(ConfigurationUtils.WITH_REPORTS))
-            .isEqualTo(ConfigurationUtils.WITH_REPORTS);
+        .isEqualTo(ConfigurationUtils.WITH_REPORTS);
   }
 
   @Test

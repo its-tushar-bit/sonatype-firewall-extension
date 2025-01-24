@@ -143,7 +143,7 @@ public class SecurityModule
     manager.createChain("/saml/**", "clientIPAddressFilter, secureCookies, saml");
 
     // OAuth callbacks
-    manager.createChain("/oidc/**", "clientIPAddressFilter, secureCookies, oidcLogin");
+    manager.createChain("/oidc/**", "clientIPAddressFilter, secureCookies, oidc");
 
     // internal REST API
     manager.createChain("/**/*",
@@ -264,7 +264,7 @@ public class SecurityModule
       filterChainManager.addFilter("sessionExpirationCookie", sessionExpirationCookieFilter);
       filterChainManager.addFilter("sonatypeInvalidRequest", invalidRequestFilter);
       filterChainManager.addFilter("authcJWT", jwtAuthenticationFilter);
-      filterChainManager.addFilter("oidcLogin", oidcLoginFilter);
+      filterChainManager.addFilter("oidc", oidcLoginFilter);
       filterChainManager.setGlobalFilters(Collections.singletonList("sonatypeInvalidRequest"));
 
       configureFilterChains(filterChainManager, quarantinedComponentAccessDAO.isAnonymousAccessEnabled());

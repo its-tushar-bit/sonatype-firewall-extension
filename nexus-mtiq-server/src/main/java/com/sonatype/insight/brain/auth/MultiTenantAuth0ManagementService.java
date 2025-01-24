@@ -82,12 +82,21 @@ public class MultiTenantAuth0ManagementService
     }
 
     // We send the reset password email only if user has not accepted the invite
-    boolean sendResetPassword = (Boolean) user.getUserMetadata().get(Auth0ManagementAPI.IS_INVITED_FLAG);
-    if (sendResetPassword) {
+    if (shouldSendResetPassword(user)) {
       sendResetPassword(email, connectionName, connectionId, applicationId, organizationId);
     }
 
     return user;
+  }
+
+  private boolean shouldSendResetPassword(final User user) {
+    if (user == null || user.getUserMetadata() == null) {
+      return true;
+    }
+
+    Boolean isInvited = (Boolean) user.getUserMetadata().get(Auth0ManagementAPI.IS_INVITED_FLAG);
+
+    return isInvited == null || isInvited;
   }
 
   private void sendResetPassword(
@@ -97,10 +106,11 @@ public class MultiTenantAuth0ManagementService
   {
     try {
       getAuthApiLazily(auth0Config).resetPassword(email, connectionName, applicationId, organizationId);
-      log.info("User has been created/updated for applicationId {}", applicationId);
+      log.info("User has been created/updated for applicationId:{}, connectionId: {}, organizationId: {}",
+          applicationId, connectionId, organizationId);
     }
     catch (RuntimeException e) {
-      log.warn("Unable to send reset password");
+      log.error("Unable to send reset password. Error {}", e.getMessage());
       auth0ManagementAPI.deleteUserByEmailFromConnection(email, connectionId);
       throw new RuntimeException(e);
     }

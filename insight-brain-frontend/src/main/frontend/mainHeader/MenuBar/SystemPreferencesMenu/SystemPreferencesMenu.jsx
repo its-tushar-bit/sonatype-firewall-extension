@@ -9,6 +9,7 @@ import PropTypes from 'prop-types';
 import { faCog } from '@fortawesome/pro-solid-svg-icons';
 import { NxTooltip } from '@sonatype/react-shared-components';
 import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectProductLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 
 import { MenuButton, MenuTitle, NavLink } from '../MenuButton/MenuButton';
 
@@ -44,6 +45,7 @@ export const SystemPreferencesMenu = ({
   } = permissions;
 
   const isSbomManager = useSelector(selectIsSbomManager);
+  const productLicense = useSelector(selectProductLicense);
   const firewallPrefix = isFirewallOnlyLicense ? 'firewall' : '';
   const sbomManagerPrefix = isSbomManager ? 'sbomManager' : '';
 
@@ -53,18 +55,23 @@ export const SystemPreferencesMenu = ({
       <NavLink
         stateName="users"
         id="system-configuration-users"
-        showIf={CONFIGURE_SYSTEM && (isSingleTenant || isSsoIdpManagedBySonatype)}
+        showIf={CONFIGURE_SYSTEM && (isSingleTenant || isSsoIdpManagedBySonatype) && productLicense}
         prefix={firewallPrefix}
       >
         Users
       </NavLink>
-      <NavLink stateName="rolesList" id="system-configuration-roles" showIf={VIEW_ROLES} prefix={firewallPrefix}>
+      <NavLink
+        stateName="rolesList"
+        id="system-configuration-roles"
+        showIf={VIEW_ROLES && productLicense}
+        prefix={firewallPrefix}
+      >
         Roles
       </NavLink>
       <NavLink
         stateName="administrators"
         id="system-configuration-administrators"
-        showIf={CONFIGURE_SYSTEM}
+        showIf={CONFIGURE_SYSTEM && productLicense}
         prefix={firewallPrefix}
       >
         Administrators
@@ -72,7 +79,7 @@ export const SystemPreferencesMenu = ({
       <NavLink
         stateName="productlicense"
         id="system-configuration-product-license"
-        showIf={CONFIGURE_SYSTEM && isProductLicenseConfigurationEnabled}
+        showIf={CONFIGURE_SYSTEM && (isProductLicenseConfigurationEnabled || !productLicense)}
         prefix={firewallPrefix}
       >
         Product License

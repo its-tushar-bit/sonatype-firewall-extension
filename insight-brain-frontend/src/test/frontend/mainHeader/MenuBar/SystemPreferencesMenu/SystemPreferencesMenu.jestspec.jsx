@@ -12,6 +12,7 @@ import { fireEvent } from '@testing-library/react';
 describe('SystemPreferencesMenu', () => {
   const permissions = {
     CONFIGURE_SYSTEM: true,
+    VIEW_ROLES: true,
     MANAGE_AUTOMATIC_APPLICATION_CREATION: true,
     MANAGE_AUTOMATIC_SCM_CONFIGURATION: true,
   };
@@ -23,11 +24,54 @@ describe('SystemPreferencesMenu', () => {
     expect(screen.getByText('System Preferences')).toBeInTheDocument();
   });
 
-  it('should display the link "Users" if "CONFIGURE_SYSTEM" and "isSingleTenant" are enabled', () => {
-    render(<SystemPreferencesMenu permissions={permissions} isSingleTenant={true} />);
+  it('should display the link "Users" if "CONFIGURE_SYSTEM" and "isSingleTenant" are enabled, and license is not null', () => {
+    const preloadedState = { productLicense: {} };
+    render(<SystemPreferencesMenu permissions={permissions} isSingleTenant={true} />, { preloadedState });
     const button = screen.getByRole('button');
     fireEvent.click(button);
     expect(screen.getByText('Users')).toBeInTheDocument();
+  });
+
+  it('should display "Roles" if VIEW_ROLES is true and license is not null', () => {
+    const preloadedState = { productLicense: {} };
+    render(<SystemPreferencesMenu permissions={permissions} />, { preloadedState });
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+    expect(screen.queryByText('Roles')).toBeInTheDocument();
+  });
+
+  it('should display "Administrators" if CONFIGURE_SYSTEM is true and license is not null', () => {
+    const preloadedState = { productLicense: {} };
+    render(<SystemPreferencesMenu permissions={permissions} />, { preloadedState });
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+    expect(screen.queryByText('Administrators')).toBeInTheDocument();
+  });
+
+  it('should display "Product License" if CONFIGURE_SYSTEM and isProductLicenseConfigurationEnabled are true', () => {
+    const preloadedState = { productLicense: {} };
+    render(<SystemPreferencesMenu permissions={permissions} isProductLicenseConfigurationEnabled={true} />, {
+      preloadedState,
+    });
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+    expect(screen.queryByText('Product License')).toBeInTheDocument();
+  });
+
+  it('should display "Product License" if CONFIGURE_SYSTEM is true and license is null', () => {
+    render(<SystemPreferencesMenu permissions={permissions} />);
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+    expect(screen.queryByText('Product License')).toBeInTheDocument();
+  });
+
+  it('should not display the links "Users", "Roles", and "Administrators" if license is null', () => {
+    render(<SystemPreferencesMenu permissions={permissions} isSingleTenant={true} />);
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+    expect(screen.queryByText('Users')).toBeNull();
+    expect(screen.queryByText('Roles')).toBeNull();
+    expect(screen.queryByText('Administrators')).toBeNull();
   });
 
   it('should not display the link "Webhooks" if "isWebhooksSupported" is false', () => {

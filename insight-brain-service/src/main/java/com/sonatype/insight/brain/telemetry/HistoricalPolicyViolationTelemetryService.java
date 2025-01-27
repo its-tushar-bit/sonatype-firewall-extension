@@ -60,7 +60,7 @@ public class HistoricalPolicyViolationTelemetryService
    * @return the total number of policy violation entries sent as telemetry
    */
   public long collectAndSendPolicyViolationTelemetry() {
-    if (!canCollectAndSendTelemetry() || !isTelemetryCollectionAllowed()) {
+    if (!canCollectAndSendTelemetry()) {
       return 0;
     }
 
@@ -74,16 +74,6 @@ public class HistoricalPolicyViolationTelemetryService
     }
 
     return getTotalRecordsSent();
-  }
-
-  private boolean isTelemetryCollectionAllowed() {
-    if (policyViolationDAO.isDatabaseEmbedded()) {
-      log.info("Historical policy violation telemetry collection is currently not allowed for embedded databases " +
-          "due to database connection limitations");
-      markSkipped();
-      return false;
-    }
-    return true;
   }
 
   /**

@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.dataaccess.telemetry.HistoricalTelemetryStateD
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -62,8 +61,17 @@ public class HistoricalPolicyViolationTelemetryServiceTest
   }
 
   @Test
+  public void testCollectAndSendPolicyViolationTelemetry_invalidStatus_h2() {
+    testCollectAndSendPolicyViolationTelemetry_invalidStatus();
+  }
+
+  @Test
   @PostgresTest
-  public void testCollectAndSendPolicyViolationTelemetry_invalidStatus() {
+  public void testCollectAndSendPolicyViolationTelemetry_invalidStatus_postgres() {
+    testCollectAndSendPolicyViolationTelemetry_invalidStatus();
+  }
+
+  private void testCollectAndSendPolicyViolationTelemetry_invalidStatus() {
     // given: a persisted policy violation
     var app = tempEntity.newApplicationWithParent();
     var eval = tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "testScanId",
@@ -96,7 +104,6 @@ public class HistoricalPolicyViolationTelemetryServiceTest
   }
 
   @Test
-  @PostgresTest
   public void testCollectAndSendPolicyViolationTelemetry_insufficientMemory() {
     // given: a persisted policy violation
     var app = tempEntity.newApplicationWithParent();
@@ -133,35 +140,17 @@ public class HistoricalPolicyViolationTelemetryServiceTest
   }
 
   @Test
-  public void testCollectAndSendPolicyViolationTelemetry_H2() {
-    // given: a persisted policy violation
-    var app = tempEntity.newApplicationWithParent();
-    var eval = tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scan1", false, false,
-        new Date());
-    var component = ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0");
-    var policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "test-policy");
-    tempEntity.newPolicyViolation(eval, policy, component, "hash", "reason");
-
-    // and given: historical telemetry setup to allow processing
-    final var cutoffDate = new Date();
-    final var batchSize = 2;
-    final var minFreeMemoryMb = 0;
-
-    var state = tempEntity.newHistoricalTelemetryState(TelemetryPurpose.HISTORICAL_POLICY_VIOLATION.name(),
-        cutoffDate, batchSize, minFreeMemoryMb, Status.PENDING.name());
-
-    // when: we try to collect and send telemetry
-    long count = testSubject.collectAndSendPolicyViolationTelemetry();
-
-    // then: processing was skipped
-    assertThat(count).isZero();
-    state = historicalTelemetryStateDAO.getById(state.getId());
-    assertThat(state.getStatus()).isEqualTo(Status.SKIPPED.name());
+  public void testCollectAndSendPolicyViolationTelemetry_h2() {
+    testCollectAndSendPolicyViolationTelemetry();
   }
 
   @Test
   @PostgresTest
-  public void testCollectAndSendPolicyViolationTelemetry() {
+  public void testCollectAndSendPolicyViolationTelemetry_postgres() {
+    testCollectAndSendPolicyViolationTelemetry();
+  }
+
+  private void testCollectAndSendPolicyViolationTelemetry() {
     // given: a persisted security policy violation and a non-security policy violation
     Application app = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(),

@@ -113,6 +113,57 @@ public class HistoricalTelemetryServiceTest
   }
 
   @Test
+  public void isTelemetryCollectionComplete() {
+    // given: some initial telemetry state
+    final var cutoffDate = new Date();
+    final var batchSize = 10;
+    final var minFreeMemoryMb = 0;
+
+    HistoricalTelemetryState telemetryState = tempEntity.newHistoricalTelemetryState(
+        TEST_PURPOSE.name(), cutoffDate, batchSize, minFreeMemoryMb, Status.PENDING.name()
+    );
+
+    for (Status status : Status.values()) {
+      // given: historical telemetry set to the given status
+      telemetryState.setStatus(status.name());
+      historicalTelemetryStateDAO.update(telemetryState);
+
+      // when:
+      boolean isTelemetryCollectionComplete = historicalTelemetryService.isTelemetryCollectionComplete();
+
+      // then:
+      switch (status) {
+        case DONE:
+          assertThat(isTelemetryCollectionComplete).isTrue();
+          break;
+
+        default:
+          assertThat(isTelemetryCollectionComplete).isFalse();
+          break;
+      }
+
+      // and: no side-effects
+      assertThat(telemetryState.getId()).isEqualTo(TEST_PURPOSE.name());
+      assertThat(telemetryState.getCutoffDate()).isEqualTo(cutoffDate);
+      assertThat(telemetryState.getBatchSize()).isEqualTo(batchSize);
+      assertThat(telemetryState.getMinFreeMemoryMb()).isEqualTo(minFreeMemoryMb);
+    }
+  }
+
+  @Test
+  public void isTelemetryCollectionComplete_telemetryStateNull() {
+    // given:
+    var telemetryState = historicalTelemetryStateDAO.getById(TEST_PURPOSE.name());
+    assertThat(telemetryState).isNull();
+
+    // when:
+    boolean isTelemetryCollectionComplete = historicalTelemetryService.isTelemetryCollectionComplete();
+
+    // then:
+    assertThat(isTelemetryCollectionComplete).isFalse();
+  }
+
+  @Test
   public void testInitialize() {
     // given: an initial default telemetry state
     final var testStartTime = new Date();

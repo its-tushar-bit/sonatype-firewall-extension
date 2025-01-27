@@ -465,6 +465,13 @@ public class ApiConfigurationServiceTest
   }
 
   @Test
+  public void testGetConfiguration_HistoricalPolicyViolationTelemetryHour_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR))).containsEntry(
+        SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, null);
+  }
+
+  @Test
   public void testGetConfiguration_DbBackupDirNotSet_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.DB_BACKUP_DIR))).containsEntry(
@@ -1375,6 +1382,29 @@ public class ApiConfigurationServiceTest
         SetUtils.hashSet(SystemConfigurationProperty.POLICY_MONITORING_HOUR))).containsEntry(
         SystemConfigurationProperty.POLICY_MONITORING_HOUR, 22);
     assertMinAndMax(SystemConfigurationProperty.POLICY_MONITORING_HOUR, 0, 23);
+  }
+
+  @Test
+  public void testGetConfiguration_HistoricalPolicyViolationTelemetryHour_Null() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR))).containsEntry(
+        SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, null);
+  }
+
+  @Test
+  public void testSetConfiguration_HistoricalPolicyViolationTelemetryHour() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, 22));
+
+    assertThat(dao.get(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR)).isEqualTo("22");
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR))).containsEntry(
+        SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, 22);
+    assertMinAndMax(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, 0, 23);
   }
 
   @Test

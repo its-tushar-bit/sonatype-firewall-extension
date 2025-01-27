@@ -179,6 +179,16 @@ public abstract class HistoricalTelemetryService
     return getTotalRecordsSent();
   }
 
+  public boolean isTelemetryCollectionComplete() {
+    HistoricalTelemetryState telemetryState = historicalTelemetryStateDAO.getById(telemetryPurpose.name());
+    if (null == telemetryState) {
+      return false;
+    }
+
+    String status = telemetryState.getStatus();
+    return Status.DONE.name().equals(status);
+  }
+
   @SuppressWarnings("checkstyle:MissingSwitchDefault")
   private boolean fetchHistoricalTelemetryStateAndCheckStatus() {
     HistoricalTelemetryState telemetryState = historicalTelemetryStateDAO.getById(telemetryPurpose.name());

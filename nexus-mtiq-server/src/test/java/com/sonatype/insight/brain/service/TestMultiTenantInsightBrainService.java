@@ -18,10 +18,9 @@ import javax.servlet.ServletResponse;
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkProvider;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.common.io.FileCleaner;
-import com.sonatype.insight.brain.db.TenantSizeMetricsJob;
-import com.sonatype.insight.brain.sbom.PendingSbomMetadataCleaner;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatabaseContainer;
+import com.sonatype.insight.brain.db.TenantSizeMetricsJob;
 import com.sonatype.insight.brain.git.DefaultBranchMonitor;
 import com.sonatype.insight.brain.git.PullRequestCommentPurger;
 import com.sonatype.insight.brain.git.PullRequestMonitor;
@@ -39,6 +38,7 @@ import com.sonatype.insight.brain.product.license.FirewallReleaseIntegrityLicens
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.report.ReportPurger;
 import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
+import com.sonatype.insight.brain.sbom.PendingSbomMetadataCleaner;
 import com.sonatype.insight.brain.scan.PersistedScanTicketCleaner;
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.security.TestMultiTenantEncryptionKeyStore;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsPurger;
 import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
+import com.sonatype.insight.brain.telemetry.HistoricalPolicyViolationTelemetryTask;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
@@ -59,11 +60,11 @@ import io.dropwizard.configuration.ConfigurationException;
 import io.dropwizard.configuration.ConfigurationFactory;
 import io.dropwizard.configuration.ConfigurationFactoryFactory;
 import io.dropwizard.configuration.ConfigurationSourceProvider;
-import io.dropwizard.jetty.HttpConnectorFactory;
-import io.dropwizard.jetty.HttpsConnectorFactory;
 import io.dropwizard.core.server.DefaultServerFactory;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
+import io.dropwizard.jetty.HttpConnectorFactory;
+import io.dropwizard.jetty.HttpsConnectorFactory;
 import io.dropwizard.util.Duration;
 import org.eclipse.jetty.server.Server;
 
@@ -339,6 +340,7 @@ public class TestMultiTenantInsightBrainService
     getInstance(SourceControlLoadBalancer.class).disableForTesting = true;
     getInstance(PendingSbomMetadataCleaner.class).disableForTesting = true;
     getInstance(TenantSizeMetricsJob.class).disableForTesting = true;
+    getInstance(HistoricalPolicyViolationTelemetryTask.class).disableForTesting = true;
   }
 
   @Override

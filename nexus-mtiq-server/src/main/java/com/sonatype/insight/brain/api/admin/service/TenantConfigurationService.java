@@ -60,6 +60,7 @@ public class TenantConfigurationService
    */
   static final Set<String> GLOBAL_CONFIGURABLE_PROPERTIES = ImmutableSet.of(
       HDS_URL,
+      HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR,
       SAAS_POLICY_MONITOR_POOL_SIZE,
       SESSION_TIMEOUT_MINUTES,
       SOURCE_CONTROL_IMPORT_POOL_SIZE,

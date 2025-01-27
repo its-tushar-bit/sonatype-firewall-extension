@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.service;
 
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
@@ -19,6 +18,7 @@ import com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeScheduler;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheProvider;
 import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.telemetry.HistoricalPolicyViolationTelemetryTask;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -40,6 +40,9 @@ public class ConfigurationTest
 
   @Mock
   HdsClient hdsClient2;
+
+  @Mock
+  HistoricalPolicyViolationTelemetryTask historicalPolicyViolationTelemetryTask;
 
   @Mock
   ReleaseGraphCacheProvider releaseGraphCacheProvider;
@@ -84,6 +87,11 @@ public class ConfigurationTest
   @Provides
   PolicyMonitorScheduler providesPolicyMonitorScheduler() {
     return policyMonitorScheduler;
+  }
+
+  @Provides
+  HistoricalPolicyViolationTelemetryTask providesHistoricalPolicyViolationTelemetryTask() {
+    return historicalPolicyViolationTelemetryTask;
   }
 
   @Provides
@@ -186,6 +194,22 @@ public class ConfigurationTest
   }
 
   @Test
+  public void testConfigurationChanged_shouldUpdateHistoricalPolicyViolationTelemetryTaskWhenUpdated() {
+    when(taskScheduler.isSchedulerInitialized()).thenReturn(true);
+
+    // given that the configuration has changed
+    configurationService.setConfigurationInDatabaseNoAuthz(
+        SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, 1);
+
+    // check that initially we have not called schedulePolicyMonitoring
+    verify(historicalPolicyViolationTelemetryTask, times(0)).scheduleHistoricalPolicyViolationTelemetryTask();
+
+    configuration.configurationChanged(
+        ImmutableSet.of(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR));
+    verify(historicalPolicyViolationTelemetryTask).scheduleHistoricalPolicyViolationTelemetryTask();
+  }
+
+  @Test
   public void testConfigurationChanged_shouldScheduleAutomaticQuarantineReleaseWhenQuarantineReleaseTimeChanged() {
     when(taskScheduler.isSchedulerInitialized()).thenReturn(true);
 
@@ -261,6 +285,8 @@ public class ConfigurationTest
     configurationService.setConfigurationInDatabaseNoAuthz(
         SystemConfigurationProperty.POLICY_MONITORING_HOUR, 1);
     configurationService.setConfigurationInDatabaseNoAuthz(
+        SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, 12);
+    configurationService.setConfigurationInDatabaseNoAuthz(
         SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 31);
     configurationService.setConfigurationInDatabaseNoAuthz(
         SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, true
@@ -270,6 +296,8 @@ public class ConfigurationTest
 
     // then fire updates
     configuration.configurationChanged(ImmutableSet.of(SystemConfigurationProperty.POLICY_MONITORING_HOUR));
+    configuration.configurationChanged(
+        ImmutableSet.of(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR));
     configuration.configurationChanged(ImmutableSet.of(
         SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES));
     configuration.configurationChanged(ImmutableSet.of(
@@ -278,6 +306,7 @@ public class ConfigurationTest
         SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR));
 
     verify(policyMonitorScheduler, times(0)).schedulePolicyMonitoring();
+    verify(historicalPolicyViolationTelemetryTask, times(0)).scheduleHistoricalPolicyViolationTelemetryTask();
     verify(
         automaticQuarantineReleaseScheduler, times(0)).scheduleAutomaticQuarantineRelease();
     verify(waivedComponentUpgradeScheduler, times(0)).scheduleWaivedComponentUpgradeInspection();

@@ -411,6 +411,7 @@ public abstract class AbstractBaseIntegrationTest
             SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER,
             SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING,
             SystemConfigurationProperty.POLICY_MONITORING_HOUR, SystemConfigurationProperty.DB_BACKUP_DIR,
+            SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR,
             SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
             SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
             SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,

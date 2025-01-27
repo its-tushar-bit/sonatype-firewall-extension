@@ -62,6 +62,8 @@ public class ConfigurationInfo
     entries.put(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING,
         configuration.isEnableDefaultPasswordWarning());
     entries.put(SystemConfigurationProperty.POLICY_MONITORING_HOUR, configuration.getPolicyMonitoringHour());
+    entries.put(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR,
+        configuration.getHistoricalPolicyViolationTelemetryHour());
     entries.put(SystemConfigurationProperty.DB_BACKUP_DIR, configuration.getDbBackupDir());
     entries.put(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, MASK);
     entries.put(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED, configuration.isExternalHyperlinksAllowed());

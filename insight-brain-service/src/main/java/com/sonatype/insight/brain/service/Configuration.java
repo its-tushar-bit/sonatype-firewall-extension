@@ -13,9 +13,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Predicate;
-import java.util.function.Consumer;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheProvider;
 import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.AllowedIp;
+import com.sonatype.insight.brain.telemetry.HistoricalPolicyViolationTelemetryTask;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -96,6 +97,8 @@ public class Configuration
 
   private final Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider;
 
+  private final Provider<HistoricalPolicyViolationTelemetryTask> historicalPolicyViolationTelemetryTaskProvider;
+
   private final Provider<AutomaticQuarantineReleaseScheduler> automaticQuarantineReleaseSchedulerProvider;
 
   private final Provider<WaivedComponentUpgradeScheduler> waivedComponentUpgradeSchedulerProvider;
@@ -118,8 +121,10 @@ public class Configuration
       Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider,
       Provider<AutomaticQuarantineReleaseScheduler> automaticQuarantineReleaseSchedulerProvider,
       Provider<WaivedComponentUpgradeScheduler> waivedComponentUpgradeSchedulerProvider,
+      Provider<HistoricalPolicyViolationTelemetryTask> historicalPolicyViolationTelemetryTaskProvider,
       TenantUtil tenantUtil)
   {
+    this.historicalPolicyViolationTelemetryTaskProvider = historicalPolicyViolationTelemetryTaskProvider;
     this.proxyServerConfigurationDAO = proxyServerConfigurationDAO;
     this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;
     this.jiraConfigurationDAO = jiraConfigurationDAO;
@@ -197,7 +202,9 @@ public class Configuration
         SystemConfigurationProperty.MALWARE_DEFENSE_API,
         SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI,
         SystemConfigurationProperty.SBOM_POLICIES,
-        SystemConfigurationProperty.NEW_SCAN_PROCESS)
+        SystemConfigurationProperty.NEW_SCAN_PROCESS,
+        SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR
+        )
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
     configCache.putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION,
@@ -234,6 +241,7 @@ public class Configuration
       propertyNamesCopy.add(SystemConfigurationProperty.FORCE_BASE_URL);
     }
     Integer currentPolicyMonitoringHour = getPolicyMonitoringHour();
+    Integer currentHistoricalPolicyViolationTelemetryHour = getHistoricalPolicyViolationTelemetryHour();
     Integer currentAutomaticQuarantineReleaseTimeIntervalInMinutes =
         getAutomaticQuarantineReleaseTimeIntervalInMinutes();
     Integer currentWaivedComponentUpgradeInspectionHour = getWaivedComponentUpgradeInspectionHour();
@@ -246,6 +254,7 @@ public class Configuration
       return;
     }
     policyMonitoringHourSchedulePolicyMonitoring(propertyNamesCopy, currentPolicyMonitoringHour);
+    historicalPolicyViolationTelemetryScheduleHour(propertyNamesCopy, currentHistoricalPolicyViolationTelemetryHour);
     automaticQuarantineReleaseTimeIntervalInMinutesScheduleAutomaticQuarantineRelease(propertyNamesCopy,
         currentAutomaticQuarantineReleaseTimeIntervalInMinutes);
     waivedComponentUpgradeInspectionHourScheduleWaivedComponentUpgradeInspection(propertyNamesCopy,
@@ -285,6 +294,15 @@ public class Configuration
             !Objects.equals(currentPolicyMonitoringHour, getPolicyMonitoringHour()),
         prop -> policyMonitorSchedulerProvider.get().schedulePolicyMonitoring()
     );
+  }
+
+  private void historicalPolicyViolationTelemetryScheduleHour(
+      Set<String> propertyNamesCopy, Integer currentHistoricalPolicyViolationTelemetryHour)
+  {
+    filterAndAction(propertyNamesCopy,
+        prop -> prop.equals(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR) &&
+            !Objects.equals(currentHistoricalPolicyViolationTelemetryHour, getHistoricalPolicyViolationTelemetryHour()),
+        prop -> historicalPolicyViolationTelemetryTaskProvider.get().scheduleHistoricalPolicyViolationTelemetryTask());
   }
 
   private void automaticQuarantineReleaseTimeIntervalInMinutesScheduleAutomaticQuarantineRelease(
@@ -546,6 +564,10 @@ public class Configuration
 
   public Integer getPolicyMonitoringHour() {
     return configCache.get(SystemConfigurationProperty.POLICY_MONITORING_HOUR);
+  }
+
+  public Integer getHistoricalPolicyViolationTelemetryHour() {
+    return configCache.get(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR);
   }
 
   public String getDbBackupDir() {

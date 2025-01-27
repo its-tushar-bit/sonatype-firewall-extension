@@ -130,6 +130,9 @@ public class ConfigurationProperty
           (p, s) -> NumberUtils.toInt(s, 0),
           (p, o) -> ConfigurationUtils.integerValueToString(o, SystemConfigurationProperty.POLICY_MONITORING_HOUR,
               0, 23)),
+      new ConfigurationProperty(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, Integer.class,
+          (p, s) -> s == null ? null : NumberUtils.toInt(s, 0), (p, o) -> ConfigurationUtils.integerValueToString(o,
+          SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, 0, 23)),
       new ConfigurationProperty(SystemConfigurationProperty.DB_BACKUP_DIR, String.class,
           (p, s) -> ConfigurationUtils.absolutePathOrRelativeToSonatypeWork(
               ConfigurationUtils.getParameter(p, InsightConfig.class),

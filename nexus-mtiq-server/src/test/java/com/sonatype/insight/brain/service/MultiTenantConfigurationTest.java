@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeScheduler;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheProvider;
 import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.telemetry.HistoricalPolicyViolationTelemetryTask;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -83,6 +84,9 @@ public class MultiTenantConfigurationTest
   Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider;
 
   @Mock
+  Provider<HistoricalPolicyViolationTelemetryTask> historicalPolicyViolationTelemetryTaskProvider;
+
+  @Mock
   Provider<AutomaticQuarantineReleaseScheduler> automaticQuarantineReleaseSchedulerProvider;
 
   @Mock
@@ -102,7 +106,7 @@ public class MultiTenantConfigurationTest
         jiraConfigurationDAO, sourceControlConfigurationDAO, configurationService, hdsClientsProvider,
         asyncEventBusProvider, taskScheduler, defaultBranchMonitorProvider, pullRequestMonitorProvider,
         releaseGraphCacheProviderProvider, policyMonitorSchedulerProvider, automaticQuarantineReleaseSchedulerProvider,
-        waivedComponentUpgradeSchedulerProvider, tenantUtil);
+        waivedComponentUpgradeSchedulerProvider, historicalPolicyViolationTelemetryTaskProvider, tenantUtil);
   }
 
   @Test

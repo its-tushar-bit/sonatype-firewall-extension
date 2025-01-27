@@ -5,15 +5,14 @@
  */
 package com.sonatype.insight.brain.model.configuration;
 
+import com.sonatype.insight.brain.db.migrations.DatabaseMigrator;
+import com.sonatype.insight.model.HasStringId;
+
 import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
-import com.sonatype.insight.brain.db.migrations.DatabaseMigrator;
-import com.sonatype.insight.model.HasStringId;
-
 import org.apache.openjpa.persistence.DataCache;
 
 /**
@@ -154,6 +153,8 @@ public class SystemConfigurationProperty
   public static final String ENABLE_DEFAULT_PASSWORD_WARNING = "enableDefaultPasswordWarning";
 
   public static final String POLICY_MONITORING_HOUR = "policyMonitoringHour";
+
+  public static final String HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR = "historicalPolicyViolationTelemetryHour";
 
   public static final String DB_BACKUP_DIR = "dbBackupDir";
 

@@ -69,6 +69,8 @@ public class ConfigurationInfoTest
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING,
         String.valueOf(false));
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.POLICY_MONITORING_HOUR, String.valueOf(22));
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR,
+        String.valueOf(12));
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.DB_BACKUP_DIR, "sonatype-work");
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
         "test-passphrase");
@@ -92,7 +94,7 @@ public class ConfigurationInfoTest
     tempEntity.newSystemConfigurationProperty(
         SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS, "48");
     tempEntity.newSystemConfigurationProperty(
-            SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, "false");
+        SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, "false");
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST,
         "[\"user1\",\"user2\"]");
 
@@ -132,7 +134,8 @@ public class ConfigurationInfoTest
         SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
         SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS,
         SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED,
-        SystemConfigurationProperty.API_ACCESS_ALLOW_LIST
+        SystemConfigurationProperty.API_ACCESS_ALLOW_LIST,
+        SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR
     ));
 
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());
@@ -162,6 +165,8 @@ public class ConfigurationInfoTest
         .asText()).isEqualTo("true");
     assertThat(configNode.get(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING).asText()).isEqualTo("false");
     assertThat(configNode.get(SystemConfigurationProperty.POLICY_MONITORING_HOUR).asText()).isEqualTo("22");
+    assertThat(configNode.get(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR).asText())
+        .isEqualTo("12");
     assertThat(configNode.get(SystemConfigurationProperty.DB_BACKUP_DIR).asText()).endsWith("sonatype-work");
     assertThat(configNode.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE).asText()).isEqualTo("****");
     assertThat(configNode.get(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED).asText()).isEqualTo("false");
@@ -184,7 +189,7 @@ public class ConfigurationInfoTest
     assertThat(configNode.get(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS)
         .asText()).isEqualTo("48");
     assertThat(configNode.get(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED).asText()).isEqualTo(
-            "false");
+        "false");
     assertThat(configNode.get(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST).asText()).isEqualTo(
         "[\"user1\",\"user2\"]");
   }
@@ -218,6 +223,8 @@ public class ConfigurationInfoTest
         .asText()).isEqualTo("false");
     assertThat(configNode.get(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING).asText()).isEqualTo("true");
     assertThat(configNode.get(SystemConfigurationProperty.POLICY_MONITORING_HOUR).asText()).isEqualTo("0");
+    assertThat(configNode.get(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR).asText())
+        .isEqualTo("null");
     assertThat(configNode.get(SystemConfigurationProperty.DB_BACKUP_DIR).asText()).endsWith("db-backup");
     assertThat(configNode.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE).asText()).isEqualTo("****");
     assertThat(configNode.get(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED).asText()).isEqualTo("true");
@@ -237,7 +244,7 @@ public class ConfigurationInfoTest
     assertThat(configNode.get(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS)
         .asText()).isEqualTo("12");
     assertThat(configNode.get(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED)
-            .asText()).isEqualTo("true");
+        .asText()).isEqualTo("true");
     assertThat(configNode.get(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST).isEmpty()).isTrue();
   }
 

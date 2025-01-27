@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
-import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -23,6 +22,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -148,41 +149,43 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testConsumePolicyViolationsSinceDate() throws SQLException {
+  public void testConsumePolicyViolationsSinceDate() throws Exception {
     // given: a number of policy violations with various dates and resolutions
     final Date cutoffDate = DateUtils.addDays(new Date(), -10);
-    createPolicyViolations(cutoffDate, new Object[][] {            // expected in results?
-        { OPEN, CREATED_BEFORE_CUTOFF, UNRESOLVED },               //   yes
-        { OPEN, CREATED_AFTER_CUTOFF, UNRESOLVED },                //   yes
-        { FIXED, CREATED_BEFORE_CUTOFF, RESOLVED_AFTER_CUTOFF },   //   yes
-        { FIXED, CREATED_AFTER_CUTOFF, RESOLVED_AFTER_CUTOFF },    //   yes
-        { FIXED, CREATED_BEFORE_CUTOFF, RESOLVED_BEFORE_CUTOFF },  //   no - resolved before
-        { WAIVED, CREATED_BEFORE_CUTOFF, RESOLVED_AFTER_CUTOFF },  //   yes
-        { WAIVED, CREATED_AFTER_CUTOFF, RESOLVED_AFTER_CUTOFF },   //   yes
-        { WAIVED, CREATED_BEFORE_CUTOFF, RESOLVED_BEFORE_CUTOFF }, //   no - resolved before
-        { LEGACY, CREATED_BEFORE_CUTOFF, RESOLVED_AFTER_CUTOFF },  //   yes
-        { LEGACY, CREATED_AFTER_CUTOFF, RESOLVED_AFTER_CUTOFF },   //   yes
-        { LEGACY, CREATED_BEFORE_CUTOFF, RESOLVED_BEFORE_CUTOFF }, //   no - resolved before
-    });
+    List<PolicyViolation> persistedPolicyViolations = createPolicyViolations(cutoffDate,
+        new Object[][]{
+            {OPEN, CREATED_BEFORE_CUTOFF, UNRESOLVED}, // yes
+            {OPEN, CREATED_AFTER_CUTOFF, UNRESOLVED}, // yes
+            {FIXED, CREATED_BEFORE_CUTOFF, RESOLVED_AFTER_CUTOFF}, // yes
+            {FIXED, CREATED_AFTER_CUTOFF, RESOLVED_AFTER_CUTOFF}, // yes
+            {FIXED, CREATED_BEFORE_CUTOFF, RESOLVED_BEFORE_CUTOFF}, // no - resolved before
+            {WAIVED, CREATED_BEFORE_CUTOFF, RESOLVED_AFTER_CUTOFF}, // yes
+            {WAIVED, CREATED_AFTER_CUTOFF, RESOLVED_AFTER_CUTOFF}, // yes
+            {WAIVED, CREATED_BEFORE_CUTOFF, RESOLVED_BEFORE_CUTOFF}, // no - resolved before
+            {LEGACY, CREATED_BEFORE_CUTOFF, RESOLVED_AFTER_CUTOFF}, // yes
+            {LEGACY, CREATED_AFTER_CUTOFF, RESOLVED_AFTER_CUTOFF}, // yes
+            {LEGACY, CREATED_BEFORE_CUTOFF, RESOLVED_BEFORE_CUTOFF}, // no - resolved before
+        });
+
     final var batchSize = 5;
 
     // when: stream the historical violations
-    var violations = new ArrayList<PolicyViolation>();
+    var consumedPolicyViolations = new ArrayList<PolicyViolation>();
     AtomicBoolean terminalViolationSent = new AtomicBoolean(false);
     dao.consumePolicyViolationsSinceDate(cutoffDate, batchSize, policyViolation -> {
       if (null == policyViolation) {
         terminalViolationSent.set(true);
       }
       else {
-        violations.add(policyViolation);
+        consumedPolicyViolations.add(policyViolation);
       }
     });
 
     // then: only the violations that are either still open or were opened or resolved after the cutoff date are
-    //       included
+    // included
     assertThat(terminalViolationSent.get()).isTrue();
-    assertThat(violations).hasSize(8);
-    for (PolicyViolation violation : violations) {
+    assertThat(consumedPolicyViolations).hasSize(8);
+    for (PolicyViolation violation : consumedPolicyViolations) {
       var openedBefore = violation.getOpenTime().before(cutoffDate) || violation.getOpenTime().equals(cutoffDate);
       var openedAfter = !openedBefore;
       var noFix = violation.getFixTime() == null;
@@ -192,10 +195,118 @@ public class PolicyViolationDAOTest
       var noLegacy = violation.getLegacyViolationTime() == null;
       var legacyAfter = !noLegacy && violation.getLegacyViolationTime().after(cutoffDate);
 
-      var criteria = (openedBefore && noFix && noWaiver && noLegacy)
-          || openedAfter || fixedAfter || waivedAfter || legacyAfter;
+      var criteria =
+          (openedBefore && noFix && noWaiver && noLegacy) || openedAfter || fixedAfter || waivedAfter || legacyAfter;
       assertThat(criteria).isTrue();
     }
+
+    // and the policy violations are identical to persisted policy violations
+    // and in the expected order
+    assertThat(consumedPolicyViolations.get(0)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .ignoringFields("deprecatedConstraintFactsJson").isEqualTo(persistedPolicyViolations.get(0));
+    assertThat(consumedPolicyViolations.get(1)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .ignoringFields("deprecatedConstraintFactsJson").isEqualTo(persistedPolicyViolations.get(9));
+    assertThat(consumedPolicyViolations.get(2)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .ignoringFields("deprecatedConstraintFactsJson").isEqualTo(persistedPolicyViolations.get(1));
+    assertThat(consumedPolicyViolations.get(3)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .ignoringFields("deprecatedConstraintFactsJson").isEqualTo(persistedPolicyViolations.get(2));
+    assertThat(consumedPolicyViolations.get(4)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .ignoringFields("deprecatedConstraintFactsJson").isEqualTo(persistedPolicyViolations.get(3));
+    assertThat(consumedPolicyViolations.get(5)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .ignoringFields("deprecatedConstraintFactsJson").isEqualTo(persistedPolicyViolations.get(5));
+    assertThat(consumedPolicyViolations.get(6)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .ignoringFields("deprecatedConstraintFactsJson").isEqualTo(persistedPolicyViolations.get(6));
+    assertThat(consumedPolicyViolations.get(7)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .ignoringFields("deprecatedConstraintFactsJson").isEqualTo(persistedPolicyViolations.get(8));
+  }
+
+  @Test
+  public void testConsumePolicyViolationsSinceDate_PolicyViolationWithoutEmbeddedConstraintFacts() throws Exception {
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), StageTypes.BUILD.getId(), "testScanId");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    // Sanity checks
+    assertThat(policyViolation.getConstraintFactsId()).isNotNull();
+    assertThat(policyViolation.getDeprecatedConstraintFactsJson()).isNull();
+
+    int batchSize = 5;
+    Date cutoffDate = DateUtils.addMilliseconds(new Date(), 1);
+
+    // when: stream the historical violations
+    List<PolicyViolation> violations = new ArrayList<>();
+    AtomicBoolean terminalViolationSent = new AtomicBoolean(false);
+    dao.consumePolicyViolationsSinceDate(cutoffDate, batchSize, consumedPolicyViolation -> {
+      if (null == consumedPolicyViolation) {
+        terminalViolationSent.set(true);
+      }
+      else {
+        violations.add(consumedPolicyViolation);
+      }
+    });
+
+    // then: the consumed policy violation is identical to the persisted policy violation
+    assertThat(terminalViolationSent.get()).isTrue();
+    assertThat(violations).hasSize(1);
+    PolicyViolation consumedPolicyViolation = violations.get(0);
+    assertThat(consumedPolicyViolation).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .ignoringFields("deprecatedConstraintFactsJson")
+        .isEqualTo(policyViolation);
+  }
+
+  private PolicyViolation createPolicyViolationWithEmbeddedConstraintFacts(
+      PolicyEvaluation policyEvaluation,
+      Policy policy)
+  {
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    dao.loadConstraintFacts(List.of(policyViolation));
+    // Sanity checks
+    assertThat(policyViolation.getConstraintFactsId()).isNotNull();
+    assertThat(policyViolation.getDeprecatedConstraintFactsJson()).isNull();
+
+    String sQuery = """
+        UPDATE PolicyViolation entity
+          SET entity.constraintFactsId = null, entity.deprecatedConstraintFactsJson=?2
+          WHERE entity.id=?1""";
+    dao.createQuery(sQuery, policyViolation.getId(), policyViolation.getConstraintFactsJson()).executeUpdate();
+    constraintFactsDAO.delete(constraintFactsDAO.getById(policyViolation.getConstraintFactsId()));
+
+    policyViolation = dao.getById(policyViolation.getId());
+    assertThat(policyViolation.getConstraintFactsId()).isNull();
+    assertThat(policyViolation.getDeprecatedConstraintFactsJson()).isNotNull();
+
+    return policyViolation;
+  }
+
+  @Test
+  public void testConsumePolicyViolationsSinceDate_PolicyViolationWithEmbeddedConstraintFacts() throws Exception {
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), StageTypes.BUILD.getId(), "testScanId");
+    PolicyViolation policyViolation = createPolicyViolationWithEmbeddedConstraintFacts(policyEvaluation, policy);
+
+    int batchSize = 5;
+    Date cutoffDate = DateUtils.addMilliseconds(new Date(), 1);
+
+    // when: stream the historical violations
+    List<PolicyViolation> violations = new ArrayList<>();
+    AtomicBoolean terminalViolationSent = new AtomicBoolean(false);
+    dao.consumePolicyViolationsSinceDate(cutoffDate, batchSize, consumedPolicyViolation -> {
+      if (null == consumedPolicyViolation) {
+        terminalViolationSent.set(true);
+      }
+      else {
+        violations.add(consumedPolicyViolation);
+      }
+    });
+
+    // then: the consumed policy violation is identical to the persisted policy violation
+    assertThat(terminalViolationSent.get()).isTrue();
+    assertThat(violations).hasSize(1);
+    PolicyViolation consumedPolicyViolation = violations.get(0);
+    assertThat(consumedPolicyViolation).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .ignoringFields("deprecatedConstraintFactsJson")
+        .isEqualTo(policyViolation);
   }
 
   @Test
@@ -1721,10 +1832,11 @@ public class PolicyViolationDAOTest
         .doesNotContain(unfixedUnwaivedViolation.getId());
   }
 
-  private void createPolicyViolations(Date cutoffDate, Object[][] data) {
+  private List<PolicyViolation> createPolicyViolations(Date cutoffDate, Object[][] data) {
     final Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation;
 
+    List<PolicyViolation> policyViolations = new ArrayList<>();
     for (PolicyViolationDefinition policyViolationDef : toPolicyViolations(data)) {
       Date policyEvalDate = switch (policyViolationDef.created) {
         case CREATED_BEFORE_CUTOFF -> DateUtils.addDays(cutoffDate, -1);
@@ -1751,7 +1863,10 @@ public class PolicyViolationDAOTest
         }
         dao.update(policyViolation);
       }
+      policyViolations.add(policyViolation);
     }
+
+    return policyViolations;
   }
 
   private List<PolicyViolationDefinition> toPolicyViolations(Object[][] data) {

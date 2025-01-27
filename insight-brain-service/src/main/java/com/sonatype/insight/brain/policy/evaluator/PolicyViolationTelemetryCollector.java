@@ -5,26 +5,19 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.telemetry.PolicyViolationTelemetryBuilder;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
-import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -32,10 +25,6 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
 
 public class PolicyViolationTelemetryCollector
 {
@@ -95,12 +84,6 @@ public class PolicyViolationTelemetryCollector
   static final String AUTO_POLICY_WAIVER_ID = "auto_policy_waiver_id";
 
   static final String FIX_BY_VERSION_CHANGE = "fix_by_version_change";
-
-  static final String CVE_NUMBER = "cve_number";
-
-  static final String CVSS_SCORE = "cvss_score";
-
-  private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final PolicyWaiverDAO policyWaiverDAO;
 
@@ -297,7 +280,6 @@ public class PolicyViolationTelemetryCollector
         .build();
 
     addComponentMetadata(telemetryData, policyViolation);
-    addCVMetadata(telemetryData, policyViolation);
     addDependencyInfo(telemetryData, component);
 
     return telemetryData;
@@ -305,37 +287,6 @@ public class PolicyViolationTelemetryCollector
 
   private long computeTimeBetween(Date date1, Date date2) {
     return Math.abs(date1.getTime() - date2.getTime());
-  }
-
-  private void addCVMetadata(TelemetryData telemetryData, PolicyViolation policyViolation) {
-    Optional.ofNullable(policyViolation.getConstraintFacts())
-        .orElse(Collections.emptyList())
-        .stream()
-        .filter(Objects::nonNull)
-        .flatMap(constraintFact -> Optional.ofNullable(constraintFact.getConditionFacts())
-            .orElse(Collections.emptyList())
-            .stream()
-            .filter(Objects::nonNull))
-        .filter(conditionFact -> {
-          TriggerReference triggerReference = conditionFact.getReference();
-          return triggerReference != null && triggerReference.getType() == SECURITY_VULNERABILITY_REFID;
-        })
-        .findFirst()
-        .ifPresent(conditionFact -> {
-          TriggerReference triggerReference = conditionFact.getReference();
-          String cve = triggerReference.getValue();
-          telemetryData.put(CVE_NUMBER, cve);
-
-          String triggerJson = conditionFact.getTriggerJson();
-          try {
-            ConditionTrigger conditionTrigger = JsonUtils.parse(triggerJson, ConditionTrigger.class);
-            Map<String, Object> trigger = (Map<String, Object>) conditionTrigger.getTrigger();
-            telemetryData.put(CVSS_SCORE, trigger.get("severity"));
-          }
-          catch (IOException e) {
-            log.error("An error occurred while trying to read the cvss score related to the policy violation", e);
-          }
-        });
   }
 
   private String calculateFixByVersionChange(List<Component> components, PolicyViolation oldPolicyViolation) {

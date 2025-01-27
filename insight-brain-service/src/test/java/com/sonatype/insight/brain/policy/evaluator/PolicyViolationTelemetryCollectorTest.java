@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.PolicyViolationTelemetryBuilder;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -455,8 +456,6 @@ public class PolicyViolationTelemetryCollectorTest
       policyViolation.setApplicationId(policyEvaluation.getApplicationId());
       policyViolation.setStageTypeId(policyEvaluation.getStageTypeId());
       policyViolation.setOpenTime(policyEvaluation.getTime());
-      cveIdentifier = "CVE-123";
-      cvssScore = 7.5;
       policyViolation.setConstraintFacts(
           ConditionGenerator.createConstraintFactsWithInjectedCondition(cveIdentifier, cvssScore, 1));
     }
@@ -683,8 +682,8 @@ public class PolicyViolationTelemetryCollectorTest
       assertThat(attributes).doesNotContainEntry(APPLICATION_ID, policyEvaluation.getApplicationId());
 
       assertThat(attributes).containsEntry(COUNT, count);
-      validateMatchesOrNotExists(attributes, CVE_NUMBER, cveIdentifier);
-      validateMatchesOrNotExists(attributes, CVSS_SCORE, cvssScore);
+      validateMatchesOrNotExists(attributes, PolicyViolationTelemetryBuilder.CVE_NUMBER, cveIdentifier);
+      validateMatchesOrNotExists(attributes, PolicyViolationTelemetryBuilder.CVSS_SCORE, cvssScore);
       assertThat(attributes).containsEntry(IS_SCM_ENABLED, isScmEnabled);
       assertThat(attributes).containsEntry(OPEN_TIME, getOpenTime());
       assertThat(attributes).containsEntry(POLICY_VIOLATION_ID, policyViolation.getId());
@@ -785,7 +784,7 @@ public class PolicyViolationTelemetryCollectorTest
      */
     static List<ConstraintFact> createConstraintFactsWithInjectedCondition(
         String cveNumber,
-        double cvssScore,
+        Double cvssScore,
         int cvIteration)
     {
       List<ConstraintFact> constraintFacts = new ArrayList<>();
@@ -796,7 +795,7 @@ public class PolicyViolationTelemetryCollectorTest
         for (int j = 0; j < 3; j++) {
           ConditionFact conditionFact;
 
-          if (cvIteration == i && cvIteration == j) {
+          if (cveNumber != null && cvssScore != null && cvIteration == i && cvIteration == j) {
             conditionFact = createConditionFactWithCVMetadata(j, cveNumber, cvssScore);
           }
           else {
@@ -813,7 +812,7 @@ public class PolicyViolationTelemetryCollectorTest
       TriggerReference triggerReference =
           new TriggerReference(TriggerReference.Type.SECURITY_VULNERABILITY_REFID, cveNumber);
       String triggerJson =
-          String.format("{\"conditionIndex\":1,\"trigger\":{\"refId\":\"CVE-2013-7285\",\"severity\":%f}}", cvssScore);
+          String.format("{\"conditionIndex\":1,\"trigger\":{\"refId\":\"%s\",\"severity\":%f}}", cveNumber, cvssScore);
       ConditionFact conditionFact =
           new ConditionFact(LicenseConditionType.ID, j, "summary", "reason", triggerReference);
       conditionFact.setTriggerJson(triggerJson);

@@ -5,17 +5,27 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import java.io.IOException;
 import java.util.Date;
+import java.util.Map;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class PolicyViolationTelemetryBuilder
 {
+  private static final Logger log = LoggerFactory.getLogger(PolicyViolationTelemetryBuilder.class);
+
   static final String APPLICATION_ID = "application_id";
 
   static final String COUNT = "count";
@@ -52,9 +62,9 @@ public class PolicyViolationTelemetryBuilder
 
   static final String LEGACY_VIOLATION_TIME = "legacy_violation_time";
 
-  static final String CVE_NUMBER = "cve_number";
+  public static final String CVE_NUMBER = "cve_number";
 
-  static final String CVSS_SCORE = "cvss_score";
+  public static final String CVSS_SCORE = "cvss_score";
 
   private final PolicyViolation policyViolation;
 
@@ -123,7 +133,37 @@ public class PolicyViolationTelemetryBuilder
         .put(THREAT_LEVEL, policyViolation.getThreatLevel());
 
     telemetryUtils.includeRealApplicationId(telemetryData.getAttributes(), policyViolation.getApplicationId());
+    addSecurityVulnerabilityMetadataIfNeeded(telemetryData, policyViolation);
 
     return telemetryData;
+  }
+
+  private static void addSecurityVulnerabilityMetadataIfNeeded(
+      TelemetryData telemetryData,
+      PolicyViolation policyViolation)
+  {
+    if (!PolicyThreatCategory.SECURITY.equals(policyViolation.getThreatCategory())) {
+      return;
+    }
+
+    policyViolation.getConstraintFacts().stream().flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
+        .forEach(conditionFact -> {
+          String triggerJson = conditionFact.getTriggerJson();
+          if (triggerJson != null) {
+            try {
+              ConditionTrigger conditionTrigger = JsonUtils.parse(triggerJson, ConditionTrigger.class);
+              Map<String, Object> trigger = (Map<String, Object>) conditionTrigger.getTrigger();
+              String refId = (String) trigger.get("refId");
+              Object severity = trigger.get("severity");
+              if (refId != null && severity != null) {
+                telemetryData.put(CVE_NUMBER, refId);
+                telemetryData.put(CVSS_SCORE, severity);
+              }
+            }
+            catch (IOException e) {
+              log.error("An error occurred while trying to read the cvss score related to the policy violation", e);
+            }
+          }
+        });
   }
 }

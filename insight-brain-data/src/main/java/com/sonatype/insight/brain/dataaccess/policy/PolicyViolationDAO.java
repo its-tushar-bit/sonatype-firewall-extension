@@ -43,6 +43,8 @@ import com.sonatype.insight.brain.utils.ExecutorThreadPools.ThreadPools;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.util.stream.Collectors.toList;
 
@@ -54,6 +56,8 @@ import static java.util.stream.Collectors.toList;
 public class PolicyViolationDAO
     extends AbstractPolicyViolationDAO<PolicyViolation>
 {
+  private static final Logger log = LoggerFactory.getLogger(PolicyViolationDAO.class);
+
   static final int DELETE_BATCH_SIZE = 100;
 
   @Inject
@@ -568,90 +572,133 @@ public class PolicyViolationDAO
    * created, waived, fixed or resolved as legacy since the cutoff date.  IOW, we ignore any policy violations
    * that were resolved in some fashion before the cutoff date.
    *
-   * Using a native query as the JPA approach using Query.stream() actually fetches the entire result as a list
-   * and then streams the list, which would defeat the purpose of trying to limit memory footprint.
-   *
    * @param cutoffDate the cutoff date
-   * @param fetchSize  hint to jdbc for the number of rows to get when more are needed
-   * @param consumer   the consumer to accept the policy violations
+   * @param batchSize number of rows to process in a batch
+   * @param consumer the consumer to accept the policy violations
    */
-  public void consumePolicyViolationsSinceDate(Date cutoffDate, int fetchSize, Consumer<PolicyViolation> consumer)
+  public void consumePolicyViolationsSinceDate(Date cutoffDate, int batchSize, Consumer<PolicyViolation> consumer)
       throws SQLException
   {
+    log.debug("Starting to consume policy violations (cutoffDate={}, batchSize={}).", cutoffDate, batchSize);
+
+    long start = System.currentTimeMillis();
+
+    String databaseSchema = getDatabaseSchema();
+    // Since (Repository)PolicyViolationConstraintFactsJsonAsyncDbMigration runs async, there is a time window where the
+    // system has to be able to use migrated and unmigrated policy violations.
+    // This means unmigrated policy violations contain their constraint facts in the policy_violation record and
+    // migrated policy violations in the policy_violation_constraint_facts table.
     String sQuery = String.format("""
-      SELECT policy_violation_id, application_id, policy_id, stage_type_id, open_time, fix_time, waive_time,
-        legacy_violation_time, threat_level, threat_category, component_id_format, component_id_coordinates_json
-      FROM %s.policy_violation
-      WHERE (open_time <= ? AND fix_time IS NULL AND waive_time IS NULL AND legacy_violation_time IS NULL)
-        OR open_time > ?
-        OR fix_time > ?
-        OR waive_time > ?
-        OR legacy_violation_time > ?
-      ORDER BY open_time ASC, policy_violation_id ASC
-        """, getDatabaseSchema());
+        SELECT
+          pv.policy_violation_id,
+          pv.application_id,
+          pv.policy_id,
+          pv.policy_name,
+          pv.stage_type_id,
+          pv.open_time,
+          pv.fix_time,
+          pv.waive_time,
+          pv.legacy_violation_time,
+          pv.threat_level,
+          pv.threat_category,
+          pv.component_id_format,
+          pv.component_id_coordinates_json,
+          pv.hash,
+          pv.filename,
+          pv.constraint_facts_id,
+          coalesce(cf.constraint_facts_json, pv.constraint_facts_json) constraint_facts_json
+        FROM %s.policy_violation pv
+          LEFT JOIN %s.policy_violation_constraint_facts cf
+          ON (pv.constraint_facts_id = cf.policy_violation_constraint_facts_id)
+        WHERE
+          pv.policy_violation_id > ?
+          AND (
+            (pv.fix_time IS NULL AND pv.waive_time IS NULL AND pv.legacy_violation_time IS NULL)
+            OR pv.open_time > ?
+            OR pv.fix_time > ?
+            OR pv.waive_time > ?
+            OR pv.legacy_violation_time > ?
+          )
+        ORDER BY pv.policy_violation_id ASC
+        LIMIT ?
+        """, databaseSchema, databaseSchema);
 
-    Connection connection = null;
-    PreparedStatement statement = null;
+    // Empty string is smaller than any string
+    String lastProcessedViolationId = "";
+    int processedRecordCount = 0;
+    boolean inProgress = true;
+    while (inProgress) {
+      inProgress = false;
+      List<PolicyViolation> policyViolations = new ArrayList<>();
+      try (Connection connection = getDataStore().getDataSource().getConnection();
+          PreparedStatement statement = connection.prepareStatement(sQuery)) {
+        statement.setString(1, lastProcessedViolationId);
+        statement.setDate(2, new java.sql.Date(cutoffDate.getTime()));
+        statement.setDate(3, new java.sql.Date(cutoffDate.getTime()));
+        statement.setDate(4, new java.sql.Date(cutoffDate.getTime()));
+        statement.setDate(5, new java.sql.Date(cutoffDate.getTime()));
+        statement.setInt(6, batchSize);
 
-    try {
-      connection = getDataStore().getDataSource().getConnection();
-      statement = connection.prepareStatement(sQuery);
-      connection.setReadOnly(true);
+        try (ResultSet resultSet = statement.executeQuery()) {
+          while (resultSet.next()) {
+            inProgress = true;
+            PolicyViolation policyViolation = new PolicyViolation();
+            lastProcessedViolationId = resultSet.getString("policy_violation_id");
+            policyViolation.setId(lastProcessedViolationId);
+            policyViolation.setApplicationId(resultSet.getString("application_id"));
+            policyViolation.setPolicyId(resultSet.getString("policy_id"));
+            policyViolation.setPolicyName(resultSet.getString("policy_name"));
+            policyViolation.setStageTypeId(resultSet.getString("stage_type_id"));
+            policyViolation.setOpenTime(resultSet.getTimestamp("open_time"));
+            policyViolation.setFixTime(resultSet.getTimestamp("fix_time"));
+            policyViolation.setWaiveTime(resultSet.getTimestamp("waive_time"));
+            policyViolation.setLegacyViolationTime(resultSet.getTimestamp("legacy_violation_time"));
+            policyViolation.setThreatLevel(resultSet.getInt("threat_level"));
 
-      statement.setFetchSize(fetchSize);
-      statement.setDate(1, new java.sql.Date(cutoffDate.getTime()));
-      statement.setDate(2, new java.sql.Date(cutoffDate.getTime()));
-      statement.setDate(3, new java.sql.Date(cutoffDate.getTime()));
-      statement.setDate(4, new java.sql.Date(cutoffDate.getTime()));
-      statement.setDate(5, new java.sql.Date(cutoffDate.getTime()));
+            String threatCategory = resultSet.getString("threat_category");
+            if (StringUtils.isNotBlank(threatCategory)) {
+              policyViolation.setThreatCategory(
+                  PolicyThreatCategory.getByName(resultSet.getString("threat_category").toLowerCase()));
+            }
 
-      try (ResultSet resultSet = statement.executeQuery()) {
-        while (resultSet.next()) {
-          PolicyViolation policyViolation = new PolicyViolation();
-          policyViolation.setId(resultSet.getString("policy_violation_id"));
-          policyViolation.setApplicationId(resultSet.getString("application_id"));
-          policyViolation.setPolicyId(resultSet.getString("policy_id"));
-          policyViolation.setStageTypeId(resultSet.getString("stage_type_id"));
-          policyViolation.setOpenTime(resultSet.getDate("open_time"));
-          policyViolation.setFixTime(resultSet.getDate("fix_time"));
-          policyViolation.setWaiveTime(resultSet.getDate("waive_time"));
-          policyViolation.setLegacyViolationTime(resultSet.getDate("legacy_violation_time"));
-          policyViolation.setThreatLevel(resultSet.getInt("threat_level"));
+            String format = resultSet.getString("component_id_format");
+            String coordinates = resultSet.getString("component_id_coordinates_json");
+            if (!StringUtils.isAnyBlank(format, coordinates)) {
+              policyViolation.setComponentIdentifier( //
+                  ComponentIdentifierAdapter.formatAndJsonToComponentIdentifier( //
+                      format, //
+                      coordinates));
+            }
+            policyViolation.setHash(resultSet.getString("hash"));
+            policyViolation.setFilename(resultSet.getString("filename"));
 
-          String threatCategory = resultSet.getString("threat_category");
-          if (StringUtils.isNotBlank(threatCategory)) {
-            policyViolation.setThreatCategory(
-                PolicyThreatCategory.getByName(resultSet.getString("threat_category").toLowerCase())
-            );
+            String constraintFactsId = resultSet.getString("constraint_facts_id");
+            if (!StringUtils.isBlank(constraintFactsId)) {
+              policyViolation.setConstraintFactsId(constraintFactsId);
+            }
+            policyViolation.setDeprecatedConstraintFactsJson(resultSet.getString("constraint_facts_json"));
+
+            policyViolations.add(policyViolation);
           }
-
-          String format = resultSet.getString("component_id_format");
-          String coordinates = resultSet.getString("component_id_coordinates_json");
-          if (!StringUtils.isAnyBlank(format, coordinates)) {
-            policyViolation.setComponentIdentifier(
-                ComponentIdentifierAdapter.formatAndJsonToComponentIdentifier(
-                    resultSet.getString("component_id_format"),
-                    resultSet.getString("component_id_coordinates_json")
-                )
-            );
-          }
-          consumer.accept(policyViolation);
         }
       }
-      finally {
-        // tell the consumer we're done now
-        consumer.accept(null);
+      policyViolations.forEach(consumer::accept);
+      processedRecordCount += policyViolations.size();
+
+      // Allow the system to pick up other work
+      try {
+        Thread.sleep(50);
+      }
+      catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException(e);
       }
     }
-    finally {
-      if (null != statement) {
-        statement.close();
-      }
-      if (null != connection) {
-        connection.setReadOnly(false);
-        connection.close();
-      }
-    }
+    // tell the consumer we're done now
+    consumer.accept(null);
+
+    log.debug("Consumed {} policy violations (cutoffDate={}, batchSize={}) in {} ms.", processedRecordCount, cutoffDate,
+        batchSize, System.currentTimeMillis() - start);
   }
 
   public List<PolicyViolation> getWaivedFixed() {

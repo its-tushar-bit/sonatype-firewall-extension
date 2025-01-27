@@ -12,6 +12,7 @@ const firewallLicenseProducts = [
   'Sonatype Repository Firewall',
   'Sonatype Firewall for Artifactory',
   'Sonatype Lifecycle Firewall SaaS',
+  'Sonatype Lifecycle Firewall Cloud',
 ];
 
 export const selectProductLicenseSlice = prop('productLicense');

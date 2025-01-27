@@ -46,6 +46,8 @@ public abstract class HistoricalTelemetryService
 
   private final TenantReference<HistoricalTelemetryState> historicalTelemetryState = new TenantReference<>();
 
+  private final int batchSize;
+
   private final Date cutoffDate;
 
   private final HistoricalTelemetryStateDAO historicalTelemetryStateDAO;
@@ -62,11 +64,13 @@ public abstract class HistoricalTelemetryService
       HistoricalTelemetryStateDAO historicalTelemetryStateDAO,
       TelemetryPurpose telemetryPurpose,
       TelemetrySender telemetrySender,
+      int batchSize,
       Date cutoffDate)
   {
     this.historicalTelemetryStateDAO = historicalTelemetryStateDAO;
     this.telemetryPurpose = telemetryPurpose;
     this.telemetrySender = telemetrySender;
+    this.batchSize = batchSize;
     this.cutoffDate = cutoffDate;
   }
 
@@ -157,7 +161,9 @@ public abstract class HistoricalTelemetryService
         if (sendCount > 0) {
           // a batch of telemetry data was sent
           addRecordsSent(sendCount);
-          updateProgress(lastRecordTime, lastRecordKey, getTotalRecordsSent());
+          if (null != lastRecordTime && null != lastRecordKey) {
+            updateProgress(lastRecordTime, lastRecordKey, getTotalRecordsSent());
+          }
         }
       }
       else {
@@ -182,6 +188,7 @@ public abstract class HistoricalTelemetryService
       telemetryState.setCreated(new Date());
       telemetryState.setStatus(Status.PENDING.name());
       telemetryState.setCutoffDate(cutoffDate);
+      telemetryState.setBatchSize(batchSize);
       historicalTelemetryStateDAO.insert(telemetryState);
       telemetryState = historicalTelemetryStateDAO.getById(telemetryPurpose.name());
     }

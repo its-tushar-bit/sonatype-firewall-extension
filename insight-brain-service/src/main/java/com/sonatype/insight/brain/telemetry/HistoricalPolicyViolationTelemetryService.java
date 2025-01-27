@@ -35,6 +35,8 @@ public class HistoricalPolicyViolationTelemetryService
           .toInstant()
   );
 
+  private static final int BATCH_SIZE = 10_000;
+
   private final PolicyViolationDAO policyViolationDAO;
 
   private final TelemetryUtils telemetryUtils;
@@ -46,7 +48,8 @@ public class HistoricalPolicyViolationTelemetryService
       TelemetrySender telemetrySender,
       TelemetryUtils telemetryUtils)
   {
-    super(historicalTelemetryStateDAO, TelemetryPurpose.HISTORICAL_POLICY_VIOLATION, telemetrySender, CUTOFF_DATE);
+    super(historicalTelemetryStateDAO, TelemetryPurpose.HISTORICAL_POLICY_VIOLATION, telemetrySender, BATCH_SIZE,
+        CUTOFF_DATE);
     this.policyViolationDAO = policyViolationDAO;
     this.telemetryUtils = telemetryUtils;
   }
@@ -56,7 +59,6 @@ public class HistoricalPolicyViolationTelemetryService
    *
    * @return the total number of policy violation entries sent as telemetry
    */
-  // todo - will be called when https://sonatype.atlassian.net/browse/EI-378 is implemented
   public long collectAndSendPolicyViolationTelemetry() {
     if (!canCollectAndSendTelemetry() || !isTelemetryCollectionAllowed()) {
       return 0;
@@ -112,6 +114,9 @@ public class HistoricalPolicyViolationTelemetryService
         push(telemetryData, policyViolation.getOpenTime(), policyViolation.getId());
       }
       else {
+        TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.HISTORICAL_POLICY_VIOLATION);
+        telemetryData.put("transmission", "complete");
+        push(telemetryData, null, null);
         done();
       }
     }

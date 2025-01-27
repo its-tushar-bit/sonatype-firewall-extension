@@ -91,8 +91,8 @@ public class HistoricalPolicyViolationTelemetryServiceTest
     historicalTelemetryStateDAO.update(state);
     count = testSubject.collectAndSendPolicyViolationTelemetry();
 
-    // then: the telemetry was processed
-    assertThat(count).isOne();
+    // then: the telemetry was processed (note: we add a terminating record to the telemetry)
+    assertThat(count).isEqualTo(2);
   }
 
   @Test
@@ -128,8 +128,8 @@ public class HistoricalPolicyViolationTelemetryServiceTest
     historicalTelemetryStateDAO.update(state);
     count = testSubject.collectAndSendPolicyViolationTelemetry();
 
-    // then: the telemetry was processed
-    assertThat(count).isOne();
+    // then: the telemetry was processed (note: we have a terminating record in the telemetry)
+    assertThat(count).isEqualTo(2);
   }
 
   @Test
@@ -190,10 +190,10 @@ public class HistoricalPolicyViolationTelemetryServiceTest
     long count = testSubject.collectAndSendPolicyViolationTelemetry();
 
     // then: two policy violations were processed and the telemetry data has the expected attributes
-    assertThat(count).isEqualTo(2);
+    assertThat(count).isEqualTo(3);
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
-    assertThat(telemetryDataList).hasSize(2);
+    assertThat(telemetryDataList).hasSize(3);
 
     TelemetryData telemetryData = telemetryDataList.get(0);
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.HISTORICAL_POLICY_VIOLATION);
@@ -222,6 +222,7 @@ public class HistoricalPolicyViolationTelemetryServiceTest
     assertThat(telemetryData.getAttributes()).containsEntry("threat_level", securityPolicyViolation.getThreatLevel());
     assertThat(telemetryData.getAttributes()).containsEntry("cve_number", "CVE-2013-7285");
     assertThat(telemetryData.getAttributes()).containsEntry("cvss_score", 7);
+    assertThat(telemetryData.getAttributes()).doesNotContainEntry("transmission", "complete");
     assertThat(telemetryData.getAttributes()).hasSize(19);
 
     telemetryData = telemetryDataList.get(1);
@@ -250,6 +251,12 @@ public class HistoricalPolicyViolationTelemetryServiceTest
         nonSecurityPolicyViolation.getThreatCategory().getName());
     assertThat(telemetryData.getAttributes()).containsEntry("threat_level",
         nonSecurityPolicyViolation.getThreatLevel());
+    assertThat(telemetryData.getAttributes()).doesNotContainEntry("transmission", "complete");
     assertThat(telemetryData.getAttributes()).hasSize(17);
+
+    telemetryData = telemetryDataList.get(2);
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.HISTORICAL_POLICY_VIOLATION);
+    assertThat(telemetryData.getAttributes()).containsEntry("transmission", "complete");
+    assertThat(telemetryData.getAttributes()).hasSize(1);
   }
 }

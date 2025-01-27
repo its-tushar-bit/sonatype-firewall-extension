@@ -40,11 +40,13 @@ public class HistoricalTelemetryServiceTest
 
   @Before
   public void setup() {
+    final var batchSize = 10;
     historicalTelemetryStateDAO = daoFactory.createHistoricalTelemetryStateDAO();
     historicalTelemetryService = new TestableHistoricalTelemetryService(
         historicalTelemetryStateDAO,
         TEST_PURPOSE,
         mockTelemetrySender,
+        batchSize,
         new Date()
     );
   }
@@ -204,9 +206,10 @@ public class HistoricalTelemetryServiceTest
         HistoricalTelemetryStateDAO historicalTelemetryStateDAO,
         TelemetryPurpose telemetryPurpose,
         TelemetrySender telemetrySender,
+        int batchSize,
         Date cutoffDate)
     {
-      super(historicalTelemetryStateDAO, telemetryPurpose, telemetrySender, cutoffDate);
+      super(historicalTelemetryStateDAO, telemetryPurpose, telemetrySender, batchSize, cutoffDate);
     }
   }
 

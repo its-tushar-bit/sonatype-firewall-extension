@@ -27,7 +27,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -36,6 +35,7 @@ import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -59,6 +59,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityE
 import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.sbom.export.SbomExportException;
+import com.sonatype.insight.brain.sbom.export.SbomExportUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
@@ -116,6 +117,7 @@ import static com.sonatype.insight.brain.report.DependencyResolver.MATCH_STATE;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxLicenseFromDbData;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxProperty;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxVulnerabilityFromDbData;
+import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REF;
 import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.resolveRatingMethodFromSeveritySource;
 import static com.sonatype.insight.brain.utils.CvssV3Severity.resolveRatingSeverity;
 
@@ -486,20 +488,22 @@ public class SbomResultsMerger
     if (ObjectUtils.allNotNull(originalBom, filteredBom)) {
       List<ThirdPartyCoordinateSecurity> disclosedVulns = null;
       List<ThirdPartyCoordinateLicense> disclosedLicenses = null;
+      String newComponentBomRef = UUID.randomUUID().toString().replace("-", "");
       if (sbomDbComponent == null) {
-        sbomDbComponent = createAndSaveComponentInThirdPartyDatabase(bomNode, thirdPartyFileId);
+        sbomDbComponent = createAndSaveComponentInThirdPartyDatabase(newComponentBomRef, bomNode, thirdPartyFileId);
       }
       else {
         disclosedVulns = thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(sbomDbComponent.getId());
         disclosedLicenses = thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(sbomDbComponent.getId());
       }
-      createAndSaveComponentInBom(sbomDbComponent, disclosedVulns, disclosedLicenses, bomNode, originalBom,
-          filteredBom);
+      createAndSaveComponentInBom(newComponentBomRef, sbomDbComponent, disclosedVulns, disclosedLicenses, bomNode,
+          originalBom, filteredBom);
     }
     return sbomDbComponent;
   }
 
   private void createAndSaveComponentInBom(
+      String bomRef,
       ThirdPartyFileCoordinate thirdPartyFileCoordinate,
       List<ThirdPartyCoordinateSecurity> disclosedVulns,
       List<ThirdPartyCoordinateLicense> disclosedLicenses,
@@ -507,7 +511,6 @@ public class SbomResultsMerger
       Bom bom,
       Bom filteredBom)
   {
-    String bomRef = UUID.randomUUID().toString().replace("-", "");
     Component component = thirdPartyFileCoordinateToBomComponent(thirdPartyFileCoordinate, bomRef);
     addOccurrenceEvidenceForComponent(bomNode, component);
     bom.addComponent(component);
@@ -517,7 +520,9 @@ public class SbomResultsMerger
     addDisclosedLicenses(disclosedLicenses, component);
 
     Component clone = thirdPartyFileCoordinateToBomComponent(thirdPartyFileCoordinate, bomRef);
-    //this might not be needed after SBOM-749 is implemented
+    clone.addProperty(SbomExportUtils.createCycloneDxProperty(PROPERTY_COMPONENT_REF,
+        SbomIdentityUtils.getComponentRef(bomRef)));
+    //Deprecated. this should be removed after SBOM-1208 is done
     Property sonatypeIdentifierComponentProperty = new Property();
     sonatypeIdentifierComponentProperty.setName("sonatypeIdentifier");
     sonatypeIdentifierComponentProperty.setValue(thirdPartyFileCoordinate.getId());
@@ -650,10 +655,12 @@ public class SbomResultsMerger
   }
 
   private ThirdPartyFileCoordinate createAndSaveComponentInThirdPartyDatabase(
+      String bomRef,
       JsonNode componentNode,
       String thirdPartyFileId)
   {
     ThirdPartyFileCoordinate component = new ThirdPartyFileCoordinate();
+    component.setComponentRef(SbomIdentityUtils.getComponentRef(bomRef));
     component.setThirdPartyFileId(thirdPartyFileId);
     ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(componentNode);
     if (componentIdentifier != null) {

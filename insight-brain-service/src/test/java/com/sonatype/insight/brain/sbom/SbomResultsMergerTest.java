@@ -174,7 +174,8 @@ public class SbomResultsMergerTest
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(updatedMetadata.getThirdPartyFileId());
     Map<PackageUrlIdentifier, ThirdPartyFileCoordinate> coords = fileCoordinates.stream()
         .collect(Collectors.toMap(tpCoord -> new PackageUrlIdentifier(tpCoord.getPackageUrl()), tpCoord -> tpCoord));
-    assertThat(fileCoordinates).hasSize(4);
+    assertThat(fileCoordinates).hasSize(4)
+        .allSatisfy(tpc -> assertThat(tpc.getComponentRef()).isNotBlank().hasSize(40));
     List<PackageUrlIdentifier> expectedPurls = List.of(purl1, purl2, purl3, purl4);
     assertThat(coords.keySet()).containsExactlyInAnyOrderElementsOf(expectedPurls);
 
@@ -252,8 +253,8 @@ public class SbomResultsMergerTest
     Bom filteredBom = merger.getFilteredBom();
     assertThat(filteredBom.getComponents()).hasSize(4)
         .allSatisfy(component -> {
-          assertThat(component.getProperties()).hasSize(1);
-          assertThat(component.getProperties().get(0).getName()).isEqualTo("sonatypeIdentifier");
+          assertThat(component.getProperties()).hasSize(2);
+          assertThat(component.getProperties().get(0).getName()).isEqualTo("componentRef");
           assertThat(component.getProperties().get(0).getValue()).isNotNull();
         });
 
@@ -262,10 +263,10 @@ public class SbomResultsMergerTest
         .findFirst();
     assertThat(tpBomComponentOptional).isPresent();
     List<Property> properties = tpBomComponentOptional.get().getProperties();
-    assertThat(properties).hasSize(1);
+    assertThat(properties).hasSize(2);
     Property property = properties.get(0);
-    assertThat(property.getName()).isEqualTo("sonatypeIdentifier");
-    assertThat(property.getValue()).isEqualTo(tpComponent.getId());
+    assertThat(property.getName()).isEqualTo("componentRef");
+    assertThat(property.getValue()).isNotBlank().hasSize(40);
 
     //verify telemetry data
     ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);

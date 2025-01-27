@@ -97,6 +97,8 @@ export const selectPrioritiesPageName = createSelector(
         return 'prioritiesPageFromDashboard';
       } else if (prioritiesPageContainerName === 'componentDetailsPageWithinPrioritiesPageContainerFromReports') {
         return 'prioritiesPageFromReports';
+      } else if (prioritiesPageContainerName === 'componentDetailsPageWithinPrioritiesPageContainerFromIntegrations') {
+        return 'prioritiesPageFromIntegrations';
       }
     }
     return '';
@@ -112,6 +114,7 @@ export const selectIsDependencyTreePageFromPrioritiesPage = createSelector(selec
   [
     'componentDetailsPageWithinPrioritiesPageContainerFromDashboard.dependencyTree',
     'componentDetailsPageWithinPrioritiesPageContainerFromReports.dependencyTree',
+    'componentDetailsPageWithinPrioritiesPageContainerFromIntegrations.dependencyTree',
   ].includes(currentRouteName)
 );
 

@@ -10,6 +10,10 @@ import PrioritiesPageTable from 'MainRoot/development/prioritiesPage/PrioritiesP
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
 import { getPrioritiesPageTableData } from 'MainRoot/util/CLMLocation';
 import { faker } from '@faker-js/faker';
+import {
+  defaultIntegrationParamsMap,
+  validIntegrationTypes,
+} from '../../../../main/frontend/development/prioritiesPage/utils';
 
 const publicAppId = 'testPublicAppId';
 const scanId = 'testScanId';
@@ -29,7 +33,8 @@ describe('PrioritiesPageTable', () => {
       currentParams: {
         publicAppId,
         scanId,
-        filterOnPolicyActions: true,
+        filterOnPolicyActions: false,
+        componentNameFilter: '',
       },
       currentState: {
         name: 'prioritiesPageFromReports',
@@ -322,7 +327,7 @@ describe('PrioritiesPageTable', () => {
       expect(stateGoSpy).toHaveBeenCalledWith('prioritiesPageFromReports', {
         publicAppId,
         scanId,
-        filterOnPolicyActions: '',
+        filterOnPolicyActions: false,
         componentNameFilter: 'ABC',
       });
     });
@@ -565,6 +570,45 @@ describe('PrioritiesPageTable', () => {
         page: 1,
         componentNameFilter: '',
         filterOnPolicyActions: false,
+      });
+    });
+  });
+
+  describe('makes correct network requests and sets filter defaults when integrationType is provided', () => {
+    validIntegrationTypes.forEach((integrationType) => {
+      it(`when integration=${integrationType}`, async () => {
+        const defaultPolicyActionFilterState = defaultIntegrationParamsMap[integrationType].filterOnPolicyActions;
+        const routerState = {
+          router: {
+            currentParams: {
+              publicAppId,
+              scanId,
+              filterOnPolicyActions: false,
+              componentNameFilter: '',
+              integrationType,
+            },
+            currentState: {
+              name: 'prioritiesPageFromIntegrations',
+            },
+          },
+        };
+
+        renderComponent(routerState);
+        expect(axiosMock.history.get.length).toEqual(1);
+        expect(axiosMock.history.get[0].params).toEqual({
+          pageSize: DEFAULT_PAGE_SIZE,
+          page: 1,
+          componentNameFilter: '',
+          filterOnPolicyActions: defaultPolicyActionFilterState,
+        });
+
+        expect(stateGoSpy).toHaveBeenCalledWith('prioritiesPageFromIntegrations', {
+          publicAppId,
+          scanId,
+          filterOnPolicyActions: defaultPolicyActionFilterState ? true : '',
+          componentNameFilter: '',
+          integrationType,
+        });
       });
     });
   });

@@ -164,10 +164,17 @@ const setFilterOnPolicyActions = (state, { payload }) => {
   };
 };
 
+const setHasDefaultFilters = (state, { payload }) => {
+  return {
+    ...state,
+    hasDefaultFilters: payload,
+  };
+};
+
 const prioritiesPageSlice = createSlice({
   name: PRIORITIES_PAGE_REDUCER_NAME,
   initialState: initialState(),
-  reducers: { resetState, setPage, setComponentNameFilter, setFilterOnPolicyActions },
+  reducers: { resetState, setPage, setComponentNameFilter, setFilterOnPolicyActions, setHasDefaultFilters },
   extraReducers: {
     [loadTableData.pending]: loadTableDataRequested,
     [loadTableData.fulfilled]: loadTableDataFulfilled,
@@ -194,6 +201,7 @@ function initialState() {
     scanId: null,
     componentNameFilter: '',
     filterOnPolicyActions: false,
+    hasDefaultFilters: true,
   };
 }
 

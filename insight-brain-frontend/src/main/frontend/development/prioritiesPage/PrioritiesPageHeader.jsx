@@ -59,6 +59,8 @@ export default function PrioritiesPageHeader() {
       return 'componentDetailsPageWithinPrioritiesPageContainerFromDashboard.dependencyTree';
     } else if (prioritiesPageContainerName === 'prioritiesPageFromReports') {
       return 'componentDetailsPageWithinPrioritiesPageContainerFromReports.dependencyTree';
+    } else if (prioritiesPageContainerName === 'prioritiesPageFromIntegrations') {
+      return 'componentDetailsPageWithinPrioritiesPageContainerFromIntegrations.dependencyTree';
     }
   };
 
@@ -84,7 +86,7 @@ export default function PrioritiesPageHeader() {
   });
 
   const getDynamicHrefForBreadcrumbs = () => {
-    if (currentRouteName === 'prioritiesPageFromReports') {
+    if (currentRouteName === 'prioritiesPageFromReports' || currentRouteName === 'prioritiesPageFromIntegrations') {
       return {
         href: uiRouterState.href('developer.reports'),
         text: 'Priorities',

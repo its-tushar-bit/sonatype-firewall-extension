@@ -12,6 +12,10 @@ const prioritiesPageModule = angular
   .component('prioritiesPage', iqReact2Angular(PrioritiesPage, [], ['$ngRedux', '$state']))
   .config(routes);
 
+const cdpFromDashboard = 'componentDetailsPageWithinPrioritiesPageContainerFromDashboard';
+const cdpFromReports = 'componentDetailsPageWithinPrioritiesPageContainerFromReports';
+const cdpFromIntegrations = 'componentDetailsPageWithinPrioritiesPageContainerFromIntegrations';
+
 function routes($stateProvider, $urlServiceProvider) {
   $stateProvider
     // Standalone Developer Dashboard -> Priorities Page
@@ -32,8 +36,17 @@ function routes($stateProvider, $urlServiceProvider) {
       },
     })
 
+    // Integrations -> Priorities Page
+    .state('prioritiesPageFromIntegrations', {
+      url: '/developer/integrations/{publicAppId}/{scanId}/{integrationType}?componentNameFilter&filterOnPolicyActions',
+      component: 'prioritiesPage',
+      data: {
+        title: 'Priorities',
+      },
+    })
+
     // Standalone Developer Dashboard -> Priorities Page -> Component Details Page
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard', {
+    .state(cdpFromDashboard, {
       url: '/dashboard/developer/priorities/report/{publicId}/{scanId}',
       abstract: true,
       component: 'applicationReportRoot',
@@ -41,14 +54,14 @@ function routes($stateProvider, $urlServiceProvider) {
         policyViolationId: { dynamic: true },
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.dependencyTree', {
+    .state(`${cdpFromDashboard}.dependencyTree`, {
       url: '/dependencyTree',
       component: 'dependencyTree',
       data: {
         title: 'Dependency Tree',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails', {
+    .state(`${cdpFromDashboard}.componentDetails`, {
       url: '/componentDetails/{hash}',
       component: 'componentDetails',
       data: {
@@ -58,60 +71,60 @@ function routes($stateProvider, $urlServiceProvider) {
         tabId: 'overview',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.overview', {
+    .state(`${cdpFromDashboard}.componentDetails.overview`, {
       url: '/overview',
       params: {
         tabId: 'overview',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.violations', {
+    .state(`${cdpFromDashboard}.componentDetails.violations`, {
       url: '/violations',
       params: {
         tabId: 'violations',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.security', {
+    .state(`${cdpFromDashboard}.componentDetails.security`, {
       url: '/security',
       params: {
         tabId: 'security',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.legal', {
+    .state(`${cdpFromDashboard}.componentDetails.legal`, {
       url: '/legal',
       params: {
         tabId: 'legal',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.audit', {
+    .state(`${cdpFromDashboard}.componentDetails.audit`, {
       url: '/audit',
       params: {
         tabId: 'audit',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.claim', {
+    .state(`${cdpFromDashboard}.componentDetails.claim`, {
       url: '/claim',
       params: {
         tabId: 'claim',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.labels', {
+    .state(`${cdpFromDashboard}.componentDetails.labels`, {
       url: '/labels',
       params: {
         tabId: 'labels',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.violationWaivers', {
+    .state(`${cdpFromDashboard}.violationWaivers`, {
       url: '/{hash}/waivers/{violationId}',
       component: 'listWaiversPage',
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.vulnerabilityCustomize', {
+    .state(`${cdpFromDashboard}.vulnerabilityCustomize`, {
       url: '/vulnerabilities/{ownerType}/{ownerId}/customize/{refId}?componentIdentifier&componentHash&tabId',
       component: 'vulnerabilityCustomize',
       data: {
         title: 'Customize Vulnerability Details',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.applicationStageTypeComponentOverview', {
+    .state(`${cdpFromDashboard}.applicationStageTypeComponentOverview`, {
       url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}/component/' + '{hash}?scanId&tabId',
       component: 'componentLegalOverview',
       data: {
@@ -120,7 +133,7 @@ function routes($stateProvider, $urlServiceProvider) {
     })
 
     // Standalone Developer Reports Page -> Priorities Page -> Component Details Page
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports', {
+    .state(cdpFromReports, {
       url: '/developer/priorities/report/{publicId}/{scanId}',
       abstract: true,
       component: 'applicationReportRoot',
@@ -128,14 +141,14 @@ function routes($stateProvider, $urlServiceProvider) {
         policyViolationId: { dynamic: true },
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.dependencyTree', {
+    .state(`${cdpFromReports}.dependencyTree`, {
       url: '/dependencyTree',
       component: 'dependencyTree',
       data: {
         title: 'Dependency Tree',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails', {
+    .state(`${cdpFromReports}.componentDetails`, {
       url: '/componentDetails/{hash}',
       component: 'componentDetails',
       data: {
@@ -145,60 +158,147 @@ function routes($stateProvider, $urlServiceProvider) {
         tabId: 'overview',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.overview', {
+    .state(`${cdpFromReports}.componentDetails.overview`, {
       url: '/overview',
       params: {
         tabId: 'overview',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.violations', {
+    .state(`${cdpFromReports}.componentDetails.violations`, {
       url: '/violations',
       params: {
         tabId: 'violations',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.security', {
+    .state(`${cdpFromReports}.componentDetails.security`, {
       url: '/security',
       params: {
         tabId: 'security',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.legal', {
+    .state(`${cdpFromReports}.componentDetails.legal`, {
       url: '/legal',
       params: {
         tabId: 'legal',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.claim', {
+    .state(`${cdpFromReports}.componentDetails.claim`, {
       url: '/claim',
       params: {
         tabId: 'claim',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.audit', {
+    .state(`${cdpFromReports}.componentDetails.audit`, {
       url: '/audit',
       params: {
         tabId: 'audit',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.labels', {
+    .state(`${cdpFromReports}.componentDetails.labels`, {
       url: '/labels',
       params: {
         tabId: 'labels',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.violationWaivers', {
+    .state(`${cdpFromReports}.violationWaivers`, {
       url: '/{hash}/waivers/{violationId}',
       component: 'listWaiversPage',
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.vulnerabilityCustomize', {
+    .state(`${cdpFromReports}.vulnerabilityCustomize`, {
       url: '/vulnerabilities/{ownerType}/{ownerId}/customize/{refId}?componentIdentifier&componentHash&tabId',
       component: 'vulnerabilityCustomize',
       data: {
         title: 'Customize Vulnerability Details',
       },
     })
-    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.applicationStageTypeComponentOverview', {
+    .state(`${cdpFromReports}.applicationStageTypeComponentOverview`, {
+      url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}/component/' + '{hash}?scanId&tabId',
+      component: 'componentLegalOverview',
+      data: {
+        title: 'Component - Legal Overview',
+      },
+    })
+
+    // Integrations -> Priorities Page -> Component Details Page
+    .state(cdpFromIntegrations, {
+      url: '/developer/integrations/{publicId}/{scanId}',
+      abstract: true,
+      component: 'applicationReportRoot',
+      params: {
+        policyViolationId: { dynamic: true },
+      },
+    })
+    .state(`${cdpFromIntegrations}.dependencyTree`, {
+      url: '/dependencyTree',
+      component: 'dependencyTree',
+      data: {
+        title: 'Dependency Tree',
+      },
+    })
+    .state(`${cdpFromIntegrations}.componentDetails`, {
+      url: '/componentDetails/{hash}',
+      component: 'componentDetails',
+      data: {
+        title: 'Component Details',
+      },
+      params: {
+        tabId: 'overview',
+      },
+    })
+    .state(`${cdpFromIntegrations}.componentDetails.overview`, {
+      url: '/overview',
+      params: {
+        tabId: 'overview',
+      },
+    })
+    .state(`${cdpFromIntegrations}.componentDetails.violations`, {
+      url: '/violations',
+      params: {
+        tabId: 'violations',
+      },
+    })
+    .state(`${cdpFromIntegrations}.componentDetails.security`, {
+      url: '/security',
+      params: {
+        tabId: 'security',
+      },
+    })
+    .state(`${cdpFromIntegrations}.componentDetails.legal`, {
+      url: '/legal',
+      params: {
+        tabId: 'legal',
+      },
+    })
+    .state(`${cdpFromIntegrations}.componentDetails.audit`, {
+      url: '/audit',
+      params: {
+        tabId: 'audit',
+      },
+    })
+    .state(`${cdpFromIntegrations}.componentDetails.claim`, {
+      url: '/claim',
+      params: {
+        tabId: 'claim',
+      },
+    })
+    .state(`${cdpFromIntegrations}.componentDetails.labels`, {
+      url: '/labels',
+      params: {
+        tabId: 'labels',
+      },
+    })
+    .state(`${cdpFromIntegrations}.violationWaivers`, {
+      url: '/{hash}/waivers/{violationId}',
+      component: 'listWaiversPage',
+    })
+    .state(`${cdpFromIntegrations}.vulnerabilityCustomize`, {
+      url: '/vulnerabilities/{ownerType}/{ownerId}/customize/{refId}?componentIdentifier&componentHash&tabId',
+      component: 'vulnerabilityCustomize',
+      data: {
+        title: 'Customize Vulnerability Details',
+      },
+    })
+    .state(`${cdpFromIntegrations}.applicationStageTypeComponentOverview`, {
       url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}/component/' + '{hash}?scanId&tabId',
       component: 'componentLegalOverview',
       data: {

@@ -30,12 +30,7 @@ export default function PrioritiesPage() {
   const currentRouteName = useSelector(selectCurrentRouteName);
   const uiRouterState = useRouterState();
   const getHref = () => {
-    if (currentRouteName === 'prioritiesPageFromDashboard') {
-      return {
-        href: uiRouterState.href('developer.dashboard'),
-        text: 'Back to Developer Dashboard',
-      };
-    } else if (currentRouteName === 'prioritiesPageFromReports') {
+    if (currentRouteName === 'prioritiesPageFromReports' || currentRouteName === 'prioritiesPageFromIntegrations') {
       return {
         href: uiRouterState.href('developer.reports'),
         text: 'Back to Reports',

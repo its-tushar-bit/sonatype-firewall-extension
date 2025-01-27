@@ -52,6 +52,9 @@ export const originNamesForAddRequestPages = {
   // Side Nav -> Developer -> View -> Component Details -> Policy Violations -> Violation Details Popover -> Add Waiver
   CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD:
     'componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.violations',
+  // Integrations -> View -> Component Details -> Policy Violations -> Violation Details Popover -> Add Waiver
+  CDP_WITHIN_PRIORITIES_PAGE_FROM_INTEGRATIONS:
+    'componentDetailsPageWithinPrioritiesPageContainerFromIntegrations.componentDetails.violations',
 
   //Security Tab
   // Side Nav -> Reports -> Priorities -> Component Details -> Security -> Violation Details Popover -> Add Waiver
@@ -60,6 +63,9 @@ export const originNamesForAddRequestPages = {
   // Side Nav -> Developer -> View -> Component Details -> Security -> Violation Details Popover -> Add Waiver
   CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD_SECURITY:
     'componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.security',
+  // Integrations -> View -> Component Details -> Security -> Violation Details Popover -> Add Waiver
+  CDP_WITHIN_PRIORITIES_PAGE_FROM_INTEGRATIONS_SECURITY:
+    'componentDetailsPageWithinPrioritiesPageContainerFromIntegrations.componentDetails.security',
 
   //Legal Tab
   // Side Nav -> Reports -> Priorities -> Component Details -> Legal -> Violation Details Popover -> Add Waiver
@@ -68,6 +74,9 @@ export const originNamesForAddRequestPages = {
   // Side Nav -> Developer -> View -> Component Details -> Legal -> Violation Details Popover -> Add Waiver
   CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD_LEGAL:
     'componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.legal',
+  // Integrations -> View -> Component Details -> Legal -> Violation Details Popover -> Add Waiver
+  CDP_WITHIN_PRIORITIES_PAGE_FROM_INTEGRATIONS_LEGAL:
+    'componentDetailsPageWithinPrioritiesPageContainerFromIntegrations.componentDetails.legal',
 };
 
 const waiverExpirations = [

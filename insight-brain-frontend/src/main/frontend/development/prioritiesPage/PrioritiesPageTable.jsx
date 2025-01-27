@@ -26,6 +26,7 @@ import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/s
 import { debounce } from 'debounce';
 import { isNil } from 'ramda';
 import { selectApplicationReportMetaData } from 'MainRoot/applicationReport/applicationReportSelectors';
+import { defaultIntegrationParamsMap, validIntegrationTypes } from './utils';
 
 export default function PrioritiesPageTable() {
   const dispatch = useDispatch();
@@ -41,6 +42,7 @@ export default function PrioritiesPageTable() {
     scanId: storedScanId,
     componentNameFilter: componentNameFilterValue,
     filterOnPolicyActions: filterOnPolicyActionsValue,
+    hasDefaultFilters,
   } = useSelector(selectPrioritiesPageSlice);
 
   const hasPolicyAction = priorities?.find((priority) => priority.action === 'fail' || priority.action === 'warn');
@@ -50,35 +52,63 @@ export default function PrioritiesPageTable() {
 
   const currentRouteName = useSelector(selectCurrentRouteName);
   const currentPage = pageCount && pageCount > 0 ? page - 1 : null;
-  const { publicAppId, scanId, filterOnPolicyActions, componentNameFilter } = useSelector(selectRouterCurrentParams);
+  const currentParams = useSelector(selectRouterCurrentParams);
+  const { publicAppId, scanId, filterOnPolicyActions, componentNameFilter, integrationType } = currentParams;
+
+  const isIntegrationView = currentRouteName === 'prioritiesPageFromIntegrations';
+
+  const checkAndGetValidIntegrationRoute = () => {
+    if (isIntegrationView && !isNil(integrationType)) {
+      return validIntegrationTypes.includes(integrationType) ? integrationType : 'cli';
+    }
+    return '';
+  };
 
   const derivedActionFilter = filterOnPolicyActions === 'true' ? true : false;
-  const derivedComponentName = isNil(componentNameFilter) ? '' : componentNameFilter;
+  const derivedComponentName = componentNameFilter || '';
 
   const setPage = (page) => dispatch(actions.setPage(page));
 
   const priorityTooltip = `Priority of actionable items based on the policy action, component reachability status, and threat score severity.`;
 
-  const filterByComponentName = (filter) => {
-    dispatch(actions.setComponentNameFilter(filter));
-    debouncedFilterComponentNameChange(filter);
+  const setFilters = () => {
+    dispatch(actions.setFilterOnPolicyActions(derivedActionFilter));
+    dispatch(actions.setComponentNameFilter(derivedComponentName));
+  };
+
+  const setIntegrationViewFilters = () => {
+    const integrationType = checkAndGetValidIntegrationRoute();
+    const { filterOnPolicyActions } = defaultIntegrationParamsMap[integrationType];
+
+    dispatch(
+      stateGo(currentRouteName, {
+        ...currentParams,
+        filterOnPolicyActions: filterOnPolicyActions ? true : '',
+        integrationType,
+      })
+    );
+
+    dispatch(actions.setFilterOnPolicyActions(filterOnPolicyActions));
+  };
+
+  const setContinuousMonitoringViewFilters = () => {
+    dispatch(actions.setFilterOnPolicyActions(false));
+    dispatch(
+      stateGo(currentRouteName, {
+        ...currentParams,
+        filterOnPolicyActions: '',
+      })
+    );
   };
 
   useEffect(() => {
-    if (forMonitoring) {
-      dispatch(actions.setFilterOnPolicyActions(false));
-      dispatch(
-        stateGo(currentRouteName, {
-          publicAppId,
-          scanId,
-          filterOnPolicyActions: '',
-          componentNameFilter: derivedComponentName,
-        })
-      );
+    if (isIntegrationView && hasDefaultFilters) {
+      setIntegrationViewFilters();
+    } else if (forMonitoring) {
+      setContinuousMonitoringViewFilters();
     } else {
-      dispatch(actions.setFilterOnPolicyActions(derivedActionFilter));
+      setFilters();
     }
-    dispatch(actions.setComponentNameFilter(derivedComponentName));
 
     //If page is viewed for a different applicationId and scanId, reset pagination
     if (publicAppId !== storedPublicId || scanId !== storedScanId) {
@@ -87,13 +117,29 @@ export default function PrioritiesPageTable() {
     doLoad();
   }, [page]);
 
+  useEffect(() => {
+    if (isIntegrationView && !hasDefaultFilters) {
+      dispatch(actions.setHasDefaultFilters(true));
+    }
+  }, [integrationType]);
+
+  const removeDefaultFilters = () => {
+    if (hasDefaultFilters) {
+      dispatch(actions.setHasDefaultFilters(false));
+    }
+  };
+
+  const filterByComponentName = (filter) => {
+    removeDefaultFilters();
+    dispatch(actions.setComponentNameFilter(filter));
+    debouncedFilterComponentNameChange(filter);
+  };
+
   const debouncedFilterComponentNameChange = useCallback(
     debounce((value) => {
       dispatch(
         stateGo(currentRouteName, {
-          publicAppId,
-          scanId,
-          filterOnPolicyActions: filterOnPolicyActionsValue ? true : '',
+          ...currentParams,
           componentNameFilter: value,
         })
       );
@@ -102,15 +148,14 @@ export default function PrioritiesPageTable() {
   );
 
   const handleActionToggleChange = () => {
+    removeDefaultFilters();
     dispatch(actions.setFilterOnPolicyActions(!filterOnPolicyActionsValue));
     // if initial toggle state is false, clicking the toggle adds the actionFilter query param
     // if initial toggle state is true, clicking on the toggle removes the actionFilter query param
     dispatch(
       stateGo(currentRouteName, {
-        publicAppId,
-        scanId,
+        ...currentParams,
         filterOnPolicyActions: !filterOnPolicyActionsValue ? true : '',
-        componentNameFilter: derivedComponentName,
       })
     );
   };
@@ -189,6 +234,8 @@ function DataRows({ dataset, hasPolicyAction }) {
       return 'componentDetailsPageWithinPrioritiesPageContainerFromDashboard';
     } else if (currentRouteName === 'prioritiesPageFromReports') {
       return 'componentDetailsPageWithinPrioritiesPageContainerFromReports';
+    } else if (currentRouteName === 'prioritiesPageFromIntegrations') {
+      return 'componentDetailsPageWithinPrioritiesPageContainerFromIntegrations';
     }
     return 'prioritiesPageContainer';
   };

@@ -492,10 +492,10 @@ public class RepositoryPolicyViolationDAO
     if (filters != null && filters.size() == 2 && (filters.get(0) > 0 || filters.get(1) < 10)) {
       if (filters.get(0) == 0) {
         return " AND (violation.threat_level IS NULL OR" +
-            " (violation.threat_level >= ?" + paramStartPosition + "AND violation.threat_level <= ?" +
+            " (violation.threat_level >= ?" + paramStartPosition + " AND violation.threat_level <= ?" +
             (++paramStartPosition) + "))";
       }
-      return " AND violation.threat_level >= ?" + paramStartPosition + "AND violation.threat_level <= ?" +
+      return " AND violation.threat_level >= ?" + paramStartPosition + " AND violation.threat_level <= ?" +
           (++paramStartPosition);
     }
     return "";

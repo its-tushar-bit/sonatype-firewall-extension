@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import * as R from 'ramda';
 
 import { render, screen, axiosMockAdapter, fireEvent, within, waitFor } from 'TestRoot/SpecUtil';
 import {
@@ -157,11 +158,14 @@ describe('PolicyEditorSpec', () => {
       .reply(200, [...(permissions ? permissions : ['WRITE'])]);
   };
 
-  const setSbomState = (isSbomLicenseOnly = true) => {
+  const setSbomState = (withFirewallLicense = false, withLifecycleLicense = false) => {
     sbomState = {
       productLicense: {
         license: {
-          products: ['Sonatype SBOM Manager', ...(isSbomLicenseOnly ? [] : ['Sonatype Lifecycle'])],
+          products: R.compose(
+            R.when(R.always(withLifecycleLicense), R.append('Sonatype Lifecycle')),
+            R.when(R.always(withFirewallLicense), R.append('Sonatype Repository Firewall'))
+          )(['Sonatype SBOM Manager']),
         },
       },
       router: {
@@ -237,9 +241,17 @@ describe('PolicyEditorSpec', () => {
     });
 
     describe('lock icon and alert message', () => {
+      it('displays the correct alert message when both Sonatype Repository Firewall and Sonatype SBOM Manager are enabled', async () => {
+        setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true, []);
+        setSbomState(true, true);
+        renderComponent(sbomState);
+        const alert = await screen.findByText('Switch to Repository Firewall to manage your policies.');
+        expect(alert).toBeVisible();
+      });
+
       it('displays the correct alert message when both Sonatype Lifecycle and Sonatype SBOM Manager are enabled', async () => {
         setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true, []);
-        setSbomState(false);
+        setSbomState(false, true);
         renderComponent(sbomState);
         const alert = await screen.findByText('Switch to Lifecycle to manage your policies.');
         expect(alert).toBeVisible();
@@ -247,7 +259,7 @@ describe('PolicyEditorSpec', () => {
 
       it('displays the correct alert message when Sonatype Lifecycle is not enabled', async () => {
         setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true, []);
-        setSbomState(true);
+        setSbomState();
         renderComponent(sbomState);
         const alert = await screen.findByText('Custom policies are available with Lifecycle.');
         expect(alert).toBeVisible();
@@ -255,7 +267,7 @@ describe('PolicyEditorSpec', () => {
 
       it('displays lock icon on sbom manager page', async () => {
         setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true, []);
-        setSbomState(false);
+        setSbomState();
         renderComponent(sbomState);
         const lockIcon = await screen.findByTestId('policy-editor-lock-icon');
         expect(lockIcon).toBeVisible();

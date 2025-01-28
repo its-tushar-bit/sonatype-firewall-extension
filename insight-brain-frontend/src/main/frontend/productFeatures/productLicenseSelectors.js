@@ -4,28 +4,42 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createSelector } from '@reduxjs/toolkit';
-import { all, includes, length, none, prop, propOr } from 'ramda';
+import * as R from 'ramda';
 
 import { isSbomManagerOnlyLicenseProduct } from 'MainRoot/sbomManager/sbomManagerUtil';
 
-const firewallLicenseProducts = [
-  'Sonatype Repository Firewall',
-  'Sonatype Firewall for Artifactory',
-  'Sonatype Lifecycle Firewall SaaS',
-  'Sonatype Lifecycle Firewall Cloud',
-];
+export const PRODUCT_LICENSES = Object.freeze({
+  lifecycle: ['Sonatype Lifecycle', 'Sonatype Lifecycle SaaS'],
+  firewall: [
+    'Sonatype Repository Firewall',
+    'Sonatype Firewall for Artifactory',
+    'Sonatype Lifecycle Firewall SaaS',
+    'Sonatype Lifecycle Firewall Cloud',
+  ],
+  sbomManager: ['Sonatype SBOM Manager', 'Sonatype SBOM Manager SaaS'],
+});
 
-export const selectProductLicenseSlice = prop('productLicense');
-export const selectLoadingProducts = createSelector(selectProductLicenseSlice, prop('loading'));
-export const selectProductLicense = createSelector(selectProductLicenseSlice, prop('license'));
-export const selectProducts = createSelector(selectProductLicense, propOr([], 'products'));
+export const selectProductLicenseSlice = R.prop('productLicense');
+export const selectLoadingProducts = createSelector(selectProductLicenseSlice, R.prop('loading'));
+export const selectProductLicense = createSelector(selectProductLicenseSlice, R.prop('license'));
+export const selectProducts = createSelector(selectProductLicense, R.propOr([], 'products'));
 
 export const selectIsSbomManagerOnlyLicense = createSelector(selectProducts, isSbomManagerOnlyLicenseProduct);
 
 export const isFirewallOnlyLicenseProduct = (products) =>
-  length(products) > 0 && all((product) => includes(product, firewallLicenseProducts), products);
+  R.length(products) > 0 && R.all(R.includes(R.__, PRODUCT_LICENSES.firewall), products);
 
 export const isNotFirewallLicenseProduct = (products) =>
-  length(products) > 0 && none((product) => includes(product, firewallLicenseProducts), products);
+  R.length(products) > 0 && R.none(R.includes(R.__, PRODUCT_LICENSES.firewall), products);
 
 export const selectIsFirewallOnlyLicense = createSelector(selectProducts, isFirewallOnlyLicenseProduct);
+
+export const selectHasLifecycleLicense = createSelector(
+  selectProducts,
+  R.any(R.includes(R.__, PRODUCT_LICENSES.lifecycle))
+);
+
+export const selectHasFirewallLicense = createSelector(
+  selectProducts,
+  R.any(R.includes(R.__, PRODUCT_LICENSES.firewall))
+);

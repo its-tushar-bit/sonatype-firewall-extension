@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import classNames from 'classnames';
-import { any, includes, __ } from 'ramda';
+import * as R from 'ramda';
 
 import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import {
@@ -48,7 +48,7 @@ import PolicyNotificationsEditor from './policyNotificationsEditor/PolicyNotific
 import PolicyActionsEditor from './policyActionsEditor/PolicyActionsEditor';
 import { selectEntityId, selectOwnerProperties } from '../orgsAndPoliciesSelectors';
 import { selectIsRepositoriesRelated, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectProducts } from 'MainRoot/productFeatures/productLicenseSelectors';
+import { selectHasFirewallLicense, selectHasLifecycleLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { faLock } from '@fortawesome/pro-regular-svg-icons';
 import './PolicyEditor.scss';
@@ -78,11 +78,10 @@ export default function PolicyEditor() {
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const isLoading = ownerDetailTreeLoading || loading;
   const isSbomManager = useSelector(selectIsSbomManager);
-  const productsEnabled = useSelector(selectProducts);
   const selectedOwnerProperties = useSelector(selectOwnerProperties);
-  const isSonatypeLifecycleEnabled = any(includes(__, ['Sonatype Lifecycle', 'Sonatype Lifecycle SaaS']))(
-    productsEnabled
-  );
+
+  const hasLifecycleLicense = useSelector(selectHasLifecycleLicense);
+  const hasFirewallLicense = useSelector(selectHasFirewallLicense);
 
   const showInheritedSection = isOrgOwner || isRepoContainerOwner || isRepoManagerOwner;
   const loadPolicyEditor = () => dispatch(actions.loadPolicyEditor());
@@ -129,15 +128,18 @@ export default function PolicyEditor() {
     organization: `organizationId`,
   };
 
-  const lifecycleRefPath = uiRouterState.href(`management.edit.${selectedOwnerProperties.ownerType}.policy`, {
-    [OWNER_TYPE_ID_MAP[selectedOwnerProperties.ownerType]]: selectedOwnerProperties.ownerId,
-    policyId: dirtyPolicy?.id,
-  });
+  const policyManagementHref = uiRouterState.href(
+    `${hasFirewallLicense ? 'firewall.' : ''}management.edit.${selectedOwnerProperties.ownerType}.policy`,
+    {
+      [OWNER_TYPE_ID_MAP[selectedOwnerProperties.ownerType]]: selectedOwnerProperties.ownerId,
+      policyId: dirtyPolicy?.id,
+    }
+  );
 
-  const nxTextLinkProps = {
-    textLink: isSonatypeLifecycleEnabled ? 'Manage in Lifecycle' : 'Start your demo today',
-    refPath: isSonatypeLifecycleEnabled ? lifecycleRefPath : 'https://links.sonatype.com/nexus-lifecycle-sbom',
-  };
+  const linkHref =
+    hasFirewallLicense || hasLifecycleLicense
+      ? policyManagementHref
+      : 'https://links.sonatype.com/nexus-lifecycle-sbom';
 
   return (
     <div id="policy-editor-summary">
@@ -148,11 +150,17 @@ export default function PolicyEditor() {
 
       {isSbomManager && dirtyPolicy && (
         <NxInfoAlert>
-          {isSonatypeLifecycleEnabled
-            ? 'Switch to Lifecycle to manage your policies. '
-            : 'Custom policies are available with Lifecycle. '}
-          <NxTextLink className="policy-editor-lifecycle-link" href={nxTextLinkProps.refPath} noReferrer newTab>
-            {nxTextLinkProps.textLink}
+          {R.cond([
+            [R.always(hasFirewallLicense), R.always('Switch to Repository Firewall to manage your policies. ')],
+            [R.always(hasLifecycleLicense), R.always('Switch to Lifecycle to manage your policies. ')],
+            [R.T, R.always('Custom policies are available with Lifecycle. ')],
+          ])()}
+          <NxTextLink className="policy-editor-lifecycle-link" href={linkHref} noReferrer newTab>
+            {R.cond([
+              [R.always(hasFirewallLicense), R.always('Manage in Repository Firewall')],
+              [R.always(hasLifecycleLicense), R.always('Manage in Lifecycle')],
+              [R.T, R.always('Start your demo today')],
+            ])()}
           </NxTextLink>
         </NxInfoAlert>
       )}

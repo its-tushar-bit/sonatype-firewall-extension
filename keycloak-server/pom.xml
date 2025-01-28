@@ -48,13 +48,24 @@
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>*</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.keycloak</groupId>
+          <artifactId>keycloak-server-spi-private</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
       <groupId>org.keycloak</groupId>
-      <artifactId>keycloak-saml-servlet-filter-adapter</artifactId>
+      <artifactId>keycloak-saml-adapter-core</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>org.keycloak</groupId>
+      <artifactId>keycloak-crypto-default</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.keycloak</groupId>
+      <artifactId>keycloak-servlet-adapter-spi</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>

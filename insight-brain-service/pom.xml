@@ -555,8 +555,8 @@
       <artifactId>shiro-guice</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.keycloak</groupId>
-      <artifactId>keycloak-saml-servlet-filter-adapter</artifactId>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>vendored-keycloak-saml-servlet-filter-adapter</artifactId>
     </dependency>
 
     <dependency>

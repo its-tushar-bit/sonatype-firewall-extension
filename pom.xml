@@ -158,6 +158,7 @@
     <module>insight-brain-java-functional-test</module>
     <module>nexus-mtiq-functional-test</module>
     <module>keycloak-server</module>
+    <module>vendored-keycloak-saml-servlet-filter-adapter</module>
   </modules>
 
   <dependencyManagement>
@@ -274,6 +275,11 @@
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>nexus-mtiq-server</artifactId>
+        <version>1.187.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>vendored-keycloak-saml-servlet-filter-adapter</artifactId>
         <version>1.187.0-SNAPSHOT</version>
       </dependency>
       <dependency>
@@ -553,31 +559,63 @@
       </dependency>
       <dependency>
         <groupId>org.keycloak</groupId>
-        <artifactId>keycloak-saml-servlet-filter-adapter</artifactId>
+        <artifactId>keycloak-saml-adapter-core</artifactId>
+        <version>${keycloak.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.keycloak</groupId>
+        <artifactId>keycloak-crypto-default</artifactId>
+        <version>${keycloak.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-server-spi-private</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.keycloak</groupId>
+        <artifactId>keycloak-saml-adapter-api-public</artifactId>
+        <version>${keycloak.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.keycloak</groupId>
+        <artifactId>keycloak-adapter-spi</artifactId>
+        <version>${keycloak.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.keycloak</groupId>
+        <artifactId>keycloak-servlet-adapter-spi</artifactId>
+        <version>${keycloak.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.keycloak</groupId>
+        <artifactId>keycloak-common</artifactId>
+        <version>${keycloak.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.keycloak</groupId>
+        <artifactId>keycloak-saml-core</artifactId>
         <version>${keycloak.version}</version>
         <exclusions>
           <exclusion>
             <groupId>com.sun.xml.ws</groupId>
             <artifactId>rt</artifactId>
           </exclusion>
-          <exclusion>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-          </exclusion>
-          <!-- Avoid security vulnerabilities -->
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.keycloak</groupId>
+        <artifactId>keycloak-core</artifactId>
+        <version>${keycloak.version}</version>
+        <exclusions>
           <exclusion>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-server-spi-private</artifactId>
-          </exclusion>
-          <!-- Avoid security vulnerabilities -->
-          <exclusion>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
-          </exclusion>
-          <!-- Avoid security vulnerabilities -->
-          <exclusion>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpkix-jdk15on</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -1257,6 +1295,7 @@
                   <exclude>**/.stylelintrc.js</exclude>
                   <exclude>**/.eslintrc.js</exclude>
                   <exclude>**/org/h2/**</exclude>
+                  <exclude>**/org/keycloak/**</exclude>
                   <exclude>**/src/main/resources/com/sonatype/insight/brain/legacy.report/**</exclude>
                   <exclude>**/src/main/resources/com/sonatype/insight/brain/cyclonedx/vulnerability-1.0.xsd</exclude>
                   <exclude>**/src/main/resources/com/sonatype/insight/brain/cyclonedx/bom-1.1.xsd</exclude>

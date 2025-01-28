@@ -170,7 +170,7 @@ public class KeycloakServerUtilTest
         stream(keycloak.getUsers()).filter(u -> u.getUsername().equals(username)).findFirst().get();
     assertThat(user.getEmail()).isEqualTo(email);
     assertThat(user.isEnabled()).isTrue();
-    assertThat(userAttributes).isEqualTo(user.getAttributes());
+    assertThat(user.getAttributes()).isEqualTo(userAttributes);
 
     // This asserts the user is enabled and the password is working
     assertThat(keycloak.getToken(username, password)).isNotNull();

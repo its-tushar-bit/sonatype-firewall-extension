@@ -137,12 +137,10 @@ PolicyViolationsTableRow.propTypes = {
 /* Helper component for legacy violations and waiver indicators. */
 const LegacyViolationsAndWaiverIndicators = ({ violation, isAutoWaiversEnabled }) => {
   const { waived, legacyViolation, applicableWaivers, waivedWithAutoWaiver = [] } = violation;
-  let numberOfWaivers = [];
-  if (applicableWaivers) {
-    numberOfWaivers = applicableWaivers.length;
-  }
+  const numberOfWaivers = applicableWaivers?.length || 0;
+
   const legacyViolationIndicator = legacyViolation ? (
-    <div>
+    <div className="iq-waiver-indicator">
       <NxFontAwesomeIcon icon={faHistory} />
       <span>Legacy</span>
     </div>
@@ -151,16 +149,13 @@ const LegacyViolationsAndWaiverIndicators = ({ violation, isAutoWaiversEnabled }
   return (
     <Fragment>
       {waivedWithAutoWaiver && isAutoWaiversEnabled && (
-        <p style={{ textAlign: 'end', marginTop: '4px' }}>
-          <NxSmallTag color="green" style={{ margin: '0' }}>
+        <div className="iq-waiver-indicator">
+          <NxSmallTag color="green" className="iq-waiver-indicator-auto-tag">
             Auto
           </NxSmallTag>
-        </p>
+        </div>
       )}
-      {numberOfWaivers > 0 && isAutoWaiversEnabled && !waivedWithAutoWaiver && (
-        <ActiveWaiversIndicator activeWaiverCount={numberOfWaivers} waived={waived} showUnapplied />
-      )}
-      {numberOfWaivers > 0 && !isAutoWaiversEnabled && (
+      {numberOfWaivers > 0 && (
         <ActiveWaiversIndicator activeWaiverCount={numberOfWaivers} waived={waived} showUnapplied />
       )}
       {legacyViolationIndicator}

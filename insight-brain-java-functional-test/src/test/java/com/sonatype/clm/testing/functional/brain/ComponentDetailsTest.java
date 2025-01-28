@@ -612,6 +612,40 @@ public class ComponentDetailsTest
   }
 
   @Test
+  public void testPolicyViolationsTab_violationTableEntries_UnappliedWaiversShouldShowForSpecificViolation() {
+    refreshOrOpen(ComponentDetailsPage.urlToViolations(app, SCAN_ID, "197d803ab63dd3523d9d"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.violationsTabContent().shouldBe(visible);
+
+    PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    // 1st row = Level 9 - Security-High, 2nd row = Level 7 - Security-Medium, 3rd row = Level 7 - Security-Medium
+    policyViolationsTable.getRows().shouldHave(size(3));
+
+    // Apply waiver for 2nd violation of Level 7 - Security-Medium
+    WaiverApplierForReport.waiveViolationFromTable(policyViolationsTable, 2);
+
+    componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.violationsTab().click();
+    componentDetailsPage.violationsTabContent().shouldBe(visible);
+
+    policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHave(size(3));
+
+    SelenideElement unappliedWaiverCell = policyViolationsTable.getRows().get(0).findAll(By.tagName("td")).get(4);
+    unappliedWaiverCell.shouldBe(empty);
+
+    // Only the waiver applied for specific violation should have the unapplied waiver label
+    unappliedWaiverCell = policyViolationsTable.getRows().get(1).findAll(By.tagName("td")).get(4);
+    unappliedWaiverCell.shouldHave(text("Unapplied Waiver"));
+
+    unappliedWaiverCell = policyViolationsTable.getRows().get(2).findAll(By.tagName("td")).get(4);
+    unappliedWaiverCell.shouldBe(empty);
+  }
+
+  @Test
   public void testPolicyViolationsTab_switchingFromSecurityToNonSecurityViolationDetails() {
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ElementsCollection violations = reportPage.resultRows();

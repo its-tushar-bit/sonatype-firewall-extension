@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { map, prop, equals, comparator, tryCatch, F, cond, T } from 'ramda';
+import { map, prop, equals, comparator, tryCatch, F, cond, T, omit, isNil, any } from 'ramda';
 import { getFutureDate } from './jsUtil';
 import { STANDARD_DATE_FORMAT, formatDate } from './dateUtils';
 import { isUnknownComponent } from 'MainRoot/util/componentNameUtils';
@@ -256,6 +256,18 @@ const conditionTypeComparator = comparator((a, b) => a.conditionTypeId < b.condi
 const triggerJsonComparator = comparator((a, b) => a.triggerJson < b.triggerJson);
 const arraysHaveSameLength = (array1, arra2) => equals(array1?.length, arra2?.length);
 
+// There are cases where the backend sets triggerJson = null and conditionIndex = 0 to policy violations
+// However, the waiver data always includes them, which causes faulty comparisons, so we omit these from comparison
+// See removeDataUnnecessaryForPolicyAlert in PolicyAlertUtil.java
+const getNonMissingProps = omit(['triggerJson', 'conditionIndex']);
+
+// If triggerJson is null, we compare the rest of the object for equality
+const equalProps = (a, b) => {
+  return any(isNil, [a.triggerJson, b.triggerJson])
+    ? equals(getNonMissingProps(a), getNonMissingProps(b))
+    : equals(a, b);
+};
+
 const sortConstraintFacts = (constraintFacts) => {
   return constraintFacts.sort(idComparator);
 };
@@ -274,10 +286,8 @@ const constraintFactsCondition = cond([
 
         return (
           idComparator(constraintFact, constraintFacts2[i]) === 0 &&
-          constraintFact?.conditionFacts.every(
-            (conditionFact, j) =>
-              conditionTypeComparator(conditionFact, constraintFacts2[i].conditionFacts[j]) === 0 &&
-              triggerJsonComparator(conditionFact, constraintFacts2[i].conditionFacts[j]) === 0
+          constraintFact?.conditionFacts.every((conditionFact, j) =>
+            equalProps(conditionFact, constraintFacts2[i].conditionFacts[j])
           )
         );
       }),

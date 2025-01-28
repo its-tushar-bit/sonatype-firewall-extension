@@ -65,8 +65,12 @@
         text-align: center;
 
         .iq-waiver-indicator {
-          justify-content: center;
           color: unset;
+          height: unset;
+
+          .iq-waiver-indicator-auto-tag {
+            margin-top: var(--nx-spacing-base);
+          }
         }
 
         // All indicators are inside div containers since they require multiple elements

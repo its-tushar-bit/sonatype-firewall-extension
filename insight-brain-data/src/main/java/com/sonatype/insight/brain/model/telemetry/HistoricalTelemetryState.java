@@ -42,7 +42,7 @@ public class HistoricalTelemetryState
   private Date lastUpdated;
 
   @Column(name = "min_free_memory_mb")
-  private int minFreeMemoryMb;
+  private int minFreeMemoryMb = 10;
 
   @Column(name = "start_time")
   private Date startTime;

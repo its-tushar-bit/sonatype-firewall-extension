@@ -44,6 +44,7 @@ public class HistoricalTelemetryStateDAOTest
     assertThat(state.getLastUpdated()).isNull();
     assertThat(state.getStartTime()).isNull();
     assertThat(state.getStatus()).isEqualTo(status);
+    assertThat(state.getMinFreeMemoryMb()).isEqualTo(10);
 
     state.setStartTime(new Date());
     state.setStatus("SUSPENDED");

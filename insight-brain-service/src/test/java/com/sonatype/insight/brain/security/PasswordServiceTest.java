@@ -8,7 +8,12 @@ package com.sonatype.insight.brain.security;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.DefaultTestInsightBrainService;
 
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,5 +59,16 @@ public class PasswordServiceTest
   @Test
   public void testPasswordsMatch_Old() {
     assertThat(passwordService.passwordsMatch(DEFAULT_ADMIN_PASSWORD, DEFAULT_ADMIN_HASHED_PASSWORD)).isTrue();
+  }
+
+  @Test
+  public void testUseWeakHashIterationForTestsOnly_NotCalledInProductionCode() {
+    JavaClasses importedClasses = new ClassFileImporter().importPackages("com.sonatype.insight.brain");
+
+    ArchRule rule = ArchRuleDefinition.noClasses()
+        .that().areNotAssignableTo(DefaultTestInsightBrainService.class)
+        .should().callMethod(PasswordService.class, "useWeakHashIterationForTestsOnly");
+
+    rule.check(importedClasses);
   }
 }

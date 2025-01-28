@@ -67,7 +67,7 @@ public class OAuth2Realm
   }
 
   @Override
-  public Class<?> getAuthenticationTokenClass() {
+  public Class<? extends AuthenticationToken> getAuthenticationTokenClass() {
     return ShiroJsonWebToken.class;
   }
 

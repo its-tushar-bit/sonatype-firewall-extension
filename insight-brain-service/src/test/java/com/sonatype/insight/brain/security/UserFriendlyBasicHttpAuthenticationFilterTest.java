@@ -89,7 +89,7 @@ public class UserFriendlyBasicHttpAuthenticationFilterTest
   @Test
   public void testOnAccessDenied_FailedLogin_ReturnsFalse() throws Exception {
     HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
-    when(mockHttpServletRequest.getHeader("Authorization")).thenReturn("basic authorization");
+    when(mockHttpServletRequest.getHeader("Authorization")).thenReturn("basic:authorization");
     doThrow(new AuthenticationException()).when(subject).login(any(AuthenticationToken.class));
     HttpServletResponse mockHttpServletResponse = mock(HttpServletResponse.class);
     when(mockHttpServletResponse.getWriter()).thenReturn(mock(PrintWriter.class));

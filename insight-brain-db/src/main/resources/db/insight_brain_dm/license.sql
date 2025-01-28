@@ -1611,6 +1611,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('MIT-W
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('MITNFA','MITNFA','MIT with no-false-attribs');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('MITRE-CVWL','MITRE-CVWL','The MITRE Collaborative Virtual Workspace License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Mitsua-Open-RAIL-M-License-03032023','Mitsua-Open-RAIL-M-License-03032023','Mitsua Open RAIL-M License - Dated 03-03-2023');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Mitsua-Open-RAIL-M-License-UNSPECIFIED','Mitsua-Open-RAIL-M-License','Mitsua-Open-RAIL-M-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Miva-SDK-LA-UD11202018','Miva-SDK-LA-UD11202018','Miva SDK License Agreement - Updated Date 11-20-2018');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Miva-SDK-LA-UNSPECIFIED','Miva-SDK-LA','Miva-SDK-LA-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('MixRadio-Services-DA-Consumer-Applications','MixRadio-Services-DA-Consumer-Applications','Developer Agreement for Use of MixRadio Services for Consumer Applications');

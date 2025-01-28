@@ -4178,6 +4178,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-Zli
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MITNFA','MITNFA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MITRE-CVWL','MITRE-CVWL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Mitsua-Open-RAIL-M-License-03032023','Mitsua-Open-RAIL-M-License-03032023');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Mitsua-Open-RAIL-M-License-UNSPECIFIED','Mitsua-Open-RAIL-M-License-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Miva-SDK-LA-UD11202018','Miva-SDK-LA-UD11202018');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Miva-SDK-LA-UNSPECIFIED','Miva-SDK-LA-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MixRadio-Services-DA-Consumer-Applications','MixRadio-Services-DA-Consumer-Applications');

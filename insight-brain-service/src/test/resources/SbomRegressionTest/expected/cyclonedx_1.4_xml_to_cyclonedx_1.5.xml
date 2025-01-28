@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bom serialNumber="urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79" version="1"
-     xmlns="http://cyclonedx.org/schema/bom/1.5">
+<bom serialNumber="urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79" version="1" xmlns="http://cyclonedx.org/schema/bom/1.5">
   <metadata>
-    <timestamp>2024-10-16T15:28:11Z</timestamp>
+    <timestamp>2025-01-22T20:30:45Z</timestamp>
     <tools>
       <components>
         <component type="application">
           <name>Sonatype SBOM Manager</name>
-          <version>build-number</version>
+          <version>1.187.0-SNAPSHOT</version>
         </component>
       </components>
     </tools>
-    <component type="application" bom-ref="af0c4b81-289c-45d1-83df-bee2388f2f6e">
-      <name>552</name>
-      <version>9.1.1_20241016122055052</version>
+    <component type="application" bom-ref="f7ec250c-1e78-4ff8-a52f-df35027deb5e">
+      <name>DUMMY-PUBLIC-ID-b5db8075acbf43dbb6dbc7fd56df7e93</name>
+      <version>9.1.1</version>
     </component>
   </metadata>
   <components>
@@ -21,6 +20,10 @@
       <name>Partner Shaded Library</name>
       <version>1.0</version>
       <purl>pkg:maven/partner/shaded-library@1.0</purl>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">bea74eb2b5af290ae9b7</property>
+      </properties>
       <components>
         <component type="library" bom-ref="pkg:maven/ossproject/library@2.0">
           <name>Some Opensource Library</name>
@@ -33,6 +36,10 @@
       <name>Acme Library</name>
       <version>2.0</version>
       <purl>pkg:maven/acme/library@3.0</purl>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">a9f7d008c44d7c8a6796</property>
+      </properties>
     </component>
     <component type="application">
       <author>Acme Super Heros</author>
@@ -53,9 +60,11 @@
       <licenses>
         <license>
           <id>Apache-2.0</id>
-          <text encoding="base64">CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIEFwYWNoZSBMaWNlbnNl=
-          </text>
+          <text encoding="base64">CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIEFwYWNoZSBMaWNlbnNl=</text>
           <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+          <properties>
+            <property name="sonatype:identification_sources">SBOM</property>
+          </properties>
         </license>
       </licenses>
       <purl>pkg:maven/com.acme/tomcat-catalina@9.0.14?packaging=jar</purl>
@@ -146,6 +155,10 @@
         </patches>
         <notes>Commentary here</notes>
       </pedigree>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">9188560f22e0b73070d2</property>
+      </properties>
       <releaseNotes>
         <type>major</type>
         <title>My new release</title>
@@ -164,14 +177,12 @@
         <notes>
           <note>
             <locale>en-US</locale>
-            <text content-type="text/html"
-                  encoding="base64">PGgxPk15IG5ldyByZWxlYXNlPGgxPgo8cD5SZWxlYXNlIG5vdGVzIGhlcmU8L3A+
+            <text content-type="text/html" encoding="base64">PGgxPk15IG5ldyByZWxlYXNlPGgxPgo8cD5SZWxlYXNlIG5vdGVzIGhlcmU8L3A+
             </text>
           </note>
           <note>
             <locale>es</locale>
-            <text content-type="text/html"
-                  encoding="base64">PGgxPk15IG5ldyByZWxlYXNlPGgxPgo8cD5Ob3RhcyBkZSBsYSB2ZXJzacOzbiBhcXXDrTwvcD4=
+            <text content-type="text/html" encoding="base64">PGgxPk15IG5ldyByZWxlYXNlPGgxPgo8cD5Ob3RhcyBkZSBsYSB2ZXJzacOzbiBhcXXDrTwvcD4=
             </text>
           </note>
         </notes>
@@ -203,7 +214,18 @@
         <hash alg="SHA-256">708f1f53b41f11f02d12a11b1a38d2905d47b099afc71a0f1124ef8582ec7313</hash>
       </hashes>
       <licenses>
-        <expression>EPL-2.0 OR GPL-2.0-with-classpath-exception</expression>
+        <license bom-ref="b96b52cb-2109-4212-ad3e-3902656f7044">
+          <id>GPL-2.0-with-classpath-exception</id>
+          <properties>
+            <property name="sonatype:identification_sources">SBOM</property>
+          </properties>
+        </license>
+        <license bom-ref="82810d3f-25a0-4d8a-9a8a-9562187d7c41">
+          <id>EPL-2.0</id>
+          <properties>
+            <property name="sonatype:identification_sources">SBOM</property>
+          </properties>
+        </license>
       </licenses>
       <copyright>Copyright Example Inc. All rights reserved.</copyright>
       <cpe>cpe:/a:example:myapplication:1.0.0</cpe>
@@ -218,6 +240,10 @@
           <url>http://example.org/security</url>
         </reference>
       </externalReferences>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">68b78babe00a053f9e35</property>
+      </properties>
     </component>
     <component type="framework">
       <author>Example Super Heros</author>
@@ -246,6 +272,10 @@
           <url>http://example.com/security</url>
         </reference>
       </externalReferences>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">7fbeef2346c45d565c33</property>
+      </properties>
       <evidence>
         <licenses>
           <license>
@@ -259,7 +289,7 @@
         </licenses>
         <copyright>
           <text>Copyright 2012 Google Inc. All Rights Reserved.</text>
-          <text>Copyright (C) 2004,2005 Dave Brosius &lt;dbrosius@users.sourceforge.net&gt;</text>
+          <text>Copyright (C) 2004,2005 Dave Brosius &lt;dbrosius@users.sourceforge.net></text>
           <text>Copyright (C) 2005 William Pugh</text>
           <text>Copyright (C) 2004,2005 University of Maryland</text>
         </copyright>
@@ -270,6 +300,10 @@
       <name>jackson-databind</name>
       <version>2.9.4</version>
       <purl>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4</purl>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">230e09fd610400a07572</property>
+      </properties>
     </component>
   </components>
   <services>
@@ -363,14 +397,13 @@
       <ratings>
         <rating>
           <source>
-            <name>NVD</name>
-            <url>https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator?vector=AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H&amp;version=3.0</url>
+            <name>Snyk</name>
+            <url>https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111</url>
           </source>
           <score>9.8</score>
           <severity>critical</severity>
           <method>CVSSv3</method>
           <vector>AN/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H</vector>
-          <justification>An optional reason for rating the vulnerability as it was</justification>
         </rating>
       </ratings>
       <cwes>
@@ -449,6 +482,7 @@
         <property name="Foo">You</property>
         <property name="Foo">Two</property>
         <property name="Bar">Foo</property>
+        <property name="sonatype:identification_sources">SBOM</property>
       </properties>
     </vulnerability>
   </vulnerabilities>

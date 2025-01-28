@@ -392,6 +392,11 @@ public class SbomCycloneDxUtils
     return parser.parse(bytes);
   }
 
+  /*
+  * Currently used for backward compatibility SBOMs with a null componentRef 
+  * @deprecated search for a component by component-ref instead.
+  * */
+  @Deprecated
   public static Optional<Component> findComponentByPackageUrl(String packageUrl, Bom bom) {
     if (packageUrl == null) {
       return Optional.empty();

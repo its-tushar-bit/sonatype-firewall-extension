@@ -28,7 +28,17 @@
       "name": "Partner Shaded Library",
       "version": "1.0",
       "purl": "pkg:maven/partner/shaded-library@1.0",
-      "components": [
+      "properties": [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "bea74eb2b5af290ae9b7"
+        }
+      ],
+      "components" : [
         {
           "type": "library",
           "bom-ref": "pkg:maven/ossproject/library@2.0",
@@ -43,7 +53,17 @@
       "bom-ref": "pkg:maven/acme/library@3.0",
       "name": "Acme Library",
       "version": "2.0",
-      "purl": "pkg:maven/acme/library@3.0"
+      "purl": "pkg:maven/acme/library@3.0",
+      "properties": [
+        {
+          "name": "sonatype:identification_sources",
+          "value": "SBOM"
+        },
+        {
+          "name": "sonatype:truncated_sha1",
+          "value": "a9f7d008c44d7c8a6796"
+        }
+      ]
     },
     {
       "type": "application",
@@ -88,7 +108,13 @@
               "encoding": "base64",
               "content": "CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIEFwYWNoZSBMaWNlbnNl="
             },
-            "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+            "url" : "https://www.apache.org/licenses/LICENSE-2.0.txt",
+            "properties" : [
+              {
+                "name" : "sonatype:identification_sources",
+                "value" : "SBOM"
+              }
+            ]
           }
         }
       ],
@@ -194,6 +220,16 @@
         ],
         "notes": "Commentary here"
       },
+      "properties": [
+        {
+          "name": "sonatype:identification_sources",
+          "value": "SBOM"
+        },
+        {
+          "name": "sonatype:truncated_sha1",
+          "value": "9188560f22e0b73070d2"
+        }
+      ],
       "releaseNotes": {
         "type": "major",
         "title": "My new release",
@@ -271,7 +307,28 @@
       ],
       "licenses": [
         {
-          "expression": "EPL-2.0 OR GPL-2.0-with-classpath-exception"
+          "license": {
+            "bom-ref": "ed2712f8-3670-40b4-bd17-c5967f1bdffb",
+            "id": "GPL-2.0-with-classpath-exception",
+            "properties": [
+              {
+                "name": "sonatype:identification_sources",
+                "value": "SBOM"
+              }
+            ]
+          }
+        },
+        {
+          "license" : {
+            "bom-ref" : "fe548857-f156-4661-a346-a1daeb891ab7",
+            "id" : "EPL-2.0",
+            "properties" : [
+              {
+                "name" : "sonatype:identification_sources",
+                "value" : "SBOM"
+              }
+            ]
+          }
         }
       ],
       "copyright": "Copyright Example Inc. All rights reserved.",
@@ -287,6 +344,16 @@
         {
           "type": "advisories",
           "url": "http://example.org/security"
+        }
+      ],
+      "properties": [
+        {
+          "name": "sonatype:identification_sources",
+          "value": "SBOM"
+        },
+        {
+          "name": "sonatype:truncated_sha1",
+          "value": "68b78babe00a053f9e35"
         }
       ]
     },
@@ -331,8 +398,18 @@
           "url": "http://example.com/security"
         }
       ],
+      "properties": [
+        {
+          "name": "sonatype:identification_sources",
+          "value": "SBOM"
+        },
+        {
+          "name": "sonatype:truncated_sha1",
+          "value": "7fbeef2346c45d565c33"
+        }
+      ],
       "evidence": {
-        "licenses": [
+        "licenses" : [
           {
             "license": {
               "id": "Apache-2.0",
@@ -368,7 +445,17 @@
       "group": "com.fasterxml.jackson.core",
       "name": "jackson-databind",
       "version": "2.9.4",
-      "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4"
+      "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4",
+      "properties": [
+        {
+          "name": "sonatype:identification_sources",
+          "value": "SBOM"
+        },
+        {
+          "name": "sonatype:truncated_sha1",
+          "value": "230e09fd610400a07572"
+        }
+      ]
     }
   ],
   "services": [
@@ -487,14 +574,13 @@
       "ratings": [
         {
           "source": {
-            "name": "NVD",
-            "url": "https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator?vector=AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H&version=3.0"
+            "name": "Snyk",
+            "url": "https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111"
           },
           "score": 9.8,
           "severity": "critical",
           "method": "CVSSv3",
-          "vector": "AN/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
-          "justification": "An optional reason for rating the vulnerability as it was"
+          "vector": "AN/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
         }
       ],
       "cwes": [
@@ -589,6 +675,10 @@
         {
           "name": "Bar",
           "value": "Foo"
+        },
+        {
+          "name": "sonatype:identification_sources",
+          "value": "SBOM"
         }
       ]
     }

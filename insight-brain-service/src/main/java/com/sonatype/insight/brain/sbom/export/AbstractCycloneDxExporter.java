@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
@@ -144,7 +145,7 @@ public abstract class AbstractCycloneDxExporter
     this.migrationTrackerDAO = migrationTrackerDAO;
   }
 
-  protected Bom mergeCurrentDatabaseState(Bom bom) {
+  protected Bom mergeCurrentDatabaseState(Bom bom, Map<String, Component> componentRefToComponents) {
     String oldBomComponentRef = "";
     if (bom.getMetadata() != null && bom.getMetadata().getComponent() != null &&
         bom.getMetadata().getComponent().getBomRef() != null) {
@@ -152,7 +153,8 @@ public abstract class AbstractCycloneDxExporter
     }
     generateNewBomMetadata(bom);
     updateDependenciesWithNewBomComponentRef(bom, oldBomComponentRef);
-
+    Map<String, Component> componentRefToBomComponentsMap = componentRefToComponents == null ?
+        generateComponentRefMap(bom) : componentRefToComponents;
     List<ThirdPartyFileCoordinate> sonatypeComponents = thirdPartyFileCoordinateDAO.getByThirdPartyFileId(
         exportParams.sbomMetadata.getThirdPartyFileId());
 
@@ -174,8 +176,15 @@ public abstract class AbstractCycloneDxExporter
         List<ThirdPartyCoordinateLicense> sonatypeComponentLicenses = thirdPartyCoordinateLicenseDAO
             .getByFileCoordinateId(sonatypeComponent.getId());
 
-        Optional<Component> bomComponentFound = SbomCycloneDxUtils.findComponentByPackageUrl(
-            sonatypeComponent.getPackageUrl(), bom);
+        Optional<Component> bomComponentFound = Optional.empty();
+        Component componentByComponentRef = componentRefToBomComponentsMap.get(sonatypeComponent.getComponentRef());
+        if (componentByComponentRef != null) {
+          bomComponentFound = Optional.of(componentByComponentRef);
+        }
+        else if (sonatypeComponent.getComponentRef() == null) {
+          bomComponentFound = SbomCycloneDxUtils.findComponentByPackageUrl(sonatypeComponent.getPackageUrl(), bom);
+        }
+
         if (bomComponentFound.isPresent()) {
           Component bomComponent = bomComponentFound.get();
 
@@ -233,6 +242,21 @@ public abstract class AbstractCycloneDxExporter
     }
 
     return bom;
+  }
+
+  protected Bom mergeCurrentDatabaseState(Bom bom) {
+    return mergeCurrentDatabaseState(bom, null);
+  }
+
+  private Map<String, Component> generateComponentRefMap(Bom bom) {
+    Map<String, Component> componentRefMap = new HashMap<>();
+    bom.getComponents().forEach(component -> {
+      String componentRef = SbomIdentityUtils.getComponentRef(component);
+      if (componentRef != null ) {
+        componentRefMap.put(componentRef, component);
+      }
+    });
+    return componentRefMap;
   }
 
   private void mergeSonatypeDataVulnerabilities(

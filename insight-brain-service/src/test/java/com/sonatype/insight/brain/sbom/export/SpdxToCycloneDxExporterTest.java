@@ -320,13 +320,16 @@ public class SpdxToCycloneDxExporterTest
     //coordinates
     ThirdPartyFileCoordinate databind =
         tempEntity.newThirdPartyFileCoordinate(tpFile, "Third-Party", "maven", "jackson-databind", "2.13.3",
-            "2dc096121af49cea9299", "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar");
+            "2dc096121af49cea9299", "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar",
+            "0d4c0224ba6b5abe2f7c9368771bde469a7c73ae");
     ThirdPartyFileCoordinate annotations =
         tempEntity.newThirdPartyFileCoordinate(tpFile, "Third-Party", "maven", "jackson-annotations", "2.13.3",
-            "9644625c9e61df62e89a", "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar");
+            "9644625c9e61df62e89a", "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar",
+            "f8f51717d2a3fdc7e4972f081d6d4ba3148eb7c1");
     ThirdPartyFileCoordinate core =
         tempEntity.newThirdPartyFileCoordinate(tpFile, "Third-Party", "maven", "jackson-core", "2.13.3",
-            "e4d1890a31abcc38566b", "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.3?type=jar");
+            "e4d1890a31abcc38566b", "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.3?type=jar",
+            "ab4b99bf70ab45d4e745165b2d2d8f81fe53ff7e");
     tempEntity.newThirdPartyFileCoordinate(tpFile, "Third-Party", "maven", "parentApp", "1.0-SNAPSHOT",
         "e33c095684013cced9f4", "pkg:maven/org.example/JavaPlay@1.0-SNAPSHOT?type=jar");
     //security

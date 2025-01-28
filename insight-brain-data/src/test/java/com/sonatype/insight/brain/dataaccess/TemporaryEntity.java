@@ -336,7 +336,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.model.ClientScanType;
-import com.sonatype.insight.scan.util.HashUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.Table;
@@ -4431,6 +4430,20 @@ public class TemporaryEntity
       String version,
       String hash,
       String packageUrl,
+      String componentRef)
+  {
+    return newThirdPartyFileCoordinate(thirdPartyFile.getId(), source, format, name, version, hash, packageUrl,
+        componentRef);
+  }
+
+  public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
+      ThirdPartyFile thirdPartyFile,
+      String source,
+      String format,
+      String name,
+      String version,
+      String hash,
+      String packageUrl,
       List<String> occurrences,
       List<String> filenames,
       String matchState)
@@ -4547,7 +4560,25 @@ public class TemporaryEntity
         new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFileId);
     fileCoordinate.setPackageUrl(packageUrl);
     fileCoordinate.setIdentificationSources("SBOM");
-    fileCoordinate.setComponentRef(HashUtils.hash(UUID.randomUUID().toString(), HashUtils.SHA1));
+    thirdPartyFileCoordinateDAO.insert(fileCoordinate);
+    return fileCoordinate;
+  }
+
+  public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
+      String thirdPartyFileId,
+      String source,
+      String format,
+      String name,
+      String version,
+      String hash,
+      String packageUrl,
+      String componentRef)
+  {
+    ThirdPartyFileCoordinate fileCoordinate =
+        new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFileId);
+    fileCoordinate.setPackageUrl(packageUrl);
+    fileCoordinate.setIdentificationSources("SBOM");
+    fileCoordinate.setComponentRef(componentRef);
     thirdPartyFileCoordinateDAO.insert(fileCoordinate);
     return fileCoordinate;
   }

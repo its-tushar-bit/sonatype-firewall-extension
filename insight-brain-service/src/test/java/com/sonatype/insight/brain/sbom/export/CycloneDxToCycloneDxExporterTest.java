@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.zip.GZIPInputStream;
@@ -180,6 +181,60 @@ public class CycloneDxToCycloneDxExporterTest
     assertThatJson(export)
         .whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/output-test-bom.json"));
+  }
+
+  @Test
+  public void exportTest_ComponentRef_MatchByBomRef() throws Exception {
+    String testFileName = "test-bom-ref-as-component-ref.xml";
+    File testBomFile = prepareTestReportFile(testFileName);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
+    exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_16, SbomFormat.JSON));
+    tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
+    ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
+        "source",
+        "maven",
+        "log4j",
+        "1.2.8",
+        "abcdef",
+        null,
+        "69ea90fe09efe94a7e53e1989a3addc2decf3833"
+    );
+    tempEntity.newThirdPartyCoordinateSecurity(
+        fileCoordinate, "sonatype-2010-0053", "DESC sonatype-2010-0053", "l1", 5.5d,
+        "1.1", "source", "v:1", "Medium", "1234",
+        "m1", "<dd>r1<dd/>", "<dd>a1<dd/>", "G,F");
+    String export = exporter.export();
+    assertThatJson(export)
+        .whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS)
+        .isEqualTo(readFileToString("outputs/output-bom-ref-used-as-component-ref.json"));
+  }
+
+  @Test
+  public void exportTest_ComponentRef_MatchByComponentIdentity() throws Exception {
+    List<String> ignoreFields = new ArrayList<>(List.of(CYCLONEDX_JSON_IGNORE_FIELDS));
+    ignoreFields.addAll(List.of( "components[*].bom-ref", "vulnerabilities[*].affects[*].ref"));
+    String testFileName = "test-component-identity-as-component-ref.xml";
+    File testBomFile = prepareTestReportFile(testFileName);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
+    exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_15, SbomFormat.JSON));
+    tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
+    ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
+        "source",
+        "maven",
+        "log4j",
+        "1.2.8",
+        "abcdef",
+        null,
+        "99de859bd6977b14fe90b8283ccd6803b34305d4"
+    );
+    tempEntity.newThirdPartyCoordinateSecurity(
+        fileCoordinate, "sonatype-2010-0053", "DESC sonatype-2010-0053", "l1", 5.5d,
+        "1.1", "source", "v:1", "Medium", "1234",
+        "m1", "<dd>r1<dd/>", "<dd>a1<dd/>", "G,F");
+    String export = exporter.export();
+    assertThatJson(export)
+        .whenIgnoringPaths(ignoreFields.toArray(new String[0]))
+        .isEqualTo(readFileToString("outputs/output-component-identity-used-as-component-ref.json"));
   }
 
   @Test

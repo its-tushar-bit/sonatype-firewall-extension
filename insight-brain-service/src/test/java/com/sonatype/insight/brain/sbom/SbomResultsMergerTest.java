@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -52,6 +53,7 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.util.HashUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -152,7 +154,7 @@ public class SbomResultsMergerTest
 
     ThirdPartyFileCoordinate tpComponent =
         tempEntity.newThirdPartyFileCoordinate(file, "Sonatype", "pypi", "orange", "1.0.1", "093080a1a4bbd2750541",
-            purl1.getPackageUrl());
+            purl1.getPackageUrl(), HashUtils.hash(UUID.randomUUID().toString(), HashUtils.SHA1));
     ThirdPartyCoordinateSecurity tpVuln =
         tempEntity.newThirdPartyCoordinateSecurity(tpComponent, "FG-R00229", sbomMetadata.getId(), "desc", "1.url", 1d,
             "FG-R00229 test", "2.0");

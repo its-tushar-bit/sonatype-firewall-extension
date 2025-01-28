@@ -19,6 +19,7 @@ import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -78,6 +79,8 @@ public class SpdxToCycloneDxExporter
 
   private Map<String, String> spdxPackageIdsToCdxBomRefs;
 
+  private Map<String, Component> componentRefToComponent = new HashMap<>();
+
   @Inject
   protected SpdxToCycloneDxExporter(
       final InsightWork insightWork,
@@ -119,7 +122,7 @@ public class SpdxToCycloneDxExporter
       SpdxDocument originalSpdx = SbomSpdxUtils.parseContentStreamNoValidation(gis,
           SbomFormat.forString(exportParams.sbomMetadata.getSpecFormat()));
       Bom baseBomFromSpdx = generateCycloneDxBomFromSpdxDocument(originalSpdx);
-      return generateTargetSbomString(mergeCurrentDatabaseState(baseBomFromSpdx));
+      return generateTargetSbomString(mergeCurrentDatabaseState(baseBomFromSpdx, componentRefToComponent));
     }
     catch (IOException | GeneratorException e) {
       throw new SbomExportException(
@@ -167,7 +170,9 @@ public class SpdxToCycloneDxExporter
 
   private void setComponents(List<SpdxPackage> packages, String rootPackageId, final Bom target) {
     for (SpdxPackage spdxPackage : packages) {
-      target.addComponent(createCdxBomComponentFromSpdxPackage(spdxPackage, rootPackageId));
+      Component newComponent = createCdxBomComponentFromSpdxPackage(spdxPackage, rootPackageId);
+      componentRefToComponent.put(SbomIdentityUtils.getComponentRef(spdxPackage), newComponent);
+      target.addComponent(newComponent);
     }
   }
 

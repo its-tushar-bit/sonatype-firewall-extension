@@ -280,6 +280,16 @@
       "group": "org.example",
       "name": "mylibrary",
       "version": "1.0.0",
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "4ad5e066bb7c27c3f2cf"
+        }
+      ],
       "releaseNotes": {
         "type": "major",
         "title": "My new release",
@@ -318,42 +328,122 @@
     {
       "type": "application",
       "name": "application-a",
-      "version": "1.0"
+      "version": "1.0",
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "da966c270954a36ffa91"
+        }
+      ]
     },
     {
       "type": "library",
       "name": "library-a",
-      "version": "1.0"
+      "version": "1.0",
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "6b38ac7ec780278b6942"
+        }
+      ]
     },
     {
       "type": "framework",
       "name": "framework-a",
-      "version": "1.0"
+      "version": "1.0",
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "ff049ba699e563f11252"
+        }
+      ]
     },
     {
       "type": "container",
       "name": "container-a",
-      "version": "1.0"
+      "version": "1.0",
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "e5c3151eb003a02cc8d9"
+        }
+      ]
     },
     {
       "type": "operating-system",
       "name": "operating-system-a",
-      "version": "1.0"
+      "version": "1.0",
+      "properties": [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "d436122a1b89239ff669"
+        }
+      ]
     },
     {
       "type": "firmware",
       "name": "firmware-a",
-      "version": "1.0"
+      "version": "1.0",
+      "properties": [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "51ff1fa2299f92dea368"
+        }
+      ]
     },
     {
       "type": "device",
       "name": "device-a",
-      "version": "1.0"
+      "version": "1.0",
+      "properties": [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "517220b40ff9d2736a89"
+        }
+      ]
     },
     {
       "type": "file",
       "name": "file-a",
-      "version": "1.0"
+      "version": "1.0",
+      "properties": [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "d2bc050380d26b0783b9"
+        }
+      ]
     },
     {
       "type": "library",
@@ -361,7 +451,17 @@
       "name": "Partner Shaded Library",
       "version": "1.0",
       "purl": "pkg:maven/partner/shaded-library@1.0",
-      "components": [
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "bea74eb2b5af290ae9b7"
+        }
+      ],
+      "components" : [
         {
           "type": "library",
           "bom-ref": "pkg:maven/ossproject/library@2.0",
@@ -376,7 +476,17 @@
       "bom-ref": "pkg:maven/acme/library@3.0",
       "name": "Acme Library",
       "version": "3.0",
-      "purl": "pkg:maven/acme/library@3.0"
+      "purl": "pkg:maven/acme/library@3.0",
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "a9f7d008c44d7c8a6796"
+        }
+      ]
     },
     {
       "type": "library",
@@ -384,7 +494,17 @@
       "group": "com.fasterxml.jackson.core",
       "name": "jackson-databind",
       "version": "2.9.4",
-      "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4"
+      "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4",
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "230e09fd610400a07572"
+        }
+      ]
     }
   ],
   "services": [
@@ -496,14 +616,13 @@
       "ratings": [
         {
           "source": {
-            "name": "NVD",
-            "url": "https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator?vector=AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H&version=3.0"
+            "name": "Snyk",
+            "url": "https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111"
           },
           "score": 9.8,
           "severity": "critical",
           "method": "CVSSv3",
-          "vector": "AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
-          "justification": "An optional reason for rating the vulnerability as it was"
+          "vector": "AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
         }
       ],
       "cwes": [
@@ -599,6 +718,10 @@
         {
           "name": "Bar",
           "value": "Foo"
+        },
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
         }
       ]
     }

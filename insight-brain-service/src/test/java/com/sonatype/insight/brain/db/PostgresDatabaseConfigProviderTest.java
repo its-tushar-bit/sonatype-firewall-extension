@@ -130,4 +130,43 @@ public class PostgresDatabaseConfigProviderTest
     assertThat(databaseConfig).isNotNull();
     assertThat(databaseConfig.getMaxIdleConnections()).isEqualTo(3);
   }
+
+  @Test
+  public void testGetDatabaseConfig_CustomMaxConnections() {
+    com.sonatype.insight.brain.service.DatabaseConfig dbConfig =
+        new com.sonatype.insight.brain.service.DatabaseConfig();
+    dbConfig.setType("postgresql");
+    dbConfig.setHostname("localhost");
+    dbConfig.setPort(5432);
+    dbConfig.setName("test-db");
+    dbConfig.setUsername("testuser");
+    dbConfig.setPassword("testpass");
+    dbConfig.setMaxConnections(50);
+    insightConfig.setDatabase(dbConfig);
+
+    assertThat(DatabaseName.values()).allSatisfy(databaseName -> {
+      DatabaseConfig databaseConfig = postgresDatabaseConfigProvider.getDatabaseConfig(databaseName);
+      assertThat(databaseConfig).isNotNull();
+      assertThat(databaseConfig.getMaxConnections()).isEqualTo(50);
+    });
+  }
+
+  @Test
+  public void testGetDatabaseConfig_DefaultMaxConnections() {
+    com.sonatype.insight.brain.service.DatabaseConfig dbConfig =
+        new com.sonatype.insight.brain.service.DatabaseConfig();
+    dbConfig.setType("postgresql");
+    dbConfig.setHostname("localhost");
+    dbConfig.setPort(5432);
+    dbConfig.setName("test-db");
+    dbConfig.setUsername("testuser");
+    dbConfig.setPassword("testpass");
+    insightConfig.setDatabase(dbConfig);
+
+    assertThat(DatabaseName.values()).allSatisfy(databaseName -> {
+      DatabaseConfig databaseConfig = postgresDatabaseConfigProvider.getDatabaseConfig(databaseName);
+      assertThat(databaseConfig).isNotNull();
+      assertThat(databaseConfig.getMaxConnections()).isEqualTo(45);
+    });
+  }
 }

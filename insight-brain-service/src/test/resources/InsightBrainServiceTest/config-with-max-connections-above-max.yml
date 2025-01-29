@@ -1,0 +1,7 @@
+database:
+  type: postgresql
+  hostname: localhost
+  name: test-db
+  username: test-user
+  password: test-password
+  maxConnections: 2147483648

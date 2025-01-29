@@ -68,13 +68,15 @@ import com.sonatype.insight.test.LogOutput;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.dropwizard.configuration.ConfigurationParsingException;
+import io.dropwizard.configuration.ConfigurationValidationException;
+import io.dropwizard.core.server.AbstractServerFactory;
+import io.dropwizard.core.server.DefaultServerFactory;
 import io.dropwizard.logging.common.AppenderFactory;
 import io.dropwizard.logging.common.ConsoleAppenderFactory;
 import io.dropwizard.logging.common.FileAppenderFactory;
 import io.dropwizard.logging.common.SyslogAppenderFactory;
 import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
-import io.dropwizard.core.server.AbstractServerFactory;
-import io.dropwizard.core.server.DefaultServerFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.After;
 import org.junit.Before;
@@ -524,5 +526,48 @@ public class InsightBrainServiceTest
     assertThat(getCLMServer().getInstance(DashboardComponentRiskService.class))
             .isInstanceOf(H2ComponentRiskService.class);
     assertThat(getCLMServer().getInstance(ApplicationRiskService.class)).isInstanceOf(H2ApplicationRiskService.class);
+  }
+
+  @Test
+  @ManualIqServerInit
+  public void testInitialize_MaxConnections_BelowMin() {
+    Configurator configurator = new Configurator()
+    {
+      @Override
+      public void configure(final InsightConfig config) {
+      }
+
+      @Override
+      public String getConfigFilePath() {
+        return InsightBrainService.class
+            .getResource("/InsightBrainServiceTest/config-with-max-connections-below-min.yml").getFile();
+      }
+    };
+    assertThatExceptionOfType(IllegalStateException.class)
+        .isThrownBy(() -> startIqTestServer(configurator))
+        .withCauseInstanceOf(ConfigurationValidationException.class)
+        .withStackTraceContaining("database.maxConnections must be greater than or equal to 1");
+  }
+
+  @Test
+  @ManualIqServerInit
+  public void testInitialize_MaxConnections_AboveMax() {
+    Configurator configurator = new Configurator()
+    {
+      @Override
+      public void configure(final InsightConfig config) {
+      }
+
+      @Override
+      public String getConfigFilePath() {
+        return InsightBrainService.class
+            .getResource("/InsightBrainServiceTest/config-with-max-connections-above-max.yml").getFile();
+      }
+    };
+    assertThatExceptionOfType(IllegalStateException.class)
+        .isThrownBy(() -> startIqTestServer(configurator))
+        .withCauseInstanceOf(ConfigurationParsingException.class)
+        .withStackTraceContaining(
+            "database.maxConnections; Numeric value (2147483648) out of range of int (-2147483648 - 2147483647)");
   }
 }

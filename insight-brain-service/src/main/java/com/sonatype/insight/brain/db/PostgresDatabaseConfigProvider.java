@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.db;
 
+import java.util.Objects;
+
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.DatabaseEngine;
@@ -41,7 +43,7 @@ public class PostgresDatabaseConfigProvider
     databaseConfig.setUsername(dbConfig.getUsername());
     databaseConfig.setPassword(dbConfig.getPassword());
     // postgres defaults to max_connections=100, this is a best effort to not hit that limit by default
-    databaseConfig.setMaxConnections(45);
+    databaseConfig.setMaxConnections(Objects.requireNonNullElse(dbConfig.getMaxConnections(), 45));
     if (!DatabaseName.ods.equals(databaseName)) {
       databaseConfig.setMaxIdleConnections(3);
     }

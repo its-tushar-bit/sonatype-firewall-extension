@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.service;
 
 import java.util.Map;
-
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -36,6 +35,9 @@ public class DatabaseConfig
 
   @NotNull
   private String password;
+
+  @Min(1)
+  private Integer maxConnections;
 
   private Map<String, String> parameters;
 
@@ -93,5 +95,13 @@ public class DatabaseConfig
 
   public void setParameters(Map<String, String> parameters) {
     this.parameters = parameters;
+  }
+
+  public Integer getMaxConnections() {
+    return maxConnections;
+  }
+
+  public void setMaxConnections(Integer maxConnections) {
+    this.maxConnections = maxConnections;
   }
 }

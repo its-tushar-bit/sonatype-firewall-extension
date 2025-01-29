@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.brain.policy.utils.EvaluationUtils;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.scan.ScanContext;
@@ -71,8 +72,6 @@ public class PolicyEvaluateService
     implements Managed
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluateService.class);
-
-  private static final int NEXT_POLLING_INTERVAL_IN_SECONDS = 5;
 
   private final ScanPolicyEvaluator scanPolicyEvaluator;
 
@@ -147,7 +146,8 @@ public class PolicyEvaluateService
         .registerGaugePolicyEvaluationThreadUtilization(PolicyEvaluationThreadPoolExecutor.THREAD_POOL_SIZE);
 
     return policyEvaluateServiceMetrics
-        .registerAndGetTimedPolicyEvaluationExecutor(new PolicyEvaluationThreadPoolExecutor());
+        .registerAndGetTimedPolicyEvaluationExecutor(
+            new PolicyEvaluationThreadPoolExecutor(PolicyEvaluateService.class.getName()));
   }
 
   // Visible for testing
@@ -286,27 +286,14 @@ public class PolicyEvaluateService
           "You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.");
     }
 
-    evaluateWithPolling(statusId, app, clientScanType, stage, getScanTriggerType(integrationType),
-        tempScanFile, thirdPartyScanType, HdsClient.getClientUserAgent(req),
-        HdsClient.getClientInstanceId(req), scanContext);
+    evaluateWithPolling(statusId, app, clientScanType, stage,
+        EvaluationUtils.getScanTriggerType(integrationType), tempScanFile, thirdPartyScanType,
+        HdsClient.getClientUserAgent(req), HdsClient.getClientInstanceId(req), scanContext);
 
     PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
     policyEvaluationReceipt.setStatusId(statusId);
 
     return policyEvaluationReceipt;
-  }
-
-  private ScanTriggerType getScanTriggerType(IntegrationType integrationType) {
-    switch (integrationType) {
-      case CI:
-        return ScanTriggerType.CONTINUOUS_INTEGRATION;
-      case CLI:
-        return ScanTriggerType.CLI;
-      case RM:
-        return ScanTriggerType.REPOSITORY_MANAGER;
-      default:
-        throw new IllegalArgumentException("Unknown integration type " + integrationType);
-    }
   }
 
   public void evaluateWithPolling(
@@ -377,9 +364,9 @@ public class PolicyEvaluateService
           app.getPublicId(), stage, thirdPartyScanType, scanTriggerType, clientUserAgent);
 
       AuditData.get().continueAsync(
-          new Task(app, clientScanType, statusId, stage, scanTriggerType, tempScanFile, thirdPartyScanTelemetryData,
-              persistedPolicyEvaluationPollingResult, clientUserAgent, clientInstanceId, scanContext),
-          executor::submit);
+          new CompleteEvaluationTask(app, clientScanType, statusId, stage, scanTriggerType, tempScanFile,
+              thirdPartyScanTelemetryData, persistedPolicyEvaluationPollingResult, clientUserAgent,
+              clientInstanceId, scanContext), executor::submit);
     }
     else {
       throw new BadRequestException("Invalid stage: " + stage.getStageTypeId());
@@ -398,7 +385,8 @@ public class PolicyEvaluateService
 
     PolicyEvaluationPollingResult initialResult = new PolicyEvaluationPollingResult();
     initialResult.setStatus(PolicyEvaluationStatus.PENDING);
-    initialResult.setNextPollingIntervalInSeconds(getNextPollingInterval());
+    initialResult.setNextPollingIntervalInSeconds(
+        EvaluationTask.getNextPollingInterval(disablePollingIntervalForTesting));
     persistedPolicyEvaluationPollingResult =
         new PersistedPolicyEvaluationPollingResult(appId, statusId, initialResult);
     persistedPolicyEvaluationPollingResultDAO.insert(persistedPolicyEvaluationPollingResult);
@@ -435,7 +423,7 @@ public class PolicyEvaluateService
   /**
    * @since 1.69
    */
-  class Task
+  class CompleteEvaluationTask
       extends EvaluationTask
   {
     private final Application app;
@@ -462,7 +450,7 @@ public class PolicyEvaluateService
 
     private final ScanContext scanContext;
 
-    Task(
+    CompleteEvaluationTask(
         final Application app,
         final ClientScanType clientScanType,
         final String statusId,
@@ -499,7 +487,8 @@ public class PolicyEvaluateService
       String scanId = null;
       PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
       policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.PENDING);
-      policyEvaluationPollingResult.setNextPollingIntervalInSeconds(getNextPollingInterval());
+      policyEvaluationPollingResult.setNextPollingIntervalInSeconds(
+          getNextPollingInterval(disablePollingIntervalForTesting));
 
       try {
         ScanReceipt scanReceipt =
@@ -593,16 +582,6 @@ public class PolicyEvaluateService
           .setException(new RuntimeException(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody(), e));
       throw e;
     }
-  }
-
-  /**
-   * Retrieve the interval (in seconds) before checking again if a result is available.
-   *
-   * @return value of {@link #NEXT_POLLING_INTERVAL_IN_SECONDS} or 1
-   *         if {@link #disablePollingIntervalForTesting} is true
-   */
-  protected int getNextPollingInterval() {
-    return disablePollingIntervalForTesting ? 1 : NEXT_POLLING_INTERVAL_IN_SECONDS;
   }
 
   /**

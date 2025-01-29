@@ -24,7 +24,7 @@ public class PolicyEvaluationThreadPoolExecutorTest
   @Test
   public void testMaxThreadsAreUsed() throws Exception {
     CountDownLatch countDownLatch = new CountDownLatch(PolicyEvaluationThreadPoolExecutor.THREAD_POOL_SIZE);
-    ThreadPoolExecutor threadPoolExecutor = new PolicyEvaluationThreadPoolExecutor();
+    ThreadPoolExecutor threadPoolExecutor = new PolicyEvaluationThreadPoolExecutor("test");
 
     for (int i = 0; i < PolicyEvaluationThreadPoolExecutor.THREAD_POOL_SIZE; i++) {
       threadPoolExecutor.submit(() -> {
@@ -38,7 +38,7 @@ public class PolicyEvaluationThreadPoolExecutorTest
 
   @Test
   public void testNoWarningIsLoggedWhenThePoolIsNotExhausted() {
-    ThreadPoolExecutor threadPoolExecutor = new PolicyEvaluationThreadPoolExecutor();
+    ThreadPoolExecutor threadPoolExecutor = new PolicyEvaluationThreadPoolExecutor("test");
 
     for (int i = 0; i < PolicyEvaluationThreadPoolExecutor.THREAD_POOL_SIZE; i++) {
       threadPoolExecutor.submit(() -> sleep(5000));
@@ -49,7 +49,7 @@ public class PolicyEvaluationThreadPoolExecutorTest
 
   @Test
   public void testWarningIsLoggedWhenThePoolIsExhausted() {
-    ThreadPoolExecutor threadPoolExecutor = new PolicyEvaluationThreadPoolExecutor();
+    ThreadPoolExecutor threadPoolExecutor = new PolicyEvaluationThreadPoolExecutor("test");
     for (int i = 0; i < PolicyEvaluationThreadPoolExecutor.THREAD_POOL_SIZE + 1; i++) {
       threadPoolExecutor.submit(() -> sleep(5000));
     }

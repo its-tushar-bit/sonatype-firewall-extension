@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverDTO;
+import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentTransitivePolicyViolationsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationDTO;
@@ -682,6 +682,6 @@ public class ApiPolicyViolationResourceV2Test
 
     assertResponseStatus(403, response);
     assertThat(response.getBodyText())
-        .contains(SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId() + " feature is disabled.");
+        .contains("Auto Policy Waivers feature is not enabled");
   }
 }

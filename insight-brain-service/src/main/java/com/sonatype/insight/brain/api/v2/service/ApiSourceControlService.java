@@ -418,7 +418,8 @@ public class ApiSourceControlService
    * @param ownerId an application or organization ID
    */
   public SourceControl getCompositeSourceControlByOwnerDecrypted(final String ownerId) {
-    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(ownerId);
+    SourceControl sourceControl =
+        sourceControlDAO.buildCompositeSourceControlInApplication(ownerId);
     if (sourceControl != null && StringUtils.isNotEmpty(sourceControl.getToken())) {
       fillWithDecryptedToken(sourceControl);
     }

@@ -14,7 +14,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class PolicyEvaluationThreadPoolExecutor
+public class PolicyEvaluationThreadPoolExecutor
     extends TenantThreadPoolExecutor
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluationThreadPoolExecutor.class);
@@ -22,9 +22,10 @@ class PolicyEvaluationThreadPoolExecutor
   // Visible for tests
   static final int THREAD_POOL_SIZE = 200;
 
-  public PolicyEvaluationThreadPoolExecutor() {
+  public PolicyEvaluationThreadPoolExecutor(String serviceName) {
     super(THREAD_POOL_SIZE, THREAD_POOL_SIZE, 5L, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
-        new ThreadFactoryBuilder().setNameFormat("PolicyEvaluateService-%d").build());
+        new ThreadFactoryBuilder().setNameFormat(serviceName + "-%d").build());
+
     allowCoreThreadTimeOut(true);
   }
 

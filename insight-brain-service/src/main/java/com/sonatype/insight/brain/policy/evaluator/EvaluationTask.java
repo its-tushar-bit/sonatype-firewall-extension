@@ -15,6 +15,8 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 public abstract class EvaluationTask
     implements Runnable
 {
+  private static final int NEXT_POLLING_INTERVAL_IN_SECONDS = 5;
+
   protected PolicyEvaluationPollingResult makeCopy(PolicyEvaluationPollingResult from) {
     PolicyEvaluationPollingResult result = new PolicyEvaluationPollingResult();
     result.setStatus(from.getStatus());
@@ -23,5 +25,15 @@ public abstract class EvaluationTask
     result.setScanReceipt(from.getScanReceipt());
     result.setNextPollingIntervalInSeconds(from.getNextPollingIntervalInSeconds());
     return result;
+  }
+
+  /**
+   * Retrieve the interval (in seconds) before checking again if a result is available.
+   *
+   * @return value of {@link EvaluationTask#NEXT_POLLING_INTERVAL_IN_SECONDS}
+   *         if {@code disablePollingIntervalForTesting} is {@code true}
+   */
+  public static int getNextPollingInterval(boolean disablePollingIntervalForTesting) {
+    return disablePollingIntervalForTesting ? 1 : NEXT_POLLING_INTERVAL_IN_SECONDS;
   }
 }

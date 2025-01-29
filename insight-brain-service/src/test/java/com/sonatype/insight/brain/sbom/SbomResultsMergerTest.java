@@ -650,6 +650,52 @@ public class SbomResultsMergerTest
     }
   }
 
+  @Test
+  public void testMergeSonatypeDataWithSbomData_WithComponentRef() throws Exception {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(app.getId(), "1", file, PENDING);
+
+    ThirdPartyFileCoordinate sbomComponent = null;
+    try {
+      sbomComponent = new ThirdPartyFileCoordinate("093080a1a4bbd2750540", "SBOM", "maven", "tomcat-catalina", "9.0.14",
+          file.getId());
+      sbomComponent.setId("123456789"); // the same as in the bom.json results
+      sbomComponent.setPackageUrl("pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar");
+      sbomComponent.setIdentificationSources("SBOM");
+      sbomComponent.setComponentRef("componentRef");
+      thirdPartyFileCoordinateDAO.insert(sbomComponent);
+      final FileApplicationReport appReport = new FileApplicationReport(
+          Paths.get(ReportHelper.zipReport("/SbomResultsMergerTest/report-with-component-ref", tempDir).toURI())
+              .toFile());
+
+      merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
+
+      sbomComponent = thirdPartyFileCoordinateDAO.getById(sbomComponent.getId());
+      assertThat(sbomComponent.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+      assertThat(sbomComponent.getPackageUrl()).isEqualTo(
+              "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar");
+      //updated hash from the matched result from HDS
+      assertThat(sbomComponent.getHash()).isEqualTo("af008de6e523b6eeb5e8");
+
+      List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
+              thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(sbomComponent.getId());
+      assertThat(thirdPartyCoordinateSecurityList).hasSize(8);
+
+      List<ThirdPartyCoordinateLicense> licenses =
+              thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(sbomComponent.getId());
+      assertThat(licenses).hasSize(1);
+    }
+    finally {
+      if (sbomComponent != null) {
+        thirdPartyFileCoordinateDAO.delete(sbomComponent);
+      }
+    }
+  }
+
   @SuppressWarnings("unchecked")
   @Test
   public void testMergeSonatypeDataWithSbomData_VerifySecurityVulnerabilityUpdatesAndInsertsAndTelemetry()

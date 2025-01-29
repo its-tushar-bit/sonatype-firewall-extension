@@ -1,0 +1,32 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tomcat-catalina",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.tomcat",
+        "version" : "9.0.14"
+      }
+    },
+    "groupId" : "org.apache.tomcat",
+    "artifactId" : "tomcat-catalina",
+    "version" : "9.0.14",
+    "hash" : "af008de6e523b6eeb5e8",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 2,
+      "Severe" : 6,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 9.2,
+    "catalogDate" : 1544131352000
+  } ]
+}

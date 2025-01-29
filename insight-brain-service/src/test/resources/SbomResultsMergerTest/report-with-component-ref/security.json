@@ -1,0 +1,227 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tomcat-catalina",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.tomcat",
+        "version" : "9.0.14"
+      }
+    },
+    "groupId" : "org.apache.tomcat",
+    "artifactId" : "tomcat-catalina",
+    "version" : "9.0.14",
+    "hash" : "af008de6e523b6eeb5e8",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-0221",
+    "reference" : "CVE-2019-0221",
+    "source" : "cve",
+    "score" : 6.1,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "configuration", "data", "functional", "operational" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-0221" ],
+    "researchType" : "DEEP_DIVE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tomcat-catalina",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.tomcat",
+        "version" : "9.0.14"
+      }
+    },
+    "groupId" : "org.apache.tomcat",
+    "artifactId" : "tomcat-catalina",
+    "version" : "9.0.14",
+    "hash" : "af008de6e523b6eeb5e8",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-0232",
+    "reference" : "CVE-2019-0232",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "78",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "configuration", "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-0232" ],
+    "researchType" : "DEEP_DIVE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tomcat-catalina",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.tomcat",
+        "version" : "9.0.14"
+      }
+    },
+    "groupId" : "org.apache.tomcat",
+    "artifactId" : "tomcat-catalina",
+    "version" : "9.0.14",
+    "hash" : "af008de6e523b6eeb5e8",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-24122",
+    "reference" : "CVE-2021-24122",
+    "source" : "cve",
+    "score" : 5.9,
+    "cwe" : "706",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "operational" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2021-24122" ],
+    "researchType" : "DEEP_DIVE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tomcat-catalina",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.tomcat",
+        "version" : "9.0.14"
+      }
+    },
+    "groupId" : "org.apache.tomcat",
+    "artifactId" : "tomcat-catalina",
+    "version" : "9.0.14",
+    "hash" : "af008de6e523b6eeb5e8",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-30640",
+    "reference" : "CVE-2021-30640",
+    "source" : "cve",
+    "score" : 6.5,
+    "cwe" : "116",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:H/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2021-30640" ],
+    "researchType" : "DEEP_DIVE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tomcat-catalina",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.tomcat",
+        "version" : "9.0.14"
+      }
+    },
+    "groupId" : "org.apache.tomcat",
+    "artifactId" : "tomcat-catalina",
+    "version" : "9.0.14",
+    "hash" : "af008de6e523b6eeb5e8",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-28708",
+    "reference" : "CVE-2023-28708",
+    "source" : "cve",
+    "score" : 4.3,
+    "cwe" : "200",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "operational" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2023-28708" ],
+    "researchType" : "DEEP_DIVE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tomcat-catalina",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.tomcat",
+        "version" : "9.0.14"
+      }
+    },
+    "groupId" : "org.apache.tomcat",
+    "artifactId" : "tomcat-catalina",
+    "version" : "9.0.14",
+    "hash" : "af008de6e523b6eeb5e8",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-42795",
+    "reference" : "CVE-2023-42795",
+    "source" : "cve",
+    "score" : 5.3,
+    "cwe" : "459",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "operational" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2023-42795" ],
+    "researchType" : "DEEP_DIVE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tomcat-catalina",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.tomcat",
+        "version" : "9.0.14"
+      }
+    },
+    "groupId" : "org.apache.tomcat",
+    "artifactId" : "tomcat-catalina",
+    "version" : "9.0.14",
+    "hash" : "af008de6e523b6eeb5e8",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-50379",
+    "reference" : "CVE-2024-50379",
+    "source" : "cve",
+    "score" : 9.2,
+    "cwe" : "367",
+    "cvssVectorString" : "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N",
+    "cvssVectorSource" : "sonatype_cvss_4",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "configuration", "data", "operational" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2024-50379" ],
+    "researchType" : "DEEP_DIVE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tomcat-catalina",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.tomcat",
+        "version" : "9.0.14"
+      }
+    },
+    "groupId" : "org.apache.tomcat",
+    "artifactId" : "tomcat-catalina",
+    "version" : "9.0.14",
+    "hash" : "af008de6e523b6eeb5e8",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-52316",
+    "reference" : "CVE-2024-52316",
+    "source" : "cve",
+    "score" : 6.3,
+    "cwe" : "391",
+    "cvssVectorString" : "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N",
+    "cvssVectorSource" : "sonatype_cvss_4",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "functional", "operational" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2024-52316" ],
+    "researchType" : "DEEP_DIVE"
+  } ]
+}

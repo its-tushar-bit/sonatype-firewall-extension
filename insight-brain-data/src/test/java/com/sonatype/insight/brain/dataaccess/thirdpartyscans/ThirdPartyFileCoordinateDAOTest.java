@@ -231,6 +231,27 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  public void testGetByComponentRef() {
+    String hash = tempEntity.newRandomHash();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyFileCoordinate fileCoordinate1 =
+        new ThirdPartyFileCoordinate(hash, "s1", "f1", "n1", "v1", thirdPartyFile.getId());
+    fileCoordinate1.setComponentRef("cr1");
+    ThirdPartyFileCoordinate fileCoordinate2 =
+        new ThirdPartyFileCoordinate(hash, "s2", "f2", "n2", "v2", thirdPartyFile.getId());
+    ThirdPartyFileCoordinate fileCoordinate3 =
+        new ThirdPartyFileCoordinate(hash, "s3", "f3", "n3", "v3", thirdPartyFile.getId());
+    fileCoordinate3.setComponentRef("cr3");
+    thirdPartyFileCoordinateDAO.insert(fileCoordinate1);
+    thirdPartyFileCoordinateDAO.insert(fileCoordinate2);
+    thirdPartyFileCoordinateDAO.insert(fileCoordinate3);
+
+    List<ThirdPartyFileCoordinate> fileCoordinates =
+        thirdPartyFileCoordinateDAO.getByComponentRef("cr1", thirdPartyFile.getId());
+    assertThat(fileCoordinates).isNotEmpty();
+  }
+
+  @Test
   public void testGetBySbomMetadataIdAndComponentHash() {
     Organization organization1 = tempEntity.newOrganization("org1");
     Application application = tempEntity.newApplication(organization1.getId());
@@ -1544,6 +1565,7 @@ public class ThirdPartyFileCoordinateDAOTest
     String scanRequestId = uuid();
 
     ThirdPartyFileCoordinate fileCoordinate1 = new ThirdPartyFileCoordinate(hash, "s1", "f1", "n1", "v1", null);
+    fileCoordinate1.setComponentRef("cr1");
     newThirdPartyScan(scanId, scanRequestId, fileCoordinate1);
     fileCoordinateList.add(fileCoordinate1);
 

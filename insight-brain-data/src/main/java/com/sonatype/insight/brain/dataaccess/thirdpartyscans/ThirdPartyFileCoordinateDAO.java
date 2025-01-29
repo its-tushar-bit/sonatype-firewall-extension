@@ -81,6 +81,14 @@ public class ThirdPartyFileCoordinateDAO
     return get(sQuery, id);
   }
 
+  // The returned value is temporarily a list, but it should be a single value.
+  // This temporary behavior will be addressed in ticket SBOM-1243.
+  public List<ThirdPartyFileCoordinate> getByComponentRef(String componentRef, String thirdPartyFileId) {
+    String sQuery = "SELECT entity FROM ThirdPartyFileCoordinate entity" + //
+        " WHERE entity.componentRef=?1 AND entity.thirdPartyFileId=?2";
+    return getList(sQuery, componentRef, thirdPartyFileId);
+  }
+
   public List<ThirdPartyFileCoordinate> getByThirdPartyFileId(String thirdPartyFileId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByThirdPartyFileId(tx, thirdPartyFileId);

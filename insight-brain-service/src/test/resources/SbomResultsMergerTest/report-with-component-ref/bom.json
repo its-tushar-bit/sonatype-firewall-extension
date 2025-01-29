@@ -1,0 +1,52 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tomcat-catalina",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.tomcat",
+        "version" : "9.0.14"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar",
+    "groupId" : "org.apache.tomcat",
+    "artifactId" : "tomcat-catalina",
+    "version" : "9.0.14",
+    "filenames" : [ "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar:e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a" ],
+    "pathnames" : [ "dependency:/SBOM-bom.json/pkg:maven\\org.apache.tomcat\\tomcat-catalina@9.0.14?type=jar:e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "af008de6e523b6eeb5e8",
+    "relativePopularity" : 0.06,
+    "createTime" : 1544131352000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : "http://tomcat.apache.org/",
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 128,
+      "path" : "Application and Server Management"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "sbomApi",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "sonatypeIdentifier" : "c119fbfb7c47429f9d0932121ef68e51",
+    "componentRef" : "componentRef",
+    "endOfLife" : "END_OF_LIFE_UNKNOWN"
+  } ]
+}

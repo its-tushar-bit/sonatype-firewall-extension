@@ -25,8 +25,8 @@ describe('SonatypeDeveloperSidebar', () => {
         switch (stateName) {
           case 'developer.dashboard':
             return '#/developer/dashboard';
-          case 'developer.reports':
-            return '#/developer/reports';
+          case 'developer.priorities':
+            return '#/developer/priorities';
           case 'developer.advancedSearch':
             return '#/developer/advancedSearch';
           default:
@@ -50,13 +50,13 @@ describe('SonatypeDeveloperSidebar', () => {
     expect(sidebarLinks.length).toBe(4);
     const mainLink = sidebarLinks[0];
     const dashboardLink = sidebarLinks[1];
-    const reportsLink = sidebarLinks[2];
+    const prioritiesLink = sidebarLinks[2];
     const searchLink = sidebarLinks[3];
     expect(mainLink).toHaveAttribute('href', '#/developer/dashboard');
     expect(dashboardLink).toHaveTextContent('Dashboard');
     expect(dashboardLink).toHaveAttribute('href', '#/developer/dashboard');
-    expect(reportsLink).toHaveTextContent('Reports');
-    expect(reportsLink).toHaveAttribute('href', '#/developer/reports');
+    expect(prioritiesLink).toHaveTextContent('Priorities');
+    expect(prioritiesLink).toHaveAttribute('href', '#/developer/priorities');
     expect(searchLink).toHaveTextContent('Advanced Search');
     expect(searchLink).toHaveAttribute('href', '#/developer/advancedSearch');
   });
@@ -66,12 +66,12 @@ describe('SonatypeDeveloperSidebar', () => {
     const sidebarLinks = screen.getAllByRole('link');
     const mainLink = sidebarLinks[0];
     const dashboardLink = sidebarLinks[1];
-    const reportsLink = sidebarLinks[2];
+    const prioritiesLink = sidebarLinks[2];
     expect(mainLink).toHaveAttribute('href', '#/developer/dashboard');
     expect(dashboardLink).toHaveTextContent('Dashboard');
     expect(dashboardLink).toHaveAttribute('href', '#/developer/dashboard');
-    expect(reportsLink).toHaveTextContent('Reports');
-    expect(reportsLink).toHaveAttribute('href', '#/developer/reports');
+    expect(prioritiesLink).toHaveTextContent('Priorities');
+    expect(prioritiesLink).toHaveAttribute('href', '#/developer/priorities');
     expect(screen.queryByRole('link', { name: 'Advanced Search' })).not.toBeInTheDocument();
   });
 

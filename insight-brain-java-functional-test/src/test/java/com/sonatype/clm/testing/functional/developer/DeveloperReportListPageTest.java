@@ -69,7 +69,7 @@ public class DeveloperReportListPageTest
 
     // Go back to the report list page
     PrioritiesPage.backLink().click();
-    DeveloperReportListPage.title().shouldHave(text("Reports"));
+    DeveloperReportListPage.title().shouldHave(text("Priorities"));
   }
 
   @Test

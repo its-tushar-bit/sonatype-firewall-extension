@@ -5,15 +5,7 @@
  */
 
 import React from 'react';
-import {
-  render,
-  screen,
-  axiosMockAdapter,
-  setupPortalContainer,
-  removePortalContainer,
-  within,
-  fireEvent,
-} from 'TestRoot/SpecUtil';
+import { render, screen, axiosMockAdapter, within, fireEvent } from 'TestRoot/SpecUtil';
 import PrioritiesPage from 'MainRoot/development/prioritiesPage/PrioritiesPage';
 
 import * as ProductFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
@@ -114,52 +106,6 @@ describe('PrioritiesPage', () => {
         expect(axiosMock.history.get.length).toBe(4);
         expect(axiosMock.history.get[2].url).toBe(getReportBomUrl(publicAppId, scanId));
         expect(axiosMock.history.get[3].url).toBe(getReportMetadataUrl(publicAppId, scanId));
-      });
-    });
-  });
-
-  describe('back button', () => {
-    describe('when priorities page is navigated from Reports page', () => {
-      const preloadedState = {
-        router: {
-          ...defaultPreloadedState.router,
-          currentState: {
-            name: 'prioritiesPageFromReports',
-          },
-        },
-      };
-
-      afterEach(() => removePortalContainer());
-
-      it('back button navigates back to Reports Page', async () => {
-        setupPortalContainer();
-        renderComponent(preloadedState);
-
-        const backBtn = await screen.findByRole('link', { name: /back to reports/i });
-        expect(backBtn).toBeInTheDocument();
-        expect(backBtn).toHaveAttribute('href', 'developer.reports');
-      });
-    });
-
-    describe('when priorities page is navigated from Developer Dashboard', () => {
-      const preloadedState = {
-        router: {
-          ...defaultPreloadedState.router,
-          currentState: {
-            name: 'prioritiesPageFromDashboard',
-          },
-        },
-      };
-
-      afterEach(() => removePortalContainer());
-
-      it('back button navigates back to Developer Dashboard', async () => {
-        setupPortalContainer();
-        renderComponent(preloadedState);
-
-        const backBtn = await screen.findByRole('link', { name: /back to developer dashboard/i });
-        expect(backBtn).toBeInTheDocument();
-        expect(backBtn).toHaveAttribute('href', 'developer.dashboard');
       });
     });
   });

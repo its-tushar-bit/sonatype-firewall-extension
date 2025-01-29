@@ -20,7 +20,7 @@ const developerModule = angular
   .component('sonatypeDeveloperPage', iqReact2Angular(SonatypeDeveloperPage, [], ['$ngRedux', '$state']))
   .config(routes);
 
-function routes($stateProvider) {
+function routes($stateProvider, $urlServiceProvider) {
   $stateProvider
     .state('developer', {
       url: '/developer',
@@ -53,11 +53,11 @@ function routes($stateProvider) {
     .state(`developer.dashboard.${SECTIONS.IDE}`, {
       url: '/ide',
     })
-    .state('developer.reports', {
-      url: '/reports',
+    .state('developer.priorities', {
+      url: '/priorities',
       component: 'reportsPage',
       data: {
-        title: 'Reports',
+        title: 'Priorities',
       },
     })
     .state('developer.advancedSearch', {
@@ -84,8 +84,13 @@ function routes($stateProvider) {
       },
       url: '/requestWaiver/{violationId}',
     });
+
+  // Redirect from old URL to new URL
+  $urlServiceProvider.rules.when('/developer/reports', (matchValues, _urlParts, router) =>
+    router.stateService.go('developer.priorities', matchValues)
+  );
 }
 
-routes.$inject = ['$stateProvider'];
+routes.$inject = ['$stateProvider', '$urlServiceProvider'];
 
 export default developerModule;

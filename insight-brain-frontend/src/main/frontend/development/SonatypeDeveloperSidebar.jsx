@@ -23,13 +23,13 @@ export default function SonatypeDeveloperSidebar(props) {
   const { isLoggedIn, isAdvancedSearchEnabled } = props;
   const uiRouterState = useRouterState();
   const dashboardState = 'developer.dashboard';
-  const reportsState = 'developer.reports';
+  const prioritiesState = 'developer.priorities';
   const advancedSearchState = 'developer.advancedSearch';
 
   const [sidebarOpen, onToggleCollapse] = useToggle(true);
 
   const dashboardHref = uiRouterState.href(dashboardState);
-  const reportsHref = uiRouterState.href(reportsState);
+  const prioritiesHref = uiRouterState.href(prioritiesState);
   const advancedSearchHref = uiRouterState.href(advancedSearchState);
 
   const isSelected = (entryName) => uiRouterState.includes(entryName);
@@ -54,11 +54,11 @@ export default function SonatypeDeveloperSidebar(props) {
             href={dashboardHref}
           />
           <NxGlobalSidebarNavigationLink
-            isSelected={isSelected(reportsState)}
+            isSelected={isSelected(prioritiesState)}
             id="sonatype-developer-reports-navigation-button"
             icon={faFileChartLine}
-            text="Reports"
-            href={reportsHref}
+            text="Priorities"
+            href={prioritiesHref}
           />
           {isAdvancedSearchEnabled && (
             <NxGlobalSidebarNavigationLink

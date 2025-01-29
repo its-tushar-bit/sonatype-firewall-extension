@@ -11,7 +11,6 @@ import com.codeborne.selenide.SelenideElement;
 import com.sonatype.clm.testing.functional.elements.NxDropdown;
 
 import static com.codeborne.selenide.Selectors.by;
-import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
 
 public class PrioritiesPage
@@ -29,7 +28,7 @@ public class PrioritiesPage
   }
 
   public static SelenideElement backLink() {
-    return $(byText("Back to Reports"));
+    return $(".nx-text-link.iq-priorities-page-breadcrumbs-crumb");
   }
 
   public static SelenideElement prioritiesTable() {

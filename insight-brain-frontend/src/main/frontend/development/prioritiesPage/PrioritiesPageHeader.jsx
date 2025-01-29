@@ -88,7 +88,7 @@ export default function PrioritiesPageHeader() {
   const getDynamicHrefForBreadcrumbs = () => {
     if (currentRouteName === 'prioritiesPageFromReports' || currentRouteName === 'prioritiesPageFromIntegrations') {
       return {
-        href: uiRouterState.href('developer.reports'),
+        href: uiRouterState.href('developer.priorities'),
         text: 'Priorities',
       };
     }

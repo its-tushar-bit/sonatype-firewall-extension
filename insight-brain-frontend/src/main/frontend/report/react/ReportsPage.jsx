@@ -206,7 +206,7 @@ export default function ReportsPage() {
     <NxPageMain id="iq-report-container" className="nx-viewport-sized">
       <NxPageTitle>
         <h1 className="nx-h1" id="iq-report-header">
-          Reports
+          {isDeveloper ? 'Priorities' : 'Reports'}
         </h1>
       </NxPageTitle>
       <NxTile className="nx-viewport-sized__container">

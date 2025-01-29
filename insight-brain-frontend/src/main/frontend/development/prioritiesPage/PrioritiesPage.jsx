@@ -15,9 +15,7 @@ import {
   selectIsDeveloperDashboardEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/development/prioritiesPage/slices/prioritiesPageSlice';
-import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
-import { selectCurrentRouteName, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectApplicationReportMetaData,
   selectIsLoading,
@@ -27,25 +25,8 @@ import {
 import { setReportParameters, loadReportIfNeeded } from 'MainRoot/applicationReport/applicationReportActions';
 
 export default function PrioritiesPage() {
-  const currentRouteName = useSelector(selectCurrentRouteName);
-  const uiRouterState = useRouterState();
-  const getHref = () => {
-    if (currentRouteName === 'prioritiesPageFromReports' || currentRouteName === 'prioritiesPageFromIntegrations') {
-      return {
-        href: uiRouterState.href('developer.reports'),
-        text: 'Back to Reports',
-      };
-    }
-    return {
-      href: uiRouterState.href('developer.dashboard'),
-      text: 'Back to Developer Dashboard',
-    };
-  };
-
-  const { href, text } = getHref();
   return (
     <NxPageMain className="iq-priorities-page">
-      <MenuBarBackButton href={href} text={text} />
       <PageContents />
     </NxPageMain>
   );

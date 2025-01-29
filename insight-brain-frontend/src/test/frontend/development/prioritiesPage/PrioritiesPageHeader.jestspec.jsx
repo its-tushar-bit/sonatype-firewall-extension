@@ -159,7 +159,7 @@ describe('PrioritiesPageHeader', () => {
       renderComponent(preloadedState);
       const prioritiesLink = await screen.findByRole('link', { name: /priorities/i });
       expect(prioritiesLink).toBeInTheDocument();
-      expect(prioritiesLink).toHaveAttribute('href', 'developer.reports');
+      expect(prioritiesLink).toHaveAttribute('href', 'developer.priorities');
     });
 
     it('renders a "Developer Dashboard" link when navigated from an unknown page', async () => {

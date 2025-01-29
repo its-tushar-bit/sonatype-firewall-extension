@@ -17,7 +17,7 @@ public class DeveloperReportListPage
     extends BasicElement<DeveloperReportListPage>
 {
   public static String url() {
-    return BaseUrl.resolvePageUrl("/developer/reports");
+    return BaseUrl.resolvePageUrl("/developer/priorities");
   }
 
   public static SelenideElement reportListTable() {

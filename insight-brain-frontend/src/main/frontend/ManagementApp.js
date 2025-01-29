@@ -39,6 +39,7 @@ import prioritiesPageModule from 'MainRoot/development/prioritiesPage/priorities
 import sbomManagerModule from 'MainRoot/sbomManager/sbom.manager.module';
 import advancedSearchModule from 'MainRoot/advancedSearch/module';
 import developerModule from 'MainRoot/development/developer.module';
+import applicationLatestEvaluationsModule from 'MainRoot/applicationLatestEvaluations/module';
 
 export default angular
   .module('managementApp', [
@@ -76,5 +77,6 @@ export default angular
     advancedSearchModule.name,
     developerModule.name,
     standaloneFirewallModule.name,
+    applicationLatestEvaluationsModule.name,
   ])
   .component('systemNotice', iqReact2Angular(SystemNoticeContainer, [], ['$ngRedux']));

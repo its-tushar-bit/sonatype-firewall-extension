@@ -1635,6 +1635,9 @@ export const getLicensedSolutionsUrl = () => uriTemplate`/api/v2/solutions/licen
 export const getOwnerDetailsByTypeAndInternalId = (ownerType, ownerId) =>
   uriTemplate`/rest/owner/${ownerType}/${ownerId}/details`;
 
+export const getApplicationReportHistoryUrl = (applicationId, stageId) =>
+  uriTemplate`/api/v2/reports/applications/${applicationId}/history?stage=${stageId}&limit=20`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

@@ -96,7 +96,7 @@ describe('ReportTitle', () => {
     expect(screen.getByRole('button', { name: 'Options' })).toBeVisible();
   });
 
-  it('options dropdown render 5 links', async () => {
+  it('options dropdown render 6 links', async () => {
     renderComponent();
     const options = screen.getByRole('button', { name: 'Options' });
     expect(options).toBeInTheDocument();
@@ -107,6 +107,7 @@ describe('ReportTitle', () => {
     expect(screen.getByRole('link', { name: 'Export CycloneDX' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Export SPDX' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'View raw data' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'View Latest Evaluations' })).toBeVisible();
 
     const viewVulnerabilitiesLink = await screen.findByRole('link', {
       name: 'Reevaluate the report in order to enable Vulnerabilities view',
@@ -115,7 +116,7 @@ describe('ReportTitle', () => {
     expect(viewVulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
   });
 
-  it('options dropdown renders 6 links if developer dashboard is enabled', async () => {
+  it('options dropdown renders 7 links if developer dashboard is enabled', async () => {
     productFeaturesSelectors.selectIsDeveloperDashboardEnabled.mockReturnValue(true);
 
     renderComponent();
@@ -129,6 +130,7 @@ describe('ReportTitle', () => {
     expect(screen.getByRole('link', { name: 'Export SPDX' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'View raw data' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Priorities' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'View Latest Evaluations' })).toBeVisible();
 
     const viewVulnerabilitiesLink = await screen.findByRole('link', {
       name: 'Reevaluate the report in order to enable Vulnerabilities view',

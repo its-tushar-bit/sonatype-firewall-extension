@@ -50,28 +50,22 @@ export default function ReportTitle() {
   const selectedReport = useSelector(selectSelectedReport);
   const uiRouterState = useRouterState();
 
-  const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
 
   const pdfUrl = getDownloadPdfUrl(publicId, scanId);
   const sbomUrl = getExportCycloneDxUrl(metadataDetails.application.id, scanId);
   const spdxUrl = getExportSpdxUrl(metadataDetails.application.id, scanId);
-  const prioritiesPageContainerName = useSelector(selectPrioritiesPageContainerName);
-  const prioritiesPageName = useSelector(selectPrioritiesPageName);
 
-  const prioritiesUrl = uiRouterState.href(
-    isPrioritiesPageContainer ? prioritiesPageName : 'prioritiesPageFromReports',
-    { publicAppId: publicId, scanId }
-  );
+  const prioritiesUrl = uiRouterState.href('prioritiesPageFromReports', { publicAppId: publicId, scanId });
 
-  const rawDataUrl = uiRouterState.href(
-    isPrioritiesPageContainer ? `${prioritiesPageContainerName}.rawData` : 'applicationReport.rawData',
-    { publicId, scanId }
-  );
-  const vulnerabilitiesUrl = uiRouterState.href(
-    isPrioritiesPageContainer ? `${prioritiesPageContainerName}.vulnerabilities` : 'applicationReport.vulnerabilities',
-    { publicId, scanId }
-  );
+  const rawDataUrl = uiRouterState.href('applicationReport.rawData', { publicId, scanId });
+
+  const latestEvaluationsUrl = uiRouterState.href('applicationLatestEvaluations', {
+    applicationPublicId: publicId,
+    stageId: metadataDetails.stageId,
+  });
+
+  const vulnerabilitiesUrl = uiRouterState.href('applicationReport.vulnerabilities', { publicId, scanId });
   const vulnerabilitiesPageDisable = selectedReport && selectedReport.reportVersion < 5 ? true : false;
   const viewVulnerabilitiesLinkClasses = classnames('nx-dropdown-link', { disabled: vulnerabilitiesPageDisable });
 
@@ -113,6 +107,10 @@ export default function ReportTitle() {
             </NxTextLink>
           )}
           <NxDropdownDivider />
+          <a className="nx-dropdown-link" href={latestEvaluationsUrl}>
+            <NxFontAwesomeIcon icon={faFile} />
+            <span>View Latest Evaluations</span>
+          </a>
           <a className="nx-dropdown-link" href={rawDataUrl}>
             <NxFontAwesomeIcon icon={faFile} />
             <span>View raw data</span>

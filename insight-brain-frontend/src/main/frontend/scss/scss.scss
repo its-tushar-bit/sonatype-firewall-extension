@@ -164,6 +164,7 @@
 @use '../OrgsAndPolicies/ownerSummary/sbomsTile/_sbomsTile.scss';
 @use '../sbomManager/features/billOfMaterials/billOfMaterials';
 @use '../sbomManager/features/componentDetails/componentDetails';
+@use '../applicationLatestEvaluations/applicationLatestEvaluations';
 
 // Overrides
 @use 'responsive';

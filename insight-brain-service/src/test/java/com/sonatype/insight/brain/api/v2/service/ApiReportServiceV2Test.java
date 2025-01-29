@@ -148,8 +148,12 @@ public class ApiReportServiceV2Test
     assertPolicyEvaluationResults(reports.reports.get(2));
 
     assertThat(reports.reports.get(0).scanTriggerType).isEqualTo(ScanTriggerType.REPOSITORY_MANAGER.getId());
+    assertThat(reports.reports.get(0).scanTriggerTypeDisplayName).isEqualTo(
+        ScanTriggerType.REPOSITORY_MANAGER.getDisplayName());
     assertThat(reports.reports.get(1).scanTriggerType).isEqualTo(ScanTriggerType.IDE.getId());
+    assertThat(reports.reports.get(1).scanTriggerTypeDisplayName).isEqualTo(ScanTriggerType.IDE.getDisplayName());
     assertThat(reports.reports.get(2).scanTriggerType).isEqualTo(ScanTriggerType.WEB_UI.getId());
+    assertThat(reports.reports.get(2).scanTriggerTypeDisplayName).isEqualTo(ScanTriggerType.WEB_UI.getDisplayName());
   }
 
   @Test

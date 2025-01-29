@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.dto;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 
 public class ApiReportResultsDTO
     extends ApiApplicationReportDTOV2
@@ -26,6 +27,8 @@ public class ApiReportResultsDTO
    */
   public String scanTriggerType;
 
+  public String scanTriggerTypeDisplayName;
+
   public PolicyEvaluationResult policyEvaluationResult;
 
   public ApiReportResultsDTO() {
@@ -43,8 +46,11 @@ public class ApiReportResultsDTO
     this.policyEvaluationId = policyEvaluation.getId();
     this.evaluationDate = policyEvaluation.getTime();
     this.commitHash = policyEvaluation.getCommitHash();
-    this.scanTriggerType = policyEvaluation.getScanTriggerType()
-         != null ? policyEvaluation.getScanTriggerType().getId() : null;
+    ScanTriggerType scanTriggerType = policyEvaluation.getScanTriggerType();
+    if (scanTriggerType != null) {
+      this.scanTriggerType = scanTriggerType.getId();
+      this.scanTriggerTypeDisplayName = scanTriggerType.getDisplayName();
+    }
     this.policyEvaluationResult = policyEvaluationResult;
   }
 
@@ -60,6 +66,7 @@ public class ApiReportResultsDTO
         ", reportDate=" + evaluationDate + " (" + (evaluationDate == null ? "" : evaluationDate.getTime()) + ")" + //
         ", commitHash='" + commitHash + '\'' + //
         ", scanTriggerType='" + scanTriggerType + //
+        ", scanTriggerTypeDisplayName='" + scanTriggerTypeDisplayName + //
         '}';
   }
 }

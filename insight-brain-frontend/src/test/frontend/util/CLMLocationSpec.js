@@ -1757,4 +1757,14 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getOwnerDetailsByTypeAndInternalId('application', applicationId)).toEqual(expectedUrl);
     });
   });
+
+  describe('getApplicationReportHistoryUrl', () => {
+    it('returns the url to get the application report history by application ID or public ID and stage ID', () => {
+      const applicationId = 'someApplicationId';
+      const stageId = 'someStageId';
+      const expectedUrl = `/api/v2/reports/applications/${applicationId}/history?stage=${stageId}&limit=20`;
+
+      expect(clmLocation.getApplicationReportHistoryUrl(applicationId, stageId)).toEqual(expectedUrl);
+    });
+  });
 });

@@ -48,6 +48,10 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.io.FileUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -57,6 +61,8 @@ import org.glassfish.jersey.server.ContainerRequest;
 @Named
 @Timed
 @Path(PublicApiPaths.LICENSE_LEGAL_RESOURCE_PATH_V2)
+@Tag(name = "License Legal Metadata",
+    description = "Use this REST API to retrieve license legal metadata in raw or HTML format.")
 public class ApiLegalReportResourceV2
 {
   public static final String APPLICATION_PATH = "application/{applicationId}";
@@ -139,7 +145,36 @@ public class ApiLegalReportResourceV2
   @GET
   @Path(APPLICATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Operation(description = "Use this REST API to retrieve the raw license legal data for components in " +
+      "an application." +
+      "\n" +
+      "\n" +
+      "Permissions required: Review Legal Obligations For Components Licenses",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains a list of all components in the application and the corresponding " +
+                  "license legal metadata. For each component, the response includes component data and " +
+                  "license legal metadata." +
+                  "\n" +
+                  "\n" +
+                  "1. The component data includes:" +
+                  "<ul>" +
+                  "<li>`packageURL` is the package URL or pURL of the component.</li>" +
+                  "<li>`hash` is the truncated hash value and can be used in other REST API calls. It should " +
+                  "not be used as a checksum.</li>" +
+                  "<li>`componentIdentifier` includes the component format and its coordinates.</li>" +
+                  "<li>`displayName` is the display name of the component.</li>" +
+                  "<li>`licenseLegalData` contains the legal data.</li>" +
+                  "<li>`stageScans` is a list and each element contains `stageName` at which the " +
+                  "application was scanned, the `scanId` of the application scan, and the `scanDate`.</li>" +
+                  "</ul>" +
+                  "2. The `licenseLegalMetaData` is used as a dictionary for legal data and for each license " +
+                  "contains the license id(s), name, license text, obligations, license threat group, and whether " +
+                  "or not it is multi license.",
+              useReturnTypeSchema = true)
+      })
   public ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(
+      @Parameter(description = "Enter the application id or public id.", required = true)
       @PathParam("applicationId") String applicationId)
   {
     return apiLicenseLegalServiceV2
@@ -149,8 +184,38 @@ public class ApiLegalReportResourceV2
   @GET
   @Path(APPLICATION_PATH_STAGE)
   @Produces(MediaType.APPLICATION_JSON)
+  @Operation(description = "Use this method to retrieve the raw license legal data for components in an application " +
+      "based on the application scan at a specific stage." +
+      "\n" +
+      "\n" +
+      "Permissions required: Review Legal Obligations For Components Licenses ",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains a list of all components in the application. " +
+                  "For each component, the response includes component data and license legal metadata." +
+                  "\n" +
+                  "\n" +
+                  "1. The component data includes:" +
+                  "<ul>" +
+                  "<li>`packageURL` is the package URL or pURL of the component.</li>" +
+                  "<li>`hash` is the truncated hash value and can be used in other REST API calls. It should " +
+                  "not be used as a checksum.</li>" +
+                  "<li>`componentIdentifier` includes the component format and its coordinates.</li>" +
+                  "<li>`displayName` is the display name of the component.</li>" +
+                  "<li>`licenseLegalData` contains the legal data.</li>" +
+                  "<li>`stageScans` is a list and each element contains `stageName` at which the " +
+                  "application was scanned, the `scanId` of the application scan, and the `scanDate`.</li>" +
+                  "</ul>" +
+                  "2. The `licenseLegalMetaData` is used as a dictionary for legal data and for each license " +
+                  "contains the license id(s), name, license text, obligations, license threat group, and whether " +
+                  "or not it is multi license.",
+              useReturnTypeSchema = true)
+      })
   public ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(
-      @PathParam("applicationId") String applicationId, @PathParam("stageId") String stageId)
+      @Parameter(description = "Enter the application id or public id.", required = true)
+      @PathParam("applicationId") String applicationId,
+      @Parameter(description = "Enter the stageId.", required = true)
+      @PathParam("stageId") String stageId)
   {
     return apiLicenseLegalServiceV2.getLicenseLegalApplicationReport(
         idUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId), stageId, false,
@@ -160,8 +225,22 @@ public class ApiLegalReportResourceV2
   @GET
   @Path(APPLICATION_REPORT_PATH)
   @Produces(MediaType.TEXT_HTML)
+  @Operation(description = "Use this method to retrieve the license legal data for components in an application " +
+      "at a specific stage, in HTML format." +
+      "\n" +
+      "\n" +
+      "Permissions required: Review Legal Obligations For Components Licenses",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "The response contains license legal data in HTML format."
+          )
+      })
   public String getLicenseLegalApplicationHTMLReport(
-      @PathParam("applicationId") String applicationId, @PathParam("stageId") String stageId)
+      @Parameter(description = "Enter the application id or public id.", required = true)
+      @PathParam("applicationId") String applicationId,
+      @Parameter(description = "Enter the stageId.")
+      @PathParam("stageId") String stageId)
   {
     final Owner app = idUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId);
     final LegalCustomReportParameters reportParameters =
@@ -174,8 +253,21 @@ public class ApiLegalReportResourceV2
   @POST
   @Path(APPLICATION_REPORT_PATH)
   @Produces(MediaType.TEXT_HTML)
+  @Operation(description = "Use this method to retrieve and customize the license legal data for components " +
+      "in an application at a specific stage, in HTML format." +
+      "\n" +
+      "\n" +
+      "Permissions required: Review Legal Obligations For Components Licenses",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains the customized license legal report in HTML format."
+          )
+      }
+  )
   public String getLicenseLegalCustomApplicationHTMLReport(
+      @Parameter(description = "Enter the application id or public id.", required = true)
       @PathParam("applicationId") String applicationId,
+      @Parameter(description = "Enter the stageId.")
       @PathParam("stageId") String stageId,
       @Context ContainerRequest request) throws IOException
   {
@@ -206,6 +298,16 @@ public class ApiLegalReportResourceV2
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(CUSTOM_MULTI_APPLICATION_REPORT_PATH)
   @Produces(MediaType.TEXT_HTML)
+  @Operation(description = "Use this method to generate license legal data in HTML format for all applications." +
+      "\n" +
+      "\n" +
+      "Permissions required: Review Legal Obligations For Components Licenses",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains license legal data in HTML format."
+          )
+      }
+  )
   public String getLicenseLegalCustomMultiApplicationHTMLReport(
       @Context ContainerRequest request) throws IOException
   {
@@ -235,7 +337,18 @@ public class ApiLegalReportResourceV2
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(MULTI_APPLICATION_REPORT_FROM_FILTER_TEMPLATE_PATH)
   @Produces(MediaType.TEXT_HTML)
+  @Operation(description = "Use this method to generate license legal data in HTML format for applications ," +
+      "on which the logged in user has permissions." +
+      "\n" +
+      "\n" +
+      "Permission required: Review Legal Obligations For Components Licenses",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains license legal data in HTML format based on the specified template."
+          )
+      })
   public String getLicenseLegalMultiApplicationReportFromActiveUserFilter(
+      @Parameter(description = "Enter the templateId for the license legal data.", required = true)
       @PathParam("templateId") String templateId,
       @Context ContainerRequest request) throws IOException
   {
@@ -243,7 +356,7 @@ public class ApiLegalReportResourceV2
 
     AttributionReportTemplateDTO templateDTO =
         attributionReportService.getAttributionReportTemplateById_NoAuthz(templateId)
-        .orElseThrow(() -> new NotFoundException(String.format("No template with id %s found", templateId)));
+            .orElseThrow(() -> new NotFoundException(String.format("No template with id %s found", templateId)));
     List<String> noticeFiles = new ArrayList<>();
     if (request != null && request.getLength() > 0) {
       FormDataMultiPart multiPart = request.readEntity(FormDataMultiPart.class);
@@ -261,6 +374,15 @@ public class ApiLegalReportResourceV2
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(MULTI_APPLICATION_REPORT_PATH)
   @Produces(MediaType.TEXT_HTML)
+  @Operation(description = "Use this method to generate license legal data in HTML format." +
+      "\n" +
+      "\n" +
+      "Permissions required: Review Legal Obligations For Components Licenses",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "License legal data in HTML format is generated."
+          )
+      })
   public String getLicenseLegalMultiApplicationHTMLReport(
       @Context ContainerRequest request) throws IOException
   {
@@ -284,7 +406,19 @@ public class ApiLegalReportResourceV2
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(MULTI_APPLICATION_REPORT_PATH_FROM_TEMPLATE_PATH)
   @Produces(MediaType.TEXT_HTML)
+  @Operation(description = "Use this method to generate license legal data for all applications in HTML format " +
+      "based on the given template." +
+      "\n" +
+      "\n" +
+      "Permissions required: Review Legal Obligations For Components Licenses",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "The response contains license legal data in HTML format."
+          )
+      })
   public String getLicenseLegalCustomMultiApplicationHTMLReport(
+      @Parameter(description = "Enter the `templateId` for the HTML report.", required = true)
       @PathParam("templateId") String templateId,
       @Context ContainerRequest request) throws IOException
   {
@@ -292,7 +426,7 @@ public class ApiLegalReportResourceV2
 
     AttributionReportTemplateDTO templateDTO =
         attributionReportService.getAttributionReportTemplateById_NoAuthz(templateId)
-        .orElseThrow(() -> new NotFoundException(String.format("No template with id %s found", templateId)));
+            .orElseThrow(() -> new NotFoundException(String.format("No template with id %s found", templateId)));
     List<String> noticeFiles = new ArrayList<>();
     Set<AttributionReportApplicationDTO> applicationsAndStages = new HashSet<>();
     if (request != null && request.getLength() > 0) {
@@ -308,9 +442,23 @@ public class ApiLegalReportResourceV2
   @POST
   @Path(APPLICATION_REPORT_FROM_TEMPLATE_PATH)
   @Produces(MediaType.TEXT_HTML)
+  @Operation(description = "Use this method to generate a license legal report in the specified HTML template " +
+      "format." +
+      "\n" +
+      "\n" +
+      "Permissions required: Review Legal Obligations For Components Licenses",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains the license legal report for the specified application in" +
+                  " HTML format."
+          )
+      })
   public String getLicenseLegalCustomApplicationHTMLReport(
+      @Parameter(description = "Enter the application id or public id.", required = true)
       @PathParam("applicationId") String applicationId,
+      @Parameter(description = "Enter the stageId.", required = true)
       @PathParam("stageId") String stageId,
+      @Parameter(description = "Enter the templateId for the HTML report format.", required = true)
       @PathParam("templateId") String templateId,
       @Context ContainerRequest request) throws IOException
   {
@@ -318,7 +466,7 @@ public class ApiLegalReportResourceV2
 
     AttributionReportTemplateDTO templateDTO =
         attributionReportService.getAttributionReportTemplateById_NoAuthz(templateId)
-        .orElseThrow(() -> new NotFoundException(String.format("No template with id %s found", templateId)));
+            .orElseThrow(() -> new NotFoundException(String.format("No template with id %s found", templateId)));
 
     List<String> noticeFiles = new ArrayList<>();
     if (request != null && request.getLength() > 0) {
@@ -414,13 +562,48 @@ public class ApiLegalReportResourceV2
   @GET
   @Path(COMPONENT_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Operation(description = "Use this method to retrieve the raw license legal data for a component by specifying the " +
+      "component identifier or package URL or the component hash." +
+      "\n" +
+      "\n" +
+      "Permissions required: Review Legal Obligations For Components Licenses",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains the requested component data and the corresponding " +
+                  "license legal metadata." +
+                  "\n" +
+                  "\n" +
+                  "1. The component data includes:" +
+                  "<ul>" +
+                  "<li>`packageURL` is the package URL or pURL of the component.</li>" +
+                  "<li>`hash` is the truncated hash value and can be used in other REST API calls. It should " +
+                  "not be used as a checksum.</li>" +
+                  "<li>`componentIdentifier` includes the component format and its coordinates.</li>" +
+                  "<li>`displayName` is the display name of the component.</li>" +
+                  "<li>`licenseLegalData` contains the legal data.</li>" +
+                  "<li>`stageScans` is a list and each element contains `stageName` at which the " +
+                  "application was scanned, the `scanId` of the application scan, and the `scanDate`.</li>" +
+                  "</ul>" +
+                  "2. The `licenseLegalMetaData` is used as a dictionary for legal data and for each license " +
+                  "contains the license id(s), name, license text, obligations, license threat group, and whether " +
+                  "or not it is multi license.",
+              useReturnTypeSchema = true)
+      })
   public ApiLicenseLegalComponentReportDTO getLicenseLegalComponentReport(
+      @Parameter(description = "Enter the ownerType", required = true)
       @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the ownerId corresponding to the ownerType.", required = true)
       @PathParam("ownerId") String ownerId,
+      @Parameter(description = "Enter the componentIdentifier consisting of format and coordinates.")
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
+      @Parameter(description = "Enter the package URL.")
       @QueryParam("packageUrl") String packageUrl,
+      @Parameter(description = "Enter the component hash.")
       @QueryParam("hash") String hash,
+      @Parameter(description = "Enter the identification source if a third party scan is used.")
       @QueryParam("identificationSource") String identificationSource,
+      @Parameter(description = "Enter the scanId for the report where the component was identified (required if " +
+          "identified by third party scan).")
       @QueryParam("scanId") String scanId) throws IOException
   {
     return apiLicenseLegalServiceV2.getLicenseLegalComponentReport(ownerType, ownerId, componentIdentifier, packageUrl,

@@ -472,6 +472,7 @@ public class ThirdPartyScanResultsProcessorTest
     var thirdPartyFile = thirdPartyFileDAO.getById(sbomMetadata.getThirdPartyFileId());
     assertThat(sbomMetadata.getFilename()).isNull(); // gets set outside of ThirdPartyScanResultsProcessor
     assertThat(thirdPartyFile.getFilename()).isEqualTo("container:alpine:3.6");
+    assertThat(scanContext.getApplicationVersion()).isNotNull();
     assertExistingSbomFiles();
   }
 

@@ -428,6 +428,7 @@ public class ThirdPartyScanResultsProcessor
           scanContext.markSbomSavedForScan();
           scanContext.setSbomMetadataId(sbomMetadata.getId());
           scanContext.setThirdPartyFileId(thirdPartyFile.getId());
+          scanContext.setApplicationVersion(sbomMetadata.getSbomVersion());
 
           // it will be null if SbomFileDetector determines that the file isn't an SBOM at all
           if (sbomDetectionResult.isValid != null) {

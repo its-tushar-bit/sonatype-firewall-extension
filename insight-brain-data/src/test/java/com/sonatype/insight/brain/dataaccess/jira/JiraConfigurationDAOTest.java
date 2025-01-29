@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.jira;
 
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.PersistenceException;
+import java.sql.SQLException;
+import java.util.function.Function;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -15,6 +15,8 @@ import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.PersistenceException;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -369,6 +371,17 @@ public class JiraConfigurationDAOTest
     jiraConfiguration.setCustomFieldsJson(createJsonWithLength(MAX_CUSTOM_FIELDS_JSON_LENGTH + 1));
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.update(jiraConfiguration))
         .withMessageContaining(LONG_CUSTOM_FIELDS_JSON_ERROR_MSG);
+  }
+
+  @Test
+  public void testRotateEncryptedSecrets() throws SQLException {
+    tempEntity.newJiraConfiguration("http://url", "userName", "passwordOld1".toCharArray(), null);
+    Function<String, String> secretRotator = secret -> secret.replace("Old", "New");
+
+    dao.rotateEncryptedSecrets(secretRotator);
+
+    JiraConfiguration result = dao.get();
+    assertThat(String.valueOf(result.getPassword())).isEqualTo("passwordNew1");
   }
 
   private String createUrlWithLength(int length) {

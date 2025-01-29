@@ -53,7 +53,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
-import com.sonatype.insight.brain.security.EncryptionKeyStore;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlRepositoryUtils;
@@ -67,8 +67,6 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.model.RateLimitsResponse;
-import org.sonatype.plexus.components.cipher.PlexusCipher;
-import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -94,7 +92,7 @@ public class ApiSourceControlService
 
   private static final String REPO_VISIBILITY_PUBLIC = "public";
 
-  private final PlexusCipher plexusCipher;
+  private final PasswordHandler passwordHandler;
 
   private final SourceControlDAO sourceControlDAO;
 
@@ -122,15 +120,13 @@ public class ApiSourceControlService
 
   private final SourceControlUserActivityService sourceControlUserActivityService;
 
-  private final EncryptionKeyStore encryptionKeyStore;
-
   private final TelemetryUtils telemetryUtils;
 
   private final ScmRepoVisibilityService scmRepoVisibilityService;
 
   @Inject
   public ApiSourceControlService(
-      final PlexusCipher plexusCipher,
+      final PasswordHandler passwordHandler,
       final SourceControlDAO sourceControlDAO,
       final OwnerDAO ownerDAO,
       final ApplicationDAO applicationDAO,
@@ -144,11 +140,10 @@ public class ApiSourceControlService
       final SourceControlRepositoryUtils sourceControlRepositoryUtils,
       final GitClientFactory gitClientFactory,
       final SourceControlUserActivityService sourceControlUserActivityService,
-      final EncryptionKeyStore encryptionKeyStore,
       final TelemetryUtils telemetryUtils,
       final ScmRepoVisibilityService scmRepoVisibilityService)
   {
-    this.plexusCipher = plexusCipher;
+    this.passwordHandler = passwordHandler;
     this.sourceControlDAO = sourceControlDAO;
     this.ownerDAO = ownerDAO;
     this.applicationDAO = applicationDAO;
@@ -162,7 +157,6 @@ public class ApiSourceControlService
     this.sourceControlRepositoryUtils = sourceControlRepositoryUtils;
     this.gitClientFactory = gitClientFactory;
     this.sourceControlUserActivityService = sourceControlUserActivityService;
-    this.encryptionKeyStore = encryptionKeyStore;
     this.telemetryUtils = telemetryUtils;
     this.scmRepoVisibilityService = scmRepoVisibilityService;
   }
@@ -171,8 +165,9 @@ public class ApiSourceControlService
   public List<ApiSourceControlDTO> getAll() {
     checkLicense();
     List<SourceControl> sourceControlDAOAll = sourceControlDAO.getAll();
-    sourceControlDAOAll.forEach(this::encryptToken);
+
     return sourceControlDAOAll.stream()
+        .map(this::setTokenValueForReturn)
         .map(ApiSourceControlAdapter::convertToDTO)
         .collect(Collectors.toList());
   }
@@ -440,15 +435,15 @@ public class ApiSourceControlService
 
   @VisibleForTesting
   void encryptToken(final SourceControl sourceControl) {
-    synchronized (plexusCipher) {
-      try {
-        sourceControl.setToken(plexusCipher.encrypt(sourceControl.getToken(), encryptionKeyStore.getKey()));
-      }
-      catch (PlexusCipherException e) {
-        log.error("Unable to encrypt SourceControl token", e);
-        throw new IllegalStateException(e);
-      }
+    String token;
+    try {
+      token = passwordHandler.encryptPassword(sourceControl.getToken());
     }
+    catch (IllegalStateException e) {
+      log.error("Unable to encrypt SourceControl token", e);
+      throw e;
+    }
+    sourceControl.setToken(token);
   }
 
   private void fillWithDecryptedToken(final SourceControl sourceControl) {
@@ -457,20 +452,12 @@ public class ApiSourceControlService
   }
 
   private String decryptToken(final String encryptedToken) {
-    synchronized (plexusCipher) {
-      try {
-        String decrypted = plexusCipher.decrypt(encryptedToken, encryptionKeyStore.getKey());
-        if (StringUtils.isNotBlank(decrypted)) {
-          return decrypted;
-        }
-        else {
-          return null;
-        }
-      }
-      catch (PlexusCipherException e) {
-        log.error("Unable to decrypt SourceControl token", e);
-        throw new IllegalStateException(e);
-      }
+    try {
+      return passwordHandler.decryptPassword(encryptedToken);
+    }
+    catch (IllegalStateException e) {
+      log.error("Unable to decrypt SourceControl token", e);
+      throw e;
     }
   }
 

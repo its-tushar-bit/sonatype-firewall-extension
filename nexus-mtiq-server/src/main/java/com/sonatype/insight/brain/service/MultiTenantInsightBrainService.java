@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.api.admin.service.MultiTenantActiveRequestCoun
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.audit.AdminAuditContainerRequestFilter;
 import com.sonatype.insight.brain.aws.credentials.MtiqAwsCredentialsProvider;
-import com.sonatype.insight.brain.clients.AwsSecretsManagerClient;
 import com.sonatype.insight.brain.configuration.webhook.WebhookService;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
@@ -399,7 +398,6 @@ public class MultiTenantInsightBrainService
         if (((MultiTenantInsightConfig) configuration()).isUsingDefaultEncryptionKeyStore()) {
           bind(EncryptionKeyStore.class).to(DefaultEncryptionKeyStore.class).in(Singleton.class);
           bind(MultiTenantEncryptionKeyStore.class).toProvider(Providers.of(null));
-          bind(AwsSecretsManagerClient.class).toProvider(Providers.of(null));
           extraToBan.add(MultiTenantEncryptionKeyStore.class);
         }
         else {

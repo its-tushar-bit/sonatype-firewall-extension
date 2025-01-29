@@ -85,7 +85,7 @@ public class TenantMetadataServiceTest
       assertEquals(ORG_ID, argument.getValue().getOrganizationId());
       assertEquals(ORG_NAME, argument.getValue().getOrganizationName());
 
-      verify(multiTenantEncryptionKeyStore).initializeTenantKey();
+      verify(multiTenantEncryptionKeyStore).initializeKey();
     });
   }
 
@@ -114,7 +114,7 @@ public class TenantMetadataServiceTest
       assertEquals(ORG_ID, argument.getValue().getOrganizationId());
       assertEquals(ORG_NAME, argument.getValue().getOrganizationName());
 
-      verify(multiTenantEncryptionKeyStore).initializeTenantKey();
+      verify(multiTenantEncryptionKeyStore).initializeKey();
     });
   }
 

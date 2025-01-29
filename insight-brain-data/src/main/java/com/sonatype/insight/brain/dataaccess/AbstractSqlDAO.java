@@ -300,7 +300,7 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
     return resultStream.map(type::cast);
   }
 
-  private ParameterizedType getParameterizedSuperClass() {
+  protected ParameterizedType getParameterizedSuperClass() {
     Type genericSuperclass = getClass().getGenericSuperclass();
     if (!(genericSuperclass instanceof ParameterizedType)) {
       genericSuperclass = getClass().getSuperclass().getGenericSuperclass();

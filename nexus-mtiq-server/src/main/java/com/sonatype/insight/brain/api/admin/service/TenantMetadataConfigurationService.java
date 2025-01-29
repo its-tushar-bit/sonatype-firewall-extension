@@ -66,7 +66,7 @@ public class TenantMetadataConfigurationService
     }
 
     if (multiTenantEncryptionKeyStore != null) {
-      multiTenantEncryptionKeyStore.initializeTenantKey();
+      multiTenantEncryptionKeyStore.initializeKey();
     }
   }
 }

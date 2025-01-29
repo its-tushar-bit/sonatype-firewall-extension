@@ -9,9 +9,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.RotatableSecretsDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
+import com.sonatype.insight.brain.security.RotatableSecrets;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
@@ -20,7 +21,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 @Named
 @Singleton
 public class LdapConnectionDAO
-    extends AbstractOperationalSqlDAO<LdapConnection>
+    extends RotatableSecretsDAO<LdapConnection>
+    implements RotatableSecrets
 {
   @Inject
   public LdapConnectionDAO(OperationalDataStore operationalDataStore) {

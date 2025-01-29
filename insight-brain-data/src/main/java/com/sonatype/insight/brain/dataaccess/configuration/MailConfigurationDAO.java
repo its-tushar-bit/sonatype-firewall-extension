@@ -13,6 +13,7 @@ import javax.mail.internet.InternetAddress;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlWithFallbackDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
+import com.sonatype.insight.brain.security.RotatableSecrets;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -25,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 @Singleton
 public class MailConfigurationDAO
     extends AbstractOperationalSqlWithFallbackDAO<MailConfiguration>
+    implements RotatableSecrets
 {
   public static final String SINGLETON_ENTITY_ID = "mail-configuration";
 

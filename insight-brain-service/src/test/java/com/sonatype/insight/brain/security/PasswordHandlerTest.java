@@ -54,6 +54,7 @@ public class PasswordHandlerTest
 
   @Test
   public void testEncryptPasswordDecryptPassword_NullValue() {
-    assertThat(pwHandler.decryptPassword(pwHandler.encryptPassword(null))).isNull();
+    char[] pw = null;
+    assertThat(pwHandler.decryptPassword(pwHandler.encryptPassword(pw))).isNull();
   }
 }

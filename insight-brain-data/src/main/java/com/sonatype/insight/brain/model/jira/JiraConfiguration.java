@@ -15,6 +15,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 
+import com.sonatype.insight.brain.security.RotatableSecret;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 
@@ -38,6 +39,7 @@ public class JiraConfiguration
   @Column(name = "username")
   private String username;
 
+  @RotatableSecret
   @Column(name = "password")
   private char[] password;
 

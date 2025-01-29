@@ -58,6 +58,6 @@ public class TenantMetadataConfigurationServiceTest
 
     underTest.insertOrUpdateMetadata(new TenantMetadataDTO(), "tenantSlug");
 
-    verify(mockMultiTenantEncryptionKeyStore).initializeTenantKey();
+    verify(mockMultiTenantEncryptionKeyStore).initializeKey();
   }
 }

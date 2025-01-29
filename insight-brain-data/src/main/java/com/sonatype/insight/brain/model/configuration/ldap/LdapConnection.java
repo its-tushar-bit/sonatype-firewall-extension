@@ -12,6 +12,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import com.sonatype.insight.brain.security.RotatableSecret;
 import com.sonatype.insight.model.HasStringId;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -104,6 +105,7 @@ public class LdapConnection
    * 
    * @since 1.7
    */
+  @RotatableSecret
   @Column(name = "system_password")
   private char[] systemPassword;
 

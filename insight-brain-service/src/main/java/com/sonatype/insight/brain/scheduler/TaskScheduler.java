@@ -207,6 +207,18 @@ public class TaskScheduler
     scheduleTask(job, insightJob, trigger);
   }
 
+  public void scheduleOneTimeTask(InsightJob insightJob, Map<String, String> parameters) {
+    JobDetail job = newJob(insightJob)
+        .build();
+    JobDataMap jobDataMap = new JobDataMap(parameters);
+    Trigger trigger = TriggerBuilder.newTrigger()
+        .withIdentity(job.getKey().getName(), job.getKey().getGroup())
+        .usingJobData(jobDataMap)
+        .startNow()
+        .build();
+    scheduleTask(job, insightJob, trigger);
+  }
+
   public void scheduleOneTimeTask(InsightJob insightJob, LocalTime localTime) {
     JobDetail job = newJob(insightJob) //
         .build();

@@ -28,17 +28,28 @@ public class PasswordHandler
     if (encryptedPassword == null) {
       return null;
     }
+    return decryptPassword(String.valueOf(encryptedPassword)).toCharArray();
+  }
+
+  public String decryptPassword(String encryptedPassword) {
+    return decryptPassword(encryptedPassword, encryptionKeyStore.getKey());
+  }
+
+  protected String decryptPassword(final String encryptedPassword, final String encryptionKey) {
+    if (encryptedPassword == null) {
+      return null;
+    }
 
     // PlexusCipher encrypts empty strings (i.e. "") to "{}".
     // Unfortunately it fails to decrypt "{}" back to an empty string.
     // We handle this special case here.
-    if ("{}".equals(String.valueOf(encryptedPassword))) {
-      return "".toCharArray();
+    if ("{}".equals(encryptedPassword)) {
+      return "";
     }
 
     try {
       synchronized (cipher) {
-        return cipher.decryptDecorated(String.valueOf(encryptedPassword), encryptionKeyStore.getKey()).toCharArray();
+        return cipher.decryptDecorated(encryptedPassword, encryptionKey);
       }
     }
     catch (PlexusCipherException e) {
@@ -46,14 +57,24 @@ public class PasswordHandler
     }
   }
 
-  public char[] encryptPassword(char[] password) {
+  public char[] encryptPassword(final char[] password) {
     if (password == null) {
       return null;
     }
+    return encryptPassword(String.valueOf(password)).toCharArray();
+  }
 
+  public String encryptPassword(final String password) {
+    return encryptPassword(password, encryptionKeyStore.getKey());
+  }
+
+  protected String encryptPassword(final String password, final String encryptionKey) {
+    if (password == null) {
+      return null;
+    }
     try {
       synchronized (cipher) {
-        return cipher.encryptAndDecorate(String.valueOf(password), encryptionKeyStore.getKey()).toCharArray();
+        return cipher.encryptAndDecorate(password, encryptionKey);
       }
     }
     catch (PlexusCipherException e) {

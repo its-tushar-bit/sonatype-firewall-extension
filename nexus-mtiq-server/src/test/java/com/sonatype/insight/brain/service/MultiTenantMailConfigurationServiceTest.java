@@ -54,7 +54,7 @@ public class MultiTenantMailConfigurationServiceTest
     mailConfig.setSystemEmail("noreply@example.com");
 
     when(insightConfig.getMailConfig()).thenReturn(mailConfig);
-    when(passwordHandler.encryptPassword(any())).thenReturn("zzzz".toCharArray());
+    when(passwordHandler.encryptPassword(any(char[].class))).thenReturn("zzzz".toCharArray());
 
     underTest.start();
 

@@ -10,6 +10,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import com.sonatype.insight.brain.security.RotatableSecret;
 import com.sonatype.insight.model.HasStringId;
 
 /**
@@ -30,6 +31,7 @@ public class CrowdConfiguration
   @Column(name = "application_name")
   private String applicationName;
 
+  @RotatableSecret
   @Column(name = "application_password")
   private char[] applicationPassword;
 

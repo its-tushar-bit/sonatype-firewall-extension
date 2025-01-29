@@ -9,14 +9,16 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
+import com.sonatype.insight.brain.dataaccess.RotatableSecretsDAO;
+import com.sonatype.insight.brain.security.RotatableSecrets;
 
 @Named
 @Singleton
 public class ArtifactoryConnectionDAO
-    extends AbstractOperationalSqlDAO<ArtifactoryConnection>
+    extends RotatableSecretsDAO<ArtifactoryConnection>
+    implements RotatableSecrets
 {
   @Inject
   public ArtifactoryConnectionDAO(OperationalDataStore operationalDataStore) {

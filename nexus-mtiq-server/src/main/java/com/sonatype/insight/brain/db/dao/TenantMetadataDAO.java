@@ -23,4 +23,10 @@ public class TenantMetadataDAO
     String sQuery = "SELECT entity FROM TenantMetadata entity";
     return createQuery(sQuery).forceSingleResult().get();
   }
+
+  public void setEncryptionKeyName(String encryptionKeyName) {
+    TenantMetadata tenantMetadata = get();
+    tenantMetadata.setEncryptionKeyName(encryptionKeyName);
+    update(tenantMetadata);
+  }
 }

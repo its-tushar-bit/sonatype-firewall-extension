@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -2062,6 +2064,33 @@ public class SourceControlDAOTest
       assertSourceControl(sourceControlList.get(0), expectedSourceControl1);
       assertSourceControl(sourceControlList.get(1), expectedSourceControl2);
     }
+  }
+
+  @Test
+  @PostgresTest
+  public void testRotateEncryptedSecrets() throws SQLException {
+    tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+
+    for (int i = 0; i < 4; i++) {
+      Application app = tempEntity.newApplication(Organization.ROOT_ORGANIZATION_ID);
+      tempEntity.newSourceControl(app.getId(), "https://github.com/some/repo", "token_" + i + "_old",
+          SourceControlProvider.GITHUB);
+    }
+
+    Function<String, String> secretRotator = secret -> secret.replace("old", "new");
+
+    sourceControlDAO.rotateEncryptedSecrets(secretRotator);
+
+    List<SourceControl> results = sourceControlDAO.getAll();
+
+    assertThat(results.stream().filter(sc -> sc.getToken() == null).count()).isEqualTo(1);
+    assertThat(results.stream().filter(sc -> sc.getToken() != null).count()).isEqualTo(4);
+    results.stream()
+        .filter(sc -> sc.getToken() != null)
+        .forEach(sc -> {
+          assertThat(sc.getToken()).doesNotContain("old");
+          assertThat(sc.getToken()).contains("new");
+        });
   }
 
   private void assertSourceControl(SourceControl actualSC, SourceControl expectedSC) {

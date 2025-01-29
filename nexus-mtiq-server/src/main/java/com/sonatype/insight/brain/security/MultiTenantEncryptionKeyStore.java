@@ -64,7 +64,7 @@ public class MultiTenantEncryptionKeyStore
 
   @Override
   public void register() {
-    initializeTenantKey();
+    initializeKey();
   }
 
   @Override
@@ -72,7 +72,8 @@ public class MultiTenantEncryptionKeyStore
     return true;
   }
 
-  public void initializeTenantKey() {
+  @Override
+  public void initializeKey() {
     String encryptionKeyName;
     if (tenantUtil.isGlobalTenant()) {
       encryptionKeyName = multiTenantInsightConfig.getGlobalTenantEncryptionKeyName();
@@ -119,7 +120,7 @@ public class MultiTenantEncryptionKeyStore
     String key = tenantKeyStore.get();
 
     if (Strings.isEmpty(key)) {
-      initializeTenantKey();
+      initializeKey();
       key = tenantKeyStore.get();
     }
 

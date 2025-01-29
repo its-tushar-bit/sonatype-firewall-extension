@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
+import java.sql.SQLException;
+import java.util.function.Function;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.PersistenceException;
 
@@ -197,5 +199,16 @@ public class ProxyServerConfigurationDAOTest
     proxyServerConfiguration.setHostname("singleton");
     dao.set(proxyServerConfiguration);
     assertThat(dao.get().getHostname()).isEqualTo("singleton");
+  }
+
+  @Test
+  public void testRotateEncryptedSecrets() throws SQLException {
+    tempEntity.setProxyServerConfiguration("localhost", 1984, "userName", "passwordOld1".toCharArray(), "exclude.this");
+    Function<String, String> secretRotator = secret -> secret.replace("Old", "New");
+
+    dao.rotateEncryptedSecrets(secretRotator);
+
+    ProxyServerConfiguration result = dao.get();
+    assertThat(String.valueOf(result.getPassword())).isEqualTo("passwordNew1");
   }
 }

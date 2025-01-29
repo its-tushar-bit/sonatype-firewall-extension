@@ -18,20 +18,20 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.RotatableSecretsDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.security.RotatableSecrets;
 import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -49,7 +49,8 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @Named
 @Singleton
 public class SourceControlDAO
-    extends AbstractOperationalSqlDAO<SourceControl>
+    extends RotatableSecretsDAO<SourceControl>
+    implements RotatableSecrets
 {
   public static final int EXTERNAL_EVALUATION_WINDOW_IN_DAYS = 7;
 
@@ -737,10 +738,6 @@ public class SourceControlDAO
     List<SourceControl> result = new ArrayList<>();
     initialOwnerIdList.forEach(ownerId -> result.add(buildCompositeSourceControlInApplication(ownerId)));
     return result;
-  }
-
-  private String injectSchemaName(final String sql) {
-    return sql.replace("_SCHEMA_", getDatabaseSchema());
   }
 
   /**

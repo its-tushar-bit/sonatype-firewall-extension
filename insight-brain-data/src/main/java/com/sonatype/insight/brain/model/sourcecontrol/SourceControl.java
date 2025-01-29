@@ -14,6 +14,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import com.sonatype.insight.brain.security.RotatableSecret;
 import com.sonatype.insight.model.HasStringId;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -54,6 +55,7 @@ public class SourceControl
   @Column(name = "username")
   private String username;
 
+  @RotatableSecret
   @Column(name = "token")
   private String token;
 

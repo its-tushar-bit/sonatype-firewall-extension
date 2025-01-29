@@ -5,11 +5,13 @@
  */
 package com.sonatype.insight.brain.security;
 
-public interface EncryptionKeyStore
-{
-  String getKey();
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-  default void initializeKey() {
-    // no-op
-  }
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface RotatableSecret
+{
 }

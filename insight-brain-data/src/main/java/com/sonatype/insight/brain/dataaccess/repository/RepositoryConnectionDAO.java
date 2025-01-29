@@ -10,16 +10,18 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.RotatableSecretsDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
+import com.sonatype.insight.brain.security.RotatableSecrets;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 @Named
 @Singleton
 public class RepositoryConnectionDAO
-    extends AbstractOperationalSqlDAO<RepositoryConnection>
+    extends RotatableSecretsDAO<RepositoryConnection>
+    implements RotatableSecrets
 {
   @Inject
   public RepositoryConnectionDAO(OperationalDataStore operationalDataStore) {

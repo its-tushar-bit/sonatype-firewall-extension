@@ -14,6 +14,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import com.sonatype.insight.brain.security.RotatableSecret;
 import com.sonatype.insight.model.HasStringId;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -41,6 +42,7 @@ public class ProxyServerConfiguration
   @Column(name = "username")
   private String username;
 
+  @RotatableSecret
   @Column(name = "password")
   private char[] password;
 

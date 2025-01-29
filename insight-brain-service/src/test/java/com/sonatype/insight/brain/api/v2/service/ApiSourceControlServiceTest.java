@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
@@ -55,7 +56,6 @@ import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.github.dto.GithubRateLimitResponse;
 import com.sonatype.nexus.scm.github.dto.GithubRateLimitsResponse;
-import org.sonatype.plexus.components.cipher.PlexusCipher;
 
 import com.google.inject.Binder;
 import org.junit.Before;
@@ -93,7 +93,7 @@ public class ApiSourceControlServiceTest
   private ApiSourceControlService sourceControlService;
 
   @Inject
-  private PlexusCipher plexusCipher;
+  private PasswordHandler passwordHandler;
 
   @Inject
   private TestProductLicense testProductLicense;
@@ -170,12 +170,10 @@ public class ApiSourceControlServiceTest
         .map(ApiSourceControlAdapter::convertToDTO)
         .collect(Collectors.toList());
 
-    // decrypt retrieved tokens for comparison
     final List<ApiSourceControlDTO> retrieved = sourceControlService.getAll();
-    for (final ApiSourceControlDTO it : retrieved) {
-      synchronized (plexusCipher) {
-        it.token = plexusCipher.decrypt(it.token, "CMMDwoV");
-      }
+
+    for (final ApiSourceControlDTO it : expected) {
+      it.token = it.token != null ? FAKE_SECRET_KEY : null;
     }
 
     assertThat(retrieved).hasSize(3);
@@ -388,11 +386,8 @@ public class ApiSourceControlServiceTest
     assertThat(sourceControl.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
 
     final SourceControl reloaded = sourceControlDAO.getByIdNotNull(sourceControl.id);
+    final String decrypted = passwordHandler.decryptPassword(reloaded.getToken());
 
-    final String decrypted;
-    synchronized (plexusCipher) {
-      decrypted = plexusCipher.decrypt(reloaded.getToken(), "CMMDwoV");
-    }
     assertThat(decrypted).isEqualTo(TOKEN);
     assertTelemetry(METHOD.ADD, org.getId(), reloaded.getRepositoryUrl(),
         null, reloaded.getRemediationPullRequestsEnabled(), reloaded.getStatusChecksEnabled(),
@@ -425,11 +420,7 @@ public class ApiSourceControlServiceTest
         sourceControl.baseBranch, null, null);
 
     final SourceControl reloaded = sourceControlDAO.getByIdNotNull(sourceControl.id);
-
-    final String decrypted;
-    synchronized (plexusCipher) {
-      decrypted = plexusCipher.decrypt(reloaded.getToken(), "CMMDwoV");
-    }
+    final String decrypted = passwordHandler.decryptPassword(reloaded.getToken());
     assertThat(decrypted).isEqualTo("updatedToken");
   }
 
@@ -670,7 +661,7 @@ public class ApiSourceControlServiceTest
     SourceControl sourceControlAfterUpdate = sourceControlDAO.getByOwnerId(app.getId());
 
     assertThat(updatedControlDTO).isNotNull();
-    String decryptedToken = plexusCipher.decrypt(sourceControlAfterUpdate.getToken(), "CMMDwoV");
+    String decryptedToken = passwordHandler.decryptPassword(sourceControlAfterUpdate.getToken());
     assertThat(decryptedToken).isEqualTo(sourceControlDTO.token);
     assertThat(sourceControlAfterUpdate.getPullRequestPollTime()).isEqualTo(pollTime);
     assertThat(sourceControlAfterUpdate.getPullRequestErrorCount()).isEqualTo(errorCount);
@@ -1157,7 +1148,7 @@ public class ApiSourceControlServiceTest
     Application application = tempEntity.newApplicationWithParent();
     SourceControl sourceControl =
         tempEntity.newSourceControl(application.getId(), "https://github.com/orgName/repoName",
-            plexusCipher.encrypt("token", "CMMDwoV"), SourceControlProvider.GITHUB);
+            passwordHandler.encryptPassword(TOKEN), SourceControlProvider.GITHUB);
     GeneralSCMApiClient mockGeneralSCMApiClient = createMockGeneralSCMApiClient();
     when(mockGitClientFactory.createGeneralApiClient(sourceControl.getProvider(), "https://github.com/orgName/repoName",
         sourceControl.getUsername(), "token")).thenReturn(mockGeneralSCMApiClient);
@@ -1185,12 +1176,12 @@ public class ApiSourceControlServiceTest
   public void testGetRateLimits_OrganizationAndApplicationSourceControlConfigured() throws Exception {
     Organization org = tempEntity.newOrganization();
     SourceControl orgSourceControl = tempEntity.newSourceControl(org.getId(), null,
-        plexusCipher.encrypt("token1", "CMMDwoV"), SourceControlProvider.GITHUB);
+        passwordHandler.encryptPassword("token1"), SourceControlProvider.GITHUB);
     Application app1 = tempEntity.newApplication(org.getId());
     tempEntity.newSourceControl(app1.getId(), "https://github.com/orgName/repoName1", null, null);
     Application app2 = tempEntity.newApplication(org.getId());
     tempEntity.newSourceControl(app2.getId(), "https://github.com/orgName/repoName2",
-        plexusCipher.encrypt("token2", "CMMDwoV"), null);
+        passwordHandler.encryptPassword("token2"), null);
     GeneralSCMApiClient mockGeneralSCMApiClient = createMockGeneralSCMApiClient();
     when(mockGitClientFactory.createGeneralApiClient(eq(orgSourceControl.getProvider()), any(),
         eq(orgSourceControl.getUsername()), any())).thenReturn(mockGeneralSCMApiClient);
@@ -1233,12 +1224,12 @@ public class ApiSourceControlServiceTest
   public void testGetRateLimits_DoesNotDuplicateToken() throws Exception {
     Organization org = tempEntity.newOrganization();
     SourceControl orgSourceControl = tempEntity.newSourceControl(org.getId(), null,
-        plexusCipher.encrypt("token", "CMMDwoV"), SourceControlProvider.GITHUB);
+        passwordHandler.encryptPassword(TOKEN), SourceControlProvider.GITHUB);
     Application app1 = tempEntity.newApplication(org.getId());
     tempEntity.newSourceControl(app1.getId(), "https://github.com/orgName/repoName1", null, null);
     Application app2 = tempEntity.newApplication(org.getId());
     tempEntity.newSourceControl(app2.getId(), "https://github.com/orgName/repoName2",
-        plexusCipher.encrypt("token", "CMMDwoV"), null);
+        passwordHandler.encryptPassword(TOKEN), null);
     GeneralSCMApiClient mockGeneralSCMApiClient = createMockGeneralSCMApiClient();
     when(mockGitClientFactory.createGeneralApiClient(eq(orgSourceControl.getProvider()), any(),
         eq(orgSourceControl.getUsername()), any())).thenReturn(mockGeneralSCMApiClient);
@@ -1266,7 +1257,7 @@ public class ApiSourceControlServiceTest
   public void testGetRateLimits_Error() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     tempEntity.newSourceControl(application.getId(), "https://github.com/orgName/repoName",
-        plexusCipher.encrypt("token", "CMMDwoV"), SourceControlProvider.GITHUB);
+        passwordHandler.encryptPassword(TOKEN), SourceControlProvider.GITHUB);
     GitApiClient mockGitApiClient = createMockGitApiClient("userId2");
     when(mockGitApiClient.getUserId()).thenThrow(new RuntimeException("Some Error"));
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
@@ -1310,7 +1301,7 @@ public class ApiSourceControlServiceTest
     Application application = tempEntity.newApplication(organization.getId());
     SourceControl sourceControl =
         tempEntity.newSourceControl(organization.getId(), null,
-            plexusCipher.encrypt("token", "CMMDwoV"), SourceControlProvider.GITHUB);
+            passwordHandler.encryptPassword(TOKEN), SourceControlProvider.GITHUB);
     GeneralSCMApiClient mockGeneralSCMApiClient = createMockGeneralSCMApiClient();
     lenient().when(mockGitClientFactory.createGeneralApiClient(eq(sourceControl.getProvider()), any(),
         eq(sourceControl.getUsername()), eq("token"))).thenReturn(mockGeneralSCMApiClient);

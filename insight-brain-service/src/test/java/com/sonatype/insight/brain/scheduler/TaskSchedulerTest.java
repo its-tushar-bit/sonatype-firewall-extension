@@ -287,6 +287,31 @@ public class TaskSchedulerTest
   }
 
   @Test
+  public void testScheduleOneTimeTask_NoTime_StartsNow_WithParameters() throws Exception {
+    String name = "TestJob";
+    Map<String, String> parameters = new HashMap<>();
+    parameters.put("key1", "value1");
+    parameters.put("key2", "value2");
+    Scheduler scheduler = taskScheduler.createScheduler();
+    Date now = new Date();
+
+    taskScheduler.scheduleOneTimeTask(testJob, parameters);
+
+    JobKey jobKey = JobKey.jobKey(name);
+    JobDetail job = scheduler.getJobDetail(jobKey);
+    assertThat(job).isNotNull();
+    assertThat(job.getJobClass()).isEqualTo(TestJob.class);
+    assertThat(job.requestsRecovery()).isFalse();
+    Trigger trigger = scheduler.getTrigger(TriggerKey.triggerKey(jobKey.getName(), jobKey.getGroup()));
+    assertThat(trigger).isInstanceOf(SimpleTrigger.class);
+    SimpleTrigger simpleTrigger = (SimpleTrigger) trigger;
+    assertThat(simpleTrigger.getMisfireInstruction()).isEqualTo(SimpleTrigger.MISFIRE_INSTRUCTION_SMART_POLICY);
+    assertThat(simpleTrigger.getStartTime()).isAfterOrEqualTo(now);
+    assertThat(simpleTrigger.getJobDataMap().getString("key1")).isEqualTo("value1");
+    assertThat(simpleTrigger.getJobDataMap().getString("key2")).isEqualTo("value2");
+  }
+
+  @Test
   public void testGetNextExecutionTime() {
     ZonedDateTime now = ZonedDateTime.now().withSecond(0).withNano(0);
     taskScheduler.createScheduler();

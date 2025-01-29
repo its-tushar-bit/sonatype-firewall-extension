@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration.crowd;
 
+import java.sql.SQLException;
+import java.util.function.Function;
+
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
@@ -342,5 +345,16 @@ public class CrowdConfigurationDAOTest
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.update(crowdConfiguration))
         .withMessageContaining("A Crowd application password cannot exceed 255 characters.");
+  }
+
+  @Test
+  public void testRotateEncryptedSecrets() throws SQLException {
+    tempEntity.newCrowdConfiguration("http://localhost:8095/crowd", "applicationName", "passwordOld1".toCharArray());
+    Function<String, String> secretRotator = secret -> secret.replace("Old", "New");
+
+    dao.rotateEncryptedSecrets(secretRotator);
+
+    CrowdConfiguration result = dao.get();
+    assertThat(String.valueOf(result.getApplicationPassword())).isEqualTo("passwordNew1");
   }
 }

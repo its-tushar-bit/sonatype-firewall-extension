@@ -158,6 +158,10 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     return operationalDataStore.getDatabaseSchema();
   }
 
+  protected String injectSchemaName(final String sql) {
+    return sql.replace("_SCHEMA_", getDatabaseSchema());
+  }
+
   public static class TestEntityLeakDetectionData
   {
     private final String creationStackTrace;

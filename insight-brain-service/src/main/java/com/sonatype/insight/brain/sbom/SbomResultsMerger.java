@@ -771,13 +771,16 @@ public class SbomResultsMerger
 
     String filteredScanFileName = SbomCommonUtils.newFilteredScanFileName(tpScan.getScanId());
     File filteredScanFile = new File(insightWork.getScanDir(sbomMetadata.getApplicationId()), filteredScanFileName);
-    try {
-      Files.copy(scanResult.getScanFile().toPath(), filteredScanFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-      tpScan.setFilteredScanFile(filteredScanFile.getName());
-      thirdPartyScanDAO.update(tpScan);
-    }
-    catch (IOException e) {
-      log.error("Error saving filtered scan file {}", filteredScanFile.getName(), e);
+    //in the case of cli/container scans the filtered scan file may already exist
+    if (!filteredScanFile.exists()) {
+      try {
+        Files.copy(scanResult.getScanFile().toPath(), filteredScanFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        tpScan.setFilteredScanFile(filteredScanFile.getName());
+        thirdPartyScanDAO.update(tpScan);
+      }
+      catch (IOException e) {
+        log.error("Error saving filtered scan file {}", filteredScanFile.getName(), e);
+      }
     }
   }
 

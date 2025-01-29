@@ -170,6 +170,11 @@ public class SbomResultsMergerTest
     merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
+    ThirdPartyScan tpScan = thirdPartyScanDAO.getByThirdPartyFileId(updatedMetadata.getThirdPartyFileId());
+    assertThat(tpScan.getFilteredScanFile()).isEqualTo("scan-" + tpScan.getScanId() + "-filtered.xml.gz");
+    File filteredScanFile =
+        new File(insightWork.getScanDir(updatedMetadata.getApplicationId()), tpScan.getFilteredScanFile());
+    assertThat(filteredScanFile).exists();
 
     //verify all components
     List<ThirdPartyFileCoordinate> fileCoordinates =

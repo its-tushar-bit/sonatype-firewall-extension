@@ -366,7 +366,7 @@ public class TestDAOFactory
 
   @Override
   public WebhookDAO createWebhookDAO() {
-    return new WebhookDAO(dataStoreProvider.getOperationalDataStore());
+    return new WebhookDAO(dataStoreProvider.getOperationalDataStore(), createPolicyDAO());
   }
 
   @Override

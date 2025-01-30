@@ -9,10 +9,14 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Before;
@@ -31,11 +35,14 @@ public class WebhookDAOTest
 
   private WebhookDAO dao;
 
+  private PolicyDAO policyDAO;
+
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createWebhookDAO();
+    policyDAO = daoFactory.createPolicyDAO();
   }
 
   @Test
@@ -181,5 +188,48 @@ public class WebhookDAOTest
 
     List<Webhook> results = dao.getAll();
     assertThat(results).extracting(Webhook::getUrl).containsExactly(webhook1.getUrl(), webhook2.getUrl());
+  }
+
+  @Test
+  public void testDelete_PoliciesUpdated() {
+    // Given
+    Webhook webhook01 = tempEntity.newWebhook(Collections.emptySet());
+    Webhook webhook02 = tempEntity.newWebhook(Collections.emptySet());
+    Webhook webhook03 = tempEntity.newWebhook(Collections.emptySet());
+
+    Policy policy01 = tempEntity.newPolicy();
+    policy01.getNotifications().getWebhookNotifications().add(new WebhookNotification(webhook01.getId()));
+    policy01.getNotifications().getWebhookNotifications().add(new WebhookNotification(webhook02.getId()));
+    policy01.getNotifications().getWebhookNotifications().add(new WebhookNotification(webhook03.getId()));
+    policyDAO.update(policy01);
+
+    Policy policy02 = tempEntity.newPolicy();
+    policy02.getNotifications().getWebhookNotifications().add(new WebhookNotification(webhook02.getId()));
+    policy02.getNotifications().getWebhookNotifications().add(new WebhookNotification(webhook03.getId()));
+    policyDAO.update(policy02);
+
+    Policy policy03 = tempEntity.newPolicy();
+    policy03.getNotifications().getWebhookNotifications().add(new WebhookNotification(webhook01.getId()));
+    policyDAO.update(policy03);
+
+    // When
+    dao.delete(webhook01);
+
+    // Then
+    policy01 = policyDAO.getById(policy01.getId());
+    assertThat(policy01.getNotifications().getWebhookNotifications()).hasSize(2);
+    Set<String> collect =
+        policy01.getNotifications().getWebhookNotifications().stream().map(WebhookNotification::getWebhookId)
+            .collect(Collectors.toSet());
+    assertThat(collect).containsExactlyInAnyOrder(webhook02.getId(), webhook03.getId());
+
+    policy02 = policyDAO.getById(policy02.getId());
+    assertThat(policy02.getNotifications().getWebhookNotifications()).hasSize(2);
+    collect = policy01.getNotifications().getWebhookNotifications().stream().map(WebhookNotification::getWebhookId)
+        .collect(Collectors.toSet());
+    assertThat(collect).containsExactlyInAnyOrder(webhook02.getId(), webhook03.getId());
+
+    policy03 = policyDAO.getById(policy03.getId());
+    assertThat(policy03.getNotifications().getWebhookNotifications()).isEmpty();
   }
 }

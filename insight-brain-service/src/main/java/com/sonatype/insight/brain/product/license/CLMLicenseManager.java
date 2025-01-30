@@ -770,6 +770,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.SUCCESS_METRICS);
       features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
       features.add(LicensedFeature.WAIVER_REPORTS);
+      features.add(LicensedFeature.ROI_CONFIGURATION);
 
       stageTypes.add(StageTypes.STAGE_RELEASE);
       stageTypes.add(StageTypes.RELEASE);
@@ -805,6 +806,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.SUCCESS_METRICS);
       features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
       features.add(LicensedFeature.WAIVER_REPORTS);
+      features.add(LicensedFeature.ROI_CONFIGURATION);
 
       stageTypes.add(StageTypes.STAGE_RELEASE);
       stageTypes.add(StageTypes.RELEASE);
@@ -853,6 +855,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.SUCCESS_METRICS);
       features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
       features.add(LicensedFeature.WAIVER_REPORTS);
+      features.add(LicensedFeature.ROI_CONFIGURATION);
 
       stageTypes.addAll(allStagesWithoutCompliance);
     }
@@ -886,6 +889,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.SUCCESS_METRICS);
       features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
       features.add(LicensedFeature.WAIVER_REPORTS);
+      features.add(LicensedFeature.ROI_CONFIGURATION);
 
       stageTypes.add(StageTypes.STAGE_RELEASE);
       stageTypes.add(StageTypes.RELEASE);
@@ -994,6 +998,7 @@ public class CLMLicenseManager
     features.add(LicensedFeature.SUCCESS_METRICS);
     features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
     features.add(LicensedFeature.WAIVER_REPORTS);
+    features.add(LicensedFeature.ROI_CONFIGURATION);
   }
 
   private String getProperty(ProductLicenseKey key, String property) {

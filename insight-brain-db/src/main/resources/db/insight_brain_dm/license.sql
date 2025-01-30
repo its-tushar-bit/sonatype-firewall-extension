@@ -1060,6 +1060,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0-with-autoconf-exception','GPL-3.0-with-autoconf-exception','GNU General Public License v3.0 w/Autoconf exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0-with-classpath-exception','GPL-3.0-with-classpath-exception','GNU General Public License v3.0 w/Classpath exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0-with-GCC-exception','GPL-3.0-with-GCC-exception','GNU General Public License v3.0 w/GCC Runtime Library exception');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0-with-GNAT-exception','GPL-3.0-with-GNAT-exception','GNU General Public License v3.0 w/GNAT exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0-with-Qt-GPL-exception-1.0','GPL-3.0-with-Qt-GPL-exception-1.0','GPL-3.0 with Qt GPL exception 1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-UNSPECIFIED','GPL','GPL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-UNSPECIFIED-with-classpath-exception','GPL-with-classpath-exception','GPL-Style License Not Identifiable by Sonatype w/Classpath exception');

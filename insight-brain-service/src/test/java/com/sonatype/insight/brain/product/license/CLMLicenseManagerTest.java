@@ -368,7 +368,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.SOURCE_CONTROL,
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
-        LicensedFeature.WAIVER_REPORTS
+        LicensedFeature.WAIVER_REPORTS,
+        LicensedFeature.ROI_CONFIGURATION
     );
   }
 
@@ -416,7 +417,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.SOURCE_CONTROL,
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
-        LicensedFeature.WAIVER_REPORTS
+        LicensedFeature.WAIVER_REPORTS,
+        LicensedFeature.ROI_CONFIGURATION
     );
   }
 
@@ -467,7 +469,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.SOURCE_CONTROL,
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
-        LicensedFeature.WAIVER_REPORTS
+        LicensedFeature.WAIVER_REPORTS,
+        LicensedFeature.ROI_CONFIGURATION
     );
   }
 
@@ -501,7 +504,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.SOURCE_CONTROL,
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
-        LicensedFeature.WAIVER_REPORTS);
+        LicensedFeature.WAIVER_REPORTS,
+        LicensedFeature.ROI_CONFIGURATION);
   }
 
   @Test
@@ -534,7 +538,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.SOURCE_CONTROL,
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
-        LicensedFeature.WAIVER_REPORTS);
+        LicensedFeature.WAIVER_REPORTS,
+        LicensedFeature.ROI_CONFIGURATION);
   }
 
   @Test
@@ -569,7 +574,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.SOURCE_CONTROL,
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
-        LicensedFeature.WAIVER_REPORTS);
+        LicensedFeature.WAIVER_REPORTS,
+        LicensedFeature.ROI_CONFIGURATION);
   }
 
   @Test
@@ -604,7 +610,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.SOURCE_CONTROL,
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
-        LicensedFeature.WAIVER_REPORTS);
+        LicensedFeature.WAIVER_REPORTS,
+        LicensedFeature.ROI_CONFIGURATION);
   }
 
   @Test
@@ -640,7 +647,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.SOURCE_CONTROL,
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
-        LicensedFeature.WAIVER_REPORTS);
+        LicensedFeature.WAIVER_REPORTS,
+        LicensedFeature.ROI_CONFIGURATION);
   }
 
   /**
@@ -679,7 +687,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.SOURCE_CONTROL,
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
-        LicensedFeature.WAIVER_REPORTS);
+        LicensedFeature.WAIVER_REPORTS,
+        LicensedFeature.ROI_CONFIGURATION);
   }
 
   @Test
@@ -839,7 +848,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.SOURCE_CONTROL,
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
-        LicensedFeature.WAIVER_REPORTS);
+        LicensedFeature.WAIVER_REPORTS,
+        LicensedFeature.ROI_CONFIGURATION);
   }
 
   @Test

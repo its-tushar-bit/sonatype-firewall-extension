@@ -209,6 +209,8 @@
     <class>com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport</class>
     <class>com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData</class>
     <class>com.sonatype.insight.brain.model.successmetrics.FirewallMetrics</class>
+    <class>com.sonatype.insight.brain.model.roi.RoiConfiguration</class>
+    <class>com.sonatype.insight.brain.model.roi.RoiConfigurationDefaultValues</class>
     <properties>
       <property name="jakarta.persistence.sharedCache.mode" value="ENABLE_SELECTIVE"/>
       <!--

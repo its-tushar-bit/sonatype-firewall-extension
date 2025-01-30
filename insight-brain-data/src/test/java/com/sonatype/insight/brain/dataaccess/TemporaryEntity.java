@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -117,6 +118,8 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
+import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
+import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastPullRequestCommentDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
@@ -268,6 +271,9 @@ import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
+import com.sonatype.insight.brain.model.roi.CurrencyTypes;
+import com.sonatype.insight.brain.model.roi.RoiConfiguration;
+import com.sonatype.insight.brain.model.roi.RoiConfigurationDefaultValues;
 import com.sonatype.insight.brain.model.sast.SastFinding;
 import com.sonatype.insight.brain.model.sast.SastPullRequestComment;
 import com.sonatype.insight.brain.model.sast.SastScan;
@@ -638,6 +644,10 @@ public class TemporaryEntity
 
   private MalwareDefenseMetricsDAO malwareDefenseMetricsDAO;
 
+  private RoiConfigurationDAO roiConfigurationDAO;
+
+  private RoiConfigurationDefaultValuesDAO roiConfigurationDefaultValuesDAO;
+
   private HistoricalTelemetryStateDAO historicalTelemetryStateDAO;
 
   private Collection<String> persistedUserSessionIds;
@@ -920,6 +930,8 @@ public class TemporaryEntity
       delete(policyViolationConstraintFactsDAO.getAll(), policyViolationConstraintFactsDAO);
       delete(scmUserMappingsDAO.getAll(), scmUserMappingsDAO);
       delete(malwareDefenseMetricsDAO.getAll(), malwareDefenseMetricsDAO);
+      delete(roiConfigurationDAO.getAll(), roiConfigurationDAO);
+      delete(roiConfigurationDefaultValuesDAO.getAll(), roiConfigurationDefaultValuesDAO);
       delete(historicalTelemetryStateDAO.getAll(), historicalTelemetryStateDAO);
 
       restoreInitialWaiverReasons();
@@ -5595,6 +5607,105 @@ public class TemporaryEntity
     return waivedPolicyViolation;
   }
 
+  public RoiConfiguration createRoiConfiguration(
+      CurrencyTypes currency,
+      BigDecimal developerHourlyRate,
+      Long fixRateHours,
+      Boolean securityViolationCriticalEnabled,
+      BigDecimal securityViolationCriticalValue,
+      Boolean securityViolationHighEnabled,
+      BigDecimal securityViolationHighValue,
+      Boolean securityViolationMediumEnabled,
+      BigDecimal securityViolationMediumValue,
+      Boolean securityViolationLowEnabled,
+      BigDecimal securityViolationLowValue,
+      BigDecimal supplyChainAttacksBlocked,
+      BigDecimal namespaceAttacksBlocked,
+      BigDecimal safeComponentsAutoSelected,
+      Boolean waivedPoliciesCounted
+  )
+  {
+    RoiConfiguration roiConfiguration = new RoiConfiguration(
+        currency,
+        developerHourlyRate,
+        fixRateHours,
+        securityViolationCriticalEnabled,
+        securityViolationCriticalValue,
+        securityViolationHighEnabled,
+        securityViolationHighValue,
+        securityViolationMediumEnabled,
+        securityViolationMediumValue,
+        securityViolationLowEnabled,
+        securityViolationLowValue,
+        supplyChainAttacksBlocked,
+        namespaceAttacksBlocked,
+        safeComponentsAutoSelected,
+        waivedPoliciesCounted
+    );
+
+    roiConfigurationDAO.insert(roiConfiguration);
+    return roiConfigurationDAO.getById(roiConfiguration.getId());
+  }
+
+  public RoiConfigurationDefaultValues createRoiConfigurationDefaultValues(
+      CurrencyTypes currency,
+      BigDecimal developerHourlyRateDefault,
+      BigDecimal developerHourlyRateMinimum,
+      Long fixRateHoursDefault,
+      Long fixRateHoursMinimum,
+      BigDecimal securityViolationCriticalDefault,
+      BigDecimal securityViolationCriticalMinimum,
+      Boolean securityViolationCriticalEnabled,
+      BigDecimal securityViolationHighDefault,
+      BigDecimal securityViolationHighMinimum,
+      Boolean securityViolationHighEnabled,
+      BigDecimal securityViolationMediumDefault,
+      BigDecimal securityViolationMediumMinimum,
+      Boolean securityViolationMediumEnabled,
+      BigDecimal securityViolationLowDefault,
+      BigDecimal securityViolationLowMinimum,
+      Boolean securityViolationLowEnabled,
+      BigDecimal supplyChainAttacksBlockedDefault,
+      BigDecimal supplyChainAttacksBlockedMinimum,
+      BigDecimal namespaceAttacksBlocked,
+      BigDecimal namespaceAttacksBlockedMinimum,
+      BigDecimal safeComponentsAutoSelectedDefault,
+      BigDecimal safeComponentsAutoSelectedMinimum,
+      Boolean waivedPoliciesCounted
+  )
+  {
+    RoiConfigurationDefaultValues roiConfigurationDefaultValues =
+        new RoiConfigurationDefaultValues(
+        currency,
+        developerHourlyRateDefault,
+        developerHourlyRateMinimum,
+        fixRateHoursDefault,
+        fixRateHoursMinimum,
+        securityViolationCriticalDefault,
+        securityViolationCriticalMinimum,
+        securityViolationCriticalEnabled,
+        securityViolationHighDefault,
+        securityViolationHighMinimum,
+        securityViolationHighEnabled,
+        securityViolationMediumDefault,
+        securityViolationMediumMinimum,
+        securityViolationMediumEnabled,
+        securityViolationLowDefault,
+        securityViolationLowMinimum,
+        securityViolationLowEnabled,
+        supplyChainAttacksBlockedDefault,
+        supplyChainAttacksBlockedMinimum,
+        namespaceAttacksBlocked,
+        namespaceAttacksBlockedMinimum,
+        safeComponentsAutoSelectedDefault,
+        safeComponentsAutoSelectedMinimum,
+        waivedPoliciesCounted
+    );
+
+    roiConfigurationDefaultValuesDAO.insert(roiConfigurationDefaultValues);
+    return roiConfigurationDefaultValuesDAO.getById(roiConfigurationDefaultValues.getId());
+  }
+
   public PolicyViolation createWaivedAndFixedPolicyViolation(
       PolicyEvaluation policyEvaluation,
       Policy policy,
@@ -6023,6 +6134,8 @@ public class TemporaryEntity
     successMetricsReportDataDAO = daoFactory.createSuccessMetricsReportDataDAO();
     successMetricsReportDAO = daoFactory.createSuccessMetricsReportDAO();
     firewallMetricsDAO = daoFactory.createFirewallMetricsDAO();
+    roiConfigurationDAO = daoFactory.createRoiConfigurationDAO();
+    roiConfigurationDefaultValuesDAO = daoFactory.createRoiConfigurationDefaultValuesDAO();
   }
 
   private void initializeThirdPartyScansDataStoreDAOs() {

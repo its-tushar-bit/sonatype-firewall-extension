@@ -243,9 +243,17 @@ describe('PolicyEditorSpec', () => {
     describe('lock icon and alert message', () => {
       it('displays the correct alert message when both Sonatype Repository Firewall and Sonatype SBOM Manager are enabled', async () => {
         setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true, []);
-        setSbomState(true, true);
+        setSbomState(true, false);
         renderComponent(sbomState);
         const alert = await screen.findByText('Switch to Repository Firewall to manage your policies.');
+        expect(alert).toBeVisible();
+      });
+
+      it('displays the correct alert message when Sonatype Lifecycle, Sonatype Repository Firewall, and Sonatype SBOM Manager are enabled', async () => {
+        setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true, []);
+        setSbomState(true, true);
+        renderComponent(sbomState);
+        const alert = await screen.findByText('Switch to Lifecycle to manage your policies.');
         expect(alert).toBeVisible();
       });
 

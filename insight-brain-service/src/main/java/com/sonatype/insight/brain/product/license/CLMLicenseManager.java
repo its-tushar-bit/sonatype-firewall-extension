@@ -906,10 +906,8 @@ public class CLMLicenseManager
       stageTypes.add(StageTypes.COMPLIANCE);
     }
 
-    if (!products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER) &&
-        !products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS)) {
-      stageTypes.add(StageTypes.PROXY);
-    }
+    stageTypes.add(StageTypes.PROXY);
+
     if (products.contains(ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT)) {
       addDevelopmentFeatures(features);
     }

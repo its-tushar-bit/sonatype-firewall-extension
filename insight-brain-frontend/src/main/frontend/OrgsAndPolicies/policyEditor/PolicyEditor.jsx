@@ -129,7 +129,9 @@ export default function PolicyEditor() {
   };
 
   const policyManagementHref = uiRouterState.href(
-    `${hasFirewallLicense ? 'firewall.' : ''}management.edit.${selectedOwnerProperties.ownerType}.policy`,
+    `${!hasLifecycleLicense && hasFirewallLicense ? 'firewall.' : ''}management.edit.${
+      selectedOwnerProperties.ownerType
+    }.policy`,
     {
       [OWNER_TYPE_ID_MAP[selectedOwnerProperties.ownerType]]: selectedOwnerProperties.ownerId,
       policyId: dirtyPolicy?.id,
@@ -151,14 +153,14 @@ export default function PolicyEditor() {
       {isSbomManager && dirtyPolicy && (
         <NxInfoAlert>
           {R.cond([
-            [R.always(hasFirewallLicense), R.always('Switch to Repository Firewall to manage your policies. ')],
             [R.always(hasLifecycleLicense), R.always('Switch to Lifecycle to manage your policies. ')],
+            [R.always(hasFirewallLicense), R.always('Switch to Repository Firewall to manage your policies. ')],
             [R.T, R.always('Custom policies are available with Lifecycle. ')],
           ])()}
           <NxTextLink className="policy-editor-lifecycle-link" href={linkHref} noReferrer newTab>
             {R.cond([
-              [R.always(hasFirewallLicense), R.always('Manage in Repository Firewall')],
               [R.always(hasLifecycleLicense), R.always('Manage in Lifecycle')],
+              [R.always(hasFirewallLicense), R.always('Manage in Repository Firewall')],
               [R.T, R.always('Start your demo today')],
             ])()}
           </NxTextLink>

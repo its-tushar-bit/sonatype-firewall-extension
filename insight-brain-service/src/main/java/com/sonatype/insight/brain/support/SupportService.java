@@ -19,7 +19,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -57,13 +56,13 @@ import com.fasterxml.jackson.databind.node.MissingNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
+import io.dropwizard.core.server.DefaultServerFactory;
 import io.dropwizard.logging.common.AppenderFactory;
 import io.dropwizard.logging.common.DefaultLoggingFactory;
 import io.dropwizard.logging.common.FileAppenderFactory;
 import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
 import io.dropwizard.request.logging.RequestLogFactory;
 import io.dropwizard.request.logging.old.LogbackClassicRequestLogFactory;
-import io.dropwizard.core.server.DefaultServerFactory;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.apache.commons.io.filefilter.AndFileFilter;
@@ -575,8 +574,8 @@ public class SupportService
 
       @Override
       public boolean accept(File file) {
-        return dirNamesToExclude.stream().noneMatch(excludeDir ->
-            file.getAbsolutePath().contains("/" + excludeDir ));
+        return dirNamesToExclude.stream()
+            .noneMatch(excludeDir -> file.getAbsolutePath().replace('\\', '/').contains("/" + excludeDir));
       }
 
       @Override

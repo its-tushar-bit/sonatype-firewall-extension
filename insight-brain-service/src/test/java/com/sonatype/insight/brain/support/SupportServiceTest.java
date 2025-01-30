@@ -43,7 +43,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -372,16 +371,16 @@ public class SupportServiceTest
   public void testExcludeDirFilter() {
     IOFileFilter dirFilter = supportService.excludeDirFilter();
 
-    Assert.assertFalse(dirFilter.accept(insightWork.getReportDir()));
-    Assert.assertTrue(dirFilter.accept(new File("test-work/clm-cluster/logs/server/file.log")));
+    assertThat(dirFilter.accept(insightWork.getReportDir())).isFalse();
+    assertThat(dirFilter.accept(new File("test-work/clm-cluster/logs/server/file.log"))).isTrue();
   }
 
   @Test
   public void testExcludeDirFilter_WithNestedDirectories() {
     IOFileFilter dirFilter = supportService.excludeDirFilter();
 
-    Assert.assertFalse(dirFilter.accept(insightWork.getClusterCacheDir()));
-    Assert.assertFalse(dirFilter.accept(new File(insightWork.getClusterCacheDir() + "/test")));
+    assertThat(dirFilter.accept(insightWork.getClusterCacheDir())).isFalse();
+    assertThat(dirFilter.accept(new File(insightWork.getClusterCacheDir() + "/test"))).isFalse();
   }
 
   private File createFile(int sizeInBytes) throws Exception {

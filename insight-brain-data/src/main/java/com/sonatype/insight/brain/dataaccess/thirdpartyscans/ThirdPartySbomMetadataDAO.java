@@ -339,7 +339,7 @@ public class ThirdPartySbomMetadataDAO
       //policy violation query results
       Map<String, SbomPolicyViolationSummaryDTO> policyViolationSummaryMap;
       policyViolationSummaryMap = policyViolationDAO
-            .getSbomPoliocyViolationSummaryForAnApplication(applicationIdsForPolicyViolation);
+          .getSbomPolicyViolationSummaryForAnApplication(applicationIdsForPolicyViolation);
 
       //combine results
       for (SbomApplicationSummaryDTO applicationSummary: applicationPageApplicationSummaryDTOList) {

@@ -709,7 +709,7 @@ public class PolicyViolationDAO
     return getList(sQuery);
   }
 
-  public Map<String, SbomPolicyViolationSummaryDTO> getSbomPoliocyViolationSummaryForAnApplication(
+  public Map<String, SbomPolicyViolationSummaryDTO> getSbomPolicyViolationSummaryForAnApplication(
       Collection<String> applicationIds)
   {
     String sQuery = "" + //

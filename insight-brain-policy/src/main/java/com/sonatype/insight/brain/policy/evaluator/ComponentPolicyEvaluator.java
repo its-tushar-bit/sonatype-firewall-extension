@@ -275,6 +275,7 @@ public class ComponentPolicyEvaluator
   }
 
   static List<MatchFact> evaluateFacts(final List<Policy> policies, final List<Component> components) {
+    policies.sort(Comparator.comparing(Policy::getId));
     final String droolsCode = DroolsGenerator.get(policies);
 
     KieBase kieBase;

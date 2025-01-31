@@ -13,7 +13,7 @@ import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.policy.comparison.ConstraintFactsListComparator;
+import com.sonatype.insight.brain.policy.comparison.AutoPolicyWaiverViolationConstraintFactsListComparator;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.slf4j.Logger;
@@ -183,7 +183,7 @@ public class AutoPolicyWaiverExclusionMatcherWrapper
       if (autoPolicyWaiverExclusion.getConstraintFacts() == null || policyViolation.getConstraintFacts() == null) {
         return false;
       }
-      return ConstraintFactsListComparator.CONSTRAINT_FACTS_LIST_COMPARATOR.compare(
+      return AutoPolicyWaiverViolationConstraintFactsListComparator.CONSTRAINT_FACTS_LIST_COMPARATOR.compare(
           policyViolation.getConstraintFacts(),
           autoPolicyWaiverExclusion.getConstraintFacts()
       ) == 0;

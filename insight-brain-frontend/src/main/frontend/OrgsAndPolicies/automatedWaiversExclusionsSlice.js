@@ -57,7 +57,7 @@ const createAutoWaiverExclusion = createAsyncThunk(
     const applicationPublicId = violationDetails?.applicationPublicId;
     const stageData = violationDetails?.stageData;
     const reportParameters = selectReportParameters(state);
-    const scanId = getScanIdFromStageData(stageData) || getScanIdFromApplicationReport(reportParameters);
+    const scanId = getScanIdFromApplicationReport(reportParameters) || getScanIdFromStageData(stageData);
     const { autoWaiver } = selectApplicableAutoWaiver(state);
 
     const ownerType = autoWaiver.ownerType;

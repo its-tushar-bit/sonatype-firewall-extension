@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonFactory.Feature;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -32,6 +33,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -43,11 +46,18 @@ import com.google.gson.stream.JsonWriter;
 
 public final class JsonUtils
 {
-  private static final MappingJsonFactory JSON = new MappingJsonFactory();
+  private static final MappingJsonFactory JSON;
 
   static {
-    JSON.getCodec().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    JSON.disable(Feature.INTERN_FIELD_NAMES);
+    JsonFactory src = JsonFactory.builder()
+        .configure(Feature.INTERN_FIELD_NAMES, false)
+        .build();
+
+    ObjectMapper mapper = JsonMapper.builder()
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .build();
+
+    JSON = new MappingJsonFactory(src, mapper);
   }
 
   public static ObjectNode stamp(final String user, final String ip, final String where, final ContainerNode<?> data) {

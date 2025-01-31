@@ -198,6 +198,14 @@ public class JsonUtilsTest
         .isThrownBy(() -> JsonUtils.asType(jsonInput, new TypeReference<Map<String, String>>() { }));
   }
 
+  @Test
+  public void testJsonMapper_UnknownProperties() {
+    String json = "{\"a\":\"a\", \"b\":\"b\", \"c\":\"c\"}"; // attribute c is unknown in class Pair
+    Pair pair = JsonUtils.asType(json, new TypeReference<Pair>() { });
+    assertThat(pair.a).isEqualTo("a");
+    assertThat(pair.b).isEqualTo("b");
+  }
+
   private static class Pair
   {
     public Object a;

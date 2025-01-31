@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.support;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -23,6 +24,7 @@ public class SupportServiceAuthzTest
   private SupportService supportService;
 
   @Test
+  @H2DiskTest
   public void testCreateSupportZip_Authorized() throws Exception {
     grantConfigureSystemPermission();
     supportService.createSupportZip(false, null, false);

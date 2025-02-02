@@ -23,7 +23,7 @@ import static com.sonatype.insight.brain.utils.CompareUtil.compareObjectsByNull;
 public class AutoPolicyWaiverViolationConditionFactsListComparator
     implements Comparator<List<ConditionFact>>
 {
- static final Comparator<List<ConditionFact>> CONDITION_FACTS_LIST_COMPARATOR =
+  static final Comparator<List<ConditionFact>> CONDITION_FACTS_LIST_COMPARATOR =
       new AutoPolicyWaiverViolationConditionFactsListComparator();
 
   @Override

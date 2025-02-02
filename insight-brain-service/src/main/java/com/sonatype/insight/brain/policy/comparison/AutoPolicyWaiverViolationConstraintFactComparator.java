@@ -40,7 +40,7 @@ import static com.sonatype.insight.brain.utils.CompareUtil.compareTo;
 public class AutoPolicyWaiverViolationConstraintFactComparator
     implements Comparator<ConstraintFact>
 {
- static final Comparator<ConstraintFact> CONSTRAINT_FACT_COMPARATOR =
+  static final Comparator<ConstraintFact> CONSTRAINT_FACT_COMPARATOR =
       new AutoPolicyWaiverViolationConstraintFactComparator();
 
   @Override

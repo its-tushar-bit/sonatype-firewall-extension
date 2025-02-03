@@ -72,6 +72,23 @@ public class ReportClientTest
   }
 
   @Test
+  public void testLinkToIntegrationsPrioritiesReport() {
+    // Given
+    String appId = "app-id";
+    String scanId = "scan-id";
+    String integration = "bamboo";
+    Configuration clientConfiguration = getCLMServer().getClientConfiguration();
+
+    // When
+    ReportClient reportClient = new ReportClient(clientConfiguration, appId, scanId);
+    String actual = reportClient.linkToIntegrationPrioritiesReport(integration);
+
+    // Then
+    String expected = clientConfiguration.getServerUrl() + "ui/links/developer/integrations/app-id/scan-id/bamboo";
+    assertThat(actual).isEqualTo(expected);
+  }
+
+  @Test
   public void testDownloadBundle() throws Exception {
     tempEntity.newApplicationWithParent(applicationPublicId);
 

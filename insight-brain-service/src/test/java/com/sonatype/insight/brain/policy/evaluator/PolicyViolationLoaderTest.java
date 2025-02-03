@@ -12,14 +12,22 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.dashboard.PolicyViolationState;
+import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -301,5 +309,79 @@ public class PolicyViolationLoaderTest
     assertThat(appStageViewAfter.getStageType()).isEqualTo(StageTypes.BUILD);
     assertThat(appStageViewAfter.getLastEvaluation()).isNull();
     assertThat(appStageViewAfter.getFilteredViolations()).isEmpty();
+  }
+
+  @Test
+  public void testGetViolations_FilterByWaived_DoesNotIncludeExcludedViolations() {
+    final String scanId = "scan-id";
+    final Organization org = tempEntity.newOrganization();
+    final Application app = tempEntity.newApplication(org.getId());
+    final Policy policy = tempEntity.newPolicy(org.getId());
+    final PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(),
+        scanId);
+    final AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(org.getId());
+    final PolicyViolation policyViolation1 = tempEntity.newAutoWaivedPolicyViolation(evaluation, policy, waiver);
+    final PolicyViolation policyViolation2 = tempEntity.newAutoWaivedPolicyViolation(evaluation, policy, waiver);
+    final PolicyViolation policyViolation3 = tempEntity.newAutoWaivedPolicyViolation(evaluation, policy, waiver);
+
+    // No exclusions exist
+    Collection<PolicyViolationLoader.ApplicationView> results = loader.getViolations(List.of(app),
+        List.of(StageTypes.BUILD), false, violation -> true, null, null, null,
+        new PolicyViolationStateFilter(Set.of(PolicyViolationState.WAIVED)));
+
+    List<PolicyViolation> violations = extractPolicyViolations(results);
+    assertThat(violations)
+        .hasSize(3)
+        .extracting(AbstractPolicyViolation::getId)
+        .containsExactlyInAnyOrder(policyViolation1.getId(), policyViolation2.getId(), policyViolation3.getId());
+
+    // Add an exclusion for policyViolation1, so it should not be included in the results
+    tempEntity.newAutoPolicyWaiverExclusion(app.getId(), "", "", waiver.getId(), scanId, policyViolation1);
+
+    results = loader.getViolations(List.of(app), List.of(StageTypes.BUILD), false, violation -> true,
+        null, null, null, new PolicyViolationStateFilter(Set.of(PolicyViolationState.WAIVED)));
+
+    violations = extractPolicyViolations(results);
+    assertThat(violations)
+        .hasSize(2)
+        .extracting(AbstractPolicyViolation::getId)
+        .containsExactlyInAnyOrder(policyViolation2.getId(), policyViolation3.getId());
+  }
+
+  @Test
+  public void testGetViolations_FilterByWaived_DoesNotCheckForExcludedViolations_WhenFilteringByWaivedPlusOtherState() {
+    final String scanId = "scan-id";
+    final Organization org = tempEntity.newOrganization();
+    final Application app = tempEntity.newApplication(org.getId());
+    final Policy policy = tempEntity.newPolicy(org.getId());
+    final PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(),
+        scanId);
+    final AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(org.getId());
+    final PolicyViolation policyViolation1 = tempEntity.newAutoWaivedPolicyViolation(evaluation, policy, waiver);
+    final PolicyViolation policyViolation2 = tempEntity.newAutoWaivedPolicyViolation(evaluation, policy, waiver);
+    final PolicyViolation policyViolation3 = tempEntity.newAutoWaivedPolicyViolation(evaluation, policy, waiver);
+
+    tempEntity.newAutoPolicyWaiverExclusion(app.getId(), "", "", waiver.getId(), scanId, policyViolation1);
+
+    final Collection<PolicyViolationLoader.ApplicationView> results = loader.getViolations(List.of(app),
+        List.of(StageTypes.BUILD), false, violation -> true, null, null, null,
+        new PolicyViolationStateFilter(Set.of(PolicyViolationState.WAIVED, PolicyViolationState.LEGACY_VIOLATION)));
+
+    final List<PolicyViolation> violations = extractPolicyViolations(results);
+    assertThat(violations)
+        .hasSize(3)
+        .extracting(AbstractPolicyViolation::getId)
+        .containsExactlyInAnyOrder(policyViolation1.getId(), policyViolation2.getId(), policyViolation3.getId());
+  }
+
+  private static List<PolicyViolation> extractPolicyViolations(
+      final Collection<PolicyViolationLoader.ApplicationView> appViews)
+  {
+    return appViews.stream()
+        .map(PolicyViolationLoader.ApplicationView::getStageViews)
+        .flatMap(Collection::stream)
+        .map(PolicyViolationLoader.ApplicationStageView::getFilteredViolations)
+        .flatMap(Collection::stream)
+        .toList();
   }
 }

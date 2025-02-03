@@ -54,6 +54,8 @@ public class PostgresDashboardViolationRiskService
 
   private final PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
 
+  private final DashboardUtils dashboardUtils;
+
   @Inject
   public PostgresDashboardViolationRiskService(
       ApplicationService applicationService,
@@ -65,6 +67,7 @@ public class PostgresDashboardViolationRiskService
     super(applicationService, dashboardUtils, auditService);
     this.policyViolationDAO = policyViolationDAO;
     this.policyViolationConstraintFactsDAO = policyViolationConstraintFactsDAO;
+    this.dashboardUtils = dashboardUtils;
   }
 
   @Override
@@ -124,6 +127,12 @@ public class PostgresDashboardViolationRiskService
         stageTypeIds, minPolicyThreatLevel, maxPolicyThreatLevel, minDate, policyThreatCategoryNames,
         violationStateOpen, violationStateWaived, violationStateLegacyViolation, getSqlOrderBy(orderBys), page,
         pageSize);
+    if (DashboardUtils.shouldOnlyShowWaivedViolations(policyViolationStateFilter)) {
+      rows = rows.stream()
+          .filter(dto ->  !dashboardUtils.hasExistingAutoWaiverExclusion(dto.applicationId, dto.autoPolicyWaiverId,
+              dto.policyViolationId))
+          .toList();
+    }
 
     if (rows.isEmpty()) {
       result.dashboardResults = Collections.emptyList();

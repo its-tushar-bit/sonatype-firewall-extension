@@ -22,6 +22,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dashboard.DashboardUtils;
 import com.sonatype.insight.brain.dashboard.PolicyViolationState;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
@@ -60,15 +61,19 @@ public class PolicyViolationLoader
 
   private final Configuration configuration;
 
+  private final DashboardUtils dashboardUtils;
+
   @Inject
   public PolicyViolationLoader(
       PolicyEvaluationDAO policyEvaluationDAO,
       PolicyViolationDAO policyViolationDAO,
-      Configuration configuration)
+      Configuration configuration,
+      DashboardUtils dashboardUtils)
   {
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.configuration = configuration;
+    this.dashboardUtils = dashboardUtils;
   }
 
   public Collection<ApplicationView> getViolations(
@@ -189,6 +194,12 @@ public class PolicyViolationLoader
             violationStateLegacyViolation)
         : loadViolations(applicationIds, stageTypeIds, activeViolationsOnly, minimumThreatLevel, maximumThreatLevel,
         policyThreatCategories, violationStateOpen, violationStateWaived, violationStateLegacyViolation);
+    if (DashboardUtils.shouldOnlyShowWaivedViolations(policyViolationStateFilter)) {
+      violations = violations.stream()
+          .filter(violation ->  !dashboardUtils.hasExistingAutoWaiverExclusion(violation.getApplicationId(),
+              violation.getAutoPolicyWaiverId(), violation.getId()))
+          .toList();
+    }
 
     Map<String, ApplicationView> appViewsByAppId = appViewsByAppIdFuture.join();
 

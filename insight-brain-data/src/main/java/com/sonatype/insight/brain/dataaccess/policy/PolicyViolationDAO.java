@@ -835,7 +835,8 @@ public class PolicyViolationDAO
         "    constraint_facts_id,\n" + //
         "    open_time,\n" + //
         "    filename,\n" + //
-        "    policy_violation_id\n" + //
+        "    policy_violation_id,\n" + //
+        "    auto_policy_waiver_id\n" + //
         "  FROM " + databaseSchema + ".policy_violation\n" + //
         "  WHERE\n" + //
         "    application_id IN " + buildPositionalParameters(applicationIds, appIdsParamStartPosition) + "\n" + //
@@ -882,6 +883,7 @@ public class PolicyViolationDAO
         aggregationQuery + "\n" + //
         ")\n" + //
         "SELECT\n" + //
+        "  application.application_id,\n" + //
         "  application.name application_name,\n" + //
         "  organization.name organization_name,\n" + //
         "  pv.policy_violation_id,\n" + //
@@ -892,7 +894,8 @@ public class PolicyViolationDAO
         "  pv.component_id_format,\n" + //
         "  pv.component_id_coordinates_json,\n" + //
         "  pv.constraint_facts_id,\n" + //
-        "  pv.open_time\n" + //
+        "  pv.open_time,\n" + //
+        "  pv.auto_policy_waiver_id\n" + //
         "FROM aggregated_policy_violation pv\n" + //
         "JOIN " + databaseSchema + ".application application USING (application_id)\n" + //
         "JOIN " + databaseSchema + ".organization organization USING (organization_id)\n";
@@ -925,18 +928,21 @@ public class PolicyViolationDAO
 
       @SuppressWarnings("unchecked")
       List<InternalDashboardViolationRiskDTO> results =
-          ((Stream<Object[]>) query.getResultStream()).map(array -> new InternalDashboardViolationRiskDTO( //
-              (String) array[0], // applicationName
-              (String) array[1], // organizationName
-              (String) array[2], // policyViolationId
-              (String) array[3], // policyName
-              getInteger(array[4]), // threatLevel
-              (String) array[5], // hash
-              (String) array[6], // filename
-              (String) array[7], // componentIdFormat
-              (String) array[8], // componentIdCoordinatesJson
-              (String) array[9], // constraintFactsId
-              ((Timestamp) array[10]).getTime() // firstOccurrenceTime
+          ((Stream<Object[]>) query.getResultStream())
+              .map(array -> new InternalDashboardViolationRiskDTO( //
+              (String) array[0], // applicationId
+              (String) array[1], // applicationName
+              (String) array[2], // organizationName
+              (String) array[3], // policyViolationId
+              (String) array[4], // policyName
+              getInteger(array[5]), // threatLevel
+              (String) array[6], // hash
+              (String) array[7], // filename
+              (String) array[8], // componentIdFormat
+              (String) array[9], // componentIdCoordinatesJson
+              (String) array[10], // constraintFactsId
+              ((Timestamp) array[11]).getTime(), // firstOccurrenceTime
+              (String) array[12] // autoPolicyWaiverId
           )).toList();
 
       return results;

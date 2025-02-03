@@ -9,12 +9,17 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverExclusionDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -36,15 +41,23 @@ public class DashboardUtils
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
+  private final OwnerDAO ownerDAO;
+
+  private final AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
+
   @Inject
   public DashboardUtils(
       ProductLicense productLicense,
       StageTypeService stageTypeService,
-      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
+      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
+      OwnerDAO ownerDAO,
+      AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO)
   {
     this.productLicense = productLicense;
     this.stageTypeService = stageTypeService;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
+    this.ownerDAO = ownerDAO;
+    this.autoPolicyWaiverExclusionDAO = autoPolicyWaiverExclusionDAO;
   }
 
   void validateDashboardLicensedAndEnabledForApplications() {
@@ -104,5 +117,23 @@ public class DashboardUtils
       stageTypeIds.add(stageType.getId());
     }
     return stageTypeIds;
+  }
+
+  public boolean hasExistingAutoWaiverExclusion(
+      String applicationId,
+      String autoPolicyWaiverId,
+      String policyViolationId)
+  {
+    final List<String> ownerIds = ownerDAO.getOwnerIds(applicationId);
+    return ownerIds.stream()
+        .map(ownerId -> autoPolicyWaiverExclusionDAO.getByOwnerIdPolicyViolation(ownerId, autoPolicyWaiverId,
+            policyViolationId))
+        .anyMatch(Objects::nonNull);
+  }
+
+  // Auto waiver exclusions should be accounted for when the filter is set to only display waived violations
+  public static boolean shouldOnlyShowWaivedViolations(final PolicyViolationStateFilter policyViolationStateFilter) {
+    return policyViolationStateFilter != null && policyViolationStateFilter.getPolicyViolationStates().size() == 1
+        && policyViolationStateFilter.getPolicyViolationStates().contains(PolicyViolationState.WAIVED);
   }
 }

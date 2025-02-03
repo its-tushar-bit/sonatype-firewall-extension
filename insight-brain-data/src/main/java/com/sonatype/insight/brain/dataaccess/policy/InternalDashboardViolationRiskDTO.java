@@ -10,6 +10,8 @@ package com.sonatype.insight.brain.dataaccess.policy;
  */
 public class InternalDashboardViolationRiskDTO
 {
+  public final String applicationId;
+
   public final String applicationName;
 
   public final String organizationName;
@@ -32,7 +34,10 @@ public class InternalDashboardViolationRiskDTO
 
   public final long firstOccurrenceTime;
 
+  public final String autoPolicyWaiverId;
+
   InternalDashboardViolationRiskDTO(
+      String applicationId,
       String applicationName,
       String organizationName,
       String policyViolationId,
@@ -43,8 +48,10 @@ public class InternalDashboardViolationRiskDTO
       String componentIdFormat,
       String componentIdCoordinatesJson,
       String constraintFactsId,
-      long firstOccurrenceTime)
+      long firstOccurrenceTime,
+      String autoPolicyWaiverId)
   {
+    this.applicationId = applicationId;
     this.applicationName = applicationName;
     this.organizationName = organizationName;
     this.policyViolationId = policyViolationId;
@@ -56,5 +63,6 @@ public class InternalDashboardViolationRiskDTO
     this.componentIdCoordinatesJson = componentIdCoordinatesJson;
     this.constraintFactsId = constraintFactsId;
     this.firstOccurrenceTime = firstOccurrenceTime;
+    this.autoPolicyWaiverId = autoPolicyWaiverId;
   }
 }

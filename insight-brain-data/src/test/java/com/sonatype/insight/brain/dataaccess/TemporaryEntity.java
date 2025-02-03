@@ -2808,6 +2808,34 @@ public class TemporaryEntity
       String hash,
       PolicyWaiver policyWaiver)
   {
+    final PolicyViolation policyViolation = newWaivedPolicyViolation(evaluation, policy, threatLevel, threatCategory,
+        componentIdentifier, hash, policyWaiver.getId());
+    policyViolation.setPolicyWaiverComment(policyWaiver.getComment());
+    policyViolationDAO.insert(policyViolation);
+    return policyViolation;
+  }
+
+  public PolicyViolation newAutoWaivedPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      AutoPolicyWaiver autoPolicyWaiver)
+  {
+    final PolicyViolation policyViolation = newWaivedPolicyViolation(evaluation, policy, 5, SECURITY,
+        ComponentIdentifier.createMavenCoordinates(uuid(), uuid(), "1.0"), "hash", autoPolicyWaiver.getId());
+    policyViolation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+    policyViolationDAO.insert(policyViolation);
+    return policyViolation;
+  }
+
+  private PolicyViolation newWaivedPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      int threatLevel,
+      PolicyThreatCategory threatCategory,
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      String waiverId)
+  {
     Constraint constraint = policy.getConstraints().get(0);
     Condition condition = constraint.getConditions().get(0);
     ConstraintFact constraintFact =
@@ -2819,10 +2847,8 @@ public class TemporaryEntity
     PolicyViolation policyViolation = new PolicyViolation(evaluation, policy.getId(), policy.getName(), threatLevel,
         threatCategory, hash, componentIdentifier, Collections.singletonList(constraintFact), "unknown.jar");
     policyViolation.setWaiveTime(evaluation.getTime());
-    policyViolation.setPolicyWaiverId(policyWaiver.getId());
-    policyViolation.setPolicyWaiverComment(policyWaiver.getComment());
+    policyViolation.setPolicyWaiverId(waiverId);
     policyViolation.setId(getNextPolicyViolationId());
-    policyViolationDAO.insert(policyViolation);
     return policyViolation;
   }
 

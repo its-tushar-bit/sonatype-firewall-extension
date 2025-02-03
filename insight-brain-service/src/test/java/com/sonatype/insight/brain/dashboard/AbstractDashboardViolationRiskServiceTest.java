@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -36,6 +37,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -545,6 +547,67 @@ abstract class AbstractDashboardViolationRiskServiceTest
         .get(null, null, null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0,
                 100))
         .withMessage("The dashboard feature has been disabled.");
+  }
+
+  @Test
+  public void testGet_FilterByWaived_DoesNotIncludeExcludedViolations() {
+    final String scanId = "scan-id";
+    final Organization org = tempEntity.newOrganization();
+    final Application app = tempEntity.newApplication(org.getId());
+    final Policy policy = tempEntity.newPolicy(org.getId());
+    final PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(),
+        scanId);
+    final AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(org.getId());
+    final PolicyViolation policyViolation1 = tempEntity.newAutoWaivedPolicyViolation(evaluation, policy, waiver);
+    final PolicyViolation policyViolation2 = tempEntity.newAutoWaivedPolicyViolation(evaluation, policy, waiver);
+    final PolicyViolation policyViolation3 = tempEntity.newAutoWaivedPolicyViolation(evaluation, policy, waiver);
+
+    // No exclusions exist
+    DashboardResultsDTO<DashboardViolationRiskDTO> results = getDashboardViolationRiskService().get(Set.of(org.getId()),
+        Set.of(app.getId()), Set.of(StageTypes.BUILD.getId()), Set.of(), null, null,
+        new PolicyViolationStateFilter(Set.of(PolicyViolationState.WAIVED)),
+        DashboardViolationRiskOrderByEnum.AGE.name(), null, 0, 100);
+    assertThat(results.dashboardResults)
+        .hasSize(3)
+        .extracting(dto -> dto.policyViolationId)
+        .containsExactlyInAnyOrder(policyViolation1.getId(), policyViolation2.getId(), policyViolation3.getId());
+
+    // Add an exclusion for policyViolation1, so it should not be included in the results
+    tempEntity.newAutoPolicyWaiverExclusion(app.getId(), "", "", waiver.getId(), scanId, policyViolation1);
+
+    results = getDashboardViolationRiskService().get(Set.of(),
+        Set.of(app.getId()), Set.of(StageTypes.BUILD.getId()), Set.of(), null, null,
+        new PolicyViolationStateFilter(Set.of(PolicyViolationState.WAIVED)),
+        DashboardViolationRiskOrderByEnum.AGE.name(), null, 0, 100);
+    assertThat(results.dashboardResults)
+        .hasSize(2)
+        .extracting(dto -> dto.policyViolationId)
+        .containsExactlyInAnyOrder(policyViolation2.getId(), policyViolation3.getId());
+  }
+
+  @Test
+  public void testGet_FilterByWaived_DoesNotCheckForExcludedViolations_WhenFilteringByWaivedPlusOtherState() {
+    final String scanId = "scan-id";
+    final Organization org = tempEntity.newOrganization();
+    final Application app = tempEntity.newApplication(org.getId());
+    final Policy policy = tempEntity.newPolicy(org.getId());
+    final PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(),
+        scanId);
+    final AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(org.getId());
+    final PolicyViolation policyViolation1 = tempEntity.newAutoWaivedPolicyViolation(evaluation, policy, waiver);
+    final PolicyViolation policyViolation2 = tempEntity.newAutoWaivedPolicyViolation(evaluation, policy, waiver);
+    final PolicyViolation policyViolation3 = tempEntity.newAutoWaivedPolicyViolation(evaluation, policy, waiver);
+
+    tempEntity.newAutoPolicyWaiverExclusion(app.getId(), "", "", waiver.getId(), scanId, policyViolation1);
+
+    final DashboardResultsDTO<DashboardViolationRiskDTO> results = getDashboardViolationRiskService().get(Set.of(),
+        Set.of(app.getId()), Set.of(StageTypes.BUILD.getId()), Set.of(), null, null,
+        new PolicyViolationStateFilter(Set.of(PolicyViolationState.WAIVED, PolicyViolationState.OPEN)),
+        DashboardViolationRiskOrderByEnum.AGE.name(), null, 0, 100);
+    assertThat(results.dashboardResults)
+        .hasSize(3)
+        .extracting(dto -> dto.policyViolationId)
+        .containsExactlyInAnyOrder(policyViolation1.getId(), policyViolation2.getId(), policyViolation3.getId());
   }
 
   private ConstraintFact buildConstraintFact(Policy policy, String trigger) {

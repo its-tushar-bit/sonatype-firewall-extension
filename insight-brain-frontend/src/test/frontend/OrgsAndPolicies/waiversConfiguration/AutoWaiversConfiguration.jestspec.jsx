@@ -4,9 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, waitFor } from 'TestRoot/SpecUtil';
-import axiosMockAdapter from 'axios-mock-adapter';
-import axios from 'axios';
+import { render, screen, waitFor, axiosMockAdapter } from 'TestRoot/SpecUtil';
 import * as ProductFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { getAutoWaiversConfigurationURL, getAutoWaiversConfigurationURLWaiver } from 'MainRoot/util/CLMLocation';
@@ -29,13 +27,13 @@ describe('Auto Waivers Configuration Component', () => {
     },
   };
 
-  renderComponent = (initialState) =>
-    render(<AutoWaiversConfiguration />, { preloadedState: preloadedState, ...initialState });
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+  });
 
   beforeEach(() => {
     jest.spyOn(ProductFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(true);
     jest.spyOn(ProductFeaturesSelectors, 'selectIsAutoWaiversEnabled').mockReturnValue(true);
-    axiosMock = new axiosMockAdapter(axios);
 
     axiosMock.onGet(getAutoWaiversConfigurationURL('organization', 'ROOT_ORGANIZATION_ID')).reply(200, {
       isInherited: false,
@@ -44,14 +42,13 @@ describe('Auto Waivers Configuration Component', () => {
       reachable: false,
       threatLevel: 7,
     });
-  });
 
-  afterEach(() => {
-    axiosMock.reset();
+    renderComponent = (initialState) =>
+      render(<AutoWaiversConfiguration />, { preloadedState: preloadedState, ...initialState });
   });
 
   it('renders the page title and description', async () => {
-    render(<AutoWaiversConfiguration />);
+    renderComponent();
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Automated Waivers' })).toBeVisible();
@@ -66,7 +63,7 @@ describe('Auto Waivers Configuration Component', () => {
   });
 
   it('renders the "Max. Threat Level" label', async () => {
-    render(<AutoWaiversConfiguration />);
+    renderComponent();
 
     expect(await screen.findByText('Max. Threat Level')).toBeVisible();
 
@@ -74,14 +71,14 @@ describe('Auto Waivers Configuration Component', () => {
   });
 
   it('renders the update button', async () => {
-    render(<AutoWaiversConfiguration />);
+    renderComponent();
     expect(await screen.findByRole('button', { name: 'Update' })).toBeVisible();
 
     expect(axiosMock.history.get.length).toBe(3);
   });
 
   it('renders checkbox depending on the state of "noPathForward"', async () => {
-    render(<AutoWaiversConfiguration />);
+    renderComponent();
     const noPathForwardCheckbox = await screen.findByLabelText(
       'No newer, non-violating component version is available'
     );
@@ -94,7 +91,7 @@ describe('Auto Waivers Configuration Component', () => {
 
   it('renders LicenseLockScreenForWaivers when auto waiver feature flag is disabled', async () => {
     jest.spyOn(ProductFeaturesSelectors, 'selectIsAutoWaiversEnabled').mockReturnValue(false);
-    render(<AutoWaiversConfiguration />);
+    renderComponent();
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Automated Waivers' })).toBeVisible();
@@ -104,7 +101,7 @@ describe('Auto Waivers Configuration Component', () => {
 
   it('renders LicenseLockScreenForWaivers when developer dashboard feature flag is disabled', async () => {
     jest.spyOn(ProductFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(false);
-    render(<AutoWaiversConfiguration />);
+    renderComponent();
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Automated Waivers' })).toBeVisible();
@@ -115,7 +112,7 @@ describe('Auto Waivers Configuration Component', () => {
   it('renders LicenseLockScreenForWaivers when one of feature flags is disabled', async () => {
     jest.spyOn(ProductFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(true);
     jest.spyOn(ProductFeaturesSelectors, 'selectIsAutoWaiversEnabled').mockReturnValue(false);
-    render(<AutoWaiversConfiguration />);
+    renderComponent();
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Automated Waivers' })).toBeVisible();
@@ -127,7 +124,7 @@ describe('Auto Waivers Configuration Component', () => {
     jest.spyOn(ProductFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(true);
     jest.spyOn(ProductFeaturesSelectors, 'selectIsAutoWaiversEnabled').mockReturnValue(true);
     jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(true);
-    render(<AutoWaiversConfiguration />);
+    renderComponent();
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Automated Waivers' })).toBeVisible();
@@ -136,7 +133,7 @@ describe('Auto Waivers Configuration Component', () => {
   });
 
   it('displays validation error when saving without selecting at least one option when creating first auto policy waiver', async () => {
-    render(<AutoWaiversConfiguration />);
+    renderComponent();
 
     const pathForwardCheckbox = await screen.findByLabelText('No newer, non-violating component version is available');
     expect(pathForwardCheckbox).not.toBeChecked();
@@ -270,6 +267,8 @@ describe('Auto Waivers Configuration Component', () => {
 
     renderComponent();
 
+    expect(axiosMock.history.get.length).toBe(1);
+
     const pathForwardCheckbox = await screen.findByLabelText('No newer, non-violating component version is available');
     expect(pathForwardCheckbox).toBeChecked();
     fireEvent.click(pathForwardCheckbox);
@@ -280,11 +279,14 @@ describe('Auto Waivers Configuration Component', () => {
     const confirmButton = screen.getByRole('button', { name: 'Delete' });
     fireEvent.click(confirmButton);
 
-    await waitFor(() => {
-      expect(axiosMock.history.delete.length).toBe(1);
-    });
+    expect(axiosMock.history.delete.length).toBe(1);
 
     expect(screen.getByLabelText('No newer, non-violating component version is available')).not.toBeChecked();
+
+    const getCalls = axiosMock.history.get;
+    expect(getCalls.some((call) => call.url === '/api/v2/autoPolicyWaiverExclusions/application/app/some-id')).toBe(
+      true
+    );
   });
 
   it('displays error message when saving fails', async () => {
@@ -320,25 +322,25 @@ describe('Auto Waivers Configuration Component', () => {
   });
 
   it('renders sublabel for Max Threat Level', async () => {
-    render(<AutoWaiversConfiguration />);
+    renderComponent();
 
     expect(await screen.findByText('Violations with higher threats will not be waived')).toBeVisible();
   });
 
   it('renders sublabel for Scope', async () => {
-    render(<AutoWaiversConfiguration />);
+    renderComponent();
 
     expect(await screen.findByText('Eligible violations will be waived if/when:')).toBeVisible();
     expect(await screen.findByText('No Upgrade Path')).toBeVisible();
   });
 
   it('shows default threat level of 7 when creating new waiver', async () => {
-    render(<AutoWaiversConfiguration />);
+    renderComponent();
     expect(await screen.findByRole('button', { name: /7 - Severe/i })).toBeVisible();
   });
 
   it('maintains selected threat level after form submission', async () => {
-    render(<AutoWaiversConfiguration />);
+    renderComponent();
     const dropdown = await screen.findByRole('button', { name: /7 - Severe/i });
 
     fireEvent.click(dropdown);

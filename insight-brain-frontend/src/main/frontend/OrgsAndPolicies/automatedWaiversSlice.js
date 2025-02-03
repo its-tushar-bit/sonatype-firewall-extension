@@ -227,9 +227,10 @@ const deleteAutoWaiver = createAsyncThunk(
       .delete(getAutoWaiversConfigurationURLWaiver(ownerType, ownerId, waiversId))
       .then(prop('data'))
       .then(() => {
-        startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone).then(() =>
-          dispatch(actions.loadAutoWaiversConfigurationPage())
-        );
+        startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone).then(() => {
+          dispatch(actions.loadAutoWaiversConfigurationPage());
+          dispatch(automatedWaiversExlusionsActions.loadAutoWaiverExclusion());
+        });
       })
       .catch(rejectWithValue);
   }

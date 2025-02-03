@@ -331,6 +331,19 @@ public class UserInterfaceLinksResource
   }
 
   @GET
+  @Path(INTEGRATIONS_PRIORITIES_PATH)
+  public Response linkToPrioritiesFromIntegrations(
+      @PathParam("applicationPublicId") String applicationPublicId,
+      @PathParam("scanId") String scanId,
+      @PathParam("integration") String integration)
+  {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(ASSET_INDEX_PATH).fragment(INTEGRATIONS_PRIORITIES_PATH);
+
+    return redirect(uriBuilder, applicationPublicId, scanId, integration);
+  }
+
+  @GET
   @Path(PRIORITIES_PATH)
   public Response linkToPrioritiesReport(
       @PathParam("applicationPublicId") String applicationPublicId,

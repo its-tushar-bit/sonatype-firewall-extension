@@ -42,6 +42,9 @@ public class UserInterfaceLinksHelper
 
   public static final String PRIORITIES_PATH = "/developer/priorities/{applicationPublicId}/{scanId}";
 
+  public static final String INTEGRATIONS_PRIORITIES_PATH =
+      "/developer/integrations/{applicationPublicId}/{scanId}/{integration}";
+
   public static final String PRIORITIES_PATH_LEGACY = "/development/priorities/{applicationPublicId}/{scanId}";
 
   public static final String REPO_RESULT_PATH = "repository/{repositoryId}/result";
@@ -192,5 +195,9 @@ public class UserInterfaceLinksHelper
    */
   public static String getPrioritiesUrl(String applicationPublicId, String scanId) {
     return buildStableUrl(PRIORITIES_PATH, applicationPublicId, scanId);
+  }
+
+  public static String getIntegrationsPrioritiesUrl(String applicationPublicId, String scanId) {
+    return buildStableUrl(INTEGRATIONS_PRIORITIES_PATH, applicationPublicId, scanId, "");
   }
 }

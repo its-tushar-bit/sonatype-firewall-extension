@@ -66,6 +66,7 @@ public class ScanUploaderTest
     assertThat(receipt.getPdfUrl()).isEqualTo("ui/links/application/app%20id/report/scan%20id/pdf");
     assertThat(receipt.getDataUrl()).isEqualTo("api/v2/applications/app%20id/reports/scan%20id/raw");
     assertThat(receipt.getPrioritiesUrl()).isEqualTo("ui/links/developer/priorities/app%20id/scan%20id");
+    assertThat(receipt.getIntegrationsPrioritiesUrl()).isEqualTo("ui/links/developer/integrations/app%20id/scan%20id/");
     assertThat(receipt.getReportTimeoutInSeconds()).isEqualTo(2100);
   }
 
@@ -80,6 +81,7 @@ public class ScanUploaderTest
     assertThat(receipt.getPdfUrl()).isEqualTo(
         "ui/links/sbomManager/management/view/application/app%20id/bom/version/pdf");
     assertThat(receipt.getPrioritiesUrl()).isNull();
+    assertThat(receipt.getIntegrationsPrioritiesUrl()).isNull();
     assertThat(receipt.getDataUrl()).isNull();
     assertThat(receipt.getReportTimeoutInSeconds()).isNull();
   }

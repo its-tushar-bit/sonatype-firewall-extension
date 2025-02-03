@@ -95,6 +95,8 @@ public class ScanUploader
       receipt.setPdfUrl(UserInterfaceLinksHelper.getPdfUrl(applicationPublicId, receipt.getScanId()));
       receipt.setDataUrl(ApiReportDataResourceV2.getDataUrl(applicationPublicId, receipt.getScanId()));
       receipt.setPrioritiesUrl(UserInterfaceLinksHelper.getPrioritiesUrl(applicationPublicId, receipt.getScanId()));
+      receipt.setIntegrationsPrioritiesUrl(
+          UserInterfaceLinksHelper.getIntegrationsPrioritiesUrl(applicationPublicId, receipt.getScanId()));
       receipt.setReportTimeoutInSeconds(configuration.getReportTimeoutInSeconds());
     }
   }

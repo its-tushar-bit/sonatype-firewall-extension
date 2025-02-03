@@ -31,6 +31,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.COMPONENT_SCAN_REPORT_PATH;
+import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.INTEGRATIONS_PRIORITIES_PATH;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.POLICY_VIOLATION_REPORT_PATH;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.PRIORITIES_PATH;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.PRIORITIES_PATH_LEGACY;
@@ -363,6 +364,19 @@ public class UserInterfaceLinksResourceTest
     HttpResponse response = get(UserInterfaceLinksHelper.SBOM_BOM_VIEW_PATH, "app-id", "app-version");
     assertRedirect(response,
         "assets/index.html#/sbomManager/management/view/application/app-id/bom/app-version/overview");
+  }
+
+  @Test
+  public void testLinkToIntegrationsPrioritiesReport() throws Exception {
+    final Application application = tempEntity.newApplicationWithParent();
+    final String appPublicId = application.getPublicId();
+    final HttpResponse response = restRequest()
+        .path(UserInterfaceLinksHelper.RESOURCE_PATH).path(INTEGRATIONS_PRIORITIES_PATH)
+        .parameter(appPublicId, "scan-id", "cli")
+        .anon()
+        .get();
+    assertRedirect(response,
+        "assets/index.html#/developer/integrations/" + appPublicId + "/scan-id/cli");
   }
 
   @Test

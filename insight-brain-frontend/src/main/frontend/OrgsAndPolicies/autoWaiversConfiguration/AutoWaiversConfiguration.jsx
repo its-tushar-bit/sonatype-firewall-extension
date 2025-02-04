@@ -34,6 +34,7 @@ import ThreatDropdownSelector from 'MainRoot/react/ThreatDropdownSelector';
 import ExclusionLogTable from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/ExclusionLogTable';
 import PropTypes from 'prop-types';
 import { selectExclusions } from 'MainRoot/OrgsAndPolicies/automatedWaiversExclusionsSelector';
+import { isNil } from 'ramda';
 
 const AutoWaiversConfiguration = () => {
   const dispatch = useDispatch();
@@ -68,21 +69,18 @@ function AutoWaiversConfigurationContents({ refreshData }) {
 
   const waiversConfigPage = useSelector(selectWaiversConfigPage);
   const exclusions = useSelector(selectExclusions);
-  let { loading, loadError, isDirty, submitMaskState, submitError } = useSelector(selectWaiversSlice);
+  const { loading, loadError, isDirty, submitMaskState, submitError } = useSelector(selectWaiversSlice);
   const reachable = waiversConfigPage?.reachable ?? false;
   const pathForward = waiversConfigPage?.pathForward ?? false;
   const threatLevel = waiversConfigPage?.threatLevel ?? 7;
-  const hasExistingWaiver = waiversConfigPage?.autoPolicyWaiverId != null;
+  const hasExistingWaiver = !isNil(waiversConfigPage?.autoPolicyWaiverId);
 
   useEffect(() => {
-    if (waiversConfigPage?.threatLevel == null) {
+    if (isNil(waiversConfigPage?.threatLevel)) {
       setThreatLevel(7);
+      dispatch(actions.setIsDirty(false)); // reset dirty flag since this isn't a user-made change
     }
-  }, [waiversConfigPage]);
-
-  if (waiversConfigPage?.isInherited === null || waiversConfigPage?.isInherited === true) {
-    isDirty = true;
-  }
+  }, [waiversConfigPage.threatLevel]);
 
   const handleDelete = () => {
     setIsDeleteConfirmationModalOpen(false);

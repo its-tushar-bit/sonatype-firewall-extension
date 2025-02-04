@@ -67,6 +67,7 @@ const loadAutoWaiversConfigurationPageFulfilled = (state, { payload }) => {
   state.loading = false;
   state.data = payload;
   state.serverData = payload;
+  state.isDirty = false;
 };
 
 const loadAutoWaiversConfigurationPageFailed = (state, { payload }) => {
@@ -241,6 +242,10 @@ const loadAllAutoWaiverData = createAsyncThunk(`${REDUCER_NAME}/loadAllWaiverDat
   await dispatch(automatedWaiversExlusionsActions.loadAutoWaiverExclusion());
 });
 
+const setIsDirty = (state, { payload }) => {
+  return { ...state, isDirty: payload };
+};
+
 function setThreatLevel(state, { payload }) {
   const newData = {
     ...state.data,
@@ -258,6 +263,7 @@ const automatedWaiversSlice = createSlice({
     toggleCheckboxPath,
     setThreatLevel,
     saveMaskTimerDone: propSet('submitMaskState', null),
+    setIsDirty,
   },
   extraReducers: {
     [createAutoWaiver.pending]: createAutoWaiverRequested,

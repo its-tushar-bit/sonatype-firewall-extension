@@ -5,14 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.Duration;
-
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
+import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.file.SbomFormat;
@@ -21,9 +16,7 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.awaitility.Awaitility.await;
 
 public class ApiThirdPartyScanServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -31,33 +24,10 @@ public class ApiThirdPartyScanServiceAuthzTest
   @Inject
   private ApiThirdPartyScanService apiThirdPartyEvaluationService;
 
-  @Test
-  public void testScanComponents_Authorized() throws Exception {
-    String bom = getBomFile("/" + getClass().getSimpleName() + "/valid_sbom.xml");
-
+  @Test(expected = InvalidStageException.class)
+  public void testScanComponents_Authorized() {
     grantEvaluateApplicationPermission(app.getId());
-    ApiThirdPartyScanTicketDTO apiThirdPartyScanTicketDTO =
-        apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", bom, null, SbomFormat.XML);
-
-    // Wait for the policy evaluation (started async) to finish, otherwise we cannot cleanup properly after the test.
-    String scanRequestId = getScanRequestId(apiThirdPartyScanTicketDTO);
-    await().atMost(Duration.ofMillis(5000))
-        .untilAsserted(() -> assertThat(isCompleted(app.getId(), scanRequestId)).isTrue());
-  }
-
-  private boolean isCompleted(String appId, String scanRequestId) {
-    try {
-      apiThirdPartyEvaluationService.getScanStatus(appId, scanRequestId);
-      return true;
-    }
-    catch (NotFoundException e) {
-      return false;
-    }
-  }
-
-  private String getScanRequestId(ApiThirdPartyScanTicketDTO apiThirdPartyScanTicketDTO) {
-    String statusUrl = apiThirdPartyScanTicketDTO.statusUrl;
-    return statusUrl.substring(statusUrl.lastIndexOf('/') + 1);
+    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "invalidStage", null, null, SbomFormat.XML);
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -70,7 +40,7 @@ public class ApiThirdPartyScanServiceAuthzTest
     login();
     apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", "", null, SbomFormat.XML);
   }
-  
+
   @Test(expected = UnauthenticatedException.class)
   public void testGetScanStatus_Unauthenticated() {
     apiThirdPartyEvaluationService.getScanStatus(app.getId(), "scanRequestId");
@@ -89,10 +59,5 @@ public class ApiThirdPartyScanServiceAuthzTest
         .isThrownBy(() -> apiThirdPartyEvaluationService.getScanStatus(app.getId(), "scanRequestId"))
         .withMessage("Policy evaluation status with id %s for public application id %s was not found.",
             "scanRequestId", app.getPublicId());
-  }
-
-  private String getBomFile(String path) throws Exception {
-    byte[] bytes = Files.readAllBytes(Paths.get(getClass().getResource(path).toURI()));
-    return new String(bytes, StandardCharsets.UTF_8);
   }
 }

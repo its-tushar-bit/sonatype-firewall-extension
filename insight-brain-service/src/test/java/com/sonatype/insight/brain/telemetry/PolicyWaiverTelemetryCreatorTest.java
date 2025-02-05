@@ -17,10 +17,12 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -50,6 +52,9 @@ public class PolicyWaiverTelemetryCreatorTest
   @Inject
   private PolicyWaiverTelemetryCreator telemetryCreator;
 
+  @Inject
+  private PolicyWaiverReasonDAO policyWaiverReasonDAO;
+
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
@@ -65,6 +70,7 @@ public class PolicyWaiverTelemetryCreatorTest
     policyWaiver.setOwnerId("APP");
     policyWaiver.setExpiryTime(new Date());
     policyWaiver.setHash("HASH");
+    final PolicyWaiverReason policyWaiverReason = null;
 
     final RepositoryPolicyViolation repositoryPolicyViolation = new RepositoryPolicyViolation();
     repositoryPolicyViolation.setThreatLevel(5);
@@ -79,7 +85,36 @@ public class PolicyWaiverTelemetryCreatorTest
     telemetryCreator.sendRepositoryWaiverTelemetry(policyWaiver, repositoryPolicyViolation);
 
     // then: expected telemetry entries are sent
-    assertTelemetryForRepository(policyWaiver, repositoryPolicyViolation);
+    assertTelemetryForRepository(policyWaiver, policyWaiverReason, repositoryPolicyViolation);
+  }
+
+  @Test
+  public void testSendRepositoryWaiverTelemetry_withReason() {
+    // setup
+    final PolicyWaiver policyWaiver = new PolicyWaiver();
+    policyWaiver.setId("ID");
+    policyWaiver.setCreateTime(new Date());
+    policyWaiver.setOwnerId("APP");
+    policyWaiver.setExpiryTime(new Date());
+    policyWaiver.setHash("HASH");
+
+    var policyWaiverReason = policyWaiverReasonDAO.getAll().get(0);
+    policyWaiver.setWaiverReasonId(policyWaiverReason.getId());
+
+    final RepositoryPolicyViolation repositoryPolicyViolation = new RepositoryPolicyViolation();
+    repositoryPolicyViolation.setThreatLevel(5);
+    repositoryPolicyViolation.setThreatCategory(PolicyThreatCategory.LICENSE);
+    repositoryPolicyViolation.setActionTypeId("fail");
+    repositoryPolicyViolation.setConstraintFacts(createConstraintFacts());
+    repositoryPolicyViolation
+        .setComponentIdentifier(new ComponentIdentifier("npm", ImmutableMap.of("packageId", "value")));
+    repositoryPolicyViolation.setTime(new Date());
+
+    // when: telemetry is sent
+    telemetryCreator.sendRepositoryWaiverTelemetry(policyWaiver, repositoryPolicyViolation);
+
+    // then: expected telemetry entries are sent
+    assertTelemetryForRepository(policyWaiver, policyWaiverReason, repositoryPolicyViolation);
   }
 
   @Test
@@ -91,6 +126,7 @@ public class PolicyWaiverTelemetryCreatorTest
     policyWaiver.setOwnerId("APP");
     policyWaiver.setExpiryTime(null);
     policyWaiver.setHash("HASH");
+    final PolicyWaiverReason policyWaiverReason = null;
 
     final RepositoryPolicyViolation repositoryPolicyViolation = new RepositoryPolicyViolation();
     repositoryPolicyViolation.setThreatLevel(5);
@@ -105,7 +141,7 @@ public class PolicyWaiverTelemetryCreatorTest
     telemetryCreator.sendRepositoryWaiverTelemetry(policyWaiver, repositoryPolicyViolation);
 
     // then: expected telemetry entries are sent
-    assertTelemetryForRepository(policyWaiver, repositoryPolicyViolation);
+    assertTelemetryForRepository(policyWaiver, policyWaiverReason, repositoryPolicyViolation);
   }
 
   @Test
@@ -117,6 +153,7 @@ public class PolicyWaiverTelemetryCreatorTest
     policyWaiver.setOwnerId("APP");
     policyWaiver.setExpiryTime(new Date());
     policyWaiver.setHash("HASH");
+    final PolicyWaiverReason policyWaiverReason = null;
 
     final RepositoryPolicyViolation repositoryPolicyViolation = new RepositoryPolicyViolation();
     repositoryPolicyViolation.setThreatLevel(5);
@@ -130,7 +167,7 @@ public class PolicyWaiverTelemetryCreatorTest
     telemetryCreator.sendRepositoryWaiverTelemetry(policyWaiver, repositoryPolicyViolation);
 
     // then: expected telemetry entries are sent
-    assertTelemetryForRepository(policyWaiver, repositoryPolicyViolation);
+    assertTelemetryForRepository(policyWaiver, policyWaiverReason, repositoryPolicyViolation);
   }
 
   @Test
@@ -142,6 +179,7 @@ public class PolicyWaiverTelemetryCreatorTest
     policyWaiver.setOwnerId("APP");
     policyWaiver.setExpiryTime(new Date());
     policyWaiver.setHash("HASH");
+    final PolicyWaiverReason policyWaiverReason = null;
 
     final PolicyViolation policyViolation = new PolicyViolation();
     policyViolation.setThreatLevel(5);
@@ -156,7 +194,35 @@ public class PolicyWaiverTelemetryCreatorTest
     telemetryCreator.sendWaiverTelemetryForOwnerType(policyWaiver, OwnerType.APPLICATION, policyViolation);
 
     // then: expected telemetry entries are sent
-    assertTelemetryByOwnerType(policyWaiver, OwnerType.APPLICATION, policyViolation);
+    assertTelemetryByOwnerType(policyWaiver, policyWaiverReason, OwnerType.APPLICATION, policyViolation);
+  }
+
+  @Test
+  public void testSendWaiverTelemetryForOwnerType_withReason() {
+    // setup
+    final PolicyWaiver policyWaiver = new PolicyWaiver();
+    policyWaiver.setId("ID");
+    policyWaiver.setCreateTime(new Date());
+    policyWaiver.setOwnerId("APP");
+    policyWaiver.setExpiryTime(new Date());
+    policyWaiver.setHash("HASH");
+    final var policyWaiverReason = policyWaiverReasonDAO.getAll().get(0);
+    policyWaiver.setWaiverReasonId(policyWaiverReason.getId());
+
+    final PolicyViolation policyViolation = new PolicyViolation();
+    policyViolation.setThreatLevel(5);
+    policyViolation.setThreatCategory(PolicyThreatCategory.LICENSE);
+    policyViolation.setActionTypeId("fail");
+    policyViolation.setConstraintFacts(createConstraintFacts());
+    policyViolation
+        .setComponentIdentifier(new ComponentIdentifier("npm", ImmutableMap.of("packageId", "value")));
+    policyViolation.setOpenTime(new Date());
+
+    // when: telemetry is sent
+    telemetryCreator.sendWaiverTelemetryForOwnerType(policyWaiver, OwnerType.APPLICATION, policyViolation);
+
+    // then: expected telemetry entries are sent
+    assertTelemetryByOwnerType(policyWaiver, policyWaiverReason, OwnerType.APPLICATION, policyViolation);
   }
 
   @Test
@@ -168,6 +234,7 @@ public class PolicyWaiverTelemetryCreatorTest
     policyWaiver.setOwnerId("APP");
     policyWaiver.setExpiryTime(null);
     policyWaiver.setHash("HASH");
+    final PolicyWaiverReason policyWaiverReason = null;
 
     final PolicyViolation policyViolation = new PolicyViolation();
     policyViolation.setThreatLevel(5);
@@ -182,7 +249,7 @@ public class PolicyWaiverTelemetryCreatorTest
     telemetryCreator.sendWaiverTelemetryForOwnerType(policyWaiver, OwnerType.APPLICATION, policyViolation);
 
     // then: expected telemetry entries are sent
-    assertTelemetryByOwnerType(policyWaiver, OwnerType.APPLICATION, policyViolation);
+    assertTelemetryByOwnerType(policyWaiver, policyWaiverReason, OwnerType.APPLICATION, policyViolation);
   }
 
   @Test
@@ -194,6 +261,7 @@ public class PolicyWaiverTelemetryCreatorTest
     policyWaiver.setOwnerId("APP");
     policyWaiver.setExpiryTime(new Date());
     policyWaiver.setHash("HASH");
+    final PolicyWaiverReason policyWaiverReason = null;
 
     final PolicyViolation policyViolation = new PolicyViolation();
     policyViolation.setThreatLevel(5);
@@ -208,7 +276,7 @@ public class PolicyWaiverTelemetryCreatorTest
     telemetryCreator.sendWaiverTelemetryForOwnerType(policyWaiver, OwnerType.APPLICATION, policyViolation);
 
     // then: expected telemetry entries are sent
-    assertTelemetryByOwnerType(policyWaiver, OwnerType.APPLICATION, policyViolation);
+    assertTelemetryByOwnerType(policyWaiver, policyWaiverReason, OwnerType.APPLICATION, policyViolation);
   }
 
   private List<ConstraintFact> createConstraintFacts() {
@@ -230,6 +298,7 @@ public class PolicyWaiverTelemetryCreatorTest
 
   private void assertTelemetryByOwnerType(
       final PolicyWaiver policyWaiver,
+      final PolicyWaiverReason policyWaiverReason,
       final OwnerType ownerType,
       final PolicyViolation policyViolation)
   {
@@ -245,12 +314,14 @@ public class PolicyWaiverTelemetryCreatorTest
             policyViolation.getOpenTime(),
             policyWaiver.getCreateTime(),
             policyWaiver.getExpiryTime(),
-            policyViolation.getStageTypeId());
+            policyViolation.getStageTypeId())
+            .withWaiverReason(policyWaiverReason);
     assertTelemetry(policyViolationTelemetry, policyWaiverTelemetry);
   }
 
   private void assertTelemetryForRepository(
       final PolicyWaiver policyWaiver,
+      final PolicyWaiverReason policyWaiverReason,
       final RepositoryPolicyViolation policyViolation)
   {
     final PolicyViolationTelemetry policyViolationTelemetry =
@@ -265,7 +336,8 @@ public class PolicyWaiverTelemetryCreatorTest
             policyViolation.getTime(),
             policyWaiver.getCreateTime(),
             policyWaiver.getExpiryTime(),
-            StageTypes.PROXY.getId());
+            StageTypes.PROXY.getId())
+            .withWaiverReason(policyWaiverReason);
     assertTelemetry(policyViolationTelemetry, policyWaiverTelemetry);
   }
 
@@ -339,6 +411,7 @@ public class PolicyWaiverTelemetryCreatorTest
     assertThat(actual.getComponentFormat()).isEqualTo(expected.getComponentFormat());
     assertThat(actual.getOwnerType()).isEqualTo(expected.getOwnerType());
     assertThat(actual.getViolationTime()).isEqualTo(expected.getViolationTime());
+    assertThat(actual.getWaiverReason()).isEqualTo(expected.getWaiverReason());
     assertThat(actual.getStageId()).isEqualTo(expected.getStageId());
   }
 }

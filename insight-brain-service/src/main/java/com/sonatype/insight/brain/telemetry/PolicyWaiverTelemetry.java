@@ -9,6 +9,7 @@ import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 
 public class PolicyWaiverTelemetry
 {
@@ -30,6 +31,8 @@ public class PolicyWaiverTelemetry
 
   private final String stageId;
 
+  private String waiverReason;
+
   public PolicyWaiverTelemetry(
       final PolicyWaiver policyWaiver,
       final String ownerType,
@@ -46,14 +49,6 @@ public class PolicyWaiverTelemetry
         policyWaiver.getCreateTime(),
         policyWaiver.getExpiryTime(),
         stageId);
-  }
-
-  public PolicyWaiverTelemetry(
-      final PolicyWaiver policyWaiver,
-      final String ownerType)
-  {
-    this(policyWaiver.getId(), ownerType, policyWaiver.getOwnerId(), null, policyWaiver.getHash(),
-        null, policyWaiver.getCreateTime(), policyWaiver.getExpiryTime(), null);
   }
 
   PolicyWaiverTelemetry(
@@ -100,6 +95,10 @@ public class PolicyWaiverTelemetry
     return violationTime;
   }
 
+  public String getWaiverReason() {
+    return waiverReason;
+  }
+
   public Long getWaiverTime() {
     return waiverTime;
   }
@@ -114,5 +113,12 @@ public class PolicyWaiverTelemetry
 
   public String getStageId() {
     return stageId;
+  }
+
+  public PolicyWaiverTelemetry withWaiverReason(PolicyWaiverReason policyWaiverReason) {
+    if (null != policyWaiverReason) {
+      waiverReason = policyWaiverReason.getReasonText();
+    }
+    return this;
   }
 }

@@ -8,15 +8,18 @@ package com.sonatype.insight.brain.telemetry;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.StringUtils;
 
 @Named
 public class PolicyWaiverTelemetryCreator
@@ -25,10 +28,13 @@ public class PolicyWaiverTelemetryCreator
 
   public static final String POLICY_VIOLATION_TELEMETRY = "policy_violations";
 
+  private final PolicyWaiverReasonDAO policyWaiverReasonDAO;
+
   private final TelemetrySender telemetrySender;
 
   @Inject
-  public PolicyWaiverTelemetryCreator(final TelemetrySender telemetrySender) {
+  public PolicyWaiverTelemetryCreator(PolicyWaiverReasonDAO policyWaiverReasonDAO, TelemetrySender telemetrySender) {
+    this.policyWaiverReasonDAO = policyWaiverReasonDAO;
     this.telemetrySender = telemetrySender;
   }
 
@@ -40,7 +46,7 @@ public class PolicyWaiverTelemetryCreator
         new PolicyWaiverTelemetry(policyWaiver, OwnerType.REPOSITORY.toString(),
             policyViolation.getComponentIdentifier(), StageTypes.PROXY.getId(), policyViolation.getTime());
     final PolicyViolationTelemetry policyViolationTelemetry = new PolicyViolationTelemetry(policyViolation);
-    sendWaiverTelemetry(policyWaiverTelemetry, policyViolationTelemetry);
+    sendWaiverTelemetry(policyWaiver, policyWaiverTelemetry, policyViolationTelemetry);
   }
 
   public void sendWaiverTelemetryForOwnerType(
@@ -51,16 +57,26 @@ public class PolicyWaiverTelemetryCreator
     final PolicyWaiverTelemetry policyWaiverTelemetry = new PolicyWaiverTelemetry(policyWaiver, ownerType.toString(),
         policyViolation.getComponentIdentifier(), policyViolation.getStageTypeId(), policyViolation.getOpenTime());
     final PolicyViolationTelemetry policyViolationTelemetry = new PolicyViolationTelemetry(policyViolation);
-    sendWaiverTelemetry(policyWaiverTelemetry, policyViolationTelemetry);
+    sendWaiverTelemetry(policyWaiver, policyWaiverTelemetry, policyViolationTelemetry);
   }
 
   private void sendWaiverTelemetry(
-      final PolicyWaiverTelemetry policyWaiverTelemetry,
+      PolicyWaiver policyWaiver,
+      PolicyWaiverTelemetry policyWaiverTelemetry,
       PolicyViolationTelemetry policyViolationTelemetry)
   {
+    policyWaiverTelemetry.withWaiverReason(getWaiverReason(policyWaiver));
+
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.POLICY_WAIVER);
-    telemetryData.getAttributes().put(POLICY_WAIVER_TELEMETRY, policyWaiverTelemetry);
-    telemetryData.getAttributes().put(POLICY_VIOLATION_TELEMETRY, ImmutableList.of(policyViolationTelemetry));
+    telemetryData.put(POLICY_WAIVER_TELEMETRY, policyWaiverTelemetry);
+    telemetryData.put(POLICY_VIOLATION_TELEMETRY, ImmutableList.of(policyViolationTelemetry));
     telemetrySender.send(telemetryData);
+  }
+
+  private PolicyWaiverReason getWaiverReason(PolicyWaiver policyWaiver) {
+    if (null == policyWaiver || StringUtils.isBlank(policyWaiver.getWaiverReasonId())) {
+      return null;
+    }
+    return policyWaiverReasonDAO.getById(policyWaiver.getWaiverReasonId());
   }
 }

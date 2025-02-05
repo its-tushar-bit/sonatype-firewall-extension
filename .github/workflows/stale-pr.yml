@@ -1,0 +1,21 @@
+# .github/workflows/stale-pr.yml
+name: Mark stale pull requests
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Runs daily at midnight
+  workflow_dispatch: # Manual Trigger
+permissions:
+  issues: read # needed for basic access
+  pull-requests: write  # Required for labeling and closing PRs
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          stale-pr-message: 'This PR has been marked as stale due to 30 days of inactivity. It will be closed in 5 days if no further activity occurs.'
+          close-pr-message: 'This PR was closed due to inactivity. Please reopen if you wish to continue work on this.'
+          days-before-pr-stale: 30  # Mark PRs as stale after 30 days of inactivity
+          days-before-pr-close: 5 # Close after 5 further days of inactivity
+          stale-pr-label: 'stale'
+          operations-per-run: 100

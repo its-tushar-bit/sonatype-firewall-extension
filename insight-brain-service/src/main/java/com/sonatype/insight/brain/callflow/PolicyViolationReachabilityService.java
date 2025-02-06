@@ -8,20 +8,15 @@ package com.sonatype.insight.brain.callflow;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.clm.dto.model.policy.ConditionFact;
-import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreatsAdapter;
 import com.sonatype.insight.brain.report.ApplicationReport;
@@ -33,7 +28,8 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
+import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.filterOnReachableSecurityViolations;
+import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.updateReachabilityStatus;
 import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS;
 
 @Named
@@ -55,6 +51,18 @@ public class PolicyViolationReachabilityService
   }
 
   public void updateReachabilityStatusForPolicyViolations(
+      final PurlIdentifiersWithVulnerabilities purlIdentifiersWithVulnerabilities,
+      final ApplicationReport applicationReport) throws IOException
+  {
+    updateReachabilityStatusForPolicyViolations(
+        purlIdentifiersWithVulnerabilities.getApplicationId(),
+        purlIdentifiersWithVulnerabilities.getScanId(),
+        purlIdentifiersWithVulnerabilities.getVulnerabilitiesByPurlIdentifiers(),
+        applicationReport
+    );
+  }
+
+  public void updateReachabilityStatusForPolicyViolations(
       final String applicationId,
       final String reportId,
       final Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers,
@@ -73,7 +81,8 @@ public class PolicyViolationReachabilityService
     policyViolationDAO.loadConstraintFacts(policyViolations);
     logger.debug("Retrieved {} unfixed policy violations for applicationId: {}, stageId: {}", policyViolations.size(),
         applicationId, stageId);
-    updateMavenSecurityViolationsReachableStatus(policyViolations, reachableVulnerabilitiesByPurlIdentifiers);
+
+    updateReachableSecurityViolationsReachableStatus(policyViolations, reachableVulnerabilitiesByPurlIdentifiers);
 
     PolicyThreats policyThreats = PolicyThreatsAdapter.createPolicyThreats(policyViolations, null, null);
     applicationReport.putEntry(POLICY_THREATS, JsonUtils.generate(policyThreats));
@@ -90,67 +99,26 @@ public class PolicyViolationReachabilityService
     return null;
   }
 
-  private void updateMavenSecurityViolationsReachableStatus(
-      List<PolicyViolation> policyViolations,
-      Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers)
+  private void updateReachableSecurityViolationsReachableStatus(
+      final List<PolicyViolation> policyViolations,
+      final Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers)
   {
-    List<PolicyViolation> filteredPolicyViolations =
-        policyViolations.stream().filter(this::isMavenSecurityViolation).toList();
+    // only update reachable security violation
+    List<PolicyViolation> reachableSecurityViolations = filterOnReachableSecurityViolations(policyViolations);
+
+    if (reachableSecurityViolations.isEmpty()) {
+      return;
+    }
 
     try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
       tx.begin();
-      filteredPolicyViolations.forEach(policyViolation -> {
+
+      reachableSecurityViolations.forEach(policyViolation -> {
         updateReachabilityStatus(policyViolation, reachableVulnerabilitiesByPurlIdentifiers);
         policyViolationDAO.update(tx, policyViolation);
       });
+
       tx.commit();
     }
-  }
-
-  private boolean isMavenSecurityViolation(PolicyViolation policyViolation) {
-    return PolicyThreatCategory.SECURITY.equals(policyViolation.getThreatCategory()) &&
-        policyViolation.getComponentIdentifier().isMaven();
-  }
-
-  private void updateReachabilityStatus(
-      PolicyViolation policyViolation,
-      Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers)
-  {
-    boolean isReachable = isVulnerabilityReachable(policyViolation, reachableVulnerabilitiesByPurlIdentifiers);
-    policyViolation
-        .setReachabilityStatus(isReachable ? ReachabilityStatus.REACHABLE : ReachabilityStatus.NON_REACHABLE);
-  }
-
-  private boolean isVulnerabilityReachable(
-      PolicyViolation policyViolation,
-      Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers)
-  {
-    return policyViolation.getConstraintFacts().stream()
-        .flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
-        .map(ConditionFact::getReference)
-        .filter(Objects::nonNull)
-        .filter(triggerReference -> triggerReference.getType().equals(SECURITY_VULNERABILITY_REFID))
-        .map(TriggerReference::getValue)
-        .filter(value -> value != null && !value.isEmpty())
-        .anyMatch(vulnerabilityId -> isVulnerabilityReachable(vulnerabilityId, policyViolation,
-            reachableVulnerabilitiesByPurlIdentifiers));
-  }
-
-  private boolean isVulnerabilityReachable(
-      String vulnerabilityId,
-      PolicyViolation policyViolation,
-      Map<PackageUrlIdentifier, Set<String>> vulnerabilitiesByPurlIdentifiers)
-  {
-    Set<String> vulnerabilities = vulnerabilitiesByPurlIdentifiers.get(
-        PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()));
-
-    if (vulnerabilities == null) {
-      return false;
-    }
-
-    return vulnerabilities.stream()
-        .map(String::toLowerCase)
-        .collect(Collectors.toSet())
-        .contains(vulnerabilityId.toLowerCase());
   }
 }

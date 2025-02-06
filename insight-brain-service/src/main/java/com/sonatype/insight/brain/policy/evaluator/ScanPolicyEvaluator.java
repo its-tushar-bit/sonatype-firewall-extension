@@ -21,7 +21,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -34,6 +33,9 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
+import com.sonatype.insight.brain.api.experimental.ApiVulnerabilityReachabilityStatusService;
+import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
@@ -85,10 +87,10 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
-import com.sonatype.insight.brain.telemetry.autowaivers.AutoPolicyWaiverTelemetry.AutoPolicyWaiverAction;
-import com.sonatype.insight.brain.telemetry.autowaivers.AutoPolicyWaiverTelemetryMetrics;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.brain.telemetry.autowaivers.AutoPolicyWaiverTelemetry.AutoPolicyWaiverAction;
+import com.sonatype.insight.brain.telemetry.autowaivers.AutoPolicyWaiverTelemetryMetrics;
 import com.sonatype.insight.brain.utils.JacksonNodeUtils;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEventService;
@@ -109,6 +111,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.updateReachabilityStatus;
 import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -192,6 +195,8 @@ public class ScanPolicyEvaluator
 
   private final PathForwardInspector pathForwardInspector;
 
+  private final ApiVulnerabilityReachabilityStatusService apiVulnerabilityReachabilityStatusService;
+
   @Inject
   public ScanPolicyEvaluator(
       final InsightWork insightWork,
@@ -225,7 +230,8 @@ public class ScanPolicyEvaluator
       final ReportComponentService reportComponentService,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final AutoPolicyWaiverTelemetryMetrics autoPolicyWaiverTelemetryMetrics,
-      final PathForwardInspector pathForwardInspector)
+      final PathForwardInspector pathForwardInspector,
+      final ApiVulnerabilityReachabilityStatusService apiVulnerabilityReachabilityStatusService)
   {
     this.work = insightWork;
     this.reportService = reportService;
@@ -259,6 +265,7 @@ public class ScanPolicyEvaluator
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.autoPolicyWaiverTelemetryMetrics = autoPolicyWaiverTelemetryMetrics;
     this.pathForwardInspector = pathForwardInspector;
+    this.apiVulnerabilityReachabilityStatusService = apiVulnerabilityReachabilityStatusService;
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -271,7 +278,21 @@ public class ScanPolicyEvaluator
       throws IOException
   {
     return doEvaluate(application, scanId, stage, scanTriggerType, null, null, false /* forMonitoring */,
-        clientScanType, skipAutoWaivers);
+        clientScanType, null, skipAutoWaivers);
+  }
+
+  public ScanPolicyEvaluatorResults evaluate(
+      final Application application,
+      final String scanId,
+      final Stage stage,
+      final ScanTriggerType scanTriggerType,
+      final ClientScanType clientScanType,
+      final VulnerabilitySignatureAnalysisDTO analysisDTO,
+      final boolean skipAutoWaivers)
+      throws IOException
+  {
+    return doEvaluate(application, scanId, stage, scanTriggerType, null, null, false /* forMonitoring */,
+        clientScanType, analysisDTO, skipAutoWaivers);
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -285,7 +306,7 @@ public class ScanPolicyEvaluator
       throws IOException
   {
     return doEvaluate(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
-        false /* forMonitoring */, clientScanType, false /* skipAutoWaivers */);
+        false /* forMonitoring */, clientScanType, null, false /* skipAutoWaivers */);
   }
 
   public ScanPolicyEvaluatorResults evaluateForMonitoring(
@@ -297,7 +318,7 @@ public class ScanPolicyEvaluator
       throws IOException
   {
     return doEvaluate(application, scanId, stage, scanTriggerType, null, null, true /* forMonitoring */,
-        clientScanType, false /* skipAutoWaivers */);
+        clientScanType, null, false /* skipAutoWaivers */);
   }
 
   /*
@@ -313,6 +334,7 @@ public class ScanPolicyEvaluator
       final String clientInstanceId,
       boolean forMonitoring,
       final ClientScanType clientScanType,
+      final VulnerabilitySignatureAnalysisDTO analysisDTO,
       final boolean skipAutoWaivers) throws IOException
   {
     log.debug(
@@ -342,7 +364,7 @@ public class ScanPolicyEvaluator
     ReportComponentData reportComponentData = reportComponentService.fetchReportAndComponents(application, scanId);
 
     return performPolicyEvaluation(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
-        forMonitoring, clientScanType, reportComponentData, skipAutoWaivers);
+        forMonitoring, clientScanType, reportComponentData, analysisDTO, skipAutoWaivers);
   }
 
   private void fetchAndPersistRemediationRecommendations(
@@ -443,6 +465,7 @@ public class ScanPolicyEvaluator
       PolicyViolationTelemetryCollector telemetryCollector,
       ApplicationReport applicationReport,
       ClientScanType clientScanType,
+      VulnerabilitySignatureAnalysisDTO analysisDTO,
       final boolean skipAutoWaivers) throws IOException
   {
     String appId = app.getId();
@@ -496,6 +519,9 @@ public class ScanPolicyEvaluator
         throw new BadRequestException(SKIPPING_AUTO_WAIVERS_NOT_ALLOWED_FOR_PRIMARY_EVALUATIONS);
       }
 
+      PurlIdentifiersWithVulnerabilities reachablePurlIdentifiersWithVulnerabilities =
+          getReachablePurlIdentifiersWithVulnerabilities(appId, scanId, analysisDTO);
+
       // Convert the policy alerts into policy violations
       List<PolicyAlert> allPolicyAlerts = new ArrayList<>();
       allPolicyAlerts.addAll(policyResults.getActiveAlerts());
@@ -538,6 +564,8 @@ public class ScanPolicyEvaluator
 
           if (canEvaluateWithAutoWaiver(autoPolicyWaiver, policyViolation)) {
             Owner owner = ownerDAO.getById(autoPolicyWaiver.getOwnerId());
+
+            updateReachabilityStatus(policyViolation, reachablePurlIdentifiersWithVulnerabilities);
 
             if (skipAutoWaiversForReevaluation) {
 
@@ -1336,6 +1364,23 @@ public class ScanPolicyEvaluator
       final ReportComponentData reportComponentData,
       final boolean skipAutoWaivers) throws IOException
   {
+    return performPolicyEvaluation(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
+        forMonitoring, clientScanType, reportComponentData, null, skipAutoWaivers);
+  }
+
+  public ScanPolicyEvaluatorResults performPolicyEvaluation(
+      final Application application,
+      final String scanId,
+      final Stage stage,
+      final ScanTriggerType scanTriggerType,
+      final String clientUserAgent,
+      final String clientInstanceId,
+      final boolean forMonitoring,
+      final ClientScanType clientScanType,
+      final ReportComponentData reportComponentData,
+      final VulnerabilitySignatureAnalysisDTO analysisDTO,
+      final boolean skipAutoWaivers) throws IOException
+  {
 
     sendEvaluationTelemetry(application.getId(), stage.getStageTypeId(), scanTriggerType,
         reportComponentData.components,
@@ -1353,7 +1398,7 @@ public class ScanPolicyEvaluator
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
         processPolicyResults(application, scanId, stage, scanTriggerType, policies, forMonitoring, policyResults,
             reportComponentData.components, telemetryCollector, reportComponentData.applicationReport,
-            clientScanType, skipAutoWaivers);
+            clientScanType, analysisDTO, skipAutoWaivers);
 
     telemetrySender.send(telemetryCollector.getTelemetryData());
 
@@ -1466,5 +1511,21 @@ public class ScanPolicyEvaluator
       }
     }
     return false;
+  }
+
+  private PurlIdentifiersWithVulnerabilities getReachablePurlIdentifiersWithVulnerabilities(
+      final String applicationId,
+      final String scanId,
+      final VulnerabilitySignatureAnalysisDTO analysisDTO) throws IOException
+  {
+    if (analysisDTO == null) {
+      return null;
+    }
+
+    return apiVulnerabilityReachabilityStatusService.getPurlIdentifiersWithVulnerabilities(
+        applicationId,
+        scanId,
+        analysisDTO
+    );
   }
 }

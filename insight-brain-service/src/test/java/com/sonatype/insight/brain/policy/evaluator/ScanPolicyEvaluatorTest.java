@@ -20,7 +20,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import javax.inject.Inject;
-import jakarta.persistence.Query;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -31,6 +30,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
@@ -150,6 +150,7 @@ import com.sonatype.insight.test.LogOutput;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
+import jakarta.persistence.Query;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -163,12 +164,15 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.WITH_REPORTS;
+import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.REACHABLE;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COUNT;
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.LEGACY_VIOLATION_TIME;
 import static com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator.REEVALUATE_NOT_ALLOWED_FOR_OUT_OF_DATE_SCAN_MESSAGE;
 import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
+import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.createTestAnalysisDTO;
+import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.findPolicyViolationByVulnerabilityIdentifier;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -674,6 +678,49 @@ public class ScanPolicyEvaluatorTest
             ClientScanType.SONATYPE, false);
 
     assertThat(results.autoWaivedViolations).hasSize(36);
+  }
+
+  @Test
+  public void testEvaluate_Results_AutoWaivedViolations_WithReachableVulnerability() throws Exception {
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8);
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    tempEntity.newAutoPolicyWaiver(application.getId(), 10, false, false);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier
+        .createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+    String vulnerabilityIdentifier = "CVE-2012-0022";
+
+    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
+            application.getId(),
+            scanId,
+            componentIdentifier,
+            vulnerabilityIdentifier,
+            insightWork
+        );
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, analysisDTO, false);
+
+    assertThat(results.autoWaivedViolations).hasSize(36);
+
+    Optional<PolicyViolation> optionalPolicyViolation =
+        findPolicyViolationByVulnerabilityIdentifier(results.autoWaivedViolations, vulnerabilityIdentifier);
+
+    assertThat(optionalPolicyViolation).isPresent();
+    assertThat(optionalPolicyViolation.get().getReachabilityStatus()).isEqualTo(REACHABLE);
+    assertThat(optionalPolicyViolation.get().getComponentIdentifier()).isEqualTo(componentIdentifier);
+
+    results.autoWaivedViolations
+        .forEach(policyViolation -> assertThat(policyViolation.getReachabilityStatus()).isNotNull());
   }
 
   @Test

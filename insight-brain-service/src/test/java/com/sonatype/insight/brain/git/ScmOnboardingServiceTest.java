@@ -63,6 +63,7 @@ import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient;
+import com.sonatype.nexus.scm.api.base.MissingSourceControlConfigException;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 
@@ -249,7 +250,7 @@ public class ScmOnboardingServiceTest
         .newSourceControl(org.getId(), null, null, null);
 
     // then loading repositories fails
-    assertThatExceptionOfType(NullPointerException.class)
+    assertThatExceptionOfType(MissingSourceControlConfigException.class)
         .isThrownBy(() -> scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl()))
         .withMessageContaining("'token' must not be null");
 

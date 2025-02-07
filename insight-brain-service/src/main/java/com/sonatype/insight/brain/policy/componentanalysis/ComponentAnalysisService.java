@@ -11,10 +11,12 @@ import com.sonatype.clm.dto.model.policy.*;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.*;
 import com.sonatype.insight.brain.policy.utils.EvaluationUtils;
@@ -22,6 +24,7 @@ import com.sonatype.insight.brain.scan.ScanContext;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -43,9 +46,9 @@ import java.util.concurrent.ExecutorService;
 public class ComponentAnalysisService
     implements Managed
 {
-  private final ExecutorService executor;
-
   private static final Logger log = LoggerFactory.getLogger(ComponentAnalysisService.class);
+
+  private final ExecutorService executor;
 
   private final PolicyEvaluationUtil policyEvaluationUtil;
 
@@ -57,9 +60,11 @@ public class ComponentAnalysisService
 
   private PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
 
-  public boolean disablePollingIntervalForTesting = false;
-
   private final ErrorResponseGenerator errorResponseGenerator;
+
+  private final TelemetryUtils telemetryUtils;
+
+  private boolean disablePollingIntervalForTesting = false;
 
   @Inject
   public ComponentAnalysisService(
@@ -67,7 +72,9 @@ public class ComponentAnalysisService
       final ApplicationDAO applicationDAO,
       final ScanHandler scanHandler,
       final ReportComponentService reportComponentService,
-      final ErrorResponseGenerator errorResponseGenerator
+      final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO,
+      final ErrorResponseGenerator errorResponseGenerator,
+      final TelemetryUtils telemetryUtils
   )
   {
     this.executor = buildExecutorService();
@@ -75,7 +82,9 @@ public class ComponentAnalysisService
     this.applicationDAO = applicationDAO;
     this.scanHandler = scanHandler;
     this.reportComponentService = reportComponentService;
+    this.persistedPolicyEvaluationPollingResultDAO = persistedPolicyEvaluationPollingResultDAO;
     this.errorResponseGenerator = errorResponseGenerator;
+    this.telemetryUtils = telemetryUtils;
   }
 
   private ExecutorService buildExecutorService() {
@@ -110,7 +119,7 @@ public class ComponentAnalysisService
    * @param integrationType {@link IntegrationType}
    * @param applicationPublicId public shared id
    * @param clientScanType {@link ClientScanType}
-   * @param req {@link HttpServletRequest}
+   * @param request {@link HttpServletRequest}
    * @param stage {@link Stage}
    * @return PolicyEvaluationReceipt
    * @throws IOException when the scan file, uploaded via the request, is unable to be read or processed
@@ -122,7 +131,7 @@ public class ComponentAnalysisService
       IntegrationType integrationType,
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
       ClientScanType clientScanType,
-      HttpServletRequest req,
+      HttpServletRequest request,
       Stage stage) throws IOException
   {
     EvaluationUtils.ensureNewEvaluationProcessEnabled();
@@ -130,7 +139,7 @@ public class ComponentAnalysisService
 
     String statusId = UUID.randomUUID().toString().replace("-", "");
     log.debug(
-        "Received request to evaluate policy for app public id {}, clientScanType {}, stageTypeId {}. " +
+        "Received request to analyze components for app public id {}, clientScanType {}, stageTypeId {}. " +
             "The status ID of the operation is {}.",
         applicationPublicId, clientScanType, stage.getStageTypeId(), statusId);
 
@@ -139,9 +148,7 @@ public class ComponentAnalysisService
           "Compliance scans are not supported for component analysis. Please use the policy evaluation endpoint.");
     }
 
-    /**
-     * TODO: Call triggerAsyncComponentAnalysis with the appropriate parameters
-     */
+    triggerAsyncComponentAnalysis(integrationType, request, applicationPublicId, clientScanType, statusId, stage, null);
 
     PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
     policyEvaluationReceipt.setStatusId(statusId);
@@ -149,11 +156,36 @@ public class ComponentAnalysisService
     return policyEvaluationReceipt;
   }
 
-  private void triggerAsyncComponentAnalysis() {
-    /**
-     * TODO: Execute ComponentAnalysisTask with the appropriate parameters
-     */
-    // no-op
+  private void triggerAsyncComponentAnalysis(
+      final IntegrationType integrationType,
+      final HttpServletRequest request,
+      final String appPublicId,
+      final ClientScanType clientScanType,
+      final String statusId,
+      final Stage stage,
+      final ScanContext scanContext) throws IOException
+  {
+    final Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
+    final String thirdPartyScanType =
+        clientScanType == ClientScanType.SONATYPE_THIRD_PARTY ? integrationType.toString() : null;
+    final ScanTriggerType scanTriggerType = EvaluationUtils.getScanTriggerType(integrationType);
+    final String clientUserAgent = HdsClient.getClientUserAgent(request);
+    final TelemetryData thirdPartyScanTelemetryData = telemetryUtils.buildThirdPartyScanTelemetryData(
+        app.getPublicId(), stage, thirdPartyScanType, scanTriggerType, clientUserAgent);
+    final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
+        policyEvaluationUtil.createPersistedPolicyEvaluationPollingResultWithSubStatusIfNeeded(app.getPublicId(),
+            statusId, disablePollingIntervalForTesting);
+    final File tempScanFile = scanHandler.createTempScanFile(request, app);
+
+    log.debug(
+        "Submitting component analysis task for app public id {}, clientScanType {}, stageTypeId {}. "
+            + "The status ID of the operation is {}.",
+        app.getPublicId(), clientScanType, stage.getStageTypeId(), statusId);
+
+    AuditData.get().continueAsync(
+        new ComponentAnalysisTask(app, clientScanType, statusId, stage, tempScanFile,
+            thirdPartyScanTelemetryData, persistedPolicyEvaluationPollingResult, clientUserAgent, scanContext),
+        executor::submit);
   }
 
   /**
@@ -187,14 +219,12 @@ public class ComponentAnalysisService
         final ClientScanType clientScanType,
         final String statusId,
         final Stage stage,
-        // final ScanTriggerType scanTriggerType,
         final File tempScanFile,
         final TelemetryData thirdPartyScanTelemetryData,
         final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult,
         final String clientUserAgent,
         final ScanContext scanContext)
     {
-      // no-op
       this.app = app;
       this.clientScanType = clientScanType;
       this.statusId = statusId;
@@ -209,15 +239,12 @@ public class ComponentAnalysisService
     @Override
     public void run() {
       log.debug(
-          "Component analysis task (appPublicId {}, statusId {}) waited in " +
-              "queue for {} ms.",
+          "Component analysis task (appPublicId {}, statusId {}) waited in queue for {} ms.",
           app.getPublicId(), statusId, System.currentTimeMillis() - taskCreateTime);
 
       String scanId = null;
-      PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
-      policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.PENDING);
-      policyEvaluationPollingResult.setNextPollingIntervalInSeconds(
-          getNextPollingInterval(disablePollingIntervalForTesting));
+      PolicyEvaluationPollingResult policyEvaluationPollingResult =
+          persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
 
       try {
         ScanReceipt scanReceipt =
@@ -226,42 +253,45 @@ public class ComponentAnalysisService
         scanId = scanReceipt.getScanId();
 
         policyEvaluationPollingResult.setScanReceipt(scanReceipt);
-        persistedPolicyEvaluationPollingResult.setPolicyEvaluationPollingResult(policyEvaluationPollingResult);
-        persistedPolicyEvaluationPollingResultDAO.update(persistedPolicyEvaluationPollingResult);
+        updatePolicyEvaluationPollingResult(persistedPolicyEvaluationPollingResult, policyEvaluationPollingResult);
 
         final long start = System.currentTimeMillis();
 
         log.debug(
-            "Evaluating policy for app public id {}, scan id {}, stageTypeId {}. The status ID of the operation is {}.",
-            app.getPublicId(), scanId, stage.getStageTypeId(), statusId);
+            "Loading report component data for app public id {}, scan id {}, stageTypeId {}. The status ID of the " +
+                "operation is {}.", app.getPublicId(), scanId, stage.getStageTypeId(), statusId);
 
-        // ReportComponentData reportComponentData =
-        //    reportComponentService.fetchReportAndComponents(app, scanId);
+        // HDS will asynchronously write the report data to the report JSON files
+        reportComponentService.fetchReportAndComponents(app, scanId);
 
         log.debug(
-            "Evaluated policy for app public id {}, scan id {}, stageTypeId {} in {} ms."
+            "Loaded report component data for app public id {}, scan id {}, stageTypeId {} in {} ms."
                 + " The status ID of the operation is {}.",
             app.getPublicId(), scanId, stage.getStageTypeId(), System.currentTimeMillis() - start, statusId);
 
-        policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
-        policyEvaluationPollingResult.setScanReceipt(scanReceipt);
-        policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.COMPLETED);
+        policyEvaluationPollingResult = persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
         policyEvaluationPollingResult.setSubStatus(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE);
       }
       catch (Exception e) {
         log.error(
-            "Failed to evaluate policy for app public id {}, scan id {}, stageTypeId {}." +
+            "Failed to load report component data for app public id {}, scan id {}, stageTypeId {}." +
                 " The status ID of the operation is {}.",
             app.getPublicId(), scanId, stage.getStageTypeId(), statusId, e);
         // in failed status, hold onto as much as we have obtained so far
         policyEvaluationPollingResult = makeCopy(policyEvaluationPollingResult);
         policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.FAILED);
-        policyEvaluationPollingResult.setSubStatus(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING);
         policyEvaluationPollingResult.setReason(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody());
         AuditData.get()
             .setException(new RuntimeException(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody(), e));
       }
 
+      updatePolicyEvaluationPollingResult(persistedPolicyEvaluationPollingResult, policyEvaluationPollingResult);
+    }
+
+    private void updatePolicyEvaluationPollingResult(
+        final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult,
+        final PolicyEvaluationPollingResult policyEvaluationPollingResult)
+    {
       persistedPolicyEvaluationPollingResult.setPolicyEvaluationPollingResult(policyEvaluationPollingResult);
       persistedPolicyEvaluationPollingResultDAO.update(persistedPolicyEvaluationPollingResult);
     }

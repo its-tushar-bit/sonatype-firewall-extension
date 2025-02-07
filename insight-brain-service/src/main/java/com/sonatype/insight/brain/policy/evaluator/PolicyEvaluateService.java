@@ -353,7 +353,8 @@ public class PolicyEvaluateService
         .anyMatch(stageType -> stageType.getId().equals(stage.getStageTypeId())))
     {
       PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
-          createPersistedPolicyEvaluationPollingResultIfNeeded(app.getId(), statusId);
+          policyEvaluationUtil.createPersistedPolicyEvaluationPollingResultIfNeeded(app.getId(), statusId,
+              disablePollingIntervalForTesting);
 
       log.debug(
           "Submitting policy evaluation task for app public id {}, clientScanType {}, stageTypeId {}. "
@@ -371,27 +372,6 @@ public class PolicyEvaluateService
     else {
       throw new BadRequestException("Invalid stage: " + stage.getStageTypeId());
     }
-  }
-
-  public PersistedPolicyEvaluationPollingResult createPersistedPolicyEvaluationPollingResultIfNeeded(
-      String appId,
-      String statusId)
-  {
-    PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
-        persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(appId, statusId);
-    if (persistedPolicyEvaluationPollingResult != null) {
-      return persistedPolicyEvaluationPollingResult;
-    }
-
-    PolicyEvaluationPollingResult initialResult = new PolicyEvaluationPollingResult();
-    initialResult.setStatus(PolicyEvaluationStatus.PENDING);
-    initialResult.setNextPollingIntervalInSeconds(
-        EvaluationTask.getNextPollingInterval(disablePollingIntervalForTesting));
-    persistedPolicyEvaluationPollingResult =
-        new PersistedPolicyEvaluationPollingResult(appId, statusId, initialResult);
-    persistedPolicyEvaluationPollingResultDAO.insert(persistedPolicyEvaluationPollingResult);
-
-    return persistedPolicyEvaluationPollingResult;
   }
 
   /**
@@ -485,11 +465,8 @@ public class PolicyEvaluateService
       Sample sample = policyEvaluateServiceMetrics.emitStartPolicyEvaluation();
 
       String scanId = null;
-      PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
-      policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.PENDING);
-      policyEvaluationPollingResult.setNextPollingIntervalInSeconds(
-          getNextPollingInterval(disablePollingIntervalForTesting));
-
+      PolicyEvaluationPollingResult policyEvaluationPollingResult =
+          persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
       try {
         ScanReceipt scanReceipt =
             scanHandler.handle(tempScanFile, app, clientScanType, thirdPartyScanTelemetryData, stage.getStageTypeId(),

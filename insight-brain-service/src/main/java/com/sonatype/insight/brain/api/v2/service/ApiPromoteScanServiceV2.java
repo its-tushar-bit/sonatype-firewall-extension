@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultUtils;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtil;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -60,6 +61,8 @@ public class ApiPromoteScanServiceV2
 
   private final PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils;
 
+  private final PolicyEvaluationUtil policyEvaluationUtil;
+
   @Inject
   public ApiPromoteScanServiceV2(
       ApplicationDAO applicationDAO,
@@ -67,12 +70,14 @@ public class ApiPromoteScanServiceV2
       PolicyEvaluateService policyEvaluateService,
       InsightWork work,
       PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils,
-      ShutdownHandler shutdownHandler)
+      ShutdownHandler shutdownHandler,
+      PolicyEvaluationUtil policyEvaluationUtil)
   {
     super(applicationDAO, policyEvaluateService);
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.work = work;
     this.policyEvaluationPollingResultUtils = policyEvaluationPollingResultUtils;
+    this.policyEvaluationUtil = policyEvaluationUtil;
 
     executor = new TenantThreadPoolExecutor(100, 100, 5L, TimeUnit.SECONDS,
         new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("ApiPromoteScanServiceV2-%d").build());
@@ -137,7 +142,7 @@ public class ApiPromoteScanServiceV2
     validateRequest(apiPromoteScanRequestDTOV2, application.getId());
 
     String statusId = UUID.randomUUID().toString().replace("-", "");
-    policyEvaluateService.createPersistedPolicyEvaluationPollingResultIfNeeded(applicationId, statusId);
+    policyEvaluationUtil.createPersistedPolicyEvaluationPollingResultIfNeeded(applicationId, statusId);
     log.debug("Received request to promote scan {} of app {} to stage {}. The status ID of the operation is {}.",
         apiPromoteScanRequestDTOV2.scanId != null ? apiPromoteScanRequestDTOV2.scanId
             : "from stage " + apiPromoteScanRequestDTOV2.sourceStageId,

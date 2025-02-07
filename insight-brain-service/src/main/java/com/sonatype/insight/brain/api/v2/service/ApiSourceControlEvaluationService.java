@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtil;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -48,6 +49,8 @@ public class ApiSourceControlEvaluationService
 
   private final StageTypeService stageTypeService;
 
+  private final PolicyEvaluationUtil policyEvaluationUtil;
+
   @Inject
   public ApiSourceControlEvaluationService(
       final SourceControlEventPublisher sourceControlEventPublisher,
@@ -55,13 +58,15 @@ public class ApiSourceControlEvaluationService
       final IqForScmLicenseChecker licenseChecker,
       PolicyEvaluateService policyEvaluateService,
       ApplicationDAO applicationDAO,
-      StageTypeService stageTypeService)
+      StageTypeService stageTypeService,
+      PolicyEvaluationUtil policyEvaluationUtil)
   {
     super(applicationDAO, policyEvaluateService);
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.sourceControlUtils = sourceControlUtils;
     this.licenseChecker = licenseChecker;
     this.stageTypeService = stageTypeService;
+    this.policyEvaluationUtil = policyEvaluationUtil;
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
@@ -88,7 +93,7 @@ public class ApiSourceControlEvaluationService
         application.getName(), sourceControlEvaluationRequest.stageId, sourceControlEvaluationRequest.branchName,
         statusId);
 
-    policyEvaluateService.createPersistedPolicyEvaluationPollingResultIfNeeded(applicationId, statusId);
+    policyEvaluationUtil.createPersistedPolicyEvaluationPollingResultIfNeeded(applicationId, statusId);
 
     String branchName;
     if (sourceControlEvaluationRequest.branchName != null) {

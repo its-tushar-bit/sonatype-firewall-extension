@@ -9,9 +9,15 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.integration.IntegrationType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
+import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -26,10 +32,17 @@ public class PolicyEvaluationUtil
 
   private final StageTypeService stageTypeService;
 
+  private final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
+
   @Inject
-  public PolicyEvaluationUtil(final ProductLicense productLicense, final StageTypeService stageTypeService) {
+  public PolicyEvaluationUtil(
+      final ProductLicense productLicense,
+      final StageTypeService stageTypeService,
+      final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO)
+  {
     this.productLicense = productLicense;
     this.stageTypeService = stageTypeService;
+    this.persistedPolicyEvaluationPollingResultDAO = persistedPolicyEvaluationPollingResultDAO;
   }
 
   public void validateEvaluationTypeAndFeature(IntegrationType integrationType, Stage stage) {
@@ -50,5 +63,57 @@ public class PolicyEvaluationUtil
     if (!stageTypeService.getLicensedStageTypes().contains(StageTypes.getById(stage.getStageTypeId()))) {
       throw new InvalidLicenseException("Stage '" + stage.getStageTypeId() + "' is not supported by your license.");
     }
+  }
+
+  public PersistedPolicyEvaluationPollingResult createPersistedPolicyEvaluationPollingResultIfNeeded(
+      final String appId,
+      final String statusId)
+  {
+    return createPersistedPolicyEvaluationPollingResultIfNeeded(appId, statusId, false, false);
+  }
+
+  public PersistedPolicyEvaluationPollingResult createPersistedPolicyEvaluationPollingResultIfNeeded(
+      final String appId,
+      final String statusId,
+      final boolean disablePollingIntervalForTesting)
+  {
+    return createPersistedPolicyEvaluationPollingResultIfNeeded(appId, statusId, disablePollingIntervalForTesting,
+        false);
+  }
+
+  public PersistedPolicyEvaluationPollingResult createPersistedPolicyEvaluationPollingResultWithSubStatusIfNeeded(
+      final String appId,
+      final String statusId,
+      final boolean disablePollingIntervalForTesting)
+  {
+    return createPersistedPolicyEvaluationPollingResultIfNeeded(appId, statusId, disablePollingIntervalForTesting,
+        true);
+  }
+
+  private PersistedPolicyEvaluationPollingResult createPersistedPolicyEvaluationPollingResultIfNeeded(
+      final String appId,
+      final String statusId,
+      final boolean disablePollingIntervalForTesting,
+      final boolean setNewProcessSubStatus)
+  {
+    PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
+        persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(appId, statusId);
+    if (persistedPolicyEvaluationPollingResult != null) {
+      return persistedPolicyEvaluationPollingResult;
+    }
+
+    final PolicyEvaluationPollingResult initialResult = new PolicyEvaluationPollingResult();
+    initialResult.setStatus(PolicyEvaluationStatus.PENDING);
+    initialResult.setNextPollingIntervalInSeconds(
+        EvaluationTask.getNextPollingInterval(disablePollingIntervalForTesting));
+    if (setNewProcessSubStatus && SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.isEnabled()) {
+      initialResult.setSubStatus(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING);
+    }
+
+    persistedPolicyEvaluationPollingResult =
+        new PersistedPolicyEvaluationPollingResult(appId, statusId, initialResult);
+    persistedPolicyEvaluationPollingResultDAO.insert(persistedPolicyEvaluationPollingResult);
+
+    return persistedPolicyEvaluationPollingResult;
   }
 }

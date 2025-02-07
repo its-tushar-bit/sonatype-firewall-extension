@@ -59,7 +59,7 @@ public class ReportComponentService
 
       if (bomReportEntry == null || securityReportEntry == null || licenseReportEntry == null
           || dependenciesReportEntry == null) {
-        throw new BadRequestException("Unable to evaluate policy, the scan " + scanId + " could not be processed.");
+        throw new BadRequestException("Unable to fetch report data, the scan " + scanId + " could not be processed.");
       }
 
       // Load data about components

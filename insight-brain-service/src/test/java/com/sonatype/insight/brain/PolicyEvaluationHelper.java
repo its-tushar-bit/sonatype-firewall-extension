@@ -12,6 +12,7 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -129,5 +130,38 @@ public class PolicyEvaluationHelper
 
     return persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(appId, statusId)
         .getPolicyEvaluationPollingResult();
+  }
+
+  /**
+   * Wait for the component analysis process linked to appPublicId and statusId to complete.
+   *
+   * @param appPublicId The public ID of the application for which the component analysis was started
+   * @param statusId    The status ID for the component analysis process (from the associated
+   *          PersistedPolicyEvaluationPollingResult)
+   */
+  public void awaitComponentAnalysisCompleted(final String appPublicId, final String statusId) {
+    await().atMost(20, TimeUnit.SECONDS)
+        .until(() -> PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE
+            .equals(persistedPolicyEvaluationPollingResultDAO
+                .getByApplicationIdAndStatusId(appPublicId, statusId)
+                .getPolicyEvaluationPollingResult().getSubStatus()));
+  }
+
+  /**
+   * Wait for the component analysis process linked to appPublicId and statusId to fail.
+   *
+   * @param appPublicId The public ID of the application for which the component analysis was started
+   * @param statusId    The status ID for the component analysis process (from the associated
+   *          PersistedPolicyEvaluationPollingResult)
+   */
+  public void awaitComponentAnalysisFailed(final String appPublicId, final String statusId) {
+    await().atMost(20, TimeUnit.SECONDS)
+        .until(() -> {
+          PolicyEvaluationPollingResult res = persistedPolicyEvaluationPollingResultDAO
+              .getByApplicationIdAndStatusId(appPublicId, statusId)
+              .getPolicyEvaluationPollingResult();
+          return res.getSubStatus().equals(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING) &&
+              res.getStatus().equals(PolicyEvaluationStatus.FAILED);
+        });
   }
 }

@@ -6,10 +6,18 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.Collections;
+import java.util.UUID;
 
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.integration.IntegrationType;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
+import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -21,6 +29,9 @@ import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -35,6 +46,9 @@ public class PolicyEvaluationUtilTest
   @Mock
   private StageTypeService mockStageTypeService;
 
+  @Mock
+  private PersistedPolicyEvaluationPollingResultDAO mockPersistedPolicyEvaluationPollingResultDAO;
+
   private PolicyEvaluationUtil policyEvaluationUtil;
 
   @Override
@@ -42,8 +56,11 @@ public class PolicyEvaluationUtilTest
     lenient().when(mockStageTypeService.getLicensedStageTypes()).thenReturn(StageTypes.getAll());
     binder.bind(StageTypeService.class).toInstance(mockStageTypeService);
     binder.bind(ProductLicense.class).toInstance(mockProductLicense);
+    binder.bind(PersistedPolicyEvaluationPollingResultDAO.class)
+        .toInstance(mockPersistedPolicyEvaluationPollingResultDAO);
     super.configure(binder);
-    policyEvaluationUtil = new PolicyEvaluationUtil(mockProductLicense, mockStageTypeService);
+    policyEvaluationUtil = new PolicyEvaluationUtil(mockProductLicense, mockStageTypeService,
+        mockPersistedPolicyEvaluationPollingResultDAO);
   }
 
   @Test
@@ -97,5 +114,88 @@ public class PolicyEvaluationUtilTest
         LicensedFeature.CLI_INTEGRATION);
 
     policyEvaluationUtil.validateEvaluationTypeAndFeature(IntegrationType.CLI, stage);
+  }
+
+  @Test
+  public void testCreatePersistedPolicyEvaluationPollingResultWithSubStatusIfNeeded_FeatureFlagEnabled() {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+    final String appId = "testAppId";
+
+    final PersistedPolicyEvaluationPollingResult result =
+        policyEvaluationUtil.createPersistedPolicyEvaluationPollingResultWithSubStatusIfNeeded(appId, "testScanId",
+            true);
+    assertThat(result.getStatusId()).isNotNull();
+    assertThat(result.getApplicationId()).isEqualTo(appId);
+    assertThat(result.getPolicyEvaluationPollingResult().getStatus())
+        .isEqualTo(PolicyEvaluationStatus.PENDING);
+    assertThat(result.getPolicyEvaluationPollingResult()).isNotNull();
+    assertThat(result.getPolicyEvaluationPollingResult().getSubStatus())
+        .isEqualTo(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING);
+  }
+
+  @Test
+  public void testCreatePersistedPolicyEvaluationPollingResultWithSubStatusIfNeeded_FeatureFlagDisabled() {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(false);
+    final String appId = "testAppId";
+
+    final PersistedPolicyEvaluationPollingResult result =
+        policyEvaluationUtil.createPersistedPolicyEvaluationPollingResultWithSubStatusIfNeeded(appId, "testScanId",
+            true);
+    assertThat(result.getStatusId()).isNotNull();
+    assertThat(result.getApplicationId()).isEqualTo(appId);
+    assertThat(result.getPolicyEvaluationPollingResult().getStatus())
+        .isEqualTo(PolicyEvaluationStatus.PENDING);
+    assertThat(result.getPolicyEvaluationPollingResult()).isNotNull();
+    assertThat(result.getPolicyEvaluationPollingResult().getSubStatus())
+        .isNull();
+  }
+
+  @Test
+  public void testCreatePersistedPolicyEvaluationPollingResultIfNeeded() {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(false);
+    final String appId = "testAppId";
+
+    final PersistedPolicyEvaluationPollingResult result =
+        policyEvaluationUtil.createPersistedPolicyEvaluationPollingResultIfNeeded(appId, "testScanId", true);
+    assertThat(result.getStatusId()).isNotNull();
+    assertThat(result.getApplicationId()).isEqualTo(appId);
+    assertThat(result.getPolicyEvaluationPollingResult().getStatus())
+        .isEqualTo(PolicyEvaluationStatus.PENDING);
+    assertThat(result.getPolicyEvaluationPollingResult()).isNotNull();
+    assertThat(result.getPolicyEvaluationPollingResult().getSubStatus())
+        .isNull();
+  }
+
+  @Test
+  public void testCreatePersistedPolicyEvaluationPollingResultIfNeeded_WithPreexistingPollingResultRecord() {
+    final Application app = tempEntity.newApplicationWithParent();
+    final String appId = app.getId();
+    final PersistedPolicyEvaluationPollingResult pollingResult =
+        createPersistedPolicyEvaluationPollingResult(appId, PolicyEvaluationStatus.COMPLETED,
+            PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE);
+    doReturn(pollingResult).when(mockPersistedPolicyEvaluationPollingResultDAO)
+        .getByApplicationIdAndStatusId(anyString(), anyString());
+
+    final PersistedPolicyEvaluationPollingResult result =
+        policyEvaluationUtil.createPersistedPolicyEvaluationPollingResultIfNeeded(appId, pollingResult.getStatusId(),
+            true);
+    assertThat(result.getStatusId()).isEqualTo(pollingResult.getStatusId());
+    assertThat(result.getApplicationId()).isEqualTo(pollingResult.getApplicationId());
+    assertThat(result.getPolicyEvaluationPollingResult().getStatus())
+        .isEqualTo(pollingResult.getPolicyEvaluationPollingResult().getStatus());
+    assertThat(result.getPolicyEvaluationPollingResult().getSubStatus())
+        .isEqualTo(pollingResult.getPolicyEvaluationPollingResult().getSubStatus());
+  }
+
+  private PersistedPolicyEvaluationPollingResult createPersistedPolicyEvaluationPollingResult(
+      String applicationId,
+      PolicyEvaluationStatus status,
+      PolicyEvaluationSubStatus subStatus)
+  {
+    final PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
+    policyEvaluationPollingResult.setStatus(status);
+    policyEvaluationPollingResult.setSubStatus(subStatus);
+    return new PersistedPolicyEvaluationPollingResult(applicationId, UUID.randomUUID().toString(),
+        policyEvaluationPollingResult);
   }
 }

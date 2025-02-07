@@ -20,6 +20,7 @@ public abstract class EvaluationTask
   protected PolicyEvaluationPollingResult makeCopy(PolicyEvaluationPollingResult from) {
     PolicyEvaluationPollingResult result = new PolicyEvaluationPollingResult();
     result.setStatus(from.getStatus());
+    result.setSubStatus(from.getSubStatus());
     result.setReason(from.getReason());
     result.setResult(from.getResult());
     result.setScanReceipt(from.getScanReceipt());

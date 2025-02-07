@@ -2971,7 +2971,7 @@ public class ScanPolicyEvaluatorTest
         .isThrownBy(
             () -> scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
                 ClientScanType.SONATYPE, false))
-        .withMessage("Unable to evaluate policy, the scan " + scanId + " could not be processed.");
+        .withMessage("Unable to fetch report data, the scan " + scanId + " could not be processed.");
 
     PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
         Stage.ID_BUILD);

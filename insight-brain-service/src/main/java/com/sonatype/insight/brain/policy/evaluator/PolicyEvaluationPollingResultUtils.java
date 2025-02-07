@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 @Named
 public class PolicyEvaluationPollingResultUtils
 {
-  private final PolicyEvaluateService policyEvaluateService;
+  private final PolicyEvaluationUtil policyEvaluationUtil;
 
   private final ErrorResponseGenerator errorResponseGenerator;
 
@@ -25,11 +25,11 @@ public class PolicyEvaluationPollingResultUtils
 
   @Inject
   public PolicyEvaluationPollingResultUtils(
-      PolicyEvaluateService olicyEvaluateService,
+      PolicyEvaluationUtil policyEvaluationUtil,
       ErrorResponseGenerator errorResponseGenerator,
       PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO)
   {
-    this.policyEvaluateService = olicyEvaluateService;
+    this.policyEvaluationUtil = policyEvaluationUtil;
     this.errorResponseGenerator = errorResponseGenerator;
     this.persistedPolicyEvaluationPollingResultDAO = persistedPolicyEvaluationPollingResultDAO;
   }
@@ -39,7 +39,7 @@ public class PolicyEvaluationPollingResultUtils
       String errorMessage = errorResponseGenerator.mapExceptionAndLog(e).getMessageBody();
 
       PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
-          policyEvaluateService.createPersistedPolicyEvaluationPollingResultIfNeeded(appId, statusId);
+          policyEvaluationUtil.createPersistedPolicyEvaluationPollingResultIfNeeded(appId, statusId);
       PolicyEvaluationPollingResult policyEvaluationPollingResult =
           persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
 

@@ -62,7 +62,6 @@ public class MTIQFeatureService
    */
   private static final List<Feature> MTIQ_BANNED_FEATURES = Arrays.asList(
       LicensedFeature.DATA_INSIGHTS,
-      SystemConfigurationPropertyFeature.API_PAGE,
       SystemConfigurationPropertyFeature.SUCCESS_METRICS_CONFIGURATION,
       SystemConfigurationPropertyFeature.PRODUCT_LICENSE_CONFIGURATION,
       SystemConfigurationPropertyFeature.SYSTEM_NOTICE_CONFIGURATION,

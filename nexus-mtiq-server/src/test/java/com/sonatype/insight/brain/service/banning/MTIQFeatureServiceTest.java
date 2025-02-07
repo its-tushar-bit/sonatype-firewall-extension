@@ -119,11 +119,30 @@ public class MTIQFeatureServiceTest
 
   @Test
   public void testEnableFeature_throwsExceptionForUnsupportedFeature() {
-    String featureName = SystemConfigurationPropertyFeature.API_PAGE.getId();
+    List<Feature> expectedBannedFeatures = List.of(
+        LicensedFeature.DATA_INSIGHTS,
+        SystemConfigurationPropertyFeature.SUCCESS_METRICS_CONFIGURATION,
+        SystemConfigurationPropertyFeature.PRODUCT_LICENSE_CONFIGURATION,
+        SystemConfigurationPropertyFeature.SYSTEM_NOTICE_CONFIGURATION,
+        SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES,
+        SystemConfigurationPropertyFeature.PROXY_CONFIGURATION,
+        SystemConfigurationPropertyFeature.DEPENDENCY_DATA_IN_API,
+        SystemConfigurationPropertyFeature.CROWD_INTEGRATION,
+        SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE,
+        SystemConfigurationPropertyFeature.CODE_INSIGHTS,
+        SystemConfigurationPropertyFeature.LDAP_CONFIGURATION,
+        SystemConfigurationPropertyFeature.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES,
+        SystemConfigurationPropertyFeature.SCAN_POM_FILES_IN_META_INF_DIRECTORY,
+        SystemConfigurationPropertyFeature.VULNERABILITY_SOURCE,
+        SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE,
+        SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS
+    );
 
-    assertThatThrownBy(() -> underTest.enableFeature(featureName))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage("Feature not supported: " + featureName);
+    assertThat(expectedBannedFeatures).allSatisfy(expectedBannedFeature -> {
+      assertThatThrownBy(() -> underTest.enableFeature(expectedBannedFeature.getId()))
+          .isInstanceOf(BadRequestException.class)
+          .hasMessage("Feature not supported: " + expectedBannedFeature.getId());
+    });
   }
 
   @Test
@@ -137,11 +156,19 @@ public class MTIQFeatureServiceTest
 
   @Test
   public void testDisableFeature_throwsExceptionForUnsupportedFeature() {
-    String featureName = SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId();
+    List<Feature> expectedAlwaysEnabledFeatures = List.of(
+        SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY,
+        SystemConfigurationPropertyFeature.AUTOMATIC_APPLICATION_CONFIGURATION,
+        SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION,
+        SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER,
+        SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT
+    );
 
-    assertThatThrownBy(() -> underTest.disableFeature(featureName))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage("Feature not supported: " + featureName);
+    assertThat(expectedAlwaysEnabledFeatures).allSatisfy(expectedAlwaysEnabledFeature -> {
+      assertThatThrownBy(() -> underTest.disableFeature(expectedAlwaysEnabledFeature.getId()))
+          .isInstanceOf(BadRequestException.class)
+          .hasMessage("Feature not supported: " + expectedAlwaysEnabledFeature.getId());
+    });
   }
 
   @Test

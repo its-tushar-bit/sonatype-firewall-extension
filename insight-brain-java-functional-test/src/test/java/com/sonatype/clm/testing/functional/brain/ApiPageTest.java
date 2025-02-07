@@ -6,9 +6,12 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.ApiPage;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 
+import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -57,5 +60,23 @@ public class ApiPageTest
     apiPage.publicTab().shouldHave(cssClass("active"));
     apiPage.swaggerUi().should(exist).shouldHave(text("/api/v2"));
     eyesWatcher.eyesCheck("API page public tab");
+  }
+
+  @Test
+  public void testSwaggerGetApplications() {
+    Application application = tempEntity.newApplicationWithParent();
+    ApiPage apiPage = new ApiPage();
+    apiPage.should(exist).swaggerUi().should(exist).shouldHave(text("/api/v2"));
+
+    MainHeader.loginButton().should(exist).click();
+    loginAsAdmin();
+    SelenideElement getApplicationsDiv = apiPage.swaggerUi().find("#operations-Applications-getApplications");
+    getApplicationsDiv.should(exist).click();
+    SelenideElement tryItOutButton = getApplicationsDiv.find(".try-out__btn");
+    tryItOutButton.should(exist).click();
+    SelenideElement executeButton = getApplicationsDiv.find(".execute");
+    executeButton.should(exist).click();
+    SelenideElement responseDiv = getApplicationsDiv.find(".response-col_description .microlight");
+    responseDiv.should(exist).shouldHave(text(application.getId()));
   }
 }

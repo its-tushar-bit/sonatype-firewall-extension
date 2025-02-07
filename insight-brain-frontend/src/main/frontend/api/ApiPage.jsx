@@ -21,6 +21,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { selectApiPageSlice } from 'MainRoot/api/apiPageSelectors';
 import { actions } from 'MainRoot/api/apiPageSlice';
+import { BASE_URL } from 'MainRoot/util/urlUtil';
 
 export default function ApiPage() {
   const dispatch = useDispatch();
@@ -39,6 +40,8 @@ export default function ApiPage() {
       .split('; ')
       .find((row) => row.startsWith('CLM-CSRF-TOKEN='))
       ?.split('=')[1];
+    const url = new URL(request.url);
+    request.url = BASE_URL + url.pathname + url.search;
     return request;
   };
 

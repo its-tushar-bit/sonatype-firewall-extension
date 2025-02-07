@@ -8,6 +8,8 @@ import DashboardHeader from '../../../../main/frontend/dashboard/results/Dashboa
 import DashboardFilter from '../../../../main/frontend/dashboard/filter/dashboardFilter/DashboardFilter';
 import ExportButton from '../../../../main/frontend/dashboard/results/dashboardSummary/ExportButton';
 import { DEFAULT_FILTER_NAME } from '../../../../main/frontend/dashboard/filter/defaultFilter';
+import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
+import { NxInfoAlert } from '@sonatype/react-shared-components';
 
 describe('DashboardHeader', () => {
   let getShallowComponent, minimalProps;
@@ -15,6 +17,7 @@ describe('DashboardHeader', () => {
   beforeEach(() => {
     minimalProps = {
       filterSidebarOpen: true,
+      isDashboardEnabled: true,
     };
     getShallowComponent = enzymeUtils.getShallowComponent(DashboardHeader, minimalProps);
   });
@@ -75,6 +78,29 @@ describe('DashboardHeader', () => {
         expect(exportButton).toHaveProp('exportTitle', 'components');
         expect(exportButton).toHaveProp('exportUrl', 'https://export.data');
       });
+    });
+  });
+
+  describe('on Dashboard enabled', () => {
+    it('does not show info alert', () => {
+      const component = getShallowComponent({ isDashboardEnabled: true });
+      const infoAlert = component.find(NxInfoAlert);
+      const loadWrapper = component.find(LoadWrapper);
+
+      expect(infoAlert).not.toExist();
+      expect(loadWrapper).toExist();
+    });
+  });
+
+  describe('on Dashboard disabled', () => {
+    it('shows info alert', () => {
+      const component = getShallowComponent({ isDashboardEnabled: false });
+      const infoAlert = component.find(NxInfoAlert);
+      const loadWrapper = component.find(LoadWrapper);
+
+      expect(loadWrapper).not.toExist();
+      expect(infoAlert).toExist();
+      expect(infoAlert.text()).toBe('The Dashboard feature has been disabled by your administrator.');
     });
   });
 });

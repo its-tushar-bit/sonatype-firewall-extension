@@ -10,6 +10,7 @@ import DashboardFilter from '../filter/dashboardFilter/DashboardFilter';
 import ExportButton, { exportButtonPropTypes } from './dashboardSummary/ExportButton';
 import DashboardTabs, { dashboardTabsPropTypes } from './dashboardTabs/DashboardTabs';
 import { DEFAULT_FILTER_NAME } from '../filter/defaultFilter';
+import { NxInfoAlert } from '@sonatype/react-shared-components';
 
 export default function DashboardResults(props) {
   const {
@@ -58,14 +59,18 @@ export default function DashboardResults(props) {
             </button>
           </div>
         </div>
-        <LoadWrapper loading={filterLoading} error={loadFilterError} retryHandler={loadFilter}>
-          <DashboardTabs
-            stateGo={stateGo}
-            {...dashboard}
-            isDashboardEnabled={isDashboardEnabled}
-            isWaiversTabEnabled={isWaiversTabEnabled}
-          />
-        </LoadWrapper>
+        {!isDashboardEnabled ? (
+          <NxInfoAlert>The Dashboard feature has been disabled by your administrator.</NxInfoAlert>
+        ) : (
+          <LoadWrapper loading={filterLoading} error={loadFilterError} retryHandler={loadFilter}>
+            <DashboardTabs
+              stateGo={stateGo}
+              {...dashboard}
+              isDashboardEnabled={isDashboardEnabled}
+              isWaiversTabEnabled={isWaiversTabEnabled}
+            />
+          </LoadWrapper>
+        )}
       </div>
     </Fragment>
   );

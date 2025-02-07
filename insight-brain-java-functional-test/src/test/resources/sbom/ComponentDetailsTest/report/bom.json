@@ -19,7 +19,7 @@
     "matchState" : "exact",
     "scanError" : false,
     "proprietary" : false,
-    "hash" : "1249e25aebb15358bedd",
+    "hash" : "mockComponentHash",
     "relativePopularity" : 1.0,
     "createTime" : 1201589122000
   }, {
@@ -41,7 +41,6 @@
     "matchState" : "exact",
     "scanError" : false,
     "proprietary" : false,
-    "hash" : "1a667c9d419dc4f185c9",
     "relativePopularity" : 0.1,
     "createTime" : 1200480439000
   }]

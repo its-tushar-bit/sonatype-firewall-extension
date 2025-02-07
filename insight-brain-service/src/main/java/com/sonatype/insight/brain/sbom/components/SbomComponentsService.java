@@ -136,7 +136,7 @@ public class SbomComponentsService
 
     CDPSbomComponentDetailsDTO componentDetailsDTO = new CDPSbomComponentDetailsDTO(component.getHash(),
         component.getPackageUrl(), component.getName(), component.getVersion(), component.getFormat(),
-        component.getDisplayName(), component.getId());
+        component.getDisplayName(), component.getComponentRef(), component.getId());
     componentDetailsDTO.setDependencyType(getDependencyType(component.getDependencyType()));
     componentDetailsDTO.setMetadata(getSbomMetadata(applicationId, sbomMetadata.getCreatedAt(), scan.getScanId()));
     componentDetailsDTO.setVulnerabilitySummary(getVulnerabilitySummary(vulnerabilityList));
@@ -151,7 +151,7 @@ public class SbomComponentsService
 
     try {
       PolicyThreats.Component componentFound = sbomPolicyService.getPolicyViolationsByFileCoordinateIdOrHash(
-          applicationId, sbomVersion, component.getId(), component.getHash());
+          applicationId, sbomVersion, component.getComponentRef(), component.getId(), component.getHash());
 
       SbomPolicyViolationSummaryDTO policyViolationSummary = componentFound != null ?
           calculatePolicyViolationSummary(componentFound.activeViolations) :

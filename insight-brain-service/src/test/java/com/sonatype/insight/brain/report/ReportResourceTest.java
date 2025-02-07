@@ -73,6 +73,7 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.util.HashUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -538,41 +539,23 @@ public class ReportResourceTest
 
   @Test
   public void testGetSbomPolicyViolationReport_WithFileCoordinateId() throws Exception {
-    final String scanId = "ReportResourceTest_ScanId";
+    testGetSbomPolicyViolationReport("1249e25aebb15358bedd", "86163fcc32524261bfd2bdbedb7eae43", null);
+  }
 
-    String reportResource = "/ReportResourceTest/report-bom";
-    mockReport(scanId, reportResource);
-    createScanFile(app.getId(), scanId);
-
-    URL zippedReport = ReportHelper.zipReport(reportResource, tempDir);
-    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    File reportDestination = work.getReportFile(app.getId(), scanId);
-
-    FileUtils.copyURLToFile(zippedReport, reportDestination);
-
-    String sbomVersion = "sbomVersion1";
-    tempEntity.newSbomEvaluation(app, sbomVersion, "spec1",
-         new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"),
-        "1249e25aebb15358bedd", scanId, true,
-         ACTIVE);
-
-    setFeatures(LicensedFeature.SBOM_MANAGER);
-    HttpResponse response = restRequest()
-        .path(ReportResource.RESOURCE_PATH + "/" + ReportResource.SBOM_POLICY_VIOLATION_REPORT)
-        .query("fileCoordinateId", "86163fcc32524261bfd2bdbedb7eae43")
-        .parameter(app.getPublicId(), sbomVersion)
-        .get();
-
-    assertResponseStatus(200, response);
-
-    PolicyThreats.Component result = response.getBody(PolicyThreats.Component.class);
-    assertThat(result).isNotNull();
-    assertThat(result.hash).isEqualTo("1249e25aebb15358bedd");
-    assertThat(result.allViolations).hasSize(1);
+  @Test
+  public void testGetSbomPolicyViolationReport_WithComponentRef() throws Exception {
+    testGetSbomPolicyViolationReport("1249e25aebb15358bedd", null, HashUtils.hash(
+        "pkg:maven/com.h2database/h2@1.4.200?type=jar", HashUtils.SHA1));
   }
 
   @Test
   public void testGetSbomPolicyViolationReport_WithHash() throws Exception {
+    testGetSbomPolicyViolationReport("1249e25aebb15358bedd", "some-nonexistent-id", null);
+  }
+
+  private void testGetSbomPolicyViolationReport(String hash, String fileCoordinateId, String componentRef)
+      throws Exception
+  {
     String scanId = "ReportResourceTest_ScanId";
 
     String reportResource = "/ReportResourceTest/report-bom";
@@ -587,13 +570,14 @@ public class ReportResourceTest
 
     String sbomVersion = "sbomVersion1";
     tempEntity.newSbomEvaluation(app, sbomVersion, "spec1",
-        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "1249e25aebb15358bedd", scanId, true,
-        ACTIVE);
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), hash, scanId, true, ACTIVE);
 
     setFeatures(LicensedFeature.SBOM_MANAGER);
     HttpResponse response = restRequest()
         .path(ReportResource.RESOURCE_PATH + "/" + ReportResource.SBOM_POLICY_VIOLATION_REPORT)
-        .query("hash", "1249e25aebb15358bedd")
+        .query("hash", hash)
+        .query("fileCoordinateId", fileCoordinateId)
+        .query("componentRef", componentRef)
         .parameter(app.getPublicId(), sbomVersion)
         .get();
 
@@ -601,7 +585,7 @@ public class ReportResourceTest
 
     PolicyThreats.Component result = response.getBody(PolicyThreats.Component.class);
     assertThat(result).isNotNull();
-    assertThat(result.hash).isEqualTo("1249e25aebb15358bedd");
+    assertThat(result.hash).isEqualTo(hash);
     assertThat(result.allViolations).hasSize(1);
   }
 
@@ -658,7 +642,8 @@ public class ReportResourceTest
 
     HttpResponse response = restRequest()
         .path(ReportResource.RESOURCE_PATH + "/" + ReportResource.SBOM_POLICY_VIOLATION_REPORT)
-        .query("fileCoordinateId", "some-file-coordinate-id")
+        .query("hash", "some-hash")
+        .query("componentRef", "some-ref")
         .parameter(app.getPublicId(), "sbomVersion1")
         .get();
 

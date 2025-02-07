@@ -342,6 +342,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.model.ClientScanType;
+import com.sonatype.insight.scan.util.HashUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.Table;
@@ -4572,6 +4573,25 @@ public class TemporaryEntity
       List<String> filenames,
       String displayName)
   {
+    return newThirdPartyFileCoordinate(thirdPartyFileCoordinateId, thirdPartyFile, source, format, name, version, hash,
+        packageUrl, matchState, occurrences, filenames, displayName, null);
+  }
+
+  public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
+      String thirdPartyFileCoordinateId,
+      ThirdPartyFile thirdPartyFile,
+      String source,
+      String format,
+      String name,
+      String version,
+      String hash,
+      String packageUrl,
+      String matchState,
+      List<String> occurrences,
+      List<String> filenames,
+      String displayName,
+      String componentRef)
+  {
     ThirdPartyFileCoordinate fileCoordinate =
         new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFile.getId());
     fileCoordinate.setPackageUrl(packageUrl);
@@ -4581,6 +4601,7 @@ public class TemporaryEntity
     fileCoordinate.setMatchStateId(matchState);
     fileCoordinate.setId(thirdPartyFileCoordinateId);
     fileCoordinate.setDisplayName(displayName);
+    fileCoordinate.setComponentRef(componentRef);
     thirdPartyFileCoordinateDAO.insert(fileCoordinate);
     return fileCoordinate;
   }
@@ -5890,7 +5911,8 @@ public class TemporaryEntity
     thirdPartyScanDAO.update(thirdPartyScan);
     ThirdPartyFileCoordinate thirdPartyFileCoordinate =
         newThirdPartyFileCoordinate(thirdPartyFile, "someSource", componentPackageUrl.getFormat(),
-            componentPackageUrl.getName(), componentPackageUrl.getVersion(), hash, componentPackageUrl.getPackageUrl());
+            componentPackageUrl.getName(), componentPackageUrl.getVersion(), hash, componentPackageUrl.getPackageUrl(),
+            HashUtils.hash(componentPackageUrl.getPackageUrl(), HashUtils.SHA1));
     thirdPartyFileCoordinateDAO.update(thirdPartyFileCoordinate);
     if (isVulnerable) {
       newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "someRefId", sbomMetadata.getId(),

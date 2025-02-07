@@ -211,6 +211,7 @@ public class ThirdPartyFileCoordinateDAO
         "       fc.file_coordinate_id," + //
         "       fc.filenames," + //
         "       fc.match_state_id," + //
+        "       fc.component_ref," + //
         "       COUNT(*) OVER() AS full_count" + //
         " FROM " + getDatabaseSchema() + ".file_coordinate fc" + //
         "  LEFT JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
@@ -250,7 +251,7 @@ public class ThirdPartyFileCoordinateDAO
       List<SbomComponentDTO> dtos = ((Stream<Object[]>) paginationQuery.getResultStream())
           .peek(array -> {
             if (result.getTotalResultsCount() == 0) {
-              result.setTotalResultsCount(((Long) array[18]).intValue());
+              result.setTotalResultsCount(((Long) array[19]).intValue());
             }
           })
           .map(SbomComponentDTO::new)

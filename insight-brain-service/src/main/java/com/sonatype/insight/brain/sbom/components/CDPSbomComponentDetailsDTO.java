@@ -38,10 +38,15 @@ public class CDPSbomComponentDetailsDTO
       String version,
       String format,
       String displayName,
+      String componentRef,
       String fileCoordinateId)
   {
     super(new String[]{hash, packageUrl, name, version, format, displayName});
-    setFileCoordinateId(fileCoordinateId);
+    setComponentRef(componentRef);
+    //Deprecated: for old sbom versions
+    if (componentRef == null) {
+      setFileCoordinateId(fileCoordinateId);
+    }
   }
 
   public VulnerabilitySummaryDTO getVulnerabilitySummary() {

@@ -413,7 +413,8 @@ public class ApiSbomService
         try {
           PolicyThreats.Component component =
               sbomPolicyService.getPolicyViolationsByFileCoordinateIdOrHash(applicationId, version,
-                  sbomComponentDTO.getFileCoordinateId(), sbomComponentDTO.getHash());
+                  sbomComponentDTO.getComponentRef(), sbomComponentDTO.getFileCoordinateId(),
+                  sbomComponentDTO.getHash());
           if (component != null) {
             sbomComponentDTO.setPolicyViolationCount(component.activeViolations.size());
           }

@@ -1119,12 +1119,21 @@ export function getCommitImportedSbomUrl(applicationId, applicationVersion, appl
   return url;
 }
 
-export function getSbomPolicyViolationReportUrl(applicationPublicId, sbomVersion, fileCoordinateId, hash) {
-  let queryString =
-    typeof fileCoordinateId === 'string' ? `?fileCoordinateId=${encodeURIComponent(fileCoordinateId)}` : '';
-  const paramSeparator = queryString.length > 0 ? '&' : '?';
-  queryString += typeof hash === 'string' ? `${paramSeparator}hash=${encodeURIComponent(hash)}` : '';
-  return uriTemplate`/rest/report/${applicationPublicId}/sbom/${sbomVersion}/sbomPolicyViolationReport` + queryString;
+export function getSbomPolicyViolationReportUrl(
+  applicationPublicId,
+  sbomVersion,
+  componentRef,
+  fileCoordinateId,
+  hash
+) {
+  let params = toURIParams({
+    componentRef,
+    fileCoordinateId,
+    hash,
+  });
+
+  params = params.length === 0 ? '' : '?' + params;
+  return uriTemplate`/rest/report/${applicationPublicId}/sbom/${sbomVersion}/sbomPolicyViolationReport` + params;
 }
 
 export const getVersionGraphUrl = ({

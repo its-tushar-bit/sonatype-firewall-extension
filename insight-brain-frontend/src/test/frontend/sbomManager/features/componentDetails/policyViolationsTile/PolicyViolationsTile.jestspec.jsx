@@ -17,6 +17,7 @@ describe('PolicyViolationsTile', () => {
   const APPLICATION_PUBLIC_ID = 'APPLICATION-PUBLIC-ID';
   const SBOM_VERSION = 'SBOM-VERSION';
   const FILE_COORDINATE_ID = 'FILE_COORDINATE_ID';
+  const COMPONENT_REF = 'COMPONENT_REF';
 
   const componentProps = Object.freeze({
     applicationPublicId: APPLICATION_PUBLIC_ID,
@@ -142,6 +143,7 @@ describe('PolicyViolationsTile', () => {
     sbomComponentDetailsPage: {
       componentDetails: {
         fileCoordinateId: FILE_COORDINATE_ID,
+        componentRef: COMPONENT_REF,
       },
       sbomPolicyViolations: {
         loading: true,
@@ -157,7 +159,7 @@ describe('PolicyViolationsTile', () => {
 
   it('renders the correct violations in order', async () => {
     axiosMock
-      .onGet(getSbomPolicyViolationReportUrl(APPLICATION_PUBLIC_ID, SBOM_VERSION, FILE_COORDINATE_ID))
+      .onGet(getSbomPolicyViolationReportUrl(APPLICATION_PUBLIC_ID, SBOM_VERSION, COMPONENT_REF, FILE_COORDINATE_ID))
       .reply(200, mockPolicyResponse);
 
     renderTile();
@@ -199,7 +201,7 @@ describe('PolicyViolationsTile', () => {
 
   it('renders correct empty content', async () => {
     axiosMock
-      .onGet(getSbomPolicyViolationReportUrl(APPLICATION_PUBLIC_ID, SBOM_VERSION, FILE_COORDINATE_ID))
+      .onGet(getSbomPolicyViolationReportUrl(APPLICATION_PUBLIC_ID, SBOM_VERSION, COMPONENT_REF, FILE_COORDINATE_ID))
       .reply(200, mockPolicyWithNoViolationsResponse);
 
     renderTile();
@@ -213,7 +215,7 @@ describe('PolicyViolationsTile', () => {
 
   it('renders error', async () => {
     axiosMock
-      .onGet(getSbomPolicyViolationReportUrl(APPLICATION_PUBLIC_ID, SBOM_VERSION, FILE_COORDINATE_ID))
+      .onGet(getSbomPolicyViolationReportUrl(APPLICATION_PUBLIC_ID, SBOM_VERSION, COMPONENT_REF, FILE_COORDINATE_ID))
       .reply(500, {});
 
     renderTile();

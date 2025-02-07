@@ -787,18 +787,12 @@ describe('CLMLocation.js', function () {
       );
     });
 
-    it('should return the url for getting SBOM policy violation report with fileCoordinateId', function () {
+    it('should return the url for getting SBOM policy violation report with componentRef', function () {
       expect(
-        CLMLocation.getSbomPolicyViolationReportUrl('application-public-id', 'sbom-version', 'file-coordinate-id')
+        CLMLocation.getSbomPolicyViolationReportUrl('application-public-id', 'sbom-version', 'component-ref')
       ).toBe(
-        '/rest/report/application-public-id/sbom/sbom-version/sbomPolicyViolationReport?fileCoordinateId=file-coordinate-id'
+        '/rest/report/application-public-id/sbom/sbom-version/sbomPolicyViolationReport?componentRef=component-ref'
       );
-    });
-
-    it('should return the url for getting SBOM policy violation report with hash', function () {
-      expect(
-        CLMLocation.getSbomPolicyViolationReportUrl('application-public-id', 'sbom-version', null, 'some-hash')
-      ).toBe('/rest/report/application-public-id/sbom/sbom-version/sbomPolicyViolationReport?hash=some-hash');
     });
 
     it('should return the url for getting SBOM policy violation report with fileCoordinateId and hash', function () {
@@ -806,11 +800,46 @@ describe('CLMLocation.js', function () {
         CLMLocation.getSbomPolicyViolationReportUrl(
           'application-public-id',
           'sbom-version',
+          null,
           'file-coordinate-id',
           'some-hash'
         )
       ).toBe(
         '/rest/report/application-public-id/sbom/sbom-version/sbomPolicyViolationReport?fileCoordinateId=file-coordinate-id&hash=some-hash'
+      );
+    });
+
+    it('should return the url for getting SBOM policy violation report with fileCoordinateId', function () {
+      expect(
+        CLMLocation.getSbomPolicyViolationReportUrl(
+          'application-public-id',
+          'sbom-version',
+          null,
+          'file-coordinate-id',
+          null
+        )
+      ).toBe(
+        '/rest/report/application-public-id/sbom/sbom-version/sbomPolicyViolationReport?fileCoordinateId=file-coordinate-id'
+      );
+    });
+
+    it('should return the url for getting SBOM policy violation report with hash', function () {
+      expect(
+        CLMLocation.getSbomPolicyViolationReportUrl('application-public-id', 'sbom-version', null, null, 'some-hash')
+      ).toBe('/rest/report/application-public-id/sbom/sbom-version/sbomPolicyViolationReport?hash=some-hash');
+    });
+
+    it('should return the url for getting SBOM policy violation report with componentRef, fileCoordinateId and hash', function () {
+      expect(
+        CLMLocation.getSbomPolicyViolationReportUrl(
+          'application-public-id',
+          'sbom-version',
+          'component-ref',
+          'file-coordinate-id',
+          'some-hash'
+        )
+      ).toBe(
+        '/rest/report/application-public-id/sbom/sbom-version/sbomPolicyViolationReport?componentRef=component-ref&fileCoordinateId=file-coordinate-id&hash=some-hash'
       );
     });
   });

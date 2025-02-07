@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.sbom.policy;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.inject.Inject;
 
@@ -29,6 +28,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.function.TriFunction;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -120,15 +120,16 @@ public class SbomPolicyServiceTest
   }
 
   @Test
-  public void testGetPolicyViolationsJsonNodeByFileCoordinateIdOrHash_NoFileCoordinateIdAndHash() {
+  public void testGetPolicyViolationsJsonNodeByFileCoordinateIdOrHash_NoComponentRefAndHash() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(
-            () -> service.getPolicyViolationsJsonNodeByFileCoordinateIdOrHash(app.getId(), "version", "", null, null))
-        .withMessage("fileCoordinateId and hash cannot be both null or empty.");
+            () -> service.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), "version", null, null, null,
+                null))
+        .withMessage("componentRef, fileCoordinateId and hash cannot be both null or empty.");
   }
 
   @Test
-  public void testGetPolicyViolationsJsonNodeByFileCoordinateIdOrHash_AppIdAndSbomVersionNotFound() throws IOException {
+  public void testGetPolicyViolationsJsonNodeByComponentRefAndSbomVersionNotFound() throws IOException {
     String sbomVersion = "sbomVersion1";
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), sbomVersion, ACTIVE, "fileName", "spec",
@@ -141,17 +142,18 @@ public class SbomPolicyServiceTest
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, thirdPartyScan.getScanId());
 
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> service.getPolicyViolationsJsonNodeByFileCoordinateIdOrHash(app.getId(), "sbomVersion2",
-            "86163fcc32524261bfd2bdbedb7eae43", null, null))
+        .isThrownBy(() -> service.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), "sbomVersion2",
+            "eb95f7c60bd3ae19e4ee272c96b62ca473614987", "86163fcc32524261bfd2bdbedb7eae43", null, null))
         .withMessage("Cannot find version sbomVersion2 for application with ID " + app.getId() + ".");
   }
 
   @Test
-  public void testGetPolicyViolationsJsonNodeByFileCoordinateIdOrHash_ByFileCoordinateId() throws IOException {
-    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, fileCoordinateId) -> {
+  public void testGetPolicyViolationsJsonNodeByFileCoordinateIdOrHash_ByComponentRef() throws IOException {
+    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef,fileCoordinateId) -> {
       try {
-        JsonNode jsonNode = service.getPolicyViolationsJsonNodeByFileCoordinateIdOrHash(app.getId(), sbomVersion,
-            fileCoordinateId, null, null);
+        JsonNode jsonNode =
+            service.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), sbomVersion, componentRef,
+                fileCoordinateId, null, null);
         assertThat(jsonNode).isNotNull();
         return JsonUtils.asPojo(jsonNode, PolicyThreats.Component.class);
       }
@@ -162,11 +164,11 @@ public class SbomPolicyServiceTest
   }
 
   @Test
-  public void testGetPolicyViolationsJsonNodeByFileCoordinateIdOrHash_ByFileCoordinateIdNotFound() throws IOException {
-    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, fileCoordinateId) -> {
+  public void testGetPolicyViolationsJsonNodeByFileCoordinateIdOrHash_ByComponentRefNotFound() throws IOException {
+    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef, fileCoordinateId) -> {
       try {
-        JsonNode jsonNode = service.getPolicyViolationsJsonNodeByFileCoordinateIdOrHash(app.getId(), sbomVersion,
-            "some-fake-file-coordinate-id", null, null);
+        JsonNode jsonNode = service.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), sbomVersion,
+            componentRef, "some-fake-file-coordinate-id", null, null);
         assertThat(jsonNode).isNull();
         return JsonUtils.asPojo(jsonNode, PolicyThreats.Component.class);
       }
@@ -178,10 +180,10 @@ public class SbomPolicyServiceTest
 
   @Test
   public void testGetPolicyViolationsJsonNodeByFileCoordinateIdOrHash_ByHash() throws IOException {
-    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, fileCoordinateId) -> {
+    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef, fileCoordinateId) -> {
       try {
-        JsonNode jsonNode = service.getPolicyViolationsJsonNodeByFileCoordinateIdOrHash(app.getId(), sbomVersion, null,
-            "1249e25aebb15358bedd", null);
+        JsonNode jsonNode = service.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), sbomVersion, null,
+            componentRef, "1249e25aebb15358bedd", null);
         assertThat(jsonNode).isNotNull();
         return JsonUtils.asPojo(jsonNode, PolicyThreats.Component.class);
       }
@@ -193,10 +195,10 @@ public class SbomPolicyServiceTest
 
   @Test
   public void testGetPolicyViolationsJsonNodeByFileCoordinateIdOrHash_ByHashNotFound() throws IOException {
-    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, fileCoordinateId) -> {
+    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef, fileCoordinateId) -> {
       try {
-        JsonNode jsonNode = service.getPolicyViolationsJsonNodeByFileCoordinateIdOrHash(app.getId(), sbomVersion,
-            "some-fake-file-coordinate-id", "some-fake-file-hash", null);
+        JsonNode jsonNode = service.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), sbomVersion,
+            componentRef, "some-fake-file-coordinate-id", "some-fake-file-hash", null);
         assertThat(jsonNode).isNull();
         return JsonUtils.asPojo(jsonNode, PolicyThreats.Component.class);
       }
@@ -207,11 +209,11 @@ public class SbomPolicyServiceTest
   }
 
   @Test
-  public void testGetPolicyViolationsJsonNodeByFileCoordinateIdOrHash_PreferFileCoordinateId() throws IOException {
-    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, fileCoordinateId) -> {
+  public void testGetPolicyViolationsJsonNodeByFileCoordinateIdOrHash_PreferComponentRef() throws IOException {
+    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef, fileCoordinateId) -> {
       try {
-        JsonNode jsonNode = service.getPolicyViolationsJsonNodeByFileCoordinateIdOrHash(app.getId(), sbomVersion,
-            fileCoordinateId, "1a667c9d419dc4f185c9", null);
+        JsonNode jsonNode = service.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), sbomVersion,
+            componentRef, fileCoordinateId, "1a667c9d419dc4f185c9", null);
         assertThat(jsonNode).isNotNull();
         assertThat(jsonNode.get("hash").asText()).isEqualTo("1249e25aebb15358bedd");
         return JsonUtils.asPojo(jsonNode, PolicyThreats.Component.class);
@@ -224,10 +226,10 @@ public class SbomPolicyServiceTest
 
   @Test
   public void testGetPolicyViolationsByFileCoordinateIdOrHash_ByFileCoordinateId() throws IOException {
-    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, fileCoordinateId) -> {
+    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef, fileCoordinateId) -> {
       try {
-        Component result =
-            service.getPolicyViolationsByFileCoordinateIdOrHash(app.getId(), sbomVersion, fileCoordinateId, null);
+        Component result = service.getPolicyViolationsByFileCoordinateIdOrHash(app.getId(), sbomVersion, componentRef,
+            fileCoordinateId, null);
         assertThat(result).isNotNull();
         return result;
       }
@@ -239,10 +241,10 @@ public class SbomPolicyServiceTest
 
   @Test
   public void testGetPolicyViolationsByFileCoordinateIdOrHash_ByFileCoordinateIdNotFound() throws IOException {
-    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, fileCoordinateId) -> {
+    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef, fileCoordinateId) -> {
       try {
         Component result = service.getPolicyViolationsByFileCoordinateIdOrHash(app.getId(), sbomVersion,
-            "some-fake-file-coordinate-id", null);
+            componentRef, "some-fake-file-coordinate-id", null);
         assertThat(result).isNull();
         return result;
       }
@@ -254,10 +256,10 @@ public class SbomPolicyServiceTest
 
   @Test
   public void testGetPolicyViolationsByFileCoordinateIdOrHash_ByHash() throws IOException {
-    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, fileCoordinateId) -> {
+    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef, fileCoordinateId) -> {
       try {
         Component result = service.getPolicyViolationsByFileCoordinateIdOrHash(app.getId(), sbomVersion,
-            "some-fake-file-coordinate-id", "1249e25aebb15358bedd");
+            componentRef, "some-fake-file-coordinate-id", "1249e25aebb15358bedd");
         assertThat(result).isNotNull();
         return result;
       }
@@ -269,10 +271,10 @@ public class SbomPolicyServiceTest
 
   @Test
   public void testGetPolicyViolationsByFileCoordinateIdOrHash_ByHashNotFound() throws IOException {
-    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, fileCoordinateId) -> {
+    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef, fileCoordinateId) -> {
       try {
         Component result = service.getPolicyViolationsByFileCoordinateIdOrHash(app.getId(), sbomVersion,
-            "some-fake-file-coordinate-id", "some-fake-file-hash");
+            componentRef, "some-fake-file-coordinate-id", "some-fake-file-hash");
         assertThat(result).isNull();
         return result;
       }
@@ -284,10 +286,10 @@ public class SbomPolicyServiceTest
 
   @Test
   public void testGetPolicyViolationsByFileCoordinateIdOrHash_PreferFileCoordinateId() throws IOException {
-    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, fileCoordinateId) -> {
+    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef, fileCoordinateId) -> {
       try {
         Component result = service.getPolicyViolationsByFileCoordinateIdOrHash(app.getId(), sbomVersion,
-            fileCoordinateId, "1a667c9d419dc4f185c9");
+            componentRef, fileCoordinateId, "1a667c9d419dc4f185c9");
         assertThat(result).isNotNull();
         assertThat(result.hash).isEqualTo("1249e25aebb15358bedd");
         return result;
@@ -299,7 +301,7 @@ public class SbomPolicyServiceTest
   }
 
   private void doTestGetPolicyViolationsByFileCoordinateIdOrHash(
-      BiFunction<String, String, Component> function,
+      TriFunction<String, String, String, Component> function,
       boolean isEmptyResult) throws IOException
   {
     String sbomVersion = "sbomVersion1";
@@ -313,7 +315,8 @@ public class SbomPolicyServiceTest
 
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, thirdPartyScan.getScanId());
 
-    PolicyThreats.Component component = function.apply(sbomVersion, "86163fcc32524261bfd2bdbedb7eae43");
+    PolicyThreats.Component component = function.apply(sbomVersion,
+        "eb95f7c60bd3ae19e4ee272c96b62ca473614987", "86163fcc32524261bfd2bdbedb7eae43");
     if (isEmptyResult) {
       assertThat(component).isNull();
     }

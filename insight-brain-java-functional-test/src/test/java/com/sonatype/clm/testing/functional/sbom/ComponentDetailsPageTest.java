@@ -22,6 +22,8 @@ import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.Vulner
 import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.VulnerabilityDetailsPopover;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.SbomManagerComponentDetailsPage;
+import com.sonatype.clm.testing.functional.pages.sbom.BillOfMaterialsPageSummaryTile;
+import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerBillOfMaterialsPage;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -58,7 +60,11 @@ public class ComponentDetailsPageTest
 
   public static final String TEST_COMPONENT_HASH = "mockComponentHash";
 
+  public static final String TEST_COMPONENT_REF = "96c3fa923cd66782eb2a2747a3453200a2d78fad";
+
   public static final String TEST_COMPONENT_PURL = "pkg:maven/2/3@1.1";
+
+  private final BillOfMaterialsPageSummaryTile billOfMaterialsPageSummaryTile = new BillOfMaterialsPageSummaryTile();
 
   private static SbomManagerComponentDetailsPage sbomManagerComponentDetailsPage;
 
@@ -171,12 +177,34 @@ public class ComponentDetailsPageTest
   }
 
   @Test
-  public void testFeatureEnabled_policyViolationsTile() {
+  public void testFeatureEnabled_policyViolationsTile_fileCoordinateId() {
+    //Use of fileCoordinateId is deprecated. But keeping this test to ensure backward compatibility
+    setTestData(false);
+
+    SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
+    navigateToComponentDetailsPage();
+
+    sbomManagerComponentDetailsPage.tabs().get(1).shouldHave(text("Policy Violations")).click();
+
+    sbomManagerComponentDetailsPage.policyViolationsTile().shouldBe(visible);
+
+    sbomManagerComponentDetailsPage.policyViolationsTile().header().shouldHave(text("Policy Violations"));
+    sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 0).shouldHave(text("9"));
+    sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 1).shouldHave(text("Security-High"));
+    sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 2)
+        .shouldHave(text("Medium risk CVSS score"));
+    sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 3).shouldHave(text(
+        "Found security vulnerability CVE-4812 with severity 5.3.\n"
+            + "Found security vulnerability CVE-4812 with severity 5.3.\n"
+            + "Found security vulnerability CVE-4812 with status 'Open', not 'Not Applicable'."));
+  }
+
+  @Test
+  public void testFeatureEnabled_policyViolationsTile_componentRef() {
     setTestData();
 
     SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
-    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
-        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+    navigateToComponentDetailsPage();
 
     sbomManagerComponentDetailsPage.tabs().get(1).shouldHave(text("Policy Violations")).click();
 
@@ -199,8 +227,7 @@ public class ComponentDetailsPageTest
     mockHdsResponseForVulnerabilityDetails();
     SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
 
-    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
-        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+    navigateToComponentDetailsPage();
 
     sbomManagerComponentDetailsPage.tabs().get(1).shouldHave(text("Policy Violations")).click();
 
@@ -232,8 +259,7 @@ public class ComponentDetailsPageTest
     mockHdsResponseForVulnerabilityDetails();
     SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
 
-    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
-        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+    navigateToComponentDetailsPage();
 
     sbomManagerComponentDetailsPage.tabs().get(1).shouldHave(text("Policy Violations")).click();
 
@@ -259,8 +285,7 @@ public class ComponentDetailsPageTest
     setTestData();
     mockHdsResponseForVulnerabilityDetails();
 
-    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
-        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+    navigateToComponentDetailsPage();
 
     SelenideElement linkThirdRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(2, 1);
@@ -282,11 +307,10 @@ public class ComponentDetailsPageTest
   public void testFeatureEnabled_opensVulnerabilityDetailsPopover_issueLink_checkContent_Sonatype() {
     testOrganization = tempEntity.newOrganization();
     testApplication = tempEntity.newApplication(testOrganization.getId());
-    setVulnerabilityTablesData(minimumDataSet(), true, "Sonatype", false, false);
+    setVulnerabilityTablesData(minimumDataSet(true), true, "Sonatype", false, false);
     mockHdsResponseForVulnerabilityDetails();
 
-    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
-        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+    navigateToComponentDetailsPage();
 
     SelenideElement linkThirdRowColumn = sbomManagerComponentDetailsPage.sonatypeVulnerabilitiesTile()
         .getColumnData(4, 1);
@@ -308,8 +332,7 @@ public class ComponentDetailsPageTest
   public void testFeatureEnabled_opensVexDrawer_addButton_checkContent() {
     setTestData();
 
-    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
-        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+    navigateToComponentDetailsPage();
 
     SelenideElement dropdownButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(0, 5);
@@ -336,8 +359,7 @@ public class ComponentDetailsPageTest
   public void testFeatureEnabled_opensVexDrawer_addButton_checkContentWithVex_singleResponse() {
     setTestData();
 
-    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
-        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+    navigateToComponentDetailsPage();
 
     SelenideElement dropdownButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(1, 5);
@@ -364,8 +386,7 @@ public class ComponentDetailsPageTest
   public void testFeatureEnabled_opensVexDrawer_addButton_checkContentWithVex_multipleResponse() {
     setTestDataWithMultipleResponsesInVexAnnotation();
 
-    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
-        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+    navigateToComponentDetailsPage();
 
     SelenideElement dropdownButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(1, 5);
@@ -392,8 +413,7 @@ public class ComponentDetailsPageTest
   public void testFeatureEnabled_opensVexDrawer_addButton_submitFormSuccessfully() {
     setTestData();
 
-    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
-        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+    navigateToComponentDetailsPage();
 
     SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(0, 5);
@@ -432,8 +452,7 @@ public class ComponentDetailsPageTest
   public void testFeatureEnabled_opensVexDrawer_editButton_updateFormSuccessfully() {
     setTestData();
 
-    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
-        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+    navigateToComponentDetailsPage();
 
     SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(1, 5);
@@ -496,8 +515,7 @@ public class ComponentDetailsPageTest
   public void testFeatureEnabled_opensDeleteAnnotationModal_cancelAndSubmitButtons() {
     setTestData();
 
-    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
-        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+    navigateToComponentDetailsPage();
 
     SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(1, 5);
@@ -540,8 +558,7 @@ public class ComponentDetailsPageTest
         thirdPartyFileCoordinate.getHash()
     );
 
-    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
-        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+    navigateToComponentDetailsPage();
 
     SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(1, 5);
@@ -588,8 +605,7 @@ public class ComponentDetailsPageTest
         thirdPartyFileCoordinate.getHash()
     );
 
-    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
-        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+    navigateToComponentDetailsPage();
 
     SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(1, 5);
@@ -627,8 +643,7 @@ public class ComponentDetailsPageTest
   public void testFeatureEnabled_opensCopyAnnotationModal_multipleResponses() {
     setTestDataWithSecondaryData(true, false);
 
-    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
-        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+    navigateToComponentDetailsPage();
 
     SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(1, 5);
@@ -675,16 +690,30 @@ public class ComponentDetailsPageTest
     eyesWatcher.eyesCheck("An error occurred loading data. The SBOM Manager license feature is not enabled.");
   }
 
+  private void navigateToComponentDetailsPage() {
+    //component details page state depends on bill of materials page state, so loading the bom page first
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
+        .getSbomVersion()));
+    billOfMaterialsPageSummaryTile.componentSummaryChartAndProgress().shouldBe(visible);
+
+    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
+        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+  }
+
   private void setTestData() {
+    setTestData(true);
+  }
+
+  private void setTestData(boolean withComponentRef) {
     testOrganization = tempEntity.newOrganization();
     testApplication = tempEntity.newApplication(testOrganization.getId());
-    setVulnerabilityTablesData(minimumDataSet(), true, "SBOM", false, false);
+    setVulnerabilityTablesData(minimumDataSet(withComponentRef), true, "SBOM", false, false);
   }
 
   private void setTestDataWithMultipleResponsesInVexAnnotation() {
     testOrganization = tempEntity.newOrganization();
     testApplication = tempEntity.newApplication(testOrganization.getId());
-    setVulnerabilityTablesData(minimumDataSet(), true, "SBOM", true, false);
+    setVulnerabilityTablesData(minimumDataSet(true), true, "SBOM", true, false);
   }
 
   private void setTestDataWithSecondaryData(
@@ -713,11 +742,11 @@ public class ComponentDetailsPageTest
 
     setVulnerabilityTablesData(fileCoordinate, true, "SBOM", multipleResponsesInVexAnnotation,
         withNullResponseInVexAnnotation);
-    setVulnerabilityTablesData(minimumDataSet(), false, "SBOM", multipleResponsesInVexAnnotation,
+    setVulnerabilityTablesData(minimumDataSet(true), false, "SBOM", multipleResponsesInVexAnnotation,
         withNullResponseInVexAnnotation);
   }
 
-  private ThirdPartyFileCoordinate minimumDataSet() {
+  private ThirdPartyFileCoordinate minimumDataSet(boolean withComponentRef) {
     ThirdPartyFile file = tempEntity.newThirdPartyFile();
 
     thirdPartySbomMetadata = tempEntity.newThirdPartySbomMetadata(
@@ -740,9 +769,16 @@ public class ComponentDetailsPageTest
     );
     fileCoordinate.setPackageUrl(TEST_COMPONENT_PURL);
     fileCoordinate.setId("86163fcc32524261bfd2bdbedb7eae43");
+    String reportResourceName = "/sbom/ComponentDetailsTest/report";
+
+    if (withComponentRef) {
+      fileCoordinate.setComponentRef(TEST_COMPONENT_REF);
+      reportResourceName = "/sbom/ComponentDetailsTest/reportWithComponentRef";
+    }
     thirdPartyFileCoordinateDAO.insert(fileCoordinate);
 
-    URL zippedReport = ReportHelper.zipReport("/sbom/ComponentDetailsTest/report", tempDir);
+    URL zippedReport = ReportHelper.zipReport(reportResourceName, tempDir);
+
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     File reportDestination = work.getReportFile(testApplication.getId(), scan.getScanId());
 

@@ -36,6 +36,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -438,7 +439,7 @@ public class ThirdPartyFileCoordinateDAOTest
     PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
     ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
         "s1", packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
-        "h1", packageUrlIdentifier1.getPackageUrl());
+        "h1", packageUrlIdentifier1.getPackageUrl(), "componentRef-" + RandomStringUtils.insecure().nextAlphabetic(2));
 
     ThirdPartyCoordinateSecurity coordinateSecurity1 = tempEntity.newThirdPartyCoordinateSecurity(coordinate1,
         "cve-2", "description2", "link2", CvssV3Severity.CRITICAL.getEndScoreRange(),
@@ -497,7 +498,8 @@ public class ThirdPartyFileCoordinateDAOTest
           assertThat(component.getVulnerabilitySeverityCriticalCount()).isOne();
           assertThat(component.getLicenses()).isNullOrEmpty();
           assertThat(component.getPercentageAnnotated()).isEqualTo(100.0);
-          assertThat(component.getFileCoordinateId()).isEqualTo(coordinate1.getId());
+          assertThat(component.getFileCoordinateId()).isNull();
+          assertThat(component.getComponentRef()).isNotNull().startsWith("componentRef-");
         });
 
     assertThat(dtos).filteredOn(component -> component.getHash().equals(coordinate2.getHash()))
@@ -518,7 +520,9 @@ public class ThirdPartyFileCoordinateDAOTest
               .extracting(License::getLicenseName)
               .containsExactlyInAnyOrder("License 1", "License 2");
           assertThat(component.getPercentageAnnotated()).isEqualTo(16.7);
+          //for older records where the componentRef is not set.
           assertThat(component.getFileCoordinateId()).isEqualTo(coordinate2.getId());
+          assertThat(component.getComponentRef()).isNull();
         });
   }
 
@@ -1356,9 +1360,9 @@ public class ThirdPartyFileCoordinateDAOTest
     ThirdPartySbomMetadata thirdPartySbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(application.getId())
         .build();
-    String a = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "a").getId();
-    String b = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "b").getId();
-    String c = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "c").getId();
+    String a = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "a").getComponentRef();
+    String b = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "b").getComponentRef();
+    String c = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "c").getComponentRef();
     SbomComponentListDTO result;
 
     // Ascending all results
@@ -1374,7 +1378,7 @@ public class ThirdPartyFileCoordinateDAOTest
     );
     assertThat(result.getResults())
         .isNotNull()
-        .extracting(SbomComponentDTO::getFileCoordinateId)
+        .extracting(SbomComponentDTO::getComponentRef)
         .containsExactly(a, b, c);
 
     // Descending all results
@@ -1390,7 +1394,7 @@ public class ThirdPartyFileCoordinateDAOTest
     );
     assertThat(result.getResults())
         .isNotNull()
-        .extracting(SbomComponentDTO::getFileCoordinateId)
+        .extracting(SbomComponentDTO::getComponentRef)
         .containsExactly(c, b, a);
 
     // Ascending paged results
@@ -1406,7 +1410,7 @@ public class ThirdPartyFileCoordinateDAOTest
     );
     assertThat(result.getResults())
         .isNotNull()
-        .extracting(SbomComponentDTO::getFileCoordinateId)
+        .extracting(SbomComponentDTO::getComponentRef)
         .containsExactly(a, b);
     result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
         thirdPartySbomMetadata.getThirdPartyFileId(),
@@ -1420,7 +1424,7 @@ public class ThirdPartyFileCoordinateDAOTest
     );
     assertThat(result.getResults())
         .isNotNull()
-        .extracting(SbomComponentDTO::getFileCoordinateId)
+        .extracting(SbomComponentDTO::getComponentRef)
         .containsExactly(c);
 
     // Descending paged results
@@ -1436,7 +1440,7 @@ public class ThirdPartyFileCoordinateDAOTest
     );
     assertThat(result.getResults())
         .isNotNull()
-        .extracting(SbomComponentDTO::getFileCoordinateId)
+        .extracting(SbomComponentDTO::getComponentRef)
         .containsExactly(c, b);
     result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
         thirdPartySbomMetadata.getThirdPartyFileId(),
@@ -1450,19 +1454,21 @@ public class ThirdPartyFileCoordinateDAOTest
     );
     assertThat(result.getResults())
         .isNotNull()
-        .extracting(SbomComponentDTO::getFileCoordinateId)
+        .extracting(SbomComponentDTO::getComponentRef)
         .containsExactly(a);
 
     // Tiebrakers
-    String d = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "d").getId();
-    String a0 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "a", s -> s.setName("n0")).getId();
-    String a2 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "a", s -> s.setName("n2")).getId();
-    String b0 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "b", s -> s.setVersion("v0")).getId();
-    String b2 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "b", s -> s.setVersion("v2")).getId();
-    String c0 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "c", s -> s.setPackageUrl("pkg:f/p0@v")).getId();
-    String c2 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "c", s -> s.setPackageUrl("pkg:f/p2@v")).getId();
-    String d0 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "d", s -> s.setHash("h0")).getId();
-    String d2 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "d", s -> s.setHash("h2")).getId();
+    String d = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "d").getComponentRef();
+    String a0 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "a", s -> s.setName("n0")).getComponentRef();
+    String a2 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "a", s -> s.setName("n2")).getComponentRef();
+    String b0 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "b", s -> s.setVersion("v0")).getComponentRef();
+    String b2 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "b", s -> s.setVersion("v2")).getComponentRef();
+    String c0 =
+        newThirdPartyFileCoordinate(thirdPartySbomMetadata, "c", s -> s.setPackageUrl("pkg:f/p0@v")).getComponentRef();
+    String c2 =
+        newThirdPartyFileCoordinate(thirdPartySbomMetadata, "c", s -> s.setPackageUrl("pkg:f/p2@v")).getComponentRef();
+    String d0 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "d", s -> s.setHash("h0")).getComponentRef();
+    String d2 = newThirdPartyFileCoordinate(thirdPartySbomMetadata, "d", s -> s.setHash("h2")).getComponentRef();
 
     // Ascending all results with tiebrakers
     result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
@@ -1477,7 +1483,7 @@ public class ThirdPartyFileCoordinateDAOTest
     );
     assertThat(result.getResults())
         .isNotNull()
-        .extracting(SbomComponentDTO::getFileCoordinateId)
+        .extracting(SbomComponentDTO::getComponentRef)
         .containsExactly(a0, a, a2, b0, b, b2, c0, c, c2, d0, d, d2);
 
     // Descending all results with tiebrakers
@@ -1493,7 +1499,7 @@ public class ThirdPartyFileCoordinateDAOTest
     );
     assertThat(result.getResults())
         .isNotNull()
-        .extracting(SbomComponentDTO::getFileCoordinateId)
+        .extracting(SbomComponentDTO::getComponentRef)
         .containsExactly(d2, d, d0, c2, c, c0, b2, b, b0, a2, a, a0);
   }
 
@@ -1513,7 +1519,8 @@ public class ThirdPartyFileCoordinateDAOTest
         MatchState.EXACT.getId(),
         List.of("occurrence"),
         List.of("filename"),
-        displayName
+        displayName,
+        "componentRef-" + RandomStringUtils.insecure().nextAlphabetic(2)
     );
   }
 

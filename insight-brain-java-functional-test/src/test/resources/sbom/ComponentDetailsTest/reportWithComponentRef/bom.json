@@ -1,7 +1,6 @@
 {
   "aaData" : [ {
-    "sonatypeIdentifier": "86163fcc32524261bfd2bdbedb7eae43",
-    "componentRef": "e3eb444687945a191bc0ae39e53ff39a2e35e73e",
+    "componentRef": "96c3fa923cd66782eb2a2747a3453200a2d78fad",
     "filenames" : [ "tomcat-util-5.5.23.jar" ],
     "pathnames" : [ "tomcat-util-5.5.23.jar" ],
     "groupId" : "tomcat",
@@ -20,7 +19,7 @@
     "matchState" : "exact",
     "scanError" : false,
     "proprietary" : false,
-    "hash" : "1249e25aebb15358bedd",
+    "hash" : "mockComponentHash",
     "relativePopularity" : 1.0,
     "createTime" : 1201589122000
   }, {
@@ -42,7 +41,6 @@
     "matchState" : "exact",
     "scanError" : false,
     "proprietary" : false,
-    "hash" : "1a667c9d419dc4f185c9",
     "relativePopularity" : 0.1,
     "createTime" : 1200480439000
   }]

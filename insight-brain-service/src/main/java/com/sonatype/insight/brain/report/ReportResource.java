@@ -26,6 +26,15 @@ import java.util.zip.ZipFile;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -33,15 +42,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Produces;
-import javax.ws.rs.PUT;
-import javax.ws.rs.QueryParam;
 
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
@@ -223,6 +223,7 @@ public class ReportResource
       @PathParam("applicationPublicId")
       final String applicationPublicId,
       @PathParam("sbomVersion") final String sbomVersion,
+      @QueryParam("componentRef") final String componentRef,
       @QueryParam("fileCoordinateId") final String fileCoordinateId,
       @QueryParam("hash") final String hash,
       @Context final HttpServletRequest httpRequest) throws IOException
@@ -235,9 +236,9 @@ public class ReportResource
       return Response.status(Status.NOT_FOUND).build();
     }
 
-    if (!StringUtils.isAllBlank(fileCoordinateId, hash)) {
-      JsonNode jsonNode = sbomPolicyService.getPolicyViolationsJsonNodeByFileCoordinateIdOrHash(applicationInternalId,
-          sbomVersion, fileCoordinateId, hash, policyThreatsReportEntry);
+    if (!StringUtils.isAllBlank(fileCoordinateId, componentRef, hash)) {
+      JsonNode jsonNode = sbomPolicyService.getPolicyViolationsJsonNodeByComponentRefOrHash(applicationInternalId,
+          sbomVersion, componentRef, fileCoordinateId, hash, policyThreatsReportEntry);
 
       if (jsonNode != null) {
         ResponseBuilder response = Response.ok(jsonNode);

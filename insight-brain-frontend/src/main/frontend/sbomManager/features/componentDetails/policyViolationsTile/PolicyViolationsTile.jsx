@@ -36,6 +36,7 @@ const PolicyViolationsTile = ({ applicationPublicId, sbomVersion }) => {
         actions.loadSbomPolicyViolations({
           applicationPublicId,
           sbomVersion,
+          componentRef: componentDetails.componentRef,
           fileCoordinateId: componentDetails.fileCoordinateId,
           hash: componentDetails.hash,
         })

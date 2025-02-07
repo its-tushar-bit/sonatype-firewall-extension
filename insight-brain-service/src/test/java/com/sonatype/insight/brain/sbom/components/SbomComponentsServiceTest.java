@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
@@ -36,6 +35,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -74,15 +74,12 @@ public class SbomComponentsServiceTest
         tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE,
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate componentA =
-        tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae43", thirdPartyFile, "s1",
-            "f1", "n1", "v1", "1249e25aebb15358bedd",
-            "pkg:f1/group/n1@v1?type=jar", List.of("dependency:/bom.json/pkg:f1\\n1@v1"), null, null);
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "1249e25aebb15358bedd",
+            "pkg:f1/group/n1@v1?type=jar", "componentRef-" + RandomStringUtils.insecure().nextAlphabetic(2));
 
     ThirdPartyFileCoordinate componentB =
-        tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae42", thirdPartyFile, "s2",
-            "f2", "n2", "v2", "1249e25aebb15358bedw",
-            "pkg:f2/group/n2@v2?type=jar",
-            List.of("dependency:/bom.json/pkg:f1\\n1@v1,dependency:/bom.json/pkg:f2\\n2@v2"), null, "exact");
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s2", "f2", "n2", "v2", "1249e25aebb15358bedw",
+            "pkg:f2/group/n2@v2?type=jar", "componentRef-" + RandomStringUtils.insecure().nextAlphabetic(2));
     ThirdPartyCoordinateSecurity vulnerabilityA =
         tempEntity.newThirdPartyCoordinateSecurity(componentA, "cve1", "d1", "l1", 9, "f1", "v1", "cvs1", "sd1",
             "cwes1", "m1", "r1", "ad1", "SBOM");
@@ -386,7 +383,7 @@ public class SbomComponentsServiceTest
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate component =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "1249e25aebb15358bedd",
-            "pkg:f1/group/n1@v1?type=jar");
+            "pkg:f1/group/n1@v1?type=jar", "componentRef-" + RandomStringUtils.insecure().nextAlphabetic(2));
     File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
     FileUtils.copyURLToFile(ReportHelper
         .zipReport("/SbomComponentsServiceTest", tempDir), reportFile);
@@ -415,7 +412,8 @@ public class SbomComponentsServiceTest
     assertThat(actual.getPackageUrl()).isEqualTo(component.getPackageUrl());
     assertThat(actual.getComponentIdentifier()).isNotNull();
     assertThat(actual.getComponentIdentifier().getFormat()).isEqualTo(component.getFormat());
-    assertThat(actual.getFileCoordinateId()).isEqualTo(component.getId());
+    assertThat(actual.getFileCoordinateId()).isNull();
+    assertThat(actual.getComponentRef()).startsWith("componentRef-");
     assertThat(actual.getMetadata()).isNotNull();
     assertThat(actual.getMetadata().getApplicationName()).isEqualTo(app.getName());
     assertThat(actual.getMetadata().getOrganizationName()).isEqualTo(org.getName());

@@ -468,9 +468,9 @@ const hidePolicyViolationDetailsDrawer = (state) => {
 
 const loadSbomPolicyViolations = createAsyncThunk(
   `${REDUCER_NAME}/loadSbomPolicyViolationReport`,
-  async ({ applicationPublicId, sbomVersion, fileCoordinateId, hash }, { rejectWithValue }) =>
+  async ({ applicationPublicId, sbomVersion, componentRef, fileCoordinateId, hash }, { rejectWithValue }) =>
     axios
-      .get(getSbomPolicyViolationReportUrl(applicationPublicId, sbomVersion, fileCoordinateId, hash))
+      .get(getSbomPolicyViolationReportUrl(applicationPublicId, sbomVersion, componentRef, fileCoordinateId, hash))
       .then((response) => response.data)
       .catch((error) => rejectWithValue(error))
 );

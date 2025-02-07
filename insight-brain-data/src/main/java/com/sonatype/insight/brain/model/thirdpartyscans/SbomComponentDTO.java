@@ -70,6 +70,8 @@ public class SbomComponentDTO
 
   private String fileCoordinateId;
 
+  private String componentRef;
+
   private double releaseStatusPercentage;
 
   public SbomComponentDTO() {
@@ -118,7 +120,10 @@ public class SbomComponentDTO
       if (StringUtils.isNotBlank(dependencyTypeValue)) {
         dependencyType = ThirdPartyDependencyType.fromValue(dependencyTypeValue).getDisplayName();
       }
-      fileCoordinateId = (String) array[15];
+      componentRef = (String) array[18];
+      if (StringUtils.isBlank(componentRef)) {
+        fileCoordinateId = (String) array[15];
+      }
       String filenamesString = (String) array[16];
       if (StringUtils.isNotBlank(filenamesString)) {
         filenames = List.of(filenamesString.split(","));
@@ -275,8 +280,20 @@ public class SbomComponentDTO
     return fileCoordinateId;
   }
 
+  /**
+   * @deprecated Use {@link #setComponentRef} instead
+   */
+  @Deprecated
   public void setFileCoordinateId(String fileCoordinateId) {
     this.fileCoordinateId = fileCoordinateId;
+  }
+
+  public String getComponentRef() {
+    return componentRef;
+  }
+
+  public void setComponentRef(final String componentRef) {
+    this.componentRef = componentRef;
   }
 
   public double getReleaseStatusPercentage() {

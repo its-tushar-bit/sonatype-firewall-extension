@@ -296,7 +296,8 @@ public class ThirdPartySbomMetadataDAO
         " JOIN " + //
         "  (SELECT  application_id, max(created_at) as created_at " + //
         "   FROM " +  databaseSchema + ".sbom_metadata " + //
-        "   group by application_id) sm2 " + //
+        "   WHERE status = ?10 " + //
+        "   GROUP BY application_id) sm2 " + //
         " ON sm.application_id = sm2.application_id " + //
         " AND sm.created_at = sm2.created_at " + //
         " JOIN " + operationalDataStore.getDatabaseSchema() + ".application app" + //

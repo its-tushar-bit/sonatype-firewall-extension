@@ -673,6 +673,32 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
+  @PostgresTest
+  public void testGetApplications_WithLatestSBOMMetadataInPendingStatus() {
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .withCreatedAt(new Date())
+        .build();
+
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .withStatus(PENDING)
+        .withCreatedAt(new Date())
+        .build();
+
+    SbomApplicationListSummaryDTO resultDtoList = dao.getSbomApplicationsWithRecentlyImportedSbomVersion(
+        Set.of(application.getId()),
+        SbomApplicationsSortableField.IMPORT_DATE,
+        false,
+        1,
+        3
+    );
+
+    assertThat(resultDtoList.getApplications()).hasSize(1);
+    assertThat(resultDtoList.getTotalCount()).isEqualTo(1);
+  }
+
+  @Test
   public void testGetSbomsHistoryMetrics_UpdatedVEX() {
     var activeState = ACTIVE;
     Date now = new Date();

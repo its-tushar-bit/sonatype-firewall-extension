@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.model.roi;
 
 import java.util.Arrays;
-import javax.ws.rs.NotFoundException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 public enum CurrencyTypes
 {

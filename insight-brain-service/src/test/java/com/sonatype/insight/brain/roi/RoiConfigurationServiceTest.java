@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.roi;
 
 import java.math.BigDecimal;
 import javax.inject.Inject;
-import javax.ws.rs.NotFoundException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
 import com.sonatype.insight.brain.model.roi.CurrencyTypes;

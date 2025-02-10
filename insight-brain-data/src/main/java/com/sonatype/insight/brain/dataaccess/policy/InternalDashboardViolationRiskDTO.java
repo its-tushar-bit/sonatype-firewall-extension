@@ -30,7 +30,7 @@ public class InternalDashboardViolationRiskDTO
 
   public final String componentIdCoordinatesJson;
 
-  public final String constraintFactsId;
+  public final String constraintFactsJson;
 
   public final long firstOccurrenceTime;
 
@@ -47,7 +47,7 @@ public class InternalDashboardViolationRiskDTO
       String filename,
       String componentIdFormat,
       String componentIdCoordinatesJson,
-      String constraintFactsId,
+      String constraintFactsJson,
       long firstOccurrenceTime,
       String autoPolicyWaiverId)
   {
@@ -61,7 +61,7 @@ public class InternalDashboardViolationRiskDTO
     this.filename = filename;
     this.componentIdFormat = componentIdFormat;
     this.componentIdCoordinatesJson = componentIdCoordinatesJson;
-    this.constraintFactsId = constraintFactsId;
+    this.constraintFactsJson = constraintFactsJson;
     this.firstOccurrenceTime = firstOccurrenceTime;
     this.autoPolicyWaiverId = autoPolicyWaiverId;
   }

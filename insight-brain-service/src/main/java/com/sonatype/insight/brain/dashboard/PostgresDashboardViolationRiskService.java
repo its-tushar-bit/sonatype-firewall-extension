@@ -8,15 +8,11 @@ package com.sonatype.insight.brain.dashboard;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -36,7 +32,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFac
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
-import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -139,30 +134,19 @@ public class PostgresDashboardViolationRiskService
       return result;
     }
 
-    Map<String, PolicyViolationConstraintFacts> constraintFactsById = getConstraintFactsById(rows);
-
     if (rows.size() > pageSize) {
       result.hasNextPage = true;
     }
     result.dashboardResults =
-        rows.stream().limit(pageSize)
-            .map(row -> toDashboardViolationRiskDTO(row, constraintFactsById.get(row.constraintFactsId))).toList();
+        rows.stream()
+            .limit(pageSize)
+            .map(PostgresDashboardViolationRiskService::toDashboardViolationRiskDTO)
+            .toList();
 
     return result;
   }
 
-  private Map<String, PolicyViolationConstraintFacts> getConstraintFactsById(
-      List<InternalDashboardViolationRiskDTO> rows)
-  {
-    Set<String> constraintFactsIds = rows.stream().map(row -> row.constraintFactsId).collect(Collectors.toSet());
-    return policyViolationConstraintFactsDAO.getByIds(constraintFactsIds).stream()
-            .collect(Collectors.toMap(PolicyViolationConstraintFacts::getId, Function.identity()));
-  }
-
-  private static DashboardViolationRiskDTO toDashboardViolationRiskDTO(
-      InternalDashboardViolationRiskDTO internalDTO,
-      PolicyViolationConstraintFacts constraintFacts)
-  {
+  private static DashboardViolationRiskDTO toDashboardViolationRiskDTO(InternalDashboardViolationRiskDTO internalDTO) {
     DashboardViolationRiskDTO result = new DashboardViolationRiskDTO();
     result.applicationName = internalDTO.applicationName;
     result.organizationName = internalDTO.organizationName;
@@ -176,14 +160,13 @@ public class PostgresDashboardViolationRiskService
     result.displayName = ComponentDisplayNameUtil.fromIdentifier(componentIdentifierFromJson);
     result.derivedComponentName = ComponentDisplayNameUtil.deriveComponentName(result);
     result.firstOccurrenceTime = internalDTO.firstOccurrenceTime;
-    result.referenceId = findSecurityVulnerabilityReferenceId(constraintFacts);
+    result.referenceId = findSecurityVulnerabilityReferenceId(internalDTO.constraintFactsJson);
     return result;
   }
 
-  private static String findSecurityVulnerabilityReferenceId(PolicyViolationConstraintFacts constraintFacts) {
+  private static String findSecurityVulnerabilityReferenceId(String constraintFactsJson) {
     try {
-      for (ConstraintFact constraintFact : Arrays
-          .asList(JsonUtils.parse(constraintFacts.getConstraintFactsJson(), ConstraintFact[].class))) {
+      for (ConstraintFact constraintFact : JsonUtils.parse(constraintFactsJson, ConstraintFact[].class)) {
         for (ConditionFact fact : constraintFact.getConditionFacts()) {
           TriggerReference reference = fact.getReference();
           if (reference != null && Type.SECURITY_VULNERABILITY_REFID.equals(reference.getType())) {
@@ -194,8 +177,7 @@ public class PostgresDashboardViolationRiskService
       }
     }
     catch (IOException e) {
-      throw new UncheckedIOException(
-          "Failed to parse constraint facts for constraint facts ID " + constraintFacts.getId() + ":" + e.getMessage(),
+      throw new UncheckedIOException("Failed to parse constraint facts " + constraintFactsJson + ":" + e.getMessage(),
           e);
     }
     return null;

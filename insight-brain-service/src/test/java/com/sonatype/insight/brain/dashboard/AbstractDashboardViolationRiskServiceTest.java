@@ -5,12 +5,13 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -20,6 +21,9 @@ import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -31,8 +35,11 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
@@ -46,6 +53,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,32 +67,38 @@ abstract class AbstractDashboardViolationRiskServiceTest
     extends AbstractComponentTest
 {
   @Inject
-  private PolicyViolationDAO policyViolationDAO;
+  protected PolicyViolationDAO policyViolationDAO;
+
+  @Inject
+  private PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
+
+  @Inject
+  protected PolicyDAO policyDAO;
 
   @Inject
   private TestProductLicense testProductLicense;
 
-  private Organization org1;
+  protected Organization org1;
 
-  private Organization org2;
+  protected Organization org2;
 
-  private Application app1;
+  protected Application app1;
 
-  private Application app2;
+  protected Application app2;
 
   private Policy org1Policy;
 
   private Policy app1Policy;
 
-  private PolicyEvaluation app1PolicyEvaluation;
+  protected PolicyEvaluation app1PolicyEvaluation;
 
-  private PolicyEvaluation app2PolicyEvaluation;
+  protected PolicyEvaluation app2PolicyEvaluation;
 
-  private PolicyViolation orgPolicyViolation;
+  protected PolicyViolation orgPolicyViolation;
 
-  private PolicyViolation app1PolicyViolation;
+  protected PolicyViolation app1PolicyViolation;
 
-  private PolicyViolation app2PolicyViolation;
+  protected PolicyViolation app2PolicyViolation;
 
   @Before
   public void setup() {
@@ -334,6 +348,132 @@ abstract class AbstractDashboardViolationRiskServiceTest
 
     DashboardViolationRiskDTO riskDTO2 = result.dashboardResults.get(2);
     assertDashboardViolationRiskDTO(riskDTO2, app1, org1, orgPolicyViolation, app1PolicyEvaluation.getTime());
+  }
+
+  @Test
+  public void testGet_HandlesPolicyViolations_BeforeConstraintFactsMigration() {
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scanId");
+    // Simulate an unmigrated policy violation (i.e. before PolicyViolationConstraintFactsJsonAsyncDbMigration ran)
+    PolicyViolation unmigratedPolicyViolation =
+        unmigratePolicyViolation(tempEntity.newPolicyViolation(policyEvaluation, policy));
+
+    DashboardResultsDTO<DashboardViolationRiskDTO> result = getDashboardViolationRiskService()
+        .get(null, null, null, null, null, null, null, "-AGE,-THREAT_LEVEL",
+            DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
+
+    assertThat(result.dashboardResults).hasSize(4);
+    assertThat(result.hasNextPage).isEqualTo(false);
+
+    DashboardViolationRiskDTO riskDTO0 = result.dashboardResults.get(0);
+    assertDashboardViolationRiskDTO(riskDTO0, application, organization, unmigratedPolicyViolation,
+        policyEvaluation.getTime());
+
+    DashboardViolationRiskDTO riskDTO1 = result.dashboardResults.get(1);
+    assertDashboardViolationRiskDTO(riskDTO1, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
+
+    DashboardViolationRiskDTO riskDTO2 = result.dashboardResults.get(2);
+    assertDashboardViolationRiskDTO(riskDTO2, app1, org1, app1PolicyViolation, app1PolicyEvaluation.getTime());
+
+    DashboardViolationRiskDTO riskDTO3 = result.dashboardResults.get(3);
+    assertDashboardViolationRiskDTO(riskDTO3, app1, org1, orgPolicyViolation, app1PolicyEvaluation.getTime());
+  }
+
+  // After constraint facts migration, we expect policy violations with the same details except constraint facts
+  // to be separate
+  @Test
+  public void testGet_HandlesPolicyViolations_AfterConstraintFactsMigration_MultipleSame() {
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+
+    Condition ageCondition1 = new Condition(AgeInDaysConditionType.ID, "older than", "1");
+    Condition ageCondition2 = new Condition(AgeInDaysConditionType.ID, "younger than", "999999");
+    Constraint constraint1 = new Constraint(null, "constraintName1", LogicalOperator.AND);
+    constraint1.setConditions(Arrays.asList(ageCondition1, ageCondition2));
+    Condition relativePopularityCondition1 = new Condition(RelativePopularityConditionType.ID, ">=", "0");
+    Condition relativePopularityCondition2 = new Condition(RelativePopularityConditionType.ID, "<=", "100");
+    Constraint constraint2 = new Constraint(null, "constraintName2", LogicalOperator.AND);
+    constraint2.setConditions(Arrays.asList(relativePopularityCondition1, relativePopularityCondition2));
+    Policy policy = new Policy();
+    policy.setName("policyName-" + TemporaryEntity.uuid());
+    policy.setThreatLevel(10);
+    policy.setOwnerId(application.getId());
+    policy.setConstraints(List.of(constraint1, constraint2));
+    policyDAO.insert(policy);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    String hash = "hash";
+
+    Date date = new Date();
+    PolicyEvaluation policyEvaluation1 =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scanId1", DateUtils.addDays(date, -1));
+    ConstraintFact constraintFact1 = new ConstraintFact(constraint1.getId(), constraint1.getName(), constraint1
+        .getOperator().name());
+    String conditionTypeId1 = ageCondition1.getConditionTypeId();
+    ConditionFact conditionFact1 = new ConditionFact(conditionTypeId1, 0 /* conditionIndex */, "summary1", "reason1");
+    constraintFact1.addConditionFact(conditionFact1);
+    PolicyViolation policyViolation1 =
+        new PolicyViolation(policyEvaluation1, policy, hash, componentIdentifier,
+            Collections.singletonList(constraintFact1), "filename1");
+    policyViolationDAO.insert(policyViolation1);
+
+    PolicyEvaluation policyEvaluation2 =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scanId2", date);
+    ConstraintFact constraintFact2 = new ConstraintFact(constraint1.getId(), constraint1.getName(), constraint1
+        .getOperator().name());
+    String conditionTypeId2 = relativePopularityCondition1.getConditionTypeId();
+    ConditionFact conditionFact2 = new ConditionFact(conditionTypeId2, 0 /* conditionIndex */, "summary2", "reason2");
+    constraintFact2.addConditionFact(conditionFact2);
+    PolicyViolation policyViolation2 =
+        new PolicyViolation(policyEvaluation2, policy, hash, componentIdentifier,
+            Collections.singletonList(constraintFact2), "filename2");
+    policyViolationDAO.insert(policyViolation2);
+
+    DashboardResultsDTO<DashboardViolationRiskDTO> result = getDashboardViolationRiskService()
+        .get(null, null, null, null, null, null, null, "-AGE,-THREAT_LEVEL",
+            DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
+
+    assertThat(result.dashboardResults).hasSize(5);
+    assertThat(result.hasNextPage).isEqualTo(false);
+
+    DashboardViolationRiskDTO riskDTO0 = result.dashboardResults.get(0);
+    assertDashboardViolationRiskDTO(riskDTO0, application, organization, policyViolation2,
+        policyEvaluation2.getTime());
+
+    DashboardViolationRiskDTO riskDTO1 = result.dashboardResults.get(1);
+    assertDashboardViolationRiskDTO(riskDTO1, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
+
+    DashboardViolationRiskDTO riskDTO2 = result.dashboardResults.get(2);
+    assertDashboardViolationRiskDTO(riskDTO2, app1, org1, app1PolicyViolation, app1PolicyEvaluation.getTime());
+
+    DashboardViolationRiskDTO riskDTO3 = result.dashboardResults.get(3);
+    assertDashboardViolationRiskDTO(riskDTO3, app1, org1, orgPolicyViolation, app1PolicyEvaluation.getTime());
+
+    DashboardViolationRiskDTO riskDTO4 = result.dashboardResults.get(4);
+    assertDashboardViolationRiskDTO(riskDTO4, application, organization, policyViolation1,
+        policyEvaluation1.getTime());
+  }
+
+  protected PolicyViolation unmigratePolicyViolation(final PolicyViolation policyViolation) {
+    // Update using a query to avoid safety checks
+    PolicyViolationConstraintFacts policyViolationConstraintFacts =
+        policyViolationConstraintFactsDAO.getById(policyViolation.getConstraintFactsId());
+    String sQuery = "UPDATE PolicyViolation entity SET entity.constraintFactsId = NULL," +
+        " entity.deprecatedConstraintFactsJson = ?2" +
+        " WHERE entity.id = ?1";
+    policyViolationDAO.createQuery(sQuery, policyViolation.getId(),
+        policyViolationConstraintFacts.getConstraintFactsJson()).executeUpdate();
+    policyViolationConstraintFactsDAO.delete(policyViolationConstraintFacts);
+    // Check the updates worked
+    PolicyViolation pv = policyViolationDAO.getById(policyViolation.getId());
+    assertThat(pv.getConstraintFactsId()).isNull();
+    assertThat(pv.getDeprecatedConstraintFactsJson()).isEqualTo(
+        policyViolationConstraintFacts.getConstraintFactsJson());
+    assertThat(policyViolationConstraintFactsDAO.getById(policyViolation.getConstraintFactsId())).isNull();
+    return pv;
   }
 
   @Test
@@ -622,7 +762,7 @@ abstract class AbstractDashboardViolationRiskServiceTest
     return constraintFact;
   }
 
-  private void assertDashboardViolationRiskDTO(
+  protected void assertDashboardViolationRiskDTO(
       DashboardViolationRiskDTO actual,
       Application app,
       Organization org,

@@ -14,7 +14,6 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.ComponentDetailsSummaryTile;
 import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.CopyAnnotationModal;
 import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.DeleteAnnotationModal;
-import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.DependencyTreeTile;
 import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.PolicyViolationDetailsDrawer;
 import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.PolicyViolationsTile;
 import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.VexAnnotationDrawer;
@@ -84,7 +83,6 @@ public class ComponentDetailsPageTest
         new ComponentDetailsSummaryTile(),
         new VulnerabilitiesTableTile("disclosedVulnerabilities"),
         new VulnerabilitiesTableTile("sonatypeIdentifiedVulnerabilities"),
-        new DependencyTreeTile(),
         new VulnerabilityDetailsPopover(),
         new VexAnnotationDrawer(),
         new DeleteAnnotationModal(),
@@ -157,9 +155,6 @@ public class ComponentDetailsPageTest
     checkSonatypeVulnerabilitiesTableHeader(sbomManagerComponentDetailsPage.sonatypeVulnerabilitiesTile());
     assertVulnerabilityTableRowContent(sbomManagerComponentDetailsPage.sonatypeVulnerabilitiesTile(),
         "9.6", "sonatype-123", null, "Unannotated", " ");
-
-    sbomManagerComponentDetailsPage.dependencyTreeTile().header().shouldHave(text("Dependency Tree"));
-    sbomManagerComponentDetailsPage.dependencyTreeTile().content().shouldHave(text("Dependency Tree not available"));
 
     eyesWatcher.eyesCheck("mockComponent");
   }

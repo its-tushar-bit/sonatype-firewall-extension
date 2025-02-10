@@ -598,8 +598,6 @@ describe('ComponentDetailsPage', () => {
       expect(screen.getByRole('complementary')).toBeInTheDocument();
       expect(screen.getByRole('complementary')).toHaveTextContent('Vulnerability Details sonatype-2018-0863');
 
-      expect(screen.getByText('Dependency Tree')).toBeVisible();
-      expect(screen.getByText('Dependency tree not available')).toBeVisible();
       const previousComponentLink = (await screen.findByText('Previous Component')).closest('a');
       expect(previousComponentLink).toBeVisible();
 

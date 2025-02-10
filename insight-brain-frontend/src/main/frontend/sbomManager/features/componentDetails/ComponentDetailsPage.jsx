@@ -50,7 +50,6 @@ import {
 import { actions } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
 import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
-import ComponentDetailsDependencyTreeTile from 'MainRoot/sbomManager/features/componentDetails/dependecyTree/ComponentDetailsDependencyTreeTile';
 import ComponentDetailsSbomInfo from 'MainRoot/sbomManager/features/componentDetails/ComponentDetailsSbomInfo';
 import ComponentSummary from 'MainRoot/sbomManager/features/componentDetails/ComponentSummary';
 import SbomVulnerabilityDetailsPopover from 'MainRoot/sbomManager/features/componentDetails/vulnerabilitiesDrawer/SbomVulnerabilityDetailsPopover';
@@ -389,9 +388,6 @@ export default function ComponentDetailsPage() {
                       onDeleteOptionClick={openDeleteModal}
                       onCopyOptionClick={openCopyModal}
                     ></VulnerabilitiesTile>
-                    <ComponentDetailsDependencyTreeTile
-                      componentDetails={componentDetails}
-                    ></ComponentDetailsDependencyTreeTile>
                   </NxTabPanel>
                   {isSbomPoliciesSupported && (
                     <NxTabPanel>

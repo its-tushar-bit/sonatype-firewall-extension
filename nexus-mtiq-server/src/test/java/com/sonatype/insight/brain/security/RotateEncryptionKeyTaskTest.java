@@ -180,6 +180,32 @@ public class RotateEncryptionKeyTaskTest
   }
 
   @Test
+  public void rotateEncryptionKey_secretRotatorEncryptsNonEncryptedSecrets() {
+    testAsNewTenant(t1 -> {
+      String oldEncryptionKeyName = "mtiq-test/oldEncryptionKeyName";
+      String oldEncryptionKeyValue = "oldEncryptionKeyValue";
+      String newEncryptionKeyName = "mtiq-test/newEncryptionKeyName_" + t1.tenantSlug;
+      String newEncryptionKeyValue = "newEncryptionKeyValue";
+      tenantMetadataDAO.insert(
+          new TenantMetadata("appId", "appName", "connId", "connName", oldEncryptionKeyName, null, null));
+
+      when(awsSecretsManagerClient.getSecret(oldEncryptionKeyName)).thenReturn(oldEncryptionKeyValue);
+      when(awsSecretsManagerClient.getSecret(newEncryptionKeyName)).thenReturn(newEncryptionKeyValue);
+
+      underTest.rotateEncryptionKey(newEncryptionKeyName);
+
+      ArgumentCaptor<Function<String, String>> secretRotatorArgument = ArgumentCaptor.forClass(Function.class);
+      verify(artifactoryConnectionDAO).rotateEncryptedSecrets(secretRotatorArgument.capture());
+      Function<String, String> secretRotator = secretRotatorArgument.getValue();
+
+      final String notEncryptedSecretValue = "abcd_efg-12345";
+
+      assertThat(passwordHandler.decryptPassword(secretRotator.apply(notEncryptedSecretValue),
+          newEncryptionKeyValue)).isEqualTo(notEncryptedSecretValue);
+    });
+  }
+
+  @Test
   public void rotateEncryptionKey_globalTenant() {
     testAsGlobalTenant(t1 -> {
       String newEncryptionKeyName = "mtiq-test/newEncryptionKeyName_" + t1.tenantSlug;
@@ -194,18 +220,12 @@ public class RotateEncryptionKeyTaskTest
   @Test
   public void rotateEncryptionKey_invalidEncryptionKeyName() {
     testAsNewTenant(t1 -> {
-      String nameMissingTenantSlug = "mtiq-test/nameMissingTenantSlug";
-      String nameMissingMtiqPrefix = "test/nameMissingMtiqPrefix";
-
       underTest.rotateEncryptionKey(null);
 
       assertThat(logOutput).atErrorLevel()
           .contains("Not rotating tenant encryption key. Key name is invalid: null");
 
-      underTest.rotateEncryptionKey(nameMissingTenantSlug);
-
-      assertThat(logOutput).atErrorLevel()
-          .contains("Not rotating tenant encryption key. Key name is invalid: mtiq-test/nameMissingTenantSlug");
+      String nameMissingMtiqPrefix = "test/nameMissingMtiqPrefix";
 
       underTest.rotateEncryptionKey(nameMissingMtiqPrefix);
 

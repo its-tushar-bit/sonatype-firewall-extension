@@ -172,8 +172,7 @@ public class RotateEncryptionKeyTask
   }
 
   private boolean isSecretKeyNameInvalid(String keyName) {
-    String tenantSlug = tenantUtil.getTenantSlugForSynchronization();
-    return keyName == null || !keyName.contains("mtiq-") || !keyName.contains(tenantSlug);
+    return keyName == null || !keyName.contains("mtiq-");
   }
 
   private boolean rotateSecrets(String newEncryptionKeyName, Function<String, String> secretRotator) {
@@ -247,28 +246,39 @@ public class RotateEncryptionKeyTask
       return secret;
     }
 
-    String decryptedSecret;
-    try {
-      decryptedSecret = passwordHandler.decryptPassword(secret, oldEncryptionKeyValue);
-    }
-    catch (IllegalStateException e) {
-      // If decryption fails, the secret could have been encrypted with the new key in a previous attempt to run
-      // the task, so try to decrypt it with the new key, if this is successful then return the original secret.
-      try {
-        passwordHandler.decryptPassword(secret, newEncryptionKeyValue);
-        return secret;
-      }
-      catch (IllegalStateException ignored) {
-        // Rethrow the original exception if decryption with the new key also fails.
-        throw new RuntimeException("Unable to rotate encrypted secret, unable to decrypt secret.", e);
-      }
-    }
-
+    String decryptedSecret = decryptSecret(secret, oldEncryptionKeyValue, newEncryptionKeyValue);
     try {
       return passwordHandler.encryptPassword(decryptedSecret, newEncryptionKeyValue);
     }
     catch (IllegalStateException e) {
       throw new RuntimeException("Unable to rotate encrypted secret, unable to encrypt secret", e);
+    }
+  }
+
+  private String decryptSecret(
+      final String secret,
+      final String oldEncryptionKeyValue,
+      final String newEncryptionKeyValue)
+  {
+    if (!passwordHandler.isEncrypted(secret)) {
+      // If the secret is not encrypted return the secret, so it can be rotated. This allows the task to be run on
+      // tables with secrets that are not yet encrypted.
+      return secret;
+    }
+
+    try {
+      return passwordHandler.decryptPassword(secret, oldEncryptionKeyValue);
+    }
+    catch (IllegalStateException e) {
+      // If decryption fails, the secret could have been encrypted with the new key in a previous attempt to run
+      // the task, so try to decrypt it with the new key, this allows the task to be re-run if it fails.
+      try {
+        return passwordHandler.decryptPassword(secret, newEncryptionKeyValue);
+      }
+      catch (IllegalStateException ignored) {
+        // Rethrow the original exception if decryption with the new key also fails.
+        throw new RuntimeException("Unable to rotate encrypted secret, unable to decrypt secret.", e);
+      }
     }
   }
 }

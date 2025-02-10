@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.security.OAuth2Group;
 import com.sonatype.insight.brain.model.security.OAuth2User;
 import com.sonatype.insight.brain.model.security.SamlGroup;
 import com.sonatype.insight.brain.model.security.SamlUser;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 
 import junit.framework.TestCase;
@@ -48,12 +49,15 @@ public class TenantSsoConfigurationResourceTest
 
   private OAuth2UserDAO oAuth2UserDAO;
 
+  private PasswordHandler passwordHandler;
+
   @Before
   public void before() {
     oAuth2ConfigurationDAO = lookup(OAuth2ConfigurationDAO.class);
     oidcConfigurationDAO = lookup(OidcConfigurationDAO.class);
     samlUserDAO = lookup(SamlUserDAO.class);
     oAuth2UserDAO = lookup(OAuth2UserDAO.class);
+    passwordHandler = lookup(PasswordHandler.class);
   }
 
   @Test
@@ -204,7 +208,8 @@ public class TenantSsoConfigurationResourceTest
   {
     TestCase.assertEquals(oidcConfigurationDTO.getIdpIssuer(), oidcConfiguration.getId());
     TestCase.assertEquals(oidcConfigurationDTO.getClientId(), oidcConfiguration.getClientId());
-    TestCase.assertEquals(oidcConfigurationDTO.getClientSecret(), oidcConfiguration.getClientSecret());
+    TestCase.assertEquals(oidcConfigurationDTO.getClientSecret(),
+        passwordHandler.decryptPassword(oidcConfiguration.getClientSecret()));
     TestCase.assertEquals(oidcConfigurationDTO.getIdpAuthorizationUrl(), oidcConfiguration.getIdpAuthorizationUrl());
     TestCase.assertEquals(oidcConfigurationDTO.getIdpTokenUrl(), oidcConfiguration.getIdpTokenUrl());
   }

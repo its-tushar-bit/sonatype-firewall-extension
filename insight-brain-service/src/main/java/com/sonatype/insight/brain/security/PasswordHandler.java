@@ -81,4 +81,15 @@ public class PasswordHandler
       throw new IllegalStateException(e);
     }
   }
+
+  public boolean isEncrypted(final char[] password) {
+    if (password == null) {
+      return false;
+    }
+    return isEncrypted(String.valueOf(password));
+  }
+
+  public boolean isEncrypted(final String password) {
+    return cipher.isEncryptedString(password);
+  }
 }

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.admin.service;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.api.admin.dto.OAuth2ConfigurationDTO;
 import com.sonatype.insight.brain.api.admin.dto.OidcConfigurationDTO;
 import com.sonatype.insight.brain.api.admin.dto.SsoConfigurationDTO;
@@ -12,13 +14,17 @@ import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2Configur
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;
 import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.SsoUserService;
+import com.sonatype.insight.brain.security.TestMultiTenantEncryptionKeyStore;
+import com.sonatype.insight.brain.security.oauth2.OidcLoginFilter;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -57,6 +63,12 @@ public class TenantSsoConfigurationServiceTest
   @Mock
   private SsoUserService mockSsoUserService;
 
+  @Mock
+  private OidcLoginFilter mockOidcLoginFilter;
+
+  @Inject
+  private PasswordHandler passwordHandler;
+
   @Captor
   private ArgumentCaptor<OAuth2Configuration> oAuth2ConfigurationCaptor;
 
@@ -67,9 +79,11 @@ public class TenantSsoConfigurationServiceTest
 
   @Before
   public void setup() {
+    passwordHandler = new PasswordHandler(new DefaultPlexusCipher(), new TestMultiTenantEncryptionKeyStore());
+
     when(mockTenantValidator.validateTenantExists(anyString())).thenReturn(true);
-    underTest = new TenantSsoConfigurationService(mockTenantUtil, mockTenantValidator, mockOAuth2ConfigurationDAO,
-        mockOidcConfigurationDAO, mockSsoUserService);
+    underTest = new TenantSsoConfigurationService(passwordHandler, mockTenantUtil, mockTenantValidator,
+        mockOAuth2ConfigurationDAO, mockOidcConfigurationDAO, mockOidcLoginFilter, mockSsoUserService);
   }
 
   @Test
@@ -129,6 +143,8 @@ public class TenantSsoConfigurationServiceTest
       when(mockOidcConfigurationDAO.get()).thenReturn(oidcConfiguration);
 
       testUpdateSsoConfiguration(tenant, ssoConfigurationDTO, false, false);
+
+      verify(mockOidcLoginFilter).clearCachedOidcClientSecret();
     });
   }
 
@@ -210,6 +226,7 @@ public class TenantSsoConfigurationServiceTest
     }
 
     verify(mockSsoUserService).loadSsoConfiguration();
+    verify(mockOidcLoginFilter).clearCachedOidcClientSecret();
 
     assertOauth2ConfigurationIsTheExpected(ssoConfigurationDTO.getOAuth2Configuration(),
         oAuth2ConfigurationCaptor.getValue());
@@ -233,7 +250,8 @@ public class TenantSsoConfigurationServiceTest
   {
     assertEquals(oidcConfigurationDTO.getIdpIssuer(), oidcConfiguration.getId());
     assertEquals(oidcConfigurationDTO.getClientId(), oidcConfiguration.getClientId());
-    assertEquals(oidcConfigurationDTO.getClientSecret(), oidcConfiguration.getClientSecret());
+    String clientSecret = passwordHandler.decryptPassword(oidcConfiguration.getClientSecret());
+    assertEquals(oidcConfigurationDTO.getClientSecret(), clientSecret);
     assertEquals(oidcConfigurationDTO.getIdpAuthorizationUrl(), oidcConfiguration.getIdpAuthorizationUrl());
     assertEquals(oidcConfigurationDTO.getIdpTokenUrl(), oidcConfiguration.getIdpTokenUrl());
   }

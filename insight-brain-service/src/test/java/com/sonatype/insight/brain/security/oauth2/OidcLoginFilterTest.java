@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.security.oauth2;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
+import java.lang.reflect.Field;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -17,8 +18,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -66,8 +69,13 @@ public class OidcLoginFilterTest
   @Inject
   private OidcLoginFilter oidcLoginFilter;
 
+  @Inject
+  private PasswordHandler passwordHandler;
+
   @Mock
   private BaseUrl mockBaseUrl;
+
+  private String encryptedClientSecret;
 
   @Override
   public void configure(final Binder binder) {
@@ -76,8 +84,9 @@ public class OidcLoginFilterTest
   }
 
   @Before
-  public void enableOAuth2() {
+  public void setup() {
     SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
+    encryptedClientSecret = passwordHandler.encryptPassword(CLIENT_SECRET);
   }
 
   @Test
@@ -110,7 +119,7 @@ public class OidcLoginFilterTest
     final String expectedUrl = String.format("%s%s", BASE_URL, OidcLoginFilter.OAUTH_CALLBACK);
     when(mockBaseUrl.get()).thenReturn(BASE_URL);
 
-    tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, TOKEN_URL);
+    tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, TOKEN_URL);
     when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_LOGIN);
 
     boolean result = oidcLoginFilter.onPreHandle(request, response, null);
@@ -131,7 +140,7 @@ public class OidcLoginFilterTest
         URLEncoder.encode(hash, StandardCharsets.UTF_8));
     when(mockBaseUrl.get()).thenReturn(BASE_URL);
 
-    tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, TOKEN_URL);
+    tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, TOKEN_URL);
     when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_LOGIN);
     when(request.getParameter("hash")).thenReturn(hash);
 
@@ -150,7 +159,7 @@ public class OidcLoginFilterTest
     final PrintWriter writer = setupPrintWriter(response);
     when(mockBaseUrl.get()).thenReturn("{bad-url}");
 
-    tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, TOKEN_URL);
+    tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, TOKEN_URL);
     when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_LOGIN);
 
     boolean result = oidcLoginFilter.onPreHandle(request, response, null);
@@ -170,7 +179,7 @@ public class OidcLoginFilterTest
 
     when(mockBaseUrl.get()).thenReturn(BASE_URL);
 
-    tempEntity.newOidcConfiguration(issuer, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, tokenUrl);
+    tempEntity.newOidcConfiguration(issuer, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, tokenUrl);
     when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
     when(request.getParameter("code")).thenReturn("code");
     when(request.getParameter("hash")).thenReturn("");
@@ -185,6 +194,7 @@ public class OidcLoginFilterTest
     verify(response).setHeader(eq("Location"), indexUrlCaptor.capture());
     verify(response).setStatus(HttpServletResponse.SC_FOUND);
     assertThat(indexUrlCaptor.getValue()).isEqualTo(String.format("%s%s", BASE_URL, OidcLoginFilter.INDEX_HTML));
+    assertThat(getOidcClientSecretRefValue(oidcLoginFilter)).isEqualTo(CLIENT_SECRET);
   }
 
   @Test
@@ -199,7 +209,7 @@ public class OidcLoginFilterTest
 
     when(mockBaseUrl.get()).thenReturn(BASE_URL);
 
-    tempEntity.newOidcConfiguration(issuer, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, tokenUrl);
+    tempEntity.newOidcConfiguration(issuer, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, tokenUrl);
     when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
     when(request.getParameter("code")).thenReturn("code");
     when(request.getParameter("hash")).thenReturn(hash);
@@ -214,6 +224,67 @@ public class OidcLoginFilterTest
     verify(response).setHeader(eq("Location"), indexUrlCaptor.capture());
     verify(response).setStatus(HttpServletResponse.SC_FOUND);
     assertThat(indexUrlCaptor.getValue()).isEqualTo(expectedUrl);
+    assertThat(getOidcClientSecretRefValue(oidcLoginFilter)).isEqualTo(CLIENT_SECRET);
+  }
+
+  @Test
+  public void testOnPreHandle_Callback_handlesUnEncryptedClientSecret() throws Exception {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    final HttpServletResponse response = mock(HttpServletResponse.class);
+    final ArgumentCaptor<String> indexUrlCaptor = ArgumentCaptor.forClass(String.class);
+    final String issuer = idpServer.baseUrl();
+    final String tokenUrl = String.format("%s/token", issuer);
+
+    when(mockBaseUrl.get()).thenReturn(BASE_URL);
+
+    tempEntity.newOidcConfiguration(issuer, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, tokenUrl);
+    when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
+    when(request.getParameter("code")).thenReturn("code");
+    when(request.getParameter("hash")).thenReturn("");
+    idpServer.stubFor(post(urlPathEqualTo("/token"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody(getTokensResponse("token-response.json"))));
+
+    boolean result = oidcLoginFilter.onPreHandle(request, response, null);
+    assertThat(result).isFalse();
+    verify(response).setHeader(eq("Location"), indexUrlCaptor.capture());
+    verify(response).setStatus(HttpServletResponse.SC_FOUND);
+    assertThat(indexUrlCaptor.getValue()).isEqualTo(String.format("%s%s", BASE_URL, OidcLoginFilter.INDEX_HTML));
+    assertThat(getOidcClientSecretRefValue(oidcLoginFilter)).isEqualTo(CLIENT_SECRET);
+  }
+
+  @Test
+  public void testOnPreHandle_clearCache() throws Exception {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    final HttpServletResponse response = mock(HttpServletResponse.class);
+    final String issuer = idpServer.baseUrl();
+    final String tokenUrl = String.format("%s/token", issuer);
+
+    when(mockBaseUrl.get()).thenReturn(BASE_URL);
+
+    tempEntity.newOidcConfiguration(issuer, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, tokenUrl);
+    when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
+    when(request.getParameter("code")).thenReturn("code");
+    when(request.getParameter("hash")).thenReturn("");
+    idpServer.stubFor(post(urlPathEqualTo("/token"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody(getTokensResponse("token-response.json"))));
+
+    boolean result = oidcLoginFilter.onPreHandle(request, response, null);
+    assertThat(result).isFalse();
+    assertThat(getOidcClientSecretRefValue(oidcLoginFilter)).isEqualTo(CLIENT_SECRET);
+
+    // Update the oidc configuration secret to an encrypted value and clear the cache
+    tempEntity.updateOidcConfiguration(issuer, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, tokenUrl);
+    oidcLoginFilter.clearCachedOidcClientSecret();
+    assertThat(getOidcClientSecretRefValue(oidcLoginFilter)).isNull();
+
+    // Ensure the new decrypted secret value is used
+    result = oidcLoginFilter.onPreHandle(request, response, null);
+    assertThat(result).isFalse();
+    assertThat(getOidcClientSecretRefValue(oidcLoginFilter)).isEqualTo(CLIENT_SECRET);
   }
 
   @Test
@@ -225,7 +296,7 @@ public class OidcLoginFilterTest
     final String tokenUrl = String.format("%s/token", issuer);
     when(mockBaseUrl.get()).thenReturn(BASE_URL);
 
-    tempEntity.newOidcConfiguration(issuer, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, tokenUrl);
+    tempEntity.newOidcConfiguration(issuer, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, tokenUrl);
     when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
     when(request.getParameter("code")).thenReturn("code");
     when(request.getParameter("hash")).thenReturn("");
@@ -249,7 +320,7 @@ public class OidcLoginFilterTest
     final PrintWriter writer = setupPrintWriter(response);
     final String errorMessage = "Something wrong happened";
 
-    tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, TOKEN_URL);
+    tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, TOKEN_URL);
     when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
     when(request.getParameter("error_description")).thenReturn(errorMessage);
     when(request.getParameter("code")).thenReturn("");
@@ -269,7 +340,7 @@ public class OidcLoginFilterTest
     final PrintWriter writer = setupPrintWriter(response);
     when(mockBaseUrl.get()).thenReturn(BASE_URL);
 
-    tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, ":");
+    tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, ":");
     when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
     when(request.getParameter("code")).thenReturn("code");
     when(request.getParameter("hash")).thenReturn("");
@@ -326,6 +397,13 @@ public class OidcLoginFilterTest
     for (String scope : OidcLoginFilter.OIDC_SCOPES) {
       assertThat(scopes).contains(scope);
     }
+  }
+
+  private String getOidcClientSecretRefValue(OidcLoginFilter oidcLoginFilter) throws Exception {
+    Field field = OidcLoginFilter.class.getDeclaredField("oidcClientSecretRef");
+    field.setAccessible(true);
+    TenantReference<String> ref = (TenantReference<String>) field.get(oidcLoginFilter);
+    return ref.get();
   }
 
   protected String getTokensResponse(String fileName) {

@@ -21,7 +21,9 @@ import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurat
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
 import com.sonatype.insight.brain.security.LoginErrorResponseHandler;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import com.nimbusds.oauth2.sdk.AuthorizationCode;
@@ -76,15 +78,21 @@ public class OidcLoginFilter
 
   public static final String ERROR_AUTHORIZING_REQUEST = "Error authorizing request: %s";
 
+  private final PasswordHandler passwordHandler;
+
   private final OidcConfigurationDAO oidcConfigurationDAO;
 
   private final BaseUrl baseUrl;
 
+  private final TenantReference<String> oidcClientSecretRef = new TenantReference<>();
+
   @Inject
   public OidcLoginFilter(
-      BaseUrl baseUrl,
-      OidcConfigurationDAO oidcConfigurationDAO)
+      final BaseUrl baseUrl,
+      final PasswordHandler passwordHandler,
+      final OidcConfigurationDAO oidcConfigurationDAO)
   {
+    this.passwordHandler = passwordHandler;
     this.oidcConfigurationDAO = oidcConfigurationDAO;
     this.baseUrl = baseUrl;
   }
@@ -252,7 +260,7 @@ public class OidcLoginFilter
       String codeParameter)
   {
     String clientId = oidcConfiguration.getClientId();
-    String clientSecret = oidcConfiguration.getClientSecret();
+    String clientSecret = getOidcClientSecret(oidcConfiguration);
     String oauthRequestTokensUrl = oidcConfiguration.getIdpTokenUrl();
 
     try {
@@ -276,6 +284,29 @@ public class OidcLoginFilter
       log.error(ERROR_BUILDING_TOKEN_REQUEST, exception);
       throw new AuthenticationException(ERROR_BUILDING_TOKEN_REQUEST, exception);
     }
+  }
+
+  private String getOidcClientSecret(OidcConfiguration oidcConfiguration) {
+    String clientSecret = oidcClientSecretRef.get();
+
+    if (clientSecret == null) {
+      clientSecret = oidcConfiguration.getClientSecret();
+
+      if (passwordHandler.isEncrypted(clientSecret)) {
+        clientSecret = passwordHandler.decryptPassword(clientSecret);
+      }
+      else {
+        log.warn("Client secret is not encrypted, please re-sync the tenant metadata to encrypt it.");
+      }
+
+      oidcClientSecretRef.set(clientSecret);
+    }
+
+    return clientSecret;
+  }
+
+  public void clearCachedOidcClientSecret() {
+    oidcClientSecretRef.remove();
   }
 
   private void completeAuthentication(final String idToken) {

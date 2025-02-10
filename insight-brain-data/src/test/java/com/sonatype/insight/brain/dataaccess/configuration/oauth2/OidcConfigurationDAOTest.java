@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration.oauth2;
 
+import java.sql.SQLException;
+import java.util.function.Function;
+
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
 
@@ -246,6 +249,17 @@ public class OidcConfigurationDAOTest
 
     assertThatThrownBy(() -> dao.update(config)).isInstanceOf(IllegalArgumentException.class)
         .hasMessage(OidcConfigurationDAO.TOKEN_REQUEST_PARAMS_JSON_IS_INVALID);
+  }
+
+  @Test
+  public void testRotateEncryptedSecrets() throws SQLException {
+    tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, CLIENT_SECRET + "_Old", AUTHORIZATION_URL, TOKEN_URL);
+    Function<String, String> secretRotator = secret -> secret.replace("Old", "New");
+
+    dao.rotateEncryptedSecrets(secretRotator);
+
+    OidcConfiguration result = dao.get();
+    assertThat(String.valueOf(result.getClientSecret())).isEqualTo(CLIENT_SECRET + "_New");
   }
 
   public void assertOidcConfigurationIsTheExpected(OidcConfiguration config) {

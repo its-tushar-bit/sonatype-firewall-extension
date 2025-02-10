@@ -7,15 +7,16 @@ package com.sonatype.insight.brain.model.configuration.oauth2;
 
 import java.util.HashMap;
 import java.util.Map;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 
+import com.sonatype.insight.brain.security.RotatableSecret;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 /**
  * @since 1.177
@@ -32,6 +33,7 @@ public class OidcConfiguration
   @Column(name = "client_id")
   private String clientId;
 
+  @RotatableSecret
   @Column(name = "client_secret")
   private String clientSecret;
 

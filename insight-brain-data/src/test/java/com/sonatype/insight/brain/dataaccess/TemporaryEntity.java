@@ -5960,6 +5960,20 @@ public class TemporaryEntity
     return oidcConfiguration;
   }
 
+  public OidcConfiguration updateOidcConfiguration(
+      String issuer,
+      String clientId,
+      String clientSecret,
+      String authorizationUrl,
+      String tokenUrl)
+  {
+    OidcConfiguration oidcConfiguration =
+        new OidcConfiguration(issuer, clientId, clientSecret, authorizationUrl, tokenUrl);
+
+    oidcConfigurationDAO.update(oidcConfiguration);
+    return oidcConfiguration;
+  }
+
   public DevelopmentPrioritization newDevelopmentPrioritization(String scanId) {
     DevelopmentPrioritization developmentPrioritization = new DevelopmentPrioritization(scanId);
     developmentPrioritizationDAO.insert(developmentPrioritization);

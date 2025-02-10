@@ -57,4 +57,35 @@ public class PasswordHandlerTest
     char[] pw = null;
     assertThat(pwHandler.decryptPassword(pwHandler.encryptPassword(pw))).isNull();
   }
+
+  @Test
+  public void testEncryptPassword_isEncrypted() {
+    char[] pw = "secret-password".toCharArray();
+    char[] encryptedPassword = pwHandler.encryptPassword(pw);
+    assertThat(pwHandler.isEncrypted(encryptedPassword)).isTrue();
+  }
+
+  @Test
+  public void testEncryptPassword_isEncrypted_empty() {
+    char[] pw = "".toCharArray();
+    assertThat(pwHandler.isEncrypted(pw)).isFalse();
+  }
+
+  @Test
+  public void testEncryptPassword_isEncrypted_notEncrypted() {
+    char[] pw = "secret-password".toCharArray();
+    assertThat(pwHandler.isEncrypted(pw)).isFalse();
+  }
+
+  @Test
+  public void testEncryptPassword_isEncrypted_null() {
+    char[] pw = null;
+    assertThat(pwHandler.isEncrypted(pw)).isFalse();
+  }
+
+  @Test
+  public void testEncryptPassword_isEncrypted_stringNull() {
+    String pw = null;
+    assertThat(pwHandler.isEncrypted(pw)).isFalse();
+  }
 }

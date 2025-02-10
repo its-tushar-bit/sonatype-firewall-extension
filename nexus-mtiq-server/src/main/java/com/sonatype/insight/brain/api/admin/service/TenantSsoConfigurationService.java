@@ -15,7 +15,9 @@ import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2Configur
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;
 import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.SsoUserService;
+import com.sonatype.insight.brain.security.oauth2.OidcLoginFilter;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -29,6 +31,8 @@ public class TenantSsoConfigurationService
 {
   private static final Logger log = LoggerFactory.getLogger(TenantSsoConfigurationService.class);
 
+  private final PasswordHandler passwordHandler;
+
   private final TenantUtil tenantUtil;
 
   private final TenantValidator tenantValidator;
@@ -37,20 +41,26 @@ public class TenantSsoConfigurationService
 
   private final OidcConfigurationDAO oidcConfigurationDAO;
 
+  private final OidcLoginFilter oidcLoginFilter;
+
   private final SsoUserService ssoUserService;
 
   @Inject
   public TenantSsoConfigurationService(
-      TenantUtil tenantUtil,
-      TenantValidator tenantValidator,
-      OAuth2ConfigurationDAO oAuth2ConfigurationDAO,
-      OidcConfigurationDAO oidcConfigurationDAO,
-      SsoUserService ssoUserService)
+      final PasswordHandler passwordHandler,
+      final TenantUtil tenantUtil,
+      final TenantValidator tenantValidator,
+      final OAuth2ConfigurationDAO oAuth2ConfigurationDAO,
+      final OidcConfigurationDAO oidcConfigurationDAO,
+      final OidcLoginFilter oidcLoginFilter,
+      final SsoUserService ssoUserService)
   {
+    this.passwordHandler = passwordHandler;
     this.tenantUtil = tenantUtil;
     this.tenantValidator = tenantValidator;
     this.oAuth2ConfigurationDAO = oAuth2ConfigurationDAO;
     this.oidcConfigurationDAO = oidcConfigurationDAO;
+    this.oidcLoginFilter = oidcLoginFilter;
     this.ssoUserService = ssoUserService;
   }
 
@@ -87,6 +97,7 @@ public class TenantSsoConfigurationService
   private void upsertOAuth2Configuration(final SsoConfigurationDTO ssoConfigurationDTO) {
     OAuth2ConfigurationDTO oAuth2ConfigurationDTO = ssoConfigurationDTO.getOAuth2Configuration();
     OAuth2Configuration oAuth2Configuration = oAuth2ConfigurationDAO.getById(oAuth2ConfigurationDTO.getIdpIssuer());
+
     if (oAuth2Configuration != null) {
       oAuth2ConfigurationDAO.update(OAuth2ConfigurationDTO.fromDTO(oAuth2ConfigurationDTO));
     }
@@ -96,13 +107,25 @@ public class TenantSsoConfigurationService
   }
 
   private void upsertOidcConfiguration(final SsoConfigurationDTO ssoConfigurationDTO) {
-    OidcConfigurationDTO oidcConfigurationDTO = ssoConfigurationDTO.getOidcConfiguration();
-    OidcConfiguration oidcConfiguration = oidcConfigurationDAO.get();
-    if (oidcConfiguration != null) {
-      oidcConfigurationDAO.update(OidcConfigurationDTO.fromDTO(oidcConfigurationDTO));
+    OidcConfiguration updatedOidcConfiguration = buildOidcConfiguration(ssoConfigurationDTO.getOidcConfiguration());
+    OidcConfiguration currentOidcConfiguration = oidcConfigurationDAO.get();
+    if (currentOidcConfiguration != null) {
+      oidcConfigurationDAO.update(updatedOidcConfiguration);
     }
     else {
-      oidcConfigurationDAO.insert(OidcConfigurationDTO.fromDTO(oidcConfigurationDTO));
+      oidcConfigurationDAO.insert(updatedOidcConfiguration);
     }
+
+    clearCachedOidcClientSecret();
+  }
+
+  public void clearCachedOidcClientSecret() {
+    oidcLoginFilter.clearCachedOidcClientSecret();
+  }
+
+  OidcConfiguration buildOidcConfiguration(OidcConfigurationDTO oidcConfigurationDTO) {
+    OidcConfiguration oidcConfiguration = OidcConfigurationDTO.fromDTO(oidcConfigurationDTO);
+    oidcConfiguration.setClientSecret(passwordHandler.encryptPassword(oidcConfiguration.getClientSecret()));
+    return oidcConfiguration;
   }
 }

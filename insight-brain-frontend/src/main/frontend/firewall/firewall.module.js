@@ -454,6 +454,20 @@ function routes($stateProvider) {
       data: {
         title: 'Getting Started',
       },
+    })
+    .state('firewall.roiConfiguration', {
+      component: 'roiConfiguration',
+      url: '/roiConfiguration',
+      data: {
+        title: 'ROI Configuration',
+      },
+    })
+    .state('firewall.editRoiConfiguration', {
+      component: 'editRoiConfiguration',
+      url: '/roiConfiguration/edit',
+      data: {
+        title: 'Edit ROI Configuration',
+      },
     });
 
   ownerTypesForFirewall.forEach(function (ownerType) {

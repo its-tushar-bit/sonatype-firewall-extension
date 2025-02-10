@@ -108,6 +108,8 @@ import sbomApplicationsPageSlice from 'MainRoot/sbomManager/features/sbomApplica
 import sbomExportSlice from 'MainRoot/sbomManager/features/sbomExport/sbomExportSlice';
 import autoWaiverDetailsSlice from 'MainRoot/waivers/waiverDetails/autoWaiverDetailsSlice';
 import applicationLatestEvaluationsSlice from 'MainRoot/applicationLatestEvaluations/applicationLatestEvaluationsSlice';
+import roiConfigurationPageSlice from 'MainRoot/configuration/roiConfiguration/roiConfigurationPageSlice';
+import editRoiConfigurationPageSlice from 'MainRoot/configuration/editRoiConfiguration/editRoiConfigurationPageSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -214,4 +216,6 @@ export default combineReducers({
   sbomApplicationsPage: sbomApplicationsPageSlice,
   autoWaiverDetails: autoWaiverDetailsSlice,
   applicationLatestEvaluations: applicationLatestEvaluationsSlice,
+  roiConfigurationPage: roiConfigurationPageSlice,
+  editRoiConfigurationPage: editRoiConfigurationPageSlice,
 });

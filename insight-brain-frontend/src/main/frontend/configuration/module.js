@@ -22,6 +22,8 @@ import AdministratorsConfig from './administrators/config/AdministratorsConfig';
 import AdministratorsEdit from './administrators/edit/AdministratorsEdit';
 import GettingStartedContainer from './gettingStarted/GettingStartedContainer';
 import WaivedComponentUpgradesConfiguration from './waivedComponentUpgradesConfiguration/WaivedComponentUpgradesConfiguration';
+import RoiConfigurationPage from './roiConfiguration/RoiConfigurationPage';
+import EditRoiConfigurationPage from './editRoiConfiguration/EditRoiConfigurationPage';
 import { submitData, DEPARTED_ACTION } from './gettingStarted/gettingStartedTelemetryServiceHelper';
 
 export const GETTING_STARTED_STATE = 'gettingStarted';
@@ -56,6 +58,8 @@ export default angular
   .component('systemNoticeConfiguration', iqReact2Angular(SystemNoticeConfigurationContainer, [], ['$ngRedux']))
   .component('administratorsConfig', iqReact2Angular(AdministratorsConfig, [], ['$ngRedux']))
   .component('administratorsEdit', iqReact2Angular(AdministratorsEdit, [], ['$ngRedux', '$state']))
+  .component('roiConfiguration', iqReact2Angular(RoiConfigurationPage, [], ['$ngRedux', '$state']))
+  .component('editRoiConfiguration', iqReact2Angular(EditRoiConfigurationPage, [], ['$ngRedux', '$state']))
   .factory('scmOnboardingActions', scmOnboardingActions)
   .value('routerListener', routerListener) // add to angular so we can test it
   .config(routes)
@@ -170,6 +174,20 @@ function routes($stateProvider) {
       url: '/gettingStarted',
       data: {
         title: 'Getting Started',
+      },
+    })
+    .state('roiConfiguration', {
+      component: 'roiConfiguration',
+      url: '/roiConfiguration',
+      data: {
+        title: 'ROI Configuration',
+      },
+    })
+    .state('editRoiConfiguration', {
+      component: 'editRoiConfiguration',
+      url: '/roiConfiguration/edit',
+      data: {
+        title: 'Edit ROI Configuration',
       },
     });
 }

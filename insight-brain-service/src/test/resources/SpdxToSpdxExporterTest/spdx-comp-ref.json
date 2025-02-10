@@ -1,0 +1,72 @@
+{
+  "SPDXID" : "SPDXRef-DOCUMENT",
+  "spdxVersion" : "SPDX-2.3",
+  "creationInfo" : {
+    "created" : "2024-04-21T01:24:31Z",
+    "creators" : [ "Tool: Sonatype IQ Server - 1.176.0-SNAPSHOT" ]
+  },
+  "name" : "pkg:maven/org.example/JavaApp@1.0-SNAPSHOT?type=jar",
+  "dataLicense" : "CC0-1.0",
+  "documentNamespace" : "http://localhost:8070/ui/links/application/JavaApp/report/c2b638150d2049fb8f956a02c4bf12ab",
+  "packages" : [{
+    "SPDXID" : "SPDXRef-maven-org.example-abc-component",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/org.example/abc-component",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "org.example:abc-component",
+    "versionInfo" : "1.0-SNAPSHOT"
+  },
+    {
+      "SPDXID" : "SPDXRef-ref-my-component-not-in-db",
+      "copyrightText" : "NOASSERTION",
+      "downloadLocation" : "NOASSERTION",
+      "externalRefs" : [
+        {
+          "referenceCategory" : "PACKAGE-MANAGER",
+          "referenceLocator" : "pkg:maven/org.example/my-component-not-in-db",
+          "referenceType" : "purl"
+        }],
+      "filesAnalyzed" : false,
+      "licenseConcluded" : "NOASSERTION",
+      "licenseDeclared" : "MIT",
+      "name" : "org.example:my-component-not-in-db",
+      "primaryPackagePurpose" : "LIBRARY",
+      "versionInfo" : "1.0-SNAPSHOT"
+    },
+
+    {
+      "SPDXID" : "SPDXRef-maven-org.example-JavaApp-1.0-SNAPSHOT",
+      "downloadLocation" : "NOASSERTION",
+      "externalRefs" : [ {
+        "referenceCategory" : "PACKAGE-MANAGER",
+        "referenceLocator" : "pkg:maven/org.example/JavaApp@1.0-SNAPSHOT?type=jar",
+        "referenceType" : "purl"
+      } ],
+      "filesAnalyzed" : false,
+      "licenseConcluded" : "NOASSERTION",
+      "licenseDeclared" : "NOASSERTION",
+      "name" : "org.example:JavaApp",
+      "versionInfo" : "1.0-SNAPSHOT"
+    }
+  ],
+  "relationships" : [ {
+    "spdxElementId" : "SPDXRef-DOCUMENT",
+    "relationshipType" : "DESCRIBES",
+    "relatedSpdxElement" : "SPDXRef-maven-org.example-JavaApp-1.0-SNAPSHOT"
+  }, {
+    "spdxElementId" : "SPDXRef-maven-org.example-JavaApp-1.0-SNAPSHOT",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-ref-my-component-not-in-db"
+  },
+  {
+    "spdxElementId" : "SPDXRef-maven-org.example-JavaApp-1.0-SNAPSHOT",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-maven-org.example-abc-component"
+  }]
+}

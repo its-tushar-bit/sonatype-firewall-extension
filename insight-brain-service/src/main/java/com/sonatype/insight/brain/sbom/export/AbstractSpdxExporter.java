@@ -15,6 +15,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
+import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -157,8 +158,10 @@ public abstract class AbstractSpdxExporter
   {
 
     SpdxPackage originalRootPkg = SbomSpdxUtils.getRootPackage(originalDocument);
+    List<SpdxPackage> originalDocPackages = SbomSpdxUtils.getAllPackages(originalDocument);
 
-    for (SpdxPackage pkg : SbomSpdxUtils.getAllPackages(originalDocument)) {
+    Boolean shouldMatchByComponentRef = null;
+    for (SpdxPackage pkg : originalDocPackages) {
       // a valid existing package will always have a name. It is unlikely to have this "unknown package" to get called
       String pkgName = pkg.getName().orElse("UNKNOWN PACKAGE");
 
@@ -168,7 +171,23 @@ public abstract class AbstractSpdxExporter
           .setFilesAnalyzed(pkg.isFilesAnalyzed());
       pkg.getDownloadLocation().ifPresent(pkgBuilder::setDownloadLocation);
 
-      ThirdPartyFileCoordinate matchingDbComponent = getMatchingDbComponent(pkg);
+      //Skip the first component as it was computed already
+      ThirdPartyFileCoordinate matchingDbComponent;
+
+      if ( shouldMatchByComponentRef == null ) {
+        matchingDbComponent = getMatchingDbComponent(pkg, true);
+        if (matchingDbComponent != null) {
+          shouldMatchByComponentRef = true;
+        }
+        else {
+          matchingDbComponent = getMatchingDbComponent(pkg, false);
+          shouldMatchByComponentRef = false;
+        }
+      }
+      else {
+        matchingDbComponent = getMatchingDbComponent(pkg, shouldMatchByComponentRef);
+      }
+
       Collection<ExternalRef> externalRefs = pkg.getExternalRefs();
 
       Collection<AnyLicenseInfo> licenseInfoFromDb = null;
@@ -300,11 +319,28 @@ public abstract class AbstractSpdxExporter
     return collect.values();
   }
 
-  private ThirdPartyFileCoordinate getMatchingDbComponent(final SpdxPackage pkg) {
+  private ThirdPartyFileCoordinate getDbComponentByComponentRef(SpdxPackage pkg) {
+    String componentRef = SbomIdentityUtils.getComponentRef(pkg);
+    ThirdPartyFileCoordinate componentMatched = null;
+    List<ThirdPartyFileCoordinate> componentsMatched = thirdPartyFileCoordinateDAO.getByComponentRef(
+        componentRef, exportParams.sbomMetadata.getThirdPartyFileId());
+
+    if ( !componentsMatched.isEmpty() ) {
+      componentMatched = componentsMatched.get(0);
+    }
+    return componentMatched;
+  }
+
+  private ThirdPartyFileCoordinate getMatchingDbComponent(final SpdxPackage pkg, boolean shouldMatchByComponentRef) {
     try {
-      String purl = SbomSpdxUtils.getPurl(pkg);
-      return thirdPartyFileCoordinateDAO.getByThirdPartyFileIdAndPackageUrl(
-          exportParams.sbomMetadata.getThirdPartyFileId(), purl);
+      if (shouldMatchByComponentRef) {
+        return getDbComponentByComponentRef(pkg);
+      }
+      else {
+        String purl = SbomSpdxUtils.getPurl(pkg);
+        return thirdPartyFileCoordinateDAO.getByThirdPartyFileIdAndPackageUrl(exportParams.sbomMetadata
+            .getThirdPartyFileId(), purl);
+      }
     }
     catch (InvalidSPDXAnalysisException e) {
       throw new SbomExportException("error determining purl for pkg", e);

@@ -163,6 +163,16 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
         .isEqualTo(readFileToString("outputs/missing-metadata-from-json-to-spdx.json"));
   }
 
+  @Test
+  public void exportTest_mergeDataMatchingByComponentRef() throws Exception {
+    File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom("webgoat-with-component-ref-bom.json"));
+    String exportedBomStr = setupExportSbomScenarioWithComponentRef(testBomFile,
+        SbomFormat.JSON, "");
+    assertThatJson(exportedBomStr)
+        .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]")
+        .isEqualTo(readFileToString("outputs/webgoat-with-component-ref-to-spdx.json"));
+  }
+
   private String setupExportSbomScenarioWithFileAndOutputFormat(File testBomFile, SbomFormat outputFormat) {
     defineDbTestData(thirdPartyFile, "");
     ThirdPartySbomMetadata sbomMetadata = insertTestData(testBomFile.getName(),
@@ -251,5 +261,34 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
             "1.1", "source", "v:1", "Medium", "1234",
             "m1", "<dd>r1<dd/>", "<dd>a1<dd/>", "G,F");
     }
+  }
+
+  private String setupExportSbomScenarioWithComponentRef(
+      File testBomFile,
+      SbomFormat outputFormat,
+      String nullField) throws Exception
+  {
+    defineDbTestData(thirdPartyFile, nullField);
+    mockDbRecordsWithComponentsMatchingByComponentRef(thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(testBomFile.getName(),
+        thirdPartyFile);
+    exporter.setExportParams(SbomExportParams.newSbomExporterParams(sbomMetadata)
+        .withExportSpecification(ExportSpecification.SPDX_23)
+        .withTargetFormat(outputFormat));
+    return exporter.export();
+  }
+
+  private ThirdPartyFileCoordinate mockDbRecordsWithComponentsMatchingByComponentRef(ThirdPartyFile tpFile) {
+    ThirdPartyFileCoordinate componentWithComponentRef = tempEntity.newThirdPartyFileCoordinate(tpFile,
+        "Third-Party", "maven", "parentApp", "1.0-SNAPSHOT", "e33c095684013cced988",
+        "pkg:maven/org.example/abc-component", "fcd38b25daab77edee3dbd1122f1733d652f03b6");
+    tempEntity.newThirdPartyCoordinateSecurity(componentWithComponentRef, "ABC-123",
+        "Test ABC vulnerability",
+        "http://cve.mitre.org/cgi-bin/cvename.cgi?name=ABC-123", 5.5d, "HIGH", "NVD",
+        " CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", "HIGH", "502", "", "", "", "SBOM");
+    tempEntity.newThirdPartyCoordinateLicense(componentWithComponentRef, "GPL-2.0", "GPL-2.0", "",
+        "SBOM");
+
+    return componentWithComponentRef;
   }
 }

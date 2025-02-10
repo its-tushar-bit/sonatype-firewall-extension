@@ -168,6 +168,50 @@ public class SpdxToSpdxExporterTest
   }
 
   @Test
+  public void testExport_MergedVulnerabilities_matchedByComponentRef() throws Exception {
+    Map<String, Object> mockData = mockOriginalThirdPartyScan();
+    ThirdPartyFile tpFile = (ThirdPartyFile) mockData.get("tpFile");
+    ThirdPartyFileCoordinate core = (ThirdPartyFileCoordinate) mockData.get("core");
+    mockDbRecordsWithComponentsMatchingByComponentRef(tpFile);
+
+    File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("spdx-comp-ref.json"));
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), "1.0-SNAPSHOT", ACTIVE,
+            sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.JSON.toString(), "2.3");
+    //mock sonatype vulnerability
+    tempEntity.newThirdPartyCoordinateSecurity(core, "sonatype-2022-6438",
+        "Sonatype: The jackson-core package is vulnerable to a Denial of Service (DoS) attack.",
+        "http://localhost:8070/ui/links/vln/sonatype-2022-6438", 8.0, "High", "SONATYPE",
+        "CVSS VectorCVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", "High", "", "", "", "", "SONATYPE");
+
+    SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
+        .withExportSpecification(ExportSpecification.SPDX_23)
+        .withTargetFormat(SbomFormat.JSON);
+    spdxExporter.setExportParams(exportParams);
+    String export = spdxExporter.export();
+    SpdxDocument sbom = SbomSpdxUtils.parseContentNoValidation(export, SbomFormat.JSON);
+    SpdxDocumentAssert documentAssert = assertThatSpdx(sbom)
+        .isValid()
+        .hasFormat(SbomFormat.JSON)
+        .nameContains(app.getPublicId())
+        .creationDateCloseTo(LocalDateTime.now(ZoneOffset.UTC))
+        .creatorsContaining("Tool: Sonatype SBOM Manager")
+        .equalsSpecVersion("2.3")
+        .equalsDataLicense("CC0-1.0")
+        .hasComponentCount(3)
+        .hasPackagesWithPurls("pkg:maven/org.example/my-component-not-in-db",
+            "pkg:maven/org.example/JavaApp@1.0-SNAPSHOT?type=jar",
+            "pkg:maven/org.example/abc-component")
+        .hasVulnerabilityCount(1);
+    documentAssert.hasPackageWithPurl("pkg:maven/org.example/my-component-not-in-db")
+        .hasVulnerabilityCount(0);
+    documentAssert.hasPackageWithPurl("pkg:maven/org.example/abc-component")
+        .hasVulnerabilityCount(1)
+        .containsVulnerabilities("ABC-123");
+
+  }
+
+  @Test
   public void testExport_MergedLicenses() throws Exception {
     Map<String, Object> mockData = mockOriginalThirdPartyScan();
     ThirdPartyFile tpFile = (ThirdPartyFile) mockData.get("tpFile");
@@ -419,5 +463,19 @@ public class SpdxToSpdxExporterTest
     tempEntity.newThirdPartyCoordinateLicense(annotations, "Apache-2.0", "Apache-2.0", "", "SBOM");
     tempEntity.newThirdPartyCoordinateLicense(core, "Apache-2.0", "Apache-2.0", "", "SBOM");
     return ImmutableMap.of("tpFile", tpFile, "core", core, "databind", databind);
+  }
+
+  private ThirdPartyFileCoordinate mockDbRecordsWithComponentsMatchingByComponentRef(ThirdPartyFile tpFile) {
+    ThirdPartyFileCoordinate componentWithComponentRef = tempEntity.newThirdPartyFileCoordinate(tpFile,
+        "Third-Party", "maven", "parentApp", "1.0-SNAPSHOT", "e33c095684013cced988",
+        "pkg:maven/org.example/abc-component", "dc72ed815b677397ac534a671167023b79c1475b");
+    tempEntity.newThirdPartyCoordinateSecurity(componentWithComponentRef, "ABC-123",
+        "Test ABC vulnerability",
+        "http://cve.mitre.org/cgi-bin/cvename.cgi?name=ABC-123", 5.5d, "HIGH", "NVD",
+        " CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", "HIGH", "502", "", "", "", "SBOM");
+    tempEntity.newThirdPartyCoordinateLicense(componentWithComponentRef, "GPL-2.0", "GPL-2.0", "",
+        "SBOM");
+
+    return componentWithComponentRef;
   }
 }

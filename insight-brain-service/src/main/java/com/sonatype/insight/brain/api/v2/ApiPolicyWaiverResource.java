@@ -12,6 +12,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -97,7 +98,7 @@ public class ApiPolicyWaiverResource
   )
   public void addPolicyWaiverByPolicyViolationId(
       @Parameter(description = "Indicates the scope of the waiver. Possible values are application, " +
-          "organization, repository, repository_manager, repository_container, global.", required = true)
+          "organization, repository, repository_manager, repository_container.", required = true)
       @PathParam("ownerType") OwnerType ownerType,
       @Parameter(description = "Enter the id for the ownerType provided above. E.g. applicationId if the " +
           "ownerType is application.", required = true)
@@ -122,6 +123,36 @@ public class ApiPolicyWaiverResource
       ApiWaiverOptionsDTO waiverOptionsDTO)
   {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(ownerType, ownerId, policyViolationId, waiverOptionsDTO);
+  }
+
+  @PUT
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_WAIVER)
+  @Path(BY_POLICY_WAIVER_ID_PATH)
+  @Operation(description = "Use this method to update an existing policy waiver." +
+      "\n" +
+      "\n" +
+      "Permissions required: Waive Policy Violations",
+      responses = {
+          @ApiResponse(
+              responseCode = "204",
+              description = "The policy waiver was updated successfully."
+          )
+      })
+  public void updatePolicyWaiver(
+      @Parameter(description = "Indicates the scope of the policy waiver. Possible values are application," +
+          " organization, repository, repository_manager, and repository_container.", required = true)
+      @PathParam("ownerType") final OwnerType ownerType,
+      @Parameter(description = "Enter the id for the `ownerType` provided above. E.g. `applicationId` if the" +
+          " `ownerType` is application.", required = true)
+      @PathParam("ownerId") final String ownerId,
+      @Parameter(description = "Enter the id for the policy waiver.", required = true)
+      @PathParam("policyWaiverId") final String policyWaiverId,
+      @RequestBody(description = "Enter the policy waiver details to update." +
+          " Note that updating `matcherStrategy` is currently unsupported.", required = true)
+      final ApiWaiverOptionsDTO dto)
+  {
+    apiPolicyWaiverService.updatePolicyWaiver(ownerType, ownerId, policyWaiverId, dto);
   }
 
   /**

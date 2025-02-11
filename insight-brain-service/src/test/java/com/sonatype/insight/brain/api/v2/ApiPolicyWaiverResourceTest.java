@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.function.UnaryOperator;
-
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 
@@ -27,6 +26,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRequestPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiComponentPolicyWaiversDTO;
+import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -49,6 +50,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -861,5 +863,37 @@ public class ApiPolicyWaiverResourceTest
         .post();
     assertThat(post.getStatusCode()).isEqualTo(HttpServletResponse.SC_NOT_FOUND);
     assertThat(post.getBodyText()).isEqualTo("Could not find associated policy violation");
+  }
+
+  @Test
+  public void testUpdatePolicyWaiver() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiverReason policyWaiverReason1 = tempEntity.newWaiverReason("type1", "reason1");
+    String hash = "hash";
+    Date expiry = DateUtils.addDays(new Date(), 1);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(hash, policy.getId(), application.getId(), "comment1", expiry);
+    policyWaiver.setExpireWhenRemediationAvailable(false);
+    policyWaiver.setWaiverReasonId(policyWaiverReason1.getId());
+    policyWaiverDAO.update(policyWaiver);
+
+    ApiWaiverOptionsDTO dto = new ApiWaiverOptionsDTO();
+    dto.comment = "comment2";
+    dto.expiryTime = DateUtils.addDays(expiry, 1);
+    PolicyWaiverReason policyWaiverReason2 = tempEntity.newWaiverReason("type1", "reason2");
+    dto.waiverReasonId = policyWaiverReason2.getId();
+    dto.expireWhenRemediationAvailable = true;
+    dto.matcherStrategy = EXACT_COMPONENT;
+
+    HttpResponse response = restRequest()
+        .path(BY_POLICY_WAIVER_ID_PATH)
+        .parameter(OwnerType.APPLICATION, application.getId(), policyWaiver.getId())
+        .body(dto, MediaType.APPLICATION_JSON)
+        .put();
+
+    assertResponseStatus(204, response);
+    assertThat(new ApiWaiverOptionsDTO(policyWaiverDAO.getById(policyWaiver.getId())))
+        .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .isEqualTo(dto);
   }
 }

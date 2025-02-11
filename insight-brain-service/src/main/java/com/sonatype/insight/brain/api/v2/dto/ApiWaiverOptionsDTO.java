@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.dto;
 
 import java.util.Date;
 
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.json.store.ApiDateFormat;
 
@@ -52,5 +53,13 @@ public class ApiWaiverOptionsDTO
     this.expiryTime = expiryTime;
     this.waiverReasonId = waiverReasonId;
     this.expireWhenRemediationAvailable = expireWhenRemediationAvailable;
+  }
+
+  public ApiWaiverOptionsDTO(PolicyWaiver policyWaiver) {
+    this.comment = policyWaiver.getComment();
+    this.matcherStrategy = policyWaiver.getComponentMatchStrategy();
+    this.expiryTime = policyWaiver.getExpiryTime();
+    this.waiverReasonId = policyWaiver.getWaiverReasonId();
+    this.expireWhenRemediationAvailable = policyWaiver.isExpireWhenRemediationAvailable();
   }
 }

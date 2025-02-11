@@ -259,20 +259,29 @@ public class ApiPolicyWaiverService
     boolean expireWhenRemediationAvailable =
         waiverOptionsDTO != null && waiverOptionsDTO.expireWhenRemediationAvailable;
 
-    // validate expiry date
+    validateExpiryTime(expiryTime);
+
+    validateExpireWhenRemediationAvailable(expireWhenRemediationAvailable, matcherStrategy);
+
+    addPolicyWaiver(ownerType, internalOwnerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime,
+        waiverReasonId, expireWhenRemediationAvailable);
+  }
+
+  private void validateExpiryTime(final Date expiryTime) {
     if (Objects.nonNull(expiryTime) &&
         !expiryTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(LocalDate.now())) {
       throw new BadRequestException("Expiration date must be in the future.");
     }
+  }
 
-    // validate expireWhenRemediationAvailable and matcherStrategy
+  private void validateExpireWhenRemediationAvailable(
+      final boolean expireWhenRemediationAvailable,
+      final ComponentMatcherStrategyForWaiver matcherStrategy)
+  {
     if (expireWhenRemediationAvailable && matcherStrategy != EXACT_COMPONENT) {
       throw new BadRequestException(
           "Expire When Remediation Available Waivers can only be applied to Exact Components.");
     }
-
-    addPolicyWaiver(ownerType, internalOwnerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime,
-        waiverReasonId, expireWhenRemediationAvailable);
   }
 
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
@@ -801,5 +810,40 @@ public class ApiPolicyWaiverService
     apiPolicyWaiverDTO.threatLevel = policy.getThreatLevel();
     apiPolicyWaiverDTO.constraintFactsJson = policyWaiver.getConstraintFactsJson();
     apiPolicyWaiverDTO.constraintFacts = policyWaiver.getConstraintFacts();
+  }
+
+  public void updatePolicyWaiver(
+      final OwnerType ownerType,
+      final String ownerId,
+      final String policyWaiverId,
+      final ApiWaiverOptionsDTO dto)
+  {
+    updatePolicyWaiver(idUtils.getOwnerNotNull(ownerType, ownerId), policyWaiverId, dto);
+  }
+
+  @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
+  void updatePolicyWaiver(
+      @AuthzContext(Key.OWNER) final Owner owner,
+      final String policyWaiverId,
+      final ApiWaiverOptionsDTO dto)
+  {
+    PolicyWaiver policyWaiver = policyWaiverDAO.getByIdAndOwnerIdNotNull(policyWaiverId, owner.getId());
+    if (!Objects.equals(dto.matcherStrategy, policyWaiver.getComponentMatchStrategy())) {
+      throw new BadRequestException("Matcher strategy cannot be updated.");
+    }
+    policyWaiver.setComment(dto.comment);
+    policyWaiver.setExpiryTime(dto.expiryTime);
+    policyWaiver.setExpireWhenRemediationAvailable(dto.expireWhenRemediationAvailable);
+    policyWaiver.setWaiverReasonId(dto.waiverReasonId);
+    validate(policyWaiver);
+    auditPolicyWaiver(policyWaiver);
+    policyWaiverDAO.update(policyWaiver);
+  }
+
+  private void validate(final PolicyWaiver policyWaiver) {
+    validateExpiryTime(policyWaiver.getExpiryTime());
+    validateExistingPolicyWaiverReason(policyWaiver.getWaiverReasonId());
+    validateExpireWhenRemediationAvailable(policyWaiver.isExpireWhenRemediationAvailable(),
+        policyWaiver.getComponentMatchStrategy());
   }
 }

@@ -641,4 +641,112 @@ public class ApiPolicyWaiverServiceAuthzTest
   public void testGetPolicyWaiver_RepositoryContainer_Unauthenticated() {
     apiPolicyWaiverService.getPolicyWaiver(REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID, POLICY_WAIVER_ID);
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdatePolicyWaiver_Application_Unauthenticated() {
+    apiPolicyWaiverService.updatePolicyWaiver(OwnerType.APPLICATION, app.getId(), POLICY_WAIVER_ID, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdatePolicyWaiver_Application_Unauthorized() {
+    login();
+    apiPolicyWaiverService.updatePolicyWaiver(OwnerType.APPLICATION, app.getId(), POLICY_WAIVER_ID, null);
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testUpdatePolicyWaiver_Application_Authorized() {
+    grantPermission(app.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
+    apiPolicyWaiverService.updatePolicyWaiver(OwnerType.APPLICATION, app.getId(), POLICY_WAIVER_ID, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdatePolicyWaiver_Organization_Unauthenticated() {
+    apiPolicyWaiverService.updatePolicyWaiver(OwnerType.ORGANIZATION, org.getId(), POLICY_WAIVER_ID, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdatePolicyWaiver_Organization_Unauthorized() {
+    login();
+    apiPolicyWaiverService.updatePolicyWaiver(OwnerType.ORGANIZATION, org.getId(), POLICY_WAIVER_ID, null);
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testUpdatePolicyWaiver_Organization_Authorized() {
+    grantPermission(org.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
+    apiPolicyWaiverService.updatePolicyWaiver(OwnerType.ORGANIZATION, org.getId(), POLICY_WAIVER_ID, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdatePolicyWaiver_RootOrganization_Unauthenticated() {
+    apiPolicyWaiverService.updatePolicyWaiver(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
+        POLICY_WAIVER_ID, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdatePolicyWaiver_RootOrganization_Unauthorized() {
+    login();
+    apiPolicyWaiverService.updatePolicyWaiver(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
+        POLICY_WAIVER_ID, null);
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testUpdatePolicyWaiver_RootOrganization_Authorized() {
+    grantPermission(Organization.ROOT_ORGANIZATION_ID, Permission.WAIVE_POLICY_VIOLATIONS);
+    apiPolicyWaiverService.updatePolicyWaiver(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
+        POLICY_WAIVER_ID, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdatePolicyWaiver_Repository_Unauthenticated() {
+    apiPolicyWaiverService.updatePolicyWaiver(OwnerType.REPOSITORY, repository.getId(), POLICY_WAIVER_ID, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdatePolicyWaiver_Repository_Unauthorized() {
+    login();
+    apiPolicyWaiverService.updatePolicyWaiver(OwnerType.REPOSITORY, repository.getId(), POLICY_WAIVER_ID, null);
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testUpdatePolicyWaiver_Repository_Authorized() {
+    grantPermission(repository.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
+    apiPolicyWaiverService.updatePolicyWaiver(OwnerType.REPOSITORY, repository.getId(), POLICY_WAIVER_ID, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdatePolicyWaiver_RepositoryManager_Unauthenticated() {
+    apiPolicyWaiverService.updatePolicyWaiver(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), POLICY_WAIVER_ID,
+        null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdatePolicyWaiver_RepositoryManager_Unauthorized() {
+    login();
+    apiPolicyWaiverService.updatePolicyWaiver(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), POLICY_WAIVER_ID,
+        null);
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testUpdatePolicyWaiver_RepositoryManager_Authorized() {
+    grantPermission(repositoryManager.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
+    apiPolicyWaiverService.updatePolicyWaiver(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), POLICY_WAIVER_ID,
+        null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdatePolicyWaiver_RepositoryContainer_Unauthenticated() {
+    apiPolicyWaiverService.updatePolicyWaiver(REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID, POLICY_WAIVER_ID, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdatePolicyWaiver_RepositoryContainer_Unauthorized() {
+    login();
+    apiPolicyWaiverService.updatePolicyWaiver(REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID, POLICY_WAIVER_ID, null);
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testUpdatePolicyWaiver_RepositoryContainer_Authorized() {
+    grantPermission(REPOSITORY_CONTAINER_ID, Permission.WAIVE_POLICY_VIOLATIONS);
+    apiPolicyWaiverService.updatePolicyWaiver(REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID, POLICY_WAIVER_ID, null);
+  }
 }

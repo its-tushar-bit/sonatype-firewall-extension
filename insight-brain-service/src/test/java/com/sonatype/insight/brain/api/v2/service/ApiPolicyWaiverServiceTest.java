@@ -20,7 +20,6 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -31,6 +30,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiComponentPolicyWaiversDTO;
+import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -1923,6 +1923,208 @@ public class ApiPolicyWaiverServiceTest
     List<ApiPolicyWaiverDTO> similarWaivers = apiPolicyWaiverService.getSimilarWaivers(policyViolation.getId());
 
     assertThat(similarWaivers).isEmpty();
+  }
+
+  @Test
+  public void testUpdatePolicyWaiver_OrganizationDoesNotExist() {
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), Organization.ROOT_ORGANIZATION_ID);
+    ApiWaiverOptionsDTO dto = new ApiWaiverOptionsDTO(policyWaiver);
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> apiPolicyWaiverService.updatePolicyWaiver(
+            OwnerType.ORGANIZATION,
+            "doesNotExist",
+            policyWaiver.getId(),
+            dto
+        ))
+        .withMessageContaining("Organization with ID doesNotExist does not exist.");
+  }
+
+  @Test
+  public void testUpdatePolicyWaiver_ApplicationDoesNotExist() {
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), Organization.ROOT_ORGANIZATION_ID);
+    ApiWaiverOptionsDTO dto = new ApiWaiverOptionsDTO(policyWaiver);
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> apiPolicyWaiverService.updatePolicyWaiver(
+            OwnerType.APPLICATION,
+            "doesNotExist",
+            policyWaiver.getId(),
+            dto
+        ))
+        .withMessageContaining("Application with ID doesNotExist does not exist.");
+  }
+
+  @Test
+  public void testUpdatePolicyWaiver_RepositoryManagerDoesNotExist() {
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), Organization.ROOT_ORGANIZATION_ID);
+    ApiWaiverOptionsDTO dto = new ApiWaiverOptionsDTO(policyWaiver);
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> apiPolicyWaiverService.updatePolicyWaiver(
+            OwnerType.REPOSITORY_MANAGER,
+            "doesNotExist",
+            policyWaiver.getId(),
+            dto
+        ))
+        .withMessageContaining("RepositoryManager with ID doesNotExist does not exist.");
+  }
+
+  @Test
+  public void testUpdatePolicyWaiver_RepositoryDoesNotExist() {
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), Organization.ROOT_ORGANIZATION_ID);
+    ApiWaiverOptionsDTO dto = new ApiWaiverOptionsDTO(policyWaiver);
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> apiPolicyWaiverService.updatePolicyWaiver(
+            OwnerType.REPOSITORY,
+            "doesNotExist",
+            policyWaiver.getId(),
+            dto
+        ))
+        .withMessageContaining("Repository with ID doesNotExist does not exist.");
+  }
+
+  @Test
+  public void testUpdatePolicyWaiver_WaiverDoesNotExist() {
+    Application application = tempEntity.newApplicationWithParent();
+    ApiWaiverOptionsDTO dto = new ApiWaiverOptionsDTO();
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> apiPolicyWaiverService.updatePolicyWaiver(
+            OwnerType.APPLICATION,
+            application.getId(),
+            "doesNotExist",
+            dto
+        ))
+        .withMessageContaining("Cannot find a waiver with ID doesNotExist for owner " + application.getId() + ".");
+  }
+
+  @Test
+  public void testUpdatePolicyWaiver_MatcherStrategy_NotSupported() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), application.getId());
+    ApiWaiverOptionsDTO dto = new ApiWaiverOptionsDTO(policyWaiver);
+    dto.matcherStrategy = null;
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiPolicyWaiverService.updatePolicyWaiver(
+            application.getType(),
+            application.getId(),
+            policyWaiver.getId(),
+            dto
+        ))
+        .withMessageContaining("Matcher strategy cannot be updated.");
+  }
+
+  @Test
+  public void testUpdatePolicyWaiver_MatcherStrategy_NotChanged() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), application.getId());
+    ApiWaiverOptionsDTO dto = new ApiWaiverOptionsDTO(policyWaiver);
+    dto.comment = "new comment";
+
+    apiPolicyWaiverService.updatePolicyWaiver(
+        application.getType(),
+        application.getId(),
+        policyWaiver.getId(),
+        dto
+    );
+
+    assertThat(policyWaiverDAO.getById(policyWaiver.getId()).getComment()).isEqualTo(dto.comment);
+  }
+
+  @Test
+  public void testUpdatePolicyWaiver_ExpiryTimeInPast() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), application.getId());
+    ApiWaiverOptionsDTO dto = new ApiWaiverOptionsDTO(policyWaiver);
+    dto.expiryTime = DateUtils.addDays(new Date(), -1);
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiPolicyWaiverService.updatePolicyWaiver(
+            application.getType(),
+            application.getId(),
+            policyWaiver.getId(),
+            dto
+        ))
+        .withMessageContaining("Expiration date must be in the future.");
+  }
+
+  @Test
+  public void testUpdatePolicyWaiver_WaiverReasonDoesNotExist() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), application.getId());
+    ApiWaiverOptionsDTO dto = new ApiWaiverOptionsDTO(policyWaiver);
+    dto.waiverReasonId = "doesNotExist";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiPolicyWaiverService.updatePolicyWaiver(
+            application.getType(),
+            application.getId(),
+            policyWaiver.getId(),
+            dto
+        ))
+        .withMessageContaining("Waiver reason not found");
+  }
+
+  @Test
+  public void testUpdatePolicyWaiver_ExpireWhenRemediationAvailableNotExact() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), application.getId());
+    policyWaiver.setComponentMatchStrategy(ALL_COMPONENTS);
+    policyWaiver.setExpireWhenRemediationAvailable(false);
+    policyWaiverDAO.update(policyWaiver);
+    ApiWaiverOptionsDTO dto = new ApiWaiverOptionsDTO(policyWaiver);
+    dto.expireWhenRemediationAvailable = true;
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiPolicyWaiverService.updatePolicyWaiver(
+            application.getType(),
+            application.getId(),
+            policyWaiver.getId(),
+            dto
+        ))
+        .withMessageContaining("Expire When Remediation Available Waivers can only be applied to Exact Components.");
+  }
+
+  @Test
+  public void testUpdatePolicyWaiver() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiverReason policyWaiverReason1 = tempEntity.newWaiverReason("type1", "reason1");
+    String hash = "hash";
+    Date expiry = DateUtils.addDays(new Date(), 1);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(hash, policy.getId(), application.getId(), "comment1", expiry);
+    policyWaiver.setExpireWhenRemediationAvailable(false);
+    policyWaiver.setWaiverReasonId(policyWaiverReason1.getId());
+    policyWaiverDAO.update(policyWaiver);
+    ApiWaiverOptionsDTO dto = new ApiWaiverOptionsDTO(policyWaiver);
+    dto.comment = "new comment";
+    dto.expiryTime = DateUtils.addDays(expiry, 1);
+    PolicyWaiverReason policyWaiverReason2 = tempEntity.newWaiverReason("type2", "reason2");
+    dto.waiverReasonId = policyWaiverReason2.getId();
+    dto.expireWhenRemediationAvailable = true;
+
+    apiPolicyWaiverService.updatePolicyWaiver(
+        application.getType(),
+        application.getId(),
+        policyWaiver.getId(),
+        dto
+    );
+
+    assertThat(new ApiWaiverOptionsDTO(policyWaiverDAO.getById(policyWaiver.getId())))
+        .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .isEqualTo(dto);
   }
 
   private void assertWaivers(

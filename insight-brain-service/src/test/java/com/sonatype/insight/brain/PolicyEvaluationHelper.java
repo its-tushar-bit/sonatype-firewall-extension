@@ -133,32 +133,32 @@ public class PolicyEvaluationHelper
   }
 
   /**
-   * Wait for the component analysis process linked to appPublicId and statusId to complete.
+   * Wait for the component analysis process linked to appId and statusId to complete.
    *
-   * @param appPublicId The public ID of the application for which the component analysis was started
+   * @param appId The ID of the application for which the component analysis was started
    * @param statusId    The status ID for the component analysis process (from the associated
    *          PersistedPolicyEvaluationPollingResult)
    */
-  public void awaitComponentAnalysisCompleted(final String appPublicId, final String statusId) {
+  public void awaitComponentAnalysisCompleted(final String appId, final String statusId) {
     await().atMost(20, TimeUnit.SECONDS)
         .until(() -> PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE
             .equals(persistedPolicyEvaluationPollingResultDAO
-                .getByApplicationIdAndStatusId(appPublicId, statusId)
+                .getByApplicationIdAndStatusId(appId, statusId)
                 .getPolicyEvaluationPollingResult().getSubStatus()));
   }
 
   /**
-   * Wait for the component analysis process linked to appPublicId and statusId to fail.
+   * Wait for the component analysis process linked to appId and statusId to fail.
    *
-   * @param appPublicId The public ID of the application for which the component analysis was started
+   * @param appId The ID of the application for which the component analysis was started
    * @param statusId    The status ID for the component analysis process (from the associated
    *          PersistedPolicyEvaluationPollingResult)
    */
-  public void awaitComponentAnalysisFailed(final String appPublicId, final String statusId) {
+  public void awaitComponentAnalysisFailed(final String appId, final String statusId) {
     await().atMost(20, TimeUnit.SECONDS)
         .until(() -> {
           PolicyEvaluationPollingResult res = persistedPolicyEvaluationPollingResultDAO
-              .getByApplicationIdAndStatusId(appPublicId, statusId)
+              .getByApplicationIdAndStatusId(appId, statusId)
               .getPolicyEvaluationPollingResult();
           return res.getSubStatus().equals(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING) &&
               res.getStatus().equals(PolicyEvaluationStatus.FAILED);

@@ -178,18 +178,18 @@ public class ComponentAnalysisServiceTest
         app.getPublicId(), ClientScanType.SONATYPE, httpRequest, STAGE);
 
     PersistedPolicyEvaluationPollingResult pollingResult = persistedPolicyEvaluationPollingResultDAO
-        .getByApplicationIdAndStatusId(app.getPublicId(), receipt.getStatusId());
+        .getByApplicationIdAndStatusId(app.getId(), receipt.getStatusId());
     PolicyEvaluationPollingResult policyEvaluationPollingResult =
         pollingResult.getPolicyEvaluationPollingResult();
     assertThat(policyEvaluationPollingResult.getSubStatus())
         .isEqualTo(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING);
 
-    policyEvaluationHelper.awaitComponentAnalysisCompleted(app.getPublicId(), receipt.getStatusId());
+    policyEvaluationHelper.awaitComponentAnalysisCompleted(app.getId(), receipt.getStatusId());
 
-    pollingResult = persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(app.getPublicId(),
+    pollingResult = persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(app.getId(),
         receipt.getStatusId());
     assertThat(receipt.getStatusId()).isEqualTo(pollingResult.getStatusId());
-    assertThat(pollingResult.getApplicationId()).isEqualTo(app.getPublicId());
+    assertThat(pollingResult.getApplicationId()).isEqualTo(app.getId());
     policyEvaluationPollingResult = pollingResult.getPolicyEvaluationPollingResult();
     assertThat(policyEvaluationPollingResult).isNotNull();
     assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.PENDING);
@@ -208,18 +208,18 @@ public class ComponentAnalysisServiceTest
         app.getPublicId(), ClientScanType.SONATYPE, httpRequest, STAGE);
 
     PersistedPolicyEvaluationPollingResult pollingResult = persistedPolicyEvaluationPollingResultDAO
-        .getByApplicationIdAndStatusId(app.getPublicId(), receipt.getStatusId());
+        .getByApplicationIdAndStatusId(app.getId(), receipt.getStatusId());
     PolicyEvaluationPollingResult policyEvaluationPollingResult =
         pollingResult.getPolicyEvaluationPollingResult();
     assertThat(policyEvaluationPollingResult.getSubStatus())
         .isEqualTo(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING);
 
-    policyEvaluationHelper.awaitComponentAnalysisFailed(app.getPublicId(), receipt.getStatusId());
+    policyEvaluationHelper.awaitComponentAnalysisFailed(app.getId(), receipt.getStatusId());
 
-    pollingResult = persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(app.getPublicId(),
+    pollingResult = persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(app.getId(),
         receipt.getStatusId());
     assertThat(receipt.getStatusId()).isEqualTo(pollingResult.getStatusId());
-    assertThat(pollingResult.getApplicationId()).isEqualTo(app.getPublicId());
+    assertThat(pollingResult.getApplicationId()).isEqualTo(app.getId());
     policyEvaluationPollingResult = pollingResult.getPolicyEvaluationPollingResult();
     assertThat(policyEvaluationPollingResult).isNotNull();
     assertThat(policyEvaluationPollingResult.getReason()).startsWith("Internal Server Error");

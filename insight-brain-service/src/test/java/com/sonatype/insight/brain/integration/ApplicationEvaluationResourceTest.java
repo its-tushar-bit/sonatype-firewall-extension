@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
@@ -20,6 +21,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
@@ -29,10 +31,13 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
+import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.policy.evaluator.AbstractPolicyEvaluationTest;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
@@ -49,11 +54,18 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import static com.sonatype.insight.mock.hds.HdsMockServer.RestHandler.SCAN_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationEvaluationResourceTest
     extends AbstractResourceTest
 {
+  private static final String EVALUATE_PATH = Paths.get(ApplicationEvaluationResource.RESOURCE_PATH,
+      ApplicationEvaluationResource.EVALUATE_PATH).toString();
+
+  private static final String COMPONENT_ANALYSIS_PATH = Paths.get(ApplicationEvaluationResource.RESOURCE_PATH,
+      ApplicationEvaluationResource.COMPONENT_ANALYSIS_PATH).toString();
+
   private PolicyEvaluationDAO policyEvaluationDAO;
 
   private PolicyDAO policyDAO;
@@ -76,15 +88,16 @@ public class ApplicationEvaluationResourceTest
     policyEvaluationHelper = lookup(PolicyEvaluationHelper.class);
   }
 
-  private HttpRequest evaluateWithPollingRequest(
+  private HttpRequest makeRequest(
       IntegrationType integrationType,
       String applicationPublicId,
       String stageId,
       ClientScanType scanType,
-      boolean withFile) throws IOException, URISyntaxException
+      boolean withFile,
+      String path) throws IOException, URISyntaxException
   {
     HttpRequest request = restRequest()
-        .path(ApplicationEvaluationResource.RESOURCE_PATH, ApplicationEvaluationResource.EVALUATE_PATH)
+        .path(path)
         .query("scanType", scanType).parameter(applicationPublicId, integrationType, stageId);
 
     if (withFile) {
@@ -124,8 +137,8 @@ public class ApplicationEvaluationResourceTest
 
     // evaluate policy
     HttpResponse response =
-        evaluateWithPollingRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
-            ClientScanType.SONATYPE, false) //
+        makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
+            ClientScanType.SONATYPE, false, EVALUATE_PATH) //
             .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
             .post();
     assertResponseStatus(200, response);
@@ -134,8 +147,10 @@ public class ApplicationEvaluationResourceTest
     assertThat(receipt).isNotNull();
     assertThat(receipt.getStatusId()).isNotNull();
 
-    PolicyEvaluationPollingResult policyEvaluationPollingResult =
-        getPolicyEvaluationPollingResult(app.getPublicId(), receipt.getStatusId());
+    policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), receipt.getStatusId());
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult = pollEvaluationResultRequest(app.getPublicId(),
+        receipt.getStatusId()).get().getBody(PolicyEvaluationPollingResult.class);
 
     assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
     assertThat(policyEvaluationPollingResult.getReason()).isNull();
@@ -181,8 +196,8 @@ public class ApplicationEvaluationResourceTest
 
     // evaluate policy
     HttpResponse response =
-        evaluateWithPollingRequest(IntegrationType.CLI, app.getPublicId(), ComplianceStageType.ID,
-            ClientScanType.SONATYPE_THIRD_PARTY, true) //
+        makeRequest(IntegrationType.CLI, app.getPublicId(), ComplianceStageType.ID,
+            ClientScanType.SONATYPE_THIRD_PARTY, true, EVALUATE_PATH) //
             .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
             .post();
     assertResponseStatus(200, response);
@@ -201,21 +216,185 @@ public class ApplicationEvaluationResourceTest
     assertThat(sbomMetadata.getStatus()).isEqualTo(ACTIVE);
   }
 
-  private PolicyEvaluationPollingResult getPolicyEvaluationPollingResult(String applicationPublicId, String statusId)
-      throws Exception
-  {
-    long endTime = System.currentTimeMillis() + 10000;
+  @Test
+  public void testAnalyzeComponentsWithPollingAndPollEvaluationResult_Success() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+    Application app = tempEntity.newApplicationWithParent();
+    String testClientUserAgent = "testClientUserAgent";
 
-    while (System.currentTimeMillis() < endTime) {
-      HttpResponse response = pollEvaluationResultRequest(applicationPublicId, statusId).get();
-      assertResponseStatus(200, response);
-      PolicyEvaluationPollingResult policyEvaluationPollingResult =
-          response.getBody(PolicyEvaluationPollingResult.class);
-      if (policyEvaluationPollingResult.getStatus().equals(PolicyEvaluationStatus.COMPLETED)) {
-        return policyEvaluationPollingResult;
-      }
-      Thread.sleep(500);
-    }
-    throw new RuntimeException("Evaluation did not complete within the expected 10 seconds to get the polling result.");
+    Policy policy = tempEntity.newPolicy(app);
+    policy.setAction(BuildStageType.ID, Action.ID_FAIL);
+    policyDAO.update(policy);
+
+    // Simulate that the report is available
+    String scanId = mockReport("/" + getClass().getSimpleName() + "/report");
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+
+    mockScanReceipt(scanReceipt);
+
+    HttpResponse response =
+        makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
+            ClientScanType.SONATYPE, false, COMPONENT_ANALYSIS_PATH) //
+            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+            .post();
+    assertResponseStatus(200, response);
+
+    PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
+    policyEvaluationHelper.awaitComponentAnalysisCompleted(app.getId(), receipt.getStatusId());
+    assertThat(receipt).isNotNull();
+    assertThat(receipt.getStatusId()).isNotNull();
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult = pollEvaluationResultRequest(app.getPublicId(),
+        receipt.getStatusId()).get().getBody(PolicyEvaluationPollingResult.class);
+
+    assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.PENDING);
+    assertThat(policyEvaluationPollingResult.getSubStatus())
+        .isEqualTo(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE);
+    assertThat(policyEvaluationPollingResult.getReason()).isNull();
+    assertThat(policyEvaluationPollingResult.getScanReceipt()).isNotNull();
+    assertThat(policyEvaluationPollingResult.getScanReceipt().getScanId()).isEqualTo(scanReceipt.getScanId());
+
+    assertThat(getHdsServer().getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH))
+        .containsEntry(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent);
+  }
+
+  @Test
+  public void testAnalyzeComponentsWithPollingAndPollEvaluationResult_Failure() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+    Application app = tempEntity.newApplicationWithParent();
+    String testClientUserAgent = "testClientUserAgent";
+
+    Policy policy = tempEntity.newPolicy(app);
+    policy.setAction(BuildStageType.ID, Action.ID_FAIL);
+    policyDAO.update(policy);
+
+    // Skipping simulating that the report is available
+    HttpResponse response =
+        makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
+            ClientScanType.SONATYPE, false, COMPONENT_ANALYSIS_PATH) //
+            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+            .post();
+    assertResponseStatus(200, response);
+
+    PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
+    policyEvaluationHelper.awaitComponentAnalysisFailed(app.getId(), receipt.getStatusId());
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult = pollEvaluationResultRequest(app.getPublicId(),
+        receipt.getStatusId()).get().getBody(PolicyEvaluationPollingResult.class);
+
+    assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.FAILED);
+    assertThat(policyEvaluationPollingResult.getSubStatus())
+        .isEqualTo(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING);
+    assertThat(policyEvaluationPollingResult.getReason()).isEqualTo("Could not download the report for scan ID "
+        + SCAN_ID);
+  }
+
+  @Test
+  public void testAnalyzeComponentsWithPollingAndPollEvaluationResult_FeatureFlagDisabled() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    String testClientUserAgent = "testClientUserAgent";
+
+    Policy policy = tempEntity.newPolicy(app);
+    policy.setAction(BuildStageType.ID, Action.ID_FAIL);
+    policyDAO.update(policy);
+
+    // Simulate that the report is available
+    String scanId = mockReport("/" + getClass().getSimpleName() + "/report");
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+
+    mockScanReceipt(scanReceipt);
+
+    HttpResponse response =
+        makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
+            ClientScanType.SONATYPE, false, COMPONENT_ANALYSIS_PATH) //
+            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+            .post();
+    assertResponseStatus(403, response);
+    assertThat(response.getBodyText()).isEqualTo("new-scan-process feature is disabled.");
+  }
+
+  @Test
+  public void testAnalyzeComponentsWithPollingAndPollEvaluationResult_UnsupportedStage() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+    Application app = tempEntity.newApplicationWithParent();
+    String testClientUserAgent = "testClientUserAgent";
+
+    Policy policy = tempEntity.newPolicy(app);
+    policy.setAction(BuildStageType.ID, Action.ID_FAIL);
+    policyDAO.update(policy);
+
+    // Simulate that the report is available
+    String scanId = mockReport("/" + getClass().getSimpleName() + "/report");
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+
+    mockScanReceipt(scanReceipt);
+
+    HttpResponse response =
+        makeRequest(IntegrationType.CLI, app.getPublicId(), ComplianceStageType.ID,
+            ClientScanType.SONATYPE, false, COMPONENT_ANALYSIS_PATH) //
+            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+            .post();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Compliance scans are not supported for component analysis." +
+        " Please use the policy evaluation endpoint.");
+  }
+
+  @Test
+  public void testAnalyzeComponentsWithPollingAndPollEvaluationResult_InvalidStage() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+    Application app = tempEntity.newApplicationWithParent();
+    String testClientUserAgent = "testClientUserAgent";
+
+    Policy policy = tempEntity.newPolicy(app);
+    policy.setAction(BuildStageType.ID, Action.ID_FAIL);
+    policyDAO.update(policy);
+
+    // Simulate that the report is available
+    String scanId = mockReport("/" + getClass().getSimpleName() + "/report");
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+
+    mockScanReceipt(scanReceipt);
+
+    String invalidStage = "invalid-stage";
+    HttpResponse response =
+        makeRequest(IntegrationType.CLI, app.getPublicId(), invalidStage,
+            ClientScanType.SONATYPE, false, COMPONENT_ANALYSIS_PATH) //
+            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+            .post();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Invalid stage id=" + invalidStage);
+  }
+
+  @Test
+  public void testAnalyzeComponentsWithPollingAndPollEvaluationResult_UnlicensedStage() throws Exception {
+    licenseManager.setStageTypes(StageTypes.BUILD);
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+    Application app = tempEntity.newApplicationWithParent();
+    String testClientUserAgent = "testClientUserAgent";
+
+    Policy policy = tempEntity.newPolicy(app);
+    policy.setAction(BuildStageType.ID, Action.ID_FAIL);
+    policyDAO.update(policy);
+
+    // Simulate that the report is available
+    String scanId = mockReport("/" + getClass().getSimpleName() + "/report");
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+
+    mockScanReceipt(scanReceipt);
+
+    String unlicensedStage = ReleaseStageType.ID;
+    HttpResponse response =
+        makeRequest(IntegrationType.CLI, app.getPublicId(), unlicensedStage,
+            ClientScanType.SONATYPE, false, COMPONENT_ANALYSIS_PATH) //
+            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+            .post();
+    assertResponseStatus(402, response);
+    assertThat(response.getBodyText()).isEqualTo(String.format("Stage '%s' is not supported by your license.",
+        unlicensedStage));
   }
 }

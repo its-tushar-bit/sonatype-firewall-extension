@@ -24,6 +24,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.policy.componentanalysis.ComponentAnalysisService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultDTO;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
@@ -34,7 +35,7 @@ import com.codahale.metrics.annotation.Timed;
 
 /**
  * Resource for integrations points to conform to Application Evaluation.
- * 
+ *
  * @since 1.69
  */
 @Path(ApplicationEvaluationResource.RESOURCE_PATH)
@@ -47,13 +48,21 @@ public class ApplicationEvaluationResource
 
   static final String EVALUATE_PATH = "{integrationType: ci|cli|rm}/stages/{stageId}";
 
+  static final String COMPONENT_ANALYSIS_PATH = EVALUATE_PATH + "/component-analysis";
+
   static final String STATUS_PATH = "status/{statusId}";
 
   private final PolicyEvaluateService policyEvaluateService;
 
+  private final ComponentAnalysisService componentAnalysisService;
+
   @Inject
-  public ApplicationEvaluationResource(PolicyEvaluateService policyEvaluateService) {
+  public ApplicationEvaluationResource(
+      PolicyEvaluateService policyEvaluateService,
+      ComponentAnalysisService componentAnalysisService)
+  {
     this.policyEvaluateService = policyEvaluateService;
+    this.componentAnalysisService = componentAnalysisService;
   }
 
   /**
@@ -85,8 +94,37 @@ public class ApplicationEvaluationResource
   }
 
   /**
+   * Starts the component analysis for an application, integration, type and stage. After
+   * starting will return a {@link PolicyEvaluationReceipt} for requester to use to check on results
+   * via {@link #pollEvaluationResult(String, String)}
+   *
+   * @param applicationPublicId public shared id
+   * @param integrationType {@link IntegrationType}
+   * @param stage {@link Stage}
+   * @param clientScanType {@link ClientScanType}
+   * @param request {@link HttpServletRequest}
+   * @return PolicyEvaluationReceipt
+   * @throws IOException when the scan file, uploaded via the request, is unable to be read or processed
+   */
+  @POST
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(COMPONENT_ANALYSIS_PATH)
+  @Audited(AuditEvent.EVALUATE_APPLICATION)
+  public PolicyEvaluationReceipt analyzeComponentsWithPolling(
+      @PathParam("applicationPublicId") final String applicationPublicId,
+      @PathParam("integrationType") final IntegrationType integrationType,
+      @PathParam("stageId") final Stage stage,
+      @QueryParam("scanType") ClientScanType clientScanType,
+      @Context HttpServletRequest request) throws IOException
+  {
+    return componentAnalysisService
+        .analyzeComponentsWithPolling(integrationType, applicationPublicId, clientScanType, request, stage);
+  }
+
+  /**
    * Retrieve the {@link PolicyEvaluationPollingResult} for an existing request, made
-   * through the {@link #evaluateWithPolling(String, IntegrationType, Stage, ClientScanType, HttpServletRequest)}.
+   * through the {@link #evaluateWithPolling(String, IntegrationType, Stage, ClientScanType, HttpServletRequest)} or
+   * {@link #analyzeComponentsWithPolling(String, IntegrationType, Stage, ClientScanType, HttpServletRequest)}.
    *
    * @param applicationPublicId public shared id
    * @param statusId id from status, normally gotten from {@link PolicyEvaluationReceipt}

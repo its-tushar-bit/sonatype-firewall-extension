@@ -173,7 +173,7 @@ public class ComponentAnalysisService
     final TelemetryData thirdPartyScanTelemetryData = telemetryUtils.buildThirdPartyScanTelemetryData(
         app.getPublicId(), stage, thirdPartyScanType, scanTriggerType, clientUserAgent);
     final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
-        policyEvaluationUtil.createPersistedPolicyEvaluationPollingResultWithSubStatusIfNeeded(app.getPublicId(),
+        policyEvaluationUtil.createPersistedPolicyEvaluationPollingResultWithSubStatusIfNeeded(app.getId(),
             statusId, disablePollingIntervalForTesting);
     final File tempScanFile = scanHandler.createTempScanFile(request, app);
 

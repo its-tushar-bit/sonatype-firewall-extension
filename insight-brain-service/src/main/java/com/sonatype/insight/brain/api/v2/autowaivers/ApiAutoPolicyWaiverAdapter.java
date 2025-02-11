@@ -22,7 +22,7 @@ public class ApiAutoPolicyWaiverAdapter
     dto.autoPolicyWaiverId = autoPolicyWaiver.getId();
     dto.ownerId = autoPolicyWaiver.getOwnerId();
     dto.threatLevel = autoPolicyWaiver.getThreatLevel();
-    dto.reachable = autoPolicyWaiver.isReachable();
+    dto.reachability = autoPolicyWaiver.hasReachability();
     dto.pathForward = autoPolicyWaiver.hasPathForward();
     dto.creatorId = autoPolicyWaiver.getCreatorId();
     dto.creatorName = autoPolicyWaiver.getCreatorName();

@@ -55,7 +55,7 @@ public class AutoPolicyWaiverDAOTest
     assertThat(autoPolicyWaiver.getId()).isEqualTo(autoPolicyWaiverInstance.getId());
     assertThat(autoPolicyWaiver.getOwnerId()).isEqualTo(autoPolicyWaiverInstance.getOwnerId());
     assertThat(autoPolicyWaiver.getThreatLevel()).isEqualTo(autoPolicyWaiverInstance.getThreatLevel());
-    assertThat(autoPolicyWaiver.isReachable()).isTrue();
+    assertThat(autoPolicyWaiver.hasReachability()).isTrue();
     assertThat(autoPolicyWaiver.hasPathForward()).isTrue();
     assertThat(autoPolicyWaiver.getCreatorId()).isEqualTo(autoPolicyWaiverInstance.getCreatorId());
     assertThat(autoPolicyWaiver.getCreatorName()).isEqualTo(autoPolicyWaiverInstance.getCreatorName());
@@ -100,7 +100,7 @@ public class AutoPolicyWaiverDAOTest
     assertThat(queryResult.getId()).isEqualTo(autoPolicyWaiverInstance.getId());
     assertThat(queryResult.getOwnerId()).isEqualTo(autoPolicyWaiverInstance.getOwnerId());
     assertThat(queryResult.getThreatLevel()).isEqualTo(autoPolicyWaiverInstance.getThreatLevel());
-    assertThat(queryResult.isReachable()).isEqualTo(autoPolicyWaiverInstance.isReachable());
+    assertThat(queryResult.hasReachability()).isEqualTo(autoPolicyWaiverInstance.hasReachability());
     assertThat(queryResult.hasPathForward()).isEqualTo(autoPolicyWaiverInstance.hasPathForward());
     assertThat(queryResult.getCreatorId()).isEqualTo(autoPolicyWaiverInstance.getCreatorId());
     assertThat(queryResult.getCreatorName()).isEqualTo(autoPolicyWaiverInstance.getCreatorName());

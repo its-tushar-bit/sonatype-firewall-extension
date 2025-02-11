@@ -236,7 +236,7 @@ public class AutoPolicyWaiverTelemetryMetricsTest extends AbstractComponentTest
     autoPolicyWaiver.setCreatorId("creatorId");
     autoPolicyWaiver.setCreateTime(new Date());
     autoPolicyWaiver.setPathForward(true);
-    autoPolicyWaiver.setReachable(true);
+    autoPolicyWaiver.setReachability(true);
 
     return autoPolicyWaiver;
   }

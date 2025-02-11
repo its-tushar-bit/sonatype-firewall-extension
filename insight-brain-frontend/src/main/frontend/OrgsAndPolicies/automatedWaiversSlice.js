@@ -119,7 +119,7 @@ const loadAutoWaiversConfigurationPage = createAsyncThunk(
 const toggleCheckboxReachable = (state) => {
   const newData = {
     ...state.data,
-    reachable: !(state.data?.reachable ?? false),
+    reachability: !(state.data?.reachability ?? false),
   };
   return computeIsDirty({ ...state, data: newData });
 };
@@ -169,7 +169,7 @@ const saveAutoWaiversConfiguration = createAsyncThunk(
       threatLevel: waivers.threatLevel,
       autoPolicyWaiverId: waivers.autoPolicyWaiverId,
       ownerId: waivers.ownerId,
-      reachable: waivers.reachable,
+      reachability: waivers.reachability,
       pathForward: waivers.pathForward,
     };
     return axios
@@ -202,7 +202,7 @@ const createAutoWaiver = createAsyncThunk(
     const waivers = selectWaivers(state);
     const putData = {
       threatLevel: waivers.threatLevel,
-      reachable: waivers.reachable,
+      reachability: waivers.reachability,
       pathForward: waivers.pathForward,
     };
     return axios

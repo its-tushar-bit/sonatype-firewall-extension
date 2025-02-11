@@ -350,7 +350,7 @@ public class PolicyWaiverService
       return autoPolicyWaiver -> true;
     }
     return autoPolicyWaiver -> policyThreatCategories.test(PolicyThreatCategory.SECURITY) &&
-        autoPolicyWaiver.isReachable();
+        autoPolicyWaiver.hasReachability();
   }
 
   private Predicate<AutoPolicyWaiver> getFilteringPredicateForAutoWaiverExpirationDates(

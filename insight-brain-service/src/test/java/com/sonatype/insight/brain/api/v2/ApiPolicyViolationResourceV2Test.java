@@ -477,7 +477,7 @@ public class ApiPolicyViolationResourceV2Test
     assertThat(apiPolicyWaivers.ownerType).isEqualTo(OwnerType.APPLICATION.toString());
     assertThat(apiPolicyWaivers.publicId).isEqualTo(newApp.getPublicId());
     assertThat(apiPolicyWaivers.threatLevel).isEqualTo(7);
-    assertThat(apiPolicyWaivers.reachable).isTrue();
+    assertThat(apiPolicyWaivers.reachability).isTrue();
     assertThat(apiPolicyWaivers.pathForward).isFalse();
     assertThat(apiPolicyWaivers.creatorId).isEqualTo("fakeCreatorId");
     assertThat(apiPolicyWaivers.creatorName).isEqualTo("fakeCreatorName");
@@ -560,7 +560,7 @@ public class ApiPolicyViolationResourceV2Test
     assertThat(apiPolicyWaivers).isNotNull();
     assertThat(apiPolicyWaivers.ownerId).isEqualTo(ownerId);
     assertThat(apiPolicyWaivers.threatLevel).isEqualTo(7);
-    assertThat(apiPolicyWaivers.reachable).isTrue();
+    assertThat(apiPolicyWaivers.reachability).isTrue();
     assertThat(apiPolicyWaivers.pathForward).isFalse();
     assertThat(apiPolicyWaivers.creatorId).isEqualTo("fakeCreatorId");
     assertThat(apiPolicyWaivers.creatorName).isEqualTo("fakeCreatorName");

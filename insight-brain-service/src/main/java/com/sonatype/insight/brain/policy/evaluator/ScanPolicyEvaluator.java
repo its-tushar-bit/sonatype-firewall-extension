@@ -73,6 +73,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.policy.AutoPolicyWaiverExclusionMatcherWrapper;
 import com.sonatype.insight.brain.policy.LegacyViolationService;
 import com.sonatype.insight.brain.policy.PathForwardInspector;
@@ -582,6 +583,7 @@ public class ScanPolicyEvaluator
             else {
               Component component =
                   findComponentByComponentIdentifier(components, policyViolation.getComponentIdentifier());
+              boolean hasReachabilityData = reachablePurlIdentifiersWithVulnerabilities != null;
               boolean violationShouldBeAutoWaived = evaluateAutoPolicyWaiver(
                   appId,
                   component,
@@ -589,7 +591,8 @@ public class ScanPolicyEvaluator
                   autoPolicyWaiver,
                   autoPolicyWaiverExclusions,
                   stage.getStageTypeId(),
-                  scanId);
+                  scanId,
+                  hasReachabilityData);
               if (violationShouldBeAutoWaived) {
                 policyViolation.setWaiveTime(policyEvaluation.getTime());
                 policyViolation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
@@ -1422,28 +1425,57 @@ public class ScanPolicyEvaluator
       AutoPolicyWaiver autoPolicyWaiver,
       List<AutoPolicyWaiverExclusion> autoPolicyWaiverExclusions,
       String stageId,
-      String scanId)
+      String scanId,
+      boolean hasReachabilityData)
   {
-    if (hasPolicyWaiver(policyViolation)) {
+    if (violationHasPolicyWaiver(policyViolation)) {
       return false;
     }
-    if (hasApplicableAutoWaiverExclusion(policyViolation, autoPolicyWaiverExclusions)) {
+    if (violationHasApplicableAutoWaiverExclusion(policyViolation, autoPolicyWaiverExclusions)) {
       return false;
     }
-    if (!doesViolationMeetThreatLevelCriteria(policyViolation, autoPolicyWaiver)) {
+    if (!violationMeetsThreatLevelCriteria(policyViolation, autoPolicyWaiver)) {
       return false;
     }
+    if (violationMeetsReachabilityCriteriaAndIsReachable(hasReachabilityData, autoPolicyWaiver, policyViolation)) {
+      return false;
+    }
+
     return !componentHavePathForward(appId, component, autoPolicyWaiver, stageId, scanId);
   }
 
-  private boolean hasPolicyWaiver(PolicyViolation policyViolation) {
+  private boolean violationHasPolicyWaiver(PolicyViolation policyViolation) {
     return policyViolation.getPolicyWaiverId() != null && policyViolation.getWaiveTime() != null;
   }
 
-  private boolean doesViolationMeetThreatLevelCriteria(
+  private boolean violationMeetsThreatLevelCriteria(
       PolicyViolation policyViolation, AutoPolicyWaiver autoPolicyWaiver)
   {
     return policyViolation.getThreatLevel() <= autoPolicyWaiver.getThreatLevel();
+  }
+
+  private boolean violationMeetsReachabilityConfigurationCriteria(
+      boolean hasReachabilityData, AutoPolicyWaiver autoPolicyWaiver)
+  {
+    return hasReachabilityData && isReachabilityConfigured(autoPolicyWaiver);
+  }
+
+  private boolean isReachabilityConfigured(AutoPolicyWaiver autoPolicyWaiver) {
+    Boolean isReachabilityConfigured = autoPolicyWaiver.hasReachability();
+    return isReachabilityConfigured != null && isReachabilityConfigured;
+  }
+
+  private boolean violationIsReachable(
+      PolicyViolation policyViolation)
+  {
+    return ReachabilityStatus.REACHABLE.equals(policyViolation.getReachabilityStatus());
+  }
+
+  private boolean violationMeetsReachabilityCriteriaAndIsReachable(
+      boolean hasReachabilityData, AutoPolicyWaiver autoPolicyWaiver, PolicyViolation policyViolation)
+  {
+    return violationMeetsReachabilityConfigurationCriteria(hasReachabilityData, autoPolicyWaiver)
+        && violationIsReachable(policyViolation);
   }
 
   private boolean componentHavePathForward(
@@ -1498,7 +1530,7 @@ public class ScanPolicyEvaluator
     return Collections.emptyList();
   }
 
-  private boolean hasApplicableAutoWaiverExclusion(
+  private boolean violationHasApplicableAutoWaiverExclusion(
       PolicyViolation policyViolation,
       List<AutoPolicyWaiverExclusion> autoPolicyWaiverExclusions)
   {

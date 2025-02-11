@@ -1275,8 +1275,7 @@ public class PolicyWaiverServiceTest
     assertThat(result.dashboardResults).hasSize(0);
     assertThat(result.hasNextPage).isEqualTo(false);
 
-    //set reachable to true
-    autoPolicyWaiver.setReachable(true);
+    autoPolicyWaiver.setReachability(true);
     autoPolicyWaiverDAO.update(autoPolicyWaiver);
 
     result = dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);

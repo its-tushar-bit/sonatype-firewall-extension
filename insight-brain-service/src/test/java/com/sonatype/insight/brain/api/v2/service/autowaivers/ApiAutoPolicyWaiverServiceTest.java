@@ -72,7 +72,7 @@ public class ApiAutoPolicyWaiverServiceTest
     Application application = tempEntity.newApplicationWithParent();
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
     dto.threatLevel = 7;
-    dto.reachable = true;
+    dto.reachability = true;
     dto.pathForward = false;
 
     ApiAutoPolicyWaiverDTO resultingDTO =
@@ -81,7 +81,7 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(resultingDTO).isNotNull();
     assertThat(resultingDTO.ownerId).isEqualTo(application.getId());
     assertThat(resultingDTO.threatLevel).isEqualTo(dto.threatLevel);
-    assertThat(resultingDTO.reachable).isEqualTo(dto.reachable);
+    assertThat(resultingDTO.reachability).isEqualTo(dto.reachability);
     assertThat(resultingDTO.pathForward).isEqualTo(dto.pathForward);
 
     Mockito.verify(autoPolicyWaiverTelemetryMetrics).collect(isNotNull(), eq(OwnerType.APPLICATION),
@@ -93,7 +93,7 @@ public class ApiAutoPolicyWaiverServiceTest
     Organization organization = tempEntity.newOrganization();
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
     dto.threatLevel = 7;
-    dto.reachable = true;
+    dto.reachability = true;
     dto.pathForward = false;
 
     ApiAutoPolicyWaiverDTO resultingDTO =
@@ -102,7 +102,7 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(resultingDTO).isNotNull();
     assertThat(resultingDTO.ownerId).isEqualTo(organization.getId());
     assertThat(resultingDTO.threatLevel).isEqualTo(dto.threatLevel);
-    assertThat(resultingDTO.reachable).isEqualTo(dto.reachable);
+    assertThat(resultingDTO.reachability).isEqualTo(dto.reachability);
     assertThat(resultingDTO.pathForward).isEqualTo(dto.pathForward);
 
     Mockito.verify(autoPolicyWaiverTelemetryMetrics).collect(isNotNull(),
@@ -126,7 +126,7 @@ public class ApiAutoPolicyWaiverServiceTest
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
     dto.ownerId = organization.getId();
     dto.threatLevel = -1;
-    dto.reachable = true;
+    dto.reachability = true;
     dto.pathForward = false;
     dto.creatorId = "creatorId";
     dto.creatorName = "creatorName";
@@ -146,7 +146,7 @@ public class ApiAutoPolicyWaiverServiceTest
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
     dto.ownerId = organization.getId();
     dto.threatLevel = 11;
-    dto.reachable = true;
+    dto.reachability = true;
     dto.pathForward = false;
     dto.creatorId = "creatorId";
     dto.creatorName = "creatorName";
@@ -166,7 +166,7 @@ public class ApiAutoPolicyWaiverServiceTest
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
     dto.ownerId = organization.getId();
     dto.threatLevel = 7;
-    dto.reachable = false;
+    dto.reachability = false;
     dto.pathForward = false;
     dto.creatorId = "creatorId";
     dto.creatorName = "creatorName";
@@ -186,7 +186,7 @@ public class ApiAutoPolicyWaiverServiceTest
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
     dto.ownerId = organization.getId();
     dto.threatLevel = 7;
-    dto.reachable = null;
+    dto.reachability = null;
     dto.pathForward = null;
     dto.creatorId = "creatorId";
     dto.creatorName = "creatorName";
@@ -220,7 +220,7 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(waiver.threatLevel).isEqualTo(autoPolicyWaiver.getThreatLevel());
     assertThat(waiver.pathForward).isEqualTo(autoPolicyWaiver.hasPathForward());
 
-    assertThat(waiver.reachable).isEqualTo(autoPolicyWaiver.isReachable());
+    assertThat(waiver.reachability).isEqualTo(autoPolicyWaiver.hasReachability());
 
     assertThat(waiver.creatorId).isEqualTo(autoPolicyWaiver.getCreatorId());
     assertThat(waiver.creatorName).isEqualTo(autoPolicyWaiver.getCreatorName());
@@ -249,7 +249,7 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(waiver.threatLevel).isEqualTo(autoPolicyWaiver.getThreatLevel());
     assertThat(waiver.pathForward).isEqualTo(autoPolicyWaiver.hasPathForward());
 
-    assertThat(waiver.reachable).isEqualTo(autoPolicyWaiver.isReachable());
+    assertThat(waiver.reachability).isEqualTo(autoPolicyWaiver.hasReachability());
 
     assertThat(waiver.creatorId).isEqualTo(autoPolicyWaiver.getCreatorId());
     assertThat(waiver.creatorName).isEqualTo(autoPolicyWaiver.getCreatorName());
@@ -330,7 +330,7 @@ public class ApiAutoPolicyWaiverServiceTest
     ApiAutoPolicyWaiverDTO waiver = autoPolicyWaiverDTOList.get(0);
     assertThat(waiver.autoPolicyWaiverId).isEqualTo(autoPolicyWaiver.getId());
     assertThat(waiver.threatLevel).isEqualTo(autoPolicyWaiver.getThreatLevel());
-    assertThat(waiver.reachable).isEqualTo(autoPolicyWaiver.isReachable());
+    assertThat(waiver.reachability).isEqualTo(autoPolicyWaiver.hasReachability());
     assertThat(waiver.pathForward).isEqualTo(autoPolicyWaiver.hasPathForward());
     assertThat(waiver.creatorId).isEqualTo(autoPolicyWaiver.getCreatorId());
     assertThat(waiver.creatorName).isEqualTo(autoPolicyWaiver.getCreatorName());
@@ -355,7 +355,7 @@ public class ApiAutoPolicyWaiverServiceTest
     ApiAutoPolicyWaiverDTO waiver = autoPolicyWaiverDTOList.get(0);
     assertThat(waiver.autoPolicyWaiverId).isEqualTo(autoPolicyWaiver.getId());
     assertThat(waiver.threatLevel).isEqualTo(autoPolicyWaiver.getThreatLevel());
-    assertThat(waiver.reachable).isEqualTo(autoPolicyWaiver.isReachable());
+    assertThat(waiver.reachability).isEqualTo(autoPolicyWaiver.hasReachability());
     assertThat(waiver.pathForward).isEqualTo(autoPolicyWaiver.hasPathForward());
     assertThat(waiver.creatorId).isEqualTo(autoPolicyWaiver.getCreatorId());
     assertThat(waiver.creatorName).isEqualTo(autoPolicyWaiver.getCreatorName());
@@ -395,7 +395,7 @@ public class ApiAutoPolicyWaiverServiceTest
     ApiAutoPolicyWaiverDTO dto = ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
 
     dto.threatLevel = 10;
-    dto.reachable = false;
+    dto.reachability = false;
     dto.pathForward = true;
 
     ApiAutoPolicyWaiverDTO responseDto =
@@ -416,7 +416,7 @@ public class ApiAutoPolicyWaiverServiceTest
     ApiAutoPolicyWaiverDTO dto = ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
 
     dto.threatLevel = 1;
-    dto.reachable = true;
+    dto.reachability = true;
     dto.pathForward = true;
 
     ApiAutoPolicyWaiverDTO responseDto =
@@ -506,7 +506,7 @@ public class ApiAutoPolicyWaiverServiceTest
 
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
     dto.threatLevel = 1;
-    dto.reachable = true;
+    dto.reachability = true;
     dto.pathForward = true;
 
     assertThatThrownBy(() ->
@@ -523,7 +523,7 @@ public class ApiAutoPolicyWaiverServiceTest
 
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
     dto.threatLevel = 1;
-    dto.reachable = true;
+    dto.reachability = true;
     dto.pathForward = true;
 
     assertThatThrownBy(() ->
@@ -688,7 +688,7 @@ public class ApiAutoPolicyWaiverServiceTest
 
     assertThat(result.ownerId).isEqualTo(ownerId);
     assertThat(result.threatLevel).isEqualTo(7);
-    assertThat(result.reachable).isTrue();
+    assertThat(result.reachability).isTrue();
     assertThat(result.pathForward).isFalse();
     assertThat(result.creatorId).isEqualTo("fakeCreatorId");
     assertThat(result.creatorName).isEqualTo("fakeCreatorName");
@@ -778,7 +778,7 @@ public class ApiAutoPolicyWaiverServiceTest
 
     assertThat(result.ownerId).isEqualTo(ownerId);
     assertThat(result.threatLevel).isEqualTo(7);
-    assertThat(result.reachable).isTrue();
+    assertThat(result.reachability).isTrue();
     assertThat(result.pathForward).isFalse();
     assertThat(result.creatorId).isEqualTo("fakeCreatorId");
     assertThat(result.creatorName).isEqualTo("fakeCreatorName");
@@ -912,7 +912,7 @@ public class ApiAutoPolicyWaiverServiceTest
 
     assertThat(result.ownerId).isEqualTo(ownerId);
     assertThat(result.threatLevel).isEqualTo(7);
-    assertThat(result.reachable).isTrue();
+    assertThat(result.reachability).isTrue();
     assertThat(result.pathForward).isFalse();
     assertThat(result.creatorId).isEqualTo("fakeCreatorId");
     assertThat(result.creatorName).isEqualTo("fakeCreatorName");

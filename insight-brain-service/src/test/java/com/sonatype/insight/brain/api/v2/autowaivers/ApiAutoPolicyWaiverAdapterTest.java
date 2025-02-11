@@ -28,7 +28,7 @@ public class ApiAutoPolicyWaiverAdapterTest
     autoPolicyWaiver.setId("waiverId");
     autoPolicyWaiver.setOwnerId("ownerId");
     autoPolicyWaiver.setThreatLevel(7);
-    autoPolicyWaiver.setReachable(true);
+    autoPolicyWaiver.setReachability(true);
     autoPolicyWaiver.setPathForward(false);
     autoPolicyWaiver.setCreatorId("creatorId");
     autoPolicyWaiver.setCreatorName("creatorName");
@@ -39,7 +39,7 @@ public class ApiAutoPolicyWaiverAdapterTest
     assertThat(apiAutoPolicyWaiverDTO.autoPolicyWaiverId).isEqualTo(autoPolicyWaiver.getId());
     assertThat(apiAutoPolicyWaiverDTO.ownerId).isEqualTo(autoPolicyWaiver.getOwnerId());
     assertThat(apiAutoPolicyWaiverDTO.threatLevel).isEqualTo(autoPolicyWaiver.getThreatLevel());
-    assertThat(apiAutoPolicyWaiverDTO.reachable).isEqualTo(autoPolicyWaiver.isReachable());
+    assertThat(apiAutoPolicyWaiverDTO.reachability).isEqualTo(autoPolicyWaiver.hasReachability());
     assertThat(apiAutoPolicyWaiverDTO.pathForward).isEqualTo(autoPolicyWaiver.hasPathForward());
     assertThat(apiAutoPolicyWaiverDTO.creatorId).isEqualTo(autoPolicyWaiver.getCreatorId());
     assertThat(apiAutoPolicyWaiverDTO.creatorName).isEqualTo(autoPolicyWaiver.getCreatorName());

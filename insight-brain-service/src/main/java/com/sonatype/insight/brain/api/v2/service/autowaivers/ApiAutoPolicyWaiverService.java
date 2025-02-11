@@ -153,8 +153,8 @@ public class ApiAutoPolicyWaiverService
     AutoPolicyWaiver autoPolicyWaiver = new AutoPolicyWaiver();
     autoPolicyWaiver.setOwnerId(ownerId);
     autoPolicyWaiver.setThreatLevel(apiAutoPolicyWaiverDTO.threatLevel);
-    if (apiAutoPolicyWaiverDTO.reachable != null) {
-      autoPolicyWaiver.setReachable(apiAutoPolicyWaiverDTO.reachable);
+    if (apiAutoPolicyWaiverDTO.reachability != null) {
+      autoPolicyWaiver.setReachability(apiAutoPolicyWaiverDTO.reachability);
     }
     if (apiAutoPolicyWaiverDTO.pathForward != null) {
       autoPolicyWaiver.setPathForward(apiAutoPolicyWaiverDTO.pathForward);
@@ -188,7 +188,7 @@ public class ApiAutoPolicyWaiverService
 
     autoPolicyWaiver.setThreatLevel(apiAutoPolicyWaiverDTO.threatLevel);
 
-    autoPolicyWaiver.setReachable(apiAutoPolicyWaiverDTO.reachable);
+    autoPolicyWaiver.setReachability(apiAutoPolicyWaiverDTO.reachability);
     autoPolicyWaiver.setPathForward(apiAutoPolicyWaiverDTO.pathForward);
     autoPolicyWaiverDAO.update(autoPolicyWaiver);
     auditAutoPolicyWaiver(autoPolicyWaiver);
@@ -344,8 +344,8 @@ public class ApiAutoPolicyWaiverService
       throw new BadRequestException(
           "Invalid threat level: " + dto.threatLevel + ". Value must be between 1 and 10.");
     }
-    if (dto.pathForward == null && dto.reachable == null ||
-        (Boolean.FALSE.equals(dto.pathForward) && Boolean.FALSE.equals(dto.reachable))) {
+    if (dto.pathForward == null && dto.reachability == null ||
+        (Boolean.FALSE.equals(dto.pathForward) && Boolean.FALSE.equals(dto.reachability))) {
       throw new BadRequestException("Path forward and reachable cannot both be false");
     }
   }
@@ -355,7 +355,7 @@ public class ApiAutoPolicyWaiverService
       AutoPolicyWaiver autoPolicyWaiver) throws BadRequestException
   {
     if (apiAutoPolicyWaiverDTO.threatLevel == autoPolicyWaiver.getThreatLevel() &&
-        apiAutoPolicyWaiverDTO.reachable == autoPolicyWaiver.isReachable() &&
+        apiAutoPolicyWaiverDTO.reachability == autoPolicyWaiver.hasReachability() &&
         apiAutoPolicyWaiverDTO.pathForward == autoPolicyWaiver.hasPathForward()) {
       throw new BadRequestException("No changes made to auto policy waiver configuration");
     }

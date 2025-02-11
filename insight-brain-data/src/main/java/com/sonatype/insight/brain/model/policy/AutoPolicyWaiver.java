@@ -32,7 +32,7 @@ public class AutoPolicyWaiver
   private int threatLevel;
 
   @Column(name = "reachable")
-  private Boolean reachable;
+  private Boolean reachability;
 
   @Column(name = "path_forward")
   private Boolean pathForward;
@@ -53,7 +53,7 @@ public class AutoPolicyWaiver
       String id,
       String ownerId,
       int threatLevel,
-      boolean reachable,
+      boolean reachability,
       boolean pathForward,
       String creatorId,
       String creatorName,
@@ -63,7 +63,7 @@ public class AutoPolicyWaiver
     this.id = id;
     this.ownerId = ownerId;
     this.threatLevel = threatLevel;
-    this.reachable = reachable;
+    this.reachability = reachability;
     this.pathForward = pathForward;
     this.creatorId = creatorId;
     this.creatorName = creatorName;
@@ -73,7 +73,7 @@ public class AutoPolicyWaiver
   public AutoPolicyWaiver(
       String ownerId,
       int threatLevel,
-      boolean reachable,
+      boolean reachability,
       boolean pathForward,
       String creatorId,
       String creatorName,
@@ -82,7 +82,7 @@ public class AutoPolicyWaiver
   {
     this.ownerId = ownerId;
     this.threatLevel = threatLevel;
-    this.reachable = reachable;
+    this.reachability = reachability;
     this.pathForward = pathForward;
     this.creatorId = creatorId;
     this.creatorName = creatorName;
@@ -115,12 +115,12 @@ public class AutoPolicyWaiver
     this.threatLevel = threatLevel;
   }
 
-  public Boolean isReachable() {
-    return reachable != null && reachable;
+  public Boolean hasReachability() {
+    return reachability != null && reachability;
   }
 
-  public void setReachable(Boolean reachable) {
-    this.reachable = reachable;
+  public void setReachability(Boolean reachability) {
+    this.reachability = reachability;
   }
 
   public Boolean hasPathForward() {

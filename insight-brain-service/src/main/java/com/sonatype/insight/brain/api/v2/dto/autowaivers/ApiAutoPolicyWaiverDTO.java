@@ -36,7 +36,7 @@ public class ApiAutoPolicyWaiverDTO
   @JsonInclude(Include.NON_EMPTY)
   public int threatLevel;
 
-  public Boolean reachable;
+  public Boolean reachability;
 
   public Boolean pathForward;
 

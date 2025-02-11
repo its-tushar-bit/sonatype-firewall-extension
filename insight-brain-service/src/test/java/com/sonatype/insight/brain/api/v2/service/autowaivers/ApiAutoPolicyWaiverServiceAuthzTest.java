@@ -93,7 +93,7 @@ public class ApiAutoPolicyWaiverServiceAuthzTest
     Application application = tempEntity.newApplicationWithParent();
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
     dto.threatLevel = 8;
-    dto.reachable = true;
+    dto.reachability = true;
     grantPermission(application.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
     apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(), dto);
   }
@@ -123,7 +123,7 @@ public class ApiAutoPolicyWaiverServiceAuthzTest
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
     dto.autoPolicyWaiverId = autoPolicyWaiver.getId();
-    dto.reachable = true;
+    dto.reachability = true;
     dto.threatLevel = 10;
     grantWritePermission(application.getId());
     apiAutoPolicyWaiverService.updateAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),

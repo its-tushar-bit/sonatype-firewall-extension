@@ -724,6 +724,154 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
+  public void testEvaluate_Results_AutoWaivedViolations_WithReachableVulnerability_Reachable() throws Exception {
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8);
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    tempEntity.newAutoPolicyWaiver(application.getId(), 10, true, false);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier
+        .createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+    String vulnerabilityIdentifier = "CVE-2012-0022";
+
+    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
+        application.getId(),
+        scanId,
+        componentIdentifier,
+        vulnerabilityIdentifier,
+        insightWork
+    );
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, analysisDTO, false);
+
+    // Total violations = 36
+    // Security.REACHABLE violations = 1
+    // Security.NON_REACHABLE violations = 35
+
+    // Should not autowaive violations that are REACHABLE. Should only autowaive violations that are NON_REACHABLE
+    assertThat(results.activeViolations).hasSize(1);
+    assertThat(results.autoWaivedViolations).hasSize(35);
+  }
+
+  @Test
+  public void testEvaluate_Results_AutoWaivedViolations_PathForward_WithVersionChanges_WithReachableVuln_Reachable()
+      throws Exception
+  {
+    ComponentDetailsDTO tomcatComponentDetailsDTOV1 = new ComponentDetailsDTO();
+    tomcatComponentDetailsDTOV1.componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+    tomcatComponentDetailsDTOV1.violatedPolicyCount = 1;
+    ComponentDetailsDTO tomcatComponentDetailsDTOV2 = new ComponentDetailsDTO();
+    tomcatComponentDetailsDTOV2.componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.25");
+    tomcatComponentDetailsDTOV2.violatedPolicyCount = 0;
+
+    doReturn(Pair.of(Arrays.asList(tomcatComponentDetailsDTOV1, tomcatComponentDetailsDTOV2), null))
+        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+            any(), eq(tomcatComponentDetailsDTOV1.componentIdentifier), any(), any(), any(), any(), any(),
+            anyBoolean());
+
+    doReturn(Pair.of(Lists.emptyList(), null))
+        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+            any(), not(eq(tomcatComponentDetailsDTOV1.componentIdentifier)), any(), any(), any(), any(), any(),
+            anyBoolean());
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(4);
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    tempEntity.newAutoPolicyWaiver(application.getId(), 7, true, true);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier
+        .createMavenCoordinates("org.openid4java", "openid4java", "0.9.5");
+
+    String vulnerabilityIdentifier = "CVE-2011-4314";
+    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
+        application.getId(),
+        scanId,
+        componentIdentifier,
+        vulnerabilityIdentifier,
+        insightWork
+    );
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, analysisDTO, false);
+
+    List<PolicyViolation> autoWaivedViolations = results.autoWaivedViolations;
+
+    // Total violations = 36
+    // Security.REACHABLE violations = 1
+    // Security.NON_REACHABLE violations = 36
+    // Components with pathForward = 9
+    assertThat(autoWaivedViolations).hasSize(26);
+    assertThat(results.activeViolations).hasSize(10);
+  }
+
+  @Test
+  public void testEvaluate_Results_AutoWaivedViolations_PathForward_WithVersionChanges_Reachable() throws Exception {
+    ComponentDetailsDTO tomcatComponentDetailsDTOV1 = new ComponentDetailsDTO();
+    tomcatComponentDetailsDTOV1.componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+    tomcatComponentDetailsDTOV1.violatedPolicyCount = 1;
+    ComponentDetailsDTO tomcatComponentDetailsDTOV2 = new ComponentDetailsDTO();
+    tomcatComponentDetailsDTOV2.componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.25");
+    tomcatComponentDetailsDTOV2.violatedPolicyCount = 0;
+
+    doReturn(Pair.of(Arrays.asList(tomcatComponentDetailsDTOV1, tomcatComponentDetailsDTOV2), null))
+        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+            any(), eq(tomcatComponentDetailsDTOV1.componentIdentifier), any(), any(), any(), any(), any(),
+            anyBoolean());
+
+    doReturn(Pair.of(Lists.emptyList(), null))
+        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+            any(), not(eq(tomcatComponentDetailsDTOV1.componentIdentifier)), any(), any(), any(), any(), any(),
+            anyBoolean());
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(4);
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    tempEntity.newAutoPolicyWaiver(application.getId(), 7, true, true);
+
+    // With no reachability data, but reachable checked off in config
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, null, false);
+
+    List<PolicyViolation> autoWaivedViolations = results.autoWaivedViolations;
+
+    // Total violations = 36
+    // Security.REACHABLE violations = 0
+    // Security.NON_REACHABLE violations = 0
+    // Components with pathForward = 9
+    assertThat(autoWaivedViolations).hasSize(27);
+    assertThat(results.activeViolations).hasSize(9);
+  }
+
+  @Test
   public void testEvaluate_Results_AutoWaivedViolations_ExclusionsApply_ExactComponent() throws Exception {
     // The exclusion will apply to tomcat-util version 5.5.23 only. The violation for v5.4.23 will be auto-waived
     String componentIdentifier = "maven: {artifactId=tomcat-util, groupId=tomcat, version=5.5.23}";
@@ -960,7 +1108,7 @@ public class ScanPolicyEvaluatorTest
           assertThat(violation.getComponentIdentifier()).isEqualTo(jacksonDatabindComponentIdentifier);
         });
   }
-  
+
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_ExclusionsApply_PolicyViolation_incompleteComponent()
       throws Exception

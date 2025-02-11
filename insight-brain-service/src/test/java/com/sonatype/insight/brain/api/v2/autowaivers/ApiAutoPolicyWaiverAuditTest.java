@@ -49,7 +49,7 @@ public class ApiAutoPolicyWaiverAuditTest
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
     dto.ownerId = app.getId();
     dto.threatLevel = 2;
-    dto.reachable = false;
+    dto.reachability = false;
     dto.pathForward = true;
     dto.creatorId = "creatorId";
     dto.creatorName = "creatorName";
@@ -75,7 +75,7 @@ public class ApiAutoPolicyWaiverAuditTest
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
     dto.ownerId = organization.getId();
     dto.threatLevel = 2;
-    dto.reachable = false;
+    dto.reachability = false;
     dto.pathForward = true;
     dto.creatorId = "creatorId";
     dto.creatorName = "creatorName";
@@ -101,7 +101,7 @@ public class ApiAutoPolicyWaiverAuditTest
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
     dto.ownerId = app.getId();
     dto.threatLevel = 2;
-    dto.reachable = false;
+    dto.reachability = false;
     dto.pathForward = true;
     dto.creatorId = "creatorId";
     dto.creatorName = "creatorName";
@@ -127,7 +127,7 @@ public class ApiAutoPolicyWaiverAuditTest
     ApiAutoPolicyWaiverDTO autoPolicyWaiverDTO = new ApiAutoPolicyWaiverDTO();
     autoPolicyWaiverDTO.autoPolicyWaiverId = autoPolicyWaiver.getId();
     autoPolicyWaiverDTO.threatLevel = 1;
-    autoPolicyWaiverDTO.reachable = true;
+    autoPolicyWaiverDTO.reachability = true;
     autoPolicyWaiverDTO.pathForward = false;
 
     restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/" + BY_AUTO_POLICY_WAIVER_ID_PATH)
@@ -149,7 +149,7 @@ public class ApiAutoPolicyWaiverAuditTest
     ApiAutoPolicyWaiverDTO autoPolicyWaiverDTO = new ApiAutoPolicyWaiverDTO();
     autoPolicyWaiverDTO.autoPolicyWaiverId = autoPolicyWaiver.getId();
     autoPolicyWaiverDTO.threatLevel = 1;
-    autoPolicyWaiverDTO.reachable = true;
+    autoPolicyWaiverDTO.reachability = true;
     autoPolicyWaiverDTO.pathForward = false;
 
     restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/" + BY_AUTO_POLICY_WAIVER_ID_PATH)
@@ -171,7 +171,7 @@ public class ApiAutoPolicyWaiverAuditTest
     ApiAutoPolicyWaiverDTO autoPolicyWaiverDTO = new ApiAutoPolicyWaiverDTO();
     autoPolicyWaiverDTO.autoPolicyWaiverId = autoPolicyWaiver.getId();
     autoPolicyWaiverDTO.threatLevel = 1;
-    autoPolicyWaiverDTO.reachable = true;
+    autoPolicyWaiverDTO.reachability = true;
     autoPolicyWaiverDTO.pathForward = false;
 
     restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/" + BY_AUTO_POLICY_WAIVER_ID_PATH)

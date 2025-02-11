@@ -412,6 +412,12 @@ public class ApiComponentsWithWaiversReportingService
     waivedPolicyViolationDTO.policyId = policyViolation.getPolicyId();
     waivedPolicyViolationDTO.policyName = policyViolation.getPolicyName();
     waivedPolicyViolationDTO.policyViolationId = policyViolation.getId();
+    waivedPolicyViolationDTO.openTime = policyViolation.getOpenTime();
+    waivedPolicyViolationDTO.waiveTime = policyViolation.getWaiveTime();
+    if (policyViolation instanceof PolicyViolation pv) {
+      waivedPolicyViolationDTO.fixTime = pv.getFixTime();
+      waivedPolicyViolationDTO.legacyViolationTime = pv.getLegacyViolationTime();
+    }
     waivedPolicyViolationDTO.threatLevel = policyViolation.getThreatLevel();
     waivedPolicyViolationDTO.constraintViolations = PolicyViolationAdapter.convert(policyViolation);
 

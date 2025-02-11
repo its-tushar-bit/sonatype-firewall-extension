@@ -21,6 +21,8 @@ public class ApiPolicyViolationAdapter
     policyViolationDTOV2.policyName = repositoryPolicyViolation.getPolicyName();
     policyViolationDTOV2.threatLevel = repositoryPolicyViolation.getThreatLevel();
     policyViolationDTOV2.policyViolationId = repositoryPolicyViolation.getId();
+    policyViolationDTOV2.openTime = repositoryPolicyViolation.getOpenTime();
+    policyViolationDTOV2.waiveTime = repositoryPolicyViolation.getWaiveTime();
     policyViolationDTOV2.constraintViolations = PolicyViolationAdapter.convert(repositoryPolicyViolation);
     return policyViolationDTOV2;
   }

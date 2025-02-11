@@ -49,14 +49,14 @@ public class ApiReportViolationsDiffServiceAuthzAndLicenseTest
   @Test(expected = UnauthenticatedException.class)
   public void testGetPolicyViolationDiff_Unauthenticated() {
     apiReportViolationsDiffService
-        .getPolicyViolationDiff(app.getPublicId(), FROM_COMMIT_HASH, TO_COMMIT_HASH, null, null);
+        .getPolicyViolationDiff(app.getPublicId(), FROM_COMMIT_HASH, TO_COMMIT_HASH, null, null, false);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetPolicyViolationDiff_Unauthorized() {
     login();
     apiReportViolationsDiffService
-        .getPolicyViolationDiff(app.getPublicId(), FROM_COMMIT_HASH, TO_COMMIT_HASH, null, null);
+        .getPolicyViolationDiff(app.getPublicId(), FROM_COMMIT_HASH, TO_COMMIT_HASH, null, null, false);
   }
 
   @Test(expected = InvalidLicenseException.class)
@@ -64,7 +64,7 @@ public class ApiReportViolationsDiffServiceAuthzAndLicenseTest
     testProductLicense.setMissingFeatures(LicensedFeature.AUTOMATION);
     grantReadPermission(app.getId());
     apiReportViolationsDiffService
-        .getPolicyViolationDiff(app.getPublicId(), FROM_COMMIT_HASH, TO_COMMIT_HASH, null, null);
+        .getPolicyViolationDiff(app.getPublicId(), FROM_COMMIT_HASH, TO_COMMIT_HASH, null, null, false);
   }
 
   @Test
@@ -83,6 +83,6 @@ public class ApiReportViolationsDiffServiceAuthzAndLicenseTest
     tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID, false, false, false,
         date, TO_COMMIT_HASH);
     apiReportViolationsDiffService
-        .getPolicyViolationDiff(app.getPublicId(), FROM_COMMIT_HASH, TO_COMMIT_HASH, null, null);
+        .getPolicyViolationDiff(app.getPublicId(), FROM_COMMIT_HASH, TO_COMMIT_HASH, null, null, false);
   }
 }

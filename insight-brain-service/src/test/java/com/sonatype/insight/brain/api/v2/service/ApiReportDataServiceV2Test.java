@@ -406,7 +406,7 @@ public class ApiReportDataServiceV2Test
 
     makeReport("report-1");
     populatePolicyThreats("report-1", "policythreats.json");
-    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId);
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId, false);
 
     assertMetadataAndCounts(data);
 
@@ -455,7 +455,7 @@ public class ApiReportDataServiceV2Test
 
     makeReport("report-1");
     populatePolicyThreats("report-1", "policythreats.json");
-    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId);
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId, false);
 
     assertMetadataAndCounts(data);
 
@@ -485,7 +485,7 @@ public class ApiReportDataServiceV2Test
     makeReport("report-4");
     populatePolicyThreats("report-4", "policythreats.json");
 
-    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId);
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId, false);
 
     assertThat(data).isNotNull();
   }
@@ -591,7 +591,7 @@ public class ApiReportDataServiceV2Test
   public void testGetPolicyViolationsData_NoViolations() throws Exception {
     makeReport("report-1");
     populatePolicyThreats("report-1", "policythreats-empty.json");
-    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId);
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId, false);
     assertThat(data.components).hasSize(3);
     assertThat(data.components.get(0).violations).isEmpty();
     assertThat(data.components.get(1).violations).isEmpty();
@@ -601,7 +601,7 @@ public class ApiReportDataServiceV2Test
   public void testGetPolicyViolationsData_NoAllViolations() throws Exception {
     makeReport("report-1");
     populatePolicyThreats("report-1", "policythreats-noallviolations.json");
-    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId);
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId, false);
     assertThat(data.components).hasSize(3);
     assertThat(data.components.get(0).violations).extracting(v -> v.policyId, v -> v.waived)
         .containsExactlyInAnyOrder(new Tuple("644a8c0052eb42b2829d6f9fcaba7ea3", false),
@@ -710,7 +710,7 @@ public class ApiReportDataServiceV2Test
   public void testGetPolicyViolationsData_includeWaivedWithAutoWaiver() throws Exception {
     makeReport("report-6-autowaiver");
     populatePolicyThreats("report-6-autowaiver", "policythreats.json");
-    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId);
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId, false);
 
     // component 1 with auto waived policy violation
     ApiReportComponentPolicyViolationsDTOV2 component = data.components.get(0);

@@ -12,6 +12,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -35,6 +38,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
@@ -47,9 +51,9 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyCondition
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyConstraint;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -86,6 +90,8 @@ public class ApiReportDataServiceV2
 
   private final ApplicationDAO appDAO;
 
+  private final PolicyViolationDAO policyViolationDAO;
+
   private final ReportService reportService;
 
   private final ApiLicenseDataAdapter licenseDataAdapter;
@@ -99,6 +105,7 @@ public class ApiReportDataServiceV2
   @Inject
   public ApiReportDataServiceV2(
       ApplicationDAO appDAO,
+      PolicyViolationDAO policyViolationDAO,
       ReportService reportService,
       ApiLicenseDataAdapter licenseDataAdapter,
       ApiSecurityDataAdapter securityDataAdapter,
@@ -106,6 +113,7 @@ public class ApiReportDataServiceV2
       ThirdPartyComponentDAO thirdPartyComponentDAO)
   {
     this.appDAO = appDAO;
+    this.policyViolationDAO = policyViolationDAO;
     this.reportService = reportService;
     this.licenseDataAdapter = licenseDataAdapter;
     this.securityDataAdapter = securityDataAdapter;
@@ -127,12 +135,16 @@ public class ApiReportDataServiceV2
   @Authorize(permission = Permission.READ)
   public ApiReportPolicyDataDTOV2 getPolicyViolationsData(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
-      String scanId) throws IOException
+      String scanId,
+      boolean includeViolationTimes) throws IOException
   {
-    return getPolicyViolationsDataNoAuth(applicationPublicId, scanId);
+    return getPolicyViolationsDataNoAuth(applicationPublicId, scanId, includeViolationTimes);
   }
 
-  public ApiReportPolicyDataDTOV2 getPolicyViolationsDataNoAuth(String applicationPublicId, String scanId)
+  public ApiReportPolicyDataDTOV2 getPolicyViolationsDataNoAuth(
+      String applicationPublicId,
+      String scanId,
+      boolean includeViolationTimes)
       throws IOException
   {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
@@ -162,6 +174,10 @@ public class ApiReportDataServiceV2
     data.initiator = metadata.getInitiator();
     data.counts = getReportCounts(countsEntry.buf);
     data.components = getComponents(bomEntry.buf, policyThreats);
+
+    if (includeViolationTimes) {
+      includeViolationTimes(data);
+    }
 
     return data;
   }
@@ -520,6 +536,34 @@ public class ApiReportDataServiceV2
   private void setFilenames(Component comp, ApiReportComponentDTOV2 component) {
     for (String filename : comp.getFilenames()) {
       component.filenames.add(filename);
+    }
+  }
+
+  private void includeViolationTimes(final ApiReportPolicyDataDTOV2 apiReportPolicyDataDTOV2) {
+    Set<ApiReportPolicyViolationDTOV2> policyViolations = apiReportPolicyDataDTOV2.components.stream()
+        .filter(Objects::nonNull)
+        .flatMap(component -> component.violations.stream())
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+
+    Set<String> policyViolationIds = policyViolations.stream()
+        .map(violation -> violation.policyViolationId)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+
+    Map<String, com.sonatype.insight.brain.model.policy.PolicyViolation> policyViolationById =
+        policyViolationDAO.getByIds(policyViolationIds).stream().collect(
+            Collectors.toMap(com.sonatype.insight.brain.model.policy.PolicyViolation::getId, Function.identity()));
+
+    for (ApiReportPolicyViolationDTOV2 policyViolation : policyViolations) {
+      com.sonatype.insight.brain.model.policy.PolicyViolation policyViolationFromDb =
+          policyViolationById.get(policyViolation.policyViolationId);
+      if (policyViolationFromDb != null) {
+        policyViolation.openTime = policyViolationFromDb.getOpenTime();
+        policyViolation.waiveTime = policyViolationFromDb.getWaiveTime();
+        policyViolation.fixTime = policyViolationFromDb.getFixTime();
+        policyViolation.legacyViolationTime = policyViolationFromDb.getLegacyViolationTime();
+      }
     }
   }
 }

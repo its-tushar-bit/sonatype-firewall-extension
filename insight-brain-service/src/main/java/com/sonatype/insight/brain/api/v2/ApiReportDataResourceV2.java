@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2;
 import java.net.URI;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -170,10 +171,13 @@ public class ApiReportDataResourceV2
       @Parameter(description = "Enter the applicationPublicId created at the time of creating the " +
           "application.", required = true) @PathParam("applicationPublicId") String applicationPublicId,
       @Parameter(description = "Enter the reportId (scanId) created at the time of evaluating the " +
-          "application.", required = true) @PathParam("scanId") String scanId) throws Exception
+          "application.", required = true) @PathParam("scanId") String scanId,
+      @Parameter(description = "Set to true to include policy violation times (open, legacy, waived, fixed) in the" +
+          " response if set.")
+      @QueryParam("includeViolationTimes") @DefaultValue("false") boolean includeViolationTimes) throws Exception
   {
     AuditData.get().setReportId(scanId);
-    return reportDataService.getPolicyViolationsData(applicationPublicId, scanId);
+    return reportDataService.getPolicyViolationsData(applicationPublicId, scanId, includeViolationTimes);
   }
 
   @GET
@@ -266,10 +270,13 @@ public class ApiReportDataResourceV2
       @QueryParam("fromPolicyEvaluationId") final String fromPolicyEvaluationId,
       @Parameter(description = "Enter the policy evaluation Id linked to the other (later) policy evaluation " +
           "to compare")
-      @QueryParam("toPolicyEvaluationId") final String toPolicyEvaluationId)
+      @QueryParam("toPolicyEvaluationId") final String toPolicyEvaluationId,
+      @Parameter(description = "Set to true to include policy violation times (open, legacy, waived, fixed) in the" +
+          " response if set.")
+      @QueryParam("includeViolationTimes") @DefaultValue("false") boolean includeViolationTimes)
   {
     return apiReportViolationsDiffService
         .getPolicyViolationDiff(applicationPublicId, fromCommit, toCommit, fromPolicyEvaluationId,
-            toPolicyEvaluationId);
+            toPolicyEvaluationId, includeViolationTimes);
   }
 }

@@ -24,7 +24,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -72,6 +71,18 @@ public class PolicyViolationDAO
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1";
     return getList(sQuery, applicationId);
+  }
+
+  public List<PolicyViolation> getByIds(Set<String> ids) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByIds(tx, ids);
+    }
+  }
+
+  public List<PolicyViolation> getByIds(TransactionContext tx, Set<String> ids) {
+    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE entity.id IN (?1)";
+    return getListWithSqlInClause(ids, c -> getList(tx, sQuery, c));
   }
 
   public List<PolicyViolation> getByApplicationIdAndPolicyIdAndHash(String applicationId,

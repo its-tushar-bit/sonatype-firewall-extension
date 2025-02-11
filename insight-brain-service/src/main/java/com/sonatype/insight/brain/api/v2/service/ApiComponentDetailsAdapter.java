@@ -218,6 +218,8 @@ public class ApiComponentDetailsAdapter
     dto.policyId = repositoryPolicyViolation.getPolicyId();
     dto.policyName = repositoryPolicyViolation.getPolicyName();
     dto.policyViolationId = repositoryPolicyViolation.getId();
+    dto.openTime = repositoryPolicyViolation.getOpenTime();
+    dto.waiveTime = repositoryPolicyViolation.getWaiveTime();
     dto.threatLevel = repositoryPolicyViolation.getThreatLevel();
     for (ConstraintFact constraintFact : repositoryPolicyViolation.getConstraintFacts()) {
       dto.constraintViolations.add(convert(constraintFact));

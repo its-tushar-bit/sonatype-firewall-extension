@@ -112,7 +112,7 @@ public class PdfGeneratorTest
     FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorTest/report", tempDir), reportFile);
 
     ApiReportPolicyDataDTOV2 policyViolationsData =
-        apiReportDataServiceV2.getPolicyViolationsData(application.getPublicId(), SCAN_ID);
+        apiReportDataServiceV2.getPolicyViolationsData(application.getPublicId(), SCAN_ID, false);
     policyViolationsData.commitHash = "b141d3806df77594e4744bcf24b4cc95";
     ReportPdf reportPdf = PdfGenerator.getPdfFile(reportService, application.getId(), SCAN_ID);
 
@@ -156,7 +156,7 @@ public class PdfGeneratorTest
     FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorTest/report", tempDir), reportFile);
 
     ApiReportPolicyDataDTOV2 policyViolationsData =
-        apiReportDataServiceV2.getPolicyViolationsData(application.getPublicId(), SCAN_ID);
+        apiReportDataServiceV2.getPolicyViolationsData(application.getPublicId(), SCAN_ID, false);
     policyViolationsData.commitHash = "b141d3806df77594e4744bcf24b4cc95";
     ReportPdf reportPdf = PdfGenerator.getPdfFile(reportService, application.getId(), SCAN_ID);
 
@@ -252,7 +252,7 @@ public class PdfGeneratorTest
     FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorTest/report", tempDir), reportFile);
 
     ApiReportPolicyDataDTOV2 policyViolationsData =
-        apiReportDataServiceV2.getPolicyViolationsData(application.getPublicId(), SCAN_ID);
+        apiReportDataServiceV2.getPolicyViolationsData(application.getPublicId(), SCAN_ID, false);
     policyViolationsData.commitHash = "b141d3806df77594e4744bcf24b4cc95";
     ReportPdf reportPdf = PdfGenerator.getPdfFile(reportService, application.getId(), SCAN_ID);
     PdfData pdfData = PdfData.createPdfData(

@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -26,6 +25,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiStagePolicyViolationComponentDTO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
@@ -52,6 +52,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
@@ -82,6 +83,9 @@ public class ApiPolicyViolationServiceV2Test
 
   @Inject
   private InsightWork insightWork;
+
+  @Inject
+  private PolicyViolationDAO policyViolationDAO;
 
   @Mock
   private StageTypeService mockStageTypeService;
@@ -224,6 +228,36 @@ public class ApiPolicyViolationServiceV2Test
     ApiApplicationViolationDTOV2 apiApplicationViolationDTO = apiApplicationViolationListDTO.applicationViolations
         .get(0);
     assertPolicyViolation(apiApplicationViolationDTO, policyData, null);
+  }
+
+  @Test
+  public void testGetPolicyViolations_includesOpenTime() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    var policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scanId");
+    PolicyViolation v1 = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    PolicyViolation v2 = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    PolicyViolation v3 = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    PolicyViolation v4 = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    v2.setWaiveTime(DateUtils.addDays(v2.getOpenTime(), 1));
+    v3.setLegacyViolationTime(DateUtils.addDays(v3.getOpenTime(), 1));
+    v4.setFixTime(DateUtils.addDays(v4.getOpenTime(), 1));
+    policyViolationDAO.update(v2);
+    policyViolationDAO.update(v3);
+    policyViolationDAO.update(v4);
+
+    var result = apiPolicyViolationService.getPolicyViolations(Sets.newHashSet(policy.getId()), null, null);
+
+    assertThat(result).isNotNull();
+    assertThat(result.applicationViolations).hasSize(1);
+    // getPolicyViolations only includes active violations so the other times should be null
+    assertThat(result.applicationViolations.get(0).policyViolations).hasSize(1);
+    var violation = result.applicationViolations.get(0).policyViolations.get(0);
+    assertThat(violation.policyViolationId).isEqualTo(v1.getId());
+    assertThat(violation.openTime).isNotNull().isEqualTo(v1.getOpenTime());
+    assertThat(violation.waiveTime).isNull();
+    assertThat(violation.fixTime).isNull();
+    assertThat(violation.legacyViolationTime).isNull();
   }
 
   @Test

@@ -7,6 +7,7 @@
     "policyName" : "Security-High",
     "policyThreatLevel" : 9,
     "activeViolations" : [ {
+      "policyViolationId" : "1a2b754bd39345c0a2a3af85f04d68da",
       "policyId" : "6430b4c764314ac6aee439ad1c045ad1",
       "policyName" : "Security-Medium",
       "policyThreatLevel" : 7,
@@ -33,6 +34,7 @@
         } ]
       } ]
     }, {
+      "policyViolationId" : "5a23d434ff6d447998311aea807ac167",
       "policyId" : "6430b4c764314ac6aee439ad1c045ad1",
       "policyName" : "Security-Medium",
       "policyThreatLevel" : 7,
@@ -59,6 +61,7 @@
         } ]
       } ]
     }, {
+      "policyViolationId" : "bc899372932e42bbbb5b07a03bdd2e6c",
       "policyId" : "644a8c0052eb42b2829d6f9fcaba7ea3",
       "policyName" : "Security-High",
       "policyThreatLevel" : 9,
@@ -87,6 +90,7 @@
     } ],
     "waivedViolations" : [ ],
     "allViolations" : [ {
+      "policyViolationId" : "1a2b754bd39345c0a2a3af85f04d68da",
       "policyId" : "6430b4c764314ac6aee439ad1c045ad1",
       "policyName" : "Security-Medium",
       "policyThreatLevel" : 7,
@@ -114,6 +118,7 @@
         } ]
       } ]
     }, {
+      "policyViolationId" : "bc899372932e42bbbb5b07a03bdd2e6c",
       "policyId" : "644a8c0052eb42b2829d6f9fcaba7ea3",
       "policyName" : "Security-High",
       "policyThreatLevel" : 9,

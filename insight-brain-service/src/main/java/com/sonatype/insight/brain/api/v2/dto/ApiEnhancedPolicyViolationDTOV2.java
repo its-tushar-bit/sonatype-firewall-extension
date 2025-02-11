@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
-import java.util.Date;
-
-import com.sonatype.insight.json.store.ApiDateFormat;
-
 /**
  * @since 1.13.0
  */
@@ -23,12 +19,6 @@ public class ApiEnhancedPolicyViolationDTOV2
   public String reportId;
 
   public String reportUrl;
-
-  /**
-   * @since 1.91
-   */
-  @ApiDateFormat
-  public Date openTime;
 
   public ApiComponentDTOV2 component;
 }

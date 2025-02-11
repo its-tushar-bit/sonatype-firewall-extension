@@ -56,18 +56,18 @@ public class ApiReportDataServiceV2AuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetPolicyViolations_Anon() throws Exception {
-    reportDataService.getPolicyViolationsData(app.getPublicId(), "irrelevant");
+    reportDataService.getPolicyViolationsData(app.getPublicId(), "irrelevant", false);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetPolicyViolations_Unauthorized() throws Exception {
     login();
-    reportDataService.getPolicyViolationsData(app.getPublicId(), "irrelevant");
+    reportDataService.getPolicyViolationsData(app.getPublicId(), "irrelevant", false);
   }
 
   @Test(expected = NotFoundException.class)
   public void testGetPolicyViolations_Authorized() throws Exception {
     grantReadPermission(app.getId());
-    reportDataService.getPolicyViolationsData(app.getPublicId(), "irrelevant");
+    reportDataService.getPolicyViolationsData(app.getPublicId(), "irrelevant", false);
   }
 }

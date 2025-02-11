@@ -666,7 +666,7 @@ public abstract class AbstractCycloneDxExporter
     if (tpScan != null) {
       try {
         ApiReportPolicyDataDTOV2 data =
-            apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), tpScan.getScanId());
+            apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), tpScan.getScanId(), false);
         if (data != null && data.components != null) {
           for (ApiReportComponentPolicyViolationsDTOV2 reportViolationDto : data.components) {
             for (ApiReportPolicyViolationDTOV2 reportPolicyViolation : reportViolationDto.violations) {

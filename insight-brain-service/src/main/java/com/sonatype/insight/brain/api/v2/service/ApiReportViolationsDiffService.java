@@ -11,9 +11,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
@@ -26,6 +29,7 @@ import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
@@ -73,6 +77,8 @@ public class ApiReportViolationsDiffService
 
   private final ApplicationTagDAO applicationTagDAO;
 
+  private final PolicyViolationDAO policyViolationDAO;
+
   private final PolicyEvaluationDiffService policyEvaluationDiffService;
 
   private final IqForScmLicenseChecker licenseChecker;
@@ -88,6 +94,7 @@ public class ApiReportViolationsDiffService
       final PolicyEvaluationDAO policyEvaluationDAO,
       final ApplicationComponentDAO applicationComponentDAO,
       final ApplicationTagDAO applicationTagDAO,
+      final PolicyViolationDAO policyViolationDAO,
       final PolicyEvaluationDiffService policyEvaluationDiffService,
       final IqForScmLicenseChecker licenseChecker,
       final ReportService reportService)
@@ -96,6 +103,7 @@ public class ApiReportViolationsDiffService
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.applicationComponentDAO = applicationComponentDAO;
     this.applicationTagDAO = applicationTagDAO;
+    this.policyViolationDAO = policyViolationDAO;
     this.policyEvaluationDiffService = policyEvaluationDiffService;
     this.licenseChecker = licenseChecker;
     this.reportService = reportService;
@@ -107,7 +115,8 @@ public class ApiReportViolationsDiffService
       final String fromCommit,
       final String toCommit,
       final String fromEvaluationId,
-      final String toEvaluationId)
+      final String toEvaluationId,
+      final boolean includeViolationTimes)
   {
     checkLicense();
     validateInputs(fromCommit, toCommit, fromEvaluationId, toEvaluationId);
@@ -118,7 +127,14 @@ public class ApiReportViolationsDiffService
     final PolicyEvaluation toPolicyEvaluation =
         getPolicyEvaluationForInput(application.getId(), toCommit, toEvaluationId);
 
-    return getPolicyViolationDiffFromEvaluations(application, fromPolicyEvaluation, toPolicyEvaluation);
+    ApiPolicyViolationDiffDTO policyViolationDiffFromEvaluations =
+        getPolicyViolationDiffFromEvaluations(application, fromPolicyEvaluation, toPolicyEvaluation);
+
+    if (includeViolationTimes) {
+      includeViolationTimes(policyViolationDiffFromEvaluations);
+    }
+
+    return policyViolationDiffFromEvaluations;
   }
 
   private ApiPolicyViolationDiffDTO getPolicyViolationDiffFromEvaluations(
@@ -314,5 +330,34 @@ public class ApiReportViolationsDiffService
       }
     }
     return componentDisplayNamesMap;
+  }
+
+  private void includeViolationTimes(final ApiPolicyViolationDiffDTO apiPolicyViolationDiffDTO) {
+    Set<ApiPolicyViolationForDiffDTO> policyViolations = Stream.concat(
+            apiPolicyViolationDiffDTO.addedViolations.stream(),
+            Stream.concat(
+                apiPolicyViolationDiffDTO.sameViolations.stream(),
+                apiPolicyViolationDiffDTO.removedViolations.stream()))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+
+    Set<String> policyViolationIds = policyViolations.stream()
+        .map(violation -> violation.policyViolationId)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+
+    Map<String, com.sonatype.insight.brain.model.policy.PolicyViolation> policyViolationById =
+        policyViolationDAO.getByIds(policyViolationIds).stream()
+            .collect(Collectors.toMap(PolicyViolation::getId, Function.identity()));
+
+    for (ApiPolicyViolationForDiffDTO policyViolation : policyViolations) {
+      PolicyViolation policyViolationFromDb = policyViolationById.get(policyViolation.policyViolationId);
+      if (policyViolationFromDb != null) {
+        policyViolation.openTime = policyViolationFromDb.getOpenTime();
+        policyViolation.waiveTime = policyViolationFromDb.getWaiveTime();
+        policyViolation.fixTime = policyViolationFromDb.getFixTime();
+        policyViolation.legacyViolationTime = policyViolationFromDb.getLegacyViolationTime();
+      }
+    }
   }
 }

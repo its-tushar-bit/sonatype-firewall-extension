@@ -143,7 +143,7 @@ public class PdfGeneratorService
     PdfData pdfData = PdfData.createPdfData(
         getBaseUrl(),
         versionService.getShortVersion(),
-        apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), scanId),
+        apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), scanId, false),
         augmentEmptyLicensesAsNotProvided(apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId, true))
     );
     return generateReport(app, scanId, pdfData, false, Context.LIFECYCLE);

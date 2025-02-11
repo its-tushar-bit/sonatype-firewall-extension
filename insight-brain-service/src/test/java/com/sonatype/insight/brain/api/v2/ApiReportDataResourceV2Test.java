@@ -18,15 +18,23 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeResponseDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDiffDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationForDiffDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
@@ -140,6 +148,72 @@ public class ApiReportDataResourceV2Test
     assertThat(dto.components).hasSize(2);
     // should not have counts prop if there are no counts
     assertThat(response.getBodyText()).doesNotContain("counts");
+  }
+
+  @Test
+  public void testGetPolicyViolations_includeViolationTimes() throws Exception {
+    String scanId = "scanId";
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    // Use an existing report and insert a corresponding policy violation in the db but update its times
+    createReportFile(application.getId(), scanId, "/" + getClass().getSimpleName() + "/report");
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, scanId);
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    policyViolation.setLegacyViolationTime(DateUtils.addDays(policyEvaluation.getTime(), 1));
+    policyViolation.setWaiveTime(DateUtils.addDays(policyEvaluation.getTime(), 2));
+    policyViolation.setFixTime(DateUtils.addDays(policyEvaluation.getTime(), 3));
+    PolicyViolationDAO policyViolationDAO = getCLMServer().getInstance(PolicyViolationDAO.class);
+    policyViolationDAO.update(policyViolation);
+    String sQuery = "UPDATE PolicyViolation entity SET entity.id = ?2 WHERE entity.id = ?1";
+    policyViolationDAO.createQuery(sQuery, policyViolation.getId(), "1a2b754bd39345c0a2a3af85f04d68da").executeUpdate();
+
+    // If we don't include db data the times should not be included
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, SCAN_PATH, ApiReportDataResourceV2.POLICY_DATA_PATH)
+        .parameter(application.getPublicId(), scanId)
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiReportPolicyDataDTOV2 dto = response.getBody(ApiReportPolicyDataDTOV2.class);
+    assertThat(dto.components).hasSize(2);
+    assertThat(dto.components.get(0).violations).hasSize(2);
+
+    assertThat(dto.components.get(0).violations.get(0).openTime).isNull();
+    assertThat(dto.components.get(0).violations.get(0).waiveTime).isNull();
+    assertThat(dto.components.get(0).violations.get(0).fixTime).isNull();
+    assertThat(dto.components.get(0).violations.get(0).legacyViolationTime).isNull();
+
+    assertThat(dto.components.get(0).violations.get(1).openTime).isNull();
+    assertThat(dto.components.get(0).violations.get(1).waiveTime).isNull();
+    assertThat(dto.components.get(0).violations.get(1).fixTime).isNull();
+    assertThat(dto.components.get(0).violations.get(1).legacyViolationTime).isNull();
+
+    assertThat(dto.components.get(1).violations).isEmpty();
+
+    // If we do include db data the times should be included
+    response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, SCAN_PATH, ApiReportDataResourceV2.POLICY_DATA_PATH)
+        .parameter(application.getPublicId(), scanId)
+        .query("includeViolationTimes", true)
+        .get();
+    assertResponseStatus(200, response);
+    dto = response.getBody(ApiReportPolicyDataDTOV2.class);
+    assertThat(dto.components.get(0).violations).hasSize(2);
+
+    assertThat(dto.components.get(0).violations.get(0).openTime).isNotNull().isEqualTo(policyViolation.getOpenTime());
+    assertThat(dto.components.get(0).violations.get(0).waiveTime).isNotNull().isEqualTo(policyViolation.getWaiveTime());
+    assertThat(dto.components.get(0).violations.get(0).fixTime).isNotNull().isEqualTo(policyViolation.getFixTime());
+    assertThat(dto.components.get(0).violations.get(0).legacyViolationTime).isNotNull().isEqualTo(
+        policyViolation.getLegacyViolationTime());
+
+    // We only inserted a record for the first policy violation
+    assertThat(dto.components.get(0).violations.get(1).openTime).isNull();
+    assertThat(dto.components.get(0).violations.get(1).waiveTime).isNull();
+    assertThat(dto.components.get(0).violations.get(1).fixTime).isNull();
+    assertThat(dto.components.get(0).violations.get(1).legacyViolationTime).isNull();
+
+    assertThat(dto.components.get(1).violations).isEmpty();
   }
 
   @Test
@@ -469,6 +543,61 @@ public class ApiReportDataResourceV2Test
     assertResponseStatus(400, response);
     assertThat(response.getBodyText())
         .isEqualTo("Cannot specify both commit identifier and evaluation id for `to` evaluation.");
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_includeViolationTimes() throws Exception {
+    setupValidReportsAndEvaluations();
+    // Use an existing report and insert a corresponding policy violation in the db but update its times
+    Policy policy = tempEntity.newPolicy(app);
+    PolicyEvaluation policyEvaluation = getCLMServer().getInstance(PolicyEvaluationDAO.class).getById(fromEvalId);
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    policyViolation.setLegacyViolationTime(DateUtils.addDays(policyEvaluation.getTime(), 1));
+    policyViolation.setWaiveTime(DateUtils.addDays(policyEvaluation.getTime(), 2));
+    policyViolation.setFixTime(DateUtils.addDays(policyEvaluation.getTime(), 3));
+    PolicyViolationDAO policyViolationDAO = getCLMServer().getInstance(PolicyViolationDAO.class);
+    policyViolationDAO.update(policyViolation);
+    String sQuery = "UPDATE PolicyViolation entity SET entity.id = ?2 WHERE entity.id = ?1";
+    policyViolationDAO.createQuery(sQuery, policyViolation.getId(), "appeared_1").executeUpdate();
+
+    // If we don't include db data the times should not be included
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiPolicyViolationDiffDTO dto = response.getBody(ApiPolicyViolationDiffDTO.class);
+    ApiPolicyViolationForDiffDTO appeared1 = dto.addedViolations.stream()
+        .filter(v -> v.policyViolationId.equals("appeared_1"))
+        .findFirst()
+        .orElse(null);
+    assertThat(appeared1).isNotNull();
+    assertThat(appeared1.openTime).isNull();
+    assertThat(appeared1.waiveTime).isNull();
+    assertThat(appeared1.fixTime).isNull();
+    assertThat(appeared1.legacyViolationTime).isNull();
+
+    // If we do include db data the times should be included
+    response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
+        .query("includeViolationTimes", true)
+        .get();
+
+    assertResponseStatus(200, response);
+    dto = response.getBody(ApiPolicyViolationDiffDTO.class);
+    appeared1 = dto.addedViolations.stream()
+        .filter(v -> v.policyViolationId.equals("appeared_1"))
+        .findFirst()
+        .orElse(null);
+    assertThat(appeared1).isNotNull();
+    assertThat(appeared1.openTime).isNotNull().isEqualTo(policyViolation.getOpenTime());
+    assertThat(appeared1.waiveTime).isNotNull().isEqualTo(policyViolation.getWaiveTime());
+    assertThat(appeared1.fixTime).isNotNull().isEqualTo(policyViolation.getFixTime());
+    assertThat(appeared1.legacyViolationTime).isNotNull().isEqualTo(policyViolation.getLegacyViolationTime());
   }
 
   @Test

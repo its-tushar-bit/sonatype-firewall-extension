@@ -1832,6 +1832,21 @@ public class PolicyViolationDAOTest
         .doesNotContain(unfixedUnwaivedViolation.getId());
   }
 
+  @Test
+  public void testGetByIds() {
+    Application application = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scanId");
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyViolation v1 = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    PolicyViolation v2 = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    List<PolicyViolation> result = dao.getByIds(Set.of(v1.getId(), v2.getId()));
+
+    assertThat(result).extracting(PolicyViolation::getId).containsExactly(v1.getId(), v2.getId());
+  }
+
   private List<PolicyViolation> createPolicyViolations(Date cutoffDate, Object[][] data) {
     final Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation;

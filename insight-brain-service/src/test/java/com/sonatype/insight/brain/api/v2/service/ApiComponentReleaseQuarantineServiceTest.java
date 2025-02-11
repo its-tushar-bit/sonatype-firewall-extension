@@ -356,6 +356,8 @@ public class ApiComponentReleaseQuarantineServiceTest
     assertThat(waivedPolicyViolationDTO.policyName).isEqualTo(repositoryPolicyViolation.getPolicyName());
     assertThat(waivedPolicyViolationDTO.policyViolationId).isEqualTo(repositoryPolicyViolation.getId());
     assertThat(waivedPolicyViolationDTO.threatLevel).isEqualTo(repositoryPolicyViolation.getThreatLevel());
+    assertThat(waivedPolicyViolationDTO.openTime).isNotNull().isEqualTo(repositoryPolicyViolation.getOpenTime());
+    assertThat(waivedPolicyViolationDTO.waiveTime).isNotNull().isEqualTo(repositoryPolicyViolation.getWaiveTime());
 
     assertThat(waivedPolicyViolationDTO.constraintViolations).hasSize(1);
     ApiConstraintViolationDTO apiConstraintViolationDTO = waivedPolicyViolationDTO.constraintViolations.get(0);

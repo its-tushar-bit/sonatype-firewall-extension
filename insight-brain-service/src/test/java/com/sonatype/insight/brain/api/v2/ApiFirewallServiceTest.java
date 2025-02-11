@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
@@ -137,6 +138,9 @@ public class ApiFirewallServiceTest
 
   @Inject
   private RepositoryManagerDAO repositoryManagerDAO;
+
+  @Inject
+  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
   @Mock
   private RepositoryService repositoryServiceMock;
@@ -1218,6 +1222,43 @@ public class ApiFirewallServiceTest
     assertThat(result).isNotNull();
     verify(repositoryServiceMock).evaluateComponents(any(Repository.class), anyString(), any(), eq(true), eq(true),
         isNull());
+  }
+
+  @Test
+  public void testEvaluateComponents_includesOpenWaiveTimes() {
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), "/audit", new Date(), null);
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    requestList.format = ComponentIdentifier.FORMAT_MAVEN;
+    requestList.components.add(
+        new ApiRepositoryComponentEvaluationRequest(repositoryComponent.getPathname(), repositoryComponent.getHash()));
+    RepositoryComponentEvaluationDataList repositoryServiceEvaluateResult = new RepositoryComponentEvaluationDataList();
+    RepositoryComponentEvaluationData rced = new RepositoryComponentEvaluationData();
+    rced.catalogDate = new Date();
+    RepositoryPolicyViolation v1 =
+        tempEntity.newRepositoryPolicyViolation(repositoryComponent, 10, false, "Policy Name", null);
+    RepositoryPolicyViolation v2 =
+        tempEntity.newRepositoryPolicyViolation(repositoryComponent, 9, true, "Policy Name", null);
+    v2.setWaiveTime(DateUtils.addDays(rced.catalogDate, 1));
+    repositoryPolicyViolationDAO.update(v2);
+    repositoryServiceEvaluateResult.componentEvalResults.add(rced);
+    when(repositoryServiceMock.evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true),
+        isNull())).thenReturn(repositoryServiceEvaluateResult);
+
+    ApiRepositoryComponentEvaluationResultList result =
+        apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
+            requestList);
+
+    assertThat(result).isNotNull();
+    assertThat(result.results).hasSize(1);
+    assertThat(result.results.get(0).policyViolations).hasSize(2);
+    ApiPolicyViolationDTOV2 result1 = result.results.get(0).policyViolations.get(0);
+    assertThat(result1.openTime).isNotNull().isEqualTo(v1.getOpenTime());
+    assertThat(result1.waiveTime).isNull();
+    ApiPolicyViolationDTOV2 result2 = result.results.get(0).policyViolations.get(1);
+    assertThat(result2.openTime).isNotNull().isEqualTo(v2.getOpenTime());
+    assertThat(result2.waiveTime).isNotNull().isEqualTo(v2.getWaiveTime());
   }
 
   static void assertRepositoryComponentWithOnePolicyViolation(

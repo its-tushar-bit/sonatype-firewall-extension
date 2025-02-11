@@ -51,11 +51,15 @@
 
 .iq-automated-pr-table {
   .pr-created-success-icon {
-    color: $iq-dark-green;
+    color: var(--nx-swatch-green-40);
+  }
+
+  .pr-created-error-icon {
+    color: var(--nx-swatch-red-40);
   }
 
   .pr-created-warning-icon {
-    color: $iq-orange;
+    color: var(--nx-swatch-orange-40);
   }
 
   .nx-cell {

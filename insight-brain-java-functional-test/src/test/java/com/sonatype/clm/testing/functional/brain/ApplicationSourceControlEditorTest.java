@@ -47,6 +47,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.pages.SourceControlEditorPage.metricsTable;
+import static com.sonatype.insight.brain.git.EnhancedPullRequestResult.EXCEPTION_MESSAGE;
+import static com.sonatype.insight.brain.git.EnhancedPullRequestResult.SUCCESS_MESSAGE;
+import static com.sonatype.insight.brain.git.EnhancedPullRequestResult.FAILURE_MESSAGE;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -800,23 +803,31 @@ public class ApplicationSourceControlEditorTest
     metricsTable().scrollIntoView();
     metricsTable().shouldBe(visible);
 
-    assertThat(metricsTable().rowCount()).isEqualTo(2);
+    assertThat(metricsTable().rowCount()).isEqualTo(3);
 
     MetricsTableRow row1 = metricsTable().getRow(0);
-    assertThat(row1.isPopulated()).isTrue();
-    assertThat(row1.title()).isEqualTo("Bump bar to 1.1");
-    assertThat(row1.created()).isTrue();
-    assertThat(row1.errors()).isEqualTo("false");
-    assertThat(row1.totalTime()).isEqualTo("0");
-    assertThat(row1.started()).isNotEmpty();
+    row1.title().shouldHave(exactText("Bump bar to 1.1"));
+    row1.statusIcon().shouldHave(cssClass("fa-circle-check"));
+    row1.statusIcon().hover();
+    row1.statusIconTooltip().should(exist).shouldHave(exactText(String.format(SUCCESS_MESSAGE, "foo : bar : 1.0")));;
+    row1.totalTime().shouldHave(exactText("0"));
+    row1.started().shouldNotBe(empty);
 
     MetricsTableRow row2 = metricsTable().getRow(1);
-    assertThat(row2.isPopulated()).isTrue();
-    assertThat(row2.title()).isEqualTo("Bump bar to 1.2");
-    assertThat(row2.created()).isFalse();
-    assertThat(row2.errors()).isEqualTo("true");
-    assertThat(row2.totalTime()).isEqualTo("0");
-    assertThat(row2.started()).isNotEmpty();
+    row2.title().shouldHave(exactText("Bump bar to 1.2"));
+    row2.statusIcon().shouldHave(cssClass("fa-circle-xmark"));
+    row2.statusIcon().hover();
+    row2.statusIconTooltip().should(exist).shouldHave(exactText(EXCEPTION_MESSAGE));
+    row2.totalTime().shouldHave(exactText("0"));
+    row2.started().shouldNotBe(empty);
+
+    MetricsTableRow row3 = metricsTable().getRow(2);
+    row3.title().shouldHave(exactText("Bump bar to 1.4"));
+    row3.statusIcon().shouldHave(cssClass("fa-exclamation-triangle"));
+    row3.statusIcon().hover();
+    row3.statusIconTooltip().should(exist).shouldHave(exactText(String.format(FAILURE_MESSAGE, "foo : bar : 1.3")));
+    row3.totalTime().shouldHave(exactText("0"));
+    row3.started().shouldNotBe(empty);
   }
 
   @Test
@@ -1100,5 +1111,11 @@ public class ApplicationSourceControlEditorTest
     metrics.addResult(application.getId(),
         new EnhancedPullRequestResult(failure, new Date(), ComponentIdentifier
             .createMavenCoordinates("foo", "bar", "1.1"), "Bump bar to 1.2", true));
+
+    PullRequestResult warning = new PullRequestResult();
+    warning.setSuccessful(false);
+    metrics.addResult(application.getId(),
+        new EnhancedPullRequestResult(warning, new Date(), ComponentIdentifier
+            .createMavenCoordinates("foo", "bar", "1.3"), "Bump bar to 1.4", false));
   }
 }

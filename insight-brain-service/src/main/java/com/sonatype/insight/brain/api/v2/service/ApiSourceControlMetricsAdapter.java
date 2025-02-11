@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,17 +25,18 @@ class ApiSourceControlMetricsAdapter
       apiPullRequestResults.results = Collections.emptyList();
     }
     else {
-      apiPullRequestResults.results = results.stream().map(result ->
-      {
-        ApiPullRequestResult apiPullRequestResult = new ApiPullRequestResult();
-        apiPullRequestResult.startTime = result.getStartTime();
-        apiPullRequestResult.title = result.getTitle();
-        apiPullRequestResult.reasoning = result.getReasoning();
-        apiPullRequestResult.exceptionThrown = result.isExceptionThrown();
-        apiPullRequestResult.successful = result.getTiming().isSuccessful();
-        apiPullRequestResult.totalTime = result.getTiming().getTotalTime();
-        return apiPullRequestResult;
-      }).collect(Collectors.toList());
+      apiPullRequestResults.results = results.stream()
+          .sorted(Comparator.comparing(EnhancedPullRequestResult::getStartTime, Comparator.reverseOrder()))
+          .map(result -> {
+            ApiPullRequestResult apiPullRequestResult = new ApiPullRequestResult();
+            apiPullRequestResult.startTime = result.getStartTime();
+            apiPullRequestResult.title = result.getTitle();
+            apiPullRequestResult.reasoning = result.getReasoning();
+            apiPullRequestResult.exceptionThrown = result.isExceptionThrown();
+            apiPullRequestResult.successful = result.getTiming().isSuccessful();
+            apiPullRequestResult.totalTime = result.getTiming().getTotalTime();
+            return apiPullRequestResult;
+          }).collect(Collectors.toList());
     }
     return apiPullRequestResults;
   }

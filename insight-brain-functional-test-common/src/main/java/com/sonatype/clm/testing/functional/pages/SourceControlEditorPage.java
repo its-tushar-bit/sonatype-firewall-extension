@@ -7,13 +7,13 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.attribute;
-import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Selenide.$;
 
 public class SourceControlEditorPage
@@ -242,33 +242,29 @@ public class SourceControlEditorPage
       return row.findAll("td");
     }
 
-    public boolean isPopulated() {
-      return !isEmpty();
-    }
-
     public boolean isEmpty() {
       ElementsCollection td = columns();
-      return td.size() == 1 && td.get(0).has(attribute("colspan", "5"));
+      return td.size() == 1 && td.get(0).has(attribute("colspan", "4"));
     }
 
-    public String title() {
-      return columns().get(0).text();
+    public SelenideElement title() {
+      return columns().get(0);
     }
 
-    public boolean created() {
-      return columns().get(1).find("svg").has(cssClass("fa-circle-check"));
+    public SelenideElement statusIcon() {
+      return columns().get(1).find("svg");
     }
 
-    public String totalTime() {
-      return columns().get(2).text();
+    public Tooltip statusIconTooltip() {
+      return Tooltip.get();
     }
 
-    public String errors() {
-      return columns().get(3).text();
+    public SelenideElement totalTime() {
+      return columns().get(2);
     }
 
-    public String started() {
-      return columns().get(4).text();
+    public SelenideElement started() {
+      return columns().get(3);
     }
   }
 }

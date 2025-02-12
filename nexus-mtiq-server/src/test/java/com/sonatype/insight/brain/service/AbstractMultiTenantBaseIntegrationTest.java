@@ -21,8 +21,6 @@ import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
 import com.sonatype.insight.brain.db.rule.MultiTenantDatabaseContainerRule;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.report.FileReportDataStore;
-import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.security.TestMultiTenantEncryptionKeyStore;
@@ -83,7 +81,8 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
   // Not a @Rule - controlled below within the context of a tenant. MUST USE with `testAsTestTenant`
   protected TemporaryEntity tenantTemporaryEntity;
 
-  protected static final Configurator MTIQ_DATABASE_CONFIGURATOR = new Configurator()
+  public static class MtiqDatabaseConfigurator
+      implements Configurator
   {
     @Override
     public void configure(final InsightConfig insightConfig) {
@@ -107,7 +106,7 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
     public boolean isReusable() {
       return true;
     }
-  };
+  }
 
   @AfterClass
   public static void afterClass() {
@@ -146,7 +145,7 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
   @Override
   protected void startIqTestServer(Configurator configurator) throws Exception {
     if (configurator == null) {
-      configurator = MTIQ_DATABASE_CONFIGURATOR;
+      configurator = new MtiqDatabaseConfigurator();
     }
     super.startIqTestServer(configurator);
 
@@ -172,7 +171,6 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
       protected void configure() {
         bind(TenantUtil.class).toInstance(tenantUtil);
         bind(EncryptionKeyStore.class).to(TestMultiTenantEncryptionKeyStore.class);
-        bind(ReportDataStore.class).to(FileReportDataStore.class);
       }
     });
 

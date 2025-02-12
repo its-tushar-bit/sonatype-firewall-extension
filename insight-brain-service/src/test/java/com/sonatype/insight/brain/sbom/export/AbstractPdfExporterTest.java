@@ -96,8 +96,8 @@ public class AbstractPdfExporterTest
   @Mock
   protected BaseUrl baseUrl;
 
-  @Mock
-  protected InsightWork mockWork;
+  @Inject
+  protected InsightWork insightWork;
 
   @Inject
   protected VersionService versionService;
@@ -108,7 +108,6 @@ public class AbstractPdfExporterTest
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(InsightWork.class).toInstance(mockWork);
     super.configure(binder);
   }
 

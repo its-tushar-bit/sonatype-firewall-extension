@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.InvalidPackageURLException;
@@ -435,7 +436,7 @@ public class ApiPolicyViolationServiceV2Test
         tempEntity.newPolicyViolation(oldPolicyEvaluation, policy, transitive22, "hash222");
     ReportTestUtils.createReportFile(application.getId(), oldScanId,
         zipReportDir("/ApiPolicyViolationServiceV2Test/report", tempDir), insightWork);
-    ReportTestUtils.createPolicyThreats(application.getId(), oldScanId, insightWork,
+    ReportHelper.createPolicyThreats(insightWork, application.getId(), oldScanId,
         Arrays.asList(direct2PolicyViolation, transitive2PolicyViolation, transitive22PolicyViolation));
     String newScanId = "newScanId";
     PolicyEvaluation newPolicyEvaluation =
@@ -445,7 +446,7 @@ public class ApiPolicyViolationServiceV2Test
         tempEntity.newPolicyViolation(newPolicyEvaluation, policy, transitive1, "hash21");
     ReportTestUtils.createReportFile(application.getId(), newScanId,
         zipReportDir("/ApiPolicyViolationServiceV2Test/report", tempDir), insightWork);
-    ReportTestUtils.createPolicyThreats(application.getId(), newScanId, insightWork,
+    ReportHelper.createPolicyThreats(insightWork, application.getId(), newScanId,
         Collections.singletonList(transitive1PolicyViolation));
 
     ApiComponentTransitivePolicyViolationsDTO result = apiPolicyViolationService
@@ -630,7 +631,7 @@ public class ApiPolicyViolationServiceV2Test
         tempEntity.newPolicyViolation(policyEvaluation, policy, transitive22, "hash222");
     ReportTestUtils.createReportFile(application.getId(), scanId,
         zipReportDir("/ApiPolicyViolationServiceV2Test/report", tempDir), insightWork);
-    ReportTestUtils.createPolicyThreats(application.getId(), scanId, insightWork,
+    ReportHelper.createPolicyThreats(insightWork, application.getId(), scanId,
         Arrays.asList(direct2PolicyViolation, transitive2PolicyViolation, transitive22PolicyViolation));
 
     ApiComponentTransitivePolicyViolationsDTO result = apiPolicyViolationService.getTransitivePolicyViolations(
@@ -675,7 +676,7 @@ public class ApiPolicyViolationServiceV2Test
         tempEntity.newPolicyViolation(policyEvaluation, policy, transitive22, "hash222");
     ReportTestUtils.createReportFile(application.getId(), scanId,
         zipReportDir("/ApiPolicyViolationServiceV2Test/report", tempDir), insightWork);
-    ReportTestUtils.createPolicyThreats(application.getId(), scanId, insightWork,
+    ReportHelper.createPolicyThreats(insightWork, application.getId(), scanId,
         Arrays.asList(direct2PolicyViolation, transitive2PolicyViolation, transitive22PolicyViolation));
 
     Pair<Component, List<Pair<PolicyViolation, Component>>> result =
@@ -727,11 +728,11 @@ public class ApiPolicyViolationServiceV2Test
         tempEntity.newPolicyViolation(policyEvaluation2, policy2, transitive1, "hash21");
     ReportTestUtils.createReportFile(application1.getId(), scanId,
         zipReportDir("/ApiPolicyViolationServiceV2Test/report", tempDir), insightWork);
-    ReportTestUtils.createPolicyThreats(application1.getId(), scanId, insightWork,
+    ReportHelper.createPolicyThreats(insightWork, application1.getId(), scanId,
         Collections.singletonList(transitive1PolicyViolation1));
     ReportTestUtils.createReportFile(application2.getId(), scanId,
         zipReportDir("/ApiPolicyViolationServiceV2Test/report", tempDir), insightWork);
-    ReportTestUtils.createPolicyThreats(application2.getId(), scanId, insightWork,
+    ReportHelper.createPolicyThreats(insightWork, application2.getId(), scanId,
         Collections.singletonList(transitive1PolicyViolation2));
 
     ApiComponentTransitivePolicyViolationsDTO result = apiPolicyViolationService
@@ -775,11 +776,11 @@ public class ApiPolicyViolationServiceV2Test
         tempEntity.newPolicyViolation(policyEvaluation2, policy2, transitive1, "hash21");
     ReportTestUtils.createReportFile(application1.getId(), scanId,
         zipReportDir("/ApiPolicyViolationServiceV2Test/report", tempDir), insightWork);
-    ReportTestUtils.createPolicyThreats(application1.getId(), scanId, insightWork,
+    ReportHelper.createPolicyThreats(insightWork, application1.getId(), scanId,
         Collections.singletonList(transitive1PolicyViolation1));
     ReportTestUtils.createReportFile(application2.getId(), scanId,
         zipReportDir("/ApiPolicyViolationServiceV2Test/report", tempDir), insightWork);
-    ReportTestUtils.createPolicyThreats(application2.getId(), scanId, insightWork,
+    ReportHelper.createPolicyThreats(insightWork, application2.getId(), scanId,
         Collections.singletonList(transitive1PolicyViolation2));
 
     ApiComponentTransitivePolicyViolationsDTO result = apiPolicyViolationService
@@ -854,7 +855,7 @@ public class ApiPolicyViolationServiceV2Test
         tempEntity.newPolicyViolation(policyEvaluation, policy, componentIdentifier, "hash1");
     ReportTestUtils.createReportFile(application.getId(), scanId,
         zipReportDir("/ApiPolicyViolationServiceV2Test/report", tempDir), insightWork);
-    ReportTestUtils.createPolicyThreats(application.getId(), scanId, insightWork,
+    ReportHelper.createPolicyThreats(insightWork, application.getId(), scanId,
         Collections.singletonList(direct1PolicyViolation));
     return policyEvaluation;
   }

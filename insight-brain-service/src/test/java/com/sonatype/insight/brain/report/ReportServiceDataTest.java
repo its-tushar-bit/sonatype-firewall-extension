@@ -6,18 +6,20 @@
 
 package com.sonatype.insight.brain.report;
 
-import java.io.File;
-import java.nio.file.Files;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.AbstractDataTest;
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.License;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.node.ContainerNode;
@@ -37,6 +39,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ReportServiceDataTest
     extends AbstractDataTest
 {
+  private FileApplicationReportPersistenceService applicationReportPersistenceService;
+
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 
@@ -44,10 +48,16 @@ public class ReportServiceDataTest
 
   private LicenseThreatGroupDAO licenseThreatGroupDAO;
 
+  private InsightWork insightWork;
+
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     multiLicenseDAO = daoFactory.createMultiLicenseDAO();
     licenseThreatGroupDAO = daoFactory.createLicenseThreatGroupDAO();
+    InsightConfig insightConfig = new InsightConfig();
+    insightConfig.setSonatypeWork(tempDir.newFolder().getAbsolutePath());
+    applicationReportPersistenceService = new FileApplicationReportPersistenceService(insightConfig, new FileCleaner());
+    insightWork = new InsightWork(insightConfig, null);
   }
 
   @Test
@@ -57,14 +67,15 @@ public class ReportServiceDataTest
     tempEntity.newLicenseThreatGroup(app.getId(), "My group 1", 0, "Apache-2.0", "GPL-2.0");
     tempEntity.newLicenseThreatGroup(org.getId(), "My group 2", 5, "GPL-2.0");
     tempEntity.newLicenseThreatGroup(org.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");
+    ReportHelper.saveMockReport(insightWork, app.getId(), "scanId");
 
-    FileApplicationReport reportZip = new FileApplicationReport(new File(tempDir.getRoot(), "test"));
+    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, app, "scanId");
 
-    createReportService().writeLicenseThreatsToReportFile(app, reportZip);
+    createReportService().writeLicenseThreatsToReportFile(app, appReport);
 
-    File licenseThreatsFile = reportZip.getCacheFile("licensethreats.json");
+    ReportEntry licenseThreatsEntry = appReport.getEntry("licensethreats.json");
 
-    ContainerNode<?> licenseThreats = JsonUtils.parse(Files.readAllBytes(licenseThreatsFile.toPath()));
+    ContainerNode<?> licenseThreats = JsonUtils.parse(licenseThreatsEntry.buf);
     int countNotZero = 0;
     @SuppressWarnings("unchecked") Map<String, Integer> threatLevelsByMultiLicenseId =
         JsonUtils.asPojo(licenseThreats.get("aaData"), Map.class);

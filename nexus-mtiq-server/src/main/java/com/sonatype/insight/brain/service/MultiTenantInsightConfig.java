@@ -67,7 +67,10 @@ public class MultiTenantInsightConfig
 
   @Override
   public File getClusterDirectory() {
-    return new File(super.getClusterDirectory(), TenantThreadLocal.getTenant().tenantSlug);
+    if (clusterDirectory == null) {
+      throw new IllegalStateException("clusterDirectory is not set");
+    }
+    return new File(clusterDirectory, TenantThreadLocal.getTenant().tenantSlug);
   }
 
   @Override

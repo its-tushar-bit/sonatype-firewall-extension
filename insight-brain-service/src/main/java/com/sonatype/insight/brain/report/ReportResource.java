@@ -15,14 +15,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -97,6 +99,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
+
+import static com.sonatype.insight.brain.report.ApplicationReport.INDEX_HTML_FILENAME;
 
 @Path(ReportResource.RESOURCE_PATH)
 @Named
@@ -260,7 +264,7 @@ public class ReportResource
     // we don't want to deal with any kind file timestamp stuff with index.html, since we are modifying
     // the contents loaded from the file before serving up to the browser, the timestamp on the file won't
     // change, even when brain versions do, so index.html is always sent in response
-    if (reportEntry.name.equals("index.html")) {
+    if (reportEntry.name.equals(INDEX_HTML_FILENAME)) {
       reportEntry = appendCacheBustingParams(reportEntry, versionService.getVersion());
     }
     else {
@@ -282,7 +286,7 @@ public class ReportResource
     final ResponseBuilder response = Response.ok(reportEntry.buf);
     response.lastModified(new Date(reportEntry.time));
     response.type(mimeType);
-    if (!reportEntry.name.endsWith(".json") && !reportEntry.name.equals("index.html")) {
+    if (!reportEntry.name.endsWith(".json") && !reportEntry.name.equals(INDEX_HTML_FILENAME)) {
       response.expires(new Date(System.currentTimeMillis() + YEAR));
     }
     else {
@@ -395,7 +399,7 @@ public class ReportResource
     // TODO: Matt Johnson - this needs extracting into reportUtils
     AuditData.get().setReportId(scanId);
     Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
-    ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
+    ApplicationReport applicationReport = reportService.getReport(app, scanId);
     String filename = "report-" + scanId + ".zip";
 
     Properties templateProps = applicationReport.getTemplateProperties();
@@ -404,16 +408,19 @@ public class ReportResource
     int dataVersion = Integer.parseInt(templateProps.getProperty("data.version", "0"));
     String dataPath = "data/";
 
-    ReportPdf reportPdf = pdfGeneratorService.generateReport(app, scanId);
+    ReportPdfEntity reportPdf = pdfGeneratorService.generateReport(app, scanId);
 
     ApiReportRawDataDTOV2 reportData = reportDataService.getDataNoAuth(appPublicId, scanId);
     List<PolicyAlert> alerts = Arrays.asList(
-        JsonUtils.parse(applicationReport.getEntry(ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).buf,
+        JsonUtils.parse(applicationReport.getEntry(ApplicationReport.POLICY_ALERTS_FILENAME).buf,
             PolicyAlert[].class));
 
     File updatedFile = Files.createTempFile("report", ".zip").toFile();
-    try (ReportBundleUpdater updater = new ReportBundleUpdater(((FileApplicationReport) applicationReport).getFile(),
-        updatedFile, new FilenameMapping("^.*\\.json$", dataPath + "$0"))) {
+    try (Stream<ReportEntity> reportEntities = applicationReport.getAllEntities();
+        ReportBundleUpdater updater = new ReportBundleUpdater(
+            reportEntities,
+            updatedFile,
+            new FilenameMapping("^.*\\.json$", dataPath + "$0"))) {
 
       addLegacyReportArtifacts(updater);
 
@@ -425,26 +432,21 @@ public class ReportResource
 
       addUniqueComponentsToUpdater(appPublicId, scanId, dataPath, dataVersion, reportData.components, updater);
 
-      // FIXME: This breaks the abstraction and needs cleaned up to not care about caching
-      File[] cachedFiles =
-          FileApplicationReport.getCacheDir(((FileApplicationReport) applicationReport).getFile()).listFiles();
-      if (cachedFiles != null) {
-        for (File cachedFile : cachedFiles) {
-          updater.add(dataPath + cachedFile.getName(), cachedFile);
-        }
-      }
+      try (Stream<ReportEntity> reportEntities2 = applicationReport.getAllEntities()) {
+        Map<String, ReportEntity> entitiesByName =
+            reportEntities2.collect(Collectors.toMap(ReportEntity::getName, Function.identity()));
 
-      try (ZipFile zipFile = new ZipFile(((FileApplicationReport) applicationReport).getFile())) {
         ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(app);
 
-        for (Enumeration<? extends ZipEntry> en = zipFile.entries(); en.hasMoreElements();) {
-          ZipEntry entry = en.nextElement();
-          if (entry.isDirectory()) {
-            continue;
-          }
-          if (!cipDetailsPath.isEmpty() && entry.getName().startsWith(cipDetailsPath)) {
-            final NamedComponentDetails hdsDetails = JsonUtils.parse(zipFile.getInputStream(entry),
-                NamedComponentDetails.class);
+        for (ReportEntity entity : entitiesByName.values()) {
+          String name = entity.getName();
+          if (!cipDetailsPath.isEmpty() && name.startsWith(cipDetailsPath)) {
+
+            final NamedComponentDetails hdsDetails;
+            try (var entityStream = entity.getInputStream()) {
+              hdsDetails = JsonUtils.parse(entityStream, NamedComponentDetails.class);
+            }
+
             NamedComponentDetails clmDetails =
                 ComponentDetailsLoader.getComponentDetails(hdsDetails.getComponentIdentifier(), hdsDetails.getHash(),
                     hdsDetails.getMatchState(), new HostedDataServicesSource()
@@ -456,7 +458,7 @@ public class ReportResource
                     });
             componentDetailsLoader.augmentComponentDetails(clmDetails);
             clmDetails.setPolicyAlerts(getAlertsForComponent(clmDetails.getHash(), alerts));
-            updater.add(dataPath + entry.getName(), clmDetails);
+            updater.add(dataPath + name, clmDetails);
 
             if (!cipListPath.isEmpty()
                 && IdentificationSource.MANUAL.getId().equals(clmDetails.getIdentificationSource())) {
@@ -470,7 +472,7 @@ public class ReportResource
               else {
                 listPath += toLegacyDataPath(clmDetails) + ".json";
               }
-              if (zipFile.getEntry(listPath) == null && !updater.contains(dataPath + listPath)) {
+              if (!entitiesByName.containsKey(listPath) && !updater.contains(dataPath + listPath)) {
                 // CIP expects this to be an empty (!) array for every GAV but the HDS doesn't know about claimed
                 // components
                 ComponentDetailsList list = new ComponentDetailsList();
@@ -479,13 +481,16 @@ public class ReportResource
               }
             }
           }
-          if (!cipListPath.isEmpty() && entry.getName().startsWith(cipListPath)) {
-            final ComponentDetailsList list = JsonUtils.parse(zipFile.getInputStream(entry),
-                ComponentDetailsList.class);
+          if (!cipListPath.isEmpty() && name.startsWith(cipListPath)) {
+            final ComponentDetailsList list;
+            try (var entityStream = entity.getInputStream()) {
+              list = JsonUtils.parse(entityStream, ComponentDetailsList.class);
+            }
+
             for (ComponentDetails details : list.getList()) {
               componentDetailsLoader.augmentComponentDetails(details);
             }
-            updater.add(dataPath + entry.getName(), list);
+            updater.add(dataPath + name, list);
           }
         }
       }

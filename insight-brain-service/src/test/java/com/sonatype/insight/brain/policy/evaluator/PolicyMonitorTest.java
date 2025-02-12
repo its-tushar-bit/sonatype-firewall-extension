@@ -55,7 +55,7 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.policy.PolicyResource;
-import com.sonatype.insight.brain.report.FileApplicationReport;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
@@ -610,9 +610,9 @@ public class PolicyMonitorTest
 
     File reportFile = insightWork.getReportFile(app.getId(), newScanId);
     assertThat(reportFile).isFile();
-    File reportCacheDir = new File(reportFile.getParentFile(), FileApplicationReport.CACHE_DIRECTORY_NAME);
+    File reportCacheDir = new File(reportFile.getParentFile(), "report.cache");
     assertThat(reportCacheDir).isDirectory();
-    File policyAlertsFile = new File(reportCacheDir, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
+    File policyAlertsFile = new File(reportCacheDir, ApplicationReport.POLICY_ALERTS_FILENAME);
     assertThat(policyAlertsFile).isFile();
   }
 
@@ -816,7 +816,7 @@ public class PolicyMonitorTest
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME);
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME);
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME);
-    
+
     assertShutdownHandler();
   }
 

@@ -57,6 +57,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataSt
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.sbom.export.SbomExportException;
 import com.sonatype.insight.brain.sbom.export.SbomExportUtils;
@@ -87,7 +88,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -176,6 +176,8 @@ public class SbomResultsMerger
 
   private SbomPostImportMetricsTelemetry sbomPostImportMetricsTelemetry;
 
+  private final ApplicationReportPersistenceService applicationReportPersistenceService;
+
   private final List<SbomResultsMatcherTelemetry> bestMatchResultsTelemetries = new ArrayList<>();
 
   private final DependencyTreeParser dependencyTreeParser = new DependencyTreeParser();
@@ -196,6 +198,7 @@ public class SbomResultsMerger
       final ApplicationDAO applicationDAO,
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
+      final ApplicationReportPersistenceService applicationReportPersistenceService,
       final InsightWork insightWork)
   {
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
@@ -208,6 +211,7 @@ public class SbomResultsMerger
     this.applicationDAO = applicationDAO;
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
+    this.applicationReportPersistenceService = applicationReportPersistenceService;
     this.insightWork = insightWork;
   }
 
@@ -1036,8 +1040,7 @@ public class SbomResultsMerger
         // Delete previous scan report folder
         log.debug("Deleting previous scan report folder for applicationId {}, previousScanId {}. The new scan id is {}",
             applicationId, thirdPartyScan.getPreviousScanId(), scanId);
-        File previousReportDir = insightWork.getReportDir(applicationId, thirdPartyScan.getPreviousScanId());
-        FileUtils.deleteDirectory(previousReportDir);
+        applicationReportPersistenceService.deleteReport(applicationId, thirdPartyScan.getPreviousScanId());
       }
       thirdPartyScan.setPreviousScanId(null);
       thirdPartyScanDAO.update(thirdPartyScan);

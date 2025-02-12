@@ -812,10 +812,10 @@ public class IndexService
     }
     String scanId = latestPolicyEvaluation.getScanId();
     ApplicationReport applicationReport = reportService.getReport(application.getId(), scanId);
-    if (!applicationReport.exists()) {
-      return Collections.emptyList();
-    }
     try {
+      if (!applicationReport.exists()) {
+        return Collections.emptyList();
+      }
       ReportEntry licenseReportEntry = applicationReport.getEntry(LICENSES_JSON_FILENAME);
       ReportEntry securityReportEntry = applicationReport.getEntry(SECURITY_JSON_FILENAME);
       ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON_FILENAME);

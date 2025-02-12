@@ -22,6 +22,10 @@ public class AutoDeletingTempFile
     file = Files.createTempFile(dir, null, extension == null ? null : "." + extension);
   }
 
+  public AutoDeletingTempFile(Path dir, String prefix, String extension) throws IOException {
+    file = Files.createTempFile(dir, prefix, extension == null ? null : "." + extension);
+  }
+
   public Path getPath() {
     return file;
   }

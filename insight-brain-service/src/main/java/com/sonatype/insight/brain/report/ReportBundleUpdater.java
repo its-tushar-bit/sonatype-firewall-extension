@@ -11,13 +11,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 import com.sonatype.insight.json.store.JsonUtils;
@@ -49,7 +49,7 @@ class ReportBundleUpdater
     }
   }
 
-  private final File originalFile;
+  private final Stream<ReportEntity> reportEntities;
 
   private final ZipOutputStream zipStream;
 
@@ -63,10 +63,12 @@ class ReportBundleUpdater
    * Creates an updater for the specified {@code report.zip}, using the given location for the updated bundle. The
    * supplied filename mapping chain allows to move/rename files from the original report.
    */
-  public ReportBundleUpdater(File originalFile, File updatedFile, FilenameMapping... filenameMappings)
-      throws IOException
+  public ReportBundleUpdater(
+      Stream<ReportEntity> originalReportEntities,
+      File updatedFile,
+      FilenameMapping... filenameMappings) throws IOException
   {
-    this.originalFile = originalFile;
+    this.reportEntities = originalReportEntities;
     updatedFile.getParentFile().mkdirs();
     zipStream = new ZipOutputStream(new FileOutputStream(updatedFile));
     addedEntries = new HashSet<>();
@@ -133,25 +135,36 @@ class ReportBundleUpdater
   @Override
   public void close() throws IOException {
     try {
-      try (ZipFile zipFile = new ZipFile(originalFile)) {
-        for (Enumeration<? extends ZipEntry> entries = zipFile.entries(); entries.hasMoreElements();) {
-          ZipEntry entry = entries.nextElement();
-          if (entry.isDirectory()) {
-            continue;
-          }
-          String entryName = applyFilenameMappings(entry.getName());
-          if (!addedEntries.contains(entryName) && !removedEntries.contains(entryName)) {
-            ZipEntry zipEntry = new ZipEntry(entryName);
-            zipStream.putNextEntry(zipEntry);
-            try (InputStream in = zipFile.getInputStream(entry)) {
-              IOUtils.copy(in, zipStream);
-            }
-          }
-        }
-      }
+      addRemainingOriginalReportEntities();
     }
     finally {
       zipStream.close();
+    }
+  }
+
+  /**
+   * Add entities from the original report that were not removed or added by explicit calls to this bundle updater
+   */
+  private void addRemainingOriginalReportEntities() throws IOException {
+    try {
+      reportEntities.forEach(entity -> {
+        String entryName = applyFilenameMappings(entity.getName());
+        if (!addedEntries.contains(entryName) && !removedEntries.contains(entryName)) {
+          ZipEntry zipEntry = new ZipEntry(entryName);
+          try {
+            zipStream.putNextEntry(zipEntry);
+            try (var inputStream = entity.getInputStream()) {
+              IOUtils.copy(inputStream, zipStream);
+            }
+          }
+          catch (IOException e) {
+            throw new UncheckedIOException(e);
+          }
+        }
+      });
+    }
+    catch (UncheckedIOException e) {
+      throw e.getCause();
     }
   }
 

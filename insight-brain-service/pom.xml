@@ -932,6 +932,7 @@
                 <include>**/DatabaseContainerRule*</include>
                 <include>**/H2InMemoryDatabaseConfigProvider*</include>
                 <include>**/JWTGenerator*</include>
+                <include>**/FunctionUtils*</include>
               </includes>
             </configuration>
           </execution>

@@ -48,6 +48,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.commons.lang.time.DateUtils;
@@ -451,8 +452,12 @@ public class ApiPolicyWaiverResourceTest
         zipReportDir("/ApiPolicyWaiverResourceTest/report", tempDir),
         getCLMServer().getInstance(InsightWork.class));
 
-    ReportTestUtils.createPolicyThreats(app.getId(), policyEvaluation.getScanId(),
-        getCLMServer().getInstance(InsightWork.class), Collections.singletonList(policyViolationTransitive));
+    ReportHelper.createPolicyThreats(
+        getCLMServer().getInstance(InsightWork.class),
+        app.getId(),
+        policyEvaluation.getScanId(),
+        Collections.singletonList(policyViolationTransitive)
+    );
 
     ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
     waiverOptionsDTO.comment = "waiver comment";
@@ -503,8 +508,12 @@ public class ApiPolicyWaiverResourceTest
     ReportTestUtils.createReportFile(app.getId(), policyEvaluation.getScanId(),
         zipReportDir("/ApiPolicyWaiverResourceTest/report", tempDir),
         getCLMServer().getInstance(InsightWork.class));
-    ReportTestUtils.createPolicyThreats(app.getId(), policyEvaluation.getScanId(),
-        getCLMServer().getInstance(InsightWork.class), Collections.singletonList(policyViolationTransitive));
+    ReportHelper.createPolicyThreats(
+        getCLMServer().getInstance(InsightWork.class),
+        app.getId(),
+        policyEvaluation.getScanId(),
+        Collections.singletonList(policyViolationTransitive)
+    );
     ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
     waiverOptionsDTO.comment = "waiver comment";
     waiverOptionsDTO.expiryTime = new Date(System.currentTimeMillis() + 1000);

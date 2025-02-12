@@ -66,7 +66,6 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
-import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -929,7 +928,7 @@ public class ReportResourceTest
 
       assertThat(zip.getEntry("data/components.json")).isNotNull();
       assertThat(zip.getEntry("data/release-graph/tomcat/tomcat-util/5.5.23.png")).isNotNull();
-      assertThat(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).isNotNull();
+      assertThat(zip.getEntry("data/" + ApplicationReport.POLICY_THREATS_FILENAME)).isNotNull();
 
       assertThat(zip.getEntry("cip/details/f0776db1593e215146d2.json")).isNull();
       ComponentDetails details = JsonUtils.parse(
@@ -1032,7 +1031,7 @@ public class ReportResourceTest
       assertThat(zip.getEntry("data/release-graph/maven/"
           + "artifactId=tomcat-util/classifier=/extension=jar/groupId=tomcat/version=5.5.23/releases.png"))
               .isNotNull();
-      assertThat(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).isNotNull();
+      assertThat(zip.getEntry("data/" + ApplicationReport.POLICY_THREATS_FILENAME)).isNotNull();
 
       assertThat(zip.getEntry("cip/details/f0776db1593e215146d2.json")).isNull();
       TestNamedComponentDetails details = JsonUtils.parse(
@@ -1129,7 +1128,7 @@ public class ReportResourceTest
       assertThat(zip.getEntry("data/release-graph/maven/"
           + "artifactId=reactivex%3arxjs/classifier=/extension=jar/groupId=org.webjars.npm/version=5.0.0-alpha.7/"
           + "releases.png")).isNotNull();
-      assertThat(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).isNotNull();
+      assertThat(zip.getEntry("data/" + ApplicationReport.POLICY_THREATS_FILENAME)).isNotNull();
 
       assertThat(zip.getEntry("cip/details/9276b9bfccfcd3614dc2.json")).isNull();
       TestNamedComponentDetails details = JsonUtils.parse(

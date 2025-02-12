@@ -1,0 +1,553 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+package com.sonatype.insight.brain.report;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.api.experimental.ApiVulnerabilitySignatureService;
+import com.sonatype.insight.brain.aws.s3.S3OutputStream;
+import com.sonatype.insight.brain.service.InsightConfig;
+
+import datadog.trace.api.Trace;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.S3Object;
+
+import static java.util.Objects.requireNonNull;
+import static com.sonatype.insight.brain.aws.s3.S3ExceptionUtil.wrapS3Exception;
+
+public class S3ApplicationReportPersistenceService
+    extends ApplicationReportPersistenceService
+{
+  private static final Logger log = LoggerFactory.getLogger(S3ApplicationReportPersistenceService.class);
+
+  private static final String APP_WIDE_BASE_FORMAT = "sonatype-work/report/%s/";
+
+  private static final String BASE_FORMAT = APP_WIDE_BASE_FORMAT + "%s/";
+
+  private static final String SPECIAL_FILE_FORMAT = BASE_FORMAT + "%s";
+
+  private static final String ADDITIONAL_KEY_PREFIX = BASE_FORMAT + "additional.files/";
+
+  private static final String ADDITIONAL_KEY_FORMAT = ADDITIONAL_KEY_PREFIX + "%s";
+
+  private static final String KEY_PREFIX = BASE_FORMAT + "report.files/";
+
+  private static final String KEY_FORMAT = KEY_PREFIX + "%s";
+
+  private static final String CACHE_KEY_PREFIX = BASE_FORMAT + "report.cache/";
+
+  private static final String CACHE_KEY_FORMAT = CACHE_KEY_PREFIX + "%s";
+
+  private static final String PDF_FILENAME = "report.pdf";
+
+  private static final String VULNERABILITY_SIGNATURE_FILENAME =
+      ApiVulnerabilitySignatureService.VULNERABILITY_SIGNATURE_JSON_FILENAME;
+
+  private final S3Client s3Client;
+
+  private final String bucketName;
+
+  private final String keyPrefix;
+
+  private class S3ReportEntity
+      implements ReportEntity
+  {
+    protected final S3ObjectKey key;
+
+    public S3ReportEntity(final S3ObjectKey key) {
+      this.key = key;
+    }
+
+    public S3ObjectKey getKey() {
+      return key;
+    }
+
+    @Override
+    @Trace
+    public boolean exists() throws IOException {
+      try {
+        getMetadata();
+        return true;
+      }
+      catch (IOException e) {
+        if (e.getCause() instanceof NoSuchKeyException) {
+          return false;
+        }
+        else {
+          throw e;
+        }
+      }
+    }
+
+    @Override
+    public long getTime() throws IOException {
+      return getMetadata().lastModified().toEpochMilli();
+    }
+
+    @Override
+    public String getName() {
+      return key.objectName();
+    }
+
+    @Override
+    public long length() throws IOException {
+      return getMetadata().size();
+    }
+
+    @Override
+    @Trace
+    public OutputStream getOutputStream() {
+      return new S3OutputStream(s3Client, key.toString(), bucketName);
+    }
+
+    @Override
+    @Trace
+    public InputStream getInputStream() throws IOException {
+      GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucketName).key(key.toString()).build();
+      return wrapS3Exception(() -> s3Client.getObject(getObjectRequest));
+    }
+
+    protected S3Object getMetadata() throws IOException {
+      return wrapS3Exception(() -> {
+        HeadObjectRequest request = HeadObjectRequest.builder()
+            .bucket(bucketName)
+            .key(key.toString())
+            .build();
+
+        HeadObjectResponse response = s3Client.headObject(request);
+
+        return S3Object.builder()
+            .size(response.contentLength())
+            .lastModified(response.lastModified())
+            .build();
+      });
+    }
+  }
+
+  private class S3PdfEntity
+      extends S3ReportEntity
+      implements ReportPdfEntity
+  {
+    public S3PdfEntity(final S3ObjectKey key) {
+      super(key);
+    }
+
+    @Override
+    @Trace
+    public void deleteIfExists() throws IOException {
+      log.debug("Deleting PDF at S3 key '{}'", key);
+      deleteByKey(key);
+    }
+  }
+
+  @Inject
+  public S3ApplicationReportPersistenceService(
+      final S3Client s3Client,
+      final InsightConfig insightConfig)
+  {
+    var s3Config = insightConfig.getReportDataStoreConfig().getS3Config();
+    this.s3Client = requireNonNull(s3Client);
+    this.bucketName = requireNonNull(s3Config.getBucketName());
+    this.keyPrefix = requireNonNull(s3Config.getObjectKeyPrefix());
+  }
+
+  @Override
+  @Trace
+  protected ReportEntity doGetReportEntity(
+      final String applicationId,
+      final String scanId,
+      final String name) throws IOException
+  {
+    ReportEntity entity = getAdditionalReportEntity(applicationId, scanId, name);
+
+    if (entity.exists()) {
+      return entity;
+    }
+    else {
+      return getOrCreateCacheReportEntity(applicationId, scanId, name);
+    }
+  }
+
+  @Override
+  @Trace
+  public Stream<ReportEntity> getAllReportEntities(
+      final String applicationId,
+      final String scanId) throws IOException
+  {
+    Set<S3ReportEntity> additionalEntities = getAdditionalEntities(applicationId, scanId);
+    Set<String> namesAlreadySeen = new HashSet<>();
+    additionalEntities.stream().map(ReportEntity::getName).forEach(namesAlreadySeen::add);
+    Set<S3ReportEntity> localEntities = getLocalCopyEntities(applicationId, scanId, namesAlreadySeen);
+    localEntities.stream().map(ReportEntity::getName).forEach(namesAlreadySeen::add);
+
+    return Stream.concat(
+        additionalEntities.stream(),
+        Stream.concat(
+            localEntities.stream(),
+            getOriginalEntities(applicationId, scanId, namesAlreadySeen)
+        )
+    );
+  }
+
+  @Override
+  @Trace
+  public void saveOriginalReport(
+      final String applicationId,
+      final String scanId,
+      final InputStream reportZipContents) throws IOException
+  {
+    if (reportExists(applicationId, scanId)) {
+      throw new IOException("Report already exists for applicationId '" + applicationId + "' scanId '" + scanId + "'");
+    }
+
+    try (var zipInputStream = new ZipInputStream(reportZipContents)) {
+      ZipEntry entry;
+      while ((entry = zipInputStream.getNextEntry()) != null) {
+        String name = entry.getName();
+        if (name.endsWith("/")) {
+          continue;
+        }
+
+        saveOriginalReportFile(applicationId, scanId, name, zipInputStream);
+      }
+    }
+    catch (IOException e) {
+      log.error("Error saving original report files to S3 for applicationId '{}' scanId '{}'",
+          applicationId, scanId, e);
+
+      try {
+        deleteReport(applicationId, scanId);
+      }
+      catch (IOException e2) {
+        e.addSuppressed(e2);
+      }
+      throw e;
+    }
+  }
+
+  @Override
+  @Trace
+  protected void doSaveReportFile(
+      final String applicationId,
+      final String scanId,
+      final String name,
+      final InputStream contents) throws IOException
+  {
+    saveReportFile(getCacheKey(applicationId, scanId, name), contents);
+  }
+
+  @Override
+  @Trace
+  protected void doSaveAdditionalReportFile(
+      final String applicationId,
+      final String scanId,
+      final String name,
+      final InputStream contents) throws IOException
+  {
+    saveReportFile(getAdditionalObjectKey(applicationId, scanId, name), contents);
+  }
+
+  @Override
+  public ReportPdfEntity getPdfEntity(final String applicationId, final String scanId) {
+    return new S3PdfEntity(new S3ObjectKey(SPECIAL_FILE_FORMAT, applicationId, scanId, PDF_FILENAME, keyPrefix));
+  }
+
+  @Override
+  public ReportEntity getVulnerabilitySignaturesEntity(final String applicationId, final String scanId) {
+    var key = new S3ObjectKey(SPECIAL_FILE_FORMAT, applicationId, scanId, VULNERABILITY_SIGNATURE_FILENAME, keyPrefix);
+    return new S3ReportEntity(key);
+  }
+
+  @Override
+  @Trace
+  public void restoreOriginalReport(
+      final String applicationId,
+      final String scanId) throws IOException
+  {
+    Set<ObjectIdentifier> keysToDelete = getLocalCopyEntities(applicationId, scanId, Set.of()).stream()
+        .map(entity -> ObjectIdentifier.builder().key(entity.getKey().toString()).build())
+        .collect(Collectors.toSet());
+
+    var deleteObjectsRequest = DeleteObjectsRequest.builder()
+        .bucket(bucketName)
+        .delete(delete -> delete.objects(keysToDelete))
+        .build();
+
+    log.debug("Restoring report files in S3 for applicationId '{}' scanId '{}'", applicationId, scanId);
+    wrapS3Exception(() -> s3Client.deleteObjects(deleteObjectsRequest));
+  }
+
+  @Override
+  public String getReportLocation(final String applicationId, final String scanId) {
+    var key = new S3ObjectKey(BASE_FORMAT, applicationId, scanId, "", keyPrefix);
+
+    // There appears to be no actual way in the S3 API to construct this string more safely, so we have to just use
+    // string operations
+    return "s3://%s/%s".formatted(bucketName, key.toString());
+  }
+
+  @Override
+  @Trace
+  public boolean reportExists(final String applicationId, final String scanId) throws IOException {
+    try (var objects = getS3Objects(keyPrefix + String.format(BASE_FORMAT, applicationId, scanId), 1)) {
+      // Do we have at least one object saved for this app and scan
+      return objects.findFirst().isPresent();
+    }
+  }
+
+  @Override
+  @Trace
+  public void deleteReport(final String applicationId, final String scanId) throws IOException {
+    log.debug("Deleting report files in S3 for applicationId '{}' scanId '{}'", applicationId, scanId);
+    deleteAllWithPrefix(String.format(BASE_FORMAT, applicationId, scanId));
+  }
+
+  @Override
+  @Trace
+  public void deleteReports(final String applicationId) throws IOException {
+    log.debug("Deleting ALL report files in S3 for applicationId '{}'", applicationId);
+    deleteAllWithPrefix(String.format(APP_WIDE_BASE_FORMAT, applicationId));
+  }
+
+  private ReportEntity getOrCreateCacheReportEntity(
+      final String applicationId,
+      final String scanId,
+      final String name) throws IOException
+  {
+    ReportEntity entity = getCacheReportEntity(applicationId, scanId, name);
+
+    if (!entity.exists()) {
+      createLocalCopyFromOriginal(applicationId, scanId, name);
+    }
+
+    return entity;
+  }
+
+  private ReportEntity getAdditionalReportEntity(
+      final String applicationId,
+      final String scanId,
+      final String name)
+  {
+    return new S3ReportEntity(getAdditionalObjectKey(applicationId, scanId, name));
+  }
+
+  private ReportEntity getCacheReportEntity(
+      final String applicationId,
+      final String scanId,
+      final String name)
+  {
+    return new S3ReportEntity(getCacheKey(applicationId, scanId, name));
+  }
+
+  /**
+   * Creates a cache copy of the original file. If an original file by this name does not exist, does nothing.
+   */
+  @Trace
+  private void createLocalCopyFromOriginal(
+      final String applicationId,
+      final String scanId,
+      final String name) throws IOException
+  {
+    var request = CopyObjectRequest.builder()
+        .sourceBucket(bucketName)
+        .sourceKey(getOriginalKey(applicationId, scanId, name).toString())
+        .destinationBucket(bucketName)
+        .destinationKey(getCacheKey(applicationId, scanId, name).toString())
+        .build();
+
+    wrapS3Exception(() -> {
+      try {
+        s3Client.copyObject(request);
+      }
+      catch (NoSuchKeyException e) {
+        // If the original file doesn't exist, we don't need to create a cache copy
+      }
+    });
+  }
+
+  private void deleteByKey(S3ObjectKey key) throws IOException {
+    var request = DeleteObjectRequest.builder().bucket(bucketName).key(key.toString()).build();
+    wrapS3Exception(() -> s3Client.deleteObject(request));
+  }
+
+  private void deleteAllWithPrefix(final String keySubPrefix) throws IOException {
+    Set<ObjectIdentifier> keysToDelete;
+
+    try (Stream<S3Object> objects = getS3Objects(keyPrefix + keySubPrefix)) {
+      keysToDelete = objects
+          .map(entity -> ObjectIdentifier.builder().key(entity.key()).build())
+          .collect(Collectors.toSet());
+    }
+
+    var request = DeleteObjectsRequest.builder()
+        .bucket(bucketName)
+        .delete(delete -> delete.objects(keysToDelete))
+        .build();
+
+    wrapS3Exception(() -> s3Client.deleteObjects(request));
+  }
+
+  private void saveOriginalReportFile(
+      final String applicationId,
+      final String scanId,
+      final String name,
+      final InputStream contents) throws IOException
+  {
+    saveReportFile(getOriginalKey(applicationId, scanId, name), contents);
+  }
+
+  private void saveReportFile(final S3ObjectKey key, final InputStream contents) throws IOException {
+    try (OutputStream outputStream = new S3OutputStream(s3Client, key.toString(), bucketName)) {
+      log.debug("Saving report file to S3: {}", key);
+      contents.transferTo(outputStream);
+    }
+  }
+
+  private Set<S3ReportEntity> getAdditionalEntities(
+      final String applicationId,
+      final String scanId) throws IOException
+  {
+    String prefix = keyPrefix + ADDITIONAL_KEY_PREFIX.formatted(applicationId, scanId);
+    Function<String, S3ObjectKey> keyParser =
+        key -> getAdditionalObjectKey(applicationId, scanId, StringUtils.removeStart(key, prefix));
+
+    try (Stream<S3ReportEntity> entities = getEntities(prefix, keyParser)) {
+      return entities.collect(Collectors.toSet());
+    }
+  }
+
+  private Set<S3ReportEntity> getLocalCopyEntities(
+      final String applicationId,
+      final String scanId,
+      final Set<String> excludeNames) throws IOException
+  {
+    String prefix = keyPrefix + CACHE_KEY_PREFIX.formatted(applicationId, scanId);
+    Function<String, S3ObjectKey> keyParser =
+        key -> getCacheKey(applicationId, scanId, StringUtils.removeStart(key, prefix));
+
+    try (Stream<S3ReportEntity> entities = getEntities(prefix, keyParser)) {
+      return entities
+          .filter(entity -> !excludeNames.contains(entity.getName()))
+          .collect(Collectors.toSet());
+    }
+  }
+
+  private Stream<S3ReportEntity> getOriginalEntities(
+      final String applicationId,
+      final String scanId,
+      final Set<String> excludeNames) throws IOException
+  {
+    String prefix = keyPrefix + KEY_PREFIX.formatted(applicationId, scanId);
+    return getEntities(
+        prefix,
+        key -> getOriginalKey(applicationId, scanId, StringUtils.removeStart(key, prefix))
+    )
+      .filter(entity -> !excludeNames.contains(entity.getName()));
+  }
+
+  /**
+   * @return a Stream of S3ReportEntity objects for all objects in the specified keySubPrefix under the keyPrefix
+   * instance variable.
+   *
+   * @param keyParser a function that takes a full S3 key string starting with the prefix and returns a parsed
+   * S3ObjectKey
+   */
+  private Stream<S3ReportEntity> getEntities(
+      final String prefix,
+      final Function<String, S3ObjectKey> keyParser) throws IOException
+  {
+    return getS3Objects(prefix)
+        .map(s3Object -> {
+          return new S3ReportEntity(keyParser.apply(s3Object.key()));
+        });
+  }
+
+  /**
+   * @param prefix the FULL prefix to search for
+   */
+  private Stream<S3Object> getS3Objects(final String prefix) throws IOException {
+    return getS3Objects(prefix, null);
+  }
+
+  /**
+   * @param prefix the FULL prefix to search for
+   * @param maxKeys the maximum number of keys to fetch at one time. If null uses the AWS default (currently 1000)
+   */
+  private Stream<S3Object> getS3Objects(final String prefix, final Integer maxKeys) throws IOException {
+    ListObjectsV2Request request = ListObjectsV2Request.builder()
+        .bucket(bucketName)
+        .prefix(prefix)
+        .maxKeys(maxKeys)
+        .build();
+
+    try {
+      return s3Client.listObjectsV2Paginator(request).stream()
+          .map(ListObjectsV2Response::contents)
+          .flatMap(List::stream);
+    }
+    catch (S3Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  /**
+   * @return a key referring to the specified object within the original report files downloaded from HDS
+   */
+  private S3ObjectKey getOriginalKey(final String applicationId, final String scanId, final String objectName) {
+    return new S3ObjectKey(KEY_FORMAT, applicationId, scanId, objectName, keyPrefix);
+  }
+
+  /**
+   * @return a key referring to the modified/modifiable/restorable copy of the specified object
+   */
+  private S3ObjectKey getCacheKey(
+      final String applicationId,
+      final String scanId,
+      final String objectName)
+  {
+    return new S3ObjectKey(CACHE_KEY_FORMAT, applicationId, scanId, objectName, keyPrefix);
+  }
+
+  /**
+   * @return a key referring to the specified "additional" object
+   */
+  private S3ObjectKey getAdditionalObjectKey(
+      final String applicationId,
+      final String scanId,
+      final String objectName)
+  {
+    return new S3ObjectKey(ADDITIONAL_KEY_FORMAT, applicationId, scanId, objectName, keyPrefix);
+  }
+}

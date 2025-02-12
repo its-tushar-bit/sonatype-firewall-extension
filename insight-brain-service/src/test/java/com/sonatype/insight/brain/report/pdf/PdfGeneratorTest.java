@@ -30,8 +30,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.report.FileReportPdf;
-import com.sonatype.insight.brain.report.ReportPdf;
+import com.sonatype.insight.brain.report.ReportPdfEntity;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicense;
@@ -114,7 +113,7 @@ public class PdfGeneratorTest
     ApiReportPolicyDataDTOV2 policyViolationsData =
         apiReportDataServiceV2.getPolicyViolationsData(application.getPublicId(), SCAN_ID, false);
     policyViolationsData.commitHash = "b141d3806df77594e4744bcf24b4cc95";
-    ReportPdf reportPdf = PdfGenerator.getPdfFile(reportService, application.getId(), SCAN_ID);
+    ReportPdfEntity reportPdf = reportService.getPdfReport(application.getId(), SCAN_ID);
 
     BomPageMetadataDTO bomPageMetadataDTO = new BomPageMetadataDTO(
         List.of("author"),
@@ -140,7 +139,7 @@ public class PdfGeneratorTest
     );
 
     String pdfContent = generatePdfAndStripText(reportPdf, pdfData, Context.SBOM, 1, 13);
-    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
+    assertThat(reportPdf.exists()).isTrue();
 
     assertSbomPdfCommonSections(pdfContent);
     assertThat(pdfContent)
@@ -158,7 +157,7 @@ public class PdfGeneratorTest
     ApiReportPolicyDataDTOV2 policyViolationsData =
         apiReportDataServiceV2.getPolicyViolationsData(application.getPublicId(), SCAN_ID, false);
     policyViolationsData.commitHash = "b141d3806df77594e4744bcf24b4cc95";
-    ReportPdf reportPdf = PdfGenerator.getPdfFile(reportService, application.getId(), SCAN_ID);
+    ReportPdfEntity reportPdf = reportService.getPdfReport(application.getId(), SCAN_ID);
 
     BomPageMetadataDTO bomPageMetadataDTO = new BomPageMetadataDTO(
         Collections.emptyList(),
@@ -184,7 +183,7 @@ public class PdfGeneratorTest
     );
 
     String pdfContent = generatePdfAndStripText(reportPdf, pdfData, Context.SBOM, 1, 13);
-    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
+    assertThat(reportPdf.exists()).isTrue();
 
     assertSbomPdfCommonSections(pdfContent);
     assertThat(pdfContent)
@@ -254,7 +253,7 @@ public class PdfGeneratorTest
     ApiReportPolicyDataDTOV2 policyViolationsData =
         apiReportDataServiceV2.getPolicyViolationsData(application.getPublicId(), SCAN_ID, false);
     policyViolationsData.commitHash = "b141d3806df77594e4744bcf24b4cc95";
-    ReportPdf reportPdf = PdfGenerator.getPdfFile(reportService, application.getId(), SCAN_ID);
+    ReportPdfEntity reportPdf = reportService.getPdfReport(application.getId(), SCAN_ID);
     PdfData pdfData = PdfData.createPdfData(
         null,
         "98",
@@ -263,7 +262,7 @@ public class PdfGeneratorTest
     );
 
     String pdfContent = generatePdfAndStripText(reportPdf, pdfData, Context.LIFECYCLE, 1, 13);
-    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
+    assertThat(reportPdf.exists()).isTrue();
 
     assertCommonSections(pdfContent);
     assertThat(pdfContent)
@@ -329,7 +328,7 @@ public class PdfGeneratorTest
 
   @Test
   public void testGenerate_EmptyData() throws Exception {
-    ReportPdf reportPdf = PdfGenerator.getPdfFile(reportService, application.getId(), SCAN_ID);
+    ReportPdfEntity reportPdf = reportService.getPdfReport(application.getId(), SCAN_ID);
     PdfData pdfData = PdfData.createPdfData(
         null,
         "98",
@@ -339,14 +338,14 @@ public class PdfGeneratorTest
     generateReportFile();
     PdfGenerator.generate(reportPdf, pdfData);
 
-    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
+    assertThat(reportPdf.exists()).isTrue();
   }
 
   @Test
   public void testGenerate_PolicyDataWithEmptyComponent() throws Exception {
     ApiReportPolicyDataDTOV2 policyData = generateMinimalPolicyData();
     policyData.components.add(newApiReportComponentPolicyViolationsDTOV2());
-    ReportPdf reportPdf = PdfGenerator.getPdfFile(reportService, application.getId(), SCAN_ID);
+    ReportPdfEntity reportPdf = reportService.getPdfReport(application.getId(), SCAN_ID);
     PdfData pdfData = PdfData.createPdfData(
         null,
         "98",
@@ -356,7 +355,7 @@ public class PdfGeneratorTest
     generateReportFile();
     PdfGenerator.generate(reportPdf, pdfData);
 
-    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
+    assertThat(reportPdf.exists()).isTrue();
   }
 
   @Test
@@ -365,7 +364,7 @@ public class PdfGeneratorTest
     ApiReportComponentPolicyViolationsDTOV2 component = newApiReportComponentPolicyViolationsDTOV2();
     component.violations.add(new ApiReportPolicyViolationDTOV2());
     policyData.components.add(component);
-    ReportPdf reportPdf = PdfGenerator.getPdfFile(reportService, application.getId(), SCAN_ID);
+    ReportPdfEntity reportPdf = reportService.getPdfReport(application.getId(), SCAN_ID);
     PdfData pdfData = PdfData.createPdfData(
         null,
         "98",
@@ -375,14 +374,14 @@ public class PdfGeneratorTest
     generateReportFile();
     PdfGenerator.generate(reportPdf, pdfData);
 
-    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
+    assertThat(reportPdf.exists()).isTrue();
   }
 
   @Test
   public void testGenerate_RawDataWithEmptyComponent() throws Exception {
     ApiReportRawDataDTOV2 rawData = new ApiReportRawDataDTOV2();
     rawData.components.add(newApiReportComponentDTOV2());
-    ReportPdf reportPdf = PdfGenerator.getPdfFile(reportService, application.getId(), SCAN_ID);
+    ReportPdfEntity reportPdf = reportService.getPdfReport(application.getId(), SCAN_ID);
     PdfData pdfData = PdfData.createPdfData(
         null,
         "98",
@@ -392,7 +391,7 @@ public class PdfGeneratorTest
     generateReportFile();
     PdfGenerator.generate(reportPdf, pdfData);
 
-    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
+    assertThat(reportPdf.exists()).isTrue();
   }
 
   @Test
@@ -401,7 +400,7 @@ public class PdfGeneratorTest
     ApiReportComponentDTOV2 component = newApiReportComponentDTOV2();
     component.securityData = new ApiSecurityDataDTO();
     rawData.components.add(component);
-    ReportPdf reportPdf = PdfGenerator.getPdfFile(reportService, application.getId(), SCAN_ID);
+    ReportPdfEntity reportPdf = reportService.getPdfReport(application.getId(), SCAN_ID);
     PdfData pdfData = PdfData.createPdfData(
         null,
         "98",
@@ -411,7 +410,7 @@ public class PdfGeneratorTest
     generateReportFile();
     PdfGenerator.generate(reportPdf, pdfData);
 
-    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
+    assertThat(reportPdf.exists()).isTrue();
   }
 
   @Test
@@ -421,7 +420,7 @@ public class PdfGeneratorTest
     component.securityData = new ApiSecurityDataDTO();
     component.securityData.securityIssues.add(new ApiSecurityIssueDTO());
     rawData.components.add(component);
-    ReportPdf reportPdf = PdfGenerator.getPdfFile(reportService, application.getId(), SCAN_ID);
+    ReportPdfEntity reportPdf = reportService.getPdfReport(application.getId(), SCAN_ID);
     PdfData pdfData = PdfData.createPdfData(
         null,
         "98",
@@ -431,7 +430,7 @@ public class PdfGeneratorTest
     generateReportFile();
     PdfGenerator.generate(reportPdf, pdfData);
 
-    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
+    assertThat(reportPdf.exists()).isTrue();
   }
 
   @Test
@@ -440,7 +439,7 @@ public class PdfGeneratorTest
     ApiReportComponentDTOV2 component = newApiReportComponentDTOV2();
     component.licenseData = new ApiLicenseDataDTOV2();
     rawData.components.add(component);
-    ReportPdf reportPdf = PdfGenerator.getPdfFile(reportService, application.getId(), SCAN_ID);
+    ReportPdfEntity reportPdf = reportService.getPdfReport(application.getId(), SCAN_ID);
     PdfData pdfData = PdfData.createPdfData(
         null,
         "98",
@@ -450,7 +449,7 @@ public class PdfGeneratorTest
     generateReportFile();
     PdfGenerator.generate(reportPdf, pdfData);
 
-    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
+    assertThat(reportPdf.exists()).isTrue();
   }
 
   @Test
@@ -462,7 +461,7 @@ public class PdfGeneratorTest
     policyData.application.name += "星義义こ여";
     policyData.components.add(component);
     generateReportFile();
-    ReportPdf reportPdf = PdfGenerator.getPdfFile(reportService, application.getId(), SCAN_ID);
+    ReportPdfEntity reportPdf = reportService.getPdfReport(application.getId(), SCAN_ID);
     PdfData pdfData = PdfData.createPdfData(
         null,
         "98",
@@ -472,7 +471,7 @@ public class PdfGeneratorTest
 
     PdfGenerator.generate(reportPdf, pdfData);
 
-    assertThat(((FileReportPdf) reportPdf).getFile()).isFile();
+    assertThat(reportPdf.exists()).isTrue();
   }
 
   @Test
@@ -1157,7 +1156,7 @@ public class PdfGeneratorTest
   }
 
   private String generatePdfAndStripText(
-      final ReportPdf reportPdf,
+      final ReportPdfEntity reportPdf,
       final PdfData pdfData,
       final Context context,
       int startPage,

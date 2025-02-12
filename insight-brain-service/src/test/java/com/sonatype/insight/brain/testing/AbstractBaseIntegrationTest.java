@@ -14,8 +14,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,7 +27,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMultipart;
@@ -73,7 +70,6 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.TestProductLicenseRule;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.report.FileApplicationReport;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
@@ -107,7 +103,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.google.inject.Module;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -119,11 +114,6 @@ import org.junit.rules.TestName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -530,23 +520,13 @@ public abstract class AbstractBaseIntegrationTest
   }
 
   protected void mockReport(PolicyEvaluation evaluation, String classSimpleName) {
+    mockReport(evaluation.getApplicationId(), evaluation.getScanId(), classSimpleName);
+  }
+
+  protected void mockReport(String applicationId, String scanId, String classSimpleName) {
     try {
-      Path reportDir = getCLMServer().getInstance(InsightWork.class)
-          .getReportDir(evaluation.getApplicationId(), evaluation.getScanId()).toPath();
-      Files.createDirectories(reportDir);
-      Files.write(reportDir.resolve("report.zip"), Collections.singletonList("report.zip"));
-      var reportZip = new FileApplicationReport(reportDir.resolve("report.zip").toFile());
-      try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(reportZip.getFile().toPath()))) {
-        zos.putNextEntry(new ZipEntry("index.html"));
-      }
-      String[] filenames = {
-          BOM_JSON_FILENAME, SECURITY_JSON_FILENAME, LICENSES_JSON_FILENAME, DATA_JSON_FILENAME,
-          DEPENDENCIES_JSON_FILENAME
-      };
-      for (String filename : filenames) {
-        File file = reportZip.getCacheFile(filename);
-        FileUtils.copyURLToFile(getClass().getResource("/" + classSimpleName + "/report/" + filename), file);
-      }
+      InsightWork insightWork = getCLMServer().getInstance(InsightWork.class);
+      ReportHelper.saveMockReport(insightWork, tempDir, "/" + classSimpleName + "/report/", applicationId, scanId);
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);
@@ -697,9 +677,9 @@ public abstract class AbstractBaseIntegrationTest
   }
 
   protected File createReportFile(String applicationId, String scanId, String sourceReportDir) throws IOException {
-    File reportFile = getCLMServer().getInstance(InsightWork.class).getReportFile(applicationId, scanId);
-    FileUtils.copyURLToFile(ReportHelper.zipReport(sourceReportDir, tempDir), reportFile);
-    return reportFile;
+    var insightWork = getCLMServer().getInstance(InsightWork.class);
+    ReportHelper.saveMockReport(insightWork, tempDir, sourceReportDir, applicationId, scanId);
+    return insightWork.getReportFile(applicationId, scanId);
   }
 
   protected List<TelemetryItem> getTelemetryItems(final Map<ByteArrayDataSource, Integer> responses)

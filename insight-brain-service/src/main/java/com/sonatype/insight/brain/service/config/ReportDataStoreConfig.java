@@ -14,7 +14,7 @@ import javax.validation.constraints.NotNull;
 public class ReportDataStoreConfig
 {
   @NotNull
-  private ReportDataStoreType type = ReportDataStoreType.File;
+  private ReportDataStoreType type = ReportDataStoreType.FILE;
 
   private S3DataStoreConfig s3Config;
 
@@ -36,7 +36,7 @@ public class ReportDataStoreConfig
 
   public enum ReportDataStoreType
   {
-    File, S3
+    FILE, S3
   }
 
   public static class S3DataStoreConfig

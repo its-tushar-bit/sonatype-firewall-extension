@@ -11,10 +11,10 @@ import java.io.InputStream;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
-import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.test.LogOutput;
 
 import org.junit.Before;
@@ -44,15 +44,18 @@ public class ReportDownloaderTest
   private HdsClient spyHdsClient;
 
   @Inject
-  private FileCleaner fileCleaner;
+  private ReportDataStore reportDataStore;
 
   @Inject
-  FileReportDataStore reportDataStore;
+  private FileApplicationReportPersistenceService applicationReportPersistenceService;
+
+  @Inject
+  private InsightWork insightWork;
 
   @Before
   public void before() {
     spyHdsClient = spy(hdsClient);
-    reportDownloader = new ReportDownloader(spyHdsClient, fileCleaner);
+    reportDownloader = new ReportDownloader(spyHdsClient, applicationReportPersistenceService);
   }
 
   @Test
@@ -60,13 +63,12 @@ public class ReportDownloaderTest
     Application app = tempEntity.newApplicationWithParent("dummyApp");
     String scanId = "NonExistentScanId";
     doReturn(createMockResponse(Status.NOT_FOUND)).when(spyHdsClient).getResponse(any());
-    FileApplicationReport
-        appReport = ((FileApplicationReport) reportDataStore.getApplicationReport(app.getId(), scanId));
+    ApplicationReport appReport = reportDataStore.getApplicationReport(app, scanId);
 
-    boolean rc = reportDownloader.downloadReport(scanId, appReport, 0, 0);
+    boolean rc = reportDownloader.downloadReport(appReport, 0, 0);
 
     assertThat(rc).isFalse();
-    assertThat(appReport.getFile().getParentFile()).doesNotExist();
+    assertThat(insightWork.getReportDir(app.getId(), scanId)).doesNotExist();
     assertThat(logOutput).atErrorLevel().contains(ReportDownloader.timeoutExceptionMessage(scanId));
   }
 
@@ -75,10 +77,9 @@ public class ReportDownloaderTest
     Application app = tempEntity.newApplicationWithParent("dummyApp");
     String scanId = "scanId";
     doReturn(createMockResponse(Status.NOT_FOUND)).when(spyHdsClient).getResponse(any());
-    FileApplicationReport
-        appReport = ((FileApplicationReport) reportDataStore.getApplicationReport(app.getId(), scanId));
+    ApplicationReport appReport = reportDataStore.getApplicationReport(app, scanId);
 
-    boolean rc = reportDownloader.downloadReport(scanId, appReport, 0, 0);
+    boolean rc = reportDownloader.downloadReport(appReport, 0, 0);
 
     assertThat(rc).isFalse();
     // only the initial download request is made
@@ -90,11 +91,10 @@ public class ReportDownloaderTest
     Application app = tempEntity.newApplicationWithParent("dummyApp");
     String scanId = "scanId";
     doReturn(createMockResponse(Status.NOT_FOUND)).when(spyHdsClient).getResponse(any());
-    FileApplicationReport
-        appReport = ((FileApplicationReport) reportDataStore.getApplicationReport(app.getId(), scanId));
+    ApplicationReport appReport = reportDataStore.getApplicationReport(app, scanId);
     long startTime = System.currentTimeMillis();
 
-    boolean rc = reportDownloader.downloadReport(scanId, appReport, 3, 2);
+    boolean rc = reportDownloader.downloadReport(appReport, 3, 2);
 
     long totalTime = System.currentTimeMillis() - startTime;
     assertThat(rc).isFalse();
@@ -110,10 +110,9 @@ public class ReportDownloaderTest
     Application app = tempEntity.newApplicationWithParent("dummyApp");
     String scanId = "scanId";
     doReturn(createMockResponse(Status.BAD_GATEWAY)).when(spyHdsClient).getResponse(any());
-    FileApplicationReport
-        appReport = ((FileApplicationReport) reportDataStore.getApplicationReport(app.getId(), scanId));
+    ApplicationReport appReport = reportDataStore.getApplicationReport(app, scanId);
 
-    boolean rc = reportDownloader.downloadReport(scanId, appReport, 1, 0);
+    boolean rc = reportDownloader.downloadReport(appReport, 1, 0);
 
     assertThat(rc).isFalse();
     verify(spyHdsClient, times(5)).getResponse(any());
@@ -126,10 +125,9 @@ public class ReportDownloaderTest
     InputStream finalReport = new ByteArrayInputStream("report".getBytes());
     doReturn(createMockResponse(Status.BAD_GATEWAY), createMockResponse(Status.OK, finalReport)).when(spyHdsClient)
         .getResponse(any());
-    FileApplicationReport
-        appReport = ((FileApplicationReport) reportDataStore.getApplicationReport(app.getId(), scanId));
+    ApplicationReport appReport = reportDataStore.getApplicationReport(app, scanId);
 
-    boolean rc = reportDownloader.downloadReport(scanId, appReport, 1, 0);
+    boolean rc = reportDownloader.downloadReport(appReport, 1, 0);
 
     assertThat(rc).isTrue();
     verify(spyHdsClient, times(2)).getResponse(any());

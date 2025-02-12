@@ -26,12 +26,13 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.scan.PersistedScanTicket;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.report.FileApplicationReport;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
@@ -43,7 +44,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.google.inject.Binder;
-import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -90,6 +90,9 @@ public class ScanServiceTest
   @Inject
   private Configuration configuration;
 
+  @Inject
+  private InsightWork insightWork;
+
   @Mock
   private ShutdownHandler mockShutdownHandler;
 
@@ -116,11 +119,12 @@ public class ScanServiceTest
     receipt.setScanId("scan-id");
     lenient().when(scanUploader.upload(any(), any(Application.class), anyString(), any(), eq(null), any(), any()))
         .thenReturn(receipt);
-    lenient().when(reportDownloader.downloadReport(eq(receipt.getScanId()), any(), anyInt(), anyInt())).then(
+    lenient().when(reportDownloader.downloadReport(any(ApplicationReport.class), anyInt(), anyInt())).then(
         (Answer<Boolean>) invocation -> {
-          FileApplicationReport reportFile = (FileApplicationReport) invocation.getArguments()[1];
-          FileUtils.copyURLToFile(ReportHelper.zipReport("/ScanServiceTest/report", tempDir),
-              reportFile.getFile());
+          ApplicationReport reportFile = (ApplicationReport) invocation.getArguments()[0];
+          Application app = reportFile.getApplication();
+          ReportHelper.saveMockReport(insightWork, tempDir, "/ScanServiceTest/report", app.getId(),
+              reportFile.getScanId());
           return true;
         });
     hdsMockServer.reset();
@@ -200,10 +204,12 @@ public class ScanServiceTest
           return receipt;
         });
     Mockito.reset(reportDownloader);
-    when(reportDownloader.downloadReport(any(), any(), anyInt(), anyInt()))
+    when(reportDownloader.downloadReport(any(ApplicationReport.class), anyInt(), anyInt()))
         .then((Answer<Boolean>) invocation -> {
-          FileApplicationReport reportFile = (FileApplicationReport) invocation.getArguments()[1];
-          FileUtils.copyURLToFile(ReportHelper.zipReport("/ScanServiceTest/report", tempDir), reportFile.getFile());
+          ApplicationReport reportFile = (ApplicationReport) invocation.getArguments()[1];
+          Application app = reportFile.getApplication();
+          ReportHelper.saveMockReport(insightWork, tempDir, "/ScanServiceTest/report", app.getId(),
+              reportFile.getScanId());
           return true;
         });
 

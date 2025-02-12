@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.report;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -16,7 +15,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
@@ -88,7 +86,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
-import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -103,13 +100,14 @@ import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILEN
 import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.SUMMARY_JSON_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -215,11 +213,15 @@ public class ReportServiceTest
   @Inject
   private ProprietaryConfigService proprietaryConfigService;
 
+  @Inject
+  private FileApplicationReportPersistenceService applicationReportPersistenceService;
+
   @Before
   public void before() {
     thirdPartyDataServiceSpy = spy(thirdPartyDataService);
     reportDataStoreSpy = spy(reportDataStore);
     app = tempEntity.newApplicationWithParent();
+    mockReportDownloader.setInsightWork(insightWork);
   }
 
   @After
@@ -229,7 +231,7 @@ public class ReportServiceTest
 
   @Override
   public void configure(Binder binder) {
-    mockReportDownloader = new MockReportDownloader();
+    mockReportDownloader = new MockReportDownloader(tempDir);
     reportDownloader = mockReportDownloader.getMock();
     binder.bind(ReportDownloader.class).toInstance(reportDownloader);
     super.configure(binder);
@@ -245,13 +247,12 @@ public class ReportServiceTest
 
   @Test
   public void testFetchReport_Exists() throws Exception {
-    createReportFile();
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
 
     ReportService reportService = createReportService();
-    FileApplicationReport report = ((FileApplicationReport) reportService.fetchReport(app, scanId));
+    ApplicationReport report = reportService.fetchReport(app, scanId);
     assertThat(report).isNotNull();
-    assertThat(report.getFile()).isFile();
-    assertThat(report.getFile().getName()).isEqualTo("report.zip");
+    assertThat(report.exists()).isTrue();
     verify(thirdPartyDataServiceSpy, never()).deleteByScanId(eq(scanId));
   }
 
@@ -264,11 +265,10 @@ public class ReportServiceTest
     when(thirdPartyDataServiceSpy.getScanData(scanId))
         .thenReturn(new ThirdPartyApplicationReportDTO());
 
-    FileApplicationReport report = ((FileApplicationReport) reportService.fetchReport(app, scanId));
+    ApplicationReport report = reportService.fetchReport(app, scanId);
     assertThat(report).isNotNull();
-    assertThat(report.getFile()).isFile();
-    assertThat(report.getFile().getName()).isEqualTo("report.zip");
-    verify(reportDownloader).downloadReport(eq(scanId), any(FileApplicationReport.class), eq(2100), eq(5));
+    assertThat(report.exists()).isTrue();
+    verify(reportDownloader).downloadReport(any(ApplicationReport.class), eq(2100), eq(5));
   }
 
   @Test
@@ -276,7 +276,7 @@ public class ReportServiceTest
     mockReportDownloader.mockDownloadReport(scanId, "/ReportServiceTest/report-with-third-party-data");
     ReportService reportService = createReportService();
 
-    FileApplicationReport reportZip = ((FileApplicationReport) reportService.fetchReport(app, scanId));
+    ApplicationReport reportZip = reportService.fetchReport(app, scanId);
 
     // Verify bom.json
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(app);
@@ -384,12 +384,11 @@ public class ReportServiceTest
 
   @Test
   public void testGetReport_Exists() throws Exception {
-    createReportFile();
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
     ReportService reportService = createReportService();
-    FileApplicationReport appReport = ((FileApplicationReport) reportService.getReport(app.getId(), scanId));
+    ApplicationReport appReport = reportService.getReport(app.getId(), scanId);
     assertThat(appReport).isNotNull();
-    assertThat(appReport.getFile()).isFile();
-    assertThat(appReport.getFile().getName()).isEqualTo("report.zip");
+    assertThat(appReport.exists()).isTrue();
   }
 
   @Test
@@ -421,9 +420,10 @@ public class ReportServiceTest
     productLicense.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
 
     // ReportResource.getReport requires a report.zip to exist when evaluations exist
-    createReportFile(app.getId(), scanId1, zipReportDir("/ReportResourceTest/report-expanded_coverage_false"));
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportResourceTest/report-expanded_coverage_false",
+        app.getId(), scanId1);
     // use an older data.json to make sure they still work
-    createReportFile(app.getId(), scanId2, zipReportDir("/ReportResourceTest/report"));
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId2);
 
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId1);
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId2, commitHash,
@@ -506,9 +506,10 @@ public class ReportServiceTest
     String branchName = "test-branch";
 
     // ReportResource.getReport requires a report.zip to exist when evaluations exist
-    createReportFile(app.getId(), scanId1, zipReportDir("/ReportResourceTest/report-expanded_coverage_false"));
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportResourceTest/report-expanded_coverage_false",
+        app.getId(), scanId1);
     // use an older data.json to make sure they still work
-    createReportFile(app.getId(), scanId2, zipReportDir("/ReportResourceTest/report"));
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId2);
 
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId1);
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId2, commitHash,
@@ -585,7 +586,8 @@ public class ReportServiceTest
 
   @Test
   public void testGetReportMetadata_expandedCoverage() throws Exception {
-    createReportFile(app.getId(), scanId, zipReportDir("/ReportResourceTest/report-expanded_coverage"));
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportResourceTest/report-expanded_coverage",
+        app.getId(), scanId);
     ReportService reportService = createReportService();
 
     String applicationPublicId = app.getPublicId();
@@ -597,7 +599,7 @@ public class ReportServiceTest
 
   @Test
   public void testGetReportMetadata_ScanLabelForNVS() throws Exception {
-    createReportFile(app.getId(), scanId, zipReportDir("/" + getClass().getSimpleName() + "/report-scan_label"));
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-scan_label", app.getId(), scanId);
     ReportService reportService = createReportService();
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
 
@@ -609,7 +611,8 @@ public class ReportServiceTest
 
   @Test
   public void testIncludeThirdPartyData() throws Exception {
-    final FileApplicationReport appReport = new FileApplicationReport(zipReportDir("/ReportServiceTest/report"));
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
+    final ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, app, scanId);
 
     ThirdPartyApplicationReportDTO dto = new ThirdPartyApplicationReportDTO();
     final ComponentIdentifier coord = ComponentIdentifier.createRpmCoordinates("n1", "v1", "a1");
@@ -626,9 +629,9 @@ public class ReportServiceTest
 
   @Test
   public void testProcessThirdPartyData_withInfrastructureAsCodeMergedWithExisting() throws Exception {
-    final FileApplicationReport appReport =
-        new FileApplicationReport(zipReportDir("/ReportServiceTest/report-with-third-party-iac"));
-    createReportFile(app.getId(), scanId, appReport.getFile());
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-third-party-iac",
+        app.getId(), scanId);
+    final ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, app, scanId);
     ReportService reportService = createReportService();
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
 
@@ -657,7 +660,7 @@ public class ReportServiceTest
 
     ReportService reportService = createReportService();
 
-    FileApplicationReport reportZip = ((FileApplicationReport) reportService.fetchReport(app, scanId));
+    ApplicationReport reportZip = reportService.fetchReport(app, scanId);
 
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(app);
     ReportEntry licenseReportEntry = reportZip.getEntry(LICENSES_JSON_FILENAME);
@@ -683,8 +686,8 @@ public class ReportServiceTest
   @Test
   public void testProcessThirdPartyData_Lifecycle_thirdPartyScanDataDeleted() throws Exception {
     productLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    final FileApplicationReport appReport = new FileApplicationReport(zipReportDir("/ReportServiceTest/report"));
-    createReportFile(app.getId(), scanId, appReport.getFile());
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
+    final ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, app, scanId);
     ReportService reportService = createReportService();
     tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -710,9 +713,9 @@ public class ReportServiceTest
   public void testProcessThirdPartyData_SBOMManagerEnabled_reportNotDeleted() throws Exception {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
-    final FileApplicationReport appReport =
-        new FileApplicationReport(zipReportDir("/ReportServiceTest/report-with-third-party-iac"));
-    createReportFile(app.getId(), scanId, appReport.getFile());
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-third-party-iac",
+        app.getId(), scanId);
+    final ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, app, scanId);
     ReportService reportService = createReportService();
     tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, scanId);
 
@@ -740,8 +743,8 @@ public class ReportServiceTest
 
   @Test
   public void testProcessThirdPartyData_MaxSbomLimitNotReached_reportNotDeleted() throws Exception {
-    final FileApplicationReport appReport = new FileApplicationReport(zipReportDir("/ReportServiceTest/report"));
-    createReportFile(app.getId(), scanId, appReport.getFile());
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
+    final ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, app, scanId);
     ReportService reportService = createReportService();
     tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, scanId);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -774,9 +777,9 @@ public class ReportServiceTest
   public void testProcessThirdPartyData_MaxSbomLimitReached_reportDeleted() throws Exception {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
-    final FileApplicationReport appReport =
-        new FileApplicationReport(zipReportDir("/ReportServiceTest/report-with-third-party-iac"));
-    createReportFile(app.getId(), scanId, appReport.getFile());
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-third-party-iac", 
+        app.getId(), scanId);
+    final ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, app, scanId);
     ReportService reportService = createReportService();
     tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, scanId);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -807,7 +810,7 @@ public class ReportServiceTest
 
   @Test
   public void testGetBomForPolicyEvaluation() throws URISyntaxException, IOException {
-    createReportFile(app.getId(), "SCAN_ID", zipReportDir("/ReportServiceTest/report"));
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), "SCAN_ID");
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "SCAN_ID");
 
     ReportEntry reportEntry = createReportService().getBomForPolicyEvaluation(policyEvaluation);
@@ -819,7 +822,8 @@ public class ReportServiceTest
 
   @Test
   public void testGetBomForPolicyEvaluation_NoBomFile() throws URISyntaxException, IOException {
-    createReportFile(app.getId(), "SCAN_ID", zipReportDir("/ReportServiceTest/report-missing-bom-json"));
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-missing-bom-json",
+        app.getId(), "SCAN_ID");
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "SCAN_ID");
 
     ReportEntry reportEntry = createReportService().getBomForPolicyEvaluation(policyEvaluation);
@@ -862,11 +866,12 @@ public class ReportServiceTest
     final String expectedErrorMessage = String.format("Report policy threats entry is missing for the requested " +
         "application [%s] and scan ID [%s]", app.getPublicId(), scanId);
 
-    createReportFile(app.getId(), scanId, zipReportDir("/ReportServiceTest/report"));
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
     ApplicationReport applicationReport = mock(ApplicationReport.class);
     doReturn(true).when(applicationReport).exists();
     doReturn(null).when(applicationReport).getEntry(any());
-    doReturn(applicationReport).when(reportDataStoreSpy).getApplicationReport(app.getId(), scanId);
+    doReturn(applicationReport).when(reportDataStoreSpy)
+        .getApplicationReport(argThat(application -> application.getId().equals(app.getId())), eq(scanId));
 
     assertThatThrownBy(() ->
         reportService.getPolicyThreats(app.getPublicId(), scanId))
@@ -881,10 +886,10 @@ public class ReportServiceTest
     final PolicyThreats givenPolicyThreatsStoredForReport = createPolicyThreat();
 
     final ReportEntry givenReportEntryReturned =
-        new ReportEntry(POLICY_THREATS, 1L, (new ObjectMapper())
+        new ReportEntry(POLICY_THREATS_FILENAME, 1L, (new ObjectMapper())
             .writeValueAsBytes(givenPolicyThreatsStoredForReport));
 
-    createReportFile(app.getId(), scanId, zipReportDir("/ReportServiceTest/report"));
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
 
     ApplicationReport applicationReport = mock(ApplicationReport.class);
     doReturn(true).when(applicationReport).exists();
@@ -904,30 +909,20 @@ public class ReportServiceTest
 
   @Test
   public void testGetPolicyThreats_shouldReturnPolicyThreats_noStageTypeIdAndPolicyOwnerId() throws Exception {
-    createReportFile(app.getId(), scanId,
-        zipReportDir("/ReportServiceTest/report-missing-stage-policy-owner-id-policythreats-json"));
+    ReportHelper.saveMockReport(insightWork, tempDir,
+        "/ReportServiceTest/report-missing-stage-policy-owner-id-policythreats-json", app.getId(), scanId);
     ReportService reportService = createReportService();
     PolicyThreats policyThreats = reportService.getPolicyThreats(app.getPublicId(), scanId);
     assertThat(policyThreats).isNotNull();
     validatePolicyValidationOwner(policyThreats.aaData);
   }
 
-  private void assertThatReportFilesContains(FileApplicationReport appReport, final String thirdPartyFile) {
-    File reportFilesDir = appReport.getFile().getParentFile().toPath().resolve("additional.files").toFile();
-    assertThat(Stream.of(reportFilesDir.listFiles()).anyMatch(f -> f.getName().endsWith(thirdPartyFile)))
-        .isTrue();
-  }
-
-  private void createReportFile() throws IOException, URISyntaxException {
-    createReportFile(app.getId(), scanId, zipReportDir("/ReportServiceTest/report"));
-  }
-
-  private void createReportFile(String appId, String scanId, File reportFile) throws IOException {
-    FileUtils.copyFile(reportFile, insightWork.getReportFile(appId, scanId));
-  }
-
-  private File zipReportDir(String reportResourceName) throws URISyntaxException {
-    return Paths.get(ReportHelper.zipReport(reportResourceName, tempDir).toURI()).toFile();
+  private void assertThatReportFilesContains(
+      ApplicationReport appReport,
+      final String thirdPartyFile) throws IOException
+  {
+    ReportEntry entry = appReport.getEntry(thirdPartyFile);
+    assertThat(entry).isNotNull();
   }
 
   public static PolicyThreats createPolicyThreat() {

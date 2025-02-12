@@ -153,6 +153,9 @@ public class PolicyEvaluateServiceTest
   @Inject
   private ReportService reportService;
 
+  @Inject
+  private InsightWork insightWork;
+
   private Application app;
 
   private JiraClientFactory mockJiraClientFactory;
@@ -168,8 +171,7 @@ public class PolicyEvaluateServiceTest
 
   @Override
   public void configure(Binder binder) {
-    mockReportDownloader = new MockReportDownloader();
-
+    mockReportDownloader = new MockReportDownloader(tempDir);
     binder.bind(ReportDownloader.class).toInstance(mockReportDownloader.getMock());
     mockJiraClientFactory = mock(JiraClientFactory.class);
     binder.bind(JiraClientFactory.class).toInstance(mockJiraClientFactory);
@@ -191,6 +193,8 @@ public class PolicyEvaluateServiceTest
     mailConfiguration.setPort(587);
     mailConfiguration.setSystemEmail("NexusIQServer@localhost");
     mailConfigurationDAO.set(mailConfiguration);
+
+    mockReportDownloader.setInsightWork(insightWork);
   }
 
   @Test
@@ -902,7 +906,7 @@ public class PolicyEvaluateServiceTest
 
     // check the calculated policy threat
     ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
-    ReportEntry policyThreatsReportEntry = applicationReport.getEntry(ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
+    ReportEntry policyThreatsReportEntry = applicationReport.getEntry(ApplicationReport.POLICY_THREATS_FILENAME);
     final JsonNode policyThreats = JsonUtils.parse(policyThreatsReportEntry.buf).get("aaData");
     assertThat(policyThreats).isNotEmpty();
     assertThat(policyThreats.get(0).get("policyThreatLevel").asInt()).isEqualTo(8);

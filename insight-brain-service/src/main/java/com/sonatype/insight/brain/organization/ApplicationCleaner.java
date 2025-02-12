@@ -13,6 +13,7 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetryCreator;
@@ -39,25 +40,30 @@ public class ApplicationCleaner
 
   private final ApplicationDAO applicationDAO;
 
+  private final ApplicationReportPersistenceService applicationReportPersistenceService;
+
   @Inject
   public ApplicationCleaner(
       final InsightWork work,
       final FileCleaner fileCleaner,
       final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator,
-      final ApplicationDAO applicationDAO)
+      final ApplicationDAO applicationDAO,
+      final ApplicationReportPersistenceService applicationReportPersistenceService)
   {
     this.work = work;
     this.fileCleaner = fileCleaner;
     this.ownerMaintenanceTelemetryCreator = ownerMaintenanceTelemetryCreator;
     this.applicationDAO = applicationDAO;
+    this.applicationReportPersistenceService = applicationReportPersistenceService;
   }
 
   public void delete(final TransactionContext tx, final Application application) throws IOException {
     fileCleaner.delete(work.getScanDir(application.getId()));
     fileCleaner.delete(work.getAuditDir(application.getId()));
-    fileCleaner.delete(work.getReportDir(application.getId()));
     fileCleaner.delete(work.getSourceControlDir(application.getId()));
     fileCleaner.delete(work.getSbomDir(application.getId(), false));
+
+    applicationReportPersistenceService.deleteReports(application.getId());
 
     File applicationIconDirectory = new File(work.getApplicationIconDir(), application.getId());
     try {

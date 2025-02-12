@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -342,8 +343,12 @@ public class ApiPolicyViolationResourceV2Test
     ReportTestUtils.createReportFile(application.getId(), scanId,
         zipReportDir("/ApiPolicyViolationResourceV2Test/report", tempDir),
         getCLMServer().getInstance(InsightWork.class));
-    ReportTestUtils.createPolicyThreats(application.getId(), scanId, getCLMServer().getInstance(InsightWork.class),
-        Collections.singletonList(policyViolation));
+    ReportHelper.createPolicyThreats(
+        getCLMServer().getInstance(InsightWork.class),
+        application.getId(),
+        scanId,
+        Collections.singletonList(policyViolation)
+    );
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
@@ -382,8 +387,12 @@ public class ApiPolicyViolationResourceV2Test
     ReportTestUtils.createReportFile(application.getId(), scanId,
         zipReportDir("/ApiPolicyViolationResourceV2Test/report", tempDir),
         getCLMServer().getInstance(InsightWork.class));
-    ReportTestUtils.createPolicyThreats(application.getId(), scanId, getCLMServer().getInstance(InsightWork.class),
-        Collections.singletonList(policyViolation));
+    ReportHelper.createPolicyThreats(
+        getCLMServer().getInstance(InsightWork.class),
+        application.getId(),
+        scanId,
+        Collections.singletonList(policyViolation)
+    );
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,

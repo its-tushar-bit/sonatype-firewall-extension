@@ -93,13 +93,14 @@ public class ComponentAnalysisServiceTest
     binder.bind(HttpServletRequest.class).toInstance(httpRequest);
     binder.bind(ScanHandler.class).toInstance(scanHandler);
     binder.bind(StageTypeService.class).toInstance(stageTypeService);
-    mockReportDownloader = new MockReportDownloader();
+    mockReportDownloader = new MockReportDownloader(tempDir);
     binder.bind(ReportDownloader.class).toInstance(mockReportDownloader.getMock());
     super.configure(binder);
   }
 
   @Before
   public void before() {
+    mockReportDownloader.setInsightWork(lookup(InsightWork.class));
     app = tempEntity.newApplicationWithParent();
     lenient().doReturn(StageTypes.getAll())
         .when(stageTypeService)

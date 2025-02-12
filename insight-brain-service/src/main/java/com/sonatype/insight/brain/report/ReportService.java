@@ -87,12 +87,13 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.api.experimental.ApiVulnerabilitySignatureService.VULNERABILITY_SIGNATURE_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.INDEX_HTML_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.ApplicationReport.PARTIAL_MATCHED_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.SUMMARY_JSON_FILENAME;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME;
@@ -206,7 +207,7 @@ public class ReportService
   @Trace
   public ApplicationReport fetchReport(final Application app, final String scanId) throws IOException {
     ApplicationReport applicationReport =
-        reportDataStore.downloadReport(app.getId(), scanId, this::processThirdPartyData);
+        reportDataStore.downloadReport(app, scanId, this::processThirdPartyData);
     applyChanges(app, applicationReport, repositoryMatcher, telemetrySender, telemetryUtils, configuration);
     thirdPartyDataService.mergeSonatypeDataWithSbomDataWithIndexing(scanId, applicationReport);
     return applicationReport;
@@ -255,13 +256,13 @@ public class ReportService
 
   @Authorize(permission = Permission.READ)
   public ReportEntry processBrowseReport(
-      final @AuthzContext(Key.APPLICATION_ID) String appPublicId,
+      final @AuthzContext(Key.APPLICATION_ID) String appId,
       String scanId,
       String path)
   {
     final String name = toEntryName(path);
     auditBrowseReport(scanId, name);
-    final ApplicationReport applicationReport = getReport(appPublicId, scanId);
+    final ApplicationReport applicationReport = getReport(appId, scanId);
     ReportEntry reportEntry = null;
     try {
       reportEntry = applicationReport.getEntry(name);
@@ -277,7 +278,7 @@ public class ReportService
 
   private String toEntryName(final String path) {
     if (null == path || path.isEmpty()) {
-      return "index.html";
+      return INDEX_HTML_FILENAME;
     }
     boolean seenSlash = true;
     StringBuilder buf = null;
@@ -295,7 +296,7 @@ public class ReportService
       seenSlash = isSlash;
     }
     if (seenSlash && buf != null) {
-      buf.append("index.html");
+      buf.append(INDEX_HTML_FILENAME);
     }
     return buf != null ? buf.toString() : path;
   }
@@ -318,13 +319,26 @@ public class ReportService
 
   @Trace
   public ApplicationReport getReport(final String appId, final String scanId) {
-    ApplicationReport applicationReport = reportDataStore.getApplicationReport(appId, scanId);
-    if (applicationReport.exists()) {
+    return getReport(applicationDAO.getByIdNotNull(appId), scanId);
+  }
+
+  public ApplicationReport getReport(final Application app, final String scanId) {
+    ApplicationReport applicationReport = reportDataStore.getApplicationReport(app, scanId);
+
+    boolean exists;
+    try {
+      exists = applicationReport.exists();
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+
+    if (exists) {
       return applicationReport;
     }
 
-    if (policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId) != null) {
-      throw new NotFoundException("The report for application ID " + appId + " and scan ID " + scanId
+    if (policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId) != null) {
+      throw new NotFoundException("The report for application ID " + app.getId() + " and scan ID " + scanId
           + " does not exist. Usually this means the report was deemed obsolete"
           + " according to the data retention policies and hence purged to the trash.");
     }
@@ -348,7 +362,7 @@ public class ReportService
     ReportMetadataDTO metadata = new ReportMetadataDTO();
     metadata.setApplication(application);
 
-    ApplicationReport applicationReport = getReport(application.getId(), scanId);
+    ApplicationReport applicationReport = getReport(application, scanId);
     final ContainerNode<?> data = JsonUtils.parse(applicationReport.getEntry(DATA_JSON_FILENAME).buf);
     boolean expandedCoverage = data.path("globals").path("expandedCoverage").booleanValue();
     if (expandedCoverage) {
@@ -415,26 +429,15 @@ public class ReportService
     return applicationReport.getEntry("bom.json");
   }
 
-  @Authorize(permission = Permission.WRITE)
-  public void updateReportEntry(
-      @AuthzContext(Key.APPLICATION_ID) String appInternalId,
-      String scanId,
-      String entryName,
-      byte[] bufferData) throws IOException
-  {
-    ApplicationReport applicationReport = getReport(appInternalId, scanId);
-    applicationReport.putEntry(entryName, bufferData);
-  }
-
   public PolicyThreats getPolicyThreats(
       final String applicationPublicId,
       final String scanId)
   {
     final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    final ApplicationReport applicationReport = getReport(application.getId(), scanId);
+    final ApplicationReport applicationReport = getReport(application, scanId);
 
     try {
-      final ReportEntry reportEntry = applicationReport.getEntry(POLICY_THREATS);
+      final ReportEntry reportEntry = applicationReport.getEntry(POLICY_THREATS_FILENAME);
 
       if (reportEntry == null) {
         throw new NotFoundException(String.format("Report policy threats entry is missing for the requested " +
@@ -448,15 +451,8 @@ public class ReportService
     }
   }
 
-  public ReportEntry getEntry(final ApplicationReport applicationReport, final String name) throws IOException {
-    return applicationReport.getEntry(name);
-  }
-
-  @Trace
-  public ReportEntity getVulnerabilitySignatureJson(final String applicationId, final String scanId)
-      throws IOException
-  {
-    return reportDataStore.getReportEntityByName(applicationId, scanId, VULNERABILITY_SIGNATURE_JSON_FILENAME);
+  public BaseReportEntity getVulnerabilitySignatureJson(final String applicationId, final String scanId) {
+    return reportDataStore.getVulnerabilitySignatureJson(applicationId, scanId);
   }
 
   private void applyChanges(
@@ -480,14 +476,14 @@ public class ReportService
     // Start fresh by deleting any cached files.
     applicationReport.deleteCacheDir();
     applicationReport.deletePdfReport();
-    embedApplicationPublicId(applicationReport, application);
+    applicationReport.embedApplicationPublicId();
 
     applyComponentRelatedChanges(application, applicationReport, repositoryMatcher, telemetrySender, telemetryUtils);
 
     // these data items have already had changes applied as part of applyComponentRelatedChanges above
     final ContainerNode<?> security = JsonUtils.parse(applicationReport.getEntry(SECURITY_JSON_FILENAME).buf);
     final ContainerNode<?> licenses = JsonUtils.parse(applicationReport.getEntry(LICENSES_JSON_FILENAME).buf);
-    final ContainerNode<?> partialMatched = JsonUtils.parse(applicationReport.getEntry("partialmatched.json").buf);
+    final ContainerNode<?> partialMatched = JsonUtils.parse(applicationReport.getEntry(PARTIAL_MATCHED_FILENAME).buf);
 
     Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier =
         parseDependencyDepths(JsonUtils.parse(applicationReport.getEntry(DEPENDENCIES_JSON_FILENAME).buf));
@@ -563,7 +559,7 @@ public class ReportService
     }
 
     applicationReport.saveReportEntry(LICENSES_JSON_FILENAME, licenses);
-    applicationReport.saveReportEntry("partialmatched.json", partialMatched);
+    applicationReport.saveReportEntry(PARTIAL_MATCHED_FILENAME, partialMatched);
     writeLicenseThreatsToReportFile(application, applicationReport);
 
     JacksonNodeUtils.fill(data.putArray("securityCounts"), securityCounts);
@@ -650,9 +646,9 @@ public class ReportService
     applicationReport.saveReportEntry(SECURITY_JSON_FILENAME, securityJsonData);
 
     // must start from un-edited data
-    ContainerNode<?> partialmatchedJsonData = applicationReport.loadReportEntry("partialmatched.json");
+    ContainerNode<?> partialmatchedJsonData = applicationReport.loadReportEntry(PARTIAL_MATCHED_FILENAME);
     removeClaimedComponentsFromPartialMatched(partialmatchedJsonData, claimedComponentsByHash);
-    applicationReport.saveReportEntry("partialmatched.json", partialmatchedJsonData);
+    applicationReport.saveReportEntry(PARTIAL_MATCHED_FILENAME, partialmatchedJsonData);
 
     log.debug("applyComponentRelatedChanges finished  in {} ms", System.currentTimeMillis() - start);
   }
@@ -1038,7 +1034,7 @@ public class ReportService
     }
     ObjectNode licenseThreatsJson = mapper.createObjectNode();
     licenseThreatsJson.set("aaData", licenseTable);
-    applicationReport.saveReportEntry("licensethreats.json", licenseThreatsJson);
+    applicationReport.saveReportEntry(ApplicationReport.LICENSE_THREATS_JSON_FILENAME, licenseThreatsJson);
   }
 
   @VisibleForTesting
@@ -1087,8 +1083,7 @@ public class ReportService
     }
   }
 
-  @Trace
-  public ReportPdf getPdfReport(final String appId, final String scanId) {
+  public ReportPdfEntity getPdfReport(final String appId, final String scanId) {
     return reportDataStore.getReportPdf(appId, scanId);
   }
 

@@ -25,6 +25,7 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -36,11 +37,19 @@ public class PolicyEvaluateServiceAuthzTest
   @Inject
   private PolicyEvaluateService policyEvaluateService;
 
+  @Inject
+  private InsightWork insightWork;
+
   private MockReportDownloader mockReportDownloader;
+
+  @Before
+  public void setup() {
+    mockReportDownloader.setInsightWork(insightWork);
+  }
 
   @Override
   public void configure(Binder binder) {
-    mockReportDownloader = new MockReportDownloader();
+    mockReportDownloader = new MockReportDownloader(tempDir);
     binder.bind(ReportDownloader.class).toInstance(mockReportDownloader.getMock());
     binder.bind(TelemetrySender.class).toInstance(mock(TelemetrySender.class));
     binder.bind(ScanHandler.class).toInstance(mock(ScanHandler.class));

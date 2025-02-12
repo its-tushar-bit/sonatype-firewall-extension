@@ -113,15 +113,15 @@ public class LegalReportResourceTest extends AbstractResourceTest
   @Test
   public void testGetDefaultLicenseLegalApplicationReportFromActiveUserFilterNoFilterWithApps() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
+
     PolicyEvaluation policyEvaluationBuild =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluationBuild, getClass().getSimpleName());
 
     PolicyEvaluation policyEvaluationRelease =
         tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, TemporaryEntity.uuid());
-
-    mockReport(policyEvaluationBuild, getClass().getSimpleName());
     mockReport(policyEvaluationRelease, getClass().getSimpleName());
+
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);

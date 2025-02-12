@@ -114,6 +114,8 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.updateReachabilityStatus;
 import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_ALERTS_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS_FILENAME;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -121,10 +123,6 @@ import static java.util.stream.Collectors.toMap;
 public class ScanPolicyEvaluator
 {
   private static final Logger log = LoggerFactory.getLogger(ScanPolicyEvaluator.class);
-
-  public static final String POLICY_ALERTS_FILENAME = "policyalerts.json";
-
-  public static final String POLICY_THREATS_FILENAME = "policythreats.json";
 
   private static final String UNKNOWN = "unknown";
 

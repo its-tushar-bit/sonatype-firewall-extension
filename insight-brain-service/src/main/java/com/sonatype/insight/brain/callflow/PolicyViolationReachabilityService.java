@@ -28,9 +28,9 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS_FILENAME;
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.filterOnReachableSecurityViolations;
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.updateReachabilityStatus;
-import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS;
 
 @Named
 public class PolicyViolationReachabilityService
@@ -85,7 +85,7 @@ public class PolicyViolationReachabilityService
     updateReachableSecurityViolationsReachableStatus(policyViolations, reachableVulnerabilitiesByPurlIdentifiers);
 
     PolicyThreats policyThreats = PolicyThreatsAdapter.createPolicyThreats(policyViolations, null, null);
-    applicationReport.putEntry(POLICY_THREATS, JsonUtils.generate(policyThreats));
+    applicationReport.putEntry(POLICY_THREATS_FILENAME, JsonUtils.generate(policyThreats));
 
     logger.info("Finished updating policy violations with reachability data for applicationId: {}, reportId: {}",
         applicationId, reportId);

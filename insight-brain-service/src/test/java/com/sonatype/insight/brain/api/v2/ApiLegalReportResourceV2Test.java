@@ -7,16 +7,11 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -34,10 +29,7 @@ import com.sonatype.insight.brain.model.legal.AttributionReportTemplate;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.report.FileApplicationReport;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import io.netty.channel.socket.ChannelOutputShutdownException;
@@ -962,26 +954,7 @@ public class ApiLegalReportResourceV2Test
   }
 
   private void mockThirdPartyReport(String applicationId, String scanId) {
-    try {
-      Path reportDir = getCLMServer().getInstance(InsightWork.class).getReportDir(applicationId, scanId).toPath();
-      Files.createDirectories(reportDir);
-      Files.write(reportDir.resolve("report.zip"), Collections.singletonList("report.zip"));
-      var reportZip = new FileApplicationReport(reportDir.resolve("report.zip").toFile());
-      String[] filenames = {
-          ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME,
-          ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME,
-          ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME
-      };
-      for (String filename : filenames) {
-        File file = reportZip.getCacheFile(filename);
-        FileUtils.copyURLToFile(
-            Objects.requireNonNull(getClass().getResource("/" + getClass().getSimpleName() + "/report/" + filename)),
-            file);
-      }
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+    mockReport(applicationId, scanId, getClass().getSimpleName());
   }
 
   private void mockHdsResponse() {

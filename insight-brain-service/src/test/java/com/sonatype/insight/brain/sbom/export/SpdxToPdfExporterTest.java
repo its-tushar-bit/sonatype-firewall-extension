@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.sbom.export;
 
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -24,7 +23,6 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification.SPDX_23;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 public class SpdxToPdfExporterTest extends AbstractPdfExporterTest
 {
@@ -60,9 +58,7 @@ public class SpdxToPdfExporterTest extends AbstractPdfExporterTest
         createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, SPDX_23);
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.COMPLIANCE.getId(), SCAN_ID, new Date());
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
-    File reportZip = Paths.get(ReportHelper.zipReport(
-        "/SpdxToPdfExporterTest/report-for-test", tempDir).toURI()).toFile();
-    when(mockWork.getReportFile(app.getId(), SCAN_ID)).thenReturn(reportZip);
+    ReportHelper.saveMockReport(insightWork, tempDir, "/SpdxToPdfExporterTest/report-for-test", app.getId(), SCAN_ID);
     setupTestComponents();
 
     ApiReportRawDataDTOV2 rawData = new ApiReportRawDataDTOV2();

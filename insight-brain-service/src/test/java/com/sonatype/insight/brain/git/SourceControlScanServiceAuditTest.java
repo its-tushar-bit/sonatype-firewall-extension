@@ -53,6 +53,9 @@ public class SourceControlScanServiceAuditTest
   @Inject
   private SourceControlDAO sourceControlDAO;
 
+  @Inject
+  private InsightWork insightWork;
+
   @Mock
   private GitApi mockGitApi;
 
@@ -67,13 +70,14 @@ public class SourceControlScanServiceAuditTest
   @Before
   public void before() {
     sourceControlScanService = lookup(SourceControlScanService.class);
+    mockReportDownloader.setInsightWork(insightWork);
   }
 
   @Override
   public void configure(Binder binder) {
     when(mockGitApiFactory.createGitApi(any(GitRepositoryInfo.class))).thenReturn(mockGitApi);
     binder.bind(GitApiFactory.class).toInstance(mockGitApiFactory);
-    mockReportDownloader = new MockReportDownloader();
+    mockReportDownloader = new MockReportDownloader(tempDir);
     binder.bind(ReportDownloader.class).toInstance(mockReportDownloader.getMock());
     binder.bind(TelemetrySender.class).toInstance(mock(TelemetrySender.class));
     binder.bind(ScanHandler.class).toInstance(mockScanHandler);

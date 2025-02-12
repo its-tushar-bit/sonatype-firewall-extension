@@ -58,7 +58,9 @@ public class PostgresDatabaseFixture
   }
 
   private String getDatabaseNameFromTestName(final String testName) {
-    return testName.toLowerCase();
+    return testName.toLowerCase()
+        // support parameterized tests by replacing brackets with underscores
+        .replaceAll("\\[|\\]", "_");
   }
 
   protected PostgresTestCluster getPostgresTestCluster() {

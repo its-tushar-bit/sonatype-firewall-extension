@@ -5,27 +5,32 @@
  */
 package com.sonatype.insight.brain.report;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.UUID;
 
-import com.sonatype.insight.brain.service.Zipper;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
 
-import org.apache.commons.io.FileUtils;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentMatcher;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class MockReportDownloader
 {
   private final ReportDownloader reportDownloader = mock(ReportDownloader.class);
+
+  private InsightWork insightWork;
+
+  private final TemporaryFolder tempDir;
+
+  public MockReportDownloader(TemporaryFolder tempDir) {
+    this.tempDir = tempDir;
+  }
 
   /**
    * Simulates that a report (based on the specified resource) exists.
@@ -40,24 +45,33 @@ public class MockReportDownloader
     return scanId;
   }
 
+  public void setInsightWork(InsightWork insightWork) {
+    this.insightWork = insightWork;
+  }
+
   /**
    * Simulates that a report (based on the specified resource) associated with the specified scan ID exists.
    *
    * @param reportResourceName can be a report.zip file or a directory that will be zipped up into a report.
    */
   public void mockDownloadReport(String scanId, String reportResourceName) {
-    when(reportDownloader.downloadReport(eq(scanId), any(), anyInt(), anyInt())).then(new Answer<Boolean>()
+    ArgumentMatcher<ApplicationReport> appReportMatcher = (appReport) -> {
+      return appReport != null && appReport.getScanId().equals(scanId);
+    };
+
+    when(reportDownloader.downloadReport(argThat(appReportMatcher), anyInt(), anyInt())).then(new Answer<Boolean>()
     {
       @Override
       public Boolean answer(InvocationOnMock invocation) throws Throwable {
-        ReportEntity reportFile = (ReportEntity) invocation.getArguments()[1];
-        if (reportResourceName.endsWith(".zip")) {
-          FileUtils.copyURLToFile(getClass().getResource(reportResourceName),
-              ((FileApplicationReport) reportFile).getFile());
-        }
-        else {
-          zipResourceDir(reportResourceName, ((FileApplicationReport) reportFile).getFile());
-        }
+        ApplicationReport report = invocation.getArgument(0, ApplicationReport.class);
+        ReportHelper.saveMockReport(
+            insightWork,
+            tempDir,
+            reportResourceName,
+            report.getApplication().getId(),
+            report.getScanId()
+        );
+
         return true;
       }
     });
@@ -65,20 +79,5 @@ public class MockReportDownloader
 
   public ReportDownloader getMock() {
     return reportDownloader;
-  }
-
-  private void zipResourceDir(String resourceName, File reportZipFile) {
-    try {
-      reportZipFile.getParentFile().mkdirs();
-      URL resourceUrl = getClass().getResource(resourceName);
-      File resourceDir = new File(resourceUrl.toURI());
-      if (!resourceDir.isDirectory()) {
-        throw new RuntimeException("'" + resourceDir.getAbsolutePath() + "' is not a directory.");
-      }
-      Zipper.zip(resourceDir, reportZipFile);
-    }
-    catch (IOException | URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
   }
 }

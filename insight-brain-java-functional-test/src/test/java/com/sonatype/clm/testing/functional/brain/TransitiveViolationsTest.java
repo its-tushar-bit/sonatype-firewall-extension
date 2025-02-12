@@ -55,7 +55,7 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.InsightWork;
-
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
@@ -124,8 +124,12 @@ public class TransitiveViolationsTest
     ReportTestUtils.createReportFile(application.getId(), policyEvaluation.getScanId(),
         zipReportDir("/TransitiveViolationsTest/report", tempDir),
         testCLMServer.getCLMServer().getInstance(InsightWork.class));
-    ReportTestUtils.createPolicyThreats(application.getId(), policyEvaluation.getScanId(),
-        testCLMServer.getCLMServer().getInstance(InsightWork.class), policyViolations);
+    ReportHelper.createPolicyThreats(
+        testCLMServer.getCLMServer().getInstance(InsightWork.class),
+        application.getId(),
+        policyEvaluation.getScanId(),
+        policyViolations
+    );
     ApplicationReport applicationReport = testCLMServer.getCLMServer().getInstance(ReportService.class)
         .getReport(application.getId(), policyEvaluation.getScanId());
     ReportEntry reportEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
@@ -446,8 +450,12 @@ public class TransitiveViolationsTest
     ReportTestUtils.createReportFile(application.getId(), policyEvaluation.getScanId(),
         zipReportDir("/TransitiveViolationsTest/report", tempDir),
         testCLMServer.getCLMServer().getInstance(InsightWork.class));
-    ReportTestUtils.createPolicyThreats(application.getId(), policyEvaluation.getScanId(),
-        testCLMServer.getCLMServer().getInstance(InsightWork.class), policyViolations);
+    ReportHelper.createPolicyThreats(
+        testCLMServer.getCLMServer().getInstance(InsightWork.class),
+        application.getId(),
+        policyEvaluation.getScanId(),
+        policyViolations
+    );
     waiveTransitiveViolationsPopover.retryButton().click();
     waiveTransitiveViolationsPopover.shouldNotBe(Condition.visible);
     new TransitiveViolationsPage().waiveTransitiveViolations().click();

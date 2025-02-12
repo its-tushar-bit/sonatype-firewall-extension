@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.inject.Binder;
@@ -35,13 +36,16 @@ public class ReportComponentServiceTest
   @Inject
   private ClusterLockManager clusterLockManager;
 
+  @Inject
+  private InsightWork insightWork;
+
   private ReportComponentService reportComponentService;
 
   private MockReportDownloader mockReportDownloader;
 
   @Override
   public void configure(Binder binder) {
-    mockReportDownloader = new MockReportDownloader();
+    mockReportDownloader = new MockReportDownloader(tempDir);
     binder.bind(ReportDownloader.class).toInstance(mockReportDownloader.getMock());
     super.configure(binder);
   }
@@ -50,6 +54,8 @@ public class ReportComponentServiceTest
   public void setup() {
     reportComponentService =
         new ReportComponentService(reportService, componentLoaderFactory, clusterLockManager);
+
+    mockReportDownloader.setInsightWork(insightWork);
   }
 
   @Test

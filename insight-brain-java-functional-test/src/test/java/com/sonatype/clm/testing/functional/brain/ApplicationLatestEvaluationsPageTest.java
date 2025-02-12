@@ -388,10 +388,10 @@ public class ApplicationLatestEvaluationsPageTest
         zipReportDir("/canned-reports/large-report", tempDir),
         testCLMServer.getCLMServer().getInstance(InsightWork.class)
     );
-    ReportTestUtils.createPolicyThreats(
+    ReportHelper.createPolicyThreats(
+        testCLMServer.getCLMServer().getInstance(InsightWork.class),
         application.getId(),
         policyEvaluation.getScanId(),
-        testCLMServer.getCLMServer().getInstance(InsightWork.class),
         policyViolations
     );
   }

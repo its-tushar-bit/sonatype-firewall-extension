@@ -7,25 +7,70 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.IOException;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-public interface ReportDataStore
+@Named
+@Singleton
+public class ReportDataStore
 {
-  ApplicationReport downloadReport(String applicationId, String scanId, DownloadReportPostAction action)
-      throws IOException, NotFoundException;
-
-  ApplicationReport getApplicationReport(String appId, String scanId);
-
-  ReportEntity getReportEntityByName(String applicationId, String scanId, String name) throws IOException;
-
-  ReportPdf getReportPdf(String appId, String scanId);
-
   @FunctionalInterface
   interface DownloadReportPostAction
   {
     void apply(String scanId, ApplicationReport tempApplicationReport, String appId) throws IOException;
   }
+
+  private final ReportDownloader reportDownloader;
+
+  private final Configuration configuration;
+
+  private final ApplicationReportPersistenceService applicationReportPersistenceService;
+
+  @Inject
+  public ReportDataStore(
+      final ReportDownloader reportDownloader,
+      final Configuration configuration,
+      final ApplicationReportPersistenceService applicationReportPersistenceService)
+  {
+    this.reportDownloader = reportDownloader;
+    this.configuration = configuration;
+    this.applicationReportPersistenceService = applicationReportPersistenceService;
+  }
+
+  public ApplicationReport downloadReport(
+      final Application application,
+      final String scanId,
+      final DownloadReportPostAction downloadReportPostAction) throws IOException, NotFoundException
+  {
+    ApplicationReport applicationReport = getApplicationReport(application, scanId);
+    if (!applicationReport.exists()) {
+      int reportTimeoutInSeconds = configuration.getReportTimeoutInSeconds();
+      if (!reportDownloader.downloadReport(applicationReport, reportTimeoutInSeconds, 5)) {
+        throw new NotFoundException("Could not download the report for scan ID " + scanId);
+      }
+      downloadReportPostAction.apply(scanId, applicationReport, application.getId());
+    }
+    return applicationReport;
+  }
+
+  public ApplicationReport getApplicationReport(final Application application, final String scanId) {
+    return new ApplicationReport(applicationReportPersistenceService, application, scanId);
+  }
+
+  public ReportPdfEntity getReportPdf(final String appId, final String scanId) {
+    return applicationReportPersistenceService.getPdfEntity(appId, scanId);
+  }
+
+  public BaseReportEntity getVulnerabilitySignatureJson(final String applicationId, final String scanId) {
+    return applicationReportPersistenceService.getVulnerabilitySignaturesEntity(applicationId, scanId);
+  }
+
+  public void deleteReportPdf(final String appId, final String scanId) throws IOException {
+    applicationReportPersistenceService.getPdfEntity(appId, scanId).deleteIfExists();
+  }
 }
-
-

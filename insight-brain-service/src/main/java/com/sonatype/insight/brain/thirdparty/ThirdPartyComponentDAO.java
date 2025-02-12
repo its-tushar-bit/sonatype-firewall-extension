@@ -123,17 +123,14 @@ public class ThirdPartyComponentDAO
 
     Map<String, ThirdPartyReportComponentDTO> reportData = new HashMap<>();
     try {
-      final ReportEntry tpBomEntry =
-          reportServiceProvider.get().getEntry(applicationReport, THIRD_PARTY_BOM_JSON_FILENAME);
+      final ReportEntry tpBomEntry = applicationReport.getEntry(THIRD_PARTY_BOM_JSON_FILENAME);
       final List<ThirdPartyBillOfMaterialsRowDTO> bomRows =
           readData(tpBomEntry, new TypeReference<>() { });
       if (bomRows != null && !bomRows.isEmpty()) {
-        ReportEntry tpSecurityReportEntry =
-            reportServiceProvider.get().getEntry(applicationReport, THIRD_PARTY_SECURITY_JSON_FILENAME);
+        ReportEntry tpSecurityReportEntry = applicationReport.getEntry(THIRD_PARTY_SECURITY_JSON_FILENAME);
         final List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows =
             readData(tpSecurityReportEntry, new TypeReference<>() { });
-        ReportEntry tpLicenseReportEntry =
-            reportServiceProvider.get().getEntry(applicationReport, THIRD_PARTY_LICENSE_JSON_FILENAME);
+        ReportEntry tpLicenseReportEntry = applicationReport.getEntry(THIRD_PARTY_LICENSE_JSON_FILENAME);
         final List<ThirdPartyLicenseRowDTO> licenseRows =
             readData(tpLicenseReportEntry, new TypeReference<>() { });
         prepareComponentData(bomRows, securityRows, licenseRows, reportData);

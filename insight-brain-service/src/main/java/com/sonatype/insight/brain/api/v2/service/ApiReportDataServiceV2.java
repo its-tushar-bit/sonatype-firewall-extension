@@ -50,7 +50,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyCondition;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyConstraint;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyViolation;
-import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
@@ -152,7 +151,7 @@ public class ApiReportDataServiceV2
 
     ReportEntry bomEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
     ReportEntry countsEntry = applicationReport.getEntry(DATA_JSON_FILENAME);
-    ReportEntry policyThreatsEntry = applicationReport.getEntry(ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
+    ReportEntry policyThreatsEntry = applicationReport.getEntry(ApplicationReport.POLICY_THREATS_FILENAME);
 
     if (bomEntry == null || policyThreatsEntry == null || countsEntry == null) {
       throw new BadRequestException(

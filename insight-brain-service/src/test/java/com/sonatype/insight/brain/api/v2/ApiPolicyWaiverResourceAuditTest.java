@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.policy.ConstraintFactDTO;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
@@ -377,8 +378,12 @@ public class ApiPolicyWaiverResourceAuditTest
     ComponentIdentifier transitive = ComponentIdentifier.createMavenCoordinates("g", "transitive", "v", "", "e");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy, transitive, "hash2");
 
-    ReportTestUtils.createPolicyThreats(app.getId(), policyEvaluation.getScanId(),
-        getCLMServer().getInstance(InsightWork.class), Collections.singletonList(policyViolation));
+    ReportHelper.createPolicyThreats(
+        getCLMServer().getInstance(InsightWork.class),
+        app.getId(),
+        policyEvaluation.getScanId(),
+        Collections.singletonList(policyViolation)
+    );
 
     ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
     waiverOptionsDTO.comment = "waiver comment";
@@ -421,8 +426,12 @@ public class ApiPolicyWaiverResourceAuditTest
     ComponentIdentifier direct = ComponentIdentifier.createMavenCoordinates("g", "direct", "v", "", "e");
     ComponentIdentifier transitive = ComponentIdentifier.createMavenCoordinates("g", "transitive", "v", "", "e");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy, transitive, "hash2");
-    ReportTestUtils.createPolicyThreats(app.getId(), policyEvaluation.getScanId(),
-        getCLMServer().getInstance(InsightWork.class), Collections.singletonList(policyViolation));
+    ReportHelper.createPolicyThreats(
+        getCLMServer().getInstance(InsightWork.class),
+        app.getId(),
+        policyEvaluation.getScanId(),
+        Collections.singletonList(policyViolation)
+    );
     ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
     waiverOptionsDTO.comment = "waiver comment";
     waiverOptionsDTO.expiryTime = DateUtils.addDays(new Date(), 1);

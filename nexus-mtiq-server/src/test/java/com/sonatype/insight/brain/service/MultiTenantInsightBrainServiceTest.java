@@ -49,10 +49,12 @@ public class MultiTenantInsightBrainServiceTest
   @Test
   @ManualIqServerInit
   public void shouldNotBindAwsRelatedClasses_WhenUsingDefaultEncryptionKeyStore() throws Exception {
-    startIqTestServer(insightConfig -> {
-      MultiTenantInsightConfig multiTenantInsightConfig = (MultiTenantInsightConfig) insightConfig;
-      MTIQ_DATABASE_CONFIGURATOR.configure(multiTenantInsightConfig);
-      multiTenantInsightConfig.setUsingDefaultEncryptionKeyStore(true);
+    startIqTestServer(new MtiqDatabaseConfigurator() {
+      @Override
+      public void configure(InsightConfig config) {
+        super.configure(config);
+        ((MultiTenantInsightConfig) config).setUsingDefaultEncryptionKeyStore(true);
+      }
     });
 
     assertThat(getCLMServer().getInstance(EncryptionKeyStore.class)).isInstanceOf(DefaultEncryptionKeyStore.class);
@@ -64,10 +66,12 @@ public class MultiTenantInsightBrainServiceTest
   @Test
   @ManualIqServerInit
   public void shouldBindAwsRelatedClasses_WhenNotUsingDefaultEncryptionKeyStore() throws Exception {
-    startIqTestServer(insightConfig -> {
-      MultiTenantInsightConfig multiTenantInsightConfig = (MultiTenantInsightConfig) insightConfig;
-      MTIQ_DATABASE_CONFIGURATOR.configure(multiTenantInsightConfig);
-      multiTenantInsightConfig.setUsingDefaultEncryptionKeyStore(false);
+    startIqTestServer(new MtiqDatabaseConfigurator() {
+      @Override
+      public void configure(InsightConfig config) {
+        super.configure(config);
+        ((MultiTenantInsightConfig) config).setUsingDefaultEncryptionKeyStore(false);
+      }
     });
 
     assertThat(getCLMServer().getInstance(EncryptionKeyStore.class)).isInstanceOf(MultiTenantEncryptionKeyStore.class);

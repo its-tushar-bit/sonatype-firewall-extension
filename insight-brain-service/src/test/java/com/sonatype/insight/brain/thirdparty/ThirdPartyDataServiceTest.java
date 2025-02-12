@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URISyntaxException;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
@@ -41,7 +40,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.report.FileApplicationReport;
+import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.FileApplicationReportPersistenceService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -57,6 +57,7 @@ import com.google.inject.Binder;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.model.AttachmentText;
 import org.cyclonedx.model.Swid;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -87,17 +88,27 @@ public class ThirdPartyDataServiceTest
   private InsightWork insightWork;
 
   @Inject
+  private FileApplicationReportPersistenceService applicationReportPersistenceService;
+
+  @Inject
   private TestProductLicense productLicense;
 
   private static final String SCAN_ID = "scanId";
 
   private TelemetrySender mockTelemetrySender;
 
+  private Application application;
+
   @Override
   public void configure(Binder binder) {
     mockTelemetrySender = mock(TelemetrySender.class);
     binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
     super.configure(binder);
+  }
+
+  @Before
+  public void createApplication() {
+    application = tempEntity.newApplicationWithParent();
   }
 
   @Test
@@ -361,8 +372,9 @@ public class ThirdPartyDataServiceTest
 
   @Test
   public void testProcessThirdPartyData_withInfrastructureAsCodeSavesVulnerabilities() throws Exception {
-    FileApplicationReport appReport =
-        new FileApplicationReport(zipReportDir("/ThirdPartyDataServiceTest/report-with-third-party-iac"));
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ThirdPartyDataServiceTest/report-with-third-party-iac",
+        application.getId(), SCAN_ID);
+    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
     ThirdPartyApplicationReportDTO dto = handler.loadThirdPartyInfrastructureAsCodeData(appReport, "app-id");
     assertThat(dto).isNotNull();
@@ -453,10 +465,9 @@ public class ThirdPartyDataServiceTest
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
     tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
-    FileApplicationReport appReport =
-        new FileApplicationReport(
-            Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-iac", tempDir).toURI())
-                .toFile());
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-third-party-iac",
+        application.getId(), SCAN_ID);
+    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
     handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, appReport);
 
@@ -475,10 +486,9 @@ public class ThirdPartyDataServiceTest
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
     tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
-    FileApplicationReport appReport =
-        new FileApplicationReport(
-            Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-iac", tempDir).toURI())
-                .toFile());
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-third-party-iac",
+        application.getId(), SCAN_ID);
+    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
     handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, appReport);
 
@@ -495,10 +505,9 @@ public class ThirdPartyDataServiceTest
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
-    FileApplicationReport appReport =
-        new FileApplicationReport(
-            Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-iac", tempDir).toURI())
-                .toFile());
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-third-party-iac",
+        application.getId(), SCAN_ID);
+    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
     handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, appReport);
 
@@ -556,10 +565,6 @@ public class ThirdPartyDataServiceTest
       assertThat(searchIndexChange.getChangeType()).isEqualTo(ChangeType.SBOM);
       assertThat(searchIndexChange.getChangeData()).isEqualTo(app.getId() + ":1.2.3");
     });
-  }
-
-  private File zipReportDir(String reportResourceName) throws URISyntaxException {
-    return Paths.get(ReportHelper.zipReport(reportResourceName, tempDir).toURI()).toFile();
   }
 
   private void assertSecurityRowsForComponent(

@@ -67,7 +67,6 @@ import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
-import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
@@ -601,13 +600,13 @@ public class ApiPolicyViolationServiceV2
   private List<PolicyViolation> getPolicyViolations(String applicationId, String stageTypeId, String scanId) {
     try {
       ApplicationReport applicationReport = reportService.getReport(applicationId, scanId);
-      ReportEntry reportEntry = applicationReport.getEntry(ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
+      ReportEntry reportEntry = applicationReport.getEntry(ApplicationReport.POLICY_THREATS_FILENAME);
       if (reportEntry != null) {
         return JsonUtils.parse(reportEntry.buf, PolicyThreats.class).aaData.stream()
             .flatMap(component -> toPolicyViolations(applicationId, stageTypeId, component).stream())
             .collect(Collectors.toList());
       }
-      log.debug("{} not found for application id {} and scan id {}.", ScanPolicyEvaluator.POLICY_THREATS_FILENAME,
+      log.debug("{} not found for application id {} and scan id {}.", ApplicationReport.POLICY_THREATS_FILENAME,
           applicationId, scanId);
     }
     catch (IOException | NotFoundException e) {

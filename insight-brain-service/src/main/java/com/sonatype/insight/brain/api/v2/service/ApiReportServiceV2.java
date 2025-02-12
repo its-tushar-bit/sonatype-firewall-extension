@@ -168,7 +168,7 @@ public class ApiReportServiceV2
       ApplicationReport applicationReport =
           reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
       PolicyThreats policyThreats = JsonUtils.parse(
-          Objects.requireNonNull(applicationReport.getEntry(ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).buf,
+          Objects.requireNonNull(applicationReport.getEntry(ApplicationReport.POLICY_THREATS_FILENAME)).buf,
           PolicyThreats.class);
       List<PolicyViolation> policyViolations =
           PolicyAlertUtil.getDummyPolicyViolationsFromPolicyThreatsForCounts(policyThreats);

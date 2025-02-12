@@ -33,8 +33,8 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
-import com.sonatype.insight.brain.report.ReportPdf;
-import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.report.ReportDataStore;
+import com.sonatype.insight.brain.report.ReportPdfEntity;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator.Context;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
@@ -62,13 +62,13 @@ public class PdfGeneratorService
 
   private final VersionService versionService;
 
-  private final ReportService reportService;
-
   private final ApiReportDataServiceV2 apiReportDataServiceV2;
 
   private final ClusterLockManager clusterLockManager;
 
   private final SbomExporterProvider sbomExporterProvider;
+
+  private final ReportDataStore reportDataStore;
 
   @Inject
   public PdfGeneratorService(
@@ -76,23 +76,23 @@ public class PdfGeneratorService
       final PolicyEvaluationDAO policyEvaluationDAO,
       final BaseUrl baseUrl,
       final VersionService versionService,
-      final ReportService reportService,
       final ApiReportDataServiceV2 apiReportDataServiceV2,
       final ClusterLockManager clusterLockManager,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final ThirdPartyScanDAO thirdPartyScanDAO,
-      final SbomExporterProvider sbomExporterProvider)
+      final SbomExporterProvider sbomExporterProvider,
+      final ReportDataStore reportDataStore)
   {
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.baseUrl = baseUrl;
     this.versionService = versionService;
-    this.reportService = reportService;
     this.apiReportDataServiceV2 = apiReportDataServiceV2;
     this.clusterLockManager = clusterLockManager;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.sbomExporterProvider = sbomExporterProvider;
+    this.reportDataStore = reportDataStore;
   }
 
   @Authorize(permission = Permission.READ)
@@ -102,7 +102,7 @@ public class PdfGeneratorService
   {
     AuditData.get().setReportId(scanId);
     Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
-    ReportPdf reportPdf = generateReport(app, scanId);
+    ReportPdfEntity reportPdf = generateReport(app, scanId);
 
     PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
     String stageName = StageTypes.getById(policyEvaluation.getStageTypeId()).getName();
@@ -131,7 +131,7 @@ public class PdfGeneratorService
     }
     ThirdPartyScan thirdPartyScan =
         thirdPartyScanDAO.getByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId());
-    ReportPdf sbomReportPdf = generateSbomReport(application, thirdPartyScan.getScanId(), sbomVersion);
+    ReportPdfEntity sbomReportPdf = generateSbomReport(application, thirdPartyScan.getScanId(), sbomVersion);
 
     PolicyEvaluation policyEvaluation =
         policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), thirdPartyScan.getScanId());
@@ -139,7 +139,7 @@ public class PdfGeneratorService
     return buildPdfResponse(sbomReportPdf, policyEvaluation.getTime(), filename);
   }
 
-  public ReportPdf generateReport(Application app, String scanId) throws IOException {
+  public ReportPdfEntity generateReport(Application app, String scanId) throws IOException {
     PdfData pdfData = PdfData.createPdfData(
         getBaseUrl(),
         versionService.getShortVersion(),
@@ -149,7 +149,7 @@ public class PdfGeneratorService
     return generateReport(app, scanId, pdfData, false, Context.LIFECYCLE);
   }
 
-  public ReportPdf generateSbomReport(Application app, String scanId, String sbomVersion) throws IOException {
+  public ReportPdfEntity generateSbomReport(Application app, String scanId, String sbomVersion) throws IOException {
     ApiReportRawDataDTOV2 reportRawData =
         augmentEmptyLicensesAsNotProvided(apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId, true));
     PdfData pdfData = sbomExporterProvider.get(getSbomExportParams(app, sbomVersion, reportRawData)).exportPdf();
@@ -167,7 +167,7 @@ public class PdfGeneratorService
         .withExportSpecification(ExportSpecification.PDF);
   }
 
-  private Response buildPdfResponse(ReportPdf reportPdf, Date lastModified, String filename) throws IOException {
+  private Response buildPdfResponse(ReportPdfEntity reportPdf, Date lastModified, String filename) throws IOException {
     ResponseBuilder responseBuilder = Response.ok()
         .lastModified(lastModified).expires(new Date())
         .type("application/pdf; charset=UTF-8")
@@ -179,11 +179,11 @@ public class PdfGeneratorService
     return responseBuilder.build();
   }
 
-  public ReportPdf generateReport(
+  public ReportPdfEntity generateReport(
       Application app, String scanId, PdfData pdfData,
       boolean overwrite, Context productContext) throws IOException
   {
-    ReportPdf reportPdf = PdfGenerator.getPdfFile(reportService, app.getId(), scanId);
+    ReportPdfEntity reportPdf = reportDataStore.getReportPdf(app.getId(), scanId);
 
     if (!overwrite) {
       try (ClusterLock clusterLock = clusterLockManager.createForPdfGeneration(app, scanId)) {
@@ -197,7 +197,7 @@ public class PdfGeneratorService
     try (ClusterLock clusterLock = clusterLockManager.createForPdfGeneration(app, scanId)) {
       clusterLock.lock();
       if (overwrite) {
-        reportPdf.deleteIfExists();
+        reportDataStore.deleteReportPdf(app.getId(), scanId);
 
       }
       generate(reportPdf, pdfData, productContext);
@@ -206,12 +206,12 @@ public class PdfGeneratorService
   }
 
   // Visible for testing
-  boolean isGenerated(ReportPdf reportPdf) {
+  boolean isGenerated(ReportPdfEntity reportPdf) throws IOException {
     return reportPdf.exists() && reportPdf.length() > 0;
   }
 
   // Visible for testing
-  void generate(ReportPdf reportPdf, PdfData pdfData, Context productContext) throws IOException {
+  void generate(ReportPdfEntity reportPdf, PdfData pdfData, Context productContext) throws IOException {
     PdfGenerator.generate(reportPdf, pdfData, productContext);
   }
 

@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.policy.evaluator.ComponentIdentifierAndHashCom
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
-import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.ApplicationReport;
@@ -106,7 +105,7 @@ public class PolicyEvaluationDiffService
     }
 
     try {
-      final ReportEntry fromReportEntry = fromApplicationReport.getEntry(ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
+      final ReportEntry fromReportEntry = fromApplicationReport.getEntry(ApplicationReport.POLICY_ALERTS_FILENAME);
       if (fromReportEntry == null) {
         log.debug(
             "Could not find policy alerts for 'from' scan report with commit {}, " +
@@ -115,7 +114,7 @@ public class PolicyEvaluationDiffService
             fromApplicationReport.getLocation());
         return Optional.empty();
       }
-      final ReportEntry toReportEntry = toApplicationReport.getEntry(ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
+      final ReportEntry toReportEntry = toApplicationReport.getEntry(ApplicationReport.POLICY_ALERTS_FILENAME);
       if (toReportEntry == null) {
         log.debug(
             "Could not find policy alerts for 'to' scan report with commit {}, " +
@@ -161,6 +160,9 @@ public class PolicyEvaluationDiffService
         if (applicationReport.exists()) {
           return applicationReport;
         }
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException(e);
       }
       catch (NotFoundException e) {
         log.warn("Report not found", e);

@@ -77,6 +77,13 @@ public final class JsonUtils
     }
   }
 
+  @SuppressWarnings("unchecked")
+  public static <T extends ContainerNode<?>> T read(final InputStream stream) throws IOException {
+    try (final JsonParser parser = JSON.createParser(stream)) {
+      return (T) parser.readValueAsTree();
+    }
+  }
+
   public static <T> T read(final File file, final Class<? extends T> type) throws IOException {
     try (final JsonParser parser = JSON.createParser(file)) {
       return parser.readValueAs(type);

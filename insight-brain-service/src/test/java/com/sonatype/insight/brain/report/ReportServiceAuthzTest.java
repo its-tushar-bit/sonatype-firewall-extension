@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.report;
 
-import java.io.IOException;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -19,8 +18,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -48,7 +48,9 @@ public class ReportServiceAuthzTest
   public void testGetReportMetadata_Authorized() {
     grantReadPermission(app.getId());
     String scanId = "12345678";
-    when(reportDataStore.getApplicationReport(app.getId(), scanId)).thenReturn(mock(ApplicationReport.class));
+    when(
+        reportDataStore.getApplicationReport(argThat(arg -> arg != null && arg.getId().equals(app.getId())), eq(scanId))
+    ).thenReturn(mock(ApplicationReport.class));
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> reportService.getReportMetadata(app.getPublicId(), scanId))
         .withMessage("Could not find a report with ID 12345678");
@@ -65,30 +67,13 @@ public class ReportServiceAuthzTest
     reportService.getReportMetadata(app.getPublicId(), "12345678");
   }
 
-  @Test(expected = NotFoundException.class)
-  public void testUpdateReportEntry_Authorized() throws IOException {
-    grantWritePermission(app.getId());
-    String scanId = "unrealId";
-    when(reportDataStore.getApplicationReport(app.getId(), scanId)).thenReturn(mock(ApplicationReport.class));
-    reportService.updateReportEntry(app.getId(), scanId, SECURITY_JSON_FILENAME, null);
-  }
-
-  @Test(expected = UnauthenticatedException.class)
-  public void testUpdateReportEntry_Unauthenticated() throws IOException {
-    reportService.updateReportEntry(app.getId(), "unrealId", SECURITY_JSON_FILENAME, null);
-  }
-
-  @Test(expected = UnauthorizedException.class)
-  public void testUpdateReportEntry_Unauthorized() throws IOException {
-    login();
-    reportService.updateReportEntry(app.getId(), "unrealId", SECURITY_JSON_FILENAME, null);
-  }
-
   @Test
   public void testProcessBrowseReport_Authorized() {
     grantReadPermission(app.getId());
     String scanId = "12345678";
-    when(reportDataStore.getApplicationReport(app.getId(), scanId)).thenReturn(mock(ApplicationReport.class));
+    when(
+        reportDataStore.getApplicationReport(argThat(arg -> arg != null && arg.getId().equals(app.getId())), eq(scanId))
+    ).thenReturn(mock(ApplicationReport.class));
 
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> reportService.processBrowseReport(app.getId(), scanId, "path"))

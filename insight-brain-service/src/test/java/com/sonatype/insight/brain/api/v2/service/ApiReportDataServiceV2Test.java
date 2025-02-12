@@ -5,15 +5,11 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -37,28 +33,24 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.report.FileApplicationReport;
+import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.FileApplicationReportPersistenceService;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.apache.commons.io.FileUtils;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 
@@ -80,74 +72,66 @@ public class ApiReportDataServiceV2Test
   @Inject
   private LicenseOverrideDAO licenseOverrideDAO;
 
+  @Inject
+  private FileApplicationReportPersistenceService applicationReportPersistenceService;
+
   private Application app;
 
   private String scanId;
 
-  private FileApplicationReport reportZip;
-
   private PolicyEvaluation policyEvaluation;
 
-  private FileApplicationReport makeReportFile() throws Exception {
-    File reportFile = work.getReportFile(app.getId(), scanId);
-    reportFile.getParentFile().mkdirs();
-    try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(reportFile.toPath()))) {
-      zos.putNextEntry(new ZipEntry("index.html"));
-    }
-    return new FileApplicationReport(reportFile);
+  private void makeEmptyReport() throws Exception {
+    ReportHelper.saveMockReport(work, app.getId(), scanId);
   }
 
   private void makeReport(String resource) throws Exception {
-    String[] filenames = {
-        BOM_JSON_FILENAME, SECURITY_JSON_FILENAME, LICENSES_JSON_FILENAME, DATA_JSON_FILENAME,
-        DEPENDENCIES_JSON_FILENAME, ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME
-    };
-    for (String filename : filenames) {
-      File file = reportZip.getCacheFile(filename);
-      URL resourceUrl = getClass().getResource("/ApiReportDataServiceTest/" + resource + "/" + filename);
-      if (resourceUrl != null) {
-        FileUtils.copyURLToFile(resourceUrl, file);
-      }
-      if ("licenses.json".equals(filename)) {
-        JsonNode licenseNode = JsonUtils.read(file);
-        for (JsonNode node : licenseNode.get("aaData")) {
-          String status = JsonUtils.getNullableString(node.get("status"));
-          if (status != null && !"Open".equals(status)) {
-            ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(node.get("groupId")
-                .asText(), node.get("artifactId").asText(), node.get("version").asText());
-            String licenseName = node.get("overriddenLicenses").get(0).asText();
-            String licenseId = multiLicenseDAO.getByNameNotNull(licenseName).getId();
-            tempEntity.newLicenseOverride(app.getId(), componentIdentifier, LicenseOverrideStatus.getByName(status),
-                licenseId, "testing");
-          }
-        }
+    String reportPath = "/ApiReportDataServiceTest/" + resource;
+    ReportHelper.saveMockReport(work, tempDir, reportPath, app.getId(), scanId);
+
+    Path licenseJsonPath = Path.of(getClass().getResource(reportPath).toURI()).resolve(LICENSES_JSON_FILENAME);
+    JsonNode licenseNode = JsonUtils.read(licenseJsonPath.toFile());
+    for (JsonNode node : licenseNode.get("aaData")) {
+      String status = JsonUtils.getNullableString(node.get("status"));
+      if (status != null && !"Open".equals(status)) {
+        ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(node.get("groupId")
+            .asText(), node.get("artifactId").asText(), node.get("version").asText());
+        String licenseName = node.get("overriddenLicenses").get(0).asText();
+        String licenseId = multiLicenseDAO.getByNameNotNull(licenseName).getId();
+        tempEntity.newLicenseOverride(app.getId(), componentIdentifier, LicenseOverrideStatus.getByName(status),
+            licenseId, "testing");
       }
     }
   }
 
   private void populatePolicyThreats(String resource, String policyThreatsFile) throws IOException {
-    File file = reportZip.getCacheFile("policythreats.json");
-    FileUtils.copyURLToFile(getClass()
-        .getResource("/ApiReportDataServiceTest/" + resource + "/" + policyThreatsFile), file);
+    String policyThreatsPath = "/ApiReportDataServiceTest/" + resource + "/" + policyThreatsFile;
+    try (var stream = getClass().getResourceAsStream(policyThreatsPath)) {
+      applicationReportPersistenceService.saveReportFile(app.getId(), scanId, ApplicationReport.POLICY_THREATS_FILENAME,
+          stream);
+    }
   }
   
   private void populateDependencies(String resource, String dependenciesFile) throws IOException {
-    File file = reportZip.getCacheFile("dependencies.json");
-    FileUtils.copyURLToFile(getClass()
-        .getResource("/ApiReportDataServiceTest/" + resource + "/" + dependenciesFile), file);
+    String policyThreatsPath = "/ApiReportDataServiceTest/" + resource + "/" + dependenciesFile;
+    try (var stream = getClass().getResourceAsStream(policyThreatsPath)) {
+      applicationReportPersistenceService.saveReportFile(app.getId(), scanId,
+          ApplicationReport.DEPENDENCIES_JSON_FILENAME, stream);
+    }
   }
 
   private void populateBom(String resource, String bomFile) throws IOException {
-    File file = reportZip.getCacheFile("bom.json");
-    FileUtils.copyURLToFile(getClass()
-        .getResource("/ApiReportDataServiceTest/" + resource + "/" + bomFile), file);
+    String policyThreatsPath = "/ApiReportDataServiceTest/" + resource + "/" + bomFile;
+    try (var stream = getClass().getResourceAsStream(policyThreatsPath)) {
+      applicationReportPersistenceService.saveReportFile(app.getId(), scanId,
+          ApplicationReport.BOM_JSON_FILENAME, stream);
+    }
   }
 
   @Before
   public void init() throws Exception {
     app = tempEntity.newApplicationWithParent("app-id");
     scanId = "scan-id";
-    reportZip = makeReportFile();
     policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId, "the-commit-hash");
     hdsMockServer.reset();
     setHdsUrl(hdsMockServer.getHttpUrl());
@@ -394,6 +378,7 @@ public class ApiReportDataServiceV2Test
 
   @Test(expected = BadRequestException.class)
   public void testGetRawData_ErrorReport() throws Exception {
+    makeEmptyReport();
     reportDataService.getRawData(app.getPublicId(), scanId);
   }
 
@@ -701,6 +686,7 @@ public class ApiReportDataServiceV2Test
 
   @Test
   public void testGetDependencyTree_noDependenciesFile() throws Exception {
+    makeEmptyReport();
     ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
     assertThat(response).isNotNull();
     assertThat(response.getChildren()).isNull();

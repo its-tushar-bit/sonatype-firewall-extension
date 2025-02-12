@@ -7,17 +7,21 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
+
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkProvider;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
-import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.TenantSizeMetricsJob;
@@ -165,6 +169,10 @@ public class TestMultiTenantInsightBrainService
     return workDir;
   }
 
+  public File getClusterDir() {
+    return new File(workDir, "cluster");
+  }
+
   @Override
   public HttpClientUtils.Configuration getClientConfiguration() {
     final HttpClientUtils.Configuration configuration = new HttpClientUtils.Configuration();
@@ -238,6 +246,7 @@ public class TestMultiTenantInsightBrainService
 
         private InsightConfig augment(InsightConfig config) {
           config.setSonatypeWork(getWorkDir().getPath());
+          config.setClusterDirectory(getClusterDir().getPath());
 
           if (configurator != null) {
             configurator.configure(config);
@@ -271,7 +280,7 @@ public class TestMultiTenantInsightBrainService
 
     insightConfig = config;
 
-    initWorkDirectory(config.getSonatypeWork());
+    initWorkDirectory(getWorkDir());
 
     env.lifecycle().addServerLifecycleListener(server -> {
       testBrainServer = server;
@@ -394,12 +403,21 @@ public class TestMultiTenantInsightBrainService
   }
 
   private void initWorkDirectory(File workDir) throws Exception {
-    FileCleaner fileCleaner = new FileCleaner();
-    // lock has already been created by this point so ignore it
-    for (File file : workDir.listFiles()) {
-      if (!file.getName().equals("lock")) {
-        fileCleaner.delete(file);
-      }
+    try (Stream<Path> walk = Files.walk(workDir.toPath())) {
+      walk.sorted(Comparator.reverseOrder()) // so directories get deleted _after_ their contents
+
+          // the lock file may already exist and be undeletable on Windows, so skip it and its parent directories
+          .filter(path -> !path.getFileName().toString().equals("lock"))
+          .forEach(path -> {
+            try {
+              if (!Files.isDirectory(path) || Files.list(path).findAny().isEmpty()) {
+                Files.delete(path);
+              }
+            }
+            catch (IOException e) {
+              throw new RuntimeException("Failed to delete " + path, e);
+            }
+          });
     }
   }
 }

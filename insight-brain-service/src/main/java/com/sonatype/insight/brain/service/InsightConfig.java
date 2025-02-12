@@ -86,7 +86,7 @@ public class InsightConfig
    * @since 1.99
    */
   @JsonProperty
-  private String clusterDirectory;
+  protected String clusterDirectory;
 
   @JsonProperty
   private SupportConfig support;

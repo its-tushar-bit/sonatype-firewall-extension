@@ -33,6 +33,8 @@ import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 
+import static com.sonatype.insight.brain.aws.s3.S3ExceptionUtil.wrapS3Exception;
+
 /**
  * Adapted with the PATCH changes listed below from
  * https://github.com/apache/solr/blob/main/solr/modules/s3-repository/src/java/org/apache/solr/s3/S3OutputStream.java
@@ -137,15 +139,22 @@ public class S3OutputStream
     try (ByteArrayInputStream inputStream = new ByteArrayInputStream(buffer.array(), buffer.arrayOffset(), size)) {
       multiPartUpload.uploadPart(inputStream, size);
     }
-    catch (Exception e) {
+    // PATCH exception handling
+    catch (IOException e) {
       if (multiPartUpload != null) {
-        multiPartUpload.abort();
+        try {
+          multiPartUpload.abort();
+        }
+        catch (IOException abortException) {
+          e.addSuppressed(abortException);
+        }
+
         if (log.isDebugEnabled()) {
           log.debug("Multipart upload aborted for bucketName '{}' key '{}'.", bucketName, key);
         }
       }
-      // PATCH changed exception type from SOLR implementation
-      throw new RuntimeException("Part upload failed: ", e);
+
+      throw e;
     }
 
     // reset the buffer for eventual next write operation
@@ -188,8 +197,10 @@ public class S3OutputStream
   }
 
   private MultipartUpload newMultipartUpload() throws IOException {
-    // PATCH removed try/catch from SOLR implementation to avoid any special handling for AWS exceptions
-    return new MultipartUpload(s3Client.createMultipartUpload(b -> b.bucket(bucketName).key(key)).uploadId());
+    // PATCH removed try/catch from SOLR implementation and just wrap in IOException instead
+    return wrapS3Exception(() ->
+        new MultipartUpload(s3Client.createMultipartUpload(b -> b.bucket(bucketName).key(key)).uploadId())
+    );
   }
 
   private class MultipartUpload
@@ -208,7 +219,7 @@ public class S3OutputStream
       }
     }
 
-    void uploadPart(ByteArrayInputStream inputStream, long partSize) {
+    void uploadPart(ByteArrayInputStream inputStream, long partSize) throws IOException {
       if (aborted) {
         throw new IllegalStateException(
             "Can't upload new parts on a MultipartUpload that was aborted. id '" + uploadId + "'");
@@ -222,39 +233,50 @@ public class S3OutputStream
       if (log.isDebugEnabled()) {
         log.debug("Uploading part {} for id '{}'", currentPartNumber, uploadId);
       }
-      UploadPartResponse response = s3Client.uploadPart(request, RequestBody.fromInputStream(inputStream, partSize));
+
+      // PATCH wrap exception
+      UploadPartResponse response = wrapS3Exception(() ->
+          s3Client.uploadPart(request, RequestBody.fromInputStream(inputStream, partSize))
+      );
+
       completedParts.add(CompletedPart.builder().partNumber(currentPartNumber).eTag(response.eTag()).build());
     }
 
     /**
      * To be invoked when closing the stream to mark upload is done.
      */
-    void complete() {
+    void complete() throws IOException {
       if (aborted) {
         throw new IllegalStateException("Can't complete a MultipartUpload that was aborted. id '" + uploadId + "'");
       }
       if (log.isDebugEnabled()) {
         log.debug("Completing multi-part upload for key '{}', id '{}'", key, uploadId);
       }
-      s3Client.completeMultipartUpload(
-          b -> b.bucket(bucketName).key(key).uploadId(uploadId).multipartUpload(mub -> mub.parts(completedParts)));
+
+      // PATCH wrap exception
+      wrapS3Exception(() -> s3Client.completeMultipartUpload(
+          b -> b.bucket(bucketName).key(key).uploadId(uploadId).multipartUpload(mub -> mub.parts(completedParts))
+      ));
     }
 
-    public void abort() {
+    public void abort() throws IOException {
       if (log.isWarnEnabled()) {
         log.warn("Aborting multi-part upload with id '{}'", uploadId);
       }
+
+      // PATCH exception handling
       try {
-        s3Client.abortMultipartUpload(b -> b.bucket(bucketName).key(key).uploadId(uploadId));
+        wrapS3Exception(() -> s3Client.abortMultipartUpload(b -> b.bucket(bucketName).key(key).uploadId(uploadId)));
       }
-      catch (Exception e) {
-        // ignoring failure on abort.
+      catch (IOException e) {
         log.error("Unable to abort multipart upload, you may need to purge uploaded parts: ", e);
+        throw e;
       }
-      // Even if the abort operation failed, we consider this MultiPartUpload aborted,
-      // and we'll not try to complete it.
-      aborted = true;
+      finally {
+        // Even if the abort operation failed, we consider this MultiPartUpload aborted,
+        // and we'll not try to complete it.
+        aborted = true;
+      }
     }
   }
 }
-

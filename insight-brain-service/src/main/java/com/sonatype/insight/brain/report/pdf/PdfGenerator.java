@@ -25,8 +25,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.report.ReportPdf;
-import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.report.ReportPdfEntity;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicense;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicenseThreat;
@@ -173,7 +172,7 @@ public class PdfGenerator
   private final Predicate<PdfComponentPolicyViolation> isActiveViolation =
       violation -> !violation.waived && !violation.legacyViolation;
 
-  private ReportPdf reportPdf;
+  private ReportPdfEntity reportPdf;
 
   private PDDocument pdf;
 
@@ -222,13 +221,13 @@ public class PdfGenerator
   }
 
   // Visible for testing
-  PdfGenerator(ReportPdf reportPdf, PdfData pdfData, Context productContext) {
+  PdfGenerator(ReportPdfEntity reportPdf, PdfData pdfData, Context productContext) {
     this.reportPdf = reportPdf;
     this.pdfData = pdfData;
     this.productContext = productContext;
   }
 
-  PdfGenerator(ReportPdf reportPdf, PdfData pdfData) {
+  PdfGenerator(ReportPdfEntity reportPdf, PdfData pdfData) {
     this(reportPdf, pdfData, Context.LIFECYCLE);
   }
 
@@ -1145,10 +1144,6 @@ public class PdfGenerator
         .max(Integer::compareTo).orElse(0);
   }
 
-  public static ReportPdf getPdfFile(final ReportService reportService, final String appId, final String scanId) {
-    return reportService.getPdfReport(appId, scanId);
-  }
-
   /**
    * This is a slight modification of rst.pdfbox.layout.util.WordBreakers.DefaultWordBreaker to not break a word if a
    * dash or period is found after a non-digit letter unless it has no other choice i.e.
@@ -1236,11 +1231,11 @@ public class PdfGenerator
         .draw(() -> pdf, PdfGenerator::newPage, MEDIA_BOX_SIZE.getHeight() - CROP_BOX_SIZE.getHeight() + MARGIN);
   }
 
-  public static void generate(ReportPdf reportPdf, PdfData pdfData) throws IOException {
+  public static void generate(ReportPdfEntity reportPdf, PdfData pdfData) throws IOException {
     generate(reportPdf, pdfData, Context.LIFECYCLE);
   }
 
-  public static void generate(ReportPdf reportPdf, PdfData pdfData, Context productContext) throws IOException {
+  public static void generate(ReportPdfEntity reportPdf, PdfData pdfData, Context productContext) throws IOException {
     if (reportPdf.canCreate()) {
       try {
         log.debug("Generating report PDF {}", reportPdf);

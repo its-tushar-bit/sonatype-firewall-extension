@@ -5,12 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.service.legal;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,8 +24,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import javax.inject.Inject;
 
@@ -118,7 +112,6 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.report.FileApplicationReport;
 import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.repository.RepositoryQueryService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -128,6 +121,7 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -149,7 +143,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -161,11 +154,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -3295,28 +3283,21 @@ public class ApiLicenseLegalServiceTest
 
   private void mockReport(PolicyEvaluation evaluation) {
     try {
-      Path reportDir = insightWork.getReportDir(evaluation.getApplicationId(), evaluation.getScanId()).toPath();
-      Files.createDirectories(reportDir);
-      Files.write(reportDir.resolve("report.zip"), Collections.singletonList("report.zip"));
-      var reportZip = new FileApplicationReport(reportDir.resolve("report.zip").toFile());
-      try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(reportZip.getFile().toPath()))) {
-        zos.putNextEntry(new ZipEntry("index.html"));
-      }
-      String[] filenames = {
-          BOM_JSON_FILENAME, SECURITY_JSON_FILENAME, LICENSES_JSON_FILENAME, DATA_JSON_FILENAME,
-          DEPENDENCIES_JSON_FILENAME
-      };
-      for (String filename : filenames) {
-        File file = reportZip.getCacheFile(filename);
-        FileUtils.copyURLToFile(getClass().getResource("/" + getClass().getSimpleName() + "/report/" + filename), file);
-      }
-      if (innerSourceComponentDAO.getByApplicationId(evaluation.getApplicationId()).isEmpty()) {
-        tempEntity.newInnerSourceComponent(InnerSourceUtils.getVersionlessPackageUrl(INNER_SOURCE_COMPONENT_IDENTIFIER)
-            .getPackageUrl(), applicationDAO.getById(evaluation.getApplicationId()));
-      }
+      ReportHelper.saveMockReport(
+          insightWork,
+          tempDir,
+          "/" + getClass().getSimpleName() + "/report/",
+          evaluation.getApplicationId(),
+          evaluation.getScanId()
+      );
     }
     catch (IOException e) {
-      throw new UncheckedIOException(e);
+      throw new RuntimeException(e);
+    }
+
+    if (innerSourceComponentDAO.getByApplicationId(evaluation.getApplicationId()).isEmpty()) {
+      tempEntity.newInnerSourceComponent(InnerSourceUtils.getVersionlessPackageUrl(INNER_SOURCE_COMPONENT_IDENTIFIER)
+          .getPackageUrl(), applicationDAO.getById(evaluation.getApplicationId()));
     }
   }
 

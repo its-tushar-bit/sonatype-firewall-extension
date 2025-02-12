@@ -6,18 +6,15 @@
 
 package com.sonatype.insight.brain.report;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
 /**
- * Interface for report implementations to access the report data
+ * Representation of an individual, persisted file that makes up an application report (such as bom.json).
+ * Contrast with ReportEntry, which contains the _contents_ of such a file in memory.
  */
 public interface ReportEntity
+    extends BaseReportEntity
 {
-  boolean exists();
-
-  OutputStream getOutputStream() throws IOException;
-
-  InputStream getInputStream() throws IOException;
+  /**
+   * The name, aka relative file path within the report, of this entity
+   */
+  String getName();
 }

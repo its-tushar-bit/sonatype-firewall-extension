@@ -28,16 +28,16 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
-import com.sonatype.insight.brain.report.FileApplicationReport;
+import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.FileApplicationReportPersistenceService;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationReachabilityServiceTest
@@ -53,7 +53,7 @@ public class PolicyViolationReachabilityServiceTest
   private PolicyDAO policyDAO;
 
   @Inject
-  private InsightWork insightWork;
+  private FileApplicationReportPersistenceService applicationReportPersistenceService;
 
   private static final String ReachableVulnerabilityCVE = "CVE-2020-13933";
 
@@ -71,8 +71,7 @@ public class PolicyViolationReachabilityServiceTest
 
     assertThat(policyViolation.getReachabilityStatus()).isNull();
 
-    FileApplicationReport
-        reportZip = new FileApplicationReport(insightWork.getReportFile(application.getId(), scanId));
+    ApplicationReport reportZip = new ApplicationReport(applicationReportPersistenceService, application, scanId);
     Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers =
         getReachableVulnerabilitiesByPurlIdentifiers();
 
@@ -84,7 +83,7 @@ public class PolicyViolationReachabilityServiceTest
     assertThat(policyViolations).hasSize(1);
     assertThat(policyViolations.get(0).getReachabilityStatus()).isEqualTo(ReachabilityStatus.REACHABLE);
 
-    ReportEntry reportEntry = reportZip.getEntry(POLICY_THREATS);
+    ReportEntry reportEntry = reportZip.getEntry(POLICY_THREATS_FILENAME);
     PolicyThreats policyThreats = JsonUtils.parse(reportEntry.buf, PolicyThreats.class);
     assertThat(policyThreats.aaData.get(0).activeViolations.get(0).reachabilityStatus).isEqualTo(
         ReachabilityStatus.REACHABLE);
@@ -112,8 +111,7 @@ public class PolicyViolationReachabilityServiceTest
     assertThat(policyViolation.getReachabilityStatus()).isNull();
     assertThat(waivedPolicyViolation.getReachabilityStatus()).isNull();
 
-    FileApplicationReport
-        reportZip = new FileApplicationReport(insightWork.getReportFile(application.getId(), scanId));
+    ApplicationReport reportZip = new ApplicationReport(applicationReportPersistenceService, application, scanId);
     Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers =
         getReachableVulnerabilitiesByPurlIdentifiers();
 
@@ -127,7 +125,7 @@ public class PolicyViolationReachabilityServiceTest
     assertThat(policyViolations.get(0).isWaived()).isTrue();
     assertThat(policyViolations.get(1).getReachabilityStatus()).isEqualTo(ReachabilityStatus.REACHABLE);
 
-    ReportEntry reportEntry = reportZip.getEntry(POLICY_THREATS);
+    ReportEntry reportEntry = reportZip.getEntry(POLICY_THREATS_FILENAME);
     PolicyThreats policyThreats = JsonUtils.parse(reportEntry.buf, PolicyThreats.class);
     assertThat(policyThreats.aaData.get(0).activeViolations.get(0).reachabilityStatus).isEqualTo(
         ReachabilityStatus.REACHABLE);
@@ -148,8 +146,7 @@ public class PolicyViolationReachabilityServiceTest
 
     assertThat(policyViolation.getReachabilityStatus()).isNull();
 
-    FileApplicationReport
-        reportFile = new FileApplicationReport(insightWork.getReportFile(application.getId(), scanId));
+    ApplicationReport reportFile = new ApplicationReport(applicationReportPersistenceService, application, scanId);
     Map<PackageUrlIdentifier, Set<String>> emptyReachableVulnerabilities = new HashMap<>();
 
     policyViolationReachabilityService.updateReachabilityStatusForPolicyViolations(application.getId(), scanId,

@@ -55,6 +55,11 @@ import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryCompon
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -64,6 +69,8 @@ import org.apache.commons.lang3.StringUtils;
 @Named
 @Path(PublicApiPaths.FIREWALL_RESOURCE_PATH)
 @Produces(MediaType.APPLICATION_JSON)
+@Tag(name = "Malware-Defense",
+    description = "Use this REST API to manage malware defense.")
 public class ApiFirewallResource
 {
   static final String CONFIGURATION_PATH = "configuration";
@@ -120,11 +127,38 @@ public class ApiFirewallResource
 
   @GET
   @Path(RELEASE_QUARANTINE_SUMMARY_PATH)
+  @Operation(description = "Use this method to track how many components have been automatically released from " +
+      "quarantine over different time periods." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains:" +
+                  "<ul>" +
+                  "<li>`autoReleaseQuarantineCountMTD` is the number of auto-released quarantine components " +
+                  "from the start of the current month to the current date.</li>" +
+                  "<li>`autoReleaseQuarantineCountYTD` is the number of auto-released quarantine components " +
+                  "from the start of the current year to the current date.</li>" +
+                  "</ul>",
+              useReturnTypeSchema = true)
+      })
   public ApiFirewallReleaseQuarantineSummaryDTO getFirewallUnquarantineSummary() {
     return apiFirewallService.getReleaseQuarantineSummary();
   }
 
   @GET
+  @Operation(description = "Use this method to retrieve the configuration settings for auto-release from quarantine " +
+      "for repositories." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains a list of repositories and the corresponding configuration for " +
+                  "auto-release from quarantine.",
+              useReturnTypeSchema = true)
+      })
   @Path(RELEASE_QUARANTINE_CONFIGURATION_PATH)
   public List<ApiFirewallReleaseQuarantineConfigDTO> getFirewallAutoUnquarantineConfig() {
     return apiFirewallService.getReleaseQuarantineConfig();
@@ -134,13 +168,45 @@ public class ApiFirewallResource
   @Path(RELEASE_QUARANTINE_CONFIGURATION_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING)
+  @Operation(description = "Use this method to set the configurations for auto-release from quarantine for a " +
+      "list of repositories." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit IQ Elements",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains each updated `autoReleaseQuarantineEnabled` status for the " +
+                  "repositories requested.",
+              useReturnTypeSchema = true)
+      })
   public List<ApiFirewallReleaseQuarantineConfigDTO> setFirewallAutoUnquarantineConfig(
+      @RequestBody(description = "Enter value for each repository and the required status for auto-release as `true` " +
+          "or `false`.", required = true)
       final List<ApiFirewallReleaseQuarantineConfigDTO> apiFirewallReleaseQuarantineConfigDTOS)
   {
     return apiFirewallService.setReleaseQuarantineConfig(apiFirewallReleaseQuarantineConfigDTOS);
   }
 
   @GET
+  @Operation(description = "Use this method to request a summary of quarantined components." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "The response contains:" +
+                  "<ul>" +
+                  "<li>`repositoryCount` is the total number of repositories.</li>" +
+                  "<li>`quarantineEnabledRepositoryCount` is the total number of repositories with quarantine  " +
+                  "capability enabled.</li>" +
+                  "<li>`quarantinedEnabled` indicates if any repository has the quarantine capability enabled.</li>" +
+                  "<li>`totalComponentCount` is the total number of components across all repositories.</li>" +
+                  "<li>`quarantinedComponentCount` is the total number of quarantined components.</li>" +
+                  "</ul>",
+              useReturnTypeSchema = true
+          )
+      })
   @Path(QUARANTINE_SUMMARY_PATH)
   public ApiFirewallQuarantineSummaryDTO getQuarantineSummary() {
     return apiFirewallService.getQuarantineSummary();
@@ -148,13 +214,52 @@ public class ApiFirewallResource
 
   @GET
   @Path(UNQUARANTINE_PATH)
+  @Operation(description = "Use this method to retrieve the details of components that are auto-released " +
+      "from quarantine." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response includes:" +
+                  "<ul>" +
+                  "<li>`total` is the total number of records this request can return across all pages.</li>" +
+                  "<li>`page` is the page number specified in the request.</li>" +
+                  "<li>`pageSize` is the page size specified in the request.</li>" +
+                  "<li>`pageCount` is the total number of pages this request can return.</li>" +
+                  "</ul>" +
+                  "The `results` section contains details of each component that has been auto-released. It includes:" +
+                  "<ul>" +
+                  "<li>`displayName` is the name and version of the component.</li>" +
+                  "<li>`repository` indicates the repository name where the component is stored.</li>" +
+                  "<li>`quarantineDate` is the date and time when the component was quarantined.</li>" +
+                  "<li>`dateCleared` is the date and time when the component was auto-released from quarantine.</li>" +
+                  "<li>`quarantinePolicyViolations` will be empty for components that are auto-released.</li>" +
+                  "<li>`componentIdentifier` is the format and coordinates for the component." +
+                  "<li>`pathname` indicates the component path in the repository.</li>" +
+                  "<li>`hash` is the hash of the component.</li>" +
+                  "<li>`matchState` indicates the whether the component is an `EXACT` or `SIMILAR` match to the " +
+                  "known  components or is `UNKNOWN`.</li>" +
+                  "<li>`repositoryId` is the ID of the repository where the component is stored.</li>" +
+                  "<li>`quarantined` indicates whether the component is quarantined.</li>" +
+                  "</ul>"
+          )
+      })
   public Response getUnquarantineList(
       @Context UriInfo uriInfo,
+      @Parameter(description = "Enter the page number.")
       @DefaultValue("1") @QueryParam("page") int page,
+      @Parameter(description = "Enter the number of results to be returned for a page.")
       @DefaultValue("10") @QueryParam("pageSize") int pageSize,
+      @Parameter(description = "Enter the `policyId`. When provided, the results will include the components that " +
+          "have a policy violation for the policyId.")
       @QueryParam("policyId") String policyId,
+      @Parameter(description = "Enter the component name. When provided, the results will include components with " +
+          "display names (case-insensitive) that match the given name.")
       @QueryParam("componentName") String componentName,
+      @Parameter(description = "Enter the sort criteria `releaseQuarantineTime` or `quarantineTime`.")
       @QueryParam("sortBy") String sortBy,
+      @Parameter(description = "Select `true` to set the sort order to ascending.")
       @DefaultValue("true") @QueryParam("asc") boolean asc
   )
   {
@@ -173,15 +278,47 @@ public class ApiFirewallResource
 
   @GET
   @Path(QUARANTINED_PATH)
+  @Operation(description = "Use this method to request a list of quarantined components." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains:" +
+                  "<ul>" +
+                  "<li>`displayName` is the name and version of the component.</li>" +
+                  "<li>`repository` indicates the repository name where the component is stored.</li>" +
+                  "<li>`quarantineDate` is the date and time when the component was quarantined.</li>" +
+                  "<li>`dateCleared` is the date and time when the component was auto-released from quarantine.</li>" +
+                  "<li>`quarantinePolicyViolations` is the failing non-waived policy violations for " +
+                  "the component.</li>" +
+                  "<li>`componentIdentifier` is the format and coordinates for the component." +
+                  "<li>`pathname` indicates the component path in the repository.</li>" +
+                  "<li>`hash` is the hash of the component.</li>" +
+                  "<li>`matchState` indicates the whether the component is an `EXACT` or `SIMILAR` match to " +
+                  "the known components or is `UNKNOWN`.</li>" +
+                  "<li>`repositoryId` is the ID of the repository where the component is stored.</li>" +
+                  "<li>`quarantined` indicates whether the component is quarantined.</li>" +
+                  "</ul>"
+          )
+      })
   public Response getQuarantineList(
       @Context UriInfo uriInfo,
+      @Parameter(description = "Enter the starting page number for the response.")
       @DefaultValue("1") @QueryParam("page") int page,
+      @Parameter(description = "Enter the page size for the response.")
       @DefaultValue("10") @QueryParam("pageSize") int pageSize,
+      @Parameter(description = "Enter the list of policy IDs causing the quarantine.")
       @QueryParam("policyId") Set<String> policyIds,
+      @Parameter(description = "Enter the component name.")
       @QueryParam("componentName") String componentName,
+      @Parameter(description = "Enter the repository public ID of the quarantined component.")
       @QueryParam("repositoryPublicId") String repositoryPublicId,
+      @Parameter(description = "Enter the quarantine time of the component.")
       @QueryParam("quarantineTime") Integer quarantineDays,
+      @Parameter(description = "Enter `quarantineTime` to sort the results by quarantine time.")
       @QueryParam("sortBy") String sortBy,
+      @Parameter(description = "Select the sort order.")
       @DefaultValue("false") @QueryParam("asc") boolean asc
   )
   {
@@ -208,7 +345,16 @@ public class ApiFirewallResource
   @PUT
   @Path(QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS_SET)
   @Audited(AuditEvent.CONFIGURE_SECURITY_QUARANTINED_COMPONENT_VIEW_ANON_ACCESS)
+  @Operation(description = "Use this method to enable/disable anonymous access to view the quarantined components." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit IQ Elements",
+      responses = {
+          @ApiResponse(responseCode = "204",
+              description = "Successfully updated anonymous access.")
+      })
   public void setQuarantinedComponentViewAnonymousAccess(
+      @Parameter(description = "Select `true` or `false` to enable or disable anonymous access.")
       @PathParam("enabled") boolean enabled)
   {
     apiFirewallService.setQuarantinedComponentViewAnonymousAccess(enabled);
@@ -221,6 +367,17 @@ public class ApiFirewallResource
    */
   @GET
   @Path(QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS)
+  @Operation(description = "Use this method to determine if the quarantined component(s) details can be accessed " +
+      "anonymously." +
+      "\n" +
+      "\n" +
+      "Permissions required: None",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response returns `true` if anonymous access to quarantined components is enabled."
+          )
+      }
+  )
   public Response getQuarantinedComponentViewAnonymousAccess() {
     return Response.ok(apiFirewallService.getQuarantinedComponentViewAnonymousAccess()).build();
   }
@@ -228,6 +385,16 @@ public class ApiFirewallResource
   @GET
   @Path(REPOSITORY_MANAGERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Operation(description = "Use this method to retrieve all configured repository managers." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains details of configured repository managers.",
+              useReturnTypeSchema = true)
+      }
+  )
   public ApiRepositoryManagerListDTO getRepositoryManagers() {
     return apiFirewallService.getRepositoryManagers();
   }
@@ -235,14 +402,39 @@ public class ApiFirewallResource
   @GET
   @Path(REPOSITORY_MANAGER_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApiRepositoryManagerDTO getRepositoryManager(@PathParam("repositoryManagerId") String repositoryManagerId) {
+  @Operation(description = "Use this method to retrieve details of an existing repository manager." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "The response contains the details of the repository manager requested.",
+              useReturnTypeSchema = true
+          )
+      })
+  public ApiRepositoryManagerDTO getRepositoryManager(
+      @Parameter(description = "Enter the repository manager ID.")
+      @PathParam("repositoryManagerId") String repositoryManagerId)
+  {
     return apiFirewallService.getRepositoryManager(repositoryManagerId);
   }
 
   @DELETE
   @Path(REPOSITORY_MANAGER_PATH)
   @Audited(AuditEvent.DELETE_REPOSITORY_MANAGER)
-  public void deleteRepositoryManager(@PathParam("repositoryManagerId") String repositoryManagerId) {
+  @Operation(description = "Use this method to delete an existing repository manager." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit IQ Elements",
+      responses = {
+          @ApiResponse(responseCode = "204",
+              description = "The requested repository manager has been deleted.")
+      })
+  public void deleteRepositoryManager(
+      @Parameter(description = "Enter the repository manager ID.")
+      @PathParam("repositoryManagerId") String repositoryManagerId)
+  {
     apiFirewallService.deleteRepositoryManager(repositoryManagerId);
   }
 
@@ -251,15 +443,40 @@ public class ApiFirewallResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_REPOSITORY_MANAGER)
-  public ApiRepositoryManagerDTO addRepositoryManager(ApiRepositoryManagerDTO apiRepositoryManagerDTO) {
+  @Operation(description = "Use this method to add a new repository manager." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit IQ Elements",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains the details of the new repository manager.",
+              useReturnTypeSchema = true)
+      }
+  )
+  public ApiRepositoryManagerDTO addRepositoryManager(
+      @RequestBody(description = "Enter values for the new repository manager.",
+          required = true, useParameterTypeSchema = true)
+      ApiRepositoryManagerDTO apiRepositoryManagerDTO)
+  {
     return apiFirewallService.addRepositoryManager(apiRepositoryManagerDTO);
   }
 
   @GET
   @Path(REPOSITORIES_CONFIGURATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Operation(description = "Use this method to retrieve the configuration details of an existing repository manager." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains the configuration details of the requested repository manager.",
+              useReturnTypeSchema = true)
+      })
   public ApiRepositoryListDTO getConfiguredRepositories(
+      @Parameter(description = "Enter the repository manager ID.")
       @PathParam("repositoryManagerId") String repositoryManagerId,
+      @Parameter(description = "Enter the epoch time in milliseconds when the repository was last updated.")
       @QueryParam("sinceUtcTimestamp") Long sinceUtcTimestamp)
   {
     return apiFirewallService.getConfiguredRepositories(repositoryManagerId, sinceUtcTimestamp);
@@ -269,8 +486,20 @@ public class ApiFirewallResource
   @Path(REPOSITORIES_CONFIGURATION_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CONFIGURE_REPOSITORY)
+  @Operation(description = "Use this method to update the repositories for an existing repository manager." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit IQ Elements",
+      responses = {
+          @ApiResponse(responseCode = "204",
+              description = "Repositories updated successfully."
+          )
+      })
   public void configureRepositories(
+      @Parameter(description = "Enter the repository manager ID.")
       @PathParam("repositoryManagerId") String repositoryManagerId,
+      @RequestBody(description = "Enter values for the repository configuration properties to be updated.",
+          required = true, useParameterTypeSchema = true)
       ApiRepositoryListDTO dto)
   {
     apiFirewallService.configureRepositories(repositoryManagerId, dto);
@@ -281,9 +510,25 @@ public class ApiFirewallResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EVALUATE_REPOSITORY)
+  @Operation(description = "Use this method to evaluate components (max. 100)." +
+      "\n" +
+      "\n" +
+      "Permissions required: Evaluate Individual Components",
+      responses = @ApiResponse(
+          responseCode = "200",
+          description =
+              "The response contains the evaluation results.",
+          useReturnTypeSchema = true
+      ))
   public ApiRepositoryComponentEvaluationResultList evaluateComponents(
+      @Parameter(description = "Enter the repository manager ID.")
       @PathParam("repositoryManagerId") final String repositoryManagerId,
+      @Parameter(description = "Enter the repository ID.")
       @PathParam("repositoryId") final String repositoryId,
+      @RequestBody(description = "Provide the array of the component identifiers to be evaluated, using the " +
+          "component hash and the (packageUrl or pathname). A maximum of 100 components can be evaluated " +
+          "in one request.",
+          required = true, useParameterTypeSchema = true)
       final ApiRepositoryComponentEvaluationRequestList apiRepositoryComponentEvaluationRequestList)
   {
     return apiFirewallService.evaluateComponents(repositoryManagerId, repositoryId,
@@ -293,6 +538,15 @@ public class ApiFirewallResource
   @GET
   @Path(REPOSITORY_CONTAINER_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Operation(description = "Use this method to retrieve the ID and name for the repository container." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains the ID and name for the repository container.",
+              useReturnTypeSchema = true)
+      })
   public ApiRepositoryContainerDTO getRepositoryContainer() {
     return apiFirewallService.getRepositoryContainer();
   }

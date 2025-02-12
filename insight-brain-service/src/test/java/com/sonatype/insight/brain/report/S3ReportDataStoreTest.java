@@ -224,7 +224,8 @@ public class S3ReportDataStoreTest
     newEntry = applicationReport.getEntry(newEntryName);
 
     assertThat(newEntry).isNotNull();
-    assertThat(new String(newEntry.buf, StandardCharsets.UTF_8)).isEqualTo("""
+    String newEntryContent = new String(newEntry.buf, StandardCharsets.UTF_8).replace("\r\n", "\n");
+    assertThat(newEntryContent).isEqualTo("""
         {
           "json" : "data updated"
         }""");

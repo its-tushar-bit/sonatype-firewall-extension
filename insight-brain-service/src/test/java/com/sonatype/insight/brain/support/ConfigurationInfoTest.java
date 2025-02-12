@@ -246,6 +246,10 @@ public class ConfigurationInfoTest
     assertThat(configNode.get(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED)
         .asText()).isEqualTo("true");
     assertThat(configNode.get(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST).isEmpty()).isTrue();
+    assertThat(configNode.get(SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS).asText())
+        .isEqualTo("100");
+    assertThat(configNode.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS).asText())
+        .isEqualTo("1500000");
   }
 
   @Test

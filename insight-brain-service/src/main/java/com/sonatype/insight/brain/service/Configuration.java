@@ -200,10 +200,12 @@ public class Configuration
         SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID,
         SystemConfigurationProperty.SBOM_BINARY_SCANNING,
         SystemConfigurationProperty.MALWARE_DEFENSE_API,
+        SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS,
         SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI,
         SystemConfigurationProperty.SBOM_POLICIES,
         SystemConfigurationProperty.NEW_SCAN_PROCESS,
-        SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR
+        SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR,
+        SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS
         )
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
@@ -664,6 +666,14 @@ public class Configuration
 
   public boolean getAdvanceReportingInsightsEnabled() {
     return configCache.get(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED);
+  }
+
+  public Integer getMalwareDefenseApiMaxComponents() {
+    return configCache.get(SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS);
+  }
+
+  public Integer getComponentChangeDetectionMaxComponents() {
+    return configCache.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS);
   }
 
   /**

@@ -236,6 +236,12 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.NEW_SCAN_PROCESS, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
           (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS, Integer.class,
+          (p, s) -> NumberUtils.toInt(s, 100),
+          (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS, Integer.class,
+          (p, s) -> NumberUtils.toInt(s, 1_500_000),
+          (p, o) -> Objects.toString(o, null)),
       };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

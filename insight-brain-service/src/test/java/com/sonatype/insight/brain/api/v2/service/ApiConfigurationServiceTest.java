@@ -1731,6 +1731,66 @@ public class ApiConfigurationServiceTest
         Collections.singletonMap("properties", SystemConfigurationProperty.HDS_URL));
   }
 
+  @Test
+  public void testGetConfiguration_MalwareApiMaxComponentNotSet_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS))).containsEntry(
+        SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS, 100);
+  }
+
+  @Test
+  public void testSetConfiguration_MalwareApiMaxComponents_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS,
+        null));
+
+    assertThat(dao.get(SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS))).containsEntry(
+        SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS, 100);
+  }
+
+  @Test
+  public void testSetConfiguration_MalwareApiMaxComponents() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS, 10));
+
+    assertThat(dao.get(SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS))
+        .isEqualTo("10");
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS))).containsEntry(
+        SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS, 10);
+  }
+
+  @Test
+  public void testGetConfiguration_ComponentChangeDetectionMaxComponentsNotSet_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS))).containsEntry(
+        SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS, 1_500_000);
+  }
+
+  @Test
+  public void testSetConfiguration_ComponentChangeDetectionMaxComponents_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(
+        SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS))).containsEntry(
+        SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS, 1_500_000);
+  }
+
+  @Test
+  public void testSetConfiguration_ComponentChangeDetectionMaxComponents() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS, 1234));
+
+    assertThat(dao.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS))
+        .isEqualTo("1234");
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS))).containsEntry(
+        SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS, 1234);
+  }
+
   private void assertMinAndMax(String name, int min, int max) {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> service.setConfigurationNoAuthz(name, min - 1))

@@ -251,11 +251,15 @@ public class SystemConfigurationProperty
 
   public static final String MALWARE_DEFENSE_API = "malwareDefenseApi";
 
+  public static final String MALWARE_DEFENSE_API_MAX_COMPONENTS = "malwareDefenseApiMaxComponents";
+
   public static final String AUTO_WAIVERS = "autoWaivers";
 
   public static final String NEW_SCAN_PROCESS = "newScanProcess";
 
   public static final String EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE = "expireWaiverWhenRemediationAvailable";
+
+  public static final String COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS = "componentChangeDetectionMaxComponents";
 
   @Id
   @Column(name = "system_configuration_property_id")

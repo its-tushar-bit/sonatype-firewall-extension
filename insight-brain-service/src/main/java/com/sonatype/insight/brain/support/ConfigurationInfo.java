@@ -99,6 +99,10 @@ public class ConfigurationInfo
         configuration.getAdvanceReportingInsightsEnabled());
     entries.put(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST,
         ConfigurationUtils.listToStringDuplicatesRemoved(configuration.getApiAccessAllowList()));
+    entries.put(SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS,
+        configuration.getMalwareDefenseApiMaxComponents());
+    entries.put(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS,
+        configuration.getComponentChangeDetectionMaxComponents());
 
     return JsonUtils.format(entries);
   }

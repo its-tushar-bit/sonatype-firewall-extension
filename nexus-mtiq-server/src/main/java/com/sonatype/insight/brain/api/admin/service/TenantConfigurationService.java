@@ -51,7 +51,9 @@ public class TenantConfigurationService
       MALWARE_DEFENSE_API,
       AUTO_WAIVERS,
       QUARANTINED_ITEM_CUSTOM_MESSAGE,
-      NEW_SCAN_PROCESS
+      NEW_SCAN_PROCESS,
+      MALWARE_DEFENSE_API_MAX_COMPONENTS,
+      COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS
   );
 
   // Visible for testing

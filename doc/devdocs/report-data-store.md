@@ -54,5 +54,37 @@ reportDataStore:
     region: us-east-2
 ```
 
+### LocalStack S3 Basic Operations
+**Bucket Operations**
+
+```
+# Create bucket
+aws --endpoint-url=http://localhost:4566 s3 mb s3://<bucket-name>
+
+# List buckets
+aws --endpoint-url=http://localhost:4566 s3 ls
+
+# Delete objects(files) from bucket
+aws --endpoint-url=http://localhost:4566 s3 rm s3://<bucket-name> --recursive
+
+# Delete bucket and all contents
+aws --endpoint-url=http://localhost:4566 s3 rb s3://<bucket-name> --force
+```
+
+**File Operations**
+
+```
+# Download file
+aws --endpoint-url=http://localhost:4566 s3 cp s3://<bucket-name>/<contents-key> ./
+
+# Read file content
+aws --endpoint-url=http://localhost:4566 s3 cp s3://<bucket-name>/<contents-key> -
+
+# List bucket contents
+aws --endpoint-url=http://localhost:4566 s3 ls s3://<bucket-name>/<contents-key>
+```
+
+you can set up [awslocal](https://docs.localstack.cloud/user-guide/integrations/aws-cli/) that runs within the LocalStack environment without specifying the `--endpoint-url` parameter or a profile
+
 Run IQ server, run a scan and policy evaluation, and confirm that the report objects are stored in S3 and not on disk.
 You should be able to see a list of the files in your bucket using http://127.0.0.1:4566/iq-server-localstack-report-datastore

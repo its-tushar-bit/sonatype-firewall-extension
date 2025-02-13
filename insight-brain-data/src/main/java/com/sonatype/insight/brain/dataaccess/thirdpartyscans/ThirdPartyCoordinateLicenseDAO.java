@@ -54,8 +54,26 @@ public class ThirdPartyCoordinateLicenseDAO
       final String fileCoordinateId,
       final String licenseId)
   {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByFileCoordinateIdAndLicenseId(tx, fileCoordinateId, licenseId);
+    }
+  }
+
+  public ThirdPartyCoordinateLicense getByFileCoordinateIdAndLicenseId(
+      final TransactionContext tx,
+      final String fileCoordinateId,
+      final String licenseId)
+  {
     String sQuery = "SELECT entity FROM ThirdPartyCoordinateLicense entity" + //
         " WHERE entity.fileCoordinateId=?1 AND UPPER(entity.licenseId)=?2";
-    return get(sQuery, fileCoordinateId, licenseId.toUpperCase());
+    return get(tx, sQuery, fileCoordinateId, licenseId.toUpperCase());
+  }
+
+  public boolean insertSafely(final TransactionContext tx, final ThirdPartyCoordinateLicense entity) {
+    if (getByFileCoordinateIdAndLicenseId(tx, entity.getFileCoordinateId(), entity.getLicenseId()) != null) {
+      return false;
+    }
+    super.insert(tx, entity);
+    return true;
   }
 }

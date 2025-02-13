@@ -53,6 +53,9 @@ public class ContainerResultsHandlerTest
   private ThirdPartyFileDAO thirdPartyFileDAO;
 
   @Inject
+  private DuplicateAwareThirdPartyFileCoordinatePersister fileCoordinatePersister;
+
+  @Inject
   private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
   @Inject
@@ -86,7 +89,7 @@ public class ContainerResultsHandlerTest
   @Before
   public void before() {
     containerResultHandler =
-        new ContainerResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+        new ContainerResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
             telemetryUtils, telemetrySender, null);
   }

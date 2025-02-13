@@ -72,6 +72,8 @@ public class SpdxResultHandlerTest
 
   private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
+  private DuplicateAwareThirdPartyFileCoordinatePersister fileCoordinatePersister;
+
   private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
   private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
@@ -111,8 +113,9 @@ public class SpdxResultHandlerTest
     thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
     thirdPartyScanContext = mock(ThirdPartyScanContext.class);
     multiLicenseDAO = daoFactory.createMultiLicenseDAO();
+    fileCoordinatePersister = new DuplicateAwareThirdPartyFileCoordinatePersister(thirdPartyFileCoordinateDAO);
     spdxResultHandler =
-        new SpdxResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+        new SpdxResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
             telemetryUtils, telemetrySender, thirdPartyScanContext);
   }
@@ -419,7 +422,7 @@ public class SpdxResultHandlerTest
     thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
     thirdPartyScanContext.setIsValid(true);
     spdxResultHandler =
-        new SpdxResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+        new SpdxResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
             telemetryUtils, telemetrySender, thirdPartyScanContext);
     FilteredThirdPartyContent filteredContent =

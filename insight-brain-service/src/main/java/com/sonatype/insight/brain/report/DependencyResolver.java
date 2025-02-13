@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.brain.utils.ComponentDependencyUtils;
 import com.sonatype.insight.dependency.DependencyNode;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -435,7 +436,7 @@ public class DependencyResolver
     filenames.add(packageUrlString);
     isNode.set("filenames", filenames);
     ArrayNode pathnames = objectMapper.createArrayNode();
-    pathnames.add("dependency:/" + packageUrlString.replace('/', '\\'));
+    pathnames.add(ComponentDependencyUtils.getDependencyStringFromPackageUrlIdentifier(packageUrlString));
     isNode.set("pathnames", pathnames);
 
     totalArtifactCount.getAndIncrement();

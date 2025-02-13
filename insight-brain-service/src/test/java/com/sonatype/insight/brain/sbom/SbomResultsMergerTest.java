@@ -756,7 +756,7 @@ public class SbomResultsMergerTest
 
     //Update Scenario 1
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00228");
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00228");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM");
     assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo("<dd>a1<dd/>");
     assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("v:1");
@@ -771,7 +771,7 @@ public class SbomResultsMergerTest
 
     //Update Scenario 2
     thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00229");
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00229");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
     assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo("<dd>a1<dd/>");
     assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString1");
@@ -786,7 +786,7 @@ public class SbomResultsMergerTest
 
     //Insert Scenario 1
     thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00274");
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00274");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
     assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isNull();
     assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isNull();
@@ -801,7 +801,7 @@ public class SbomResultsMergerTest
 
     //Insert Scenario 2
     thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00275");
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00275");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
     assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isNull();
     assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString5");
@@ -913,7 +913,7 @@ public class SbomResultsMergerTest
 
     // Vulnerability not in DB - FG-R00229 - It should have Source Identifier = Sonatype
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00229");
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00229");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
     assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isNull();
     assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString1");
@@ -923,7 +923,7 @@ public class SbomResultsMergerTest
 
     // Vulnerability not in DB - FG-R00230 - It should have Source Identifier = SBOM,Sonatype
     thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00230");
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00230");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
     assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo("<dd>a1<dd/>");
     assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString2");
@@ -933,7 +933,7 @@ public class SbomResultsMergerTest
 
     // Vulnerability not in DB - FG-R00231 - It should have Source Identifier = SBOM,Sonatype
     thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00231");
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00231");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
     assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo("<dd>a1<dd/>");
     assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString3");
@@ -944,7 +944,7 @@ public class SbomResultsMergerTest
 
     // Vulnerability not in DB - FG-R00232 - It should have Source Identifier = SBOM
     thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00232");
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00232");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM");
     assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo(tpVuln3.getAdvisories());
     assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo(tpVuln3.getAttackVector());
@@ -956,7 +956,7 @@ public class SbomResultsMergerTest
 
     // Vulnerability not in DB - FG-R00233 - It should have been deleted from DB.
     thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00233");
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00233");
     assertThat(thirdPartyCoordinateSecurity).isNull();
     ThirdPartyVulnerabilityExploitabilityExchange vexFromDB =
         thirdPartyVulnerabilityExploitabilityExchangeDAO.getByCoordinateSecurityIdAndRefId(tpVuln5.getId(),
@@ -965,12 +965,12 @@ public class SbomResultsMergerTest
 
     // Vulnerability in DB not in file - FG-R00234 - It should have been deleted from DB.
     thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00234");
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00234");
     assertThat(thirdPartyCoordinateSecurity).isNull();
 
     // Vulnerability in DB not in file - FG-R00234 - It should have been deleted from DB along with its VEX annotation.
     thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00235");
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00235");
     assertThat(thirdPartyCoordinateSecurity).isNull();
     vexFromDB = thirdPartyVulnerabilityExploitabilityExchangeDAO.getByCoordinateSecurityIdAndRefId(tpVuln6.getId(),
         "FG-R00235");
@@ -1093,8 +1093,8 @@ public class SbomResultsMergerTest
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
 
     ThirdPartyFileCoordinate thirdPartyFileCoordinate =
-        tempEntity.newThirdPartyFileCoordinate(file, "SBOM", "pypi", "pip", "24.0",
-            "964cd74171f427720480", "pkg:pypi/pip@24.0");
+        tempEntity.newThirdPartyFileCoordinate(file, "SBOM", "pypi", "pip", "24.0", "964cd74171f427720480",
+            "pkg:pypi/pip@24.0", "9137f8464d054304e0ce273e524d7a1f824463af");
 
     ThirdPartyCoordinateLicense license =
         tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "GPL-2.0", "GPL-2.0", null);
@@ -1131,7 +1131,7 @@ public class SbomResultsMergerTest
     assertThat(thirdPartyCoordinateLicense.getIdentificationSources()).isEqualTo("Sonatype");
 
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity = thirdPartyCoordinateSecurityDAO
-        .getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "CVE-2018-20225");
+        .getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "CVE-2018-20225");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
     assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isNull();
     assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString1");
@@ -1142,7 +1142,7 @@ public class SbomResultsMergerTest
     assertThat(thirdPartyCoordinateSecurity.getSeverity()).isEqualTo(7.8d);
 
     thirdPartyCoordinateSecurity = thirdPartyCoordinateSecurityDAO
-        .getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "CVE-2023-45803");
+        .getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "CVE-2023-45803");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
     assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isNull();
     assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString2");
@@ -1153,7 +1153,7 @@ public class SbomResultsMergerTest
     assertThat(thirdPartyCoordinateSecurity.getSeverity()).isEqualTo(4.2d);
 
     thirdPartyCoordinateSecurity = thirdPartyCoordinateSecurityDAO
-        .getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "CVE-2024-3651");
+        .getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "CVE-2024-3651");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
     assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isNull();
     assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString3");
@@ -1177,8 +1177,9 @@ public class SbomResultsMergerTest
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
 
     // Record existing in db before importing
-    ThirdPartyFileCoordinate thirdPartyFileCoordinate1 = tempEntity.newThirdPartyFileCoordinate(file, "SBOM",
-        "pypi", "pip", "24.0", "XYZ", "pkg:pypi/pip@24.0?type=zip");
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate1 =
+        tempEntity.newThirdPartyFileCoordinate(file, "SBOM", "pypi", "pip", "24.0", "XYZ", "pkg:pypi/pip@24.0?type=zip",
+            "9137f8464d054304e0ce273e524d7a1f824463af");
 
     Application app = tempEntity.newApplicationWithParent();
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(app.getId(), "1", file, PENDING);
@@ -1210,7 +1211,7 @@ public class SbomResultsMergerTest
         c -> c.getPackageUrl().equals(expectedPurlTarGz.getPackageUrl())).findFirst();
     // Hash updated
     assertThat(componentUpdatedTarGzExtensionOptional.isPresent()).isTrue();
-    assertThat(componentUpdatedTarGzExtensionOptional.get().getHash()).isEqualTo("093080a1a4bbd2750543");
+    assertThat(componentUpdatedTarGzExtensionOptional.get().getHash()).isEqualTo("964cd74171f427720480");
 
     // New component inserted
     expectedComponentIdentifier = ComponentIdentifier.createPypiCoordinates("pip", "24.0", "py3-none-any", "whl");
@@ -1306,13 +1307,13 @@ public class SbomResultsMergerTest
     assertThat(thirdPartyCoordinateSecurityList).hasSize(1);
 
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate1.getId(),
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate1.getId(),
             "CVE-2024-21319");
     assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("description");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
 
     thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate2.getId(),
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate2.getId(),
             "CVE-2022-38013");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM");
 
@@ -1346,11 +1347,11 @@ public class SbomResultsMergerTest
 
     // Vulnerability not in DB - FG-R00229 - It should have Source Identifier = Sonatype
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00229");
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00229");
     assertThat(thirdPartyCoordinateSecurity.getCwes()).isEqualTo("508");
 
     thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00230");
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00230");
     assertThat(thirdPartyCoordinateSecurity.getCwes()).isNull();
   }
 

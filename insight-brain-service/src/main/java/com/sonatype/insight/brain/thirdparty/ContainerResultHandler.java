@@ -23,7 +23,6 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
@@ -33,8 +32,8 @@ import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import com.google.gson.Gson;
@@ -66,7 +65,7 @@ public class ContainerResultHandler
 
   public ContainerResultHandler(
       final ThirdPartyFileDAO thirdPartyFileDAO,
-      final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
+      final DuplicateAwareThirdPartyFileCoordinatePersister fileCoordinatePersister,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
@@ -76,7 +75,7 @@ public class ContainerResultHandler
       final TelemetrySender telemetrySender,
       final ThirdPartyScanContext thirdPartyScanContext)
   {
-    super(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+    super(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,  telemetryUtils,
         telemetrySender, thirdPartyScanContext);
     this.componentInfoTelemetry = new SbomComponentInfoTelemetry();

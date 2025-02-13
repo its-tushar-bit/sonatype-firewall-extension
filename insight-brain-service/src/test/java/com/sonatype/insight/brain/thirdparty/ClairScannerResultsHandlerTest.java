@@ -52,14 +52,16 @@ public class ClairScannerResultsHandlerTest
 
   private ClairScannerResultHandler clairHandler;
 
+  private DuplicateAwareThirdPartyFileCoordinatePersister fileCoordinatePersister;
+
   @Before
   public void setUp() {
     thirdPartyCoordinateSecurityDAO = daoFactory.createThirdPartyCoordinateSecurityDAO();
     thirdPartyFileCoordinateDAO = daoFactory.createThirdPartyFileCoordinateDAO();
     thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
-
+    fileCoordinatePersister = new DuplicateAwareThirdPartyFileCoordinatePersister(thirdPartyFileCoordinateDAO);
     clairHandler =
-        new ClairScannerResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO);
+        new ClairScannerResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO);
   }
 
   @Test

@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -58,10 +57,28 @@ public class ThirdPartyCoordinateSecurityDAO
     return getList("SELECT entity FROM ThirdPartyCoordinateSecurity entity");
   }
 
-  public ThirdPartyCoordinateSecurity getByCoordinateFileIdAndRefId(String coordinateFileId, String refId) {
+  public ThirdPartyCoordinateSecurity getByFileCoordinateIdAndRefId(String coordinateFileId, String refId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByFileCoordinateIdAndRefId(tx, coordinateFileId, refId);
+    }
+  }
+
+  public ThirdPartyCoordinateSecurity getByFileCoordinateIdAndRefId(
+      TransactionContext tx,
+      String coordinateFileId,
+      String refId)
+  {
     String sQuery = "SELECT entity FROM ThirdPartyCoordinateSecurity entity" + //
         " WHERE entity.fileCoordinateId=?1 AND UPPER(entity.refId)=?2";
-    return get(sQuery, coordinateFileId, refId.toUpperCase());
+    return get(tx, sQuery, coordinateFileId, refId.toUpperCase());
+  }
+
+  public boolean insertSafely(final TransactionContext tx, final ThirdPartyCoordinateSecurity entity) {
+    if (getByFileCoordinateIdAndRefId(tx, entity.getFileCoordinateId(), entity.getRefId()) != null) {
+      return false;
+    }
+    insert(tx, entity);
+    return true;
   }
 
   public List<ThirdPartyCoordinateSecurity> getByFileCoordinateIds(List<String> fileCoordinateIdList) {

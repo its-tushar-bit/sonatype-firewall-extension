@@ -28,7 +28,6 @@ import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
@@ -123,7 +122,7 @@ public class SbomResultHandler
 
   protected final ThirdPartyFileDAO thirdPartyFileDAO;
 
-  protected final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
+  protected final DuplicateAwareThirdPartyFileCoordinatePersister fileCoordinatePersister;
 
   protected final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
@@ -147,7 +146,7 @@ public class SbomResultHandler
 
   public SbomResultHandler(
       final ThirdPartyFileDAO thirdPartyFileDAO,
-      final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
+      final DuplicateAwareThirdPartyFileCoordinatePersister fileCoordinatePersister,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
@@ -158,7 +157,7 @@ public class SbomResultHandler
       final ThirdPartyScanContext thirdPartyScanContext)
   {
     this.thirdPartyFileDAO = thirdPartyFileDAO;
-    this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
+    this.fileCoordinatePersister = fileCoordinatePersister;
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
     this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
@@ -313,7 +312,7 @@ public class SbomResultHandler
       if (thirdPartyScanContext != null) {
         coordinateSecurity.setSbomMetadataId(thirdPartyScanContext.getSbomMetadataId());
       }
-      thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
+      thirdPartyCoordinateSecurityDAO.insertSafely(tx, coordinateSecurity);
       vulnerabilityExploitabilityExchangeSave(vulnerability, coordinateSecurity, tx);
     }
   }
@@ -624,7 +623,7 @@ public class SbomResultHandler
       }
     }
     componentInfoTelemetry.incrementEcosystemCount(fileCoordinate.getFormat());
-    thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
+    fileCoordinate = fileCoordinatePersister.persist(tx, fileCoordinate);
     if (isValid()) {
       saveLicenses(sourceComponent.getLicenses(), fileCoordinate.getId(), component.getPurl(), tx);
       saveVulnerabilitiesExtension(sourceComponent.getExtensions(), fileCoordinate.getId(), schemaVersion, tx);
@@ -694,7 +693,7 @@ public class SbomResultHandler
         coordinateSecurity.setSbomMetadataId(thirdPartyScanContext.getSbomMetadataId());
       }
       coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
-      thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
+      thirdPartyCoordinateSecurityDAO.insertSafely(tx, coordinateSecurity);
     }
   }
 
@@ -939,7 +938,7 @@ public class SbomResultHandler
           ThirdPartyCoordinateLicense coordinateLicense =
               new ThirdPartyCoordinateLicense(fileCoordinateId, licenseEntry.getKey(), licenseEntry.getValue(), null);
           coordinateLicense.setIdentificationSources(IdentificationSource.SBOM.getId());
-          thirdPartyCoordinateLicenseDAO.insert(tx, coordinateLicense);
+          thirdPartyCoordinateLicenseDAO.insertSafely(tx, coordinateLicense);
         }
       }
     }
@@ -968,7 +967,7 @@ public class SbomResultHandler
     coordinateLicense.setName(licenseName);
     coordinateLicense.setUrl(licenseUrl);
     coordinateLicense.setIdentificationSources(IdentificationSource.SBOM.getId());
-    thirdPartyCoordinateLicenseDAO.insert(tx, coordinateLicense);
+    thirdPartyCoordinateLicenseDAO.insertSafely(tx, coordinateLicense);
   }
 
   //visible for testing

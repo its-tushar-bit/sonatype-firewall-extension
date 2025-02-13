@@ -27,7 +27,6 @@ import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
@@ -99,7 +98,7 @@ public class SpdxResultHandler
 
   public SpdxResultHandler(
       final ThirdPartyFileDAO thirdPartyFileDAO,
-      final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
+      final DuplicateAwareThirdPartyFileCoordinatePersister fileCoordinatePersister,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
@@ -109,7 +108,7 @@ public class SpdxResultHandler
       final TelemetrySender telemetrySender,
       final ThirdPartyScanContext thirdPartyScanContext)
   {
-    super(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+    super(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils,
         telemetrySender, thirdPartyScanContext);
   }
@@ -303,7 +302,7 @@ public class SpdxResultHandler
     }
     fileCoordinate.setIdentificationSources(SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE);
     componentInfoTelemetry.incrementEcosystemCount(fileCoordinate.getFormat());
-    thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
+    fileCoordinate = fileCoordinatePersister.persist(tx, fileCoordinate);
 
     if (isValid()) {
       saveLicenses(spdxPackage, fileCoordinate.getId(), component.getPurl(), tx);
@@ -330,7 +329,7 @@ public class SpdxResultHandler
             coordinateSecurity.setSbomMetadataId(thirdPartyScanContext.getSbomMetadataId());
           }
           if (processedVulnerabilityIds.add(coordinateSecurity.getRefId())) {
-            thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
+            thirdPartyCoordinateSecurityDAO.insertSafely(tx, coordinateSecurity);
           }
           else {
             log.debug("Component with packageUrl {} has duplicate vulnerability with ID {}", packageUrl,
@@ -393,7 +392,7 @@ public class SpdxResultHandler
             ThirdPartyCoordinateLicense coordinateLicense =
                 new ThirdPartyCoordinateLicense(fileCoordinateId, licenseEntry.getKey(), licenseEntry.getValue(), null);
             coordinateLicense.setIdentificationSources(IdentificationSource.SBOM.getId());
-            thirdPartyCoordinateLicenseDAO.insert(tx, coordinateLicense);
+            thirdPartyCoordinateLicenseDAO.insertSafely(tx, coordinateLicense);
             componentInfoTelemetry.incrementValidLicensesCount();
           }
         }

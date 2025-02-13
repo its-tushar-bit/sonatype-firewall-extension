@@ -111,6 +111,9 @@ public class SbomResultHandlerTest
   private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
   @Inject
+  private DuplicateAwareThirdPartyFileCoordinatePersister fileCoordinatePersister;
+
+  @Inject
   private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
   @Inject
@@ -147,7 +150,7 @@ public class SbomResultHandlerTest
   @Before
   public void before() {
     sbomResultHandler =
-        new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+        new SbomResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
             telemetryUtils, telemetrySender, thirdPartyScanContext);
   }
@@ -371,7 +374,7 @@ public class SbomResultHandlerTest
     thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
     thirdPartyScanContext.setIsValid(true);
     sbomResultHandler =
-        new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+        new SbomResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
             telemetryUtils, telemetrySender, thirdPartyScanContext);
 
@@ -381,7 +384,7 @@ public class SbomResultHandlerTest
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
-    assertThat(coordinates).hasSize(7);
+    assertThat(coordinates).hasSize(5);
 
     List<ThirdPartyCoordinateSecurity> actualVuln = new ArrayList<>();
     for (ThirdPartyFileCoordinate coordinate : coordinates) {
@@ -390,7 +393,11 @@ public class SbomResultHandlerTest
       actualVuln.addAll(coordinatesSecurity);
       assertThat(coordinatesSecurity).hasSize(1);
     }
-    assertThirdPartyCoordinateSecurities(sbomContent, actualVuln, thirdPartyScanContext);
+    assertThat(actualVuln).hasSize(5);
+    assertThat(
+        actualVuln.stream().map(ThirdPartyCoordinateSecurity::getFileCoordinateId)).containsExactlyInAnyOrderElementsOf(
+        coordinates.stream().map(ThirdPartyFileCoordinate::getId).toList());
+    assertThat(actualVuln).allSatisfy(vuln -> assertThat(vuln.getRefId()).isEqualTo("CVE-2018-7489"));
   }
 
   @Test
@@ -424,7 +431,7 @@ public class SbomResultHandlerTest
     thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
     thirdPartyScanContext.setIsValid(true);
     sbomResultHandler =
-        new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+        new SbomResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
             telemetryUtils, telemetrySender, thirdPartyScanContext);
 
@@ -456,7 +463,7 @@ public class SbomResultHandlerTest
     thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
     thirdPartyScanContext.setIsValid(true);
     sbomResultHandler =
-        new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+        new SbomResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
             telemetryUtils, telemetrySender, thirdPartyScanContext);
 
@@ -751,7 +758,7 @@ public class SbomResultHandlerTest
     thirdPartyScanContext.setIsValid(true);
 
     sbomResultHandler =
-        new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+        new SbomResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
             telemetryUtils, telemetrySender, thirdPartyScanContext);
 
@@ -938,7 +945,7 @@ public class SbomResultHandlerTest
     thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
     thirdPartyScanContext.setIsValid(true);
     sbomResultHandler =
-        new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+        new SbomResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
             telemetryUtils, telemetrySender, thirdPartyScanContext);
 

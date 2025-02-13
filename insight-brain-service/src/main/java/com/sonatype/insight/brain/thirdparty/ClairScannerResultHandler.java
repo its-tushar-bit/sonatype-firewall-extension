@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -47,17 +46,17 @@ public class ClairScannerResultHandler
 
   private final ThirdPartyFileDAO thirdPartyFileDAO;
 
-  private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
+  private final DuplicateAwareThirdPartyFileCoordinatePersister fileCoordinatePersister;
 
   private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
   public ClairScannerResultHandler(
       final ThirdPartyFileDAO thirdPartyFileDAO,
-      final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
+      final DuplicateAwareThirdPartyFileCoordinatePersister fileCoordinatePersister,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO)
   {
     this.thirdPartyFileDAO = thirdPartyFileDAO;
-    this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
+    this.fileCoordinatePersister = fileCoordinatePersister;
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
   }
 
@@ -123,7 +122,7 @@ public class ClairScannerResultHandler
           new ThirdPartyFileCoordinate(fakeHash, IdentificationSource.CLAIR.getId(), format, name, version,
               thirdPartyFile.getId());
       fileCoordinate.setComponentRef(SbomIdentityUtils.getComponentRef(vulnerability));
-      thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
+      fileCoordinate = fileCoordinatePersister.persist(tx, fileCoordinate);
 
       fileCoordinateId = fileCoordinate.getId();
       hashFileCoordinateIdMap.put(fakeHash, fileCoordinateId);

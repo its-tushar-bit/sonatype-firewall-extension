@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -81,12 +80,10 @@ public class ThirdPartyFileCoordinateDAO
     return get(sQuery, id);
   }
 
-  // The returned value is temporarily a list, but it should be a single value.
-  // This temporary behavior will be addressed in ticket SBOM-1243.
-  public List<ThirdPartyFileCoordinate> getByComponentRef(String componentRef, String thirdPartyFileId) {
+  public ThirdPartyFileCoordinate getByComponentRef(String componentRef, String thirdPartyFileId) {
     String sQuery = "SELECT entity FROM ThirdPartyFileCoordinate entity" + //
         " WHERE entity.componentRef=?1 AND entity.thirdPartyFileId=?2";
-    return getList(sQuery, componentRef, thirdPartyFileId);
+    return get(sQuery, componentRef, thirdPartyFileId);
   }
 
   public List<ThirdPartyFileCoordinate> getByThirdPartyFileId(String thirdPartyFileId) {
@@ -102,6 +99,25 @@ public class ThirdPartyFileCoordinateDAO
     return getList(sQuery, purl, scanId);
   }
 
+  /**
+   * @deprecated instead use either
+   * <ul>
+   *   <li>
+   *  {@link #getByHashOrComponentRefForThirdPartyFileId(String, String, String)} (String, String)} or
+   *  </li>
+   *  <li>
+   *  {@link #getByPackageUrlAndScanId(String, String)}
+   *  </li>
+   *  </ul>
+   *  does not guarantee unique records for new scans.
+   *  keeping only for historical sbom records (for backward compatibility)
+   *
+   * @param purl
+   * @param hash
+   * @param scanId
+   * @return
+   */
+  @Deprecated
   public ThirdPartyFileCoordinate getByPackageUrlAndHashAndScanId(String purl, String hash, String scanId) {
     String sQuery = "SELECT TPF FROM ThirdPartyScan TPS," + //
         " ThirdPartyFileCoordinate TPF" + //
@@ -109,6 +125,26 @@ public class ThirdPartyFileCoordinateDAO
     return get(sQuery, purl, hash, scanId);
   }
 
+  /**
+   * @deprecated instead use either
+   * <ul>
+   *   <li>
+   *  {@link #getByHashOrComponentRefForThirdPartyFileId(String, String, String)} (String, String)} or
+   *  </li>
+   *  <li>
+   *  {@link #getByPackageUrlAndScanId(String, String)}
+   *  </li>
+   *  </ul>
+   *  does not guarantee unique records for new scans.
+   *  keeping only for historical sbom records (for backward compatibility)
+   *
+   * @param format
+   * @param name
+   * @param version
+   * @param scanId
+   * @return
+   */
+  @Deprecated
   public ThirdPartyFileCoordinate getByFormatNameVersionAndScanID(String format,
                                                                  String name,
                                                                  String version,
@@ -134,6 +170,19 @@ public class ThirdPartyFileCoordinateDAO
     return getList(tx, sQuery, thirdPartyFileId);
   }
 
+  /**
+   * @deprecated instead use either
+   * <ul>
+   *   <li>
+   *  {@link #getByHashOrComponentRefForThirdPartyFileId(String, String, String)} (String, String)} or
+   *  </li>
+   *  <li>
+   *  {@link #getByPackageUrlAndScanId(String, String)}
+   *  </li>
+   *  </ul>
+   *  for guarantee unique records for new scans.
+   */
+  @Deprecated
   public ThirdPartyFileCoordinate getByThirdPartyFileIdAndPackageUrl(
       final String thirdPartyFileId,
       final String purl)
@@ -570,5 +619,43 @@ public class ThirdPartyFileCoordinateDAO
     }
 
     return "";
+  }
+
+  /**
+   * Get ThirdPartyFileCoordinate hash or componentRef for a given thirdPartyFileId (a.k.a a single sbom)
+   * <p>
+   * In theory, there should be only one record for a given hash or componentRef for a given thirdPartyFileId so this
+   * should return a single record. But (unfortunately) we already have some customers that has SBOMs
+   * (imported via binary scans) that have multiple records for the same hash.
+   *</p>
+   * @param thirdPartyFileId
+   * @param hash
+   * @param componentRef
+   * @return - list of ThirdPartyFileCoordinate for a given thirdPartyFileId, hash or componentRef
+   */
+  public List<ThirdPartyFileCoordinate> getByHashOrComponentRefForThirdPartyFileId(
+      final String thirdPartyFileId,
+      final String hash,
+      final String componentRef)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByHashOrComponentRefForThirdPartyFileId(tx, thirdPartyFileId, hash, componentRef);
+    }
+  }
+
+  /**
+   * This method is identical to the one above
+   * {@link #getByHashOrComponentRefForThirdPartyFileId(String, String, String)} but it uses a transaction context.
+   * @return
+   */
+  public List<ThirdPartyFileCoordinate> getByHashOrComponentRefForThirdPartyFileId(
+      final TransactionContext tx,
+      final String thirdPartyFileId,
+      final String hash,
+      final String componentRef)
+  {
+    String sQuery = "SELECT entity FROM ThirdPartyFileCoordinate entity" + //
+        " WHERE entity.thirdPartyFileId=?1 AND (entity.hash=?2 OR entity.componentRef=?3)";
+    return getList(tx, sQuery, thirdPartyFileId, hash, componentRef);
   }
 }

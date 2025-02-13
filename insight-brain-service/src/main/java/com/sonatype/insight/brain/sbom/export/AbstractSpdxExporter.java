@@ -321,14 +321,9 @@ public abstract class AbstractSpdxExporter
 
   private ThirdPartyFileCoordinate getDbComponentByComponentRef(SpdxPackage pkg) {
     String componentRef = SbomIdentityUtils.getComponentRef(pkg);
-    ThirdPartyFileCoordinate componentMatched = null;
-    List<ThirdPartyFileCoordinate> componentsMatched = thirdPartyFileCoordinateDAO.getByComponentRef(
-        componentRef, exportParams.sbomMetadata.getThirdPartyFileId());
 
-    if ( !componentsMatched.isEmpty() ) {
-      componentMatched = componentsMatched.get(0);
-    }
-    return componentMatched;
+    return thirdPartyFileCoordinateDAO.getByComponentRef(
+        componentRef, exportParams.sbomMetadata.getThirdPartyFileId());
   }
 
   private ThirdPartyFileCoordinate getMatchingDbComponent(final SpdxPackage pkg, boolean shouldMatchByComponentRef) {

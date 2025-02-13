@@ -11,7 +11,6 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
@@ -24,7 +23,7 @@ public class ThirdPartyResultHandlerFactory
 {
   protected final ThirdPartyFileDAO thirdPartyFileDAO;
 
-  protected final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
+  protected final DuplicateAwareThirdPartyFileCoordinatePersister fileCoordinatePersister;
 
   protected final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
@@ -43,7 +42,7 @@ public class ThirdPartyResultHandlerFactory
   @Inject
   public ThirdPartyResultHandlerFactory(
       final ThirdPartyFileDAO thirdPartyFileDAO,
-      final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
+      final DuplicateAwareThirdPartyFileCoordinatePersister fileCoordinatePersister,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
@@ -53,7 +52,7 @@ public class ThirdPartyResultHandlerFactory
       final TelemetrySender telemetrySender)
   {
     this.thirdPartyFileDAO = thirdPartyFileDAO;
-    this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
+    this.fileCoordinatePersister = fileCoordinatePersister;
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
     this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
@@ -68,21 +67,21 @@ public class ThirdPartyResultHandlerFactory
       ThirdPartyScanContext thirdPartyScanContext)
   {
     if (ItemContentType.CLAIR_SCANNER.equals(itemContentType)) {
-      return new ClairScannerResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO,
+      return new ClairScannerResultHandler(thirdPartyFileDAO, fileCoordinatePersister,
           thirdPartyCoordinateSecurityDAO);
     }
     else if (ItemContentType.SBOM.equals(itemContentType)) {
-      return new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+      return new SbomResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
           thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils,
           telemetrySender, thirdPartyScanContext);
     }
     else if (ItemContentType.SPDX.equals(itemContentType)) {
-      return new SpdxResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+      return new SpdxResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
           thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils,
           telemetrySender, thirdPartyScanContext);
     }
     else if (ItemContentType.CONTAINER_URI.equals(itemContentType)) {
-      return new ContainerResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+      return new ContainerResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
           thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils,
           telemetrySender, thirdPartyScanContext);
     }

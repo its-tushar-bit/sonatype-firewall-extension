@@ -247,9 +247,9 @@ public class ThirdPartyFileCoordinateDAOTest
     thirdPartyFileCoordinateDAO.insert(fileCoordinate2);
     thirdPartyFileCoordinateDAO.insert(fileCoordinate3);
 
-    List<ThirdPartyFileCoordinate> fileCoordinates =
+    ThirdPartyFileCoordinate fileCoordinates =
         thirdPartyFileCoordinateDAO.getByComponentRef("cr1", thirdPartyFile.getId());
-    assertThat(fileCoordinates).isNotEmpty();
+    assertThat(fileCoordinates).isNotNull();
   }
 
   @Test
@@ -1501,6 +1501,55 @@ public class ThirdPartyFileCoordinateDAOTest
         .isNotNull()
         .extracting(SbomComponentDTO::getComponentRef)
         .containsExactly(d2, d, d0, c2, c, c0, b2, b, b0, a2, a, a0);
+  }
+
+  @Test
+  public void testGetByHashOrComponentRefForThirdPartyFileId() {
+    ThirdPartyFileCoordinate fc = tempEntity.newThirdPartyFileCoordinate();
+    ThirdPartyFileCoordinate fc2 = tempEntity.newThirdPartyFileCoordinate();
+    String hash = RandomStringUtils.insecure().nextAlphanumeric(19);
+    String ref = hash + "-ref";
+    fc.setHash(hash);
+    fc.setComponentRef(ref);
+    //a different sbom/thirdpartyFileId but having the same component
+    fc2.setHash(hash);
+    fc2.setComponentRef(ref);
+    thirdPartyFileCoordinateDAO.update(fc);
+    thirdPartyFileCoordinateDAO.update(fc2);
+
+    //hash only
+    List<ThirdPartyFileCoordinate> results =
+        thirdPartyFileCoordinateDAO.getByHashOrComponentRefForThirdPartyFileId(fc.getThirdPartyFileId(), hash, null);
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0)).hasFieldOrPropertyWithValue("componentRef", ref);
+
+    results =
+        thirdPartyFileCoordinateDAO.getByHashOrComponentRefForThirdPartyFileId(fc.getThirdPartyFileId(), null, ref);
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0)).hasFieldOrPropertyWithValue("hash", hash);
+
+    results =
+        thirdPartyFileCoordinateDAO.getByHashOrComponentRefForThirdPartyFileId(fc.getThirdPartyFileId(), hash, ref);
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0)).hasFieldOrPropertyWithValue("componentRef", ref);
+    assertThat(results.get(0)).hasFieldOrPropertyWithValue("hash", hash);
+  }
+
+  @Test
+  public void testGetByHashOrComponentRefForThirdPartyFileId_NotFound() {
+    String hash = RandomStringUtils.insecure().nextAlphanumeric(19);
+    String ref = hash + "-ref";
+    ThirdPartyFileCoordinate fc = tempEntity.newThirdPartyFileCoordinate();
+    fc.setHash(hash);
+    fc.setComponentRef(ref);
+    thirdPartyFileCoordinateDAO.update(fc);
+
+    assertThat(
+        thirdPartyFileCoordinateDAO.getByHashOrComponentRefForThirdPartyFileId(fc.getThirdPartyFileId(), "notfound",
+            "notfound")).isEmpty();
+    assertThat(
+        thirdPartyFileCoordinateDAO.getByHashOrComponentRefForThirdPartyFileId("notfound", hash,
+            ref)).isEmpty();
   }
 
   private ThirdPartyFileCoordinate newThirdPartyFileCoordinate(

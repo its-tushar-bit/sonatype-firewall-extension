@@ -19,13 +19,14 @@
     "matchState" : "exact",
     "scanError" : false,
     "proprietary" : false,
-    "hash" : "093080a1a4bbd2750543",
+    "hash" : "964cd74171f427720480",
     "relativePopularity" : null,
     "createTime" : 1706953998000,
     "lastModifiedTime" : null,
     "lastModifiedEntryTime" : null,
     "website" : null,
     "identificationSource" : "Sonatype",
+    "componentRef" : "9137f8464d054304e0ce273e524d7a1f824463af",
     "componentCategories" : [ {
       "componentCategoryId" : 113,
       "path" : "Other"

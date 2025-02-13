@@ -1653,6 +1653,62 @@ public class ApiSbomServiceTest
   }
 
   @Test
+  public void testImportSbom_BinaryFile_WithDuplicateThirdPartyFiles() throws Exception {
+    File binaryFileToScan = tempDir.newFile("scan-items.zip");
+    Zipper.zipDirectory(new File(
+            getClass().getResource("/" + getClass().getSimpleName() + "/binary-scan-duplicates/scan-items").toURI()),
+        binaryFileToScan);
+    mockHdsForImportWithDelayedReportDownload("/binary-scan-duplicates/report.zip", 50);
+    Application app = tempEntity.newApplicationWithParent();
+    SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(true);
+    try (InputStream inputStream = new FileInputStream(binaryFileToScan)) {
+      Response response = service.importSbom(app.getId(), inputStream, "scan-items.zip", true, DUMMY_USER_AGENT, null,
+          false);
+
+      ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
+      assertThat(response.getStatus()).isEqualTo(200);
+      assertThat(ticketDTO).isNotNull();
+      assertThat(ticketDTO.statusUrl).isNotEmpty()
+          .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
+
+      ThirdPartyScan thirdPartyScan = thirdPartyScanDao.getSingleByScanRequestId(ticketDTO.requestId);
+      assertThat(thirdPartyScan).isNotNull();
+      assertThat(thirdPartyScan.getScanRequestId()).isEqualTo(ticketDTO.requestId);
+
+      policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
+
+      ThirdPartySbomMetadata thirdPartySbomMetadata = dao.getByThirdPartyFileId(thirdPartyScan.getThirdPartyFileId());
+
+      assertSbomMetadata(thirdPartySbomMetadata, app,
+          filename -> assertThat(filename).matches("scan-items\\.\\d+\\.json\\.gz"));
+
+      List<ThirdPartyFileCoordinate> tpComponents =
+          thirdPartyFileCoordinateDAO.getBySbomMetadataId(thirdPartySbomMetadata.getId());
+      //only 1 result should exist after merge
+      assertThat(tpComponents).hasSize(1);
+      ThirdPartyFileCoordinate cp = tpComponents.get(0);
+      assertThat(cp.getFormat()).isEqualTo("maven");
+      assertThat(cp.getName()).isEqualTo("jackson-databind");
+      assertThat(cp.getVersion()).isEqualTo("2.9.9");
+      assertThat(cp.getIdentificationSourcesAsSet()).contains("SBOM", "Sonatype");
+      assertThat(cp.getOccurrencesList()).contains(
+          "dependency:/scan-items.zip/scan-items/1-component.cdx.json/" +
+              "pkg:maven\\com.fasterxml.jackson.core\\jackson-databind@2.9.9?type=jar",
+          "dependency:/scan-items.zip/scan-items/2-component.cdx.json/" +
+              "pkg:maven\\com.fasterxml.jackson.core\\jackson-databind@2.9.9?type=jar");
+
+      List<ThirdPartyCoordinateSecurity> securityIssues =
+          coordinateSecurityDAO.getByFileCoordinateId(cp.getId());
+      assertThat(securityIssues).hasSize(6);
+      assertThat(securityIssues).extracting("refId")
+          .containsExactlyInAnyOrder("CVE-2019-12384", "CVE-2019-12814", "CVE-2020-25649", "CVE-2020-36518",
+              "CVE-2022-42003", "CVE-2022-42004");
+      assertThat(securityIssues).extracting("identificationSources")
+          .containsExactlyInAnyOrder("SBOM,Sonatype", "SBOM,Sonatype", "Sonatype", "Sonatype", "Sonatype", "Sonatype");
+    }
+  }
+
+  @Test
   public void testImportSbom_BinaryFile_WithMultipleThirdPartyFiles() throws Exception {
     File binaryFileToScan = tempDir.newFile("binary-scan.zip");
     Zipper.zipDirectory(new File(getClass().getResource("/" + getClass().getSimpleName() + "/binary-scan").toURI()),

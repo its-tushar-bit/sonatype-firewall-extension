@@ -8,15 +8,21 @@ package com.sonatype.insight.brain.model.thirdpartyscans;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+
+import com.sonatype.insight.model.HasStringId;
+
+import com.google.common.collect.Sets;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
-import com.sonatype.insight.model.HasStringId;
-
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import static com.sonatype.insight.brain.utils.ComponentDependencyUtils.buildDependencyFromCoordinates;
 
 @Entity
 @Table(name = "file_coordinate")
@@ -189,6 +195,16 @@ public class ThirdPartyFileCoordinate
     return identificationSources;
   }
 
+  public void setIdentificationSourcesAsSet(Set<String> identificationSources) {
+    this.identificationSources =
+        CollectionUtils.isEmpty(identificationSources) ? null : String.join(",", identificationSources);
+  }
+
+  public Set<String> getIdentificationSourcesAsSet() {
+    return StringUtils.isBlank(identificationSources) ? Collections.emptySet() : Sets.newHashSet(
+        identificationSources.split(","));
+  }
+
   public void setIdentificationSources(String identificationSources) {
     this.identificationSources = identificationSources;
   }
@@ -244,5 +260,73 @@ public class ThirdPartyFileCoordinate
 
   public void setOccurrencesList(List<String> occurrences) {
     this.occurrences = CollectionUtils.isEmpty(occurrences) ? null : String.join(",", occurrences);
+  }
+
+  /**
+   * Overrides the current object with the values of the other object.
+   * @param other
+   */
+  public void override(ThirdPartyFileCoordinate other) {
+    //calculate dependency string before override
+    String thisDependency = buildDependencyFromCoordinates(this);
+    //do override
+    setHash(other.getHash());
+    setComponentRef(other.getComponentRef());
+    setSource(other.getSource());
+    setFormat(other.getFormat());
+    setName(other.getName());
+    setVersion(other.getVersion());
+    setPackageUrl(other.getPackageUrl());
+    setCpe(other.getCpe());
+    setSwid(other.getSwid());
+    setDisplayName(other.getDisplayName());
+    setDependencyType(other.getDependencyType());
+    setMatchStateId(other.getMatchStateId());
+
+    //merge occurrences, filenames and identification sources
+    mergeOccurrences(other, thisDependency);
+    mergeFilenames(other);
+    mergeIdentificationSources(other);
+  }
+
+  /**
+   * Includes the mergable attributes from other object with the current object.
+   * @param other
+   */
+  public void merge(ThirdPartyFileCoordinate other) {
+    mergeOccurrences(other, buildDependencyFromCoordinates(other));
+    mergeFilenames(other);
+    mergeIdentificationSources(other);
+  }
+
+  private void mergeIdentificationSources(final ThirdPartyFileCoordinate other) {
+    if (CollectionUtils.isNotEmpty(other.getIdentificationSourcesAsSet())) {
+      setIdentificationSourcesAsSet(
+          SetUtils.union(getIdentificationSourcesAsSet(), other.getIdentificationSourcesAsSet()));
+    }
+  }
+
+  private void mergeFilenames(final ThirdPartyFileCoordinate other) {
+    if (CollectionUtils.isNotEmpty(other.getFilenamesList())) {
+      if (CollectionUtils.isEmpty(getFilenamesList())) {
+        setFilenamesList(other.getFilenamesList());
+      }
+      else {
+        setFilenamesList(ListUtils.union(getFilenamesList(), other.getFilenamesList()));
+      }
+    }
+  }
+
+  private void mergeOccurrences(final ThirdPartyFileCoordinate other, final String dependencyString) {
+    List<String> dependencyStringAsList = List.of(dependencyString);
+    if (CollectionUtils.isNotEmpty(other.getOccurrencesList())) {
+      if (CollectionUtils.isEmpty(getOccurrencesList())) {
+        setOccurrencesList(ListUtils.union(dependencyStringAsList, other.getOccurrencesList()));
+      }
+      else {
+        setOccurrencesList(
+            ListUtils.sum(dependencyStringAsList, ListUtils.union(getOccurrencesList(), other.getOccurrencesList())));
+      }
+    }
   }
 }

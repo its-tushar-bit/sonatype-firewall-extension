@@ -94,10 +94,10 @@ public class ThirdPartyCoordinateSecurityDAOTest
   }
 
   @Test
-  public void testGetByCoordinateFileIdAndRefId() {
+  public void testGetByFileCoordinateIdAndRefId() {
     ThirdPartyCoordinateSecurity coordinateSecurity = tempEntity.newThirdPartyCoordinateSecurity();
     ThirdPartyCoordinateSecurity retrievedCoordinateSecurity =
-        dao.getByCoordinateFileIdAndRefId(coordinateSecurity.getFileCoordinateId(), coordinateSecurity.getRefId());
+        dao.getByFileCoordinateIdAndRefId(coordinateSecurity.getFileCoordinateId(), coordinateSecurity.getRefId());
 
     assertThirdPartyCoordinateSecurity(coordinateSecurity.getRefId(), null, coordinateSecurity.getDescription(),
         coordinateSecurity.getLink(), coordinateSecurity.getSeverity(), coordinateSecurity.getFixedBy(),
@@ -105,10 +105,10 @@ public class ThirdPartyCoordinateSecurityDAOTest
   }
 
   @Test
-  public void testGetByCoordinateFileIdAndRefId_caseInsensitive() {
+  public void testGetByFileCoordinateIdAndRefId_caseInsensitive() {
     ThirdPartyCoordinateSecurity coordinateSecurity = tempEntity.newThirdPartyCoordinateSecurity();
     ThirdPartyCoordinateSecurity retrievedCoordinateSecurity =
-        dao.getByCoordinateFileIdAndRefId(coordinateSecurity.getFileCoordinateId(),
+        dao.getByFileCoordinateIdAndRefId(coordinateSecurity.getFileCoordinateId(),
             coordinateSecurity.getRefId().toUpperCase());
 
     assertThirdPartyCoordinateSecurity(coordinateSecurity.getRefId(), null, coordinateSecurity.getDescription(),

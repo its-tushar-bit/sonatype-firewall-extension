@@ -56,6 +56,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
+import com.sonatype.insight.brain.thirdparty.DuplicateAwareThirdPartyFileCoordinatePersister;
 import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -70,6 +71,7 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -144,6 +146,8 @@ public class SbomResultsMerger
 
   public static final Set<String> UNSUPPORTED_LICENSE_IDS = ImmutableSet.of("Not Provided", "Non-Standard");
 
+  private final DuplicateAwareThirdPartyFileCoordinatePersister thirdPartyFileCoordinatePersister;
+
   private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
   private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
@@ -188,6 +192,7 @@ public class SbomResultsMerger
 
   @Inject
   public SbomResultsMerger(
+      final DuplicateAwareThirdPartyFileCoordinatePersister thirdPartyFileCoordinatePersister,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO,
@@ -201,6 +206,7 @@ public class SbomResultsMerger
       final ApplicationReportPersistenceService applicationReportPersistenceService,
       final InsightWork insightWork)
   {
+    this.thirdPartyFileCoordinatePersister = thirdPartyFileCoordinatePersister;
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
     this.thirdPartyVulnerabilityExploitabilityExchangeDAO = thirdPartyVulnerabilityExploitabilityExchangeDAO;
@@ -325,14 +331,17 @@ public class SbomResultsMerger
     MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> resultsToMerge =
             useComponentRef ? resultsWithComponentRef : resultsWithSonatypeId;
 
-    mergeResultsWithComponentRefOrSonatypeIdentifier(scanId, resultsToMerge,
-        sonatypeVulnerabilityResults, sonatypeLicenseResults, sbomMetadata, originalBom, filteredBom, useComponentRef);
+    try (TransactionContext tx = thirdPartyScanDAO.createTransactionContext()) {
+      tx.begin();
+      mergeResultsWithComponentRefOrSonatypeIdentifier(scanId, resultsToMerge, sonatypeVulnerabilityResults,
+          sonatypeLicenseResults, sbomMetadata, originalBom, filteredBom, useComponentRef, tx);
 
-    if ((resultsWithSonatypeId.isEmpty() && !useComponentRef) ||
-        (!resultsWithoutUniqueIdentifier.isEmpty() &&
-            SbomScanType.BINARY.toString().equals(sbomMetadata.getScanType()))) {
-      mergeResultsWithoutUniqueIdentifier(scanId, resultsWithoutUniqueIdentifier,
-          sonatypeVulnerabilityResults, sonatypeLicenseResults, sbomMetadata, originalBom, filteredBom);
+      if ((resultsWithSonatypeId.isEmpty() && !useComponentRef) || !resultsWithoutUniqueIdentifier.isEmpty() &&
+          SbomScanType.BINARY.toString().equals(sbomMetadata.getScanType())) {
+        mergeResultsWithoutUniqueIdentifier(scanId, resultsWithoutUniqueIdentifier, sonatypeVulnerabilityResults,
+            sonatypeLicenseResults, sbomMetadata, originalBom, filteredBom, tx);
+      }
+      tx.commit();
     }
   }
 
@@ -344,18 +353,16 @@ public class SbomResultsMerger
       final ThirdPartySbomMetadata thirdPartySbomMetadata,
       final Bom originalBom,
       final Bom filteredBom,
-      final boolean useComponentRef)
+      final boolean useComponentRef,
+      final TransactionContext tx)
   {
 
     for (String key : results.keySet()) {
 
       ThirdPartyFileCoordinate sbomComponent = null;
       if (useComponentRef) {
-        List<ThirdPartyFileCoordinate> components =
+        sbomComponent =
             thirdPartyFileCoordinateDAO.getByComponentRef(key, thirdPartySbomMetadata.getThirdPartyFileId());
-        if (components != null && !components.isEmpty()) {
-          sbomComponent = components.get(0);
-        }
       }
       else {
         sbomComponent = thirdPartyFileCoordinateDAO.getById(key);
@@ -367,54 +374,57 @@ public class SbomResultsMerger
       }
 
       Collection<Pair<ComponentIdentifier, JsonNode>> identityResults = results.get(key);
+      Pair<ComponentIdentifier, JsonNode> idResult;
       if (CollectionUtils.size(identityResults) == 1) {
         //no multi results. perform merge using this result.
-        Pair<ComponentIdentifier, JsonNode> idResult = identityResults.iterator().next();
-        doMergeWithSonatypeIdentifier(scanId, sonatypeVulnerabilityResults,
-            sonatypeLicenseResults, thirdPartySbomMetadata, originalBom, filteredBom, idResult, sbomComponent);
+        idResult = identityResults.iterator().next();
       }
       else {
         SbomResultsMatcherTelemetry bestMatchResultsTelemetry = new SbomResultsMatcherTelemetry();
         bestMatchResultsTelemetries.add(bestMatchResultsTelemetry);
         //more than 1 hds result for the thirdparty component. perform best match
-        Pair<ComponentIdentifier, JsonNode> idResult =
-            SbomResultsMatcher.bestMatch(sbomComponent, identityResults, bestMatchResultsTelemetry);
-        doMergeWithSonatypeIdentifier(scanId, sonatypeVulnerabilityResults,
-            sonatypeLicenseResults, thirdPartySbomMetadata, originalBom, filteredBom, idResult, sbomComponent);
+        idResult = SbomResultsMatcher.bestMatch(sbomComponent, identityResults, bestMatchResultsTelemetry);
       }
+      doMergeWithSonatypeIdentifier(scanId, sonatypeVulnerabilityResults,
+          sonatypeLicenseResults, thirdPartySbomMetadata, originalBom, filteredBom, idResult, sbomComponent, tx);
     }
   }
 
   private void mergeResultsWithoutUniqueIdentifier(
       final String scanId,
-      final Map<ComponentIdentifier, JsonNode> resultsWithNoSonatypeId,
+      final Map<ComponentIdentifier, JsonNode> resultsWithoutUniqueIdentifier,
       final Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeVulnerabilityResults,
       final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
       final ThirdPartySbomMetadata thirdPartySbomMetadata,
       final Bom originalBom,
-      final Bom filteredBom)
+      final Bom filteredBom,
+      final TransactionContext tx)
   {
     Set<String> alreadyInsertedComponentIds = new HashSet<>();
-    for (Entry<ComponentIdentifier, JsonNode> resultEntry : resultsWithNoSonatypeId.entrySet()) {
+    boolean isBinaryScan = thirdPartySbomMetadata.getScanType().equals(SbomScanType.BINARY.toString());
+    for (Entry<ComponentIdentifier, JsonNode> resultEntry : resultsWithoutUniqueIdentifier.entrySet()) {
       ComponentIdentifier bomComponentIdentifier = resultEntry.getKey();
       JsonNode bomNode = resultEntry.getValue();
       PackageUrlIdentifier bomPurl = PackageUrlIdentifier.fromComponentIdentifier(bomComponentIdentifier);
-      ThirdPartyFileCoordinate sbomComponent = thirdPartyFileCoordinateDAO.getByPackageUrlAndHashAndScanId(
-          bomPurl.getPackageUrl(), bomNode.get("hash").asText(), scanId);
-      if (sbomComponent == null) {
-        //fallback to coordinate matching
-        sbomComponent = findExistingComponentUsingCoordinates(bomComponentIdentifier, bomPurl, scanId,
-            alreadyInsertedComponentIds);
+
+      ThirdPartyFileCoordinate sbomComponent = null;
+      if (isBinaryScan) {
+        sbomComponent = addNewComponentsForBinaryScan(bomNode, originalBom, filteredBom, sbomComponent,
+            thirdPartySbomMetadata.getThirdPartyFileId(), tx);
       }
-      sbomComponent = addNewComponentsForBinaryScan(bomNode, originalBom, filteredBom, sbomComponent,
-          thirdPartySbomMetadata.getThirdPartyFileId());
-      if (sbomComponent != null) {
-        alreadyInsertedComponentIds.add(sbomComponent.getId());
+      else {
+        sbomComponent = thirdPartyFileCoordinateDAO.getByPackageUrlAndHashAndScanId(
+            bomPurl.getPackageUrl(), bomNode.get("hash").asText(), scanId);
+        if (sbomComponent == null) {
+          //fallback to coordinate matching
+          sbomComponent = findExistingComponentUsingCoordinates(bomComponentIdentifier, bomPurl, scanId,
+              alreadyInsertedComponentIds);
+        }
       }
 
       mergeResultComponentToDatabase(scanId, bomNode, bomPurl.getPackageUrl(),
           sbomComponent, bomComponentIdentifier, sonatypeVulnerabilityResults, sonatypeLicenseResults,
-          thirdPartySbomMetadata);
+          thirdPartySbomMetadata, tx);
     }
   }
 
@@ -426,15 +436,16 @@ public class SbomResultsMerger
       final Bom originalBom,
       final Bom filteredBom,
       final Pair<ComponentIdentifier, JsonNode> idResult,
-      final ThirdPartyFileCoordinate sbomComponent)
+      final ThirdPartyFileCoordinate sbomComponent,
+      final TransactionContext tx)
   {
     JsonNode bomNode = idResult.getValue();
     ComponentIdentifier bomComponentIdentifier = idResult.getKey();
     addNewComponentsForBinaryScan(bomNode, originalBom, filteredBom, sbomComponent,
-        sbomComponent.getThirdPartyFileId());
+        sbomComponent.getThirdPartyFileId(), tx);
     mergeResultComponentToDatabase(scanId, bomNode, getBomPurl(bomNode, bomComponentIdentifier),
         sbomComponent, bomComponentIdentifier, sonatypeVulnerabilityResults, sonatypeLicenseResults,
-        thirdPartySbomMetadata);
+        thirdPartySbomMetadata, tx);
   }
 
   private void sendTelemetries() {
@@ -462,7 +473,8 @@ public class SbomResultsMerger
       final ComponentIdentifier bomComponentIdentifier,
       final Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeVulnerabilityResults,
       final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
-      final ThirdPartySbomMetadata thirdPartySbomMetadata)
+      final ThirdPartySbomMetadata thirdPartySbomMetadata,
+      final TransactionContext tx)
   {
     if (sbomComponent == null) {
       log.debug("Could not locate matching third party coordinate entry for component identifier {} and scanId {}",
@@ -501,24 +513,25 @@ public class SbomResultsMerger
       }
     }
     setSonatypeIdentificationSourceIfApplicable(bomNode, sbomComponent);
-    thirdPartyFileCoordinateDAO.update(sbomComponent);
-    mergeSecurityData(sonatypeVulnerabilityResults, bomComponentIdentifier, sbomComponent, thirdPartySbomMetadata);
-    mergeLicenseData(sonatypeLicenseResults, bomComponentIdentifier, sbomComponent);
+    thirdPartyFileCoordinateDAO.update(tx, sbomComponent);
+    mergeSecurityData(sonatypeVulnerabilityResults, bomComponentIdentifier, sbomComponent, thirdPartySbomMetadata, tx);
+    mergeLicenseData(sonatypeLicenseResults, bomComponentIdentifier, sbomComponent, tx);
   }
 
   private ThirdPartyFileCoordinate addNewComponentsForBinaryScan(
-      JsonNode bomNode,
+      final JsonNode bomNode,
       Bom originalBom,
       Bom filteredBom,
       ThirdPartyFileCoordinate sbomDbComponent,
-      String thirdPartyFileId)
+      final String thirdPartyFileId,
+      final TransactionContext tx)
   {
     if (ObjectUtils.allNotNull(originalBom, filteredBom)) {
       List<ThirdPartyCoordinateSecurity> disclosedVulns = null;
       List<ThirdPartyCoordinateLicense> disclosedLicenses = null;
       String newComponentBomRef = UUID.randomUUID().toString().replace("-", "");
       if (sbomDbComponent == null) {
-        sbomDbComponent = createAndSaveComponentInThirdPartyDatabase(newComponentBomRef, bomNode, thirdPartyFileId);
+        sbomDbComponent = createAndSaveComponentInThirdPartyDatabase(newComponentBomRef, bomNode, thirdPartyFileId, tx);
       }
       else {
         disclosedVulns = thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(sbomDbComponent.getId());
@@ -548,8 +561,8 @@ public class SbomResultsMerger
     addDisclosedLicenses(disclosedLicenses, component);
 
     Component clone = thirdPartyFileCoordinateToBomComponent(thirdPartyFileCoordinate, bomRef);
-    clone.addProperty(SbomExportUtils.createCycloneDxProperty(PROPERTY_COMPONENT_REF,
-        SbomIdentityUtils.getComponentRef(bomRef)));
+    clone.addProperty(
+        SbomExportUtils.createCycloneDxProperty(PROPERTY_COMPONENT_REF, SbomIdentityUtils.getComponentRef(bomRef)));
     //Deprecated. this should be removed after SBOM-1208 is done
     Property sonatypeIdentifierComponentProperty = new Property();
     sonatypeIdentifierComponentProperty.setName("sonatypeIdentifier");
@@ -683,9 +696,10 @@ public class SbomResultsMerger
   }
 
   private ThirdPartyFileCoordinate createAndSaveComponentInThirdPartyDatabase(
-      String bomRef,
-      JsonNode componentNode,
-      String thirdPartyFileId)
+      final String bomRef,
+      final JsonNode componentNode,
+      final String thirdPartyFileId,
+      final TransactionContext tx)
   {
     ThirdPartyFileCoordinate component = new ThirdPartyFileCoordinate();
     component.setComponentRef(SbomIdentityUtils.getComponentRef(bomRef));
@@ -708,8 +722,7 @@ public class SbomResultsMerger
     component.setPackageUrl(bomPurl);
     component.setSource("Sonatype");
     setSonatypeIdentificationSourceIfApplicable(componentNode, component);
-    thirdPartyFileCoordinateDAO.insert(component);
-    return component;
+    return thirdPartyFileCoordinatePersister.persist(tx, component);
   }
 
   private String getBomPurl(JsonNode bomNode, ComponentIdentifier bomComponentIdentifier) {
@@ -762,7 +775,7 @@ public class SbomResultsMerger
       final ContainerNode<?> bomJsonData,
       final MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> resultsWithComponentRef,
       final MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> resultsWithSonatypeId,
-      final Map<ComponentIdentifier, JsonNode> resultsWithoutProperty)
+      final Map<ComponentIdentifier, JsonNode> resultsWithoutUniqueIdentifier)
   {
     ArrayNode bomArray = (ArrayNode) bomJsonData.get("aaData");
     for (JsonNode bomNode : bomArray) {
@@ -787,7 +800,7 @@ public class SbomResultsMerger
           resultsWithSonatypeId.put(propertyValue, Pair.of(bomComponentIdentifier, bomNode));
         }
         else {
-          resultsWithoutProperty.put(bomComponentIdentifier, bomNode);
+          resultsWithoutUniqueIdentifier.put(bomComponentIdentifier, bomNode);
         }
       }
     }
@@ -861,7 +874,8 @@ public class SbomResultsMerger
       final Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeSecResults,
       final ComponentIdentifier bomComponentIdentifier,
       final ThirdPartyFileCoordinate sbomComponent,
-      final ThirdPartySbomMetadata thirdPartySbomMetadata)
+      final ThirdPartySbomMetadata thirdPartySbomMetadata,
+      final TransactionContext tx)
   {
     Set<SecurityVulnerability> sonatypeVulns = sonatypeSecResults.get(bomComponentIdentifier);
     if (CollectionUtils.isNotEmpty(sonatypeVulns)) {
@@ -879,7 +893,7 @@ public class SbomResultsMerger
             //matching sbom vulnerability found, update record
             if (sonatypeVuln.getSeverity() != null && sonatypeVuln.getSeverity() > 0) {
               populateMissingThirdPartyCoordinateSecurityWithSonatypeData(sbomVulnerability, sonatypeVuln);
-              thirdPartyCoordinateSecurityDAO.update(sbomVulnerability);
+              thirdPartyCoordinateSecurityDAO.update(tx, sbomVulnerability);
               coordinateSecuritiesFromDBForComponentMap.remove(sonatypeVuln.getRefId());
               sbomPostImportMetricsTelemetry.incrementVerifiedVulnerabilityCount();
             }
@@ -891,7 +905,7 @@ public class SbomResultsMerger
             newThirdPartySecurity.setRefId(sonatypeVuln.getRefId());
             newThirdPartySecurity.setSbomMetadataId(thirdPartySbomMetadata.getId());
             populateMissingThirdPartyCoordinateSecurityWithSonatypeData(newThirdPartySecurity, sonatypeVuln);
-            thirdPartyCoordinateSecurityDAO.insert(newThirdPartySecurity);
+            thirdPartyCoordinateSecurityDAO.insertSafely(tx, newThirdPartySecurity);
             sbomPostImportMetricsTelemetry.incrementAdditionalVulnerabilitiesCount();
           }
         }
@@ -908,12 +922,12 @@ public class SbomResultsMerger
           // if the vulnerability is found in DB but no HDS result, and has both identification sources,
           // SBOM and SONATYPE, remove SONATYPE.
           coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
-          thirdPartyCoordinateSecurityDAO.update(coordinateSecurity);
+          thirdPartyCoordinateSecurityDAO.update(tx, coordinateSecurity);
           sbomPostImportMetricsTelemetry.incrementUnverifiedVulnerabilityCount();
         }
         else if (coordinateSecurity.getIdentificationSources().equals(IdentificationSource.SONATYPE.getId())) {
           // else if it only has SONATYPE, delete it from the DB along with any VEX annotation associated with it.
-          thirdPartyCoordinateSecurityDAO.delete(coordinateSecurity);
+          thirdPartyCoordinateSecurityDAO.delete(tx, coordinateSecurity);
         }
       }
     }
@@ -932,7 +946,8 @@ public class SbomResultsMerger
   private void mergeLicenseData(
       final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
       final ComponentIdentifier bomComponentIdentifier,
-      final ThirdPartyFileCoordinate sbomComponent)
+      final ThirdPartyFileCoordinate sbomComponent,
+      final TransactionContext tx)
   {
     Map<String, JsonNode> sonatypeLicenses = sonatypeLicenseResults.get(bomComponentIdentifier);
     if (MapUtils.isNotEmpty(sonatypeLicenses)) {
@@ -957,7 +972,7 @@ public class SbomResultsMerger
         if (sbomLicense != null) {
           // SBOM license found in DB and in json file, update record.
           populateMissingThirdPartyCoordinateLicenseWithSonatypeData(sbomLicense, sonatypeLicenseEntry.getValue());
-          thirdPartyCoordinateLicenseDAO.update(sbomLicense);
+          thirdPartyCoordinateLicenseDAO.update(tx, sbomLicense);
           // Remove from list so I know which ones from the DB were not in the json file.
           allLicensesFromDBForComponent.remove(sbomLicense);
         }
@@ -968,7 +983,7 @@ public class SbomResultsMerger
           newThirdPartyLicense.setLicenseId(resultEntryLicense);
           populateMissingThirdPartyCoordinateLicenseWithSonatypeData(newThirdPartyLicense,
               sonatypeLicenseEntry.getValue());
-          thirdPartyCoordinateLicenseDAO.insert(newThirdPartyLicense);
+          thirdPartyCoordinateLicenseDAO.insertSafely(tx, newThirdPartyLicense);
         }
       }
 
@@ -979,12 +994,12 @@ public class SbomResultsMerger
           // If the license was found in the DB but NOT in the json file, and the identification source is
           // SBOM,Sonatype, remove Sonatype.
           licenseFromDB.setIdentificationSources(IdentificationSource.SBOM.getId());
-          thirdPartyCoordinateLicenseDAO.update(licenseFromDB);
+          thirdPartyCoordinateLicenseDAO.update(tx, licenseFromDB);
         }
         else if (licenseFromDB.getIdentificationSources().equals(IdentificationSource.SONATYPE.getId())) {
           // If the license was found in the DB but NOT in the json file, and the identification source is only SBOM,
           // delete it from the DB.
-          thirdPartyCoordinateLicenseDAO.delete(licenseFromDB);
+          thirdPartyCoordinateLicenseDAO.delete(tx, licenseFromDB);
         }
       }
     }

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.policy;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -56,7 +57,6 @@ import static com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAOTes
 import static com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAOTest.Resolved.RESOLVED_AFTER_CUTOFF;
 import static com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAOTest.Resolved.RESOLVED_BEFORE_CUTOFF;
 import static com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAOTest.Resolved.UNRESOLVED;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -1009,8 +1009,8 @@ public class PolicyViolationDAOTest
     tempEntity.newPolicyViolation(policyEvaluation, policy1);
 
     List<PolicyViolation> violations =
-        dao.getActiveByApplicationIdsAndPolicyIds(Collections.singletonList(application.getId()),
-            Collections.singletonList(policy1.getId()), null, null);
+        dao.getActiveByApplicationIdsAndPolicyIds(Collections.singleton(application.getId()),
+            Collections.singleton(policy1.getId()), null, null);
 
     assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(openViolation.getId());
   }
@@ -1029,8 +1029,8 @@ public class PolicyViolationDAOTest
         asDate("2023-01-15"));
     String jan15 = tempEntity.newPolicyViolation(eval, policy).getId();
 
-    List<String> app = asList(appId);
-    List<String> policyId = asList(policy.getId());
+    Set<String> app = Collections.singleton(appId);
+    Set<String> policyId = Collections.singleton(policy.getId());
 
     // Test openTimeAfter and openTimeBefore both null
     List<PolicyViolation> result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, null, null);
@@ -1845,6 +1845,115 @@ public class PolicyViolationDAOTest
     List<PolicyViolation> result = dao.getByIds(Set.of(v1.getId(), v2.getId()));
 
     assertThat(result).extracting(PolicyViolation::getId).containsExactly(v1.getId(), v2.getId());
+  }
+
+  @Test
+  public void testGetByApplicationIdsAndPolicyIdsAndTypes() {
+    Policy policy1 = tempEntity.newPolicy(application);
+
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-1");
+
+    PolicyViolation openViolation = tempEntity.newPolicyViolation(policyEvaluation, policy1);
+
+    PolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy1,
+        tempEntity.newWaiver(policy1.getId(), application.getId()));
+
+    PolicyViolation legacyViolation = tempEntity.newLegacyPolicyViolation(policyEvaluation, policy1);
+
+    Set<String> applicationIds = Collections.singleton(application.getId());
+    Set<String> policyIds = Collections.singleton(policy1.getId());
+
+    //active
+    Collection<PolicyViolation> violations = dao.getByApplicationIdsAndPolicyIdsAndTypes(
+        applicationIds,
+        policyIds,
+        null,
+        null,
+        true,
+        false,
+        false
+    );
+    assertThat(violations).extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder(openViolation.getId());
+
+    //waived
+    violations = dao.getByApplicationIdsAndPolicyIdsAndTypes(
+        applicationIds,
+        policyIds,
+        null,
+        null,
+        false,
+        true,
+        false
+    );
+    assertThat(violations).extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder(waivedViolation.getId());
+
+    //legacy
+    violations = dao.getByApplicationIdsAndPolicyIdsAndTypes(
+        applicationIds,
+        policyIds,
+        null,
+        null,
+        false,
+        false,
+        true
+    );
+    assertThat(violations).extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder(legacyViolation.getId());
+
+    //active and waived
+    violations = dao.getByApplicationIdsAndPolicyIdsAndTypes(
+        applicationIds,
+        policyIds,
+        null,
+        null,
+        true,
+        true,
+        false
+    );
+    assertThat(violations).extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder(openViolation.getId(), waivedViolation.getId());
+
+    //active and legacy
+    violations = dao.getByApplicationIdsAndPolicyIdsAndTypes(
+        applicationIds,
+        policyIds,
+        null,
+        null,
+        true,
+        false,
+        true
+    );
+    assertThat(violations).extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder(openViolation.getId(), legacyViolation.getId());
+
+    //legacy and waived
+    violations = dao.getByApplicationIdsAndPolicyIdsAndTypes(
+        applicationIds,
+        policyIds,
+        null,
+        null,
+        false,
+        true,
+        true
+    );
+    assertThat(violations).extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder(legacyViolation.getId(), waivedViolation.getId());
+
+    //all types
+    violations = dao.getByApplicationIdsAndPolicyIdsAndTypes(
+        applicationIds,
+        policyIds,
+        null,
+        null,
+        true,
+        true,
+        true
+    );
+    assertThat(violations).extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder(openViolation.getId(), waivedViolation.getId(), legacyViolation.getId());
   }
 
   private List<PolicyViolation> createPolicyViolations(Date cutoffDate, Object[][] data) {

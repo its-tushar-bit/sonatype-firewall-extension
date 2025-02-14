@@ -21,4 +21,8 @@ public class ApiEnhancedPolicyViolationDTOV2
   public String reportUrl;
 
   public ApiComponentDTOV2 component;
+
+  public boolean isWaived;
+
+  public boolean isLegacy;
 }

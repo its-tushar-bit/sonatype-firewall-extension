@@ -10,6 +10,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -25,6 +26,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentTransitivePolicyViolati
 import com.sonatype.insight.brain.api.v2.dto.ApiCrossStageViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
+import com.sonatype.insight.brain.api.v2.service.PolicyViolationType;
 import com.sonatype.insight.brain.api.v2.service.autowaivers.ApiAutoPolicyWaiverService;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyViolationServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
@@ -118,9 +120,12 @@ public class ApiPolicyViolationResourceV2
       @Parameter(description = "Enter the date (format YYYY-MM-DD) from which you want to retrieve" +
           " the violation details") @QueryParam("openTimeAfter") final String openTimeAfter,
       @Parameter(description = "Enter the date (format YYYY-MM-DD) until which you want to retrieve" +
-          " the violation details") @QueryParam("openTimeBefore") final String openTimeBefore)
+          " the violation details") @QueryParam("openTimeBefore") final String openTimeBefore,
+      @Parameter(description = "Set one or more policy violation type (active, legacy, waived) to include")
+      @QueryParam("type") @DefaultValue("active") final Set<PolicyViolationType> violationTypes)
   {
-    return apiPolicyViolationService.getPolicyViolations(policyIds, openTimeAfter, openTimeBefore);
+    return apiPolicyViolationService.getPolicyViolations(policyIds, openTimeAfter, openTimeBefore,
+        violationTypes);
   }
 
   /**

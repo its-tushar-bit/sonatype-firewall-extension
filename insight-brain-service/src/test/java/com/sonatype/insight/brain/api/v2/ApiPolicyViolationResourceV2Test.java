@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStagePolicyViolationComponentDTO;
+import com.sonatype.insight.brain.api.v2.service.PolicyViolationType;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverExclusionDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -692,5 +693,98 @@ public class ApiPolicyViolationResourceV2Test
     assertResponseStatus(403, response);
     assertThat(response.getBodyText())
         .contains("Auto Policy Waivers feature is not enabled");
+  }
+
+  @Test
+  public void testGetPolicyViolationsWithDifferentTypes() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Policy orgPolicy = tempEntity.newPolicy(org);
+
+    PolicyEvaluation pe1App1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1");
+
+    PolicyViolation activePv = tempEntity.newPolicyViolation(pe1App1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
+
+    PolicyViolation waivedPv = tempEntity.newPolicyViolation(pe1App1, orgPolicy, "g2", "a2", "v2", "h2", "r2");
+    waivedPv.setWaiveTime(new Date());
+    policyViolationDAO.update(waivedPv);
+
+    PolicyViolation legacyPv = tempEntity.newLegacyPolicyViolation(pe1App1, orgPolicy);
+
+    //Default
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
+        .query("p", orgPolicy.getId())
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiApplicationViolationListDTOV2 result = response.getBody(ApiApplicationViolationListDTOV2.class);
+    assertThat(result.applicationViolations).hasSize(1);
+    assertThat(result.applicationViolations.get(0).policyViolations)
+        .hasSize(1)
+        .extracting(pv -> pv.policyViolationId)
+        .containsExactly(activePv.getId());
+
+    //explicit active
+    response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
+        .query("p", orgPolicy.getId())
+        .query("type", PolicyViolationType.ACTIVE.name())
+        .get();
+    assertResponseStatus(200, response);
+    result = response.getBody(ApiApplicationViolationListDTOV2.class);
+    assertThat(result.applicationViolations).hasSize(1);
+    assertThat(result.applicationViolations.get(0).policyViolations)
+        .hasSize(1)
+        .extracting(pv -> pv.policyViolationId)
+        .containsExactly(activePv.getId());
+    
+    //Waived and Legacy only
+    response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
+        .query("p", orgPolicy.getId())
+        .query("type", PolicyViolationType.WAIVED.name(), PolicyViolationType.LEGACY.name())
+        .get();
+
+    assertResponseStatus(200, response);
+    result = response.getBody(ApiApplicationViolationListDTOV2.class);
+    assertThat(result.applicationViolations).hasSize(1);
+
+    List<ApiEnhancedPolicyViolationDTOV2> violations = result.applicationViolations.get(0).policyViolations;
+    assertThat(violations).hasSize(2);
+
+    //waived violation
+    assertThat(violations)
+        .filteredOn(v -> v.policyViolationId.equals(waivedPv.getId()))
+        .hasSize(1)
+        .allSatisfy(v -> {
+          assertThat(v.isWaived).isTrue();
+          assertThat(v.isLegacy).isFalse();
+        });
+
+    //legacy violation
+    assertThat(violations)
+        .filteredOn(v -> v.policyViolationId.equals(legacyPv.getId()))
+        .hasSize(1)
+        .allSatisfy(v -> {
+          assertThat(v.isWaived).isFalse();
+          assertThat(v.isLegacy).isTrue();
+        });
+
+    response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
+        .query("p", orgPolicy.getId())
+        .query("type", PolicyViolationType.ACTIVE.name(),
+            PolicyViolationType.WAIVED.name(),
+            PolicyViolationType.LEGACY.name())
+        .get();
+
+    assertResponseStatus(200, response);
+    result = response.getBody(ApiApplicationViolationListDTOV2.class);
+    assertThat(result.applicationViolations).hasSize(1);
+    assertThat(result.applicationViolations.get(0).policyViolations)
+        .hasSize(3)
+        .extracting(pv -> pv.policyViolationId)
+        .containsExactlyInAnyOrder(activePv.getId(), waivedPv.getId(), legacyPv.getId());
   }
 }

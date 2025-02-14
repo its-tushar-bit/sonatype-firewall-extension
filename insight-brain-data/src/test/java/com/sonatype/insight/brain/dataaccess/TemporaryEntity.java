@@ -2774,6 +2774,23 @@ public class TemporaryEntity
       String version,
       String hash,
       String reason,
+      Date openTime)
+  {
+    PolicyViolation policyViolation =
+        newPolicyViolation(evaluation, policy, groupId, artifactId, version, null, null, hash, reason);
+    policyViolation.setOpenTime(openTime);
+    policyViolationDAO.update(policyViolation);
+    return policyViolation;
+  }
+
+  public PolicyViolation newPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      String groupId,
+      String artifactId,
+      String version,
+      String hash,
+      String reason,
       String filename)
   {
     ComponentIdentifier componentIdentifier = null;
@@ -2868,6 +2885,18 @@ public class TemporaryEntity
   {
     return newLegacyPolicyViolation(evaluation, policy, ComponentIdentifier.createNpmCoordinates(uuid(), uuid()),
         newRandomHash());
+  }
+
+  public PolicyViolation newLegacyAndWaivedPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      PolicyWaiver policyWaiver)
+  {
+    PolicyViolation policyViolation = newLegacyPolicyViolation(evaluation, policy);
+    policyViolation.setPolicyWaiverId(policyWaiver.getId());
+    policyViolation.setWaiveTime(evaluation.getTime());
+    policyViolationDAO.update(policyViolation);
+    return policyViolation;
   }
 
   public String newRandomHash() {

@@ -400,27 +400,7 @@ public class PolicyViolationDAO
         " AND entity.waiveTime IS NULL" + //
         " AND entity.legacyViolationTime IS NULL";
 
-    int nextIndex = 3;
-    if (openTimeAfter != null) {
-      sQuery += " AND entity.openTime >= ?" + nextIndex++;
-    }
-
-    if (openTimeBefore != null) {
-      sQuery += " AND entity.openTime <= ?" + nextIndex;
-    }
-
-    if (openTimeAfter != null) {
-      if (openTimeBefore != null) {
-        return getUnfixed(sQuery, applicationIds, policyIds, openTimeAfter, openTimeBefore);
-      }
-      return getUnfixed(sQuery, applicationIds, policyIds, openTimeAfter);
-    }
-    else {
-      if (openTimeBefore != null) {
-        return getUnfixed(sQuery, applicationIds, policyIds, openTimeBefore);
-      }
-      return getUnfixed(sQuery, applicationIds, policyIds);
-    }
+    return loadPolicyViolationsWithDateFilters(applicationIds, policyIds, openTimeAfter, openTimeBefore, sQuery);
   }
 
   private List<PolicyViolation> getUnfixed(String sQuery,
@@ -967,5 +947,53 @@ public class PolicyViolationDAO
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2" + //
         " AND entity.fixTime IS NULL AND entity.waiveTime IS NOT NULL AND entity.autoPolicyWaiverId IS NOT NULL";
     return getList(sQuery, appId, stageTypeId);
+  }
+
+  public Collection<PolicyViolation> getByApplicationIdsAndPolicyIdsAndTypes(
+      Set<String> applicationIds,
+      Set<String> policyIds,
+      Date openTimeAfter,
+      Date openTimeBefore,
+      boolean includeActive,
+      boolean includeWaived,
+      boolean includeLegacy)
+  {
+    String baseQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE " + applicationIdString() + " AND entity.policyId IN (?2)" + //
+        " AND entity.fixTime IS NULL" + //
+        getPolicyStateFilter(includeActive, includeWaived, includeLegacy);
+
+    return loadPolicyViolationsWithDateFilters(applicationIds, policyIds, openTimeAfter, openTimeBefore, baseQuery);
+  }
+
+  private List<PolicyViolation> loadPolicyViolationsWithDateFilters(
+      Collection<String> applicationIds,
+      Collection<String> policyIds,
+      Date openTimeAfter,
+      Date openTimeBefore,
+      String baseQuery)
+  {
+    StringBuilder queryBuilder = new StringBuilder(baseQuery);
+    int nextIndex = 3;
+
+    if (openTimeAfter != null) {
+      queryBuilder.append(" AND entity.openTime >= ?").append(nextIndex++);
+    }
+    if (openTimeBefore != null) {
+      queryBuilder.append(" AND entity.openTime <= ?").append(nextIndex);
+    }
+
+    if (openTimeAfter != null) {
+      if (openTimeBefore != null) {
+        return getUnfixed(queryBuilder.toString(), applicationIds, policyIds, openTimeAfter, openTimeBefore);
+      }
+      return getUnfixed(queryBuilder.toString(), applicationIds, policyIds, openTimeAfter);
+    }
+    else {
+      if (openTimeBefore != null) {
+        return getUnfixed(queryBuilder.toString(), applicationIds, policyIds, openTimeBefore);
+      }
+      return getUnfixed(queryBuilder.toString(), applicationIds, policyIds);
+    }
   }
 }

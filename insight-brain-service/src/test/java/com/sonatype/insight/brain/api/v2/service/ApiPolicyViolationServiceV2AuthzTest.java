@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.Collections;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -85,7 +86,7 @@ public class ApiPolicyViolationServiceV2AuthzTest
 
     Set<String> policyIds = Sets.newHashSet(orgPolicy.getId());
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
-        .getPolicyViolations(policyIds, null, null);
+        .getPolicyViolations(policyIds, null, null, Collections.emptySet());
 
     assertThat(apiApplicationViolationListDTO).isNotNull();
     assertThat(apiApplicationViolationListDTO.applicationViolations).hasSize(1);
@@ -134,7 +135,7 @@ public class ApiPolicyViolationServiceV2AuthzTest
 
     Set<String> policyIds = Sets.newHashSet(orgPolicy.getId());
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
-        .getPolicyViolations(policyIds, null, null);
+        .getPolicyViolations(policyIds, null, null, Collections.emptySet());
 
     assertThat(apiApplicationViolationListDTO.applicationViolations)
         .extracting(applicationViolations -> applicationViolations.application.id)
@@ -155,7 +156,7 @@ public class ApiPolicyViolationServiceV2AuthzTest
   private void assertEmptyWhenUnauthorizedOrAuthenticated() {
     Set<String> policyIds = Sets.newHashSet(orgPolicy.getId());
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
-        .getPolicyViolations(policyIds, null, null);
+        .getPolicyViolations(policyIds, null, null, Collections.emptySet());
     assertThat(apiApplicationViolationListDTO).isNotNull();
     assertThat(apiApplicationViolationListDTO.applicationViolations).isEmpty();
   }

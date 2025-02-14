@@ -145,7 +145,8 @@ public class ApiPolicyViolationServiceV2
   public ApiApplicationViolationListDTOV2 getPolicyViolations(
       final Set<String> policyIds,
       String openTimeAfter,
-      String openTimeBefore)
+      String openTimeBefore,
+      Set<PolicyViolationType> violationTypes)
   {
     Date openTimeAfterDate = null;
     Date openTimeBeforeDate = null;
@@ -189,7 +190,7 @@ public class ApiPolicyViolationServiceV2
     applicationIds = policyEvaluations.stream().map(PolicyEvaluation::getApplicationId).collect(toSet());
 
     Collection<PolicyViolation> policyViolations =
-        loadPolicyViolations(applicationIds, policyIds, openTimeAfterDate, openTimeBeforeDate);
+        loadPolicyViolations(applicationIds, policyIds, openTimeAfterDate, openTimeBeforeDate, violationTypes);
 
     Map<String, List<PolicyViolation>> policyViolationsByAppId =
         policyViolations.stream().collect(Collectors.groupingBy(PolicyViolation::getApplicationId));
@@ -245,13 +246,21 @@ public class ApiPolicyViolationServiceV2
       Set<String> applicationIds,
       Set<String> policyIds,
       Date openTimeAfter,
-      Date openTimeBefore)
+      Date openTimeBefore,
+      Set<PolicyViolationType> violationTypes)
   {
     long start = System.currentTimeMillis();
 
-    Collection<PolicyViolation> policyViolations =
-        policyViolationDAO.getActiveByApplicationIdsAndPolicyIds(applicationIds, policyIds, openTimeAfter,
-            openTimeBefore);
+    Collection<PolicyViolation> policyViolations = policyViolationDAO.getByApplicationIdsAndPolicyIdsAndTypes(
+        applicationIds,
+        policyIds,
+        openTimeAfter,
+        openTimeBefore,
+        violationTypes.contains(PolicyViolationType.ACTIVE),
+        violationTypes.contains(PolicyViolationType.WAIVED),
+        violationTypes.contains(PolicyViolationType.LEGACY)
+    );
+
     policyViolationDAO.loadConstraintFacts(policyViolations);
     log.debug("Loaded {} policy violations for {} applications and {} policies in {} ms", policyViolations.size(),
         applicationIds.size(), policyIds.size(), System.currentTimeMillis() - start);
@@ -298,6 +307,10 @@ public class ApiPolicyViolationServiceV2
     apiPolicyViolationDTO.component.displayName =
         componentDisplayName != null ? componentDisplayName.toString() : policyViolation.getFilename();
     apiPolicyViolationDTO.constraintViolations = PolicyViolationAdapter.convert(policyViolation);
+
+    apiPolicyViolationDTO.isWaived = policyViolation.isWaived();
+    apiPolicyViolationDTO.isLegacy = policyViolation.isLegacyViolation();
+
     return apiPolicyViolationDTO;
   }
 

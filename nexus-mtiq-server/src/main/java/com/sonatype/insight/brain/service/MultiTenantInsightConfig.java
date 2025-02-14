@@ -38,9 +38,6 @@ public class MultiTenantInsightConfig
   private DatabaseConfig locksDatabase;
 
   @JsonProperty
-  private String auth0Domain;
-
-  @JsonProperty
   private boolean deleteBuiltInAdmin = true;
 
   @JsonProperty
@@ -111,14 +108,6 @@ public class MultiTenantInsightConfig
 
   public void setLocksDatabase(final DatabaseConfig locksDatabase) {
     this.locksDatabase = locksDatabase;
-  }
-
-  public String getAuth0Domain() {
-    return auth0Domain;
-  }
-
-  public void setAuth0Domain(final String auth0Domain) {
-    this.auth0Domain = auth0Domain;
   }
 
   public boolean isDeleteBuiltInAdmin() {

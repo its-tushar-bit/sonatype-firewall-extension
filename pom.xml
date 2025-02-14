@@ -298,6 +298,13 @@
         <version>3.9.0</version>
       </dependency>
 
+      <!-- Avoid security vulnerabilities -->
+      <dependency>
+        <groupId>net.minidev</groupId>
+        <artifactId>json-smart</artifactId>
+        <version>2.5.2</version>
+      </dependency>
+
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-email</artifactId>

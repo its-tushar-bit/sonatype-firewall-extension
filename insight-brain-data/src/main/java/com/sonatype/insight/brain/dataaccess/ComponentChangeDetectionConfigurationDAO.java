@@ -73,7 +73,11 @@ public class ComponentChangeDetectionConfigurationDAO
     return table.subList(pageStart, pageEnd);
   }
 
-  public record ComponentChangeConfiguration(String purl, String hash, DateTime addedTime)
+  public record ComponentChangeConfiguration(Integer id, String purl, String componentHash,
+                                             String comparisonHash, DateTime addedTime)
   {
+    public ComponentChangeConfiguration(String purl, String comparisonHash, DateTime addedTime) {
+      this(null, purl, null, comparisonHash, addedTime);
+    }
   }
 }

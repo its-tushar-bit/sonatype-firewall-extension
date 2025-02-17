@@ -69,7 +69,7 @@ public class ComponentChangeDetectionConfigurationDAOTest
     assertThat(underTest.getComponents(1, 100).stream()
         .filter(item -> item.purl().equals("purl2"))
         .findFirst()
-        .map(ComponentChangeConfiguration::hash)
+        .map(ComponentChangeConfiguration::comparisonHash)
         .orElse(null))
         .isEqualTo("newHash");
   }

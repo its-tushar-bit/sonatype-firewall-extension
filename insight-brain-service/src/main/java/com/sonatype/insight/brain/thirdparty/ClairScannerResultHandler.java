@@ -155,7 +155,7 @@ public class ClairScannerResultHandler
     coordinateSecurity.setVulnerabilitySource(vulnerabilitySource);
     coordinateSecurity.setSeverityDescription(severityDescription);
     coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
-    thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
+    thirdPartyCoordinateSecurityDAO.insertSafely(tx, coordinateSecurity);
   }
 
   float getSeverity(final String severity) {

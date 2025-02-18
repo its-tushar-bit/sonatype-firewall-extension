@@ -7,13 +7,18 @@ package com.sonatype.insight.brain.roi;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.brain.roi.dtos.RoiConfigurationDTO;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
@@ -42,5 +47,13 @@ public class RoiConfigurationResource
       @PathParam("currencyType") String currencyType)
   {
     return roiConfigurationService.getCurrentAndMinimumValuesByCurrencyType(currencyType);
+  }
+
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.ROI_CONFIG_CREATE)
+  public RoiConfigurationDTO saveRoiConfiguration(RoiConfigurationDTO roiConfigurationDTO) {
+    return roiConfigurationService.saveRoiConfiguration(roiConfigurationDTO);
   }
 }

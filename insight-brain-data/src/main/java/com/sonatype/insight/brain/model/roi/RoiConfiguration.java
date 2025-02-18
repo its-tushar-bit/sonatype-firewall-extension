@@ -236,4 +236,53 @@ public class RoiConfiguration
   public void setId(final String id) {
     this.id = id;
   }
+
+  public RoiConfiguration(
+      final CurrencyTypes currency,
+      final BigDecimal supplyChainAttacksBlocked,
+      final BigDecimal namespaceAttacksBlocked,
+      final BigDecimal safeComponentsAutoSelected)
+  {
+    this.currency = currency;
+    this.supplyChainAttacksBlocked = supplyChainAttacksBlocked;
+    this.namespaceAttacksBlocked = namespaceAttacksBlocked;
+    this.safeComponentsAutoSelected = safeComponentsAutoSelected;
+    developerHourlyRate = BigDecimal.ZERO;
+    this.fixRateHours = 0L;
+    this.securityViolationCriticalValue = BigDecimal.ZERO;
+    this.securityViolationHighValue = BigDecimal.ZERO;
+    this.securityViolationMediumValue = BigDecimal.ZERO;
+    this.securityViolationLowValue = BigDecimal.ZERO;
+  }
+
+  public RoiConfiguration(
+      final CurrencyTypes currency,
+      final BigDecimal developerHourlyRate,
+      final Long fixRateHours,
+      final Boolean securityViolationCriticalEnabled,
+      final BigDecimal securityViolationCriticalValue,
+      final Boolean securityViolationHighEnabled,
+      final BigDecimal securityViolationHighValue,
+      final Boolean securityViolationMediumEnabled,
+      final BigDecimal securityViolationMediumValue,
+      final Boolean securityViolationLowEnabled,
+      final BigDecimal securityViolationLowValue,
+      final Boolean waivedPoliciesCounted)
+  {
+    this.currency = currency;
+    this.developerHourlyRate = developerHourlyRate;
+    this.fixRateHours = fixRateHours;
+    this.securityViolationCriticalEnabled = securityViolationCriticalEnabled;
+    this.securityViolationCriticalValue = securityViolationCriticalValue;
+    this.securityViolationHighEnabled = securityViolationHighEnabled;
+    this.securityViolationHighValue = securityViolationHighValue;
+    this.securityViolationMediumEnabled = securityViolationMediumEnabled;
+    this.securityViolationMediumValue = securityViolationMediumValue;
+    this.securityViolationLowEnabled = securityViolationLowEnabled;
+    this.securityViolationLowValue = securityViolationLowValue;
+    this.waivedPoliciesCounted = waivedPoliciesCounted;
+    safeComponentsAutoSelected = BigDecimal.ZERO;
+    namespaceAttacksBlocked = BigDecimal.ZERO;
+    supplyChainAttacksBlocked = BigDecimal.ZERO;
+  }
 }

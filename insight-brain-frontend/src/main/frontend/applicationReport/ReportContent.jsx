@@ -132,7 +132,7 @@ export default function ReportContent() {
   };
 
   return (
-    <section className="nx-tile iq-app-report__results-table-tile nx-viewport-sized__container">
+    <section className="nx-tile iq-app-report__results-table-tile">
       <div className="nx-tile-header">
         <div className="nx-tile-header__title">
           <NxTooltip title={aggregateByComponentToggleTooltip}>
@@ -161,9 +161,9 @@ export default function ReportContent() {
           </NxButton>
         </div>
       </div>
-      <div className="nx-tile-content nx-viewport-sized__container">
-        <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
-          <NxTable className="nx-table--scrollable nx-table--fixed-layout">
+      <div className="nx-tile-content">
+        <div className="nx-table-container">
+          <NxTable className="nx-table--fixed-layout">
             <NxTableHead>
               <NxTableRow>
                 <NxTableCell

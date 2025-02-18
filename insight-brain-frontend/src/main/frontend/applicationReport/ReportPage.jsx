@@ -102,7 +102,7 @@ export default function ReportPage() {
   return (
     <Fragment>
       {reevaluateMaskState !== null && <NxStatefulSubmitMask success={reevaluateMaskState} message="Re-Evaluating" />}
-      <main id="app-report" className="nx-page-main nx-viewport-sized iq-app-report">
+      <main id="app-report" className="nx-page-main iq-app-report">
         <BackButton />
         <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadReport}>
           <ReportFilterPopover />

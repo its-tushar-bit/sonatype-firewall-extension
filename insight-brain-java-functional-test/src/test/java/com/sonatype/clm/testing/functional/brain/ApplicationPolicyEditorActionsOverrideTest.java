@@ -217,6 +217,8 @@ public class ApplicationPolicyEditorActionsOverrideTest
     actionsTable.overrideParentActions().shouldBe(disabled).shouldNotBe(selected);
 
     testActionsState(actionsTable, disabled);
+
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
   }
 
   @Test
@@ -381,6 +383,106 @@ public class ApplicationPolicyEditorActionsOverrideTest
     actionsTable.operate().warnRadio().shouldNotBe(selected);
     actionsTable.operate().failRadio().shouldNotBe(selected);
     actionsTable.operate().noActionRadio().shouldBe(selected);
+
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+  }
+
+  @Test
+  public void testUpdateButtonNotDisabledForInheritedPolicyWithActionsOverridesOnly() {
+    String inheritedOwnerId = currentOwner.getParentOwnerId();
+    Map<String, String> actions = new HashMap<>();
+    actions.put(Stage.ID_DEVELOP, Action.ID_WARN);
+    actions.put(Stage.ID_BUILD, Action.ID_WARN);
+    assertThat(inheritedOwnerId).isEqualTo(organization.getId());
+    Policy policy = createPolicy(inheritedOwnerId, "ORGANIZATION POLICY", 10, true, actions, Collections.emptyMap());
+
+    refresh();
+
+    OwnerSummaryPage.policyTile().policyList(1).row(1).click();
+    waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
+
+    PolicyInheritsToSection inheritanceSection = PolicyEditorPage.inheritanceSection();
+    inheritanceSection.policyActionsOverrideCheckbox()
+        .shouldBe(disabled)
+        .shouldBe(visible)
+        .shouldBe(selected);
+
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    ActionsSection actionsTable = PolicyEditorPage.actionsSection();
+    ScrollUtil.scrollIntoView(actionsTable.title());
+
+    actionsTable.actionsOverrideSection().shouldBe(visible);
+    actionsTable.overrideParentActions().click();
+    actionsTable.overrideParentActions().shouldBe(selected);
+
+    PolicyEditorPage.savePolicy();
+    
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+  }
+
+  @Test
+  public void testUpdateButtonEnabledForInheritedPolicyWithNotificationOverridesOnly() {
+    String inheritedOwnerId = currentOwner.getParentOwnerId();
+    Map<String, String> actions = new HashMap<>();
+    actions.put(Stage.ID_DEVELOP, Action.ID_WARN);
+    actions.put(Stage.ID_BUILD, Action.ID_WARN);
+    assertThat(inheritedOwnerId).isEqualTo(organization.getId());
+
+    Policy policy = createPolicy(inheritedOwnerId, "ORGANIZATION POLICY", 10, false, actions, Collections.emptyMap());
+    policy.setPolicyNotificationsOverrideAllowed(true);
+    policyDAO.update(policy);
+
+    refresh();
+
+    OwnerSummaryPage.policyTile().policyList(1).row(1).click();
+    waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
+
+    PolicyInheritsToSection inheritanceSection = PolicyEditorPage.inheritanceSection();
+    inheritanceSection.policyNotificationsOverrideCheckbox()
+        .shouldBe(disabled)
+        .shouldBe(visible)
+        .shouldBe(selected);
+
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+  }
+
+  @Test
+  public void testUpdateButtonEnabledForInheritedPolicyWithBothOverridesAllowed() {
+    String inheritedOwnerId = currentOwner.getParentOwnerId();
+    Map<String, String> actions = new HashMap<>();
+    actions.put(Stage.ID_DEVELOP, Action.ID_WARN);
+    actions.put(Stage.ID_BUILD, Action.ID_WARN);
+    assertThat(inheritedOwnerId).isEqualTo(organization.getId());
+
+    //both overrides allowed
+    Policy policy = createPolicy(inheritedOwnerId, "ORGANIZATION POLICY", 10, true, actions, Collections.emptyMap());
+    policy.setPolicyNotificationsOverrideAllowed(true);
+    policyDAO.update(policy);
+
+    refresh();
+
+    OwnerSummaryPage.policyTile().policyList(1).row(1).click();
+    waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
+
+    PolicyInheritsToSection inheritanceSection = PolicyEditorPage.inheritanceSection();
+    inheritanceSection.policyActionsOverrideCheckbox()
+        .shouldBe(disabled)
+        .shouldBe(visible)
+        .shouldBe(selected);
+    inheritanceSection.policyNotificationsOverrideCheckbox()
+        .shouldBe(disabled)
+        .shouldBe(visible)
+        .shouldBe(selected);
+
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    ActionsSection actionsTable = PolicyEditorPage.actionsSection();
+    ScrollUtil.scrollIntoView(actionsTable.title());
+
+    actionsTable.actionsOverrideSection().shouldBe(visible);
+    actionsTable.overrideParentActions().click();
+    actionsTable.overrideParentActions().shouldBe(selected);
 
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
   }

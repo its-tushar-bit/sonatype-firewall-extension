@@ -36,6 +36,7 @@ import {
   existingPolicy,
 } from './mockData';
 import { initialState } from 'MainRoot/OrgsAndPolicies/policySlice';
+import { mergeDeepRight } from 'ramda';
 
 describe('PolicyEditorSpec', () => {
   let initState, sbomState;
@@ -1237,5 +1238,189 @@ describe('PolicyEditorSpec', () => {
 
       expect(inheritance).not.toBeInTheDocument();
     });
+
+    it('disables the Update button when viewing an inherited policy without override permissions', async () => {
+      setInitStateAndMockHttpRequests('organization', ORG_ID, POLICY_ID_OVERRIDE_NOT_ENABLED, true);
+      renderComponent(
+        mergeDeepRight(initState, {
+          orgsAndPolicies: {
+            policy: {
+              ...initialState,
+              isInherited: true,
+              currentPolicy: {
+                ...initialState.currentPolicy,
+                policyActionsOverrideAllowed: false,
+                policyNotificationsOverrideAllowed: false,
+              },
+            },
+          },
+        })
+      );
+
+      const updateButton = await screen.findByText('Update');
+      expect(updateButton).toBeVisible();
+      expect(updateButton).toHaveClass('disabled');
+    });
+
+    it('enables the Update button when viewing an inherited policy with both overrides allowed', async () => {
+      setInitStateAndMockHttpRequests('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_INHERITED, true);
+      renderComponent(
+        mergeDeepRight(initState, {
+          orgsAndPolicies: {
+            policy: {
+              ...initialState,
+              isInherited: true,
+              currentPolicy: {
+                ...initialState.currentPolicy,
+                policyActionsOverrideAllowed: true,
+                policyNotificationsOverrideAllowed: true,
+              },
+            },
+          },
+        })
+      );
+
+      const updateButton = await screen.findByText('Update');
+      expect(updateButton).toBeVisible();
+      expect(updateButton).not.toHaveClass('disabled');
+    });
+
+    it('enables the Update button when viewing an inherited policy with actions override is allowed', async () => {
+      setInitStateAndMockHttpRequests('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_INHERITED, true);
+      renderComponent(
+        mergeDeepRight(initState, {
+          orgsAndPolicies: {
+            policy: {
+              ...initialState,
+              isInherited: true,
+              currentPolicy: {
+                ...initialState.currentPolicy,
+                policyActionsOverrideAllowed: true,
+                policyNotificationsOverrideAllowed: false,
+              },
+            },
+          },
+        })
+      );
+
+      const updateButton = await screen.findByText('Update');
+      expect(updateButton).toBeVisible();
+      expect(updateButton).not.toHaveClass('disabled');
+    });
+
+    it('enables Update button when viewing an inherited policy when only notifications override is allowed', async () => {
+      setInitStateAndMockHttpRequests('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_INHERITED, true);
+      renderComponent(
+        mergeDeepRight(initState, {
+          orgsAndPolicies: {
+            policy: {
+              ...initialState,
+              isInherited: true,
+              currentPolicy: {
+                ...initialState.currentPolicy,
+                policyActionsOverrideAllowed: false,
+                policyNotificationsOverrideAllowed: true,
+              },
+            },
+          },
+        })
+      );
+
+      const updateButton = await screen.findByText('Update');
+      expect(updateButton).toBeVisible();
+      expect(updateButton).not.toHaveClass('disabled');
+    });
+
+    it('disable Update button when viewing an inherited policy when only notifications override is allowed but no edit permission', async () => {
+      setInitStateAndMockHttpRequests('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_INHERITED, true, []);
+      renderComponent(
+        mergeDeepRight(initState, {
+          orgsAndPolicies: {
+            policy: {
+              ...initialState,
+              isInherited: true,
+              currentPolicy: {
+                ...initialState.currentPolicy,
+                policyActionsOverrideAllowed: false,
+                policyNotificationsOverrideAllowed: true,
+              },
+            },
+          },
+        })
+      );
+
+      const updateButton = await screen.findByText('Update');
+      expect(updateButton).toBeVisible();
+      expect(updateButton).toHaveClass('disabled');
+    });
+
+    it('disable Update button when viewing an inherited policy when only actions override is allowed but no edit permission', async () => {
+      setInitStateAndMockHttpRequests('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_INHERITED, true);
+      renderComponent(
+        mergeDeepRight(initState, {
+          orgsAndPolicies: {
+            policy: {
+              ...initialState,
+              isInherited: true,
+              currentPolicy: {
+                ...initialState.currentPolicy,
+                policyActionsOverrideAllowed: true,
+                policyNotificationsOverrideAllowed: false,
+              },
+            },
+          },
+        })
+      );
+
+      const updateButton = await screen.findByText('Update');
+      expect(updateButton).toBeVisible();
+      expect(updateButton).not.toHaveClass('disabled');
+    });
+  });
+
+  it('disable Update button when viewing an inherited policy when both actions and notifications override are allowed but no edit permission', async () => {
+    setInitStateAndMockHttpRequests('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_INHERITED, true, []);
+    renderComponent(
+      mergeDeepRight(initState, {
+        orgsAndPolicies: {
+          policy: {
+            ...initialState,
+            isInherited: true,
+            currentPolicy: {
+              ...initialState.currentPolicy,
+              policyActionsOverrideAllowed: true,
+              policyNotificationsOverrideAllowed: true,
+            },
+          },
+        },
+      })
+    );
+
+    const updateButton = await screen.findByText('Update');
+    expect(updateButton).toBeVisible();
+    expect(updateButton).toHaveClass('disabled');
+  });
+
+  it('disable Update button when viewing an inherited policy when both actions and notifications override are not allowed and no edit permission', async () => {
+    setInitStateAndMockHttpRequests('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_INHERITED, true, []);
+    renderComponent(
+      mergeDeepRight(initState, {
+        orgsAndPolicies: {
+          policy: {
+            ...initialState,
+            isInherited: true,
+            currentPolicy: {
+              ...initialState.currentPolicy,
+              policyActionsOverrideAllowed: false,
+              policyNotificationsOverrideAllowed: false,
+            },
+          },
+        },
+      })
+    );
+
+    const updateButton = await screen.findByText('Update');
+    expect(updateButton).toBeVisible();
+    expect(updateButton).toHaveClass('disabled');
   });
 });

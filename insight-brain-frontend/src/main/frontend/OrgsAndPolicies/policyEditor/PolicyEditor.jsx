@@ -247,6 +247,14 @@ export default function PolicyEditor() {
       return false;
     }
 
+    if (isInherited) {
+      // Check if policy allows overrides and we have permission
+      return !(
+        hasEditIqPermission &&
+        (dirtyPolicy?.policyActionsOverrideAllowed || dirtyPolicy?.policyNotificationsOverrideAllowed)
+      );
+    }
+
     return !hasEditIqPermission;
   }
 }

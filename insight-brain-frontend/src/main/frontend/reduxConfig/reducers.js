@@ -108,6 +108,7 @@ import sbomApplicationsPageSlice from 'MainRoot/sbomManager/features/sbomApplica
 import sbomExportSlice from 'MainRoot/sbomManager/features/sbomExport/sbomExportSlice';
 import autoWaiverDetailsSlice from 'MainRoot/waivers/waiverDetails/autoWaiverDetailsSlice';
 import applicationLatestEvaluationsSlice from 'MainRoot/applicationLatestEvaluations/applicationLatestEvaluationsSlice';
+import roiFirewallMetricsSlice from 'MainRoot/firewall/roiMetrics/roiFirewallMetricsSlice';
 import roiConfigurationPageSlice from 'MainRoot/configuration/roiConfiguration/roiConfigurationPageSlice';
 import editRoiConfigurationPageSlice from 'MainRoot/configuration/editRoiConfiguration/editRoiConfigurationPageSlice';
 
@@ -216,6 +217,7 @@ export default combineReducers({
   sbomApplicationsPage: sbomApplicationsPageSlice,
   autoWaiverDetails: autoWaiverDetailsSlice,
   applicationLatestEvaluations: applicationLatestEvaluationsSlice,
+  roiFirewallMetrics: roiFirewallMetricsSlice,
   roiConfigurationPage: roiConfigurationPageSlice,
   editRoiConfigurationPage: editRoiConfigurationPageSlice,
 });

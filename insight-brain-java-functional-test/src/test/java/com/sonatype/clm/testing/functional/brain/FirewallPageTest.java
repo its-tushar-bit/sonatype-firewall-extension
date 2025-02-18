@@ -18,11 +18,13 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxTableHeader;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.FirewallAutoUnquarantinePage;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallMetricsContent;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallQuarantineTable;
+import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.RoiFirewallMetrics;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
@@ -43,6 +45,10 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -61,6 +67,7 @@ import org.openqa.selenium.support.ui.Wait;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -909,5 +916,85 @@ public class FirewallPageTest
         = page.firewallMetricsContent(componentsWaivedMetricId);
     componentsWaivedMetric.link().click();
     page.firewallWaiversTable().shouldBe(visible);
+  }
+
+  @Test
+  public void testRoiFirewallMetrics_rendersCorrectly() {
+    String malwareAttackPreventedSelector = "malware-attacks-prevented";
+    String namespaceAttacksPreventedSelector = "namespace-attacks-prevented";
+    String safeComponentsAutoSelectedSelector = "safe-components-auto-selected";
+
+    refreshOrOpen(FirewallPage.roiTabUrl());
+    page.roiFirewallMetricsTab().click();
+    RoiFirewallMetrics roiFirewallMetrics = page.roiFirewallMetrics();
+    roiFirewallMetrics.title().shouldHave(text("Return on Investment (ROI)"));
+    roiFirewallMetrics.total().shouldHave(text("Total USD Saved$600,000"));
+    
+    roiFirewallMetrics.contentHeader(malwareAttackPreventedSelector)
+        .shouldHave(text("Malware attacks prevented"));
+    roiFirewallMetrics.contentHeader(namespaceAttacksPreventedSelector)
+        .shouldHave(text("Namespace attacks prevented"));
+    roiFirewallMetrics.contentHeader(safeComponentsAutoSelectedSelector)
+        .shouldHave(text("Safe Components Auto-selected"));
+
+    roiFirewallMetrics.contentHeaderTooltipIcon(malwareAttackPreventedSelector).hover();
+    Tooltip.get().shouldBe(visible)
+        .shouldHave(text(
+        "Determined based on the number of Malware attacks prevented and the ROI value configured per attack.")
+    );
+    roiFirewallMetrics.contentHeaderTooltipIcon(namespaceAttacksPreventedSelector).hover();
+    Tooltip.get().shouldBe(visible)
+        .shouldHave(text(
+        "Determined based on the number of namespace attacks protected and the ROI value configured per attack.")
+    );
+    roiFirewallMetrics.contentHeaderTooltipIcon(safeComponentsAutoSelectedSelector).hover();
+    Tooltip.get().shouldBe(visible)
+        .shouldHave(text(
+        "Determined based on the number of safe components auto-selected and the ROI value configured per attack.")
+    );
+    
+    roiFirewallMetrics.contentValue(malwareAttackPreventedSelector).shouldHave(text("$100,000"));
+    roiFirewallMetrics.contentValue(namespaceAttacksPreventedSelector).shouldHave(text("$200,000"));
+    roiFirewallMetrics.contentValue(safeComponentsAutoSelectedSelector).shouldHave(text("$300,000"));
+  }
+    
+  @Test
+  public void testRoiFirewallMetrics_rendersCorrectDescriptionForSystemAdmin() {
+    String roiFirewallMetricsDescriptionConfigurePermission = "The metrics below highlights the Return on " +
+        "Investment (ROI) of your organization’s partnership with Sonatype. Configure the values for each " +
+        "category based on your industry to provide accurate results. Configure ROI values";
+
+    refreshOrOpen(FirewallPage.roiTabUrl());
+    page.roiFirewallMetricsTab().click();
+    RoiFirewallMetrics roiFirewallMetrics = page.roiFirewallMetrics();
+    roiFirewallMetrics.description().shouldHave(text(roiFirewallMetricsDescriptionConfigurePermission));
+  }
+    
+  @Test
+  public void testRoiFirewallMetrics_rendersCorrectDescriptionForNotSystemAdmin() {
+    String roiFirewallMetricsDescriptionNoConfigurePermission = "The metrics below highlights the Return on " +
+        "Investment (ROI) of your organization’s partnership with Sonatype.";
+    User user = tempEntity.newUser("john.doe", "John", "Doe", "john@doe.com");
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.POLICY_ADMIN_ROLE_ID, "john.doe",
+        MemberType.USER);
+
+    refreshOrOpen(FirewallPage.url());
+    logout();
+    login(user.getUsername(), user.getPassword());
+    refreshOrOpen(FirewallPage.roiTabUrl());
+    page.roiFirewallMetricsTab().click();
+    RoiFirewallMetrics roiFirewallMetrics = page.roiFirewallMetrics();
+    roiFirewallMetrics.description().shouldHave(text(roiFirewallMetricsDescriptionNoConfigurePermission));
+    
+    logout();
+    refreshOrOpen(FirewallPage.url());
+    loginAsAdmin();
+  }
+    
+  @Test
+  public void testRoiFirewallMetrics_tabDoesNotRenderIfUrlDoesNotHaveQueryParam() {
+    refreshOrOpen(FirewallPage.url());
+    page.roiFirewallMetricsTab().shouldNot(exist);
+    page.roiFirewallMetrics().shouldNot(exist);
   }
 }

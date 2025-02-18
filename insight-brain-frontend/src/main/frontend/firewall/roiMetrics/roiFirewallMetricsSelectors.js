@@ -4,6 +4,5 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-export const QUARANTINE = 'quarantine';
-export const WAIVERS = 'waivers';
-export const ROI = 'roi';
+import { prop } from 'ramda';
+export const selectRoiFirewallMetrics = prop('roiFirewallMetrics');

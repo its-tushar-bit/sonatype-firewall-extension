@@ -12,7 +12,7 @@ import firewall from './firewall';
 import FirewallComponentDetailsPage from './firewallComponentDetailsPage/FirewallComponentDetailsPage';
 import { selectIsDirty as policyEditorSelectIsDirty } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS_ENABLED } from 'MainRoot/utility/services/routeStateUtilService';
-import { QUARANTINE, WAIVERS } from 'MainRoot/firewall/firewallConstants';
+import { QUARANTINE, WAIVERS, ROI } from 'MainRoot/firewall/firewallConstants';
 
 export default angular
   .module('firewallModule', ['ngRedux'])
@@ -66,7 +66,7 @@ function routes($stateProvider) {
       redirectTo: 'root',
     })
     .state('firewall.firewallPage', {
-      url: '/dashboard',
+      url: '/dashboard?roiEnabled',
       component: 'firewallPage',
       data: {
         title: 'Firewall Dashboard',
@@ -84,6 +84,13 @@ function routes($stateProvider) {
       data: {
         title: 'Firewall Dashboard - Waivers',
         activeTab: WAIVERS,
+      },
+    })
+    .state('firewall.firewallPage.roi', {
+      url: '/roi',
+      data: {
+        title: 'Firewall Dashboard - ROI',
+        activeTab: ROI,
       },
     })
     .state('firewall.waiver', {

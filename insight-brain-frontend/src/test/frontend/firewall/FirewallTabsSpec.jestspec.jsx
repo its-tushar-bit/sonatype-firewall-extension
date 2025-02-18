@@ -10,7 +10,7 @@ import { screen, fireEvent } from '@testing-library/react';
 
 import { render } from 'TestRoot/SpecUtil';
 import FirewallTabs from 'MainRoot/firewall/FirewallTabs';
-import { QUARANTINE, WAIVERS } from 'MainRoot/firewall/firewallConstants';
+import { QUARANTINE, WAIVERS, ROI } from 'MainRoot/firewall/firewallConstants';
 
 describe('FirewallTabs', () => {
   const loadQuarantineList = jest.fn();
@@ -34,6 +34,8 @@ describe('FirewallTabs', () => {
   const lastUpdated = {};
   const goToRepositoryComponentDetailsPage = jest.fn();
   const stateGo = jest.fn();
+  const roiTabEnabled = { currentParams: { roiEnabled: 'test' } };
+  const roiTabDisabled = { currentParams: { roiEnabled: undefined } };
 
   const props = {
     loadQuarantineList,
@@ -57,7 +59,10 @@ describe('FirewallTabs', () => {
     lastUpdated,
     goToRepositoryComponentDetailsPage,
     stateGo,
+    router: roiTabEnabled,
   };
+
+  const propsRoiTabDisabled = { ...props, router: roiTabDisabled };
 
   const quarantineTabTestId = `firewall-${QUARANTINE}-tab`;
   const quarantineTabPanelTestId = `firewall-${QUARANTINE}-tab-panel`;
@@ -65,11 +70,26 @@ describe('FirewallTabs', () => {
   const waiversTabTestId = `firewall-${WAIVERS}-tab`;
   const waiversTabPanelTestId = `firewall-${WAIVERS}-tab-panel`;
 
+  const roiTabTestId = `firewall-${ROI}-tab`;
+  const roiTabPanelTestId = `firewall-${ROI}-tab-panel`;
+
   it('renders the FirewallTabs component correctly', () => {
     render(<FirewallTabs {...props} />);
 
     expect(screen.getByTestId(quarantineTabTestId)).toBeInTheDocument();
     expect(screen.getByTestId(waiversTabTestId)).toBeInTheDocument();
+  });
+
+  it('renders the ROI tab if roiEnabled param is defined', () => {
+    render(<FirewallTabs {...props} />);
+
+    expect(screen.getByTestId(roiTabTestId)).toBeInTheDocument();
+  });
+
+  it('does not render the ROI tab if roiEnabled param is undefined', () => {
+    render(<FirewallTabs {...propsRoiTabDisabled} />);
+
+    expect(screen.queryByTestId(roiTabTestId)).toBeNull();
   });
 
   it('renders quarantine table when clicking on corresponding tab', () => {
@@ -84,5 +104,12 @@ describe('FirewallTabs', () => {
     fireEvent.click(screen.getByTestId(waiversTabTestId));
 
     expect(screen.getByTestId(waiversTabPanelTestId)).toBeInTheDocument();
+  });
+
+  it('renders ROI content when clicking on corresponding tab', () => {
+    render(<FirewallTabs {...props} />);
+    fireEvent.click(screen.getByTestId(roiTabTestId));
+
+    expect(screen.getByTestId(roiTabPanelTestId)).toBeInTheDocument();
   });
 });

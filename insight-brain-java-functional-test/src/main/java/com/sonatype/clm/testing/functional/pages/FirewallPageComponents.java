@@ -264,4 +264,47 @@ public class FirewallPageComponents
       super(rootSelector, "#firewall-waivers-tab-panel");
     }
   }
+
+  public static class RoiFirewallMetricsTab
+      extends BasicElement<RoiFirewallMetricsTab>
+  {
+    public RoiFirewallMetricsTab(String rootSelector) {
+      super(rootSelector, "#firewall-roi-tab");
+    }
+  }
+  
+  public static class RoiFirewallMetrics
+      extends BasicElement<RoiFirewallMetrics>
+  {
+    public RoiFirewallMetrics(String rootSelector) {
+      super(rootSelector, "#roi-firewall-metrics");
+    }
+    
+    public SelenideElement title() {
+      return child(".roi-firewall-metrics__title");
+    }
+    
+    public SelenideElement description() {
+      return child(".roi-firewall-metrics__description");
+    }
+
+    public SelenideElement total() {
+      return child(".roi-firewall-metrics__total");
+    }
+
+    public SelenideElement contentHeader(String id) {
+      String selector = "h2[data-testid='roi-firewall-metrics-content__title__" + id + "']";
+      return child(selector);
+    }
+
+    public SelenideElement contentHeaderTooltipIcon(String id) {
+      String selector = "svg[data-testid='roi-firewall-metrics-content__tool-tip-title__" + id + "']";
+      return child(selector);
+    }
+
+    public SelenideElement contentValue(String id) {
+      String selector = "div[data-testid='roi-firewall-metrics-content__value__" + id + "']";
+      return child(selector);
+    }
+  }
 }

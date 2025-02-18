@@ -13,8 +13,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.SbomTaxonomy;
@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -212,7 +213,7 @@ public class CycloneDxToCycloneDxExporterTest
   @Test
   public void exportTest_ComponentRef_MatchByComponentIdentity() throws Exception {
     List<String> ignoreFields = new ArrayList<>(List.of(CYCLONEDX_JSON_IGNORE_FIELDS));
-    ignoreFields.addAll(List.of( "components[*].bom-ref", "vulnerabilities[*].affects[*].ref"));
+    ignoreFields.addAll(List.of("components[*].bom-ref", "vulnerabilities[*].affects[*].ref"));
     String testFileName = "test-component-identity-as-component-ref.xml";
     File testBomFile = prepareTestReportFile(testFileName);
     ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
@@ -422,6 +423,72 @@ public class CycloneDxToCycloneDxExporterTest
     assertThatJson(export)
         .whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/output-test-bom-duplicate-vuln.json"));
+  }
+
+  @Test
+  public void testExport_specificSbomVersion_doNotExportOriginalSbomVexInfoWhenNoSonatypeDbRecordsFound()
+      throws Exception
+  {
+    //Given
+    String appId = "hrapp";
+    String testFileName = "test-bom-with-initial-vex.json";
+    File testBomFile = mockSbomFileForApp(appId, getGZippedSbom(testFileName));
+    tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
+    tempEntity.newApplicationWithParent(appId);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(appId, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
+    ThirdPartyFileCoordinate cp1 =
+        tempEntity.newThirdPartyFileCoordinateWithMatchState(thirdPartyFile, "SBOM", "maven",
+            "org.springframework.boot:spring-boot-autoconfigure", "2.0.3.RELEASE", "2b0949b",
+            "pkg:maven/org.springframework.boot/spring-boot-autoconfigure@2.0.3.RELEASE?type=jar", "", "exact");
+
+    // Define some new vulnerability to enforce merge
+    ThirdPartyCoordinateSecurity v1cp1 = tempEntity.newThirdPartyCoordinateSecurity(
+        cp1, "CVE-2018-6341", "DESC CVE-2018-6341", "NVD-link", 6.1d,
+        null, "NVD", "CVSS:3.1", "MEDIUM", "79",
+        "CVSSV3", null, null, "SBOM,Sonatype");
+
+    // Insert in db record of the vulnerability coming from the original SBOM
+    ThirdPartyCoordinateSecurity vulnWithOriginalVexInfoInBom = tempEntity.newThirdPartyCoordinateSecurity(
+        cp1, "CVE-TEST", null, "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-TEST", 7.5d,
+        null, "NVD", "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+        "high", "400", "CVSSV3", null, null,
+        "SBOM");
+
+    // Define VEX records
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(v1cp1,
+        "CVE-2018-6341", "resolved", "code_not_present", "update",
+        "VEX detail");
+
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnWithOriginalVexInfoInBom,
+        "CVE-TEST", "exploitable", "code_not_present", "can_not_fix",
+        "TEST-ORIGINAL-VEX-INFO");
+
+    exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_16, SbomFormat.JSON));
+    String export = exporter.export();
+
+    // Assess the exported bom with augmented data from db
+    assertThatJson(export)
+        .whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS)
+        .isEqualTo(readFileToString("outputs/output-bom-with-vex-exported.json"));
+
+    // Delete all vex info stored in the db associated with this bom and component
+    List<ThirdPartyCoordinateSecurity> v1p1Vulnerabilities = thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(cp1
+        .getId());
+    List<String> vulnIds = v1p1Vulnerabilities.stream().map(ThirdPartyCoordinateSecurity::getId).collect(
+        Collectors.toList());
+    List<ThirdPartyVulnerabilityExploitabilityExchange> vexAnnotationsInDB =
+        thirdPartyVulnerabilityExploitabilityExchangeDAO.getListByCoordinateSecurityIds(vulnIds);
+    vexAnnotationsInDB.forEach(vex -> thirdPartyVulnerabilityExploitabilityExchangeDAO
+        .delete(vex));
+
+    //Export again after deleting all vex info in db
+    exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_16, SbomFormat.JSON));
+    export = exporter.export();
+
+    // Check we are not exporting the original bom vex info, no vex info should be available in the exported file
+    assertThatJson(export)
+        .whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS)
+        .isEqualTo(readFileToString("outputs/output-bom-without-vex-exported.json"));
   }
 
   private void testExportingWebgoatAppWithInputFormatAndOutputFormat(SbomFormat inputFormat, SbomFormat outputFormat)
@@ -670,7 +737,7 @@ public class CycloneDxToCycloneDxExporterTest
 
   private void assertLicenseHasIdentificationSources(License license, String identificationSources) {
     assertThat(CollectionUtils.isEmpty(license.getProperties())).isFalse();
-    Property foundProperty = license.getProperties().stream().filter( property -> property.getName()
+    Property foundProperty = license.getProperties().stream().filter(property -> property.getName()
         .equals(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME)).findFirst().orElse(null);
     assertThat(foundProperty).isNotNull()
         .extracting(Property::getValue)

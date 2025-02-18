@@ -94,14 +94,21 @@ public class SbomExportUtils
     bomVulnerability.setProperties(addOrUpdateBomElementProperty(bomVulnerability.getProperties(),
         SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME, vulnerabilityIdentificationSource));
 
+    // If there is sonatype vex information stored in the database, we use it to augment the original bom
+    Analysis analysis = bomVulnerability.getAnalysis();
     if (sonatypeVexInformation != null) {
-      Analysis analysis = bomVulnerability.getAnalysis();
       if (analysis == null) {
         bomVulnerability.setAnalysis(createVexAnalysisWithSonatypeData(sonatypeVexInformation));
       }
       else {
         updateVexAnalysisWithSonatypeData(analysis, sonatypeVexInformation);
       }
+    }
+    else {
+      // When no vex records were found in the db, this might indicate the vex annotations records might have been
+      // deleted or never existed in first place. In this case, we check if the bom object has initial vex data and set
+      // it to null, as the intention is to augment original bom with db data and not to export the original bom
+      bomVulnerability.setAnalysis(null);
     }
 
     return bomVulnerability;

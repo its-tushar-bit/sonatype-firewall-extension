@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.security;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.apache.shiro.session.ExpiredSessionException;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.mgt.DefaultSessionKey;
 import org.apache.shiro.session.mgt.DelegatingSession;
@@ -51,16 +52,25 @@ public class AbstractUserService
   }
 
   protected void logoutUser(String realmId, String username) {
+    // Shiro validates sessions periodically (see DefaultWebSessionManager.setSessionValidationInterval).
+    // This means sessionDAO.getActiveSessions() may return sessions that are already expired, but were not effectively
+    // expired by Shiro.
+    // If we try to logout a subject with an expired session, we get an ExpiredSessionException.
     for (Session session : sessionDAO.getActiveSessions()) {
-      // Use a delegating session to ensure the session manager handles and persists session changes
-      DelegatingSession delegatingSession =
-          new DelegatingSession(defaultWebSessionManager, new DefaultSessionKey(session.getId()));
-      Subject subject = new Subject.Builder().session(delegatingSession).buildSubject();
-      Object principal = subject.getPrincipal();
-      // if the principal is null, then session either has an anonymous Subject,
-      // or the subject has already been invalidated by shiro
-      if (principal != null && areUsernamesEqual(realmId, username, principal.toString())) {
-        subject.logout();
+      try {
+        // Use a delegating session to ensure the session manager handles and persists session changes
+        DelegatingSession delegatingSession =
+            new DelegatingSession(defaultWebSessionManager, new DefaultSessionKey(session.getId()));
+        Subject subject = new Subject.Builder().session(delegatingSession).buildSubject();
+        Object principal = subject.getPrincipal();
+        // if the principal is null, then session either has an anonymous Subject,
+        // or the subject has already been invalidated by shiro
+        if (principal != null && areUsernamesEqual(realmId, username, principal.toString())) {
+          subject.logout();
+        }
+      }
+      catch (ExpiredSessionException e) {
+        // The session is already expired, which is what we ultimately want.
       }
     }
   }

@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.version.VersionResource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
+import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -170,6 +171,49 @@ public class UserResourceTest
     assertResponseStatus(200, response);
     AuthenticationStatus status = response.getBody(AuthenticationStatus.class);
     assertThat(status.isAuthenticated()).isTrue();
+  }
+
+  @Test
+  public void testDelete_SessionExpired() throws Exception {
+    // Shiro validates sessions periodically (see DefaultWebSessionManager.setSessionValidationInterval).
+    // This means sessionDAO.getActiveSessions() may return sessions that are already expired, but were not effectively
+    // expired by Shiro.
+    // If we try to delete a user and logout a subject with an expired session, shiro throws an ExpiredSessionException.
+    // This test verifies that we handle that exception.
+
+    // Create some user
+    User user = new User("test-user", "test-password", "testFirstName", "testLastName", "test@sonatype.com");
+    HttpResponse response = restRequest().body(user).post();
+    assertResponseStatus(200, response);
+    user = response.getBody(User.class);
+    assertThat(user.getId()).isNotNull();
+
+    DefaultWebSessionManager defaultWebSessionManager = getCLMServer().getInstance(DefaultWebSessionManager.class);
+    long globalSessionTimeout = defaultWebSessionManager.getGlobalSessionTimeout();
+    try {
+      // Set the session timeout to 1 second
+      defaultWebSessionManager.setGlobalSessionTimeout(1000);
+
+      // Log the user in
+      response = sessionRequest().auth(user.getUsername(), "test-password").post();
+      assertResponseStatus(204, response);
+      HttpCookie userCookie = response.getSessionCookie();
+      assertThat(userCookie).isNotNull();
+
+      // Wait for the session to expire
+      Thread.sleep(1001);
+
+      // Delete the user
+      response = restRequest().path("{userId}").parameter(user.getId()).delete();
+      assertResponseStatus(204, response);
+
+      // The user's session should be invalid now
+      response = sessionRequest().cookie(userCookie).get();
+      assertResponseStatus(401, response);
+    }
+    finally {
+      defaultWebSessionManager.setGlobalSessionTimeout(globalSessionTimeout);
+    }
   }
 
   @Test

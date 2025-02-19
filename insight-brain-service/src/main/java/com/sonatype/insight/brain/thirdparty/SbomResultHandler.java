@@ -334,8 +334,9 @@ public class SbomResultHandler
       if (thirdPartyScanContext != null) {
         coordinateSecurity.setSbomMetadataId(thirdPartyScanContext.getSbomMetadataId());
       }
-      thirdPartyCoordinateSecurityDAO.insertSafely(tx, coordinateSecurity);
-      vulnerabilityExploitabilityExchangeSave(vulnerability, coordinateSecurity, tx);
+      if (thirdPartyCoordinateSecurityDAO.insertSafely(tx, coordinateSecurity)) {
+        vulnerabilityExploitabilityExchangeSave(vulnerability, coordinateSecurity, tx);
+      }
     }
   }
 

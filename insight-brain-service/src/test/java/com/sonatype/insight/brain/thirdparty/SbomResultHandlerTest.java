@@ -1940,6 +1940,29 @@ public class SbomResultHandlerTest
     assertThat(coordinateSecurity.getRefId()).hasSize("CVE-2018-7489CVE-2018-7489".length());
   }
 
+  @Test
+  public void testHandleAndFilterContents_duplicateComponentsAndVulnerabilityAware() throws Exception {
+    String fileName = "sbom-duplicate-aware-bom.xml";
+    String sbomContent = getSbomXmlFile(fileName);
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent(fileName, null, null, null, sbomContent);
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata metadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, fileName);
+    ThirdPartyFileCoordinate cp =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "source", "pypi", "numpy", "1.19.0",
+            "c68bdc4f6f12b754bf3e", "pkg:pypi/numpy@1.19.0?extension=zip", "c68bdc4f6f12b754bf3e6ccdb8ab284c6a13c021");
+    //duplciate vulnerability, that exists in the database and also in the ingested sbom
+    tempEntity.newThirdPartyCoordinateSecurity(cp, "CVE-22024-123456", metadata.getId(), "desc", "link", 5.0d,
+        "sevDesc", "1.0.1");
+
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
+    when(thirdPartyScanContext.getSbomMetadataId()).thenReturn(metadata.getId());
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    assertFilteredSbomFile(filteredContent, 1);
+  }
+
   private String getSbomFile(final String fileType, final String fileName) throws Exception {
     URL resource = getClass().getResource("/SbomResultsHandlerTest/" + fileType + "/" + fileName);
     return new String(Files.readAllBytes(Paths.get(resource.toURI())), StandardCharsets.UTF_8);

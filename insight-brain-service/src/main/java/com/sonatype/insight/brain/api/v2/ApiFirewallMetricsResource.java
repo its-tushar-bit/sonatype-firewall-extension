@@ -10,9 +10,12 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.roi.dto.RoiFirewallMetricsDTO;
+import com.sonatype.insight.brain.model.roi.CurrencyTypes;
 import com.sonatype.insight.brain.model.successmetrics.ApiFirewallMetricsResultDTO;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName;
 
@@ -32,6 +35,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class ApiFirewallMetricsResource
 {
   public static final String RESOURCE_PATH = "/api/v2/malware-defense/metrics/embedded";
+
+  public static final String ROI_FIREWALL_METRICS_PATH = "/roi-firewall-metrics/{currencyType}";
 
   private final ApiFirewallMetricsService apiFirewallMetricsService;
 
@@ -57,5 +62,12 @@ public class ApiFirewallMetricsResource
   @Produces(MediaType.APPLICATION_JSON)
   public Map<FirewallMetricsName, ApiFirewallMetricsResultDTO> getFirewallMetrics() {
     return apiFirewallMetricsService.getFirewallMetrics();
+  }
+
+  @GET
+  @Path(ROI_FIREWALL_METRICS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public RoiFirewallMetricsDTO getRoiFirewallMetrics(@PathParam("currencyType") String currencyType) {
+    return apiFirewallMetricsService.getRoiFirewallMetrics(CurrencyTypes.fromString(currencyType));
   }
 }

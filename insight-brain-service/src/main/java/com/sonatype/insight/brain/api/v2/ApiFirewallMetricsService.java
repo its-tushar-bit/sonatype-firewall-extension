@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Iterator;
@@ -16,6 +17,9 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
+import com.sonatype.insight.brain.roi.dto.RoiFirewallMetricsDTO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCategory;
@@ -23,6 +27,9 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.roi.CurrencyTypes;
+import com.sonatype.insight.brain.model.roi.RoiConfiguration;
+import com.sonatype.insight.brain.model.roi.RoiConfigurationDefaultValues;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.successmetrics.ApiFirewallMetricsResultDTO;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
@@ -38,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.NAMESPACE_ATTACKS_BLOCKED;
+import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.SAFE_VERSIONS_SELECTED_AUTOMATICALLY;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.SUPPLY_CHAIN_ATTACKS_BLOCKED;
 import static com.sonatype.insight.brain.utils.DateConverter.toLocalDate;
 
@@ -55,16 +63,24 @@ public class ApiFirewallMetricsService
 
   private final ProductLicense productLicense;
 
+  private final RoiConfigurationDAO roiConfigurationDAO;
+
+  private final RoiConfigurationDefaultValuesDAO roiConfigurationDefaultValuesDAO;
+
   @Inject
   public ApiFirewallMetricsService(
       final FirewallMetricsDAO firewallMetricsDAO,
       final ProductLicense productLicense,
-      final SecurityVulnerabilityCategoryConditionType securityVulnerabilityCategoryConditionType)
+      final SecurityVulnerabilityCategoryConditionType securityVulnerabilityCategoryConditionType,
+      final RoiConfigurationDAO roiConfigurationDAO,
+      final RoiConfigurationDefaultValuesDAO roiConfigurationDefaultValuesDAO)
   {
     this.firewallMetricsDAO = firewallMetricsDAO;
     this.productLicense = productLicense;
     maliciousCodeSummarySuffix = securityVulnerabilityCategoryConditionType.getSupportedOperators().get(0) + " "
         + SecurityVulnerabilityCategory.MALICIOUS_CODE.getName();
+    this.roiConfigurationDAO = roiConfigurationDAO;
+    this.roiConfigurationDefaultValuesDAO = roiConfigurationDefaultValuesDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -159,5 +175,39 @@ public class ApiFirewallMetricsService
       log.error("Error checking Firewal Metrics in repository policy violation with ID {}",
           repositoryPolicyViolation.getId(), e);
     }
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public RoiFirewallMetricsDTO getRoiFirewallMetrics(CurrencyTypes currencyType) {
+    checkProductLicense();
+    checkReadPermission(RepositoryContainer.SINGLETON);
+    Map<FirewallMetricsName, ApiFirewallMetricsResultDTO> firewallMetrics = getFirewallMetrics();
+    RoiConfiguration roiConfiguration = roiConfigurationDAO.getByCurrencyType(currencyType);
+    RoiFirewallMetricsDTO roiMetricsDTO = new RoiFirewallMetricsDTO();
+    if (roiConfiguration != null) {
+      roiMetricsDTO.setCurrency(currencyType);
+      roiMetricsDTO.setNamespaceAttacksBlocked(roiConfiguration.getNamespaceAttacksBlocked()
+          .multiply(BigDecimal.valueOf(firewallMetrics.get(NAMESPACE_ATTACKS_BLOCKED).getFirewallMetricsValue())));
+      roiMetricsDTO.setSafeComponentsAutoSelected(roiConfiguration.getSafeComponentsAutoSelected().multiply(
+          BigDecimal.valueOf(firewallMetrics.get(SAFE_VERSIONS_SELECTED_AUTOMATICALLY).getFirewallMetricsValue())));
+      roiMetricsDTO.setSupplyChainAttacksBlocked(roiConfiguration.getSupplyChainAttacksBlocked()
+          .multiply(BigDecimal.valueOf(firewallMetrics.get(SUPPLY_CHAIN_ATTACKS_BLOCKED).getFirewallMetricsValue())));
+    }
+    else {
+      RoiConfigurationDefaultValues roiConfigurationDefaultValues =
+          roiConfigurationDefaultValuesDAO.getByCurrencyType(currencyType);
+      roiMetricsDTO.setCurrency(currencyType);
+      roiMetricsDTO.setNamespaceAttacksBlocked(roiConfigurationDefaultValues.getNamespaceAttacksBlockedDefault()
+          .multiply(BigDecimal.valueOf(firewallMetrics.get(NAMESPACE_ATTACKS_BLOCKED).getFirewallMetricsValue())));
+      roiMetricsDTO.setSafeComponentsAutoSelected(roiConfigurationDefaultValues.getSafeComponentsAutoSelectedDefault()
+          .multiply(
+              BigDecimal.valueOf(firewallMetrics.get(SAFE_VERSIONS_SELECTED_AUTOMATICALLY).getFirewallMetricsValue())));
+      roiMetricsDTO.setSupplyChainAttacksBlocked(roiConfigurationDefaultValues.getSupplyChainAttacksBlockedDefault()
+          .multiply(BigDecimal.valueOf(firewallMetrics.get(SUPPLY_CHAIN_ATTACKS_BLOCKED).getFirewallMetricsValue())));
+    }
+    roiMetricsDTO.setTotalSaved(
+        roiMetricsDTO.getNamespaceAttacksBlocked().add(roiMetricsDTO.getSafeComponentsAutoSelected())
+            .add(roiMetricsDTO.getSupplyChainAttacksBlocked()));
+    return roiMetricsDTO;
   }
 }

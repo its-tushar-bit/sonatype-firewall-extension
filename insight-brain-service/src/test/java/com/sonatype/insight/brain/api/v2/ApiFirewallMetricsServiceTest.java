@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Collections;
@@ -19,6 +20,8 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
+import com.sonatype.insight.brain.roi.dto.RoiFirewallMetricsDTO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.ProprietaryComponentName;
@@ -34,6 +37,7 @@ import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.policy.facts.TriggerSecurityVulnerabilityWithCategory;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.roi.CurrencyTypes;
 import com.sonatype.insight.brain.model.successmetrics.ApiFirewallMetricsResultDTO;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName;
@@ -71,6 +75,9 @@ public class ApiFirewallMetricsServiceTest
 
   @Inject
   private TestProductLicense testProductLicense;
+
+  @Inject
+  private RoiConfigurationDefaultValuesDAO dao;
 
   @Test
   public void testGetFirewallMetrics() {
@@ -439,5 +446,102 @@ public class ApiFirewallMetricsServiceTest
     repositoryPolicyViolation.setConstraintFacts(constraintFacts);
     repositoryPolicyViolation.setTime(date);
     return repositoryPolicyViolation;
+  }
+
+  @Test
+  public void testGetRoiFirewallMetrics_RoiConfigurationExist() {
+    tempEntity.createRoiConfiguration(
+        CurrencyTypes.USD,
+        BigDecimal.valueOf(100),
+        1448L,
+        true,
+        BigDecimal.valueOf(23000),
+        true,
+        BigDecimal.valueOf(30000),
+        false,
+        BigDecimal.valueOf(45000),
+        false,
+        BigDecimal.valueOf(40000),
+        BigDecimal.valueOf(50000),
+        BigDecimal.valueOf(60000),
+        BigDecimal.valueOf(70000),
+        false
+    );
+    tempEntity.newFirewallMetrics(SUPPLY_CHAIN_ATTACKS_BLOCKED, 10, new Date());
+    tempEntity.newFirewallMetrics(NAMESPACE_ATTACKS_BLOCKED, 10, new Date());
+    tempEntity.newFirewallMetrics(SAFE_VERSIONS_SELECTED_AUTOMATICALLY, 10, new Date(),LocalDate.now());
+    RoiFirewallMetricsDTO roiMetricsDTO = firewallMetricsService.getRoiFirewallMetrics(CurrencyTypes.USD);
+    assertThat(roiMetricsDTO).isNotNull();
+    assertThat(roiMetricsDTO.getCurrency()).isEqualTo(CurrencyTypes.USD);
+    assertThat(roiMetricsDTO.getSupplyChainAttacksBlocked()).isEqualTo(BigDecimal.valueOf(500000));
+    assertThat(roiMetricsDTO.getNamespaceAttacksBlocked()).isEqualTo(BigDecimal.valueOf(600000));
+    assertThat(roiMetricsDTO.getSafeComponentsAutoSelected()).isEqualTo(BigDecimal.valueOf(700000));
+  }
+
+  @Test
+  public void testGetRoiFirewallMetrics_NotFirewallMetricsValues() {
+    tempEntity.createRoiConfiguration(
+        CurrencyTypes.USD,
+        BigDecimal.valueOf(100),
+        1448L,
+        true,
+        BigDecimal.valueOf(23000),
+        true,
+        BigDecimal.valueOf(30000),
+        false,
+        BigDecimal.valueOf(45000),
+        false,
+        BigDecimal.valueOf(40000),
+        BigDecimal.valueOf(50000),
+        BigDecimal.valueOf(60000),
+        BigDecimal.valueOf(70000),
+        false
+    );
+    RoiFirewallMetricsDTO roiMetricsDTO = firewallMetricsService.getRoiFirewallMetrics(CurrencyTypes.USD);
+    assertThat(roiMetricsDTO).isNotNull();
+    assertThat(roiMetricsDTO.getCurrency()).isEqualTo(CurrencyTypes.USD);
+    assertThat(roiMetricsDTO.getSupplyChainAttacksBlocked()).isEqualTo(BigDecimal.valueOf(0));
+    assertThat(roiMetricsDTO.getNamespaceAttacksBlocked()).isEqualTo(BigDecimal.valueOf(0));
+    assertThat(roiMetricsDTO.getSafeComponentsAutoSelected()).isEqualTo(BigDecimal.valueOf(0));
+  }
+
+  @Test
+  public void testGetRoiFirewallMetrics_RoiConfigurationNotExist() {
+    dao.getAll().forEach(dao::delete);
+    tempEntity.createRoiConfigurationDefaultValues(
+        CurrencyTypes.USD,
+        BigDecimal.valueOf(100),
+        BigDecimal.valueOf(50),
+        3600L,
+        1440L,
+        BigDecimal.valueOf(12000),
+        BigDecimal.valueOf(6000),
+        true,
+        BigDecimal.valueOf(24000),
+        BigDecimal.valueOf(12000),
+        true,
+        BigDecimal.valueOf(72000),
+        BigDecimal.valueOf(36000),
+        false,
+        BigDecimal.valueOf(144000),
+        BigDecimal.valueOf(72000),
+        false,
+        BigDecimal.valueOf(4350000),
+        BigDecimal.valueOf(500000),
+        BigDecimal.valueOf(35000),
+        BigDecimal.valueOf(10000),
+        BigDecimal.valueOf(25000),
+        BigDecimal.valueOf(5000),
+        false
+    );
+    tempEntity.newFirewallMetrics(SUPPLY_CHAIN_ATTACKS_BLOCKED, 10, new Date());
+    tempEntity.newFirewallMetrics(NAMESPACE_ATTACKS_BLOCKED, 10, new Date());
+    tempEntity.newFirewallMetrics(SAFE_VERSIONS_SELECTED_AUTOMATICALLY, 10, new Date(),LocalDate.now());
+    RoiFirewallMetricsDTO roiMetricsDTO = firewallMetricsService.getRoiFirewallMetrics(CurrencyTypes.USD);
+    assertThat(roiMetricsDTO).isNotNull();
+    assertThat(roiMetricsDTO.getCurrency()).isEqualTo(CurrencyTypes.USD);
+    assertThat(roiMetricsDTO.getSupplyChainAttacksBlocked()).isEqualTo(BigDecimal.valueOf(43500000));
+    assertThat(roiMetricsDTO.getNamespaceAttacksBlocked()).isEqualTo(BigDecimal.valueOf(350000));
+    assertThat(roiMetricsDTO.getSafeComponentsAutoSelected()).isEqualTo(BigDecimal.valueOf(250000));
   }
 }

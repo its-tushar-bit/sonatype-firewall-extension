@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.solution.Solution;
 import com.sonatype.insight.brain.solution.SolutionResolver;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -111,6 +112,49 @@ public class RoiConfigurationService
           roiConfigurationDefaultValues.getSafeComponentsAutoSelectedMinimum();
     }
     return roiConfigurationCurrentAndMinimumValuesDTO;
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public RoiConfigurationDTO restoreToDefaultValuesByCurrencyType(String currencyType) {
+    CurrencyTypes currencyTypeEnum = CurrencyTypes.fromString(currencyType);
+
+    RoiConfigurationDefaultValues roiConfigurationDefaultValues =
+        roiConfigurationDefaultValuesDAO.getByCurrencyType(currencyTypeEnum);
+
+    RoiConfiguration roiConfiguration = new RoiConfiguration();
+
+    if (roiConfigurationDefaultValues != null) {
+      roiConfiguration.setCurrency(roiConfigurationDefaultValues.getCurrency());
+      roiConfiguration.setDeveloperHourlyRate(roiConfigurationDefaultValues.getDeveloperHourlyRateDefault());
+      roiConfiguration.setFixRateHours(roiConfigurationDefaultValues.getFixRateHoursDefault());
+      roiConfiguration.setSecurityViolationCriticalValue(roiConfigurationDefaultValues
+          .getSecurityViolationCriticalDefault());
+      roiConfiguration.setSecurityViolationCriticalEnabled(roiConfigurationDefaultValues
+          .isSecurityViolationCriticalEnabled());
+      roiConfiguration.setSecurityViolationHighValue(roiConfigurationDefaultValues
+          .getSecurityViolationHighDefault());
+      roiConfiguration.setSecurityViolationHighEnabled(roiConfigurationDefaultValues
+          .isSecurityViolationHighEnabled());
+      roiConfiguration.setSecurityViolationMediumValue(roiConfigurationDefaultValues
+          .getSecurityViolationMediumDefault());
+      roiConfiguration.setSecurityViolationMediumEnabled(roiConfigurationDefaultValues
+          .isSecurityViolationMediumEnabled());
+      roiConfiguration.setSecurityViolationLowValue(roiConfigurationDefaultValues
+          .getSecurityViolationLowDefault());
+      roiConfiguration.setSecurityViolationLowEnabled(roiConfigurationDefaultValues
+          .isSecurityViolationLowEnabled());
+      roiConfiguration.setSupplyChainAttacksBlocked(roiConfigurationDefaultValues
+          .getSupplyChainAttacksBlockedDefault());
+      roiConfiguration.setNamespaceAttacksBlocked(roiConfigurationDefaultValues
+          .getNamespaceAttacksBlockedDefault());
+      roiConfiguration.setSafeComponentsAutoSelected(roiConfigurationDefaultValues
+          .getSafeComponentsAutoSelectedDefault());
+      roiConfiguration.setWaivedPoliciesCounted(roiConfigurationDefaultValues
+          .isWaivedPoliciesCounted());
+
+      return saveRoiConfiguration(mapRoiConfigurationToDTO(roiConfiguration));
+    }
+    throw new NotFoundException("No default configuration values found for currency type " + currencyType + ".");
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)

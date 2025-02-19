@@ -86,6 +86,17 @@ public class RoiConfigurationAuthzTest
     roiConfigurationService.saveRoiConfiguration(getRoiConfigurationDTO());
   }
 
+  @Test(expected = UnauthorizedException.class)
+  public void testRestoreToDefaultValuesByCurrencyType_UnauthorizedException() {
+    login();
+    roiConfigurationService.saveRoiConfiguration(getRoiConfigurationDTO());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testRestoreToDefaultValuesByCurrencyType_Unauthenticated() {
+    roiConfigurationService.saveRoiConfiguration(getRoiConfigurationDTO());
+  }
+
   @Test
   public void testSaveRoiConfiguration() {
     grantConfigureSystemPermission();

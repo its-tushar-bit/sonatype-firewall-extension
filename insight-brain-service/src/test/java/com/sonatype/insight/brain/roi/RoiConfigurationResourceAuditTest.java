@@ -210,4 +210,50 @@ public class RoiConfigurationResourceAuditTest
         roiConfigurationDTO.safeComponentsAutoSelected().toString());
     assertCustomData(auditDTO, "waivedPoliciesCounted", roiConfigurationDTO.waivedPoliciesCounted());
   }
+
+  @Test
+  public void testRestoreToDefaultValuesByCurrencyType() throws Exception {
+    HttpResponse response = restRequest()
+        .parameter("usd")
+        .path(RoiConfigurationResource.ROI_CONFIGURATION_DEFAULT_VALUES_PATH)
+        .post();
+    assertResponseStatus(200, response);
+    RoiConfigurationDTO roiConfigurationActual = response.getBody(RoiConfigurationDTO.class);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.ROI_CONFIG_UPDATE, null);
+    asserDefaultData(auditDTO, roiConfigurationActual);
+  }
+
+  @Test
+  public void testRestoreToDefaultValuesByCurrencyType_unlicensed() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.ROI_CONFIGURATION);
+    HttpResponse response = restRequest()
+        .parameter("usd")
+        .path(RoiConfigurationResource.ROI_CONFIGURATION_DEFAULT_VALUES_PATH)
+        .post();
+    assertResponseStatus(402, response);
+    assertAuditLog(AuditEvent.ROI_CONFIG_UPDATE, "unlicensed");
+  }
+
+  private void asserDefaultData(final AuditDTO auditDTO, RoiConfigurationDTO roiConfigurationDTO) {
+    assertCustomData(auditDTO, "currency", roiConfigurationDTO.currency().toString());
+    assertCustomData(auditDTO, "developerHourlyRate", roiConfigurationDTO.developerHourlyRate().toString());
+    assertCustomData(auditDTO, "fixRateHours", roiConfigurationDTO.fixRateHours().toString());
+    assertCustomData(auditDTO, "securityViolationCriticalEnabled",
+        roiConfigurationDTO.securityViolationCriticalEnabled());
+    assertCustomData(auditDTO, "securityViolationCriticalValue",
+        roiConfigurationDTO.securityViolationCriticalValue().toString());
+    assertCustomData(auditDTO, "securityViolationHighEnabled", roiConfigurationDTO.securityViolationHighEnabled());
+    assertCustomData(auditDTO, "securityViolationHighValue",
+        roiConfigurationDTO.securityViolationHighValue().toString());
+    assertCustomData(auditDTO, "securityViolationMediumEnabled", roiConfigurationDTO.securityViolationMediumEnabled());
+    assertCustomData(auditDTO, "securityViolationMediumValue",
+        roiConfigurationDTO.securityViolationMediumValue().toString());
+    assertCustomData(auditDTO, "securityViolationLowEnabled", roiConfigurationDTO.securityViolationLowEnabled());
+    assertCustomData(auditDTO, "securityViolationLowValue", roiConfigurationDTO.securityViolationLowValue().toString());
+    assertCustomData(auditDTO, "supplyChainAttacksBlocked", roiConfigurationDTO.supplyChainAttacksBlocked().toString());
+    assertCustomData(auditDTO, "namespaceAttacksBlocked", roiConfigurationDTO.namespaceAttacksBlocked().toString());
+    assertCustomData(auditDTO, "safeComponentsAutoSelected",
+        roiConfigurationDTO.safeComponentsAutoSelected().toString());
+    assertCustomData(auditDTO, "waivedPoliciesCounted", roiConfigurationDTO.waivedPoliciesCounted());
+  }
 }

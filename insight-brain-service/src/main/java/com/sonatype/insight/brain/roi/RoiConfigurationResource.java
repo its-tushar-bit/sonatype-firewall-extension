@@ -33,6 +33,8 @@ public class RoiConfigurationResource
 
   public static final String ROI_CONFIGURATION_CURRENCY_PATH = "/currencyType/{currencyType}";
 
+  public static final String ROI_CONFIGURATION_DEFAULT_VALUES_PATH = "/defaultValues/currencyType/{currencyType}";
+
   private RoiConfigurationService roiConfigurationService;
 
   @Inject
@@ -47,6 +49,16 @@ public class RoiConfigurationResource
       @PathParam("currencyType") String currencyType)
   {
     return roiConfigurationService.getCurrentAndMinimumValuesByCurrencyType(currencyType);
+  }
+
+  @POST
+  @Path(ROI_CONFIGURATION_DEFAULT_VALUES_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.ROI_CONFIG_CREATE)
+  public RoiConfigurationDTO restoreToDefaultValuesByCurrencyType(
+      @PathParam("currencyType") String currencyType)
+  {
+    return roiConfigurationService.restoreToDefaultValuesByCurrencyType(currencyType);
   }
 
   @POST

@@ -116,7 +116,7 @@ public class RoiConfigurationServiceTest extends AbstractComponentTest
   }
 
   @Test
-  public void testGetRoiConfigurationByCurrencyType_NotFound() {
+  public void testGetCurrentAndMinimumValuesByCurrencyType_NotFound() {
     tempEntity.createRoiConfiguration(
         CurrencyTypes.USD,
         BigDecimal.valueOf(100),
@@ -134,9 +134,32 @@ public class RoiConfigurationServiceTest extends AbstractComponentTest
         BigDecimal.valueOf(70000),
         false
     );
-    assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> roiConfigurationService.getCurrentAndMinimumValuesByCurrencyType("aud"))
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
+        roiConfigurationService.getCurrentAndMinimumValuesByCurrencyType("aud"))
         .withMessage("Provided currency type aud is not found");
+  }
+
+  @Test
+  public void testRestoreToDefaultValuesByCurrencyType() {
+    RoiConfigurationDTO roiConfigurationDefaultValuesActual =
+        roiConfigurationService.restoreToDefaultValuesByCurrencyType("usd");
+    assertThat(roiConfigurationDefaultValuesActual).isNotNull();
+    assertRoiConfigurationValuesSavedDefaultValues(roiConfigurationDefaultValuesActual);
+  }
+
+  @Test
+  public void testRestoreToDefaultValuesByCurrencyType_CurrencyTypeNotFound() {
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> roiConfigurationService.restoreToDefaultValuesByCurrencyType("aud"))
+        .withMessage("Provided currency type aud is not found");
+  }
+
+  @Test
+  public void testRestoreToDefaultValuesByCurrencyType_DefaultConfigNotFound() {
+    dao.getAll().forEach(dao::delete);
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> roiConfigurationService.restoreToDefaultValuesByCurrencyType("usd"))
+        .withMessage("No default configuration values found for currency type usd.");
   }
 
   @Test
@@ -545,5 +568,25 @@ public class RoiConfigurationServiceTest extends AbstractComponentTest
     assertThat(roiConfiguration.getSupplyChainAttacksBlocked()).isEqualTo(BigDecimal.valueOf(500000));
     assertThat(roiConfiguration.getSafeComponentsAutoSelected()).isEqualTo(BigDecimal.valueOf(700000));
     assertThat(roiConfiguration.isWaivedPoliciesCounted()).isFalse();
+  }
+
+  private void assertRoiConfigurationValuesSavedDefaultValues(
+      RoiConfigurationDTO roiConfiguration)
+  {
+    assertThat(roiConfiguration.currency()).isEqualTo(CurrencyTypes.USD);
+    assertThat(roiConfiguration.fixRateHours()).isEqualTo(3600L);
+    assertThat(roiConfiguration.developerHourlyRate()).isEqualTo(BigDecimal.valueOf(100));
+    assertThat(roiConfiguration.securityViolationCriticalEnabled()).isTrue();
+    assertThat(roiConfiguration.securityViolationCriticalValue()).isEqualTo(BigDecimal.valueOf(12000));
+    assertThat(roiConfiguration.securityViolationHighEnabled()).isTrue();
+    assertThat(roiConfiguration.securityViolationHighValue()).isEqualTo(BigDecimal.valueOf(24000));
+    assertThat(roiConfiguration.securityViolationMediumEnabled()).isFalse();
+    assertThat(roiConfiguration.securityViolationMediumValue()).isEqualTo(BigDecimal.valueOf(72000));
+    assertThat(roiConfiguration.securityViolationLowEnabled()).isFalse();
+    assertThat(roiConfiguration.securityViolationLowValue()).isEqualTo(BigDecimal.valueOf(144000));
+    assertThat(roiConfiguration.namespaceAttacksBlocked()).isEqualTo(BigDecimal.valueOf(35000));
+    assertThat(roiConfiguration.supplyChainAttacksBlocked()).isEqualTo(BigDecimal.valueOf(4350000));
+    assertThat(roiConfiguration.safeComponentsAutoSelected()).isEqualTo(BigDecimal.valueOf(25000));
+    assertThat(roiConfiguration.waivedPoliciesCounted()).isFalse();
   }
 }

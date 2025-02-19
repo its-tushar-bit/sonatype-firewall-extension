@@ -249,4 +249,35 @@ public class RoiConfigurationResourceTest
     assertThat(roiConfiguration.safeComponentsAutoSelectedValueMinimum).isEqualTo(BigDecimal.valueOf(5000));
     assertThat(roiConfiguration.waivedPoliciesCounted).isFalse();
   }
+
+  @Test
+  public void testRestoreToDefaultValuesByCurrencyType_Unlicensed() throws Exception {
+    setMissingFeature(LicensedFeature.ROI_CONFIGURATION);
+    HttpResponse response = restRequest()
+        .parameter("usd")
+        .path(RoiConfigurationResource.ROI_CONFIGURATION_DEFAULT_VALUES_PATH)
+        .post();
+    assertResponseStatus(402, response);
+  }
+
+  @Test
+  public void testRestoreToDefaultValuesByCurrencyType() throws Exception {
+    HttpResponse response = restRequest()
+        .parameter("usd")
+        .path(RoiConfigurationResource.ROI_CONFIGURATION_DEFAULT_VALUES_PATH)
+        .post();
+    assertResponseStatus(200, response);
+    RoiConfigurationDTO roiConfigurationActual = response.getBody(RoiConfigurationDTO.class);
+    assertThat(roiConfigurationActual).isNotNull();
+    assertThat(roiConfigurationActual.currency()).isEqualTo(CurrencyTypes.USD);
+    assertThat(roiConfigurationActual.developerHourlyRate()).isEqualTo(BigDecimal.valueOf(100));
+    assertThat(roiConfigurationActual.fixRateHours()).isEqualTo(3600L);
+    assertThat(roiConfigurationActual.securityViolationCriticalEnabled()).isTrue();
+    assertThat(roiConfigurationActual.securityViolationCriticalValue()).isEqualTo(BigDecimal.valueOf(12000));
+    assertThat(roiConfigurationActual.securityViolationHighEnabled()).isTrue();
+    assertThat(roiConfigurationActual.securityViolationHighValue()).isEqualTo(BigDecimal.valueOf(24000));
+    assertThat(roiConfigurationActual.securityViolationMediumEnabled()).isFalse();
+    assertThat(roiConfigurationActual.securityViolationMediumValue()).isEqualTo(BigDecimal.valueOf(72000));
+    assertThat(roiConfigurationActual.securityViolationLowEnabled()).isFalse();
+  }
 }

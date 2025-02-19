@@ -45,6 +45,10 @@ import static org.mockito.Mockito.verifyNoInteractions;
 public class SimpleConfigurationMigratorTest
     extends AbstractComponentTest
 {
+  private static final String DISABLE_CONAN_NAMESPACE_MATCHING = "disableConanNamespaceMatching";
+
+  private static final String ENABLE_CPE_DATA_MATCHING = "enableCpeDataMatching";
+
   private static final String EXPECTED_OBSOLETE_SUFFIX = " is now configured using the REST API. " +
       "The configuration in the config.yml or via system properties is obsolete.";
 
@@ -586,7 +590,7 @@ public class SimpleConfigurationMigratorTest
   @Test
   public void testMigrate_MatcherConfiguration_DisableConanNamespaceMatching() {
     Map<String, String> matcherConfiguration = new HashMap<>();
-    matcherConfiguration.put("disableConanNamespaceMatching", "true");
+    matcherConfiguration.put(DISABLE_CONAN_NAMESPACE_MATCHING, "true");
     insightConfig.setMatcherConfiguration(matcherConfiguration);
 
     simpleConfigurationMigrator.migrate();
@@ -597,6 +601,24 @@ public class SimpleConfigurationMigratorTest
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING));
+    verifyNoInteractions(mockConfigFeaturesService);
+    assertThat(migrationTrackerDAO.isTrackerPresent(SimpleConfigurationMigrator.MIGRATION_ID)).isTrue();
+  }
+
+  @Test
+  public void testMigrate_MatcherConfiguration_PublicDataSourceCPE() {
+    Map<String, String> matcherConfiguration = new HashMap<>();
+    matcherConfiguration.put(ENABLE_CPE_DATA_MATCHING, "true");
+    insightConfig.setMatcherConfiguration(matcherConfiguration);
+
+    simpleConfigurationMigrator.migrate();
+
+    assertThat(configurationService.getConfigurationNoAuthz(
+        SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING)).isEqualTo(true);
+    logOutput.assertThat().atWarnLevel().contains(
+        SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING + EXPECTED_OBSOLETE_SUFFIX);
+    verify(mockConfigurationService).applyConfigurationToClients(
+        Sets.newHashSet(SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING));
     verifyNoInteractions(mockConfigFeaturesService);
     assertThat(migrationTrackerDAO.isTrackerPresent(SimpleConfigurationMigrator.MIGRATION_ID)).isTrue();
   }
@@ -852,7 +874,8 @@ public class SimpleConfigurationMigratorTest
     insightConfig.setExternalHyperlinksAllowed(!(boolean) configurationService.getConfigurationNoAuthz(
         SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED));
     Map<String, String> matcherConfiguration = new HashMap<>();
-    matcherConfiguration.put("disableConanNamespaceMatching", "true");
+    matcherConfiguration.put(DISABLE_CONAN_NAMESPACE_MATCHING, "true");
+    matcherConfiguration.put(ENABLE_CPE_DATA_MATCHING, "true");
     insightConfig.setMatcherConfiguration(matcherConfiguration);
     insightConfig.setFeatures(Arrays.stream(Feature.values()).collect(Collectors.toMap(Feature::getFlag, f -> false)));
   }

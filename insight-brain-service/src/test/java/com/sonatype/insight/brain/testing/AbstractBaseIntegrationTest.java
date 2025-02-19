@@ -405,6 +405,7 @@ public abstract class AbstractBaseIntegrationTest
             SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
             SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
             SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
+            SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING,
             SystemConfigurationProperty.ACCESS_ALLOWLIST, SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED,
             SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
             SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED,

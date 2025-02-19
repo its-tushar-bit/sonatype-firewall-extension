@@ -21,15 +21,15 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentTransitivePolicyViolationsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrossStageViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
-import com.sonatype.insight.brain.api.v2.service.PolicyViolationType;
-import com.sonatype.insight.brain.api.v2.service.autowaivers.ApiAutoPolicyWaiverService;
+import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyViolationServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
+import com.sonatype.insight.brain.api.v2.service.PolicyViolationType;
+import com.sonatype.insight.brain.api.v2.service.autowaivers.ApiAutoPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -109,9 +109,14 @@ public class ApiPolicyViolationResourceV2
       responses = {
           @ApiResponse(responseCode = "200",
               description = "The response contains the details of the application that violates the policy/policies " +
-                  "and violation details grouped under the policyIds provided. " +
-                  "`openTime` indicates the date and time when the violation was first detected. " +
-                  "`reference` is the reference data that triggered the violation.",
+                  "and violation details grouped under the policyIds provided. It contains:" +
+                  "<ul>" +
+                  "<li>`openTime` indicates the date and time when the violation was first detected.</li>" +
+                  "<li>`waiveTime` indicates the date and time when the violation was waived.</li>" +
+                  "<li>`legacyTime` indicates the date and time when the violation was assigned as a legacy" +
+                  " violation.</li>" +
+                  "<li>`reference` is the reference data that triggered the violation.</li>" +
+                  "</ul>",
               useReturnTypeSchema = true)
       })
   public ApiApplicationViolationListDTOV2 getPolicyViolations(

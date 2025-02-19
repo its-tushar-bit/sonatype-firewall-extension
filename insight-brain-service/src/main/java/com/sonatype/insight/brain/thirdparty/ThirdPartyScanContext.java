@@ -35,7 +35,7 @@ public class ThirdPartyScanContext
 
   private String sbomMetadataId;
 
-  private boolean isValid;
+  private Boolean isValid;
 
   private final List<String> containerUriPaths = new ArrayList<>();
 
@@ -125,11 +125,11 @@ public class ThirdPartyScanContext
     return scanType;
   }
 
-  public boolean isValid() {
+  public Boolean isValid() {
     return isValid;
   }
 
-  public void setIsValid(final boolean isValid) {
+  public void setIsValid(final Boolean isValid) {
     this.isValid = isValid;
   }
 

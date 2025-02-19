@@ -229,9 +229,6 @@ public class ScanUploadService
         thirdPartyScanContext.markSbomSavedForScan();
       }
     }
-    else {
-      thirdPartyScanContext.setIsValid(true);
-    }
     return thirdPartyScanContext;
   }
 }

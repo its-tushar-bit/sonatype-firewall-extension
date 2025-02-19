@@ -114,6 +114,9 @@ public class SpdxResultHandlerTest
     thirdPartyScanContext = mock(ThirdPartyScanContext.class);
     multiLicenseDAO = daoFactory.createMultiLicenseDAO();
     fileCoordinatePersister = new DuplicateAwareThirdPartyFileCoordinatePersister(thirdPartyFileCoordinateDAO);
+    // Mockito mocks with Boolean values return false by default instead of null
+    // Change it to return null since we rely on this value
+    when(thirdPartyScanContext.isValid()).thenReturn(null);
     spdxResultHandler =
         new SpdxResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
@@ -246,26 +249,103 @@ public class SpdxResultHandlerTest
   }
 
   @Test
-  public void testHandleAndFilterContents_invalid_Xml() throws Exception {
-    testHandleAndFilterContents_invalid_isValidTrue(getSbomXmlFile("spdx-invalid.xml"), "spdx-invalid.xml");
+  public void testHandleAndFilterContents_invalid_isValidNull_Xml() throws Exception {
+    testHandleAndFilterContents_invalid_isValidNull(getSbomXmlFile("spdx-invalid.xml"), "spdx-invalid.xml");
+    spdxResultHandler =
+        new SpdxResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
+            thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
+            telemetryUtils, telemetrySender, null);
+    testHandleAndFilterContents_invalid_isValidNull(getSbomXmlFile("spdx-invalid.xml"), "spdx-invalid.xml");
   }
 
   @Test
-  public void testHandleAndFilterContents_invalid_Json() throws Exception {
-    testHandleAndFilterContents_invalid_isValidTrue(getSbomJsonFile("spdx-invalid.json"), "spdx-invalid.json");
+  public void testHandleAndFilterContents_invalid_isValidNull_Json() throws Exception {
+    testHandleAndFilterContents_invalid_isValidNull(getSbomJsonFile("spdx-invalid.json"), "spdx-invalid.json");
+    spdxResultHandler =
+        new SpdxResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
+            thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
+            telemetryUtils, telemetrySender, null);
+    testHandleAndFilterContents_invalid_isValidNull(getSbomJsonFile("spdx-invalid.json"), "spdx-invalid.json");
+  }
+
+  private void testHandleAndFilterContents_invalid_isValidNull(String sbomContent, String path) {
+    ThirdPartyScanContent content = new ThirdPartyScanContent(path, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(
+            () -> spdxResultHandler.handleAndFilterContents(content, thirdPartyFile))
+        .withMessage("Error filtering SPDX file " + path);
+
+    assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId())).isEmpty();
   }
 
   @Test
-  public void testHandleAndFilterContents_invalid_Xml_isValidFalse() throws Exception {
-    when(thirdPartyScanContext.isValid()).thenReturn(false);
+  public void testHandleAndFilterContents_invalid_isValidNull_skipSbomImportValidation_Xml() throws Exception {
+    testHandleAndFilterContents_invalid_isValidNull_skipSbomImportValidation(getSbomXmlFile("spdx-invalid.xml"),
+        "spdx-invalid.xml");
+    spdxResultHandler =
+        new SpdxResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
+            thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
+            telemetryUtils, telemetrySender, null);
+    testHandleAndFilterContents_invalid_isValidNull_skipSbomImportValidation(getSbomXmlFile("spdx-invalid.xml"),
+        "spdx-invalid.xml");
+  }
 
-    String sbomContent = getSbomXmlFile("invalid-spdx-v2_3.xml");
-    ThirdPartyScanContent content = new ThirdPartyScanContent("invalid-spdx-v2_3.xml", null, null, null, sbomContent);
+  @Test
+  public void testHandleAndFilterContents_invalid_isValidNull_skipSbomImportValidation_Json() throws Exception {
+    testHandleAndFilterContents_invalid_isValidNull_skipSbomImportValidation(getSbomJsonFile("spdx-invalid.json"),
+        "spdx-invalid.json");
+    spdxResultHandler =
+        new SpdxResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
+            thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
+            telemetryUtils, telemetrySender, null);
+    testHandleAndFilterContents_invalid_isValidNull_skipSbomImportValidation(getSbomJsonFile("spdx-invalid.json"),
+        "spdx-invalid.json");
+  }
+
+  private void testHandleAndFilterContents_invalid_isValidNull_skipSbomImportValidation(
+      String sbomContent,
+      String path)
+  {
+    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
+
+    ThirdPartyScanContent content = new ThirdPartyScanContent(path, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     FilteredThirdPartyContent filteredThirdPartyContent =
         spdxResultHandler.handleAndFilterContents(content, thirdPartyFile);
     assertThat(filteredThirdPartyContent.hasErrors()).isTrue();
+  }
+
+  @Test
+  public void testHandleAndFilterContents_invalid_isValidFalse_Xml() throws Exception {
+    testHandleAndFilterContents_invalid_isValidFalse(getSbomXmlFile("spdx-invalid.xml"), "spdx-invalid.xml");
+  }
+
+  @Test
+  public void testHandleAndFilterContents_invalid_isValidFalse_Json() throws Exception {
+    testHandleAndFilterContents_invalid_isValidFalse(getSbomJsonFile("spdx-invalid.json"), "spdx-invalid.json");
+  }
+
+  private void testHandleAndFilterContents_invalid_isValidFalse(String sbomContent, String path) {
+    when(thirdPartyScanContext.isValid()).thenReturn(false);
+
+    ThirdPartyScanContent content = new ThirdPartyScanContent(path, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    FilteredThirdPartyContent filteredThirdPartyContent =
+        spdxResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredThirdPartyContent.hasErrors()).isTrue();
+  }
+
+  @Test
+  public void testHandleAndFilterContents_invalid_isValidTrue_Xml() throws Exception {
+    testHandleAndFilterContents_invalid_isValidTrue(getSbomXmlFile("spdx-invalid.xml"), "spdx-invalid.xml");
+  }
+
+  @Test
+  public void testHandleAndFilterContents_invalid_isValidTrue_Json() throws Exception {
+    testHandleAndFilterContents_invalid_isValidTrue(getSbomJsonFile("spdx-invalid.json"), "spdx-invalid.json");
   }
 
   private void testHandleAndFilterContents_invalid_isValidTrue(String sbomContent, String path) {

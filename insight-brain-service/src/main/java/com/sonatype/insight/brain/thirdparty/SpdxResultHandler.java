@@ -47,6 +47,7 @@ import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.SbomProcessingException;
+import com.sonatype.insight.scan.file.SbomValidationException;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -120,17 +121,18 @@ public class SpdxResultHandler
   {
     try {
       if (StringUtils.isNotBlank(content.getContent())) {
-        SpdxDocument spdxDocument = parseSpdxContent(content);
+        Pair<SpdxDocument, Boolean> spdxDocumentAndIsValid = parseSpdxContent(content);
+        SpdxDocument spdxDocument = spdxDocumentAndIsValid.getLeft();
+        boolean isValid = spdxDocumentAndIsValid.getRight();
         Bom targetBom = new Bom();
         List<ProjectScanItem> moduleDependencies = new ArrayList<>();
 
         log.info("Processing SPDX content for file: {}", content.getPath());
-        processSpdxDocument(content.getPath(), spdxDocument, targetBom, thirdPartyFile, moduleDependencies);
+        processSpdxDocument(content.getPath(), spdxDocument, targetBom, thirdPartyFile, moduleDependencies, isValid);
         componentInfoTelemetry.setSpec(SPDX.name());
         componentInfoTelemetry.setSpecVersion(spdxDocument.getSpecVersion());
         componentInfoTelemetry.setHasDependencies(!moduleDependencies.isEmpty());
 
-        boolean isValid = isValid();
         TelemetryData thirdPartyScanComponentInfoTelemetryData =
             telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry,
                 SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled(), isValid);
@@ -148,17 +150,34 @@ public class SpdxResultHandler
     }
   }
 
-  private SpdxDocument parseSpdxContent(final ThirdPartyScanContent content)
+  private Pair<SpdxDocument, Boolean> parseSpdxContent(final ThirdPartyScanContent content)
       throws SbomProcessingException
   {
     String extension = FilenameUtils.getExtension(content.getPath());
     SbomFormat sbomFormat = SbomFormat.forString(extension.toLowerCase(Locale.ROOT));
     componentInfoTelemetry.setContentType(sbomFormat.name());
 
-    if (isValid()) {
-      return ThirdPartyUtils.parseAndValidateSpdx(content.getContent(), sbomFormat);
+    Boolean isValid = thirdPartyScanContext == null ? null : thirdPartyScanContext.isValid();
+
+    if (isValid == null) {
+      try {
+        return Pair.of(ThirdPartyUtils.parseAndValidateSpdx(content.getContent(), sbomFormat), true);
+      }
+      catch (SbomValidationException e) {
+        if (SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled()) {
+          return Pair.of(ThirdPartyUtils.parseSpdxWithNoValidation(content.getContent(), sbomFormat), false);
+        }
+        else {
+          throw e;
+        }
+      }
     }
-    return ThirdPartyUtils.parseSpdxWithNoValidation(content.getContent(), sbomFormat);
+    else if (isValid) {
+      return Pair.of(ThirdPartyUtils.parseAndValidateSpdx(content.getContent(), sbomFormat), true);
+    }
+    else {
+      return Pair.of(ThirdPartyUtils.parseSpdxWithNoValidation(content.getContent(), sbomFormat), false);
+    }
   }
 
   private void processSpdxDocument(
@@ -166,7 +185,8 @@ public class SpdxResultHandler
       final SpdxDocument spdxDocument,
       final Bom targetBom,
       final ThirdPartyFile thirdPartyFile,
-      final List<ProjectScanItem> moduleDependencies) throws InvalidSPDXAnalysisException
+      final List<ProjectScanItem> moduleDependencies,
+      final boolean isValid) throws InvalidSPDXAnalysisException
   {
     String thirdPartyIdentificationSource =
         getTruncatedThirdPartyIdentificationSource(determineThirdPartyIdentificationSource(contentPath));
@@ -175,10 +195,10 @@ public class SpdxResultHandler
       String rootPackageId = collectFilteredMetadata(spdxDocument, targetBom);
       Map<String, String> componentRefs = new HashMap<>();
       processComponents(spdxDocument, targetBom, componentRefs, rootPackageId, thirdPartyIdentificationSource,
-          thirdPartyFile, tx);
+          thirdPartyFile, tx, isValid);
       tx.commit();
     }
-    if (isValid()) {
+    if (isValid) {
       processDependencyGraph(spdxDocument, targetBom, moduleDependencies, thirdPartyFile);
     }
   }
@@ -190,7 +210,8 @@ public class SpdxResultHandler
       final String rootPackageId,
       final String thirdPartyIdentificationSource,
       final ThirdPartyFile thirdPartyFile,
-      final TransactionContext tx) throws InvalidSPDXAnalysisException
+      final TransactionContext tx,
+      final boolean isValid) throws InvalidSPDXAnalysisException
   {
     List<? extends ModelObject> items = getSpdxPackages(spdxDocument);
     if (!items.isEmpty()) {
@@ -198,7 +219,7 @@ public class SpdxResultHandler
       for (ModelObject item : items) {
         SpdxPackage spdxPackage = (SpdxPackage) item;
         processSpdxPackage(spdxPackage, thirdPartyFile.getId(), targetBom, thirdPartyIdentificationSource,
-            resolvedComponents, componentRefs, rootPackageId, tx);
+            resolvedComponents, componentRefs, rootPackageId, tx, isValid);
       }
     }
   }
@@ -219,7 +240,8 @@ public class SpdxResultHandler
       final Set<ComponentIdentifier> resolvedComponents,
       final Map<String, String> componentRefs,
       final String rootPackageId,
-      final TransactionContext tx) throws InvalidSPDXAnalysisException
+      final TransactionContext tx,
+      final boolean isValid) throws InvalidSPDXAnalysisException
   {
     try {
       Pair<ComponentIdentifier, Component> resolvedComponent = getResolvedComponent(spdxPackage, rootPackageId);
@@ -244,7 +266,7 @@ public class SpdxResultHandler
         else if (resolvedComponents.add(componentIdentifier)) {
           PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).ensureCompleteIdentifier();
           String coordinateId = saveComponent(thirdPartyFileId, thirdPartyIdentificationSource, spdxPackage,
-              resolvedComponent, componentRef, tx);
+              resolvedComponent, componentRef, tx, isValid);
           if (StringUtils.isNotBlank(spdxPackage.getId())) {
             componentRefs.put(spdxPackage.getId(), coordinateId);
           }
@@ -273,7 +295,8 @@ public class SpdxResultHandler
       final SpdxPackage spdxPackage,
       final Pair<ComponentIdentifier, Component> resolvedComponent,
       final String componentRef,
-      final TransactionContext tx) throws InvalidSPDXAnalysisException, JsonProcessingException
+      final TransactionContext tx,
+      final boolean isValid) throws InvalidSPDXAnalysisException, JsonProcessingException
   {
     Component component = resolvedComponent.getRight();
     ComponentIdentifier componentIdentifier;
@@ -304,7 +327,7 @@ public class SpdxResultHandler
     componentInfoTelemetry.incrementEcosystemCount(fileCoordinate.getFormat());
     fileCoordinate = fileCoordinatePersister.persist(tx, fileCoordinate);
 
-    if (isValid()) {
+    if (isValid) {
       saveLicenses(spdxPackage, fileCoordinate.getId(), component.getPurl(), tx);
       saveVulnerabilities(spdxPackage, fileCoordinate.getId(), component.getPurl(), tx);
     }

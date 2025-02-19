@@ -42,6 +42,7 @@ import com.neuvector.model.ScanModule;
 import com.neuvector.model.ScanRepoReportData;
 import com.neuvector.model.Vulnerability;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Component.Type;
@@ -88,11 +89,13 @@ public class ContainerResultHandler
   {
     try {
       if (!StringUtils.isBlank(content.getContent())) {
-        Bom sourceBom = parseBom(content);
+        Pair<Bom, Boolean> bomAndIsValid = parseBom(content);
+        Bom sourceBom = bomAndIsValid.getLeft();
+        boolean isValid = bomAndIsValid.getRight();
         Bom targetBom = new Bom();
         List<ProjectScanItem> moduleDependencies = new ArrayList<>();
         log.info("Processing container analysis content");
-        processSbom(content.getPath(), sourceBom, targetBom, thirdPartyFile, moduleDependencies);
+        processSbom(content.getPath(), sourceBom, targetBom, thirdPartyFile, moduleDependencies, isValid);
 
         if (targetBom.getComponents() != null && targetBom.getComponents().isEmpty()) {
           return new FilteredThirdPartyContent(content.getContent(), moduleDependencies);
@@ -116,7 +119,7 @@ public class ContainerResultHandler
   }
 
   @Override
-  Bom parseBom(final ThirdPartyScanContent content) throws RuntimeException {
+  Pair<Bom, Boolean> parseBom(final ThirdPartyScanContent content) throws RuntimeException {
     ScanRepoReportData scanRepoReportData = new Gson().fromJson(content.getContent(), ScanRepoReportData.class);
     componentInfoTelemetry.setContentType(SbomFormat.JSON.name());
 
@@ -198,7 +201,7 @@ public class ContainerResultHandler
     }
     bom.getVulnerabilities().addAll(cveCycloneDxVulnMap.values());
     bom.setComponents(new ArrayList<>(componentsToAdd));
-    return bom;
+    return Pair.of(bom, true);
   }
 
   private URL getUrl(final Vulnerability vulnerability) {

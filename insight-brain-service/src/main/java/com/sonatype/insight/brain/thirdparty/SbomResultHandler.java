@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
-import com.sonatype.insight.brain.sbom.export.SbomExportUtils;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,6 +42,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityE
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.sbom.export.SbomExportException;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams;
+import com.sonatype.insight.brain.sbom.export.SbomExportUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
@@ -53,6 +53,7 @@ import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.SbomProcessingException;
+import com.sonatype.insight.scan.file.SbomValidationException;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -177,17 +178,18 @@ public class SbomResultHandler
   {
     try {
       if (!StringUtils.isBlank(content.getContent()) && ThirdPartyUtils.looksLikeCycloneDX(content.getContent())) {
-        Bom sourceBom = parseBom(content);
+        Pair<Bom, Boolean> bomAndIsValid = parseBom(content);
+        Bom sourceBom = bomAndIsValid.getLeft();
+        boolean isValid = bomAndIsValid.getRight();
         Bom targetBom = new Bom();
         List<ProjectScanItem> moduleDependencies = new ArrayList<>();
 
         log.info("Processing SBOM content for file: {}", content.getPath());
-        processSbom(content.getPath(), sourceBom, targetBom, thirdPartyFile, moduleDependencies);
+        processSbom(content.getPath(), sourceBom, targetBom, thirdPartyFile, moduleDependencies, isValid);
         componentInfoTelemetry.setSpec(CYCLONEDX.name());
         componentInfoTelemetry.setSpecVersion(sourceBom.getSpecVersion());
         componentInfoTelemetry.setHasDependencies(!moduleDependencies.isEmpty());
 
-        boolean isValid = isValid();
         TelemetryData thirdPartyScanComponentInfoTelemetryData =
             telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry,
                 SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled(), isValid);
@@ -206,15 +208,32 @@ public class SbomResultHandler
   }
 
   //visible for testing
-  Bom parseBom(final ThirdPartyScanContent content) throws SbomProcessingException {
+  Pair<Bom, Boolean> parseBom(final ThirdPartyScanContent content) throws SbomProcessingException {
     String extension = FilenameUtils.getExtension(content.getPath());
     SbomFormat sbomFormat = SbomFormat.forString(extension.toLowerCase(Locale.ROOT));
     componentInfoTelemetry.setContentType(sbomFormat.name());
 
-    if (isValid()) {
-      return ThirdPartyUtils.parseAndValidateCycloneDx(content.getContent(), sbomFormat);
+    Boolean isValid = thirdPartyScanContext == null ? null : thirdPartyScanContext.isValid();
+
+    if (isValid == null) {
+      try {
+        return Pair.of(ThirdPartyUtils.parseAndValidateCycloneDx(content.getContent(), sbomFormat), true);
+      }
+      catch (SbomValidationException e) {
+        if (SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled()) {
+          return Pair.of(ThirdPartyUtils.parseCycloneDxWithNoValidation(content.getContent(), sbomFormat), false);
+        }
+        else {
+          throw e;
+        }
+      }
     }
-    return ThirdPartyUtils.parseCycloneDxWithNoValidation(content.getContent(), sbomFormat);
+    else if (isValid) {
+      return Pair.of(ThirdPartyUtils.parseAndValidateCycloneDx(content.getContent(), sbomFormat), true);
+    }
+    else {
+      return Pair.of(ThirdPartyUtils.parseCycloneDxWithNoValidation(content.getContent(), sbomFormat), false);
+    }
   }
 
   void processSbom(
@@ -222,7 +241,8 @@ public class SbomResultHandler
       final Bom sourceBom,
       final Bom targetBom,
       final ThirdPartyFile thirdPartyFile,
-      final List<ProjectScanItem> dependencyGraph)
+      final List<ProjectScanItem> dependencyGraph,
+      final boolean isValid)
   {
     String thirdPartyIdentificationSource =
         getTruncatedThirdPartyIdentificationSource(determineThirdPartyIdentificationSource(contentPath));
@@ -244,13 +264,14 @@ public class SbomResultHandler
       targetBom.setMetadata(getFilteredMetadata(sourceBom));
 
       Map<String, String> componentRefs = new HashMap<>();
-      processComponents(sourceBom, targetBom, componentRefs, thirdPartyIdentificationSource, thirdPartyFile, tx);
-      if (isValid()) {
+      processComponents(sourceBom, targetBom, componentRefs, thirdPartyIdentificationSource, thirdPartyFile, tx,
+          isValid);
+      if (isValid) {
         processVulnerabilities(sourceBom, targetBom, componentRefs, tx);
       }
       tx.commit();
     }
-    if (isValid()) {
+    if (isValid) {
       processDependencyGraph(sourceBom, targetBom, dependencyGraph, thirdPartyFile);
     }
   }
@@ -261,14 +282,15 @@ public class SbomResultHandler
       final Map<String, String> componentRefs,
       final String thirdPartyIdentificationSource,
       final ThirdPartyFile thirdPartyFile,
-      final TransactionContext tx)
+      final TransactionContext tx,
+      final boolean isValid)
   {
     if (CollectionUtils.isNotEmpty(sourceBom.getComponents())) {
       String specVersion = sourceBom.getSpecVersion();
       Set<ComponentIdentifier> resolvedComponents = new HashSet<>();
       for (Component component : sourceBom.getComponents()) {
         processComponent(component, thirdPartyFile.getId(), targetBom, thirdPartyIdentificationSource,
-            resolvedComponents, componentRefs, specVersion, tx);
+            resolvedComponents, componentRefs, specVersion, tx, isValid);
       }
     }
   }
@@ -358,7 +380,8 @@ public class SbomResultHandler
       final Set<ComponentIdentifier> resolvedComponents,
       final Map<String, String> componentRefs,
       final String schemaVersion,
-      final TransactionContext tx)
+      final TransactionContext tx,
+      final boolean isValid)
   {
     try {
       Pair<ComponentIdentifier, Component> resolvedComponent = getResolvedComponent(sourceComponent);
@@ -387,7 +410,7 @@ public class SbomResultHandler
           PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).ensureCompleteIdentifier();
           String coordinateId =
               saveComponent(thirdPartyFileId, thirdPartyIdentificationSource, sourceComponent, componentRef,
-                  resolvedComponent, schemaVersion, tx);
+                  resolvedComponent, schemaVersion, tx, isValid);
           if (StringUtils.isNotBlank(sourceComponent.getBomRef())) {
             componentRefs.put(sourceComponent.getBomRef(), coordinateId);
           }
@@ -582,7 +605,8 @@ public class SbomResultHandler
       final String componentRef,
       final Pair<ComponentIdentifier, Component> resolvedComponent,
       final String schemaVersion,
-      final TransactionContext tx) throws JsonProcessingException
+      final TransactionContext tx,
+      final boolean isValid) throws JsonProcessingException
   {
     Component component = resolvedComponent.getRight();
     ComponentIdentifier componentIdentifier;
@@ -624,7 +648,7 @@ public class SbomResultHandler
     }
     componentInfoTelemetry.incrementEcosystemCount(fileCoordinate.getFormat());
     fileCoordinate = fileCoordinatePersister.persist(tx, fileCoordinate);
-    if (isValid()) {
+    if (isValid) {
       saveLicenses(sourceComponent.getLicenses(), fileCoordinate.getId(), component.getPurl(), tx);
       saveVulnerabilitiesExtension(sourceComponent.getExtensions(), fileCoordinate.getId(), schemaVersion, tx);
     }
@@ -1262,10 +1286,6 @@ public class SbomResultHandler
     catch (GeneratorException e) {
       throw new SbomExportException("An error occurred while trying to parse the SBOM's content to JSON string", e);
     }
-  }
-
-  boolean isValid() {
-    return thirdPartyScanContext == null || thirdPartyScanContext.isValid();
   }
 
   private String getPropertyAsString(List<Property> listProperties, String propertyName) {

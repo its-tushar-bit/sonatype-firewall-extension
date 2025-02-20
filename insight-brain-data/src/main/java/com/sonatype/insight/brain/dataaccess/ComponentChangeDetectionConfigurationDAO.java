@@ -21,6 +21,8 @@ import org.joda.time.DateTime;
 @Singleton
 public class ComponentChangeDetectionConfigurationDAO
 {
+  public static final String COMPONENT_CHANGE_DETECTION_VERSION = "1.0";
+
   private final List<ComponentChangeConfiguration> table = new ArrayList<>();
 
   public List<ComponentChangeConfiguration> addComponents(
@@ -46,11 +48,12 @@ public class ComponentChangeDetectionConfigurationDAO
     return List.of();
   }
 
-  public void updateHashOfPurl(String purl, String hash) {
+  public void updateHashOfPurl(String purl, String comparisonHash) {
     for (int i = 0; i < table.size(); i++) {
       ComponentChangeConfiguration item = table.get(i);
       if (item.purl().equals(purl)) {
-        table.set(i, new ComponentChangeConfiguration(item.purl(), hash, item.addedTime()));
+        table.set(i, new ComponentChangeConfiguration(item.version, item.purl(), item.componentHash, comparisonHash,
+            item.addedTime()));
         break;
       }
     }
@@ -73,11 +76,40 @@ public class ComponentChangeDetectionConfigurationDAO
     return table.subList(pageStart, pageEnd);
   }
 
-  public record ComponentChangeConfiguration(Integer id, String purl, String componentHash,
+  public List<ComponentChangeConfiguration> getComponentsInBatches(final int batchSize, final int continuationToken) {
+    if (batchSize <= 0) {
+      throw new IllegalArgumentException("Batch size must be greater than 0");
+    }
+
+    if (continuationToken < 0) {
+      throw new IllegalArgumentException("Invalid continuation token");
+    }
+
+    if (continuationToken >= table.size()) {
+      return List.of();
+    }
+
+    int endIndex = Math.min(continuationToken + batchSize, table.size());
+
+    return table.subList(continuationToken, endIndex);
+  }
+
+  public void updateHashAndVersionOfPurl(final String purl, final String comparisonHash, final String version) {
+    for (int i = 0; i < table.size(); i++) {
+      ComponentChangeConfiguration item = table.get(i);
+      if (item.purl().equals(purl)) {
+        table.set(i, new ComponentChangeConfiguration(version, item.purl(), item.componentHash, comparisonHash,
+            item.addedTime()));
+        break;
+      }
+    }
+  }
+
+  public record ComponentChangeConfiguration(String version, String purl, String componentHash,
                                              String comparisonHash, DateTime addedTime)
   {
-    public ComponentChangeConfiguration(String purl, String comparisonHash, DateTime addedTime) {
-      this(null, purl, null, comparisonHash, addedTime);
+    public ComponentChangeConfiguration(String purl, String componentHash, DateTime addedTime) {
+      this(COMPONENT_CHANGE_DETECTION_VERSION, purl, componentHash, null, addedTime);
     }
   }
 }

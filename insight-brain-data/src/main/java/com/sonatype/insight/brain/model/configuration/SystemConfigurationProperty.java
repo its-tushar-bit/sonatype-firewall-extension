@@ -264,6 +264,8 @@ public class SystemConfigurationProperty
 
   public static final String COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS = "componentChangeDetectionMaxComponents";
 
+  public static final String COMPONENT_CHANGE_DETECTION_BATCH_SIZE = "componentChangeDetectionBatchSize";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

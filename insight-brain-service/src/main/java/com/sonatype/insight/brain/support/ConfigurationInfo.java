@@ -106,6 +106,8 @@ public class ConfigurationInfo
         configuration.getMalwareDefenseApiMaxComponents());
     entries.put(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS,
         configuration.getComponentChangeDetectionMaxComponents());
+    entries.put(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_BATCH_SIZE,
+        configuration.getComponentChangeDetectionBatchSize());
 
     return JsonUtils.format(entries);
   }

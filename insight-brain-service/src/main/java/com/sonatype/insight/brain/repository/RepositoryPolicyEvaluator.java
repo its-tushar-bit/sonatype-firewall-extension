@@ -729,7 +729,7 @@ public class RepositoryPolicyEvaluator
     return null;
   }
 
-  private ComponentEvaluationDataList getComponentDetailsFromHds(
+  public ComponentEvaluationDataList getComponentDetailsFromHds(
       Repository repository,
       boolean withQuarantine,
       final RepositoryComponentEvaluationDataRequestList hdsRequest,

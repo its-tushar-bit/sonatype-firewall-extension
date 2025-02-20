@@ -206,7 +206,8 @@ public class Configuration
         SystemConfigurationProperty.SBOM_POLICIES,
         SystemConfigurationProperty.NEW_SCAN_PROCESS,
         SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR,
-        SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS
+        SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS,
+        SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_BATCH_SIZE
         )
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
@@ -675,6 +676,10 @@ public class Configuration
 
   public Integer getComponentChangeDetectionMaxComponents() {
     return configCache.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS);
+  }
+
+  public Integer getComponentChangeDetectionBatchSize() {
+    return configCache.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_BATCH_SIZE);
   }
 
   /**

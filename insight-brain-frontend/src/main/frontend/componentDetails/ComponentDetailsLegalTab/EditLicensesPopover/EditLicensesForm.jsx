@@ -86,7 +86,6 @@ export default function EditLicensesForm({
     setSelectedLicenses(getLicenseIdsFromOverride(targetScope));
     setLicenseStatus(targetScope.licenseOverride?.status ?? 'OPEN');
     setLicenseScope(targetScope);
-    setLicenseComment(targetScope.licenseOverride?.comment ?? '');
   };
 
   const formatOwnerType = (ownerType) => {

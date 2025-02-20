@@ -171,4 +171,22 @@ public class EditLicensesTest
     editLicensesPopover.cancelButton().click();
     editLicensesPopover.shouldNotBe(Condition.visible);
   }
+
+  @Test
+  public void testEditLicenseCommentIsNotUpdatedOnScopeChange() throws IOException {
+    ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
+    init("033e7a20b23ea284d474", componentId, "");
+    refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
+
+    ComponentLegalOverviewPage.editLicensesButton().click();
+    EditLicensesPopover editLicensesPopover = new EditLicensesPopover();
+    editLicensesPopover.should(Condition.appear);
+
+    editLicensesPopover.comment().setValue("Comment");
+    int licensesScopesDropdownSize = editLicensesPopover.licensesScopesDropdown().listItems().size();
+    String licenseScope =
+        editLicensesPopover.licensesScopesDropdown().listItem(licensesScopesDropdownSize - 1).getText();
+    editLicensesPopover.licensesScopesDropdown().chooseOption(licenseScope);
+    assertThat(editLicensesPopover.comment().getText()).isEqualTo("Comment");
+  }
 }

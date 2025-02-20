@@ -4311,6 +4311,54 @@ public class ScanPolicyEvaluatorTest
     assertThat(updatedMetadata.getStatus()).isEqualTo(ACTIVE);
   }
 
+  @Test
+  public void testPerformPolicyEvaluation_WithReachableVulnerability() throws Exception {
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8);
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    tempEntity.newAutoPolicyWaiver(application.getId(), 10, false, false);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier
+        .createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+    String vulnerabilityIdentifier = "CVE-2012-0022";
+
+    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
+        application.getId(),
+        scanId,
+        componentIdentifier,
+        vulnerabilityIdentifier,
+        insightWork
+    );
+
+    ReportComponentData reportComponentData =
+        reportComponentService.fetchReportAndComponents(application, scanId);
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.performPolicyEvaluation(
+        application, scanId, stage, ScanTriggerType.CLI, "testUserAgent", "testClientId",
+        false, ClientScanType.SONATYPE, reportComponentData, analysisDTO, false
+    );
+
+    assertThat(results.autoWaivedViolations).hasSize(36);
+
+    Optional<PolicyViolation> optionalPolicyViolation =
+        findPolicyViolationByVulnerabilityIdentifier(results.autoWaivedViolations, vulnerabilityIdentifier);
+
+    assertThat(optionalPolicyViolation).isPresent();
+    assertThat(optionalPolicyViolation.get().getReachabilityStatus()).isEqualTo(REACHABLE);
+    assertThat(optionalPolicyViolation.get().getComponentIdentifier()).isEqualTo(componentIdentifier);
+
+    results.autoWaivedViolations
+        .forEach(policyViolation -> assertThat(policyViolation.getReachabilityStatus()).isNotNull());
+  }
+
   private void restoreConstraintFactsToPreMigratedState() {
     List<PolicyViolationConstraintFacts> constraintFacts = policyViolationConstraintFactsDAO.getAll();
     PolicyViolationConstraintFacts policyViolationConstraintFacts = constraintFacts.get(0);

@@ -166,16 +166,16 @@ public class ComponentAnalysisServiceTest
         .when(httpRequest)
         .getHeader(CLM_CLIENT_USER_AGENT_HEADER);
 
-    final String scanId = simulateReportIsAvailable();
+    String scanId = simulateReportIsAvailable();
     ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
-    final ScanReceipt scanReceipt = new ScanReceipt();
+    ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
     doReturn(scanReceipt)
         .when(scanHandler)
         .handle(any(File.class), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
             anyString(), anyString(), anyString(), eq(null));
 
-    final PolicyEvaluationReceipt receipt = componentAnalysisService.analyzeComponentsWithPolling(INTEGRATION_TYPE,
+    PolicyEvaluationReceipt receipt = componentAnalysisService.analyzeComponentsWithPolling(INTEGRATION_TYPE,
         app.getPublicId(), ClientScanType.SONATYPE, httpRequest, STAGE);
 
     PersistedPolicyEvaluationPollingResult pollingResult = persistedPolicyEvaluationPollingResultDAO

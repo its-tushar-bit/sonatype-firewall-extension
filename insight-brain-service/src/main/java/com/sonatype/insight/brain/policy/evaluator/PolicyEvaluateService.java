@@ -23,6 +23,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
@@ -39,6 +40,7 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.brain.policy.componentanalysis.ComponentAnalysisService;
 import com.sonatype.insight.brain.policy.utils.EvaluationUtils;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
@@ -62,6 +64,8 @@ import io.dropwizard.lifecycle.Managed;
 import io.micrometer.core.instrument.LongTaskTimer.Sample;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE;
 
 @Named
 @Singleton
@@ -102,7 +106,7 @@ public class PolicyEvaluateService
   private final ProductLicense productLicense;
 
   private final FeaturesService featuresService;
-  
+
   public boolean disablePollingIntervalForTesting = false;
 
   @Inject
@@ -278,22 +282,55 @@ public class PolicyEvaluateService
     String thirdPartyScanType =
         clientScanType == ClientScanType.SONATYPE_THIRD_PARTY ? integrationType.toString() : null;
 
-    ScanContext scanContext = null;
-    if (stageTypeService.getLicensedStageTypes().contains(StageTypes.COMPLIANCE)
-        && stage.getStageTypeId().equals(Stage.ID_COMPLIANCE)
-        && sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
-      throw new PaymentRequiredException(
-          "You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.");
-    }
+    validateLicenseLimits(stage);
 
     evaluateWithPolling(statusId, app, clientScanType, stage,
         EvaluationUtils.getScanTriggerType(integrationType), tempScanFile, thirdPartyScanType,
-        HdsClient.getClientUserAgent(req), HdsClient.getClientInstanceId(req), scanContext);
+        HdsClient.getClientUserAgent(req), HdsClient.getClientInstanceId(req), null);
 
     PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
     policyEvaluationReceipt.setStatusId(statusId);
 
     return policyEvaluationReceipt;
+  }
+
+  /**
+   * Starts the evaluation of an {@link Application}, {@link ScanTriggerType}, and {@link Stage} with polling. After
+   * starting, it will return a {@link PolicyEvaluationReceipt} for the requester to use to check on results via
+   * {@link #pollEvaluationResult(String, String)}.
+   *
+   * @param integrationType           - the type of integration {@link IntegrationType}
+   * @param applicationPublicId       - the public shared ID of the application
+   * @param clientScanType            - the type of client scan {@link ClientScanType}
+   * @param req                       - the HTTP servlet request {@link HttpServletRequest}
+   * @param stage                     - the stage of the evaluation {@link Stage}
+   * @param statusId                  - the status ID of a previous evaluation
+   * @param analysisDTO               - the vulnerability signature analysis data transfer object
+   *                                  {@link VulnerabilitySignatureAnalysisDTO}
+   * @return a receipt for the policy evaluation {@link PolicyEvaluationReceipt}
+   */
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
+  public PolicyEvaluationReceipt evaluateWithPolling(
+      final IntegrationType integrationType,
+      final @AuthzContext(Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+      final ClientScanType clientScanType,
+      final HttpServletRequest req,
+      final Stage stage,
+      final String statusId,
+      final VulnerabilitySignatureAnalysisDTO analysisDTO)
+  {
+    return evaluateWithPolling(
+        integrationType,
+        applicationPublicId,
+        clientScanType,
+        req,
+        stage,
+        EvaluationUtils.getScanTriggerType(integrationType),
+        HdsClient.getClientUserAgent(req),
+        HdsClient.getClientInstanceId(req),
+        statusId,
+        analysisDTO
+    );
   }
 
   public void evaluateWithPolling(
@@ -367,7 +404,7 @@ public class PolicyEvaluateService
       AuditData.get().continueAsync(
           new CompleteEvaluationTask(app, clientScanType, statusId, stage, scanTriggerType, tempScanFile,
               thirdPartyScanTelemetryData, persistedPolicyEvaluationPollingResult, clientUserAgent,
-              clientInstanceId, scanContext), executor::submit);
+              clientInstanceId, scanContext, null), executor::submit);
     }
     else {
       throw new BadRequestException("Invalid stage: " + stage.getStageTypeId());
@@ -401,6 +438,107 @@ public class PolicyEvaluateService
   }
 
   /**
+   * Starts the evaluation of an {@link Application}, {@link ScanTriggerType}, and {@link Stage} with polling. After
+   * starting, it will return a {@link PolicyEvaluationReceipt} for the requester to use to check on results via
+   * {@link #pollEvaluationResult(String, String)}.
+   *
+   * @param integrationType     the type of integration {@link IntegrationType}
+   * @param applicationPublicId the public shared ID of the application
+   * @param clientScanType      the type of client scan {@link ClientScanType}
+   * @param req                 the HTTP servlet request {@link HttpServletRequest}
+   * @param stage               the stage of the evaluation {@link Stage}
+   * @param scanTriggerType     the type of trigger for the scan {@link ScanTriggerType}
+   * @param clientUserAgent     the user agent from the HTTP request
+   * @param clientInstanceId    the client instance ID from the HTTP request
+   * @param statusId            the status ID of a previous evaluation
+   * @param analysisDTO         the vulnerability signature analysis data transfer object
+   *                            {@link VulnerabilitySignatureAnalysisDTO}
+   * @return a receipt for the policy evaluation {@link PolicyEvaluationReceipt}
+   */
+  @VisibleForTesting
+  protected PolicyEvaluationReceipt evaluateWithPolling(
+      final IntegrationType integrationType,
+      final String applicationPublicId,
+      final ClientScanType clientScanType,
+      final HttpServletRequest req,
+      final Stage stage,
+      final ScanTriggerType scanTriggerType,
+      final String clientUserAgent,
+      final String clientInstanceId,
+      final String statusId,
+      final VulnerabilitySignatureAnalysisDTO analysisDTO)
+  {
+    EvaluationUtils.ensureNewEvaluationProcessEnabled();
+
+    policyEvaluationUtil.validateEvaluationTypeAndFeature(integrationType, stage);
+
+    log.debug("Received request to evaluate policy, with vulnerability signature analysis, for app public id {}, " +
+            "clientScanType {}, stageTypeId {}. The status ID of the operation is {}.",
+        applicationPublicId, clientScanType, stage.getStageTypeId(), statusId);
+
+    Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+
+    validateLicenseLimits(stage);
+
+    PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
+        findValidComponentAnalysis(app, statusId);
+
+    log.debug("Submitting policy evaluation task, with vulnerability signature analysis, for app public id {}, " +
+            "clientScanType {}, stageTypeId {}. The status ID of the operation is {}.",
+        app.getPublicId(), clientScanType, stage.getStageTypeId(), statusId);
+
+    AuditData.get().continueAsync(
+        new CompleteEvaluationTask(app, clientScanType, statusId, stage, scanTriggerType, null, null,
+            persistedPolicyEvaluationPollingResult, clientUserAgent, clientInstanceId, null, analysisDTO
+        ), executor::submit
+    );
+
+    PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
+    policyEvaluationReceipt.setStatusId(statusId);
+    return policyEvaluationReceipt;
+  }
+
+  private void validateLicenseLimits(final Stage stage) {
+    if (stageTypeService.getLicensedStageTypes().contains(StageTypes.COMPLIANCE)
+        && stage.getStageTypeId().equals(Stage.ID_COMPLIANCE)
+        && sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
+      throw new PaymentRequiredException(
+          "You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.");
+    }
+  }
+
+  private PersistedPolicyEvaluationPollingResult findValidComponentAnalysis(
+      final Application application,
+      final String componentAnalysisStatusId)
+  {
+    PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
+        persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(
+            application.getId(),
+            componentAnalysisStatusId
+        );
+
+    if (persistedPolicyEvaluationPollingResult == null) {
+      throw new BadRequestException("Component Analysis not found for Application ID: "
+          + application.getPublicId() + " and Status ID: " + componentAnalysisStatusId);
+    }
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+        persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
+
+    PolicyEvaluationSubStatus subStatus = policyEvaluationPollingResult.getSubStatus();
+
+    if (!COMPONENT_ANALYSIS_COMPLETE.equals(subStatus)) {
+      throw new BadRequestException(
+          "Component analysis has not completed for public application id: " + application.getPublicId()
+              + " and status ID: " + componentAnalysisStatusId
+              + " The current status is " + policyEvaluationPollingResult.getStatus()
+              + " and the current sub status is " + subStatus);
+    }
+
+    return persistedPolicyEvaluationPollingResult;
+  }
+
+  /**
    * @since 1.69
    */
   class CompleteEvaluationTask
@@ -430,6 +568,8 @@ public class PolicyEvaluateService
 
     private final ScanContext scanContext;
 
+    private final VulnerabilitySignatureAnalysisDTO analysisDTO;
+
     CompleteEvaluationTask(
         final Application app,
         final ClientScanType clientScanType,
@@ -441,7 +581,8 @@ public class PolicyEvaluateService
         final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult,
         final String clientUserAgent,
         final String clientInstanceId,
-        final ScanContext scanContext)
+        final ScanContext scanContext,
+        final VulnerabilitySignatureAnalysisDTO analysisDTO)
     {
       this.app = app;
       this.clientScanType = clientScanType;
@@ -454,6 +595,7 @@ public class PolicyEvaluateService
       this.clientUserAgent = clientUserAgent;
       this.clientInstanceId = clientInstanceId;
       this.scanContext = scanContext;
+      this.analysisDTO = analysisDTO;
     }
 
     @Override
@@ -464,54 +606,147 @@ public class PolicyEvaluateService
 
       Sample sample = policyEvaluateServiceMetrics.emitStartPolicyEvaluation();
 
-      String scanId = null;
       PolicyEvaluationPollingResult policyEvaluationPollingResult =
           persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
+
       try {
-        ScanReceipt scanReceipt =
-            scanHandler.handle(tempScanFile, app, clientScanType, thirdPartyScanTelemetryData, stage.getStageTypeId(),
-                clientUserAgent, persistedPolicyEvaluationPollingResult.getStatusId(), scanContext);
-        scanId = scanReceipt.getScanId();
-
-        policyEvaluationPollingResult.setScanReceipt(scanReceipt);
-        persistedPolicyEvaluationPollingResult.setPolicyEvaluationPollingResult(policyEvaluationPollingResult);
-        persistedPolicyEvaluationPollingResultDAO.update(persistedPolicyEvaluationPollingResult);
-
         final long start = System.currentTimeMillis();
 
-        log.debug(
-            "Evaluating policy for app public id {}, scan id {}, stageTypeId {}. The status ID of the operation is {}.",
-            app.getPublicId(), scanId, stage.getStageTypeId(), statusId);
-
-        PolicyEvaluationResult policyEvaluationResult =
-            evaluate(app, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId, clientScanType);
+        if (shouldContinueExistingEvaluation()) {
+          policyEvaluationPollingResult = continueEvaluation(policyEvaluationPollingResult);
+        }
+        else {
+          policyEvaluationPollingResult = scanAndEvaluate(policyEvaluationPollingResult);
+        }
 
         log.debug(
             "Evaluated policy for app public id {}, scan id {}, stageTypeId {} in {} ms."
                 + " The status ID of the operation is {}.",
-            app.getPublicId(), scanId, stage.getStageTypeId(), System.currentTimeMillis() - start, statusId);
-
-        policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
-        policyEvaluationPollingResult.setScanReceipt(scanReceipt);
-        policyEvaluationPollingResult.setResult(policyEvaluationResult);
-        policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.COMPLETED);
+            app.getPublicId(), getScanId(policyEvaluationPollingResult), stage.getStageTypeId(),
+            System.currentTimeMillis() - start, statusId
+        );
       }
       catch (Exception e) {
         log.error(
-            "Failed to evaluate policy for app public id {}, scan id {}, stageTypeId {}." +
-                " The status ID of the operation is {}.",
-            app.getPublicId(), scanId, stage.getStageTypeId(), statusId, e);
-        // in failed status, hold onto as much as we have obtained so far
-        policyEvaluationPollingResult = makeCopy(policyEvaluationPollingResult);
-        policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.FAILED);
-        policyEvaluationPollingResult.setReason(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody());
-        AuditData.get()
-            .setException(new RuntimeException(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody(), e));
+            "Failed to evaluate policy for app public id {}, scan id {}, stageTypeId {}."
+                + " The status ID of the operation is {}.",
+            app.getPublicId(), getScanId(policyEvaluationPollingResult), stage.getStageTypeId(), statusId, e
+        );
+
+        policyEvaluationPollingResult = failEvaluation(e, policyEvaluationPollingResult);
       }
 
+      updatePolicyEvaluationPollingResult(policyEvaluationPollingResult);
+      policyEvaluateServiceMetrics.emitEndPolicyEvaluation(sample);
+    }
+
+    /**
+     * Check if the evaluation should continue based on the {@link PolicyEvaluationPollingResult#getSubStatus()} being
+     * {@link PolicyEvaluationSubStatus#COMPONENT_ANALYSIS_COMPLETE}. When this condition is met, it means an evaluation
+     * was started as a Component Analysis and should continue here as a policy evaluation.
+     *
+     * @return {@code true} if the evaluation should continue, {@code false} otherwise
+     */
+    private boolean shouldContinueExistingEvaluation() {
+      return COMPONENT_ANALYSIS_COMPLETE.equals(
+          persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult().getSubStatus()
+      );
+    }
+
+    /**
+     * Continue the evaluation of an application with a given {@link PolicyEvaluationPollingResult} containing already
+     * an evaluated component scan. Using a scan receipt of a previously run {@link ComponentAnalysisService}.
+     *
+     * @return a new {@link PolicyEvaluationPollingResult} with the evaluation continued
+     * @throws IOException if the associated report file is unable to be read or processed
+     */
+    private PolicyEvaluationPollingResult continueEvaluation(
+        final PolicyEvaluationPollingResult policyEvaluationPollingResult
+    ) throws IOException
+    {
+      policyEvaluationPollingResult.setSubStatus(PolicyEvaluationSubStatus.POLICY_EVALUATION_PENDING);
+      updatePolicyEvaluationPollingResult(policyEvaluationPollingResult);
+
+      ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(
+          app, policyEvaluationPollingResult.getScanReceipt().getScanId(),
+          stage, scanTriggerType, clientUserAgent, clientInstanceId, clientScanType, analysisDTO
+      );
+
+      if (!results.evaluation.isReevaluation()) {
+        policyAlertNotifier.sendNotifications(app, results);
+      }
+
+      PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator
+          .createPolicyEvaluationResult(results.evaluation, results.allViolations, true);
+
+      PolicyEvaluationPollingResult result = makeCopy(policyEvaluationPollingResult);
+      result.setStatus(PolicyEvaluationStatus.COMPLETED);
+      result.setSubStatus(PolicyEvaluationSubStatus.POLICY_EVALUATION_COMPLETE);
+      result.setResult(policyEvaluationResult);
+      return result;
+    }
+
+    /**
+     * Default behavior for scanning and evaluating an application.
+     *
+     * @return a new {@link PolicyEvaluationPollingResult} with the evaluation completed
+     * @throws IOException if the associated report file is unable to be read or processed
+     */
+    private PolicyEvaluationPollingResult scanAndEvaluate(
+        final PolicyEvaluationPollingResult policyEvaluationPollingResult
+    ) throws IOException
+    {
+      ScanReceipt scanReceipt =
+          scanHandler.handle(tempScanFile, app, clientScanType, thirdPartyScanTelemetryData, stage.getStageTypeId(),
+              clientUserAgent, persistedPolicyEvaluationPollingResult.getStatusId(), scanContext);
+
+      String scanId = scanReceipt.getScanId();
+
+      policyEvaluationPollingResult.setScanReceipt(scanReceipt);
+      updatePolicyEvaluationPollingResult(policyEvaluationPollingResult);
+
+      log.debug(
+          "Evaluating policy for app public id {}, scan id {}, stageTypeId {}. The status ID of the operation is {}.",
+          app.getPublicId(), scanId, stage.getStageTypeId(), statusId
+      );
+
+      PolicyEvaluationResult policyEvaluationResult = evaluate(
+          app, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId, clientScanType
+      );
+
+      PolicyEvaluationPollingResult result = new PolicyEvaluationPollingResult();
+      result.setScanReceipt(scanReceipt);
+      result.setResult(policyEvaluationResult);
+      result.setStatus(PolicyEvaluationStatus.COMPLETED);
+      return result;
+    }
+
+    private PolicyEvaluationPollingResult failEvaluation(
+        final Exception e,
+        final PolicyEvaluationPollingResult policyEvaluationPollingResult)
+    {
+      // in failed status, hold onto as much as we have obtained so far
+      PolicyEvaluationPollingResult failedEvaluationPollingResult = makeCopy(policyEvaluationPollingResult);
+      failedEvaluationPollingResult.setStatus(PolicyEvaluationStatus.FAILED);
+      failedEvaluationPollingResult.setReason(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody());
+      AuditData.get().setException(
+          new RuntimeException(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody(), e)
+      );
+      return failedEvaluationPollingResult;
+    }
+
+    private void updatePolicyEvaluationPollingResult(
+        final PolicyEvaluationPollingResult policyEvaluationPollingResult)
+    {
       persistedPolicyEvaluationPollingResult.setPolicyEvaluationPollingResult(policyEvaluationPollingResult);
       persistedPolicyEvaluationPollingResultDAO.update(persistedPolicyEvaluationPollingResult);
-      policyEvaluateServiceMetrics.emitEndPolicyEvaluation(sample);
+    }
+
+    private String getScanId(final PolicyEvaluationPollingResult policyEvaluationPollingResult) {
+      if (policyEvaluationPollingResult != null && policyEvaluationPollingResult.getScanReceipt() != null) {
+        return policyEvaluationPollingResult.getScanReceipt().getScanId();
+      }
+      return null;
     }
   }
 

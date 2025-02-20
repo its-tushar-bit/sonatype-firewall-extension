@@ -21,8 +21,10 @@ import java.util.function.Function;
 import javax.inject.Inject;
 import javax.mail.Message;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.BadRequestException;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
@@ -31,11 +33,13 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -68,6 +72,8 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.organization.ApplicationContactLoader;
 import com.sonatype.insight.brain.organization.ContactDTO;
+import com.sonatype.insight.brain.policy.componentanalysis.ComponentAnalysisService;
+import com.sonatype.insight.brain.policy.componentanalysis.ComponentAnalysisServiceTest;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.report.ApplicationReport;
@@ -93,6 +99,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Binder;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -101,10 +108,15 @@ import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.CallsRealMethods;
 import org.mockito.invocation.InvocationOnMock;
 
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
+import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE;
 import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING;
+import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.POLICY_EVALUATION_COMPLETE;
 import static com.sonatype.clm.dto.model.policy.Stage.ID_BUILD;
 import static com.sonatype.clm.dto.model.policy.Stage.ID_COMPLIANCE;
 import static com.sonatype.insight.brain.Assert.assertNotifications;
+import static com.sonatype.insight.brain.hds.HdsClient.CLM_CLIENT_USER_AGENT_HEADER;
+import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.createTestAnalysisDTO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -155,6 +167,12 @@ public class PolicyEvaluateServiceTest
 
   @Inject
   private InsightWork insightWork;
+
+  @Inject
+  private PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
+
+  @Inject
+  private ComponentAnalysisService componentAnalysisService;
 
   private Application app;
 
@@ -863,6 +881,16 @@ public class PolicyEvaluateServiceTest
     return mockReportDownloader.mockDownloadReport("/" + getClass().getSimpleName() + "/report");
   }
 
+  /**
+   * Use the simulation of a {@link ComponentAnalysisServiceTest} report.
+   *
+   * @return A generated scan ID that can be used in subsequent calls to evaluate policies.
+   */
+  private String simulateComponentAnalysisReportIsAvailable() {
+    return mockReportDownloader.mockDownloadReport(
+        "/" + ComponentAnalysisServiceTest.class.getSimpleName() + "/report");
+  }
+
   private void addNotificationsToPolicy(Policy policy, String stageId, Notification... notifications) {
     Arrays.stream(notifications).forEach(policy.getNotifications()::add);
     policy.getActions().clear();
@@ -1029,5 +1057,226 @@ public class PolicyEvaluateServiceTest
         .isThrownBy(() -> policyEvaluateService.evaluateWithPolling(
             IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, mockedReq, new Stage(ID_COMPLIANCE)))
         .withMessage("You have exceeded the licensed limit of 0 sboms.");
+  }
+
+  @Test
+  public void testEvaluateWithPolling_WithReachableVulnerability_And_CompletedComponentAnalysis() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+
+    PolicyEvaluationReceipt componentAnalyzeEvaluationReceipt = analyzeComponentsWithPolling();
+
+    PersistedPolicyEvaluationPollingResult componentAnalyzePollingResult = persistedPolicyEvaluationPollingResultDAO
+        .getByApplicationIdAndStatusId(
+            app.getId(),
+            componentAnalyzeEvaluationReceipt.getStatusId()
+        );
+
+    assertThat(componentAnalyzeEvaluationReceipt.getStatusId()).isEqualTo(componentAnalyzePollingResult.getStatusId());
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+        componentAnalyzePollingResult.getPolicyEvaluationPollingResult();
+    assertThat(policyEvaluationPollingResult.getSubStatus()).isEqualTo(COMPONENT_ANALYSIS_COMPLETE);
+
+    ComponentIdentifier componentIdentifier = createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+    String vulnerabilityIdentifier = "CVE-2012-0022";
+
+    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
+        app.getId(),
+        policyEvaluationPollingResult.getScanReceipt().getScanId(),
+        componentIdentifier,
+        vulnerabilityIdentifier,
+        lookup(InsightWork.class)
+    );
+
+    PolicyEvaluationReceipt receipt = policyEvaluateService.evaluateWithPolling(
+        IntegrationType.CLI,
+        app.getPublicId(),
+        ClientScanType.SONATYPE,
+        null,
+        new Stage(Stage.ID_BUILD),
+        componentAnalyzePollingResult.getStatusId(),
+        analysisDTO
+    );
+
+    PolicyEvaluationPollingResult pollingResult = policyEvaluationHelper
+        .awaitEvaluationCompleted(app.getId(), receipt.getStatusId());
+
+    assertThat(pollingResult).isNotNull();
+    assertThat(pollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
+    assertThat(pollingResult.getSubStatus()).isEqualTo(POLICY_EVALUATION_COMPLETE);
+    assertThat(pollingResult.getReason()).isNull();
+    assertThat(pollingResult.getScanReceipt()).usingRecursiveComparison()
+        .isEqualTo(policyEvaluationPollingResult.getScanReceipt());
+
+    PolicyEvaluationResult result = pollingResult.getResult();
+    assertThat(result).isNotNull();
+    assertThat(result.getAlerts()).isEmpty();
+  }
+
+  @Test
+  public void testEvaluateWithPolling_WithoutReachableVulnerability_And_CompletedComponentAnalysis() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+
+    PolicyEvaluationReceipt componentAnalyzeEvaluationReceipt = analyzeComponentsWithPolling();
+
+    PersistedPolicyEvaluationPollingResult componentAnalyzePollingResult = persistedPolicyEvaluationPollingResultDAO
+        .getByApplicationIdAndStatusId(
+            app.getId(),
+            componentAnalyzeEvaluationReceipt.getStatusId()
+        );
+
+    assertThat(componentAnalyzeEvaluationReceipt.getStatusId()).isEqualTo(componentAnalyzePollingResult.getStatusId());
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+        componentAnalyzePollingResult.getPolicyEvaluationPollingResult();
+    assertThat(policyEvaluationPollingResult.getSubStatus()).isEqualTo(COMPONENT_ANALYSIS_COMPLETE);
+
+    PolicyEvaluationReceipt receipt = policyEvaluateService.evaluateWithPolling(
+        IntegrationType.CLI,
+        app.getPublicId(),
+        ClientScanType.SONATYPE,
+        null,
+        new Stage(Stage.ID_BUILD),
+        componentAnalyzePollingResult.getStatusId(),
+        null
+    );
+
+    PolicyEvaluationPollingResult pollingResult = policyEvaluationHelper
+        .awaitEvaluationCompleted(app.getId(), receipt.getStatusId());
+
+    assertThat(pollingResult).isNotNull();
+    assertThat(pollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
+    assertThat(pollingResult.getSubStatus()).isEqualTo(POLICY_EVALUATION_COMPLETE);
+    assertThat(pollingResult.getReason()).isNull();
+    assertThat(pollingResult.getScanReceipt()).usingRecursiveComparison()
+        .isEqualTo(policyEvaluationPollingResult.getScanReceipt());
+
+    PolicyEvaluationResult result = pollingResult.getResult();
+    assertThat(result).isNotNull();
+    assertThat(result.getAlerts()).isEmpty();
+  }
+
+  @Test
+  public void testEvaluateWithPolling_WithReachableVulnerability_And_NewScanProcessDisabled() throws Exception {
+    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
+        app.getId(),
+        "scanId",
+        createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"),
+        "CVE-2012-0022",
+        lookup(InsightWork.class)
+    );
+
+    assertThatExceptionOfType(UnauthorizedException.class)
+        .isThrownBy(() ->
+            policyEvaluateService.evaluateWithPolling(
+                IntegrationType.CLI,
+                app.getPublicId(),
+                ClientScanType.SONATYPE,
+                null,
+                new Stage(Stage.ID_BUILD),
+                "componentAnalysisStatusId",
+                analysisDTO
+            ))
+        .withMessage("new-scan-process feature is disabled.");
+  }
+
+  @Test
+  public void testEvaluateWithPolling_WithReachableVulnerability_And_ComponentAnalysisNotFound() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+
+    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
+        app.getId(),
+        "scanId",
+        createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"),
+        "CVE-2012-0022",
+        lookup(InsightWork.class)
+    );
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() ->
+            policyEvaluateService.evaluateWithPolling(
+                IntegrationType.CLI,
+                app.getPublicId(),
+                ClientScanType.SONATYPE,
+                null,
+                new Stage(Stage.ID_BUILD),
+                "componentAnalysisStatusId",
+                analysisDTO
+            ))
+        .withMessage("Component Analysis not found for Application ID: "
+            + app.getPublicId() + " and Status ID: componentAnalysisStatusId");
+  }
+
+  @Test
+  public void testEvaluateWithPolling_WithReachableVulnerability_And_ComponentAnalysisNotCompleted() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
+    policyEvaluationPollingResult.setSubStatus(COMPONENT_ANALYSIS_PENDING);
+
+    persistedPolicyEvaluationPollingResultDAO.insert(
+        new PersistedPolicyEvaluationPollingResult(
+            app.getId(),
+            "componentAnalysisStatusId",
+            policyEvaluationPollingResult
+        )
+    );
+
+    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
+        app.getId(),
+        "scanId",
+        createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"),
+        "CVE-2012-0022",
+        lookup(InsightWork.class)
+    );
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() ->
+            policyEvaluateService.evaluateWithPolling(
+                IntegrationType.CLI,
+                app.getPublicId(),
+                ClientScanType.SONATYPE,
+                null,
+                new Stage(Stage.ID_BUILD),
+                "componentAnalysisStatusId",
+                analysisDTO
+            ))
+        .withMessage("Component analysis has not completed for public application id: " + app.getPublicId()
+            + " and status ID: componentAnalysisStatusId "
+            + "The current status is null and the current sub status is COMPONENT_ANALYSIS_PENDING");
+  }
+
+  private PolicyEvaluationReceipt analyzeComponentsWithPolling() throws IOException {
+    HttpServletRequest httpRequest = mock(HttpServletRequest.class);
+
+    final File file = new File("test-file.xml");
+    doReturn(file)
+        .when(mockScanHandler)
+        .createTempScanFile(any(HttpServletRequest.class), any(Application.class));
+    doReturn("test-client-user-agent")
+        .when(httpRequest)
+        .getHeader(CLM_CLIENT_USER_AGENT_HEADER);
+
+    String scanId = simulateComponentAnalysisReportIsAvailable();
+    ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+    doReturn(scanReceipt)
+        .when(mockScanHandler)
+        .handle(any(File.class), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
+            anyString(), anyString(), anyString(), eq(null));
+
+    PolicyEvaluationReceipt receipt = componentAnalysisService.analyzeComponentsWithPolling(
+        IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, httpRequest, new Stage(Stage.ID_BUILD));
+
+    PersistedPolicyEvaluationPollingResult pollingResult = persistedPolicyEvaluationPollingResultDAO
+        .getByApplicationIdAndStatusId(app.getId(), receipt.getStatusId());
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult = pollingResult.getPolicyEvaluationPollingResult();
+    assertThat(policyEvaluationPollingResult.getSubStatus()).isEqualTo(COMPONENT_ANALYSIS_PENDING);
+
+    policyEvaluationHelper.awaitComponentAnalysisCompleted(app.getId(), receipt.getStatusId());
+
+    return receipt;
   }
 }

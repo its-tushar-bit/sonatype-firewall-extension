@@ -308,6 +308,21 @@ public class ScanPolicyEvaluator
         false /* forMonitoring */, clientScanType, null, false /* skipAutoWaivers */);
   }
 
+  public ScanPolicyEvaluatorResults evaluate(
+      final Application application,
+      final String scanId,
+      final Stage stage,
+      final ScanTriggerType scanTriggerType,
+      final String clientUserAgent,
+      final String clientInstanceId,
+      final ClientScanType clientScanType,
+      final VulnerabilitySignatureAnalysisDTO analysisDTO)
+      throws IOException
+  {
+    return doEvaluate(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
+        false /* forMonitoring */, clientScanType, analysisDTO, false /* skipAutoWaivers */);
+  }
+
   public ScanPolicyEvaluatorResults evaluateForMonitoring(
       Application application,
       String scanId,
@@ -519,7 +534,7 @@ public class ScanPolicyEvaluator
       }
 
       PurlIdentifiersWithVulnerabilities reachablePurlIdentifiersWithVulnerabilities =
-          getReachablePurlIdentifiersWithVulnerabilities(appId, scanId, analysisDTO);
+          getReachablePurlIdentifiersWithVulnerabilities(app.getId(), scanId, analysisDTO);
 
       // Convert the policy alerts into policy violations
       List<PolicyAlert> allPolicyAlerts = new ArrayList<>();

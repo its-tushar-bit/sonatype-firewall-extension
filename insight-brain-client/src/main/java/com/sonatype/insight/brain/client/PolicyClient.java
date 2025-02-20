@@ -34,6 +34,8 @@ import org.apache.http.entity.FileEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING;
+
 public class PolicyClient
     extends AbstractRequestClient
 {
@@ -44,6 +46,18 @@ public class PolicyClient
   private static final String CI_INTEGRATION_PATH = "ci";
 
   private static final String REPOSITORY_MANAGER_INTEGRATION_PATH = "rm";
+
+  private static final String BASE_PATH = "rest/integration/applications/";
+
+  private static final String POLLING_PATH = "/evaluations/status/";
+
+  private static final String EVALUATION_SUB_PATH = "/evaluations/";
+
+  private static final String STAGES_SUB_PATH = "/stages/";
+
+  private static final String COMPONENT_ANALYSIS_SUB_PATH = "/component-analysis";
+
+  private static final String SCAN_TYPE = "scanType";
 
   private final Logger log;
 
@@ -101,6 +115,29 @@ public class PolicyClient
     return evaluate(REPOSITORY_MANAGER_INTEGRATION_PATH, scanFile, ClientScanType.SONATYPE, stage);
   }
 
+  /**
+   * @since 1.188
+   */
+  public PolicyEvaluationPollingResult runComponentAnalysisForCLI(
+      final ClientScanResult clientScanResult,
+      final ClientScanType clientScanType,
+      final Stage stage) throws IOException
+  {
+    return runComponentAnalysis(CLI_INTEGRATION_PATH, clientScanResult.getScanFile(),
+        getClientScanType(clientScanResult, clientScanType), stage);
+  }
+
+  /**
+   * @since 1.188
+   */
+  public PolicyEvaluationPollingResult runComponentAnalysisForCI(
+      final ClientScanResult clientScanResult,
+      final Stage stage) throws IOException
+  {
+    return runComponentAnalysis(CI_INTEGRATION_PATH, clientScanResult.getScanFile(),
+        clientScanResult.getClientScanType(), stage);
+  }
+
   // visible for testing
   PolicyEvaluationPollingResult evaluate(final String integrationPath,
                                          final File scanFile,
@@ -118,7 +155,7 @@ public class PolicyClient
     // allow handling of receipt before polling
     beforePolling(receipt, integrationPath);
 
-    log.debug("Assigned status ID {}", receipt.getStatusId());
+    log.debug("Assigned status ID {} for evaluation", receipt.getStatusId());
     log.info("Waiting for policy evaluation to complete...");
     PolicyEvaluationPollingResult result = pollEvaluationResult(receipt.getStatusId());
     log.info("Policy evaluation completed in {} seconds.", (System.currentTimeMillis() - start) / 1000);
@@ -126,13 +163,13 @@ public class PolicyClient
   }
 
   /**
-   * Retrieve the {@link Result} for post to {@link #evaluationRequestPathBuilder(String, ClientScanType, Stage)}.
+   * Retrieve the {@link Result} for post to {@link #getEvaluationRequestPathBuilder(String, ClientScanType, Stage)}.
    *
    * @param integrationPath - CI, CLI or RM path
    * @param clientScanType  - {@link ClientScanType}
    * @param stage           - {@link Stage}
    * @param entity          - {@link HttpEntity}
-   * @return Result to post of {@link #evaluationRequestPathBuilder(String, ClientScanType, Stage)}
+   * @return Result to post of {@link #getEvaluationRequestPathBuilder(String, ClientScanType, Stage)}
    * @since 1.101
    */
   protected Result evaluateResult(final String integrationPath,
@@ -140,7 +177,27 @@ public class PolicyClient
                                   final Stage stage,
                                   final HttpEntity entity) throws IOException
   {
-    return evaluationRequestPathBuilder(integrationPath, clientScanType, stage).post(entity);
+    return getEvaluationRequestPathBuilder(integrationPath, clientScanType, stage).post(entity);
+  }
+
+  /**
+   * Retrieve the {@link Result} for a POST request to
+   * {@link #getComponentAnalysisRequestPathBuilder(String, ClientScanType, Stage)}.
+   *
+   * @param integrationPath - CI, CLI
+   * @param clientScanType  - {@link ClientScanType}
+   * @param stage           - {@link Stage}
+   * @param entity          - {@link HttpEntity}
+   * @return Result of the POST request to
+   * {@link #getComponentAnalysisRequestPathBuilder(String, ClientScanType, Stage)}
+   * @since 1.187
+   */
+  protected Result getComponentAnalysisResult(final String integrationPath,
+                                  final ClientScanType clientScanType,
+                                  final Stage stage,
+                                  final HttpEntity entity) throws IOException
+  {
+    return getComponentAnalysisRequestPathBuilder(integrationPath, clientScanType, stage).post(entity);
   }
 
   /**
@@ -152,13 +209,57 @@ public class PolicyClient
    * @return RequestBuilder to allow continuing of build the request.
    * @since 1.101
    */
-  protected RequestBuilder evaluationRequestPathBuilder(final String integrationPath,
-                                                        final ClientScanType clientScanType,
-                                                        final Stage stage)
+  protected RequestBuilder getEvaluationRequestPathBuilder(final String integrationPath,
+                                                           final ClientScanType clientScanType,
+                                                           final Stage stage)
   {
-    return path("rest/integration/applications/", appId, "/evaluations/",
-        integrationPath, "/stages/", stage.getStageTypeId())
-        .query("scanType", clientScanType.name());
+    return path(BASE_PATH, appId, EVALUATION_SUB_PATH,
+        integrationPath, STAGES_SUB_PATH, stage.getStageTypeId())
+        .query(SCAN_TYPE, clientScanType.name());
+  }
+
+  /**
+   * Construct a {@link RequestBuilder} for the component analysis request.
+   *
+   * @param integrationPath - CI, CLI
+   * @param clientScanType  - {@link ClientScanType}
+   * @param stage           - {@link Stage}
+   * @return RequestBuilder for use with further building of the request
+   * @since 1.101
+   */
+  protected RequestBuilder getComponentAnalysisRequestPathBuilder(
+      final String integrationPath,
+      final ClientScanType clientScanType,
+      final Stage stage)
+  {
+    return path(BASE_PATH, appId, EVALUATION_SUB_PATH,
+        integrationPath, STAGES_SUB_PATH, stage.getStageTypeId(), COMPONENT_ANALYSIS_SUB_PATH)
+        .query(SCAN_TYPE, clientScanType.name());
+  }
+
+  // visible for testing
+  PolicyEvaluationPollingResult runComponentAnalysis(
+      final String integrationPath,
+      final File scanFile,
+      final ClientScanType clientScanType,
+      final Stage stage) throws IOException
+  {
+    if (CLI_INTEGRATION_PATH.equals(integrationPath)) {
+      addOrUpdateSourceControl();
+    }
+    final FileEntity entity = new FileEntity(scanFile, GZIP_CONTENT_TYPE);
+    final long start = System.currentTimeMillis();
+    final Result componentAnalysisResult = getComponentAnalysisResult(integrationPath, clientScanType, stage, entity);
+    final PolicyEvaluationReceipt receipt = parseResult(componentAnalysisResult, PolicyEvaluationReceipt.class);
+
+    // Allow handling of receipt before polling
+    beforePolling(receipt, integrationPath);
+
+    log.debug("Assigned status ID {} for component analysis", receipt.getStatusId());
+    log.info("Waiting for component analysis to complete...");
+    final PolicyEvaluationPollingResult result = pollComponentAnalysisResult(receipt.getStatusId());
+    log.info("Component analysis completed in {} seconds.", (System.currentTimeMillis() - start) / 1000);
+    return result;
   }
 
   /**
@@ -203,15 +304,14 @@ public class PolicyClient
     ScanReceipt scanReceipt = null;
     do {
       log.debug("Checking evaluation status at {}", new Date());
-      Result pollingResult = path("rest/integration/applications/", appId, "/evaluations/status/", statusId).get();
-      pollingStatus = parseResult(pollingResult, PolicyEvaluationPollingResult.class);
-      if (scanReceipt == null && pollingStatus.getScanReceipt() != null) {
+      pollingStatus = getPollingStatus(statusId);
+      if (isScanReceiptReady(scanReceipt, pollingStatus)) {
         scanReceipt = pollingStatus.getScanReceipt();
-        log.info("Assigned scan ID {}", scanReceipt.getScanId());
+        log.info("Assigned scan ID {} for evaluation", scanReceipt.getScanId());
       }
       if (pollingStatus.getStatus().equals(PolicyEvaluationStatus.PENDING)) {
         try {
-          Thread.sleep(pollingStatus.getNextPollingIntervalInSeconds() * 1000);
+          sleep(pollingStatus.getNextPollingIntervalInSeconds());
         }
         catch (InterruptedException e) {
           Thread.currentThread().interrupt();
@@ -263,5 +363,49 @@ public class PolicyClient
         path("api/experimental/signatures/vulnerability/application/publicId/", appId, "/report", scanId, "/reachable")
             .post(entity);
     return parseResult(result, PolicyEvaluationResult.class);
+  }
+
+  private PolicyEvaluationPollingResult pollComponentAnalysisResult(final String statusId) throws IOException {
+    PolicyEvaluationPollingResult pollingStatus;
+    ScanReceipt scanReceipt = null;
+    do {
+      log.debug("Checking component analysis status at {}", new Date());
+      pollingStatus = getPollingStatus(statusId);
+      if (isScanReceiptReady(scanReceipt, pollingStatus)) {
+        scanReceipt = pollingStatus.getScanReceipt();
+        log.info("Assigned scan ID {} for component analysis", scanReceipt.getScanId());
+      }
+      if (COMPONENT_ANALYSIS_PENDING.equals(pollingStatus.getSubStatus())) {
+        try {
+          sleep(pollingStatus.getNextPollingIntervalInSeconds());
+        }
+        catch (final InterruptedException e) {
+          Thread.currentThread().interrupt();
+          throw new IOException("Component analysis interrupted.", e);
+        }
+      }
+    }
+    while (COMPONENT_ANALYSIS_PENDING.equals(pollingStatus.getSubStatus()));
+
+    if (pollingStatus.getStatus().equals(PolicyEvaluationStatus.FAILED)) {
+      throw new IOException("Component analysis could not be completed: " + pollingStatus.getReason());
+    }
+    return pollingStatus;
+  }
+
+  private PolicyEvaluationPollingResult getPollingStatus(final String statusId) throws IOException {
+    final Result pollingResult = path(BASE_PATH, appId, POLLING_PATH, statusId).get();
+    return parseResult(pollingResult, PolicyEvaluationPollingResult.class);
+  }
+
+  private static boolean isScanReceiptReady(
+      final ScanReceipt scanReceipt,
+      final PolicyEvaluationPollingResult pollingStatus)
+  {
+    return scanReceipt == null && pollingStatus.getScanReceipt() != null;
+  }
+
+  private static void sleep(final int pollingIntervalSeconds) throws InterruptedException {
+    Thread.sleep(pollingIntervalSeconds * 1000L);
   }
 }

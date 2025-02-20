@@ -16,12 +16,14 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -36,11 +38,13 @@ import org.apache.openjpa.persistence.RollbackException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
 import org.slf4j.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -53,6 +57,8 @@ import static org.mockito.Mockito.verify;
 public class PolicyClientTest
     extends AbstractBrainServiceIntegrationTest
 {
+  private static final String SCAN_ID = "test-scanid";
+  
   InsightWork insightWork;
 
   @Before
@@ -93,8 +99,6 @@ public class PolicyClientTest
   @Test
   public void testGetPolicyEvaluationSummary() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
-    String scanId = "test-scanid";
-
     Application application = tempEntity.newApplicationWithParent("test-app");
 
     Configuration config = getCLMServer().getClientConfiguration();
@@ -106,7 +110,7 @@ public class PolicyClientTest
     assertThat(policyEvaluationSummary).isNull();
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(),
-        scanId);
+        SCAN_ID);
     Policy policy = tempEntity.newPolicy(application);
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
@@ -114,7 +118,7 @@ public class PolicyClientTest
 
     assertThat(policyEvaluationSummary).isNotNull();
     assertThat(policyEvaluationSummary.getReportUrl())
-        .isEqualTo("ui/links/application/" + application.getPublicId() + "/report/" + scanId);
+        .isEqualTo("ui/links/application/" + application.getPublicId() + "/report/" + SCAN_ID);
     assertThat(policyEvaluationSummary.getAffectedComponentCount()).isEqualTo(1);
     assertThat(policyEvaluationSummary.getCriticalComponentCount()).isEqualTo(0);
     assertThat(policyEvaluationSummary.getModerateComponentCount()).isEqualTo(0);
@@ -123,23 +127,21 @@ public class PolicyClientTest
 
   @Test
   public void testEvaluateCLI() throws Exception {
-    assertEvaluationCLIwithThirdPartyScanContent(false);
+    assertEvaluationCLIWithThirdPartyScanContent(false);
   }
 
   @Test
   public void testEvaluateCLI_withThirdPartyScanContent() throws Exception {
-    assertEvaluationCLIwithThirdPartyScanContent(true);
+    assertEvaluationCLIWithThirdPartyScanContent(true);
   }
 
-  private void assertEvaluationCLIwithThirdPartyScanContent(boolean thirdPartyScanningEnabled) throws IOException {
+  private void assertEvaluationCLIWithThirdPartyScanContent(boolean thirdPartyScanningEnabled) throws IOException {
     Stage stage = new Stage(Stage.ID_BUILD);
-    final String scanId = "test-scanid";
-
     Application application = tempEntity.newApplicationWithParent("test-app");
-    File scanFile = createScanFile(application, scanId);
+    File scanFile = createScanFile(application);
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
-    mockScanReceiptAndReport(scanId);
+    mockScanReceiptAndReport();
 
     PolicyEvaluationPollingResult completedResult = new PolicyEvaluationPollingResult();
     completedResult.setStatus(PolicyEvaluationStatus.COMPLETED);
@@ -147,7 +149,7 @@ public class PolicyClientTest
 
     Logger logger = mock(Logger.class);
     PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId(), logger));
-    doReturn(completedResult).when(policyClient).parseResult(ArgumentMatchers.any(Result.class),
+    doReturn(completedResult).when(policyClient).parseResult(any(Result.class),
         eq(PolicyEvaluationPollingResult.class));
     ClientScanResult clientScanResult = new ClientScanResult(scanFile, thirdPartyScanningEnabled);
     PolicyEvaluationPollingResult policyEvaluationResult =
@@ -162,13 +164,11 @@ public class PolicyClientTest
   @Test
   public void testEvaluateCI() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
-    final String scanId = "test-scanid";
-
     Application application = tempEntity.newApplicationWithParent("test-app");
-    File scanFile = createScanFile(application, scanId);
+    File scanFile = createScanFile(application);
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
-    mockScanReceiptAndReport(scanId);
+    mockScanReceiptAndReport();
 
     Logger logger = mock(Logger.class);
     PolicyClient policyClient = new PolicyClient(config, application.getPublicId(), logger);
@@ -184,13 +184,11 @@ public class PolicyClientTest
   @Test
   public void testEvaluateRepoMan() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
-    final String scanId = "test-scanid";
-
     Application application = tempEntity.newApplicationWithParent("test-app");
-    File scanFile = createScanFile(application, scanId);
+    File scanFile = createScanFile(application);
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
-    mockScanReceiptAndReport(scanId);
+    mockScanReceiptAndReport();
 
     PolicyClient policyClient = new PolicyClient(config, application.getPublicId());
 
@@ -201,13 +199,11 @@ public class PolicyClientTest
   @Test
   public void testEvaluate_RetriesUntilComplete() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
-    final String scanId = "test-scanid";
-
     Application application = tempEntity.newApplicationWithParent("test-app");
-    File scanFile = createScanFile(application, scanId);
+    File scanFile = createScanFile(application);
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
-    mockScanReceiptAndReport(scanId);
+    mockScanReceiptAndReport();
 
     PolicyEvaluationPollingResult pendingResult = new PolicyEvaluationPollingResult();
     pendingResult.setStatus(PolicyEvaluationStatus.PENDING);
@@ -217,72 +213,66 @@ public class PolicyClientTest
 
     PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId()));
     doReturn(pendingResult).doReturn(pendingResult).doReturn(completedResult).when(policyClient)
-        .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationPollingResult.class));
+        .parseResult(any(Result.class), eq(PolicyEvaluationPollingResult.class));
 
     PolicyEvaluationPollingResult policyEvaluationResult =
         policyClient.evaluate("cli", scanFile, ClientScanType.SONATYPE, stage);
     assertThat(policyEvaluationResult).isNotNull();
     verify(policyClient, times(3))
-        .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationPollingResult.class));
+        .parseResult(any(Result.class), eq(PolicyEvaluationPollingResult.class));
   }
 
   @Test
   public void testEvaluate_DoesNotPollWhenPolicyEvaluationReceiptRequestFails() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
-    final String scanId = "test-scanid";
-
     Application application = tempEntity.newApplicationWithParent("test-app");
-    File scanFile = createScanFile(application, scanId);
+    File scanFile = createScanFile(application);
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
-    mockScanReceiptAndReport(scanId);
+    mockScanReceiptAndReport();
 
     PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId()));
     doThrow(new IOException("EVALUATION REQUEST FAILURE")).when(policyClient)
-        .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationReceipt.class));
+        .parseResult(any(Result.class), eq(PolicyEvaluationReceipt.class));
 
     assertThatExceptionOfType(IOException.class)
         .isThrownBy(() -> policyClient.evaluate("cli", scanFile, ClientScanType.SONATYPE, stage))
         .withMessage("EVALUATION REQUEST FAILURE");
-    verify(policyClient, never()).parseResult(ArgumentMatchers.any(Result.class),
+    verify(policyClient, never()).parseResult(any(Result.class),
         eq(PolicyEvaluationPollingResult.class));
   }
 
   @Test
   public void testEvaluate_StopsRetryingWhenFailed() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
-    final String scanId = "test-scanid";
-
     Application application = tempEntity.newApplicationWithParent("test-app");
-    File scanFile = createScanFile(application, scanId);
+    File scanFile = createScanFile(application);
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
-    mockScanReceiptAndReport(scanId);
+    mockScanReceiptAndReport();
 
     PolicyEvaluationPollingResult failedResult = new PolicyEvaluationPollingResult();
     failedResult.setStatus(PolicyEvaluationStatus.FAILED);
     failedResult.setReason("FAILURE REASON");
 
     PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId()));
-    doReturn(failedResult).when(policyClient).parseResult(ArgumentMatchers.any(Result.class),
+    doReturn(failedResult).when(policyClient).parseResult(any(Result.class),
         eq(PolicyEvaluationPollingResult.class));
 
     assertThatExceptionOfType(IOException.class)
         .isThrownBy(() -> policyClient.evaluate("cli", scanFile, ClientScanType.SONATYPE, stage))
         .withMessage("Policy evaluation could not be completed: FAILURE REASON");
-    verify(policyClient, times(1)).parseResult(ArgumentMatchers.any(Result.class),
+    verify(policyClient, times(1)).parseResult(any(Result.class),
         eq(PolicyEvaluationPollingResult.class));
   }
 
   @Test
   public void testEvaluate_LogStatusAndScanId() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
-    final String scanId = "test-scanid";
-
     Application application = tempEntity.newApplicationWithParent("test-app");
 
-    File scanFile = createScanFile(application, scanId);
-    ScanReceipt scanReceipt = mockScanReceiptAndReport(scanId);
+    File scanFile = createScanFile(application);
+    ScanReceipt scanReceipt = mockScanReceiptAndReport();
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
 
@@ -290,19 +280,19 @@ public class PolicyClientTest
     receipt.setStatusId("evaluation-statusid");
     Logger logger = mock(Logger.class);
     PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId(), logger));
-    doReturn(receipt).when(policyClient).parseResult(ArgumentMatchers.any(Result.class),
+    doReturn(receipt).when(policyClient).parseResult(any(Result.class),
         eq(PolicyEvaluationReceipt.class));
 
     PolicyEvaluationPollingResult pollingResult = new PolicyEvaluationPollingResult();
     pollingResult.setScanReceipt(scanReceipt);
     pollingResult.setStatus(PolicyEvaluationStatus.COMPLETED);
-    doReturn(pollingResult).when(policyClient).parseResult(ArgumentMatchers.any(Result.class),
+    doReturn(pollingResult).when(policyClient).parseResult(any(Result.class),
         eq(PolicyEvaluationPollingResult.class));
 
     policyClient.evaluate("cli", scanFile, ClientScanType.SONATYPE, stage);
 
-    verify(logger).debug("Assigned status ID {}", "evaluation-statusid");
-    verify(logger).info("Assigned scan ID {}", "test-scanid");
+    verify(logger).debug("Assigned status ID {} for evaluation", "evaluation-statusid");
+    verify(logger).info("Assigned scan ID {} for evaluation", SCAN_ID);
   }
 
   @Test
@@ -315,14 +305,153 @@ public class PolicyClientTest
     VulnerabilitySignatureAnalysisDTO analysisDTO = new VulnerabilitySignatureAnalysisDTO();
 
     assertThatExceptionOfType(IOException.class)
-        .isThrownBy(() -> policyClient.importReachabilityAnalysis("test-scanid", analysisDTO))
+        .isThrownBy(() -> policyClient.importReachabilityAnalysis(SCAN_ID, analysisDTO))
         .withMessage("No vulnerability signatures specified");
 
-    verify(policyClient, times(1)).parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationResult.class));
+    verify(policyClient, times(1)).parseResult(any(Result.class), eq(PolicyEvaluationResult.class));
   }
 
-  private File createScanFile(Application app, String scanId) {
-    File scanFile = insightWork.getScanFile(app.getId(), scanId);
+  @Test
+  public void testRunComponentAnalysisForCI() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+    final Application application = tempEntity.newApplicationWithParent();
+    final File scanFile = createScanFile(application);
+    mockScanReceiptAndReport();
+
+    final Configuration config = getCLMServer().getClientConfiguration();
+    final Logger logger = mock(Logger.class);
+    final PolicyClient policyClient = new PolicyClient(config, application.getPublicId(), logger);
+
+    final ClientScanResult clientScanResult = new ClientScanResult(scanFile, false);
+    final Stage stage = new Stage(Stage.ID_BUILD);
+    final PolicyEvaluationPollingResult policyEvaluationResult =
+        policyClient.runComponentAnalysisForCI(clientScanResult, stage);
+
+    assertThat(policyEvaluationResult).isNotNull();
+    assertThat(policyEvaluationResult.getStatus()).isEqualTo(PolicyEvaluationStatus.PENDING);
+    assertThat(policyEvaluationResult.getSubStatus()).isEqualTo(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE);
+
+    // addOrUpdateSourceControl is not called for CI
+    verify(logger, never())
+        .debug("Amending source control record for application with id: {} with discovered repository URL",
+            application.getPublicId());
+    verify(logger, never())
+        .debug("Repository URL for application with id: {} could not be found.", application.getPublicId());
+
+    verify(logger).debug(eq("Assigned status ID {} for component analysis"), anyString());
+    verify(logger).info("Assigned scan ID {} for component analysis", SCAN_ID);
+    verify(logger).info(eq("Component analysis completed in {} seconds."), anyLong());
+  }
+
+  @Test
+  public void testRunComponentAnalysisForCLI() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+    final Application application = tempEntity.newApplicationWithParent();
+    final File scanFile = createScanFile(application);
+    mockScanReceiptAndReport();
+
+    final Configuration config = getCLMServer().getClientConfiguration();
+    final Logger logger = mock(Logger.class);
+    final PolicyClient policyClient = new PolicyClient(config, application.getPublicId(), logger);
+
+    final ClientScanResult clientScanResult = new ClientScanResult(scanFile, false);
+    final Stage stage = new Stage(Stage.ID_BUILD);
+    final PolicyEvaluationPollingResult policyEvaluationResult =
+        policyClient.runComponentAnalysisForCLI(clientScanResult, ClientScanType.SONATYPE, stage);
+
+    assertThat(policyEvaluationResult).isNotNull();
+    assertThat(policyEvaluationResult.getStatus()).isEqualTo(PolicyEvaluationStatus.PENDING);
+    assertThat(policyEvaluationResult.getSubStatus()).isEqualTo(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE);
+
+    // addOrUpdateSourceControl is called for CLI
+    verify(logger)
+        .debug("Amending source control record for application with id: {} with discovered repository URL",
+            application.getPublicId());
+    verify(logger, never())
+        .debug("Repository URL for application with id: {} could not be found.", application.getPublicId());
+
+    verify(logger).debug(eq("Assigned status ID {} for component analysis"), anyString());
+    verify(logger).info("Assigned scan ID {} for component analysis", SCAN_ID);
+    verify(logger).info(eq("Component analysis completed in {} seconds."), anyLong());
+  }
+
+  @Test
+  public void testRunComponentAnalysis_RetriesUntilComplete() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+    final Application application = tempEntity.newApplicationWithParent("test-app");
+    final File scanFile = createScanFile(application);
+    mockScanReceiptAndReport();
+
+    final Configuration config = getCLMServer().getClientConfiguration();
+    final PolicyEvaluationPollingResult pendingResult = new PolicyEvaluationPollingResult();
+    pendingResult.setStatus(PolicyEvaluationStatus.PENDING);
+    pendingResult.setSubStatus(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING);
+    final PolicyEvaluationPollingResult completedResult = new PolicyEvaluationPollingResult();
+    completedResult.setStatus(PolicyEvaluationStatus.PENDING);
+    completedResult.setSubStatus(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE);
+    completedResult.setResult(new PolicyEvaluationResult());
+
+    final PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId()));
+    doReturn(pendingResult).doReturn(pendingResult).doReturn(completedResult).when(policyClient)
+        .parseResult(any(Result.class), eq(PolicyEvaluationPollingResult.class));
+
+    final PolicyEvaluationPollingResult policyEvaluationResult =
+        policyClient.runComponentAnalysis("cli", scanFile, ClientScanType.SONATYPE, new Stage(Stage.ID_BUILD));
+
+    assertThat(policyEvaluationResult).isNotNull();
+
+    verify(policyClient, times(3))
+        .parseResult(any(Result.class), eq(PolicyEvaluationPollingResult.class));
+  }
+
+  @Test
+  public void testRunComponentAnalysis_DoesNotPollWhenPolicyEvaluationReceiptRequestFails() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+    final Application application = tempEntity.newApplicationWithParent();
+    final File scanFile = createScanFile(application);
+    mockScanReceiptAndReport();
+
+    final Configuration config = getCLMServer().getClientConfiguration();
+    final PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId()));
+    doThrow(IOException.class).when(policyClient)
+        .parseResult(any(Result.class), eq(PolicyEvaluationReceipt.class));
+
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> policyClient
+            .runComponentAnalysis("cli", scanFile, ClientScanType.SONATYPE, new Stage(Stage.ID_BUILD)));
+
+    verify(policyClient, never()).parseResult(any(Result.class),
+        eq(PolicyEvaluationPollingResult.class));
+  }
+
+  @Test
+  public void testRunComponentAnalysis_StopsRetryingWhenFailed() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+    final Application application = tempEntity.newApplicationWithParent();
+    final File scanFile = createScanFile(application);
+    mockScanReceiptAndReport();
+
+    final Configuration config = getCLMServer().getClientConfiguration();
+    PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId()));
+
+    final String failureReason = "FAILURE REASON";
+    PolicyEvaluationPollingResult failedResult = new PolicyEvaluationPollingResult();
+    failedResult.setStatus(PolicyEvaluationStatus.FAILED);
+    failedResult.setReason(failureReason);
+    doReturn(failedResult).when(policyClient).parseResult(any(Result.class),
+        eq(PolicyEvaluationPollingResult.class));
+
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> policyClient
+            .runComponentAnalysis("cli", scanFile, ClientScanType.SONATYPE, new Stage(Stage.ID_BUILD)))
+        .withMessage("Component analysis could not be completed: " + failureReason);
+
+    verify(policyClient, times(1)).parseResult(any(Result.class),
+        eq(PolicyEvaluationPollingResult.class));
+  }
+
+  private File createScanFile(Application app) {
+    File scanFile = insightWork.getScanFile(app.getId(), SCAN_ID);
 
     try {
       Files.createDirectories(scanFile.getParentFile().toPath());
@@ -335,12 +464,12 @@ public class PolicyClientTest
     return scanFile;
   }
 
-  private ScanReceipt mockScanReceiptAndReport(String scanId) {
+  private ScanReceipt mockScanReceiptAndReport() {
     ScanReceipt scanReceipt = new ScanReceipt();
-    scanReceipt.setScanId(scanId);
+    scanReceipt.setScanId(SCAN_ID);
     scanReceipt.setTimeToReport(1L);
     mockScanReceipt(scanReceipt);
-    mockReport(scanId, "/PolicyClientTest/report.zip");
+    mockReport(SCAN_ID, "/PolicyClientTest/report.zip");
 
     return scanReceipt;
   }

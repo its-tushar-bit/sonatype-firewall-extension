@@ -66,6 +66,17 @@ public class RestClientFactory
     public ScanReceipt uploadScan(String appId, File scanFile, ClientScanType clientScanType) throws IOException {
       return new ScanClient(config, appId).uploadCLIScan(scanFile, clientScanType);
     }
+
+    @Override
+    public PolicyEvaluationPollingResult runComponentAnalysis(
+        final String appId,
+        final String stageId,
+        final ClientScanResult clientScanResult,
+        final ClientScanType clientScanType) throws IOException
+    {
+      return new PolicyClient(config, appId).runComponentAnalysisForCLI(clientScanResult, clientScanType,
+          new Stage(stageId));
+    }
   }
 
   /**
@@ -93,6 +104,16 @@ public class RestClientFactory
     @Override
     public ScanReceipt uploadScan(String appId, File scanFile, ClientScanType clientScanType) {
       throw new UnsupportedOperationException("Uploading a scan file is not supported.");
+    }
+
+    @Override
+    public PolicyEvaluationPollingResult runComponentAnalysis(
+        final String appId,
+        final String stageId,
+        final ClientScanResult clientScanResult,
+        final ClientScanType clientScanType) throws IOException
+    {
+      return new PolicyClient(config, appId).runComponentAnalysisForCI(clientScanResult, new Stage(stageId));
     }
   }
 
@@ -234,5 +255,16 @@ public class RestClientFactory
     {
       return new CallFlowAnalysisConfigClient(config).getAnalysisCallFlowConfig(ownerType, ownerId);
     }
+
+    /**
+     * Run the component analysis phase of the distributed evaluation process for the given application and stage.
+     *
+     * @since 1.188
+     */
+    public abstract PolicyEvaluationPollingResult runComponentAnalysis(
+        final String appId,
+        final String stageId,
+        final ClientScanResult clientScanResult,
+        final ClientScanType clientScanType) throws IOException;
   }
 }

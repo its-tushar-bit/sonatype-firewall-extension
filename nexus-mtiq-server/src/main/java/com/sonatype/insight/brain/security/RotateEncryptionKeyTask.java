@@ -17,6 +17,8 @@ import javax.inject.Singleton;
 import javax.ws.rs.BadRequestException;
 
 import com.sonatype.insight.brain.clients.AwsSecretsManagerClient;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
@@ -47,6 +49,8 @@ public class RotateEncryptionKeyTask
 
   private final AwsSecretsManagerClient awsSecretsManagerClient;
 
+  private final DAOSecretRotator daoSecretRotator;
+
   private final PasswordHandler passwordHandler;
 
   private final ReloadTenantEncryptionKeyJob reloadTenantEncryptionKeyJob;
@@ -65,6 +69,7 @@ public class RotateEncryptionKeyTask
   public RotateEncryptionKeyTask(
       final Set<RotatableSecrets> rotatableSecrets,
       final AwsSecretsManagerClient awsSecretsManagerClient,
+      final DAOSecretRotator daoSecretRotator,
       final PasswordHandler passwordHandler,
       final ReloadTenantEncryptionKeyJob reloadTenantEncryptionKeyJob,
       final TenantMetadataDAO tenantMetadataDAO,
@@ -74,6 +79,7 @@ public class RotateEncryptionKeyTask
   {
     super("triggerRotateEncryptionKey");
     this.awsSecretsManagerClient = awsSecretsManagerClient;
+    this.daoSecretRotator = daoSecretRotator;
     this.passwordHandler = passwordHandler;
     this.rotatableSecrets = rotatableSecrets;
     this.reloadTenantEncryptionKeyJob = reloadTenantEncryptionKeyJob;
@@ -99,8 +105,7 @@ public class RotateEncryptionKeyTask
    * If this task fails, the issue should be identified, fixed and then this task should be re-run.
    * ---
    * The `RotatableSecrets` interface represents a component that contains secrets which can be rotated.
-   * Implementations of this interface should inherit from the abstract class RotatableSecretsDAO or provide the
-   * logic to rotate their encrypted secrets using the provided secret rotator function.
+   * Implementations of this interface should inherit from the abstract class AbstractOperationalSqlDAO.
    *
    * @param parameters a map containing the parameters for the task execution.
    * The first key should be "newEncryptionKeyName", which holds a list of strings where the first element is the name
@@ -177,12 +182,20 @@ public class RotateEncryptionKeyTask
 
   private boolean rotateSecrets(String newEncryptionKeyName, Function<String, String> secretRotator) {
     for (RotatableSecrets rotatableSecret : rotatableSecrets) {
-      try {
-        rotatableSecret.rotateEncryptedSecrets(secretRotator);
+      if (rotatableSecret instanceof AbstractOperationalSqlDAO) {
+        try {
+          daoSecretRotator.rotateEncryptedSecrets((AbstractOperationalSqlDAO<?>) rotatableSecret, secretRotator);
+        }
+        catch (RuntimeException | SQLException e) {
+          log.error("Tenant encryption key rotation failed. Unable to rotate encrypted secrets using new tenant " +
+                  "encryption key {}. Failed to rotate secrets for: {}", newEncryptionKeyName,
+              rotatableSecret.getClass(), e);
+          return false;
+        }
       }
-      catch (RuntimeException | SQLException e) {
-        log.error("Tenant encryption key rotation failed. Unable to rotate encrypted secrets using new tenant " +
-            "encryption key {}. Failed to rotate secrets for: {}", newEncryptionKeyName, rotatableSecret.getClass(), e);
+      else {
+        log.error("Not rotating tenant encryption key. RotatableSecrets implementation is not an instance of " +
+            "AbstractOperationalSqlDAO. Unable to rotate secrets for: {}", rotatableSecret.getClass());
         return false;
       }
     }

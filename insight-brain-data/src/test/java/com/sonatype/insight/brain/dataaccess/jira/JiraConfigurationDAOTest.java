@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.util.function.Function;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.jira.JiraConfiguration;
@@ -30,11 +31,14 @@ public class JiraConfigurationDAOTest
 {
   private JiraConfigurationDAO dao;
 
+  private DAOSecretRotator daoSecretRotator;
+
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createJiraConfigurationDAO();
+    daoSecretRotator = new DAOSecretRotator();
   }
 
   @Test
@@ -378,7 +382,7 @@ public class JiraConfigurationDAOTest
     tempEntity.newJiraConfiguration("http://url", "userName", "passwordOld1".toCharArray(), null);
     Function<String, String> secretRotator = secret -> secret.replace("Old", "New");
 
-    dao.rotateEncryptedSecrets(secretRotator);
+    daoSecretRotator.rotateEncryptedSecrets(dao, secretRotator);
 
     JiraConfiguration result = dao.get();
     assertThat(String.valueOf(result.getPassword())).isEqualTo("passwordNew1");

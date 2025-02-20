@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
@@ -24,11 +25,14 @@ public class ArtifactoryConnectionDAOTest
 {
   private ArtifactoryConnectionDAO dao;
 
+  private DAOSecretRotator daoSecretRotator;
+
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createArtifactoryConnectionDAO();
+    daoSecretRotator = new DAOSecretRotator();
   }
 
   @Test
@@ -102,7 +106,7 @@ public class ArtifactoryConnectionDAOTest
 
     Function<String, String> secretRotator = secret -> secret.replace("Old", "New");
 
-    dao.rotateEncryptedSecrets(secretRotator);
+    daoSecretRotator.rotateEncryptedSecrets(dao, secretRotator);
 
     List<ArtifactoryConnection> results = dao.getAll();
 

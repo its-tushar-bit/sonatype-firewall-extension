@@ -5,21 +5,11 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.sql.SQLException;
-import java.util.function.Function;
-
 /**
- * Interface representing a component that contains secrets which can be rotated.
- * Implementations of this interface should provide the logic to rotate their encrypted secrets
- * using a provided secret rotator function.
+ * Interface representing a DAO component that contains secrets which can be rotated.
+ * The DAOs that implement this interface must extend the AbstractOperationalSqlDAO this will provide the logic to
+ * rotate their encrypted secrets using the DAOSecretRotator and a provided secret rotator function.
  */
 public interface RotatableSecrets
 {
-  /**
-   * Rotates the encrypted secrets using the provided secret rotator function.
-   *
-   * @param secretRotator a function that takes an encrypted secret and returns the rotated secret
-   * @throws SQLException if an SQL error occurs during the rotation process
-   */
-  void rotateEncryptedSecrets(Function<String, String> secretRotator) throws SQLException;
 }

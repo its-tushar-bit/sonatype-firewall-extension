@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.util.function.Function;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
 import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
 
 import org.junit.Before;
@@ -30,6 +31,8 @@ public class OidcConfigurationDAOTest
 
   public static final String TOKEN_URL = "https://www.an-idp.com/token";
 
+  private DAOSecretRotator daoSecretRotator;
+
   private OidcConfigurationDAO dao;
 
   @Before
@@ -37,6 +40,7 @@ public class OidcConfigurationDAOTest
   public void setup() {
     super.setup();
     dao = daoFactory.createOidcConfigurationDAO();
+    daoSecretRotator = new DAOSecretRotator();
   }
 
   @Test
@@ -256,7 +260,7 @@ public class OidcConfigurationDAOTest
     tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, CLIENT_SECRET + "_Old", AUTHORIZATION_URL, TOKEN_URL);
     Function<String, String> secretRotator = secret -> secret.replace("Old", "New");
 
-    dao.rotateEncryptedSecrets(secretRotator);
+    daoSecretRotator.rotateEncryptedSecrets(dao, secretRotator);
 
     OidcConfiguration result = dao.get();
     assertThat(String.valueOf(result.getClientSecret())).isEqualTo(CLIENT_SECRET + "_New");

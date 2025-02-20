@@ -22,10 +22,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dataaccess.RotatableSecretsDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -49,7 +49,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @Named
 @Singleton
 public class SourceControlDAO
-    extends RotatableSecretsDAO<SourceControl>
+    extends AbstractOperationalSqlDAO<SourceControl>
     implements RotatableSecrets
 {
   public static final int EXTERNAL_EVALUATION_WINDOW_IN_DAYS = 7;

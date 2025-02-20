@@ -11,9 +11,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.RotatableSecretsDAO;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
+import com.sonatype.insight.brain.security.RotatableSecrets;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -27,7 +28,8 @@ import org.apache.commons.lang3.StringUtils;
 @Singleton
 @SuppressWarnings("restriction")
 public class OidcConfigurationDAO
-    extends RotatableSecretsDAO<OidcConfiguration>
+    extends AbstractOperationalSqlDAO<OidcConfiguration>
+    implements RotatableSecrets
 {
   public static final String INVALID_CONFIGURATION = "Invalid configuration";
 

@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.util.function.Function;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -26,11 +27,14 @@ public class MailConfigurationDAOTest
 {
   private MailConfigurationDAO dao;
 
+  private DAOSecretRotator daoSecretRotator;
+
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createMailConfigurationDAO();
+    daoSecretRotator = new DAOSecretRotator();
   }
 
   @After
@@ -285,7 +289,7 @@ public class MailConfigurationDAOTest
     tempEntity.newMailConfiguration("testuser", "passwordOld1".toCharArray());
     Function<String, String> secretRotator = secret -> secret.replace("Old", "New");
 
-    dao.rotateEncryptedSecrets(secretRotator);
+    daoSecretRotator.rotateEncryptedSecrets(dao, secretRotator);
 
     MailConfiguration result = dao.get();
     assertThat(String.valueOf(result.getPassword())).isEqualTo("passwordNew1");

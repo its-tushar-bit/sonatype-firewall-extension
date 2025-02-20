@@ -7,13 +7,14 @@ package com.sonatype.insight.brain.dataaccess.configuration;
 
 import java.sql.SQLException;
 import java.util.function.Function;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.PersistenceException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.PersistenceException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,11 +26,14 @@ public class ProxyServerConfigurationDAOTest
 {
   private ProxyServerConfigurationDAO dao;
 
+  private DAOSecretRotator daoSecretRotator;
+
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createProxyServerConfigurationDAO();
+    daoSecretRotator = new DAOSecretRotator();
   }
 
   @Test
@@ -206,7 +210,7 @@ public class ProxyServerConfigurationDAOTest
     tempEntity.setProxyServerConfiguration("localhost", 1984, "userName", "passwordOld1".toCharArray(), "exclude.this");
     Function<String, String> secretRotator = secret -> secret.replace("Old", "New");
 
-    dao.rotateEncryptedSecrets(secretRotator);
+    daoSecretRotator.rotateEncryptedSecrets(dao, secretRotator);
 
     ProxyServerConfiguration result = dao.get();
     assertThat(String.valueOf(result.getPassword())).isEqualTo("passwordNew1");

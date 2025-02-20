@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.util.function.Function;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -25,11 +26,14 @@ public class CrowdConfigurationDAOTest
 {
   private CrowdConfigurationDAO dao;
 
+  private DAOSecretRotator daoSecretRotator;
+
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createCrowdConfigurationDAO();
+    daoSecretRotator = new DAOSecretRotator();
   }
 
   @Test
@@ -352,7 +356,7 @@ public class CrowdConfigurationDAOTest
     tempEntity.newCrowdConfiguration("http://localhost:8095/crowd", "applicationName", "passwordOld1".toCharArray());
     Function<String, String> secretRotator = secret -> secret.replace("Old", "New");
 
-    dao.rotateEncryptedSecrets(secretRotator);
+    daoSecretRotator.rotateEncryptedSecrets(dao, secretRotator);
 
     CrowdConfiguration result = dao.get();
     assertThat(String.valueOf(result.getApplicationPassword())).isEqualTo("passwordNew1");

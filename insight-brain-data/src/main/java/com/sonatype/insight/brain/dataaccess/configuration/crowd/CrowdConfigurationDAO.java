@@ -10,7 +10,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.RotatableSecretsDAO;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
 import com.sonatype.insight.brain.security.RotatableSecrets;
@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 @Named
 @Singleton
 public class CrowdConfigurationDAO
-    extends RotatableSecretsDAO<CrowdConfiguration>
+    extends AbstractOperationalSqlDAO<CrowdConfiguration>
     implements RotatableSecrets
 {
   public static final String SINGLETON_ENTITY_ID = "crowd-configuration";

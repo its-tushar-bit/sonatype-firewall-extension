@@ -13,7 +13,7 @@ import com.sonatype.insight.model.HasStringId;
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAsGlobal;
 
 public abstract class AbstractOperationalSqlWithFallbackDAO<T extends HasStringId>
-    extends RotatableSecretsDAO<T>
+    extends AbstractOperationalSqlDAO<T>
 {
   private final TenantUtil tenantUtil = new TenantUtil();
 

@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
@@ -26,11 +27,14 @@ public class RepositoryConnectionDAOTest
 {
   private RepositoryConnectionDAO dao;
 
+  private DAOSecretRotator daoSecretRotator;
+
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createRepositoryConnectionDAO();
+    daoSecretRotator = new DAOSecretRotator();
   }
 
   @Test
@@ -170,7 +174,7 @@ public class RepositoryConnectionDAOTest
 
     Function<String, String> secretRotator = secret -> secret.replace("Old", "New");
 
-    dao.rotateEncryptedSecrets(secretRotator);
+    daoSecretRotator.rotateEncryptedSecrets(dao, secretRotator);
 
     List<RepositoryConnection> results = dao.getAll();
 

@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
@@ -75,6 +76,8 @@ public class SourceControlDAOTest
 
   private Organization org;
 
+  private DAOSecretRotator daoSecretRotator;
+
   @Mock
   private SourceControlSshValidator sourceControlSshValidator;
 
@@ -85,6 +88,8 @@ public class SourceControlDAOTest
 
     sourceControlDAO = daoFactory.createSourceControlDAO();
     sourceControlPullRequestDAO = daoFactory.createSourceControlPullRequestDAO();
+
+    daoSecretRotator = new DAOSecretRotator();
 
     app = tempEntity.newApplicationWithParent();
     org = tempEntity.newOrganization();
@@ -2079,7 +2084,7 @@ public class SourceControlDAOTest
 
     Function<String, String> secretRotator = secret -> secret.replace("old", "new");
 
-    sourceControlDAO.rotateEncryptedSecrets(secretRotator);
+    daoSecretRotator.rotateEncryptedSecrets(sourceControlDAO, secretRotator);
 
     List<SourceControl> results = sourceControlDAO.getAll();
 

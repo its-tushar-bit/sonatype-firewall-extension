@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 import com.sonatype.insight.brain.clients.AwsSecretsManagerClient;
+import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
 import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
@@ -27,11 +28,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -47,10 +50,8 @@ public class RotateEncryptionKeyTaskTest
   @Mock
   AwsSecretsManagerClient awsSecretsManagerClient;
 
-  @Mock
   SourceControlDAO sourceControlDAO;
 
-  @Mock
   ArtifactoryConnectionDAO artifactoryConnectionDAO;
 
   @Mock
@@ -67,6 +68,9 @@ public class RotateEncryptionKeyTaskTest
 
   private TenantMetadataDAO tenantMetadataDAO;
 
+  @Spy
+  private DAOSecretRotator spyDaoSecretRotator = new DAOSecretRotator();
+
   private MultiTenantEncryptionKeyStore multiTenantEncryptionKeyStore;
 
   private RotateEncryptionKeyTask underTest;
@@ -74,6 +78,10 @@ public class RotateEncryptionKeyTaskTest
   @Before
   @Override
   public void setup() {
+    super.setup();
+
+    sourceControlDAO = daoFactory.createSourceControlDAO();
+    artifactoryConnectionDAO = daoFactory.createArtifactoryConnectionDAO();
     tenantMetadataDAO = new TenantMetadataDAO(databaseRule.getOperationalDataStore());
 
     multiTenantEncryptionKeyStore =
@@ -85,6 +93,7 @@ public class RotateEncryptionKeyTaskTest
     underTest = new RotateEncryptionKeyTask(
         rotatableSecrets,
         awsSecretsManagerClient,
+        spyDaoSecretRotator,
         passwordHandler,
         reloadTenantEncryptionKeyJob,
         tenantMetadataDAO,
@@ -109,8 +118,8 @@ public class RotateEncryptionKeyTaskTest
 
       underTest.rotateEncryptionKey(newEncryptionKeyName);
 
-      verify(artifactoryConnectionDAO).rotateEncryptedSecrets(any());
-      verify(sourceControlDAO).rotateEncryptedSecrets(any());
+      verify(spyDaoSecretRotator).rotateEncryptedSecrets(eq(artifactoryConnectionDAO), any());
+      verify(spyDaoSecretRotator).rotateEncryptedSecrets(eq(sourceControlDAO), any());
 
       assertThat(tenantMetadataDAO.get().getEncryptionKeyName()).isEqualTo(newEncryptionKeyName);
       assertThat(multiTenantEncryptionKeyStore.getKey()).isEqualTo(newEncryptionKeyValue);
@@ -134,7 +143,7 @@ public class RotateEncryptionKeyTaskTest
       underTest.rotateEncryptionKey(newEncryptionKeyName);
 
       ArgumentCaptor<Function<String, String>> secretRotatorArgument = ArgumentCaptor.forClass(Function.class);
-      verify(artifactoryConnectionDAO).rotateEncryptedSecrets(secretRotatorArgument.capture());
+      verify(spyDaoSecretRotator).rotateEncryptedSecrets(eq(sourceControlDAO), secretRotatorArgument.capture());
       Function<String, String> secretRotator = secretRotatorArgument.getValue();
 
       final String testSecretValue = "abcd_efg-12345";
@@ -165,7 +174,7 @@ public class RotateEncryptionKeyTaskTest
       underTest.rotateEncryptionKey(newEncryptionKeyName);
 
       ArgumentCaptor<Function<String, String>> secretRotatorArgument = ArgumentCaptor.forClass(Function.class);
-      verify(artifactoryConnectionDAO).rotateEncryptedSecrets(secretRotatorArgument.capture());
+      verify(spyDaoSecretRotator).rotateEncryptedSecrets(eq(sourceControlDAO), secretRotatorArgument.capture());
       Function<String, String> secretRotator = secretRotatorArgument.getValue();
 
       final String testSecretValue = "abcd_efg-12345";
@@ -195,7 +204,7 @@ public class RotateEncryptionKeyTaskTest
       underTest.rotateEncryptionKey(newEncryptionKeyName);
 
       ArgumentCaptor<Function<String, String>> secretRotatorArgument = ArgumentCaptor.forClass(Function.class);
-      verify(artifactoryConnectionDAO).rotateEncryptedSecrets(secretRotatorArgument.capture());
+      verify(spyDaoSecretRotator).rotateEncryptedSecrets(eq(sourceControlDAO), secretRotatorArgument.capture());
       Function<String, String> secretRotator = secretRotatorArgument.getValue();
 
       final String notEncryptedSecretValue = "abcd_efg-12345";
@@ -246,8 +255,9 @@ public class RotateEncryptionKeyTaskTest
 
       when(awsSecretsManagerClient.getSecret(oldEncryptionKeyName)).thenReturn(oldEncryptionKeyValue);
       when(awsSecretsManagerClient.getSecret(newEncryptionKeyName)).thenReturn(newEncryptionKeyValue);
-      doThrow(IllegalStateException.class).doNothing().when(sourceControlDAO)
-          .rotateEncryptedSecrets(isA(Function.class));
+
+      doThrow(IllegalStateException.class).doNothing().when(spyDaoSecretRotator)
+          .rotateEncryptedSecrets(isA(SourceControlDAO.class), isA(Function.class));
 
       underTest.rotateEncryptionKey(newEncryptionKeyName);
 
@@ -273,7 +283,9 @@ public class RotateEncryptionKeyTaskTest
 
       when(awsSecretsManagerClient.getSecret(oldEncryptionKeyName)).thenReturn(oldEncryptionKeyValue);
       when(awsSecretsManagerClient.getSecret(newEncryptionKeyName)).thenReturn(newEncryptionKeyValue);
-      doThrow(SQLException.class).doNothing().when(sourceControlDAO).rotateEncryptedSecrets(isA(Function.class));
+
+      doThrow(SQLException.class).doNothing().when(spyDaoSecretRotator)
+          .rotateEncryptedSecrets(isA(SourceControlDAO.class), isA(Function.class));
 
       underTest.rotateEncryptionKey(newEncryptionKeyName);
 

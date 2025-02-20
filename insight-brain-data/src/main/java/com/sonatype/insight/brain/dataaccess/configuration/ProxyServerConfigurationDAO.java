@@ -9,7 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.RotatableSecretsDAO;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.security.RotatableSecrets;
@@ -24,7 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 @Named
 @Singleton
 public class ProxyServerConfigurationDAO
-    extends RotatableSecretsDAO<ProxyServerConfiguration>
+    extends AbstractOperationalSqlDAO<ProxyServerConfiguration>
     implements RotatableSecrets
 {
   public static final String SINGLETON_ENTITY_ID = "proxy-server-configuration";

@@ -13,7 +13,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.RotatableSecretsDAO;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.brain.security.RotatableSecrets;
@@ -29,7 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 @Named
 @Singleton
 public class JiraConfigurationDAO
-    extends RotatableSecretsDAO<JiraConfiguration>
+    extends AbstractOperationalSqlDAO<JiraConfiguration>
     implements RotatableSecrets
 {
   public static final String SINGLETON_ENTITY_ID = "jira-configuration";

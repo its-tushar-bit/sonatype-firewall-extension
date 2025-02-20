@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
@@ -24,6 +25,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LdapConnectionDAOTest
     extends AbstractDbDAOTest
 {
+  private DAOSecretRotator daoSecretRotator;
+
   private LdapConnectionDAO dao;
 
   private LdapServer ldapServer;
@@ -33,6 +36,7 @@ public class LdapConnectionDAOTest
   public void setup() {
     super.setup();
     dao = daoFactory.createLdapConnectionDAO();
+    daoSecretRotator = new DAOSecretRotator();
     ldapServer = tempEntity.newLdapServer("testServer");
   }
 
@@ -116,7 +120,7 @@ public class LdapConnectionDAOTest
 
     Function<String, String> secretRotator = secret -> secret.replace("Old", "New");
 
-    dao.rotateEncryptedSecrets(secretRotator);
+    daoSecretRotator.rotateEncryptedSecrets(dao, secretRotator);
 
     List<LdapConnection> results = dao.getAll();
 

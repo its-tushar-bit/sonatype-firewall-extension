@@ -12,8 +12,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.function.Function;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.security.RotatableSecret;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
@@ -27,13 +28,13 @@ import org.apache.commons.lang3.tuple.Pair;
  * The DAOs that extend this class should implement the @RotatableSecretsDAO interface to expose the
  * rotateEncryptedSecrets method
  */
-public abstract class RotatableSecretsDAO<T extends HasStringId>
-    extends AbstractOperationalSqlDAO<T>
+@Named
+@Singleton
+public class DAOSecretRotator
 {
   private static final int BATCH_SIZE = 1000;
 
-  protected RotatableSecretsDAO(OperationalDataStore operationalDataStore) {
-    super(operationalDataStore);
+  public DAOSecretRotator() {
   }
 
   /**
@@ -45,17 +46,20 @@ public abstract class RotatableSecretsDAO<T extends HasStringId>
    * @param secretRotator a function that takes an encrypted secret and returns the rotated secret
    * @throws SQLException if an SQL error occurs during the rotation process
    */
-  public void rotateEncryptedSecrets(Function<String, String> secretRotator) throws SQLException {
-    Class<?> typeArgument = getTypeArgument();
+  public void rotateEncryptedSecrets(
+      AbstractOperationalSqlDAO<?> operationalDataStoreDAO,
+      Function<String, String> secretRotator) throws SQLException
+  {
+    Class<?> typeArgument = getTypeArgument(operationalDataStoreDAO);
     String tableName = getTableName(typeArgument);
-    Pair<String, String> rotatableSecretFieldAndColumnName = getRotatableSecretFieldAndColumnName(typeArgument);
     String tableIdField = getTableIdField(typeArgument);
+    Pair<String, String> rotatableSecretFieldAndColumnName = getRotatableSecretFieldAndColumnName(typeArgument);
+    List<?> entities = getBySecretField(operationalDataStoreDAO, rotatableSecretFieldAndColumnName.getLeft());
 
-    List<T> entities = getBySecretField(rotatableSecretFieldAndColumnName.getLeft());
-
-    try (Connection connection = getDataStore().getDataSource().getConnection()) {
-      try (PreparedStatement statement = createPreparedStatement(connection, tableName,
+    try (Connection connection = operationalDataStoreDAO.getDataStore().getDataSource().getConnection()) {
+      try (PreparedStatement statement = createPreparedStatement(operationalDataStoreDAO, connection, tableName,
           rotatableSecretFieldAndColumnName.getRight(), tableIdField)) {
+
         connection.setAutoCommit(false);
         processEntities(secretRotator, entities, statement, rotatableSecretFieldAndColumnName.getLeft());
         connection.commit();
@@ -71,6 +75,7 @@ public abstract class RotatableSecretsDAO<T extends HasStringId>
   }
 
   private PreparedStatement createPreparedStatement(
+      AbstractOperationalSqlDAO<?> operationalDataStoreDAO,
       Connection connection,
       String tableName,
       String rotatableSecretColumnName,
@@ -78,18 +83,18 @@ public abstract class RotatableSecretsDAO<T extends HasStringId>
   {
     String sql =
         "UPDATE _SCHEMA_." + tableName + " SET " + rotatableSecretColumnName + "=? WHERE " + tableIdField + "=?";
-    return connection.prepareStatement(injectSchemaName(sql));
+    return connection.prepareStatement(operationalDataStoreDAO.injectSchemaName(sql));
   }
 
   private void processEntities(
       Function<String, String> secretRotator,
-      List<T> entities,
+      List<?> entities,
       PreparedStatement statement,
       String rotatableSecretColumnName) throws SQLException, IllegalAccessException, NoSuchFieldException
   {
     int count = 0;
 
-    for (T entity : entities) {
+    for (Object entity : entities) {
       Field field = entity.getClass().getDeclaredField(rotatableSecretColumnName);
       field.setAccessible(true);
 
@@ -98,7 +103,7 @@ public abstract class RotatableSecretsDAO<T extends HasStringId>
           : (String) field.get(entity);
 
       statement.setString(1, secretRotator.apply(secret));
-      statement.setString(2, entity.getId());
+      statement.setString(2, ((HasStringId) entity).getId());
       statement.addBatch();
 
       if (++count % BATCH_SIZE == 0) {
@@ -109,16 +114,16 @@ public abstract class RotatableSecretsDAO<T extends HasStringId>
     statement.executeBatch();
   }
 
-  private Class<?> getTypeArgument() {
-    ParameterizedType parameterizedType = getParameterizedSuperClass();
-    return (Class<?>) parameterizedType.getActualTypeArguments()[0];
+  private <T extends HasStringId> Class<T> getTypeArgument(AbstractOperationalSqlDAO<T> operationalDataStoreDAO) {
+    ParameterizedType parameterizedType = operationalDataStoreDAO.getParameterizedSuperClass();
+    return (Class<T>) parameterizedType.getActualTypeArguments()[0];
   }
 
   private String getTableName(Class<?> typeArgument) {
     if (typeArgument.isAnnotationPresent(Table.class)) {
       return typeArgument.getAnnotation(Table.class).name();
     }
-    throw new RuntimeException("No @Table annotation found");
+    throw new IllegalStateException("No @Table annotation found");
   }
 
   private Pair<String, String> getRotatableSecretFieldAndColumnName(Class<?> typeArgument) {
@@ -127,7 +132,7 @@ public abstract class RotatableSecretsDAO<T extends HasStringId>
         return Pair.of(field.getName(), field.getAnnotation(Column.class).name());
       }
     }
-    throw new RuntimeException("No @RotatableSecret annotation found");
+    throw new IllegalStateException("No @RotatableSecret annotation found");
   }
 
   private String getTableIdField(Class<?> typeArgument) {
@@ -136,14 +141,15 @@ public abstract class RotatableSecretsDAO<T extends HasStringId>
         return field.getAnnotation(Column.class).name();
       }
     }
-    throw new RuntimeException("No @Id annotation found");
+    throw new IllegalStateException("No @Id annotation found");
   }
 
-  private List<T> getBySecretField(String secretFieldName) {
-    try (TransactionContext tx = createTransactionContext()) {
+  private List<?> getBySecretField(AbstractOperationalSqlDAO<?> operationalDataStoreDAO, String secretFieldName) {
+    try (TransactionContext tx = operationalDataStoreDAO.createTransactionContext()) {
       String sQuery =
-          "SELECT entity FROM " + getEntityName() + " entity WHERE entity." + secretFieldName + " IS NOT NULL";
-      return getList(tx, sQuery);
+          "SELECT entity FROM " + operationalDataStoreDAO.getEntityName() + " entity WHERE entity." + secretFieldName +
+              " IS NOT NULL";
+      return operationalDataStoreDAO.getList(tx, sQuery);
     }
   }
 }

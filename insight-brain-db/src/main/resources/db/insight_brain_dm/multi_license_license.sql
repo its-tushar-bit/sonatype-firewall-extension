@@ -798,6 +798,9 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-CDDL-UNSPECIFIED-GPL-2.0','GPL-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-COMMERCIAL','Apache-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-COMMERCIAL','COMMERCIAL');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-COMMERCIAL-GPL-3.0','Apache-2.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-COMMERCIAL-GPL-3.0','COMMERCIAL');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-COMMERCIAL-GPL-3.0','GPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-COMMERCIAL-GPL-UNSPECIFIED','Apache-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-COMMERCIAL-GPL-UNSPECIFIED','COMMERCIAL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-COMMERCIAL-GPL-UNSPECIFIED','GPL-UNSPECIFIED');
@@ -3141,6 +3144,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0+-with-classpath-exception','GPL-3.0-with-classpath-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0+-with-GNAT-exception','GPL-2.0-with-GNAT-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0+-with-GNAT-exception','GPL-3.0-with-GNAT-exception');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0+-with-GPL-CC-1.0','GPL-2.0-with-GPL-CC-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0+-WTFPL','GPL-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0+-WTFPL','GPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0+-WTFPL','WTFPL');
@@ -4683,6 +4687,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Ontotex
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OPC-Redistributables-AOU-1.3','OPC-Redistributables-AOU-1.3');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Open-Development-Public-License-1.0','Open-Development-Public-License-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Open-IE-4-SLA','Open-IE-4-SLA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Open-RAIL-UNSPECIFIED','Open-RAIL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OpenAI-TOU-ED01312024','OpenAI-TOU-ED01312024');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OpenFin-Inc-TOS','OpenFin-Inc-TOS');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OpenMRS-PL-1.0','OpenMRS-PL-1.0');

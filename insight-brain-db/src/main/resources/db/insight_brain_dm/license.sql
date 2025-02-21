@@ -2093,6 +2093,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Ontot
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OPC-Redistributables-AOU-1.3','OPC-Redistributables-AOU-1.3','OPC Redistributables Agreement of Use Version 1.3');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Open-Development-Public-License-1.0','Open-Development-Public-License-1.0','Open Development Public License v1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Open-IE-4-SLA','Open-IE-4-SLA','Open IE 4 Software License Agreement');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Open-RAIL-UNSPECIFIED','Open-RAIL','Open-RAIL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OpenAI-TOU-ED01312024','OpenAI-TOU-ED01312024','OpenAI Terms of Use - Effective Date 01-31-2024');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OpenFin-Inc-TOS','OpenFin-Inc-TOS','OpenFin Inc Terms of Service - Release Date 03-24-2014');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OpenMRS-PL-1.0','OpenMRS-PL-1.0','OpenMRS Public License Version 1.0');

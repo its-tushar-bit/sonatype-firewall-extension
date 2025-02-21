@@ -83,10 +83,26 @@ public class TenantProvisioningService
       throw new ConflictException("Tenant already exists");
     }
 
+    removeTenantMarkedForDeletion(tenantSlug);
+
     databaseProvisioner.initializeDatabaseWithMigration();
     log.info("New Tenant Provisioned: {}", tenantSlug.replaceAll("[\n\r]", "_"));
 
     adjustDefaultTenantData();
+  }
+
+  /**
+   * Removes a tenant from the list of records that are marked for deletion.
+   * This prevents the accidental deletion of a tenant with the same slug as a tenant that was previously deleted,
+   * and whose deletion was scheduled but not yet executed.
+   * @param tenantSlug
+   */
+  private void removeTenantMarkedForDeletion(String tenantSlug) {
+    DeletedTenant deletedTenant = deletedTenantDAO.getTenantBySlug(tenantSlug);
+    if (deletedTenant != null) {
+      log.info("Tenant {} was scheduled for deletion, removing it from the queue", tenantSlug);
+      deletedTenantDAO.delete(deletedTenant);
+    }
   }
 
   /**

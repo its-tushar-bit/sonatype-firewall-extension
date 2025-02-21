@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantDeregistrationJob;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -63,7 +64,7 @@ public class TenantProvisioningServiceTest
   }
 
   @Test
-  public void shouldProvisionNewTenant() {
+  public void testProvisionTenant_shouldProvisionNewTenant() {
     testAsNewTenant(tenant -> {
       User user = new User("ADMIN", "ADMIN", "ADMIN", "ADMIN",
           "admin@local.com");
@@ -80,7 +81,7 @@ public class TenantProvisioningServiceTest
   }
 
   @Test
-  public void shouldProvisionNewTenant_and_deleteBuiltInAdmin() {
+  public void testProvisionTenant_shouldProvisionNewTenant_and_deleteBuiltInAdmin() {
     testAsNewTenant(tenant -> {
       User user = new User("ADMIN", "ADMIN", "ADMIN", "ADMIN",
           "admin@local.com");
@@ -96,7 +97,7 @@ public class TenantProvisioningServiceTest
   }
 
   @Test
-  public void shouldThrowRuntimeException_whenTenantAlreadyExists() {
+  public void testProvisionTenant_shouldThrowRuntimeException_whenTenantAlreadyExists() {
     final String errorMessage = "Tenant already exists";
 
     testAsNewTenant(tenant -> {
@@ -109,13 +110,29 @@ public class TenantProvisioningServiceTest
   }
 
   @Test
-  public void shouldThrowRuntimeException_whenUsingGlobalTenant() {
+  public void testProvisionTenant_shouldThrowRuntimeException_whenUsingGlobalTenant() {
     final String errorMessage = "Invalid tenant";
 
     testAsGlobalTenant(tenant -> {
       assertThatThrownBy(() -> underTest.provisionTenant(tenant.tenantSlug))
           .withFailMessage(errorMessage)
           .isInstanceOf(BadRequestException.class);
+    });
+  }
+
+  @Test
+  public void testProvisionTenant_shouldRemoveTenantMarkedForDeletion_whenProvisioningAgain() {
+    testAsNewTenant(tenant -> {
+      DeletedTenant deletedTenant = new DeletedTenant(tenant.tenantSlug);
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
+      //Tenant being provisioned was marked for deletion
+      when(deletedTenantDAO.getTenantBySlug(tenant.tenantSlug)).thenReturn(deletedTenant);
+
+      underTest.provisionTenant(tenant.tenantSlug);
+
+      verify(deletedTenantDAO).delete(deletedTenant);
+      //The provisioning process continues
+      verify(databaseProvisioner).initializeDatabaseWithMigration();
     });
   }
 }

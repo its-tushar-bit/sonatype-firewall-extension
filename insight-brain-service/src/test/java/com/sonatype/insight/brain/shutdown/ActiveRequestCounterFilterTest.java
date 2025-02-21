@@ -78,8 +78,8 @@ public class ActiveRequestCounterFilterTest
   }
 
   @Test
-  public void testDoFilter_ShutdownTriggered_ShutdownPath() throws Exception {
-    when(mockShutdownHandler.isTriggered()).thenReturn(true);
+  public void testDoFilter_AfterShutdownGracePeriod_ShutdownPath() throws Exception {
+    when(mockShutdownHandler.isAfterGracePeriod()).thenReturn(true);
     when(mockHttpServletRequest.getRequestURI()).thenReturn("/tasks/shutdown");
 
     activeRequestsFilter.doFilter(mockHttpServletRequest, mockHttpServletResponse, mockFilterChain);
@@ -90,8 +90,8 @@ public class ActiveRequestCounterFilterTest
   }
 
   @Test
-  public void testDoFilter_NoShutdownTriggered_ShutdownPath() throws Exception {
-    when(mockShutdownHandler.isTriggered()).thenReturn(false);
+  public void testDoFilter_BeforeShutdownGracePeriod_ShutdownPath() throws Exception {
+    when(mockShutdownHandler.isAfterGracePeriod()).thenReturn(false);
     when(mockHttpServletRequest.getRequestURI()).thenReturn("/tasks/shutdown");
 
     activeRequestsFilter.doFilter(mockHttpServletRequest, mockHttpServletResponse, mockFilterChain);
@@ -102,8 +102,8 @@ public class ActiveRequestCounterFilterTest
   }
 
   @Test
-  public void testDoFilter_ShutdownTriggered_NotShutdownPath() throws Exception {
-    when(mockShutdownHandler.isTriggered()).thenReturn(true);
+  public void testDoFilter_AfterShutdownGracePeriod_NotShutdownPath() throws Exception {
+    when(mockShutdownHandler.isAfterGracePeriod()).thenReturn(true);
     when(mockHttpServletRequest.getRequestURI()).thenReturn("/other");
 
     activeRequestsFilter.doFilter(mockHttpServletRequest, mockHttpServletResponse, mockFilterChain);
@@ -114,8 +114,8 @@ public class ActiveRequestCounterFilterTest
   }
 
   @Test
-  public void testDoFilter_NoShutdownTriggered_NotShutdownPath() throws Exception {
-    when(mockShutdownHandler.isTriggered()).thenReturn(false);
+  public void testDoFilter_BeforeShutdownGracePeriod_NotShutdownPath() throws Exception {
+    when(mockShutdownHandler.isAfterGracePeriod()).thenReturn(false);
     when(mockHttpServletRequest.getRequestURI()).thenReturn("/other");
 
     activeRequestsFilter.doFilter(mockHttpServletRequest, mockHttpServletResponse, mockFilterChain);
@@ -126,8 +126,8 @@ public class ActiveRequestCounterFilterTest
   }
 
   @Test
-  public void testDoFilter_ShutdownTriggered_NotShutdownPath_Exception() throws Exception {
-    when(mockShutdownHandler.isTriggered()).thenReturn(false);
+  public void testDoFilter_AfterShutdownGracePeriod_NotShutdownPath_Exception() throws Exception {
+    when(mockShutdownHandler.isAfterGracePeriod()).thenReturn(false);
     when(mockHttpServletRequest.getRequestURI()).thenReturn("/other");
     doThrow(new RuntimeException()).when(mockFilterChain).doFilter(mockHttpServletRequest, mockHttpServletResponse);
 

@@ -49,7 +49,7 @@ public class ActiveRequestCounterFilter
       throws IOException, ServletException
   {
     String path = ((HttpServletRequest) request).getRequestURI();
-    boolean shouldCount = !shutdownHandler.isTriggered() && !isShutdownPath(path);
+    boolean shouldCount = !shutdownHandler.isAfterGracePeriod() && !isShutdownPath(path);
     try {
       if (shouldCount) {
         activeRequestsBeforeShutdown.increment();

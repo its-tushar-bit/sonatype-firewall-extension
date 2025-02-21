@@ -16,6 +16,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.Provider;
 
+import datadog.trace.api.Trace;
 import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 
 @Named
@@ -35,9 +36,10 @@ public class ShutdownContainerRequestFilter
     this.shutdownHandler = shutdownHandler;
   }
 
+  @Trace
   @Override
   public void filter(final ContainerRequestContext requestContext) throws IOException {
-    if (shutdownHandler.isTriggered()) {
+    if (shutdownHandler.isAfterGracePeriod()) {
       requestContext.abortWith(Response.status(Status.SERVICE_UNAVAILABLE).build());
     }
   }

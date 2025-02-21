@@ -116,9 +116,9 @@ public class MultiTenantTaskSchedulerTest
   }
 
   @Test
-  public void testCreateScheduler_DoesNotCreateSchedulerIfShutdownIsTriggered() {
+  public void testCreateScheduler_DoesNotCreateSchedulerIfAfterShutdownGracePeriod() {
     assertThat(spyUnderTest.getScheduler()).isNull();
-    when(mockShutdownHandler.isTriggered()).thenReturn(true);
+    when(mockShutdownHandler.isAfterGracePeriod()).thenReturn(true);
 
     spyUnderTest.createScheduler(spyUnderTest.schedulerName, mockMultiTenantQuartzJobStoreTX);
 

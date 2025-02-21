@@ -75,7 +75,7 @@ public class ShutdownHandlerTest
     when(spyShutdownHandler.isTriggered()).thenReturn(true);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> spyShutdownHandler.trigger(null, false))
-        .withMessage("Graceful shutdown already initiated.");
+        .withMessage("Graceful shutdown already triggered.");
   }
 
   @Test

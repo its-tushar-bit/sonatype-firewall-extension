@@ -46,8 +46,8 @@ public class ShutdownContainerRequestFilterTest
   }
 
   @Test
-  public void testFilter_ShutdownTriggered() throws Exception {
-    when(mockShutdownHandler.isTriggered()).thenReturn(true);
+  public void testFilter_AfterGracePeriod() throws Exception {
+    when(mockShutdownHandler.isAfterGracePeriod()).thenReturn(true);
 
     shutdownContainerRequestFilter.filter(mockContainerRequestContext);
 
@@ -58,8 +58,8 @@ public class ShutdownContainerRequestFilterTest
   }
 
   @Test
-  public void testFilter_NoShutdownTriggered() throws Exception {
-    when(mockShutdownHandler.isTriggered()).thenReturn(false);
+  public void testFilter_BeforeGracePeriod() throws Exception {
+    when(mockShutdownHandler.isAfterGracePeriod()).thenReturn(false);
 
     shutdownContainerRequestFilter.filter(mockContainerRequestContext);
 

@@ -63,6 +63,8 @@ public class ShutdownHandler
 
   private volatile boolean triggered;
 
+  private volatile boolean afterGracePeriod;
+
   public ShutdownHandler() {
     this(new ThreadFactoryBuilder().setNameFormat(ShutdownHandler.class.getSimpleName() + "-%d").build());
   }
@@ -76,20 +78,26 @@ public class ShutdownHandler
     this.threadFactory = threadFactory;
     this.executorService = executorService;
     shutdownRequests = new PriorityBlockingQueue<>();
-    int shutdownDelayMillis;
+    shutdownDelayMillis = getShutdownDelayMillis();
+  }
+
+  private int getShutdownDelayMillis() {
     try {
-      String s = System.getenv("SHUTDOWN_DELAY_MILLIS");
-      shutdownDelayMillis = s == null ? 0 : Integer.parseInt(s);
+      String shutdownDelayMillis = System.getenv("SHUTDOWN_DELAY_MILLIS");
+      return shutdownDelayMillis == null ? 0 : Integer.parseInt(shutdownDelayMillis);
     }
     catch (NumberFormatException e) {
       log.warn("Invalid SHUTDOWN_DELAY_MILLIS value, using default of 0.", e);
-      shutdownDelayMillis = 0;
+      return 0;
     }
-    this.shutdownDelayMillis = shutdownDelayMillis;
   }
 
   public boolean isTriggered() {
     return triggered;
+  }
+
+  public boolean isAfterGracePeriod() {
+    return afterGracePeriod;
   }
 
   // Visible for testing
@@ -154,7 +162,7 @@ public class ShutdownHandler
   synchronized void trigger(final Duration timeout, final boolean skipSystemExit) {
     // Prevent multiple shutdown requests
     if (isTriggered()) {
-      throw new BadRequestException("Graceful shutdown already initiated.");
+      throw new BadRequestException("Graceful shutdown already triggered.");
     }
     triggered = true;
     int statusCode = 0;
@@ -172,6 +180,8 @@ public class ShutdownHandler
         }
         log.info("Shutdown delay complete.");
       }
+      // If no shutdown delay, consider grace period over immediately
+      afterGracePeriod = true;
       // While there are shutdown requests to process in the ordered queue
       while (!shutdownRequests.isEmpty()) {
 

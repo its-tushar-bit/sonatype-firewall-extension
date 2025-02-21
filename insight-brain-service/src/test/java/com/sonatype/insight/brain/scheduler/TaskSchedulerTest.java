@@ -598,7 +598,7 @@ public class TaskSchedulerTest
   }
 
   @Test
-  public void testCreateScheduler_DoesCreateSchedulerIfShutdownIsNotTriggered() {
+  public void testCreateScheduler_DoesCreateSchedulerIfShutdownIsNotAfterGracePeriod() {
     assertThat(taskScheduler.getScheduler()).isNull();
 
     taskScheduler.createScheduler(taskScheduler.schedulerName, quartzJobStoreTX);
@@ -607,9 +607,9 @@ public class TaskSchedulerTest
   }
 
   @Test
-  public void testCreateScheduler_DoesNotCreateSchedulerIfShutdownIsTriggered() {
+  public void testCreateScheduler_DoesNotCreateSchedulerIfShutdownIsAfterGracePeriod() {
     assertThat(taskScheduler.getScheduler()).isNull();
-    when(mockShutdownHandler.isTriggered()).thenReturn(true);
+    when(mockShutdownHandler.isAfterGracePeriod()).thenReturn(true);
 
     taskScheduler.createScheduler(taskScheduler.schedulerName, quartzJobStoreTX);
 

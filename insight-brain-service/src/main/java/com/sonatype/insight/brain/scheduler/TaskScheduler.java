@@ -113,7 +113,7 @@ public class TaskScheduler
   }
 
   protected Scheduler createScheduler(String schedulerName, QuartzJobStoreTX jobStoreTX) {
-    if (shutdownHandler.isTriggered()) {
+    if (shutdownHandler.isAfterGracePeriod()) {
       return null;
     }
     try {

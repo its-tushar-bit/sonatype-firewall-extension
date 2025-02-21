@@ -77,7 +77,9 @@ public class SbomManagerPolicyEditorPageTest
   
   @Test
   public void testEditPolicyPage_RootOrgRendersLocalPolicySuccessfully() {
+    logout();
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS, ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    loginAsAdmin();
     refreshOrOpen(OwnerSummaryPage.sbomManagerUrl(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID));
     OwnerSummaryPage.policyTile().localPolicyList().row(1).click();
     Assert.assertTrue(WebDriverRunner.getWebDriver().getCurrentUrl().contains("/sbomManager"));
@@ -95,7 +97,9 @@ public class SbomManagerPolicyEditorPageTest
   
   @Test
   public void testEditPolicyPage_OrgRendersInheritedPolicySuccessfully() {
+    logout();
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS, ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    loginAsAdmin();
     refreshOrOpen(OwnerSummaryPage.sbomManagerUrl(OwnerType.ORGANIZATION, org1.getId()));
     OwnerSummaryPage.policyTile().policyList(1).row(1).click();
     inheritanceSectionIsRenderedCorrectly(rootOrganization.getName());
@@ -104,7 +108,9 @@ public class SbomManagerPolicyEditorPageTest
   
   @Test
   public void testEditPolicyPage_OrgRendersLocalPolicySuccessfully() {
+    logout();
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS, ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    loginAsAdmin();
     createPolicy(org1.getId(), "orgPolicy1");
     refreshOrOpen(OwnerSummaryPage.sbomManagerUrl(OwnerType.ORGANIZATION, org1.getId()));
     OwnerSummaryPage.policyTile().policyList(0).row(1).click();
@@ -114,7 +120,9 @@ public class SbomManagerPolicyEditorPageTest
   
   @Test
   public void testEditPolicyPage_AppRendersInheritedPolicySuccessfully() {
+    logout();
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS, ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    loginAsAdmin();
     refreshOrOpen(OwnerSummaryPage.sbomManagerUrl(OwnerType.APPLICATION, "app1"));
     OwnerSummaryPage.policyTile().policyList(2).row(1).click();
     
@@ -124,7 +132,9 @@ public class SbomManagerPolicyEditorPageTest
   
   @Test
   public void testEditPolicyPage_AppRendersLocalPolicySuccessfully() {
+    logout();
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS, ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    loginAsAdmin();
     createPolicy(app1.getId(), "appPolicy1");
     refreshOrOpen(OwnerSummaryPage.sbomManagerUrl(OwnerType.APPLICATION, "app1"));
     OwnerSummaryPage.policyTile().policyList(0).row(1).click();

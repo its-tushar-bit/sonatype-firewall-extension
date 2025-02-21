@@ -12,7 +12,7 @@ import {
   NxGlobalSidebarNavigationLink,
 } from '@sonatype/react-shared-components';
 import { faHome, faSitemap, faSearch, faGrid2Plus } from '@fortawesome/pro-solid-svg-icons';
-import { faArrowToLeft, faBars } from '@fortawesome/pro-regular-svg-icons';
+import { faArrowToLeft, faBars, faStars } from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
 import IqSidebarNavFooter from 'MainRoot/react/iqSidebarNav/IqSidebarNavFooter';
@@ -20,12 +20,13 @@ import IqSidebarNavFooter from 'MainRoot/react/iqSidebarNav/IqSidebarNavFooter';
 const logoImg = require('../assets/sbom-manager.svg');
 
 export default function SbomManagerSidebar(props) {
-  const { isLoggedIn, isSbomManagerEnabled } = props;
+  const { isLoggedIn, isSbomManagerEnabled, isApiPageEnabled } = props;
   const uiRouterState = useRouterState();
   const dashboardState = 'sbomManager.dashboard';
   const applicationsState = 'sbomManager.applications';
   const sbomManagerOrgsState = 'sbomManager.management.view';
   const advancedSearchState = 'sbomManager.advancedSearch';
+  const apiState = 'sbomManager.api';
 
   const [sidebarOpen, onToggleCollapse] = useToggle(true);
 
@@ -33,6 +34,7 @@ export default function SbomManagerSidebar(props) {
   const applicationsHref = uiRouterState.href(applicationsState);
   const sbomManagerOrgsHref = uiRouterState.href(sbomManagerOrgsState);
   const advancedSearchHref = uiRouterState.href(advancedSearchState);
+  const apiHref = uiRouterState.href(apiState);
 
   const isSelected = (entryName) => uiRouterState.includes(entryName);
 
@@ -76,6 +78,15 @@ export default function SbomManagerSidebar(props) {
             text="Advanced Search"
             href={advancedSearchHref}
           />
+          {isApiPageEnabled && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isSelected(apiState)}
+              id="sbom-manager-api-navigation-button"
+              icon={faStars}
+              text="API"
+              href={apiHref}
+            />
+          )}
         </NxGlobalSidebarNavigation>
       )}
       <IqSidebarNavFooter />
@@ -86,4 +97,5 @@ export default function SbomManagerSidebar(props) {
 SbomManagerSidebar.propTypes = {
   isLoggedIn: PropTypes.bool,
   isSbomManagerEnabled: PropTypes.bool,
+  isApiPageEnabled: PropTypes.bool,
 };

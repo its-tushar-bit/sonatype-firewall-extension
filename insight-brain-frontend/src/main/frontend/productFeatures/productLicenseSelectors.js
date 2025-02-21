@@ -43,3 +43,8 @@ export const selectHasFirewallLicense = createSelector(
   selectProducts,
   R.any(R.includes(R.__, PRODUCT_LICENSES.firewall))
 );
+
+export const selectHasSbomManagerLicense = createSelector(
+  selectProducts,
+  R.any(R.includes(R.__, PRODUCT_LICENSES.sbomManager))
+);

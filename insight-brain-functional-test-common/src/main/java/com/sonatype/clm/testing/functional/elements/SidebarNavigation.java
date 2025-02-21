@@ -85,8 +85,20 @@ public class SidebarNavigation
     return new MainHeaderNavigationButton("#advanced-legal-navigation-button");
   }
 
-  public static MainHeaderNavigationButton apiNavigationButton() {
+  public static MainHeaderNavigationButton developerApiNavigationButton() {
+    return new MainHeaderNavigationButton("#sonatype-developer-api-navigation-button");
+  }
+
+  public static MainHeaderNavigationButton lifecycleApiNavigationButton() {
     return new MainHeaderNavigationButton("#api-navigation-button");
+  }
+
+  public static MainHeaderNavigationButton firewallApiNavigationButton() {
+    return new MainHeaderNavigationButton("#sonatype-firewall-api-navigation-button");
+  }
+
+  public static MainHeaderNavigationButton sbomManagerApiNavigationButton() {
+    return new MainHeaderNavigationButton("#sbom-manager-api-navigation-button");
   }
 
   public static MainHeaderNavigationButton dataInsightsNavigationButton() {

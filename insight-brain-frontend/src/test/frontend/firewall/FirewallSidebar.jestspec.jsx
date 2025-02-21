@@ -27,6 +27,8 @@ describe('FirewallSidebar', () => {
             return '#/malware-defense/dashboard';
           case 'firewall.management.view':
             return '#/malware-defense/management/view';
+          case 'firewall.api':
+            return '#/malware-defense/api';
           default:
             return '/mocked-default-href';
         }
@@ -62,5 +64,37 @@ describe('FirewallSidebar', () => {
     const mainLink = sidebarLinks[0];
     expect(sidebarLinks.length).toBe(1);
     expect(mainLink).toHaveAttribute('href', '#/malware-defense/dashboard');
+  });
+
+  it('does not render the api link when isApiPageEnabled is false', () => {
+    renderComponent({ isApiPageEnabled: false });
+    const sidebarLinks = screen.getAllByRole('link');
+    expect(sidebarLinks.length).toBe(3);
+    const mainLink = sidebarLinks[0];
+    const dashboardLink = sidebarLinks[1];
+    const repositoriesLink = sidebarLinks[2];
+    expect(mainLink).toHaveAttribute('href', '#/malware-defense/dashboard');
+    expect(dashboardLink).toHaveTextContent('Dashboard');
+    expect(dashboardLink).toHaveAttribute('href', '#/malware-defense/dashboard');
+    expect(repositoriesLink).toHaveTextContent('Repos and Policies');
+    expect(repositoriesLink).toHaveAttribute('href', '#/malware-defense/management/view');
+    expect(screen.queryByRole('link', { name: 'API' })).not.toBeInTheDocument();
+  });
+
+  it('does render the api link when isApiPageEnabled is true', () => {
+    renderComponent({ isApiPageEnabled: true });
+    const sidebarLinks = screen.getAllByRole('link');
+    expect(sidebarLinks.length).toBe(4);
+    const mainLink = sidebarLinks[0];
+    const dashboardLink = sidebarLinks[1];
+    const repositoriesLink = sidebarLinks[2];
+    const apiLink = sidebarLinks[3];
+    expect(mainLink).toHaveAttribute('href', '#/malware-defense/dashboard');
+    expect(dashboardLink).toHaveTextContent('Dashboard');
+    expect(dashboardLink).toHaveAttribute('href', '#/malware-defense/dashboard');
+    expect(repositoriesLink).toHaveTextContent('Repos and Policies');
+    expect(repositoriesLink).toHaveAttribute('href', '#/malware-defense/management/view');
+    expect(apiLink).toHaveTextContent('API');
+    expect(apiLink).toHaveAttribute('href', '#/malware-defense/api');
   });
 });

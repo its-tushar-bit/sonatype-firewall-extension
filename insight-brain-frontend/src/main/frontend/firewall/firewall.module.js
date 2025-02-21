@@ -475,6 +475,14 @@ function routes($stateProvider) {
       data: {
         title: 'Edit ROI Configuration',
       },
+    })
+    .state('firewall.api', {
+      url: '/api',
+      data: {
+        title: 'API',
+        authenticationRequired: false,
+      },
+      component: 'apiPage',
     });
 
   ownerTypesForFirewall.forEach(function (ownerType) {

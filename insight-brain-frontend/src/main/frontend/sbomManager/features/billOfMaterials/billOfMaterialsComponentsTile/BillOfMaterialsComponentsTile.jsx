@@ -131,6 +131,13 @@ export default function BillOfMaterialsComponentsTile() {
 
   useEffect(() => {
     if (internalAppId) {
+      dispatch(actions.resetLoadComponentsConfigurations());
+      loadComponents();
+    }
+  }, [internalAppId, sbomVersion]);
+
+  useEffect(() => {
+    if (components) {
       dispatch(
         cdpActions.setComponentDetailsPaginationData({
           pagination,
@@ -141,10 +148,8 @@ export default function BillOfMaterialsComponentsTile() {
           componentNameSearchFromState,
         })
       );
-      dispatch(actions.resetLoadComponentsConfigurations());
-      loadComponents();
     }
-  }, [internalAppId, sbomVersion]);
+  }, [components]);
 
   const componentDetailsState = 'sbomManager.component';
   const componentDetailsHref = (componentHash) =>

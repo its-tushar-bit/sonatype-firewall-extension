@@ -12,7 +12,7 @@ import {
   NxGlobalSidebarNavigationLink,
 } from '@sonatype/react-shared-components';
 import { faFileChartLine, faHome, faSitemap } from '@fortawesome/pro-solid-svg-icons';
-import { faArrowToLeft, faBars } from '@fortawesome/pro-regular-svg-icons';
+import { faArrowToLeft, faBars, faStars } from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
 import IqSidebarNavFooter from 'MainRoot/react/iqSidebarNav/IqSidebarNavFooter';
@@ -20,15 +20,17 @@ import IqSidebarNavFooter from 'MainRoot/react/iqSidebarNav/IqSidebarNavFooter';
 const logoImg = require('../img/nexus_firewall.svg');
 
 export default function FirewallSidebar(props) {
-  const { isLoggedIn } = props;
+  const { isLoggedIn, isApiPageEnabled } = props;
   const uiRouterState = useRouterState();
   const firewallState = 'firewall.firewallPage';
   const firewallRepositoriesState = 'firewall.management.view';
+  const apiState = 'firewall.api';
 
   const [sidebarOpen, onToggleCollapse] = useToggle(true);
 
   const firewallHref = uiRouterState.href(firewallState);
   const firewallRepositoriesHref = uiRouterState.href(firewallRepositoriesState);
+  const apiHref = uiRouterState.href(apiState);
 
   const isSelected = (entryName) => uiRouterState.includes(entryName);
 
@@ -58,6 +60,15 @@ export default function FirewallSidebar(props) {
             text="Repos and Policies"
             href={firewallRepositoriesHref}
           />
+          {isApiPageEnabled && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isSelected(apiState)}
+              id="sonatype-firewall-api-navigation-button"
+              icon={faStars}
+              text="API"
+              href={apiHref}
+            />
+          )}
         </NxGlobalSidebarNavigation>
       )}
       <IqSidebarNavFooter />
@@ -67,4 +78,5 @@ export default function FirewallSidebar(props) {
 
 FirewallSidebar.propTypes = {
   isLoggedIn: PropTypes.bool,
+  isApiPageEnabled: PropTypes.bool,
 };

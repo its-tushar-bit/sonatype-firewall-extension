@@ -14,8 +14,8 @@ import ComponentDetailsPage from 'MainRoot/sbomManager/features/componentDetails
 import SbomContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/сontinuousMonitoringEditor/SbomContinuousMonitoringEditor';
 import LearnMoreSbomManager from 'MainRoot/sbomManager/features/LearnMoreSbomManager';
 import SbomApplicationsPage from 'MainRoot/sbomManager/features/sbomApplicationsPage/SbomApplicationsPage';
-import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import { selectIsSbomManagerEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectHasSbomManagerLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
+import { load as loadProductLicense } from 'MainRoot/configuration/license/productLicenseActions';
 
 export default angular
   .module('sbomManagerModule', ['ngRedux', advancedSearchModule.name])
@@ -143,6 +143,14 @@ function routes($stateProvider) {
       data: {
         title: 'Learn More',
       },
+    })
+    .state('sbomManager.api', {
+      url: '/api',
+      data: {
+        title: 'API',
+        authenticationRequired: false,
+      },
+      component: 'apiPage',
     });
 
   ownerTypesForSbomManager.forEach(function (ownerType) {
@@ -200,9 +208,9 @@ routes.$inject = ['$stateProvider'];
 
 function checkLicense($transitions, $state, $ngRedux) {
   $transitions.onBefore({ to: 'sbomManager.**' }, (transition) => {
-    return $ngRedux.dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded()).then(() => {
+    return $ngRedux.dispatch(loadProductLicense()).then(() => {
       const state = $ngRedux.getState();
-      const isSbomManagerEnabled = selectIsSbomManagerEnabled(state);
+      const isSbomManagerEnabled = selectHasSbomManagerLicense(state);
       const transitionTo = transition.to().name;
       const sbomManagerLearnMoreState = 'sbomManager.learnMore';
 

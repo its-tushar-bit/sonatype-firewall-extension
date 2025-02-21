@@ -33,6 +33,8 @@ describe('SbomManagerSidebar', () => {
             return '#/sbomManager/management/tree';
           case 'sbomManager.advancedSearch':
             return '#/sbomManager/advancedSearch';
+          case 'sbomManager.api':
+            return '#/sbomManager/api';
           default:
             return '/mocked-default-href';
         }
@@ -82,5 +84,49 @@ describe('SbomManagerSidebar', () => {
     const mainLink = sidebarLinks[0];
     expect(sidebarLinks.length).toBe(1);
     expect(mainLink).toHaveAttribute('href', '#/sbomManager/dashboard');
+  });
+
+  it('does not render the api link when isApiPageEnabled is false', () => {
+    renderComponent({ isApiPageEnabled: false });
+    const sidebarLinks = screen.getAllByRole('link');
+    expect(sidebarLinks.length).toBe(5);
+    const mainLink = sidebarLinks[0];
+    const dashboardLink = sidebarLinks[1];
+    const applicationsLink = sidebarLinks[2];
+    const orgsLink = sidebarLinks[3];
+    const searchLink = sidebarLinks[4];
+    expect(mainLink).toHaveAttribute('href', '#/sbomManager/dashboard');
+    expect(dashboardLink).toHaveTextContent('Dashboard');
+    expect(dashboardLink).toHaveAttribute('href', '#/sbomManager/dashboard');
+    expect(applicationsLink).toHaveTextContent('Applications');
+    expect(applicationsLink).toHaveAttribute('href', '#/sbomManager/applications');
+    expect(orgsLink).toHaveTextContent('Organizations');
+    expect(orgsLink).toHaveAttribute('href', '#/sbomManager/management/view');
+    expect(searchLink).toHaveTextContent('Advanced Search');
+    expect(searchLink).toHaveAttribute('href', '#/sbomManager/advancedSearch');
+    expect(screen.queryByRole('link', { name: 'API' })).not.toBeInTheDocument();
+  });
+
+  it('does render the api link when isApiPageEnabled is true', () => {
+    renderComponent({ isApiPageEnabled: true });
+    const sidebarLinks = screen.getAllByRole('link');
+    expect(sidebarLinks.length).toBe(6);
+    const mainLink = sidebarLinks[0];
+    const dashboardLink = sidebarLinks[1];
+    const applicationsLink = sidebarLinks[2];
+    const orgsLink = sidebarLinks[3];
+    const searchLink = sidebarLinks[4];
+    const apiLink = sidebarLinks[5];
+    expect(mainLink).toHaveAttribute('href', '#/sbomManager/dashboard');
+    expect(dashboardLink).toHaveTextContent('Dashboard');
+    expect(dashboardLink).toHaveAttribute('href', '#/sbomManager/dashboard');
+    expect(applicationsLink).toHaveTextContent('Applications');
+    expect(applicationsLink).toHaveAttribute('href', '#/sbomManager/applications');
+    expect(orgsLink).toHaveTextContent('Organizations');
+    expect(orgsLink).toHaveAttribute('href', '#/sbomManager/management/view');
+    expect(searchLink).toHaveTextContent('Advanced Search');
+    expect(searchLink).toHaveAttribute('href', '#/sbomManager/advancedSearch');
+    expect(apiLink).toHaveTextContent('API');
+    expect(apiLink).toHaveAttribute('href', '#/sbomManager/api');
   });
 });

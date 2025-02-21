@@ -5,15 +5,14 @@
  */
 import ApiPage from 'MainRoot/api/ApiPage';
 import React from 'react';
-import { render, screen, waitFor } from 'TestRoot/SpecUtil';
-import axios from 'axios';
+import { axiosMockAdapter, render, screen, waitFor } from 'TestRoot/SpecUtil';
 import { getEndpointsUrl } from 'MainRoot/util/CLMLocation';
 
 describe('ApiPage', function () {
-  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+  let axiosMock;
   const renderComponent = () => render(<ApiPage />);
-  const expectSwaggerUi = () => {
-    const swaggerUi = screen.getByText('Minimal OpenAPI');
+  const expectSwaggerUi = (expectedTitle) => {
+    const swaggerUi = screen.getByText(expectedTitle);
     expect(swaggerUi).toBeVisible();
   };
   const expectHiddenSchemas = () => {
@@ -24,10 +23,10 @@ describe('ApiPage', function () {
     const error = screen.getByText('An error occurred loading data. ' + errorMessage);
     expect(error).toBeVisible();
   };
-  const minimalOpenApi = {
+  const getMinimalOpenApi = (title) => ({
     openapi: '3.0.0',
     info: {
-      title: 'Minimal OpenAPI',
+      title,
     },
     paths: {
       '/api/thing/{thingId}': {
@@ -69,54 +68,46 @@ describe('ApiPage', function () {
         },
       },
     },
-  };
+  });
+
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+  });
 
   describe('when there is a load error', function () {
     beforeEach(async function () {
-      mockAxiosCalls({
-        get: {
-          [getEndpointsUrl('public')]: () => Promise.reject('someError'),
-        },
-      });
+      axiosMock.onGet(getEndpointsUrl('public')).reply(500, 'someError');
       renderComponent();
       await waitFor(expectError('someError'));
     });
 
     it('has a header of API', function () {
-      const header = screen.getByText('API');
+      const header = screen.getByRole('heading', { name: 'API' });
       expect(header).toBeVisible();
     });
   });
 
   describe('when there is no load error', function () {
     beforeEach(async function () {
-      mockAxiosCalls({
-        get: {
-          [getEndpointsUrl('public')]: Promise.resolve({
-            data: { ...minimalOpenApi },
-          }),
-          [getEndpointsUrl('experimental')]: Promise.resolve({
-            data: { ...minimalOpenApi },
-          }),
-        },
-      });
+      axiosMock.onGet(getEndpointsUrl('public')).reply(200, getMinimalOpenApi('Public API'));
+      axiosMock.onGet(getEndpointsUrl('experimental')).reply(200, getMinimalOpenApi('Experimental API'));
       renderComponent();
-      await waitFor(expectSwaggerUi);
+      await waitFor(() => expectSwaggerUi('Public API'));
     });
 
     it('has a header of API', async function () {
-      const header = screen.getByText('API');
+      const header = screen.getByRole('heading', { name: 'API' });
       expect(header).toBeVisible();
     });
 
-    it('has 2 tabs for public and experimental', async function () {
+    it('has 2 tabs for public and experimental', function () {
       const publicTab = screen.getByRole('tab', { name: /Public/i });
       expect(publicTab).toBeVisible();
       const experimentalTab = screen.getByRole('tab', { name: /Experimental/i });
       expect(experimentalTab).toBeVisible();
     });
 
-    it('selects the public tab by default', async function () {
+    it('selects the public tab by default', function () {
       const publicTab = screen.getByRole('tab', { name: /Public/i });
       expect(publicTab).toHaveAttribute('aria-selected', 'true');
     });
@@ -124,17 +115,16 @@ describe('ApiPage', function () {
     it('has a warning on the experimental tab', async function () {
       const experimentalTab = screen.getByRole('tab', { name: /Experimental/i });
       experimentalTab.click();
-      await waitFor(expectSwaggerUi);
+      await waitFor(() => expectSwaggerUi('Experimental API'));
       const warning = screen.getByText('These REST APIs are liable to change.');
       expect(warning).toBeVisible();
     });
 
     it('has a swagger ui on each tab', async function () {
-      await waitFor(expectSwaggerUi);
       expectHiddenSchemas();
       const experimentalTab = screen.getByRole('tab', { name: /Experimental/i });
       experimentalTab.click();
-      await waitFor(expectSwaggerUi);
+      await waitFor(() => expectSwaggerUi('Experimental API'));
       expectHiddenSchemas();
     });
   });

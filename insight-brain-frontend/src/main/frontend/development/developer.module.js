@@ -83,6 +83,14 @@ function routes($stateProvider, $urlServiceProvider) {
         isDirty: ['requestWaiver', 'isDirty'],
       },
       url: '/requestWaiver/{violationId}',
+    })
+    .state('developer.api', {
+      url: '/api',
+      data: {
+        title: 'API',
+        authenticationRequired: false,
+      },
+      component: 'apiPage',
     });
 
   // Redirect from old URL to new URL

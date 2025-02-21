@@ -10,17 +10,20 @@ import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.MainHeaderNavigationButton;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
 import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
 import com.sonatype.clm.testing.functional.pages.ApiPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.DeveloperReportListPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
+import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerDashboardPage;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -205,33 +208,153 @@ public class SidebarNavigationTest
   }
 
   @Test
-  public void testApiNavigationButton_HiddenByDefault() {
-    SidebarNavigation.apiNavigationButton().shouldNot(exist);
+  public void testApiNavigationButton_HiddenByDefault_Developer() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT);
+    testApiNavigationButton_HiddenByDefault(SidebarNavigation.developerApiNavigationButton(),
+        DeveloperReportListPage.url());
   }
 
   @Test
-  public void testApiNavigationButton_FeatureAvailableAdmin() {
+  public void testApiNavigationButton_HiddenByDefault_Lifecycle() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    testApiNavigationButton_HiddenByDefault(SidebarNavigation.lifecycleApiNavigationButton(), ReportListPage.url());
+  }
+
+  @Test
+  public void testApiNavigationButton_HiddenByDefault_Firewall() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_V2);
+    testApiNavigationButton_HiddenByDefault(SidebarNavigation.firewallApiNavigationButton(), FirewallPage.url());
+  }
+
+  @Test
+  public void testApiNavigationButton_HiddenByDefault_SbomManager() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+    testApiNavigationButton_HiddenByDefault(SidebarNavigation.sbomManagerApiNavigationButton(),
+        SbomManagerDashboardPage.url());
+  }
+
+  private void testApiNavigationButton_HiddenByDefault(
+      final MainHeaderNavigationButton apiNavigationButton,
+      final String initialUrl)
+  {
+    refreshOrOpen(initialUrl);
+    apiNavigationButton.shouldNot(exist);
+  }
+
+  @Test
+  public void testApiNavigationButton_FeatureAvailableAdmin_Developer() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT);
+    testApiNavigationButton_FeatureAvailableAdmin(SidebarNavigation.developerApiNavigationButton(),
+        DeveloperReportListPage.url());
+  }
+
+  @Test
+  public void testApiNavigationButton_FeatureAvailableAdmin_Lifecycle() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    testApiNavigationButton_FeatureAvailableAdmin(SidebarNavigation.lifecycleApiNavigationButton(),
+        ReportListPage.url());
+  }
+
+  @Test
+  public void testApiNavigationButton_FeatureAvailableAdmin_Firewall() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_V2);
+    testApiNavigationButton_FeatureAvailableAdmin(SidebarNavigation.firewallApiNavigationButton(), FirewallPage.url());
+  }
+
+  @Test
+  public void testApiNavigationButton_FeatureAvailableAdmin_SbomManager() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+    testApiNavigationButton_FeatureAvailableAdmin(SidebarNavigation.sbomManagerApiNavigationButton(),
+        SbomManagerDashboardPage.url());
+  }
+
+  private void testApiNavigationButton_FeatureAvailableAdmin(
+      final MainHeaderNavigationButton apiNavigationButton,
+      final String initialUrl)
+  {
+    refreshOrOpen(initialUrl);
     SystemConfigurationPropertyFeature.API_PAGE.setEnabled(true);
     refresh();
-    SidebarNavigation.apiNavigationButton().shouldBe(visible);
+    apiNavigationButton.shouldBe(visible);
   }
 
   @Test
-  public void testApiNavigationButton_FeatureAvailableNonAdmin() {
+  public void testApiNavigationButton_FeatureAvailableNonAdmin_Developer() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT);
+    testApiNavigationButton_FeatureAvailableNonAdmin(SidebarNavigation.developerApiNavigationButton(),
+        DeveloperReportListPage.url());
+  }
+
+  @Test
+  public void testApiNavigationButton_FeatureAvailableNonAdmin_Lifecycle() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    testApiNavigationButton_FeatureAvailableNonAdmin(SidebarNavigation.lifecycleApiNavigationButton(),
+        ReportListPage.url());
+  }
+
+  @Test
+  public void testApiNavigationButton_FeatureAvailableNonAdmin_Firewall() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_V2);
+    testApiNavigationButton_FeatureAvailableNonAdmin(SidebarNavigation.firewallApiNavigationButton(),
+        FirewallPage.url());
+  }
+
+  @Test
+  public void testApiNavigationButton_FeatureAvailableNonAdmin_SbomManager() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+    testApiNavigationButton_FeatureAvailableNonAdmin(SidebarNavigation.sbomManagerApiNavigationButton(),
+        SbomManagerDashboardPage.url());
+  }
+
+  private void testApiNavigationButton_FeatureAvailableNonAdmin(
+      final MainHeaderNavigationButton apiNavigationButton,
+      final String initialUrl)
+  {
     SystemConfigurationPropertyFeature.API_PAGE.setEnabled(true);
     User user = tempEntity.newUser();
-    refreshOrOpen(DashboardPage.url());
     logout();
     login(user.getUsername(), user.getPassword());
-    SidebarNavigation.apiNavigationButton().shouldBe(visible);
+    refreshOrOpen(initialUrl);
+    apiNavigationButton.shouldBe(visible);
   }
 
   @Test
-  public void testNavigation_ToApi() {
+  public void testNavigation_ToApi_Developer() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT);
+    testNavigation_ToApi(SidebarNavigation.developerApiNavigationButton(), DeveloperReportListPage.url(),
+        ApiPage.developerUrl());
+  }
+
+  @Test
+  public void testNavigation_ToApi_Lifecycle() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    testNavigation_ToApi(SidebarNavigation.lifecycleApiNavigationButton(), ReportListPage.url(),
+        ApiPage.lifecycleUrl());
+  }
+
+  @Test
+  public void testNavigation_ToApi_Firewall() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_V2);
+    testNavigation_ToApi(SidebarNavigation.firewallApiNavigationButton(), FirewallPage.url(), ApiPage.firewallUrl());
+  }
+
+  @Test
+  public void testNavigation_ToApi_SbomManager() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+    testNavigation_ToApi(SidebarNavigation.sbomManagerApiNavigationButton(), SbomManagerDashboardPage.url(),
+        ApiPage.sbomManagerUrl());
+  }
+
+  private void testNavigation_ToApi(
+      final MainHeaderNavigationButton apiNavigationButton,
+      final String initialUrl,
+      final String expectedUrl)
+  {
+    refreshOrOpen(initialUrl);
     SystemConfigurationPropertyFeature.API_PAGE.setEnabled(true);
     refresh();
-    SidebarNavigation.apiNavigationButton().click();
-    waitUntilUrl(ApiPage.url());
+    apiNavigationButton.click();
+    waitUntilUrl(expectedUrl);
   }
 
   @Test
@@ -315,7 +438,7 @@ public class SidebarNavigationTest
     SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(visible);
-    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
+    SidebarNavigation.lifecycleApiNavigationButton().shouldBe(hidden);
     SidebarNavigation.dataInsightsNavigationButton().shouldNotBe(visible);
   }
 
@@ -396,7 +519,7 @@ public class SidebarNavigationTest
     SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(hidden);
-    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
+    SidebarNavigation.lifecycleApiNavigationButton().shouldBe(hidden);
     SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
   }
 
@@ -418,7 +541,7 @@ public class SidebarNavigationTest
     SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(visible);
-    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
+    SidebarNavigation.lifecycleApiNavigationButton().shouldBe(hidden);
     SidebarNavigation.dataInsightsNavigationButton().shouldNotBe(visible);
   }
 
@@ -443,7 +566,7 @@ public class SidebarNavigationTest
     SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(visible);
-    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
+    SidebarNavigation.lifecycleApiNavigationButton().shouldBe(hidden);
     SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
   }
 
@@ -469,7 +592,7 @@ public class SidebarNavigationTest
     SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(visible);
-    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
+    SidebarNavigation.lifecycleApiNavigationButton().shouldBe(hidden);
     SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
   }
 
@@ -496,7 +619,7 @@ public class SidebarNavigationTest
     SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(visible);
-    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
+    SidebarNavigation.lifecycleApiNavigationButton().shouldBe(hidden);
     SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
   }
 

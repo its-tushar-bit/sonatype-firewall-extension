@@ -19,8 +19,20 @@ public class ApiPage
     super(ROOT);
   }
 
-  public static String url() {
+  public static String developerUrl() {
+    return BaseUrl.resolvePageUrl("/developer/api");
+  }
+
+  public static String lifecycleUrl() {
     return BaseUrl.resolvePageUrl("/api");
+  }
+
+  public static String firewallUrl() {
+    return BaseUrl.resolvePageUrl("/malware-defense/api");
+  }
+
+  public static String sbomManagerUrl() {
+    return BaseUrl.resolvePageUrl("/sbomManager/api");
   }
 
   public SelenideElement publicTab() {

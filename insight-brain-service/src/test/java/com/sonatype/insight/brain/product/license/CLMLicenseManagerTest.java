@@ -771,6 +771,7 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
+        LicensedFeature.API_PAGE,
         LicensedFeature.SBOM_MANAGER,
         LicensedFeature.POLICY_MONITORING,
         LicensedFeature.POLICY_READ_ONLY,
@@ -789,6 +790,7 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
+        LicensedFeature.API_PAGE,
         LicensedFeature.SBOM_MANAGER,
         LicensedFeature.POLICY_MONITORING,
         LicensedFeature.POLICY_READ_ONLY,
@@ -850,6 +852,17 @@ public class CLMLicenseManagerTest
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
         LicensedFeature.WAIVER_REPORTS,
         LicensedFeature.ROI_CONFIGURATION);
+  }
+
+  @Test
+  public void testGetFeatures_Developer() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(
+        LicensedFeature.API_PAGE,
+        LicensedFeature.DEVELOPER_DASHBOARD
+    );
   }
 
   @Test

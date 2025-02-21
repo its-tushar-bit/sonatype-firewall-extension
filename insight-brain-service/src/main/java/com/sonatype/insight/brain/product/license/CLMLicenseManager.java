@@ -896,6 +896,7 @@ public class CLMLicenseManager
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER) ||
         products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS)) {
+      features.add(LicensedFeature.API_PAGE);
       features.add(LicensedFeature.SBOM_MANAGER);
       features.add(LicensedFeature.POLICY_MONITORING);
       features.add(LicensedFeature.POLICY_READ_ONLY);
@@ -951,6 +952,7 @@ public class CLMLicenseManager
   }
 
   private static void addDevelopmentFeatures(final Set<LicensedFeature> features) {
+    features.add(LicensedFeature.API_PAGE);
     features.add(LicensedFeature.DEVELOPER_DASHBOARD);
   }
 

@@ -12,7 +12,7 @@ import {
   NxGlobalSidebarNavigationLink,
 } from '@sonatype/react-shared-components';
 import { faHome, faFileChartLine } from '@fortawesome/pro-solid-svg-icons';
-import { faArrowToLeft, faBars, faSearch } from '@fortawesome/pro-regular-svg-icons';
+import { faArrowToLeft, faBars, faSearch, faStars } from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
 import IqSidebarNavFooter from 'MainRoot/react/iqSidebarNav/IqSidebarNavFooter';
@@ -20,17 +20,19 @@ import IqSidebarNavFooter from 'MainRoot/react/iqSidebarNav/IqSidebarNavFooter';
 const logoImg = require('./assets/sonatype-developer-logo-white.svg');
 
 export default function SonatypeDeveloperSidebar(props) {
-  const { isLoggedIn, isAdvancedSearchEnabled } = props;
+  const { isLoggedIn, isAdvancedSearchEnabled, isApiPageEnabled } = props;
   const uiRouterState = useRouterState();
   const dashboardState = 'developer.dashboard';
   const prioritiesState = 'developer.priorities';
   const advancedSearchState = 'developer.advancedSearch';
+  const apiState = 'developer.api';
 
   const [sidebarOpen, onToggleCollapse] = useToggle(true);
 
   const dashboardHref = uiRouterState.href(dashboardState);
   const prioritiesHref = uiRouterState.href(prioritiesState);
   const advancedSearchHref = uiRouterState.href(advancedSearchState);
+  const apiHref = uiRouterState.href(apiState);
 
   const isSelected = (entryName) => uiRouterState.includes(entryName);
 
@@ -69,6 +71,15 @@ export default function SonatypeDeveloperSidebar(props) {
               href={advancedSearchHref}
             />
           )}
+          {isApiPageEnabled && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isSelected(apiState)}
+              id="sonatype-developer-api-navigation-button"
+              icon={faStars}
+              text="API"
+              href={apiHref}
+            />
+          )}
         </NxGlobalSidebarNavigation>
       )}
       <IqSidebarNavFooter />
@@ -79,4 +90,5 @@ export default function SonatypeDeveloperSidebar(props) {
 SonatypeDeveloperSidebar.propTypes = {
   isLoggedIn: PropTypes.bool,
   isAdvancedSearchEnabled: PropTypes.bool,
+  isApiPageEnabled: PropTypes.bool,
 };

@@ -93,11 +93,21 @@ function IqSidebarNav(props) {
     setLeftNavigationOpen(isOpen);
   }, [isOpen]);
 
-  const sbomManagerSidebar = <SbomManagerSidebar isLoggedIn={isLoggedIn} isSbomManagerEnabled={isSbomManagerEnabled} />;
-  const sonatypeDeveloperSidebar = (
-    <SonatypeDeveloperSidebar isLoggedIn={isLoggedIn} isAdvancedSearchEnabled={isAdvancedSearchEnabled} />
+  const sbomManagerSidebar = (
+    <SbomManagerSidebar
+      isLoggedIn={isLoggedIn}
+      isSbomManagerEnabled={isSbomManagerEnabled}
+      isApiPageEnabled={isApiPageEnabled}
+    />
   );
-  const sonatypeFirewallSidebar = <FirewallSidebar isLoggedIn={isLoggedIn} />;
+  const sonatypeDeveloperSidebar = (
+    <SonatypeDeveloperSidebar
+      isLoggedIn={isLoggedIn}
+      isAdvancedSearchEnabled={isAdvancedSearchEnabled}
+      isApiPageEnabled={isApiPageEnabled}
+    />
+  );
+  const sonatypeFirewallSidebar = <FirewallSidebar isLoggedIn={isLoggedIn} isApiPageEnabled={isApiPageEnabled} />;
 
   const iqSidebar = (
     <NxGlobalSidebar
@@ -174,15 +184,6 @@ function IqSidebarNav(props) {
               href={legalHref}
             />
           )}
-          {isApiPageEnabled && (
-            <NxGlobalSidebarNavigationLink
-              isSelected={isSelected('api')}
-              id="api-navigation-button"
-              icon={faStars}
-              text="API"
-              href={apiHref}
-            />
-          )}
           {isLicensed && isIntegratedEnterpriseReportingSupported && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('enterpriseReporting')}
@@ -201,6 +202,15 @@ function IqSidebarNav(props) {
                 </>
               }
               href={enterpriseReportingHref}
+            />
+          )}
+          {isApiPageEnabled && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isSelected('api')}
+              id="api-navigation-button"
+              icon={faStars}
+              text="API"
+              href={apiHref}
             />
           )}
         </NxGlobalSidebarNavigation>

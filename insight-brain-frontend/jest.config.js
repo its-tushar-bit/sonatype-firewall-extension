@@ -10,7 +10,7 @@ process.env.TZ = 'America/New_York';
 module.exports = {
   roots: ['<rootDir>/src/main/frontend', '<rootDir>/src/test/frontend'],
   transformIgnorePatterns: [
-    '/node_modules/(?!(pretty-bytes|@react-hook|@sonatype|@nivo|d3-color|d3-interpolate|d3-scale-chromatic|lodash-es)/)',
+    '/node_modules/(?!(pretty-bytes|@react-hook|@sonatype|@nivo|d3-color|d3-interpolate|d3-scale-chromatic|lodash-es|swagger-ui-react|swagger-client|react-syntax-highlighter)/)',
   ],
   transform: {
     '\\.[jt]sx?$': [

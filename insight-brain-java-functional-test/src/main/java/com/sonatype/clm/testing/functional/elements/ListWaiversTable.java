@@ -97,7 +97,7 @@ public class ListWaiversTable
     }
 
     public SelenideElement dateCreated() {
-      return child(".iq-auto-waiver-table__created");
+      return child(".iq-waivers-table__created");
     }
 
     public SelenideElement duration() {
@@ -105,11 +105,11 @@ public class ListWaiversTable
     }
 
     public SelenideElement waiverExpiration() {
-      return child(".iq-auto-waiver-table__expiration");
+      return child(".iq-waivers-table__expiration");
     }
 
     public SelenideElement waiverVersion() {
-      return child(".iq-auto-waiver-table__version");
+      return child(".iq-waivers-table__version");
     }
 
     public SelenideElement waiverDetails() {
@@ -117,15 +117,15 @@ public class ListWaiversTable
     }
 
     public SelenideElement createdBy() {
-      return child(".iq-auto-waiver-table__author");
+      return child(".iq-waivers-table__author");
     }
 
     public SelenideElement scope() {
-      return child(".iq-auto-waiver-table__scope");
+      return child(".iq-waivers-table__scope");
     }
 
     public SelenideElement components() {
-      return child(".iq-auto-waiver-table__component");
+      return child(".iq-waivers-table__component");
     }
 
     public SelenideElement revocationButton() {

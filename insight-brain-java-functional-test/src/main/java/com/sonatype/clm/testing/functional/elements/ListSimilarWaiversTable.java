@@ -47,27 +47,27 @@ public class ListSimilarWaiversTable
     }
 
     public SelenideElement dateCreated() {
-      return child(TABLE_CELL_SELECTOR, ".iq-similar-waivers-table__created");
+      return child(TABLE_CELL_SELECTOR, ".iq-waivers-table__created");
     }
 
     public SelenideElement waiverExpiration() {
-      return child(TABLE_CELL_SELECTOR, ".iq-similar-waivers-table__expiration");
+      return child(TABLE_CELL_SELECTOR, ".iq-waivers-table__expiration");
     }
 
     public SelenideElement createdBy() {
-      return child(TABLE_CELL_SELECTOR, ".iq-similar-waivers-table__author");
+      return child(TABLE_CELL_SELECTOR, ".iq-waivers-table__author");
     }
 
     public SelenideElement scope() {
-      return child(TABLE_CELL_SELECTOR, ".iq-similar-waivers-table__scope");
+      return child(TABLE_CELL_SELECTOR, ".iq-waivers-table__scope");
     }
 
     public SelenideElement components() {
-      return child(TABLE_CELL_SELECTOR, ".iq-similar-waivers-table__component");
+      return child(TABLE_CELL_SELECTOR, ".iq-waivers-table__component");
     }
 
     public SelenideElement comments() {
-      return child(TABLE_CELL_SELECTOR, ".iq-similar-waivers-table__comment");
+      return child(TABLE_CELL_SELECTOR, ".iq-waivers-table__comment");
     }
 
     public SelenideElement deleteButton() {

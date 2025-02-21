@@ -25,8 +25,9 @@ import { constraintViolationsPropType } from 'MainRoot/violation/PolicyViolation
 
 const DisplayAutoWaiver = ({ waiver }) => {
   const [showDeleteAutoWaiverModal, setShowDeleteAutoWaiverModal] = useState(false);
-
   const autoKey = `auto_waiver-${waiver.autoPolicyWaiverId}`;
+  const classPrefix = 'iq-waivers-table__';
+
   const handleCloseAutoWaiverModal = () => {
     setShowDeleteAutoWaiverModal(false);
   };
@@ -35,31 +36,31 @@ const DisplayAutoWaiver = ({ waiver }) => {
     <NxTableRow className="list-auto-waiver-row" key={autoKey}>
       <NxTableCell>
         <NxReadOnly.Label>Created</NxReadOnly.Label>
-        <NxReadOnly.Data className="iq-auto-waiver-table__created">
+        <NxReadOnly.Data className={`${classPrefix}created`}>
           {formatDate(waiver.createTime, STANDARD_DATE_FORMAT)}
         </NxReadOnly.Data>
 
         <NxReadOnly.Label>Expiration</NxReadOnly.Label>
-        <NxReadOnly.Data className="iq-auto-waiver-table__expiration">
+        <NxReadOnly.Data className={`${classPrefix}expiration`}>
           <NxSmallTag color="green">Auto</NxSmallTag>
         </NxReadOnly.Data>
       </NxTableCell>
       <NxTableCell>
         <NxReadOnly.Label>Scope</NxReadOnly.Label>
-        <NxReadOnly.Data className="iq-auto-waiver-table__scope">
+        <NxReadOnly.Data className={`${classPrefix}scope`}>
           {capitalize(waiver.ownerType)} - {waiver.ownerName}
         </NxReadOnly.Data>
 
         <NxReadOnly.Label>Component</NxReadOnly.Label>
-        <NxReadOnly.Data className="iq-auto-waiver-table__component">Any Component</NxReadOnly.Data>
+        <NxReadOnly.Data className={`${classPrefix}component`}>Any Component</NxReadOnly.Data>
 
         <NxReadOnly.Label>Version</NxReadOnly.Label>
-        <NxReadOnly.Data className="iq-auto-waiver-table__version">Current or latest non-violating</NxReadOnly.Data>
+        <NxReadOnly.Data className={`${classPrefix}version`}>Current or latest non-violating</NxReadOnly.Data>
 
         <NxReadOnly.Label>Author</NxReadOnly.Label>
-        <NxReadOnly.Data className="iq-auto-waiver-table__author">{waiver?.creatorName || '\u2014'}</NxReadOnly.Data>
+        <NxReadOnly.Data className={`${classPrefix}author`}>{waiver?.creatorName || '\u2014'}</NxReadOnly.Data>
       </NxTableCell>
-      <NxTableCell className="iq-auto-waiver-table__exclusion">
+      <NxTableCell className={`${classPrefix}exclusion`}>
         <div className="nx-btn-bar">
           <NxButton
             variant="icon-only"
@@ -106,7 +107,7 @@ const DisplayWaiverInTableRow = ({
   const rowClass = classNames({
     'list-waivers-row--expired': isWaiverExpired,
   });
-  const classPrefix = isSimilarWaiver ? 'iq-similar-waivers-table__' : 'iq-waivers-table__';
+  const classPrefix = 'iq-waivers-table__';
   const getExpirationDate = (waiver) => {
     if (waiver.expiryTime) {
       return waiver.expireWhenRemediationAvailable && !isSimilarWaiver

@@ -73,10 +73,10 @@ export default function ListSimilarWaiversTable() {
   }, [isFirewallOrRepository, selectedViolationId, firewallSelectedViolationId]);
 
   return (
-    <NxTable id="list-similar-waivers-table" className="iq-similar-waivers-table">
+    <NxTable id="list-similar-waivers-table" className="iq-waivers-table">
       <NxTableHead>
         <NxTableRow>
-          <NxTableCell className="iq-similar-waivers-table__duration">DURATION</NxTableCell>
+          <NxTableCell className="iq-waivers-table__duration">DURATION</NxTableCell>
           <NxTableCell>WAIVER DETAILS</NxTableCell>
         </NxTableRow>
       </NxTableHead>

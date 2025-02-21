@@ -14,18 +14,10 @@
 
 .iq-waivers-table {
   &__duration {
-    width: 90px;
+    width: 1px;
   }
-  &__expiration-label {
-    word-break: keep-all;
-  }
-}
-
-.iq-similar-waivers-table {
-  &__duration {
-    width: 90px;
-  }
-  &__expiration-label {
-    word-break: keep-all;
+  &__created,
+  &__expiration {
+    white-space: nowrap;
   }
 }

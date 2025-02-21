@@ -7,8 +7,9 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  NxButton,
+  NxErrorAlert,
   NxFileUpload,
+  NxFooter,
   NxFormGroup,
   NxH2,
   NxModal,
@@ -22,7 +23,7 @@ import { actions, IMPORT_STATE } from './importSbomModalSlice';
 
 export default function UploadPage({ headerId, onCancel }) {
   const dispatch = useDispatch();
-  const { fileInputState } = useSelector(selectImportSbomModalSlice);
+  const { fileInputState, evaluationError } = useSelector(selectImportSbomModalSlice);
   const applicationName = useSelector(selectSelectedOwnerName);
   const validationErrors = useSelector(selectUploadValidationErrors);
   const setSelectedFile = (fileList) => {
@@ -42,6 +43,15 @@ export default function UploadPage({ headerId, onCancel }) {
     </>
   );
 
+  const errorAlert = evaluationError ? (
+    <NxFooter>
+      <NxErrorAlert>
+        We were unable to process your SBOM:{' '}
+        {evaluationError.trim().endsWith('.') ? evaluationError : `${evaluationError}.`} Please re-import your SBOM.
+      </NxErrorAlert>
+    </NxFooter>
+  ) : null;
+
   return (
     <NxStatefulForm
       onSubmit={uploadFile}
@@ -57,6 +67,7 @@ export default function UploadPage({ headerId, onCancel }) {
           <NxFileUpload {...fileInputState} onChange={setSelectedFile} isRequired />
         </NxFormGroup>
       </NxModal.Content>
+      {errorAlert}
     </NxStatefulForm>
   );
 }

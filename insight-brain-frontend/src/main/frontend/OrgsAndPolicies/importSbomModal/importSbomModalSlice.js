@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import axios from 'axios';
+import axios, { HttpStatusCode } from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { allPass, always, complement, is, isEmpty, isNil } from 'ramda';
 import {
@@ -12,12 +12,15 @@ import {
   nxTextInputStateHelpers,
 } from '@sonatype/react-shared-components';
 
-import { getImportSbomUrl, getCommitImportedSbomUrl } from 'MainRoot/util/CLMLocation';
+import { getCommitImportedSbomUrl, getImportSbomUrl, getSbomSummaryUrl } from 'MainRoot/util/CLMLocation';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 import { selectSelectedOwnerId } from '../orgsAndPoliciesSelectors';
-import { selectSelectedFile, selectImportSbomModalSlice } from './importSbomModalSelectors';
+import { selectImportSbomModalSlice, selectSelectedFile } from './importSbomModalSelectors';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { validateMaxLength, validateNonEmpty } from 'MainRoot/util/validationUtil';
+import { BASE_URL } from 'MainRoot/util/urlUtil';
+import { actions as sbomTileActions } from 'MainRoot/OrgsAndPolicies/ownerSummary/sbomsTile/sbomsTileSlice';
+import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 
 const DEFAULT_ERROR_MESSAGE = 'Encountered unexpected error while attempting to upload.';
 
@@ -27,18 +30,25 @@ const isNonEmptyString = allPass([is(String), complement(isEmpty)]);
 
 const MAX_VERSION_LENGTH = 1100;
 
+const EVALUATION_POLLING_FREQUENCY = 500;
+
 export const IMPORT_STATE = Object.freeze({
   INITIAL: null,
   UPLOADING: 0,
   VERSION_CONFIRM: 1,
-  COMMITTING: 2,
-  SUMMARY: 3,
+  EVALUATION_IN_PROGRESS: 3,
+  EVALUATION_COMPLETE: 4,
+  SUMMARY: 5,
   ERROR: -1,
 });
 
 const sbomSummaryInitialState = Object.freeze({
   totalComponents: null,
   totalVulnerabilities: null,
+  lowVulnerabilities: null,
+  mediumVulnerabilities: null,
+  highVulnerabilities: null,
+  criticalVulnerabilities: null,
 });
 
 export const initialState = Object.freeze({
@@ -53,9 +63,15 @@ export const initialState = Object.freeze({
   validationErrors: null,
   sbomSummary: sbomSummaryInitialState,
   savedVersion: null,
+  evaluationPollingRef: null,
+  evaluationError: null,
   versionTextInput: null,
   submitError: null,
 });
+
+const setImportState = (state, { payload }) => {
+  state.importState = payload;
+};
 
 const setIsSkipValidation = (state, { payload }) => {
   state.isSkipValidation = payload;
@@ -84,6 +100,16 @@ const validateVersion = (value) => {
 
 const setSavedVersion = (state, { payload }) => {
   state.savedVersion = payload;
+};
+
+const setEvaluationPollingRef = (state, { payload }) => {
+  state.evaluationPollingRef = payload;
+};
+
+const setImportStateSummary = (state) => {
+  if (state.isModalOpen && state.importState === IMPORT_STATE.EVALUATION_COMPLETE) {
+    state.importState = IMPORT_STATE.SUMMARY;
+  }
 };
 
 const uploadFile = createAsyncThunk(`${REDUCER_NAME}/uploadFile`, (_, { dispatch, getState, rejectWithValue }) => {
@@ -178,6 +204,8 @@ const commitFile = createAsyncThunk(
         if (overrideVersion) {
           dispatch(actions.setSavedVersion(overrideVersion));
         }
+        const pollingRef = dispatch(actions.pollEvaluationStatus(data.statusUrl));
+        dispatch(actions.setEvaluationPollingRef(pollingRef));
         return data;
       })
       .catch(rejectWithValue);
@@ -185,12 +213,7 @@ const commitFile = createAsyncThunk(
 );
 
 const commitFilePending = (state) => {
-  state.importState = IMPORT_STATE.COMMITTING;
-  state.submitError = null;
-};
-
-const commitFileFulfilled = (state) => {
-  state.importState = IMPORT_STATE.SUMMARY;
+  state.importState = IMPORT_STATE.EVALUATION_IN_PROGRESS;
   state.submitError = null;
 };
 
@@ -199,10 +222,105 @@ const commitFileFailed = (state, { payload }) => {
   state.submitError = payload.response?.data?.errorMessage || Messages.getHttpErrorMessage(payload);
 };
 
+function restartModalWithError(action, state) {
+  if (!action.meta.aborted) {
+    return {
+      ...initialState,
+      isModalOpen: true,
+      evaluationError:
+        action.payload?.data?.errorMessage ||
+        action.payload?.response?.data?.errorMessage ||
+        Messages.getHttpErrorMessage(action.payload),
+    };
+  }
+  return state;
+}
+
+const pollEvaluationStatus = createAsyncThunk(
+  `${REDUCER_NAME}/pollEvaluationStatus`,
+  async (evaluationStatusUri, { dispatch, signal, rejectWithValue }) => {
+    const doPoll = async () => {
+      if (signal.aborted) {
+        return;
+      }
+      try {
+        const url = BASE_URL + `/${evaluationStatusUri}`;
+        const response = await axios.get(url, {
+          signal,
+          validateStatus: (status) => (status >= 200 && status < 300) || status === HttpStatusCode.NotFound,
+        });
+        if (response.status === HttpStatusCode.NotFound) {
+          await new Promise((resolve) => setTimeout(resolve, EVALUATION_POLLING_FREQUENCY));
+          return doPoll();
+        } else if (response.data?.isError) {
+          return rejectWithValue(response);
+        }
+        const pollingRef = dispatch(fetchEvaluationSummary());
+        dispatch(actions.setEvaluationPollingRef(pollingRef));
+        return response.data;
+      } catch (error) {
+        return rejectWithValue(error);
+      }
+    };
+
+    return doPoll();
+  }
+);
+
+const pollEvaluationStatusPending = (state) => {
+  state.importState = IMPORT_STATE.EVALUATION_IN_PROGRESS;
+  state.evaluationError = null;
+};
+
+const pollEvaluationStatusFailed = (state, action) => {
+  return restartModalWithError(action, state);
+};
+
+const fetchEvaluationSummary = createAsyncThunk(
+  `${REDUCER_NAME}/fetchEvaluationSummary`,
+  async (_, { dispatch, getState, signal, rejectWithValue }) => {
+    const state = getState();
+    const appId = selectSelectedOwnerId(state);
+    const { savedVersion } = selectImportSbomModalSlice(state);
+    try {
+      const url = getSbomSummaryUrl(appId, savedVersion);
+      const response = await axios.get(url, { signal });
+      if (response.data?.isError) {
+        return rejectWithValue(response);
+      }
+
+      dispatch(sbomTileActions.loadSbomTableData());
+      startSaveMaskSuccessTimer(dispatch, actions.setImportStateSummary);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+const fetchEvaluationSummaryFulfilled = (state, { payload }) => {
+  state.sbomSummary.lowVulnerabilities = payload.low;
+  state.sbomSummary.mediumVulnerabilities = payload.medium;
+  state.sbomSummary.highVulnerabilities = payload.high;
+  state.sbomSummary.criticalVulnerabilities = payload.critical;
+  state.importState = IMPORT_STATE.EVALUATION_COMPLETE;
+  state.evaluationError = null;
+};
+
+const fetchEvaluationSummaryPending = (state) => {
+  state.importState = IMPORT_STATE.EVALUATION_IN_PROGRESS;
+  state.evaluationError = null;
+};
+
+const fetchEvaluationSummaryFailed = (state, action) => {
+  return restartModalWithError(action, state);
+};
+
 const importSbomModal = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
+    setImportState,
     setIsModalOpen,
     setUploadProgress,
     setSelectedFile,
@@ -210,6 +328,8 @@ const importSbomModal = createSlice({
     setSavedVersion,
     setVersionTextInput,
     versionConfirm,
+    setEvaluationPollingRef,
+    setImportStateSummary,
     reset: always(initialState),
   },
   extraReducers: {
@@ -217,8 +337,12 @@ const importSbomModal = createSlice({
     [uploadFile.fulfilled]: uploadFileFulfilled,
     [uploadFile.rejected]: uploadFileFailed,
     [commitFile.pending]: commitFilePending,
-    [commitFile.fulfilled]: commitFileFulfilled,
     [commitFile.rejected]: commitFileFailed,
+    [pollEvaluationStatus.pending]: pollEvaluationStatusPending,
+    [pollEvaluationStatus.rejected]: pollEvaluationStatusFailed,
+    [fetchEvaluationSummary.fulfilled]: fetchEvaluationSummaryFulfilled,
+    [fetchEvaluationSummary.pending]: fetchEvaluationSummaryPending,
+    [fetchEvaluationSummary.rejected]: fetchEvaluationSummaryFailed,
   },
 });
 
@@ -228,4 +352,5 @@ export const actions = {
   ...importSbomModal.actions,
   uploadFile,
   commitFile,
+  pollEvaluationStatus,
 };

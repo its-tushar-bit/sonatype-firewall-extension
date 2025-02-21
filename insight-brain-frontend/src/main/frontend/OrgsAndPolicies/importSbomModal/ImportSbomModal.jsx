@@ -7,8 +7,6 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { NxModal } from '@sonatype/react-shared-components';
 
-import { actions as toastActions } from 'MainRoot/toastContainer/toastSlice';
-
 import { actions, IMPORT_STATE } from './importSbomModalSlice';
 import { selectImportSbomModalSlice } from './importSbomModalSelectors';
 import UploadPage from './UploadPage';
@@ -17,11 +15,9 @@ import ValidationErrorPage from './ValidationErrorPage';
 import UnknownErrorPage from './UnknownErrorPage';
 import SbomSummaryPage from './SbomSummaryPage';
 import BinarySummaryPage from './BinarySummaryPage';
+import EvaluationInProgressPage from './EvaluationInProgressPage';
 import VersionConfirmPage from 'MainRoot/OrgsAndPolicies/importSbomModal/VersionConfirmPage';
-
-const POST_IMPORT_TOAST_MESSAGE =
-  'The file you uploaded is currently being evaluated and will be available on this page shortly. ' +
-  'Please refresh the page after few minutes to see it.';
+import EvaluationCompletePage from 'MainRoot/OrgsAndPolicies/importSbomModal/EvaluationCompletePage';
 
 const headerId = 'import-sbom-modal-header';
 
@@ -31,9 +27,6 @@ export default function ImportSbomModal() {
   const { isModalOpen, importState, validationErrors, scanType } = useSelector(selectImportSbomModalSlice);
 
   const closeModal = () => {
-    if (importState === IMPORT_STATE.SUMMARY) {
-      dispatch(toastActions.addToast({ type: 'info', message: POST_IMPORT_TOAST_MESSAGE }));
-    }
     dispatch(actions.reset());
   };
 
@@ -54,6 +47,12 @@ export default function ImportSbomModal() {
       } else {
         page = <UnknownErrorPage headerId={headerId} onCancel={closeModal} />;
       }
+      break;
+    case IMPORT_STATE.EVALUATION_IN_PROGRESS:
+      page = <EvaluationInProgressPage headerId={headerId} onCancel={closeModal} />;
+      break;
+    case IMPORT_STATE.EVALUATION_COMPLETE:
+      page = <EvaluationCompletePage headerId={headerId} onCancel={closeModal} />;
       break;
     case IMPORT_STATE.SUMMARY:
       switch (scanType) {

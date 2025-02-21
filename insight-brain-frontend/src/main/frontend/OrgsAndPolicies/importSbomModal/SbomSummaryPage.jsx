@@ -6,76 +6,73 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
-import { always, complement, compose, is, isNil, when } from 'ramda';
 import {
   NxButton,
   NxButtonBar,
-  NxDescriptionList,
   NxFooter,
-  NxFormGroup,
   NxH2,
-  NxInfoAlert,
   NxModal,
   NxReadOnly,
-  NxTextInput,
+  NxSmallThreatCounter,
 } from '@sonatype/react-shared-components';
 
-import { selectSelectedOwnerName } from '../orgsAndPoliciesSelectors';
+import { selectSelectedOwnerPublicId, selectSelectedOwnerName } from '../orgsAndPoliciesSelectors';
 import { selectImportSbomModalSlice } from './importSbomModalSelectors';
-
-const ensureString = compose(when(complement(is(String)), toString), when(isNil, always('')));
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function SbomSummaryPage({ headerId, onClose }) {
   const applicationName = useSelector(selectSelectedOwnerName);
+  const applicationPublicId = useSelector(selectSelectedOwnerPublicId);
   const { sbomSummary, savedVersion } = useSelector(selectImportSbomModalSlice);
+  const uiRouterState = useRouterState();
+
+  const sbomOverviewHref = uiRouterState.href('sbomManager.management.view.bom', {
+    applicationPublicId: applicationPublicId,
+    versionId: savedVersion,
+  });
+
+  function goToSbomOverview() {
+    window.open(sbomOverviewHref, '_blank');
+  }
 
   return (
     <>
       <NxModal.Header>
-        <NxH2 id={headerId}>Import completed. Evaluating…</NxH2>
+        <NxH2 id={headerId}>Import Complete</NxH2>
       </NxModal.Header>
       <NxModal.Content>
+        <NxReadOnly className="import-sbom-modal__summary-grid">
+          <NxReadOnly.Label>Total Components:</NxReadOnly.Label>
+          <NxReadOnly.Data id="import-sbom-modal-summary-total-components">
+            {sbomSummary.totalComponents}
+          </NxReadOnly.Data>
+
+          <NxReadOnly.Label>Total Vulnerabilities:</NxReadOnly.Label>
+          <NxReadOnly.Data id="import-sbom-modal-summary-total-vulnerabilities">
+            <NxSmallThreatCounter
+              id="import-sbom-modal-summary-total-vulnerabilities"
+              criticalCount={sbomSummary.criticalVulnerabilities || 0}
+              severeCount={sbomSummary.highVulnerabilities || 0}
+              moderateCount={sbomSummary.mediumVulnerabilities || 0}
+              lowCount={sbomSummary.lowVulnerabilities || 0}
+              maxDigits={Infinity}
+            />
+          </NxReadOnly.Data>
+        </NxReadOnly>
         <NxReadOnly>
           <NxReadOnly.Label>Application Name</NxReadOnly.Label>
           <NxReadOnly.Data id="import-sbom-modal-application-name">{applicationName}</NxReadOnly.Data>
+
+          <NxReadOnly.Label>Application Version</NxReadOnly.Label>
+          <NxReadOnly.Data id="import-sbom-modal-application-version">{savedVersion || ''}</NxReadOnly.Data>
         </NxReadOnly>
-
-        <NxFormGroup
-          label="Version Id"
-          sublabel="The import time is used when the version id cannot be located in the file."
-        >
-          <NxTextInput
-            name="version-id"
-            title="Version Id"
-            value={ensureString(savedVersion)}
-            isPristine={true}
-            disabled
-          />
-        </NxFormGroup>
-
-        <NxDescriptionList>
-          <NxDescriptionList.Item>
-            <NxDescriptionList.Term>Total Components</NxDescriptionList.Term>
-            <NxDescriptionList.Description id="import-sbom-modal-summary-total-components">
-              {sbomSummary.totalComponents}
-            </NxDescriptionList.Description>
-          </NxDescriptionList.Item>
-          <NxDescriptionList.Item>
-            <NxDescriptionList.Term>Total Vulnerabilities</NxDescriptionList.Term>
-            <NxDescriptionList.Description id="import-sbom-modal-summary-total-vulnerabilities">
-              {sbomSummary.totalVulnerabilities}
-            </NxDescriptionList.Description>
-          </NxDescriptionList.Item>
-        </NxDescriptionList>
-
-        <NxInfoAlert>
-          Closing the modal will not interrupt the evaluation; it will still be in progress until completed. Once the
-          evaluation is complete, you can view the SBOM in the SBOM table.
-        </NxInfoAlert>
       </NxModal.Content>
       <NxFooter>
         <NxButtonBar>
           <NxButton onClick={onClose}>Close</NxButton>
+          <NxButton id="import-sbom-modal-summary-view-sbom" variant="primary" onClick={goToSbomOverview}>
+            View SBOM
+          </NxButton>
         </NxButtonBar>
       </NxFooter>
     </>

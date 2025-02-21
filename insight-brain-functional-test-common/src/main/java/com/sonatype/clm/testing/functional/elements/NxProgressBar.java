@@ -5,29 +5,16 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.codeborne.selenide.SelenideElement;
-import com.codeborne.selenide.ex.ElementNotFound;
-import org.openqa.selenium.StaleElementReferenceException;
+import com.sonatype.clm.testing.functional.utils.ElementUtils;
 
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.visible;
+import com.codeborne.selenide.SelenideElement;
+
 import static com.codeborne.selenide.Selenide.$;
 
 public class NxProgressBar
 {
   public static SelenideElement seeProgressBarAndWaitForDismissal() {
     SelenideElement mask = $(".nx-progress-bar");
-
-    try {
-      mask.shouldBe(visible);
-    }
-    catch (AssertionError e) {
-      if (e instanceof ElementNotFound || e.getCause() instanceof StaleElementReferenceException) {
-        return mask;
-      }
-      throw e;
-    }
-
-    return mask.shouldBe(hidden);
+    return ElementUtils.seeElementAndWaitForDismissal(mask);
   }
 }

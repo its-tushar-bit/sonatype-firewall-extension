@@ -9,11 +9,11 @@ import java.io.File;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxProgressBar;
-import com.sonatype.clm.testing.functional.elements.NxToast;
 import com.sonatype.clm.testing.functional.elements.sbom.ImportSbomModal;
 import com.sonatype.clm.testing.functional.elements.sbom.SbomsTile;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerApplicationSummaryPage;
+import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerBillOfMaterialsPage;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -27,13 +27,13 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.insight.license.model.LicensedFeature.POLICY_MONITORING;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SbomManagerApplicationSummaryPageImportSbomModalTest
@@ -64,7 +64,12 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
     thirdPartySbomMetadataDAO = lookup(ThirdPartySbomMetadataDAO.class);
 
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
-    setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.SUCCESS_METRICS, POLICY_MONITORING);
+    setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.SUCCESS_METRICS, LicensedFeature.POLICY_MONITORING);
+
+    testCLMServer.getHdsServer().respondWith("{\"scanId\": \"SCAN-ID\", \"timeToReport\": 0}")
+        .atUri("rest/application/analysis");
+    testCLMServer.getHdsServer().respondWith(getClass().getResource("/ImportSbomModalTest/valid-bom-report.zip"))
+        .atUri("rest/application/analysis/SCAN-ID");
 
     refreshOrOpen(IndexPage.url());
   }
@@ -123,14 +128,31 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
     importSbomModal.versionInput().shouldBe(visible).shouldHave(value("9.1.1"));
     importSbomModal.importSbomButton().shouldBe(enabled).click();
 
+    // evaluation in progress page
+    importSbomModal.seeEvaluationInProgressPageAndWaitForDismissal();
+
+    // evaluation complete page
+    importSbomModal.seeEvaluationCompletePageAndWaitForDismissal();
+
+    // summary page
+    importSbomModal.title().should(appear).shouldHave(text("Import Complete"));
     importSbomModal.summaryApplicationName()
         .shouldHave(text("Test Application"));
-    importSbomModal.summaryInputVersionId()
-        .shouldHave(value("9.1.1"));
+    importSbomModal.summaryVersionId()
+        .shouldHave(text("9.1.1"));
     importSbomModal.summaryTotalComponents()
         .shouldHave(text("2"));
     importSbomModal.summaryTotalVulnerabilities()
         .shouldHave(text("0"));
+
+    importSbomModal.viewSbomButton()
+        .shouldBe(visible).click();
+
+    // switch to new tab
+    Selenide.switchTo().window(1);
+
+    // sbom version summary page
+    waitUntilUrl(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), "9.1.1"));
   }
 
   @Test
@@ -159,8 +181,14 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
     importSbomModal.versionInput().shouldBe(visible);
     importSbomModal.importSbomButton().shouldBe(enabled).click();
 
-    importSbomModal.binaryFilename().shouldBe(visible).shouldHave(text("xml-apis-1.4.01.jar"));
-    importSbomModal.summaryApplicationName().shouldBe(visible).shouldHave(text(application.getName()));
+    // evaluation in progress page
+    importSbomModal.seeEvaluationInProgressPageAndWaitForDismissal();
+
+    // evaluation complete page
+    importSbomModal.seeEvaluationCompletePageAndWaitForDismissal();
+
+    // summary page
+    importSbomModal.title().should(appear).shouldHave(text("Import Complete"));
   }
 
   @Test
@@ -190,8 +218,14 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
     importSbomModal.versionInput().shouldBe(visible);
     importSbomModal.importSbomButton().shouldBe(enabled).click();
 
-    importSbomModal.binaryFilename().shouldBe(visible).shouldHave(text("text.txt"));
-    importSbomModal.summaryApplicationName().shouldBe(visible).shouldHave(text(application.getName()));
+    // evaluation in progress page
+    importSbomModal.seeEvaluationInProgressPageAndWaitForDismissal();
+
+    // evaluation complete page
+    importSbomModal.seeEvaluationCompletePageAndWaitForDismissal();
+
+    // summary page
+    importSbomModal.title().should(appear).shouldHave(text("Import Complete"));
   }
 
   @Test
@@ -241,19 +275,25 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
     assertThat(thirdPartySbomMetadataDAO.getAll()).hasSize(1);
     importSbomModal.importSbomButton().shouldBe(enabled).click();
 
-    importSbomModal.summaryApplicationName().shouldHave(text(application.getName()));
-    importSbomModal.summaryInputVersionId().shouldHave(value(""));
-    importSbomModal.summaryTotalComponents().shouldHave(text("3"));
-    importSbomModal.summaryTotalVulnerabilities().shouldHave(text("0"));
-    importSbomModal.cancelCloseButton().shouldBe(visible).click();
-    importSbomModal.shouldNotBe(visible);
+    // evaluation in progress page
+    importSbomModal.seeEvaluationInProgressPageAndWaitForDismissal();
 
-    NxToast toast = new NxToast("info");
-    toast.shouldBe(visible);
-    toast.shouldHave(text(
-        "The file you uploaded is currently being evaluated and will be available on this page shortly. " +
-            "Please refresh the page after few minutes to see it."
-    ));
+    // evaluation complete page
+    importSbomModal.seeEvaluationCompletePageAndWaitForDismissal();
+
+    // summary page
+    importSbomModal.title().should(appear).shouldHave(text("Import Complete"));
+    importSbomModal.summaryApplicationName()
+        .shouldHave(text(application.getName()));
+    importSbomModal.summaryVersionId()
+        .shouldHave(value(""));
+    importSbomModal.summaryTotalComponents()
+        .shouldHave(text("3"));
+    importSbomModal.summaryTotalVulnerabilities()
+        .shouldHave(text("0"));
+    importSbomModal.cancelCloseButton()
+        .shouldBe(visible).click();
+    importSbomModal.shouldNotBe(visible);
   }
 
   @Test
@@ -296,46 +336,6 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
   }
 
   @Test
-  public void testImportSbomModal_toastMessage() {
-    refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
-
-    SbomsTile sbomsTile = SbomManagerApplicationSummaryPage.sbomsTile();
-    sbomsTile.importButton().click();
-    ImportSbomModal importSbomModal = sbomSummaryPage.importSbomModal();
-
-    importSbomModal.shouldBe(visible);
-
-    File file = new File(testFilesPath + "valid-bom.json");
-    importSbomModal.fileUpload().uploadFile(file);
-    importSbomModal.fileSelected().shouldBe(visible).shouldHave(text("valid-bom.json"));
-    importSbomModal.importSbomButton().shouldBe(enabled).click();
-
-    //version confirmation page
-    importSbomModal.title().shouldHave(text("File Uploaded. Import in Progress…"));
-    importSbomModal.versionInput().shouldBe(visible).shouldHave(value("9.1.1"));
-    importSbomModal.importSbomButton().shouldBe(enabled).click();
-
-    importSbomModal.summaryApplicationName()
-        .shouldHave(text("Test Application"));
-    importSbomModal.summaryInputVersionId()
-        .shouldHave(value("9.1.1"));
-    importSbomModal.summaryTotalComponents()
-        .shouldHave(text("2"));
-    importSbomModal.summaryTotalVulnerabilities()
-        .shouldHave(text("0"));
-    importSbomModal.cancelCloseButton().shouldBe(visible).click();
-    importSbomModal.shouldNotBe(visible);
-
-    NxToast toast = new NxToast("info");
-
-    toast.shouldBe(visible);
-    toast.shouldHave(text(
-        "The file you uploaded is currently being evaluated and will be available on this page shortly. " +
-            "Please refresh the page after few minutes to see it."
-    ));
-  }
-
-  @Test
   public void testImportSbomModal_versionOverride() {
     refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
 
@@ -357,9 +357,18 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
         .setValue("2.0.0"); //override version
     importSbomModal.importSbomButton().shouldBe(enabled).click();
 
+    // evaluation in progress page
+    importSbomModal.seeEvaluationInProgressPageAndWaitForDismissal();
+
+    // evaluation complete page
+    importSbomModal.seeEvaluationCompletePageAndWaitForDismissal();
+
+    // summary page
+    importSbomModal.title().should(appear).shouldHave(text("Import Complete"));
     importSbomModal.summaryApplicationName()
         .shouldHave(text("Test Application"));
-    importSbomModal.summaryInputVersionId().shouldHave(value("2.0.0"));
+    importSbomModal.summaryVersionId()
+        .shouldHave(text("2.0.0"));
     importSbomModal.summaryTotalComponents()
         .shouldHave(text("2"));
     importSbomModal.summaryTotalVulnerabilities()
@@ -373,7 +382,6 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
 
     sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(application.getId(), "9.1.1");
     assertThat(sbomMetadata).isNull();
-
   }
 
   @Test
@@ -413,11 +421,26 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
     importSbomModal.versionInput().shouldBe(visible);
     importSbomModal.importSbomButton().shouldBe(enabled);
 
+    testCLMServer.getHdsServer().respondWith("{\"scanId\": \"SCAN-ID2\", \"timeToReport\": 0}")
+        .atUri("rest/application/analysis");
+    testCLMServer.getHdsServer().respondWith(getClass().getResource("/ImportSbomModalTest/valid-bom-report.zip"))
+        .atUri("rest/application/analysis/SCAN-ID2");
+
     importSbomModal.versionInput().setValue("1.2.4");
     importSbomModal.importSbomButton().click();
 
-    importSbomModal.summaryApplicationName().shouldHave(text("Test Application"));
-    importSbomModal.summaryInputVersionId().shouldHave(value("1.2.4"));
+    // evaluation in progress page
+    importSbomModal.seeEvaluationInProgressPageAndWaitForDismissal();
+
+    // evaluation complete page
+    importSbomModal.seeEvaluationCompletePageAndWaitForDismissal();
+
+    // summary page
+    importSbomModal.title().should(appear).shouldHave(text("Import Complete"));
+    importSbomModal.summaryApplicationName()
+        .shouldHave(text("Test Application"));
+    importSbomModal.summaryVersionId()
+        .shouldHave(text("1.2.4"));
   }
 
   @Test
@@ -459,10 +482,25 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
     importSbomModal.versionInput().shouldBe(visible);
     importSbomModal.importSbomButton().shouldBe(enabled);
 
+    testCLMServer.getHdsServer().respondWith("{\"scanId\": \"SCAN-ID2\", \"timeToReport\": 0}")
+        .atUri("rest/application/analysis");
+    testCLMServer.getHdsServer().respondWith(getClass().getResource("/ImportSbomModalTest/valid-bom-report.zip"))
+        .atUri("rest/application/analysis/SCAN-ID2");
+
     importSbomModal.versionInput().setValue("1.2.4");
     importSbomModal.importSbomButton().click();
 
-    importSbomModal.summaryApplicationName().shouldHave(text("Test Application"));
-    importSbomModal.summaryInputVersionId().shouldHave(value("1.2.4"));
+    // evaluation in progress page
+    importSbomModal.seeEvaluationInProgressPageAndWaitForDismissal();
+
+    // evaluation complete page
+    importSbomModal.seeEvaluationCompletePageAndWaitForDismissal();
+
+    // summary page
+    importSbomModal.title().should(appear).shouldHave(text("Import Complete"));
+    importSbomModal.summaryApplicationName()
+        .shouldHave(text("Test Application"));
+    importSbomModal.summaryVersionId()
+        .shouldHave(text("1.2.4"));
   }
 }

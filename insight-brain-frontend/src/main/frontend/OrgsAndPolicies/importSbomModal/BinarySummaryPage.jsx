@@ -5,51 +5,52 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  NxButton,
-  NxButtonBar,
-  NxDescriptionList,
-  NxFooter,
-  NxFormGroup,
-  NxH2,
-  NxInfoAlert,
-  NxModal,
-  NxP,
-  NxReadOnly,
-  NxTextInput,
-} from '@sonatype/react-shared-components';
+import { useSelector } from 'react-redux';
+import { NxButton, NxButtonBar, NxFooter, NxH2, NxModal, NxReadOnly } from '@sonatype/react-shared-components';
 
-import { selectSelectedOwnerName } from '../orgsAndPoliciesSelectors';
+import { selectSelectedOwnerName, selectSelectedOwnerPublicId } from '../orgsAndPoliciesSelectors';
 import { selectImportSbomModalSlice, selectSelectedFilename } from './importSbomModalSelectors';
-import { actions, IMPORT_STATE } from './importSbomModalSlice';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function BinarySummaryPage({ headerId, onClose }) {
   const applicationName = useSelector(selectSelectedOwnerName);
+  const applicationPublicId = useSelector(selectSelectedOwnerPublicId);
   const selectedFilename = useSelector(selectSelectedFilename);
+  const { savedVersion } = useSelector(selectImportSbomModalSlice);
+  const uiRouterState = useRouterState();
+
+  const sbomOverviewHref = uiRouterState.href('sbomManager.management.view.bom', {
+    applicationPublicId: applicationPublicId,
+    versionId: savedVersion,
+  });
+
+  function goToSbomOverview() {
+    window.open(sbomOverviewHref, '_blank');
+  }
 
   return (
     <>
       <NxModal.Header>
-        <NxH2 id={headerId}>Import completed. Evaluating…</NxH2>
+        <NxH2 id={headerId}>Import Complete</NxH2>
       </NxModal.Header>
       <NxModal.Content>
-        <NxP>
-          We are now evaluating your file in the background and you can close this window safely. Refresh the page in a
-          few minutes to see your new SBOM in the list.
-        </NxP>
-
         <NxReadOnly>
           <NxReadOnly.Label>File</NxReadOnly.Label>
           <NxReadOnly.Data id="import-sbom-modal-filename">{selectedFilename}</NxReadOnly.Data>
 
           <NxReadOnly.Label>Application Name</NxReadOnly.Label>
           <NxReadOnly.Data id="import-sbom-modal-application-name">{applicationName}</NxReadOnly.Data>
+
+          <NxReadOnly.Label>Application Version</NxReadOnly.Label>
+          <NxReadOnly.Data id="import-sbom-modal-application-version">{savedVersion || ''}</NxReadOnly.Data>
         </NxReadOnly>
       </NxModal.Content>
       <NxFooter>
         <NxButtonBar>
           <NxButton onClick={onClose}>Close</NxButton>
+          <NxButton id="import-sbom-modal-summary-view-sbom" variant="primary" onClick={goToSbomOverview}>
+            View SBOM
+          </NxButton>
         </NxButtonBar>
       </NxFooter>
     </>

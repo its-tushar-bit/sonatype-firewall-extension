@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.elements.sbom;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.utils.ElementUtils;
 
 import com.codeborne.selenide.SelenideElement;
 
@@ -53,8 +54,8 @@ public class ImportSbomModal
     return child("#import-sbom-modal-application-name");
   }
 
-  public SelenideElement summaryInputVersionId() {
-    return child(".nx-text-input__input");
+  public SelenideElement summaryVersionId() {
+    return child("#import-sbom-modal-application-version");
   }
 
   public SelenideElement summaryTotalComponents() {
@@ -65,8 +66,12 @@ public class ImportSbomModal
     return child("#import-sbom-modal-summary-total-vulnerabilities");
   }
 
+  public SelenideElement viewSbomButton() {
+    return $("#import-sbom-modal-summary-view-sbom");
+  }
+
   public SelenideElement cancelCloseButton() {
-    return $(".nx-btn--secondary");
+    return $(".nx-modal .nx-btn--secondary");
   }
 
   public SelenideElement importSbomButton() {
@@ -88,5 +93,15 @@ public class ImportSbomModal
 
   public SelenideElement versionInput() {
     return child("#import-sbom-modal-version-input");
+  }
+
+  public void seeEvaluationInProgressPageAndWaitForDismissal() {
+    SelenideElement page = $("#import-sbom-modal-evaluation-in-progress-content");
+    ElementUtils.seeElementAndWaitForDismissal(page);
+  }
+
+  public void seeEvaluationCompletePageAndWaitForDismissal() {
+    SelenideElement page = $("#import-sbom-modal-evaluation-complete-content");
+    ElementUtils.seeElementAndWaitForDismissal(page);
   }
 }

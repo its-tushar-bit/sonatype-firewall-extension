@@ -5,13 +5,20 @@
  */
 import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { nxFileUploadStateHelpers, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+import {
+  nxFileUploadStateHelpers,
+  SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS,
+  nxTextInputStateHelpers,
+} from '@sonatype/react-shared-components';
 
 import ImportSbomModal from 'MainRoot/OrgsAndPolicies/importSbomModal/ImportSbomModal';
 import { IMPORT_STATE } from 'MainRoot/OrgsAndPolicies/importSbomModal/importSbomModalSlice';
-import { getCommitImportedSbomUrl, getImportSbomUrl } from 'MainRoot/util/CLMLocation';
+import { getCommitImportedSbomUrl, getImportSbomUrl, getSbomSummaryUrl } from 'MainRoot/util/CLMLocation';
 
 import { axiosMockAdapter, fireEvent, render, screen } from 'TestRoot/SpecUtil';
+import { BASE_URL } from 'MainRoot/util/urlUtil';
+
+const EVALUATION_POLLING_FREQUENCY = 500;
 
 describe('ImportSbomModal', () => {
   let renderComponent, axiosMock, defaultPreloadedState;
@@ -265,10 +272,9 @@ describe('ImportSbomModal', () => {
           screen.queryByText('An error occurred saving data. Version 1.2.3_2024 already exists')
         ).not.toBeInTheDocument();
 
-        //ensure we are on the summary page
-        const versionIdTextBox = await screen.findByRole('textbox', { name: /version id/i });
-        expect(versionIdTextBox).toHaveValue('2.0.0');
-        expect(versionIdTextBox).toBeDisabled();
+        //ensure we are on the evaluation in progress page
+        expect(await screen.findByText('File Imported')).toBeInTheDocument();
+        expect(await screen.findByText('Evaluating…')).toBeInTheDocument();
       });
 
       it('allows user to override version', async () => {
@@ -285,10 +291,9 @@ describe('ImportSbomModal', () => {
         const importButton = screen.getByRole('button', { name: 'Import' });
         fireEvent.click(importButton);
 
-        //make sure we are on the summary page
-        const versionIdTextBox = await screen.findByRole('textbox', { name: /version id/i });
-        expect(versionIdTextBox).toHaveValue('2.0.0');
-        expect(versionIdTextBox).toBeDisabled();
+        //ensure we are on the evaluation in progress page
+        expect(await screen.findByText('File Imported')).toBeInTheDocument();
+        expect(await screen.findByText('Evaluating…')).toBeInTheDocument();
 
         expect(axiosMock.history.post).toHaveLength(2);
         const commitFileCall = axiosMock.history.post[1];
@@ -306,8 +311,118 @@ describe('ImportSbomModal', () => {
       });
     });
 
-    describe('Summary', () => {
-      it('shows post upload details for SBOM', async () => {
+    describe('Evaluation in Progress', () => {
+      beforeEach(async () => {
+        axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply(200, {
+          sbomSummary: {
+            specification: 'CycloneDx',
+            format: 'json',
+            version: '1.4',
+            componentCount: 1,
+            vulnerabilityCount: 2,
+            applicationName: 'testApplicationName',
+            applicationVersion: '1.2.3',
+            serialNumber: 'urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79',
+            creationDetails: null,
+          },
+          savedVersion: '1.2.3_2024',
+          scanType: 'SBOM',
+          errorMessage: null,
+        });
+        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', '1.2.3_2024')).replyOnce(201, {
+          statusUrl: 'api/v2/sbom/applications/testApplicationId/status/2a16f12582ab4226acd883780f4f1020',
+        });
+
+        renderComponent();
+
+        // uploading the file
+        setFileUploadValue(document.querySelector('input[type=file]'), createTestFile());
+        const initialImportButton = await screen.findByRole('button', { name: /Import/i });
+        fireEvent.click(initialImportButton);
+
+        // confirming the version
+        const importButton = await screen.findByRole('button', { name: /Import/i });
+        fireEvent.click(importButton);
+      });
+
+      it('shows the evaluation in progress page with the correct content', async () => {
+        expect(await screen.findByRole('dialog', { name: 'File Imported' })).toBeVisible();
+
+        const evaluatingText = await screen.findByText('Evaluating…');
+        expect(evaluatingText).toBeVisible();
+
+        const evaluatingDescText = await screen.findByText(
+          'Feel free to close this modal and continue working.' +
+            ' Your evaluation will continue to process in the background and should be done within a few minutes.'
+        );
+        expect(evaluatingDescText).toBeVisible();
+
+        expect(screen.getByRole('button', { name: /Close/i })).toBeInTheDocument();
+      });
+
+      it('polls the evaluation status URL until it returns 200', async () => {
+        const evaluationStatusUri =
+          'api/v2/sbom/applications/testApplicationId/status/2a16f12582ab4226acd883780f4f1020';
+        const url = BASE_URL + `/${evaluationStatusUri}`;
+
+        // mocking 2 polling responses
+        axiosMock.onGet(url).replyOnce(404);
+        axiosMock.onGet(url).replyOnce(200, {});
+
+        // call to sbom summary after polling is successful
+        axiosMock.onGet(getSbomSummaryUrl('testApplicationId', '1.2.3_2024')).reply(200, {
+          none: 0,
+          low: 0,
+          medium: 0,
+          high: 4,
+          critical: 2,
+        });
+
+        // shows evaluation in progress page
+        expect(await screen.findByRole('dialog', { name: 'File Imported' })).toBeVisible();
+
+        // shows evaluation complete page
+        expect(
+          await screen.findByRole(
+            'dialog',
+            { name: 'Evaluation Complete' },
+            { timeout: EVALUATION_POLLING_FREQUENCY * 3 }
+          )
+        ).toBeVisible();
+      });
+
+      it('shows the upload page with an error alert on evaluation error', async () => {
+        const evaluationStatusUri =
+          'api/v2/sbom/applications/testApplicationId/status/2a16f12582ab4226acd883780f4f1020';
+        const url = BASE_URL + `/${evaluationStatusUri}`;
+
+        // mocking 2 polling responses
+        axiosMock.onGet(url).replyOnce(404);
+        axiosMock.onGet(url).replyOnce(500, {
+          errorMessage: 'An error occurred in the evaluation process',
+        });
+
+        // shows evaluation in progress page
+        expect(await screen.findByRole('dialog', { name: 'File Imported' })).toBeVisible();
+
+        expect(
+          await screen.findByRole(
+            'dialog',
+            { name: 'Import File for Application testApplicationName' },
+            { timeout: EVALUATION_POLLING_FREQUENCY * 3 }
+          )
+        ).toBeVisible();
+
+        expect(
+          await screen.findByText(
+            'We were unable to process your SBOM: An error occurred in the evaluation process. Please re-import your SBOM.'
+          )
+        ).toBeInTheDocument();
+      });
+    });
+
+    describe('Evaluation Complete', () => {
+      beforeEach(async () => {
         axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply(200, {
           sbomSummary: {
             specification: 'CycloneDx',
@@ -324,92 +439,268 @@ describe('ImportSbomModal', () => {
           scanType: 'SBOM',
           errorMessage: null,
         });
-        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', '1.2.3_2024')).reply(201, {});
+        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', '1.2.3_2024')).replyOnce(201, {
+          statusUrl: 'api/v2/sbom/applications/testApplicationId/status/2a16f12582ab4226acd883780f4f1020',
+        });
+
+        // mocking polling response
+        axiosMock
+          .onGet(BASE_URL + 'api/v2/sbom/applications/testApplicationId/status/2a16f12582ab4226acd883780f4f1020')
+          .replyOnce(200, {});
+
+        // call to sbom summary after polling is successful
+        axiosMock.onGet(getSbomSummaryUrl('testApplicationId', '1.2.3_2024')).reply(200, {
+          none: 0,
+          low: 0,
+          medium: 0,
+          high: 4,
+          critical: 2,
+        });
 
         renderComponent();
 
+        // uploading the file
         setFileUploadValue(document.querySelector('input[type=file]'), createTestFile());
-        const importButton = screen.getByRole('button', { name: /import/i });
+        const initialImportButton = await screen.findByRole('button', { name: /Import/i });
+        fireEvent.click(initialImportButton);
 
+        // confirming the version
+        const importButton = await screen.findByRole('button', { name: /Import/i });
         fireEvent.click(importButton);
 
-        // version confirm page
-        expect(await screen.findByText('File Uploaded. Import in Progress…')).toBeInTheDocument();
-
-        const confirmImportButton = screen.getByRole('button', { name: /import/i });
-        fireEvent.click(confirmImportButton);
-
-        const applicationNameLabel = (await screen.findByText('Application Name')).closest('dt');
-        expect(applicationNameLabel).toBeVisible();
-        expect(applicationNameLabel.parentElement.querySelector('dd')).toHaveTextContent('testApplicationName');
-
-        const versionIdTextBox = screen.getByRole('textbox', { name: /version id/i });
-        expect(versionIdTextBox).toHaveValue('1.2.3_2024');
-        expect(versionIdTextBox).toBeDisabled();
-
-        const totalComponentsLabel = screen.getByText('Total Components').closest('dt');
-        expect(totalComponentsLabel).toBeVisible();
-        expect(totalComponentsLabel.parentElement.querySelector('dd')).toHaveTextContent('1');
-
-        const totalVulnsLabel = screen.getByText('Total Vulnerabilities').closest('dt');
-        expect(totalVulnsLabel).toBeVisible();
-        expect(totalVulnsLabel.parentElement.querySelector('dd')).toHaveTextContent('2');
-
-        expect(
-          screen.getByText(
-            'Closing the modal will not interrupt the evaluation; it will still be in progress until completed. ' +
-              'Once the evaluation is complete, you can view the SBOM in the SBOM table.'
-          )
-        ).toBeInTheDocument();
-
-        expect(screen.queryByRole('button', { name: 'Import' })).not.toBeInTheDocument();
-        expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
-
-        const closeButton = screen.getByRole('button', { name: 'Close' });
-        expect(closeButton).toBeVisible();
-
-        fireEvent.click(closeButton);
-
-        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        // show the evaluation in progress page
+        await screen.findByRole('dialog', { name: 'File Imported' });
       });
 
-      it('shows post upload details for BINARY', async () => {
+      it('shows the evaluation complete page with correct content', async () => {
+        expect(
+          await screen.findByRole(
+            'dialog',
+            { name: 'Evaluation Complete' },
+            { timeout: EVALUATION_POLLING_FREQUENCY * 2 }
+          )
+        ).toBeVisible();
+        expect(await screen.findByText('Success!')).toBeVisible();
+        const evaluatingDescText = await screen.findByText('Your SBOM has been evaluated and is ready for viewing.');
+        expect(evaluatingDescText).toBeVisible();
+        expect(screen.getByRole('button', { name: /Close/i })).toBeInTheDocument();
+      });
+
+      it(`closes the evaluation complete page after ${SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS} ms`, async () => {
+        expect(
+          await screen.findByRole(
+            'dialog',
+            { name: 'Evaluation Complete' },
+            { timeout: EVALUATION_POLLING_FREQUENCY * 2 }
+          )
+        ).toBeVisible();
+
+        // shows import complete page
+        expect(
+          await screen.findByRole(
+            'dialog',
+            { name: 'Import Complete' },
+            { timeout: SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS }
+          )
+        ).toBeVisible();
+      });
+
+      it('closes the modal when the close button is pressed', async () => {
+        expect(
+          await screen.findByRole(
+            'dialog',
+            { name: 'Evaluation Complete' },
+            { timeout: EVALUATION_POLLING_FREQUENCY * 2 }
+          )
+        ).toBeVisible();
+        const closeButton = await screen.findByRole('button', { name: 'Close' });
+        expect(closeButton).toBeVisible();
+        fireEvent.click(closeButton);
+        expect(screen.queryByRole('dialog', { name: 'Evaluation Complete' })).not.toBeInTheDocument();
+      });
+    });
+
+    describe('SBOM Summary', () => {
+      beforeEach(async () => {
         axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply(200, {
-          savedVersion: '1.2.3',
+          sbomSummary: {
+            specification: 'CycloneDx',
+            format: 'json',
+            version: '1.4',
+            componentCount: 1,
+            vulnerabilityCount: 2,
+            applicationName: null,
+            applicationVersion: '1.2.3',
+            serialNumber: 'urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79',
+            creationDetails: null,
+          },
+          savedVersion: '1.2.3_2024',
+          scanType: 'SBOM',
+          errorMessage: null,
+        });
+        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', '1.2.3_2024')).replyOnce(201, {
+          statusUrl: 'api/v2/sbom/applications/testApplicationId/status/2a16f12582ab4226acd883780f4f1020',
+        });
+
+        // mocking polling response
+        axiosMock
+          .onGet(BASE_URL + 'api/v2/sbom/applications/testApplicationId/status/2a16f12582ab4226acd883780f4f1020')
+          .replyOnce(200, {});
+
+        // call to sbom summary after polling is successful
+        axiosMock.onGet(getSbomSummaryUrl('testApplicationId', '1.2.3_2024')).reply(200, {
+          none: 0,
+          low: 0,
+          medium: 0,
+          high: 4,
+          critical: 2,
+        });
+
+        renderComponent();
+
+        // uploading the file
+        setFileUploadValue(document.querySelector('input[type=file]'), createTestFile());
+        const initialImportButton = await screen.findByRole('button', { name: /Import/i });
+        fireEvent.click(initialImportButton);
+
+        // confirming the version
+        const importButton = await screen.findByRole('button', { name: /Import/i });
+        fireEvent.click(importButton);
+
+        // show the evaluation in progress page
+        await screen.findByRole('dialog', { name: 'File Imported' }, { timeout: EVALUATION_POLLING_FREQUENCY * 2 });
+
+        // show the evaluation complete page
+        expect(
+          await screen.findByRole(
+            'dialog',
+            { name: 'Evaluation Complete' },
+            { timeout: SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS }
+          )
+        ).toBeVisible();
+      });
+
+      it('shows post upload details for SBOM', async () => {
+        expect(await screen.findByText('Import Complete')).toBeInTheDocument();
+        const totalComponentsLabel = (await screen.findByText('Total Components:')).closest('dt');
+        expect(totalComponentsLabel).toBeVisible();
+        expect(totalComponentsLabel.nextElementSibling).toHaveTextContent('1');
+
+        const totalVulnerabilitiesLabel = (await screen.findByText('Total Vulnerabilities:')).closest('dt');
+        expect(totalVulnerabilitiesLabel).toBeVisible();
+
+        const criticalLabel = (await screen.findByText('Critical')).closest('span');
+        expect(criticalLabel).toBeVisible();
+        expect(criticalLabel.nextElementSibling).toHaveTextContent('2');
+
+        const severeLabel = (await screen.findByText('Severe')).closest('span');
+        expect(severeLabel).toBeVisible();
+        expect(severeLabel.nextElementSibling).toHaveTextContent('4');
+
+        const moderateLabel = (await screen.findByText('Moderate')).closest('span');
+        expect(moderateLabel).toBeVisible();
+        expect(moderateLabel.nextElementSibling).toHaveTextContent('0');
+
+        const lowLabel = (await screen.findByText('Low')).closest('span');
+        expect(lowLabel).toBeVisible();
+        expect(lowLabel.nextElementSibling).toHaveTextContent('0');
+
+        const applicationNameLabel = screen.getByText('Application Name').closest('dt');
+        expect(applicationNameLabel).toBeVisible();
+        expect(applicationNameLabel.nextElementSibling).toHaveTextContent('testApplicationName');
+
+        const applicationVersionLabel = screen.getByText('Application Version').closest('dt');
+        expect(applicationVersionLabel).toBeVisible();
+        expect(applicationVersionLabel.nextElementSibling).toHaveTextContent('1.2.3_2024');
+
+        expect(screen.queryByText('View SBOM')).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Close' })).toBeInTheDocument();
+      });
+
+      it('it closes the modal when the close button is pressed', async () => {
+        expect(await screen.findByRole('dialog', { name: 'Import Complete' })).toBeVisible();
+        const closeButton = await screen.findByRole('button', { name: 'Close' });
+        expect(closeButton).toBeVisible();
+        fireEvent.click(closeButton);
+        expect(screen.queryByRole('dialog', { name: 'Import Complete' })).not.toBeInTheDocument();
+      });
+    });
+
+    describe('Binary Summary', () => {
+      beforeEach(async () => {
+        axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply(200, {
+          savedVersion: '1.2.3_2024',
           sbomSummary: null,
           scanType: 'BINARY',
           errorMessage: null,
         });
-        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', '1.2.3')).reply(201, {});
+        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', '1.2.3_2024')).replyOnce(201, {
+          statusUrl: 'api/v2/sbom/applications/testApplicationId/status/2a16f12582ab4226acd883780f4f1020',
+        });
+
+        // mocking polling response
+        axiosMock
+          .onGet(BASE_URL + 'api/v2/sbom/applications/testApplicationId/status/2a16f12582ab4226acd883780f4f1020')
+          .replyOnce(200, {});
+
+        // call to sbom summary after polling is successful
+        axiosMock.onGet(getSbomSummaryUrl('testApplicationId', '1.2.3_2024')).reply(200, {
+          none: 0,
+          low: 0,
+          medium: 0,
+          high: 4,
+          critical: 2,
+        });
 
         renderComponent();
 
+        // uploading the file
         setFileUploadValue(document.querySelector('input[type=file]'), createTestFile());
-        const importButton = screen.getByRole('button', { name: /import/i });
+        const initialImportButton = await screen.findByRole('button', { name: /Import/i });
+        fireEvent.click(initialImportButton);
 
+        // confirming the version
+        const importButton = await screen.findByRole('button', { name: /Import/i });
         fireEvent.click(importButton);
 
-        //version confirm page
-        expect(await screen.findByText('File Uploaded. Import in Progress…')).toBeInTheDocument();
+        // show the evaluation in progress page
+        await screen.findByRole('dialog', { name: 'File Imported' }, { timeout: EVALUATION_POLLING_FREQUENCY * 2 });
 
-        const confirmImportButton = screen.getByRole('button', { name: /import/i });
-        fireEvent.click(confirmImportButton);
+        // show the evaluation complete page
+        expect(
+          await screen.findByRole(
+            'dialog',
+            { name: 'Evaluation Complete' },
+            { timeout: SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS }
+          )
+        ).toBeVisible();
+      });
 
-        expect(await screen.findByText('Application Name')).toBeVisible();
-        expect(await screen.findByText('testApplicationName')).toBeVisible();
+      it('shows post upload details for Binary', async () => {
+        expect(await screen.findByText('Import Complete')).toBeInTheDocument();
 
-        expect(await screen.findByText('File')).toBeVisible();
-        expect(await screen.findByText('test-file.json')).toBeVisible();
+        const fileNameLabel = screen.getByText('File').closest('dt');
+        expect(fileNameLabel).toBeVisible();
+        expect(fileNameLabel.parentElement.querySelector('dd')).toHaveTextContent('test-file.json');
 
-        expect(screen.queryByRole('button', { name: 'Import' })).not.toBeInTheDocument();
-        expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
+        const applicationNameLabel = screen.getByText('Application Name').closest('dt');
+        expect(applicationNameLabel).toBeVisible();
+        expect(applicationNameLabel.nextElementSibling).toHaveTextContent('testApplicationName');
 
+        const applicationVersionLabel = screen.getByText('Application Version').closest('dt');
+        expect(applicationVersionLabel).toBeVisible();
+        expect(applicationVersionLabel.nextElementSibling).toHaveTextContent('1.2.3_2024');
+
+        expect(screen.queryByText('View SBOM')).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Close' })).toBeInTheDocument();
+      });
+
+      it('it closes the modal when the close button is pressed', async () => {
+        expect(await screen.findByRole('dialog', { name: 'Import Complete' })).toBeVisible();
         const closeButton = await screen.findByRole('button', { name: 'Close' });
         expect(closeButton).toBeVisible();
-
         fireEvent.click(closeButton);
-
-        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        expect(screen.queryByRole('dialog', { name: 'Import Complete' })).not.toBeInTheDocument();
       });
     });
 
@@ -684,35 +975,7 @@ describe('ImportSbomModal', () => {
         const confirmImportButton = screen.getByRole('button', { name: /import/i });
         fireEvent.click(confirmImportButton);
 
-        const applicationNameLabel = (await screen.findByText('Application Name')).closest('dt');
-        expect(applicationNameLabel).toBeVisible();
-        expect(applicationNameLabel.parentElement.querySelector('dd')).toHaveTextContent('testApplicationName');
-
-        const versionIdTextBox = screen.getByRole('textbox', { name: /version id/i });
-        expect(versionIdTextBox).toHaveValue('1.2.3_2024');
-        expect(versionIdTextBox).toBeDisabled();
-
-        const totalComponentsLabel = screen.getByText('Total Components').closest('dt');
-        expect(totalComponentsLabel).toBeVisible();
-        expect(totalComponentsLabel.parentElement.querySelector('dd')).toHaveTextContent('1');
-
-        const totalVulnsLabel = screen.getByText('Total Vulnerabilities').closest('dt');
-        expect(totalVulnsLabel).toBeVisible();
-        expect(totalVulnsLabel.parentElement.querySelector('dd')).toHaveTextContent('2');
-
-        expect(
-          screen.getByText(
-            'Closing the modal will not interrupt the evaluation; it will still be in progress until completed. ' +
-              'Once the evaluation is complete, you can view the SBOM in the SBOM table.'
-          )
-        ).toBeInTheDocument();
-
-        const closeButton = screen.getByRole('button', { name: 'Close' });
-        expect(closeButton).toBeVisible();
-
-        fireEvent.click(closeButton);
-
-        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        expect(await screen.findByRole('dialog', { name: 'File Imported' })).toBeVisible();
       });
     });
   });

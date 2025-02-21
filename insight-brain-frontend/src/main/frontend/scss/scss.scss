@@ -165,6 +165,7 @@
 @use '../sbomManager/features/billOfMaterials/billOfMaterials';
 @use '../sbomManager/features/componentDetails/componentDetails';
 @use '../applicationLatestEvaluations/applicationLatestEvaluations';
+@use '../OrgsAndPolicies/importSbomModal/import-sbom-modal';
 
 // Overrides
 @use 'responsive';

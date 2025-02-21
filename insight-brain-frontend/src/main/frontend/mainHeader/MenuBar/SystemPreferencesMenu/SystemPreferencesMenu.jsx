@@ -215,6 +215,18 @@ export const SystemPreferencesMenu = ({
       >
         Advanced Search
       </NavLink>
+      {/* Will be enabled in: NEXUS-46126
+      {CONFIGURE_SYSTEM && (
+        <NavLink
+          stateName="roiConfiguration"
+          id="system-configuration-roi-configuration"
+          showIf={hasLifecycleLicense || hasFirewallLicense}
+          prefix={firewallPrefix}
+        >
+          ROI Configuration
+        </NavLink>
+      )}
+      */}
       <EarlyAccessLinks></EarlyAccessLinks>
     </MenuButton>
   );

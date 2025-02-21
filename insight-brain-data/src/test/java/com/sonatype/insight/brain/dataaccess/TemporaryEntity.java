@@ -5685,38 +5685,20 @@ public class TemporaryEntity
 
   public RoiConfiguration createRoiConfiguration(
       CurrencyTypes currency,
-      BigDecimal developerHourlyRate,
-      Long fixRateHours,
-      Boolean securityViolationCriticalEnabled,
-      BigDecimal securityViolationCriticalValue,
-      Boolean securityViolationHighEnabled,
-      BigDecimal securityViolationHighValue,
-      Boolean securityViolationMediumEnabled,
-      BigDecimal securityViolationMediumValue,
-      Boolean securityViolationLowEnabled,
-      BigDecimal securityViolationLowValue,
-      BigDecimal supplyChainAttacksBlocked,
-      BigDecimal namespaceAttacksBlocked,
+      BigDecimal malwareAttacksPrevented,
+      BigDecimal namespaceAttacksPrevented,
       BigDecimal safeComponentsAutoSelected,
-      Boolean waivedPoliciesCounted
+      Integer baselineDaysToResolveViolation,
+      BigDecimal dailyRiskCostOfUnfixedViolation
   )
   {
     RoiConfiguration roiConfiguration = new RoiConfiguration(
         currency,
-        developerHourlyRate,
-        fixRateHours,
-        securityViolationCriticalEnabled,
-        securityViolationCriticalValue,
-        securityViolationHighEnabled,
-        securityViolationHighValue,
-        securityViolationMediumEnabled,
-        securityViolationMediumValue,
-        securityViolationLowEnabled,
-        securityViolationLowValue,
-        supplyChainAttacksBlocked,
-        namespaceAttacksBlocked,
+        malwareAttacksPrevented,
+        namespaceAttacksPrevented,
         safeComponentsAutoSelected,
-        waivedPoliciesCounted
+        baselineDaysToResolveViolation,
+        dailyRiskCostOfUnfixedViolation
     );
 
     roiConfigurationDAO.insert(roiConfiguration);
@@ -5725,58 +5707,32 @@ public class TemporaryEntity
 
   public RoiConfigurationDefaultValues createRoiConfigurationDefaultValues(
       CurrencyTypes currency,
-      BigDecimal developerHourlyRateDefault,
-      BigDecimal developerHourlyRateMinimum,
-      Long fixRateHoursDefault,
-      Long fixRateHoursMinimum,
-      BigDecimal securityViolationCriticalDefault,
-      BigDecimal securityViolationCriticalMinimum,
-      Boolean securityViolationCriticalEnabled,
-      BigDecimal securityViolationHighDefault,
-      BigDecimal securityViolationHighMinimum,
-      Boolean securityViolationHighEnabled,
-      BigDecimal securityViolationMediumDefault,
-      BigDecimal securityViolationMediumMinimum,
-      Boolean securityViolationMediumEnabled,
-      BigDecimal securityViolationLowDefault,
-      BigDecimal securityViolationLowMinimum,
-      Boolean securityViolationLowEnabled,
-      BigDecimal supplyChainAttacksBlockedDefault,
-      BigDecimal supplyChainAttacksBlockedMinimum,
-      BigDecimal namespaceAttacksBlocked,
-      BigDecimal namespaceAttacksBlockedMinimum,
+      BigDecimal malwareAttacksPreventedDefault,
+      BigDecimal malwareAttacksPreventedMinimum,
+      BigDecimal namespaceAttacksPreventedDefault,
+      BigDecimal namespaceAttacksPreventedMinimum,
       BigDecimal safeComponentsAutoSelectedDefault,
       BigDecimal safeComponentsAutoSelectedMinimum,
-      Boolean waivedPoliciesCounted
+      Integer baselineDaysToResolveViolationDefault,
+      Integer baselineDaysToResolveViolationMinimum,
+      BigDecimal dailyRiskCostOfUnfixedViolationDefault,
+      BigDecimal dailyRiskCostOfUnfixedViolationMinimum
   )
   {
     RoiConfigurationDefaultValues roiConfigurationDefaultValues =
         new RoiConfigurationDefaultValues(
-        currency,
-        developerHourlyRateDefault,
-        developerHourlyRateMinimum,
-        fixRateHoursDefault,
-        fixRateHoursMinimum,
-        securityViolationCriticalDefault,
-        securityViolationCriticalMinimum,
-        securityViolationCriticalEnabled,
-        securityViolationHighDefault,
-        securityViolationHighMinimum,
-        securityViolationHighEnabled,
-        securityViolationMediumDefault,
-        securityViolationMediumMinimum,
-        securityViolationMediumEnabled,
-        securityViolationLowDefault,
-        securityViolationLowMinimum,
-        securityViolationLowEnabled,
-        supplyChainAttacksBlockedDefault,
-        supplyChainAttacksBlockedMinimum,
-        namespaceAttacksBlocked,
-        namespaceAttacksBlockedMinimum,
-        safeComponentsAutoSelectedDefault,
-        safeComponentsAutoSelectedMinimum,
-        waivedPoliciesCounted
-    );
+            currency,
+            malwareAttacksPreventedDefault,
+            malwareAttacksPreventedMinimum,
+            namespaceAttacksPreventedDefault,
+            namespaceAttacksPreventedMinimum,
+            safeComponentsAutoSelectedDefault,
+            safeComponentsAutoSelectedMinimum,
+            baselineDaysToResolveViolationDefault,
+            baselineDaysToResolveViolationMinimum,
+            dailyRiskCostOfUnfixedViolationDefault,
+            dailyRiskCostOfUnfixedViolationMinimum
+        );
 
     roiConfigurationDefaultValuesDAO.insert(roiConfigurationDefaultValues);
     return roiConfigurationDefaultValuesDAO.getById(roiConfigurationDefaultValues.getId());

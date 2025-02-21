@@ -110,6 +110,49 @@ describe('SystemPreferencesMenu', () => {
     expect(screen.getByText('System Notice')).toBeInTheDocument();
   });
 
+  // Will be enabled in: NEXUS-46126
+  // describe('ROI Configuration', () => {
+  //   it('should display when has both Lifecycle and Firewall License', () => {
+  //     const preloadedState = {
+  //       productLicense: { license: { products: ['Sonatype Lifecycle SaaS', 'Sonatype Lifecycle Firewall SaaS'] } },
+  //     };
+  //     render(<SystemPreferencesMenu permissions={permissions} isSingleTenant={true} />, { preloadedState });
+  //     const button = screen.getByRole('button');
+  //     fireEvent.click(button);
+  //     expect(screen.getByText('ROI Configuration')).toBeInTheDocument();
+  //   });
+
+  //   it('should display when has only Lifecycle license', () => {
+  //     const preloadedState = {
+  //       productLicense: { license: { products: ['Sonatype Lifecycle SaaS'] } },
+  //     };
+  //     render(<SystemPreferencesMenu permissions={permissions} isSingleTenant={true} />, { preloadedState });
+  //     const button = screen.getByRole('button');
+  //     fireEvent.click(button);
+  //     expect(screen.getByText('ROI Configuration')).toBeInTheDocument();
+  //   });
+
+  //   it('should display when has only Firewall License', () => {
+  //     const preloadedState = {
+  //       productLicense: { license: { products: ['Sonatype Repository Firewall'] } },
+  //     };
+  //     render(<SystemPreferencesMenu permissions={permissions} isSingleTenant={true} />, { preloadedState });
+  //     const button = screen.getByRole('button');
+  //     fireEvent.click(button);
+  //     expect(screen.getByText('ROI Configuration')).toBeInTheDocument();
+  //   });
+
+  //   it('should NOT display when has neither Lifecycle or Firewall license', () => {
+  //     const preloadedState = {
+  //       productLicense: { license: { products: [] } },
+  //     };
+  //     render(<SystemPreferencesMenu permissions={permissions} isSingleTenant={true} />, { preloadedState });
+  //     const button = screen.getByRole('button');
+  //     fireEvent.click(button);
+  //     expect(screen.queryByText('ROI Configuration')).not.toBeInTheDocument();
+  //   });
+  // });
+
   describe('sbomManagerOnly license', () => {
     it('should not display "Waived Components" if "isSbomManagerOnlyLicense" is true', () => {
       render(

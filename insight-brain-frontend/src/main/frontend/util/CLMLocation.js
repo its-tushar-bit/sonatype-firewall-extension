@@ -1647,6 +1647,14 @@ export const getOwnerDetailsByTypeAndInternalId = (ownerType, ownerId) =>
 export const getApplicationReportHistoryUrl = (applicationId, stageId) =>
   uriTemplate`/api/v2/reports/applications/${applicationId}/history?stage=${stageId}&limit=20`;
 
+export const getRoiConfigurationUrl = (currencyType) => {
+  const currencyPath = currencyType ? `/currencyType/${currencyType}` : '';
+  return uriTemplate`/rest/roiConfiguration` + currencyPath;
+};
+
+export const getRoiConfigurationRestoreDefaultsUrl = (currencyType) =>
+  uriTemplate`/rest/roiConfiguration/defaultValues/currencyType/${currencyType}`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

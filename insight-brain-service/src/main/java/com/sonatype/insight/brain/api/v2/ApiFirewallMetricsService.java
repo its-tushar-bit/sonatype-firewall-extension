@@ -186,28 +186,28 @@ public class ApiFirewallMetricsService
     RoiFirewallMetricsDTO roiMetricsDTO = new RoiFirewallMetricsDTO();
     if (roiConfiguration != null) {
       roiMetricsDTO.setCurrency(currencyType);
-      roiMetricsDTO.setNamespaceAttacksBlocked(roiConfiguration.getNamespaceAttacksBlocked()
+      roiMetricsDTO.setNamespaceAttacksPrevented(roiConfiguration.getNamespaceAttacksPrevented()
           .multiply(BigDecimal.valueOf(firewallMetrics.get(NAMESPACE_ATTACKS_BLOCKED).getFirewallMetricsValue())));
       roiMetricsDTO.setSafeComponentsAutoSelected(roiConfiguration.getSafeComponentsAutoSelected().multiply(
           BigDecimal.valueOf(firewallMetrics.get(SAFE_VERSIONS_SELECTED_AUTOMATICALLY).getFirewallMetricsValue())));
-      roiMetricsDTO.setSupplyChainAttacksBlocked(roiConfiguration.getSupplyChainAttacksBlocked()
+      roiMetricsDTO.setMalwareAttacksPrevented(roiConfiguration.getMalwareAttacksPrevented()
           .multiply(BigDecimal.valueOf(firewallMetrics.get(SUPPLY_CHAIN_ATTACKS_BLOCKED).getFirewallMetricsValue())));
     }
     else {
       RoiConfigurationDefaultValues roiConfigurationDefaultValues =
           roiConfigurationDefaultValuesDAO.getByCurrencyType(currencyType);
       roiMetricsDTO.setCurrency(currencyType);
-      roiMetricsDTO.setNamespaceAttacksBlocked(roiConfigurationDefaultValues.getNamespaceAttacksBlockedDefault()
+      roiMetricsDTO.setNamespaceAttacksPrevented(roiConfigurationDefaultValues.getNamespaceAttacksPreventedDefault()
           .multiply(BigDecimal.valueOf(firewallMetrics.get(NAMESPACE_ATTACKS_BLOCKED).getFirewallMetricsValue())));
       roiMetricsDTO.setSafeComponentsAutoSelected(roiConfigurationDefaultValues.getSafeComponentsAutoSelectedDefault()
           .multiply(
               BigDecimal.valueOf(firewallMetrics.get(SAFE_VERSIONS_SELECTED_AUTOMATICALLY).getFirewallMetricsValue())));
-      roiMetricsDTO.setSupplyChainAttacksBlocked(roiConfigurationDefaultValues.getSupplyChainAttacksBlockedDefault()
+      roiMetricsDTO.setMalwareAttacksPrevented(roiConfigurationDefaultValues.getMalwareAttacksPreventedDefault()
           .multiply(BigDecimal.valueOf(firewallMetrics.get(SUPPLY_CHAIN_ATTACKS_BLOCKED).getFirewallMetricsValue())));
     }
     roiMetricsDTO.setTotalSaved(
-        roiMetricsDTO.getNamespaceAttacksBlocked().add(roiMetricsDTO.getSafeComponentsAutoSelected())
-            .add(roiMetricsDTO.getSupplyChainAttacksBlocked()));
+        roiMetricsDTO.getNamespaceAttacksPrevented().add(roiMetricsDTO.getSafeComponentsAutoSelected())
+            .add(roiMetricsDTO.getMalwareAttacksPrevented()));
     return roiMetricsDTO;
   }
 }

@@ -32,29 +32,16 @@ public class RoiConfigurationResourceAuditTest
     dao.getAll().forEach(dao::delete);
     tempEntity.createRoiConfigurationDefaultValues(
         CurrencyTypes.USD,
-        BigDecimal.valueOf(100),
-        BigDecimal.valueOf(50),
-        3600L,
-        1440L,
-        BigDecimal.valueOf(12000),
-        BigDecimal.valueOf(6000),
-        true,
-        BigDecimal.valueOf(24000),
-        BigDecimal.valueOf(12000),
-        true,
-        BigDecimal.valueOf(72000),
-        BigDecimal.valueOf(36000),
-        false,
-        BigDecimal.valueOf(144000),
-        BigDecimal.valueOf(72000),
-        false,
         BigDecimal.valueOf(4350000),
         BigDecimal.valueOf(500000),
         BigDecimal.valueOf(35000),
         BigDecimal.valueOf(10000),
         BigDecimal.valueOf(25000),
         BigDecimal.valueOf(5000),
-        false
+        30,
+        15,
+        BigDecimal.valueOf(800),
+        BigDecimal.valueOf(400)
     );
   }
 
@@ -68,71 +55,48 @@ public class RoiConfigurationResourceAuditTest
     RoiConfigurationDTO roiConfigurationDTO = new RoiConfigurationDTO(
         null,
         CurrencyTypes.USD,
-        BigDecimal.valueOf(100),
-        1448L,
-        true,
-        BigDecimal.valueOf(23000),
-        true,
-        BigDecimal.valueOf(30000),
-        false,
-        BigDecimal.valueOf(45000),
-        false,
-        BigDecimal.valueOf(80000),
         BigDecimal.valueOf(500000),
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
-        false
+        30,
+        BigDecimal.valueOf(800)
     );
     HttpResponse response =
         restRequest().body(roiConfigurationDTO).post();
     assertResponseStatus(200, response);
     AuditDTO auditDTO = assertAuditLog(AuditEvent.ROI_CONFIG_CREATE, null);
-    assertCustomData(auditDTO, roiConfigurationDTO);
+    RoiConfigurationCurrentAndMinimumValuesDTO roiConfigurationActual =
+        response.getBody(RoiConfigurationCurrentAndMinimumValuesDTO.class);
+    assertCustomData(auditDTO, roiConfigurationActual);
   }
 
   @Test
   public void testSaveRoiConfiguration_Update() throws Exception {
     tempEntity.createRoiConfiguration(
         CurrencyTypes.USD,
-        BigDecimal.valueOf(100),
-        1448L,
-        true,
-        BigDecimal.valueOf(23000),
-        true,
-        BigDecimal.valueOf(30000),
-        false,
-        BigDecimal.valueOf(45000),
-        false,
-        BigDecimal.valueOf(40000),
         BigDecimal.valueOf(50000),
         BigDecimal.valueOf(60000),
         BigDecimal.valueOf(70000),
-        false
+        15,
+        BigDecimal.valueOf(400)
     );
 
     RoiConfigurationDTO roiConfigurationDTO = new RoiConfigurationDTO(
         null,
         CurrencyTypes.USD,
-        BigDecimal.valueOf(150),
-        1448L,
-        true,
-        BigDecimal.valueOf(30000),
-        true,
-        BigDecimal.valueOf(40000),
-        false,
-        BigDecimal.valueOf(50000),
-        false,
-        BigDecimal.valueOf(80000),
         BigDecimal.valueOf(500000),
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
-        false
+        30,
+        BigDecimal.valueOf(800)
     );
     HttpResponse response =
         restRequest().body(roiConfigurationDTO).post();
     assertResponseStatus(200, response);
     AuditDTO auditDTO = assertAuditLog(AuditEvent.ROI_CONFIG_UPDATE, null);
-    assertCustomData(auditDTO, roiConfigurationDTO);
+    RoiConfigurationCurrentAndMinimumValuesDTO roiConfigurationActual =
+        response.getBody(RoiConfigurationCurrentAndMinimumValuesDTO.class);
+    assertCustomData(auditDTO, roiConfigurationActual);
   }
 
   @Test
@@ -141,20 +105,11 @@ public class RoiConfigurationResourceAuditTest
     RoiConfigurationDTO roiConfigurationDTO = new RoiConfigurationDTO(
         null,
         CurrencyTypes.USD,
-        BigDecimal.valueOf(100),
-        1448L,
-        true,
-        BigDecimal.valueOf(23000),
-        true,
-        BigDecimal.valueOf(30000),
-        false,
-        BigDecimal.valueOf(45000),
-        false,
-        BigDecimal.valueOf(80000),
         BigDecimal.valueOf(500000),
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
-        false
+        30,
+        BigDecimal.valueOf(800)
     );
     HttpResponse response =
         restRequest().body(roiConfigurationDTO).post();
@@ -167,20 +122,11 @@ public class RoiConfigurationResourceAuditTest
     RoiConfigurationDTO roiConfigurationDTO = new RoiConfigurationDTO(
         null,
         CurrencyTypes.USD,
-        BigDecimal.valueOf(50),
-        1448L,
-        true,
-        BigDecimal.valueOf(5000),
-        true,
-        BigDecimal.valueOf(30000),
-        false,
-        BigDecimal.valueOf(45000),
-        false,
-        BigDecimal.valueOf(80000),
         BigDecimal.valueOf(500000),
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
-        false
+        10,
+        BigDecimal.valueOf(800)
     );
     HttpResponse response =
         restRequest().body(roiConfigurationDTO).post();
@@ -188,27 +134,19 @@ public class RoiConfigurationResourceAuditTest
     assertAuditLog(AuditEvent.ROI_CONFIG_CREATE, "bad-request");
   }
 
-  private void assertCustomData(final AuditDTO auditDTO, RoiConfigurationDTO roiConfigurationDTO) {
-    assertCustomData(auditDTO, "currency", roiConfigurationDTO.currency().toString());
-    assertCustomData(auditDTO, "developerHourlyRate", roiConfigurationDTO.developerHourlyRate().toString());
-    assertCustomData(auditDTO, "fixRateHours", roiConfigurationDTO.fixRateHours().toString());
-    assertCustomData(auditDTO, "securityViolationCriticalEnabled",
-        roiConfigurationDTO.securityViolationCriticalEnabled());
-    assertCustomData(auditDTO, "securityViolationCriticalValue",
-        roiConfigurationDTO.securityViolationCriticalValue().toString());
-    assertCustomData(auditDTO, "securityViolationHighEnabled", roiConfigurationDTO.securityViolationHighEnabled());
-    assertCustomData(auditDTO, "securityViolationHighValue",
-        roiConfigurationDTO.securityViolationHighValue().toString());
-    assertCustomData(auditDTO, "securityViolationMediumEnabled", roiConfigurationDTO.securityViolationMediumEnabled());
-    assertCustomData(auditDTO, "securityViolationMediumValue",
-        roiConfigurationDTO.securityViolationMediumValue().toString());
-    assertCustomData(auditDTO, "securityViolationLowEnabled", roiConfigurationDTO.securityViolationLowEnabled());
-    assertCustomData(auditDTO, "securityViolationLowValue", roiConfigurationDTO.securityViolationLowValue().toString());
-    assertCustomData(auditDTO, "supplyChainAttacksBlocked", roiConfigurationDTO.supplyChainAttacksBlocked().toString());
-    assertCustomData(auditDTO, "namespaceAttacksBlocked", roiConfigurationDTO.namespaceAttacksBlocked().toString());
+  private void assertCustomData(
+      final AuditDTO auditDTO,
+      RoiConfigurationCurrentAndMinimumValuesDTO roiConfigurationDTO)
+  {
+    assertCustomData(auditDTO, "currency", roiConfigurationDTO.currency.toString());
+    assertCustomData(auditDTO, "malwareAttacksPrevented", roiConfigurationDTO.malwareAttacksPrevented.toString());
+    assertCustomData(auditDTO, "namespaceAttacksPrevented", roiConfigurationDTO.namespaceAttacksPrevented.toString());
     assertCustomData(auditDTO, "safeComponentsAutoSelected",
-        roiConfigurationDTO.safeComponentsAutoSelected().toString());
-    assertCustomData(auditDTO, "waivedPoliciesCounted", roiConfigurationDTO.waivedPoliciesCounted());
+        roiConfigurationDTO.safeComponentsAutoSelected.toString());
+    assertCustomData(auditDTO, "baselineDaysToResolveViolation",
+        roiConfigurationDTO.baselineDaysToResolveViolation.toString());
+    assertCustomData(auditDTO, "dailyRiskCostOfUnfixedViolation",
+        roiConfigurationDTO.dailyRiskCostOfUnfixedViolation.toString());
   }
 
   @Test
@@ -218,9 +156,10 @@ public class RoiConfigurationResourceAuditTest
         .path(RoiConfigurationResource.ROI_CONFIGURATION_DEFAULT_VALUES_PATH)
         .post();
     assertResponseStatus(200, response);
-    RoiConfigurationDTO roiConfigurationActual = response.getBody(RoiConfigurationDTO.class);
+    RoiConfigurationCurrentAndMinimumValuesDTO roiConfigurationActual =
+        response.getBody(RoiConfigurationCurrentAndMinimumValuesDTO.class);
     AuditDTO auditDTO = assertAuditLog(AuditEvent.ROI_CONFIG_UPDATE, null);
-    asserDefaultData(auditDTO, roiConfigurationActual);
+    assertCustomData(auditDTO, roiConfigurationActual);
   }
 
   @Test
@@ -232,28 +171,5 @@ public class RoiConfigurationResourceAuditTest
         .post();
     assertResponseStatus(402, response);
     assertAuditLog(AuditEvent.ROI_CONFIG_UPDATE, "unlicensed");
-  }
-
-  private void asserDefaultData(final AuditDTO auditDTO, RoiConfigurationDTO roiConfigurationDTO) {
-    assertCustomData(auditDTO, "currency", roiConfigurationDTO.currency().toString());
-    assertCustomData(auditDTO, "developerHourlyRate", roiConfigurationDTO.developerHourlyRate().toString());
-    assertCustomData(auditDTO, "fixRateHours", roiConfigurationDTO.fixRateHours().toString());
-    assertCustomData(auditDTO, "securityViolationCriticalEnabled",
-        roiConfigurationDTO.securityViolationCriticalEnabled());
-    assertCustomData(auditDTO, "securityViolationCriticalValue",
-        roiConfigurationDTO.securityViolationCriticalValue().toString());
-    assertCustomData(auditDTO, "securityViolationHighEnabled", roiConfigurationDTO.securityViolationHighEnabled());
-    assertCustomData(auditDTO, "securityViolationHighValue",
-        roiConfigurationDTO.securityViolationHighValue().toString());
-    assertCustomData(auditDTO, "securityViolationMediumEnabled", roiConfigurationDTO.securityViolationMediumEnabled());
-    assertCustomData(auditDTO, "securityViolationMediumValue",
-        roiConfigurationDTO.securityViolationMediumValue().toString());
-    assertCustomData(auditDTO, "securityViolationLowEnabled", roiConfigurationDTO.securityViolationLowEnabled());
-    assertCustomData(auditDTO, "securityViolationLowValue", roiConfigurationDTO.securityViolationLowValue().toString());
-    assertCustomData(auditDTO, "supplyChainAttacksBlocked", roiConfigurationDTO.supplyChainAttacksBlocked().toString());
-    assertCustomData(auditDTO, "namespaceAttacksBlocked", roiConfigurationDTO.namespaceAttacksBlocked().toString());
-    assertCustomData(auditDTO, "safeComponentsAutoSelected",
-        roiConfigurationDTO.safeComponentsAutoSelected().toString());
-    assertCustomData(auditDTO, "waivedPoliciesCounted", roiConfigurationDTO.waivedPoliciesCounted());
   }
 }

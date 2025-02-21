@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer, { defaultConfiguration } from 'MainRoot/configuration/roiConfiguration/roiConfigurationPageSlice';
+import reducer, { initialConfiguration } from 'MainRoot/configuration/roiConfiguration/roiConfigurationPageSlice';
 
 describe('roiConfigurationPageSlice', () => {
   describe('roiConfigurationPage/loadConfiguration', () => {
@@ -11,7 +11,7 @@ describe('roiConfigurationPageSlice', () => {
       const state = Object.freeze({
         loading: true,
         error: null,
-        configuration: { ...defaultConfiguration },
+        configuration: { ...initialConfiguration },
       });
 
       const newState = reducer(state, {
@@ -26,7 +26,7 @@ describe('roiConfigurationPageSlice', () => {
       const state = Object.freeze({
         loading: true,
         error: null,
-        configuration: { ...defaultConfiguration },
+        configuration: { ...initialConfiguration },
       });
 
       const newState = reducer(state, {
@@ -42,17 +42,34 @@ describe('roiConfigurationPageSlice', () => {
       const state = Object.freeze({
         loading: true,
         error: null,
-        configuration: { ...defaultConfiguration },
+        configuration: { ...initialConfiguration },
       });
 
       const newState = reducer(state, {
         type: 'roiConfigurationPage/loadConfiguration/fulfilled',
-        payload: {},
+        payload: {
+          baselineDaysToResolveViolationMinimum: 100,
+          baselineDaysToResolveViolation: 150,
+          dailyRiskCostOfUnfixedViolationMinimum: 1000,
+          dailyRiskCostOfUnfixedViolation: 1234.56,
+          malwareAttacksPreventedMinimum: 1000,
+          malwareAttacksPrevented: 1111.11,
+          namespaceAttacksPreventedMinimum: 1000,
+          namespaceAttacksPrevented: 2222.22,
+          safeComponentsAutoSelectedMinimum: 1000,
+          safeComponentsAutoSelected: 3333.33,
+        },
       });
 
       expect(newState.loading).toBe(false);
       expect(newState.error).toBe(null);
-      // TODO: test mapping of payload to configuration state.
+      expect(newState.configuration).toEqual({
+        baselineDaysToResolveViolation: 150,
+        dailyRiskCostOfUnfixedViolation: 1234.56,
+        malwareAttacksPrevented: 1111.11,
+        namespaceAttacksPrevented: 2222.22,
+        safeComponentsAutoSelected: 3333.33,
+      });
     });
   });
 });

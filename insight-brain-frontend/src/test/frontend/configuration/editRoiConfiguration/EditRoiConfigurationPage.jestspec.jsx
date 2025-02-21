@@ -5,31 +5,37 @@
  */
 import React from 'react';
 import * as R from 'ramda';
+import userEvent from '@testing-library/user-event';
+
 import { axiosMockAdapter, render, waitFor, screen } from 'TestRoot/SpecUtil';
 import EditRoiConfigurationPage from 'MainRoot/configuration/editRoiConfiguration/EditRoiConfigurationPage';
-import { generateDefaultNumericState } from 'MainRoot/configuration/editRoiConfiguration/editRoiConfigurationPageSlice';
+import { instantiateNumericState } from 'MainRoot/configuration/editRoiConfiguration/editRoiConfigurationPageSlice';
 
 import { getPermissionContextTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
+import { getRoiConfigurationUrl } from 'MainRoot/util/CLMLocation';
 
 describe('editRoiConfigurationPage', () => {
   let axiosMock;
 
-  const sampleConfiguration = Object.freeze({
-    developerHourlyRate: generateDefaultNumericState(true, 0, 1000.11),
-    fixRate: generateDefaultNumericState(true, 0, 5),
+  const mockGetPayload = Object.freeze({
+    baselineDaysToResolveViolationMinimum: 100,
+    baselineDaysToResolveViolation: 150,
+    dailyRiskCostOfUnfixedViolationMinimum: 1000,
+    dailyRiskCostOfUnfixedViolation: 1234.56,
+    malwareAttacksPreventedMinimum: 1000,
+    malwareAttacksPrevented: 1111.11,
+    namespaceAttacksPreventedMinimum: 1000,
+    namespaceAttacksPrevented: 2222.22,
+    safeComponentsAutoSelectedMinimum: 1000,
+    safeComponentsAutoSelected: 3333.33,
+  });
 
-    securityViolation: {
-      critical: generateDefaultNumericState(true, 0, 2000.22),
-      high: generateDefaultNumericState(true, 0, 3000.33),
-      medium: generateDefaultNumericState(false, 0, 4000.44),
-      low: generateDefaultNumericState(false, 0, 5000.55),
-    },
-
-    supplyChainAttacksBlocked: generateDefaultNumericState(true, 0, 6000.66),
-    namespaceAttacksBlocked: generateDefaultNumericState(true, 0, 7000.77),
-    safeComponentsAutoSelected: generateDefaultNumericState(true, 0, 8000.88),
-
-    waivedViolations: true,
+  const initialConfiguration = Object.freeze({
+    baselineDaysToResolveViolation: instantiateNumericState(true, 0, 0),
+    dailyRiskCostOfUnfixedViolation: instantiateNumericState(true, 0, 0),
+    malwareAttacksPrevented: instantiateNumericState(true, 0, 0),
+    namespaceAttacksPrevented: instantiateNumericState(true, 0, 0),
+    safeComponentsAutoSelected: instantiateNumericState(true, 0, 0),
   });
 
   const bootstrapState = ({
@@ -45,7 +51,7 @@ describe('editRoiConfigurationPage', () => {
         loading,
         error,
         showRestoreDefaultsModal: showModal,
-        configuration: R.mergeDeepRight({ ...sampleConfiguration })(configuration),
+        configuration: R.mergeDeepRight({ ...initialConfiguration })(configuration),
       },
       productLicense: {
         license: {
@@ -67,6 +73,7 @@ describe('editRoiConfigurationPage', () => {
 
   it('renders the correct content', async () => {
     axiosMock.onPut(getPermissionContextTestUrl('global', 'global')).reply(200, ['CONFIGURE_SYSTEM']);
+    axiosMock.onGet(getRoiConfigurationUrl('usd')).reply(200, mockGetPayload);
 
     renderComponent();
 
@@ -74,43 +81,53 @@ describe('editRoiConfigurationPage', () => {
 
     expect(screen.getByRole('heading', { name: /Return on Investment Configuration/i })).toBeVisible();
 
-    expect(screen.getByTestId('edit-roi-configuration-page__input__developer-hourly-rate')).toHaveValue('1000.11');
-
-    expect(screen.getByTestId('edit-roi-configuration-page__input__fix-rate')).toHaveValue('5');
-
-    expect(screen.getByTestId('edit-roi-configuration-page__security-violation-checkbox__critical')).toBeChecked();
-    expect(screen.getByTestId('edit-roi-configuration-page__input__security-violation-critical')).toHaveValue(
-      '2000.22'
+    expect(screen.getByTestId('edit-roi-configuration-page__input__baseline-days-to-resolve-violation')).toHaveValue(
+      '150'
     );
-    expect(screen.getByTestId('edit-roi-configuration-page__input__security-violation-critical')).not.toBeDisabled();
-
-    expect(screen.getByTestId('edit-roi-configuration-page__security-violation-checkbox__high')).toBeChecked();
-    expect(screen.getByTestId('edit-roi-configuration-page__input__security-violation-high')).toHaveValue('3000.33');
-    expect(screen.getByTestId('edit-roi-configuration-page__input__security-violation-high')).not.toBeDisabled();
-
-    expect(screen.getByTestId('edit-roi-configuration-page__security-violation-checkbox__medium')).not.toBeChecked();
-    expect(screen.getByTestId('edit-roi-configuration-page__input__security-violation-medium')).toHaveValue('4000.44');
-    expect(screen.getByTestId('edit-roi-configuration-page__input__security-violation-medium')).toBeDisabled();
-
-    expect(screen.getByTestId('edit-roi-configuration-page__security-violation-checkbox__low')).not.toBeChecked();
-    expect(screen.getByTestId('edit-roi-configuration-page__input__security-violation-low')).toHaveValue('5000.55');
-    expect(screen.getByTestId('edit-roi-configuration-page__input__security-violation-low')).toBeDisabled();
-
-    expect(screen.getByTestId('edit-roi-configuration-page__input__supply-chain-attacks-blocked')).toHaveValue(
-      '6000.66'
+    expect(screen.getByTestId('edit-roi-configuration-page__input__daily-risk-cost-of-unfixed-violation')).toHaveValue(
+      '1234.56'
     );
-    expect(screen.getByTestId('edit-roi-configuration-page__input__namespace-attacks-blocked')).toHaveValue('7000.77');
+    expect(screen.getByTestId('edit-roi-configuration-page__input__malware-attacks-prevented')).toHaveValue('1111.11');
+    expect(screen.getByTestId('edit-roi-configuration-page__input__namespace-attacks-prevented')).toHaveValue(
+      '2222.22'
+    );
     expect(screen.getByTestId('edit-roi-configuration-page__input__safe-components-auto-selected')).toHaveValue(
-      '8000.88'
+      '3333.33'
     );
+  });
 
-    expect(screen.getByTestId('edit-roi-configuration-page__checkbox__waived-violations')).toBeChecked();
+  it('renders validation error and hides update button', async () => {
+    axiosMock.onPut(getPermissionContextTestUrl('global', 'global')).reply(200, ['CONFIGURE_SYSTEM']);
+    axiosMock.onGet(getRoiConfigurationUrl('usd')).reply(200, mockGetPayload);
+    const user = userEvent.setup();
+    renderComponent();
+
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+    const updateButton = screen.getByRole('button', { name: /Update/i });
+    expect(updateButton).toBeVisible();
+
+    const malwareInput = screen.getByTestId('edit-roi-configuration-page__input__malware-attacks-prevented');
+    expect(malwareInput).toHaveValue('1111.11');
+
+    await user.clear(malwareInput);
+    await user.type(malwareInput, '10');
+
+    expect(malwareInput.value).toBe('10');
+
+    expect(screen.queryByText(/Must be greater than or equal to/i)).toBeVisible();
+
+    const validationError = screen.getByTestId('edit-roi-configuration-page__alert__validation-error');
+    expect(validationError).toBeVisible();
+
+    expect(updateButton).not.toBeVisible();
   });
 
   describe('Restore Defaults Modal', () => {
-    it('renders modal', async () => {
+    it('opens and closes', async () => {
       axiosMock.onPut(getPermissionContextTestUrl('global', 'global')).reply(200, ['CONFIGURE_SYSTEM']);
-
+      axiosMock.onGet(getRoiConfigurationUrl('usd')).reply(200, mockGetPayload);
+      const user = userEvent.setup();
       renderComponent();
 
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
@@ -125,12 +142,20 @@ describe('editRoiConfigurationPage', () => {
       });
 
       expect(screen.getByRole('heading', { name: /Restore Default Values/i })).toBeVisible();
+
+      const cancelButton = screen.getByRole('button', { name: /Cancel/i });
+
+      user.click(cancelButton);
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      });
     });
   });
 
   describe('license rendering', () => {
     it('should not render when both Lifecycle and Repository Firewal licenses are not present', async () => {
       axiosMock.onPut(getPermissionContextTestUrl('global', 'global')).reply(200, ['CONFIGURE_SYSTEM']);
+      axiosMock.onGet(getRoiConfigurationUrl('usd')).reply(200, mockGetPayload);
 
       renderComponent(
         bootstrapState({
@@ -148,6 +173,7 @@ describe('editRoiConfigurationPage', () => {
 
     it('should only render Lifecycle Metrics content when only Lifecycle license is present', async () => {
       axiosMock.onPut(getPermissionContextTestUrl('global', 'global')).reply(200, ['CONFIGURE_SYSTEM']);
+      axiosMock.onGet(getRoiConfigurationUrl('usd')).reply(200, mockGetPayload);
 
       renderComponent(
         bootstrapState({
@@ -168,6 +194,7 @@ describe('editRoiConfigurationPage', () => {
 
     it('should only render Repository Firewall content when only Firewall license is present', async () => {
       axiosMock.onPut(getPermissionContextTestUrl('global', 'global')).reply(200, ['CONFIGURE_SYSTEM']);
+      axiosMock.onGet(getRoiConfigurationUrl('usd')).reply(200, mockGetPayload);
 
       renderComponent(
         bootstrapState({
@@ -188,6 +215,7 @@ describe('editRoiConfigurationPage', () => {
 
     it('should render both Lifecycle and Firewall contents when both license are present', async () => {
       axiosMock.onPut(getPermissionContextTestUrl('global', 'global')).reply(200, ['CONFIGURE_SYSTEM']);
+      axiosMock.onGet(getRoiConfigurationUrl('usd')).reply(200, mockGetPayload);
 
       renderComponent(
         bootstrapState({

@@ -7,8 +7,6 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.codeborne.selenide.SelenideElement;
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.NxCheckbox;
-import com.sonatype.clm.testing.functional.elements.NxTextInput;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 public class EditRoiConfigurationPage
@@ -32,66 +30,71 @@ public class EditRoiConfigurationPage
     return child(".nx-h1");
   }
 
-  public SelenideElement developerHourlyRate() {
-    return child("#edit-roi-configuration-page__input__developer-hourly-rate");
+  public SelenideElement lifecycleTitle() {
+    return child("#edit-roi-configuration-page__lifecycle-title");
   }
 
-  public SelenideElement fixRate() {
-    return child("#edit-roi-configuration-page__input__fix-rate");
+  public SelenideElement baselineDaysToResolveViolation() {
+    return child("#edit-roi-configuration-page__input__baseline-days-to-resolve-violation");
   }
 
-  public SelenideElement supplyChainAttacksBlocked() {
-    return child("#edit-roi-configuration-page__input__supply-chain-attacks-blocked");
+  public SelenideElement dailyRiskCostOfUnfixedViolation() {
+    return child("#edit-roi-configuration-page__input__daily-risk-cost-of-unfixed-violation");
   }
 
-  public SelenideElement namespaceAttacksBlocked() {
-    return child("#edit-roi-configuration-page__input__namespace-attacks-blocked");
+  public SelenideElement firewallTitle() {
+    return child("#edit-roi-configuration-page__firewall-title");
+  }
+
+  public SelenideElement malwareAttacksPrevented() {
+    return child("#edit-roi-configuration-page__input__malware-attacks-prevented");
+  }
+
+  public SelenideElement namespaceAttacksPrevented() {
+    return child("#edit-roi-configuration-page__input__namespace-attacks-prevented");
   }
 
   public SelenideElement safeComponentsAutoSelected() {
     return child("#edit-roi-configuration-page__input__safe-components-auto-selected");
   }
 
-  public class SecurityViolationContent
-  {
-    public NxCheckbox criticalCheckbox() {
-      return new NxCheckbox(child("#edit-roi-configuration-page__security-violation-checkbox__critical"));
-    }
-
-    public NxTextInput criticalInput() {
-      return new NxTextInput(child("#edit-roi-configuration-page__input__critical"));
-    }
-
-    public NxCheckbox highCheckbox() {
-      return new NxCheckbox(child("#edit-roi-configuration-page__security-violation-checkbox__high"));
-    }
-
-    public NxTextInput highInput() {
-      return new NxTextInput(child("#edit-roi-configuration-page__input__high"));
-    }
-
-    public NxCheckbox mediumCheckbox() {
-      return new NxCheckbox(child("#edit-roi-configuration-page__security-violation-checkbox__medium"));
-    }
-
-    public NxTextInput mediumInput() {
-      return new NxTextInput(child("#edit-roi-configuration-page__input__medium"));
-    }
-
-    public NxCheckbox lowCheckbox() {
-      return new NxCheckbox(child("#edit-roi-configuration-page__security-violation-checkbox__low"));
-    }
-
-    public NxTextInput lowInput() {
-      return new NxTextInput(child("#edit-roi-configuration-page__input__low"));
-    }
-  }
-
-  public NxCheckbox waivedViolationsCheckbox() {
-    return new NxCheckbox(child("#edit-roi-configuration-page__checkbox__waived-violations"));
+  public SelenideElement validationError() {
+    return child("#edit-roi-configuration-page__alert__validation-error");
   }
 
   public SelenideElement loadError() {
     return child(".nx-alert--load-error");
   }
+
+  /*  public Button cancelButton() {
+    return new Button(child("#edit-roi-configuration-page__button__cancel"));
+  }
+
+  public Button restoreDefaultsButton() {
+    return new Button(child("#edit-roi-configuration-page__button__restore-defaults"));
+  }
+
+  public Button updateButton() {
+    return new Button(child("#edit-roi-configuration-page__button__update"));
+  }*/
+  /*
+  public static class RestoreDefaultsModal
+      extends BasicElement<RestoreDefaultsModal>
+  {
+    public RestoreDefaultsModal(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement modal() {
+      return child("#edit-roi-configuration-page__restore-defaults-modal");
+    }
+
+   public Button cancelButton() {
+      return new Button(child(".restore-defaults-modal__cancel-button"));
+    }
+
+    public Button restoreDefaultsButton() {
+      return new Button(child(".restore-defaults-modal__restore-button"));
+    }
+  }*/
 }

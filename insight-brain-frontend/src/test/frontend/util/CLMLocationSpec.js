@@ -1796,4 +1796,23 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getApplicationReportHistoryUrl(applicationId, stageId)).toEqual(expectedUrl);
     });
   });
+
+  describe('getRoiConfigurationUrl', () => {
+    it('returns the url for the ROI configuration', () => {
+      const expectedUrl = '/rest/roiConfiguration';
+      expect(clmLocation.getRoiConfigurationUrl()).toEqual(expectedUrl);
+    });
+
+    it('returns the url for the ROI configuration with expected currencyType', () => {
+      const expectedUrl = '/rest/roiConfiguration/currencyType/usd';
+      expect(clmLocation.getRoiConfigurationUrl('usd')).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getRoiConfigurationRestoreDefaultsUrl', () => {
+    it('returns the url for the ROI configuration', () => {
+      const expectedUrl = '/rest/roiConfiguration/defaultValues/currencyType/usd';
+      expect(clmLocation.getRoiConfigurationRestoreDefaultsUrl('usd')).toEqual(expectedUrl);
+    });
+  });
 });

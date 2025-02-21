@@ -13,9 +13,9 @@ public class RoiFirewallMetricsDTO
 {
   private CurrencyTypes currency;
 
-  private BigDecimal supplyChainAttacksBlocked;
+  private BigDecimal malwareAttacksPrevented;
 
-  private BigDecimal namespaceAttacksBlocked;
+  private BigDecimal namespaceAttacksPrevented;
 
   private BigDecimal safeComponentsAutoSelected;
 
@@ -29,20 +29,20 @@ public class RoiFirewallMetricsDTO
     this.currency = currency;
   }
 
-  public BigDecimal getSupplyChainAttacksBlocked() {
-    return supplyChainAttacksBlocked;
+  public BigDecimal getMalwareAttacksPrevented() {
+    return malwareAttacksPrevented;
   }
 
-  public void setSupplyChainAttacksBlocked(final BigDecimal supplyChainAttacksBlocked) {
-    this.supplyChainAttacksBlocked = supplyChainAttacksBlocked;
+  public void setMalwareAttacksPrevented(final BigDecimal malwareAttacksPrevented) {
+    this.malwareAttacksPrevented = malwareAttacksPrevented;
   }
 
-  public BigDecimal getNamespaceAttacksBlocked() {
-    return namespaceAttacksBlocked;
+  public BigDecimal getNamespaceAttacksPrevented() {
+    return namespaceAttacksPrevented;
   }
 
-  public void setNamespaceAttacksBlocked(final BigDecimal namespaceAttacksBlocked) {
-    this.namespaceAttacksBlocked = namespaceAttacksBlocked;
+  public void setNamespaceAttacksPrevented(final BigDecimal namespaceAttacksPrevented) {
+    this.namespaceAttacksPrevented = namespaceAttacksPrevented;
   }
 
   public BigDecimal getSafeComponentsAutoSelected() {

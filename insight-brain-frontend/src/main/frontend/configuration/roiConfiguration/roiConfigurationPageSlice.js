@@ -4,37 +4,31 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-// import axios from 'axios';
+import axios from 'axios';
+import * as R from 'ramda';
 
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
+import { getRoiConfigurationUrl } from 'MainRoot/util/CLMLocation';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
 const REDUCER_NAME = 'roiConfigurationPage';
 
-export const ROI_SECURITY_VIOLATION_TYPES = Object.freeze(['critical', 'high', 'medium', 'low']);
+const CONFIGURATION_PROPERTIES = Object.freeze([
+  'baselineDaysToResolveViolation',
+  'dailyRiskCostOfUnfixedViolation',
+  'malwareAttacksPrevented',
+  'namespaceAttacksPrevented',
+  'safeComponentsAutoSelected',
+]);
 
-export const defaultConfiguration = Object.freeze({
-  developerHourlyRate: 0,
-  fixRate: 0,
-  securityViolation: {
-    criticalEnabled: true,
-    critical: null,
-    highEnabled: true,
-    high: null,
-    mediumEnabled: true,
-    medium: null,
-    lowEnabled: true,
-    low: null,
-  },
-  supplyChainAttacksBlocked: 0,
-  namespaceAttacksBlocked: 0,
-  safeComponentsAutoSelected: 0,
-  waivedViolations: true,
-});
+const mapPayloadToConfiguration = R.pick(CONFIGURATION_PROPERTIES);
+
+export const initialConfiguration = R.zipObj(CONFIGURATION_PROPERTIES, R.repeat(0, CONFIGURATION_PROPERTIES.length));
 
 export const initialState = Object.freeze({
   loading: true,
   error: null,
-  configuration: { ...defaultConfiguration },
+  configuration: { ...initialConfiguration },
 });
 
 const loadConfigurationRequested = (state) => {
@@ -44,19 +38,20 @@ const loadConfigurationRequested = (state) => {
 
 const loadConfigurationRejected = (state, { payload }) => {
   state.loading = false;
-  state.error = payload;
+  state.error = Messages.getHttpErrorMessage(payload);
 };
 
-const loadConfigurationFulfilled = (state) => {
+const loadConfigurationFulfilled = (state, { payload }) => {
   state.loading = false;
   state.error = null;
-  // TODO: map payload to configuration state.
+  state.configuration = mapPayloadToConfiguration(payload);
 };
 
 const loadConfiguration = createAsyncThunk(`${REDUCER_NAME}/loadConfiguration`, async (_, { rejectWithValue }) => {
   try {
     await checkPermissions(['CONFIGURE_SYSTEM']);
-    return Promise.resolve({});
+    const { data } = await axios.get(getRoiConfigurationUrl('usd'));
+    return data;
   } catch (error) {
     return rejectWithValue(error);
   }

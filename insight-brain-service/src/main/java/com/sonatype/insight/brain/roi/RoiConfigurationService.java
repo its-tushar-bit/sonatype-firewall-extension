@@ -63,59 +63,35 @@ public class RoiConfigurationService
         new RoiConfigurationCurrentAndMinimumValuesDTO();
     if (roiConfiguration != null) {
       roiConfigurationCurrentAndMinimumValuesDTO.currency = roiConfiguration.getCurrency();
-      roiConfigurationCurrentAndMinimumValuesDTO.developerHourlyRateValue = roiConfiguration.getDeveloperHourlyRate();
-      roiConfigurationCurrentAndMinimumValuesDTO.fixRateHoursValue = roiConfiguration.getFixRateHours();
-      roiConfigurationCurrentAndMinimumValuesDTO.securityViolationCriticalEnabled =
-          roiConfiguration.isSecurityViolationCriticalEnabled();
-      roiConfigurationCurrentAndMinimumValuesDTO.securityViolationCriticalValue =
-          roiConfiguration.getSecurityViolationCriticalValue();
-      roiConfigurationCurrentAndMinimumValuesDTO.securityViolationHighEnabled =
-          roiConfiguration.isSecurityViolationHighEnabled();
-      roiConfigurationCurrentAndMinimumValuesDTO.securityViolationHighValue =
-          roiConfiguration.getSecurityViolationHighValue();
-      roiConfigurationCurrentAndMinimumValuesDTO.securityViolationMediumEnabled =
-          roiConfiguration.isSecurityViolationMediumEnabled();
-      roiConfigurationCurrentAndMinimumValuesDTO.securityViolationMediumValue =
-          roiConfiguration.getSecurityViolationMediumValue();
-      roiConfigurationCurrentAndMinimumValuesDTO.securityViolationLowEnabled =
-          roiConfiguration.isSecurityViolationLowEnabled();
-      roiConfigurationCurrentAndMinimumValuesDTO.securityViolationLowValue =
-          roiConfiguration.getSecurityViolationLowValue();
-      roiConfigurationCurrentAndMinimumValuesDTO.supplyChainAttacksBlockedValue =
-          roiConfiguration.getSupplyChainAttacksBlocked();
-      roiConfigurationCurrentAndMinimumValuesDTO.namespaceAttacksBlockedValue =
-          roiConfiguration.getNamespaceAttacksBlocked();
-      roiConfigurationCurrentAndMinimumValuesDTO.safeComponentsAutoSelectedValue =
+      roiConfigurationCurrentAndMinimumValuesDTO.malwareAttacksPrevented =
+          roiConfiguration.getMalwareAttacksPrevented();
+      roiConfigurationCurrentAndMinimumValuesDTO.namespaceAttacksPrevented =
+          roiConfiguration.getNamespaceAttacksPrevented();
+      roiConfigurationCurrentAndMinimumValuesDTO.safeComponentsAutoSelected =
           roiConfiguration.getSafeComponentsAutoSelected();
-      roiConfigurationCurrentAndMinimumValuesDTO.waivedPoliciesCounted =
-          roiConfiguration.isWaivedPoliciesCounted();
+      roiConfigurationCurrentAndMinimumValuesDTO.baselineDaysToResolveViolation =
+          roiConfiguration.getBaselineDaysToResolveViolation();
+      roiConfigurationCurrentAndMinimumValuesDTO.dailyRiskCostOfUnfixedViolation =
+          roiConfiguration.getDailyRiskCostOfUnfixedViolation();
     }
 
     if (roiConfigurationDefaultValues != null) {
-      roiConfigurationCurrentAndMinimumValuesDTO.developerHourlyRateMinimum =
-          roiConfigurationDefaultValues.getDeveloperHourlyRateMinimum();
-      roiConfigurationCurrentAndMinimumValuesDTO.fixRateHoursMinimum =
-          roiConfigurationDefaultValues.getFixRateHoursMinimum();
-      roiConfigurationCurrentAndMinimumValuesDTO.securityViolationCriticalValueMinimum =
-          roiConfigurationDefaultValues.getSecurityViolationCriticalMinimum();
-      roiConfigurationCurrentAndMinimumValuesDTO.securityViolationHighValueMinimum =
-          roiConfigurationDefaultValues.getSecurityViolationHighMinimum();
-      roiConfigurationCurrentAndMinimumValuesDTO.securityViolationMediumValueMinimum =
-          roiConfigurationDefaultValues.getSecurityViolationMediumMinimum();
-      roiConfigurationCurrentAndMinimumValuesDTO.securityViolationLowValueMinimum =
-          roiConfigurationDefaultValues.getSecurityViolationLowMinimum();
-      roiConfigurationCurrentAndMinimumValuesDTO.supplyChainAttacksBlockedValueMinimum =
-          roiConfigurationDefaultValues.getSupplyChainAttacksBlockedMinimum();
-      roiConfigurationCurrentAndMinimumValuesDTO.namespaceAttacksBlockedValueMinimum =
-          roiConfigurationDefaultValues.getNamespaceAttacksBlockedMinimum();
-      roiConfigurationCurrentAndMinimumValuesDTO.safeComponentsAutoSelectedValueMinimum =
+      roiConfigurationCurrentAndMinimumValuesDTO.malwareAttacksPreventedMinimum =
+          roiConfigurationDefaultValues.getMalwareAttacksPreventedMinimum();
+      roiConfigurationCurrentAndMinimumValuesDTO.namespaceAttacksPreventedMinimum =
+          roiConfigurationDefaultValues.getNamespaceAttacksPreventedMinimum();
+      roiConfigurationCurrentAndMinimumValuesDTO.safeComponentsAutoSelectedMinimum =
           roiConfigurationDefaultValues.getSafeComponentsAutoSelectedMinimum();
+      roiConfigurationCurrentAndMinimumValuesDTO.baselineDaysToResolveViolationMinimum =
+          roiConfigurationDefaultValues.getBaselineDaysToResolveViolationMinimum();
+      roiConfigurationCurrentAndMinimumValuesDTO.dailyRiskCostOfUnfixedViolationMinimum =
+          roiConfigurationDefaultValues.getDailyRiskCostOfUnfixedViolationMinimum();
     }
     return roiConfigurationCurrentAndMinimumValuesDTO;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public RoiConfigurationDTO restoreToDefaultValuesByCurrencyType(String currencyType) {
+  public RoiConfigurationCurrentAndMinimumValuesDTO restoreToDefaultValuesByCurrencyType(String currencyType) {
     CurrencyTypes currencyTypeEnum = CurrencyTypes.fromString(currencyType);
 
     RoiConfigurationDefaultValues roiConfigurationDefaultValues =
@@ -125,40 +101,27 @@ public class RoiConfigurationService
 
     if (roiConfigurationDefaultValues != null) {
       roiConfiguration.setCurrency(roiConfigurationDefaultValues.getCurrency());
-      roiConfiguration.setDeveloperHourlyRate(roiConfigurationDefaultValues.getDeveloperHourlyRateDefault());
-      roiConfiguration.setFixRateHours(roiConfigurationDefaultValues.getFixRateHoursDefault());
-      roiConfiguration.setSecurityViolationCriticalValue(roiConfigurationDefaultValues
-          .getSecurityViolationCriticalDefault());
-      roiConfiguration.setSecurityViolationCriticalEnabled(roiConfigurationDefaultValues
-          .isSecurityViolationCriticalEnabled());
-      roiConfiguration.setSecurityViolationHighValue(roiConfigurationDefaultValues
-          .getSecurityViolationHighDefault());
-      roiConfiguration.setSecurityViolationHighEnabled(roiConfigurationDefaultValues
-          .isSecurityViolationHighEnabled());
-      roiConfiguration.setSecurityViolationMediumValue(roiConfigurationDefaultValues
-          .getSecurityViolationMediumDefault());
-      roiConfiguration.setSecurityViolationMediumEnabled(roiConfigurationDefaultValues
-          .isSecurityViolationMediumEnabled());
-      roiConfiguration.setSecurityViolationLowValue(roiConfigurationDefaultValues
-          .getSecurityViolationLowDefault());
-      roiConfiguration.setSecurityViolationLowEnabled(roiConfigurationDefaultValues
-          .isSecurityViolationLowEnabled());
-      roiConfiguration.setSupplyChainAttacksBlocked(roiConfigurationDefaultValues
-          .getSupplyChainAttacksBlockedDefault());
-      roiConfiguration.setNamespaceAttacksBlocked(roiConfigurationDefaultValues
-          .getNamespaceAttacksBlockedDefault());
+      roiConfiguration.setMalwareAttacksPrevented(roiConfigurationDefaultValues
+          .getMalwareAttacksPreventedDefault());
+      roiConfiguration.setNamespaceAttacksPrevented(roiConfigurationDefaultValues
+          .getNamespaceAttacksPreventedDefault());
       roiConfiguration.setSafeComponentsAutoSelected(roiConfigurationDefaultValues
           .getSafeComponentsAutoSelectedDefault());
-      roiConfiguration.setWaivedPoliciesCounted(roiConfigurationDefaultValues
-          .isWaivedPoliciesCounted());
-
+      roiConfiguration.setBaselineDaysToResolveViolation(
+          roiConfigurationDefaultValues.getBaselineDaysToResolveViolationDefault());
+      roiConfiguration.setDailyRiskCostOfUnfixedViolation(
+          roiConfigurationDefaultValues.getDailyRiskCostOfUnfixedViolationDefault());
+      roiConfiguration.setBaselineDaysToResolveViolation(
+          roiConfigurationDefaultValues.getBaselineDaysToResolveViolationDefault());
       return saveRoiConfiguration(mapRoiConfigurationToDTO(roiConfiguration));
     }
     throw new NotFoundException("No default configuration values found for currency type " + currencyType + ".");
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public RoiConfigurationDTO saveRoiConfiguration(final RoiConfigurationDTO roiConfigurationDTO) {
+  public RoiConfigurationCurrentAndMinimumValuesDTO saveRoiConfiguration(
+      final RoiConfigurationDTO roiConfigurationDTO)
+  {
     RoiConfiguration roiConfiguration = validateAndMapToRoiConfiguration(roiConfigurationDTO);
     RoiConfiguration saved = roiConfigurationDAO.getByCurrencyType(roiConfigurationDTO.currency());
     if (saved == null) {
@@ -171,7 +134,21 @@ public class RoiConfigurationService
     }
     generateAuditInformationForRoiChange(roiConfiguration);
     generateTelemetryEventForRoiChange(roiConfiguration);
-    return mapRoiConfigurationToDTO(roiConfigurationDAO.getByCurrencyType(roiConfiguration.getCurrency()));
+    RoiConfigurationDefaultValues defaultValues =
+        roiConfigurationDefaultValuesDAO.getByCurrencyType(roiConfiguration.getCurrency());
+    return new RoiConfigurationCurrentAndMinimumValuesDTO(
+        roiConfiguration.getCurrency(),
+        roiConfiguration.getMalwareAttacksPrevented(),
+        defaultValues.getMalwareAttacksPreventedMinimum(),
+        roiConfiguration.getNamespaceAttacksPrevented(),
+        defaultValues.getNamespaceAttacksPreventedMinimum(),
+        roiConfiguration.getSafeComponentsAutoSelected(),
+        defaultValues.getSafeComponentsAutoSelectedMinimum(),
+        roiConfiguration.getBaselineDaysToResolveViolation(),
+        defaultValues.getBaselineDaysToResolveViolationMinimum(),
+        roiConfiguration.getDailyRiskCostOfUnfixedViolation(),
+        defaultValues.getDailyRiskCostOfUnfixedViolationMinimum()
+    );
   }
 
   private RoiConfiguration validateAndMapToRoiConfiguration(RoiConfigurationDTO roiConfigurationDTO) {
@@ -184,45 +161,27 @@ public class RoiConfigurationService
       validateLifecycleValues(roiConfigurationDTO, roiConfigurationDefaultValues);
       return new RoiConfiguration(
           CurrencyTypes.valueOf(roiConfigurationDTO.currency().name()),
-          roiConfigurationDTO.developerHourlyRate(),
-          roiConfigurationDTO.fixRateHours(),
-          roiConfigurationDTO.securityViolationCriticalEnabled(),
-          roiConfigurationDTO.securityViolationCriticalValue(),
-          roiConfigurationDTO.securityViolationHighEnabled(),
-          roiConfigurationDTO.securityViolationHighValue(),
-          roiConfigurationDTO.securityViolationMediumEnabled(),
-          roiConfigurationDTO.securityViolationMediumValue(),
-          roiConfigurationDTO.securityViolationLowEnabled(),
-          roiConfigurationDTO.securityViolationLowValue(),
-          roiConfigurationDTO.supplyChainAttacksBlocked(),
-          roiConfigurationDTO.namespaceAttacksBlocked(),
+          roiConfigurationDTO.malwareAttacksPrevented(),
+          roiConfigurationDTO.namespaceAttacksPrevented(),
           roiConfigurationDTO.safeComponentsAutoSelected(),
-          roiConfigurationDTO.waivedPoliciesCounted()
+          roiConfigurationDTO.baselineDaysToResolveViolation(),
+          roiConfigurationDTO.dailyRiskCostOfUnfixedViolation()
       );
     }
     else if (licensedSolutions.contains(Solution.LIFECYCLE)) {
       validateLifecycleValues(roiConfigurationDTO, roiConfigurationDefaultValues);
       return new RoiConfiguration(
           CurrencyTypes.valueOf(roiConfigurationDTO.currency().name()),
-          roiConfigurationDTO.developerHourlyRate(),
-          roiConfigurationDTO.fixRateHours(),
-          roiConfigurationDTO.securityViolationCriticalEnabled(),
-          roiConfigurationDTO.securityViolationCriticalValue(),
-          roiConfigurationDTO.securityViolationHighEnabled(),
-          roiConfigurationDTO.securityViolationHighValue(),
-          roiConfigurationDTO.securityViolationMediumEnabled(),
-          roiConfigurationDTO.securityViolationMediumValue(),
-          roiConfigurationDTO.securityViolationLowEnabled(),
-          roiConfigurationDTO.securityViolationLowValue(),
-          roiConfigurationDTO.waivedPoliciesCounted()
+          roiConfigurationDTO.baselineDaysToResolveViolation(),
+          roiConfigurationDTO.dailyRiskCostOfUnfixedViolation()
       );
     }
     else if (licensedSolutions.contains(Solution.FIREWALL)) {
       validateFirewallValues(roiConfigurationDTO, roiConfigurationDefaultValues);
       return new RoiConfiguration(
           CurrencyTypes.valueOf(roiConfigurationDTO.currency().name()),
-          roiConfigurationDTO.supplyChainAttacksBlocked(),
-          roiConfigurationDTO.namespaceAttacksBlocked(),
+          roiConfigurationDTO.malwareAttacksPrevented(),
+          roiConfigurationDTO.namespaceAttacksPrevented(),
           roiConfigurationDTO.safeComponentsAutoSelected());
     }
     else {
@@ -234,69 +193,43 @@ public class RoiConfigurationService
       RoiConfigurationDTO roiConfigurationDTO,
       RoiConfigurationDefaultValues roiConfigurationDefaultValues)
   {
-    validateValue("Developer hourly rate", roiConfigurationDTO.developerHourlyRate(),
-        roiConfigurationDefaultValues.getDeveloperHourlyRateMinimum());
-    validateValue("Fix rate hours", roiConfigurationDTO.fixRateHours(),
-        roiConfigurationDefaultValues.getFixRateHoursMinimum());
-    validateValue("Security violation critical value", roiConfigurationDTO.securityViolationCriticalValue(),
-        roiConfigurationDefaultValues.getSecurityViolationCriticalMinimum());
-    validateValue("Security violation high value", roiConfigurationDTO.securityViolationHighValue(),
-        roiConfigurationDefaultValues.getSecurityViolationHighMinimum());
-    validateValue("Security violation medium value", roiConfigurationDTO.securityViolationMediumValue(),
-        roiConfigurationDefaultValues.getSecurityViolationMediumMinimum());
-    validateValue("Security violation low value", roiConfigurationDTO.securityViolationLowValue(),
-        roiConfigurationDefaultValues.getSecurityViolationLowMinimum());
+    validateValue("Baseline days to resolve violation", roiConfigurationDTO.baselineDaysToResolveViolation(),
+        roiConfigurationDefaultValues.getBaselineDaysToResolveViolationMinimum());
+    validateValue("Daily risk cost of unfixed violation", roiConfigurationDTO.dailyRiskCostOfUnfixedViolation(),
+        roiConfigurationDefaultValues.getDailyRiskCostOfUnfixedViolationMinimum());
   }
 
   private void validateFirewallValues(
       RoiConfigurationDTO roiConfigurationDTO,
       RoiConfigurationDefaultValues roiConfigurationDefaultValues)
   {
-    validateValue("Supply chain attacks blocked", roiConfigurationDTO.supplyChainAttacksBlocked(),
-        roiConfigurationDefaultValues.getSupplyChainAttacksBlockedMinimum());
-    validateValue("Namespace attacks blocked", roiConfigurationDTO.namespaceAttacksBlocked(),
-        roiConfigurationDefaultValues.getNamespaceAttacksBlockedMinimum());
+    validateValue("Supply chain attacks blocked", roiConfigurationDTO.malwareAttacksPrevented(),
+        roiConfigurationDefaultValues.getMalwareAttacksPreventedMinimum());
+    validateValue("Namespace attacks blocked", roiConfigurationDTO.namespaceAttacksPrevented(),
+        roiConfigurationDefaultValues.getNamespaceAttacksPreventedMinimum());
     validateValue("Safe components auto selected", roiConfigurationDTO.safeComponentsAutoSelected(),
         roiConfigurationDefaultValues.getSafeComponentsAutoSelectedMinimum());
   }
 
   private void generateAuditInformationForRoiChange(RoiConfiguration roiConfiguration) {
     AuditData.get().setData("currency", roiConfiguration.getCurrency());
-    AuditData.get().setData("developerHourlyRate", roiConfiguration.getDeveloperHourlyRate().toString());
-    AuditData.get().setData("fixRateHours", roiConfiguration.getFixRateHours().toString());
-    AuditData.get().setData("securityViolationCriticalEnabled", roiConfiguration.isSecurityViolationCriticalEnabled());
-    AuditData.get()
-        .setData("securityViolationCriticalValue", roiConfiguration.getSecurityViolationCriticalValue().toString());
-    AuditData.get().setData("securityViolationHighEnabled", roiConfiguration.isSecurityViolationHighEnabled());
-    AuditData.get().setData("securityViolationHighValue", roiConfiguration.getSecurityViolationHighValue().toString());
-    AuditData.get().setData("securityViolationMediumEnabled", roiConfiguration.isSecurityViolationMediumEnabled());
-    AuditData.get()
-        .setData("securityViolationMediumValue", roiConfiguration.getSecurityViolationMediumValue().toString());
-    AuditData.get().setData("securityViolationLowEnabled", roiConfiguration.isSecurityViolationLowEnabled());
-    AuditData.get().setData("securityViolationLowValue", roiConfiguration.getSecurityViolationLowValue().toString());
-    AuditData.get().setData("supplyChainAttacksBlocked", roiConfiguration.getSupplyChainAttacksBlocked().toString());
-    AuditData.get().setData("namespaceAttacksBlocked", roiConfiguration.getNamespaceAttacksBlocked().toString());
+    AuditData.get().setData("malwareAttacksPrevented", roiConfiguration.getMalwareAttacksPrevented().toString());
+    AuditData.get().setData("namespaceAttacksPrevented", roiConfiguration.getNamespaceAttacksPrevented().toString());
     AuditData.get().setData("safeComponentsAutoSelected", roiConfiguration.getSafeComponentsAutoSelected().toString());
-    AuditData.get().setData("waivedPoliciesCounted", roiConfiguration.isWaivedPoliciesCounted());
+    AuditData.get()
+        .setData("baselineDaysToResolveViolation", roiConfiguration.getBaselineDaysToResolveViolation().toString());
+    AuditData.get()
+        .setData("dailyRiskCostOfUnfixedViolation", roiConfiguration.getDailyRiskCostOfUnfixedViolation().toString());
   }
 
   private void generateTelemetryEventForRoiChange(RoiConfiguration roiConfiguration) {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.ROI_CONFIG_CHANGED);
     telemetryData.put("currency", roiConfiguration.getCurrency());
-    telemetryData.put("developerHourlyRate", roiConfiguration.getDeveloperHourlyRate());
-    telemetryData.put("fixRateHours", roiConfiguration.getFixRateHours());
-    telemetryData.put("securityViolationCriticalEnabled", roiConfiguration.isSecurityViolationCriticalEnabled());
-    telemetryData.put("securityViolationCriticalValue", roiConfiguration.getSecurityViolationCriticalValue());
-    telemetryData.put("securityViolationHighEnabled", roiConfiguration.isSecurityViolationHighEnabled());
-    telemetryData.put("securityViolationHighValue", roiConfiguration.getSecurityViolationHighValue());
-    telemetryData.put("securityViolationMediumEnabled", roiConfiguration.isSecurityViolationMediumEnabled());
-    telemetryData.put("securityViolationMediumValue", roiConfiguration.getSecurityViolationMediumValue());
-    telemetryData.put("securityViolationLowEnabled", roiConfiguration.isSecurityViolationLowEnabled());
-    telemetryData.put("securityViolationLowValue", roiConfiguration.getSecurityViolationLowValue());
-    telemetryData.put("supplyChainAttacksBlocked", roiConfiguration.getSupplyChainAttacksBlocked());
-    telemetryData.put("namespaceAttacksBlocked", roiConfiguration.getNamespaceAttacksBlocked());
+    telemetryData.put("malwareAttacksPrevented", roiConfiguration.getMalwareAttacksPrevented());
+    telemetryData.put("namespaceAttacksPrevented", roiConfiguration.getNamespaceAttacksPrevented());
     telemetryData.put("safeComponentsAutoSelected", roiConfiguration.getSafeComponentsAutoSelected());
-    telemetryData.put("waivedPoliciesCounted", roiConfiguration.isWaivedPoliciesCounted());
+    telemetryData.put("baselineDaysToResolveViolation", roiConfiguration.getBaselineDaysToResolveViolation());
+    telemetryData.put("dailyRiskCostOfUnfixedViolation",roiConfiguration.getDailyRiskCostOfUnfixedViolation());
     telemetrySender.send(telemetryData);
   }
 
@@ -304,20 +237,11 @@ public class RoiConfigurationService
     return new RoiConfigurationDTO(
         roiConfiguration.getId(),
         CurrencyTypes.valueOf(roiConfiguration.getCurrency().name()),
-        roiConfiguration.getDeveloperHourlyRate(),
-        roiConfiguration.getFixRateHours(),
-        roiConfiguration.isSecurityViolationCriticalEnabled(),
-        roiConfiguration.getSecurityViolationCriticalValue(),
-        roiConfiguration.isSecurityViolationHighEnabled(),
-        roiConfiguration.getSecurityViolationHighValue(),
-        roiConfiguration.isSecurityViolationMediumEnabled(),
-        roiConfiguration.getSecurityViolationMediumValue(),
-        roiConfiguration.isSecurityViolationLowEnabled(),
-        roiConfiguration.getSecurityViolationLowValue(),
-        roiConfiguration.getSupplyChainAttacksBlocked(),
-        roiConfiguration.getNamespaceAttacksBlocked(),
+        roiConfiguration.getMalwareAttacksPrevented(),
+        roiConfiguration.getNamespaceAttacksPrevented(),
         roiConfiguration.getSafeComponentsAutoSelected(),
-        roiConfiguration.isWaivedPoliciesCounted()
+        roiConfiguration.getBaselineDaysToResolveViolation(),
+        roiConfiguration.getDailyRiskCostOfUnfixedViolation()
     );
   }
 

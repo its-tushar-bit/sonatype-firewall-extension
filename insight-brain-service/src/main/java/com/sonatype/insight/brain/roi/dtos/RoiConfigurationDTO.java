@@ -12,40 +12,20 @@ import com.sonatype.insight.brain.model.roi.CurrencyTypes;
 public record RoiConfigurationDTO(
     String id,
     CurrencyTypes currency,
-    BigDecimal developerHourlyRate,
-    Long fixRateHours,
-    Boolean securityViolationCriticalEnabled,
-    BigDecimal securityViolationCriticalValue,
-    Boolean securityViolationHighEnabled,
-    BigDecimal securityViolationHighValue,
-    Boolean securityViolationMediumEnabled,
-    BigDecimal securityViolationMediumValue,
-    Boolean securityViolationLowEnabled,
-    BigDecimal securityViolationLowValue,
-    BigDecimal supplyChainAttacksBlocked,
-    BigDecimal namespaceAttacksBlocked,
+    BigDecimal malwareAttacksPrevented,
+    BigDecimal namespaceAttacksPrevented,
     BigDecimal safeComponentsAutoSelected,
-    Boolean waivedPoliciesCounted
+    Integer baselineDaysToResolveViolation,
+    BigDecimal dailyRiskCostOfUnfixedViolation
 ) {
   public RoiConfigurationDTO(
       String id,
       CurrencyTypes currency,
-      BigDecimal developerHourlyRate,
-      Long fixRateHours,
-      Boolean securityViolationCriticalEnabled,
-      BigDecimal securityViolationCriticalValue,
-      Boolean securityViolationHighEnabled,
-      BigDecimal securityViolationHighValue,
-      Boolean securityViolationMediumEnabled,
-      BigDecimal securityViolationMediumValue,
-      Boolean securityViolationLowEnabled,
-      BigDecimal securityViolationLowValue,
-      Boolean waivedPoliciesCounted)
+      Integer baselineDaysToResolveViolation,
+      BigDecimal dailyRiskCostOfUnfixedViolation)
   {
-    this(id, currency, developerHourlyRate, fixRateHours, securityViolationCriticalEnabled,
-        securityViolationCriticalValue, securityViolationHighEnabled, securityViolationHighValue,
-        securityViolationMediumEnabled, securityViolationMediumValue, securityViolationLowEnabled,
-        securityViolationLowValue, null, null, null, waivedPoliciesCounted);
+    this(id, currency, null, null, null, baselineDaysToResolveViolation,
+        dailyRiskCostOfUnfixedViolation);
   }
 
   public RoiConfigurationDTO(
@@ -55,7 +35,7 @@ public record RoiConfigurationDTO(
       BigDecimal namespaceAttacksBlocked,
       BigDecimal safeComponentsAutoSelected)
   {
-    this(id, currency, null, null, null, null, null, null, null, null, null, null,
-        supplyChainAttacksBlocked, namespaceAttacksBlocked, safeComponentsAutoSelected, null);
+    this(id, currency,
+        supplyChainAttacksBlocked, namespaceAttacksBlocked, safeComponentsAutoSelected, null, null);
   }
 }

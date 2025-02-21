@@ -55,7 +55,7 @@ public class RoiConfigurationResource
   @Path(ROI_CONFIGURATION_DEFAULT_VALUES_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.ROI_CONFIG_CREATE)
-  public RoiConfigurationDTO restoreToDefaultValuesByCurrencyType(
+  public RoiConfigurationCurrentAndMinimumValuesDTO restoreToDefaultValuesByCurrencyType(
       @PathParam("currencyType") String currencyType)
   {
     return roiConfigurationService.restoreToDefaultValuesByCurrencyType(currencyType);
@@ -65,7 +65,7 @@ public class RoiConfigurationResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.ROI_CONFIG_CREATE)
-  public RoiConfigurationDTO saveRoiConfiguration(RoiConfigurationDTO roiConfigurationDTO) {
+  public RoiConfigurationCurrentAndMinimumValuesDTO saveRoiConfiguration(RoiConfigurationDTO roiConfigurationDTO) {
     return roiConfigurationService.saveRoiConfiguration(roiConfigurationDTO);
   }
 }

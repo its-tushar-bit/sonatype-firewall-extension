@@ -452,20 +452,11 @@ public class ApiFirewallMetricsServiceTest
   public void testGetRoiFirewallMetrics_RoiConfigurationExist() {
     tempEntity.createRoiConfiguration(
         CurrencyTypes.USD,
-        BigDecimal.valueOf(100),
-        1448L,
-        true,
-        BigDecimal.valueOf(23000),
-        true,
-        BigDecimal.valueOf(30000),
-        false,
-        BigDecimal.valueOf(45000),
-        false,
-        BigDecimal.valueOf(40000),
         BigDecimal.valueOf(50000),
         BigDecimal.valueOf(60000),
         BigDecimal.valueOf(70000),
-        false
+        15,
+        BigDecimal.valueOf(400)
     );
     tempEntity.newFirewallMetrics(SUPPLY_CHAIN_ATTACKS_BLOCKED, 10, new Date());
     tempEntity.newFirewallMetrics(NAMESPACE_ATTACKS_BLOCKED, 10, new Date());
@@ -473,8 +464,8 @@ public class ApiFirewallMetricsServiceTest
     RoiFirewallMetricsDTO roiMetricsDTO = firewallMetricsService.getRoiFirewallMetrics(CurrencyTypes.USD);
     assertThat(roiMetricsDTO).isNotNull();
     assertThat(roiMetricsDTO.getCurrency()).isEqualTo(CurrencyTypes.USD);
-    assertThat(roiMetricsDTO.getSupplyChainAttacksBlocked()).isEqualTo(BigDecimal.valueOf(500000));
-    assertThat(roiMetricsDTO.getNamespaceAttacksBlocked()).isEqualTo(BigDecimal.valueOf(600000));
+    assertThat(roiMetricsDTO.getMalwareAttacksPrevented()).isEqualTo(BigDecimal.valueOf(500000));
+    assertThat(roiMetricsDTO.getNamespaceAttacksPrevented()).isEqualTo(BigDecimal.valueOf(600000));
     assertThat(roiMetricsDTO.getSafeComponentsAutoSelected()).isEqualTo(BigDecimal.valueOf(700000));
   }
 
@@ -482,26 +473,17 @@ public class ApiFirewallMetricsServiceTest
   public void testGetRoiFirewallMetrics_NotFirewallMetricsValues() {
     tempEntity.createRoiConfiguration(
         CurrencyTypes.USD,
-        BigDecimal.valueOf(100),
-        1448L,
-        true,
-        BigDecimal.valueOf(23000),
-        true,
-        BigDecimal.valueOf(30000),
-        false,
-        BigDecimal.valueOf(45000),
-        false,
-        BigDecimal.valueOf(40000),
         BigDecimal.valueOf(50000),
         BigDecimal.valueOf(60000),
         BigDecimal.valueOf(70000),
-        false
+        15,
+        BigDecimal.valueOf(400)
     );
     RoiFirewallMetricsDTO roiMetricsDTO = firewallMetricsService.getRoiFirewallMetrics(CurrencyTypes.USD);
     assertThat(roiMetricsDTO).isNotNull();
     assertThat(roiMetricsDTO.getCurrency()).isEqualTo(CurrencyTypes.USD);
-    assertThat(roiMetricsDTO.getSupplyChainAttacksBlocked()).isEqualTo(BigDecimal.valueOf(0));
-    assertThat(roiMetricsDTO.getNamespaceAttacksBlocked()).isEqualTo(BigDecimal.valueOf(0));
+    assertThat(roiMetricsDTO.getMalwareAttacksPrevented()).isEqualTo(BigDecimal.valueOf(0));
+    assertThat(roiMetricsDTO.getNamespaceAttacksPrevented()).isEqualTo(BigDecimal.valueOf(0));
     assertThat(roiMetricsDTO.getSafeComponentsAutoSelected()).isEqualTo(BigDecimal.valueOf(0));
   }
 
@@ -510,29 +492,16 @@ public class ApiFirewallMetricsServiceTest
     dao.getAll().forEach(dao::delete);
     tempEntity.createRoiConfigurationDefaultValues(
         CurrencyTypes.USD,
-        BigDecimal.valueOf(100),
-        BigDecimal.valueOf(50),
-        3600L,
-        1440L,
-        BigDecimal.valueOf(12000),
-        BigDecimal.valueOf(6000),
-        true,
-        BigDecimal.valueOf(24000),
-        BigDecimal.valueOf(12000),
-        true,
-        BigDecimal.valueOf(72000),
-        BigDecimal.valueOf(36000),
-        false,
-        BigDecimal.valueOf(144000),
-        BigDecimal.valueOf(72000),
-        false,
         BigDecimal.valueOf(4350000),
         BigDecimal.valueOf(500000),
         BigDecimal.valueOf(35000),
         BigDecimal.valueOf(10000),
         BigDecimal.valueOf(25000),
         BigDecimal.valueOf(5000),
-        false
+        30,
+        15,
+        BigDecimal.valueOf(800),
+        BigDecimal.valueOf(400)
     );
     tempEntity.newFirewallMetrics(SUPPLY_CHAIN_ATTACKS_BLOCKED, 10, new Date());
     tempEntity.newFirewallMetrics(NAMESPACE_ATTACKS_BLOCKED, 10, new Date());
@@ -540,8 +509,8 @@ public class ApiFirewallMetricsServiceTest
     RoiFirewallMetricsDTO roiMetricsDTO = firewallMetricsService.getRoiFirewallMetrics(CurrencyTypes.USD);
     assertThat(roiMetricsDTO).isNotNull();
     assertThat(roiMetricsDTO.getCurrency()).isEqualTo(CurrencyTypes.USD);
-    assertThat(roiMetricsDTO.getSupplyChainAttacksBlocked()).isEqualTo(BigDecimal.valueOf(43500000));
-    assertThat(roiMetricsDTO.getNamespaceAttacksBlocked()).isEqualTo(BigDecimal.valueOf(350000));
+    assertThat(roiMetricsDTO.getMalwareAttacksPrevented()).isEqualTo(BigDecimal.valueOf(43500000));
+    assertThat(roiMetricsDTO.getNamespaceAttacksPrevented()).isEqualTo(BigDecimal.valueOf(350000));
     assertThat(roiMetricsDTO.getSafeComponentsAutoSelected()).isEqualTo(BigDecimal.valueOf(250000));
   }
 }

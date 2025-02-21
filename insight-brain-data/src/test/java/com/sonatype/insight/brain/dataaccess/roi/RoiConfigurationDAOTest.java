@@ -32,20 +32,11 @@ public class RoiConfigurationDAOTest
   public void testCRUD() {
     RoiConfiguration roiConfiguration = tempEntity.createRoiConfiguration(
         CurrencyTypes.USD,
-        BigDecimal.valueOf(100),
-        80L,
-        true,
-        BigDecimal.valueOf(23000),
-        true,
-        BigDecimal.valueOf(30000),
-        false,
-        BigDecimal.valueOf(45000),
-        false,
-        BigDecimal.valueOf(40000),
         BigDecimal.valueOf(50000),
         BigDecimal.valueOf(60000),
         BigDecimal.valueOf(70000),
-        false
+        15,
+        BigDecimal.valueOf(400)
     );
     assertThat(roiConfiguration.getId()).isNotNull();
 
@@ -54,13 +45,13 @@ public class RoiConfigurationDAOTest
     assertRoiConfigurationEntityValues(roiConfiguration);
 
     // update
-    roiConfiguration.setNamespaceAttacksBlocked(BigDecimal.valueOf(10000));
+    roiConfiguration.setNamespaceAttacksPrevented(BigDecimal.valueOf(10000));
     dao.update(roiConfiguration);
 
     roiConfiguration = dao.getById(roiConfiguration.getId());
 
     assertThat(roiConfiguration).isNotNull();
-    assertThat(roiConfiguration.getNamespaceAttacksBlocked()).isEqualTo(BigDecimal.valueOf(10000));
+    assertThat(roiConfiguration.getNamespaceAttacksPrevented()).isEqualTo(BigDecimal.valueOf(10000));
 
     // delete
     String id = roiConfiguration.getId();
@@ -73,20 +64,11 @@ public class RoiConfigurationDAOTest
   public void testGetByCurrencyType() {
     RoiConfiguration roiConfiguration = tempEntity.createRoiConfiguration(
         CurrencyTypes.USD,
-        BigDecimal.valueOf(100),
-        80L,
-        true,
-        BigDecimal.valueOf(23000),
-        true,
-        BigDecimal.valueOf(30000),
-        false,
-        BigDecimal.valueOf(45000),
-        false,
-        BigDecimal.valueOf(40000),
         BigDecimal.valueOf(50000),
         BigDecimal.valueOf(60000),
         BigDecimal.valueOf(70000),
-        false
+        15,
+        BigDecimal.valueOf(400)
     );
     assertThat(dao.getByCurrencyType(CurrencyTypes.USD)).isNotNull();
     assertRoiConfigurationEntityValues(roiConfiguration);
@@ -96,19 +78,10 @@ public class RoiConfigurationDAOTest
       RoiConfiguration roiConfiguration)
   {
     assertThat(roiConfiguration.getCurrency()).isEqualTo(CurrencyTypes.USD);
-    assertThat(roiConfiguration.getFixRateHours()).isEqualTo(80L);
-    assertThat(roiConfiguration.getDeveloperHourlyRate()).isEqualTo(BigDecimal.valueOf(100));
-    assertThat(roiConfiguration.isSecurityViolationCriticalEnabled()).isTrue();
-    assertThat(roiConfiguration.getSecurityViolationCriticalValue()).isEqualTo(BigDecimal.valueOf(23000));
-    assertThat(roiConfiguration.isSecurityViolationHighEnabled()).isTrue();
-    assertThat(roiConfiguration.getSecurityViolationHighValue()).isEqualTo(BigDecimal.valueOf(30000));
-    assertThat(roiConfiguration.isSecurityViolationMediumEnabled()).isFalse();
-    assertThat(roiConfiguration.getSecurityViolationMediumValue()).isEqualTo(BigDecimal.valueOf(45000));
-    assertThat(roiConfiguration.isSecurityViolationLowEnabled()).isFalse();
-    assertThat(roiConfiguration.getSecurityViolationLowValue()).isEqualTo(BigDecimal.valueOf(40000));
-    assertThat(roiConfiguration.getNamespaceAttacksBlocked()).isEqualTo(BigDecimal.valueOf(60000));
-    assertThat(roiConfiguration.getSupplyChainAttacksBlocked()).isEqualTo(BigDecimal.valueOf(50000));
+    assertThat(roiConfiguration.getNamespaceAttacksPrevented()).isEqualTo(BigDecimal.valueOf(60000));
+    assertThat(roiConfiguration.getMalwareAttacksPrevented()).isEqualTo(BigDecimal.valueOf(50000));
     assertThat(roiConfiguration.getSafeComponentsAutoSelected()).isEqualTo(BigDecimal.valueOf(70000));
-    assertThat(roiConfiguration.isWaivedPoliciesCounted()).isFalse();
+    assertThat(roiConfiguration.getBaselineDaysToResolveViolation()).isEqualTo(15);
+    assertThat(roiConfiguration.getDailyRiskCostOfUnfixedViolation()).isEqualTo(BigDecimal.valueOf(400));
   }
 }

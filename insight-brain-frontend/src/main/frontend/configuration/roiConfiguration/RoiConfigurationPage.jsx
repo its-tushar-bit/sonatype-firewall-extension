@@ -6,7 +6,6 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  NxCheckbox,
   NxDivider,
   NxFontAwesomeIcon,
   NxH1,
@@ -25,7 +24,7 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectHasFirewallLicense, selectHasLifecycleLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 
 import { selectRoiConfigurationPageSlice } from './roiConfigurationPageSelectors';
-import { actions, ROI_SECURITY_VIOLATION_TYPES } from './roiConfigurationPageSlice';
+import { actions } from './roiConfigurationPageSlice';
 
 import './RoiConfigurationPage.scss';
 
@@ -51,13 +50,13 @@ const RoiConfigurationPage = () => {
     loadPage();
   }, []);
 
-  const formatNumericValue = R.curryN(2, (id, value, isInteger = false) => (
+  const formatNumericValue = R.curryN(2, (id, value, isInteger = false, suffix = '') => (
     <span
       className="roi-configuration-page__numeric-value"
       id={`roi-configuration-page__numeric-value__${id}`}
       data-testid={`roi-configuration-page__numeric-value__${id}`}
     >
-      {R.when(R.always(!isInteger), formatCurrency)(value)}
+      {R.when(R.always(!isInteger), formatCurrency)(value)} {suffix}
     </span>
   ));
 
@@ -95,9 +94,9 @@ const RoiConfigurationPage = () => {
               Assess the ROI of your organization&apos;s partnership with Sonatype. Default values are provided based on
               industry benchmarks but can be customized to reflect the specific needs of your organization.
             </NxP>
-            <dl className="roi-configuration-description-list">
-              <div className="roi-configuration-description-list__item">
-                <dt>Currency</dt>
+            <dl className="roi-configuration-page-description-list">
+              <div className="roi-configuration-page-description-list__item">
+                <dt>Currency for ROI calculations.</dt>
                 <dd>United States Dollar (USD)</dd>
               </div>
             </dl>
@@ -109,58 +108,27 @@ const RoiConfigurationPage = () => {
                   To determine the ROI for reported on policy violation in Sonatype Lifecycle, provide an estimate of
                   your cost per hour for your teams to remediate violations.
                 </NxP>
-                <dl className="roi-configuration-description-list">
-                  <div className="roi-configuration-description-list__item">
-                    <dt>Developer Hourly Rate</dt>
+                <dl className="roi-configuration-page-description-list">
+                  <div className="roi-configuration-page-description-list__item">
+                    <dt>Baseline days to resolve violation</dt>
                     <dd>
-                      <small>Hourly cost for working on remediation.</small>
-                      {formatNumericValue('developer-hourly-rate', configuration.developerHourlyRate)}
+                      <small>Average days to resolve a violation</small>
+                      {formatNumericValue(
+                        'baseline-days-to-resolve-violation',
+                        configuration.baselineDaysToResolveViolation,
+                        true,
+                        'days'
+                      )}
                     </dd>
                   </div>
-                  <div className="roi-configuration-description-list__item">
-                    <dt>Fix Rate</dt>
+                  <div className="roi-configuration-page-description-list__item">
+                    <dt>Daily risk of unfixed violation</dt>
                     <dd>
-                      <small>The expected (estimated) number of hours to remediate by violation types</small>
-                      {formatNumericValue('fix-rate', configuration.fixRate, true)}
-                    </dd>
-                  </div>
-                  <div className="roi-configuration-description-list__item">
-                    <dt>Security Violation Types</dt>
-                    <dd>
-                      <small>Types of violations configured to be enforced by Lifecycle</small>
-                      <dl className="roi-configuration-security-violation-types">
-                        {ROI_SECURITY_VIOLATION_TYPES.map((key) => (
-                          <div className="roi-configuration-security-violation-types__item" key={key}>
-                            <dt>{R.toUpper(key)}:</dt>
-                            <dd
-                              id={`roi-configuration-page__security-violation-types-content__${key}`}
-                              data-testid={`roi-configuration-security-violation-types__content__${key}`}
-                            >
-                              {R.ifElse(
-                                R.always(R.equals(configuration.securityViolation[`${key}Enabled`], true)),
-                                formatNumericValue(`security-violation-${key}`),
-                                R.always('Not Included')
-                              )(configuration.securityViolation[key])}
-                            </dd>
-                          </div>
-                        ))}
-                      </dl>
-                    </dd>
-                  </div>
-                  <div className="roi-configuration-description-list__item">
-                    <dt>Waived Violations</dt>
-                    <dd>
-                      <NxCheckbox
-                        id="roi-configuration-page__checkbox__waived-violations"
-                        inputAttributes={{
-                          'data-testid': 'roi-configuration-page__checkbox__waived-violations',
-                        }}
-                        isChecked={!!configuration.waivedViolations}
-                        disabled
-                      >
-                        Include the waived violations when calculating the time taken to remediate the policy
-                        violations.
-                      </NxCheckbox>
+                      <small>Estimated cost to the organization per day of unresolved violations</small>
+                      {formatNumericValue(
+                        'daily-risk-cost-of-unfixed-violation',
+                        configuration.dailyRiskCostOfUnfixedViolation
+                      )}
                     </dd>
                   </div>
                 </dl>
@@ -173,22 +141,22 @@ const RoiConfigurationPage = () => {
                   To show the ROI for Repository Firewall provide the estimated cost/value to your team for each of the
                   provided features.
                 </NxP>
-                <dl className="roi-configuration-description-list">
-                  <div className="roi-configuration-description-list__item">
-                    <dt>Supply chain attacks blocked</dt>
+                <dl className="roi-configuration-page-description-list">
+                  <div className="roi-configuration-page-description-list__item">
+                    <dt>Malware attacks prevented</dt>
                     <dd>
                       <small>Detected violations for security-malicious components.</small>
-                      {formatNumericValue('supply-chain-attacks-blocked', configuration.supplyChainAttacksBlocked)}
+                      {formatNumericValue('malware-attacks-prevented', configuration.malwareAttacksPrevented)}
                     </dd>
                   </div>
-                  <div className="roi-configuration-description-list__item">
-                    <dt>Namespace attacks blocked</dt>
+                  <div className="roi-configuration-page-description-list__item">
+                    <dt>Namespace attacks prevented</dt>
                     <dd>
                       <small>Detected violations for namespace-conflict components.</small>
-                      {formatNumericValue('namespace-attacks-blocked', configuration.namespaceAttacksBlocked)}
+                      {formatNumericValue('namespace-attacks-prevented', configuration.namespaceAttacksPrevented)}
                     </dd>
                   </div>
-                  <div className="roi-configuration-description-list__item">
+                  <div className="roi-configuration-page-description-list__item">
                     <dt>Safe components auto-selected</dt>
                     <dd>
                       <small>Policy compliant components found when installing dependencies.</small>

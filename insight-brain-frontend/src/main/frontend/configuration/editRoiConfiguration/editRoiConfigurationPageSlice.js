@@ -4,60 +4,86 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-// import axios from 'axios';
-import * as R from 'ramda';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+import axios from 'axios';
+import * as R from 'ramda';
 
-import { ROI_SECURITY_VIOLATION_TYPES } from 'MainRoot/configuration/roiConfiguration/roiConfigurationPageSlice';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
+import { getRoiConfigurationUrl, getRoiConfigurationRestoreDefaultsUrl } from 'MainRoot/util/CLMLocation';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
-// import { getConfigurationUrl } from 'MainRoot/util/CLMLocation';
+import { selectEditRoiConfigurationPageSlice } from './editRoiConfigurationPageSelectors';
 
 const { initialState: inputInitialState, userInput } = nxTextInputStateHelpers;
 
 const ensureValidNumber = R.when(R.either(R.complement(R.is(Number)), Number.isNaN), R.always(0));
+const inputToFloat = R.compose(Number.parseFloat, R.replace(/,/g, ''));
+const inputToInt = R.compose(Number.parseInt, R.replace(/,/g, ''));
 
 const REDUCER_NAME = 'editRoiConfigurationPage';
 
-export const generateDefaultNumericState = (enabled, minimum, initialValue) =>
+export const instantiateNumericState = (minimum, initialValue) =>
   Object.freeze({
-    enabled,
     minimum: ensureValidNumber(minimum),
     input: inputInitialState(R.when(R.is(Number), R.toString)(initialValue)),
   });
 
 export const ROI_CURRENCY_TYPES = Object.freeze([
-  'developerHourlyRate',
-  'supplyChainAttacksBlocked',
-  'namespaceAttacksBlocked',
+  'dailyRiskCostOfUnfixedViolation',
+  'malwareAttacksPrevented',
+  'namespaceAttacksPrevented',
   'safeComponentsAutoSelected',
 ]);
-export const ROI_INTEGER_TYPES = Object.freeze(['fixRate']);
-export const ROI_BOOLEAN_TYPES = Object.freeze(['waivedViolations']);
+export const ROI_INTEGER_TYPES = Object.freeze(['baselineDaysToResolveViolation']);
+export const ROI_VALIDATABLE_FIELDS = Object.freeze([...ROI_CURRENCY_TYPES, ...ROI_INTEGER_TYPES]);
 
-const defaultConfiguration = Object.freeze({
-  developerHourlyRate: generateDefaultNumericState(true, 0, 0),
-  fixRate: generateDefaultNumericState(true, 0, 0),
+const mapConfigurationToPayload = (configuration) =>
+  Object.freeze({
+    currency: 'USD',
+    baselineDaysToResolveViolation: inputToInt(configuration.baselineDaysToResolveViolation.input.value),
+    dailyRiskCostOfUnfixedViolation: inputToFloat(configuration.dailyRiskCostOfUnfixedViolation.input.value),
+    malwareAttacksPrevented: inputToFloat(configuration.malwareAttacksPrevented.input.value),
+    namespaceAttacksPrevented: inputToFloat(configuration.namespaceAttacksPrevented.input.value),
+    safeComponentsAutoSelected: inputToFloat(configuration.safeComponentsAutoSelected.input.value),
+  });
 
-  securityViolation: {
-    critical: generateDefaultNumericState(true, 0, 0),
-    high: generateDefaultNumericState(true, 0, 0),
-    medium: generateDefaultNumericState(false, 0, 0),
-    low: generateDefaultNumericState(true, 0, 0),
-  },
+const mapPayloadToConfiguration = (payload) =>
+  Object.freeze({
+    baselineDaysToResolveViolation: instantiateNumericState(
+      payload.baselineDaysToResolveViolationMinimum,
+      payload.baselineDaysToResolveViolation
+    ),
+    dailyRiskCostOfUnfixedViolation: instantiateNumericState(
+      payload.dailyRiskCostOfUnfixedViolationMinimum,
+      payload.dailyRiskCostOfUnfixedViolation
+    ),
+    malwareAttacksPrevented: instantiateNumericState(
+      payload.malwareAttacksPreventedMinimum,
+      payload.malwareAttacksPrevented
+    ),
+    namespaceAttacksPrevented: instantiateNumericState(
+      payload.namespaceAttacksPreventedMinimum,
+      payload.namespaceAttacksPrevented
+    ),
+    safeComponentsAutoSelected: instantiateNumericState(
+      payload.safeComponentsAutoSelectedMinimum,
+      payload.safeComponentsAutoSelected
+    ),
+  });
 
-  supplyChainAttacksBlocked: generateDefaultNumericState(true, 0, 0),
-  namespaceAttacksBlocked: generateDefaultNumericState(true, 0, 0),
-  safeComponentsAutoSelected: generateDefaultNumericState(true, 0, 0),
-
-  waivedViolations: true,
+const initialConfiguration = Object.freeze({
+  baselineDaysToResolveViolation: instantiateNumericState(0, 0),
+  dailyRiskCostOfUnfixedViolation: instantiateNumericState(0, 0),
+  malwareAttacksPrevented: instantiateNumericState(0, 0),
+  namespaceAttacksPrevented: instantiateNumericState(0, 0),
+  safeComponentsAutoSelected: instantiateNumericState(0, 0),
 });
 
 export const initialState = Object.freeze({
   loading: true,
   error: null,
   showRestoreDefaultsModal: false,
-  configuration: { ...defaultConfiguration },
+  configuration: { ...initialConfiguration },
 });
 
 // validation
@@ -96,7 +122,7 @@ const updateConfigurationValue = (state, { payload }) => {
     [R.T, R.always(null)],
   ])(payload.key);
 
-  if (type && state.configuration[payload.key].enabled === true) {
+  if (type) {
     const validators = {
       currency: currencyValueValidator,
       integer: integerValueValidator,
@@ -106,54 +132,94 @@ const updateConfigurationValue = (state, { payload }) => {
   }
 };
 
-const toggleConfigurationBooleanValue = (state, { payload }) => {
-  if (R.includes(payload.key, ROI_BOOLEAN_TYPES)) {
-    state.configuration[payload.key] = !state.configuration[payload.key];
-  }
+// load-configuration
+const loadConfigurationRequested = (state) => {
+  state.loading = true;
+  state.error = null;
+  state.showRestoreDefaultsModal = false;
 };
 
-const toggleSecurityViolationEnabled = (state, { payload }) => {
-  if (R.includes(payload.key, ROI_SECURITY_VIOLATION_TYPES)) {
-    state.configuration.securityViolation[payload.key].enabled = !state.configuration.securityViolation[payload.key]
-      .enabled;
-  }
+const loadConfigurationRejected = (state, { payload }) => {
+  state.loading = false;
+  state.error = Messages.getHttpErrorMessage(payload);
 };
 
-const updateSecurityViolationValue = (state, { payload }) => {
-  if (state.configuration.securityViolation[payload.key].enabled === true) {
-    state.configuration.securityViolation[payload.key].input = userInput(
-      currencyValueValidator(state.configuration.securityViolation[payload.key].minimum),
-      payload.value
-    );
-  }
+const loadConfigurationFulfilled = (state, { payload }) => {
+  state.loading = false;
+  state.error = null;
+  state.configuration = mapPayloadToConfiguration(payload);
 };
+
+const loadConfiguration = createAsyncThunk(`${REDUCER_NAME}/loadConfiguration`, async (_, { rejectWithValue }) => {
+  try {
+    await checkPermissions(['CONFIGURE_SYSTEM']);
+    const { data } = await axios.get(getRoiConfigurationUrl('usd'));
+    return data;
+  } catch (error) {
+    return rejectWithValue(error);
+  }
+});
+
+// update-configuration
+const updateConfigurationRequested = (state) => {
+  state.loading = true;
+  state.error = null;
+};
+
+const updateConfigurationRejected = (state, { payload }) => {
+  state.loading = false;
+  state.error = Messages.getHttpErrorMessage(payload);
+};
+
+const updateConfigurationFulfilled = (state, { payload }) => {
+  state.loading = false;
+  state.error = null;
+  state.configuration = mapPayloadToConfiguration(payload);
+};
+
+const updateConfiguration = createAsyncThunk(
+  `${REDUCER_NAME}/updateConfiguration`,
+  async (_, { getState, rejectWithValue }) => {
+    const { configuration } = selectEditRoiConfigurationPageSlice(getState());
+    const payload = mapConfigurationToPayload(configuration);
+    try {
+      await checkPermissions(['CONFIGURE_SYSTEM']);
+      const { data } = await axios.post(getRoiConfigurationUrl(), payload);
+      return data;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
 
 // restore-defaults-modal
 const setShowRestoreDefaultsModal = (state, { payload }) => {
   state.showRestoreDefaultsModal = payload;
 };
 
-// load-configuration
-const loadConfigurationRequested = (state) => {
+// restore-defaults
+const restoreDefaultsRequested = (state) => {
   state.loading = true;
   state.error = null;
+  state.showRestoreDefaultsModal = false;
 };
 
-const loadConfigurationRejected = (state, { payload }) => {
+const restoreDefaultsRejected = (state, { payload }) => {
   state.loading = false;
-  state.error = payload;
+  state.error = Messages.getHttpErrorMessage(payload);
 };
 
-const loadConfigurationFulfilled = (state) => {
+const restoreDefaultsFulfilled = (state, { payload }) => {
   state.loading = false;
   state.error = null;
-  // TODO: map payload to configuration state.
+  state.configuration = mapPayloadToConfiguration(payload);
 };
 
-const loadConfiguration = createAsyncThunk(`${REDUCER_NAME}/loadConfiguration`, async (_, { rejectWithValue }) => {
+const restoreDefaults = createAsyncThunk(`${REDUCER_NAME}/restoreDefaults`, async (_, { rejectWithValue }) => {
   try {
     await checkPermissions(['CONFIGURE_SYSTEM']);
-    return Promise.resolve({});
+    const { data } = await axios.post(getRoiConfigurationRestoreDefaultsUrl('usd'));
+    return data;
   } catch (error) {
     return rejectWithValue(error);
   }
@@ -164,15 +230,18 @@ const editRoiConfigurationPageSlice = createSlice({
   initialState,
   reducers: {
     updateConfigurationValue,
-    updateSecurityViolationValue,
-    toggleConfigurationBooleanValue,
-    toggleSecurityViolationEnabled,
     setShowRestoreDefaultsModal,
   },
   extraReducers: {
     [loadConfiguration.pending]: loadConfigurationRequested,
     [loadConfiguration.rejected]: loadConfigurationRejected,
     [loadConfiguration.fulfilled]: loadConfigurationFulfilled,
+    [updateConfiguration.pending]: updateConfigurationRequested,
+    [updateConfiguration.rejected]: updateConfigurationRejected,
+    [updateConfiguration.fulfilled]: updateConfigurationFulfilled,
+    [restoreDefaults.pending]: restoreDefaultsRequested,
+    [restoreDefaults.rejected]: restoreDefaultsRejected,
+    [restoreDefaults.fulfilled]: restoreDefaultsFulfilled,
   },
 });
 
@@ -181,4 +250,6 @@ export default editRoiConfigurationPageSlice.reducer;
 export const actions = {
   ...editRoiConfigurationPageSlice.actions,
   loadConfiguration,
+  updateConfiguration,
+  restoreDefaults,
 };

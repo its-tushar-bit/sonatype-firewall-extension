@@ -1,0 +1,93 @@
+-- Since 1.188
+-- SaaS Compatible
+
+ALTER TABLE roi_configuration_default_values DROP COLUMN developer_hourly_rate_default_value;
+
+ALTER TABLE roi_configuration_default_values DROP COLUMN developer_hourly_rate_minimum_value;
+
+ALTER TABLE roi_configuration_default_values DROP COLUMN fix_rate_hours_default_value;
+
+ALTER TABLE roi_configuration_default_values DROP COLUMN fix_rate_hours_minimum_value;
+
+ALTER TABLE roi_configuration_default_values DROP COLUMN security_violation_critical_default_value;
+
+ALTER TABLE roi_configuration_default_values DROP COLUMN security_violation_critical_minimum_value;
+
+ALTER TABLE roi_configuration_default_values DROP COLUMN security_violation_critical_enabled;
+
+ALTER TABLE roi_configuration_default_values DROP COLUMN security_violation_high_default_value;
+
+ALTER TABLE roi_configuration_default_values DROP COLUMN security_violation_high_minimum_value;
+
+ALTER TABLE roi_configuration_default_values DROP COLUMN security_violation_high_enabled;
+
+ALTER TABLE roi_configuration_default_values DROP COLUMN security_violation_medium_default_value;
+
+ALTER TABLE roi_configuration_default_values DROP COLUMN security_violation_medium_minimum_value;
+
+ALTER TABLE roi_configuration_default_values DROP COLUMN security_violation_medium_enabled;
+
+ALTER TABLE roi_configuration_default_values DROP COLUMN security_violation_low_default_value;
+
+ALTER TABLE roi_configuration_default_values DROP COLUMN security_violation_low_minimum_value;
+
+ALTER TABLE roi_configuration_default_values DROP COLUMN security_violation_low_enabled;
+
+ALTER TABLE roi_configuration_default_values DROP COLUMN waived_policies_counted;
+
+ALTER TABLE roi_configuration DROP COLUMN developer_hourly_rate;
+
+ALTER TABLE roi_configuration DROP COLUMN fix_rate_hours;
+
+ALTER TABLE roi_configuration DROP COLUMN security_violation_critical_enabled;
+
+ALTER TABLE roi_configuration DROP COLUMN security_violation_critical_value;
+
+ALTER TABLE roi_configuration DROP COLUMN security_violation_high_enabled;
+
+ALTER TABLE roi_configuration DROP COLUMN security_violation_high_value;
+
+ALTER TABLE roi_configuration DROP COLUMN security_violation_medium_enabled;
+
+ALTER TABLE roi_configuration DROP COLUMN security_violation_medium_value;
+
+ALTER TABLE roi_configuration DROP COLUMN security_violation_low_enabled;
+
+ALTER TABLE roi_configuration DROP COLUMN security_violation_low_value;
+
+ALTER TABLE roi_configuration DROP COLUMN waived_policies_counted;
+
+ALTER TABLE roi_configuration_default_values ADD COLUMN baseline_days_to_resolve_violation_default int;
+ALTER TABLE roi_configuration_default_values ADD COLUMN baseline_days_to_resolve_violation_minimum int;
+ALTER TABLE roi_configuration_default_values ADD COLUMN daily_risk_cost_of_unfixed_violation_default numeric;
+ALTER TABLE roi_configuration_default_values ADD COLUMN daily_risk_cost_of_unfixed_violation_minimum numeric;
+
+ALTER TABLE roi_configuration ADD COLUMN baseline_days_to_resolve_violation int;
+ALTER TABLE roi_configuration ADD COLUMN daily_risk_cost_of_unfixed_violation numeric;
+
+ALTER TABLE roi_configuration_default_values
+    RENAME COLUMN supply_chain_attacks_blocked_default_value TO malware_attacks_prevented_default;
+ALTER TABLE roi_configuration_default_values
+    RENAME COLUMN supply_chain_attacks_blocked_minimum_value TO malware_attacks_prevented_minimum;
+ALTER TABLE roi_configuration_default_values
+    RENAME COLUMN namespace_attacks_blocked_default_value TO namespace_attacks_prevented_default;
+ALTER TABLE roi_configuration_default_values
+    RENAME COLUMN namespace_attacks_blocked_minimum_value TO namespace_attacks_prevented_minimum;
+ALTER TABLE roi_configuration_default_values
+    RENAME COLUMN safe_components_auto_selected_default_value TO safe_components_auto_selected_default;
+ALTER TABLE roi_configuration_default_values
+    RENAME COLUMN safe_components_auto_selected_minimum_value TO safe_components_auto_selected_minimum;
+
+ALTER TABLE roi_configuration
+    RENAME COLUMN supply_chain_attacks_blocked_value TO malware_attacks_prevented;
+ALTER TABLE roi_configuration
+    RENAME COLUMN namespace_attacks_blocked_value TO namespace_attacks_prevented;
+ALTER TABLE roi_configuration
+    RENAME COLUMN safe_components_auto_selected_value TO safe_components_auto_selected;
+
+UPDATE roi_configuration_default_values SET
+    baseline_days_to_resolve_violation_default = 30,
+    baseline_days_to_resolve_violation_minimum = 15,
+    daily_risk_cost_of_unfixed_violation_default = 800,
+    daily_risk_cost_of_unfixed_violation_minimum = 400
+WHERE currency = 'USD';

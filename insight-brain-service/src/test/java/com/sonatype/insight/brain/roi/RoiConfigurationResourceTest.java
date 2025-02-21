@@ -12,7 +12,6 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
 import com.sonatype.insight.brain.model.roi.CurrencyTypes;
-import com.sonatype.insight.brain.model.roi.RoiConfiguration;
 import com.sonatype.insight.brain.roi.dtos.RoiConfigurationDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -41,29 +40,16 @@ public class RoiConfigurationResourceTest
     dao.getAll().forEach(dao::delete);
     tempEntity.createRoiConfigurationDefaultValues(
         CurrencyTypes.USD,
-        BigDecimal.valueOf(100),
-        BigDecimal.valueOf(50),
-        3600L,
-        1440L,
-        BigDecimal.valueOf(12000),
-        BigDecimal.valueOf(6000),
-        true,
-        BigDecimal.valueOf(24000),
-        BigDecimal.valueOf(12000),
-        true,
-        BigDecimal.valueOf(72000),
-        BigDecimal.valueOf(36000),
-        false,
-        BigDecimal.valueOf(144000),
-        BigDecimal.valueOf(72000),
-        false,
         BigDecimal.valueOf(4350000),
         BigDecimal.valueOf(500000),
         BigDecimal.valueOf(35000),
         BigDecimal.valueOf(10000),
         BigDecimal.valueOf(25000),
         BigDecimal.valueOf(5000),
-        false
+        30,
+        15,
+        BigDecimal.valueOf(800),
+        BigDecimal.valueOf(400)
     );
   }
 
@@ -71,20 +57,11 @@ public class RoiConfigurationResourceTest
   public void testGetCurrentAndMinimumValuesByCurrencyType() throws Exception {
     tempEntity.createRoiConfiguration(
         CurrencyTypes.USD,
-        BigDecimal.valueOf(100),
-        1448L,
-        true,
-        BigDecimal.valueOf(23000),
-        true,
-        BigDecimal.valueOf(30000),
-        false,
-        BigDecimal.valueOf(45000),
-        false,
-        BigDecimal.valueOf(40000),
         BigDecimal.valueOf(50000),
         BigDecimal.valueOf(60000),
         BigDecimal.valueOf(70000),
-        false
+        15,
+        BigDecimal.valueOf(400)
     );
     HttpResponse response = restRequest()
         .parameter("usd")
@@ -113,20 +90,11 @@ public class RoiConfigurationResourceTest
     RoiConfigurationDTO roiConfigurationDTO = new RoiConfigurationDTO(
         null,
         CurrencyTypes.USD,
-        BigDecimal.valueOf(100),
-        1448L,
-        true,
-        BigDecimal.valueOf(23000),
-        true,
-        BigDecimal.valueOf(30000),
-        false,
-        BigDecimal.valueOf(45000),
-        false,
-        BigDecimal.valueOf(80000),
         BigDecimal.valueOf(500000),
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
-        false
+        30,
+        BigDecimal.valueOf(800)
     );
 
     HttpResponse response = restRequest()
@@ -139,115 +107,71 @@ public class RoiConfigurationResourceTest
     RoiConfigurationDTO roiConfigurationDTO = new RoiConfigurationDTO(
         null,
         CurrencyTypes.USD,
-        BigDecimal.valueOf(100),
-        1448L,
-        true,
-        BigDecimal.valueOf(23000),
-        true,
-        BigDecimal.valueOf(30000),
-        false,
-        BigDecimal.valueOf(45000),
-        false,
-        BigDecimal.valueOf(80000),
         BigDecimal.valueOf(500000),
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
-        false
+        30,
+        BigDecimal.valueOf(800)
     );
     HttpResponse response = restRequest()
         .body(roiConfigurationDTO).post();
     assertResponseStatus(200, response);
-    RoiConfigurationDTO roiConfigurationActual = response.getBody(RoiConfigurationDTO.class);
+    RoiConfigurationCurrentAndMinimumValuesDTO roiConfigurationActual =
+        response.getBody(RoiConfigurationCurrentAndMinimumValuesDTO.class);
     assertThat(roiConfigurationActual).isNotNull();
-    assertThat(roiConfigurationActual.currency()).isEqualTo(CurrencyTypes.USD);
-    assertThat(roiConfigurationActual.developerHourlyRate()).isEqualTo(BigDecimal.valueOf(100));
-    assertThat(roiConfigurationActual.fixRateHours()).isEqualTo(1448L);
-    assertThat(roiConfigurationActual.securityViolationCriticalEnabled()).isTrue();
-    assertThat(roiConfigurationActual.securityViolationCriticalValue()).isEqualTo(BigDecimal.valueOf(23000));
-    assertThat(roiConfigurationActual.securityViolationHighEnabled()).isTrue();
-    assertThat(roiConfigurationActual.securityViolationHighValue()).isEqualTo(BigDecimal.valueOf(30000));
-    assertThat(roiConfigurationActual.securityViolationMediumEnabled()).isFalse();
-    assertThat(roiConfigurationActual.securityViolationMediumValue()).isEqualTo(BigDecimal.valueOf(45000));
-    assertThat(roiConfigurationActual.securityViolationLowEnabled()).isFalse();
+    assertThat(roiConfigurationActual.currency).isEqualTo(CurrencyTypes.USD);
+    assertThat(roiConfigurationActual.baselineDaysToResolveViolation).isEqualTo(30L);
+    assertThat(roiConfigurationActual.dailyRiskCostOfUnfixedViolation).isEqualTo(BigDecimal.valueOf(800));
+    assertThat(roiConfigurationActual.malwareAttacksPrevented).isEqualTo(BigDecimal.valueOf(500000));
+    assertThat(roiConfigurationActual.namespaceAttacksPrevented).isEqualTo(BigDecimal.valueOf(600000));
+    assertThat(roiConfigurationActual.safeComponentsAutoSelected).isEqualTo(BigDecimal.valueOf(700000));
   }
 
   @Test
   public void testSaveRoiConfiguration_Update() throws Exception {
     tempEntity.createRoiConfiguration(
         CurrencyTypes.USD,
-        BigDecimal.valueOf(100),
-        1448L,
-        true,
-        BigDecimal.valueOf(23000),
-        true,
-        BigDecimal.valueOf(30000),
-        false,
-        BigDecimal.valueOf(45000),
-        false,
-        BigDecimal.valueOf(40000),
         BigDecimal.valueOf(50000),
         BigDecimal.valueOf(60000),
         BigDecimal.valueOf(70000),
-        false
+        15,
+        BigDecimal.valueOf(400)
     );
-    RoiConfiguration roiConfiguration = roiConfigurationDAO.getByCurrencyType(CurrencyTypes.USD);
+    roiConfigurationDAO.getByCurrencyType(CurrencyTypes.USD);
     RoiConfigurationDTO roiConfigurationDTO = new RoiConfigurationDTO(
         null,
         CurrencyTypes.USD,
-        BigDecimal.valueOf(1000),
-        1448L,
-        true,
-        BigDecimal.valueOf(30000),
-        true,
-        BigDecimal.valueOf(50000),
-        false,
-        BigDecimal.valueOf(45000),
-        false,
-        BigDecimal.valueOf(80000),
-        BigDecimal.valueOf(500000),
+        BigDecimal.valueOf(550000),
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
-        false
+        30,
+        BigDecimal.valueOf(800)
     );
     HttpResponse response = restRequest()
         .body(roiConfigurationDTO).post();
     assertResponseStatus(200, response);
-    RoiConfigurationDTO roiConfigurationActual = response.getBody(RoiConfigurationDTO.class);
+    RoiConfigurationCurrentAndMinimumValuesDTO roiConfigurationActual =
+        response.getBody(RoiConfigurationCurrentAndMinimumValuesDTO.class);
     assertThat(roiConfigurationActual).isNotNull();
-    assertThat(roiConfigurationActual.id()).isEqualTo(roiConfiguration.getId());
-    assertThat(roiConfigurationActual.currency()).isEqualTo(CurrencyTypes.USD);
-    assertThat(roiConfigurationActual.developerHourlyRate()).isEqualTo(BigDecimal.valueOf(1000));
-    assertThat(roiConfigurationActual.securityViolationCriticalValue()).isEqualTo(BigDecimal.valueOf(30000));
-    assertThat(roiConfigurationActual.securityViolationHighValue()).isEqualTo(BigDecimal.valueOf(50000));
+    assertThat(roiConfigurationActual.currency).isEqualTo(CurrencyTypes.USD);
+    assertThat(roiConfigurationActual.malwareAttacksPrevented).isEqualTo(BigDecimal.valueOf(550000));
+    assertThat(roiConfigurationActual.dailyRiskCostOfUnfixedViolation).isEqualTo(BigDecimal.valueOf(800));
   }
 
   private void assertRoiConfigurationEntityValues(
       RoiConfigurationCurrentAndMinimumValuesDTO roiConfiguration)
   {
     assertThat(roiConfiguration.currency).isEqualTo(CurrencyTypes.USD);
-    assertThat(roiConfiguration.fixRateHoursValue).isEqualTo(1448L);
-    assertThat(roiConfiguration.fixRateHoursMinimum).isEqualTo(1440L);
-    assertThat(roiConfiguration.developerHourlyRateValue).isEqualTo(BigDecimal.valueOf(100));
-    assertThat(roiConfiguration.developerHourlyRateMinimum).isEqualTo(BigDecimal.valueOf(50));
-    assertThat(roiConfiguration.securityViolationCriticalEnabled).isTrue();
-    assertThat(roiConfiguration.securityViolationCriticalValue).isEqualTo(BigDecimal.valueOf(23000));
-    assertThat(roiConfiguration.securityViolationCriticalValueMinimum).isEqualTo(BigDecimal.valueOf(6000));
-    assertThat(roiConfiguration.securityViolationHighEnabled).isTrue();
-    assertThat(roiConfiguration.securityViolationHighValue).isEqualTo(BigDecimal.valueOf(30000));
-    assertThat(roiConfiguration.securityViolationHighValueMinimum).isEqualTo(BigDecimal.valueOf(12000));
-    assertThat(roiConfiguration.securityViolationMediumEnabled).isFalse();
-    assertThat(roiConfiguration.securityViolationMediumValue).isEqualTo(BigDecimal.valueOf(45000));
-    assertThat(roiConfiguration.securityViolationMediumValueMinimum).isEqualTo(BigDecimal.valueOf(36000));
-    assertThat(roiConfiguration.securityViolationLowEnabled).isFalse();
-    assertThat(roiConfiguration.securityViolationLowValue).isEqualTo(BigDecimal.valueOf(40000));
-    assertThat(roiConfiguration.securityViolationLowValueMinimum).isEqualTo(BigDecimal.valueOf(72000));
-    assertThat(roiConfiguration.namespaceAttacksBlockedValue).isEqualTo(BigDecimal.valueOf(60000));
-    assertThat(roiConfiguration.namespaceAttacksBlockedValueMinimum).isEqualTo(BigDecimal.valueOf(10000));
-    assertThat(roiConfiguration.supplyChainAttacksBlockedValue).isEqualTo(BigDecimal.valueOf(50000));
-    assertThat(roiConfiguration.supplyChainAttacksBlockedValueMinimum).isEqualTo(BigDecimal.valueOf(500000));
-    assertThat(roiConfiguration.safeComponentsAutoSelectedValue).isEqualTo(BigDecimal.valueOf(70000));
-    assertThat(roiConfiguration.safeComponentsAutoSelectedValueMinimum).isEqualTo(BigDecimal.valueOf(5000));
-    assertThat(roiConfiguration.waivedPoliciesCounted).isFalse();
+    assertThat(roiConfiguration.namespaceAttacksPrevented).isEqualTo(BigDecimal.valueOf(60000));
+    assertThat(roiConfiguration.namespaceAttacksPreventedMinimum).isEqualTo(BigDecimal.valueOf(10000));
+    assertThat(roiConfiguration.malwareAttacksPrevented).isEqualTo(BigDecimal.valueOf(50000));
+    assertThat(roiConfiguration.malwareAttacksPreventedMinimum).isEqualTo(BigDecimal.valueOf(500000));
+    assertThat(roiConfiguration.safeComponentsAutoSelected).isEqualTo(BigDecimal.valueOf(70000));
+    assertThat(roiConfiguration.safeComponentsAutoSelectedMinimum).isEqualTo(BigDecimal.valueOf(5000));
+    assertThat(roiConfiguration.baselineDaysToResolveViolation).isEqualTo(15L);
+    assertThat(roiConfiguration.baselineDaysToResolveViolationMinimum).isEqualTo(15L);
+    assertThat(roiConfiguration.dailyRiskCostOfUnfixedViolation).isEqualTo(BigDecimal.valueOf(400));
+    assertThat(roiConfiguration.dailyRiskCostOfUnfixedViolationMinimum).isEqualTo(BigDecimal.valueOf(400));
   }
 
   @Test
@@ -267,17 +191,14 @@ public class RoiConfigurationResourceTest
         .path(RoiConfigurationResource.ROI_CONFIGURATION_DEFAULT_VALUES_PATH)
         .post();
     assertResponseStatus(200, response);
-    RoiConfigurationDTO roiConfigurationActual = response.getBody(RoiConfigurationDTO.class);
+    RoiConfigurationCurrentAndMinimumValuesDTO roiConfigurationActual =
+        response.getBody(RoiConfigurationCurrentAndMinimumValuesDTO.class);
     assertThat(roiConfigurationActual).isNotNull();
-    assertThat(roiConfigurationActual.currency()).isEqualTo(CurrencyTypes.USD);
-    assertThat(roiConfigurationActual.developerHourlyRate()).isEqualTo(BigDecimal.valueOf(100));
-    assertThat(roiConfigurationActual.fixRateHours()).isEqualTo(3600L);
-    assertThat(roiConfigurationActual.securityViolationCriticalEnabled()).isTrue();
-    assertThat(roiConfigurationActual.securityViolationCriticalValue()).isEqualTo(BigDecimal.valueOf(12000));
-    assertThat(roiConfigurationActual.securityViolationHighEnabled()).isTrue();
-    assertThat(roiConfigurationActual.securityViolationHighValue()).isEqualTo(BigDecimal.valueOf(24000));
-    assertThat(roiConfigurationActual.securityViolationMediumEnabled()).isFalse();
-    assertThat(roiConfigurationActual.securityViolationMediumValue()).isEqualTo(BigDecimal.valueOf(72000));
-    assertThat(roiConfigurationActual.securityViolationLowEnabled()).isFalse();
+    assertThat(roiConfigurationActual.currency).isEqualTo(CurrencyTypes.USD);
+    assertThat(roiConfigurationActual.malwareAttacksPrevented).isEqualTo(BigDecimal.valueOf(4350000));
+    assertThat(roiConfigurationActual.namespaceAttacksPrevented).isEqualTo(BigDecimal.valueOf(35000));
+    assertThat(roiConfigurationActual.safeComponentsAutoSelected).isEqualTo(BigDecimal.valueOf(25000));
+    assertThat(roiConfigurationActual.baselineDaysToResolveViolation).isEqualTo(30L);
+    assertThat(roiConfigurationActual.dailyRiskCostOfUnfixedViolation).isEqualTo(BigDecimal.valueOf(800));
   }
 }

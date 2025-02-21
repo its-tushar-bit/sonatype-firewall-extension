@@ -32,29 +32,16 @@ public class RoiConfigurationAuthzTest
     dao.getAll().forEach(dao::delete);
     tempEntity.createRoiConfigurationDefaultValues(
         CurrencyTypes.USD,
-        BigDecimal.valueOf(100),
-        BigDecimal.valueOf(50),
-        3600L,
-        1440L,
-        BigDecimal.valueOf(12000),
-        BigDecimal.valueOf(6000),
-        true,
-        BigDecimal.valueOf(24000),
-        BigDecimal.valueOf(12000),
-        true,
-        BigDecimal.valueOf(72000),
-        BigDecimal.valueOf(36000),
-        false,
-        BigDecimal.valueOf(144000),
-        BigDecimal.valueOf(72000),
-        false,
         BigDecimal.valueOf(4350000),
         BigDecimal.valueOf(500000),
         BigDecimal.valueOf(35000),
         BigDecimal.valueOf(10000),
         BigDecimal.valueOf(25000),
         BigDecimal.valueOf(5000),
-        false
+        30,
+        15,
+        BigDecimal.valueOf(800),
+        BigDecimal.valueOf(400)
     );
   }
 
@@ -107,20 +94,11 @@ public class RoiConfigurationAuthzTest
     return new RoiConfigurationDTO(
         null,
         CurrencyTypes.USD,
-        BigDecimal.valueOf(100),
-        1448L,
-        true,
-        BigDecimal.valueOf(23000),
-        true,
-        BigDecimal.valueOf(30000),
-        false,
-        BigDecimal.valueOf(45000),
-        false,
-        BigDecimal.valueOf(80000),
         BigDecimal.valueOf(500000),
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
-        false
+        30,
+        BigDecimal.valueOf(800)
     );
   }
 }

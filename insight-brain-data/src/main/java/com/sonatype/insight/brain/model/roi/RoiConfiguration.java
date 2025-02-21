@@ -28,135 +28,66 @@ public class RoiConfiguration
   @Enumerated(EnumType.STRING)
   private CurrencyTypes currency;
 
-  @Column(name = "developer_hourly_rate")
-  private BigDecimal developerHourlyRate;
+  @Column(name = "malware_attacks_prevented")
+  private BigDecimal malwareAttacksPrevented;
 
-  @Column(name = "fix_rate_hours")
-  private Long fixRateHours;
+  @Column(name = "namespace_attacks_prevented")
+  private BigDecimal namespaceAttacksPrevented;
 
-  @Column(name = "security_violation_critical_enabled")
-  private Boolean securityViolationCriticalEnabled;
-
-  @Column(name = "security_violation_critical_value")
-  private BigDecimal securityViolationCriticalValue;
-
-  @Column(name = "security_violation_high_enabled")
-  private Boolean securityViolationHighEnabled;
-
-  @Column(name = "security_violation_high_value")
-  private BigDecimal securityViolationHighValue;
-
-  @Column(name = "security_violation_medium_enabled")
-  private Boolean securityViolationMediumEnabled;
-
-  @Column(name = "security_violation_medium_value")
-  private BigDecimal securityViolationMediumValue;
-
-  @Column(name = "security_violation_low_enabled")
-  private Boolean securityViolationLowEnabled;
-
-  @Column(name = "security_violation_low_value")
-  private BigDecimal securityViolationLowValue;
-
-  @Column(name = "supply_chain_attacks_blocked_value")
-  private BigDecimal supplyChainAttacksBlocked;
-
-  @Column(name = "namespace_attacks_blocked_value")
-  private BigDecimal namespaceAttacksBlocked;
-
-  @Column(name = "safe_components_auto_selected_value")
+  @Column(name = "safe_components_auto_selected")
   private BigDecimal safeComponentsAutoSelected;
 
-  @Column(name = "waived_policies_counted")
-  private Boolean waivedPoliciesCounted;
+  @Column(name = "baseline_days_to_resolve_violation")
+  private Integer baselineDaysToResolveViolation;
+
+  @Column(name = "daily_risk_cost_of_unfixed_violation")
+  private BigDecimal dailyRiskCostOfUnfixedViolation;
 
   public RoiConfiguration() {
   }
 
   public RoiConfiguration(
       final CurrencyTypes currency,
-      final BigDecimal developerHourlyRate,
-      final Long fixRateHours,
-      final Boolean securityViolationCriticalEnabled,
-      final BigDecimal securityViolationCriticalValue,
-      final Boolean securityViolationHighEnabled,
-      final BigDecimal securityViolationHighValue,
-      final Boolean securityViolationMediumEnabled,
-      final BigDecimal securityViolationMediumValue,
-      final Boolean securityViolationLowEnabled,
-      final BigDecimal securityViolationLowValue,
-      final BigDecimal supplyChainAttacksBlocked,
-      final BigDecimal namespaceAttacksBlocked,
+      final BigDecimal malwareAttacksPrevented,
+      final BigDecimal namespaceAttacksPrevented,
       final BigDecimal safeComponentsAutoSelected,
-      final Boolean waivedPoliciesCounted)
+      final Integer baselineDaysToResolveViolation,
+      final BigDecimal dailyRiskCostOfUnfixedViolation)
   {
     this.currency = currency;
-    this.developerHourlyRate = developerHourlyRate;
-    this.fixRateHours = fixRateHours;
-    this.securityViolationCriticalEnabled = securityViolationCriticalEnabled;
-    this.securityViolationCriticalValue = securityViolationCriticalValue;
-    this.securityViolationHighEnabled = securityViolationHighEnabled;
-    this.securityViolationHighValue = securityViolationHighValue;
-    this.securityViolationMediumEnabled = securityViolationMediumEnabled;
-    this.securityViolationMediumValue = securityViolationMediumValue;
-    this.securityViolationLowEnabled = securityViolationLowEnabled;
-    this.securityViolationLowValue = securityViolationLowValue;
-    this.supplyChainAttacksBlocked = supplyChainAttacksBlocked;
-    this.namespaceAttacksBlocked = namespaceAttacksBlocked;
+    this.malwareAttacksPrevented = malwareAttacksPrevented;
+    this.namespaceAttacksPrevented = namespaceAttacksPrevented;
     this.safeComponentsAutoSelected = safeComponentsAutoSelected;
-    this.waivedPoliciesCounted = waivedPoliciesCounted;
+    this.baselineDaysToResolveViolation = baselineDaysToResolveViolation;
+    this.dailyRiskCostOfUnfixedViolation = dailyRiskCostOfUnfixedViolation;
+  }
+
+  public Integer getBaselineDaysToResolveViolation() {
+    return baselineDaysToResolveViolation;
+  }
+
+  public void setBaselineDaysToResolveViolation(final Integer baselineDaysToResolveViolation) {
+    this.baselineDaysToResolveViolation = baselineDaysToResolveViolation;
+  }
+
+  public BigDecimal getDailyRiskCostOfUnfixedViolation() {
+    return dailyRiskCostOfUnfixedViolation;
+  }
+
+  public void setDailyRiskCostOfUnfixedViolation(final BigDecimal dailyRiskCostOfUnfixedViolation) {
+    this.dailyRiskCostOfUnfixedViolation = dailyRiskCostOfUnfixedViolation;
   }
 
   public CurrencyTypes getCurrency() {
     return currency;
   }
 
-  public BigDecimal getDeveloperHourlyRate() {
-    return developerHourlyRate;
+  public BigDecimal getMalwareAttacksPrevented() {
+    return malwareAttacksPrevented;
   }
 
-  public Long getFixRateHours() {
-    return fixRateHours;
-  }
-
-  public Boolean isSecurityViolationCriticalEnabled() {
-    return securityViolationCriticalEnabled;
-  }
-
-  public BigDecimal getSecurityViolationCriticalValue() {
-    return securityViolationCriticalValue;
-  }
-
-  public Boolean isSecurityViolationHighEnabled() {
-    return securityViolationHighEnabled;
-  }
-
-  public BigDecimal getSecurityViolationHighValue() {
-    return securityViolationHighValue;
-  }
-
-  public Boolean isSecurityViolationMediumEnabled() {
-    return securityViolationMediumEnabled;
-  }
-
-  public BigDecimal getSecurityViolationMediumValue() {
-    return securityViolationMediumValue;
-  }
-
-  public Boolean isSecurityViolationLowEnabled() {
-    return securityViolationLowEnabled;
-  }
-
-  public BigDecimal getSecurityViolationLowValue() {
-    return securityViolationLowValue;
-  }
-
-  public BigDecimal getSupplyChainAttacksBlocked() {
-    return supplyChainAttacksBlocked;
-  }
-
-  public BigDecimal getNamespaceAttacksBlocked() {
-    return namespaceAttacksBlocked;
+  public BigDecimal getNamespaceAttacksPrevented() {
+    return namespaceAttacksPrevented;
   }
 
   public BigDecimal getSafeComponentsAutoSelected() {
@@ -167,64 +98,16 @@ public class RoiConfiguration
     this.currency = currency;
   }
 
-  public void setDeveloperHourlyRate(final BigDecimal developerHourlyRate) {
-    this.developerHourlyRate = developerHourlyRate;
+  public void setMalwareAttacksPrevented(final BigDecimal supplyChainAttacksBlocked) {
+    this.malwareAttacksPrevented = supplyChainAttacksBlocked;
   }
 
-  public void setFixRateHours(final Long fixRateHours) {
-    this.fixRateHours = fixRateHours;
-  }
-
-  public void setSecurityViolationCriticalEnabled(final Boolean securityViolationCriticalEnabled) {
-    this.securityViolationCriticalEnabled = securityViolationCriticalEnabled;
-  }
-
-  public void setSecurityViolationCriticalValue(final BigDecimal securityViolationCriticalValue) {
-    this.securityViolationCriticalValue = securityViolationCriticalValue;
-  }
-
-  public void setSecurityViolationHighEnabled(final Boolean securityViolationHighEnabled) {
-    this.securityViolationHighEnabled = securityViolationHighEnabled;
-  }
-
-  public void setSecurityViolationHighValue(final BigDecimal securityViolationHighValue) {
-    this.securityViolationHighValue = securityViolationHighValue;
-  }
-
-  public void setSecurityViolationMediumEnabled(final Boolean securityViolationMediumEnabled) {
-    this.securityViolationMediumEnabled = securityViolationMediumEnabled;
-  }
-
-  public void setSecurityViolationMediumValue(final BigDecimal securityViolationMediumValue) {
-    this.securityViolationMediumValue = securityViolationMediumValue;
-  }
-
-  public void setSecurityViolationLowEnabled(final Boolean securityViolationLowEnabled) {
-    this.securityViolationLowEnabled = securityViolationLowEnabled;
-  }
-
-  public void setSecurityViolationLowValue(final BigDecimal securityViolationLowValue) {
-    this.securityViolationLowValue = securityViolationLowValue;
-  }
-
-  public void setSupplyChainAttacksBlocked(final BigDecimal supplyChainAttacksBlocked) {
-    this.supplyChainAttacksBlocked = supplyChainAttacksBlocked;
-  }
-
-  public void setNamespaceAttacksBlocked(final BigDecimal namespaceAttacksBlocked) {
-    this.namespaceAttacksBlocked = namespaceAttacksBlocked;
+  public void setNamespaceAttacksPrevented(final BigDecimal namespaceAttacksBlocked) {
+    this.namespaceAttacksPrevented = namespaceAttacksBlocked;
   }
 
   public void setSafeComponentsAutoSelected(final BigDecimal safeComponentsAutoSelected) {
     this.safeComponentsAutoSelected = safeComponentsAutoSelected;
-  }
-
-  public Boolean isWaivedPoliciesCounted() {
-    return waivedPoliciesCounted;
-  }
-
-  public void setWaivedPoliciesCounted(final Boolean waivedPoliciesCounted) {
-    this.waivedPoliciesCounted = waivedPoliciesCounted;
   }
 
   @Override
@@ -239,50 +122,28 @@ public class RoiConfiguration
 
   public RoiConfiguration(
       final CurrencyTypes currency,
-      final BigDecimal supplyChainAttacksBlocked,
-      final BigDecimal namespaceAttacksBlocked,
+      final BigDecimal malwareAttacksPrevented,
+      final BigDecimal namespaceAttacksPrevented,
       final BigDecimal safeComponentsAutoSelected)
   {
     this.currency = currency;
-    this.supplyChainAttacksBlocked = supplyChainAttacksBlocked;
-    this.namespaceAttacksBlocked = namespaceAttacksBlocked;
+    this.malwareAttacksPrevented = malwareAttacksPrevented;
+    this.namespaceAttacksPrevented = namespaceAttacksPrevented;
     this.safeComponentsAutoSelected = safeComponentsAutoSelected;
-    developerHourlyRate = BigDecimal.ZERO;
-    this.fixRateHours = 0L;
-    this.securityViolationCriticalValue = BigDecimal.ZERO;
-    this.securityViolationHighValue = BigDecimal.ZERO;
-    this.securityViolationMediumValue = BigDecimal.ZERO;
-    this.securityViolationLowValue = BigDecimal.ZERO;
+    this.baselineDaysToResolveViolation = 0;
+    this.dailyRiskCostOfUnfixedViolation = BigDecimal.ZERO;
   }
 
   public RoiConfiguration(
       final CurrencyTypes currency,
-      final BigDecimal developerHourlyRate,
-      final Long fixRateHours,
-      final Boolean securityViolationCriticalEnabled,
-      final BigDecimal securityViolationCriticalValue,
-      final Boolean securityViolationHighEnabled,
-      final BigDecimal securityViolationHighValue,
-      final Boolean securityViolationMediumEnabled,
-      final BigDecimal securityViolationMediumValue,
-      final Boolean securityViolationLowEnabled,
-      final BigDecimal securityViolationLowValue,
-      final Boolean waivedPoliciesCounted)
+      final Integer baselineDaysToResolveViolation,
+      final BigDecimal dailyRiskCostOfUnfixedViolation)
   {
     this.currency = currency;
-    this.developerHourlyRate = developerHourlyRate;
-    this.fixRateHours = fixRateHours;
-    this.securityViolationCriticalEnabled = securityViolationCriticalEnabled;
-    this.securityViolationCriticalValue = securityViolationCriticalValue;
-    this.securityViolationHighEnabled = securityViolationHighEnabled;
-    this.securityViolationHighValue = securityViolationHighValue;
-    this.securityViolationMediumEnabled = securityViolationMediumEnabled;
-    this.securityViolationMediumValue = securityViolationMediumValue;
-    this.securityViolationLowEnabled = securityViolationLowEnabled;
-    this.securityViolationLowValue = securityViolationLowValue;
-    this.waivedPoliciesCounted = waivedPoliciesCounted;
     safeComponentsAutoSelected = BigDecimal.ZERO;
-    namespaceAttacksBlocked = BigDecimal.ZERO;
-    supplyChainAttacksBlocked = BigDecimal.ZERO;
+    namespaceAttacksPrevented = BigDecimal.ZERO;
+    malwareAttacksPrevented = BigDecimal.ZERO;
+    this.dailyRiskCostOfUnfixedViolation = dailyRiskCostOfUnfixedViolation;
+    this.baselineDaysToResolveViolation = baselineDaysToResolveViolation;
   }
 }

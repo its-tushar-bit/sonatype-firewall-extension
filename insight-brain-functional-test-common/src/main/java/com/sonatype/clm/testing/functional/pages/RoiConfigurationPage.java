@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.functional.pages;
 import com.codeborne.selenide.SelenideElement;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
-import com.sonatype.clm.testing.functional.elements.NxCheckbox;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 public class RoiConfigurationPage
@@ -36,47 +35,32 @@ public class RoiConfigurationPage
     return new Button(childSelector("#roi-configuration-page__button__edit"));
   }
 
-  public SelenideElement developerHourlyRate() {
-    return child("#roi-configuration-page__numeric-value__developer-hourly-rate");
+  public SelenideElement lifecycleTitle() {
+    return child("#roi-configuration-page__lifecycle-title");
   }
 
-  public SelenideElement fixRate() {
-    return child("#roi-configuration-page__numeric-value__fix-rate");
+  public SelenideElement baselineDaysToResolveViolation() {
+    return child("#roi-configuration-page__numeric-value__baseline-days-to-resolve-violation");
   }
 
-  public SelenideElement supplyChainAttacksBlocked() {
-    return child("#roi-configuration-page__numeric-value__supply-chain-attacks-blocked");
+  public SelenideElement dailyRiskCostOfUnfixedViolation() {
+    return child("#roi-configuration-page__numeric-value__daily-risk-cost-of-unfixed-violation");
   }
 
-  public SelenideElement namespaceAttacksBlocked() {
-    return child("#roi-configuration-page__numeric-value__namespace-attacks-blocked");
+  public SelenideElement firewallTitle() {
+    return child("#roi-configuration-page__firewall-title");
+  }
+
+  public SelenideElement malwareAttacksPrevented() {
+    return child("#roi-configuration-page__numeric-value__malware-attacks-prevented");
+  }
+
+  public SelenideElement namespaceAttacksPrevented() {
+    return child("#roi-configuration-page__numeric-value__namespace-attacks-prevented");
   }
 
   public SelenideElement safeComponentsAutoSelected() {
     return child("#roi-configuration-page__numeric-value__safe-components-auto-selected");
-  }
-
-  public class SecurityViolationContent
-  {
-    public SelenideElement critical() {
-      return child("#roi-configuration-page__security-violation-types-content__critical");
-    }
-
-    public SelenideElement high() {
-      return child("#roi-configuration-page__security-violation-types-content__high");
-    }
-
-    public SelenideElement medium() {
-      return child("#roi-configuration-page__security-violation-types-content__medium");
-    }
-
-    public SelenideElement low() {
-      return child("#roi-configuration-page__security-violation-types-content__low");
-    }
-  }
-
-  public NxCheckbox waivedViolationsCheckbox() {
-    return new NxCheckbox(child("#roi-configuration-page__checkbox__waived-violations"));
   }
 
   public SelenideElement loadError() {

@@ -9,8 +9,8 @@ import * as R from 'ramda';
 import {
   NxButton,
   NxButtonBar,
-  NxCheckbox,
   NxDivider,
+  NxErrorAlert,
   NxFooter,
   NxH1,
   NxH2,
@@ -20,16 +20,16 @@ import {
   NxP,
   NxPageMain,
   NxTextInput,
+  NxTextLink,
   NxTile,
   NxWarningAlert,
 } from '@sonatype/react-shared-components';
 
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import { selectHasFirewallLicense, selectHasLifecycleLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
-import { ROI_SECURITY_VIOLATION_TYPES } from 'MainRoot/configuration/roiConfiguration/roiConfigurationPageSlice';
-import { capitalize } from 'MainRoot/util/jsUtil';
 
-import { selectEditRoiConfigurationPageSlice } from './editRoiConfigurationPageSelectors';
+import { selectEditRoiConfigurationPageSlice, selectHasValidationErrors } from './editRoiConfigurationPageSelectors';
 import { actions } from './editRoiConfigurationPageSlice';
 
 import './EditRoiConfigurationPage.scss';
@@ -37,17 +37,21 @@ import './EditRoiConfigurationPage.scss';
 const createIdTestIdPair = R.compose(R.zipObj(['id', 'data-testid']), R.repeat(R.__, 2));
 
 const EditRoiConfigurationPage = () => {
+  const uiRouterState = useRouterState();
   const dispatch = useDispatch();
+
   const hasLifecycleLicense = useSelector(selectHasLifecycleLicense);
   const hasFirewallLicense = useSelector(selectHasFirewallLicense);
+  const hasValidationError = useSelector(selectHasValidationErrors);
+  const { loading, error, configuration, showRestoreDefaultsModal } = useSelector(selectEditRoiConfigurationPageSlice);
 
   const licenseError = R.complement(R.or)(hasLifecycleLicense, hasFirewallLicense)
     ? 'Must have Lifecycle or Repository Firewall license to configure ROI metrics.'
     : null;
 
-  const { loading, error, configuration, showRestoreDefaultsModal } = useSelector(selectEditRoiConfigurationPageSlice);
-
   const loadPage = () => dispatch(actions.loadConfiguration());
+
+  const roiConfigurationPageHref = uiRouterState.href('roiConfiguration');
 
   const openRestoreDefaultsModal = () => dispatch(actions.setShowRestoreDefaultsModal(true));
   const closeRestoreDefaultsModal = () => dispatch(actions.setShowRestoreDefaultsModal(false));
@@ -56,41 +60,12 @@ const EditRoiConfigurationPage = () => {
     loadPage();
   }, []);
 
-  const setNumericInputProps = (id, key, isSecurityViolation = false) => {
-    const valueState = isSecurityViolation ? configuration.securityViolation[key] : configuration[key];
-    return {
-      ...valueState.input,
-      ...createIdTestIdPair(`edit-roi-configuration-page__input__${id}`),
-      disabled: !valueState.enabled,
-      onChange: (value) =>
-        dispatch(
-          actions[isSecurityViolation ? 'updateSecurityViolationValue' : 'updateConfigurationValue']({ key, value })
-        ),
-      validatable: true,
-    };
-  };
-
-  const toggleSecurityViolationEnabled = (key) => dispatch(actions.toggleSecurityViolationEnabled({ key }));
-
-  const securityViolationInputs = (
-    <div className="edit-roi-configuration-page__security-violation">
-      {ROI_SECURITY_VIOLATION_TYPES.map((key) => (
-        <div className="edit-roi-configuration-page__security-violation__item" key={key}>
-          <div className="edit-roi-configuration-page__security-violation__checkbox-container">
-            <NxCheckbox
-              inputAttributes={createIdTestIdPair(`edit-roi-configuration-page__security-violation-checkbox__${key}`)}
-              onChange={() => toggleSecurityViolationEnabled(key)}
-              isChecked={configuration.securityViolation[key].enabled}
-            />
-          </div>
-          <div className="edit-roi-configuration-page__security-violation__input-container">
-            <label htmlFor={`security-violation-${key}`}>{`Security-${capitalize(key)}`}</label>
-            <NxTextInput {...setNumericInputProps(`security-violation-${key}`, key, true)} />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+  const setNumericInputProps = (id, key) => ({
+    ...configuration[key].input,
+    ...createIdTestIdPair(`edit-roi-configuration-page__input__${id}`),
+    onChange: (value) => dispatch(actions.updateConfigurationValue({ key, value })),
+    validatable: true,
+  });
 
   return (
     <NxPageMain id="edit-roi-configuration-page" className="edit-roi-configuration-page">
@@ -98,6 +73,7 @@ const EditRoiConfigurationPage = () => {
       {showRestoreDefaultsModal && (
         <NxModal
           id="edit-roi-configuration-page__restore-defaults-modal"
+          className="restore-defaults-modal"
           onCancel={closeRestoreDefaultsModal}
           variant="narrow"
         >
@@ -110,8 +86,14 @@ const EditRoiConfigurationPage = () => {
           </NxModal.Content>
           <NxFooter>
             <NxButtonBar>
-              <NxButton onClick={closeRestoreDefaultsModal}>Cancel</NxButton>
-              <NxButton variant="primary" onClick={() => {}}>
+              <NxButton className="restore-defaults-modal__cancel-button" onClick={closeRestoreDefaultsModal}>
+                Cancel
+              </NxButton>
+              <NxButton
+                className="restore-defaults-modal__restore-button"
+                variant="primary"
+                onClick={() => dispatch(actions.restoreDefaults())}
+              >
                 Restore
               </NxButton>
             </NxButtonBar>
@@ -131,9 +113,9 @@ const EditRoiConfigurationPage = () => {
               values are provided based on industry benchmarks but can be customized to reflect the specific needs of
               your organization or sector.
             </NxP>
-            <dl className="edit-roi-configuration-description-list">
-              <div className="edit-roi-configuration-description-list__item">
-                <dt>Currency</dt>
+            <dl className="edit-roi-configuration-page-description-list">
+              <div className="edit-roi-configuration-page-description-list__item">
+                <dt>Currency for ROI calculations.</dt>
                 <dd>United States Dollar (USD)</dd>
               </div>
             </dl>
@@ -144,45 +126,35 @@ const EditRoiConfigurationPage = () => {
                 <NxH2 id="edit-roi-configuration-page__lifecycle-title">Lifecycle Metrics</NxH2>
                 <NxP>
                   To determine the ROI for reported on policy violation in Sonatype Lifecycle, provide an estimate of
-                  your cost per hour for your teams to remediate violations.
+                  the cost per hour for your teams to remediate violations.
                 </NxP>
-                <dl className="edit-roi-configuration-description-list">
-                  <div className="edit-roi-configuration-description-list__item">
-                    <dt>Developer Hourly Rate</dt>
+                <dl className="edit-roi-configuration-page-description-list">
+                  <div className="edit-roi-configuration-page-description-list__item">
+                    <dt>Baseline days to resolve violation</dt>
                     <dd>
-                      <label htmlFor="edit-roi-configuration-page__input__developer-hourly-rate">
-                        Hourly cost for working on remediation.
+                      <label htmlFor="edit-roi-configuration-page__input__baseline-days-to-resolve-violation">
+                        Average days to resolve a violation
                       </label>
-                      <NxTextInput {...setNumericInputProps('developer-hourly-rate', 'developerHourlyRate')} />
+                      <NxTextInput
+                        {...setNumericInputProps(
+                          'baseline-days-to-resolve-violation',
+                          'baselineDaysToResolveViolation'
+                        )}
+                      />
                     </dd>
                   </div>
-                  <div className="edit-roi-configuration-description-list__item">
-                    <dt>Fix Rate</dt>
+                  <div className="edit-roi-configuration-page-description-list__item">
+                    <dt>Daily risk of unfixed violation</dt>
                     <dd>
-                      <label htmlFor="edit-roi-configuration-page__input__fix-rate">
-                        The expected (estimated) number of hours to remediate by violations types
+                      <label htmlFor="edit-roi-configuration-page__input__daily-risk-cost-of-unfixed-violation">
+                        Estimated cost to the organization per day of unresolved violations
                       </label>
-                      <NxTextInput {...setNumericInputProps('fix-rate', 'fixRate')} />
-                    </dd>
-                  </div>
-                  <div className="edit-roi-configuration-description-list__item">
-                    <dt>Security Violation Types</dt>
-                    <dd>
-                      <small>Types of violations configured to be enforced by Lifecycle</small>
-                      {securityViolationInputs}
-                    </dd>
-                  </div>
-                  <div className="edit-roi-configuration-description-list__item">
-                    <dt>Waived Violations</dt>
-                    <dd>
-                      <NxCheckbox
-                        isChecked={!!configuration.waivedViolations}
-                        onChange={() => dispatch(actions.toggleConfigurationBooleanValue({ key: 'waivedViolations' }))}
-                        inputAttributes={createIdTestIdPair('edit-roi-configuration-page__checkbox__waived-violations')}
-                      >
-                        Enable if you would like to include the waived violations when calculating the time taken to
-                        remediate the policy violation.
-                      </NxCheckbox>
+                      <NxTextInput
+                        {...setNumericInputProps(
+                          'daily-risk-cost-of-unfixed-violation',
+                          'dailyRiskCostOfUnfixedViolation'
+                        )}
+                      />
                     </dd>
                   </div>
                 </dl>
@@ -192,31 +164,31 @@ const EditRoiConfigurationPage = () => {
               <>
                 <NxH2 id="edit-roi-configuration-page__firewall-title">Repository Firewall Metrics</NxH2>
                 <NxP>
-                  To show the ROI for Repository Firewall provide the estimate cost/value to your team for each of the
+                  To show the ROI for Repository Firewall provide the estimated cost/value to your team for each of the
                   provided features.
                 </NxP>
-                <dl className="edit-roi-configuration-description-list">
-                  <div className="edit-roi-configuration-description-list__item">
-                    <dt>Supply chain attacks blocked</dt>
+                <dl className="edit-roi-configuration-page-description-list">
+                  <div className="edit-roi-configuration-page-description-list__item">
+                    <dt>Malware attacks prevented</dt>
                     <dd>
-                      <label htmlFor="edit-roi-configuration-page__input__supply-chain-attacks-blocked">
+                      <label htmlFor="edit-roi-configuration-page__input__malware-attacks-prevented">
                         Detected violations for security-malicious components.
                       </label>
+                      <NxTextInput {...setNumericInputProps('malware-attacks-prevented', 'malwareAttacksPrevented')} />
+                    </dd>
+                  </div>
+                  <div className="edit-roi-configuration-page-description-list__item">
+                    <dt>Namespace attacks prevented</dt>
+                    <dd>
+                      <label htmlFor="edit-roi-configuration-page__input__namespace-attacks-prevented">
+                        Detected violations for namespace-conflict components.
+                      </label>
                       <NxTextInput
-                        {...setNumericInputProps('supply-chain-attacks-blocked', 'supplyChainAttacksBlocked')}
+                        {...setNumericInputProps('namespace-attacks-prevented', 'namespaceAttacksPrevented')}
                       />
                     </dd>
                   </div>
-                  <div className="edit-roi-configuration-description-list__item">
-                    <dt>Namespace attacks blocked</dt>
-                    <dd>
-                      <label htmlFor="edit-roi-configuration-page__input__namespace-attacks-blocked">
-                        Detected violations for namespace-conflict components.
-                      </label>
-                      <NxTextInput {...setNumericInputProps('namespace-attacks-blocked', 'namespaceAttacksBlocked')} />
-                    </dd>
-                  </div>
-                  <div className="edit-roi-configuration-description-list__item">
+                  <div className="edit-roi-configuration-page-description-list__item">
                     <dt>Safe components auto-selected</dt>
                     <dd>
                       <label htmlFor="edit-roi-configuration-page__input__safe-components-auto-selected">
@@ -230,13 +202,33 @@ const EditRoiConfigurationPage = () => {
                 </dl>
               </>
             )}
+            {hasValidationError && (
+              <NxErrorAlert {...createIdTestIdPair('edit-roi-configuration-page__alert__validation-error')}>
+                There were validation errors. There are no changes to save.
+              </NxErrorAlert>
+            )}
           </NxTile.Content>
           <NxFooter>
             <NxButtonBar>
-              <NxButton onClick={openRestoreDefaultsModal}>Restore Default Values</NxButton>
-              <NxButton variant="primary" onClick={() => {}}>
-                Update
+              <NxTextLink
+                id="edit-roi-configuration-page__button__cancel"
+                className="nx-btn nx-btn--tertiary"
+                href={roiConfigurationPageHref}
+              >
+                Cancel
+              </NxTextLink>
+              <NxButton id="edit-roi-configuration-page__button__restore-defaults" onClick={openRestoreDefaultsModal}>
+                Restore Default Values
               </NxButton>
+              {!hasValidationError ? (
+                <NxButton
+                  id="edit-roi-configuration-page__button__update"
+                  variant="primary"
+                  onClick={() => dispatch(actions.updateConfiguration())}
+                >
+                  Update
+                </NxButton>
+              ) : null}
             </NxButtonBar>
           </NxFooter>
         </NxLoadWrapper>

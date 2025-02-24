@@ -4,14 +4,19 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { axiosMockAdapter, render } from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, render, waitFor, within } from 'TestRoot/SpecUtil';
 import {
   getEnterpriseReportingGenerateEmbedTokensUrl,
   getEnterpriseReportingAcquireEmbedSessionUrl,
   getEnterpriseReportingBaseUrl,
+  getEnterpriseReportingDashboardsUrl,
   getProductFeaturesUrl,
 } from 'MainRoot/util/CLMLocation';
+import { initialState } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 import EnterpriseReportingDashboardPage from 'MainRoot/enterpriseReporting/dashboard/EnterpriseReportingDashboardPage';
+import { actions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+import * as routerContext from 'MainRoot/react/RouterStateContext';
 import { screen } from '@testing-library/dom';
 import { LookerEmbedSDK } from '@looker/embed-sdk';
 
@@ -19,6 +24,38 @@ describe('EnterpriseReportingDashboardPage', () => {
   let axiosMock, renderPage;
 
   const mockLookerBaseUrl = 'https://sonatypeinstance.looker.com';
+  const dashboardMetadata = [
+    {
+      dashboardId: 'rolling-recap',
+      title: 'Rolling Recap Dashboard',
+      description: 'Unlock trends by comparing your usage with the rest of the industry, over the past year.',
+      features: ['Analyze app performance', 'Compare initial & latest scans', 'View security experts’ rating'],
+      accessButtonText: 'View Rolling Recap',
+      previewImage: '',
+      priority: 1,
+      spotlight: false,
+    },
+    {
+      dashboardId: 'ai-consumption',
+      title: 'Machine Learning AI',
+      description: 'Observe Machine Learning (ML) components and integrations within your software.',
+      features: ['Sort components by AI type', 'Monitor AI within your apps', 'Isolate exact locations of AI'],
+      accessButtonText: 'View ML/AI',
+      previewImage: '',
+      priority: 2,
+      spotlight: true,
+    },
+    {
+      dashboardId: 'success-metrics',
+      title: 'Success Metrics',
+      description: 'Explore your vulnerability discovery and remediation patterns',
+      features: ['Follow remediation activity', 'Analyze violation pattners', 'Explore apps an components'],
+      accessButtonText: 'View Success Metrics',
+      previewImage: '',
+      priority: -20,
+      spotlight: true,
+    },
+  ];
 
   renderPage = () =>
     render(<EnterpriseReportingDashboardPage />, {
@@ -35,6 +72,7 @@ describe('EnterpriseReportingDashboardPage', () => {
 
   beforeEach(() => {
     axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['integrated-enterprise-reporting']);
+    axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(200, { dashboardMetadata: dashboardMetadata });
     axiosMock.onGet(getEnterpriseReportingBaseUrl()).reply(200, mockLookerBaseUrl);
     axiosMock.onGet(getEnterpriseReportingAcquireEmbedSessionUrl('rolling-recap')).reply(200, {
       authentication_token: 'authentication_token',
@@ -64,7 +102,9 @@ describe('EnterpriseReportingDashboardPage', () => {
 
     expect(screen.getByRole('status')).toBeInTheDocument();
     expect(await screen.findByRole('enterprise-reporting-dashboard')).toBeInTheDocument();
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
   });
 
   it('shows error when there are API errors', async () => {
@@ -87,5 +127,90 @@ describe('EnterpriseReportingDashboardPage', () => {
     const errorMessage = await screen.findByText('An error occurred loading data. Data Insights feature not supported');
     expect(errorMessage).toBeVisible();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('calls setSelectDashboard according to the dashboardId from the url', async () => {
+    const selectedDashboardSpy = jest.spyOn(actions, 'setSelectedDashboard');
+    jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({ id: 'ai-consumption' });
+
+    render(<EnterpriseReportingDashboardPage />, { initialState });
+    await waitFor(() => {
+      expect(selectedDashboardSpy).toHaveBeenCalledWith(dashboardMetadata[1]);
+    });
+  });
+
+  describe('Dashboard Navigation Links', () => {
+    let hrefSpy, routerContextMock;
+    const loadedState = {
+      dashboardsData: dashboardMetadata,
+      loading: false,
+      loadError: null,
+      selectedDashboard: { dashboardId: 'rolling-recap', dashboardPath: 'rolling_recap::rolling_recap' },
+    };
+
+    beforeEach(() => {
+      hrefSpy = jest.fn('href').mockImplementation((stateName, stateParam) => `/${stateName}/${stateParam.id}`);
+      routerContextMock = { href: hrefSpy };
+      jest.spyOn(routerContext, 'useRouterState').mockReturnValue(routerContextMock);
+      jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({
+        id: 'rolling-recap',
+      });
+    });
+
+    const renderComponent = (props) => render(<EnterpriseReportingDashboardPage {...props} />);
+
+    it('renders a navigation link for dashboard when not on its page ', async () => {
+      renderComponent(loadedState);
+      const nav = screen.getByRole('navigation');
+
+      const linkItemTests = (link, title, id) => {
+        expect(link).toHaveTextContent(title);
+        expect(link).toHaveAttribute('href', `/enterpriseReportingDashboard/${id}`);
+        expect(hrefSpy).toHaveBeenCalledWith('enterpriseReportingDashboard', {
+          id: id,
+        });
+      };
+
+      await waitFor(() => {
+        const linkItems = within(nav).getAllByRole('link');
+        expect(linkItems.length).toBe(2);
+        linkItemTests(linkItems[0], 'Success Metrics', 'success-metrics');
+        linkItemTests(linkItems[1], 'Machine Learning AI', 'ai-consumption');
+      });
+    });
+
+    it("renders text instead of navigation link when on dashboard's page", async () => {
+      renderComponent(loadedState);
+      const nav = screen.getByRole('navigation');
+
+      await waitFor(() => {
+        const rollingRecap = screen.getByText('Rolling Recap Dashboard');
+        expect(rollingRecap).toBeInTheDocument();
+        expect(rollingRecap.tagName).toBe('SPAN');
+      });
+      const rollingRecapLink = within(nav).queryByRole('link', { name: 'Rolling Recap Dashboard' });
+      expect(rollingRecapLink).not.toBeInTheDocument();
+    });
+
+    it('separates dashboards into Foundational and Data Insights categories', async () => {
+      renderComponent(loadedState);
+      const nav = screen.getByRole('navigation');
+      expect(nav).toBeInTheDocument();
+
+      const foundational = within(nav).getByRole('heading', { name: 'Foundational Dashboards:' });
+      const dataInsights = within(nav).getByRole('heading', { name: 'Data Insights:' });
+      expect(foundational).toBeInTheDocument();
+      expect(dataInsights).toBeInTheDocument();
+
+      await waitFor(() => {
+        const foundationalList = within(foundational.nextElementSibling).getAllByRole('link');
+        expect(foundationalList.length).toBe(1);
+        expect(foundationalList[0]).toHaveTextContent('Success Metrics');
+
+        const dataInsightsList = within(dataInsights.nextElementSibling).getAllByRole('link');
+        expect(dataInsightsList.length).toBe(1);
+        expect(dataInsightsList[0]).toHaveTextContent('Machine Learning AI');
+      });
+    });
   });
 });

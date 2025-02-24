@@ -405,6 +405,12 @@ public class UserInterfaceLinksResourceTest
         "assets/index.html#/developer/priorities/" + appPublicId + "/scan-id");
   }
 
+  @Test
+  public void linkToEnterpriseReportingDashboard() throws Exception {
+    HttpResponse response = get(UserInterfaceLinksHelper.ENTERPRISE_REPORTING_DASHBOARD_PATH, "success-metrics");
+    assertRedirect(response, "assets/index.html#/enterpriseReportingDashboard/success-metrics");
+  }
+
   private Map<TelemetryPurpose, List<TelemetryItem>> getTelemetryItemsByPurpose(
       final Map<ByteArrayDataSource, Integer> responses)
       throws MessagingException, IOException

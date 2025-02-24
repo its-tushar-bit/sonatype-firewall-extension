@@ -5,9 +5,9 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { getEnterpriseReportingBaseUrl } from 'MainRoot/util/CLMLocation';
+import { getEnterpriseReportingBaseUrl, getEnterpriseReportingDashboardsUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { always, prop } from 'ramda';
+import { always, path, prop, compose, nth, applySpec } from 'ramda';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 const REDUCER_NAME = 'enterpriseReportingDashboard';
@@ -17,29 +17,41 @@ export const initialState = {
   loadError: null,
   baseUrl: null,
   selectedDashboard: null,
+  dashboardsData: null,
 };
 
-function loadRequested(state) {
+const loadRequested = (state) => {
   state.loading = true;
   state.loadError = null;
-}
+};
 
 const loadFulfilled = (state, { payload }) => {
   if (payload) {
-    state.baseUrl = new URL(payload).host;
+    state.baseUrl = new URL(payload.baseUrl).host;
+    state.dashboardsData = payload.dashboards;
   }
   state.loading = false;
 };
 
-function loadFailed(state, { payload }) {
+const loadFailed = (state, { payload }) => {
   state.loading = false;
   state.loadError = Messages.getHttpErrorMessage(payload);
-}
+};
 
 const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { rejectWithValue, dispatch }) => {
-  return dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded())
-    .then(() => axios.get(getEnterpriseReportingBaseUrl()))
-    .then(prop('data'))
+  const promises = [
+    dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded()),
+    axios.get(getEnterpriseReportingDashboardsUrl()),
+    axios.get(getEnterpriseReportingBaseUrl()),
+  ];
+
+  return Promise.all(promises)
+    .then(
+      applySpec({
+        dashboards: compose(path(['data', 'dashboardMetadata']), nth(1)),
+        baseUrl: compose(prop('data'), nth(2)),
+      })
+    )
     .catch(rejectWithValue);
 });
 

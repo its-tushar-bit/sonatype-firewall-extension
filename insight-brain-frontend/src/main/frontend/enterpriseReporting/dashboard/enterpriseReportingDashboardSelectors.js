@@ -6,8 +6,6 @@
 import { prop } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 
-export const enterpriseReportingDashboardSlice = prop('enterpriseReportingDashboard');
-export const selectLoading = createSelector(enterpriseReportingDashboardSlice, prop('loading'));
-export const selectError = createSelector(enterpriseReportingDashboardSlice, prop('loadError'));
-export const selectSelectedDashboard = createSelector(enterpriseReportingDashboardSlice, prop('selectedDashboard'));
-export const selectBaseUrl = (state) => enterpriseReportingDashboardSlice(state)?.baseUrl;
+export const selectEnterpriseReportingDashboard = prop('enterpriseReportingDashboard');
+export const selectSelectedDashboard = createSelector(selectEnterpriseReportingDashboard, prop('selectedDashboard'));
+export const selectBaseUrl = (state) => selectEnterpriseReportingDashboard(state)?.baseUrl;

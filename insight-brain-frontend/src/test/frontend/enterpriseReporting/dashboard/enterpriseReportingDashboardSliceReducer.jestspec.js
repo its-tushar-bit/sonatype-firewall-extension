@@ -9,6 +9,28 @@ describe('enterpriseReportingDashboardReducer', () => {
   let initialState;
 
   const baseUrl = 'http://looker.com/';
+  const dashboardMetadata = [
+    {
+      dashboardId: 'rolling-recap',
+      title: 'Rolling Recap Dashboard: Past 365 Days',
+      description: 'Unlock trends by comparing your usage with the rest of the industry, over the past year.',
+      features: ['Analyze app performance', 'Compare initial & latest scans', 'View security experts’ rating'],
+      accessButtonText: 'View Rolling Recap',
+      previewImage: '',
+      priority: 1,
+      spotlight: false,
+    },
+    {
+      dashboardId: 'ai-consumption',
+      title: 'ML/AI: Apps Using Machine Learning',
+      description: 'Observe Machine Learning (ML) components and integrations within your software.',
+      features: ['Sort components by AI type', 'Monitor AI within your apps', 'Isolate exact locations of AI'],
+      accessButtonText: 'View ML/AI',
+      previewImage: '',
+      priority: 2,
+      spotlight: true,
+    },
+  ];
 
   beforeEach(() => {
     const dummyAction = { type: 'DUMMY_ACTION' };
@@ -21,6 +43,7 @@ describe('enterpriseReportingDashboardReducer', () => {
       expect(initialState.loadError).toBeNull();
       expect(initialState.baseUrl).toBeNull();
       expect(initialState.selectedDashboard).toBeNull();
+      expect(initialState.dashboardsData).toBeNull();
     });
   });
 
@@ -62,11 +85,12 @@ describe('enterpriseReportingDashboardReducer', () => {
       const oldState = {};
       const newState = reducer(oldState, {
         type: 'enterpriseReportingDashboard/load/fulfilled',
-        payload: baseUrl,
+        payload: { baseUrl: baseUrl, dashboards: dashboardMetadata },
       });
 
       expect(newState).toEqual({
         baseUrl: 'looker.com',
+        dashboardsData: dashboardMetadata,
         loading: false,
       });
     });

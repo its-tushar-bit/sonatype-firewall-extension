@@ -69,6 +69,9 @@ public class UserInterfaceLinksHelper
 
   public static final String SBOM_BOM_VIEW_PATH =
       "sbomManager/management/view/application/{applicationPublicId}/bom/{version}";
+  
+  public static final String ENTERPRISE_REPORTING_DASHBOARD_PATH =
+      "enterpriseReporting/{dashboardId}";
 
   private static String buildStableUrl(String path) {
     return UriBuilder.fromPath(RESOURCE_PATH).path(path).build().toString();

@@ -372,6 +372,14 @@ public class UserInterfaceLinksResource
     return redirect(uriBuilder, applicationPublicId, version);
   }
 
+  @GET
+  @Path(ENTERPRISE_REPORTING_DASHBOARD_PATH)
+  public Response linkToEnterpriseReportingDashboard(@PathParam("dashboardId") String dashboardId) {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(ASSET_INDEX_PATH).fragment("/enterpriseReportingDashboard/{dashboardId}");
+    return redirect(uriBuilder, dashboardId);
+  }
+
   private Response linkToPrioritiesReportRedirect(final String applicationPublicId, final String scanId) {
     final UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(ASSET_INDEX_PATH).fragment(PRIORITIES_PATH);

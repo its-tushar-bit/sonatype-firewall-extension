@@ -9,6 +9,7 @@ import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { prop } from 'ramda';
 import { LookerEmbedSDK } from '@looker/embed-sdk';
+import { useDebounceCallback } from '@react-hook/debounce';
 
 import {
   selectBaseUrl,
@@ -62,10 +63,16 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard') {
     }
   };
 
+  // this prevents dashboards loading twice if link is double clicked, or breaking if navigating
+  // too quickly between dashboards
+  const runLookerQuery = useDebounceCallback(function runLookerQuery() {
+    LookerEmbedSDK.initCookieless(baseUrl, acquireEmbedSession, generateEmbedTokens);
+    embedDashboard();
+  }, 300);
+
   useEffect(() => {
     if (baseUrl && selectedDashboard) {
-      LookerEmbedSDK.initCookieless(baseUrl, acquireEmbedSession, generateEmbedTokens);
-      embedDashboard();
+      runLookerQuery();
     }
   }, [baseUrl, selectedDashboard]);
 

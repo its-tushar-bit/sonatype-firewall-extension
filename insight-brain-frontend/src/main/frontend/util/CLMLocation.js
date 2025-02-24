@@ -65,6 +65,10 @@ export const getEnterpriseReportingGenerateEmbedTokensUrl = () =>
 export const getEnterpriseReportingIconUrl = (iconName) =>
   uriTemplate`/rest/enterpriseReporting/dashboard/icons/${iconName}`;
 
+export const getEnterpriseReportingSelectedDashboardUrl = (dashboardId) => {
+  return uriTemplate`/ui/links/enterpriseReporting/${dashboardId}`;
+};
+
 export function getRoleForNewUrl() {
   return uriTemplate`/rest/security/roles/new`;
 }

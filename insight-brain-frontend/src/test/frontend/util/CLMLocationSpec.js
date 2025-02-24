@@ -1787,6 +1787,15 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getEnterpriseReportingSelectedDashboardUrl', () => {
+    it('returns the correct URL with the given parameter', () => {
+      const dashboardId = 'success-metrics';
+      const expectedUrl = `/ui/links/enterpriseReporting/${dashboardId}`;
+
+      expect(clmLocation.getEnterpriseReportingSelectedDashboardUrl(dashboardId)).toEqual(expectedUrl);
+    });
+  });
+
   describe('getApplicationReportHistoryUrl', () => {
     it('returns the url to get the application report history by application ID or public ID and stage ID', () => {
       const applicationId = 'someApplicationId';

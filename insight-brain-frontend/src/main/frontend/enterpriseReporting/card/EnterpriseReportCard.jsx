@@ -9,21 +9,14 @@ import PropTypes from 'prop-types';
 import { NxButton, NxH2, NxList, NxP, NxTag, NxTile, selectableColors } from '@sonatype/react-shared-components';
 import { useDispatch } from 'react-redux';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { actions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 import { getEnterpriseReportingIconUrl } from 'MainRoot/util/CLMLocation';
 
 export default function EnterpriseReportCard(props) {
   const { dashboard: dashboard } = props;
-  const setSelectedDashboard = (value) => dispatch(actions.setSelectedDashboard(value));
 
   const dispatch = useDispatch();
-  const navigateToEnterpriseReportingDashboard = () => {
-    setSelectedDashboard(dashboard);
-    dispatch(stateGo('enterpriseReportingDashboard'));
-  };
 
   const color = selectableColors.includes(dashboard.spotlightColor) ? dashboard.spotlightColor : selectableColors[4];
-
   const spotlightText = dashboard.spotlightText ? dashboard.spotlightText : 'NEW';
   const btnClassName = 'iq-enterprise-reporting__dashboard__btn dashboard-id-btn-' + dashboard.dashboardId;
 
@@ -57,7 +50,11 @@ export default function EnterpriseReportCard(props) {
                   </NxList.Item>
                 ))}
               </NxList>
-              <NxButton variant="tertiary" className={btnClassName} onClick={navigateToEnterpriseReportingDashboard}>
+              <NxButton
+                variant="tertiary"
+                className={btnClassName}
+                onClick={() => dispatch(stateGo('enterpriseReportingDashboard', { id: dashboard.dashboardId }))}
+              >
                 {dashboard.accessButtonText}
               </NxButton>
             </div>

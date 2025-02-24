@@ -102,6 +102,26 @@ public class PolicyEvaluateServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
+  public void testEvaluateWithPollingByStatusId_Unauthenticated() {
+    policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
+        new Stage(BuildStageType.ID), "statusId", null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testEvaluateWithPollingByStatusId_Authorized_MissingFeatureFlag() {
+    grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
+    policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
+        new Stage(BuildStageType.ID), "statusId", null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testEvaluateWithPollingByStatusId_Unauthorized() {
+    login();
+    policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
+        new Stage(BuildStageType.ID), "statusId", null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
   public void testPollEvaluationResult_Unauthenticated() {
     policyEvaluateService.pollEvaluationResult(app.getPublicId(), "statusId");
   }

@@ -14,6 +14,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -24,6 +25,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.organization.PolicyEvaluationRequestDTO;
 import com.sonatype.insight.brain.policy.componentanalysis.ComponentAnalysisService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultDTO;
@@ -49,6 +51,8 @@ public class ApplicationEvaluationResource
   static final String EVALUATE_PATH = "{integrationType: ci|cli|rm}/stages/{stageId}";
 
   static final String COMPONENT_ANALYSIS_PATH = EVALUATE_PATH + "/component-analysis";
+
+  static final String POLICY_EVALUATION_PATH = EVALUATE_PATH + "/policy-evaluation";
 
   static final String STATUS_PATH = "status/{statusId}";
 
@@ -91,6 +95,42 @@ public class ApplicationEvaluationResource
   {
     return policyEvaluateService
         .evaluateWithPolling(integrationType, applicationPublicId, clientScanType, req, stage);
+  }
+
+  /**
+   * Since an evaluation is now broken down to a multistep process (component-analysis and policy-evaluation),
+   * this function starts the 2nd step of an evaluation, i.e. the policy evaluation step of a scanned file
+   * for an application based on the integration, type, stage and statusId. Also supports callflow information passed
+   * via the {@link PolicyEvaluationRequestDTO}. After starting will return a {@link PolicyEvaluationReceipt}
+   * for requester to use to check on results via {@link #pollEvaluationResult(String, String)}
+   *
+   * @param integrationType {@link IntegrationType}
+   * @param applicationPublicId public shared id
+   * @param clientScanType {@link ClientScanType}
+   * @param req {@link HttpServletRequest}
+   * @param stage {@link Stage}
+   * @param statusId status ID of the previously-run component analysis step
+   * @param policyEvaluationRequestDTO {@link PolicyEvaluationRequestDTO}
+   * @return PolicyEvaluationReceipt
+   */
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(POLICY_EVALUATION_PATH)
+  @Audited(AuditEvent.EVALUATE_APPLICATION)
+  public PolicyEvaluationReceipt evaluateWithPollingByStatusId(
+      @PathParam("integrationType") final IntegrationType integrationType,
+      @PathParam("applicationPublicId") final String applicationPublicId,
+      @QueryParam("scanType") ClientScanType clientScanType,
+      @Context HttpServletRequest req,
+      @PathParam("stageId") final Stage stage,
+      @QueryParam("statusId") final String statusId,
+      final PolicyEvaluationRequestDTO policyEvaluationRequestDTO)
+  {
+    return policyEvaluateService
+        .evaluateWithPolling(
+            integrationType, applicationPublicId, clientScanType,
+            req, stage, statusId, policyEvaluationRequestDTO.getAnalysisDTO());
   }
 
   /**

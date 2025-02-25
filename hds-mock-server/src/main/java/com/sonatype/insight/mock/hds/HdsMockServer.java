@@ -359,7 +359,7 @@ public class HdsMockServer
         }
         else if (uri.equals("/rest/component/details/firewall/ignorePatterns") && "GET".equals(request.getMethod())) {
           consume(baseRequest);
-          sendJson(response, "{\"regexpsByRepositoryFormat\":{}}");
+          sendJson(response, "{\"regexpsByRepositoryFormat\":{ \"maven2\":[], \"npm\":[], \"nuget\":[], \"pypi\":[]}}");
         }
         else if (uri.equals("/rest/componentCategories") && "GET".equals(request.getMethod())) {
           consume(baseRequest);

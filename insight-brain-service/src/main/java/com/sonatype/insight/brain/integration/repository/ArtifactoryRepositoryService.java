@@ -40,11 +40,13 @@ public class ArtifactoryRepositoryService extends AbstractRepositoryService
       RepositoryDAO repositoryDAO,
       RepositoryComponentDAO repositoryComponentDAO,
       RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      FirewallIgnorePatternService firewallIgnorePatternService,
       RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService)
   {
     super(repositoryPolicyEvaluator, proprietaryComponentNameDetector, productLicense, policyViolationLoggerFactory,
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY, repositoryComponentTelemetryCreator,
         quarantinedComponentAccessManager, quarantineHdsClient, telemetrySender, repositoryManagerDAO, repositoryDAO,
-        repositoryComponentDAO, repositoryPolicyViolationDAO, requestSafeComponentsMetricEventService);
+        repositoryComponentDAO, repositoryPolicyViolationDAO,
+        firewallIgnorePatternService, requestSafeComponentsMetricEventService);
   }
 }

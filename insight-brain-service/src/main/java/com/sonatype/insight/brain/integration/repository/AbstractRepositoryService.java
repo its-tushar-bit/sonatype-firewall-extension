@@ -116,6 +116,8 @@ public abstract class AbstractRepositoryService
 
   private final TelemetrySender telemetrySender;
 
+  private final FirewallIgnorePatternService firewallIgnorePatternService;
+
   static final String REPOSITORY_COMPONENT_REQUESTED_VERSION_COUNT = "repository_component_requested_version_count";
 
   static final String REPOSITORY_COMPONENT_POLICY_COMPLIANT_VERSION_COUNT =
@@ -143,6 +145,7 @@ public abstract class AbstractRepositoryService
       RepositoryDAO repositoryDAO,
       RepositoryComponentDAO repositoryComponentDAO,
       RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      FirewallIgnorePatternService firewallIgnorePatternService,
       RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
@@ -158,6 +161,7 @@ public abstract class AbstractRepositoryService
     this.repositoryDAO = repositoryDAO;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.firewallIgnorePatternService = firewallIgnorePatternService;
     this.requestSafeComponentsMetricEventService = requestSafeComponentsMetricEventService;
   }
 
@@ -814,7 +818,44 @@ public abstract class AbstractRepositoryService
     return result;
   }
 
-  void addProprietaryComponentNames(
+  public void addProprietaryNamespaceNames(
+      final String repositoryManagerInstanceId,
+      final String repositoryPublicId,
+      final String format,
+      final List<String> namespaces)
+  {
+    if (namespaces == null || namespaces.isEmpty()) {
+      throw new BadRequestException("namespaces must be provided.");
+    }
+    else if (format == null) {
+      throw new BadRequestException("format must be provided.");
+    }
+    else if (!validateFormat(format)) {
+      throw new BadRequestException(String.format("'%s' format is not supported.", format));
+    }
+
+    ProprietaryComponentNames proprietaryComponentNames = new ProprietaryComponentNames(format);
+    proprietaryComponentNames.addNamespaces(namespaces);
+
+    AuditData.get().setData("repositoryPublicId", repositoryPublicId);
+    addProprietaryComponentNames(repositoryManagerInstanceId, repositoryPublicId, proprietaryComponentNames);
+  }
+
+  private boolean validateFormat(final String format) {
+    return firewallIgnorePatternService.getIgnorePatterns().regexpsByRepositoryFormat.containsKey(format);
+  }
+
+  public void removeProprietaryNamespaceNames(
+      final String repositoryManagerInstanceId,
+      final String repositoryPublicId)
+  {
+    checkLicenseFeature();
+
+    AuditData.get().setData("repositoryPublicId", repositoryPublicId);
+    removeProprietaryComponentNames(repositoryManagerInstanceId, repositoryPublicId);
+  }
+
+  public void addProprietaryComponentNames(
       String repositoryManagerInstanceId,
       String repositoryPublicId,
       ProprietaryComponentNames proprietaryComponentNames)
@@ -944,7 +985,7 @@ public abstract class AbstractRepositoryService
     }
   }
 
-  void removeProprietaryComponentNames(String repositoryManagerInstanceId, String repositoryPublicId) {
+  public void removeProprietaryComponentNames(String repositoryManagerInstanceId, String repositoryPublicId) {
     AuditData.get().setRepositoryManagerInstanceId(repositoryManagerInstanceId);
 
     Repository repository =

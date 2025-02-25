@@ -13,10 +13,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.mail.Message;
 
@@ -231,7 +230,7 @@ public abstract class AbstractRepositoryServiceTest
     policyViolationLogDTOAssert = new PolicyViolationLogDTOAssert(repositoryManagerDAO);
 
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
-    hdsResult.regexpsByRepositoryFormat = new HashMap<>();
+    hdsResult.regexpsByRepositoryFormat = Map.of("npm", List.of("random_ignore_pattern"));
     lenient().when(
             hdsClient.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
@@ -2102,6 +2101,60 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
+  public void testAddProprietaryNamespaceNames() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+
+    getRepositoryService().addProprietaryNamespaceNames(repoManager.getInstanceId(), repo.getPublicId(),
+        "npm", List.of("@sonatype"));
+
+    List<ProprietaryComponentNamePattern> patterns =
+        proprietaryComponentNamePatternDAO.getByFormat(ComponentIdentifier.FORMAT_NPM);
+    assertThat(patterns).allSatisfy(pattern -> {
+      assertThat(pattern.getFormat()).isEqualTo(ComponentIdentifier.FORMAT_NPM);
+      assertThat(pattern.getRepositoryId()).isEqualTo(repo.getId());
+    }).extracting(ProprietaryComponentNamePattern::getNamespacePattern, ProprietaryComponentNamePattern::getNamePattern)
+        .containsExactly(tuple("@sonatype", null));
+  }
+
+  @Test
+  public void testAddProprietaryNamespaceNames_ValidatesNamespacesPresent() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().addProprietaryNamespaceNames(repoManager.getInstanceId(), repo.getPublicId(),
+          "npm", List.of());
+    }).withMessage("namespaces must be provided.");
+  }
+
+  @Test
+  public void testAddProprietaryNamespaceNames_ValidatesFormatPresent() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().addProprietaryNamespaceNames(repoManager.getInstanceId(), repo.getPublicId(),
+          null, List.of("@sonatype"));
+    }).withMessage("format must be provided.");
+  }
+
+  @Test
+  public void testAddProprietaryNamespaceNames_ValidatesFormatIsValid() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().addProprietaryNamespaceNames(repoManager.getInstanceId(), repo.getPublicId(),
+          "notnpm", List.of("@sonatype"));
+    }).withMessage("'notnpm' format is not supported.");
+  }
+
+  @Test
   public void testAddProprietaryComponentNames() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo =
@@ -3071,7 +3124,7 @@ public abstract class AbstractRepositoryServiceTest
 
     Repository existingRepository =
         repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(),
-        repository.getName());
+            repository.getName());
     assertThat(existingRepository.getId()).isEqualTo(repository.getId());
     assertThat(existingRepository.getFormat()).isEqualTo(repository.getFormat());
     assertThat(existingRepository.getRepositoryType()).isEqualTo(RepositoryType.proxy);
@@ -3307,6 +3360,17 @@ public abstract class AbstractRepositoryServiceTest
 
   @Test
   public void testRemoveProprietaryComponentNames_NotHostedRepository() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.proxy, ComponentIdentifier.FORMAT_NPM);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().removeProprietaryComponentNames(repoManager.getInstanceId(), repo.getPublicId());
+    }).withMessage("Repository " + repo.getPublicId() + " (" + repo.getId() + ") is not a hosted repository");
+  }
+
+  @Test
+  public void testRemoveProprietaryNamespaceNames_NotHostedRepository() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo =
         tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.proxy, ComponentIdentifier.FORMAT_NPM);

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import java.util.List;
+
 import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -513,5 +515,47 @@ public abstract class AbstractRepositoryServiceAuthzTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     login();
     getRepositoryService().getConfiguredRepositories(repositoryManager.getInstanceId(), 0L, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddProprietaryNamespaceNames_ExistingRepository_Unauthorized() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo = tempEntity.newHostedRepository(repoManager, "testRepoPublicId", "npm", true);
+    login();
+    getRepositoryService().addProprietaryNamespaceNames(repoManager.getInstanceId(), repo.getPublicId(),
+        "npm", List.of("org.sonatype"));
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddProprietaryNamespaceNames_Unauthenticated() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repo = tempEntity.newHostedRepository(repositoryManager, "testRepoPublicId", "npm", true);
+    getRepositoryService().addProprietaryNamespaceNames(
+        repositoryManager.getInstanceId(), repo.getPublicId(), "npm", List.of("org.sonatype"));
+  }
+
+  @Test
+  public void testAddProprietaryNamespaceNames_ExistingRepository_Authorized() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo = tempEntity.newHostedRepository(repoManager, "testRepoPublicId", "npm", true);
+    grantEvaluateComponentPermission(repo.getId());
+    getRepositoryService().addProprietaryNamespaceNames(repoManager.getInstanceId(), repo.getPublicId(),
+        "npm", List.of("org.sonatype"));
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testRemoveProprietaryNamespaceNames_ExistingRepository_Unauthorized() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo = tempEntity.newHostedRepository(repoManager, "testRepoPublicId", "npm", true);
+    login();
+    getRepositoryService().removeProprietaryNamespaceNames(repoManager.getInstanceId(), repo.getPublicId());
+  }
+
+  @Test
+  public void testRemoveProprietaryNamespaceNames_ExistingRepository_Authorized() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo = tempEntity.newHostedRepository(repoManager, "testRepoPublicId", "npm", true);
+    grantEvaluateComponentPermission(repo.getId());
+    getRepositoryService().removeProprietaryNamespaceNames(repoManager.getInstanceId(), repo.getPublicId());
   }
 }

@@ -816,6 +816,7 @@ public class PolicyEvaluateService
     dto.reason = res.getReason();
     dto.scanReceipt = res.getScanReceipt();
     dto.nextPollingIntervalInSeconds = res.getNextPollingIntervalInSeconds();
+    dto.statusId = persistedPolicyEvaluationPollingResult.getStatusId();
 
     Set<Feature> features = featuresService.getFeatures();
     if (features.contains(SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS)) {

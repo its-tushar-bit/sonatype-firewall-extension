@@ -68,6 +68,19 @@ public class RestClientFactory
     }
 
     @Override
+    public PolicyEvaluationPollingResult runPolicyEvaluation(
+        final String appId,
+        final String stageId,
+        final ClientScanResult clientScanResult,
+        final ClientScanType clientScanType,
+        final String statusId,
+        final VulnerabilitySignatureAnalysisDTO analysisDTO) throws IOException
+    {
+      return new PolicyClient(config, appId)
+          .runPolicyEvaluationForCLI(clientScanResult, clientScanType, new Stage(stageId), statusId, analysisDTO);
+    }
+
+    @Override
     public PolicyEvaluationPollingResult runComponentAnalysis(
         final String appId,
         final String stageId,
@@ -104,6 +117,19 @@ public class RestClientFactory
     @Override
     public ScanReceipt uploadScan(String appId, File scanFile, ClientScanType clientScanType) {
       throw new UnsupportedOperationException("Uploading a scan file is not supported.");
+    }
+
+    @Override
+    public PolicyEvaluationPollingResult runPolicyEvaluation(
+        final String appId,
+        final String stageId,
+        final ClientScanResult clientScanResult,
+        final ClientScanType clientScanType,
+        final String statusId,
+        final VulnerabilitySignatureAnalysisDTO analysisDTO) throws IOException
+    {
+      return new PolicyClient(config, appId)
+          .runPolicyEvaluationForCI(clientScanResult, new Stage(stageId), statusId, analysisDTO);
     }
 
     @Override
@@ -255,6 +281,19 @@ public class RestClientFactory
     {
       return new CallFlowAnalysisConfigClient(config).getAnalysisCallFlowConfig(ownerType, ownerId);
     }
+
+    /**
+     * Run the policy evaluation of a previous run component analysis.
+     *
+     * @since 1.188
+     */
+    public abstract PolicyEvaluationPollingResult runPolicyEvaluation(
+        final String appId,
+        final String stageId,
+        final ClientScanResult clientScanResult,
+        final ClientScanType clientScanType,
+        final String statusId,
+        final VulnerabilitySignatureAnalysisDTO analysisDT) throws IOException;
 
     /**
      * Run the component analysis phase of the distributed evaluation process for the given application and stage.

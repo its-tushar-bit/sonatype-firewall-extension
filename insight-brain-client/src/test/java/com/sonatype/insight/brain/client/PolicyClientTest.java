@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
@@ -40,6 +41,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
+import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.createTestAnalysisDTO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -162,6 +165,211 @@ public class PolicyClientTest
   }
 
   @Test
+  public void testContinueEvaluateCLI() throws Exception {
+    assertContinueEvaluationCLIWithThirdPartyScanContent(false);
+  }
+
+  @Test
+  public void testContinueEvaluateCLI_withThirdPartyScanContent() throws Exception {
+    assertContinueEvaluationCLIWithThirdPartyScanContent(true);
+  }
+
+  private void assertContinueEvaluationCLIWithThirdPartyScanContent(boolean thirdPartyScanningEnabled)
+      throws Exception
+  {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+
+    Application application = tempEntity.newApplicationWithParent();
+    File scanFile = createScanFile(application);
+    mockScanReceiptAndReport();
+
+    Configuration config = getCLMServer().getClientConfiguration();
+    Logger logger = mock(Logger.class);
+    PolicyClient policyClient = new PolicyClient(config, application.getPublicId(), logger);
+
+    ClientScanResult clientScanResult = new ClientScanResult(scanFile, false);
+    Stage stage = new Stage(Stage.ID_BUILD);
+    PolicyEvaluationPollingResult componentAnalyzePollingResult =
+        policyClient.runComponentAnalysisForCLI(clientScanResult, ClientScanType.SONATYPE, stage);
+
+    ComponentIdentifier componentIdentifier = createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+    String vulnerabilityIdentifier = "CVE-2012-0022";
+
+    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
+        application.getId(),
+        componentAnalyzePollingResult.getScanReceipt().getScanId(),
+        componentIdentifier,
+        vulnerabilityIdentifier,
+        lookup(InsightWork.class)
+    );
+
+    PolicyEvaluationPollingResult policyEvaluationResult = policyClient.runPolicyEvaluationForCLI(
+        new ClientScanResult(scanFile, thirdPartyScanningEnabled),
+        ClientScanType.SONATYPE,
+        stage,
+        componentAnalyzePollingResult.getStatusId(),
+        analysisDTO
+    );
+    assertThat(policyEvaluationResult).isNotNull();
+
+    verify(logger, times(2))
+        .debug("Amending source control record for application with id: {} with discovered repository URL",
+            application.getPublicId()
+        );
+    verify(logger, never())
+        .debug("Repository URL for application with id: {} could not be found.", application.getPublicId());
+  }
+
+  @Test
+  public void testContinueEvaluateCLI_RetriesUntilComplete() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+
+    Application application = tempEntity.newApplicationWithParent();
+    File scanFile = createScanFile(application);
+    mockScanReceiptAndReport();
+
+    Configuration config = getCLMServer().getClientConfiguration();
+    Logger logger = mock(Logger.class);
+    PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId(), logger));
+
+    ClientScanResult clientScanResult = new ClientScanResult(scanFile, false);
+    Stage stage = new Stage(Stage.ID_BUILD);
+    PolicyEvaluationPollingResult componentAnalyzePollingResult =
+        policyClient.runComponentAnalysisForCLI(clientScanResult, ClientScanType.SONATYPE, stage);
+
+    ComponentIdentifier componentIdentifier = createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+    String vulnerabilityIdentifier = "CVE-2012-0022";
+
+    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
+        application.getId(),
+        componentAnalyzePollingResult.getScanReceipt().getScanId(),
+        componentIdentifier,
+        vulnerabilityIdentifier,
+        lookup(InsightWork.class)
+    );
+
+    PolicyEvaluationPollingResult pendingResult = new PolicyEvaluationPollingResult();
+    pendingResult.setStatus(PolicyEvaluationStatus.PENDING);
+    PolicyEvaluationPollingResult completedResult = new PolicyEvaluationPollingResult();
+    completedResult.setStatus(PolicyEvaluationStatus.COMPLETED);
+    completedResult.setResult(new PolicyEvaluationResult());
+
+    doReturn(pendingResult)
+        .doReturn(pendingResult)
+        .doReturn(completedResult)
+        .when(policyClient)
+        .parseResult(any(Result.class), eq(PolicyEvaluationPollingResult.class));
+
+    PolicyEvaluationPollingResult policyEvaluationResult = policyClient.runPolicyEvaluationForCLI(
+        new ClientScanResult(scanFile, false),
+        ClientScanType.SONATYPE,
+        stage,
+        componentAnalyzePollingResult.getStatusId(),
+        analysisDTO
+    );
+
+    assertThat(policyEvaluationResult).isNotNull();
+
+    verify(policyClient, times(5))
+        .parseResult(any(Result.class), eq(PolicyEvaluationPollingResult.class));
+  }
+
+  @Test
+  public void testContinueEvaluateCLI_DoesNotPollWhenPolicyEvaluationReceiptRequestFails() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+
+    Application application = tempEntity.newApplicationWithParent();
+    File scanFile = createScanFile(application);
+    mockScanReceiptAndReport();
+
+    Configuration config = getCLMServer().getClientConfiguration();
+    Logger logger = mock(Logger.class);
+    PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId(), logger));
+
+    ClientScanResult clientScanResult = new ClientScanResult(scanFile, false);
+    Stage stage = new Stage(Stage.ID_BUILD);
+    PolicyEvaluationPollingResult componentAnalyzePollingResult =
+        policyClient.runComponentAnalysisForCLI(clientScanResult, ClientScanType.SONATYPE, stage);
+
+    ComponentIdentifier componentIdentifier = createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+    String vulnerabilityIdentifier = "CVE-2012-0022";
+
+    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
+        application.getId(),
+        componentAnalyzePollingResult.getScanReceipt().getScanId(),
+        componentIdentifier,
+        vulnerabilityIdentifier,
+        lookup(InsightWork.class)
+    );
+
+    doThrow(IOException.class).when(policyClient)
+        .parseResult(any(Result.class), eq(PolicyEvaluationReceipt.class));
+
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> policyClient.runPolicyEvaluationForCLI(
+            new ClientScanResult(scanFile, false),
+            ClientScanType.SONATYPE,
+            stage,
+            componentAnalyzePollingResult.getStatusId(),
+            analysisDTO
+        ));
+
+    verify(policyClient, times(2))
+        .parseResult(any(Result.class), eq(PolicyEvaluationPollingResult.class));
+  }
+
+  @Test
+  public void testContinueEvaluateCLI_StopsRetryingWhenFailed() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+
+    Application application = tempEntity.newApplicationWithParent();
+    File scanFile = createScanFile(application);
+    mockScanReceiptAndReport();
+
+    Configuration config = getCLMServer().getClientConfiguration();
+    Logger logger = mock(Logger.class);
+    PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId(), logger));
+
+    ClientScanResult clientScanResult = new ClientScanResult(scanFile, false);
+    Stage stage = new Stage(Stage.ID_BUILD);
+    PolicyEvaluationPollingResult componentAnalyzePollingResult =
+        policyClient.runComponentAnalysisForCLI(clientScanResult, ClientScanType.SONATYPE, stage);
+
+    ComponentIdentifier componentIdentifier = createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+    String vulnerabilityIdentifier = "CVE-2012-0022";
+
+    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
+        application.getId(),
+        componentAnalyzePollingResult.getScanReceipt().getScanId(),
+        componentIdentifier,
+        vulnerabilityIdentifier,
+        lookup(InsightWork.class)
+    );
+
+    String failureReason = "FAILURE REASON";
+    PolicyEvaluationPollingResult failedResult = new PolicyEvaluationPollingResult();
+    failedResult.setStatus(PolicyEvaluationStatus.FAILED);
+    failedResult.setReason(failureReason);
+
+    doReturn(failedResult)
+        .when(policyClient)
+        .parseResult(any(Result.class), eq(PolicyEvaluationPollingResult.class));
+
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() ->
+            policyClient.runPolicyEvaluationForCLI(
+            new ClientScanResult(scanFile, false),
+            ClientScanType.SONATYPE,
+            stage,
+            componentAnalyzePollingResult.getStatusId(),
+            analysisDTO
+        )).withMessage("Policy evaluation could not be completed: " + failureReason);
+
+    verify(policyClient, times(3))
+        .parseResult(any(Result.class), eq(PolicyEvaluationPollingResult.class));
+  }
+
+  @Test
   public void testEvaluateCI() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
     Application application = tempEntity.newApplicationWithParent("test-app");
@@ -179,6 +387,50 @@ public class PolicyClientTest
     verify(logger, never()).debug(
         "Amending source control record for application with id: {} with discovered repository URL", "test-app");
     verify(logger, never()).debug("Repository URL for application with id: {} could not be found.", "test-app");
+  }
+
+  @Test
+  public void testContinueEvaluateCI() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+
+    Application application = tempEntity.newApplicationWithParent();
+    File scanFile = createScanFile(application);
+    mockScanReceiptAndReport();
+
+    Configuration config = getCLMServer().getClientConfiguration();
+    Logger logger = mock(Logger.class);
+    PolicyClient policyClient = new PolicyClient(config, application.getPublicId(), logger);
+
+    ClientScanResult clientScanResult = new ClientScanResult(scanFile, false);
+    Stage stage = new Stage(Stage.ID_BUILD);
+    PolicyEvaluationPollingResult componentAnalyzePollingResult =
+        policyClient.runComponentAnalysisForCI(clientScanResult, stage);
+
+    ComponentIdentifier componentIdentifier = createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+    String vulnerabilityIdentifier = "CVE-2012-0022";
+
+    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
+        application.getId(),
+        componentAnalyzePollingResult.getScanReceipt().getScanId(),
+        componentIdentifier,
+        vulnerabilityIdentifier,
+        lookup(InsightWork.class)
+    );
+
+    PolicyEvaluationPollingResult policyEvaluationResult = policyClient.runPolicyEvaluationForCI(
+        clientScanResult,
+        stage,
+        componentAnalyzePollingResult.getStatusId(),
+        analysisDTO
+    );
+    assertThat(policyEvaluationResult).isNotNull();
+
+    verify(logger, never()).debug(
+        "Amending source control record for application with id: {} with discovered repository URL",
+        application.getPublicId()
+    );
+    verify(logger, never())
+        .debug("Repository URL for application with id: {} could not be found.", application.getPublicId());
   }
 
   @Test

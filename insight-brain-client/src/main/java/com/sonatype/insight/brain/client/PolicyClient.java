@@ -13,6 +13,7 @@ import java.util.Optional;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationReceipt;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationRequestDTO;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
@@ -36,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus.FAILED;
 import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public class PolicyClient
     extends AbstractRequestClient
@@ -56,9 +58,13 @@ public class PolicyClient
 
   private static final String STAGES_SUB_PATH = "/stages/";
 
+  private static final String POLICY_EVALUATION_SUB_PATH = "/policy-evaluation";
+
   private static final String COMPONENT_ANALYSIS_SUB_PATH = "/component-analysis";
 
   private static final String SCAN_TYPE = "scanType";
+
+  private static final String STATUS_ID = "statusId";
 
   private final Logger log;
 
@@ -119,6 +125,45 @@ public class PolicyClient
   /**
    * @since 1.188
    */
+  public PolicyEvaluationPollingResult runPolicyEvaluationForCLI(
+      final ClientScanResult clientScanResult,
+      final ClientScanType clientScanType,
+      final Stage stage,
+      final String statusId,
+      final VulnerabilitySignatureAnalysisDTO analysisDTO) throws IOException
+  {
+    return evaluate(
+        CLI_INTEGRATION_PATH,
+        clientScanResult.getScanFile(),
+        getClientScanType(clientScanResult, clientScanType),
+        stage,
+        statusId,
+        analysisDTO
+    );
+  }
+
+  /**
+   * @since 1.188
+   */
+  public PolicyEvaluationPollingResult runPolicyEvaluationForCI(
+      final ClientScanResult clientScanResult,
+      final Stage stage,
+      final String statusId,
+      final VulnerabilitySignatureAnalysisDTO analysisDTO) throws IOException
+  {
+    return evaluate(
+        CI_INTEGRATION_PATH,
+        clientScanResult.getScanFile(),
+        clientScanResult.getClientScanType(),
+        stage,
+        statusId,
+        analysisDTO
+    );
+  }
+
+  /**
+   * @since 1.188
+   */
   public PolicyEvaluationPollingResult runComponentAnalysisForCLI(
       final ClientScanResult clientScanResult,
       final ClientScanType clientScanType,
@@ -145,12 +190,33 @@ public class PolicyClient
                                          final ClientScanType clientScanType,
                                          final Stage stage) throws IOException
   {
+    return evaluate(integrationPath, scanFile, clientScanType, stage, null, null);
+  }
+
+  // visible for testing
+  PolicyEvaluationPollingResult evaluate(final String integrationPath,
+                                         final File scanFile,
+                                         final ClientScanType clientScanType,
+                                         final Stage stage,
+                                         final String statusId,
+                                         final VulnerabilitySignatureAnalysisDTO analysisDTO) throws IOException
+  {
     if (CLI_INTEGRATION_PATH.equals(integrationPath)) {
       addOrUpdateSourceControl();
     }
-    final FileEntity entity = new FileEntity(scanFile, GZIP_CONTENT_TYPE);
     long start = System.currentTimeMillis();
-    Result evaluateResult = evaluateResult(integrationPath, clientScanType, stage, entity);
+    Result evaluateResult;
+
+    if (isNotBlank(statusId)) {
+      final PolicyEvaluationRequestDTO requestDTO = new PolicyEvaluationRequestDTO();
+      requestDTO.setAnalysisDTO(analysisDTO);
+      evaluateResult = getPolicyEvaluationResult(integrationPath, clientScanType, stage, statusId, requestDTO);
+    }
+    else {
+      final FileEntity entity = new FileEntity(scanFile, GZIP_CONTENT_TYPE);
+      evaluateResult = evaluateResult(integrationPath, clientScanType, stage, entity);
+    }
+
     PolicyEvaluationReceipt receipt = parseResult(evaluateResult, PolicyEvaluationReceipt.class);
 
     // allow handling of receipt before polling
@@ -179,6 +245,33 @@ public class PolicyClient
                                   final HttpEntity entity) throws IOException
   {
     return getEvaluationRequestPathBuilder(integrationPath, clientScanType, stage).post(entity);
+  }
+
+  /**
+   * Retrieve the {@link Result} for post to
+   * {@link #getPolicyEvaluationRequestPathBuilder(String, ClientScanType, Stage, String)}.
+   *
+   * @param integrationPath            - CI, CLI path
+   * @param clientScanType             - {@link ClientScanType}
+   * @param stage                      - {@link Stage}
+   * @param statusId                   - {@link String} of the previously-run component analysis step
+   * @param policyEvaluationRequestDTO - {@link PolicyEvaluationRequestDTO}
+   * @return Result to post of {@link #getPolicyEvaluationRequestPathBuilder(String, ClientScanType, Stage, String)}
+   * @since 1.188
+   */
+  protected Result getPolicyEvaluationResult(
+      final String integrationPath,
+      final ClientScanType clientScanType,
+      final Stage stage,
+      final String statusId,
+      final PolicyEvaluationRequestDTO policyEvaluationRequestDTO) throws IOException
+  {
+    final ByteArrayEntity entity = new ByteArrayEntity(
+        JsonUtils.generate(policyEvaluationRequestDTO), ContentType.APPLICATION_JSON
+    );
+
+    return getPolicyEvaluationRequestPathBuilder(integrationPath, clientScanType, stage, statusId)
+        .post(entity);
   }
 
   /**
@@ -217,6 +310,28 @@ public class PolicyClient
     return path(BASE_PATH, appId, EVALUATION_SUB_PATH,
         integrationPath, STAGES_SUB_PATH, stage.getStageTypeId())
         .query(SCAN_TYPE, clientScanType.name());
+  }
+
+  /**
+   * Construct a {@link RequestBuilder} for the policy evaluation request.
+   *
+   * @param integrationPath - CI, CLI
+   * @param clientScanType  - {@link ClientScanType}
+   * @param stage           - {@link Stage}
+   * @param statusId        - {@link String} of the previously-run component analysis step
+   * @return RequestBuilder for use with further building of the request
+   * @since 1.188
+   */
+  protected RequestBuilder getPolicyEvaluationRequestPathBuilder(
+      final String integrationPath,
+      final ClientScanType clientScanType,
+      final Stage stage,
+      final String statusId)
+  {
+    return path(
+        BASE_PATH, appId, EVALUATION_SUB_PATH, integrationPath,
+        STAGES_SUB_PATH, stage.getStageTypeId(), POLICY_EVALUATION_SUB_PATH
+    ).query(SCAN_TYPE, clientScanType.name(), STATUS_ID, statusId);
   }
 
   /**
@@ -396,7 +511,10 @@ public class PolicyClient
 
   private PolicyEvaluationPollingResult getPollingStatus(final String statusId) throws IOException {
     final Result pollingResult = path(BASE_PATH, appId, POLLING_PATH, statusId).get();
-    return parseResult(pollingResult, PolicyEvaluationPollingResult.class);
+
+    PolicyEvaluationPollingResult result = parseResult(pollingResult, PolicyEvaluationPollingResult.class);
+    result.setStatusId(statusId);
+    return result;
   }
 
   private static boolean isScanReceiptReady(

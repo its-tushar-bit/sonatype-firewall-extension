@@ -13,4 +13,18 @@
   .nx-h4 {
     text-transform: capitalize;
   }
+
+  &-reachability-header {
+    display: flex;
+    gap: var(--nx-spacing-base);
+    align-items: center;
+
+    .nx-icon {
+      color: var(--nx-color-text-stark);
+    }
+  }
+
+  .iq-policy-violation-row__reachability {
+    display: inline;
+  }
 }

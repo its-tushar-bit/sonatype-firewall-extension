@@ -47,7 +47,7 @@ describe('AutoWaiverDetailsPage', function () {
       autoPolicyWaiverId: waiverId,
       ownerId,
       threatLevel: 7,
-      reachable: true,
+      reachability: true,
       pathForward: true,
       creatorId: 'admin',
       creatorName: 'Admin BuiltIn',
@@ -216,7 +216,7 @@ describe('AutoWaiverDetailsPage', function () {
       it('renders N/A when pathForward and reachable are false', async () => {
         axiosMock
           .onGet(expectedAutoWaiverDetailsUrl)
-          .reply(200, { ...autoWaiverDetails, pathForward: false, reachable: false });
+          .reply(200, { ...autoWaiverDetails, pathForward: false, reachability: false });
         renderComponent();
 
         const reason = await screen.findByRole('definition', { name: 'Reason' });
@@ -225,7 +225,7 @@ describe('AutoWaiverDetailsPage', function () {
       });
 
       it('renders "No upgrade path" only when pathForward is true and reachable is false', async () => {
-        axiosMock.onGet(expectedAutoWaiverDetailsUrl).reply(200, { ...autoWaiverDetails, reachable: false });
+        axiosMock.onGet(expectedAutoWaiverDetailsUrl).reply(200, { ...autoWaiverDetails, reachability: false });
         renderComponent();
 
         const reason = await screen.findByRole('definition', { name: 'Reason' });

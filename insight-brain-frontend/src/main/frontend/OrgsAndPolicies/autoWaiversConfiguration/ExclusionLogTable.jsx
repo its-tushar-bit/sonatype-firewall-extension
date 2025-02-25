@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import { NxTable } from '@sonatype/react-shared-components';
 import ExclusionLogTableRow from './ExclusionLogTableRow';
 
-export default function ExclusionLogTable({ exclusions, refreshTable }) {
+export default function ExclusionLogTable({ exclusions }) {
   function renderTableHeader() {
     return (
       <NxTable.Head>
@@ -43,7 +43,6 @@ export default function ExclusionLogTable({ exclusions, refreshTable }) {
           <ExclusionLogTableRow
             key={`${exclusion.autoPolicyWaiverId}-${exclusion.autoPolicyWaiverExclusionId}`}
             exclusion={exclusion}
-            refreshTable={refreshTable}
           />
         ))}
       </NxTable.Body>
@@ -70,5 +69,4 @@ ExclusionLogTable.propTypes = {
       vulnerabilityIdentifiers: PropTypes.string,
     })
   ).isRequired,
-  refreshTable: PropTypes.func.isRequired,
 };

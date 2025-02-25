@@ -267,3 +267,5 @@ export const selectIsExpireWhenRemediationAvailableWaiversEnabled = createSelect
   selectProductFeatures,
   propOr(false, 'expire-waiver-when-remediation-available')
 );
+
+export const selectIsNewScanProcessEnabled = createSelector(selectProductFeatures, propOr(false, 'new-scan-process'));

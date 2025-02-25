@@ -7,11 +7,14 @@ import axios from 'axios';
 import { prop } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { getAutoWaiverExclusionsUrl } from 'MainRoot/util/CLMLocation';
+import {
+  getAutoWaiverExclusionsUrl,
+  getAutoWaiverExclusionsByAutoWaiverIdUrl,
+  getAutoWaiverExclusionsByExclusionIdUrl,
+} from 'MainRoot/util/CLMLocation';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { selectApplicableAutoWaiver, selectViolationDetails } from 'MainRoot/violation/violationSelectors';
 import { selectReportParameters } from 'MainRoot/applicationReport/applicationReportSelectors';
-import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { selectOwnerProperties, selectSelectedOwnerTypeAndId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectWaivers } from 'MainRoot/OrgsAndPolicies/automatedWaiversSelectors';
 import { propSet } from 'MainRoot/util/jsUtil';
@@ -87,10 +90,8 @@ const createAutoWaiverExclusion = createAsyncThunk(
 
 const loadAutoWaiverExclusion = createAsyncThunk(
   `${REDUCER_NAME}/loadAutoWaiverExclusion`,
-  async (_, { getState, dispatch, rejectWithValue }) => {
+  async (_, { getState, rejectWithValue }) => {
     try {
-      await dispatch(rootActions.loadSelectedOwner());
-
       const state = getState();
       let { ownerType, ownerId } = selectSelectedOwnerTypeAndId(state);
       if (ownerId === undefined) {
@@ -105,7 +106,7 @@ const loadAutoWaiverExclusion = createAsyncThunk(
       }
 
       const response = await axios.get(
-        `/api/v2/autoPolicyWaiverExclusions/${ownerType}/${ownerId}/${autoPolicyWaiverId}`
+        getAutoWaiverExclusionsByAutoWaiverIdUrl(ownerType, ownerId, autoPolicyWaiverId)
       );
 
       return response.data;
@@ -140,7 +141,7 @@ const deleteAutoWaiverExclusion = createAsyncThunk(
 
     return axios
       .delete(
-        `/api/v2/autoPolicyWaiverExclusions/${ownerType}/${ownerId}/${autoPolicyWaiverId}/${autoPolicyWaiverExclusionId}`
+        getAutoWaiverExclusionsByExclusionIdUrl(ownerType, ownerId, autoPolicyWaiverId, autoPolicyWaiverExclusionId)
       )
       .then(() => {
         startSaveMaskSuccessTimer(dispatch, actions.saveDeleteExclusionMaskTimerDone);

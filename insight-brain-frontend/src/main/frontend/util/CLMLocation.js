@@ -1467,6 +1467,19 @@ export const getAutoWaiverExclusionsUrl = (ownerType, ownerId) => {
   return uriTemplate`/api/v2/autoPolicyWaiverExclusions/${ownerType}/${ownerId}`;
 };
 
+export const getAutoWaiverExclusionsByAutoWaiverIdUrl = (ownerType, ownerId, autoWaiverId) => {
+  return uriTemplate`/api/v2/autoPolicyWaiverExclusions/${ownerType}/${ownerId}/${autoWaiverId}`;
+};
+
+export const getAutoWaiverExclusionsByExclusionIdUrl = (
+  ownerType,
+  ownerId,
+  autoWaiverId,
+  autoPolicyWaiverExclusionId
+) => {
+  return uriTemplate`/api/v2/autoPolicyWaiverExclusions/${ownerType}/${ownerId}/${autoWaiverId}/${autoPolicyWaiverExclusionId}`;
+};
+
 export const getNotificationWebhooksUrl = (ownerType, ownerId) => {
   return uriTemplate`/rest/config/webhook/policy/${ownerType}/${ownerId ? `${ownerId}` : ''}`;
 };

@@ -8,7 +8,6 @@ import PropTypes from 'prop-types';
 import { NxModal, NxH2, NxStatefulForm, NxP } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from 'MainRoot/OrgsAndPolicies/automatedWaiversExclusionsSlice';
-import { createPortal } from 'react-dom';
 import { selectAutomatedWaiversExclusionSlice } from 'MainRoot/OrgsAndPolicies/automatedWaiversExclusionsSelector';
 
 export default function DeleteExclusionModal({ showModal, onClose, autoPolicyWaiverId, autoPolicyWaiverExclusionId }) {
@@ -27,7 +26,7 @@ export default function DeleteExclusionModal({ showModal, onClose, autoPolicyWai
 
   if (!showModal) return null;
 
-  return createPortal(
+  return (
     <NxModal id="iq-delete-auto-waiver-exclusion-modal" variant="narrow" onCancel={onClose}>
       <NxModal.Header>
         <NxH2>Delete Exclusion</NxH2>
@@ -45,8 +44,7 @@ export default function DeleteExclusionModal({ showModal, onClose, autoPolicyWai
           <NxP>Click Continue to resume automated waiver eligibility for this violation</NxP>
         </NxStatefulForm>
       </NxModal.Content>
-    </NxModal>,
-    document.body
+    </NxModal>
   );
 }
 

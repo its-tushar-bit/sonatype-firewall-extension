@@ -34,7 +34,7 @@ export default function AutoWaiverDetails() {
   const loadError = useSelector(selectAutoWaiverDetailsError);
   const details = useSelector(selectAutoWaiverDetails);
 
-  const { createTime, pathForward, reachable, threatLevel, ownerName, ownerType, publicId } = details || {};
+  const { createTime, pathForward, reachability, threatLevel, ownerName, ownerType, publicId } = details || {};
   const formatDate = (date) => moment(date).format('MMMM D, YYYY');
 
   const isApplication = ownerType === 'application';
@@ -107,12 +107,12 @@ export default function AutoWaiverDetails() {
             <NxReadOnly.Item className="iq-auto-waiver-details__reason">
               <NxReadOnly.Label id="iq-auto-waiver-details__reason">Reason</NxReadOnly.Label>
               <NxReadOnly.Data aria-labelledby="iq-auto-waiver-details__reason">
-                {!pathForward && !reachable ? (
+                {!pathForward && !reachability ? (
                   'N/A'
                 ) : (
                   <ul>
                     {pathForward && <li>No upgrade path</li>}
-                    {reachable && (
+                    {reachability && (
                       <li>
                         <ReachabilityStatus reachabilityStatus={'NOT_REACHABLE'} />
                       </li>

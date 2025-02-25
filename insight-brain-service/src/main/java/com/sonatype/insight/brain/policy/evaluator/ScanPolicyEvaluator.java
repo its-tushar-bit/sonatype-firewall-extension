@@ -1470,7 +1470,8 @@ public class ScanPolicyEvaluator
   private boolean violationMeetsReachabilityConfigurationCriteria(
       boolean hasReachabilityData, AutoPolicyWaiver autoPolicyWaiver)
   {
-    return hasReachabilityData && isReachabilityConfigured(autoPolicyWaiver);
+    return hasReachabilityData && isReachabilityConfigured(autoPolicyWaiver)
+        && SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.isEnabled();
   }
 
   private boolean isReachabilityConfigured(AutoPolicyWaiver autoPolicyWaiver) {

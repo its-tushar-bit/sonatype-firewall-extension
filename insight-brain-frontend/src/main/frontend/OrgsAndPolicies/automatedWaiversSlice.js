@@ -77,7 +77,7 @@ const loadAutoWaiversConfigurationPageFailed = (state, { payload }) => {
 };
 
 const loadAutoWaiversConfigurationPage = createAsyncThunk(
-  `${REDUCER_NAME}/loadAutoWaiversConfiguration`,
+  `${REDUCER_NAME}/loadAutoWaiversConfigurationPage`,
   async (_, { getState, dispatch, rejectWithValue }) => {
     try {
       await dispatch(rootActions.loadSelectedOwner());
@@ -116,7 +116,7 @@ const loadAutoWaiversConfigurationPage = createAsyncThunk(
   }
 );
 
-const toggleCheckboxReachable = (state) => {
+const toggleCheckboxReachability = (state) => {
   const newData = {
     ...state.data,
     reachability: !(state.data?.reachability ?? false),
@@ -175,7 +175,12 @@ const saveAutoWaiversConfiguration = createAsyncThunk(
     return axios
       .put(getAutoWaiversConfigurationURLWaiver(ownerType, ownerId, waiversId), putData)
       .then(prop('data'))
-      .then(startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone))
+      .then(
+        startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone).then(() =>
+          dispatch(actions.loadAutoWaiversConfigurationPage())
+        )
+      )
+
       .catch(rejectWithValue);
   }
 );
@@ -259,7 +264,7 @@ const automatedWaiversSlice = createSlice({
   initialState,
 
   reducers: {
-    toggleCheckboxReachable,
+    toggleCheckboxReachability,
     toggleCheckboxPath,
     setThreatLevel,
     saveMaskTimerDone: propSet('submitMaskState', null),

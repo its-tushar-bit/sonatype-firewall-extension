@@ -437,6 +437,7 @@ public class PolicyClientTest
     final String failureReason = "FAILURE REASON";
     PolicyEvaluationPollingResult failedResult = new PolicyEvaluationPollingResult();
     failedResult.setStatus(PolicyEvaluationStatus.FAILED);
+    failedResult.setSubStatus(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING);
     failedResult.setReason(failureReason);
     doReturn(failedResult).when(policyClient).parseResult(any(Result.class),
         eq(PolicyEvaluationPollingResult.class));

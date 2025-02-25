@@ -34,6 +34,7 @@ import org.apache.http.entity.FileEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus.FAILED;
 import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING;
 
 public class PolicyClient
@@ -375,7 +376,7 @@ public class PolicyClient
         scanReceipt = pollingStatus.getScanReceipt();
         log.info("Assigned scan ID {} for component analysis", scanReceipt.getScanId());
       }
-      if (COMPONENT_ANALYSIS_PENDING.equals(pollingStatus.getSubStatus())) {
+      if (isComponentAnalysisPendingAndNotFailed(pollingStatus)) {
         try {
           sleep(pollingStatus.getNextPollingIntervalInSeconds());
         }
@@ -385,7 +386,7 @@ public class PolicyClient
         }
       }
     }
-    while (COMPONENT_ANALYSIS_PENDING.equals(pollingStatus.getSubStatus()));
+    while (isComponentAnalysisPendingAndNotFailed(pollingStatus));
 
     if (pollingStatus.getStatus().equals(PolicyEvaluationStatus.FAILED)) {
       throw new IOException("Component analysis could not be completed: " + pollingStatus.getReason());
@@ -403,6 +404,11 @@ public class PolicyClient
       final PolicyEvaluationPollingResult pollingStatus)
   {
     return scanReceipt == null && pollingStatus.getScanReceipt() != null;
+  }
+
+  private static boolean isComponentAnalysisPendingAndNotFailed(final PolicyEvaluationPollingResult pollingStatus) {
+    return COMPONENT_ANALYSIS_PENDING.equals(pollingStatus.getSubStatus()) &&
+        !FAILED.equals(pollingStatus.getStatus());
   }
 
   private static void sleep(final int pollingIntervalSeconds) throws InterruptedException {

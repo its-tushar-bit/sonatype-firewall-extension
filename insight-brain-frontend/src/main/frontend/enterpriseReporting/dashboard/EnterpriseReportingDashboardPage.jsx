@@ -20,7 +20,7 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import useLookerDashboard from 'MainRoot/react/useLookerDashboard';
 
-const foundational = ['success-metrics', 'security-risk-analysis'];
+const enterprise = ['success-metrics', 'security-risk-analysis'];
 const dataInsights = [
   'ai-models',
   'rolling-recap',
@@ -47,7 +47,7 @@ export default function EnterpriseReportingDashboardPage() {
 
   const isLoading = loading || loadingFeatures || loadingDashboard;
 
-  const foundationalDashboards = dashboardsData?.filter((dashboard) => foundational.includes(dashboard.dashboardId));
+  const enterpriseDashboards = dashboardsData?.filter((dashboard) => enterprise.includes(dashboard.dashboardId));
   const dataInsightsDashboards = dashboardsData?.filter((dashboard) => dataInsights.includes(dashboard.dashboardId));
 
   useEffect(() => {
@@ -69,7 +69,7 @@ export default function EnterpriseReportingDashboardPage() {
   return (
     <NxPageMain id="enterprise-reporting-dashboard-page" className="nx-viewport-sized">
       <nav className="enterprise-reporting-dashboard__navigation-bar">
-        <NavigationBarRow activeDashboard={id} dashboards={foundationalDashboards} title="Foundational Dashboards" />
+        <NavigationBarRow activeDashboard={id} dashboards={enterpriseDashboards} title="Enterprise Dashboards" />
         <NavigationBarRow activeDashboard={id} dashboards={dataInsightsDashboards} title="Data Insights" />
       </nav>
       <NxLoadWrapper

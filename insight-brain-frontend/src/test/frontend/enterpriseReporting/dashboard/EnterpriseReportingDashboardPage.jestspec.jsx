@@ -192,20 +192,20 @@ describe('EnterpriseReportingDashboardPage', () => {
       expect(rollingRecapLink).not.toBeInTheDocument();
     });
 
-    it('separates dashboards into Foundational and Data Insights categories', async () => {
+    it('separates dashboards into Enterprise and Data Insights categories', async () => {
       renderComponent(loadedState);
       const nav = screen.getByRole('navigation');
       expect(nav).toBeInTheDocument();
 
-      const foundational = within(nav).getByRole('heading', { name: 'Foundational Dashboards:' });
+      const enterprise = within(nav).getByRole('heading', { name: 'Enterprise Dashboards:' });
       const dataInsights = within(nav).getByRole('heading', { name: 'Data Insights:' });
-      expect(foundational).toBeInTheDocument();
+      expect(enterprise).toBeInTheDocument();
       expect(dataInsights).toBeInTheDocument();
 
       await waitFor(() => {
-        const foundationalList = within(foundational.nextElementSibling).getAllByRole('link');
-        expect(foundationalList.length).toBe(1);
-        expect(foundationalList[0]).toHaveTextContent('Success Metrics');
+        const enterpriseList = within(enterprise.nextElementSibling).getAllByRole('link');
+        expect(enterpriseList.length).toBe(1);
+        expect(enterpriseList[0]).toHaveTextContent('Success Metrics');
 
         const dataInsightsList = within(dataInsights.nextElementSibling).getAllByRole('link');
         expect(dataInsightsList.length).toBe(1);

@@ -75,8 +75,19 @@ export default function SonatypeDeveloperSidebar(props) {
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected(apiState)}
               id="sonatype-developer-api-navigation-button"
+              className="iq-api-nav-link"
               icon={faStars}
-              text="API"
+              text={
+                <>
+                  <span>API</span>
+                  <span className="iq-api-nav-link__navigation-badge">
+                    {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
+                    <span className="iq-api-nav-link__tooltip-only-text"> (</span>
+                    NEW
+                    <span className="iq-api-nav-link__tooltip-only-text">)</span>
+                  </span>
+                </>
+              }
               href={apiHref}
             />
           )}

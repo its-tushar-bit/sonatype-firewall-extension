@@ -152,11 +152,11 @@ describe('IqSidebarNav', function () {
       expect(getShallowComponent({}).find('#api-navigation-button')).not.toExist();
       expect(getShallowComponent({ isLoggedIn: true }).find('#api-navigation-button')).not.toExist();
       expect(getShallowComponent({ isApiPageEnabled: true }).find('#api-navigation-button')).not.toExist();
-      const component = getShallowComponent({ isLoggedIn: true, isApiPageEnabled: true });
-      const navLink = component.find('#api-navigation-button');
+      const component = getMountedComponent({ isLoggedIn: true, isApiPageEnabled: true });
+      const navLink = component.find('#api-navigation-button').at(0);
       expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
       expect(navLink).toHaveProp('icon', faStars);
-      expect(navLink).toHaveProp('text', 'API');
+      expect(navLink.find('a').getDOMNode().textContent).toBe('API (NEW)');
       expect(navLink).toHaveProp('href', 'href-api');
       expect(navLink).toHaveProp('isSelected', false);
     });
@@ -319,7 +319,7 @@ describe('IqSidebarNav', function () {
       expect(navLink).toHaveProp('href', 'href-enterpriseReporting');
       expect(navLink).toHaveProp('isSelected', false);
 
-      expect(navLink.find('a').getDOMNode().textContent).toBe('Data Insights (NEW)');
+      expect(navLink.find('a').getDOMNode().textContent).toBe('Data Insights');
     });
 
     it('does not render an NxGlobalSidebarNavigationLink for Data Insights (Enterprise Reporting) if not allowed', function () {

@@ -36,12 +36,12 @@ public class ApiConfigFeaturesServiceAuditTest
 
   @Test
   public void testEnableFeature() throws Exception {
-    configurationPropertyDAO.set(SystemConfigurationProperty.API_PAGE, null);
+    configurationPropertyDAO.set(SystemConfigurationProperty.API_PAGE, "false");
     HttpResponse response = restRequest().path(SystemConfigurationProperty.API_PAGE).post();
     assertResponseStatus(NO_CONTENT_204, response);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.SET_FEATURES, null);
-    assertCustomData(auditDTO, SystemConfigurationProperty.API_PAGE, "true");
+    assertCustomData(auditDTO, SystemConfigurationProperty.API_PAGE, "null");
   }
 
   @Test
@@ -56,7 +56,6 @@ public class ApiConfigFeaturesServiceAuditTest
 
   @Test
   public void testEnableFeature_Error() throws Exception {
-    configurationPropertyDAO.set(SystemConfigurationProperty.API_PAGE, "true");
     HttpResponse response = restRequest().path(SystemConfigurationProperty.API_PAGE).post();
 
     assertResponseStatus(400, response);
@@ -65,12 +64,11 @@ public class ApiConfigFeaturesServiceAuditTest
 
   @Test
   public void testDisableFeature() throws Exception {
-    configurationPropertyDAO.set(SystemConfigurationProperty.API_PAGE, "true");
     HttpResponse response = restRequest().path(SystemConfigurationProperty.API_PAGE).delete();
     assertResponseStatus(NO_CONTENT_204, response);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UNSET_FEATURES, null);
-    assertCustomData(auditDTO, SystemConfigurationProperty.API_PAGE, "null");
+    assertCustomData(auditDTO, SystemConfigurationProperty.API_PAGE, "false");
   }
 
   @Test
@@ -84,7 +82,7 @@ public class ApiConfigFeaturesServiceAuditTest
 
   @Test
   public void testDisableFeature_Error() throws Exception {
-    configurationPropertyDAO.set(SystemConfigurationProperty.API_PAGE, null);
+    configurationPropertyDAO.set(SystemConfigurationProperty.API_PAGE, "false");
     HttpResponse response = restRequest().path(SystemConfigurationProperty.API_PAGE).delete();
 
     assertResponseStatus(400, response);

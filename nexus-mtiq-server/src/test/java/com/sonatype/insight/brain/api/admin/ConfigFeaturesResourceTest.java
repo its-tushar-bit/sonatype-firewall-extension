@@ -68,6 +68,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.NON_BREAKING_VERSION_SUGGESTION_TELEMETRY.getId(),
       SystemConfigurationPropertyFeature.SBOM_POLICIES.getId(),
       SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId(),
+      SystemConfigurationPropertyFeature.API_PAGE.getId(),
       };
 
   /**
@@ -103,6 +104,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.NON_BREAKING_VERSION_SUGGESTION_TELEMETRY.getId(),
       SystemConfigurationPropertyFeature.SBOM_POLICIES.getId(),
       SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId(),
+      SystemConfigurationPropertyFeature.API_PAGE.getId(),
       };
 
   /**
@@ -120,7 +122,6 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.MALWARE_DEFENSE_API.getId(),
           SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.getId(),
           SystemConfigurationPropertyFeature.EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE.getId(),
-          SystemConfigurationPropertyFeature.API_PAGE.getId(),
       }
   )).toArray(String[]::new);
 

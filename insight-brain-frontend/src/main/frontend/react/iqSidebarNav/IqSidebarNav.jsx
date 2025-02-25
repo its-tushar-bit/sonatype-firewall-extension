@@ -190,17 +190,7 @@ function IqSidebarNav(props) {
               id="data-insights-button"
               className="iq-enterprise-reporting-nav-link"
               icon={faChartPieAlt}
-              text={
-                <>
-                  <span>Data Insights</span>
-                  <span className="iq-enterprise-reporting-nav-link__navigation-badge">
-                    {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
-                    <span className="iq-enterprise-reporting-nav-link__tooltip-only-text"> (</span>
-                    NEW
-                    <span className="iq-enterprise-reporting-nav-link__tooltip-only-text">)</span>
-                  </span>
-                </>
-              }
+              text="Data Insights"
               href={enterpriseReportingHref}
             />
           )}
@@ -208,8 +198,19 @@ function IqSidebarNav(props) {
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('api')}
               id="api-navigation-button"
+              className="iq-api-nav-link"
               icon={faStars}
-              text="API"
+              text={
+                <>
+                  <span>API</span>
+                  <span className="iq-api-nav-link__navigation-badge">
+                    {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
+                    <span className="iq-api-nav-link__tooltip-only-text"> (</span>
+                    NEW
+                    <span className="iq-api-nav-link__tooltip-only-text">)</span>
+                  </span>
+                </>
+              }
               href={apiHref}
             />
           )}

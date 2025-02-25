@@ -119,7 +119,7 @@ describe('IqSidebarNav', function () {
       const navigationSection = within(sideBar).getByRole('navigation');
       expect(navigationSection.id).toEqual('global-sidebar-buttons');
 
-      const apiNav = within(navigationSection).getByRole('link', { name: 'API' });
+      const apiNav = within(navigationSection).getByRole('link', { name: 'API ( NEW )' });
       expect(apiNav.getAttribute('href')).toEqual('href-api');
       const icon = within(apiNav).getByRole('img', { hidden: true });
       expect(icon.getAttribute('data-icon')).toEqual('stars');
@@ -132,7 +132,7 @@ describe('IqSidebarNav', function () {
       const navigationSection = within(sideBar).getByRole('navigation');
       expect(navigationSection.id).toEqual('global-sidebar-buttons');
 
-      expect(within(navigationSection).queryByRole('link', { name: 'API' })).not.toBeInTheDocument();
+      expect(within(navigationSection).queryByRole('link', { name: 'API ( NEW )' })).not.toBeInTheDocument();
     });
 
     it('does not render any navigation links when none are enabled', function () {
@@ -236,7 +236,7 @@ describe('IqSidebarNav', function () {
         isIntegratedEnterpriseReportingSupported: true,
       });
 
-      assertNavSectionContainsLink('href-enterpriseReporting', 'Data Insights ( NEW )', 'chart-pie-simple');
+      assertNavSectionContainsLink('href-enterpriseReporting', 'Data Insights', 'chart-pie-simple');
     });
 
     it('does not render an NxGlobalSidebarNavigationLink for Data Insights (Enterprise Reporting) if not allowed', function () {
@@ -246,7 +246,7 @@ describe('IqSidebarNav', function () {
         isIntegratedEnterpriseReportingSupported: false,
       });
 
-      expect(screen.queryByRole('link', { name: 'Data Insights ( NEW )' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Data Insights' })).not.toBeInTheDocument();
     });
 
     describe('selected state', function () {
@@ -270,7 +270,7 @@ describe('IqSidebarNav', function () {
         mockSelectedLink('api');
         renderComponent(propsForRenderingAllLinks);
 
-        assertLinkPresentAndSelected('API');
+        assertLinkPresentAndSelected('API ( NEW )');
       });
 
       it('renders Dashboard link as selected when state matches', function () {

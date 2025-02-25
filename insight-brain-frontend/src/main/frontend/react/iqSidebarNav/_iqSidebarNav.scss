@@ -35,9 +35,7 @@ iq-sidebar-nav {
   }
 }
 
-.iq-enterprise-reporting-nav-link,
-.iq-data-insights-nav-link,
-.iq-integrations-nav-link {
+.iq-api-nav-link {
   &.nx-global-sidebar__navigation-link {
     &,
     .nx-global-sidebar__navigation-text {
@@ -66,7 +64,7 @@ iq-sidebar-nav {
     font-size: 14px;
     font-weight: 600;
     line-height: $height;
-    margin-left: auto;
+    margin-left: var(--nx-spacing-3x);
     padding: 0 var(--nx-spacing-3x);
     vertical-align: bottom;
 

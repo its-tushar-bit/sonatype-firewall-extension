@@ -9,7 +9,6 @@ import javax.inject.Inject;
 import javax.ws.rs.core.Application;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiType;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.junit.After;
@@ -28,7 +27,6 @@ public class ApiEndpointsServiceAuthzTest
 
   @Before
   public void before() {
-    SystemConfigurationPropertyFeature.API_PAGE.setEnabled(true);
     ApiEndpointsService.clearCaches();
   }
 

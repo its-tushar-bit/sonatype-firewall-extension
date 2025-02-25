@@ -616,27 +616,27 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testEnableFeature_ApiPage() {
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationPropertyFeature.API_PAGE.getPropertyName(), "false");
     service.enableFeature(SystemConfigurationProperty.API_PAGE);
-    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.API_PAGE).getValue()).isEqualTo(
-        "true");
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.API_PAGE)).isNull();
   }
 
   @Test
   public void testEnableFeature_ApiPage_AlreadyEnabled() {
-    service.enableFeature(SystemConfigurationProperty.API_PAGE);
     assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.API_PAGE)).isInstanceOf(
         BadRequestException.class).hasMessage("Feature is already enabled.");
   }
 
   @Test
   public void testDisableFeature_ApiPage() {
-    tempEntity.newSystemConfigurationProperty(SystemConfigurationPropertyFeature.API_PAGE.getPropertyName(), "true");
     service.disableFeature(SystemConfigurationProperty.API_PAGE);
-    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.API_PAGE)).isNull();
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.API_PAGE).getValue()).isEqualTo(
+        "false");
   }
 
   @Test
   public void testDisableFeature_ApiPage_AlreadyDisabled() {
+    service.disableFeature(SystemConfigurationProperty.API_PAGE);
     assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.API_PAGE)).isInstanceOf(
         BadRequestException.class).hasMessage("Feature is already disabled.");
   }

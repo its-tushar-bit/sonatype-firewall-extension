@@ -30,7 +30,6 @@ public class ApiEndpointsResourceTest
 {
   @Before
   public void before() {
-    SystemConfigurationPropertyFeature.API_PAGE.setEnabled(true);
     ApiEndpointsService.clearCaches();
   }
 

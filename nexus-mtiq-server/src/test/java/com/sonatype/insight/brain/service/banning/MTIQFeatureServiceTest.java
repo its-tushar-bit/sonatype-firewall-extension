@@ -77,7 +77,7 @@ public class MTIQFeatureServiceTest
   public void testRegister_setsFeatureFlags() {
     underTest.register();
 
-    verify(service, times(26)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
+    verify(service, times(25)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
     List<String> disabledFlagSet = propertyKeyCaptor.getAllValues();
     assertThat(disabledFlagSet).containsExactlyInAnyOrder(getDisabledSystemConfigurationPropertyFeatures());
   }
@@ -95,7 +95,7 @@ public class MTIQFeatureServiceTest
   @Test
   public void testGetFeatures_onlyIncludesAllowedFeatures() {
     Set<Feature> features = underTest.getFeatures();
-    Set<Feature> expectedFeatures = getFeatureSet();
+    Set<Feature> expectedFeatures = getExpectedFeatures();
     // This feature is enabled via HDS only, so we cannot expect it to be enabled here.
     expectedFeatures.remove(LicensedFeature.ALLOW_SCM_ON_PUBLIC_REPOS);
     expectedFeatures.remove(LicensedFeature.MALWARE_DEFENSE);
@@ -226,16 +226,20 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION,
         SystemConfigurationPropertyFeature.NON_BREAKING_VERSION_SUGGESTION_TELEMETRY,
         SystemConfigurationPropertyFeature.SBOM_POLICIES,
-        SystemConfigurationPropertyFeature.AUTO_WAIVERS
+        SystemConfigurationPropertyFeature.AUTO_WAIVERS,
+        SystemConfigurationPropertyFeature.API_PAGE
     ).collect(toSet()).toArray(new SystemConfigurationPropertyFeature[]{});
   }
 
-  private Set<Feature> getFeatureSet() {
+  private Set<Feature> getExpectedFeatures() {
     return Stream.of(
         Stream.of(MULTI_TENANT),
-        Stream.of(getEnabledSystemConfigurationPropertyFeatures()),
+        // We're expecting SystemConfigurationPropertyFeature.API_PAGE to be enabled 
+        // and LicensedFeature.API_PAGE to be present
+        // however we only return LicensedFeature.API_PAGE
+        Stream.of(getEnabledSystemConfigurationPropertyFeatures())
+            .filter(f -> !f.equals(SystemConfigurationPropertyFeature.API_PAGE)),
         stream(LicensedFeature.values())
-            .filter(f -> !f.equals(LicensedFeature.API_PAGE))
             .filter(f -> !f.equals(LicensedFeature.DATA_INSIGHTS))
             .filter(f -> !f.equals(LicensedFeature.FIREWALL_FOR_ARTIFACTORY))
             .filter(f -> !f.equals(LicensedFeature.INFRASTRUCTURE_AS_CODE_PACK))

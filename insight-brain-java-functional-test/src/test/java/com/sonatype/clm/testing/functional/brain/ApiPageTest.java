@@ -11,7 +11,6 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.ApiPage;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.SelenideElement;
@@ -57,7 +56,6 @@ public class ApiPageTest
   @Before
   public void before() {
     setLicensedProducts(licensedProduct);
-    SystemConfigurationPropertyFeature.API_PAGE.setEnabled(true);
     hardreset();
     refreshOrOpen(url);
   }

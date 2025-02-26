@@ -190,7 +190,7 @@ public class ApiSbomResource
       @DefaultValue("1") @QueryParam("page") int page,
 
       @Parameter(description = "Criteria to sort the results. default = IMPORT_DATE, when used sortByDate is ignored")
-      @DefaultValue("import_date") @QueryParam("sortBy") SbomVersionsApplicationSortableField sortBy,
+      @DefaultValue("IMPORT_DATE") @QueryParam("sortBy") SbomVersionsApplicationSortableField sortBy,
 
       @Parameter(description = "Order mode ASC=true or DESC=false. default = true")
       @DefaultValue("true") @QueryParam("asc") boolean asc)

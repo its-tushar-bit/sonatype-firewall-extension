@@ -127,7 +127,7 @@ public class ApiPolicyViolationResourceV2
       @Parameter(description = "Enter the date (format YYYY-MM-DD) until which you want to retrieve" +
           " the violation details") @QueryParam("openTimeBefore") final String openTimeBefore,
       @Parameter(description = "Set one or more policy violation type (active, legacy, waived) to include")
-      @QueryParam("type") @DefaultValue("active") final Set<PolicyViolationType> violationTypes)
+      @QueryParam("type") @DefaultValue("ACTIVE") final Set<PolicyViolationType> violationTypes)
   {
     return apiPolicyViolationService.getPolicyViolations(policyIds, openTimeAfter, openTimeBefore,
         violationTypes);

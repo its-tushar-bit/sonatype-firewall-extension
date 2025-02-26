@@ -194,10 +194,11 @@ void configureBranchJob() {
             description: 'The snapshot build to release from.')
     ]
   }
-  properties([
-      copyArtifactPermission("/${projName}"),
-      parameters(params)
-  ])
+  def propertyList = [copyArtifactPermission("/${projName}"), parameters(params)]
+  if (!projName.toLowerCase().contains('master-snapshot')) {
+    propertyList.add(disableConcurrentBuilds(abortPrevious: true))
+  }
+  properties(propertyList)
 }
 
 String mtiqImageVersion() {

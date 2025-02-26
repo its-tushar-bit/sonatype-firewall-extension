@@ -933,6 +933,7 @@
                 <include>**/H2InMemoryDatabaseConfigProvider*</include>
                 <include>**/JWTGenerator*</include>
                 <include>**/FunctionUtils*</include>
+                <include>**/VulnerabilitySignatureAnalysisDTOHelper*</include>
               </includes>
             </configuration>
           </execution>

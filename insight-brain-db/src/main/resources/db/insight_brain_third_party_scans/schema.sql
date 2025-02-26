@@ -58,6 +58,8 @@ CREATE TABLE file_coordinate (
   CONSTRAINT file_coordinate_fk FOREIGN KEY (third_party_file_id) REFERENCES third_party_file (third_party_file_id)
 );
 CREATE INDEX file_coordinate_third_party_file_id_idx ON file_coordinate (third_party_file_id);
+CREATE INDEX file_coordinate_third_party_file_id_component_ref_idx ON file_coordinate (third_party_file_id, component_ref);
+CREATE INDEX file_coordinate_third_party_file_id_hash_idx ON file_coordinate (third_party_file_id, hash);
 
 CREATE TABLE coordinate_security (
   coordinate_security_id VARCHAR(50) NOT NULL,

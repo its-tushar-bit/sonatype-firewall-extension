@@ -407,6 +407,18 @@ public class ThirdPartyFileCoordinateDAO
     }
   }
 
+  public boolean hasNonNullComponentRefs(String thirdPartyFileId) {
+    String sQuery = "SELECT COUNT(fc.component_ref)" + //
+        "  FROM " + getDatabaseSchema() + ".file_coordinate fc" + //
+        "  WHERE fc.third_party_file_id = ?1" + //
+        "  AND fc.component_ref IS NOT NULL";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      jakarta.persistence.Query query = createNativeQuery(tx, sQuery, thirdPartyFileId);
+      return (long) query.getSingleResult() > 0;
+    }
+  }
+
   private jakarta.persistence.Query createPaginationQueryWithScoreRangeParams(
       final String searchParam,
       final int pageSize,

@@ -20,6 +20,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -36,17 +37,15 @@ import com.sonatype.insight.brain.version.VersionService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cyclonedx.exception.ParseException;
-import org.cyclonedx.model.license.Expression;
-import org.cyclonedx.model.Metadata;
-import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
-import org.jetbrains.annotations.NotNull;
-
 import org.cyclonedx.model.Ancestors;
 import org.cyclonedx.model.AttachmentText;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.BomReference;
 import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Component.Scope;
+import org.cyclonedx.model.Component.Type;
 import org.cyclonedx.model.Composition;
+import org.cyclonedx.model.Composition.Aggregate;
 import org.cyclonedx.model.Copyright;
 import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.Descendants;
@@ -55,15 +54,14 @@ import org.cyclonedx.model.ExternalReference;
 import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
+import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.OrganizationalContact;
 import org.cyclonedx.model.OrganizationalEntity;
 import org.cyclonedx.model.Pedigree;
 import org.cyclonedx.model.Variants;
-import org.cyclonedx.model.Component.Scope;
-import org.cyclonedx.model.Component.Type;
-import org.cyclonedx.model.Composition.Aggregate;
+import org.cyclonedx.model.license.Expression;
 import org.cyclonedx.model.vulnerability.Vulnerability;
-
+import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import org.spdx.library.InvalidSPDXAnalysisException;
 import org.spdx.library.ModelCopyManager;
 import org.spdx.library.SpdxConstants;
@@ -107,7 +105,7 @@ public class CycloneDxToSpdxExporter
 
   private static final String NULL_SHA1_VALUE = "0000000000000000000000000000000000000000";
 
-  private static Map<String, ChecksumAlgorithm> CDX_ALGORITHM_TO_SPDX_ALGORITHM;
+  private static final Map<String, ChecksumAlgorithm> CDX_ALGORITHM_TO_SPDX_ALGORITHM;
 
   static {
     Map<String, ChecksumAlgorithm> algToSpdx = new HashMap<>();
@@ -165,6 +163,8 @@ public class CycloneDxToSpdxExporter
   @Override
   public String export() {
     init();
+    hasComponentRefs =
+        thirdPartyFileCoordinateDAO.hasNonNullComponentRefs(exportParams.sbomMetadata.getThirdPartyFileId());
     try (InputStream gis = new GZIPInputStream(Files.newInputStream(getOriginalSbomFile().toPath()))) {
       Bom originalBom = SbomCycloneDxUtils.parseContentStreamNoValidation(gis);
       checkAndGenerateComponentMetadataIfMissing(originalBom);
@@ -383,6 +383,11 @@ public class CycloneDxToSpdxExporter
     if (elementId == null) {
       elementId = newDocument.getModelStore().getNextId(IdType.SpdxId, newDocument.getDocumentUri());
     }
+
+    if (hasComponentRefs) {
+      spdxIdsToComponentRefs.put(elementId, SbomIdentityUtils.getComponentRef(component));
+    }
+
     String name = component.getName();
     if (name == null) {
       name = "UNKNOWN PACKAGE";
@@ -555,7 +560,7 @@ public class CycloneDxToSpdxExporter
     }
   }
 
-  private static @NotNull String createSupplier(final OrganizationalEntity supplier) {
+  private static String createSupplier(final OrganizationalEntity supplier) {
     StringBuilder sb = new StringBuilder("Organization: ");
     sb.append(supplier.getName());
     List<OrganizationalContact> contacts = supplier.getContacts();

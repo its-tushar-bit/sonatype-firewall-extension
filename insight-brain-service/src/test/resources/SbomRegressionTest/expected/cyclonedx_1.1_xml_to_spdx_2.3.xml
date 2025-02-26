@@ -3,19 +3,20 @@
   <SPDXID>SPDXRef-DOCUMENT</SPDXID>
   <spdxVersion>SPDX-2.3</spdxVersion>
   <creationInfo>
-    <created>2024-08-23T11:56:35Z</created>
-    <creators>Tool: Sonatype SBOM Manager - 1.182.0-SNAPSHOT</creators>
+    <created>2025-02-20T14:55:32Z</created>
+    <creators>Tool: Sonatype SBOM Manager - 1.188.0-SNAPSHOT</creators>
   </creationInfo>
-  <name>regressionTests</name>
+  <name>DUMMY-PUBLIC-ID-1f8f1116a1c54c9d8759cd6fce447d6f</name>
   <dataLicense>CC0-1.0</dataLicense>
   <hasExtractedLicensingInfos>
     <licenseId>LicenseRef-Some-random-license</licenseId>
     <extractedText>Extracted license created by Sonatype SBOM Manager</extractedText>
     <name>Some random license</name>
   </hasExtractedLicensingInfos>
-  <documentNamespace>http://localhost:8072/ui/links/sbomManager/management/view/application/regressionTests/bom/20240822123536762</documentNamespace>
+  <documentNamespace>http://localhost:10010/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-1f8f1116a1c54c9d8759cd6fce447d6f/bom/20250220145521806</documentNamespace>
   <packages>
     <SPDXID>SPDXRef-gnrtd0</SPDXID>
+    <attributionTexts>Evidence license text for: (Apache-2.0)</attributionTexts>
     <checksums>
       <algorithm>MD5</algorithm>
       <checksumValue>3942447fac867ae5cdb3229b658f4d48</checksumValue>
@@ -64,6 +65,7 @@
   </packages>
   <packages>
     <SPDXID>SPDXRef-gnrtd2</SPDXID>
+    <attributionTexts>Evidence license text for: (EPL-2.0)</attributionTexts>
     <checksums>
       <algorithm>MD5</algorithm>
       <checksumValue>2342c2eaf1feb9a80195dbaddf2ebaa3</checksumValue>
@@ -187,7 +189,19 @@
     <externalRefs>
       <comment>source: NVD</comment>
       <referenceCategory>SECURITY</referenceCategory>
-      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42004</referenceLocator>
+      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-36518</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12384</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://nvd.nist.gov/vuln/detail/CVE-2018-7489</referenceLocator>
       <referenceType>advisory</referenceType>
     </externalRefs>
     <externalRefs>
@@ -205,25 +219,13 @@
     <externalRefs>
       <comment>source: NVD</comment>
       <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42004</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
       <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42003</referenceLocator>
-      <referenceType>advisory</referenceType>
-    </externalRefs>
-    <externalRefs>
-      <comment>source: NVD</comment>
-      <referenceCategory>SECURITY</referenceCategory>
-      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-36518</referenceLocator>
-      <referenceType>advisory</referenceType>
-    </externalRefs>
-    <externalRefs>
-      <comment>source: NVD</comment>
-      <referenceCategory>SECURITY</referenceCategory>
-      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12384</referenceLocator>
-      <referenceType>advisory</referenceType>
-    </externalRefs>
-    <externalRefs>
-      <comment>source: NVD</comment>
-      <referenceCategory>SECURITY</referenceCategory>
-      <referenceLocator>https://nvd.nist.gov/vuln/detail/CVE-2018-7489</referenceLocator>
       <referenceType>advisory</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
@@ -240,7 +242,7 @@
     <filesAnalyzed>false</filesAnalyzed>
     <licenseConcluded>NOASSERTION</licenseConcluded>
     <licenseDeclared>NOASSERTION</licenseDeclared>
-    <name>regressionTests</name>
+    <name>DUMMY-PUBLIC-ID-1f8f1116a1c54c9d8759cd6fce447d6f</name>
     <primaryPackagePurpose>APPLICATION</primaryPackagePurpose>
   </packages>
   <relationships>

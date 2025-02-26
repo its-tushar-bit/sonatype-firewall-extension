@@ -3,17 +3,17 @@
   <SPDXID>SPDXRef-DOCUMENT</SPDXID>
   <spdxVersion>SPDX-2.3</spdxVersion>
   <creationInfo>
-    <created>2024-10-17T15:21:53Z</created>
-    <creators>Tool: Sonatype SBOM Manager - build-number</creators>
+    <created>2025-02-20T15:02:57Z</created>
+    <creators>Tool: Sonatype SBOM Manager - 1.188.0-SNAPSHOT</creators>
   </creationInfo>
-  <name>552</name>
+  <name>DUMMY-PUBLIC-ID-b2108fc8fa0e4866b5e54147e9f08279</name>
   <dataLicense>CC0-1.0</dataLicense>
   <hasExtractedLicensingInfos>
     <licenseId>LicenseRef-Some-random-license</licenseId>
     <extractedText>Extracted license created by Sonatype SBOM Manager</extractedText>
     <name>Some random license</name>
   </hasExtractedLicensingInfos>
-  <documentNamespace>http://juan.nexus.local:8070/ui/links/sbomManager/management/view/application/552/bom/9.1.1_20241016122055052</documentNamespace>
+  <documentNamespace>http://localhost:10028/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-b2108fc8fa0e4866b5e54147e9f08279/bom/9.1.1</documentNamespace>
   <packages>
     <SPDXID>SPDXRef-pkg-maven-partner-shaded-library-1.0</SPDXID>
     <copyrightText>NOASSERTION</copyrightText>
@@ -64,6 +64,7 @@
   </packages>
   <packages>
     <SPDXID>SPDXRef-gnrtd0</SPDXID>
+    <attributionTexts>Evidence license text for: (Apache-2.0)</attributionTexts>
     <checksums>
       <algorithm>BLAKE2b-256</algorithm>
       <checksumValue>d8779633380c050bccf4e733b763ab2abd8ad2db60b517d47fd29bbf76433237</checksumValue>
@@ -124,6 +125,7 @@
   </packages>
   <packages>
     <SPDXID>SPDXRef-123</SPDXID>
+    <attributionTexts>Evidence license text for: (GPL-2.0-with-classpath-exception AND EPL-2.0)</attributionTexts>
     <checksums>
       <algorithm>MD5</algorithm>
       <checksumValue>2342c2eaf1feb9a80195dbaddf2ebaa3</checksumValue>
@@ -171,7 +173,7 @@
   <packages>
     <SPDXID>SPDXRef-gnrtd2</SPDXID>
     <attributionTexts>Copyright 2012 Google Inc. All Rights Reserved.</attributionTexts>
-    <attributionTexts>Copyright (C) 2004,2005 Dave Brosius &lt;dbrosius@users.sourceforge.net&gt;</attributionTexts>
+    <attributionTexts>Copyright (C) 2004,2005 Dave Brosius &lt;dbrosius@users.sourceforge.net></attributionTexts>
     <attributionTexts>Copyright (C) 2005 William Pugh</attributionTexts>
     <attributionTexts>Copyright (C) 2004,2005 University of Maryland</attributionTexts>
     <attributionTexts>Evidence license text for: (LGPL-2.1-only AND Apache-2.0)</attributionTexts>

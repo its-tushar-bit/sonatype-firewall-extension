@@ -1768,4 +1768,39 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(result.getMedium()).isEqualTo(1L);
     assertThat(result.getCritical()).isEqualTo(0L);
   }
+
+  @Test
+  public void testHasNonNullComponentRefs_True() {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withSpecVersion("1.5")
+        .withThirdPartyFileId(thirdPartyFile.getId())
+        .build();
+    //no component ref
+    tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
+            "s", "SPDX", "n1", "v1", "h1", "pkg:npm/n1@v1");
+    //has component ref
+    tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
+            "s", "SPDX", "n2", "v1", "h2", "pkg:npm/n2@v1", "cr1");
+    assertThat(thirdPartyFileCoordinateDAO.hasNonNullComponentRefs(thirdPartyFile.getId())).isTrue();
+  }
+
+  @Test
+  public void testHasNonNullComponentRefs_False() {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withSpecVersion("1.5")
+        .withThirdPartyFileId(thirdPartyFile.getId())
+        .build();
+    //no component refs
+    tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
+        "s", "SPDX", "n1", "v1", "h1", "pkg:npm/n1@v1");
+    tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
+        "s", "SPDX", "n2", "v1", "h2", "pkg:npm/n2@v1");
+    assertThat(thirdPartyFileCoordinateDAO.hasNonNullComponentRefs(thirdPartyFile.getId())).isFalse();
+  }
 }

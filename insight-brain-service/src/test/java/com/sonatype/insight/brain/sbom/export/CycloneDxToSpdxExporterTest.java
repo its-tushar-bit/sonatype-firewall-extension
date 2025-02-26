@@ -281,7 +281,7 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
   private ThirdPartyFileCoordinate mockDbRecordsWithComponentsMatchingByComponentRef(ThirdPartyFile tpFile) {
     ThirdPartyFileCoordinate componentWithComponentRef = tempEntity.newThirdPartyFileCoordinate(tpFile,
         "Third-Party", "maven", "parentApp", "1.0-SNAPSHOT", "e33c095684013cced988",
-        "pkg:maven/org.example/abc-component", "fcd38b25daab77edee3dbd1122f1733d652f03b6");
+        "pkg:maven/org.example/abc-component", "652faea012fd8be1371fbea623164ecc343c37df");
     tempEntity.newThirdPartyCoordinateSecurity(componentWithComponentRef, "ABC-123",
         "Test ABC vulnerability",
         "http://cve.mitre.org/cgi-bin/cvename.cgi?name=ABC-123", 5.5d, "HIGH", "NVD",

@@ -710,24 +710,18 @@ public class ScanPolicyEvaluator
             }
             policyViolationDAO.insert(tx, newPolicyViolation);
 
-            if (oldPolicyViolation.isAutoWaived()) {
-              policyViolationLogger.add(PolicyViolationLogEvent.UNAUTOWAIVE, newPolicyViolation);
-              Component component =
-                  findComponentByComponentIdentifier(components, oldPolicyViolation.getComponentIdentifier());
-              telemetryCollector.addTelemetryForUnAutoWaivedViolation(
-                  newPolicyViolation,
-                  component,
-                  oldPolicyViolation.getPolicyWaiverId());
-            }
-            else {
-              policyViolationLogger.add(PolicyViolationLogEvent.UNWAIVE, newPolicyViolation);
-              Component component =
-                  findComponentByComponentIdentifier(components, oldPolicyViolation.getComponentIdentifier());
-              telemetryCollector.addTelemetryForUnwaivedViolation(
-                  newPolicyViolation,
-                  component,
-                  oldPolicyViolation.getPolicyWaiverId());
-            }
+            policyViolationLogger.add(
+                oldPolicyViolation.isAutoWaived()
+                    ? PolicyViolationLogEvent.UNAUTOWAIVE
+                    : PolicyViolationLogEvent.UNWAIVE,
+                newPolicyViolation
+            );
+            var component = findComponentByComponentIdentifier(components, oldPolicyViolation.getComponentIdentifier());
+            telemetryCollector.addTelemetryForUnwaivedViolation(
+                oldPolicyViolation,
+                newPolicyViolation,
+                component
+            );
           }
           else {
             if (isNotifiable(oldPolicyViolation, newPolicyViolation, forMonitoring, isReevaluation)) {
@@ -768,9 +762,9 @@ public class ScanPolicyEvaluator
 
                 policyViolationLogger.add(PolicyViolationLogEvent.UNWAIVE, newPolicyViolation);
                 telemetryCollector.addTelemetryForUnwaivedViolation(
+                    oldPolicyViolation,
                     newPolicyViolation,
-                    component,
-                    oldPolicyViolation.getPolicyWaiverId());
+                    component);
 
                 policyViolationLogger.add(PolicyViolationLogEvent.AUTOWAIVE, newPolicyViolation);
                 telemetryCollector.addTelemetryForAutoWaivedViolation(newPolicyViolation, component);
@@ -797,10 +791,10 @@ public class ScanPolicyEvaluator
                 }
                 policyViolationDAO.insert(tx, newPolicyViolation);
                 policyViolationLogger.add(PolicyViolationLogEvent.UNAUTOWAIVE, oldPolicyViolation);
-                telemetryCollector.addTelemetryForUnAutoWaivedViolation(
+                telemetryCollector.addTelemetryForUnwaivedViolation(
                     oldPolicyViolation,
-                    component,
-                    oldPolicyViolation.getAutoPolicyWaiverId());
+                    newPolicyViolation,
+                    component);
 
                 policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, oldPolicyViolation);
                 telemetryCollector.addTelemetryForWaivedViolation(oldPolicyViolation, component);

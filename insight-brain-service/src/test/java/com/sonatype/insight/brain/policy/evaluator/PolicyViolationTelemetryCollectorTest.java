@@ -290,27 +290,35 @@ public class PolicyViolationTelemetryCollectorTest
 
   @Test
   public void testAddTelemetryForUnwaivedViolation() {
-    // given a policy violation on lodash v3
-    TestablePolicyViolation testablePolicyViolation =
-        TestablePolicyViolation.createDefaultViolationForComponent(urllib3)
-            .openedHoursAgo(500)
-            .asDirectDependency(true)
-            .withPolicyViolationId("unwaivedViolation")
-            .markUnwaived("oldWaiverIdForUrllib3");
+    // given a policy violation that was unwaived and the new open violation created for it
+    var policyWaiver = tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyEvaluation.getApplicationId());
+
+    var replacementPolicyViolation = TestablePolicyViolation.createDefaultViolationForComponent(urllib3)
+        .openedHoursAgo(0)
+        .asDirectDependency(true)
+        .withPolicyViolationId("newViolationAfterUnwaived")
+        .withConditionType(SecurityVulnerabilitySeverityConditionType.ID);
+
+    var unwaivedPolicyViolation = TestablePolicyViolation.createDefaultViolationForComponent(urllib3)
+        .openedHoursAgo(500)
+        .asDirectDependency(true)
+        .withPolicyViolationId("unwaivedViolation")
+        .markWaived(policyWaiver)
+        .markUnwaived(policyWaiver.getId(), replacementPolicyViolation.getPolicyViolation());
 
     PolicyViolationTelemetryCollector telemetryCollector =
-        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+        createTelemetryCollector(unwaivedPolicyViolation.isScmEnabled());
 
     // when - pass in same component version the violation is for
     telemetryCollector.addTelemetryForUnwaivedViolation(
-        testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponent(),
-        testablePolicyViolation.getWaiverId()
+        unwaivedPolicyViolation.getPolicyViolation(),
+        replacementPolicyViolation.getPolicyViolation(),
+        unwaivedPolicyViolation.getComponent()
     );
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
-    testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, TIME_TO_WAIVE_POLICY_VIOLATION);
+    unwaivedPolicyViolation.validateTelemetryDataForPurposes(telemetryData, TIME_TO_WAIVE_POLICY_VIOLATION);
   }
 
   @Test
@@ -344,7 +352,7 @@ public class PolicyViolationTelemetryCollectorTest
   public void testAddTelemetryForAutoWaivedViolation() {
     // given a policy violation and a waiver for it
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(policyEvaluation.getApplicationId());
-    
+
     TestablePolicyViolation testablePolicyViolation =
         TestablePolicyViolation.createDefaultViolationForComponent(commonsLang3)
             .openedHoursAgo(5)
@@ -364,34 +372,42 @@ public class PolicyViolationTelemetryCollectorTest
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
     testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, TIME_TO_WAIVE_POLICY_VIOLATION);
-    
+
   }
-  
+
   @Test
-  public void testAddTelemetryForUnautoWaivedViolation() {
-    // given a policy violation on lodash v3
-    TestablePolicyViolation testablePolicyViolation =
-        TestablePolicyViolation.createDefaultViolationForComponent(urllib3)
-            .openedHoursAgo(500)
-            .asDirectDependency(true)
-            .withPolicyViolationId("unwaivedViolation")
-            .markUnAutoWaived("oldAutoPolicyWaiverId");
+  public void testAddTelemetryForUnwaivedViolation_wasAutoWaived() {
+    // given an uwaived policy violation and the new open violation that replaces it
+    var autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(policyEvaluation.getApplicationId());
+
+    var replacementPolicyViolation = TestablePolicyViolation.createDefaultViolationForComponent(urllib3)
+        .openedHoursAgo(0)
+        .asDirectDependency(true)
+        .withPolicyViolationId("newViolationAfterUnwaived")
+        .withConditionType(SecurityVulnerabilitySeverityConditionType.ID);
+
+    var unwaivedPolicyViolation = TestablePolicyViolation.createDefaultViolationForComponent(urllib3)
+        .openedHoursAgo(500)
+        .asDirectDependency(true)
+        .withPolicyViolationId("unwaivedViolation")
+        .markAutoWaived(autoPolicyWaiver)
+        .markUnAutoWaived(autoPolicyWaiver.getId(), replacementPolicyViolation.getPolicyViolation());
 
     PolicyViolationTelemetryCollector telemetryCollector =
-        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+        createTelemetryCollector(unwaivedPolicyViolation.isScmEnabled());
 
     // when - pass in same component version the violation is for
-    telemetryCollector.addTelemetryForUnAutoWaivedViolation(
-        testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponent(),
-        testablePolicyViolation.getAutoPolicyWaiverId()
+    telemetryCollector.addTelemetryForUnwaivedViolation(
+        unwaivedPolicyViolation.getPolicyViolation(),
+        replacementPolicyViolation.getPolicyViolation(),
+        unwaivedPolicyViolation.getComponent()
     );
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
-    testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, TIME_TO_WAIVE_POLICY_VIOLATION);
+    unwaivedPolicyViolation.validateTelemetryDataForPurposes(telemetryData, TIME_TO_WAIVE_POLICY_VIOLATION);
   }
-  
+
   private PolicyViolationTelemetryCollector createTelemetryCollector(boolean isScmEnabled) {
     PolicyViolationTelemetryCollector telemetryCollector =
         new PolicyViolationTelemetryCollector(policyWaiverDAO, telemetryUtils, isScmEnabled);
@@ -422,6 +438,8 @@ public class PolicyViolationTelemetryCollectorTest
 
     private final PolicyViolation policyViolation;
 
+    private PolicyViolation replacementPolicyViolation;
+
     private Component component;
 
     private String conditionType;
@@ -432,6 +450,8 @@ public class PolicyViolationTelemetryCollectorTest
 
     private Double cvssScore;
 
+    private boolean expectUnwaived;
+
     private String fixReason;
 
     private Long fixTime;
@@ -439,7 +459,7 @@ public class PolicyViolationTelemetryCollectorTest
     private boolean isScmEnabled;
 
     private String waiverId;
-    
+
     private String autoPolicyWaiverId;
 
     private Long openTime;
@@ -510,7 +530,7 @@ public class PolicyViolationTelemetryCollectorTest
     String getWaiverId() {
       return waiverId;
     }
-    
+
     String getAutoPolicyWaiverId() {
       return autoPolicyWaiverId;
     }
@@ -570,8 +590,11 @@ public class PolicyViolationTelemetryCollectorTest
       return this;
     }
 
-    TestablePolicyViolation markUnwaived(String oldWaiverId) {
+    TestablePolicyViolation markUnwaived(String oldWaiverId, PolicyViolation replacementPolicyViolation) {
+      this.expectUnwaived = true;
       this.waiverId = oldWaiverId;
+      this.replacementPolicyViolation = replacementPolicyViolation;
+      policyViolation.setPolicyWaiverId(oldWaiverId);
       policyViolation.setWaiveTime(policyEvaluation.getTime());
       withCount(-1);
       return this;
@@ -584,18 +607,22 @@ public class PolicyViolationTelemetryCollectorTest
       waiverExpiration = "never";
       return this;
     }
-    
-    TestablePolicyViolation markUnAutoWaived(String oldAutoPolicyWaiverId) {
+
+    TestablePolicyViolation markUnAutoWaived(String oldAutoPolicyWaiverId, PolicyViolation replacementPolicyViolation) {
+      this.expectUnwaived = true;
       this.autoPolicyWaiverId = oldAutoPolicyWaiverId;
+      this.replacementPolicyViolation = replacementPolicyViolation;
       policyViolation.setWaiveTime(policyEvaluation.getTime());
+      policyViolation.setAutoPolicyWaiverId(oldAutoPolicyWaiverId);
       withCount(-1);
       return this;
     }
-    
+
     TestablePolicyViolation markAutoWaived(AutoPolicyWaiver autoPolicyWaiver) {
       policyViolation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
       policyViolation.setWaiveTime(policyEvaluation.getTime());
       autoPolicyWaiverId = autoPolicyWaiver.getId();
+      waiverExpiration = "never";
       return this;
     }
 
@@ -745,11 +772,14 @@ public class PolicyViolationTelemetryCollectorTest
           break;
 
         case TIME_TO_WAIVE_POLICY_VIOLATION:
-          validateMatchesOrNotExists(attributes, UNWAIVE_TIME, policyViolation.getWaiveTime().getTime());
           validateMatchesOrNotExists(attributes, WAIVE_TIME, policyViolation.getWaiveTime().getTime());
           validateMatchesOrNotExists(attributes, POLICY_WAIVER_ID, getWaiverId());
           validateMatchesOrNotExists(attributes, AUTO_POLICY_WAIVER_ID, getAutoPolicyWaiverId());
           validateMatchesOrNotExists(attributes, WAIVER_EXPIRATION, waiverExpiration);
+          if (expectUnwaived) {
+            validateMatchesOrNotExists(attributes, UNWAIVE_TIME, policyViolation.getWaiveTime().getTime());
+            validateMatchesOrNotExists(attributes, NEW_POLICY_VIOLATION_ID, replacementPolicyViolation.getId());
+          }
           validateTimeAttribute(attributes, calculateExpectedUnwaiveTime());
           break;
 

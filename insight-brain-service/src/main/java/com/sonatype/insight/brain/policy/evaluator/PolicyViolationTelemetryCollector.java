@@ -53,9 +53,9 @@ public class PolicyViolationTelemetryCollector
 
   static final String IS_SCM_ENABLED = "is_scm_enabled";
 
-  static final String OPEN_TIME = "open_time";
+  static final String NEW_POLICY_VIOLATION_ID = "new_policy_violation_id";
 
-  static final String POLICY_NAME = "policy_name";
+  static final String OPEN_TIME = "open_time";
 
   static final String POLICY_VIOLATION_ID = "policy_violation_id";
 
@@ -67,7 +67,7 @@ public class PolicyViolationTelemetryCollector
 
   static final String TIME = "time";
 
-  static final String UNWAIVE_TIME = "waive_time"; // yes, same as WAIVE_TIME for now
+  static final String UNWAIVE_TIME = "unwaive_time";
 
   static final String WAIVE_TIME = "waive_time";
 
@@ -78,6 +78,8 @@ public class PolicyViolationTelemetryCollector
   static final String DIRECT_DEPENDENCY = "direct_dependency";
 
   static final String WAIVER_EXPIRATION = "waiver_expiration";
+
+  static final String WAIVER_EXPIRATION_NEVER = "never";
 
   static final String POLICY_WAIVER_ID = "policy_waiver_id";
 
@@ -143,34 +145,30 @@ public class PolicyViolationTelemetryCollector
 
   public void addTelemetryForUnwaivedViolation(
       final PolicyViolation unwaivedPolicyViolation,
-      final Component component,
-      final String oldPolicyWaiverId
+      final PolicyViolation newPolicyViolation,
+      final Component component
   )
   {
     if (unwaivedPolicyViolation != null) {
       TelemetryData telemetryData =
           createTelemetry(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION, unwaivedPolicyViolation, component)
+              .put(WAIVE_TIME, unwaivedPolicyViolation.getWaiveTime().getTime())
               .put(UNWAIVE_TIME, timeOfPolicyEvaluation.getTime())
               .put(COUNT, -1)
-              .put(POLICY_WAIVER_ID, oldPolicyWaiverId);
+              .put(NEW_POLICY_VIOLATION_ID, newPolicyViolation.getId());
 
-      telemetryDataList.add(telemetryData);
-    }
-  }
-
-  public void addTelemetryForUnAutoWaivedViolation(
-      final PolicyViolation unwaivedPolicyViolation,
-      final Component component,
-      final String oldAutoPolicyWaiverId
-  )
-  {
-    if (unwaivedPolicyViolation != null) {
-      TelemetryData telemetryData =
-          createTelemetry(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION, unwaivedPolicyViolation, component);
-      addComponentMetadata(telemetryData, unwaivedPolicyViolation);
-      telemetryData.put(UNWAIVE_TIME, timeOfPolicyEvaluation.getTime());
-      telemetryData.put(COUNT, -1);
-      telemetryData.put(AUTO_POLICY_WAIVER_ID, oldAutoPolicyWaiverId);
+      if (null != unwaivedPolicyViolation.getPolicyWaiverId()) {
+        var policyWaiverId = unwaivedPolicyViolation.getPolicyWaiverId();
+        var waiverExpirationInDays = getPolicyWaiverExpirationDays(policyWaiverId);
+        telemetryData
+            .put(POLICY_WAIVER_ID, unwaivedPolicyViolation.getPolicyWaiverId())
+            .put(WAIVER_EXPIRATION, waiverExpirationInDays);
+      }
+      else { // was auto-waived
+        telemetryData
+            .put(AUTO_POLICY_WAIVER_ID, unwaivedPolicyViolation.getAutoPolicyWaiverId())
+            .put(WAIVER_EXPIRATION, WAIVER_EXPIRATION_NEVER);
+      }
 
       telemetryDataList.add(telemetryData);
     }
@@ -199,6 +197,7 @@ public class PolicyViolationTelemetryCollector
           createTelemetry(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION, waivedPolicyViolation, component);
       addComponentMetadata(telemetryData, waivedPolicyViolation);
       telemetryData.put(WAIVE_TIME, timeOfPolicyEvaluation.getTime());
+      telemetryData.put(WAIVER_EXPIRATION, WAIVER_EXPIRATION_NEVER);
       telemetryData.put(AUTO_POLICY_WAIVER_ID, autoPolicyWaiverId);
       telemetryDataList.add(telemetryData);
     }
@@ -317,6 +316,6 @@ public class PolicyViolationTelemetryCollector
             .toDays(policyWaiver.getExpiryTime().getTime() - policyWaiver.getCreateTime().getTime()));
       }
     }
-    return "never";
+    return WAIVER_EXPIRATION_NEVER;
   }
 }

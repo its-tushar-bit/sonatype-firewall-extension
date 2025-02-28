@@ -204,7 +204,7 @@ public enum SystemConfigurationPropertyFeature
 
   DEVELOPER_SUGGEST_NON_BREAKING_VERSION(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION, true)
   {
-    // See SDEV-1629. A feature flag with enabledWhenAbsent = true and an entry in the db with a value of true is not
+    // A feature flag with enabledWhenAbsent = true and an entry in the db with a value of true is not
     // treated as enabled.
     @Override
     public boolean isEnabled(TransactionContext tx) {
@@ -222,9 +222,31 @@ public enum SystemConfigurationPropertyFeature
 
   SBOM_POLICIES(SystemConfigurationProperty.SBOM_POLICIES, false),
 
-  AUTO_WAIVERS(SystemConfigurationProperty.AUTO_WAIVERS, true),
+  AUTO_WAIVERS(SystemConfigurationProperty.AUTO_WAIVERS, true)
+  {
+    // A feature flag with enabledWhenAbsent = true and an entry in the db with a value of true is not
+    // treated as enabled.
+    @Override
+    public boolean isEnabled(TransactionContext tx) {
+      final SystemConfigurationProperty systemConfigurationProperty =
+          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
+      return systemConfigurationProperty == null ? super.isEnabled(tx) :
+          Boolean.parseBoolean(systemConfigurationProperty.getValue());
+    }
+  },
 
-  NEW_SCAN_PROCESS(SystemConfigurationProperty.NEW_SCAN_PROCESS, false),
+  NEW_SCAN_PROCESS(SystemConfigurationProperty.NEW_SCAN_PROCESS, false)
+  {
+    // A feature flag with enabledWhenAbsent = true and an entry in the db with a value of true is not
+    // treated as enabled.
+    @Override
+    public boolean isEnabled(TransactionContext tx) {
+      final SystemConfigurationProperty systemConfigurationProperty =
+          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
+      return systemConfigurationProperty == null ? super.isEnabled(tx) :
+          Boolean.parseBoolean(systemConfigurationProperty.getValue());
+    }
+  },
 
   MALWARE_DEFENSE_API(SystemConfigurationProperty.MALWARE_DEFENSE_API, false)
   {

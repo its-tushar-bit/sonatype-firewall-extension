@@ -1185,4 +1185,33 @@ public class ApiConfigFeaturesServiceTest
             NEW_SCAN_PROCESS)).isInstanceOf(
         BadRequestException.class).hasMessage("Feature is already disabled.");
   }
+
+  @Test
+  public void testIsEnabled_AutoWaivers_EnabledByDefault() {
+    // Enabled by default
+    assertThat(systemConfigurationPropertyDAO.getByName(AUTO_WAIVERS)).isNull();
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.AUTO_WAIVERS)).isTrue();
+  }
+
+  @Test
+  public void testIsEnabled_AutoWaivers() {
+    final SystemConfigurationProperty systemConfigurationProperty =
+        new SystemConfigurationProperty(SystemConfigurationProperty.AUTO_WAIVERS, "true");
+    systemConfigurationPropertyDAO.insert(systemConfigurationProperty);
+    assertThat(
+        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.AUTO_WAIVERS).getValue())
+        .isEqualTo("true");
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.AUTO_WAIVERS)).isTrue();
+  }
+
+  @Test
+  public void testIsEnabled_NewScanProcess() {
+    final SystemConfigurationProperty systemConfigurationProperty =
+        new SystemConfigurationProperty(NEW_SCAN_PROCESS, "true");
+    systemConfigurationPropertyDAO.insert(systemConfigurationProperty);
+    assertThat(
+        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.NEW_SCAN_PROCESS).getValue())
+        .isEqualTo("true");
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS)).isTrue();
+  }
 }

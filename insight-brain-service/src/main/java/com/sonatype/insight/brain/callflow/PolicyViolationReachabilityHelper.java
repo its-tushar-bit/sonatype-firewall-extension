@@ -21,6 +21,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_NPM;
 import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
 import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.NON_REACHABLE;
@@ -125,12 +126,17 @@ public class PolicyViolationReachabilityHelper
   }
 
   private static boolean isReachableSecurityViolation(final PolicyViolation policyViolation) {
-    // only allow if it is a maven security violation, as it's the only type of violation that has
+    // only allow if it is a maven or npm security violation, as those are the only types of violation that have
     // reachability support. More types of security violations can be added here as permitted.
-    return isMavenSecurityViolation(policyViolation);
+    return isMavenSecurityViolation(policyViolation) || isNpmSecurityViolation(policyViolation);
   }
 
   private static boolean isMavenSecurityViolation(final PolicyViolation policyViolation) {
     return SECURITY.equals(policyViolation.getThreatCategory()) && policyViolation.getComponentIdentifier().isMaven();
+  }
+
+  private static boolean isNpmSecurityViolation(final PolicyViolation policyViolation) {
+    return SECURITY.equals(policyViolation.getThreatCategory()) &&
+        FORMAT_NPM.equals(policyViolation.getComponentIdentifier().getFormat());
   }
 }

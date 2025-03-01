@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.callflow;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +21,7 @@ import org.junit.Test;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createNpmCoordinates;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createPypiCoordinates;
 import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.filterOnReachableSecurityViolations;
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.updateReachabilityStatus;
@@ -34,25 +36,34 @@ public class PolicyViolationReachabilityHelperTest
 {
   @Test
   public void filterOnReachableSecurityViolations_ReturnsOnlyReachableViolations() {
-    // reachable violation by threat category and component identifier format
-    PolicyViolation reachablePolicyViolation = createReachablePolicyViolation();
+    // reachable violation by threat category and component identifier format (Maven)
+    PolicyViolation mvnReachablePolicyViolation = createReachablePolicyViolation();
 
     // non-reachable violation by threat category
     PolicyViolation unreachablePolicyViolation1 = new PolicyViolation();
     unreachablePolicyViolation1.setThreatCategory(LICENSE);
     unreachablePolicyViolation1.setComponentIdentifier(createMavenCoordinates("g", "a", "v"));
+    unreachablePolicyViolation1.setOpenTime(new Date());
 
-    // non-reachable violation by component identifier format
-    PolicyViolation unreachablePolicyViolation2 = new PolicyViolation();
-    unreachablePolicyViolation2.setThreatCategory(SECURITY);
-    unreachablePolicyViolation2.setComponentIdentifier(createNpmCoordinates("packageId", "version"));
+    // non-reachable violation by component format
+    PolicyViolation pipyNonreachablePolicyViolation2 = new PolicyViolation();
+    pipyNonreachablePolicyViolation2.setThreatCategory(SECURITY);
+    pipyNonreachablePolicyViolation2.setComponentIdentifier(createPypiCoordinates("n", "v", "q", "e"));
+    pipyNonreachablePolicyViolation2.setOpenTime(new Date());
+    
+    // reachable violation by threat category and component identifier format (NPM)
+    PolicyViolation npmReachablePolicyViolation2 = new PolicyViolation();
+    npmReachablePolicyViolation2.setThreatCategory(SECURITY);
+    npmReachablePolicyViolation2.setComponentIdentifier(createNpmCoordinates("packageId", "version"));
+    npmReachablePolicyViolation2.setOpenTime(new Date());
 
     List<PolicyViolation> result = filterOnReachableSecurityViolations(
-        List.of(reachablePolicyViolation, unreachablePolicyViolation1, unreachablePolicyViolation2)
+        List.of(mvnReachablePolicyViolation, unreachablePolicyViolation1, npmReachablePolicyViolation2)
     );
 
-    assertThat(result).hasSize(1);
-    assertThat(result.get(0)).isEqualTo(reachablePolicyViolation);
+    assertThat(result).hasSize(2);
+    assertThat(result.get(0)).isEqualTo(mvnReachablePolicyViolation);
+    assertThat(result.get(1)).isEqualTo(npmReachablePolicyViolation2);
   }
 
   @Test
@@ -148,6 +159,7 @@ public class PolicyViolationReachabilityHelperTest
     policyViolation.setThreatCategory(SECURITY);
     policyViolation.setComponentIdentifier(createMavenCoordinates("g", "a", "v"));
     policyViolation.setConstraintFacts(List.of(constraintFact));
+    policyViolation.setOpenTime(new Date());
     return policyViolation;
   }
 

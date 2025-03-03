@@ -11,7 +11,10 @@ import FirewallAutoUnqaurantinePageContainer from './autounquarantine/FirewallAu
 import firewall from './firewall';
 import FirewallComponentDetailsPage from './firewallComponentDetailsPage/FirewallComponentDetailsPage';
 import { selectIsDirty as policyEditorSelectIsDirty } from 'MainRoot/OrgsAndPolicies/policySelectors';
-import { QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS_ENABLED } from 'MainRoot/utility/services/routeStateUtilService';
+import {
+  QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS_ENABLED,
+  ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE,
+} from 'MainRoot/utility/services/routeStateUtilService';
 import { QUARANTINE, WAIVERS, ROI } from 'MainRoot/firewall/firewallConstants';
 
 export default angular
@@ -480,7 +483,7 @@ function routes($stateProvider) {
       url: '/api',
       data: {
         title: 'API',
-        authenticationRequired: false,
+        authenticationRequired: ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE,
       },
       component: 'apiPage',
     });

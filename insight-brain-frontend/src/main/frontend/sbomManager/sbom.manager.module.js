@@ -16,6 +16,7 @@ import LearnMoreSbomManager from 'MainRoot/sbomManager/features/LearnMoreSbomMan
 import SbomApplicationsPage from 'MainRoot/sbomManager/features/sbomApplicationsPage/SbomApplicationsPage';
 import { selectHasSbomManagerLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 import { load as loadProductLicense } from 'MainRoot/configuration/license/productLicenseActions';
+import { ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE } from 'MainRoot/utility/services/routeStateUtilService';
 
 export default angular
   .module('sbomManagerModule', ['ngRedux', advancedSearchModule.name])
@@ -148,7 +149,7 @@ function routes($stateProvider) {
       url: '/api',
       data: {
         title: 'API',
-        authenticationRequired: false,
+        authenticationRequired: ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE,
       },
       component: 'apiPage',
     });

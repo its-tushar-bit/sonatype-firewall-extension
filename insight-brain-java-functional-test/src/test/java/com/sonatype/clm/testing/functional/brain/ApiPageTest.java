@@ -8,9 +8,11 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.Arrays;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.ApiPage;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.SelenideElement;
@@ -22,6 +24,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
@@ -58,6 +61,20 @@ public class ApiPageTest
     setLicensedProducts(licensedProduct);
     hardreset();
     refreshOrOpen(url);
+  }
+
+  @Test
+  public void testEnableUnauthenticatedPagesDisabled() {
+    SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES.setEnabled(false);
+    hardreset();
+    refreshOrOpen(url);
+    ApiPage apiPage = new ApiPage();
+    apiPage.shouldNot(exist);
+    LoginModal loginModal = new LoginModal();
+    loginModal.shouldBe(visible);
+
+    loginAsAdmin();
+    apiPage.shouldBe(visible);
   }
 
   @Test

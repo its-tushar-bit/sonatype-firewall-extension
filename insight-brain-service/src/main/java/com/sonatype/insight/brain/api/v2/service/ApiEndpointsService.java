@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiType;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
+import com.sonatype.insight.brain.security.AnonymousWithFeature;
 import com.sonatype.insight.brain.version.VersionService;
 
 import com.fasterxml.jackson.annotation.JsonView;
@@ -89,6 +90,7 @@ public class ApiEndpointsService
     IS_SUPPORTED_BY_OPERATION_ID.clear();
   }
 
+  @AnonymousWithFeature
   public String getOpenAPI(final Application application, final ApiType apiType) {
     String openAPIJson =
         OPEN_API_JSON_BY_API_TYPE.computeIfAbsent(apiType, key -> toJson(createOpenAPI(application, apiType)));

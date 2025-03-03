@@ -6,6 +6,7 @@
 import { react2angular } from 'react2angular';
 import ApiPage from './ApiPage';
 import withStoreProvider from 'MainRoot/reactAdapter/StoreProvider';
+import { ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE } from 'MainRoot/utility/services/routeStateUtilService';
 
 export default angular
   .module('apiModule', [])
@@ -17,7 +18,7 @@ function routes($stateProvider) {
     url: '/api',
     data: {
       title: 'API',
-      authenticationRequired: false,
+      authenticationRequired: ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE,
     },
     component: 'apiPage',
   });

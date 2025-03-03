@@ -7,6 +7,7 @@ import ApiPage from 'MainRoot/api/ApiPage';
 import React from 'react';
 import { axiosMockAdapter, render, screen, waitFor } from 'TestRoot/SpecUtil';
 import { getEndpointsUrl } from 'MainRoot/util/CLMLocation';
+import userEvent from '@testing-library/user-event';
 
 describe('ApiPage', function () {
   let axiosMock;
@@ -84,6 +85,15 @@ describe('ApiPage', function () {
     it('has a header of API', function () {
       const header = screen.getByRole('heading', { name: 'API' });
       expect(header).toBeVisible();
+    });
+
+    it('clears the error if the retry works', async function () {
+      const user = userEvent.setup();
+      axiosMock.onGet(getEndpointsUrl('public')).reply(200, getMinimalOpenApi('Public API'));
+
+      const retryButton = screen.getByRole('button', { name: 'Retry' });
+      await user.click(retryButton);
+      await waitFor(() => expectSwaggerUi('Public API'));
     });
   });
 

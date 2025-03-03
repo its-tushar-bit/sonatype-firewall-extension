@@ -30,6 +30,7 @@ function loadOpenApiRequested(state) {
   return {
     ...state,
     loading: true,
+    loadError: null,
   };
 }
 

@@ -29,5 +29,6 @@ public class SecurityAopModule
     bindShiroInterceptor(new AuthorizeMethodInterceptor(resolver, authzChecker));
     bindShiroInterceptor(new AuthzFilterMethodInterceptor(resolver, authzChecker));
     bindShiroInterceptor(new HasFeatureMethodInterceptor(resolver));
+    bindShiroInterceptor(new AnonymousWithFeatureMethodInterceptor(resolver));
   }
 }

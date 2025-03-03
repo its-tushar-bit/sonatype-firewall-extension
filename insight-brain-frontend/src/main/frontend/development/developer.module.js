@@ -6,6 +6,7 @@
 
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import SonatypeDeveloperPage from 'MainRoot/development/developmentDashboard/SonatypeDeveloperPage';
+import { ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE } from 'MainRoot/utility/services/routeStateUtilService';
 
 export const SECTIONS = {
   OVERVIEW: 'overview',
@@ -88,7 +89,7 @@ function routes($stateProvider, $urlServiceProvider) {
       url: '/api',
       data: {
         title: 'API',
-        authenticationRequired: false,
+        authenticationRequired: ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE,
       },
       component: 'apiPage',
     });

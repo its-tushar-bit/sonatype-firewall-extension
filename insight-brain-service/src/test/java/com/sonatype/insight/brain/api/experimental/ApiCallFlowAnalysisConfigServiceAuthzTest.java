@@ -52,7 +52,7 @@ public class ApiCallFlowAnalysisConfigServiceAuthzTest
     grantWritePermission(org.getId());
     ApiCallFlowAnalysisConfigDTO persisted = apiCallFlowAnalysisService.upsertCallFlowAnalysisConfig(
         org.getType(), org.getId(), buildCallFlowAnalysisConfig(org.getId()));
-    grantReadPermission(org.getId());
+    grantEvaluateApplicationPermission(org.getId());
     ApiCallFlowAnalysisConfigDTO result =
         apiCallFlowAnalysisService.getCallFlowAnalysisConfig(org.getType(), org.getId());
     assertCallFlowAnalysis(result, persisted);
@@ -68,7 +68,7 @@ public class ApiCallFlowAnalysisConfigServiceAuthzTest
     grantWritePermission(org.getId());
     ApiCallFlowAnalysisConfigDTO persisted = apiCallFlowAnalysisService.upsertCallFlowAnalysisConfig(
         org.getType(), org.getId(), buildCallFlowAnalysisConfig(org.getId()));
-    grantReadPermission(org.getId());
+    grantEvaluateApplicationPermission(org.getId());
     ApiCallFlowAnalysisConfigDTO result =
         apiCallFlowAnalysisService.getCallFlowAnalysisConfigByPublicId(org.getType(), org.getPublicId());
     assertCallFlowAnalysis(result, persisted);
@@ -119,7 +119,7 @@ public class ApiCallFlowAnalysisConfigServiceAuthzTest
     grantWritePermission(org.getId());
     insertElementToSearch();
     apiCallFlowAnalysisService.deleteCallFlowAnalysisConfig(org.getType(), org.getId());
-    grantReadPermission(org.getId());
+    grantEvaluateApplicationPermission(org.getId());
     // Verify: Assert that retrieving the config now throws NotFoundException
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       apiCallFlowAnalysisService

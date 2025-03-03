@@ -68,7 +68,7 @@ public class ApiCallFlowAnalysisConfigService
     return buildApiCallFlowConfigDTO(modelToPersist);
   }
 
-  @Authorize(permission = Permission.READ)
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public ApiCallFlowAnalysisConfigDTO getCallFlowAnalysisConfig(
       @SuppressWarnings("unused") @AuthzContext(Key.TYPE) final OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) final String ownerId) throws NotFoundException
@@ -76,7 +76,7 @@ public class ApiCallFlowAnalysisConfigService
     return getCallFlowAnalysisConfig(ownerId);
   }
 
-  @Authorize(permission = Permission.READ)
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public ApiCallFlowAnalysisConfigDTO getCallFlowAnalysisConfigByPublicId(
       @AuthzContext(Key.TYPE) final OwnerType ownerType,
       @AuthzContext(Key.ID) final String ownerId) throws NotFoundException

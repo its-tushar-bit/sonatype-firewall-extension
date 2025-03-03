@@ -284,7 +284,8 @@ public class ConfigurationInfoTest
         "malwareDefenseApi",
         "autoWaivers",
         "newScanProcess",
-        "idTokenCookieExpirationTime");
+        "idTokenCookieExpirationTime",
+        "alpForSbomManager");
 
     // Properties included in the config.json in support zip
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());

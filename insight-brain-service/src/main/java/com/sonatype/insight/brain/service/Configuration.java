@@ -207,7 +207,8 @@ public class Configuration
         SystemConfigurationProperty.NEW_SCAN_PROCESS,
         SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR,
         SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS,
-        SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_BATCH_SIZE
+        SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_BATCH_SIZE,
+        SystemConfigurationProperty.ALP_FOR_SBOM_MANAGER
         )
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());

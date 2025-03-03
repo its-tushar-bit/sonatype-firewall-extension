@@ -244,6 +244,8 @@ public class SystemConfigurationProperty
 
   public static final String SBOM_BINARY_SCANNING = "sbomBinaryScanning";
 
+  public static final String ALP_FOR_SBOM_MANAGER = "alpForSbomManager";
+
   public static final String DEVELOPER_SUGGEST_NON_BREAKING_VERSION = "developerSuggestNonBreakingVersion";
 
   public static final String NON_BREAKING_VERSION_SUGGESTION_TELEMETRY = "nonBreakingVersionSuggestionTelemetry";

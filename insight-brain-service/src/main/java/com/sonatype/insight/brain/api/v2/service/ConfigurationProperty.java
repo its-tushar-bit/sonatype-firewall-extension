@@ -249,6 +249,9 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_BATCH_SIZE, Integer.class,
           (p, s) -> NumberUtils.toInt(s, 100),
           (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.ALP_FOR_SBOM_MANAGER, Boolean.class,
+          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
+          (p, o) -> Objects.toString(o, null))
       };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

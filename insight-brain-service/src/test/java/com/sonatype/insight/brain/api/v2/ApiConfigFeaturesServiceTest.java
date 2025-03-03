@@ -766,6 +766,25 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
+  public void testEnableFeature_alpForSbomManager_setEnabledForSingleTenant() {
+    SystemConfigurationPropertyFeature.ALP_FOR_SBOM_MANAGER.setEnabled(true);
+    assertThat(SystemConfigurationPropertyFeature.ALP_FOR_SBOM_MANAGER.isEnabled()).isTrue();
+  }
+
+  @Test
+  public void testDisabledByDefaultFeature_AlpForSbomManager() {
+    assertThat(systemConfigurationPropertyDAO.getByName(ALP_FOR_SBOM_MANAGER))
+        .isNull();
+  }
+
+  @Test
+  public void testDisableFeature_AlpForSbomManager_AlreadyDisabled() {
+    assertThatThrownBy(() -> service.disableFeature(ALP_FOR_SBOM_MANAGER))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
+  }
+
+  @Test
   public void testEnableFeature_PrioritizedFindingsReport() {
     tempEntity.newSystemConfigurationProperty(SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT
             .getPropertyName(), "false");

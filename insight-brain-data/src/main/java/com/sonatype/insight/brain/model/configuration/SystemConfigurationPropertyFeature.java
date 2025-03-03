@@ -202,6 +202,8 @@ public enum SystemConfigurationPropertyFeature
 
   SBOM_BINARY_SCANNING(SystemConfigurationProperty.SBOM_BINARY_SCANNING, true),
 
+  ALP_FOR_SBOM_MANAGER(SystemConfigurationProperty.ALP_FOR_SBOM_MANAGER, false),
+
   DEVELOPER_SUGGEST_NON_BREAKING_VERSION(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION, true)
   {
     // A feature flag with enabledWhenAbsent = true and an entry in the db with a value of true is not

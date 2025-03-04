@@ -99,8 +99,10 @@ function routes($stateProvider) {
         title: 'Component - Legal Overview',
       },
     })
-    .state('legal.appicationComponentOverviewByComponentIdentifier', {
-      url: '/legal/component/componentIdentifier/{componentIdentifier}/application/{applicationPublicId}',
+    .state('legal.applicationComponentOverviewByComponentIdentifier', {
+      url:
+        '/legal/component/componentIdentifier/{componentIdentifier}/application/{applicationPublicId}' +
+        '/component/{hash}/scan/{scanId}/{tabId}',
       component: 'componentLegalOverview',
       data: {
         title: 'Component - Legal Overview',
@@ -285,6 +287,15 @@ function routes($stateProvider) {
     })
     .state('legal.componentLicenseDetailsByComponentIdentifier', {
       url: '/legal/{ownerType}/{ownerId}/componentIdentifier/{componentIdentifier}/licenses/{licenseIndex}',
+      component: 'componentLicenseDetails',
+      data: {
+        title: 'Component - License Details',
+      },
+    })
+    .state('legal.componentLicenseDetailsByComponentIdentifierAndHashAndScanId', {
+      url:
+        '/legal/{ownerType}/{ownerId}/componentIdentifier/{componentIdentifier}/component/{hash}/scan/{scanId}' +
+        '/licenses/{licenseIndex}',
       component: 'componentLicenseDetails',
       data: {
         title: 'Component - License Details',

@@ -203,6 +203,63 @@ describe('LicenseDetailsTile component', function () {
     );
   });
 
+  it('renders the links to the licenses details pages by component identifier, hash and scanId', function () {
+    const wrapper = getMountedComponent({ ...minimalProps, componentIdentifier: 'ci', scanId: 'scan-test' });
+    let licenseLinks = wrapper.find('.license-details-tile__effective-licenses a.nx-text-link');
+    expect(licenseLinks.length).toBe(4);
+    expect(licenseLinks.at(0)).toHaveProp(
+      'href',
+      'legal.componentLicenseDetailsByComponentIdentifierAndHashAndScanId-{' +
+        '"hash":"hash-test","scanId":"scan-test","componentIdentifier":"ci","licenseIndex":0}'
+    );
+    expect(licenseLinks.at(1)).toHaveProp(
+      'href',
+      'legal.componentLicenseDetailsByComponentIdentifierAndHashAndScanId-{' +
+        '"hash":"hash-test","scanId":"scan-test","componentIdentifier":"ci","licenseIndex":0}'
+    );
+    expect(licenseLinks.at(2)).toHaveProp(
+      'href',
+      'legal.componentLicenseDetailsByComponentIdentifierAndHashAndScanId-{' +
+        '"hash":"hash-test","scanId":"scan-test","componentIdentifier":"ci","licenseIndex":1}'
+    );
+    expect(licenseLinks.at(3)).toHaveProp(
+      'href',
+      'legal.componentLicenseDetailsByComponentIdentifierAndHashAndScanId-{' +
+        '"hash":"hash-test","scanId":"scan-test","componentIdentifier":"ci","licenseIndex":1}'
+    );
+
+    licenseLinks = wrapper.find('.license-details-tile__observed-licenses a.nx-text-link');
+    expect(licenseLinks.length).toBe(3);
+    expect(licenseLinks.at(0)).toHaveProp(
+      'href',
+      'legal.componentLicenseDetailsByComponentIdentifierAndHashAndScanId-{' +
+        '"hash":"hash-test","scanId":"scan-test","componentIdentifier":"ci","licenseIndex":0}'
+    );
+    expect(licenseLinks.at(1)).toHaveProp(
+      'href',
+      'legal.componentLicenseDetailsByComponentIdentifierAndHashAndScanId-{' +
+        '"hash":"hash-test","scanId":"scan-test","componentIdentifier":"ci","licenseIndex":1}'
+    );
+    expect(licenseLinks.at(2)).toHaveProp(
+      'href',
+      'legal.componentLicenseDetailsByComponentIdentifierAndHashAndScanId-{' +
+        '"hash":"hash-test","scanId":"scan-test","componentIdentifier":"ci","licenseIndex":1}'
+    );
+
+    licenseLinks = wrapper.find('.license-details-tile__declared-licenses a.nx-text-link');
+    expect(licenseLinks.length).toBe(2);
+    expect(licenseLinks.at(0)).toHaveProp(
+      'href',
+      'legal.componentLicenseDetailsByComponentIdentifierAndHashAndScanId-{' +
+        '"hash":"hash-test","scanId":"scan-test","componentIdentifier":"ci","licenseIndex":0}'
+    );
+    expect(licenseLinks.at(1)).toHaveProp(
+      'href',
+      'legal.componentLicenseDetailsByComponentIdentifierAndHashAndScanId-{' +
+        '"hash":"hash-test","scanId":"scan-test","componentIdentifier":"ci","licenseIndex":1}'
+    );
+  });
+
   it('renders None found if there are no licenses', function () {
     const newMinimalProps = {
       ...minimalProps,

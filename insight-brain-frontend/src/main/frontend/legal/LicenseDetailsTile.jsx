@@ -28,6 +28,7 @@ export default function LicenseDetailsTile(props) {
     ownerType,
     ownerId,
     hash,
+    scanId,
     componentIdentifier,
     stageTypeId,
     $state,
@@ -40,6 +41,9 @@ export default function LicenseDetailsTile(props) {
   const licenseDetailsTargetState = () => {
     if (stageTypeId) {
       return 'legal.stageTypeComponentLicenseDetails';
+    }
+    if (componentIdentifier && hash && scanId) {
+      return 'legal.componentLicenseDetailsByComponentIdentifierAndHashAndScanId';
     }
     return hash ? 'legal.componentLicenseDetails' : 'legal.componentLicenseDetailsByComponentIdentifier';
   };
@@ -56,6 +60,7 @@ export default function LicenseDetailsTile(props) {
                 ownerType,
                 ownerId,
                 hash,
+                scanId,
                 componentIdentifier,
                 stageTypeId,
                 licenseIndex: findSimilarLicenseIndex(licenseName, licenseLegalMetadata),
@@ -74,6 +79,7 @@ export default function LicenseDetailsTile(props) {
           ownerType,
           ownerId,
           hash,
+          scanId,
           componentIdentifier,
           stageTypeId,
           licenseIndex: findSingleLicenseIndex(license.licenseId, licenseLegalMetadata),
@@ -149,6 +155,7 @@ LicenseDetailsTile.propTypes = {
   ownerType: PropTypes.string.isRequired,
   ownerId: PropTypes.string.isRequired,
   hash: PropTypes.string,
+  scanId: PropTypes.string,
   componentIdentifier: PropTypes.string,
   stageTypeId: PropTypes.string,
   $state: PropTypes.object.isRequired,

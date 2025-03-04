@@ -48,11 +48,15 @@ public class LegalApplicationDetailsPage
 
   public static String urlToComponentAtApplicationScopeByComponentIdentifier(
       String componentIdentifier,
-      String publicAppId
+      String publicAppId,
+      String hash,
+      String scanId,
+      String tabId
   )
   {
-    return BaseUrl.resolvePageUrl(String.format("/legal/component/componentIdentifier/%s/application/%s",
-        componentIdentifier, publicAppId));
+    return BaseUrl.resolvePageUrl(
+        String.format("/legal/component/componentIdentifier/%s/application/%s/component/%s/scan/%s/%s",
+            componentIdentifier, publicAppId, hash, scanId, tabId));
   }
 
   public static SelenideElement title() {

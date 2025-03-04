@@ -179,6 +179,7 @@ export default function ComponentLegalOverviewPage(props) {
                     ownerType={ownerType}
                     ownerId={ownerId}
                     hash={hash}
+                    scanId={scanId}
                     componentIdentifier={componentIdentifier}
                     stageTypeId={stageTypeId}
                     $state={$state}

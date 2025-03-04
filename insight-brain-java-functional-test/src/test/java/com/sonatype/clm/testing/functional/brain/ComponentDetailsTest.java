@@ -1716,7 +1716,7 @@ public class ComponentDetailsTest
     String componentIdentifier = "%7B\"format\":\"maven\",\"coordinates\":%7B\"artifactId\":\"license-maven-plugin\","
         + "\"classifier\":\"\",\"extension\":\"jar\",\"groupId\":\"com.mycila\",\"version\":\"2.11\"%7D%7D";
     waitUntilUrl(LegalApplicationDetailsPage.urlToComponentAtApplicationScopeByComponentIdentifier(
-        componentIdentifier, app.getPublicId()));
+        componentIdentifier, app.getPublicId(), HASH, SCAN_ID, "legal"));
     ComponentLegalOverviewPage.editLicenseFilesButton().shouldBe(visible);
   }
 

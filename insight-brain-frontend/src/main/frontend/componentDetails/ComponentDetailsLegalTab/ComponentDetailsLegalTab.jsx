@@ -38,9 +38,12 @@ export default function ComponentDetailsLegalTab() {
   const reviewObligationsClickHandler = () =>
     dispatch(
       componentDetails.componentIdentifier
-        ? stateGo('legal.appicationComponentOverviewByComponentIdentifier', {
+        ? stateGo('legal.applicationComponentOverviewByComponentIdentifier', {
             componentIdentifier: JSON.stringify(componentDetails.componentIdentifier),
             applicationPublicId: applicationId,
+            hash: hash,
+            scanId: scanId,
+            tabId: 'legal',
           })
         : stateGo('applicationReport.applicationStageTypeComponentOverview', {
             applicationPublicId: applicationId,
@@ -53,9 +56,12 @@ export default function ComponentDetailsLegalTab() {
 
   const getReviewObligationsHref = () => {
     return componentDetails.componentIdentifier
-      ? uiRouterState.href(uiRouterState.get('legal.appicationComponentOverviewByComponentIdentifier'), {
+      ? uiRouterState.href(uiRouterState.get('legal.applicationComponentOverviewByComponentIdentifier'), {
           componentIdentifier: JSON.stringify(componentDetails.componentIdentifier),
           applicationPublicId: applicationId,
+          hash: hash,
+          scanId: scanId,
+          tabId: 'legal',
         })
       : uiRouterState.href(uiRouterState.get('applicationReport.applicationStageTypeComponentOverview'), {
           applicationPublicId: applicationId,

@@ -47,6 +47,7 @@ describe('ComponentLicenseDetailsPage', function () {
       $state,
       licenseIndex: 1,
       loadComponentAndLicenseDetails: loadComponentAndLicenseDetailsSpy,
+      scanId: 'fooScanId',
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ComponentLicenseDetailsPage, minimalProps);
@@ -76,7 +77,31 @@ describe('ComponentLicenseDetailsPage', function () {
       minimalProps.ownerId,
       minimalProps.stageTypeId,
       minimalProps.hash,
-      'fooComponentIdentifier'
+      minimalProps.componentIdentifier,
+      minimalProps.scanId
+    );
+  });
+
+  it('renders a MenuBarBackButton with correct href prop when empty hash, componentIdentifier and scanId', function () {
+    spyOn(legalUtilities, 'backToComponentOverviewUrl').and.returnValue('some-href');
+    const updatedProps = {
+      ...minimalProps,
+      hash: '',
+      componentIdentifier: '',
+      scanId: '',
+    };
+    const wrapper = enzymeUtils.getShallowComponent(ComponentLicenseDetailsPage, updatedProps)();
+    const menuBarBackButton = wrapper.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('href', 'some-href');
+    expect(legalUtilities.backToComponentOverviewUrl).toHaveBeenCalledWith(
+      updatedProps.$state,
+      updatedProps.ownerType,
+      updatedProps.ownerId,
+      updatedProps.stageTypeId,
+      updatedProps.hash,
+      updatedProps.componentIdentifier,
+      updatedProps.scanId
     );
   });
 

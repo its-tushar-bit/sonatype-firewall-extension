@@ -11,7 +11,7 @@ import {
   createSubtitle,
   getStatusName,
   createScopeOption,
-} from '../../../main/frontend/legal/legalUtility';
+} from 'MainRoot/legal/legalUtility';
 
 const { isScopeOverride, getLicenseThreatGroupsFromLicense } = require('../../../main/frontend/legal/legalUtility');
 describe('legalUtility', function () {
@@ -216,7 +216,7 @@ describe('legalUtility', function () {
     };
 
     it('returns a state for org component overview by hash', function () {
-      const url = backToComponentOverviewUrl(state, 'organization', 'org', undefined, 'hash');
+      const url = backToComponentOverviewUrl(state, 'organization', 'org', undefined, 'hash', undefined);
       expect(url).toEqual({
         name: 'legal.organizationComponentOverview',
         params: {
@@ -238,7 +238,7 @@ describe('legalUtility', function () {
     });
 
     it('returns a state for application component overview by hash', function () {
-      const url = backToComponentOverviewUrl(state, 'application', 'app', undefined, 'hash');
+      const url = backToComponentOverviewUrl(state, 'application', 'app', undefined, 'hash', undefined);
       expect(url).toEqual({
         name: 'legal.applicationComponentOverview',
         params: {
@@ -260,7 +260,7 @@ describe('legalUtility', function () {
     });
 
     it('returns a state for application component overview for a given stage by hash', function () {
-      const url = backToComponentOverviewUrl(state, 'application', 'app', 'build', 'hash');
+      const url = backToComponentOverviewUrl(state, 'application', 'app', 'build', 'hash', undefined);
       expect(url).toEqual({
         name: 'legal.applicationStageTypeComponentOverview',
         params: {
@@ -279,6 +279,28 @@ describe('legalUtility', function () {
           applicationPublicId: 'app',
           componentIdentifier: 'componentIdentifier',
           stageTypeId: 'build',
+        },
+      });
+    });
+
+    it('returns a state for application component overview for hash and scanId by component identifier', function () {
+      const url = backToComponentOverviewUrl(
+        state,
+        'application',
+        'app',
+        undefined,
+        'hash',
+        'componentIdentifier',
+        'scanId'
+      );
+      expect(url).toEqual({
+        name: 'legal.applicationComponentOverviewByComponentIdentifier',
+        params: {
+          componentIdentifier: 'componentIdentifier',
+          applicationPublicId: 'app',
+          hash: 'hash',
+          scanId: 'scanId',
+          tabId: 'legal',
         },
       });
     });

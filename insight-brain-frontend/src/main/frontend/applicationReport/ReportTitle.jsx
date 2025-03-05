@@ -8,7 +8,7 @@ import { useSelector } from 'react-redux';
 import classnames from 'classnames';
 import moment from 'moment-timezone';
 import { filter, join, pipe } from 'ramda';
-import { faFilePdf, faFile, faFileCode } from '@fortawesome/pro-solid-svg-icons';
+import { faFilePdf, faFile, faFileCode, faFilterList } from '@fortawesome/pro-solid-svg-icons';
 import {
   NxStatefulDropdown,
   NxDropdownDivider,
@@ -16,14 +16,8 @@ import {
   NxFontAwesomeIcon,
   NxTextLink,
 } from '@sonatype/react-shared-components';
-import faFilterList from '../../frontend/img/icon-filter-list.svg';
 import { selectApplicationReportMetaData, selectSelectedReport } from './applicationReportSelectors';
-import {
-  selectRouterCurrentParams,
-  selectIsPrioritiesPageContainer,
-  selectPrioritiesPageContainerName,
-  selectPrioritiesPageName,
-} from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { getDownloadPdfUrl, getExportCycloneDxUrl, getExportSpdxUrl } from 'MainRoot/util/CLMLocation';
@@ -102,7 +96,7 @@ export default function ReportTitle() {
               href={prioritiesUrl}
               data-analytics-id="iq-developer-priorities-link-from-options-dropdown"
             >
-              <img src={faFilterList} className="iq-priorities-icon" />
+              <NxFontAwesomeIcon icon={faFilterList} />
               <span>Priorities</span>
             </NxTextLink>
           )}

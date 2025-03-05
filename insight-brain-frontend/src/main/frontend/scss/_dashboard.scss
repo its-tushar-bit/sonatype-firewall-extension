@@ -54,6 +54,10 @@ waivers {
   display: inline-flex;
 }
 
-.export-dashboard-results-btn {
-  margin-right: var(--nx-spacing-6x);
+.nx-btn.export-dashboard-results-btn {
+  margin: 0;
+
+  .nx-icon {
+    margin-right: var(--nx-spacing-2x);
+  }
 }

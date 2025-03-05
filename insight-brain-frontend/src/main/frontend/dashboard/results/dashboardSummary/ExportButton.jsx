@@ -5,6 +5,8 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
+import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { faFile } from '@fortawesome/pro-regular-svg-icons';
 
 const ExportButton = ({ exportTitle, exportRequestData, exportUrl }) => {
   const exportRequestJson = JSON.stringify(exportRequestData);
@@ -19,10 +21,10 @@ const ExportButton = ({ exportTitle, exportRequestData, exportUrl }) => {
       encType="multipart/form-data"
     >
       <input type="hidden" name="filter" value={exportRequestJson} />
-      <button id="export-results" className="btn btn-tertiary export-dashboard-results-btn" disabled={!exportUrl}>
-        <i className="fa fa-file-o" />
+      <NxButton id="export-results" variant="tertiary" className="export-dashboard-results-btn" disabled={!exportUrl}>
+        <NxFontAwesomeIcon icon={faFile} />
         Export {exportTitle} Data
-      </button>
+      </NxButton>
     </form>
   );
 };

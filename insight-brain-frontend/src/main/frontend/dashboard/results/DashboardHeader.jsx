@@ -10,7 +10,8 @@ import DashboardFilter from '../filter/dashboardFilter/DashboardFilter';
 import ExportButton, { exportButtonPropTypes } from './dashboardSummary/ExportButton';
 import DashboardTabs, { dashboardTabsPropTypes } from './dashboardTabs/DashboardTabs';
 import { DEFAULT_FILTER_NAME } from '../filter/defaultFilter';
-import { NxInfoAlert } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxInfoAlert } from '@sonatype/react-shared-components';
+import { faFilter } from '@fortawesome/pro-solid-svg-icons';
 
 export default function DashboardResults(props) {
   const {
@@ -52,11 +53,11 @@ export default function DashboardResults(props) {
           <h1 className="nx-h1">Results</h1>
           <div className="nx-btn-bar">
             <ExportButton exportTitle={exportTitle} exportRequestData={exportRequestData} exportUrl={exportUrl} />
-            <button className="btn" id="filter-toggle" onClick={() => toggleFilterSidebar(!filterSidebarOpen)}>
-              <i className="fa fa-filter"></i>Filter:{' '}
-              {showDirtyAsterisk && <span id="filter-toggle-dirty-asterisk">*</span>}
+            <NxButton variant="secondary" id="filter-toggle" onClick={() => toggleFilterSidebar(!filterSidebarOpen)}>
+              <NxFontAwesomeIcon icon={faFilter} />
+              Filter: {showDirtyAsterisk && <span id="filter-toggle-dirty-asterisk">*</span>}
               {appliedFilterName || DEFAULT_FILTER_NAME}
-            </button>
+            </NxButton>
           </div>
         </div>
         {!isDashboardEnabled ? (

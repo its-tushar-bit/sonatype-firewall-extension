@@ -1233,4 +1233,46 @@ public class ApiConfigFeaturesServiceTest
         .isEqualTo("true");
     assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS)).isTrue();
   }
+
+  @Test
+  public void testEnableFeature_MANUAL_PULL_REQUESTS() {
+    assertThat(SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()).isFalse();
+
+    service.enableFeature(MANUAL_PULL_REQUESTS);
+
+    assertThat(SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()).isTrue();
+  }
+
+  @Test
+  public void testEnableFeature_MANUAL_PULL_REQUESTS_AlreadyEnabled() {
+    service.enableFeature(MANUAL_PULL_REQUESTS);
+    assertThat(SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()).isTrue();
+
+    assertThatThrownBy(() -> service.enableFeature(MANUAL_PULL_REQUESTS))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
+
+    assertThat(SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()).isTrue();
+  }
+
+  @Test
+  public void testDisableFeature_MANUAL_PULL_REQUESTS() {
+    service.enableFeature(MANUAL_PULL_REQUESTS);
+    assertThat(SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()).isTrue();
+
+    service.disableFeature(MANUAL_PULL_REQUESTS);
+
+    assertThat(SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testDisableFeature_MANUAL_PULL_REQUESTS_AlreadyDisabled() {
+    assertThat(SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()).isFalse();
+
+    assertThatThrownBy(() -> service.disableFeature(MANUAL_PULL_REQUESTS))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
+
+    assertThat(SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()).isFalse();
+  }
 }

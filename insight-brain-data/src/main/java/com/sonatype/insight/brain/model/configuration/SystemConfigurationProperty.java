@@ -268,6 +268,8 @@ public class SystemConfigurationProperty
 
   public static final String COMPONENT_CHANGE_DETECTION_BATCH_SIZE = "componentChangeDetectionBatchSize";
 
+  public static final String MANUAL_PULL_REQUESTS = "manualPullRequests";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

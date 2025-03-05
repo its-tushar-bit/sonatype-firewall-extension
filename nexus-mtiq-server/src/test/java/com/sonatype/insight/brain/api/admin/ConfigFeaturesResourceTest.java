@@ -123,6 +123,7 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.getId(),
           SystemConfigurationPropertyFeature.EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE.getId(),
           SystemConfigurationPropertyFeature.ALP_FOR_SBOM_MANAGER.getId(),
+          SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.getId(),
       }
   )).toArray(String[]::new);
 

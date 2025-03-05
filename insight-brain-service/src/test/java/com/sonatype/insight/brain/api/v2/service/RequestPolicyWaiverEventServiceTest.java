@@ -12,6 +12,7 @@ import java.util.stream.IntStream;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiRequestPolicyWaiverDTO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -19,16 +20,22 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.RequestPolicyWaiverEventService;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.brain.webhook.WaiverRequestEvent;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class RequestPolicyWaiverEventServiceTest
     extends AbstractComponentTest
@@ -39,11 +46,16 @@ public class RequestPolicyWaiverEventServiceTest
   @Inject
   private AsyncEventBus asyncEventBus;
 
+  @Inject
+  PolicyWaiverReasonDAO policyWaiverReasonDAO;
+
   @Test
   public void testPostRequestPolicyWaiverEvent_queuesRequestPolicyWaiverInBus() {
     TestEventHandler<WaiverRequestEvent> handler =
         new TestEventHandler<>(new CountDownLatch(1), WaiverRequestEvent.class);
     asyncEventBus.register(handler);
+    var mockTelemetrySender = mock(TelemetrySender.class);
+    requestPolicyWaiverEventService.setTelemetrySender(mockTelemetrySender);
 
     try {
       Application application = tempEntity.newApplicationWithParent();
@@ -58,6 +70,8 @@ public class RequestPolicyWaiverEventServiceTest
       dto.policyViolationLink = "policyViolationLink.com";
       dto.addWaiverLink = "addWaiverLink.com";
 
+      final var waiverReason = policyWaiverReasonDAO.getById(dto.reasonId);
+
       requestPolicyWaiverEventService.postRequestPolicyWaiverEvent(policyViolation.getId(), dto);
 
       assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
@@ -70,6 +84,23 @@ public class RequestPolicyWaiverEventServiceTest
       assertThat(event.policyViolationLink).isEqualTo(dto.policyViolationLink);
       assertThat(event.addWaiverLink).isEqualTo(dto.addWaiverLink);
       assertThat(event.ownerId).isEqualTo(application.getId());
+
+      ArgumentCaptor<TelemetryData> telemetryDataCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+      verify(mockTelemetrySender, times(1)).send(telemetryDataCaptor.capture());
+      TelemetryData actualTelemetryData = telemetryDataCaptor.getValue();
+      var attributes = actualTelemetryData.getAttributes();
+      assertThat(attributes)
+          .containsKey("application_id")
+          .doesNotContainEntry("application_id", policyViolation.getApplicationId())
+          .containsEntry("real_application_id", policyViolation.getApplicationId())
+          .containsEntry("count", 1)
+          .containsEntry("open_time", policyViolation.getOpenTime().getTime())
+          .containsEntry("policy_name", policyViolation.getPolicyName())
+          .containsEntry("policy_violation_id", policyViolation.getId())
+          .containsEntry("stage_id", policyViolation.getStageTypeId())
+          .containsEntry("threat_category", policyViolation.getThreatCategory().getName())
+          .containsEntry("threat_level", policyViolation.getThreatLevel())
+          .containsEntry("waiver_reason", waiverReason.getReasonText());
     }
     catch (InterruptedException e) {
       throw new RuntimeException(e);

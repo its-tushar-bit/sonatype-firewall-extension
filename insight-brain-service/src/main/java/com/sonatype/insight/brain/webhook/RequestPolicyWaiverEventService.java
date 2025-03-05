@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.webhook;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -19,10 +20,16 @@ import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.telemetry.PolicyViolationTelemetryBuilder;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
+
+import static com.sonatype.insight.telemetry.model.TelemetryPurpose.POLICY_WAIVER_REQUEST;
 
 /**
  * @since 1.164
@@ -31,6 +38,8 @@ import org.apache.commons.lang3.StringUtils;
 @Singleton
 public class RequestPolicyWaiverEventService
 {
+  private static final String WAIVER_REASON = "waiver_reason";
+
   private final AsyncEventBus eventBus;
 
   private final CurrentUser currentUser;
@@ -39,17 +48,26 @@ public class RequestPolicyWaiverEventService
 
   private final PolicyWaiverReasonDAO policyWaiverReasonDAO;
 
+  private final TelemetryUtils telemetryUtils;
+
+  @VisibleForTesting
+  private TelemetrySender telemetrySender;
+
   @Inject
   public RequestPolicyWaiverEventService(
           final AsyncEventBus eventBus,
           final CurrentUser currentUser,
           final PolicyViolationDAO policyViolationDAO,
-          final PolicyWaiverReasonDAO policyWaiverReasonDAO)
+          final PolicyWaiverReasonDAO policyWaiverReasonDAO,
+          final TelemetrySender telemetrySender,
+          final TelemetryUtils telemetryUtils)
   {
     this.eventBus = eventBus;
     this.currentUser = currentUser;
     this.policyViolationDAO = policyViolationDAO;
     this.policyWaiverReasonDAO = policyWaiverReasonDAO;
+    this.telemetrySender = telemetrySender;
+    this.telemetryUtils = telemetryUtils;
   }
 
   public void postRequestPolicyWaiverEvent(
@@ -77,6 +95,11 @@ public class RequestPolicyWaiverEventService
     }
 
     eventBus.post(waiverRequestEvent);
+    sendTelemetryForWaiverRequest(waiverRequestEvent);
+  }
+
+  public void setTelemetrySender(TelemetrySender telemetrySender) {
+    this.telemetrySender = telemetrySender;
   }
 
   private void verifyDtoContainsRequiredInformation(final ApiRequestPolicyWaiverDTO apiRequestWaiverDTO) {
@@ -98,5 +121,15 @@ public class RequestPolicyWaiverEventService
       return applicationPolicyViolation.getOwnerId();
     }
     throw new NotFoundException("Could not find associated policy violation");
+  }
+
+  private void sendTelemetryForWaiverRequest(WaiverRequestEvent waiverRequestEvent) {
+    PolicyViolation policyViolation = policyViolationDAO.getById(waiverRequestEvent.policyViolationId);
+    policyViolationDAO.loadConstraintFacts(List.of(policyViolation));
+    var telemetryData = new PolicyViolationTelemetryBuilder(policyViolation, POLICY_WAIVER_REQUEST, telemetryUtils)
+        .build()
+        .put(WAIVER_REASON, waiverRequestEvent.reasonText);
+
+    telemetrySender.send(telemetryData);
   }
 }

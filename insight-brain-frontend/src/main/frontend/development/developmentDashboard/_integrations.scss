@@ -3,8 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
 sonatype-developer-page {
   display: contents;
+
+  --graph-grid-lines: var(--nx-swatch-grey-90);
+  @include nx-dark-mode-helpers.dark-mode {
+    --graph-grid-lines: var(--nx-swatch-indigo-40);
+  }
 }
 
 $donut-size: 72px;
@@ -174,8 +181,9 @@ svg.nx-icon.iq-total-risk-info-icon {
 
 .iq-developer-dashboard-graph-tooltip {
   border-radius: 4px;
-  background-color: var(--nx-swatch-blue-95);
+  background-color: var(--nx-color-site-background);
   padding: var(--nx-spacing-2x);
+  color: var(--nx-color-text);
 }
 
 #iq-developer-app-integrations-and-risk-table {

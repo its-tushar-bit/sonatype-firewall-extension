@@ -9,7 +9,7 @@ import { NxH3, NxLoadWrapper } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectDeveloperDashboardGraphsSlice } from 'MainRoot/development/developmentDashboard/selectors/developerDashboardGraphsSelectors';
 import { actions } from 'MainRoot/development/developmentDashboard/slices/developerDashboardGraphsSlice';
-import { commonGraphProps, graphColors, formatAdoptionGraphData } from '../../utils/graphUtils';
+import { commonGraphProps, graphColors, formatAdoptionGraphData, lineColors } from '../../utils/graphUtils';
 export default function AdoptionGraph() {
   const dispatch = useDispatch();
   const { graphData, loading, loadError } = useSelector(selectDeveloperDashboardGraphsSlice);
@@ -44,17 +44,16 @@ export default function AdoptionGraph() {
                 itemWidth: 80,
                 itemHeight: 20,
                 symbolShape: 'circle',
-                itemTextColor: 'var(--nx-swatch-grey-30)',
                 data: [
                   {
                     id: 'scm',
                     label: 'SCM',
-                    color: 'var(--nx-swatch-orange-40)',
+                    color: lineColors.adoptionGraph.scm,
                   },
                   {
                     id: 'cicd',
                     label: 'CI/CD',
-                    color: 'var(--nx-swatch-teal-40)',
+                    color: lineColors.adoptionGraph.cicd,
                   },
                 ],
               },

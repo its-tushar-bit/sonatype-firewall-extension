@@ -24,10 +24,27 @@ import {
 export function commonGraphProps() {
   return {
     theme: {
+      axis: {
+        ticks: {
+          text: {
+            fill: 'var(--nx-color-text)',
+          },
+        },
+        legend: {
+          text: {
+            fill: 'var(--nx-color-text)',
+          },
+        },
+      },
       grid: {
         line: {
-          stroke: 'var(--nx-swatch-grey-90)',
+          stroke: 'var(--graph-grid-lines)',
           strokeWidth: 1,
+        },
+      },
+      legends: {
+        text: {
+          fill: 'var(--nx-color-text)',
         },
       },
     },
@@ -49,10 +66,27 @@ export function commonGraphProps() {
   };
 }
 
+export const lineColors = {
+  adoptionGraph: {
+    scm: 'var(--nx-swatch-orange-55)',
+    cicd: 'var(--nx-swatch-teal-45)',
+  },
+  riskremediationGraph: {
+    appsWithFailingViolations: 'var(--nx-swatch-teal-45)',
+    activeWaivers: 'var(--nx-swatch-purple-70)',
+  },
+  mttrGraph: {
+    meanTimeToRemediate: 'var(--nx-swatch-turquoise-40)',
+  },
+};
+
 export const graphColors = {
-  adoptionGraph: ['var(--nx-swatch-teal-40)', 'var(--nx-swatch-orange-40)'],
-  riskremediationGraph: ['var(--nx-swatch-teal-40)', 'var(--nx-swatch-purple-40)'],
-  mttrGraph: ['var(--nx-swatch-turquoise-40)'],
+  adoptionGraph: [lineColors.adoptionGraph.cicd, lineColors.adoptionGraph.scm],
+  riskremediationGraph: [
+    lineColors.riskremediationGraph.appsWithFailingViolations,
+    lineColors.riskremediationGraph.activeWaivers,
+  ],
+  mttrGraph: [lineColors.mttrGraph.meanTimeToRemediate],
 };
 
 function formatTimestampToMonthDay(timestamp) {

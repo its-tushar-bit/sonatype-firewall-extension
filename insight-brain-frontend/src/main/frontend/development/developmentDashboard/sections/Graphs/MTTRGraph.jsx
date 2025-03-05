@@ -10,7 +10,7 @@ import { NxH3, NxLoadWrapper } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectDeveloperDashboardGraphsSlice } from 'MainRoot/development/developmentDashboard/selectors/developerDashboardGraphsSelectors';
 import { actions } from 'MainRoot/development/developmentDashboard/slices/developerDashboardGraphsSlice';
-import { commonGraphProps, graphColors, formatMttrGraphData } from '../../utils/graphUtils';
+import { commonGraphProps, graphColors, formatMttrGraphData, lineColors } from '../../utils/graphUtils';
 
 export default function MTTRGraph() {
   const dispatch = useDispatch();
@@ -44,12 +44,11 @@ export default function MTTRGraph() {
                 itemWidth: 160,
                 itemHeight: 20,
                 symbolShape: 'circle',
-                itemTextColor: 'var(--nx-swatch-grey-30)',
                 data: [
                   {
                     id: 'meanTimeToRemediate',
                     label: 'Mean Time to Remediate',
-                    color: 'var(--nx-swatch-turquoise-40)',
+                    color: lineColors.mttrGraph.meanTimeToRemediate,
                   },
                 ],
               },

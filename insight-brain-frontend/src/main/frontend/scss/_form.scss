@@ -477,7 +477,7 @@ dropdown-selector {
   > div > dt {
     @include nx-text-helpers.semi-bold;
 
-    color: $iq-off-black;
+    color: var(--nx-color-text-stark);
     cursor: default;
     display: block;
     font-size: 16px;

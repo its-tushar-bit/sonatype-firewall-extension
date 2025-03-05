@@ -15,17 +15,13 @@ export default function ViolationDetailsSubtitle(props) {
     <div className="nx-tile-header__subtitle">
       <NxOverflowTooltip>
         <span className="iq-violation-details__subtitle-part nx-truncate-ellipsis">
-          <span className="iq-inverse-icon-wrapper">
-            <NxFontAwesomeIcon icon={faSitemap} inverse />
-          </span>
+          <NxFontAwesomeIcon icon={faSitemap} />
           <span>{props.organizationName}</span>
         </span>
       </NxOverflowTooltip>
       <NxOverflowTooltip>
         <span className="iq-violation-details__subtitle-part nx-truncate-ellipsis">
-          <span className="iq-inverse-icon-wrapper">
-            <NxFontAwesomeIcon icon={faTerminal} inverse />
-          </span>
+          <NxFontAwesomeIcon icon={faTerminal} />
           <span>{props.applicationName}</span>
         </span>
       </NxOverflowTooltip>

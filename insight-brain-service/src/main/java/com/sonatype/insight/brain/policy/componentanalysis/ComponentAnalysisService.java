@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.scan.ScanContext;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -38,8 +40,15 @@ import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+
+import static java.util.Collections.singletonMap;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 
 @Named
 @Singleton
@@ -66,6 +75,8 @@ public class ComponentAnalysisService
 
   private boolean disablePollingIntervalForTesting = false;
 
+  private final TelemetrySender telemetrySender;
+
   @Inject
   public ComponentAnalysisService(
       final PolicyEvaluationUtil policyEvaluationUtil,
@@ -74,7 +85,8 @@ public class ComponentAnalysisService
       final ReportComponentService reportComponentService,
       final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO,
       final ErrorResponseGenerator errorResponseGenerator,
-      final TelemetryUtils telemetryUtils
+      final TelemetryUtils telemetryUtils,
+      final TelemetrySender telemetrySender
   )
   {
     this.executor = buildExecutorService();
@@ -85,6 +97,7 @@ public class ComponentAnalysisService
     this.persistedPolicyEvaluationPollingResultDAO = persistedPolicyEvaluationPollingResultDAO;
     this.errorResponseGenerator = errorResponseGenerator;
     this.telemetryUtils = telemetryUtils;
+    this.telemetrySender = telemetrySender;
   }
 
   private ExecutorService buildExecutorService() {
@@ -183,9 +196,45 @@ public class ComponentAnalysisService
         app.getPublicId(), clientScanType, stage.getStageTypeId(), statusId);
 
     AuditData.get().continueAsync(
-        new ComponentAnalysisTask(app, clientScanType, statusId, stage, tempScanFile,
-            thirdPartyScanTelemetryData, persistedPolicyEvaluationPollingResult, clientUserAgent, scanContext),
-        executor::submit);
+        new ComponentAnalysisTask(
+            app,
+            clientScanType,
+            scanTriggerType,
+            statusId,
+            stage,
+            tempScanFile,
+            thirdPartyScanTelemetryData,
+            persistedPolicyEvaluationPollingResult,
+            clientUserAgent,
+            scanContext
+        ),
+        executor::submit
+    );
+  }
+
+  private void sendEvaluationTelemetry(
+      final String applicationId,
+      final String stageId,
+      final ScanTriggerType scanTriggerType,
+      final Collection<Component> components,
+      final String clientUserAgent)
+  {
+    TelemetryData telemetryData = telemetryUtils.buildComponentsAnalysisTelemetryData(
+        applicationId,
+        stageId,
+        scanTriggerType,
+        clientUserAgent,
+        null,
+        singletonMap("component_counts", getTelemetryComponentCounts(components))
+    );
+    telemetrySender.send(telemetryData);
+  }
+
+  private Map<String, Long> getTelemetryComponentCounts(final Collection<Component> components) {
+    return components.stream()
+        .map(Component::getComponentIdentifier)
+        .map(componentIdentifier -> componentIdentifier == null ? "unknown" : componentIdentifier.getFormat())
+        .collect(groupingBy(identity(), counting()));
   }
 
   /**
@@ -199,6 +248,8 @@ public class ComponentAnalysisService
     private final ClientScanType clientScanType;
 
     private final Stage stage;
+
+    private final ScanTriggerType scanTriggerType;
 
     private final String statusId;
 
@@ -217,6 +268,7 @@ public class ComponentAnalysisService
     ComponentAnalysisTask(
         final Application app,
         final ClientScanType clientScanType,
+        final ScanTriggerType scanTriggerType,
         final String statusId,
         final Stage stage,
         final File tempScanFile,
@@ -227,6 +279,7 @@ public class ComponentAnalysisService
     {
       this.app = app;
       this.clientScanType = clientScanType;
+      this.scanTriggerType = scanTriggerType;
       this.statusId = statusId;
       this.tempScanFile = tempScanFile;
       this.thirdPartyScanTelemetryData = thirdPartyScanTelemetryData;
@@ -262,7 +315,7 @@ public class ComponentAnalysisService
                 "operation is {}.", app.getPublicId(), scanId, stage.getStageTypeId(), statusId);
 
         // HDS will asynchronously write the report data to the report JSON files
-        reportComponentService.fetchReportAndComponents(app, scanId);
+        ReportComponentData reportComponentData = reportComponentService.fetchReportAndComponents(app, scanId);
 
         log.debug(
             "Loaded report component data for app public id {}, scan id {}, stageTypeId {} in {} ms."
@@ -271,6 +324,14 @@ public class ComponentAnalysisService
 
         policyEvaluationPollingResult = persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
         policyEvaluationPollingResult.setSubStatus(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE);
+
+        sendEvaluationTelemetry(
+            app.getId(),
+            stage.getStageTypeId(),
+            scanTriggerType,
+            reportComponentData.components,
+            clientUserAgent
+        );
       }
       catch (Exception e) {
         log.error(

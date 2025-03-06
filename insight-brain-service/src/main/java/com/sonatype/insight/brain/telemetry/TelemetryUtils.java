@@ -25,6 +25,9 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import static com.sonatype.insight.telemetry.model.TelemetryPurpose.APPLICATION_EVALUATION_COMPONENT_COUNTS;
+import static com.sonatype.insight.telemetry.model.TelemetryPurpose.COMPONENT_ANALYSIS_COMPONENT_COUNTS;
+
 @Named
 @Singleton
 public final class TelemetryUtils
@@ -87,7 +90,25 @@ public final class TelemetryUtils
     return telemetryData;
   }
 
-  @SuppressWarnings("unchecked")
+  public TelemetryData buildComponentsAnalysisTelemetryData(
+      final String applicationId,
+      final String stageId,
+      final ScanTriggerType scanTriggerType,
+      final String clientUserAgent,
+      final String clientInstanceId,
+      final Map<String, Object> requestedAttributes)
+  {
+    return buildComponentCountsTelemetryData(
+        COMPONENT_ANALYSIS_COMPONENT_COUNTS,
+        applicationId,
+        stageId,
+        scanTriggerType,
+        clientUserAgent,
+        clientInstanceId,
+        requestedAttributes
+    );
+  }
+
   public TelemetryData buildApplicationEvaluationTelemetryData(
       String applicationId,
       String stageId,
@@ -96,7 +117,28 @@ public final class TelemetryUtils
       String clientInstanceId,
       Map<String, Object> requestedAttributes)
   {
-    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.APPLICATION_EVALUATION_COMPONENT_COUNTS);
+    return buildComponentCountsTelemetryData(
+        APPLICATION_EVALUATION_COMPONENT_COUNTS,
+        applicationId,
+        stageId,
+        scanTriggerType,
+        clientUserAgent,
+        clientInstanceId,
+        requestedAttributes
+    );
+  }
+
+  @SuppressWarnings("unchecked")
+  private TelemetryData buildComponentCountsTelemetryData(
+      TelemetryPurpose telemetryPurpose,
+      String applicationId,
+      String stageId,
+      ScanTriggerType scanTriggerType,
+      String clientUserAgent,
+      String clientInstanceId,
+      Map<String, Object> requestedAttributes)
+  {
+    TelemetryData telemetryData = new TelemetryData(telemetryPurpose);
     Map<String, Number> componentCounts = (Map<String, Number>) requestedAttributes.get("component_counts");
 
     Map<String, Object> attributes = new HashMap<>();

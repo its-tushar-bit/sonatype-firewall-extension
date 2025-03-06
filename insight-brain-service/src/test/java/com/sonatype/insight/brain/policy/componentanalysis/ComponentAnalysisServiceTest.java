@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.inject.Binder;
@@ -22,6 +24,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.Application;
@@ -36,16 +39,21 @@ import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
+
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.hds.HdsClient.CLM_CLIENT_USER_AGENT_HEADER;
+import static com.sonatype.insight.telemetry.model.TelemetryPurpose.COMPONENT_ANALYSIS_COMPONENT_COUNTS;
+import static java.lang.System.currentTimeMillis;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -54,6 +62,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 public class ComponentAnalysisServiceTest
     extends AbstractComponentTest
@@ -83,6 +93,9 @@ public class ComponentAnalysisServiceTest
   @Mock
   private StageTypeService stageTypeService;
 
+  @Mock
+  private TelemetrySender telemetrySender;
+
   private MockReportDownloader mockReportDownloader;
 
   private Application app;
@@ -93,6 +106,7 @@ public class ComponentAnalysisServiceTest
     binder.bind(HttpServletRequest.class).toInstance(httpRequest);
     binder.bind(ScanHandler.class).toInstance(scanHandler);
     binder.bind(StageTypeService.class).toInstance(stageTypeService);
+    binder.bind(TelemetrySender.class).toInstance(telemetrySender);
     mockReportDownloader = new MockReportDownloader(tempDir);
     binder.bind(ReportDownloader.class).toInstance(mockReportDownloader.getMock());
     super.configure(binder);
@@ -196,6 +210,8 @@ public class ComponentAnalysisServiceTest
     assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.PENDING);
     assertThat(policyEvaluationPollingResult.getSubStatus())
         .isEqualTo(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE);
+
+    assertComponentAnalysisTelemetry(app.getId(), "28", "28");
   }
 
   @Test
@@ -227,9 +243,43 @@ public class ComponentAnalysisServiceTest
     assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.FAILED);
     assertThat(policyEvaluationPollingResult.getSubStatus())
         .isEqualTo(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING);
+    assertComponentAnalysisTelemetryNeverSend();
   }
 
   private String simulateReportIsAvailable() {
     return mockReportDownloader.mockDownloadReport("/" + getClass().getSimpleName() + "/report");
+  }
+
+  private void assertComponentAnalysisTelemetry(
+      final String applicationId,
+      final String numberOfMavenComponents,
+      final String numberOfComponents
+  )
+  {
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
+    expectedAttributes.put("real_application_id", applicationId);
+    expectedAttributes.put("stage_id", Stage.ID_BUILD);
+    expectedAttributes.put("scan_trigger_type", "CLI");
+    expectedAttributes.put("number_of_maven_components", numberOfMavenComponents);
+    expectedAttributes.put("number_of_components", numberOfComponents);
+
+    assertComponentAnalysisTelemetry(expectedAttributes);
+  }
+
+  private void assertComponentAnalysisTelemetry(final Map<String, Object> expectedAttributes) {
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getAllValues().get(0);
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(COMPONENT_ANALYSIS_COMPONENT_COUNTS);
+    assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(currentTimeMillis());
+    assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
+  }
+
+  private void assertComponentAnalysisTelemetryNeverSend() {
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, never()).send(telemetryDataArgumentCaptor.capture());
   }
 }

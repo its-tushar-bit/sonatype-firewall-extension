@@ -249,6 +249,9 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_BATCH_SIZE, Integer.class,
           (p, s) -> NumberUtils.toInt(s, 100),
           (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_TASK_PERIOD, Integer.class,
+          (p, s) -> NumberUtils.toInt(s, 24),
+          (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.ALP_FOR_SBOM_MANAGER, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
           (p, o) -> Objects.toString(o, null))

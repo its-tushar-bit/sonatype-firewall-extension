@@ -108,6 +108,8 @@ public class ConfigurationInfo
         configuration.getComponentChangeDetectionMaxComponents());
     entries.put(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_BATCH_SIZE,
         configuration.getComponentChangeDetectionBatchSize());
+    entries.put(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_TASK_PERIOD,
+        configuration.getComponentChangeDetectionTaskPeriod());
 
     return JsonUtils.format(entries);
   }

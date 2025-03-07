@@ -208,6 +208,7 @@ public class Configuration
         SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR,
         SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS,
         SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_BATCH_SIZE,
+        SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_TASK_PERIOD,
         SystemConfigurationProperty.ALP_FOR_SBOM_MANAGER
         )
     );
@@ -681,6 +682,10 @@ public class Configuration
 
   public Integer getComponentChangeDetectionBatchSize() {
     return configCache.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_BATCH_SIZE);
+  }
+
+  public Integer getComponentChangeDetectionTaskPeriod() {
+    return configCache.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_TASK_PERIOD);
   }
 
   /**

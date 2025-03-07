@@ -1318,6 +1318,7 @@
                   <exclude>**/src/test/data/module/**/*</exclude>
                   <exclude>**/releasenotes/assets/css/style.scss</exclude>
                   <exclude>**/src/main/java/com/sonatype/insight/brain/aws/s3/S3OutputStream.java</exclude>
+                  <exclude>**/sonatype-work/**</exclude>
                 </excludes>
               </licenseSet>
             </licenseSets>

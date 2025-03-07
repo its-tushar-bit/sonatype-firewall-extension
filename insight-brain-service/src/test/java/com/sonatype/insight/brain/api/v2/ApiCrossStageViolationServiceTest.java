@@ -521,6 +521,34 @@ public class ApiCrossStageViolationServiceTest
     assertCrossStageData(result3, Stage.ID_RELEASE, eval2.getTime(), "scan2", null);
   }
 
+  @Test
+  public void testGetCrossStageViolationById_WithAutoWaivers() {
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    violation1.setFixTime(new Date(baseDate.getTime() + 3));
+    violation1.setWaiveTime(new Date(baseDate.getTime() + 3));
+    violation1.setAutoPolicyWaiverId("waiver1");
+    policyViolationDAO.update(violation1);
+
+    ApiCrossStageViolationDTOV2 result = service.getCrossStageViolationById(violation1.getId());
+    assertThat(result.fixTime.getTime()).isEqualTo(baseDate.getTime() + 3);
+    assertCrossStageData(result, Stage.ID_BUILD, baseDate, "scan1", null);
+  }
+
+  @Test
+  public void testGetCrossStageViolationById_OutsideOfLatestViolationDateRange() {
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    violation1.setOpenTime(new Date(baseDate.getTime() + 2000));
+    violation1.setFixTime(new Date(baseDate.getTime() + 3000));
+    policyViolationDAO.update(violation1);
+
+    ApiCrossStageViolationDTOV2 result = service.getCrossStageViolationById(violation1.getId());
+    assertThat(result.fixTime.getTime()).isEqualTo(baseDate.getTime() + 3000);
+
+    assertThat(result.stageData).isEmpty();
+  }
+
   /**
    * This test verifies that a waived violation for a component as soon as it appears
    * behaves correctly and does not cause an NPE due to the pre-existing matching waiver.

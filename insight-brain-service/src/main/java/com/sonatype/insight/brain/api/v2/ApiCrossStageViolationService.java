@@ -222,9 +222,15 @@ public class ApiCrossStageViolationService
   }
 
   private PolicyEvaluation getLatestEvaluationForViolation(PolicyViolation violation) {
+    // for auto-waived violations, we don't care about the max date, we just want the latest evaluation
+    Date maxDate = violation.isAutoWaived() ? null : violation.getFixOrWaiveTime();
+
     PolicyEvaluation latestEvaluationForViolation = policyEvaluationDAO.getLastInTimeRangeByApplicationAndStage(
-        violation.getApplicationId(), violation.getStageTypeId(), violation.getOpenTime(),
-        violation.getFixOrWaiveTime());
+        violation.getApplicationId(),
+        violation.getStageTypeId(),
+        violation.getOpenTime(),
+        maxDate
+    );
 
     return latestEvaluationForViolation;
   }

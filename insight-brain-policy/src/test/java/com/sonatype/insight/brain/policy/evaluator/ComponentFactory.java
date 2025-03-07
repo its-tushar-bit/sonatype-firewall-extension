@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -25,6 +29,8 @@ public class ComponentFactory
 
   public static Component forCoordinates(String format, String... coord) {
     ComponentIdentifier componentIdentifier;
+    // We need a special case for a format only if the order of the coordinates in
+    // ComponentIdentifier.getAllCoordinateNames(format) doesn't match the order of the coordinates in the UI.
     switch (format) {
       case ComponentIdentifier.FORMAT_MAVEN:
         if (coord.length == 5) {
@@ -39,23 +45,8 @@ public class ComponentFactory
       case ComponentIdentifier.FORMAT_ANAME:
         componentIdentifier = ComponentIdentifier.createAnameCoordinates(coord[0], coord[1], coord[2]);
         break;
-      case ComponentIdentifier.FORMAT_PYPI:
-        componentIdentifier = ComponentIdentifier.createPypiCoordinates(coord[0], coord[1], coord[2], coord[3]);
-        break;
-      case ComponentIdentifier.FORMAT_NPM:
-        componentIdentifier = ComponentIdentifier.createNpmCoordinates(coord[0], coord[1]);
-        break;
-      case ComponentIdentifier.FORMAT_COCOAPODS:
-        componentIdentifier = ComponentIdentifier.createCocoapodsCoordinates(coord[0], coord[1]);
-        break;
       case ComponentIdentifier.FORMAT_CONAN:
         componentIdentifier = ComponentIdentifier.createConanCoordinates(coord[0], coord[1], coord[2], coord[3]);
-        break;
-      case ComponentIdentifier.FORMAT_COMPOSER:
-        componentIdentifier = ComponentIdentifier.createComposerCoordinates(coord[0], coord[1], coord[2]);
-        break;
-      case ComponentIdentifier.FORMAT_CARGO:
-        componentIdentifier = ComponentIdentifier.createCargoCoordinates(coord[0], coord[1], coord[2]);
         break;
       case ComponentIdentifier.FORMAT_HUGGINGFACE_MODEL:
         // this method takes hf-model coordinates
@@ -65,7 +56,14 @@ public class ComponentFactory
             ComponentIdentifier.createHuggingfaceModelCoordinates(coord[0], coord[1], coord[2], coord[4], coord[3]);
         break;
       default:
-        throw new IllegalArgumentException("Unsupported component identifier format:" + format);
+        Set<String> coordinateNames = ComponentIdentifier.getAllCoordinateNames(format);
+        Map<String, String> coordinatesWithValues = new TreeMap<>();
+        int coordinateIndex = 0;
+        for (String coordinateName : coordinateNames) {
+          coordinatesWithValues.put(coordinateName, coord[coordinateIndex]);
+          coordinateIndex++;
+        }
+        componentIdentifier = new ComponentIdentifier(format, coordinatesWithValues);
     }
     Component component = new Component(componentIdentifier);
     component.setMatchState(MatchState.EXACT);

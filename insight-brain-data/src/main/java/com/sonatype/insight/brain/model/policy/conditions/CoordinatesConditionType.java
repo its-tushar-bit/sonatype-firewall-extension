@@ -8,10 +8,13 @@ package com.sonatype.insight.brain.model.policy.conditions;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -34,7 +37,7 @@ public class CoordinatesConditionType
 {
   public static final String ID = "Coordinates";
 
-  private static final Map<String, Set<Integer>> FORMAT_TO_OPTIONAL_COORDINATE_INDEXES = new HashMap<>();
+  private static final Map<String, Set<Integer>> FORMAT_TO_OPTIONAL_COORDINATE_INDEXES = new ConcurrentHashMap<>();
 
   private static List<String> supportedOperators;
 
@@ -102,10 +105,25 @@ public class CoordinatesConditionType
   }
 
   private Set<Integer> getOptionalCoordinateIndexes(final String format) {
-    if (!FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.containsKey(format)) {
-      return Collections.emptySet();
+    Set<Integer> optionalCoordinateIndexes = FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.get(format);
+    if (optionalCoordinateIndexes != null) {
+      return optionalCoordinateIndexes;
     }
-    return FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.get(format);
+
+    optionalCoordinateIndexes = new LinkedHashSet<>();
+    // The Set returned by ComponentIdentifier.getAllCoordinateNames is LinkedHashSet, so the order is deterministic
+    Set<String> coordinateNames = ComponentIdentifier.getAllCoordinateNames(format);
+    Set<String> requiredCoordinateNames = ComponentIdentifier.getAllRequiredCoordinateNames(format);
+    int coordinateIndex = 1;
+    for (String coordinateName : coordinateNames) {
+      if (!requiredCoordinateNames.contains(coordinateName)) {
+        optionalCoordinateIndexes.add(coordinateIndex);
+      }
+      coordinateIndex++;
+    }
+    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(format, optionalCoordinateIndexes);
+
+    return optionalCoordinateIndexes;
   }
 
   @Override
@@ -126,50 +144,42 @@ public class CoordinatesConditionType
     final String format = coordinates[0];
 
     final ComponentIdentifier componentIdentifier;
+    // We need a special case for a format only if the order of the coordinates in
+    // ComponentIdentifier.getAllCoordinateNames(format) doesn't match the order of the coordinates in the UI or the
+    // format is not supported.
     switch (format) {
       case ComponentIdentifier.FORMAT_MAVEN:
         // this method takes maven coordinates in the order GAVCE, but we have them as GAVEC, so swap the last two
-        componentIdentifier = ComponentIdentifier
-            .createMavenCoordinates(coordinates[1], coordinates[2], coordinates[3], coordinates[5], coordinates[4]);
+        componentIdentifier = ComponentIdentifier.createMavenCoordinates(coordinates[1], coordinates[2], coordinates[3],
+            coordinates[5], coordinates[4]);
         break;
       case ComponentIdentifier.FORMAT_ANAME:
-        componentIdentifier = ComponentIdentifier
-            .createAnameCoordinates(coordinates[1], coordinates[2], coordinates[3]);
-        break;
-      case ComponentIdentifier.FORMAT_PYPI:
-        componentIdentifier = ComponentIdentifier
-            .createPypiCoordinates(coordinates[1], coordinates[2], coordinates[3], coordinates[4]);
-        break;
-      case ComponentIdentifier.FORMAT_NPM:
-        componentIdentifier = ComponentIdentifier
-            .createNpmCoordinates(coordinates[1], coordinates[2]);
-        break;
-      case ComponentIdentifier.FORMAT_COCOAPODS:
-        componentIdentifier = ComponentIdentifier
-            .createCocoapodsCoordinates(coordinates[1], coordinates[2]);
+        componentIdentifier =
+            ComponentIdentifier.createAnameCoordinates(coordinates[1], coordinates[2], coordinates[3]);
         break;
       case ComponentIdentifier.FORMAT_CONAN:
-        componentIdentifier = ComponentIdentifier
-            .createConanCoordinates(coordinates[1], coordinates[2], coordinates[3], coordinates[4]);
-        break;
-      case ComponentIdentifier.FORMAT_COMPOSER:
-        componentIdentifier = ComponentIdentifier
-            .createComposerCoordinates(coordinates[1], coordinates[2], coordinates[3]);
-        break;
-      case ComponentIdentifier.FORMAT_CARGO:
-        componentIdentifier = ComponentIdentifier
-            .createCargoCoordinates(coordinates[1], coordinates[2], coordinates[3]);
+        componentIdentifier =
+            ComponentIdentifier.createConanCoordinates(coordinates[1], coordinates[2], coordinates[3], coordinates[4]);
         break;
       case ComponentIdentifier.FORMAT_HUGGINGFACE_MODEL:
         // this method takes hf-model coordinates
         // repoId (namespace), model (name), version, modelFormat (classifier), modelExtension (extension)
         // so similar to maven we need to swap the last two
-        componentIdentifier =
-            ComponentIdentifier.createHuggingfaceModelCoordinates(coordinates[1], coordinates[2], coordinates[3],
-                coordinates[5], coordinates[4]);
+        componentIdentifier = ComponentIdentifier.createHuggingfaceModelCoordinates(coordinates[1], coordinates[2],
+            coordinates[3], coordinates[5], coordinates[4]);
         break;
-      default:
+      case ComponentIdentifier.FORMAT_HUGGINGFACE_REPO:
         throw new IllegalArgumentException("Unsupported component identifier format:" + format);
+      default:
+        // The Set returned by ComponentIdentifier.getAllCoordinateNames is LinkedHashSet, so the order is deterministic
+        Set<String> coordinateNames = ComponentIdentifier.getAllCoordinateNames(format);
+        Map<String, String> coordinatesWithValues = new TreeMap<>();
+        int coordinateIndex = 1;
+        for (String coordinateName : coordinateNames) {
+          coordinatesWithValues.put(coordinateName, coordinates[coordinateIndex]);
+          coordinateIndex++;
+        }
+        componentIdentifier = new ComponentIdentifier(format, coordinatesWithValues);
     }
     return componentIdentifier;
   }
@@ -186,33 +196,22 @@ public class CoordinatesConditionType
     String[] coordinates = value.split(":");
     String format = coordinates[0].trim();
     switch (format) {
-      case ComponentIdentifier.FORMAT_MAVEN:
-      case ComponentIdentifier.FORMAT_ANAME:
-      case ComponentIdentifier.FORMAT_PYPI:
-      case ComponentIdentifier.FORMAT_NPM:
-      case ComponentIdentifier.FORMAT_COCOAPODS:
-      case ComponentIdentifier.FORMAT_CONAN:
-      case ComponentIdentifier.FORMAT_COMPOSER:
-      case ComponentIdentifier.FORMAT_CARGO:
-      case ComponentIdentifier.FORMAT_HUGGINGFACE_MODEL:
-        break;
-      default:
+      case ComponentIdentifier.FORMAT_HUGGINGFACE_REPO:
         throw new InvalidConditionException(condition,
             "Unsupported component identifier format for coordinates policy condition: '" + format + "'");
+      default:
+        // All other formats are supported
     }
 
     super.validateCondition(tx, condition, ownerId);
   }
 
   static {
+    // We need a special case for a format only if the order of the coordinates in
+    // ComponentIdentifier.getAllCoordinateNames(format) doesn't match the order of the coordinates in the UI.
     FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_MAVEN, Collections.singleton(5));
     FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_ANAME, Collections.singleton(2));
-    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_PYPI, ImmutableSet.of(3, 4));
-    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_NPM, Collections.emptySet());
     FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_CONAN, ImmutableSet.of(3, 4));
-    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_COMPOSER, Collections.emptySet());
-    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_CARGO, ImmutableSet.of(3));
-    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_COCOAPODS, Collections.emptySet());
     FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_HUGGINGFACE_MODEL, Collections.emptySet());
   }
 

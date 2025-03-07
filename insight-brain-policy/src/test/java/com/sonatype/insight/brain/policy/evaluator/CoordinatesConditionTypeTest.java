@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -79,6 +81,30 @@ public class CoordinatesConditionTypeTest
         "Coordinates were g2 : a2 : 2222222 : c2 : e2 (match g2 : a2 : * : c2 : e2)",
         createComponent("hf-model:g1:a1:1111111:e1:c1")
     );
+  }
+
+  @Test
+  public void testEvaluate_HuggingFaceRepo_NotSupported() {
+    // Create the policy
+    Policy policy = new Policy(TemporaryEntity.uuid(), "Policy Name");
+    policy.setConstraints(Collections.singletonList(createConstraint("match", "hf-repo:repoId:version")));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
+
+    // Create components list
+    List<Component> components = new ArrayList<>();
+    components.add(createComponent("hf-repo:repoId:version"));
+
+    // Evaluate the policy
+    try {
+      evaluate(policy, components);
+    }
+    catch (Exception e) {
+      StringWriter sw = new StringWriter();
+      e.printStackTrace(new PrintWriter(sw));
+      if (!sw.toString().contains("Unsupported component identifier format:hf-repo")) {
+        throw e;
+      }
+    }
   }
 
   private void testEvaluate(
@@ -535,8 +561,8 @@ public class CoordinatesConditionTypeTest
 
   @Test
   public void testEvaluate_Pypi_DoNotMatchExact() {
-    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_ANAME,
-        "Coordinates were g1 (a1) v1 (do not match g2 (a2) v2)");
+    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_PYPI,
+        "Coordinates were g1 (v1) a1 (.e1) (do not match g2 (v2) a2 (.*))");
   }
 
   @Test
@@ -841,11 +867,12 @@ public class CoordinatesConditionTypeTest
 
   @Test
   public void testValidateCondition_UnsupportedCoordinateFormat() {
-    Condition condition = new Condition(CoordinatesConditionType.ID, "match", "nuget");
+    Condition condition = new Condition(CoordinatesConditionType.ID, "match", "hf-repo");
     assertThatThrownBy(
         () -> new CoordinatesConditionType().validateCondition(null, condition, null /* applicationId */))
         .isInstanceOf(InvalidConditionException.class)
-        .hasMessageEndingWith("Unsupported component identifier format for coordinates policy condition: 'nuget'");
+            .hasMessageEndingWith(
+                "Unsupported component identifier format for coordinates policy condition: 'hf-repo'");
   }
 
   @Test

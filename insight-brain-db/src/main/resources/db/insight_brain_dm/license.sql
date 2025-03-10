@@ -536,6 +536,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Circu
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Cireson-EULA-1.4','Cireson-EULA-1.4','Cireson End User License Agreement v1.4');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Cisco-API-License','Cisco-API-License','Cisco API License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Cisco-EULA','Cisco-EULA','Cisco End User License Agreement - Release Date 05-22-2017');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Cisco-EULA-UNSPECIFIED','Cisco-EULA-UNSPECIFIED','Cisco-EULA-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Cisco-Sample-Code-License-1.0','Cisco-Sample-Code-License-1.0','Cisco Sample Code License Version 1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Cisco-Sample-Code-License-1.1','Cisco-Sample-Code-License-1.1','Cisco Sample Code License Version 1.1');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Cisco-Sample-Code-License-UNSPECIFIED','Cisco-Sample-Code-License','Cisco Sample Code License-Style License Not Identifiable by Sonatype');

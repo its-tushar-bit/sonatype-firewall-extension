@@ -283,6 +283,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AGPL-UN
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AGPL-UNSPECIFIED-Generic-Open-Source-Clause-MIT','MIT');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AGPL-UNSPECIFIED-GPL-UNSPECIFIED','AGPL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AGPL-UNSPECIFIED-GPL-UNSPECIFIED','GPL-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AGPL-UNSPECIFIED-MIT','AGPL-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AGPL-UNSPECIFIED-MIT','MIT');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AGPL-UNSPECIFIED-UNKNOWN','AGPL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AGPL-UNSPECIFIED-UNKNOWN','UNKNOWN');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AI-Pubs-Open-RAIL-M-License-0.1','AI-Pubs-Open-RAIL-M-License-0.1');
@@ -2201,6 +2203,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Circumf
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Cireson-EULA-1.4','Cireson-EULA-1.4');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Cisco-API-License','Cisco-API-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Cisco-EULA','Cisco-EULA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Cisco-EULA-UNSPECIFIED','Cisco-EULA-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Cisco-Sample-Code-License-1.0','Cisco-Sample-Code-License-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Cisco-Sample-Code-License-1.1','Cisco-Sample-Code-License-1.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Cisco-Sample-Code-License-UNSPECIFIED','Cisco-Sample-Code-License-UNSPECIFIED');

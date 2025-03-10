@@ -85,11 +85,11 @@ public class ConfigurationClientTest
   public void testValidateConfiguration_BadHost() {
     NetworkingHelper.assumeDnsResolutionIsNormal();
     Configuration config = getCLMServer().getClientConfiguration();
-    config.setServerUrl("http://1234.bad.host.1234.com/");
+    config.setServerUrl("http://1234.bad.host.1234.does-not-exist/");
     assertThatExceptionOfType(IOException.class)
         .isThrownBy(() -> new ConfigurationClient(config).validateConfiguration())
         .withMessageStartingWith("Unknown host:")
-        .withMessageContaining("1234.bad.host.1234.com");
+        .withMessageContaining("1234.bad.host.1234.does-not-exist");
   }
 
   @Test
@@ -122,10 +122,10 @@ public class ConfigurationClientTest
   public void testValidateConfiguration_BadProxyHost() {
     NetworkingHelper.assumeDnsResolutionIsNormal();
     Configuration config = getCLMServer().getClientConfiguration();
-    config.setProxy("1234.bad.host.1234.com");
+    config.setProxy("1234.bad.host.1234.does-not-exist");
     assertThatExceptionOfType(IOException.class)
         .isThrownBy(() -> new ConfigurationClient(config).validateConfiguration())
-        .withMessageStartingWith("Unknown host: 1234.bad.host.1234.com");
+        .withMessageStartingWith("Unknown host: 1234.bad.host.1234.does-not-exist");
   }
 
   @Test

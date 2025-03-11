@@ -14,9 +14,11 @@ import java.util.Set;
 
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.AbstractDataTest;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
@@ -50,6 +52,10 @@ public class ClairScannerResultsHandlerTest
 
   private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
+  private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
+
+  private ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO;
+
   private ClairScannerResultHandler clairHandler;
 
   private DuplicateAwareThirdPartyFileCoordinatePersister fileCoordinatePersister;
@@ -57,9 +63,12 @@ public class ClairScannerResultsHandlerTest
   @Before
   public void setUp() {
     thirdPartyCoordinateSecurityDAO = daoFactory.createThirdPartyCoordinateSecurityDAO();
+    thirdPartyCoordinateLicenseDAO = daoFactory.createThirdPartyCoordinateLicenseDAO();
     thirdPartyFileCoordinateDAO = daoFactory.createThirdPartyFileCoordinateDAO();
     thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
-    fileCoordinatePersister = new DuplicateAwareThirdPartyFileCoordinatePersister(thirdPartyFileCoordinateDAO);
+    fileCoordinatePersister = new DuplicateAwareThirdPartyFileCoordinatePersister(thirdPartyFileCoordinateDAO,
+        thirdPartyCoordinateSecurityDAO, thirdPartyCoordinateLicenseDAO,
+        thirdPartyVulnerabilityExploitabilityExchangeDAO);
     clairHandler =
         new ClairScannerResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO);
   }

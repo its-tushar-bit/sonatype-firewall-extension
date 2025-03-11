@@ -15,6 +15,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -1404,6 +1405,92 @@ public class SbomResultsMergerTest
   @Test
   public void testCleanUpPreviousReport_FeatureDisabled() throws IOException {
     executeCleanUpPreviousReportTest(false, true);
+  }
+
+  @Test
+  public void testMergeResults_DuplicateComponentsMergedByComponentRefs() throws IOException {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+
+    ThirdPartyFileCoordinate thirdPartyFileCoordinateA =
+        tempEntity.newThirdPartyFileCoordinate(file, "tp", "maven", "commons", "1.3",
+            "fakehash", "pkg:maven/apache-httpclient/commons@1.3?type=jar", "componentRefA");
+
+    tempEntity.newThirdPartyFileCoordinate(file, "tp", "maven", "commons-httpclient", "3.1",
+        "964cd74171f427720480", "pkg:maven/apache-httpclient/commons-httpclient@3.1?type=jar", "componentRefB");
+
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
+
+    ReportHelper.saveMockReport(insightWork, tempDir,
+        "/SbomResultsMergerTest/report-for-binary-with-duplicate-components-and-component-refs",
+        application.getId(), SCAN_ID);
+    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
+
+    mergerProvider.get().mergeResults(sbomMetadata, SCAN_ID, appReport);
+    List<ThirdPartyFileCoordinate> components = thirdPartyFileCoordinateDAO.getByThirdPartyFileId(file.getId());
+    assertThat(components).hasSize(1);
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate = components.get(0);
+    assertThat(thirdPartyFileCoordinate.getId()).isEqualTo(thirdPartyFileCoordinateA.getId());
+    assertThat(thirdPartyFileCoordinate.getFormat()).isEqualTo("maven");
+    assertThat(thirdPartyFileCoordinate.getName()).isEqualTo("commons");
+    assertThat(thirdPartyFileCoordinate.getVersion()).isEqualTo("1.3");
+    assertThat(thirdPartyFileCoordinate.getHash()).isEqualTo("964cd74171f427720480");
+    assertThat(thirdPartyFileCoordinate.getComponentRef()).isEqualTo("componentRefA");
+    assertThat(thirdPartyFileCoordinate.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+  }
+
+  @Test
+  public void testMergeResults_DuplicateComponentsVulnsLicensesMergedByComponentRefs() throws IOException {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+
+    ThirdPartyFileCoordinate thirdPartyFileCoordinateA =
+        tempEntity.newThirdPartyFileCoordinate(file, "tp", "maven", "commons", "1.3",
+            "fakehash", "pkg:maven/apache-httpclient/commons@1.3?type=jar", "componentRefA");
+
+    ThirdPartyFileCoordinate thirdPartyFileCoordinateB =
+        tempEntity.newThirdPartyFileCoordinate(file, "tp", "maven", "commons-httpclient", "3.1",
+            "964cd74171f427720480", "pkg:maven/apache-httpclient/commons-httpclient@3.1?type=jar", "componentRefB");
+
+    ThirdPartyCoordinateLicense componentRefBLicense =
+        tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinateB, "licenseId", "licenseName", "licenseUrl");
+
+    ThirdPartyCoordinateSecurity componentRefBVulnerability =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinateB, "vulnId", "Description",
+            "link", 9.0, "Description", "fixed by");
+
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
+
+    ReportHelper.saveMockReport(insightWork, tempDir,
+        "/SbomResultsMergerTest/report-for-binary-with-duplicate-components-and-component-refs",
+        application.getId(), SCAN_ID);
+    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
+
+    mergerProvider.get().mergeResults(sbomMetadata, SCAN_ID, appReport);
+    List<ThirdPartyFileCoordinate> components = thirdPartyFileCoordinateDAO.getByThirdPartyFileId(file.getId());
+    assertThat(components).hasSize(1);
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate = components.get(0);
+    assertThat(thirdPartyFileCoordinate.getId()).isEqualTo(thirdPartyFileCoordinateA.getId());
+    assertThat(thirdPartyFileCoordinate.getFormat()).isEqualTo("maven");
+    assertThat(thirdPartyFileCoordinate.getName()).isEqualTo("commons");
+    assertThat(thirdPartyFileCoordinate.getVersion()).isEqualTo("1.3");
+    assertThat(thirdPartyFileCoordinate.getHash()).isEqualTo("964cd74171f427720480");
+    assertThat(thirdPartyFileCoordinate.getComponentRef()).isEqualTo("componentRefA");
+    assertThat(thirdPartyFileCoordinate.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+    List<ThirdPartyCoordinateSecurity> vulnerabilities =
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());
+    assertThat(vulnerabilities).hasSize(3);
+    assertThat(vulnerabilities.stream().map(ThirdPartyCoordinateSecurity::getRefId))
+        .hasSameElementsAs(Set.of("CVE-2012-5783", "CVE-2012-5784", componentRefBVulnerability.getRefId()));
+    List<ThirdPartyCoordinateLicense> licenses =
+        thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());
+    assertThat(licenses).hasSize(3);
+    assertThat(licenses.stream().map(ThirdPartyCoordinateLicense::getLicenseId))
+        .hasSameElementsAs(Set.of("Apache-2.0", "AGPL-1.0", componentRefBLicense.getLicenseId()));
   }
 
   private File mockReportZipWithUpdatedThirdPartyData(

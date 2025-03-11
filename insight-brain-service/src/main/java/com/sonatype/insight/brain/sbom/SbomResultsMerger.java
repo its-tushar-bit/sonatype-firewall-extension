@@ -314,7 +314,7 @@ public class SbomResultsMerger
     Map<ComponentIdentifier, JsonNode> resultsWithoutUniqueIdentifier = new LinkedHashMap<>();
 
     groupHdsResultsWithComponentRefOrSonatypeId(bomJsonData, resultsWithComponentRef,
-            resultsWithSonatypeId, resultsWithoutUniqueIdentifier);
+            resultsWithSonatypeId, resultsWithoutUniqueIdentifier, sbomMetadata.getThirdPartyFileId());
 
     Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeVulnerabilityResults =
         readSonatypeSecurityResults(securityJsonData);
@@ -775,7 +775,8 @@ public class SbomResultsMerger
       final ContainerNode<?> bomJsonData,
       final MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> resultsWithComponentRef,
       final MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> resultsWithSonatypeId,
-      final Map<ComponentIdentifier, JsonNode> resultsWithoutUniqueIdentifier)
+      final Map<ComponentIdentifier, JsonNode> resultsWithoutUniqueIdentifier,
+      final String thirdPartyFileId)
   {
     ArrayNode bomArray = (ArrayNode) bomJsonData.get("aaData");
     for (JsonNode bomNode : bomArray) {
@@ -790,18 +791,23 @@ public class SbomResultsMerger
         continue;
       }
 
-      String propertyValue = JsonUtils.getNullableString(bomNode.get("componentRef"));
-      if (propertyValue != null) {
-        resultsWithComponentRef.put(propertyValue, Pair.of(bomComponentIdentifier, bomNode));
+      List<String> bomNodeComponentRefs = JsonUtils.getStringListFromArray(bomNode.get("componentRefs"));
+      String bomNodeComponentRef = JsonUtils.getNullableString(bomNode.get("componentRef"));
+      String sonatypeIdentifier = JsonUtils.getNullableString(bomNode.get("sonatypeIdentifier"));
+      if (CollectionUtils.isNotEmpty(bomNodeComponentRefs)) {
+        Optional<String> mergedComponentRef =
+            thirdPartyFileCoordinatePersister.consolidate(bomNodeComponentRefs, thirdPartyFileId);
+        mergedComponentRef.ifPresent(componentRef ->
+            resultsWithComponentRef.put(componentRef, Pair.of(bomComponentIdentifier, bomNode)));
+      }
+      else if (StringUtils.isNotBlank(bomNodeComponentRef)) {
+        resultsWithComponentRef.put(bomNodeComponentRef, Pair.of(bomComponentIdentifier, bomNode));
+      }
+      else if (StringUtils.isNotBlank(sonatypeIdentifier)) {
+        resultsWithSonatypeId.put(sonatypeIdentifier, Pair.of(bomComponentIdentifier, bomNode));
       }
       else {
-        propertyValue = JsonUtils.getNullableString(bomNode.get("sonatypeIdentifier"));
-        if (propertyValue != null) {
-          resultsWithSonatypeId.put(propertyValue, Pair.of(bomComponentIdentifier, bomNode));
-        }
-        else {
-          resultsWithoutUniqueIdentifier.put(bomComponentIdentifier, bomNode);
-        }
+        resultsWithoutUniqueIdentifier.put(bomComponentIdentifier, bomNode);
       }
     }
   }

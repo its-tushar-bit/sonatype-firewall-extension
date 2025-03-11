@@ -670,4 +670,14 @@ public class ThirdPartyFileCoordinateDAO
         " WHERE entity.thirdPartyFileId=?1 AND (entity.hash=?2 OR entity.componentRef=?3)";
     return getList(tx, sQuery, thirdPartyFileId, hash, componentRef);
   }
+
+  public List<ThirdPartyFileCoordinate> getByComponentRefsAndThirdPartyFileId(
+      final TransactionContext tx,
+      final String thirdPartyFileId,
+      final List<String> componentRef)
+  {
+    String sQuery = "SELECT entity FROM ThirdPartyFileCoordinate entity" + //
+        " WHERE entity.thirdPartyFileId=?1 AND entity.componentRef IN ?2";
+    return getList(tx, sQuery, thirdPartyFileId, componentRef);
+  }
 }

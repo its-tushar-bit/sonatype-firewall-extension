@@ -6,12 +6,21 @@
 package com.sonatype.insight.brain.thirdparty;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.sbom.SbomDependencyType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -25,15 +34,29 @@ public class DuplicateAwareThirdPartyFileCoordinatePersister
 {
   private static final Logger log = LoggerFactory.getLogger(DuplicateAwareThirdPartyFileCoordinatePersister.class);
 
-  private final ThirdPartyFileCoordinateDAO dao;
+  private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDao;
+
+  private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDao;
+
+  private final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDao;
+
+  private final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDao;
 
   @Inject
-  public DuplicateAwareThirdPartyFileCoordinatePersister(final ThirdPartyFileCoordinateDAO dao) {
-    this.dao = dao;
+  public DuplicateAwareThirdPartyFileCoordinatePersister(
+      final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDao,
+      final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDao,
+      final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDao,
+      ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDao)
+  {
+    this.thirdPartyFileCoordinateDao = thirdPartyFileCoordinateDao;
+    this.thirdPartyCoordinateSecurityDao = thirdPartyCoordinateSecurityDao;
+    this.thirdPartyCoordinateLicenseDao = thirdPartyCoordinateLicenseDao;
+    this.thirdPartyVulnerabilityExploitabilityExchangeDao = thirdPartyVulnerabilityExploitabilityExchangeDao;
   }
 
   public ThirdPartyFileCoordinate persist(ThirdPartyFileCoordinate componentToSave) {
-    try (TransactionContext tx = dao.createTransactionContext()) {
+    try (TransactionContext tx = thirdPartyFileCoordinateDao.createTransactionContext()) {
       tx.begin();
       ThirdPartyFileCoordinate persist = persist(tx, componentToSave);
       tx.commit();
@@ -55,8 +78,8 @@ public class DuplicateAwareThirdPartyFileCoordinatePersister
     }
 
     List<ThirdPartyFileCoordinate> existing =
-        dao.getByHashOrComponentRefForThirdPartyFileId(tx, componentToSave.getThirdPartyFileId(),
-            componentToSave.getHash(), componentToSave.getComponentRef());
+        thirdPartyFileCoordinateDao.getByHashOrComponentRefForThirdPartyFileId(tx,
+            componentToSave.getThirdPartyFileId(), componentToSave.getHash(), componentToSave.getComponentRef());
     if (CollectionUtils.isNotEmpty(existing)) {
       ThirdPartyFileCoordinate existingComponent = existing.get(0);
       if (existing.size() > 1) {
@@ -67,11 +90,11 @@ public class DuplicateAwareThirdPartyFileCoordinatePersister
       }
       //merge with existing component
       merge(componentToSave, existingComponent);
-      dao.update(tx, existingComponent);
+      thirdPartyFileCoordinateDao.update(tx, existingComponent);
       return existingComponent;
     }
     else {
-      dao.insert(tx, componentToSave);
+      thirdPartyFileCoordinateDao.insert(tx, componentToSave);
       return componentToSave;
     }
   }
@@ -111,5 +134,84 @@ public class DuplicateAwareThirdPartyFileCoordinatePersister
           SbomDependencyType.fromCode(existing.getDependencyType()).equals(SbomDependencyType.TRANSITIVE);
     }
     return false;
+  }
+
+  /*
+  * Given a list of "componentRefs", this method will consolidate all component, license and vulnerability data
+  * under a single third party file coordinate and then delete any duplicate components and associated data
+  */
+  public Optional<String> consolidate(final List<String> componentRefs, final String thirdPartyFileId) {
+    Optional<String> result = Optional.empty();
+    try (TransactionContext tx = thirdPartyFileCoordinateDao.createTransactionContext()) {
+      tx.begin();
+      List<ThirdPartyFileCoordinate> byComponentRefs =
+          thirdPartyFileCoordinateDao.getByComponentRefsAndThirdPartyFileId(tx, thirdPartyFileId, componentRefs);
+      if (CollectionUtils.isEmpty(byComponentRefs)) {
+        log.debug("No file coordinate records were found which had component-refs {}", componentRefs);
+      }
+      else if (CollectionUtils.size(byComponentRefs) == 1) {
+        //nothing to do. there's only 1 record in database
+        result = Optional.of(byComponentRefs.get(0).getComponentRef());
+      }
+      else {
+        ThirdPartyFileCoordinate toKeep = byComponentRefs.get(0);
+        for (int i = 1; i < byComponentRefs.size(); i++) {
+          ThirdPartyFileCoordinate toMerge = byComponentRefs.get(i);
+          merge(toMerge, toKeep);
+          mergeVulnerabilities(tx, toMerge, toKeep);
+          mergeLicenses(tx, toMerge, toKeep);
+          thirdPartyFileCoordinateDao.delete(tx, toMerge);
+        }
+        thirdPartyFileCoordinateDao.update(tx, toKeep);
+        result = Optional.of(toKeep.getComponentRef());
+      }
+      tx.commit();
+    }
+    return result;
+  }
+
+  private void mergeVulnerabilities(
+      TransactionContext tx,
+      ThirdPartyFileCoordinate toMerge,
+      ThirdPartyFileCoordinate toKeep)
+  {
+    Map<String, ThirdPartyCoordinateSecurity> keepVulns =
+        thirdPartyCoordinateSecurityDao.getByFileCoordinateId(tx, toKeep.getId()).stream()
+            .collect(Collectors.toMap(ThirdPartyCoordinateSecurity::getRefId, v -> v));
+    thirdPartyCoordinateSecurityDao.getByFileCoordinateId(tx, toMerge.getId()).forEach(vMerge -> {
+      if (!keepVulns.containsKey(vMerge.getRefId())) {
+        //this should merge the vulnerability along with any associated vex records
+        vMerge.setFileCoordinateId(toKeep.getId());
+        thirdPartyCoordinateSecurityDao.update(tx, vMerge);
+      }
+      else {
+        ThirdPartyCoordinateSecurity vKeep = keepVulns.get(vMerge.getRefId());
+        ThirdPartyVulnerabilityExploitabilityExchange vexKeep =
+            thirdPartyVulnerabilityExploitabilityExchangeDao.getByCoordinateSecurityIdAndRefId(tx, vKeep.getId(),
+                vKeep.getRefId());
+        if (vexKeep == null) {
+          ThirdPartyVulnerabilityExploitabilityExchange vexMerge =
+              thirdPartyVulnerabilityExploitabilityExchangeDao.getByCoordinateSecurityIdAndRefId(tx, vMerge.getId(),
+                  vMerge.getRefId());
+          if (vexMerge != null) {
+            //we only merge the vex record if the keep record doesn't have one and the merge record does
+            vexMerge.setCoordinateSecurityId(vKeep.getId());
+            thirdPartyVulnerabilityExploitabilityExchangeDao.update(tx, vexMerge);
+          }
+        }
+      }
+    });
+  }
+
+  private void mergeLicenses(TransactionContext tx, ThirdPartyFileCoordinate toMerge, ThirdPartyFileCoordinate toKeep) {
+    Map<String, ThirdPartyCoordinateLicense> keepLicenses =
+        thirdPartyCoordinateLicenseDao.getByFileCoordinateId(tx, toKeep.getId()).stream().collect(Collectors.toMap(
+            ThirdPartyCoordinateLicense::getLicenseId, l -> l));
+    thirdPartyCoordinateLicenseDao.getByFileCoordinateId(tx, toMerge.getId()).forEach(mergeLicense -> {
+      if (!keepLicenses.containsKey(mergeLicense.getLicenseId())) {
+        mergeLicense.setFileCoordinateId(toKeep.getId());
+        thirdPartyCoordinateLicenseDao.update(tx, mergeLicense);
+      }
+    });
   }
 }

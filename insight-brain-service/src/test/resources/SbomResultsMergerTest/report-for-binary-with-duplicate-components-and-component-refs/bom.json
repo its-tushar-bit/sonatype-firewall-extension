@@ -1,0 +1,45 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-httpclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "apache-httpclient",
+        "version" : "3.1"
+      }
+    },
+    "groupId" : "apache-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "filenames" : [ "commons-httpclient-3.1.jar" ],
+    "pathnames" : [ "test/commons-httpclient-3.1.jar" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "964cd74171f427720480",
+    "relativePopularity" : 0.0,
+    "createTime" : 1453445378786,
+    "lastModifiedTime" : 1334088088000,
+    "lastModifiedEntryTime" : 1187449150000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentRef" : "componentRefA",
+    "componentRefs" : ["componentRefA", "componentRefB"],
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    }
+  }]
+}

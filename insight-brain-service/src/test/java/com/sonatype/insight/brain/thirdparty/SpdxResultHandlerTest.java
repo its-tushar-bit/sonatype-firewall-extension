@@ -113,7 +113,8 @@ public class SpdxResultHandlerTest
     thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
     thirdPartyScanContext = mock(ThirdPartyScanContext.class);
     multiLicenseDAO = daoFactory.createMultiLicenseDAO();
-    fileCoordinatePersister = new DuplicateAwareThirdPartyFileCoordinatePersister(thirdPartyFileCoordinateDAO);
+    fileCoordinatePersister = new DuplicateAwareThirdPartyFileCoordinatePersister(thirdPartyFileCoordinateDAO,
+        thirdPartyCoordinateSecurityDAO, thirdPartyCoordinateLicenseDAO, thirdPartyVexDAO);
     // Mockito mocks with Boolean values return false by default instead of null
     // Change it to return null since we rely on this value
     when(thirdPartyScanContext.isValid()).thenReturn(null);

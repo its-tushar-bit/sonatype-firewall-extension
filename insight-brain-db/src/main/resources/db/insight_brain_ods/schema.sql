@@ -224,6 +224,7 @@ INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('d
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1a837897990c489faf669f2b091427fd', 'b9646757e98e486da7d730025f5245f8', 'CHANGE_LICENSES');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('08dc877fe2664ed995b39f97e253254a', 'b9646757e98e486da7d730025f5245f8', 'CHANGE_SECURITY_VULNERABILITIES');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('7b87527087c24a3c9ba81a55d7da7c0c', 'b9646757e98e486da7d730025f5245f8', 'LEGAL_REVIEWER');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('e31b018313034e65848b02ac51c97d99', 'b9646757e98e486da7d730025f5245f8', 'CREATE_PULL_REQUESTS');
 -- Owner role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1c8d6f420845466bbc1eb5eaf6d4baa2', '1cddabf7fdaa47d6833454af10e0a3ef', 'WRITE');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1c2587ba144341fd9d937dd36c850f5a', '1cddabf7fdaa47d6833454af10e0a3ef', 'READ');
@@ -237,9 +238,11 @@ INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('9
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('40340d38f51745829f914139ee66764d', '1cddabf7fdaa47d6833454af10e0a3ef', 'CHANGE_LICENSES');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1c65f82a496540a3a6a369875cd988a8', '1cddabf7fdaa47d6833454af10e0a3ef', 'CHANGE_SECURITY_VULNERABILITIES');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('629fe173516645fda0121b2a6602ed0f', '1cddabf7fdaa47d6833454af10e0a3ef', 'LEGAL_REVIEWER');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('442e70c98fb6473db43562af7174005b', '1cddabf7fdaa47d6833454af10e0a3ef', 'CREATE_PULL_REQUESTS');
 -- Developer role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1a6a3ba60818476781a6a2cb9adcb7f6', '1da70fae1fd54d6cb7999871ebdb9a36', 'READ');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('61159b674eb94cdcb00ebdec77a47373', '1da70fae1fd54d6cb7999871ebdb9a36', 'EVALUATE_COMPONENT');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('38c2855e278244b6ad3fad92c942b33e', '1da70fae1fd54d6cb7999871ebdb9a36', 'CREATE_PULL_REQUESTS');
 -- Application Evaluator role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('ea7bb57e93e241acbf8da5ebcb5b0074', '2cb71b3468d649789163ea2e212b541e', 'EVALUATE_APPLICATION');
 -- Component Evaluator role

@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.model.security;
 
+import java.util.function.Supplier;
+
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+
 /**
  * The permissions supporting authorization.
  *
@@ -60,7 +64,10 @@ public enum Permission
       true /* global */, true /* allowedInCustomRoles */),
 
   LEGAL_REVIEWER("Review", PermissionCategory.REMEDIATION, "Legal obligations for components licenses",
-      false /* global */, true /* allowedInCustomRoles */);
+      false /* global */, true /* allowedInCustomRoles */),
+
+  CREATE_PULL_REQUESTS("Create", PermissionCategory.REMEDIATION, "Pull requests", false /* global */,
+      true /* allowedInCustomRoles */, SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS::isEnabled);
 
   private final String displayName;
 
@@ -72,17 +79,37 @@ public enum Permission
 
   private final boolean allowedInCustomRoles;
 
-  private Permission(final String displayName,
-                     final PermissionCategory category,
-                     final String description,
-                     final boolean global,
-                     final boolean allowedInCustomRoles)
+  /**
+   * This determines if we reveal the permission as being associated to a role through the backend REST APIs
+   * {@link RoleResource#getRoleById(String)} or {@link RoleResource#getTemplateForNewRole(String)} and in turn
+   * through the frontend UI (i.e. the Roles System Preferences pages).
+   */
+  private final Supplier<Boolean> visible;
+
+  Permission(
+      final String displayName,
+      final PermissionCategory category,
+      final String description,
+      final boolean global,
+      final boolean allowedInCustomRoles,
+      final Supplier<Boolean> visible)
   {
     this.displayName = displayName;
     this.category = category;
     this.description = description;
     this.global = global;
     this.allowedInCustomRoles = allowedInCustomRoles;
+    this.visible = visible;
+  }
+
+  Permission(
+      final String displayName,
+      final PermissionCategory category,
+      final String description,
+      final boolean global,
+      final boolean allowedInCustomRoles)
+  {
+    this(displayName, category, description, global, allowedInCustomRoles, () -> true);
   }
 
   public String getDisplayName() {
@@ -103,5 +130,9 @@ public enum Permission
 
   public boolean isGlobal() {
     return global;
+  }
+
+  public boolean isVisible() {
+    return visible.get();
   }
 }

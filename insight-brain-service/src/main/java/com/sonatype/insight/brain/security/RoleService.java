@@ -171,6 +171,9 @@ public class RoleService
       if (customRole && !perm.isAllowedInCustomRoles()) {
         continue;
       }
+      if (!perm.isVisible()) {
+        continue;
+      }
       permissionsByCategoryMap.put(perm.getCategory(), new PermissionDTO(perm, permissions.contains(perm)));
     }
 

@@ -11,6 +11,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleDTO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.PermissionCategory;
 import com.sonatype.insight.brain.model.security.Role;
@@ -59,7 +60,7 @@ public class RoleServiceTest
   }
 
   @Test
-  public void testGetRoleById_Builtin() {
+  public void testGetRoleById_Builtin_WithoutManualPullRequests() {
     RoleDTO roleDTO = roleService.getRoleById(Role.SYSTEM_ADMIN_ROLE_ID);
 
     assertThat(roleDTO.id).isEqualTo(Role.SYSTEM_ADMIN_ROLE_ID);
@@ -92,7 +93,41 @@ public class RoleServiceTest
   }
 
   @Test
-  public void testGetRoleById_Custom() {
+  public void testGetRoleById_Builtin_WithManualPullRequests() {
+    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
+    RoleDTO roleDTO = roleService.getRoleById(Role.SYSTEM_ADMIN_ROLE_ID);
+
+    assertThat(roleDTO.id).isEqualTo(Role.SYSTEM_ADMIN_ROLE_ID);
+    assertThat(roleDTO.permissionCategories).hasSize(3);
+    assertAllowedPermissions(roleDTO, Permission.CONFIGURE_SYSTEM, Permission.VIEW_ROLES);
+
+    PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
+    assertThat(category.displayName).isEqualTo(PermissionCategory.ADMINISTRATOR.getDisplayName());
+    assertListedPermissions(category,
+        Permission.CONFIGURE_SYSTEM, Permission.EDIT_ROLES, Permission.VIEW_ROLES, Permission.ACCESS_AUDIT_LOG);
+
+    category = roleDTO.permissionCategories.get(1);
+    assertThat(category.displayName).isEqualTo(PermissionCategory.IQ.getDisplayName());
+    assertListedPermissions(category, //
+        Permission.MANAGE_PROPRIETARY, //
+        Permission.CLAIM_COMPONENT, //
+        Permission.WRITE, //
+        Permission.READ, //
+        Permission.EDIT_ACCESS_CONTROL, //
+        Permission.EVALUATE_APPLICATION, //
+        Permission.EVALUATE_COMPONENT, //
+        Permission.ADD_APPLICATION, //
+        Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION, //
+        Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
+
+    category = roleDTO.permissionCategories.get(2);
+    assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
+    assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS, Permission.CHANGE_LICENSES,
+        Permission.CHANGE_SECURITY_VULNERABILITIES, Permission.LEGAL_REVIEWER, Permission.CREATE_PULL_REQUESTS);
+  }
+
+  @Test
+  public void testGetRoleById_Custom_WithoutManualPullRequests() {
     Role expectedRole = tempEntity.newRole(false, Permission.WRITE);
 
     RoleDTO roleDTO = roleService.getRoleById(expectedRole.getId());
@@ -128,7 +163,44 @@ public class RoleServiceTest
   }
 
   @Test
-  public void testGetTemplateForNewRole() {
+  public void testGetRoleById_Custom_WithManualPullRequests() {
+    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
+    Role expectedRole = tempEntity.newRole(false, Permission.WRITE);
+
+    RoleDTO roleDTO = roleService.getRoleById(expectedRole.getId());
+    assertThat(roleDTO.id).isEqualTo(expectedRole.getId());
+    assertThat(roleDTO.name).isEqualTo(expectedRole.getName());
+    assertThat(roleDTO.description).isEqualTo(expectedRole.getDescription());
+
+    assertThat(roleDTO.permissionCategories).hasSize(3);
+    assertAllowedPermissions(roleDTO, Permission.WRITE);
+
+    PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
+    assertThat(category.displayName).isEqualTo(PermissionCategory.ADMINISTRATOR.getDisplayName());
+    assertListedPermissions(category, Permission.VIEW_ROLES, Permission.ACCESS_AUDIT_LOG);
+
+    category = roleDTO.permissionCategories.get(1);
+    assertThat(category.displayName).isEqualTo(PermissionCategory.IQ.getDisplayName());
+    assertListedPermissions(category, //
+        Permission.MANAGE_PROPRIETARY, //
+        Permission.CLAIM_COMPONENT, //
+        Permission.WRITE, //
+        Permission.READ, //
+        Permission.EDIT_ACCESS_CONTROL, //
+        Permission.EVALUATE_APPLICATION, //
+        Permission.EVALUATE_COMPONENT, //
+        Permission.ADD_APPLICATION, //
+        Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION, //
+        Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
+
+    category = roleDTO.permissionCategories.get(2);
+    assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
+    assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS, Permission.CHANGE_LICENSES,
+        Permission.CHANGE_SECURITY_VULNERABILITIES, Permission.LEGAL_REVIEWER, Permission.CREATE_PULL_REQUESTS);
+  }
+
+  @Test
+  public void testGetTemplateForNewRole_WithoutManualPullRequests() {
     RoleDTO roleDTO = roleService.getTemplateForNewRole();
     assertThat(roleDTO.id).isNull();
     assertThat(roleDTO.name).isNull();
@@ -159,6 +231,41 @@ public class RoleServiceTest
     assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
     assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS, Permission.CHANGE_LICENSES,
         Permission.CHANGE_SECURITY_VULNERABILITIES, Permission.LEGAL_REVIEWER);
+  }
+
+  @Test
+  public void testGetTemplateForNewRole_WithManualPullRequests() {
+    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
+    RoleDTO roleDTO = roleService.getTemplateForNewRole();
+    assertThat(roleDTO.id).isNull();
+    assertThat(roleDTO.name).isNull();
+    assertThat(roleDTO.description).isNull();
+
+    assertThat(roleDTO.permissionCategories).hasSize(3);
+    assertAllowedPermissions(roleDTO);
+
+    PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
+    assertThat(category.displayName).isEqualTo(PermissionCategory.ADMINISTRATOR.getDisplayName());
+    assertListedPermissions(category, Permission.VIEW_ROLES, Permission.ACCESS_AUDIT_LOG);
+
+    category = roleDTO.permissionCategories.get(1);
+    assertThat(category.displayName).isEqualTo(PermissionCategory.IQ.getDisplayName());
+    assertListedPermissions(category, //
+        Permission.MANAGE_PROPRIETARY, //
+        Permission.CLAIM_COMPONENT, //
+        Permission.WRITE, //
+        Permission.READ, //
+        Permission.EDIT_ACCESS_CONTROL, //
+        Permission.EVALUATE_APPLICATION, //
+        Permission.EVALUATE_COMPONENT, //
+        Permission.ADD_APPLICATION, //
+        Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION, //
+        Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
+
+    category = roleDTO.permissionCategories.get(2);
+    assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
+    assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS, Permission.CHANGE_LICENSES,
+        Permission.CHANGE_SECURITY_VULNERABILITIES, Permission.LEGAL_REVIEWER, Permission.CREATE_PULL_REQUESTS);
   }
 
   @Test

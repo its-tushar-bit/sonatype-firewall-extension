@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
@@ -652,7 +653,19 @@ public class MembershipMappingServiceTest
   }
 
   @Test
-  public void testGetPermissionsForUserPrincipal() {
+  public void testGetPermissionsForUserPrincipal_WithManualPullRequests() {
+    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
+    testGetPermissionsForUserPrincipal("Add", "Change", "Claim", "Edit", "Evaluate", "Manage",
+        "Review", "View", "Waive", "Create");
+  }
+
+  @Test
+  public void testGetPermissionsForUserPrincipal_WithoutManualPullRequests() {
+    testGetPermissionsForUserPrincipal("Add", "Change", "Claim", "Edit", "Evaluate", "Manage",
+        "Review", "View", "Waive" /* and not Create */);
+  }
+
+  private void testGetPermissionsForUserPrincipal(final String... expectedPermissions) {
     String username = "username";
     Set<String> membership = new HashSet<>(Arrays.asList("developers", "qa"));
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, SYSTEM_ADMIN_ROLE_ID, username);
@@ -663,8 +676,7 @@ public class MembershipMappingServiceTest
     Set<String> actual = membershipMappingService.getPermissionsForUserPrincipal(username, membership);
 
     assertThat(actual).isNotNull();
-    assertThat(actual).containsExactlyInAnyOrder("Add", "Change", "Claim", "Edit", "Evaluate", "Manage",
-        "Review","View", "Waive");
+    assertThat(actual).containsExactlyInAnyOrderElementsOf(Arrays.asList(expectedPermissions));
   }
 
   @Test

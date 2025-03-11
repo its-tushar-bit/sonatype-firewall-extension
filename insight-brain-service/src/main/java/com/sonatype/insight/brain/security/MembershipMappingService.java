@@ -326,6 +326,7 @@ public class MembershipMappingService
         .map(it -> rolePermissionDAO.getPermissionsForRole(it.getRoleId()))
         .filter(Objects::nonNull)
         .flatMap(Collection::stream)
+        .filter(Permission::isVisible)
         .map(Permission::getDisplayName)
         .collect(Collectors.toSet());
   }

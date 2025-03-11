@@ -410,6 +410,26 @@ tbody .iq-cell--application-report-component-display {
   width: 225px;
 }
 
+.iq-reevaluation-status-modal {
+  &__reevaluation-status-text {
+    @include nx-text-helpers.semi-bold;
+    text-align: center;
+
+    &--reevaluating {
+      .nx-loading-spinner {
+        margin-top: 0;
+        margin-bottom: var(--nx-spacing-4x);
+      }
+    }
+
+    &--complete {
+      color: var(--nx-color-success);
+      border-bottom: var(--nx-border-default);
+      padding-bottom: var(--nx-spacing-6x);
+    }
+  }
+}
+
 #iq-unscanned-components-table {
   .iq-component-display-text {
     font-style: normal;

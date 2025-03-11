@@ -22,6 +22,9 @@ import {
 } from 'TestRoot/SpecUtil';
 import ReportPage from 'MainRoot/applicationReport/ReportPage';
 import { getLatestReportInformation } from 'MainRoot/util/CLMLocation';
+import { act } from '@testing-library/react';
+import { SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components/components/NxSubmitMask/NxSubmitMask';
+import ReevaluationStatusModal from 'MainRoot/applicationReport/ReevaluationStatusModal';
 
 describe('Report Page component', () => {
   let loadReportIfNeededSpy,
@@ -353,6 +356,35 @@ describe('Report Page component', () => {
     expect(
       screen.getByText('This report was generated with an older version of IQ. Please re-scan the application.')
     ).toBeVisible();
+  });
+
+  it('renders reevaluation status modal with in-progress texts and close button when reevaluating is true', () => {
+    applicationReport.reevaluating = true;
+    renderComponent();
+    expect(screen.getByText('Re-Evaluation Status')).toBeVisible();
+    expect(screen.getByText('Re-Evaluating…')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+  });
+
+  it('renders reevaluation status modal with complete texts and no close button when reevaluating is false', () => {
+    jest.useFakeTimers();
+
+    const { rerender } = render(<ReevaluationStatusModal reevaluating={true} />);
+    expect(screen.getByText('Re-Evaluating…')).toBeInTheDocument();
+
+    // Renders a Re-Evaluation Complete content when reevaluating changes to false
+    rerender(<ReevaluationStatusModal reevaluating={false} />);
+
+    expect(screen.getByText('Re-Evaluation Complete')).toBeVisible();
+    expect(screen.getByText('Success!')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument();
+
+    // Fast-forward until all timers have been executed
+    act(() => {
+      jest.advanceTimersByTime(SUCCESS_VISIBLE_TIME_MS);
+    });
+
+    expect(screen.queryByText('Re-Evaluation Complete')).not.toBeInTheDocument();
   });
 
   it('renders an alert with a custom message if there are insufficient permissions to reevaluate a report', () => {

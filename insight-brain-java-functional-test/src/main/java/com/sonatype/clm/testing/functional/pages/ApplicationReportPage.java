@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.elements.NxDropdown;
 import com.sonatype.clm.testing.functional.elements.NxSortingHeader;
 import com.sonatype.clm.testing.functional.elements.NxToggle;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.clm.testing.functional.utils.ElementUtils;
 import com.sonatype.insight.brain.model.Application;
 
 import com.codeborne.selenide.CheckResult;
@@ -78,6 +79,11 @@ public class ApplicationReportPage
 
   public SelenideElement quickReevaluateButton() {
     return child("#quick-reevaluate-report-button");
+  }
+
+  public void seeReevaluationStatusModalAndWaitForDismissal() {
+    SelenideElement modal = child("#iq-reevaluation-status-modal");
+    ElementUtils.seeElementAndWaitForDismissal(modal);
   }
 
   public NxDropdown optionsDropdown() {

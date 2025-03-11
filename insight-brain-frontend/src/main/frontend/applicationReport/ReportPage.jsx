@@ -12,7 +12,6 @@ import {
   NxFooter,
   NxLoadWrapper,
   NxModal,
-  NxStatefulSubmitMask,
   NxWarningAlert,
 } from '@sonatype/react-shared-components';
 import ReportStatusBar from './ReportStatusBar';
@@ -42,6 +41,7 @@ import { NxStatefulErrorAlert } from '@sonatype/react-shared-components';
 import { isNilOrEmpty } from '../util/jsUtil';
 import { useRouterState } from '../react/RouterStateContext';
 import { NewerReportAvailable } from 'MainRoot/applicationReport/NewerReportAvailable';
+import ReevaluationStatusModal from 'MainRoot/applicationReport/ReevaluationStatusModal';
 
 export default function ReportPage() {
   const applicationReport = useSelector(selectApplicationReportSlice);
@@ -51,7 +51,7 @@ export default function ReportPage() {
   const isOldReportWithNoDependencyInfo = useSelector(selectDependencyTreeIsOldReport);
   const hasUnscannedComponents = useSelector(selectHasUnscannedComponents);
   const selectedReport = useSelector(selectSelectedReport);
-  const { loadError, reevaluateMaskState } = pick(['loadError', 'reevaluateMaskState'], applicationReport);
+  const { loadError, reevaluating } = pick(['loadError', 'reevaluating'], applicationReport);
   const [showUnscannedComponentsModal, setShowUnscannedComponentsModal] = useState(false);
   const modalCloseHandler = () => setShowUnscannedComponentsModal(false);
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
@@ -101,7 +101,8 @@ export default function ReportPage() {
 
   return (
     <Fragment>
-      {reevaluateMaskState !== null && <NxStatefulSubmitMask success={reevaluateMaskState} message="Re-Evaluating" />}
+      {!reevaluationError && <ReevaluationStatusModal reevaluating={reevaluating} />}
+
       <main id="app-report" className="nx-page-main iq-app-report">
         <BackButton />
         <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadReport}>

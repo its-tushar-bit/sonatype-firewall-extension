@@ -814,7 +814,7 @@ public class ApplicationReportTest
 
     reportPage.reevaluateButton().click();
     reportPage.fullReevaluateButton().click();
-    FormMask.seeAndWaitForDismissal();
+    reportPage.seeReevaluationStatusModalAndWaitForDismissal();
 
     reportPage.headers().componentNameFilterInput().shouldHave(value("mycila"));
     reportPage.resultRows().shouldHave(size(1));

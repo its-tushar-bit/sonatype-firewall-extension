@@ -103,7 +103,7 @@ public class GettingStartedTest
 
   @Test
   public void testGettingStartedPage_sbomLicense() {
-    productLicenseManager.setMaxSboms(99);
+    productLicenseManager.setMaxSboms(50);
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
 
     testCLMServer.getHdsServer().respondWith("alive").atUri("ping");
@@ -121,7 +121,7 @@ public class GettingStartedTest
     licenseTile.daysToExpiration().shouldBe(visible).shouldHave(matchText("[0-1]"));
 
     licenseTile.products().shouldHave(texts("Sonatype SBOM Manager SaaS"));
-    licenseTile.licensedSboms().shouldBe(visible).should(matchText("99"));
+    licenseTile.licensedSboms().shouldBe(visible).should(matchText("50"));
     licenseTile.fingerprint().shouldBe(visible).should(matchText("1234"));
 
     gettingStartedPage.systemSetup().shouldBe(visible);

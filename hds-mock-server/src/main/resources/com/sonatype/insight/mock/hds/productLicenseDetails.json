@@ -1,6 +1,7 @@
 {
   "version": 1,
   "maxApplications": 100,
+  "maxSboms": 50,
   "features": [
     "ADVANCED_LEGAL_PACK",
     "ADVANCED_RECOMMENDATION_STRATEGIES",
@@ -35,6 +36,6 @@
     "release",
     "stage-release"
   ],
-  "signature": "IohlMJww/aguwRT3nWj7A3DDl9GyO4zpq1PUJdXik6JmxeMBvLdRCf4IN34a0kOKNkrrUyneTVTWEtRMqPZwmbODCTSHziFuzIoEjR4E+FjXVDZiUoOQFt42rJy3LeU/tR3DcO6AbYVaqoD5w2QLs3zNnDg7vZj+JM8Jsw2qGUEV5HTF2004Xkba7mmRA/ugDPOpEfeo8w42KSkb478SWSh+7EoWXAVLgkehRwu2tnY04cCcKdWdzdcgp0LF6GCarB2JplnBrwsboZQzJbzSfR1MFRE98Mm7zWya97XwWn/jE6iEiZjoWk5p3XKqOCYeUjUMFBXkvPhCANdWk9zsvg==",
+  "signature": "FWONXGGcU5wxalHyrW5n/qzmX6RxNjNF+5qX84fRNXcKZSoLM7QtLU0r7FEs43GazO9zA0KB6ze0UeTMo/x94Vt+Xox8zJ4gQoF7xq4VqhCG2SkrGlMFJQb0SdUoojjS2p9h/PtMKSWkqm1OeftYYyB+gwqC864CrXyW5yAL9Is9pXcYCqLfY5LJtzOcaZnVMXW+kjnf2w0feAShEtlBF7YwIdje2LyMviv3FW2vW06NS+0CEmR2Ij1AWBpc+7I5hsYvhGIYhtzZMWTqZe2Skf6Rf0/iFmm6FMLts+o62k39C2V+88u7c0CYrY61VP+N5aJMN8EaCuER2TKoSsXcLg==",
   "signatureKeyAlias": "licensing-key-test"
 }

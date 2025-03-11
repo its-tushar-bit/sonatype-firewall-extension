@@ -644,7 +644,7 @@ public class CLMLicenseManager
     Integer applicationCount = licenseDetails.maxApplications;
     Integer maxFirewallUsers = getMaxFirewallUsers(key);
     Integer maxUsers = getMaxUsers(key);
-    Integer maxSboms = getMaxSboms(key);
+    Integer maxSboms = licenseDetails.maxSboms;
 
     Set<String> products = getProducts(key);
 
@@ -1070,16 +1070,6 @@ public class CLMLicenseManager
     }
     catch (IllegalArgumentException e) {
       throw new LicensingException("Invalid value for max firewall users: " + prop, e);
-    }
-  }
-
-  private Integer getMaxSboms(ProductLicenseKey key) {
-    String prop = getProperty(key, ProductLicenseDetails.PROPERTY_MAX_SBOMS);
-    try {
-      return prop != null ? Integer.decode(prop) : null;
-    }
-    catch (IllegalArgumentException e) {
-      throw new LicensingException("Invalid value for max sboms: " + prop, e);
     }
   }
 

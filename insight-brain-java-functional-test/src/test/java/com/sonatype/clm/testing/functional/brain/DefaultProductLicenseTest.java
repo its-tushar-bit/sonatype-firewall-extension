@@ -171,14 +171,14 @@ public class DefaultProductLicenseTest
 
   @Test
   public void testLicenseInformation_SbomManagerSaas() {
-    productLicenseManager.setMaxSboms(99);
+    productLicenseManager.setMaxSboms(50);
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
 
     refreshOrOpen(ProductLicensePage.url());
 
     ProductLicensePage.licensedDevelopers().shouldNotBe(visible);
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
-    ProductLicensePage.licensedSboms().shouldBe(visible).shouldHave(text("99"));
+    ProductLicensePage.licensedSboms().shouldBe(visible).shouldHave(text("50"));
     ProductLicensePage.products().shouldHave(texts("Sonatype SBOM Manager"));
 
     SidebarNavigation.openNavigationSidebar();
@@ -198,14 +198,13 @@ public class DefaultProductLicenseTest
     productLicenseManager.setMaxUsers(8765);
     productLicenseManager.setMaxFirewallUsers(4321);
     productLicenseManager.setMaxSboms(50);
-    productLicenseManager.setMaxSboms(99);
     installLicense();
     refreshOrOpen(ProductLicensePage.url());
 
     ProductLicensePage.licensedDevelopersRows()
         .shouldHave(texts("Lifecycle — 8765", "Lifecycle Cloud — 8765", "Firewall — 4321"));
     ProductLicensePage.licensedApplications().shouldBe(visible).shouldHave(text("100"));
-    ProductLicensePage.licensedSboms().shouldBe(visible).shouldHave(text("99"));
+    ProductLicensePage.licensedSboms().shouldBe(visible).shouldHave(text("50"));
     ProductLicensePage.products().shouldHave(texts("Sonatype Lifecycle Cloud", "Sonatype Developer",
         "Sonatype Lifecycle", "Sonatype Repository Firewall"));
 

@@ -1102,7 +1102,7 @@ public class CLMLicenseManagerTest
     licenseDetails.features = new TreeSet<>();
     licenseDetails.stageIds = new TreeSet<>();
     licenseDetails.maxApplications = 12345;
-    licenseDetails.maxSboms = 50;
+    licenseDetails.maxSboms = 100;
     productLicenseSigner.sign(licenseDetails, licenseFingerprinter.calculate());
     productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);
 
@@ -1110,7 +1110,7 @@ public class CLMLicenseManagerTest
 
     //after
     assertThat(productLicense.getMaxApplications()).isEqualTo(12345);
-    assertThat(productLicense.getMaxSboms()).isEqualTo(50);
+    assertThat(productLicense.getMaxSboms()).isEqualTo(100);
     verify(clmLicenseManagerSpy, never()).loadLicense();
     verify(clmLicenseManagerSpy, never()).loadProductLicenseOnAllOtherClusterNodes();
   }
@@ -1307,16 +1307,6 @@ public class CLMLicenseManagerTest
       licenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_USERS, "Invalid");
       installLicense();
     }).withMessage("Invalid value for max users: Invalid");
-  }
-
-  @Test
-  public void testInstallLicense_BadMaxSboms() {
-    config.setDatabase(new DatabaseConfig());
-    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.EXTERNAL_DATABASE, LicensedFeature.SBOM_MANAGER));
-    assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
-      licenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_SBOMS, "Invalid");
-      installLicense();
-    }).withMessage("Invalid value for max sboms: Invalid");
   }
 
   @Test

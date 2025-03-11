@@ -18,7 +18,7 @@
 
   <properties>
     <freemarker.version>2.3.32</freemarker.version>
-    <truezipVersion>7.7.10</truezipVersion>
+    <truezipVersion>7.8.0-01</truezipVersion>
     <lucene.version>9.11.1</lucene.version>
     <micrometer.version>1.14.5</micrometer.version>
   </properties>
@@ -237,7 +237,7 @@
       <artifactId>commons-compress</artifactId>
     </dependency>
     <dependency>
-      <groupId>de.schlichtherle.truezip</groupId>
+      <groupId>com.sonatype.goodies.truezip</groupId>
       <artifactId>truezip-file</artifactId>
       <version>${truezipVersion}</version>
       <exclusions>

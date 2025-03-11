@@ -90,6 +90,11 @@
       <artifactId>logback-classic</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-test</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

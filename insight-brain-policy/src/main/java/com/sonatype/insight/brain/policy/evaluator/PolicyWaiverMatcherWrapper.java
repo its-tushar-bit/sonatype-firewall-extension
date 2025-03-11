@@ -83,7 +83,9 @@ public class PolicyWaiverMatcherWrapper
     ComponentIdentifier policyWaiverComponentIdentifier = policyWaiver.getComponentIdentifier();
     ComponentIdentifier componentFactComponentIdentifier = componentFact.getComponentIdentifier();
 
-    if (policyWaiverComponentIdentifier == null || componentFactComponentIdentifier == null) {
+    if (policyWaiverComponentIdentifier == null ||
+        componentFactComponentIdentifier == null ||
+        isDifferentFormat(componentFactComponentIdentifier, policyWaiverComponentIdentifier)) {
       return false;
     }
 

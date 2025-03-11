@@ -17,7 +17,9 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.test.LogOutput;
 
+import org.junit.Rule;
 import org.junit.Test;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_MAVEN;
@@ -39,6 +41,9 @@ public class PolicyWaiverMatcherWrapperTest
   private final String notNullComponentFactErrorMessage = "componentFact is required but got null instead";
 
   private final String associatedPackagedUrl = "pkg:maven/group/artifact@2.0?classifier=c1&type=jar";
+
+  @Rule
+  public LogOutput logOutput = new LogOutput(1, PolicyWaiverMatcherWrapperTest.class);
 
   @Test
   public void testMatcherWrapper_MatchesPolicyId_null() {
@@ -355,6 +360,42 @@ public class PolicyWaiverMatcherWrapperTest
     assertThat(policyWaiverMatcherWrapper.matchesComponentOrAnyVersionOfComponent(
             new ComponentFact(policyWaiver.getComponentIdentifier(), null)))
             .isTrue();
+  }
+
+  @Test
+  public void testMatcherWrapper_matchesComponent_EXACT_COMPONENT_differentFormat_WithHashNull_mavenEmptyExtension() {
+    String associatedPackagedUrl = "pkg:pypi/ruamel.yaml@0.17.35?extension=whl&qualifier=py3-none-any";
+    PolicyWaiver policyWaiver =
+        new PolicyWaiverBuilder().setComponentMatchStrategy(EXACT_COMPONENT)
+            .setAssociatedPackagedUrl(associatedPackagedUrl).build();
+
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "otherVersion", "", null);
+
+    ComponentFact componentFact = new ComponentFact(componentIdentifier, null);
+
+    PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
+
+    assertThat(policyWaiverMatcherWrapper.matchesComponent(componentFact)).isFalse();
+    assertThat(logOutput).atWarnLevel()
+        .doesNotContain("The following coordinates are missing for given format: [extension]");
+  }
+
+  @Test
+  public void testMatcherWrapper_matchesComponent_EXACT_COMPONENT_sameFormat_WithHashNull_mavenEmptyExtension() {
+    PolicyWaiver policyWaiver =
+        new PolicyWaiverBuilder().setComponentMatchStrategy(EXACT_COMPONENT)
+            .setAssociatedPackagedUrl(associatedPackagedUrl).build();
+
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "otherVersion", "", null);
+
+    ComponentFact componentFact = new ComponentFact(componentIdentifier, null);
+
+    PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
+
+    assertThat(policyWaiverMatcherWrapper.matchesComponent(componentFact)).isFalse();
+    assertThat(logOutput).atWarnLevel().contains("The following coordinates are missing for given format: [extension]");
   }
 
   private static class PolicyWaiverBuilder

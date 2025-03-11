@@ -3,9 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import { useSelector } from 'react-redux';
 import {
   NxButton,
   NxButtonBar,
@@ -15,22 +14,8 @@ import {
   NxModal,
   NxP,
 } from '@sonatype/react-shared-components';
-import { selectImportSbomModalSlice } from 'MainRoot/OrgsAndPolicies/importSbomModal/importSbomModalSelectors';
 
 export default function EvaluationInProgressPage({ headerId, onCancel }) {
-  const { evaluationPollingRef } = useSelector(selectImportSbomModalSlice);
-
-  useEffect(() => {
-    return () => {
-      evaluationPollingRef?.abort?.();
-    };
-  }, [evaluationPollingRef]);
-
-  const onClose = () => {
-    evaluationPollingRef?.abort();
-    onCancel();
-  };
-
   return (
     <>
       <NxModal.Header>
@@ -47,7 +32,7 @@ export default function EvaluationInProgressPage({ headerId, onCancel }) {
       </NxModal.Content>
       <NxFooter>
         <NxButtonBar>
-          <NxButton onClick={onClose}>Close</NxButton>
+          <NxButton onClick={onCancel}>Close</NxButton>
         </NxButtonBar>
       </NxFooter>
     </>

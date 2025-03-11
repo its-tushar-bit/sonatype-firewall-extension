@@ -9,6 +9,8 @@ import java.io.File;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxProgressBar;
+import com.sonatype.clm.testing.functional.elements.NxToast;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.sbom.ImportSbomModal;
 import com.sonatype.clm.testing.functional.elements.sbom.SbomsTile;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
@@ -133,6 +135,9 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
 
     // evaluation complete page
     importSbomModal.seeEvaluationCompletePageAndWaitForDismissal();
+
+    // sbom versions table is updated
+    sbomsTile.tableBodyRowsColumns(0).get(0).shouldHave(text("9.1.1"));
 
     // summary page
     importSbomModal.title().should(appear).shouldHave(text("Import Complete"));
@@ -502,5 +507,227 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
         .shouldHave(text("Test Application"));
     importSbomModal.summaryVersionId()
         .shouldHave(text("1.2.4"));
+  }
+
+  @Test
+  public void testImportSbomModal_importSuccessfulResultIsShownInToast() {
+    refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
+
+    SbomsTile sbomsTile = SbomManagerApplicationSummaryPage.sbomsTile();
+    sbomsTile.importButton().click();
+    ImportSbomModal importSbomModal = sbomSummaryPage.importSbomModal();
+
+    importSbomModal.shouldBe(visible);
+
+    File file = new File(testFilesPath + "valid-bom.json");
+    importSbomModal.fileUpload().uploadFile(file);
+    importSbomModal.fileSelected()
+        .shouldBe(visible)
+        .shouldHave(text("valid-bom.json"));
+
+    importSbomModal.importSbomButton()
+        .shouldBe(enabled)
+        .click();
+
+    importSbomModal.title().shouldHave(text("Import in progress…"));
+    NxProgressBar.seeProgressBarAndWaitForDismissal();
+
+    //version confirm page
+    importSbomModal.title().shouldHave(text("File Uploaded. Import in Progress…"));
+    importSbomModal.versionInput().shouldBe(visible).shouldHave(value("9.1.1"));
+    importSbomModal.importSbomButton().shouldBe(enabled).click();
+
+    // evaluation in progress page is closed
+    importSbomModal.cancelCloseButton().shouldBe(enabled).click();
+
+    // result toast
+    NxToast toast = new NxToast("success");
+    toast.shouldBe(visible);
+    toast.shouldHave(text("SBOM 9.1.1 from application test-application is now ready for review in the SBOM table."));
+
+    // sbom versions table is updated
+    sbomsTile.tableBodyRowsColumns(0).get(0).shouldHave(text("9.1.1"));
+
+    // dismissing the toast
+    toast.closeButton().shouldBe(enabled).click();
+    toast.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testImportSbomModal_importErrorResultIsShownInToast() {
+    refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
+
+    SbomsTile sbomsTile = SbomManagerApplicationSummaryPage.sbomsTile();
+    sbomsTile.importButton().click();
+    ImportSbomModal importSbomModal = sbomSummaryPage.importSbomModal();
+
+    importSbomModal.shouldBe(visible);
+
+    File file = new File(testFilesPath + "valid-bom.json");
+    importSbomModal.fileUpload().uploadFile(file);
+    importSbomModal.fileSelected()
+        .shouldBe(visible)
+        .shouldHave(text("valid-bom.json"));
+
+    importSbomModal.importSbomButton()
+        .shouldBe(enabled)
+        .click();
+
+    importSbomModal.title().shouldHave(text("Import in progress…"));
+    NxProgressBar.seeProgressBarAndWaitForDismissal();
+
+    //version confirm page
+    importSbomModal.title().shouldHave(text("File Uploaded. Import in Progress…"));
+    importSbomModal.versionInput().shouldBe(visible).shouldHave(value("9.1.1"));
+    importSbomModal.importSbomButton().shouldBe(enabled).click();
+
+    testCLMServer.getHdsServer().respondWith(getClass().getResource("/ImportSbomModalTest/invalid-bom-report.zip"))
+        .atUri("rest/application/analysis/SCAN-ID");
+
+    // evaluation in progress page is closed
+    importSbomModal.cancelCloseButton().shouldBe(enabled).click();
+
+    // result toast
+    NxToast toast = new NxToast("error");
+    toast.shouldBe(visible);
+    toast.shouldHave(text("SBOM 9.1.1 evaluation from application test-application failed:"));
+
+    // sbom versions table is not updated
+    sbomsTile.tableBodyRowsColumns(0).get(0).shouldNotHave(text("9.1.1"));
+
+    // dismissing the toast
+    toast.closeButton().shouldBe(enabled).click();
+    toast.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testImportSbomModal_multipleImportResultsAreShownAsToasts() {
+    refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
+
+    SbomsTile sbomsTile = SbomManagerApplicationSummaryPage.sbomsTile();
+    sbomsTile.importButton().click();
+    ImportSbomModal importSbomModal = sbomSummaryPage.importSbomModal();
+
+    // file upload page
+    File file = new File(testFilesPath + "valid-bom.json");
+    importSbomModal.fileUpload().uploadFile(file);
+    importSbomModal.importSbomButton().click();
+
+    // version confirm page
+    importSbomModal.versionInput()
+        .shouldBe(visible)
+        .shouldHave(value("9.1.1"));
+    importSbomModal.importSbomButton().click();
+
+    // evaluation in progress page is closed
+    importSbomModal.cancelCloseButton().shouldBe(enabled).click();
+    importSbomModal.shouldNotBe(visible);
+
+    // file upload page
+    sbomsTile.importButton().click();
+    importSbomModal.fileUpload().uploadFile(file);
+    importSbomModal.importSbomButton().click();
+
+    // version confirm page
+    importSbomModal.versionInput()
+        .shouldBe(visible)
+        .setValue("1.2.3");  // use another version
+    importSbomModal.importSbomButton().click();
+
+    // evaluation in progress page is closed
+    importSbomModal.cancelCloseButton().shouldBe(enabled).click();
+    importSbomModal.shouldNotBe(visible);
+
+    // result toast for version 9.1.1
+    NxToast toast911 = new NxToast();
+    toast911.shouldBe(visible);
+    toast911.shouldHave(text("SBOM 9.1.1"));
+
+    // result toast for version 1.2.3
+    NxToast toast123 = new NxToast();
+    toast123.shouldBe(visible);
+    toast911.shouldHave(text("SBOM 1.2.3"));
+  }
+
+  @Test
+  public void testImportSbomModal_importResultToastShownInOtherUIRoute() {
+    refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
+
+    SbomsTile sbomsTile = SbomManagerApplicationSummaryPage.sbomsTile();
+    sbomsTile.importButton().click();
+    ImportSbomModal importSbomModal = sbomSummaryPage.importSbomModal();
+
+    importSbomModal.shouldBe(visible);
+
+    File file = new File(testFilesPath + "valid-bom.json");
+    importSbomModal.fileUpload().uploadFile(file);
+    importSbomModal.fileSelected()
+        .shouldBe(visible)
+        .shouldHave(text("valid-bom.json"));
+
+    importSbomModal.importSbomButton()
+        .shouldBe(enabled)
+        .click();
+
+    importSbomModal.title().shouldHave(text("Import in progress…"));
+    NxProgressBar.seeProgressBarAndWaitForDismissal();
+
+    //version confirm page
+    importSbomModal.title().shouldHave(text("File Uploaded. Import in Progress…"));
+    importSbomModal.versionInput().shouldBe(visible).shouldHave(value("9.1.1"));
+    importSbomModal.importSbomButton().shouldBe(enabled).click();
+
+    // evaluation in progress page is closed
+    importSbomModal.cancelCloseButton().shouldBe(enabled).click();
+
+    // navigate to dashboard
+    SidebarNavigation.sbomManagerDashboardNavigationButton().click();
+
+    // result toast
+    NxToast toast = new NxToast("success");
+    toast.shouldBe(visible);
+    toast.shouldHave(text("SBOM 9.1.1 from application test-application is now ready for review in the SBOM table."));
+
+    // dismissing the toast
+    toast.closeButton().shouldBe(enabled).click();
+    toast.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testImportSbomModal_resultToastDoesNotAffectModal() {
+    refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
+
+    SbomsTile sbomsTile = SbomManagerApplicationSummaryPage.sbomsTile();
+    sbomsTile.importButton().click();
+    ImportSbomModal importSbomModal = sbomSummaryPage.importSbomModal();
+
+    // file upload page
+    File file = new File(testFilesPath + "valid-bom.json");
+    importSbomModal.fileUpload().uploadFile(file);
+    importSbomModal.importSbomButton().click();
+
+    // version confirm page
+    importSbomModal.versionInput()
+        .shouldBe(visible)
+        .shouldHave(value("9.1.1"));
+    importSbomModal.importSbomButton().click();
+
+    // evaluation in progress page is closed
+    importSbomModal.cancelCloseButton().shouldBe(enabled).click();
+    importSbomModal.shouldNotBe(visible);
+
+    // file upload page
+    sbomsTile.importButton().click();
+    importSbomModal.fileUpload().uploadFile(file);
+
+    // wait for result toast for version 9.1.1 without closing the modal
+    NxToast toast911 = new NxToast();
+    toast911.shouldBe(visible);
+    toast911.shouldHave(text("SBOM 9.1.1"));
+
+    // file upload page should be the same
+    importSbomModal.fileSelected()
+        .shouldBe(visible)
+        .shouldHave(text("valid-bom.json"));
   }
 }

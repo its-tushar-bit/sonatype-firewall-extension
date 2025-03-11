@@ -14,15 +14,19 @@ import {
 
 import { getCommitImportedSbomUrl, getImportSbomUrl, getSbomSummaryUrl } from 'MainRoot/util/CLMLocation';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
-import { selectSelectedOwnerId } from '../orgsAndPoliciesSelectors';
+import { selectSelectedOwnerId, selectSelectedOwnerPublicId } from '../orgsAndPoliciesSelectors';
 import { selectImportSbomModalSlice, selectSelectedFile } from './importSbomModalSelectors';
+import { selectCurrentRouteName, selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { validateMaxLength, validateNonEmpty } from 'MainRoot/util/validationUtil';
 import { BASE_URL } from 'MainRoot/util/urlUtil';
 import { actions as sbomTileActions } from 'MainRoot/OrgsAndPolicies/ownerSummary/sbomsTile/sbomsTileSlice';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
+import { actions as toastActions } from 'MainRoot/toastContainer/toastSlice';
 
 const DEFAULT_ERROR_MESSAGE = 'Encountered unexpected error while attempting to upload.';
+
+const TOAST_DEFAULT_ERROR_MESSAGE = 'An unexpected error occurred.';
 
 const REDUCER_NAME = `${OWNER_ACTIONS}/importSbomModal`;
 
@@ -63,7 +67,6 @@ export const initialState = Object.freeze({
   validationErrors: null,
   sbomSummary: sbomSummaryInitialState,
   savedVersion: null,
-  evaluationPollingRef: null,
   evaluationError: null,
   versionTextInput: null,
   submitError: null,
@@ -102,14 +105,24 @@ const setSavedVersion = (state, { payload }) => {
   state.savedVersion = payload;
 };
 
-const setEvaluationPollingRef = (state, { payload }) => {
-  state.evaluationPollingRef = payload;
+const setImportStateEvaluationComplete = (state) => {
+  if (state.isModalOpen && state.importState === IMPORT_STATE.EVALUATION_IN_PROGRESS) {
+    state.importState = IMPORT_STATE.EVALUATION_COMPLETE;
+  }
 };
 
 const setImportStateSummary = (state) => {
   if (state.isModalOpen && state.importState === IMPORT_STATE.EVALUATION_COMPLETE) {
     state.importState = IMPORT_STATE.SUMMARY;
   }
+};
+
+const setSbomSummaryValues = (state, { payload }) => {
+  state.sbomSummary.lowVulnerabilities = payload.low;
+  state.sbomSummary.mediumVulnerabilities = payload.medium;
+  state.sbomSummary.highVulnerabilities = payload.high;
+  state.sbomSummary.criticalVulnerabilities = payload.critical;
+  state.evaluationError = null;
 };
 
 const uploadFile = createAsyncThunk(`${REDUCER_NAME}/uploadFile`, (_, { dispatch, getState, rejectWithValue }) => {
@@ -186,29 +199,73 @@ const recordSbomInformation = (state, payload) => {
   state.savedVersion = payload.savedVersion;
 };
 
+const dispatchSuccessToast = (dispatch, savedVersion, appPublicId) =>
+  dispatch(
+    toastActions.addToast({
+      type: 'success',
+      message: `SBOM ${savedVersion} from application ${appPublicId} is now ready for review in the SBOM table.`,
+    })
+  );
+
+const dispatchErrorToast = (dispatch, savedVersion, appPublicId, error) => {
+  const statusCode = error.status || error.response?.status;
+  let errorMessage = statusCode
+    ? Messages.getHttpErrorMessage({ status: statusCode })
+    : error.data?.errorMessage || Messages.getHttpErrorMessage(error);
+
+  errorMessage = errorMessage || TOAST_DEFAULT_ERROR_MESSAGE;
+  const formattedErrorMessage = errorMessage.trim().endsWith('.') ? errorMessage : `${errorMessage}.`;
+
+  dispatch(
+    toastActions.addToast({
+      type: 'error',
+      message: `SBOM ${savedVersion} evaluation from application ${appPublicId} failed: ${formattedErrorMessage}`,
+    })
+  );
+};
+
+/**
+ * checking whether the modal is currently open for the specified savedVersion and appId
+ */
+const isStateOutdated = (currentState, savedVersion, appId) => {
+  const currentSavedVersion = selectImportSbomModalSlice(currentState).savedVersion;
+  const currentAppId = selectSelectedOwnerId(currentState);
+  return savedVersion !== currentSavedVersion || appId !== currentAppId;
+};
+
 const commitFile = createAsyncThunk(
   `${REDUCER_NAME}/commitFile`,
   async (applicationVersion, { dispatch, getState, rejectWithValue }) => {
     const state = getState();
     const appId = selectSelectedOwnerId(state);
+    const appPublicId = selectSelectedOwnerPublicId(state);
     const { savedVersion, versionTextInput } = selectImportSbomModalSlice(state);
 
     const overrideVersion = versionTextInput.trimmedValue !== savedVersion ? versionTextInput.trimmedValue : null;
     return axios
       .post(getCommitImportedSbomUrl(appId, savedVersion, overrideVersion))
       .then(({ data }) => {
-        if (isNonEmptyString(data.errorMessage)) {
-          return rejectWithValue(data);
-        }
-        //update the version id for next page render
-        if (overrideVersion) {
+        if (overrideVersion && !isStateOutdated(getState(), savedVersion, appId)) {
           dispatch(actions.setSavedVersion(overrideVersion));
         }
-        const pollingRef = dispatch(actions.pollEvaluationStatus(data.statusUrl));
-        dispatch(actions.setEvaluationPollingRef(pollingRef));
+
+        dispatch(
+          actions.pollEvaluationStatus({
+            statusUrl: data.statusUrl,
+            savedVersion: overrideVersion || savedVersion,
+            appId,
+            appPublicId,
+          })
+        );
         return data;
       })
-      .catch(rejectWithValue);
+      .catch((error) => {
+        if (isStateOutdated(getState(), savedVersion, appId)) {
+          dispatchErrorToast(dispatch, overrideVersion || savedVersion, appPublicId, error);
+        } else {
+          return rejectWithValue(error);
+        }
+      });
   }
 );
 
@@ -222,44 +279,80 @@ const commitFileFailed = (state, { payload }) => {
   state.submitError = payload.response?.data?.errorMessage || Messages.getHttpErrorMessage(payload);
 };
 
-function restartModalWithError(action, state) {
-  if (!action.meta.aborted) {
-    return {
-      ...initialState,
-      isModalOpen: true,
-      evaluationError:
-        action.payload?.data?.errorMessage ||
-        action.payload?.response?.data?.errorMessage ||
-        Messages.getHttpErrorMessage(action.payload),
-    };
-  }
-  return state;
+function restartModalWithError(action) {
+  return {
+    ...initialState,
+    isModalOpen: true,
+    evaluationError:
+      action.payload?.data?.errorMessage ||
+      action.payload?.response?.data?.errorMessage ||
+      Messages.getHttpErrorMessage(action.payload),
+  };
 }
+
+const fetchEvaluationSummary = async (appId, savedVersion) => {
+  const url = getSbomSummaryUrl(appId, savedVersion);
+  return axios.get(url);
+};
+
+const fetchEvaluationStatus = async (url) => {
+  return axios.get(url, {
+    validateStatus: (status) => (status >= 200 && status < 300) || status === HttpStatusCode.NotFound,
+  });
+};
+
+const reloadSbomTable = (appPublicId, currentState, dispatch) => {
+  if (
+    selectCurrentRouteName(currentState) === 'sbomManager.management.view.application' &&
+    selectRouterCurrentParams(currentState).applicationPublicId === appPublicId
+  ) {
+    dispatch(sbomTileActions.loadSbomTableData());
+  }
+};
 
 const pollEvaluationStatus = createAsyncThunk(
   `${REDUCER_NAME}/pollEvaluationStatus`,
-  async (evaluationStatusUri, { dispatch, signal, rejectWithValue }) => {
+  async ({ statusUrl, savedVersion, appId, appPublicId }, { dispatch, rejectWithValue, getState }) => {
     const doPoll = async () => {
-      if (signal.aborted) {
-        return;
-      }
       try {
-        const url = BASE_URL + `/${evaluationStatusUri}`;
-        const response = await axios.get(url, {
-          signal,
-          validateStatus: (status) => (status >= 200 && status < 300) || status === HttpStatusCode.NotFound,
-        });
+        const url = BASE_URL + `/${statusUrl}`;
+        const response = await fetchEvaluationStatus(url);
         if (response.status === HttpStatusCode.NotFound) {
           await new Promise((resolve) => setTimeout(resolve, EVALUATION_POLLING_FREQUENCY));
           return doPoll();
-        } else if (response.data?.isError) {
+        }
+
+        // Polling is complete; handling the response
+
+        if (response.data?.isError) {
+          if (isStateOutdated(getState(), savedVersion, appId)) {
+            dispatchErrorToast(dispatch, savedVersion, appPublicId, response);
+            return;
+          }
           return rejectWithValue(response);
         }
-        const pollingRef = dispatch(fetchEvaluationSummary());
-        dispatch(actions.setEvaluationPollingRef(pollingRef));
-        return response.data;
+
+        reloadSbomTable(appPublicId, getState(), dispatch);
+
+        if (isStateOutdated(getState(), savedVersion, appId)) {
+          dispatchSuccessToast(dispatch, savedVersion, appPublicId);
+          return;
+        }
+
+        const summaryResponse = await fetchEvaluationSummary(appId, savedVersion);
+        if (isStateOutdated(getState(), savedVersion, appId)) {
+          return;
+        }
+
+        dispatch(actions.setImportStateEvaluationComplete());
+        dispatch(actions.setSbomSummaryValues(summaryResponse.data));
+        startSaveMaskSuccessTimer(dispatch, actions.setImportStateSummary);
       } catch (error) {
-        return rejectWithValue(error);
+        if (isStateOutdated(getState(), savedVersion, appId)) {
+          dispatchErrorToast(dispatch, savedVersion, appPublicId, error);
+        } else {
+          return rejectWithValue(error);
+        }
       }
     };
 
@@ -267,52 +360,7 @@ const pollEvaluationStatus = createAsyncThunk(
   }
 );
 
-const pollEvaluationStatusPending = (state) => {
-  state.importState = IMPORT_STATE.EVALUATION_IN_PROGRESS;
-  state.evaluationError = null;
-};
-
 const pollEvaluationStatusFailed = (state, action) => {
-  return restartModalWithError(action, state);
-};
-
-const fetchEvaluationSummary = createAsyncThunk(
-  `${REDUCER_NAME}/fetchEvaluationSummary`,
-  async (_, { dispatch, getState, signal, rejectWithValue }) => {
-    const state = getState();
-    const appId = selectSelectedOwnerId(state);
-    const { savedVersion } = selectImportSbomModalSlice(state);
-    try {
-      const url = getSbomSummaryUrl(appId, savedVersion);
-      const response = await axios.get(url, { signal });
-      if (response.data?.isError) {
-        return rejectWithValue(response);
-      }
-
-      dispatch(sbomTileActions.loadSbomTableData());
-      startSaveMaskSuccessTimer(dispatch, actions.setImportStateSummary);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
-  }
-);
-
-const fetchEvaluationSummaryFulfilled = (state, { payload }) => {
-  state.sbomSummary.lowVulnerabilities = payload.low;
-  state.sbomSummary.mediumVulnerabilities = payload.medium;
-  state.sbomSummary.highVulnerabilities = payload.high;
-  state.sbomSummary.criticalVulnerabilities = payload.critical;
-  state.importState = IMPORT_STATE.EVALUATION_COMPLETE;
-  state.evaluationError = null;
-};
-
-const fetchEvaluationSummaryPending = (state) => {
-  state.importState = IMPORT_STATE.EVALUATION_IN_PROGRESS;
-  state.evaluationError = null;
-};
-
-const fetchEvaluationSummaryFailed = (state, action) => {
   return restartModalWithError(action, state);
 };
 
@@ -328,8 +376,9 @@ const importSbomModal = createSlice({
     setSavedVersion,
     setVersionTextInput,
     versionConfirm,
-    setEvaluationPollingRef,
+    setImportStateEvaluationComplete,
     setImportStateSummary,
+    setSbomSummaryValues,
     reset: always(initialState),
   },
   extraReducers: {
@@ -338,11 +387,7 @@ const importSbomModal = createSlice({
     [uploadFile.rejected]: uploadFileFailed,
     [commitFile.pending]: commitFilePending,
     [commitFile.rejected]: commitFileFailed,
-    [pollEvaluationStatus.pending]: pollEvaluationStatusPending,
     [pollEvaluationStatus.rejected]: pollEvaluationStatusFailed,
-    [fetchEvaluationSummary.fulfilled]: fetchEvaluationSummaryFulfilled,
-    [fetchEvaluationSummary.pending]: fetchEvaluationSummaryPending,
-    [fetchEvaluationSummary.rejected]: fetchEvaluationSummaryFailed,
   },
 });
 

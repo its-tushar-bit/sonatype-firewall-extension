@@ -13,6 +13,10 @@ public class NxToast extends BasicElement<NxToast>
 {
   private static final String ROOT = ".nx-toast-container";
 
+  public NxToast() {
+    super(ROOT + " .nx-toast > .nx-alert");
+  }
+
   public NxToast(String toastType) {
     super(ROOT + " .nx-toast > .nx-alert.nx-alert--" + toastType);
   }

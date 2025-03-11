@@ -12,6 +12,7 @@ import {
 } from '@sonatype/react-shared-components';
 
 import ImportSbomModal from 'MainRoot/OrgsAndPolicies/importSbomModal/ImportSbomModal';
+import ToastContainer from 'MainRoot/toastContainer/ToastContainer';
 import { IMPORT_STATE } from 'MainRoot/OrgsAndPolicies/importSbomModal/importSbomModalSlice';
 import { getCommitImportedSbomUrl, getImportSbomUrl, getSbomSummaryUrl } from 'MainRoot/util/CLMLocation';
 
@@ -38,6 +39,7 @@ describe('ImportSbomModal', () => {
         root: {
           selectedOwner: {
             id: 'testApplicationId',
+            publicId: 'testApplicationPublicId',
             name: 'testApplicationName',
           },
         },
@@ -55,10 +57,20 @@ describe('ImportSbomModal', () => {
           },
         },
       },
+      toast: {
+        toasts: [],
+        toastIdInc: 0,
+      },
     };
 
     renderComponent = (preloadedState) =>
-      render(<ImportSbomModal />, { preloadedState: { ...defaultPreloadedState, ...preloadedState } });
+      render(
+        <>
+          <ToastContainer />
+          <ImportSbomModal />
+        </>,
+        { preloadedState: { ...defaultPreloadedState, ...preloadedState } }
+      );
   });
 
   describe('show/hide Modal', () => {
@@ -446,7 +458,7 @@ describe('ImportSbomModal', () => {
         // mocking polling response
         axiosMock
           .onGet(BASE_URL + 'api/v2/sbom/applications/testApplicationId/status/2a16f12582ab4226acd883780f4f1020')
-          .replyOnce(200, {});
+          .reply(200, {});
 
         // call to sbom summary after polling is successful
         axiosMock.onGet(getSbomSummaryUrl('testApplicationId', '1.2.3_2024')).reply(200, {
@@ -477,7 +489,7 @@ describe('ImportSbomModal', () => {
           await screen.findByRole(
             'dialog',
             { name: 'Evaluation Complete' },
-            { timeout: EVALUATION_POLLING_FREQUENCY * 2 }
+            { timeout: EVALUATION_POLLING_FREQUENCY * 3 }
           )
         ).toBeVisible();
         expect(await screen.findByText('Success!')).toBeVisible();
@@ -491,7 +503,7 @@ describe('ImportSbomModal', () => {
           await screen.findByRole(
             'dialog',
             { name: 'Evaluation Complete' },
-            { timeout: EVALUATION_POLLING_FREQUENCY * 2 }
+            { timeout: EVALUATION_POLLING_FREQUENCY * 3 }
           )
         ).toBeVisible();
 
@@ -510,7 +522,7 @@ describe('ImportSbomModal', () => {
           await screen.findByRole(
             'dialog',
             { name: 'Evaluation Complete' },
-            { timeout: EVALUATION_POLLING_FREQUENCY * 2 }
+            { timeout: EVALUATION_POLLING_FREQUENCY * 3 }
           )
         ).toBeVisible();
         const closeButton = await screen.findByRole('button', { name: 'Close' });
@@ -545,7 +557,7 @@ describe('ImportSbomModal', () => {
         // mocking polling response
         axiosMock
           .onGet(BASE_URL + 'api/v2/sbom/applications/testApplicationId/status/2a16f12582ab4226acd883780f4f1020')
-          .replyOnce(200, {});
+          .reply(200, {});
 
         // call to sbom summary after polling is successful
         axiosMock.onGet(getSbomSummaryUrl('testApplicationId', '1.2.3_2024')).reply(200, {
@@ -575,7 +587,7 @@ describe('ImportSbomModal', () => {
           await screen.findByRole(
             'dialog',
             { name: 'Evaluation Complete' },
-            { timeout: SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS }
+            { timeout: EVALUATION_POLLING_FREQUENCY * 3 }
           )
         ).toBeVisible();
       });
@@ -641,7 +653,7 @@ describe('ImportSbomModal', () => {
         // mocking polling response
         axiosMock
           .onGet(BASE_URL + 'api/v2/sbom/applications/testApplicationId/status/2a16f12582ab4226acd883780f4f1020')
-          .replyOnce(200, {});
+          .reply(200, {});
 
         // call to sbom summary after polling is successful
         axiosMock.onGet(getSbomSummaryUrl('testApplicationId', '1.2.3_2024')).reply(200, {
@@ -671,7 +683,7 @@ describe('ImportSbomModal', () => {
           await screen.findByRole(
             'dialog',
             { name: 'Evaluation Complete' },
-            { timeout: SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS }
+            { timeout: EVALUATION_POLLING_FREQUENCY * 3 }
           )
         ).toBeVisible();
       });
@@ -701,6 +713,139 @@ describe('ImportSbomModal', () => {
         expect(closeButton).toBeVisible();
         fireEvent.click(closeButton);
         expect(screen.queryByRole('dialog', { name: 'Import Complete' })).not.toBeInTheDocument();
+      });
+    });
+
+    describe('Result toast', () => {
+      beforeEach(async () => {
+        axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply(200, {
+          sbomSummary: {
+            specification: 'CycloneDx',
+            format: 'json',
+            version: '1.4',
+            componentCount: 1,
+            vulnerabilityCount: 2,
+            applicationName: null,
+            applicationVersion: '1.2.3',
+            serialNumber: 'urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79',
+            creationDetails: null,
+          },
+          savedVersion: '1.2.3_2024',
+          scanType: 'SBOM',
+          errorMessage: null,
+        });
+
+        // call to sbom summary after polling is successful
+        axiosMock.onGet(getSbomSummaryUrl('testApplicationId', '1.2.3_2024')).reply(200, {
+          none: 0,
+          low: 0,
+          medium: 0,
+          high: 4,
+          critical: 2,
+        });
+
+        renderComponent();
+
+        // uploading the file
+        setFileUploadValue(document.querySelector('input[type=file]'), createTestFile());
+        const initialImportButton = await screen.findByRole('button', { name: /Import/i });
+        fireEvent.click(initialImportButton);
+      });
+
+      it('shows successful result toast when modal is closed', async () => {
+        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', '1.2.3_2024')).replyOnce(201, {
+          statusUrl: 'api/v2/sbom/applications/testApplicationId/status/2a16f12582ab4226acd883780f4f1020',
+        });
+
+        const evaluationStatusUri =
+          'api/v2/sbom/applications/testApplicationId/status/2a16f12582ab4226acd883780f4f1020';
+        const url = BASE_URL + `/${evaluationStatusUri}`;
+
+        // mocking polling response
+        axiosMock.onGet(url).replyOnce(404);
+        axiosMock.onGet(url).replyOnce(404);
+        axiosMock.onGet(url).replyOnce(200);
+
+        // confirming the version
+        const importButton = await screen.findByRole('button', { name: /Import/i });
+        fireEvent.click(importButton);
+
+        // show the evaluation in progress page
+        await screen.findByRole('dialog', { name: 'File Imported' }, { timeout: EVALUATION_POLLING_FREQUENCY * 2 });
+
+        const closeButton = await screen.findByRole('button', { name: 'Close' });
+        expect(closeButton).toBeVisible();
+        fireEvent.click(closeButton);
+
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+        const toast = await screen.findByRole('alert', {}, { timeout: EVALUATION_POLLING_FREQUENCY * 4 });
+        expect(toast).toBeVisible();
+        expect(toast).toHaveTextContent(
+          'SBOM 1.2.3_2024 from application testApplicationPublicId is now ready for review in the SBOM table.'
+        );
+      });
+
+      it('shows commit error result toast when modal is closed', async () => {
+        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', '1.2.3_2024')).reply(() => {
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              resolve([400], {});
+            }, 1000); // 2-second delay
+          });
+        });
+
+        // confirming the version
+        const importButton = await screen.findByRole('button', { name: /Import/i });
+        fireEvent.click(importButton);
+
+        // show the evaluation in progress page
+        await screen.findByRole('dialog', { name: 'File Imported' }, { timeout: EVALUATION_POLLING_FREQUENCY * 2 });
+
+        const closeButton = await screen.findByRole('button', { name: 'Close' });
+        expect(closeButton).toBeVisible();
+        fireEvent.click(closeButton);
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+        const toast = await screen.findByRole('alert', {}, { timeout: EVALUATION_POLLING_FREQUENCY * 4 });
+        expect(toast).toBeVisible();
+        expect(toast).toHaveTextContent(
+          'SBOM 1.2.3_2024 evaluation from application testApplicationPublicId failed: Error 400.'
+        );
+      });
+
+      it('shows evaluation error result toast when modal is closed', async () => {
+        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', '1.2.3_2024')).replyOnce(201, {
+          statusUrl: 'api/v2/sbom/applications/testApplicationId/status/2a16f12582ab4226acd883780f4f1020',
+        });
+
+        const evaluationStatusUri =
+          'api/v2/sbom/applications/testApplicationId/status/2a16f12582ab4226acd883780f4f1020';
+        const url = BASE_URL + `/${evaluationStatusUri}`;
+
+        // mocking polling response
+        axiosMock.onGet(url).replyOnce(404);
+        axiosMock.onGet(url).replyOnce(404);
+        axiosMock.onGet(url).replyOnce(400);
+
+        // confirming the version
+        const importButton = await screen.findByRole('button', { name: /Import/i });
+        fireEvent.click(importButton);
+
+        // show the evaluation in progress page
+        await screen.findByRole('dialog', { name: 'File Imported' }, { timeout: EVALUATION_POLLING_FREQUENCY * 2 });
+
+        const closeButton = await screen.findByRole('button', { name: 'Close' });
+        expect(closeButton).toBeVisible();
+
+        fireEvent.click(closeButton);
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+        const toast = await screen.findByRole('alert', {}, { timeout: EVALUATION_POLLING_FREQUENCY * 4 });
+        expect(toast).toBeVisible();
+        expect(toast).toHaveTextContent(
+          'SBOM 1.2.3_2024 evaluation from application testApplicationPublicId failed: Error 400.'
+        );
       });
     });
 

@@ -1184,12 +1184,12 @@ public class TestDAOFactory
 
   @Override
   public ComponentChangeDetectionConfigurationDAO createComponentChangeDetectionConfigurationDAO() {
-    return new ComponentChangeDetectionConfigurationDAO();
+    return new ComponentChangeDetectionConfigurationDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override
   public ComponentChangeDetectionEventDAO createComponentChangeDetectionEventDAO() {
-    return new ComponentChangeDetectionEventDAO();
+    return new ComponentChangeDetectionEventDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

@@ -5,45 +5,30 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Date;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.joda.time.DateTime;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.model.ComponentChangeDetectionEvent;
 
 /**
- * This is an in-memory representation of the component change detection configuration.
- * It is in-memory as a temporary measure to unblock the remaining of NEXUS-45271 and to establish the correct schema.
+ * @since 1.188.0
  */
 @Named
 @Singleton
 public class ComponentChangeDetectionEventDAO
+    extends AbstractOperationalSqlDAO<ComponentChangeDetectionEvent>
 {
-  private static final List<ComponentChangeDetectionEvent> table = new ArrayList<>();
-
   @Inject
-  public ComponentChangeDetectionEventDAO() {
-    // Empty
+  protected ComponentChangeDetectionEventDAO(final OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
   }
 
-  public void addEvent(ComponentChangeDetectionEvent event) {
-    table.add(event);
-  }
-
-  public List<ComponentChangeDetectionEvent> getAll() {
-    return table;
-  }
-
-  public void deleteEntriesOlderThan(DateTime time) {
-    table.removeIf(event -> event.addedTime.isBefore(time));
-  }
-
-  public record ComponentChangeDetectionEvent(String purl, String data, DateTime addedTime)
-  {
-    public ComponentChangeDetectionEvent(String purl, String data) {
-      this(purl, data, DateTime.now());
-    }
+  public void deleteEntriesOlderThan(Date time) {
+    String sQuery = "DELETE FROM ComponentChangeDetectionEvent entity WHERE entity.addedTime < ?1";
+    createQuery(sQuery, time).executeUpdate();
   }
 }

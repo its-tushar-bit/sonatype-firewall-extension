@@ -5,49 +5,48 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import com.sonatype.insight.brain.dataaccess.ComponentChangeDetectionEventDAO.ComponentChangeDetectionEvent;
+import java.util.Date;
 
-import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ComponentChangeDetectionEventDAOTest
+public class ComponentChangeDetectionEventDAOTest extends AbstractDbDAOTest
 {
   private ComponentChangeDetectionEventDAO underTest;
 
   @Before
   public void setUp() {
-    underTest = new ComponentChangeDetectionEventDAO();
+    underTest = daoFactory.createComponentChangeDetectionEventDAO();
   }
 
   @Test
   public void test_CanAddToTable() {
-    underTest.addEvent(new ComponentChangeDetectionEvent("purl1", "some data"));
+    tempEntity.newComponentChangeDetectionEvent("purl1", "some data", new Date());
 
     underTest.getAll().stream()
         .findFirst()
         .ifPresent(event -> {
-          assert event.purl().equals("purl1");
-          assert event.data().equals("some data");
+          assert event.getPurl().equals("purl1");
+          assert event.getComponentEvaluationData().equals("some data");
         });
   }
 
   @Test
   public void test_CanDeleteEntriesOlderThan() throws Exception {
-    DateTime started = DateTime.now();
-    underTest.addEvent(new ComponentChangeDetectionEvent("purl1", "some data"));
-    underTest.addEvent(new ComponentChangeDetectionEvent("purl2", "some data"));
+    Date started = new Date();
+    tempEntity.newComponentChangeDetectionEvent("purl1", "some data", new Date());
+    tempEntity.newComponentChangeDetectionEvent("purl2", "some data", new Date());
     Thread.sleep(2);
-    DateTime middleAdded = DateTime.now();
-    underTest.addEvent(new ComponentChangeDetectionEvent("purl3", "some data"));
+    Date middleAdded = new Date();
+    tempEntity.newComponentChangeDetectionEvent("purl3", "some data", new Date());
 
     underTest.deleteEntriesOlderThan(started);
     assertThat(underTest.getAll().size()).isEqualTo(3);
 
     underTest.deleteEntriesOlderThan(middleAdded);
     assertThat(underTest.getAll().size()).isEqualTo(1);
-    assertThat(underTest.getAll().get(0).purl()).isEqualTo("purl3");
+    assertThat(underTest.getAll().get(0).getPurl()).isEqualTo("purl3");
   }
 }

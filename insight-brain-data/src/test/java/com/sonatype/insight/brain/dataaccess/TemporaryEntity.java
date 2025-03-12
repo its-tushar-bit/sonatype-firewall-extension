@@ -187,6 +187,8 @@ import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.ApplicationCountHistory;
 import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.ComponentChangeDetectionConfiguration;
+import com.sonatype.insight.brain.model.ComponentChangeDetectionEvent;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -651,6 +653,10 @@ public class TemporaryEntity
 
   private HistoricalTelemetryStateDAO historicalTelemetryStateDAO;
 
+  private ComponentChangeDetectionConfigurationDAO componentChangeDetectionConfigurationDAO;
+
+  private ComponentChangeDetectionEventDAO componentChangeDetectionEventDAO;
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -934,6 +940,8 @@ public class TemporaryEntity
       delete(roiConfigurationDAO.getAll(), roiConfigurationDAO);
       delete(roiConfigurationDefaultValuesDAO.getAll(), roiConfigurationDefaultValuesDAO);
       delete(historicalTelemetryStateDAO.getAll(), historicalTelemetryStateDAO);
+      delete(componentChangeDetectionConfigurationDAO.getAll(), componentChangeDetectionConfigurationDAO);
+      delete(componentChangeDetectionEventDAO.getAll(), componentChangeDetectionEventDAO);
 
       restoreInitialWaiverReasons();
       productLicenseDAO.delete();
@@ -6043,6 +6051,24 @@ public class TemporaryEntity
     return historicalTelemetryState;
   }
 
+  public List<ComponentChangeDetectionConfiguration> addComponentChangeDetectionConfigurationItems(
+      final long maxComponents,
+      final List<ComponentChangeDetectionConfiguration> items)
+  {
+    return componentChangeDetectionConfigurationDAO.addComponents(maxComponents, items);
+  }
+
+  public ComponentChangeDetectionEvent newComponentChangeDetectionEvent(
+      String purl,
+      String componentEvaluationData,
+      Date addedTime)
+  {
+    ComponentChangeDetectionEvent componentChangeDetectionEvent =
+        new ComponentChangeDetectionEvent(purl, componentEvaluationData, addedTime);
+    componentChangeDetectionEventDAO.insert(componentChangeDetectionEvent);
+    return componentChangeDetectionEvent;
+  }
+
   private void initializeDAOs() {
     initializeOperationalDataStoreDAOs();
     initializeDataMartDataStoreDAOs();
@@ -6170,6 +6196,8 @@ public class TemporaryEntity
     scmUserMappingsDAO = daoFactory.createScmUserMappingsDAO();
     malwareDefenseMetricsDAO = daoFactory.createMalwareDefenseMetricsDAO();
     historicalTelemetryStateDAO = daoFactory.createHistoricalTelemetryStateDAO();
+    componentChangeDetectionConfigurationDAO = daoFactory.createComponentChangeDetectionConfigurationDAO();
+    componentChangeDetectionEventDAO = daoFactory.createComponentChangeDetectionEventDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {

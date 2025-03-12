@@ -142,6 +142,8 @@
     <class>com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts</class>
     <class>com.sonatype.insight.brain.model.MalwareDefenseMetrics</class>
     <class>com.sonatype.insight.brain.model.telemetry.HistoricalTelemetryState</class>
+    <class>com.sonatype.insight.brain.model.ComponentChangeDetectionConfiguration</class>
+    <class>com.sonatype.insight.brain.model.ComponentChangeDetectionEvent</class>
     <properties>
       <property name="jakarta.persistence.sharedCache.mode" value="ENABLE_SELECTIVE"/>
       <!--

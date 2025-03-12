@@ -22,25 +22,25 @@ public class PolicyWaiverReasonDAOTest
 {
   private PolicyWaiverReasonDAO policyWaiverReasonDAO;
 
-  private static final PolicyWaiverReason ACKNOWLEDGED_VIOLATION_WAIVER_REASON = new PolicyWaiverReason(
+  public static final PolicyWaiverReason ACKNOWLEDGED_VIOLATION_WAIVER_REASON = new PolicyWaiverReason(
       "9b704ef5bc064fc29d7fe08a251ee9a6", "system", "Acknowledged violation", 0);
 
-  private static final PolicyWaiverReason MITIGATED_EXTERNALLY_WAIVER_REASON = new PolicyWaiverReason(
+  public static final PolicyWaiverReason MITIGATED_EXTERNALLY_WAIVER_REASON = new PolicyWaiverReason(
       "42069f58114f4df8b435a40a415d2835", "system", "Mitigated externally", 1);
 
-  private static final PolicyWaiverReason NO_UPGRADE_PATH_WAIVER_REASON = new PolicyWaiverReason(
+  public static final PolicyWaiverReason NO_UPGRADE_PATH_WAIVER_REASON = new PolicyWaiverReason(
       "39984de3d6e64f508df82b4cbfd72f70", "system", "No upgrade path", 2);
 
-  private static final PolicyWaiverReason NOT_EXPLOITABLE_WAIVER_REASON = new PolicyWaiverReason(
+  public static final PolicyWaiverReason NOT_EXPLOITABLE_WAIVER_REASON = new PolicyWaiverReason(
       "f6990a32cd8d4ea78853ca829d948927", "system", "Not exploitable", 3);
 
-  private static final PolicyWaiverReason NOT_REACHABLE_WAIVER_REASON = new PolicyWaiverReason(
+  public static final PolicyWaiverReason NOT_REACHABLE_WAIVER_REASON = new PolicyWaiverReason(
       "19bbf1a7d591497698ab3172461d971a", "system", "Not reachable", 4);
 
-  private static final PolicyWaiverReason RESEARCHING_WAIVER_REASON = new PolicyWaiverReason(
+  public static final PolicyWaiverReason RESEARCHING_WAIVER_REASON = new PolicyWaiverReason(
       "3446e70e60e04676a90131f3dea9bdb5", "system", "Researching", 5);
 
-  private static final PolicyWaiverReason OTHER_WAIVER_REASON = new PolicyWaiverReason(
+  public static final PolicyWaiverReason OTHER_WAIVER_REASON = new PolicyWaiverReason(
       "c991ef95866d4903ad0c6c217ac47c07", "system", "Other", 6);
 
   @Before

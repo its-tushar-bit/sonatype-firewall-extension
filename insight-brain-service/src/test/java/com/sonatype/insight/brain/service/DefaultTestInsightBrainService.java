@@ -54,6 +54,7 @@ import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsPurger;
 import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
 import com.sonatype.insight.brain.telemetry.HistoricalPolicyViolationTelemetryTask;
+import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryBackfillTask;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -339,6 +340,7 @@ public class DefaultTestInsightBrainService
     getInstance(SourceControlLoadBalancer.class).disableForTesting = true;
     getInstance(PendingSbomMetadataCleaner.class).disableForTesting = true;
     getInstance(HistoricalPolicyViolationTelemetryTask.class).disableForTesting = true;
+    getInstance(PolicyWaiverTelemetryBackfillTask.class).disableForTesting = true;
   }
 
   @Override

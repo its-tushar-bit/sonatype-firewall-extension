@@ -122,6 +122,9 @@ public class JobClassNameTest
     insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.malware.defense.changedetection.ComponentChangeDetectionTask",
         "ComponentChangeDetectionTask");
+    insightJobClassNameToExpectedJobName.put(
+        "com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryBackfillTask",
+        "PolicyWaiverTelemetryBackfillTask");
   }
 
   @Inject

@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO.WaiverReasonData;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -41,6 +42,7 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAOTest.ACKNOWLEDGED_VIOLATION_WAIVER_REASON;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
@@ -1024,5 +1026,41 @@ public class PolicyWaiverDAOTest
 
     assertThat(results)
         .containsExactlyInAnyOrderEntriesOf(ImmutableMap.of(toLocalDate(now), 2L, toLocalDate(oneYearAgo), 1L));
+  }
+
+  @Test
+  public void testGetPolicyWaiverReasonMappings() {
+    // given a set of policy waivers, only one of which has a reason
+    final var policy = tempEntity.newPolicy(organization);
+    final var expectedWaiverReason = ACKNOWLEDGED_VIOLATION_WAIVER_REASON;
+    final var waiverWithReason = new PolicyWaiver();
+    waiverWithReason.setOwnerId(application.getId());
+    waiverWithReason.setPolicyId(policy.getId());
+    waiverWithReason.setWaiverReasonId(expectedWaiverReason.getId());
+
+    tempEntity.newWaiver(policy.getId(), organization.getId());
+    tempEntity.newWaiver(waiverWithReason);
+
+    // when: fetch the waiver/reason mappings
+    List<WaiverReasonData> actualWaiverReasons = dao.getPolicyWaiverReasonMappings();
+
+    // then: we only get the waiver with a reason
+    assertThat(actualWaiverReasons).hasSize(1);
+    final var actualWaiverReason = actualWaiverReasons.get(0);
+    assertThat(actualWaiverReason.policyWaiverId()).isEqualTo(waiverWithReason.getId());
+    assertThat(actualWaiverReason.reasonText()).isEqualTo(expectedWaiverReason.getReasonText());
+  }
+
+  @Test
+  public void testGetPolicyWaiverReasonMappings_emptyResult() {
+    // given a single waiver with no reason
+    final var policy = tempEntity.newPolicy(organization);
+    tempEntity.newWaiver(policy.getId(), organization.getId());
+
+    // when: fetch the waiver/reason mappings
+    List<WaiverReasonData> actualWaiverReasons = dao.getPolicyWaiverReasonMappings();
+
+    // then: we get an empty list
+    assertThat(actualWaiverReasons).isNotNull().isEmpty();
   }
 }

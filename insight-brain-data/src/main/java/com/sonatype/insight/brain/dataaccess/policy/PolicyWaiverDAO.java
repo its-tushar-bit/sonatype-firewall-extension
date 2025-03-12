@@ -17,6 +17,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -424,4 +425,24 @@ public class PolicyWaiverDAO
     // default case for legacy waivers
     return (String query) -> getList(tx, query, hash, policyId, ownerId);
   }
+
+  public List<WaiverReasonData> getPolicyWaiverReasonMappings() {
+    try (TransactionContext tx = createTransactionContext()) {
+      String sQuery = String.format("""
+        SELECT waiver.policy_waiver_id AS policyWaiverId, reason.reason_text AS reasonText
+        FROM %1$s.policy_waiver waiver
+        JOIN %1$s.policy_waiver_reason reason ON waiver.waiver_reason_id = reason.waiver_reason_id
+        WHERE waiver.waiver_reason_id IS NOT NULL
+        ORDER BY waiver.policy_waiver_id
+          """, getDatabaseSchema());
+
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
+
+      return ((Stream<Object[]>) query.getResultStream())
+          .map(array -> new WaiverReasonData((String) array[0], (String) array[1]))
+          .toList();
+    }
+  }
+
+  public static record WaiverReasonData(String policyWaiverId, String reasonText) {  }
 }

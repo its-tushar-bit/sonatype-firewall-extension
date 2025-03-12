@@ -94,6 +94,27 @@ public class ThirdPartyCoordinateSecurityDAOTest
   }
 
   @Test
+  public void testInsertSafely() {
+    ThirdPartyFileCoordinate coordinateFile = tempEntity.newThirdPartyFileCoordinate();
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      ThirdPartyCoordinateSecurity e1 =
+          new ThirdPartyCoordinateSecurity(coordinateFile.getId(), "refid", "metadataId", "description",
+              "link", 6.8f, null);
+      ThirdPartyCoordinateSecurity saved = dao.insertSafely(tx, e1);
+      assertThat(saved.getId()).isNotNull();
+
+      ThirdPartyCoordinateSecurity e2 =
+          new ThirdPartyCoordinateSecurity(coordinateFile.getId(), "refid", "metadataId", "description2",
+              "link2", 7.8f, null);
+
+      saved = dao.insertSafely(tx, e2);
+      assertThat(saved.getId()).isEqualTo(e1.getId());
+    }
+  }
+
+  @Test
   public void testGetByFileCoordinateIdAndRefId() {
     ThirdPartyCoordinateSecurity coordinateSecurity = tempEntity.newThirdPartyCoordinateSecurity();
     ThirdPartyCoordinateSecurity retrievedCoordinateSecurity =

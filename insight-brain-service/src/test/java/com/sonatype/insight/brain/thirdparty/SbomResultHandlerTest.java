@@ -1953,14 +1953,24 @@ public class SbomResultHandlerTest
     ThirdPartyFileCoordinate cp =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "source", "pypi", "numpy", "1.19.0",
             "c68bdc4f6f12b754bf3e", "pkg:pypi/numpy@1.19.0?extension=zip", "c68bdc4f6f12b754bf3e6ccdb8ab284c6a13c021");
-    //duplciate vulnerability, that exists in the database and also in the ingested sbom
-    tempEntity.newThirdPartyCoordinateSecurity(cp, "CVE-22024-123456", metadata.getId(), "desc", "link", 5.0d,
-        "sevDesc", "1.0.1");
-
+    //duplicate vulnerability, that exists in the database and also in the ingested sbom
+    ThirdPartyCoordinateSecurity coordSecurity =
+        tempEntity.newThirdPartyCoordinateSecurity(cp, "CVE-22024-123456", metadata.getId(), "desc", "link", 5.0d,
+            "sevDesc", "1.0.1");
     when(thirdPartyScanContext.isValid()).thenReturn(true);
     when(thirdPartyScanContext.getSbomMetadataId()).thenReturn(metadata.getId());
+
+    //before - no existing vex
+    assertThat(thirdPartyVexDAO.getByCoordinateSecurityIdAndRefId(coordSecurity.getId(), "CVE-22024-123456")).isNull();
+
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1);
+    //after - vex merged from sbom
+    ThirdPartyVulnerabilityExploitabilityExchange savedVex =
+        thirdPartyVexDAO.getByCoordinateSecurityIdAndRefId(coordSecurity.getId(), "CVE-22024-123456");
+    assertThat(savedVex).isNotNull();
+    assertThat(savedVex.getState()).isEqualTo("resolved");
+    assertThat(savedVex.getJustification()).isEqualTo("code_not_reachable");
   }
 
   private String getSbomFile(final String fileType, final String fileName) throws Exception {

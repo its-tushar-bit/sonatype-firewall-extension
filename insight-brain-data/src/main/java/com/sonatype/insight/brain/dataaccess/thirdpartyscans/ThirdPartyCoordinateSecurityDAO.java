@@ -73,12 +73,17 @@ public class ThirdPartyCoordinateSecurityDAO
     return get(tx, sQuery, coordinateFileId, refId.toUpperCase());
   }
 
-  public boolean insertSafely(final TransactionContext tx, final ThirdPartyCoordinateSecurity entity) {
-    if (getByFileCoordinateIdAndRefId(tx, entity.getFileCoordinateId(), entity.getRefId()) != null) {
-      return false;
+  public ThirdPartyCoordinateSecurity insertSafely(
+      final TransactionContext tx,
+      final ThirdPartyCoordinateSecurity entity)
+  {
+    ThirdPartyCoordinateSecurity existing =
+        getByFileCoordinateIdAndRefId(tx, entity.getFileCoordinateId(), entity.getRefId());
+    if (existing != null) {
+      return existing;
     }
     insert(tx, entity);
-    return true;
+    return entity;
   }
 
   public List<ThirdPartyCoordinateSecurity> getByFileCoordinateIds(List<String> fileCoordinateIdList) {

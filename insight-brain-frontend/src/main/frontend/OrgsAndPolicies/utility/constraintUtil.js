@@ -16,9 +16,12 @@ import {
   COCOAPODS,
   COMPOSER,
   CONAN,
+  CONDA,
+  CRAN,
   HF_MODEL,
   MAVEN,
   NPM,
+  PUB,
   PYPI,
 } from 'MainRoot/OrgsAndPolicies/formats';
 
@@ -60,12 +63,18 @@ export function getCoordinatesValue(value) {
     return `${value.format}:${fields.name}:${fields.version}`;
   } else if (value.format === CONAN) {
     return `${value.format}:${fields.name}:${fields.version}:${fields.channel}:${fields.owner}`;
+  } else if (value.format === CONDA) {
+    return `${value.format}:${fields.channel}:${fields.name}:${fields.version}:${fields.build}:${fields.subdir}:${fields.type}`;
   } else if (value.format === COMPOSER) {
     return `${value.format}:${fields.namespace}:${fields.name}:${fields.version}`;
+  } else if (value.format === CRAN) {
+    return `${value.format}:${fields.name}:${fields.version}:${fields.type}`;
   } else if (value.format === CARGO) {
     return `${value.format}:${fields.name}:${fields.version}:${fields.type}`;
   } else if (value.format === HF_MODEL) {
     return `${value.format}:${fields.repoId}:${fields.model}:${fields.version}:${fields.extension}:${fields.modelFormat}`;
+  } else if (value.format === PUB) {
+    return `${value.format}:${fields.name}:${fields.version}`;
   }
 }
 
@@ -177,9 +186,12 @@ export const withDefaultValue = {
   npm: [],
   cocoapods: [],
   conan: ['channel', 'owner'],
+  conda: ['channel', 'build', 'subdir', 'type'],
   composer: [],
+  cran: ['type'],
   cargo: ['type'],
   'hf-model': [],
+  pub: [],
 };
 
 export const optionalFields = {
@@ -189,9 +201,12 @@ export const optionalFields = {
   npm: [],
   cocoapods: [],
   conan: ['channel', 'owner'],
+  conda: ['channel', 'build', 'subdir', 'type'],
   composer: [],
+  cran: ['type'],
   cargo: ['type'],
   'hf-model': [],
+  pub: [],
 };
 // but if value is present it should not contain : symbol
 export const validatePatternMatchAndEmptyValue = curryN(
@@ -219,12 +234,29 @@ export const coordinatesTypes = {
   npm: ['packageId', 'version'],
   cocoapods: ['name', 'version'],
   conan: ['name', 'version', 'channel', 'owner'],
+  conda: ['channel', 'name', 'version', 'build', 'subdir', 'type'],
   composer: ['namespace', 'name', 'version'],
+  cran: ['name', 'version', 'type'],
   cargo: ['name', 'version', 'type'],
   'hf-model': ['repoId', 'model', 'version', 'extension', 'modelFormat'],
+  pub: ['name', 'version'],
 };
 
-export const coordinatesFormatOptions = [MAVEN, A_NAME, PYPI, NPM, COCOAPODS, CONAN, COMPOSER, CARGO, HF_MODEL];
+// This determines the order of the formats in the form
+export const coordinatesFormatOptions = [
+  MAVEN,
+  A_NAME,
+  CARGO,
+  COCOAPODS,
+  COMPOSER,
+  CONAN,
+  CONDA,
+  CRAN,
+  HF_MODEL,
+  NPM,
+  PUB,
+  PYPI,
+];
 
 export const fieldTypeToPlaceholder = {
   groupId: 'Group ID',
@@ -242,6 +274,8 @@ export const fieldTypeToPlaceholder = {
   repoId: 'Repo ID',
   model: 'Model',
   modelFormat: 'Model Format',
+  subdir: 'Subdir',
+  build: 'Build',
 };
 
 export const conditionsWithoutValue = [

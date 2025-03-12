@@ -207,6 +207,22 @@ describe('constraintUtil', () => {
       });
     });
 
+    describe('conda', () => {
+      const value = {
+        format: 'conda',
+        channel: initUserInput('channel'),
+        name: initUserInput('name'),
+        version: initUserInput('version'),
+        build: initUserInput('build'),
+        subdir: initUserInput('subdir'),
+        type: initUserInput('type'),
+      };
+
+      it('returns combined coordinates value for conda', () => {
+        expect(getCoordinatesValue(value)).toBe('conda:channel:name:version:build:subdir:type');
+      });
+    });
+
     describe('composer', () => {
       const value = {
         format: 'composer',
@@ -233,6 +249,19 @@ describe('constraintUtil', () => {
       });
     });
 
+    describe('cran', () => {
+      const value = {
+        format: 'cran',
+        name: initUserInput('name'),
+        version: initUserInput('version'),
+        type: initUserInput('type'),
+      };
+
+      it('returns combined coordinates value for cran', () => {
+        expect(getCoordinatesValue(value)).toBe('cran:name:version:type');
+      });
+    });
+
     describe('hf-model', () => {
       const value = {
         format: 'hf-model',
@@ -245,6 +274,18 @@ describe('constraintUtil', () => {
 
       it('returns combined coordinates value for hf-model', () => {
         expect(getCoordinatesValue(value)).toBe('hf-model:repoId:model:version:extension:modelFormat');
+      });
+    });
+
+    describe('pub', () => {
+      const value = {
+        format: 'pub',
+        name: initUserInput('name'),
+        version: initUserInput('version'),
+      };
+
+      it('returns combined coordinates value for pub', () => {
+        expect(getCoordinatesValue(value)).toBe('pub:name:version');
       });
     });
   });

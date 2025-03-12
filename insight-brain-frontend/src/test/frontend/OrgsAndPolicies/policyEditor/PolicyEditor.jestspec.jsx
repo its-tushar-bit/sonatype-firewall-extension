@@ -854,6 +854,39 @@ describe('PolicyEditorSpec', () => {
           expect(conditionTypeInput.parentElement.parentElement).not.toHaveClass('invalid');
         });
 
+        it('for cran', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
+          renderComponent(initState);
+
+          const conditionTypeSelect = await screen.findByTestId('constraint__condition-type');
+          fireEvent.change(conditionTypeSelect, { target: { value: 'Coordinates' } });
+          const coordinatesFormatSelect = await screen.findByTestId('constraint__coordinates-format');
+
+          fireEvent.change(coordinatesFormatSelect, { target: { value: 'cran' } });
+
+          const conditionNameInput = screen.getByPlaceholderText('Name');
+          const conditionVersionInput = screen.getByPlaceholderText('Version');
+          const conditionTypeInput = screen.getByPlaceholderText('Type');
+
+          expect(conditionNameInput).toBeVisible();
+          expect(conditionVersionInput).toBeVisible();
+          expect(conditionTypeInput).toBeVisible();
+
+          let createButton = await screen.findByText('Create');
+
+          fireEvent.click(createButton);
+          const alert = screen.getByText(
+            'There were validation errors. Unable to save: fields with invalid or missing data'
+          );
+          expect(alert).toBeVisible();
+
+          fireEvent.change(conditionTypeInput, { target: { value: '' } });
+
+          expect(conditionNameInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionTypeInput.parentElement.parentElement).not.toHaveClass('invalid');
+        });
+
         it('for hf-model', async () => {
           setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
           renderComponent(initState);
@@ -889,6 +922,88 @@ describe('PolicyEditorSpec', () => {
           expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
           expect(conditionExtensionInput.parentElement.parentElement).toHaveClass('invalid');
           expect(conditionModelFormatInput.parentElement.parentElement).toHaveClass('invalid');
+        });
+
+        it('for conda', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
+          renderComponent(initState);
+
+          const conditionTypeSelect = await screen.findByTestId('constraint__condition-type');
+          fireEvent.change(conditionTypeSelect, { target: { value: 'Coordinates' } });
+          const coordinatesFormatSelect = await screen.findByTestId('constraint__coordinates-format');
+
+          fireEvent.change(coordinatesFormatSelect, { target: { value: 'conda' } });
+
+          const conditionChannelInput = screen.getByPlaceholderText('Channel');
+          const conditionNameInput = screen.getByPlaceholderText('Name');
+          const conditionVersionInput = screen.getByPlaceholderText('Version');
+          const conditionBuildInput = screen.getByPlaceholderText('Build');
+          const conditionSubdirInput = screen.getByPlaceholderText('Subdir');
+          const conditionTypeInput = screen.getByPlaceholderText('Type');
+
+          expect(conditionChannelInput).toBeVisible();
+          expect(conditionChannelInput).toHaveValue('*');
+          expect(conditionNameInput).toBeVisible();
+          expect(conditionVersionInput).toBeVisible();
+          expect(conditionBuildInput).toBeVisible();
+          expect(conditionBuildInput).toHaveValue('*');
+          expect(conditionSubdirInput).toBeVisible();
+          expect(conditionSubdirInput).toHaveValue('*');
+          expect(conditionTypeInput).toBeVisible();
+          expect(conditionTypeInput).toHaveValue('*');
+
+          let createButton = await screen.findByText('Create');
+
+          fireEvent.click(createButton);
+          const alert = screen.getByText(
+            'There were validation errors. Unable to save: fields with invalid or missing data'
+          );
+          expect(alert).toBeVisible();
+
+          expect(conditionChannelInput.parentElement.parentElement).toHaveClass('pristine');
+          expect(conditionNameInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionBuildInput.parentElement.parentElement).toHaveClass('pristine');
+          expect(conditionSubdirInput.parentElement.parentElement).toHaveClass('pristine');
+          expect(conditionTypeInput.parentElement.parentElement).toHaveClass('pristine');
+
+          fireEvent.change(conditionChannelInput, { target: { value: '' } });
+          fireEvent.change(conditionBuildInput, { target: { value: '' } });
+          fireEvent.change(conditionSubdirInput, { target: { value: '' } });
+          fireEvent.change(conditionTypeInput, { target: { value: '' } });
+
+          expect(conditionChannelInput.parentElement.parentElement).toHaveClass('valid');
+          expect(conditionBuildInput.parentElement.parentElement).toHaveClass('valid');
+          expect(conditionSubdirInput.parentElement.parentElement).toHaveClass('valid');
+          expect(conditionTypeInput.parentElement.parentElement).toHaveClass('valid');
+        });
+
+        it('for pub', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
+          renderComponent(initState);
+
+          const conditionTypeSelect = await screen.findByTestId('constraint__condition-type');
+          fireEvent.change(conditionTypeSelect, { target: { value: 'Coordinates' } });
+          const coordinatesFormatSelect = await screen.findByTestId('constraint__coordinates-format');
+
+          fireEvent.change(coordinatesFormatSelect, { target: { value: 'pub' } });
+
+          const conditionNameInput = screen.getByPlaceholderText('Name');
+          const conditionVersionInput = screen.getByPlaceholderText('Version');
+
+          expect(conditionNameInput).toBeVisible();
+          expect(conditionVersionInput).toBeVisible();
+
+          let createButton = await screen.findByText('Create');
+
+          fireEvent.click(createButton);
+          const alert = screen.getByText(
+            'There were validation errors. Unable to save: fields with invalid or missing data'
+          );
+          expect(alert).toBeVisible();
+
+          expect(conditionNameInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
         });
       });
     });

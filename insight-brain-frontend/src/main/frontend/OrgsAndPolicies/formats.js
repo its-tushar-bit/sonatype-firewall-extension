@@ -5,10 +5,13 @@
  */
 export const MAVEN = 'maven';
 export const A_NAME = 'a-name';
-export const PYPI = 'pypi';
-export const NPM = 'npm';
-export const COCOAPODS = 'cocoapods';
-export const CONAN = 'conan';
-export const COMPOSER = 'composer';
 export const CARGO = 'cargo';
+export const COCOAPODS = 'cocoapods';
+export const COMPOSER = 'composer';
+export const CONAN = 'conan';
+export const CONDA = 'conda';
+export const CRAN = 'cran';
 export const HF_MODEL = 'hf-model';
+export const NPM = 'npm';
+export const PUB = 'pub';
+export const PYPI = 'pypi';

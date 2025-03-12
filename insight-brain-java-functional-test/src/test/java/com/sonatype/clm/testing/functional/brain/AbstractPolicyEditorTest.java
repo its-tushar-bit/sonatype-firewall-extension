@@ -109,7 +109,18 @@ import org.openqa.selenium.interactions.Actions;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.focused;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.back;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.insight.brain.model.Color.dark_blue;
@@ -1272,7 +1283,7 @@ public abstract class AbstractPolicyEditorTest
     coordsCondition.type().chooseOptionWithHidden(conditionTypesOptionMap.get(CoordinatesConditionType.class));
     format = coordsCondition.format();
     format.click();
-    format.listItem(2).click();
+    format.listItem(11).click();
     format.shouldHave(text("pypi"));
 
     // Check initial values

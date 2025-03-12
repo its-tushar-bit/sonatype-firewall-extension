@@ -49,9 +49,12 @@ import {
   COCOAPODS,
   COMPOSER,
   CONAN,
+  CONDA,
+  CRAN,
   HF_MODEL,
   MAVEN,
   NPM,
+  PUB,
   PYPI,
 } from 'MainRoot/OrgsAndPolicies/formats';
 
@@ -90,8 +93,23 @@ const computeValidatableFieldsForCoordinates = (fields) => {
     );
   } else if (fields.format === CARGO) {
     return values(omit(['format', isEmpty(fields.type?.trimmedValue) ? 'type' : null], fields));
-  } else if ([NPM, COCOAPODS, COMPOSER, HF_MODEL].includes(fields.format)) {
+  } else if ([NPM, COCOAPODS, COMPOSER, HF_MODEL, PUB].includes(fields.format)) {
     return values(omit(['format'], fields));
+  } else if (fields.format === CONDA) {
+    return values(
+      omit(
+        [
+          'format',
+          isEmpty(fields.channel?.trimmedValue) ? 'channel' : null,
+          isEmpty(fields.build?.trimmedValue) ? 'build' : null,
+          isEmpty(fields.subdir?.trimmedValue) ? 'subdir' : null,
+          isEmpty(fields.type?.trimmedValue) ? 'type' : null,
+        ],
+        fields
+      )
+    );
+  } else if (fields.format === CRAN) {
+    return values(omit(['format', isEmpty(fields.type?.trimmedValue) ? 'type' : null], fields));
   }
 };
 

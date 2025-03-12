@@ -2173,7 +2173,7 @@
     axios "^1.6.8"
     axios-mock-adapter "^1.22.0"
     chromedriver "^116.0.0"
-    dompurify "^3.1.0"
+    dompurify "^3.2.4"
     react "^16.14.0"
     react-dom "^16.14.0"
     resolve-url-loader "^5.0.0"
@@ -6054,15 +6054,10 @@ domhandler@^4.0.0, domhandler@^4.2.0:
   dependencies:
     domelementtype "^2.2.0"
 
-dompurify@=3.0.2:
-  version "3.0.2"
-  resolved "https://repo.sonatype.com/repository/npm-all/dompurify/-/dompurify-3.0.2.tgz#bc4c7c011c825e7704341a285461d8d407d9429a"
-  integrity sha512-B8c6JdiEpxAKnd8Dm++QQxJL4lfuc757scZtcapj6qjTjrQzyq5iAyznLKVvK+77eYNiFblHBlt7MM0fOeqoKw==
-
-dompurify@^3.1.0:
-  version "3.1.4"
-  resolved "https://repo.sonatype.com/repository/npm-all/dompurify/-/dompurify-3.1.4.tgz#42121304b2b3a6bae22f80131ff8a8f3f3c56be2"
-  integrity sha512-2gnshi6OshmuKil8rMZuQCGiUF3cUxHY3NGDzUAdUx/NPEe5DVnO8BDoAQouvgwnx0R/+a6jUn36Z0FSdq8vww==
+dompurify@^3.2.4:
+  version "3.2.4"
+  resolved "https://repo.sonatype.com/repository/npm-all/dompurify/-/dompurify-3.2.4.tgz#af5a5a11407524431456cf18836c55d13441cd8e"
+  integrity sha512-ysFSFEDVduQpyhzAob/kkuJjf5zWkZD8/A9ywSp1byueyuCfHamrCBa14/Oc2iiB0e51B+NpxSl5gmzn+Ms/mg==
 
 domutils@^1.5.1:
   version "1.7.0"
@@ -12853,7 +12848,7 @@ swagger-ui-react@4.19.1:
     classnames "^2.3.1"
     css.escape "1.5.1"
     deep-extend "0.6.0"
-    dompurify "=3.0.2"
+    dompurify "^3.2.4"
     ieee754 "^1.2.1"
     immutable "^3.x.x"
     js-file-download "^0.4.12"

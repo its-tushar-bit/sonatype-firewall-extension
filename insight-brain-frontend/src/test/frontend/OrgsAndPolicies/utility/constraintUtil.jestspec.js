@@ -262,6 +262,31 @@ describe('constraintUtil', () => {
       });
     });
 
+    describe('gem', () => {
+      const value = {
+        format: 'gem',
+        name: initUserInput('name'),
+        version: initUserInput('version'),
+        platform: initUserInput('platform'),
+      };
+
+      it('returns combined coordinates value for gem', () => {
+        expect(getCoordinatesValue(value)).toBe('gem:name:version:platform');
+      });
+    });
+
+    describe('golang', () => {
+      const value = {
+        format: 'golang',
+        name: initUserInput('name'),
+        version: initUserInput('version'),
+      };
+
+      it('returns combined coordinates value for golang', () => {
+        expect(getCoordinatesValue(value)).toBe('golang:name:version');
+      });
+    });
+
     describe('hf-model', () => {
       const value = {
         format: 'hf-model',
@@ -277,6 +302,31 @@ describe('constraintUtil', () => {
       });
     });
 
+    describe('nuget', () => {
+      const value = {
+        format: 'nuget',
+        packageId: initUserInput('packageId'),
+        version: initUserInput('version'),
+      };
+
+      it('returns combined coordinates value for nuget', () => {
+        expect(getCoordinatesValue(value)).toBe('nuget:packageId:version');
+      });
+    });
+
+    describe('pecoff', () => {
+      const value = {
+        format: 'pecoff',
+        name: initUserInput('name'),
+        version: initUserInput('version'),
+        namespace: initUserInput('namespace'),
+      };
+
+      it('returns combined coordinates value for pecoff', () => {
+        expect(getCoordinatesValue(value)).toBe('pecoff:name:version:namespace');
+      });
+    });
+
     describe('pub', () => {
       const value = {
         format: 'pub',
@@ -286,6 +336,19 @@ describe('constraintUtil', () => {
 
       it('returns combined coordinates value for pub', () => {
         expect(getCoordinatesValue(value)).toBe('pub:name:version');
+      });
+    });
+
+    describe('rpm', () => {
+      const value = {
+        format: 'rpm',
+        name: initUserInput('name'),
+        version: initUserInput('version'),
+        architecture: initUserInput('architecture'),
+      };
+
+      it('returns combined coordinates value for rpm', () => {
+        expect(getCoordinatesValue(value)).toBe('rpm:name:version:architecture');
       });
     });
   });

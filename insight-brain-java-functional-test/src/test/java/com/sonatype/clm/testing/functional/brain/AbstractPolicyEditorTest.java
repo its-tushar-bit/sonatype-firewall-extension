@@ -1283,7 +1283,7 @@ public abstract class AbstractPolicyEditorTest
     coordsCondition.type().chooseOptionWithHidden(conditionTypesOptionMap.get(CoordinatesConditionType.class));
     format = coordsCondition.format();
     format.click();
-    format.listItem(11).click();
+    format.listItem(15).click();
     format.shouldHave(text("pypi"));
 
     // Check initial values

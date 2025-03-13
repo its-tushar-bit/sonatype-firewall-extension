@@ -887,6 +887,65 @@ describe('PolicyEditorSpec', () => {
           expect(conditionTypeInput.parentElement.parentElement).not.toHaveClass('invalid');
         });
 
+        it('for gem', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
+          renderComponent(initState);
+
+          const conditionTypeSelect = await screen.findByTestId('constraint__condition-type');
+          fireEvent.change(conditionTypeSelect, { target: { value: 'Coordinates' } });
+          const coordinatesFormatSelect = await screen.findByTestId('constraint__coordinates-format');
+
+          fireEvent.change(coordinatesFormatSelect, { target: { value: 'gem' } });
+
+          const conditionNameInput = screen.getByPlaceholderText('Name');
+          const conditionVersionInput = screen.getByPlaceholderText('Version');
+          const conditionPlatformInput = screen.getByPlaceholderText('Platform');
+
+          expect(conditionNameInput).toBeVisible();
+          expect(conditionVersionInput).toBeVisible();
+          expect(conditionPlatformInput).toBeVisible();
+
+          let createButton = await screen.findByText('Create');
+
+          fireEvent.click(createButton);
+          const alert = screen.getByText(
+            'There were validation errors. Unable to save: fields with invalid or missing data'
+          );
+          expect(alert).toBeVisible();
+
+          expect(conditionNameInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionPlatformInput.parentElement.parentElement).toHaveClass('pristine');
+        });
+
+        it('for golang', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
+          renderComponent(initState);
+
+          const conditionTypeSelect = await screen.findByTestId('constraint__condition-type');
+          fireEvent.change(conditionTypeSelect, { target: { value: 'Coordinates' } });
+          const coordinatesFormatSelect = await screen.findByTestId('constraint__coordinates-format');
+
+          fireEvent.change(coordinatesFormatSelect, { target: { value: 'golang' } });
+
+          const conditionNameInput = screen.getByPlaceholderText('Name');
+          const conditionVersionInput = screen.getByPlaceholderText('Version');
+
+          expect(conditionNameInput).toBeVisible();
+          expect(conditionVersionInput).toBeVisible();
+
+          let createButton = await screen.findByText('Create');
+
+          fireEvent.click(createButton);
+          const alert = screen.getByText(
+            'There were validation errors. Unable to save: fields with invalid or missing data'
+          );
+          expect(alert).toBeVisible();
+
+          expect(conditionNameInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
+        });
+
         it('for hf-model', async () => {
           setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
           renderComponent(initState);
@@ -978,6 +1037,66 @@ describe('PolicyEditorSpec', () => {
           expect(conditionTypeInput.parentElement.parentElement).toHaveClass('valid');
         });
 
+        it('for nuget', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
+          renderComponent(initState);
+
+          const conditionTypeSelect = await screen.findByTestId('constraint__condition-type');
+          fireEvent.change(conditionTypeSelect, { target: { value: 'Coordinates' } });
+          const coordinatesFormatSelect = await screen.findByTestId('constraint__coordinates-format');
+          fireEvent.change(coordinatesFormatSelect, { target: { value: 'nuget' } });
+
+          const conditionPackageIdInput = screen.getByPlaceholderText('Package ID');
+          const conditionVersionInput = screen.getByPlaceholderText('Version');
+
+          expect(conditionPackageIdInput).toBeVisible();
+          expect(conditionVersionInput).toBeVisible();
+
+          let createButton = await screen.findByText('Create');
+
+          fireEvent.click(createButton);
+          const alert = screen.getByText(
+            'There were validation errors. Unable to save: fields with invalid or missing data'
+          );
+          expect(alert).toBeVisible();
+
+          expect(conditionPackageIdInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
+        });
+
+        it('for pecoff', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
+          renderComponent(initState);
+
+          const conditionTypeSelect = await screen.findByTestId('constraint__condition-type');
+          fireEvent.change(conditionTypeSelect, { target: { value: 'Coordinates' } });
+          const coordinatesFormatSelect = await screen.findByTestId('constraint__coordinates-format');
+
+          fireEvent.change(coordinatesFormatSelect, { target: { value: 'pecoff' } });
+
+          const conditionNameInput = screen.getByPlaceholderText('Name');
+          const conditionVersionInput = screen.getByPlaceholderText('Version');
+          const conditionNamespaceInput = screen.getByPlaceholderText('Namespace');
+
+          expect(conditionNameInput).toBeVisible();
+          expect(conditionVersionInput).toBeVisible();
+          expect(conditionNamespaceInput).toBeVisible();
+
+          let createButton = await screen.findByText('Create');
+
+          fireEvent.click(createButton);
+          const alert = screen.getByText(
+            'There were validation errors. Unable to save: fields with invalid or missing data'
+          );
+          expect(alert).toBeVisible();
+
+          fireEvent.change(conditionNamespaceInput, { target: { value: '' } });
+
+          expect(conditionNameInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionNamespaceInput.parentElement.parentElement).not.toHaveClass('invalid');
+        });
+
         it('for pub', async () => {
           setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
           renderComponent(initState);
@@ -1004,6 +1123,37 @@ describe('PolicyEditorSpec', () => {
 
           expect(conditionNameInput.parentElement.parentElement).toHaveClass('invalid');
           expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
+        });
+
+        it('for rpm', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
+          renderComponent(initState);
+
+          const conditionTypeSelect = await screen.findByTestId('constraint__condition-type');
+          fireEvent.change(conditionTypeSelect, { target: { value: 'Coordinates' } });
+          const coordinatesFormatSelect = await screen.findByTestId('constraint__coordinates-format');
+
+          fireEvent.change(coordinatesFormatSelect, { target: { value: 'rpm' } });
+
+          const conditionNameInput = screen.getByPlaceholderText('Name');
+          const conditionVersionInput = screen.getByPlaceholderText('Version');
+          const conditionArchitectureInput = screen.getByPlaceholderText('Architecture');
+
+          expect(conditionNameInput).toBeVisible();
+          expect(conditionVersionInput).toBeVisible();
+          expect(conditionArchitectureInput).toBeVisible();
+
+          let createButton = await screen.findByText('Create');
+
+          fireEvent.click(createButton);
+          const alert = screen.getByText(
+            'There were validation errors. Unable to save: fields with invalid or missing data'
+          );
+          expect(alert).toBeVisible();
+
+          expect(conditionNameInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionArchitectureInput.parentElement.parentElement).toHaveClass('invalid');
         });
       });
     });

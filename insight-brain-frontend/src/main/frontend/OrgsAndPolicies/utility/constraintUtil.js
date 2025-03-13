@@ -18,11 +18,16 @@ import {
   CONAN,
   CONDA,
   CRAN,
+  GEM,
+  GOLANG,
   HF_MODEL,
   MAVEN,
+  NUGET,
   NPM,
+  PECOFF,
   PUB,
   PYPI,
+  RPM,
 } from 'MainRoot/OrgsAndPolicies/formats';
 
 function parseDays(days) {
@@ -71,10 +76,20 @@ export function getCoordinatesValue(value) {
     return `${value.format}:${fields.name}:${fields.version}:${fields.type}`;
   } else if (value.format === CARGO) {
     return `${value.format}:${fields.name}:${fields.version}:${fields.type}`;
+  } else if (value.format === GEM) {
+    return `${value.format}:${fields.name}:${fields.version}:${fields.platform}`;
+  } else if (value.format === GOLANG) {
+    return `${value.format}:${fields.name}:${fields.version}`;
   } else if (value.format === HF_MODEL) {
     return `${value.format}:${fields.repoId}:${fields.model}:${fields.version}:${fields.extension}:${fields.modelFormat}`;
+  } else if (value.format === NUGET) {
+    return `${value.format}:${fields.packageId}:${fields.version}`;
+  } else if (value.format === PECOFF) {
+    return `${value.format}:${fields.name}:${fields.version}:${fields.namespace}`;
   } else if (value.format === PUB) {
     return `${value.format}:${fields.name}:${fields.version}`;
+  } else if (value.format === RPM) {
+    return `${value.format}:${fields.name}:${fields.version}:${fields.architecture}`;
   }
 }
 
@@ -190,8 +205,13 @@ export const withDefaultValue = {
   composer: [],
   cran: ['type'],
   cargo: ['type'],
+  gem: ['platform'],
+  golang: [],
   'hf-model': [],
+  nuget: [],
+  pecoff: ['namespace'],
   pub: [],
+  rpm: [],
 };
 
 export const optionalFields = {
@@ -205,8 +225,13 @@ export const optionalFields = {
   composer: [],
   cran: ['type'],
   cargo: ['type'],
+  gem: ['platform'],
+  golang: [],
   'hf-model': [],
+  nuget: [],
+  pecoff: ['namespace'],
   pub: [],
+  rpm: [],
 };
 // but if value is present it should not contain : symbol
 export const validatePatternMatchAndEmptyValue = curryN(
@@ -238,8 +263,13 @@ export const coordinatesTypes = {
   composer: ['namespace', 'name', 'version'],
   cran: ['name', 'version', 'type'],
   cargo: ['name', 'version', 'type'],
+  gem: ['name', 'version', 'platform'],
+  golang: ['name', 'version'],
   'hf-model': ['repoId', 'model', 'version', 'extension', 'modelFormat'],
+  nuget: ['packageId', 'version'],
+  pecoff: ['name', 'version', 'namespace'],
   pub: ['name', 'version'],
+  rpm: ['name', 'version', 'architecture'],
 };
 
 // This determines the order of the formats in the form
@@ -252,10 +282,15 @@ export const coordinatesFormatOptions = [
   CONAN,
   CONDA,
   CRAN,
+  GEM,
+  GOLANG,
   HF_MODEL,
   NPM,
+  NUGET,
+  PECOFF,
   PUB,
   PYPI,
+  RPM,
 ];
 
 export const fieldTypeToPlaceholder = {
@@ -276,6 +311,8 @@ export const fieldTypeToPlaceholder = {
   modelFormat: 'Model Format',
   subdir: 'Subdir',
   build: 'Build',
+  architecture: 'Architecture',
+  platform: 'Platform',
 };
 
 export const conditionsWithoutValue = [

@@ -51,11 +51,16 @@ import {
   CONAN,
   CONDA,
   CRAN,
+  GEM,
+  GOLANG,
   HF_MODEL,
   MAVEN,
   NPM,
+  NUGET,
+  PECOFF,
   PUB,
   PYPI,
+  RPM,
 } from 'MainRoot/OrgsAndPolicies/formats';
 
 export const selectPolicySlice = createSelector(selectOrgsAndPoliciesSlice, prop('policy'));
@@ -93,7 +98,7 @@ const computeValidatableFieldsForCoordinates = (fields) => {
     );
   } else if (fields.format === CARGO) {
     return values(omit(['format', isEmpty(fields.type?.trimmedValue) ? 'type' : null], fields));
-  } else if ([NPM, COCOAPODS, COMPOSER, HF_MODEL, PUB].includes(fields.format)) {
+  } else if ([NPM, COCOAPODS, COMPOSER, GOLANG, HF_MODEL, NUGET, PUB, RPM].includes(fields.format)) {
     return values(omit(['format'], fields));
   } else if (fields.format === CONDA) {
     return values(
@@ -110,6 +115,10 @@ const computeValidatableFieldsForCoordinates = (fields) => {
     );
   } else if (fields.format === CRAN) {
     return values(omit(['format', isEmpty(fields.type?.trimmedValue) ? 'type' : null], fields));
+  } else if (fields.format === GEM) {
+    return values(omit(['format', isEmpty(fields.platform?.trimmedValue) ? 'platform' : null], fields));
+  } else if (fields.format === PECOFF) {
+    return values(omit(['format', isEmpty(fields.namespace?.trimmedValue) ? 'namespace' : null], fields));
   }
 };
 

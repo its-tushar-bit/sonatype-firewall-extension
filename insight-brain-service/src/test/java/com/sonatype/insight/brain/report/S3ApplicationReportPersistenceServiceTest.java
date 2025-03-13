@@ -6,18 +6,18 @@
 
 package com.sonatype.insight.brain.report;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
-
 import javax.inject.Inject;
 
-import com.google.inject.Binder;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.config.ReportDataStoreConfig;
 import com.sonatype.insight.brain.service.config.ReportDataStoreConfig.S3DataStoreConfig;
 
+import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,7 +36,10 @@ import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
+import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.APPLICATION_ID;
+import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.SCAN_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.spy;
@@ -146,5 +149,19 @@ public class S3ApplicationReportPersistenceServiceTest
         .when(s3Client).createMultipartUpload(argThat(indexHtmlMatcher));
 
     return new S3ApplicationReportPersistenceService(s3Client, insightConfig);
+  }
+
+  @Test
+  @Override
+  public void testMoveReport_targetReportIsOverwritten() throws IOException {
+    final String reEvalScanId = "scan2";
+
+    helper.saveMockReport();
+    helper.saveEmptyMockReport(reEvalScanId);
+
+    // Ignored until https://sonatype.atlassian.net/browse/CLM-34365 is implemented
+    assertThatThrownBy(() -> service.moveReport(APPLICATION_ID, reEvalScanId, SCAN_ID))
+        .isInstanceOf(UnsupportedOperationException.class)
+        .hasMessage("Not supported in S3 yet");
   }
 }

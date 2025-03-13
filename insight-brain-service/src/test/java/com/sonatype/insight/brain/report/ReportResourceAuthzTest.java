@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.report;
 
-import java.io.IOException;
-
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -15,7 +13,10 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.scan.model.ClientScanType;
 
+import java.io.IOException;
 import org.junit.Test;
+
+import static com.sonatype.insight.mock.hds.HdsMockServer.RestHandler.SCAN_ID;
 
 public class ReportResourceAuthzTest
     extends AbstractResourceAuthzTest
@@ -64,6 +65,10 @@ public class ReportResourceAuthzTest
   @Test
   public void testReevaluatePolicy() throws Exception {
     String scanId = "scanId";
+    createScanFile(app.getId(), scanId);
+    mockReport(scanId, "/ReportResourceTest/report");
+    // Mock the HDS report for the new scan
+    mockReport(SCAN_ID, "/ReportResourceTest/report");
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
     createReportFile(app.getId(), scanId);
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);

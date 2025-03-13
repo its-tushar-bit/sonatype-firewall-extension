@@ -428,6 +428,15 @@ public class S3ApplicationReportPersistenceService
     saveReportFile(getOriginalKey(applicationId, scanId, name), contents);
   }
 
+  @Override
+  @Trace
+  public void moveReport(final String appId, final String sourceScanId, final String destinationScanId)
+      throws IOException
+  {
+    // To be implemented in https://sonatype.atlassian.net/browse/CLM-34365
+    throw new UnsupportedOperationException("Not supported in S3 yet");
+  }
+
   private void saveReportFile(final S3ObjectKey key, final InputStream contents) throws IOException {
     try (OutputStream outputStream = new S3OutputStream(s3Client, key.toString(), bucketName)) {
       log.debug("Saving report file to S3: {}", key);

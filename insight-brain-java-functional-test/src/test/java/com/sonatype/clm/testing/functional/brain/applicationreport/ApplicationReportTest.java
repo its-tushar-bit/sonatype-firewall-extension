@@ -52,6 +52,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.mock.hds.HdsMockServer;
 import com.sonatype.insight.model.HasStringId;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -137,6 +138,7 @@ public class ApplicationReportTest
 
   @Test
   public void testSummary() throws Exception {
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
     PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
     Date policyEvaluationTime = policyEvaluation.getTime();
 
@@ -205,6 +207,7 @@ public class ApplicationReportTest
 
   @Test
   public void testSummaryWithDeveloperDashboardEnabled() throws Exception {
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
     setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.POLICY_GRANDFATHERING,
         LicensedFeature.APPLICATION_REPORTS, LicensedFeature.SUCCESS_METRICS, LicensedFeature.APPLICATION_EVALUATION);
     refresh();
@@ -381,6 +384,7 @@ public class ApplicationReportTest
 
   @Test
   public void testTextIndicators() throws Exception {
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
     Policy licenseBanned = policyDAO.getByName("License-Banned").get(0);
     reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
     reportPage.resultRows().shouldHave(size(2));
@@ -585,6 +589,7 @@ public class ApplicationReportTest
 
   @Test
   public void testAggregationMultipleWaivers() {
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
     // By default the "Aggregate by Component" toggle should be ON
     reportPage.aggregateByComponentToggle().shouldBeOn();
     reportPage.headers().componentNameFilterInput().setValue("commons-fileupload");
@@ -704,6 +709,7 @@ public class ApplicationReportTest
 
   @Test
   public void testFiltering_violationState() throws Exception {
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
     ElementsCollection violations = reportPage.resultRows();
     reportPage.filterToggle().click();
 
@@ -804,6 +810,7 @@ public class ApplicationReportTest
 
   @Test
   public void testReevaluate() {
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     Policy licenseBanned = policyDAO.getByName("License-Banned").get(0);
     tempEntity.newWaiver(licenseBanned.getId(), app.getId());
@@ -870,6 +877,7 @@ public class ApplicationReportTest
     FileUtils.copyURLToFile(zippedReport, reportDestination);
     tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_BUILD, SCAN_ID2);
     refreshOrOpen(ApplicationReportPage.url(app2, SCAN_ID2));
+    refresh(); // Extra refresh as a workaround until CLM-34495 is fixed.
 
     // Assertions
     reportPage.filterToggle().click();
@@ -902,6 +910,7 @@ public class ApplicationReportTest
     FileUtils.copyURLToFile(zippedReport, reportDestination);
     tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_BUILD, SCAN_ID2);
     refreshOrOpen(ApplicationReportPage.url(app2, SCAN_ID2));
+    refresh(); // Extra refresh as a workaround until CLM-34495 is fixed.
 
     reportPage.shouldBe(visible);
     // Assertions
@@ -925,6 +934,7 @@ public class ApplicationReportTest
     FileUtils.copyURLToFile(zippedReport, reportDestination);
     tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_BUILD, SCAN_ID2);
     refreshOrOpen(ApplicationReportPage.url(app2, SCAN_ID2));
+    refresh(); // Extra refresh as a workaround until CLM-34495 is fixed.
 
     reportPage.shouldBe(visible);
     reportPage.viewUnscannedComponentsButton().shouldBe(visible);

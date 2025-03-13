@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.report;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -22,7 +23,9 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
@@ -41,6 +44,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
@@ -50,6 +54,7 @@ import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
@@ -64,6 +69,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
@@ -74,6 +80,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -155,6 +162,10 @@ public class ReportService
 
   private final ReportDataStore reportDataStore;
 
+  private final ScanUploadService scanUploadService;
+
+  private final InsightWork insightWork;
+
   @Inject
   public ReportService(
       final PolicyEvaluationDAO policyEvaluationDAO,
@@ -178,7 +189,9 @@ public class ReportService
       final MultiLicenseDAO multiLicenseDAO,
       final InnerSourceComponentDAO innerSourceComponentDAO,
       final ProprietaryConfigService proprietaryConfigService,
-      final ReportDataStore reportDataStore)
+      final ReportDataStore reportDataStore,
+      final ScanUploadService scanUploadService,
+      final InsightWork insightWork)
   {
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.configuration = configuration;
@@ -202,6 +215,8 @@ public class ReportService
     this.innerSourceComponentDAO = innerSourceComponentDAO;
     this.proprietaryConfigService = proprietaryConfigService;
     this.reportDataStore = reportDataStore;
+    this.scanUploadService = scanUploadService;
+    this.insightWork = insightWork;
   }
 
   @Trace
@@ -1085,6 +1100,48 @@ public class ReportService
 
   public ReportPdfEntity getPdfReport(final String appId, final String scanId) {
     return reportDataStore.getReportPdf(appId, scanId);
+  }
+
+  @Trace
+  public PolicyEvaluation reUploadScanToHds(String appId, String scanId, String clientUserAgent)
+      throws IOException
+  {
+    // First call to ensure the scanId is audited even on failure.
+    AuditData.get().setScanId(scanId);
+    Application application = applicationDAO.getById(appId);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
+
+    if (policyEvaluation == null) {
+      throw new BadRequestException("Policy evaluation for scan " + scanId + " does not exist on the server.");
+    }
+
+    final File scanFile = insightWork.getScanFile(appId, scanId);
+    final String stageTypeId = policyEvaluation.getStageTypeId();
+    final Stage stage = new Stage(stageTypeId);
+    final ScanTriggerType scanTriggerType = policyEvaluation.getScanTriggerType();
+    final ClientScanType clientScanType = policyEvaluation.getClientScanType();
+
+    ScanReceipt scanReceipt = scanUploadService.upload(scanFile, application, stage.getStageTypeId(),
+        clientScanType,
+        clientUserAgent,
+        telemetryUtils.buildThirdPartyScanTelemetryData(application.getPublicId(), stage, stageTypeId,
+            scanTriggerType, clientUserAgent), null /* scanRequestId */);
+    // Call again after upload to ensure the scanId is set to the original value, not the temporary new one.
+    AuditData.get().setScanId(scanId);
+
+    try {
+      scanReceipt.waitForReport();
+    }
+    catch (InterruptedException e) {
+      AuditData.get().setException(e);
+      Thread.currentThread().interrupt();
+      throw new RuntimeException("Scan " + scanId + " interrupted while waiting for report re-generation.", e);
+    }
+
+    String tempScanId = scanReceipt.getScanId();
+    fetchReport(application, tempScanId);
+    reportDataStore.moveApplicationReport(appId, tempScanId, scanId);
+    return policyEvaluation;
   }
 
   public static void setMavenCoordinatesWithExtension(

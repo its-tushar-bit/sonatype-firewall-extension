@@ -14,7 +14,6 @@ import java.nio.file.FileSystems;
 import java.time.Instant;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
@@ -27,7 +26,6 @@ import org.junit.experimental.categories.Category;
 import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.APPLICATION_ID;
 import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.SCAN_ID;
 import static com.sonatype.insight.brain.testing.FunctionUtils.wrapException;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -301,6 +299,24 @@ public abstract class AbstractApplicationReportPersistenceServiceTest
 
     assertThat(helper.readFromOriginalFiles("bom.json")).isNull();
     assertThat(helper.readFromOriginalFiles("index.html")).isNull();
+  }
+
+  @Test
+  public void testMoveReport_targetReportIsOverwritten() throws Exception {
+    final String reEvalScanId = "scan2";
+
+    helper.saveMockReport();
+    helper.saveEmptyMockReport(reEvalScanId);
+
+    service.moveReport(APPLICATION_ID, reEvalScanId, SCAN_ID);
+
+    assertThat(service.reportExists(APPLICATION_ID, SCAN_ID)).isTrue();
+    // New report content is added
+    assertThat(helper.readFromOriginalFiles("index.html")).isEqualTo("<html></html>");
+    // Old report content is gone
+    assertThat(helper.readFromOriginalFiles("bom.json")).isNull();
+    // Report with temp scan ID is removed.
+    assertThat(service.reportExists(APPLICATION_ID, reEvalScanId)).isFalse();
   }
 
   /**

@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.experimental.ApiVulnerabilitySignatureService;
@@ -30,7 +29,6 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.utils.AutoDeletingTempFile;
 
 import datadog.trace.api.Trace;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -270,6 +268,17 @@ public class FileApplicationReportPersistenceService
       }
       throw e;
     }
+  }
+
+  @Override
+  @Trace
+  public void moveReport(final String appId, final String sourceScanId, final String destinationScanId)
+      throws IOException
+  {
+    final Path sourceReportDirPath = getReportDirPath(appId, sourceScanId);
+    final Path destinationReportDirPath = getReportDirPath(appId, destinationScanId);
+    deleteReport(appId, destinationScanId);
+    Files.move(sourceReportDirPath, destinationReportDirPath);
   }
 
   @Override

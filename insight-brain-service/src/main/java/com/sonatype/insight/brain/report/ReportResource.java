@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -68,6 +67,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader.HostedDataServicesSource;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -87,7 +87,6 @@ import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 import com.sonatype.insight.brain.utils.JsonFileStore;
 import com.sonatype.insight.brain.utils.JsonStore;
 import com.sonatype.insight.brain.version.VersionService;
-import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -338,21 +337,15 @@ public class ReportResource
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId")
       final String applicationPublicId,
       @PathParam("scanId") final String scanId,
-      @DefaultValue("false") @QueryParam("skipAutoWaivers") final Boolean skipAutoWaivers) throws IOException
+      @DefaultValue("false") @QueryParam("skipAutoWaivers") final Boolean skipAutoWaivers,
+      @Context HttpServletRequest request) throws IOException
   {
-    AuditData.get().setScanId(scanId);
-
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    String appId = application.getId();
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
-
-    if (policyEvaluation == null) {
-      throw new BadRequestException("Policy evaluation for scan " + scanId + " does not exist on the server.");
-    }
-
-    scanPolicyEvaluator.evaluate(application, scanId, new Stage(policyEvaluation.getStageTypeId()),
-        policyEvaluation.getScanTriggerType(), policyEvaluation.getClientScanType(), skipAutoWaivers);
-
+    String clientUserAgent = HdsClient.getClientUserAgent(request);
+    PolicyEvaluation policyEvaluation = reportService.reUploadScanToHds(application.getId(), scanId, clientUserAgent);
+    Stage stage = new Stage(policyEvaluation.getStageTypeId());
+    scanPolicyEvaluator.evaluate(application, scanId, stage, policyEvaluation.getScanTriggerType(),
+        policyEvaluation.getClientScanType(), skipAutoWaivers);
     return Response.ok().build();
   }
 

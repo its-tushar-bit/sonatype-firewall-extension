@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -76,6 +77,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.testing.DefaultInsightBrainServiceFactory;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -780,5 +782,12 @@ public abstract class AbstractFunctionalTest
     testCLMServer.getHdsServer()
         .respondWith(new VersionScoringDTO[] {})
         .atUri(HDS_BULK_SCORE_VERSIONING_PATH);
+  }
+
+  protected void mockHdsResponseForDownloadingReport(String scanId) {
+    URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
+    testCLMServer.getHdsServer()
+        .respondWith(zippedReport)
+        .atUri("rest/application/analysis/" + scanId);
   }
 }

@@ -73,4 +73,11 @@ public class ReportDataStore
   public void deleteReportPdf(final String appId, final String scanId) throws IOException {
     applicationReportPersistenceService.getPdfEntity(appId, scanId).deleteIfExists();
   }
+
+  public void moveApplicationReport(
+      final String appId,
+      final String sourceScanId, final String destinationScanId) throws IOException
+  {
+    applicationReportPersistenceService.moveReport(appId, sourceScanId, destinationScanId);
+  }
 }

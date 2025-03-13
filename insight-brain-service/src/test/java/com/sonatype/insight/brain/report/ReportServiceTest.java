@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.report;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -15,9 +16,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
@@ -37,6 +38,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
@@ -71,6 +73,7 @@ import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyLicenseRowDTO;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -99,6 +102,7 @@ import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMet
 import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.INDEX_HTML_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
@@ -216,6 +220,9 @@ public class ReportServiceTest
   @Inject
   private FileApplicationReportPersistenceService applicationReportPersistenceService;
 
+  @Mock
+  private ScanUploadService mockScanUploadService;
+
   @Before
   public void before() {
     thirdPartyDataServiceSpy = spy(thirdPartyDataService);
@@ -242,7 +249,8 @@ public class ReportServiceTest
         thirdPartyDataServiceSpy, telemetrySender, telemetryUtils, repositoryMatcher, applicationRiskService,
         productLicense, sbomMetadataUtils, licenseDao, componentLoaderFactory, thirdPartyComponentDAO,
         licenseThreatGroupDAO, hashComponentIdentifierDAO, licenseOverrideDAO, securityVulnerabilityOverrideDAO,
-        multiLicenseDAO, innerSourceComponentDAO, proprietaryConfigService, reportDataStoreSpy);
+        multiLicenseDAO, innerSourceComponentDAO, proprietaryConfigService, reportDataStoreSpy,
+        mockScanUploadService, insightWork);
   }
 
   @Test
@@ -1146,5 +1154,65 @@ public class ReportServiceTest
       }
     }
     assertThat(numDirect).isEqualTo(expectedNumDirectDependencies);
+  }
+
+  @Test
+  public void testReUploadScanReport_doNotReEvaluateIfScanIdDoesNotExist() throws IOException {
+    ReportService reportService = createReportService();
+    String nonExistentScanId = "nonExistentScanId";
+    String clientUserAgent = "userAgent";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> reportService.reUploadScanToHds(app.getId(), nonExistentScanId, clientUserAgent))
+        .withMessage("Policy evaluation for scan " + nonExistentScanId + " does not exist on the server.");
+  }
+
+  @Test
+  public void testReUploadScanReport_shouldOverwriteOldToHds() throws IOException {
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    ReportService reportService = createReportService();
+
+    String clientUserAgent = "userAgent";
+    String newScanId = "newScanId";
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(newScanId);
+    doReturn(scanReceipt).when(mockScanUploadService).upload(
+        any(),
+        any(),
+        eq(StageTypes.BUILD.getId()),
+        any(),
+        eq(clientUserAgent),
+        any(),
+        any()
+    );
+    // Mock the new report so we don't have to get it from the real HDS
+    ReportHelper.saveMockReport(insightWork, tempDir,
+        "/ApplicationReportPersistenceServiceTest/report", app.getId(), newScanId);
+
+    var bomFileBeforeReUpload = applicationReportPersistenceService
+        .getReportEntity(app.getId(), scanId, BOM_JSON_FILENAME);
+    var indexFileBeforeReUpload = applicationReportPersistenceService
+        .getReportEntity(app.getId(), scanId, INDEX_HTML_FILENAME);
+    assertThat(getEntityContents(bomFileBeforeReUpload)).isNotEqualTo("{}\n");
+    assertThat(getEntityContents(indexFileBeforeReUpload)).isNotEqualTo("<html></html>");
+
+    reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
+
+    var bomFileAfterReUpload = applicationReportPersistenceService
+        .getReportEntity(app.getId(), scanId, BOM_JSON_FILENAME);
+    var indexFileAfterReUpload = applicationReportPersistenceService
+        .getReportEntity(app.getId(), scanId, INDEX_HTML_FILENAME);
+    assertThat(getEntityContents(bomFileAfterReUpload)).isEqualTo("{}\n");
+    assertThat(getEntityContents(indexFileAfterReUpload)).isEqualTo("<html></html>");
+  }
+
+  private String getEntityContents(BaseReportEntity entity) throws IOException {
+    try (var inputStream = entity.getInputStream()) {
+      assertThat(inputStream).isNotNull();
+      byte[] entityContents = inputStream.readAllBytes();
+      return new String(entityContents, StandardCharsets.UTF_8);
+    }
   }
 }

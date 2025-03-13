@@ -92,6 +92,7 @@ import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILE
 import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ReportResource.BROWSE_PATH;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
+import static com.sonatype.insight.mock.hds.HdsMockServer.RestHandler.SCAN_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -664,6 +665,8 @@ public class ReportResourceTest
 
     String scanId = "ReportResourceTest_ScanId";
     mockReport(scanId, "/ReportResourceTest/report");
+    // Mock the HDS report for the new scan
+    mockReport(SCAN_ID, "/ReportResourceTest/report");
     createScanFile(app.getId(), scanId);
 
     PolicyEvaluation policyEvaluation = policyEvaluationDAO
@@ -739,6 +742,8 @@ public class ReportResourceTest
   public void testReevaluateReport_withoutSkippingAutoWaivers() throws Exception {
     final String scanId = "ReportResourceTest_ScanId";
     mockReport(scanId, "/ReportResourceTest/report");
+    // Mock the HDS report for the new scan
+    mockReport(SCAN_ID, "/ReportResourceTest/report");
     mockGetVersionsByComponentCI();
     createScanFile(app.getId(), scanId);
 
@@ -810,6 +815,8 @@ public class ReportResourceTest
   public void testReevaluateReport_skippingAutoWaivers() throws Exception {
     final String scanId = "ReportResourceTest_ScanId";
     mockReport(scanId, "/ReportResourceTest/report");
+    // Mock the HDS report for the new scan
+    mockReport(SCAN_ID, "/ReportResourceTest/report");
     mockGetVersionsByComponentCI();
     createScanFile(app.getId(), scanId);
 

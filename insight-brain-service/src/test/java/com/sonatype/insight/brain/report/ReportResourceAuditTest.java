@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.report;
 
-import java.io.IOException;
-
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -15,13 +13,15 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.mock.hds.HdsMockServer;
 
+import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ReportResource.BROWSE_PATH;
 import static com.sonatype.insight.brain.report.ReportResource.PRINT_PATH;
-import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReportResourceAuditTest
@@ -43,6 +43,8 @@ public class ReportResourceAuditTest
   @Test
   public void testReevaluatePolicy() throws Exception {
     mockReport(SCAN_ID, "/AbstractAuditTest/report");
+    // Mock the HDS report for the new scan
+    mockReport(HdsMockServer.RestHandler.SCAN_ID, "/AbstractAuditTest/report");
     createScanFile(app.getId(), SCAN_ID);
 
     final Stage stage = new Stage(Stage.ID_BUILD);

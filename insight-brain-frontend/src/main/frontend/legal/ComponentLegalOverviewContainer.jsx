@@ -12,11 +12,14 @@ import * as copyrightOverrideFormActions from './copyright/copyrightOverrideForm
 import * as originalSourcesFormActions from './originalSources/originalSourcesFormActions';
 import { setShowLicenseFilesModal, setShowNoticesModal, setShowLicensesModal } from './files/advancedLegalFileActions';
 import { path } from 'ramda';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 function mapStateToProps({ advancedLegal, router, copyrightOverrides, originalSourcesForm }) {
   let component = advancedLegal.component;
   let availableScopes = advancedLegal.availableScopes;
+  const isSbomManager = selectIsSbomManager({ router });
   return {
+    isSbomManager,
     loading: component.loading || availableScopes.loading,
     error: component.error || availableScopes.error,
     availableScopes: availableScopes,

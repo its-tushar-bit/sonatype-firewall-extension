@@ -9,12 +9,15 @@ import ComponentLicenseDetailsPage from './ComponentLicenseDetailsPage';
 import { pick } from 'ramda';
 import { loadComponentAndLicenseDetails } from './componentLicenseDetailsActions';
 import { setShowLicensesModal } from '../files/advancedLegalFileActions';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 function mapStateToProps({ advancedLegal, componentLicenseDetails, router }) {
   const component = advancedLegal.component || {};
   const availableScopes = advancedLegal.availableScopes || {};
   const licenseLegalMetadata = advancedLegal.component.licenseLegalMetadata || [];
+  const isSbomManager = selectIsSbomManager({ router });
   return {
+    isSbomManager,
     loading: component.loading || availableScopes.loading,
     error: component.error || availableScopes.error,
     availableScopes,

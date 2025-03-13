@@ -66,42 +66,62 @@ describe('CopyrightStatementsTile component', function () {
   });
 
   it('renders the given copyright statements links by hash', function () {
-    const wrapper = getShallowComponent();
-    let copyrightLinks = wrapper.find('a.nx-list__link');
+    const testCopyrightLinks = (props, expectedHrefPrefix) => {
+      const wrapper = getShallowComponent(props);
+      let copyrightLinks = wrapper.find('a.nx-list__link');
 
-    let copyrightLink = copyrightLinks.at(0);
-    expect(copyrightLink).toHaveProp(
-      'href',
-      'legal.componentCopyrightDetails.copyrightDetails-{"hash":"testHash","copyrightIndex":0}'
-    );
+      let copyrightLink = copyrightLinks.at(0);
+      expect(copyrightLink).toHaveProp('href', `${expectedHrefPrefix}-{"hash":"testHash","copyrightIndex":0}`);
 
-    copyrightLink = copyrightLinks.at(1);
-    expect(copyrightLink).toHaveProp(
-      'href',
-      'legal.componentCopyrightDetails.copyrightDetails-{"hash":"testHash","copyrightIndex":2}'
+      copyrightLink = copyrightLinks.at(1);
+      expect(copyrightLink).toHaveProp('href', `${expectedHrefPrefix}-{"hash":"testHash","copyrightIndex":2}`);
+    };
+
+    testCopyrightLinks(minimalProps, 'legal.componentCopyrightDetails.copyrightDetails');
+    testCopyrightLinks(
+      {
+        ...minimalProps,
+        isSbomManager: true,
+      },
+      'sbomManager.legal.componentCopyrightDetails.copyrightDetails'
     );
   });
 
   it('renders the given copyright statements links by component identifier', function () {
-    const wrapper = getShallowComponent({
-      ...minimalProps,
-      hash: undefined,
-      componentIdentifier: 'testComponentIdentifier',
-    });
-    let copyrightLinks = wrapper.find('a.nx-list__link');
+    const testCopyrightLinksByComponentIdentifier = (props, expectedHrefPrefix) => {
+      const wrapper = getShallowComponent(props);
+      let copyrightLinks = wrapper.find('a.nx-list__link');
 
-    let copyrightLink = copyrightLinks.at(0);
-    expect(copyrightLink).toHaveProp(
-      'href',
-      'legal.componentCopyrightDetailsByComponentIdentifier.copyrightDetails' +
-        '-{"componentIdentifier":"testComponentIdentifier","copyrightIndex":0}'
+      let copyrightLink = copyrightLinks.at(0);
+      expect(copyrightLink).toHaveProp(
+        'href',
+        `${expectedHrefPrefix}-{"componentIdentifier":"testComponentIdentifier","copyrightIndex":0}`
+      );
+
+      copyrightLink = copyrightLinks.at(1);
+      expect(copyrightLink).toHaveProp(
+        'href',
+        `${expectedHrefPrefix}-{"componentIdentifier":"testComponentIdentifier","copyrightIndex":2}`
+      );
+    };
+
+    const props = {
+      ...minimalProps,
+      componentIdentifier: 'testComponentIdentifier',
+      hash: undefined,
+    };
+
+    testCopyrightLinksByComponentIdentifier(
+      props,
+      'legal.componentCopyrightDetailsByComponentIdentifier.copyrightDetails'
     );
 
-    copyrightLink = copyrightLinks.at(1);
-    expect(copyrightLink).toHaveProp(
-      'href',
-      'legal.componentCopyrightDetailsByComponentIdentifier.copyrightDetails' +
-        '-{"componentIdentifier":"testComponentIdentifier","copyrightIndex":2}'
+    testCopyrightLinksByComponentIdentifier(
+      {
+        ...props,
+        isSbomManager: true,
+      },
+      'sbomManager.legal.componentCopyrightDetailsByComponentIdentifier.copyrightDetails'
     );
   });
 

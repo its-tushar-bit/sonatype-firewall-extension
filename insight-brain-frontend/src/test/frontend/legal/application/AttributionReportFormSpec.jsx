@@ -76,17 +76,38 @@ describe('AttributionReportForm component', function () {
     getMountedComponent = enzymeUtils.getMountedComponent(AttributionReportForm, minimalProps);
   });
 
-  it('renders a MenuBarBackButton with correct href prop', function () {
-    const component = getShallowComponent({
-      ...minimalProps,
-      applicationPublicId: 'appId',
-      stageTypeId: 'stage',
-    });
+  const testMenuBarBackButton = (props, expectedHref) => {
+    const component = getShallowComponent(props);
     const menuBarBackButton = component.find(MenuBarBackButton);
     expect(menuBarBackButton).toExist();
-    expect(menuBarBackButton).toHaveProp(
-      'href',
+    expect(menuBarBackButton).toHaveProp('href', expectedHref);
+  };
+
+  it('renders a MenuBarBackButton with correct href prop', function () {
+    const testHrefProp = (props, expectedHref) => {
+      const component = getShallowComponent(props);
+      const menuBarBackButton = component.find(MenuBarBackButton);
+      expect(menuBarBackButton).toExist();
+      expect(menuBarBackButton).toHaveProp('href', expectedHref);
+    };
+
+    testHrefProp(
+      {
+        ...minimalProps,
+        applicationPublicId: 'appId',
+        stageTypeId: 'stage',
+      },
       'legal.applicationDetails-{"applicationPublicId":"appId","stageTypeId":"stage"}'
+    );
+
+    testHrefProp(
+      {
+        ...minimalProps,
+        applicationPublicId: 'appId',
+        stageTypeId: 'stage',
+        isSbomManager: true,
+      },
+      'sbomManager.legal.applicationDetails-{"applicationPublicId":"appId","stageTypeId":"stage"}'
     );
   });
 
@@ -111,14 +132,26 @@ describe('AttributionReportForm component', function () {
   });
 
   it('renders correct MenuBarBackButton when no applicationPublicId and stageTypeId are specified', function () {
-    const component = getShallowComponent({
-      ...minimalProps,
-      applicationPublicId: undefined,
-      stageTypeId: undefined,
-    });
-    const menuBarBackButton = component.find(MenuBarBackButton);
-    expect(menuBarBackButton).toExist();
-    expect(menuBarBackButton).toHaveProp('href', 'legal.dashboard');
+    testMenuBarBackButton(
+      {
+        ...minimalProps,
+        applicationPublicId: undefined,
+        stageTypeId: undefined,
+      },
+      'legal.dashboard'
+    );
+  });
+
+  it('renders correct MenuBarBackButton when no applicationPublicId and stageTypeId are specified when isSbomManager is true', function () {
+    testMenuBarBackButton(
+      {
+        ...minimalProps,
+        applicationPublicId: undefined,
+        stageTypeId: undefined,
+        isSbomManager: true,
+      },
+      'sbomManager.legal.dashboard'
+    );
   });
 
   it('renders report title input with a default text when no template is selected', function () {

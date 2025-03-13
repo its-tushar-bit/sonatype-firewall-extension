@@ -25,6 +25,7 @@ describe('CopyrightDetailsHeader', function () {
     hash: 'testHash',
     loadComponentAndCopyrightDetails: loadComponentAndCopyrightDetailsMock,
     setDisplayCopyrightOverrideModal: setDisplayCopyrightOverrideModalMock,
+    isSbomManager: false,
   };
   getShallowComponent = enzymeUtils.getShallowComponent(CopyrightDetailsHeader, minimalProps);
 
@@ -49,7 +50,8 @@ describe('CopyrightDetailsHeader', function () {
       minimalProps.ownerId,
       minimalProps.stageTypeId,
       minimalProps.hash,
-      undefined
+      undefined,
+      minimalProps.isSbomManager
     );
   });
 
@@ -64,7 +66,8 @@ describe('CopyrightDetailsHeader', function () {
       minimalProps.ownerId,
       minimalProps.stageTypeId,
       undefined,
-      'testCi'
+      'testCi',
+      minimalProps.isSbomManager
     );
   });
 });

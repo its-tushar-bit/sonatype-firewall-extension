@@ -19,7 +19,7 @@ import * as PropTypes from 'prop-types';
 import LicenseObligationModalContainer from './LicenseObligationModalContainer';
 import { find, propEq } from 'ramda';
 import AllLicenseObligationsModalContainer from './AllLicenseObligationsModalContainer';
-import { findSingleLicenseIndex } from '../legalUtility';
+import { findSingleLicenseIndex, LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from '../legalUtility';
 
 export default function LicenseObligationsTile(props) {
   const {
@@ -38,18 +38,20 @@ export default function LicenseObligationsTile(props) {
     $state,
     effectiveLicenses,
     componentIdentifier,
+    isSbomManager,
   } = props;
 
   const flatEffectiveLicenses = effectiveLicenses.map((e) => e.licenseId);
   const isObligationPresent = () => licenseObligations.length > 0;
 
   const licenseDetailsTargetState = () => {
+    const prefix = isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE;
     if (stageTypeId) {
-      return 'legal.stageTypeComponentLicenseDetails';
+      return `${prefix}.stageTypeComponentLicenseDetails`;
     } else if (componentIdentifier) {
-      return 'legal.componentLicenseDetailsByComponentIdentifier';
+      return `${prefix}.componentLicenseDetailsByComponentIdentifier`;
     } else {
-      return 'legal.componentLicenseDetails';
+      return `${prefix}.componentLicenseDetails`;
     }
   };
 
@@ -252,4 +254,5 @@ LicenseObligationsTile.propTypes = {
   componentIdentifier: PropTypes.string,
   $state: PropTypes.object.isRequired,
   effectiveLicenses: PropTypes.arrayOf(PropTypes.object),
+  isSbomManager: PropTypes.bool,
 };

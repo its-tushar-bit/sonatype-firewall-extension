@@ -8,6 +8,7 @@ import React, { useEffect } from 'react';
 import { componentPropType } from '../../advancedLegalPropTypes';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
+import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 
 export default function NoticeDetailsList(props) {
   const {
@@ -21,6 +22,7 @@ export default function NoticeDetailsList(props) {
     error,
     $state,
     componentIdentifier,
+    isSbomManager,
   } = props;
   let listItems = null;
 
@@ -30,14 +32,15 @@ export default function NoticeDetailsList(props) {
     item.status === 'enabled' ? 'Included in attribution report' : 'Excluded from the report';
 
   const noticeTargetState = () => {
+    const statePrefix = isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE;
     if (hash) {
       if (stageTypeId) {
-        return 'legal.stageTypeComponentNoticeDetails.noticeDetails';
+        return `${statePrefix}.stageTypeComponentNoticeDetails.noticeDetails`;
       } else {
-        return 'legal.componentNoticeDetails.noticeDetails';
+        return `${statePrefix}.componentNoticeDetails.noticeDetails`;
       }
     }
-    return 'legal.noticeFilesByComponentIdentifier.noticeDetails';
+    return `${statePrefix}.noticeFilesByComponentIdentifier.noticeDetails`;
   };
 
   const noticeRef = React.useRef(new Map());
@@ -91,4 +94,5 @@ NoticeDetailsList.propTypes = {
   stageTypeId: PropTypes.string,
   $state: PropTypes.object.isRequired,
   noticeIndex: PropTypes.string.isRequired,
+  isSbomManager: PropTypes.bool,
 };

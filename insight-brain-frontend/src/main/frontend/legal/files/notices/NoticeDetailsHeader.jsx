@@ -29,6 +29,7 @@ export default function NoticeDetailsHeader(props) {
     setShowNoticesModal,
     showNoticesModal,
     componentIdentifier,
+    isSbomManager,
   } = props;
 
   function load() {
@@ -40,7 +41,15 @@ export default function NoticeDetailsHeader(props) {
   return (
     <LoadWrapper loading={loading} error={error} retryHandler={load}>
       <MenuBarBackButton
-        href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash, componentIdentifier)}
+        href={backToComponentOverviewUrl(
+          $state,
+          ownerType,
+          ownerId,
+          stageTypeId,
+          hash,
+          componentIdentifier,
+          isSbomManager
+        )}
         text="Back to Component Obligations"
       />
       <div className="nx-page-title">
@@ -73,4 +82,5 @@ NoticeDetailsHeader.propTypes = {
   setShowNoticesModal: PropTypes.func.isRequired,
   loadComponentAndNoticeDetails: PropTypes.func.isRequired,
   componentIdentifier: PropTypes.string,
+  isSbomManager: PropTypes.bool,
 };

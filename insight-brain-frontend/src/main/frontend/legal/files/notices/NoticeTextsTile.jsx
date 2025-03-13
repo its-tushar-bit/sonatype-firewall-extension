@@ -12,6 +12,7 @@ import NoticesModalContainer from './NoticesModalContainer';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { createLegalFileTileItem } from '../common/utils';
+import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 
 export default function NoticeTextsTile(props) {
   const {
@@ -24,6 +25,7 @@ export default function NoticeTextsTile(props) {
     hash,
     $state,
     componentIdentifier,
+    isSbomManager,
   } = props;
 
   const isNoticePresent = () => noticeFiles && noticeFiles.length > 0;
@@ -35,12 +37,13 @@ export default function NoticeTextsTile(props) {
   });
 
   const noticeDetailsTargetState = () => {
+    const prefix = isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE;
     if (hash) {
       return stageTypeId
-        ? 'legal.stageTypeComponentNoticeDetails.noticeDetails'
-        : 'legal.componentNoticeDetails.noticeDetails';
+        ? `${prefix}.stageTypeComponentNoticeDetails.noticeDetails`
+        : `${prefix}.componentNoticeDetails.noticeDetails`;
     } else {
-      return 'legal.noticeFilesByComponentIdentifier.noticeDetails';
+      return `${prefix}.noticeFilesByComponentIdentifier.noticeDetails`;
     }
   };
 
@@ -89,4 +92,5 @@ NoticeTextsTile.propTypes = {
   hash: PropTypes.string,
   $state: PropTypes.object.isRequired,
   componentIdentifier: PropTypes.string,
+  isSbomManager: PropTypes.bool,
 };

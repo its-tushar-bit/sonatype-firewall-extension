@@ -7,11 +7,13 @@
 import { pick } from 'ramda';
 import { connect } from 'react-redux';
 import NoticeDetailsList from './NoticeDetailsList';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 function mapStateToProps({ advancedLegal, componentNoticeDetails, router }) {
   const component = advancedLegal.component || {};
   const availableScopes = advancedLegal.availableScopes || {};
   const noticeDetailsStateName = 'noticeDetails';
+  const isSbomManager = selectIsSbomManager({ router });
 
   let routerParams = router.currentParams;
   if (
@@ -21,6 +23,7 @@ function mapStateToProps({ advancedLegal, componentNoticeDetails, router }) {
     routerParams = router.prevParams;
   }
   return {
+    isSbomManager,
     componentNoticeDetails,
     loading: component.loading || availableScopes.loading || componentNoticeDetails.loadingNoticeDetails,
     error: component.error || availableScopes.error,

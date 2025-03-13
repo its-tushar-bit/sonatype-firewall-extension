@@ -9,17 +9,30 @@ import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 import { NxThreatIndicator } from '@sonatype/react-shared-components';
 import { isMultiLicense } from './componentLicenseDetailsActions';
+import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 
 export default function LicenseList(props) {
-  const { ownerType, ownerId, hash, stageTypeId, componentLicenseDetails, licenseLegalMetadata, $state } = props;
+  const {
+    ownerType,
+    ownerId,
+    hash,
+    stageTypeId,
+    componentLicenseDetails,
+    licenseLegalMetadata,
+    $state,
+    isSbomManager,
+  } = props;
 
   const selectedLicense = parseInt(componentLicenseDetails.licenseIndex);
 
   const licenseDetailsTargetState = () => {
+    const statePrefix = isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE;
     if (stageTypeId) {
-      return 'legal.stageTypeComponentLicenseDetails';
+      return `${statePrefix}.stageTypeComponentLicenseDetails`;
     }
-    return hash ? 'legal.componentLicenseDetails' : 'legal.componentLicenseDetailsByComponentIdentifier';
+    return hash
+      ? `${statePrefix}.componentLicenseDetails`
+      : `${statePrefix}.componentLicenseDetailsByComponentIdentifier`;
   };
 
   const licenseRef = React.useRef(new Map());
@@ -87,4 +100,5 @@ LicenseList.propTypes = {
   stageTypeId: PropTypes.string,
   licenseLegalMetadata: licenseLegalMetadataPropType,
   $state: PropTypes.object.isRequired,
+  isSbomManager: PropTypes.bool,
 };

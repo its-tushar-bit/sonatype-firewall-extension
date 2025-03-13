@@ -132,6 +132,14 @@ describe('ComponentLegalOverviewPage', function () {
     getShallowComponent = enzymeUtils.getShallowComponent(ComponentLegalOverviewPage, minimalProps);
   });
 
+  const testMenuBarBackButton = (props, expectedHref) => {
+    const wrapper = getShallowComponent(props);
+    const menuBarBackButton = wrapper.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('href', expectedHref);
+    expect(spy$State.href).toHaveBeenCalled();
+  };
+
   it('loads the expected data using the root organization id', function () {
     const component = mount(<ComponentLegalOverviewPage {...minimalProps} loading={true} />);
     expect(loadComponentSpy).toHaveBeenCalledWith('organization', 'ROOT_ORGANIZATION_ID', '1e48256a2341047e7d72');
@@ -190,19 +198,26 @@ describe('ComponentLegalOverviewPage', function () {
   });
 
   it('renders a MenuBarBackButton to go to the app details page when using app public id and stage type id', function () {
-    const wrapper = getShallowComponent({
-      ...minimalProps,
-      applicationPublicId: 'appId',
-      stageTypeId: 'stage',
-    });
-
-    const menuBarBackButton = wrapper.find(MenuBarBackButton);
-    expect(menuBarBackButton).toExist();
-    expect(menuBarBackButton).toHaveProp(
-      'href',
+    testMenuBarBackButton(
+      {
+        ...minimalProps,
+        applicationPublicId: 'appId',
+        stageTypeId: 'stage',
+      },
       'legal.applicationDetails-{"applicationPublicId":"appId","stageTypeId":"stage"}'
     );
-    expect(spy$State.href).toHaveBeenCalled();
+  });
+
+  it('renders a MenuBarBackButton to go to the app details page when using app public id and stage type id when isSbomManager is true', function () {
+    testMenuBarBackButton(
+      {
+        ...minimalProps,
+        applicationPublicId: 'appId',
+        stageTypeId: 'stage',
+        isSbomManager: true,
+      },
+      'sbomManager.legal.applicationDetails-{"applicationPublicId":"appId","stageTypeId":"stage"}'
+    );
   });
 
   it('renders a MenuBarBackButton to go to the real prev page when using app public id but no stage type id', function () {

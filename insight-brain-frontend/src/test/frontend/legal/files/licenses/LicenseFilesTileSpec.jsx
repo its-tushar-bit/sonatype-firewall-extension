@@ -91,42 +91,62 @@ describe('LicenseFilesTile', function () {
   });
 
   it('renders the given license file links by hash', function () {
-    const wrapper = getShallowComponent();
-    let licenseFileLinks = wrapper.find('#legal-file-section-view-more-details').find(NxTextLink);
+    const testLicenseFileLinksByHash = (props, expectedHrefPrefix) => {
+      const wrapper = getShallowComponent(props);
+      let licenseFileLinks = wrapper.find('#legal-file-section-view-more-details').find(NxTextLink);
 
-    let licenseFileLink = licenseFileLinks.at(0);
-    expect(licenseFileLink).toHaveProp(
-      'href',
-      'legal.componentLicenseFilesDetails.licenseFilesDetails-{"hash":"testHash","licenseIndex":0}'
-    );
+      let licenseFileLink = licenseFileLinks.at(0);
+      expect(licenseFileLink).toHaveProp('href', `${expectedHrefPrefix}-{"hash":"testHash","licenseIndex":0}`);
 
-    licenseFileLink = licenseFileLinks.at(1);
-    expect(licenseFileLink).toHaveProp(
-      'href',
-      'legal.componentLicenseFilesDetails.licenseFilesDetails-{"hash":"testHash","licenseIndex":1}'
+      licenseFileLink = licenseFileLinks.at(1);
+      expect(licenseFileLink).toHaveProp('href', `${expectedHrefPrefix}-{"hash":"testHash","licenseIndex":1}`);
+    };
+
+    testLicenseFileLinksByHash(minimalProps, 'legal.componentLicenseFilesDetails.licenseFilesDetails');
+    testLicenseFileLinksByHash(
+      {
+        ...minimalProps,
+        isSbomManager: true,
+      },
+      'sbomManager.legal.componentLicenseFilesDetails.licenseFilesDetails'
     );
   });
 
   it('renders the given license file links by component identifier', function () {
-    const wrapper = getShallowComponent({
+    const testLicenseFileLinksByComponentIdentifier = (props, expectedHrefPrefix) => {
+      const wrapper = getShallowComponent(props);
+      let licenseFileLinks = wrapper.find('#legal-file-section-view-more-details').find(NxTextLink);
+
+      let licenseFileLink = licenseFileLinks.at(0);
+      expect(licenseFileLink).toHaveProp(
+        'href',
+        `${expectedHrefPrefix}-{"componentIdentifier":"testComponentIdentifier","licenseIndex":0}`
+      );
+
+      licenseFileLink = licenseFileLinks.at(1);
+      expect(licenseFileLink).toHaveProp(
+        'href',
+        `${expectedHrefPrefix}-{"componentIdentifier":"testComponentIdentifier","licenseIndex":1}`
+      );
+    };
+
+    const props = {
       ...minimalProps,
       hash: undefined,
       componentIdentifier: 'testComponentIdentifier',
-    });
-    let licenseFileLinks = wrapper.find('#legal-file-section-view-more-details').find(NxTextLink);
+    };
 
-    let licenseFileLink = licenseFileLinks.at(0);
-    expect(licenseFileLink).toHaveProp(
-      'href',
-      'legal.componentLicenseFilesDetailsByComponentIdentifier.licenseFilesDetails' +
-        '-{"componentIdentifier":"testComponentIdentifier","licenseIndex":0}'
+    testLicenseFileLinksByComponentIdentifier(
+      props,
+      'legal.componentLicenseFilesDetailsByComponentIdentifier.licenseFilesDetails'
     );
 
-    licenseFileLink = licenseFileLinks.at(1);
-    expect(licenseFileLink).toHaveProp(
-      'href',
-      'legal.componentLicenseFilesDetailsByComponentIdentifier.licenseFilesDetails' +
-        '-{"componentIdentifier":"testComponentIdentifier","licenseIndex":1}'
+    testLicenseFileLinksByComponentIdentifier(
+      {
+        ...props,
+        isSbomManager: true,
+      },
+      'sbomManager.legal.componentLicenseFilesDetailsByComponentIdentifier.licenseFilesDetails'
     );
   });
 });

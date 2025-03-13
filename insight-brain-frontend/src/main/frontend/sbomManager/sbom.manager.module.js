@@ -10,6 +10,7 @@ import viewTemplate from 'MainRoot/owner.manager/state/owner.manager.view.html';
 import editTemplate from 'MainRoot/owner.manager/state/owner.manager.edit.html';
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import advancedSearchModule from 'MainRoot/advancedSearch/module';
+import legalModule from 'MainRoot/legal/legal.module';
 import ComponentDetailsPage from 'MainRoot/sbomManager/features/componentDetails/ComponentDetailsPage';
 import SbomContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/сontinuousMonitoringEditor/SbomContinuousMonitoringEditor';
 import LearnMoreSbomManager from 'MainRoot/sbomManager/features/LearnMoreSbomManager';
@@ -17,9 +18,10 @@ import SbomApplicationsPage from 'MainRoot/sbomManager/features/sbomApplications
 import { selectHasSbomManagerLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 import { load as loadProductLicense } from 'MainRoot/configuration/license/productLicenseActions';
 import { ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE } from 'MainRoot/utility/services/routeStateUtilService';
+import { createLegalRoutes, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 
 export default angular
-  .module('sbomManagerModule', ['ngRedux', advancedSearchModule.name])
+  .module('sbomManagerModule', ['ngRedux', advancedSearchModule.name, legalModule.name])
   .component('sbomManagerDashboard', iqReact2Angular(SbomManagerDashboard, [], ['$ngRedux', '$state']))
   .component('billOfMaterials', iqReact2Angular(BillOfMaterials, [], ['$ngRedux', '$state']))
   .component('sbomManagerComponentDetails', iqReact2Angular(ComponentDetailsPage, [], ['$ngRedux', '$state']))
@@ -204,7 +206,10 @@ function routes($stateProvider) {
         component: 'sbomContinuousMonitoring',
       });
   });
+
+  createLegalRoutes($stateProvider, LEGAL_SBOM_MANAGER_PARENT_ROUTE);
 }
+
 routes.$inject = ['$stateProvider'];
 
 function checkLicense($transitions, $state, $ngRedux) {

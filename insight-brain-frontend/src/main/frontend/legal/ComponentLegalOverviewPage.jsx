@@ -22,7 +22,7 @@ import {
 import { TEXT_BASED_OBLIGATIONS, SUPPORTED_COMPONENTS_ECOSYSTEM } from './advancedLegalConstants';
 import LicenseObligationsTileContainer from './obligation/LicenseObligationsTileContainer';
 import NoticeTextsTile from './files/notices/NoticeTextsTile';
-import { createSubtitle, formatLicenseMeta } from './legalUtility';
+import { createSubtitle, formatLicenseMeta, LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from './legalUtility';
 import LicenseFilesTile from './files/licenses/LicenseFilesTile';
 import OriginalSourcesTile from 'MainRoot/legal/originalSources/OriginalSourcesTile';
 
@@ -64,8 +64,10 @@ export default function ComponentLegalOverviewPage(props) {
     setShowLicenseFilesModal,
     setShowLicensesModal,
     setDisplayOriginalSourcesOverrideModal,
+    isSbomManager,
   } = props;
   const effectiveLicenses = formatLicenseMeta('effectiveLicenses', component, licenseLegalMetadata);
+  const prefix = isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE;
 
   function load() {
     if (hash) {
@@ -121,7 +123,7 @@ export default function ComponentLegalOverviewPage(props) {
 
   const getDefaultBackButtonUrl = () =>
     applicationPublicId && stageTypeId
-      ? $state.href($state.get('legal.applicationDetails'), {
+      ? $state.href($state.get(`${prefix}.applicationDetails`), {
           applicationPublicId: applicationPublicId,
           stageTypeId: stageTypeId,
         })
@@ -156,7 +158,12 @@ export default function ComponentLegalOverviewPage(props) {
           )}
           {component && (
             <div id="component-legal-overview-details">
-              <ComponentOverviewTile applicationPublicId={applicationPublicId} component={component} $state={$state} />
+              <ComponentOverviewTile
+                applicationPublicId={applicationPublicId}
+                component={component}
+                $state={$state}
+                isSbomManager={isSbomManager}
+              />
               <LicenseObligationsTileContainer
                 ownerType={ownerType}
                 ownerId={ownerId}
@@ -185,6 +192,7 @@ export default function ComponentLegalOverviewPage(props) {
                     $state={$state}
                     showLicensesModal={showLicensesModal}
                     setShowLicensesModal={setShowLicensesModal}
+                    isSbomManager={isSbomManager}
                   />
                   <CopyrightStatementsTile
                     component={component}
@@ -197,6 +205,7 @@ export default function ComponentLegalOverviewPage(props) {
                     $state={$state}
                     showEditCopyrightOverrideModal={showEditCopyrightOverrideModal}
                     setDisplayCopyrightOverrideModal={setDisplayCopyrightOverrideModal}
+                    isSbomManager={isSbomManager}
                   />
                   <NoticeTextsTile
                     {...{
@@ -211,6 +220,7 @@ export default function ComponentLegalOverviewPage(props) {
                       ownerType,
                       ownerId,
                       hash,
+                      isSbomManager,
                     }}
                   />
                   <LicenseFilesTile
@@ -226,6 +236,7 @@ export default function ComponentLegalOverviewPage(props) {
                       ownerId,
                       hash,
                       componentIdentifier,
+                      isSbomManager,
                     }}
                   />
                   <OriginalSourcesTile
@@ -285,4 +296,5 @@ ComponentLegalOverviewPage.propTypes = {
   prevParams: PropTypes.object,
   tabId: PropTypes.string,
   scanId: PropTypes.string,
+  isSbomManager: PropTypes.bool,
 };

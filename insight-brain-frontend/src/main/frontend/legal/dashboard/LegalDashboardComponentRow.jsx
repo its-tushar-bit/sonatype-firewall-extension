@@ -9,8 +9,9 @@ import * as PropTypes from 'prop-types';
 import LegalBinaryDonutChart from '../shared/LegalBinaryDonutChart';
 import { isNilOrEmpty } from '../../util/jsUtil';
 import { flatten, map, pipe, prop, join } from 'ramda';
+import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 
-export default function LegalDashboardComponentRow({ row, stateGo }) {
+export default function LegalDashboardComponentRow({ row, stateGo, isSbomManager }) {
   const { applicationOccurrences, displayName, hash, licenses, reviewCompletedCount, reviewTotalCount } = row;
   const threatGroupLevels = isNilOrEmpty(licenses)
     ? []
@@ -21,7 +22,7 @@ export default function LegalDashboardComponentRow({ row, stateGo }) {
   const reviewProgressRatio = reviewTotalCount === 0 ? '- / -' : `${reviewCompletedCount} / ${reviewTotalCount}`;
 
   function goToComponentPage() {
-    stateGo('legal.componentOverview', {
+    stateGo(`${isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE}.componentOverview`, {
       hash: row.hash,
     });
   }
@@ -48,4 +49,5 @@ export default function LegalDashboardComponentRow({ row, stateGo }) {
 LegalDashboardComponentRow.propTypes = {
   row: PropTypes.any,
   stateGo: PropTypes.func.isRequired,
+  isSbomManager: PropTypes.bool,
 };

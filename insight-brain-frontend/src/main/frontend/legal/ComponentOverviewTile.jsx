@@ -12,7 +12,7 @@ import { NxPolicyViolationIndicator, NxTextLink } from '@sonatype/react-shared-c
 import { inc, prop, reduceBy } from 'ramda';
 
 export default function ComponentOverviewTile(props) {
-  const { applicationPublicId, component, $state } = props;
+  const { applicationPublicId, component, $state, isSbomManager } = props;
 
   const licenseLegalData = component.licenseLegalData;
   const obligations = component.licenseLegalData.obligations;
@@ -193,7 +193,7 @@ export default function ComponentOverviewTile(props) {
                   )}
                 </dd>
               </div>
-              {applicationPublicId && (
+              {applicationPublicId && !isSbomManager && (
                 <div className="license-component-overview__stages">
                   <dt className="nx-read-only__label">Stages</dt>
                   <dd id="component-overview-tile-stages" className="nx-read-only__data">

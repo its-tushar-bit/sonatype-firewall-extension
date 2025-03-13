@@ -11,9 +11,12 @@ import {
   setShowObligationModal,
 } from './advancedLegalObligationActions';
 import LicenseObligationsTile from './LicenseObligationsTile';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
-function mapStateToProps({ advancedLegal }) {
+function mapStateToProps({ advancedLegal, router }) {
+  const isSbomManager = selectIsSbomManager({ router });
   return {
+    isSbomManager,
     licenseObligations: advancedLegal.component.component.licenseLegalData.obligations,
     licenseLegalMetadata: advancedLegal.component.licenseLegalMetadata,
     showAllObligationsModal: advancedLegal.component.component.licenseLegalData.showAllObligationsModal,

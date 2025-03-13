@@ -76,6 +76,15 @@ describe('LegalDashboardPage', function () {
     getMountedComponent = enzymeUtils.getMountedComponent(LegalDashboardPage, minimalProps);
   });
 
+  const testNavigationToAttributionReportPage = (props, expectedState) => {
+    const wrapper = enzymeUtils.getShallowComponent(LegalDashboardPage, props)();
+    const createAttribReportButton = wrapper.find('#create-attribution-report-btn');
+    expect(createAttribReportButton).not.toHaveClassName('disabled');
+    createAttribReportButton.simulate('click');
+    expect(wrapper.find(NxModal)).not.toExist();
+    expect(stateGoSpy).toHaveBeenCalledWith(expectedState);
+  };
+
   it('calls loadDashboardUI', function () {
     expect(loadDashboardUISpy).not.toHaveBeenCalled();
     getMountedComponent();
@@ -156,14 +165,15 @@ describe('LegalDashboardPage', function () {
 
   it('navigates to the Attribution Report page when there is only 1 application', function () {
     const propsOneApplication = pathSet(['applications', 'totalResultsCount'], 1, minimalProps);
-    const wrapper = enzymeUtils.getShallowComponent(LegalDashboardPage, propsOneApplication)();
+    testNavigationToAttributionReportPage(propsOneApplication, 'legal.attributionReportMultiApp');
+  });
 
-    const createAttribReportButton = wrapper.find('#create-attribution-report-btn');
-    expect(createAttribReportButton).not.toHaveClassName('disabled');
-
-    createAttribReportButton.simulate('click');
-    expect(wrapper.find(NxModal)).not.toExist();
-    expect(stateGoSpy).toHaveBeenCalledWith('legal.attributionReportMultiApp');
+  it('navigates to the Attribution Report page when there is only 1 application and isSbomManager is true', function () {
+    const propsOneApplication = pathSet(['applications', 'totalResultsCount'], 1, {
+      ...minimalProps,
+      isSbomManager: true,
+    });
+    testNavigationToAttributionReportPage(propsOneApplication, 'sbomManager.legal.attributionReportMultiApp');
   });
 
   it('prompts users with dialog for generating report with more than 1 application', function () {

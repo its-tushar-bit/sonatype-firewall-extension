@@ -16,6 +16,7 @@ import { faCheckCircle } from '@fortawesome/pro-solid-svg-icons';
 
 describe('LegalDashboardComponentRow component', function () {
   let getMountedComponent;
+  const stateGoSpy = jasmine.createSpy('stateGo');
 
   const minimalProps = {
     row: {
@@ -49,6 +50,7 @@ describe('LegalDashboardComponentRow component', function () {
         },
       ],
     },
+    stateGo: stateGoSpy,
   };
 
   beforeEach(function () {
@@ -178,5 +180,14 @@ describe('LegalDashboardComponentRow component', function () {
     let donutChart = cells.at(3).find(NxFontAwesomeIcon);
     expect(donutChart).toExist();
     expect(donutChart).toHaveProp('icon', faCheckCircle);
+  });
+
+  it('links to the component overview page when isSbomManager is true', function () {
+    const props = { ...minimalProps, isSbomManager: true };
+    const tableRow = getMountedComponent(props).find(NxTableRow);
+    tableRow.simulate('click');
+    expect(stateGoSpy).toHaveBeenCalledWith('sbomManager.legal.componentOverview', {
+      hash: '8c5c838e0c6d2f6cdf30',
+    });
   });
 });

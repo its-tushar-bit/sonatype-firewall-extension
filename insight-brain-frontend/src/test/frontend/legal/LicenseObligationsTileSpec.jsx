@@ -190,25 +190,28 @@ describe('LicenseObligationsTile component', function () {
     });
   });
 
-  it('renders the license obligation license texts view full license link`', function () {
-    const wrapper = getShallowComponent();
-    const licenseObligationSections = wrapper.find(NxStatefulAccordion);
-    const expectedLicenseIndex = [[0], [0, 1], [1], [2]];
-    licenseObligationSections.forEach((node1, index1) => {
-      node1.find('div.license-obligation-view-full-license').forEach((node2, index2) => {
-        const expectedIndex = expectedLicenseIndex[index1][index2];
-        expect(node2).toHaveText('View full license text');
-        const licenseLink = node2.find('a');
-        expect(licenseLink).toExist();
-        expect(licenseLink).toHaveProp(
-          'href',
-          'legal.componentLicenseDetails-{"ownerType":"app","ownerId":"appId","hash":"hash","licenseIndex":' +
-            expectedIndex +
-            '}'
-        );
-        expect($state.href).toHaveBeenCalled();
+  it('renders the license obligation license texts view full license link', function () {
+    const testViewFullLicenseLink = (props, expectedHrefPrefix) => {
+      const wrapper = getShallowComponent(props);
+      const licenseObligationSections = wrapper.find(NxStatefulAccordion);
+      const expectedLicenseIndex = [[0], [0, 1], [1], [2]];
+      licenseObligationSections.forEach((node1, index1) => {
+        node1.find('div.license-obligation-view-full-license').forEach((node2, index2) => {
+          const expectedIndex = expectedLicenseIndex[index1][index2];
+          expect(node2).toHaveText('View full license text');
+          const licenseLink = node2.find('a');
+          expect(licenseLink).toExist();
+          expect(licenseLink).toHaveProp(
+            'href',
+            `${expectedHrefPrefix}-{"ownerType":"app","ownerId":"appId","hash":"hash","licenseIndex":${expectedIndex}}`
+          );
+          expect($state.href).toHaveBeenCalled();
+        });
       });
-    });
+    };
+
+    testViewFullLicenseLink({}, 'legal.componentLicenseDetails');
+    testViewFullLicenseLink({ ...minimalProps, isSbomManager: true }, 'sbomManager.legal.componentLicenseDetails');
   });
 
   it('renders the license obligation selected status options and icons`', function () {

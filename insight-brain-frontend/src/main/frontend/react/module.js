@@ -68,6 +68,7 @@ export default angular
         'isStandaloneDeveloper',
         'isStandaloneFirewall',
         'isFirewallOnlyLicense',
+        'isAlpForSbomManagerEnabled',
       ],
       ['$state']
     )

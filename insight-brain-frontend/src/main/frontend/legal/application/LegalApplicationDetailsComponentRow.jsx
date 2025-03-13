@@ -10,8 +10,15 @@ import { flatten, join, map, pipe, prop } from 'ramda';
 import { isNilOrEmpty } from '../../util/jsUtil';
 import { reviewStatusDisplayNames } from '../dashboard/legalDashboardConstants';
 import LegalBinaryDonutChart from '../shared/LegalBinaryDonutChart';
+import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 
-export default function LegalApplicationDetailsComponentRow({ applicationPublicId, stageTypeId, row, stateGo }) {
+export default function LegalApplicationDetailsComponentRow({
+  applicationPublicId,
+  stageTypeId,
+  row,
+  stateGo,
+  isSbomManager,
+}) {
   const { displayName, hash, licenses, reviewCompletedCount, reviewStatus, reviewTotalCount } = row;
 
   const threatGroupLevels = isNilOrEmpty(licenses)
@@ -22,11 +29,14 @@ export default function LegalApplicationDetailsComponentRow({ applicationPublicI
   const reviewProgressRatio = reviewTotalCount === 0 ? '- / -' : `${reviewCompletedCount} / ${reviewTotalCount}`;
 
   function goToComponentPage() {
-    stateGo('legal.applicationStageTypeComponentOverview', {
-      applicationPublicId: applicationPublicId,
-      stageTypeId: stageTypeId,
-      hash: hash,
-    });
+    stateGo(
+      `${isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE}.applicationStageTypeComponentOverview`,
+      {
+        applicationPublicId: applicationPublicId,
+        stageTypeId: stageTypeId,
+        hash: hash,
+      }
+    );
   }
 
   return (
@@ -80,4 +90,5 @@ LegalApplicationDetailsComponentRow.propTypes = {
     reviewTotalCount: PropTypes.number.isRequired,
   }).isRequired,
   stateGo: PropTypes.func.isRequired,
+  isSbomManager: PropTypes.bool,
 };

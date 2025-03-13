@@ -10,11 +10,13 @@ import NoticeDetailsHeader from './NoticeDetailsHeader';
 import { loadComponentAndNoticeDetails } from './componentNoticeDetailsActions';
 import { setShowNoticesModal } from '../advancedLegalFileActions';
 import { loadComponentByComponentIdentifier } from '../../advancedLegalActions';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 function mapStateToProps({ advancedLegal, router, componentNoticeDetails }) {
   const component = advancedLegal.component || {};
   const availableScopes = advancedLegal.availableScopes || {};
   const noticeDetailsStateName = 'noticeDetails';
+  const isSbomManager = selectIsSbomManager({ router });
 
   let routerParams = router.currentParams;
   if (
@@ -24,6 +26,7 @@ function mapStateToProps({ advancedLegal, router, componentNoticeDetails }) {
     routerParams = router.prevParams;
   }
   return {
+    isSbomManager,
     loading: component.loading || availableScopes.loading || componentNoticeDetails.loadingNoticeDetails,
     error: component.error || availableScopes.error,
     availableScopes,

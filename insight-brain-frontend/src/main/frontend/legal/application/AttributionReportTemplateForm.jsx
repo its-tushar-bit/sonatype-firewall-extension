@@ -21,6 +21,7 @@ import {
   combineValidationErrors,
 } from '@sonatype/react-shared-components';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 
 export default function AttributionReportTemplateForm(props) {
   const {
@@ -33,6 +34,7 @@ export default function AttributionReportTemplateForm(props) {
     selectAttributionReportTemplate,
     $state,
     setDirtyFlagToAttributionReportTemplate,
+    isSbomManager,
   } = props;
   const { initialState, userInput } = nxTextInputStateHelpers;
   const defaultFormState = {
@@ -52,6 +54,7 @@ export default function AttributionReportTemplateForm(props) {
   const [templateIndexToDelete, setTemplateIndexToDelete] = React.useState(null);
   const NEW_TEMPLATE_INDEX = -1;
   const INCLUDE_STANDARD_LICENSE_TEXTS_PROP_NAME = 'includeStandardLicenseTexts';
+  const statePrefix = isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE;
   const requestErrors = {
     saveError: null,
     loadError: null,
@@ -282,11 +285,11 @@ export default function AttributionReportTemplateForm(props) {
 
   const backHref =
     applicationPublicId && stageTypeId
-      ? $state.href($state.get('legal.attributionReport'), {
+      ? $state.href($state.get(`${statePrefix}.attributionReport`), {
           applicationPublicId,
           stageTypeId,
         })
-      : $state.href($state.get('legal.attributionReportMultiApp'));
+      : $state.href($state.get(`${statePrefix}.attributionReportMultiApp`));
 
   const formTitle = `${
     attributionReportTemplates.selectedTemplateIndex === NEW_TEMPLATE_INDEX ? 'Create' : 'Edit'
@@ -541,4 +544,5 @@ AttributionReportTemplateForm.propTypes = {
   selectAttributionReportTemplate: PropTypes.func,
   $state: PropTypes.object.isRequired,
   setDirtyFlagToAttributionReportTemplate: PropTypes.func.isRequired,
+  isSbomManager: PropTypes.bool,
 };

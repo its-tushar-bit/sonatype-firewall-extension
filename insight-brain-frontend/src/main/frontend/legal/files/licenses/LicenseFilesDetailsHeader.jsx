@@ -26,6 +26,7 @@ export default function LicenseFilesDetailsHeader(props) {
     componentIdentifier,
     licenseIndex,
     $state,
+    isSbomManager,
     loadComponentAndLicenseDetails,
     setShowLicenseFilesModal,
     showLicenseFilesModal,
@@ -40,7 +41,15 @@ export default function LicenseFilesDetailsHeader(props) {
   return (
     <LoadWrapper loading={loading} error={error} retryHandler={load}>
       <MenuBarBackButton
-        href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash, componentIdentifier)}
+        href={backToComponentOverviewUrl(
+          $state,
+          ownerType,
+          ownerId,
+          stageTypeId,
+          hash,
+          componentIdentifier,
+          isSbomManager
+        )}
         text="Back to Component Obligations"
       />
       <div className="nx-page-title">
@@ -71,6 +80,7 @@ LicenseFilesDetailsHeader.propTypes = {
   availableScopes: availableScopesPropType,
   $state: PropTypes.object.isRequired,
   showLicenseFilesModal: PropTypes.bool,
+  isSbomManager: PropTypes.bool,
 
   loadComponentAndLicenseDetails: PropTypes.func.isRequired,
   setShowLicenseFilesModal: PropTypes.func.isRequired,

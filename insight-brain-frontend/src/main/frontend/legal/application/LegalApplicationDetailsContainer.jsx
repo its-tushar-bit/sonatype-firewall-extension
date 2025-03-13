@@ -15,9 +15,12 @@ import {
   updateLegalSortOrder,
   updateLicenseNameFilter,
 } from './filter/legalApplicationDetailsFilterActions';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 function mapStateToProps({ legalApplicationDetails, router }) {
+  const isSbomManager = selectIsSbomManager({ router });
   return {
+    isSbomManager,
     ...pick(
       [
         'error',

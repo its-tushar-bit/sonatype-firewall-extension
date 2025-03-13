@@ -30,6 +30,7 @@ export default function LegalDashboardFilter(props) {
     savedFilters,
     ownersMap,
     topParentOrganizationId,
+    isSbomManager,
 
     // filter items
     organizations,
@@ -79,7 +80,6 @@ export default function LegalDashboardFilter(props) {
   }
 
   const closeFilterBtnTooltip = filtersAreDirty ? 'Please apply or revert filter' : 'Close';
-
   return (
     <IqPopover onClose={() => toggleFilterSidebar(false)}>
       {showSaveFilterModal && <SaveLegalFilterModalContainer />}
@@ -121,28 +121,32 @@ export default function LegalDashboardFilter(props) {
                 ownersMap={ownersMap}
                 topParentOrganizationId={topParentOrganizationId}
               />
-              <NxStatefulTreeViewMultiSelect
-                options={categories}
-                selectedIds={selected.categories}
-                onChange={onCategoriesChange}
-                optionTooltipGenerator={applicationCategoryTooltip}
-                filterPlaceholder="Category"
-                name="application categories"
-                id="legal-category-filter"
-              >
-                <Hexagon className="size-16px size-fw outline" />
-                <span>Application Categories</span>
-              </NxStatefulTreeViewMultiSelect>
-              <NxStatefulTreeViewMultiSelect
-                options={stages}
-                selectedIds={selected.stages}
-                onChange={onStagesChange}
-                filterPlaceholder="Stage"
-                name="stages"
-                id="legal-stage-filter"
-              >
-                Stages
-              </NxStatefulTreeViewMultiSelect>
+              {!isSbomManager && (
+                <NxStatefulTreeViewMultiSelect
+                  options={categories}
+                  selectedIds={selected.categories}
+                  onChange={onCategoriesChange}
+                  optionTooltipGenerator={applicationCategoryTooltip}
+                  filterPlaceholder="Category"
+                  name="application categories"
+                  id="legal-category-filter"
+                >
+                  <Hexagon className="size-16px size-fw outline" />
+                  <span>Application Categories</span>
+                </NxStatefulTreeViewMultiSelect>
+              )}
+              {!isSbomManager && (
+                <NxStatefulTreeViewMultiSelect
+                  options={stages}
+                  selectedIds={selected.stages}
+                  onChange={onStagesChange}
+                  filterPlaceholder="Stage"
+                  name="stages"
+                  id="legal-stage-filter"
+                >
+                  Stages
+                </NxStatefulTreeViewMultiSelect>
+              )}
               <NxStatefulTreeViewMultiSelect
                 options={progressOptions}
                 selectedIds={selected.progressOptions}
@@ -204,4 +208,5 @@ LegalDashboardFilter.propTypes = {
   ...ManageFiltersDropdown.propTypes,
   ownersMap: PropTypes.object,
   topParentOrganizationId: PropTypes.string,
+  isSbomManager: PropTypes.bool,
 };

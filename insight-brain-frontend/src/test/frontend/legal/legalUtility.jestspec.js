@@ -215,94 +215,161 @@ describe('legalUtility', function () {
       get: (state) => state,
     };
 
-    it('returns a state for org component overview by hash', function () {
-      const url = backToComponentOverviewUrl(state, 'organization', 'org', undefined, 'hash', undefined);
-      expect(url).toEqual({
-        name: 'legal.organizationComponentOverview',
-        params: {
-          organizationId: 'org',
-          hash: 'hash',
-        },
+    const runBackToComponentOverviewUrlTests = (isSbomManager) => {
+      const statePrefix = isSbomManager ? 'sbomManager.legal' : 'legal';
+
+      it('returns a state for org component overview by hash', function () {
+        const url = backToComponentOverviewUrl(
+          state,
+          'organization',
+          'org',
+          undefined,
+          'hash',
+          undefined,
+          undefined,
+          isSbomManager
+        );
+        expect(url).toEqual({
+          name: `${statePrefix}.organizationComponentOverview`,
+          params: {
+            organizationId: 'org',
+            hash: 'hash',
+          },
+        });
       });
+
+      it('returns a state for org component overview by component identifier', function () {
+        const url = backToComponentOverviewUrl(
+          state,
+          'organization',
+          'org',
+          undefined,
+          undefined,
+          'compIdentifier',
+          undefined,
+          isSbomManager
+        );
+        expect(url).toEqual({
+          name: `${statePrefix}.componentOverviewByComponentIdentifier`,
+          params: {
+            organizationId: 'org',
+            componentIdentifier: 'compIdentifier',
+          },
+        });
+      });
+
+      it('returns a state for application component overview by hash', function () {
+        const url = backToComponentOverviewUrl(
+          state,
+          'application',
+          'app',
+          undefined,
+          'hash',
+          undefined,
+          undefined,
+          isSbomManager
+        );
+        expect(url).toEqual({
+          name: `${statePrefix}.applicationComponentOverview`,
+          params: {
+            applicationPublicId: 'app',
+            hash: 'hash',
+          },
+        });
+      });
+
+      it('returns a state for application component overview by component identifier', function () {
+        const url = backToComponentOverviewUrl(
+          state,
+          'application',
+          'app',
+          undefined,
+          undefined,
+          'componentIdentifier',
+          undefined,
+          isSbomManager
+        );
+        expect(url).toEqual({
+          name: `${statePrefix}.componentOverviewByComponentIdentifier`,
+          params: {
+            applicationPublicId: 'app',
+            componentIdentifier: 'componentIdentifier',
+          },
+        });
+      });
+
+      it('returns a state for application component overview for a given stage by hash', function () {
+        const url = backToComponentOverviewUrl(
+          state,
+          'application',
+          'app',
+          'build',
+          'hash',
+          undefined,
+          undefined,
+          isSbomManager
+        );
+        expect(url).toEqual({
+          name: `${statePrefix}.applicationStageTypeComponentOverview`,
+          params: {
+            applicationPublicId: 'app',
+            hash: 'hash',
+            stageTypeId: 'build',
+          },
+        });
+      });
+
+      it('returns a state for application component overview for a given stage by component identifier', function () {
+        const url = backToComponentOverviewUrl(
+          state,
+          'application',
+          'app',
+          'build',
+          undefined,
+          'componentIdentifier',
+          undefined,
+          isSbomManager
+        );
+        expect(url).toEqual({
+          name: `${statePrefix}.applicationStageTypeComponentOverview`,
+          params: {
+            applicationPublicId: 'app',
+            componentIdentifier: 'componentIdentifier',
+            stageTypeId: 'build',
+          },
+        });
+      });
+
+      it('returns a state for application component overview for hash and scanId by component identifier', function () {
+        const url = backToComponentOverviewUrl(
+          state,
+          'application',
+          'app',
+          undefined,
+          'hash',
+          'componentIdentifier',
+          'scanId',
+          isSbomManager
+        );
+        expect(url).toEqual({
+          name: `${statePrefix}.applicationComponentOverviewByComponentIdentifier`,
+          params: {
+            componentIdentifier: 'componentIdentifier',
+            applicationPublicId: 'app',
+            hash: 'hash',
+            scanId: 'scanId',
+            tabId: 'legal',
+          },
+        });
+      });
+    };
+
+    describe('when not isSbomManager', function () {
+      runBackToComponentOverviewUrlTests(false);
     });
 
-    it('returns a state for org component overview by component identifier', function () {
-      const url = backToComponentOverviewUrl(state, 'organization', 'org', undefined, undefined, 'compIdentifier');
-      expect(url).toEqual({
-        name: 'legal.componentOverviewByComponentIdentifier',
-        params: {
-          organizationId: 'org',
-          componentIdentifier: 'compIdentifier',
-        },
-      });
-    });
-
-    it('returns a state for application component overview by hash', function () {
-      const url = backToComponentOverviewUrl(state, 'application', 'app', undefined, 'hash', undefined);
-      expect(url).toEqual({
-        name: 'legal.applicationComponentOverview',
-        params: {
-          applicationPublicId: 'app',
-          hash: 'hash',
-        },
-      });
-    });
-
-    it('returns a state for application component overview by component identifier', function () {
-      const url = backToComponentOverviewUrl(state, 'application', 'app', undefined, undefined, 'componentIdentifier');
-      expect(url).toEqual({
-        name: 'legal.componentOverviewByComponentIdentifier',
-        params: {
-          applicationPublicId: 'app',
-          componentIdentifier: 'componentIdentifier',
-        },
-      });
-    });
-
-    it('returns a state for application component overview for a given stage by hash', function () {
-      const url = backToComponentOverviewUrl(state, 'application', 'app', 'build', 'hash', undefined);
-      expect(url).toEqual({
-        name: 'legal.applicationStageTypeComponentOverview',
-        params: {
-          applicationPublicId: 'app',
-          hash: 'hash',
-          stageTypeId: 'build',
-        },
-      });
-    });
-
-    it('returns a state for application component overview for a given stage by component identifier', function () {
-      const url = backToComponentOverviewUrl(state, 'application', 'app', 'build', undefined, 'componentIdentifier');
-      expect(url).toEqual({
-        name: 'legal.applicationStageTypeComponentOverview',
-        params: {
-          applicationPublicId: 'app',
-          componentIdentifier: 'componentIdentifier',
-          stageTypeId: 'build',
-        },
-      });
-    });
-
-    it('returns a state for application component overview for hash and scanId by component identifier', function () {
-      const url = backToComponentOverviewUrl(
-        state,
-        'application',
-        'app',
-        undefined,
-        'hash',
-        'componentIdentifier',
-        'scanId'
-      );
-      expect(url).toEqual({
-        name: 'legal.applicationComponentOverviewByComponentIdentifier',
-        params: {
-          componentIdentifier: 'componentIdentifier',
-          applicationPublicId: 'app',
-          hash: 'hash',
-          scanId: 'scanId',
-          tabId: 'legal',
-        },
-      });
+    describe('when is isSbomManager', function () {
+      runBackToComponentOverviewUrlTests(true);
     });
   });
 

@@ -76,28 +76,59 @@ describe('AttributionReportTemplateForm component', function () {
   });
 
   it('renders a MenuBarBackButton with correct href prop', function () {
-    const component = getShallowComponent({
-      ...minimalProps,
-      applicationPublicId: 'appId',
-      stageTypeId: 'stage',
-    });
-    const menuBarBackButton = component.find(MenuBarBackButton);
-    expect(menuBarBackButton).toExist();
-    expect(menuBarBackButton).toHaveProp(
-      'href',
+    function testMenuBarBackButton(props, expectedHref) {
+      const component = getShallowComponent(props);
+      const menuBarBackButton = component.find(MenuBarBackButton);
+      expect(menuBarBackButton).toExist();
+      expect(menuBarBackButton).toHaveProp('href', expectedHref);
+    }
+
+    testMenuBarBackButton(
+      {
+        ...minimalProps,
+        applicationPublicId: 'appId',
+        stageTypeId: 'stage',
+      },
       'legal.attributionReport-{"applicationPublicId":"appId","stageTypeId":"stage"}'
+    );
+
+    testMenuBarBackButton(
+      {
+        ...minimalProps,
+        applicationPublicId: 'appId',
+        stageTypeId: 'stage',
+        isSbomManager: true,
+      },
+      'sbomManager.legal.attributionReport-{"applicationPublicId":"appId","stageTypeId":"stage"}'
     );
   });
 
   it('renders correct MenuBarBackButton when no applicationPublicId and stageTypeId are specified', function () {
-    const component = getShallowComponent({
-      ...minimalProps,
-      applicationPublicId: undefined,
-      stageTypeId: undefined,
-    });
-    const menuBarBackButton = component.find(MenuBarBackButton);
-    expect(menuBarBackButton).toExist();
-    expect(menuBarBackButton).toHaveProp('href', 'legal.attributionReportMultiApp');
+    function testMenuBarBackButton(props, expectedHref) {
+      const component = getShallowComponent(props);
+      const menuBarBackButton = component.find(MenuBarBackButton);
+      expect(menuBarBackButton).toExist();
+      expect(menuBarBackButton).toHaveProp('href', expectedHref);
+    }
+
+    testMenuBarBackButton(
+      {
+        ...minimalProps,
+        applicationPublicId: undefined,
+        stageTypeId: undefined,
+      },
+      'legal.attributionReportMultiApp'
+    );
+
+    testMenuBarBackButton(
+      {
+        ...minimalProps,
+        applicationPublicId: undefined,
+        stageTypeId: undefined,
+        isSbomManager: true,
+      },
+      'sbomManager.legal.attributionReportMultiApp'
+    );
   });
 
   it('renders an empty form with default values', function () {

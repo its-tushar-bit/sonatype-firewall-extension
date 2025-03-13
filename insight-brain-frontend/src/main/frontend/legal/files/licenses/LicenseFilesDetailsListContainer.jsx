@@ -8,10 +8,12 @@ import { pick } from 'ramda';
 import { connect } from 'react-redux';
 import LicenseFilesDetailsList from './LicenseFilesDetailsList';
 import { licenseDetailsStateName } from './common';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 function mapStateToProps({ advancedLegal, componentLicenseFileDetails, router }) {
   const component = advancedLegal.component || {};
   const availableScopes = advancedLegal.availableScopes || {};
+  const isSbomManager = selectIsSbomManager({ router });
 
   let routerParams = router.currentParams;
   if (
@@ -21,6 +23,7 @@ function mapStateToProps({ advancedLegal, componentLicenseFileDetails, router })
     routerParams = router.prevParams;
   }
   return {
+    isSbomManager,
     componentLicenseFileDetails,
     loading: component.loading || availableScopes.loading || componentLicenseFileDetails.loadingLicenseDetails,
     error: component.error || availableScopes.error,

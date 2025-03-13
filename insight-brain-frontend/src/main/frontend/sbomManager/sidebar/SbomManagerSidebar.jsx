@@ -11,7 +11,7 @@ import {
   useToggle,
   NxGlobalSidebarNavigationLink,
 } from '@sonatype/react-shared-components';
-import { faHome, faSitemap, faSearch, faGrid2Plus } from '@fortawesome/pro-solid-svg-icons';
+import { faHome, faSitemap, faSearch, faGrid2Plus, faGavel } from '@fortawesome/pro-solid-svg-icons';
 import { faArrowToLeft, faBars, faStars } from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
@@ -20,12 +20,13 @@ import IqSidebarNavFooter from 'MainRoot/react/iqSidebarNav/IqSidebarNavFooter';
 const logoImg = require('../assets/sbom-manager.svg');
 
 export default function SbomManagerSidebar(props) {
-  const { isLoggedIn, isSbomManagerEnabled, isApiPageEnabled } = props;
+  const { isLoggedIn, isSbomManagerEnabled, isApiPageEnabled, isAlpForSbomManagerEnabled } = props;
   const uiRouterState = useRouterState();
   const dashboardState = 'sbomManager.dashboard';
   const applicationsState = 'sbomManager.applications';
   const sbomManagerOrgsState = 'sbomManager.management.view';
   const advancedSearchState = 'sbomManager.advancedSearch';
+  const sbomManagerLegalState = 'sbomManager.legal.dashboard';
   const apiState = 'sbomManager.api';
 
   const [sidebarOpen, onToggleCollapse] = useToggle(true);
@@ -34,6 +35,7 @@ export default function SbomManagerSidebar(props) {
   const applicationsHref = uiRouterState.href(applicationsState);
   const sbomManagerOrgsHref = uiRouterState.href(sbomManagerOrgsState);
   const advancedSearchHref = uiRouterState.href(advancedSearchState);
+  const legalHref = uiRouterState.href(sbomManagerLegalState);
   const apiHref = uiRouterState.href(apiState);
 
   const isSelected = (entryName) => uiRouterState.includes(entryName);
@@ -78,6 +80,15 @@ export default function SbomManagerSidebar(props) {
             text="Advanced Search"
             href={advancedSearchHref}
           />
+          {isAlpForSbomManagerEnabled && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isSelected('sbomManager.legal')}
+              id="sbom-manager-legal-button"
+              icon={faGavel}
+              text="Legal"
+              href={legalHref}
+            />
+          )}
           {isApiPageEnabled && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected(apiState)}

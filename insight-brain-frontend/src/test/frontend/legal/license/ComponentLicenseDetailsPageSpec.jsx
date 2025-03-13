@@ -48,6 +48,7 @@ describe('ComponentLicenseDetailsPage', function () {
       licenseIndex: 1,
       loadComponentAndLicenseDetails: loadComponentAndLicenseDetailsSpy,
       scanId: 'fooScanId',
+      isSbomManager: false,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ComponentLicenseDetailsPage, minimalProps);
@@ -78,7 +79,8 @@ describe('ComponentLicenseDetailsPage', function () {
       minimalProps.stageTypeId,
       minimalProps.hash,
       minimalProps.componentIdentifier,
-      minimalProps.scanId
+      minimalProps.scanId,
+      minimalProps.isSbomManager
     );
   });
 
@@ -101,7 +103,8 @@ describe('ComponentLicenseDetailsPage', function () {
       updatedProps.stageTypeId,
       updatedProps.hash,
       updatedProps.componentIdentifier,
-      updatedProps.scanId
+      updatedProps.scanId,
+      updatedProps.isSbomManager
     );
   });
 

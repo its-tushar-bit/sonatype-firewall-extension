@@ -93,42 +93,58 @@ describe('NoticeTextsTile', function () {
   });
 
   it('renders the given notice file links by hash', function () {
-    const wrapper = getShallowComponent();
-    let noticeFileLinks = wrapper.find('#legal-file-section-view-more-details').find(NxTextLink);
+    const testNoticeFileLinks = (props, expectedHrefPrefix) => {
+      const wrapper = getShallowComponent(props);
+      let noticeFileLinks = wrapper.find('#legal-file-section-view-more-details').find(NxTextLink);
 
-    let noticeFileLink = noticeFileLinks.at(0);
-    expect(noticeFileLink).toHaveProp(
-      'href',
-      'legal.componentNoticeDetails.noticeDetails-{"hash":"testHash","noticeIndex":0}'
-    );
+      let noticeFileLink = noticeFileLinks.at(0);
+      expect(noticeFileLink).toHaveProp('href', `${expectedHrefPrefix}-{"hash":"testHash","noticeIndex":0}`);
 
-    noticeFileLink = noticeFileLinks.at(1);
-    expect(noticeFileLink).toHaveProp(
-      'href',
-      'legal.componentNoticeDetails.noticeDetails-{"hash":"testHash","noticeIndex":1}'
+      noticeFileLink = noticeFileLinks.at(1);
+      expect(noticeFileLink).toHaveProp('href', `${expectedHrefPrefix}-{"hash":"testHash","noticeIndex":1}`);
+    };
+
+    testNoticeFileLinks(minimalProps, 'legal.componentNoticeDetails.noticeDetails');
+    testNoticeFileLinks(
+      {
+        ...minimalProps,
+        isSbomManager: true,
+      },
+      'sbomManager.legal.componentNoticeDetails.noticeDetails'
     );
   });
 
   it('renders the given notice file links by component identifier', function () {
-    const wrapper = getShallowComponent({
+    const testNoticeFileLinksByComponentIdentifier = (props, expectedHrefPrefix) => {
+      const wrapper = getShallowComponent(props);
+      let noticeFileLinks = wrapper.find('#legal-file-section-view-more-details').find(NxTextLink);
+
+      let noticeFileLink = noticeFileLinks.at(0);
+      expect(noticeFileLink).toHaveProp(
+        'href',
+        `${expectedHrefPrefix}-{"noticeIndex":0,"componentIdentifier":"testComponentIdentifier"}`
+      );
+
+      noticeFileLink = noticeFileLinks.at(1);
+      expect(noticeFileLink).toHaveProp(
+        'href',
+        `${expectedHrefPrefix}-{"noticeIndex":1,"componentIdentifier":"testComponentIdentifier"}`
+      );
+    };
+
+    const props = {
       ...minimalProps,
-      hash: undefined,
       componentIdentifier: 'testComponentIdentifier',
-    });
-    let noticeFileLinks = wrapper.find('#legal-file-section-view-more-details').find(NxTextLink);
+      hash: undefined,
+    };
 
-    let noticeFileLink = noticeFileLinks.at(0);
-    expect(noticeFileLink).toHaveProp(
-      'href',
-      'legal.noticeFilesByComponentIdentifier.noticeDetails' +
-        '-{"noticeIndex":0,"componentIdentifier":"testComponentIdentifier"}'
-    );
-
-    noticeFileLink = noticeFileLinks.at(1);
-    expect(noticeFileLink).toHaveProp(
-      'href',
-      'legal.noticeFilesByComponentIdentifier.noticeDetails' +
-        '-{"noticeIndex":1,"componentIdentifier":"testComponentIdentifier"}'
+    testNoticeFileLinksByComponentIdentifier(props, 'legal.noticeFilesByComponentIdentifier.noticeDetails');
+    testNoticeFileLinksByComponentIdentifier(
+      {
+        ...props,
+        isSbomManager: true,
+      },
+      'sbomManager.legal.noticeFilesByComponentIdentifier.noticeDetails'
     );
   });
 });

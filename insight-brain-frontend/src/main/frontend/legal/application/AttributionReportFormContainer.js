@@ -12,13 +12,16 @@ import {
   applyAttributionReportTemplateByIndex,
   setDirtyFlagToAttributionReport,
 } from './attributionReportsActions';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 function mapStateToProps(state) {
+  const isSbomManager = selectIsSbomManager(state);
   const {
     router,
     attributionReports: { attributionReportTemplates, attributionReports },
   } = state;
   return {
+    isSbomManager,
     ...pick(['applicationPublicId', 'stageTypeId', '$state'], router.currentParams),
     ...pick(['isMultiApp'], router?.currentState?.data),
     attributionReportTemplates,

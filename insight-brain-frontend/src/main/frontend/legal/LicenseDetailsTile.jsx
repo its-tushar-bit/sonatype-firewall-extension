@@ -7,7 +7,13 @@ import React, { Fragment } from 'react';
 import { faPen } from '@fortawesome/pro-solid-svg-icons';
 import * as PropTypes from 'prop-types';
 import { componentPropType, licenseLegalMetadataPropType } from './advancedLegalPropTypes';
-import { findSingleLicenseIndex, findSimilarLicenseIndex, formatLicenseMeta } from './legalUtility';
+import {
+  findSingleLicenseIndex,
+  findSimilarLicenseIndex,
+  formatLicenseMeta,
+  LEGAL_SBOM_MANAGER_PARENT_ROUTE,
+  LEGAL_PARENT_ROUTE,
+} from './legalUtility';
 import {
   NxButton,
   NxFontAwesomeIcon,
@@ -32,6 +38,7 @@ export default function LicenseDetailsTile(props) {
     componentIdentifier,
     stageTypeId,
     $state,
+    isSbomManager,
   } = props;
   const effectiveLicenses = formatLicenseMeta('effectiveLicenses', component, licenseLegalMetadata);
   const declaredLicenses = formatLicenseMeta('declaredLicenses', component, licenseLegalMetadata);
@@ -39,13 +46,14 @@ export default function LicenseDetailsTile(props) {
 
   const isLicensePresent = (licenses) => licenses.length > 0;
   const licenseDetailsTargetState = () => {
+    const prefix = isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE;
     if (stageTypeId) {
-      return 'legal.stageTypeComponentLicenseDetails';
+      return `${prefix}.stageTypeComponentLicenseDetails`;
     }
     if (componentIdentifier && hash && scanId) {
-      return 'legal.componentLicenseDetailsByComponentIdentifierAndHashAndScanId';
+      return `${prefix}.componentLicenseDetailsByComponentIdentifierAndHashAndScanId`;
     }
-    return hash ? 'legal.componentLicenseDetails' : 'legal.componentLicenseDetailsByComponentIdentifier';
+    return hash ? `${prefix}.componentLicenseDetails` : `${prefix}.componentLicenseDetailsByComponentIdentifier`;
   };
 
   const createItem = (license) => {
@@ -159,4 +167,5 @@ LicenseDetailsTile.propTypes = {
   componentIdentifier: PropTypes.string,
   stageTypeId: PropTypes.string,
   $state: PropTypes.object.isRequired,
+  isSbomManager: PropTypes.bool,
 };

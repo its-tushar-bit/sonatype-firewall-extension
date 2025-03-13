@@ -67,13 +67,14 @@ export function backToComponentOverviewUrl(
   stageTypeId,
   hash,
   componentIdentifier,
-  scanId = null
+  scanId = null,
+  isSbomManager
 ) {
   let state = '';
   if (componentIdentifier && !hash) {
-    state = 'legal.componentOverviewByComponentIdentifier';
+    state = 'componentOverviewByComponentIdentifier';
   } else {
-    state = ownerType === 'organization' ? 'legal.organizationComponentOverview' : 'legal.applicationComponentOverview';
+    state = ownerType === 'organization' ? 'organizationComponentOverview' : 'applicationComponentOverview';
   }
   const params = {
     [ownerType === 'organization' ? 'organizationId' : 'applicationPublicId']: ownerId,
@@ -81,14 +82,17 @@ export function backToComponentOverviewUrl(
     ...(componentIdentifier && { componentIdentifier }),
   };
   if (stageTypeId && ownerType === 'application') {
-    state = 'legal.applicationStageTypeComponentOverview';
+    state = 'applicationStageTypeComponentOverview';
     params.stageTypeId = stageTypeId;
   }
   if (componentIdentifier && hash && scanId) {
-    state = 'legal.applicationComponentOverviewByComponentIdentifier';
+    state = 'applicationComponentOverviewByComponentIdentifier';
     params.scanId = scanId;
     params.tabId = 'legal';
   }
+
+  state = `${isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE}.${state}`;
+
   return $state.href($state.get(state), params);
 }
 
@@ -219,3 +223,264 @@ export const getStatusName = (id) => {
   //you send me junk, i send you junk back ;)
   return id;
 };
+
+export const LEGAL_SBOM_MANAGER_PARENT_ROUTE = 'sbomManager.legal';
+export const LEGAL_PARENT_ROUTE = 'legal';
+
+export function createLegalRoutes($stateProvider, parentRoute = LEGAL_PARENT_ROUTE) {
+  const prefixed = (path) => `${parentRoute}${path}`;
+
+  $stateProvider
+    .state(parentRoute, {
+      abstract: true,
+    })
+    .state(prefixed('.dashboard'), {
+      url: '/legal/dashboard',
+      component: 'legalDashboard',
+      data: {
+        title: 'Legal Dashboard',
+        activeTab: 'applications',
+      },
+    })
+    .state(prefixed('.applicationsDashboard'), {
+      url: '/legal/applicationsDashboard',
+      component: 'legalDashboard',
+      data: {
+        title: 'Legal Dashboard',
+        activeTab: 'applications',
+        disableCreateAttributionReportBtn: false,
+      },
+    })
+    .state(prefixed('.componentsDashboard'), {
+      url: '/legal/componentsDashboard',
+      component: 'legalDashboard',
+      data: {
+        title: 'Legal Dashboard',
+        activeTab: 'components',
+        disableCreateAttributionReportBtn: true,
+      },
+    })
+    .state(prefixed('.componentOverview'), {
+      url: '/legal/component/{hash}',
+      component: 'componentLegalOverview',
+      data: {
+        title: 'Component - Legal Overview',
+      },
+    })
+    .state(prefixed('.componentOverviewByComponentIdentifier'), {
+      url: '/legal/component/componentIdentifier/{componentIdentifier}/repository/{repositoryId}',
+      component: 'componentLegalOverview',
+      data: {
+        title: 'Component - Legal Overview',
+      },
+    })
+    .state(prefixed('.applicationComponentOverviewByComponentIdentifier'), {
+      url:
+        '/legal/component/componentIdentifier/{componentIdentifier}/application/{applicationPublicId}' +
+        '/component/{hash}/scan/{scanId}/{tabId}',
+      component: 'componentLegalOverview',
+      data: {
+        title: 'Component - Legal Overview',
+      },
+    })
+    .state(prefixed('.noticeFilesByComponentIdentifier'), {
+      url: '/legal/{ownerType}/{ownerId}/componentIdentifier/{componentIdentifier}/notices',
+      component: 'componentNoticeDetails',
+      abstract: true,
+    })
+    .state(prefixed('.noticeFilesByComponentIdentifier.noticeDetails'), {
+      url: '/{noticeIndex}',
+      component: 'noticeDetailsContents',
+      data: {
+        title: 'Notice Details',
+      },
+    })
+    .state(prefixed('.organizationComponentOverview'), {
+      url: '/legal/organization/{organizationId}/component/{hash}',
+      component: 'componentLegalOverview',
+      data: {
+        title: 'Component - Legal Overview',
+      },
+    })
+    .state(prefixed('.applicationComponentOverview'), {
+      url: '/legal/application/{applicationPublicId}/component/{hash}',
+      component: 'componentLegalOverview',
+      data: {
+        title: 'Component - Legal Overview',
+      },
+    })
+    .state(prefixed('.applicationStageTypeComponentOverview'), {
+      url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}/component/{hash}',
+      component: 'componentLegalOverview',
+      data: {
+        title: 'Component - Legal Overview',
+      },
+    })
+    .state(prefixed('.applicationDetails'), {
+      url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}',
+      component: 'legalApplicationDetails',
+      data: {
+        title: 'Application Details',
+      },
+    })
+    .state(prefixed('.attributionReport'), {
+      url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}/attributionReport',
+      component: 'attributionReportForm',
+      data: {
+        title: 'Attribution Report',
+        isDirty: ['attributionReports', 'attributionReports', 'isFormDirty'],
+      },
+    })
+    .state(prefixed('.attributionReportMultiApp'), {
+      url: '/legal/application/attributionReport',
+      component: 'attributionReportForm',
+      data: {
+        title: 'Attribution Report (Multiple Applications)',
+        isDirty: ['attributionReports', 'attributionReportTemplates', 'isFormDirty'],
+        isMultiApp: true,
+      },
+    })
+    .state(prefixed('.attributionReportTemplate'), {
+      url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}/attributionReportTemplate',
+      component: 'attributionReportTemplateForm',
+      data: {
+        title: 'Attribution Report Templates',
+        isDirty: ['attributionReports', 'attributionReportTemplates', 'isFormDirty'],
+      },
+    })
+    .state(prefixed('.attributionReportTemplateMultiApp'), {
+      url: '/legal/application/attributionReportTemplate',
+      component: 'attributionReportTemplateForm',
+      data: {
+        title: 'Attribution Report Templates',
+        isDirty: ['attributionReports', 'attributionReportTemplates', 'isFormDirty'],
+        isMultiApp: true,
+      },
+    })
+    .state(prefixed('.componentCopyrightDetails'), {
+      url: '/legal/{ownerType}/{ownerId}/component/{hash}/copyrights',
+      component: 'componentCopyrightDetails',
+      abstract: true,
+    })
+    .state(prefixed('.componentCopyrightDetails.copyrightDetails'), {
+      url: '/{copyrightIndex}',
+      component: 'copyrightDetailsContents',
+      data: {
+        title: 'Copyright Details',
+      },
+    })
+    .state(prefixed('.componentCopyrightDetailsByComponentIdentifier'), {
+      url: '/legal/{ownerType}/{ownerId}/componentIdentifier/{componentIdentifier}/copyrights',
+      component: 'componentCopyrightDetails',
+      abstract: true,
+    })
+    .state(prefixed('.componentCopyrightDetailsByComponentIdentifier.copyrightDetails'), {
+      url: '/{copyrightIndex}',
+      component: 'copyrightDetailsContents',
+      data: {
+        title: 'Copyright Details',
+      },
+    })
+    .state(prefixed('.stageTypeComponentCopyrightDetails'), {
+      url: '/legal/{ownerType}/{ownerId}/stage/{stageTypeId}/component/{hash}/copyrights',
+      component: 'componentCopyrightDetails',
+      abstract: true,
+    })
+    .state(prefixed('.stageTypeComponentCopyrightDetails.copyrightDetails'), {
+      url: '/{copyrightIndex}',
+      component: 'copyrightDetailsContents',
+      data: {
+        title: 'Copyright Details',
+      },
+    })
+    .state(prefixed('.componentNoticeDetails'), {
+      url: '/legal/{ownerType}/{ownerId}/component/{hash}/notices',
+      component: 'componentNoticeDetails',
+      abstract: true,
+    })
+    .state(prefixed('.componentNoticeDetails.noticeDetails'), {
+      url: '/{noticeIndex}',
+      component: 'noticeDetailsContents',
+      data: {
+        title: 'Notice Details',
+      },
+    })
+    .state(prefixed('.stageTypeComponentNoticeDetails'), {
+      url: '/legal/{ownerType}/{ownerId}/stage/{stageTypeId}/component/{hash}/notices',
+      component: 'componentNoticeDetails',
+      abstract: true,
+    })
+    .state(prefixed('.stageTypeComponentNoticeDetails.noticeDetails'), {
+      url: '/{noticeIndex}',
+      component: 'noticeDetailsContents',
+      data: {
+        title: 'Notice Details',
+      },
+    })
+    .state(prefixed('.componentLicenseFilesDetails'), {
+      url: '/legal/{ownerType}/{ownerId}/component/{hash}/licenseFiles',
+      component: 'componentLicenseFilesDetails',
+      abstract: true,
+    })
+    .state(prefixed('.componentLicenseFilesDetails.licenseFilesDetails'), {
+      url: '/{licenseIndex}',
+      component: 'licenseFilesDetailsContents',
+      data: {
+        title: 'License Files Details',
+      },
+    })
+    .state(prefixed('.componentLicenseFilesDetailsByComponentIdentifier'), {
+      url: '/legal/{ownerType}/{ownerId}/componentIdentifier/{componentIdentifier}/licenseFiles',
+      component: 'componentLicenseFilesDetails',
+      abstract: true,
+    })
+    .state(prefixed('.componentLicenseFilesDetailsByComponentIdentifier.licenseFilesDetails'), {
+      url: '/{licenseIndex}',
+      component: 'licenseFilesDetailsContents',
+      data: {
+        title: 'License Files Details',
+      },
+    })
+    .state(prefixed('.stageTypeComponentLicenseFilesDetails'), {
+      url: '/legal/{ownerType}/{ownerId}/stage/{stageTypeId}/component/{hash}/licenseFiles',
+      component: 'componentLicenseFilesDetails',
+      abstract: true,
+    })
+    .state(prefixed('.stageTypeComponentLicenseFilesDetails.licenseFilesDetails'), {
+      url: '/{licenseIndex}',
+      component: 'licenseFilesDetailsContents',
+      data: {
+        title: 'License Files Details',
+      },
+    })
+    .state(prefixed('.componentLicenseDetails'), {
+      url: '/legal/{ownerType}/{ownerId}/component/{hash}/licenses/{licenseIndex}',
+      component: 'componentLicenseDetails',
+      data: {
+        title: 'Component - License Details',
+      },
+    })
+    .state(prefixed('.componentLicenseDetailsByComponentIdentifier'), {
+      url: '/legal/{ownerType}/{ownerId}/componentIdentifier/{componentIdentifier}/licenses/{licenseIndex}',
+      component: 'componentLicenseDetails',
+      data: {
+        title: 'Component - License Details',
+      },
+    })
+    .state(prefixed('.componentLicenseDetailsByComponentIdentifierAndHashAndScanId'), {
+      url:
+        '/legal/{ownerType}/{ownerId}/componentIdentifier/{componentIdentifier}/component/{hash}/scan/{scanId}' +
+        '/licenses/{licenseIndex}',
+      component: 'componentLicenseDetails',
+      data: {
+        title: 'Component - License Details',
+      },
+    })
+    .state(prefixed('.stageTypeComponentLicenseDetails'), {
+      url: '/legal/{ownerType}/{ownerId}/stage/{stageTypeId}/component/{hash}/licenses/{licenseIndex}',
+      component: 'componentLicenseDetails',
+      data: {
+        title: 'Component - License Details',
+      },
+    });
+}

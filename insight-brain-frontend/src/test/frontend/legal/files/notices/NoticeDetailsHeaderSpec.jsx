@@ -53,6 +53,7 @@ describe('NoticeDetailsHeader component', function () {
     stageTypeId: 'testStage',
     hash: 'testHash',
     setShowNoticesModal: setShowNoticesModalMock,
+    isSbomManager: false,
   };
 
   beforeEach(function () {
@@ -71,7 +72,8 @@ describe('NoticeDetailsHeader component', function () {
       minimalProps.ownerId,
       minimalProps.stageTypeId,
       minimalProps.hash,
-      undefined
+      undefined,
+      minimalProps.isSbomManager
     );
   });
 
@@ -89,7 +91,8 @@ describe('NoticeDetailsHeader component', function () {
       minimalProps.ownerId,
       minimalProps.stageTypeId,
       minimalProps.hash,
-      newMinimalProps.componentIdentifier
+      newMinimalProps.componentIdentifier,
+      minimalProps.isSbomManager
     );
   });
 

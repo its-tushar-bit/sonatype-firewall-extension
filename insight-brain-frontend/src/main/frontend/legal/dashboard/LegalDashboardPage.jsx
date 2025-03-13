@@ -23,9 +23,11 @@ import { applicationsTabPropType } from '../advancedLegalPropTypes';
 import { faFilter } from '@fortawesome/pro-solid-svg-icons';
 import { DEFAULT_FILTER_NAME } from './filter/defaultFilter';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 
 export default function LegalDashboardPage(props) {
   const {
+    isSbomManager,
     appliedFilterName,
     applications,
     components,
@@ -47,7 +49,8 @@ export default function LegalDashboardPage(props) {
   } = props;
 
   const tabIndexes = ['applications', 'components'];
-  const stateIndexes = ['legal.applicationsDashboard', 'legal.componentsDashboard'];
+  const prefix = isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE;
+  const stateIndexes = [`${prefix}.applicationsDashboard`, `${prefix}.componentsDashboard`];
   const defaultActiveTab = tabIndexes.findIndex((tab) => router.currentState?.data?.activeTab === tab);
   const disableCreateAttributionReportBtn =
     router.currentState?.data?.disableCreateAttributionReportBtn === true || applications.totalResultsCount < 1;
@@ -97,7 +100,7 @@ export default function LegalDashboardPage(props) {
               onClick={() => {
                 if (!disableCreateAttributionReportBtn) {
                   if (applications.totalResultsCount === 1) {
-                    stateGo('legal.attributionReportMultiApp');
+                    stateGo(`${prefix}.attributionReportMultiApp`);
                   } else {
                     setShowMultiAppAttributionReportModal(true);
                   }
@@ -136,7 +139,7 @@ export default function LegalDashboardPage(props) {
                       id="create-report-generate-report-button"
                       onClick={() => {
                         setShowMultiAppAttributionReportModal(false);
-                        stateGo('legal.attributionReportMultiApp');
+                        stateGo(`${prefix}.attributionReportMultiApp`);
                       }}
                       variant="primary"
                     >
@@ -167,6 +170,7 @@ export default function LegalDashboardPage(props) {
                   changeSortField={changeSortField}
                   stateGo={stateGo}
                   legalDashboardSetPage={legalDashboardSetPage}
+                  isSbomManager={isSbomManager}
                 />
               </div>
             </div>
@@ -184,6 +188,7 @@ export default function LegalDashboardPage(props) {
                   setComponentSearchInputValue={setComponentSearchInputValue}
                   searchByComponentName={searchByComponentName}
                   legalDashboardSetPage={legalDashboardSetPage}
+                  isSbomManager={isSbomManager}
                 />
               </div>
             </div>
@@ -195,6 +200,7 @@ export default function LegalDashboardPage(props) {
 }
 
 LegalDashboardPage.propTypes = {
+  isSbomManager: PropTypes.bool,
   appliedFilterName: PropTypes.string,
   applications: applicationsTabPropType,
   components: PropTypes.any,

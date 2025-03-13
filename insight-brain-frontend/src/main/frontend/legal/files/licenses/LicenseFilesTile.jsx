@@ -12,6 +12,7 @@ import LicensesModalContainer from './LicenseFilesModalContainer';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { createLegalFileTileItem } from '../common/utils';
+import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 
 export default function LicenseFilesTile(props) {
   const {
@@ -24,6 +25,7 @@ export default function LicenseFilesTile(props) {
     hash,
     componentIdentifier,
     $state,
+    isSbomManager,
   } = props;
 
   const isLicensePresent = () => licenseFiles && licenseFiles.length > 0;
@@ -35,12 +37,13 @@ export default function LicenseFilesTile(props) {
   });
 
   const licenseFileDetailsTargetState = () => {
+    const prefix = isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE;
     if (stageTypeId) {
-      return 'legal.stageTypeComponentLicenseFilesDetails.licenseFilesDetails';
+      return `${prefix}.stageTypeComponentLicenseFilesDetails.licenseFilesDetails`;
     }
     return hash
-      ? 'legal.componentLicenseFilesDetails.licenseFilesDetails'
-      : 'legal.componentLicenseFilesDetailsByComponentIdentifier.licenseFilesDetails';
+      ? `${prefix}.componentLicenseFilesDetails.licenseFilesDetails`
+      : `${prefix}.componentLicenseFilesDetailsByComponentIdentifier.licenseFilesDetails`;
   };
 
   const createItem = (license, index) =>
@@ -85,4 +88,5 @@ LicenseFilesTile.propTypes = {
   hash: PropTypes.string,
   componentIdentifier: PropTypes.string,
   $state: PropTypes.object.isRequired,
+  isSbomManager: PropTypes.bool,
 };

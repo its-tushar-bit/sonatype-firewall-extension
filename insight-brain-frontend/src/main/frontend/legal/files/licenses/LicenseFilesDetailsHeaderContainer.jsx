@@ -10,10 +10,12 @@ import { loadComponentAndLicenseDetails } from './componentLicenseFilesDetailsAc
 import { setShowLicenseFilesModal } from '../advancedLegalFileActions';
 import LicenseFilesDetailsHeader from './LicenseFilesDetailsHeader';
 import { licenseDetailsStateName } from './common';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 function mapStateToProps({ advancedLegal, router, componentLicenseFileDetails }) {
   const component = advancedLegal.component || {};
   const availableScopes = advancedLegal.availableScopes || {};
+  const isSbomManager = selectIsSbomManager({ router });
 
   let routerParams = router.currentParams;
   if (
@@ -23,6 +25,7 @@ function mapStateToProps({ advancedLegal, router, componentLicenseFileDetails })
     routerParams = router.prevParams;
   }
   return {
+    isSbomManager,
     loading: component.loading || availableScopes.loading || componentLicenseFileDetails.loadingLicenseDetails,
     error: component.error || availableScopes.error,
     showLicenseFilesModal: component.component ? component.component.licenseLegalData.showLicenseFilesModal : false,

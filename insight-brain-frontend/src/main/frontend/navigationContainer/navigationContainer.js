@@ -23,6 +23,7 @@ import {
   selectIsSbomManagerEnabled,
   selectIsIntegratedEnterpriseReportingSupported,
   selectLoadingFeatures,
+  selectIsAlpForSbomManagerEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   selectIsStandaloneFirewall,
@@ -62,6 +63,7 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
   vm.isStandaloneDeveloper = false;
   vm.isStandaloneFirewall = false;
   vm.isFirewallOnlyLicense = false;
+  vm.isAlpForSbomManagerEnabled = false;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
 
@@ -138,6 +140,7 @@ function mapStateToThis(state) {
     isStandaloneDeveloper: selectIsStandaloneDeveloper(state),
     isStandaloneFirewall: selectIsStandaloneFirewall(state),
     isFirewallOnlyLicense: selectIsFirewallOnlyLicense(state),
+    isAlpForSbomManagerEnabled: selectIsAlpForSbomManagerEnabled(state),
   };
 }
 

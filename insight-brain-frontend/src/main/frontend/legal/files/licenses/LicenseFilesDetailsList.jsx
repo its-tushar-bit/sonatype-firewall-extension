@@ -8,6 +8,7 @@ import React, { useEffect } from 'react';
 import { componentPropType } from '../../advancedLegalPropTypes';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
+import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 
 export default function LicenseFilesDetailsList(props) {
   const {
@@ -21,6 +22,7 @@ export default function LicenseFilesDetailsList(props) {
     loading,
     error,
     $state,
+    isSbomManager,
   } = props;
 
   const adjustedIndex = parseInt(licenseIndex) || 0;
@@ -31,12 +33,13 @@ export default function LicenseFilesDetailsList(props) {
     item.status === 'enabled' ? 'Included in attribution report' : 'Excluded from the report';
 
   const licenseDetailsTargetState = () => {
+    const statePrefix = isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE;
     if (stageTypeId) {
-      return 'legal.stageTypeComponentLicenseFilesDetails.licenseFilesDetails';
+      return `${statePrefix}.stageTypeComponentLicenseFilesDetails.licenseFilesDetails`;
     }
     return hash
-      ? 'legal.componentLicenseFilesDetails.licenseFilesDetails'
-      : 'legal.componentLicenseFilesDetailsByComponentIdentifier.licenseFilesDetails';
+      ? `${statePrefix}.componentLicenseFilesDetails.licenseFilesDetails`
+      : `${statePrefix}.componentLicenseFilesDetailsByComponentIdentifier.licenseFilesDetails`;
   };
 
   const licenseRef = React.useRef(new Map());
@@ -95,4 +98,5 @@ LicenseFilesDetailsList.propTypes = {
   componentIdentifier: PropTypes.string,
   $state: PropTypes.object.isRequired,
   licenseIndex: PropTypes.string,
+  isSbomManager: PropTypes.bool,
 };

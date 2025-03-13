@@ -57,10 +57,41 @@ describe('LegalDashboardApplicationRow component', function () {
     expect(cells.at(4)).toHaveProp('chevron');
   });
 
+  it('renders a NxTableRow without Application Category column data if isSbomManager is true', function () {
+    getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardApplicationRow, {
+      ...minimalProps,
+      isSbomManager: true,
+    });
+    const wrapper = getShallowComponent();
+    let tableRow = wrapper.find(NxTableRow);
+    expect(tableRow).toExist();
+    let cells = tableRow.find(NxTableCell);
+    expect(cells.length).toEqual(4);
+    expect(cells.at(0).children().text()).toEqual('appName1');
+    expect(terseAgoSpy).toHaveBeenCalledWith(1607030429000);
+    expect(cells.at(1).children().text()).toEqual('2d - Build');
+    expect(cells.at(2).html().includes('tag1, tag2')).toBe(false);
+    let donutChart = cells.at(2).find(LegalBinaryDonutChart);
+    expect(donutChart).toExist();
+    expect(donutChart).toHaveProp('percent', 60);
+    expect(cells.at(2).childAt(1).text()).toEqual('12 / 20');
+    expect(cells.at(3)).toHaveProp('chevron');
+  });
+
   it('links to the application details page', function () {
     const tableRow = getShallowComponent().find(NxTableRow);
     tableRow.simulate('click');
     expect(stateGoSpy).toHaveBeenCalledWith('legal.applicationDetails', {
+      applicationPublicId: 'app ID 1',
+      stageTypeId: 'build',
+    });
+  });
+
+  it('links to the application details page when isSbomManager is true', function () {
+    const props = { ...minimalProps, isSbomManager: true };
+    const tableRow = getShallowComponent(props).find(NxTableRow);
+    tableRow.simulate('click');
+    expect(stateGoSpy).toHaveBeenCalledWith('sbomManager.legal.applicationDetails', {
       applicationPublicId: 'app ID 1',
       stageTypeId: 'build',
     });

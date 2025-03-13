@@ -20,6 +20,7 @@ import AttributionAdditionalFiles from './AttributionAdditionalFiles';
 import ConfirmationModal from './ConfirmationModal';
 import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 
 export default function AttributionReportForm(props) {
   const {
@@ -31,6 +32,7 @@ export default function AttributionReportForm(props) {
     applyAttributionReportTemplateByIndex,
     setDirtyFlagToAttributionReport,
     isMultiApp,
+    isSbomManager,
   } = props;
   // no way to set name on RSC checkboxes, so we need to create named hidden inputs to send values
   const { initialState, userInput } = nxTextInputStateHelpers;
@@ -64,10 +66,11 @@ export default function AttributionReportForm(props) {
     includeInnerSource: false,
   };
   const [formState, setFormState] = React.useState(defaultFormState);
+  const routePrefix = isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE;
   const rawManageTemplateUrl =
     isMultiApp === true
-      ? uiRouterState.href('legal.attributionReportTemplateMultiApp')
-      : uiRouterState.href('legal.attributionReportTemplate', { applicationPublicId, stageTypeId });
+      ? uiRouterState.href(`${routePrefix}.attributionReportTemplateMultiApp`)
+      : uiRouterState.href(`${routePrefix}.attributionReportTemplate`, { applicationPublicId, stageTypeId });
 
   React.useEffect(() => {
     getAttributionReportTemplates();
@@ -208,11 +211,11 @@ export default function AttributionReportForm(props) {
 
   const backHref =
     applicationPublicId && stageTypeId
-      ? uiRouterState.href('legal.applicationDetails', {
+      ? uiRouterState.href(`${routePrefix}.applicationDetails`, {
           applicationPublicId,
           stageTypeId,
         })
-      : uiRouterState.href('legal.dashboard');
+      : uiRouterState.href(`${routePrefix}.dashboard`);
 
   const handleDiscardedChangesConfirmation = () => {
     if (templateIndexToSelect === attributionReports.selectedTemplateIndex) {
@@ -436,4 +439,5 @@ AttributionReportForm.propTypes = {
   applyAttributionReportTemplateByIndex: PropTypes.func.isRequired,
   setDirtyFlagToAttributionReport: PropTypes.func.isRequired,
   isMultiApp: PropTypes.bool,
+  isSbomManager: PropTypes.bool,
 };

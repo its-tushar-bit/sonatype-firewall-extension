@@ -28,6 +28,7 @@ export default function LegalDashboardApplicationsTab({
   changeSortField,
   stateGo,
   legalDashboardSetPage,
+  isSbomManager,
 }) {
   const page = applications.page || 0;
   const { itemsPerPage, pagesToFill } = DASHBOARD.applications;
@@ -85,9 +86,11 @@ export default function LegalDashboardApplicationsTab({
             <NxTableCell isSortable sortDir={getSortDir('LAST_SCAN_TIME')} onClick={() => sort('LAST_SCAN_TIME')}>
               Last Scan
             </NxTableCell>
-            <NxTableCell isSortable sortDir={getSortDir('TAG_NAMES')} onClick={() => sort('TAG_NAMES')}>
-              App Categories
-            </NxTableCell>
+            {!isSbomManager && (
+              <NxTableCell isSortable sortDir={getSortDir('TAG_NAMES')} onClick={() => sort('TAG_NAMES')}>
+                App Categories
+              </NxTableCell>
+            )}
             <NxTableCell>Components Reviewed</NxTableCell>
             <NxTableCell chevron />
           </NxTableRow>
@@ -98,7 +101,7 @@ export default function LegalDashboardApplicationsTab({
           error={Messages.getHttpErrorMessage(applications.error)}
         >
           {rows.map((row, index) => (
-            <LegalDashboardApplicationRow key={index} row={row} stateGo={stateGo} />
+            <LegalDashboardApplicationRow key={index} row={row} stateGo={stateGo} isSbomManager={isSbomManager} />
           ))}
         </NxTableBody>
       </NxTable>
@@ -122,4 +125,5 @@ LegalDashboardApplicationsTab.propTypes = {
   changeSortField: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
   legalDashboardSetPage: PropTypes.func.isRequired,
+  isSbomManager: PropTypes.bool,
 };

@@ -9,6 +9,7 @@ import { NxButton, NxFontAwesomeIcon, NxAccordion, useToggle } from '@sonatype/r
 import { faAngleRight, faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import CopyrightOverrideFormContainer from './CopyrightOverrideFormContainer';
 import * as PropTypes from 'prop-types';
+import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 
 export default function CopyrightStatementsTile(props) {
   const {
@@ -20,6 +21,7 @@ export default function CopyrightStatementsTile(props) {
     componentIdentifier,
     stageTypeId,
     $state,
+    isSbomManager,
 
     //actions
     setDisplayCopyrightOverrideModal,
@@ -34,12 +36,13 @@ export default function CopyrightStatementsTile(props) {
   );
 
   const copyrightDetailsTargetState = () => {
+    const prefix = isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE;
     if (stageTypeId) {
-      return 'legal.stageTypeComponentCopyrightDetails.copyrightDetails';
+      return `${prefix}.stageTypeComponentCopyrightDetails.copyrightDetails`;
     }
     return hash
-      ? 'legal.componentCopyrightDetails.copyrightDetails'
-      : 'legal.componentCopyrightDetailsByComponentIdentifier.copyrightDetails';
+      ? `${prefix}.componentCopyrightDetails.copyrightDetails`
+      : `${prefix}.componentCopyrightDetailsByComponentIdentifier.copyrightDetails`;
   };
 
   const createItem = (copyright, index) => {
@@ -104,4 +107,5 @@ CopyrightStatementsTile.propTypes = {
   componentIdentifier: PropTypes.string,
   stageTypeId: PropTypes.string,
   $state: PropTypes.object.isRequired,
+  isSbomManager: PropTypes.bool,
 };

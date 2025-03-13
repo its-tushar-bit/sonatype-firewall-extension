@@ -7,6 +7,7 @@ import React, { useEffect } from 'react';
 import { componentCopyrightDetailsPropType, componentPropType } from '../advancedLegalPropTypes';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
+import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 
 export default function CopyrightList(props) {
   const {
@@ -21,6 +22,7 @@ export default function CopyrightList(props) {
     stageTypeId,
     componentCopyrightDetails,
     $state,
+    isSbomManager,
   } = props;
 
   const copyrightRef = React.useRef(new Map());
@@ -46,12 +48,13 @@ export default function CopyrightList(props) {
     item.originalContentHash ? getCopyrightFileCount(item.originalContentHash) : 'Manually added';
 
   const copyrightDetailsTargetState = () => {
+    const prefix = isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE;
     if (stageTypeId) {
-      return 'legal.stageTypeComponentCopyrightDetails.copyrightDetails';
+      return `${prefix}.stageTypeComponentCopyrightDetails.copyrightDetails`;
     }
     return hash
-      ? 'legal.componentCopyrightDetails.copyrightDetails'
-      : 'legal.componentCopyrightDetailsByComponentIdentifier.copyrightDetails';
+      ? `${prefix}.componentCopyrightDetails.copyrightDetails`
+      : `${prefix}.componentCopyrightDetailsByComponentIdentifier.copyrightDetails`;
   };
 
   const listItems =
@@ -114,4 +117,5 @@ CopyrightList.propTypes = {
   stageTypeId: PropTypes.string,
   $state: PropTypes.object.isRequired,
   copyrightIndex: PropTypes.string.isRequired,
+  isSbomManager: PropTypes.bool,
 };

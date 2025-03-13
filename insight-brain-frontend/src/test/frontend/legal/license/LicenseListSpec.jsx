@@ -27,42 +27,65 @@ describe('LicenseList component', function () {
   });
 
   it('renders the list of licenses by hash', function () {
-    const wrapper = getShallowComponent();
-    let licenses = wrapper.find('li.nx-list__item');
-    expect(licenses.length).toBe(2);
+    const testLicenseList = (props, expectedHrefPrefix) => {
+      const wrapper = getShallowComponent(props);
+      let licenses = wrapper.find('li.nx-list__item');
+      expect(licenses.length).toBe(2);
 
-    let license = licenses.at(0);
-    expect(license).toHaveText('GPL<NxThreatIndicator />Weak');
-    expect(license.find('a')).toHaveProp(
-      'href',
-      'legal.componentLicenseDetails-{"ownerType":"organization","ownerId":"org","hash":"fooHash","licenseIndex":0}'
-    );
+      let license = licenses.at(0);
+      expect(license).toHaveText('GPL<NxThreatIndicator />Weak');
+      expect(license.find('a')).toHaveProp(
+        'href',
+        `${expectedHrefPrefix}-{"ownerType":"organization","ownerId":"org","hash":"fooHash","licenseIndex":0}`
+      );
 
-    license = licenses.at(1);
-    expect(licenses.at(1)).toHaveText('GPL-2<NxThreatIndicator />Weak');
-    expect(license.find('a')).toHaveProp(
-      'href',
-      'legal.componentLicenseDetails-{"ownerType":"organization","ownerId":"org","hash":"fooHash","licenseIndex":1}'
-    );
+      license = licenses.at(1);
+      expect(licenses.at(1)).toHaveText('GPL-2<NxThreatIndicator />Weak');
+      expect(license.find('a')).toHaveProp(
+        'href',
+        `${expectedHrefPrefix}-{"ownerType":"organization","ownerId":"org","hash":"fooHash","licenseIndex":1}`
+      );
+    };
+
+    testLicenseList(minimalProps, 'legal.componentLicenseDetails');
+    testLicenseList({ ...minimalProps, isSbomManager: true }, 'sbomManager.legal.componentLicenseDetails');
   });
 
   it('renders the list of licenses by component identifier', function () {
-    const wrapper = getShallowComponent({ ...minimalProps, hash: undefined });
-    let licenses = wrapper.find('li.nx-list__item');
-    expect(licenses.length).toBe(2);
+    const testLicenseListByComponentIdentifier = (props, expectedHrefPrefix) => {
+      const wrapper = getShallowComponent(props);
+      let licenses = wrapper.find('li.nx-list__item');
+      expect(licenses.length).toBe(2);
 
-    let license = licenses.at(0);
-    expect(license).toHaveText('GPL<NxThreatIndicator />Weak');
-    expect(license.find('a')).toHaveProp(
-      'href',
-      'legal.componentLicenseDetailsByComponentIdentifier-{"ownerType":"organization","ownerId":"org","licenseIndex":0}'
+      let license = licenses.at(0);
+      expect(license).toHaveText('GPL<NxThreatIndicator />Weak');
+      expect(license.find('a')).toHaveProp(
+        'href',
+        `${expectedHrefPrefix}-{"ownerType":"organization","ownerId":"org","licenseIndex":0}`
+      );
+
+      license = licenses.at(1);
+      expect(licenses.at(1)).toHaveText('GPL-2<NxThreatIndicator />Weak');
+      expect(license.find('a')).toHaveProp(
+        'href',
+        `${expectedHrefPrefix}-{"ownerType":"organization","ownerId":"org","licenseIndex":1}`
+      );
+    };
+
+    testLicenseListByComponentIdentifier(
+      {
+        ...minimalProps,
+        hash: undefined,
+      },
+      'legal.componentLicenseDetailsByComponentIdentifier'
     );
-
-    license = licenses.at(1);
-    expect(licenses.at(1)).toHaveText('GPL-2<NxThreatIndicator />Weak');
-    expect(license.find('a')).toHaveProp(
-      'href',
-      'legal.componentLicenseDetailsByComponentIdentifier-{"ownerType":"organization","ownerId":"org","licenseIndex":1}'
+    testLicenseListByComponentIdentifier(
+      {
+        ...minimalProps,
+        hash: undefined,
+        isSbomManager: true,
+      },
+      'sbomManager.legal.componentLicenseDetailsByComponentIdentifier'
     );
   });
 

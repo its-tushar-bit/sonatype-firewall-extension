@@ -259,6 +259,40 @@ describe('LegalDashboardFilter', function () {
       expect(loadFilterSpy.calls.count()).toEqual(1);
       expect(loadFilterSpy.calls.argsFor(0)).toEqual([]);
     });
+
+    it('wont render the application category filters when isSbomManager is true', function () {
+      const toggleAppsAndOrgsSpy = jasmine.createSpy('toggleAppsAndOrgs'),
+        toggleFilterSpy = jasmine.createSpy('toggleFilter'),
+        filterContent = enzymeUtils.getLoadWrapperChildren(
+          getShallowComponent({
+            ...filterData,
+            loading: false,
+            toggleAppsAndOrgs: toggleAppsAndOrgsSpy,
+            toggleFilter: toggleFilterSpy,
+            isSbomManager: true,
+          })
+        ),
+        categoryFilter = filterContent.find('#legal-category-filter');
+
+      expect(categoryFilter).not.toExist();
+    });
+
+    it('wont render stages filters when isSbomManager is true', function () {
+      const toggleAppsAndOrgsSpy = jasmine.createSpy('toggleAppsAndOrgs'),
+        toggleFilterSpy = jasmine.createSpy('toggleFilter'),
+        filterContent = enzymeUtils.getLoadWrapperChildren(
+          getShallowComponent({
+            ...filterData,
+            loading: false,
+            toggleAppsAndOrgs: toggleAppsAndOrgsSpy,
+            toggleFilter: toggleFilterSpy,
+            isSbomManager: true,
+          })
+        ),
+        stageFilter = filterContent.find('#legal-stage-filter');
+
+      expect(stageFilter).not.toExist();
+    });
   });
 
   describe('applyCurrentFilter callback', function () {

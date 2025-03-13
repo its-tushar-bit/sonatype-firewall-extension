@@ -16,12 +16,12 @@ import {
   NxTableHead,
   NxTableRow,
 } from '@sonatype/react-shared-components';
-import { Messages } from '../../utilAngular/CommonServices';
 import LegalApplicationDetailsComponentRow from './LegalApplicationDetailsComponentRow';
 import LegalApplicationDetailsFilterContainer from './filter/LegalApplicationDetailsFilterContainer';
 import { faFilter } from '@fortawesome/pro-solid-svg-icons';
 import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
 import { expandedProgressOptions } from 'MainRoot/legal/dashboard/legalDashboardConstants';
+import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 
 export default function LegalApplicationDetailsPage(props) {
   const {
@@ -44,6 +44,7 @@ export default function LegalApplicationDetailsPage(props) {
     changeLicenseNameFilter,
     updateLegalSortOrder,
     stateGo,
+    isSbomManager,
   } = props;
 
   useEffect(() => {
@@ -52,6 +53,7 @@ export default function LegalApplicationDetailsPage(props) {
     }
   }, [applicationPublicId, stageTypeId]);
 
+  const prefix = isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE;
   const allOrNoFilterOptionsSelected = (selectedFilter, totalOptions) =>
     selectedFilter.size === totalOptions || selectedFilter.size === 0;
 
@@ -94,7 +96,7 @@ export default function LegalApplicationDetailsPage(props) {
         error={error}
         retryHandler={() => fetchLegalApplicationDetailsData(applicationPublicId, stageTypeId)}
       >
-        <MenuBarBackButton href={$state.href('legal.dashboard')} text="Back" />
+        <MenuBarBackButton href={$state.href(`${prefix}.dashboard`)} text="Back" />
         {filterSidebarOpen && <LegalApplicationDetailsFilterContainer />}
         <div className="nx-page-title">
           <h1 className="nx-h1">{applicationName} Obligations</h1>
@@ -102,7 +104,7 @@ export default function LegalApplicationDetailsPage(props) {
             <NxButton
               variant="primary"
               onClick={() => {
-                stateGo('legal.attributionReport', {
+                stateGo(`${prefix}.attributionReport`, {
                   applicationPublicId,
                   stageTypeId,
                 });
@@ -193,6 +195,7 @@ export default function LegalApplicationDetailsPage(props) {
                       stageTypeId={stageTypeId}
                       row={row}
                       stateGo={stateGo}
+                      isSbomManager={isSbomManager}
                     />
                   ))}
                 </NxTableBody>
@@ -235,4 +238,5 @@ LegalApplicationDetailsPage.propTypes = {
   changeComponentNameFilter: PropTypes.func.isRequired,
   changeLicenseNameFilter: PropTypes.func.isRequired,
   updateLegalSortOrder: PropTypes.func.isRequired,
+  isSbomManager: PropTypes.bool,
 };

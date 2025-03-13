@@ -52,6 +52,25 @@ describe('LegalDashboardApplicationsTab component', function () {
     expect(table).toHaveClassName('legal-dashboard-table');
   });
 
+  it('renders a table without application categories header column when isSbomManager is true', function () {
+    getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardApplicationsTab, {
+      ...minimalProps,
+      isSbomManager: true,
+    });
+    const wrapper = getShallowComponent();
+    let table = wrapper.find(NxTable);
+    expect(table).toExist();
+    expect(table).toHaveClassName('legal-dashboard-table');
+
+    const tableHeadCells = table.find(NxTableHead).find(NxTableCell);
+    expect(tableHeadCells).toExist();
+    expect(tableHeadCells.length).toBe(4);
+    for (let index = 0; index < tableHeadCells.length; index++) {
+      const cell = tableHeadCells.at(index);
+      expect(cell.html().includes('App Categories')).toBe(false);
+    }
+  });
+
   it('renders LegalDashboardApplicationRow components for each application passed in', function () {
     const wrapper = getShallowComponent();
     let table = wrapper.find(NxTable);

@@ -60,6 +60,7 @@ function IqSidebarNav(props) {
     isStandaloneDeveloper,
     isStandaloneFirewall,
     isFirewallOnlyLicense,
+    isAlpForSbomManagerEnabled,
   } = props;
   const logo = getProductLogo(productEdition);
 
@@ -98,6 +99,7 @@ function IqSidebarNav(props) {
       isLoggedIn={isLoggedIn}
       isSbomManagerEnabled={isSbomManagerEnabled}
       isApiPageEnabled={isApiPageEnabled}
+      isAlpForSbomManagerEnabled={isAlpForSbomManagerEnabled}
     />
   );
   const sonatypeDeveloperSidebar = (

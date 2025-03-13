@@ -27,6 +27,7 @@ export default function CopyrightDetailsHeader(props) {
     copyrightIndex,
     $state,
     showEditCopyrightOverrideModal,
+    isSbomManager,
 
     loadComponentAndCopyrightDetails,
     setDisplayCopyrightOverrideModal,
@@ -41,7 +42,15 @@ export default function CopyrightDetailsHeader(props) {
   return (
     <LoadWrapper loading={loading} error={error} retryHandler={load}>
       <MenuBarBackButton
-        href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash, componentIdentifier)}
+        href={backToComponentOverviewUrl(
+          $state,
+          ownerType,
+          ownerId,
+          stageTypeId,
+          hash,
+          componentIdentifier,
+          isSbomManager
+        )}
         text="Back to Component Obligations"
       />
       <div className="nx-page-title">
@@ -72,6 +81,7 @@ CopyrightDetailsHeader.propTypes = {
   availableScopes: availableScopesPropType,
   $state: PropTypes.object.isRequired,
   showEditCopyrightOverrideModal: PropTypes.bool,
+  isSbomManager: PropTypes.bool,
 
   loadComponentAndCopyrightDetails: PropTypes.func.isRequired,
   setDisplayCopyrightOverrideModal: PropTypes.func.isRequired,

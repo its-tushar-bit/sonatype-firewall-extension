@@ -247,10 +247,15 @@ describe('LegalApplicationDetailsPage', function () {
   });
 
   it('renders a MenuBarBackButton to go to the applications dashboard', function () {
-    const wrapper = getShallowComponent();
-    const menuBarBackButton = wrapper.find(MenuBarBackButton);
-    expect(menuBarBackButton).toExist();
-    expect(menuBarBackButton).toHaveProp('href', 'legal.dashboard');
-    expect(stateSpy.href).toHaveBeenCalled();
+    const testMenuBarBackButton = (props, expectedHref) => {
+      const wrapper = getShallowComponent(props);
+      const menuBarBackButton = wrapper.find(MenuBarBackButton);
+      expect(menuBarBackButton).toExist();
+      expect(menuBarBackButton).toHaveProp('href', expectedHref);
+      expect(stateSpy.href).toHaveBeenCalled();
+    };
+
+    testMenuBarBackButton(minimalProps, 'legal.dashboard');
+    testMenuBarBackButton({ ...minimalProps, isSbomManager: true }, 'sbomManager.legal.dashboard');
   });
 });

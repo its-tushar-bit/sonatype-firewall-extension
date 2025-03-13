@@ -34,6 +34,7 @@ export default function ComponentLicenseDetailsPage(props) {
     licenseLegalMetadata,
     $state,
     loadComponentAndLicenseDetails,
+    isSbomManager,
   } = props;
 
   function load() {
@@ -49,7 +50,16 @@ export default function ComponentLicenseDetailsPage(props) {
       {showLicensesModal && <LicensesModalContainer />}
       <LoadWrapper loading={loading} error={error} retryHandler={load}>
         <MenuBarBackButton
-          href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash, componentIdentifier, scanId)}
+          href={backToComponentOverviewUrl(
+            $state,
+            ownerType,
+            ownerId,
+            stageTypeId,
+            hash,
+            componentIdentifier,
+            scanId,
+            isSbomManager
+          )}
           text="Back to Component Obligations"
         />
         <div className="nx-page-title">
@@ -72,6 +82,7 @@ export default function ComponentLicenseDetailsPage(props) {
             licenseLegalMetadata={licenseLegalMetadata}
             componentLicenseDetails={componentLicenseDetails}
             $state={$state}
+            isSbomManager={isSbomManager}
           />
           <LicenseFullDetailsTile
             componentLicenseDetails={componentLicenseDetails}
@@ -100,4 +111,5 @@ ComponentLicenseDetailsPage.propTypes = {
   licenseLegalMetadata: licenseLegalMetadataPropType,
   $state: PropTypes.object.isRequired,
   loadComponentAndLicenseDetails: PropTypes.func.isRequired,
+  isSbomManager: PropTypes.bool,
 };

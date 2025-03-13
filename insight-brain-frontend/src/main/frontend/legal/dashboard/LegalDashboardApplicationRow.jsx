@@ -10,15 +10,16 @@ import * as PropTypes from 'prop-types';
 import { applicationPropType } from '../advancedLegalPropTypes';
 import { terseAgo } from '../../utilAngular/CommonServices';
 import LegalBinaryDonutChart from '../shared/LegalBinaryDonutChart';
+import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 
-export default function LegalDashboardApplicationRow({ row, stateGo }) {
+export default function LegalDashboardApplicationRow({ row, stateGo, isSbomManager }) {
   const percentage =
     row.componentsTotalCount > 0 ? Math.min(100, (row.componentsReviewedCount * 100) / row.componentsTotalCount) : 0;
 
   const scanTimeDisplay = (row.lastScanTime ? terseAgo(row.lastScanTime) + ' - ' : '') + row.stageTypeName;
 
   function goToApplicationDetailsPage() {
-    stateGo('legal.applicationDetails', {
+    stateGo(`${isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE}.applicationDetails`, {
       applicationPublicId: row.applicationPublicId,
       stageTypeId: row.stageTypeId,
     });
@@ -30,9 +31,11 @@ export default function LegalDashboardApplicationRow({ row, stateGo }) {
         {row.applicationName}
       </NxTableCell>
       <NxTableCell className="legal-dashboard-applications-last-scan">{scanTimeDisplay}</NxTableCell>
-      <NxTableCell className="legal-dashboard-applications-category nx-truncate-ellipsis">
-        {join(', ', row.applicationTagNames)}
-      </NxTableCell>
+      {!isSbomManager && (
+        <NxTableCell className="legal-dashboard-applications-category nx-truncate-ellipsis">
+          {join(', ', row.applicationTagNames)}
+        </NxTableCell>
+      )}
       <NxTableCell className="legal-dashboard-applications-review-progress">
         <LegalBinaryDonutChart percent={percentage} />
         <span>
@@ -47,4 +50,5 @@ export default function LegalDashboardApplicationRow({ row, stateGo }) {
 LegalDashboardApplicationRow.propTypes = {
   row: applicationPropType,
   stateGo: PropTypes.func.isRequired,
+  isSbomManager: PropTypes.bool,
 };

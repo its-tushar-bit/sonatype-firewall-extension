@@ -238,6 +238,10 @@ export const selectIsDeveloperDashboardEnabled = createSelector(
 );
 
 export const selectIsSbomManagerEnabled = createSelector(selectProductFeatures, propOr(false, 'sbom-manager'));
+export const selectIsAlpForSbomManagerEnabled = createSelector(
+  selectProductFeatures,
+  propOr(false, 'alp-for-sbom-manager')
+);
 export const selectNoSbomManagerEnabledError = createSelector(
   selectIsSbomManagerEnabled,
   selectLoadingFeatures,

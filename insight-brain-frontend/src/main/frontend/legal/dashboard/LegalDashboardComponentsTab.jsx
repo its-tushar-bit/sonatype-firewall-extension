@@ -27,6 +27,7 @@ export default function LegalDashboardComponentsTab({
   stateGo,
   searchByComponentName,
   setComponentSearchInputValue,
+  isSbomManager,
 }) {
   const [page, setPage] = useState(components.backendPage - 1 || 0);
   const { itemsPerPage, pagesToFill } = DASHBOARD.components;
@@ -120,7 +121,7 @@ export default function LegalDashboardComponentsTab({
           </NxTableHead>
           <NxTableBody isLoading={components.loading} emptyMessage={emptyMessage}>
             {rows.map((row, index) => (
-              <LegalDashboardComponentRow key={index} row={row} stateGo={stateGo} />
+              <LegalDashboardComponentRow key={index} row={row} stateGo={stateGo} isSbomManager={isSbomManager} />
             ))}
           </NxTableBody>
         </NxTable>
@@ -146,4 +147,5 @@ LegalDashboardComponentsTab.propTypes = {
   loadResults: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
   setComponentSearchInputValue: PropTypes.func,
+  isSbomManager: PropTypes.bool,
 };

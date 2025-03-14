@@ -285,7 +285,8 @@ public class ConfigurationInfoTest
         "autoWaivers",
         "newScanProcess",
         "idTokenCookieExpirationTime",
-        "alpForSbomManager");
+        "alpForSbomManager",
+        "componentChangeDetectionApi");
 
     // Properties included in the config.json in support zip
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());

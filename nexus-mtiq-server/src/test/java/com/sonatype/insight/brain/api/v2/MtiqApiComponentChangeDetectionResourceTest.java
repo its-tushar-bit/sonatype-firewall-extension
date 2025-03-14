@@ -35,30 +35,29 @@ import org.junit.runners.MethodSorters;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_CONFIG_PATH;
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_CONFIG_FEATURES_PATH;
-import static com.sonatype.insight.brain.api.PublicApiPaths.MALWARE_DEFENSE_RESOURCE_PATH;
-import static com.sonatype.insight.brain.api.v2.ApiMalwareDefenseResource.COMPONENT_CHANGE_DETECTION_CONFIGURATION_PATH;
-import static com.sonatype.insight.brain.api.v2.ApiMalwareDefenseResource.COMPONENT_CHANGE_DETECTION_EVENT_PATH;
+import static com.sonatype.insight.brain.api.PublicApiPaths.COMPONENT_CHANGE_DETECTION_RESOURCE_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiComponentChangeDetectionResource.CONFIGURATION_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiComponentChangeDetectionResource.EVENT_PATH;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.MALWARE_DEFENSE_API;
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class MtiqApiMalwareDefenseResourceTest
+public class MtiqApiComponentChangeDetectionResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
-  private static final String COMPONENT_CONFIGURATION_PATH = MALWARE_DEFENSE_RESOURCE_PATH + "/" +
-      COMPONENT_CHANGE_DETECTION_CONFIGURATION_PATH;
+  private static final String COMPONENT_CHANGE_CONFIGURATION_PATH =
+      COMPONENT_CHANGE_DETECTION_RESOURCE_PATH + "/" + CONFIGURATION_PATH;
 
-  private static final String COMPONENT_CHANGE_EVENT_PATH = MALWARE_DEFENSE_RESOURCE_PATH + "/" +
-      COMPONENT_CHANGE_DETECTION_EVENT_PATH;
+  private static final String COMPONENT_CHANGE_EVENT_PATH = COMPONENT_CHANGE_DETECTION_RESOURCE_PATH + "/" + EVENT_PATH;
 
   private String tenantSlug;
 
   @Before
   public void setUp() throws Exception {
     tenantSlug = getTestTenant().tenantSlug;
-    enableMalwareDefenseFeatureAndLicense(tenantSlug);
+    enableFeatureFlagAndLicense(tenantSlug);
   }
 
   @Test
@@ -175,15 +174,15 @@ public class MtiqApiMalwareDefenseResourceTest
     );
 
     HttpResponse response =
-        restRequest().path(COMPONENT_CONFIGURATION_PATH).body(components, MediaType.APPLICATION_JSON).post();
+        restRequest().path(COMPONENT_CHANGE_CONFIGURATION_PATH).body(components, MediaType.APPLICATION_JSON).post();
     assertResponseStatus(204, response);
     assertThat(configurationDAO.getCount()).isEqualTo(1);
   }
 
-  private void enableMalwareDefenseFeatureAndLicense(final String tenantSlug) throws Exception {
+  private void enableFeatureFlagAndLicense(final String tenantSlug) throws Exception {
     adminRestRequest(ADMIN_TENANT_CONFIG_FEATURES_PATH)
         .parameter(tenantSlug)
-        .path(MALWARE_DEFENSE_API)
+        .path(COMPONENT_CHANGE_DETECTION_API)
         .post();
 
     setFeatures(LicensedFeature.FIREWALL);
@@ -210,7 +209,7 @@ public class MtiqApiMalwareDefenseResourceTest
             "pkg:maven/org.sonatype/maven-policy-demo@2.2.0?type=jar")
     );
     return restRequest()
-        .path(COMPONENT_CONFIGURATION_PATH)
+        .path(COMPONENT_CHANGE_CONFIGURATION_PATH)
         .body(components, MediaType.APPLICATION_JSON);
   }
 

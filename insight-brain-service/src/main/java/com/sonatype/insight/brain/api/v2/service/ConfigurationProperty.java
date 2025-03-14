@@ -254,6 +254,9 @@ public class ConfigurationProperty
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.ALP_FOR_SBOM_MANAGER, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
+          (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API, Boolean.class,
+          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
           (p, o) -> Objects.toString(o, null))
       };
 

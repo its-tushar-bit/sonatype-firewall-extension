@@ -272,6 +272,8 @@ public class SystemConfigurationProperty
 
   public static final String MANUAL_PULL_REQUESTS = "manualPullRequests";
 
+  public static final String COMPONENT_CHANGE_DETECTION_API = "componentChangeDetectionApi";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

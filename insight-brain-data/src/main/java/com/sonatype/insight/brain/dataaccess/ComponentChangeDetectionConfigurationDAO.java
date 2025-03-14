@@ -37,6 +37,8 @@ public class ComponentChangeDetectionConfigurationDAO
 {
   public static final String COMPONENT_CHANGE_DETECTION_VERSION = "1.0";
 
+  private static final int MAX_PARAMETERS = 1000;
+
   private static final Logger log = LoggerFactory.getLogger(ComponentChangeDetectionConfigurationDAO.class);
 
   @Inject
@@ -104,11 +106,15 @@ public class ComponentChangeDetectionConfigurationDAO
         .map(ComponentChangeDetectionConfiguration::getPurl)
         .collect(Collectors.toList());
 
-    jakarta.persistence.Query query = tx.createNativeQuery(
-        "SELECT purl FROM " + getDatabaseSchema() + ".component_change_detection_configuration WHERE purl IN " +
-            buildPositionalParameters(purls, 1));
-    addPositionalParameters(query, purls, 1);
-    List<String> existingPurls = query.getResultList();
+    List<String> existingPurls = new ArrayList<>();
+    for (int i = 0; i < purls.size(); i += MAX_PARAMETERS) {
+      List<String> subList = purls.subList(i, Math.min(i + MAX_PARAMETERS, purls.size()));
+      jakarta.persistence.Query query = tx.createNativeQuery(
+          "SELECT purl FROM " + getDatabaseSchema() + ".component_change_detection_configuration WHERE purl IN " +
+              buildPositionalParameters(subList, 1));
+      addPositionalParameters(query, subList, 1);
+      existingPurls.addAll(query.getResultList());
+    }
 
     return uniqueComponents.stream()
         .filter(component -> !existingPurls.contains(component.getPurl()))
@@ -137,11 +143,15 @@ public class ComponentChangeDetectionConfigurationDAO
           .map(ComponentChangeDetectionConfiguration::getPurl)
           .collect(Collectors.toList());
 
-      jakarta.persistence.Query deleteQuery =
-          tx.createNativeQuery("DELETE FROM " + getDatabaseSchema() + ".component_change_detection_configuration" +
-              " WHERE purl IN " + buildPositionalParameters(removeComponentPurls, 1));
-      addPositionalParameters(deleteQuery, removeComponentPurls, 1);
-      deleteQuery.executeUpdate();
+      for (int i = 0; i < removeComponentPurls.size(); i += MAX_PARAMETERS) {
+        List<String> subList =
+            removeComponentPurls.subList(i, Math.min(i + MAX_PARAMETERS, removeComponentPurls.size()));
+        jakarta.persistence.Query deleteQuery = tx.createNativeQuery(
+            "DELETE FROM " + getDatabaseSchema() + ".component_change_detection_configuration" +
+                " WHERE purl IN " + buildPositionalParameters(subList, 1));
+        addPositionalParameters(deleteQuery, subList, 1);
+        deleteQuery.executeUpdate();
+      }
     }
     catch (NoResultException ignored) {
       // ignore

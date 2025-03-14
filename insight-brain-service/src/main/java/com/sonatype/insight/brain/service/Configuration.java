@@ -209,7 +209,8 @@ public class Configuration
         SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS,
         SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_BATCH_SIZE,
         SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_TASK_PERIOD,
-        SystemConfigurationProperty.ALP_FOR_SBOM_MANAGER
+        SystemConfigurationProperty.ALP_FOR_SBOM_MANAGER,
+        SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API
         )
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());

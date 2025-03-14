@@ -124,6 +124,7 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE.getId(),
           SystemConfigurationPropertyFeature.ALP_FOR_SBOM_MANAGER.getId(),
           SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.getId(),
+          SystemConfigurationPropertyFeature.COMPONENT_CHANGE_DETECTION_API.getId(),
       }
   )).toArray(String[]::new);
 

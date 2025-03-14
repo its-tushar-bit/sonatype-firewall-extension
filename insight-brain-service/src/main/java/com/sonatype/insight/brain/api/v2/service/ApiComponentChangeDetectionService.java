@@ -3,80 +3,106 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.malware.defense.changedetection;
+package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Date;
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ComponentChangeDetectionConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentChangeDetectionEventDAO;
-import com.sonatype.insight.brain.malware.defense.MalwareDefenseFeatureService;
 import com.sonatype.insight.brain.model.ComponentChangeDetectionConfiguration;
 import com.sonatype.insight.brain.model.ComponentChangeDetectionEvent;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @Named
 @Singleton
-public class ComponentChangeDetectionService
+public class ApiComponentChangeDetectionService
 {
   private final ComponentChangeDetectionConfigurationDAO componentChangeDetectionConfigurationDAO;
 
   private final ComponentChangeDetectionEventDAO componentChangeDetectionEventDAO;
 
-  private final MalwareDefenseFeatureService malwareDefenseFeatureService;
-
   private final Configuration configuration;
 
+  private final ProductLicense productLicense;
+
+  private static final TenantUtil tenantUtil = new TenantUtil();
+
   @Inject
-  public ComponentChangeDetectionService(
+  public ApiComponentChangeDetectionService(
       final ComponentChangeDetectionConfigurationDAO componentChangeDetectionConfigurationDAO,
       final ComponentChangeDetectionEventDAO componentChangeDetectionEventDAO,
-      final MalwareDefenseFeatureService malwareDefenseFeatureService,
-      final Configuration configuration)
+      final Configuration configuration,
+      final ProductLicense productLicense)
   {
     this.componentChangeDetectionConfigurationDAO = checkNotNull(componentChangeDetectionConfigurationDAO);
     this.componentChangeDetectionEventDAO = checkNotNull(componentChangeDetectionEventDAO);
-    this.malwareDefenseFeatureService = checkNotNull(malwareDefenseFeatureService);
     this.configuration = checkNotNull(configuration);
+    this.productLicense = checkNotNull(productLicense);
   }
 
   public List<ComponentChangeDetectionConfiguration> getConfiguration(int page, int pageSize) {
-    malwareDefenseFeatureService.checkMalwareDefenseEnabled();
+    validateLicense();
     return componentChangeDetectionConfigurationDAO.getComponents(page, pageSize);
   }
 
-  /// Adds items to the configuration
-  /// Returns a list of components that have been removed from the configuration if the bucket size is exceeded
+  /// Adds items to the configuration Returns a list of components that have been removed from the configuration if the
+  /// bucket size is exceeded
   public List<ComponentChangeDetectionConfiguration> addItemsToConfiguration(
       List<ComponentChangeDetectionConfiguration> components)
   {
-    malwareDefenseFeatureService.checkMalwareDefenseEnabled();
+    validateLicense();
     return componentChangeDetectionConfigurationDAO.addComponents(
         configuration.getComponentChangeDetectionMaxComponents(), components);
   }
 
   public void updateHashForComponent(String purl, String hash) {
-    malwareDefenseFeatureService.checkMalwareDefenseEnabled();
+    validateLicense();
     componentChangeDetectionConfigurationDAO.updateComparisonHashOfPurl(purl, hash);
   }
 
   public void addEvent(ComponentChangeDetectionEvent event) {
-    malwareDefenseFeatureService.checkMalwareDefenseEnabled();
+    validateLicense();
     componentChangeDetectionEventDAO.insert(event);
   }
 
   public void acknowledgeEventsOlderThan(Date time) {
-    malwareDefenseFeatureService.checkMalwareDefenseEnabled();
+    validateLicense();
     componentChangeDetectionEventDAO.deleteEntriesOlderThan(time);
   }
 
   public void updateHashAndVersionForComponent(final String purl, final String hash, final String version) {
-    malwareDefenseFeatureService.checkMalwareDefenseEnabled();
+    validateLicense();
     componentChangeDetectionConfigurationDAO.updateComparisonHashAndVersionOfPurl(purl, hash, version);
+  }
+
+  public boolean isMultiTenant() {
+    return tenantUtil.isMultiTenant();
+  }
+
+  public boolean isFeatureFlagOrLicenseDisabled() {
+    return !SystemConfigurationPropertyFeature.COMPONENT_CHANGE_DETECTION_API.isEnabled() ||
+        !productLicense.hasFeature(LicensedFeature.FIREWALL);
+  }
+
+  private boolean isLicenseDisabled() {
+    return !productLicense.hasFeature(LicensedFeature.FIREWALL);
+  }
+
+  public void validateLicense() {
+    if (isLicenseDisabled()) {
+      throw new InvalidLicenseException();
+    }
   }
 }

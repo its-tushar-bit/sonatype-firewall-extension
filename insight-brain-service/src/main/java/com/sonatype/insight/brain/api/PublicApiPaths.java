@@ -177,4 +177,7 @@ public class PublicApiPaths
   public static final String DISTRIBUTE_PATH = EXTERNAL_PATH + "/distribute";
 
   public static final String DEVELOPER_PATH = API_VERSION_PATH_V2 + "developer";
+
+  public static final String
+      COMPONENT_CHANGE_DETECTION_RESOURCE_PATH = API_VERSION_PATH_V2 + "component-change-detection";
 }

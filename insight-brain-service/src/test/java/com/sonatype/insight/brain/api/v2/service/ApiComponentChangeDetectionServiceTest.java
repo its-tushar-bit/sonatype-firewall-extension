@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.malware.defense.changedetection;
+package com.sonatype.insight.brain.api.v2.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -14,31 +14,31 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ComponentChangeDetectionConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentChangeDetectionEventDAO;
-import com.sonatype.insight.brain.malware.defense.MalwareDefenseFeatureService;
 import com.sonatype.insight.brain.model.ComponentChangeDetectionConfiguration;
 import com.sonatype.insight.brain.model.ComponentChangeDetectionEvent;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ComponentChangeDetectionServiceTest
+public class ApiComponentChangeDetectionServiceTest
     extends AbstractComponentTest
 {
   @Mock
-  private MalwareDefenseFeatureService malwareDefenseFeatureService;
-
-  @Mock
   private Configuration configuration;
+
+  @Inject
+  private ProductLicense productLicense;
 
   @Inject
   private ComponentChangeDetectionConfigurationDAO configurationDAO;
@@ -47,14 +47,13 @@ public class ComponentChangeDetectionServiceTest
   private ComponentChangeDetectionEventDAO eventDAO;
 
   @Inject
-  private ComponentChangeDetectionService underTest;
+  private ApiComponentChangeDetectionService underTest;
 
   @Before
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    underTest = new ComponentChangeDetectionService(configurationDAO, eventDAO,
-        malwareDefenseFeatureService, configuration);
+    underTest = new ApiComponentChangeDetectionService(configurationDAO, eventDAO, configuration, productLicense);
   }
 
   @Test

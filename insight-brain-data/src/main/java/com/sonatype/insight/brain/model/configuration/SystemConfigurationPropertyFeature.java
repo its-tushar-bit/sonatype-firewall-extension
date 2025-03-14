@@ -260,8 +260,18 @@ public enum SystemConfigurationPropertyFeature
       return super.isEnabled(tx);
     }
   },
+  MANUAL_PULL_REQUESTS(SystemConfigurationProperty.MANUAL_PULL_REQUESTS, false),
 
-  MANUAL_PULL_REQUESTS(SystemConfigurationProperty.MANUAL_PULL_REQUESTS, false);
+  COMPONENT_CHANGE_DETECTION_API(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API, false)
+  {
+    @Override
+    public boolean isEnabled(TransactionContext tx) {
+      if (tenantUtil.isSingleTenant()) {
+        return false;
+      }
+      return super.isEnabled(tx);
+    }
+  };
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

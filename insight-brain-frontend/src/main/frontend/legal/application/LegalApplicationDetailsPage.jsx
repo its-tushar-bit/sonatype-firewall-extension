@@ -49,7 +49,7 @@ export default function LegalApplicationDetailsPage(props) {
 
   useEffect(() => {
     if (applicationPublicId && stageTypeId) {
-      fetchLegalApplicationDetailsData(applicationPublicId, stageTypeId);
+      fetchLegalApplicationDetailsData(applicationPublicId, stageTypeId, isSbomManager);
     }
   }, [applicationPublicId, stageTypeId]);
 
@@ -94,7 +94,7 @@ export default function LegalApplicationDetailsPage(props) {
       <LoadWrapper
         loading={loading}
         error={error}
-        retryHandler={() => fetchLegalApplicationDetailsData(applicationPublicId, stageTypeId)}
+        retryHandler={() => fetchLegalApplicationDetailsData(applicationPublicId, stageTypeId, isSbomManager)}
       >
         <MenuBarBackButton href={$state.href(`${prefix}.dashboard`)} text="Back" />
         {filterSidebarOpen && <LegalApplicationDetailsFilterContainer />}

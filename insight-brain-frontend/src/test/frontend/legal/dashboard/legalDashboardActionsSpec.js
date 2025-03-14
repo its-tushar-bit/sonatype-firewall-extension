@@ -470,4 +470,122 @@ describe('legalDashboardActions', function () {
 
     tabs.forEach(testLoadDashboardUI);
   });
+
+  describe('fetchResults', function () {
+    let store, mockAxiosCalls;
+
+    beforeEach(() => {
+      mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+    });
+
+    it('should include only "compliance" in stageTypeIds when isSbomManager is true', function (done) {
+      const initialState = {
+        legalDashboardFilter: {
+          appliedFilter: {
+            applications: ['app1'],
+            organizations: ['org1'],
+            stages: ['stage1', 'stage2'],
+            categories: ['cat1'],
+            progressOptions: ['option1'],
+          },
+        },
+        legalDashboard: {
+          applications: {},
+          components: {
+            componentNameToSearch: '',
+            componentSearchInput: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
+          },
+        },
+        router: {
+          currentState: {
+            name: 'sbomManager.legal.dashboard',
+            url: '/legal/dashboard',
+            data: {
+              activeTab: 'applications',
+            },
+          },
+        },
+      };
+
+      store = SpecUtil.mockReduxStore(initialState);
+
+      mockAxiosCalls({
+        post: {
+          [getLegalDashboardApplicationsUrl()]: Promise.resolve({
+            data: 'results',
+          }),
+        },
+      });
+
+      store.dispatch(loadResults('applications')).then(() => {
+        const appliedFilter = {
+          applicationIds: ['app1'],
+          organizationIds: ['org1'],
+          stageTypeIds: ['compliance'],
+          tagIds: ['cat1'],
+          reviewStatus: ['option1'],
+          page: 1,
+          pageSize: DASHBOARD['applications'].itemsPerPage * DASHBOARD['applications'].pagesToFill,
+          order: undefined,
+        };
+
+        expect(axios.post).toHaveBeenCalledWith(getLegalDashboardApplicationsUrl(), appliedFilter);
+        done();
+      });
+    });
+
+    it('should include stages in stageTypeIds when isSbomManager is false', function (done) {
+      const initialState = {
+        legalDashboardFilter: {
+          appliedFilter: {
+            applications: ['app1'],
+            organizations: ['org1'],
+            stages: ['stage1', 'stage2'],
+            categories: ['cat1'],
+            progressOptions: ['option1'],
+          },
+        },
+        legalDashboard: {
+          applications: {},
+          components: {
+            componentNameToSearch: '',
+            componentSearchInput: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
+          },
+        },
+        router: {
+          currentState: {
+            data: {
+              activeTab: 'applications',
+            },
+          },
+        },
+      };
+
+      store = SpecUtil.mockReduxStore(initialState);
+
+      mockAxiosCalls({
+        post: {
+          [getLegalDashboardApplicationsUrl()]: Promise.resolve({
+            data: 'results',
+          }),
+        },
+      });
+
+      store.dispatch(loadResults('applications')).then(() => {
+        const appliedFilter = {
+          applicationIds: ['app1'],
+          organizationIds: ['org1'],
+          stageTypeIds: ['stage1', 'stage2'],
+          tagIds: ['cat1'],
+          reviewStatus: ['option1'],
+          page: 1,
+          pageSize: DASHBOARD['applications'].itemsPerPage * DASHBOARD['applications'].pagesToFill,
+          order: undefined,
+        };
+
+        expect(axios.post).toHaveBeenCalledWith(getLegalDashboardApplicationsUrl(), appliedFilter);
+        done();
+      });
+    });
+  });
 });

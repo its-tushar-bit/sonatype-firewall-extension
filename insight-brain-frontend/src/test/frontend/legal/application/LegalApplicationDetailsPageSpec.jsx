@@ -142,14 +142,19 @@ describe('LegalApplicationDetailsPage', function () {
   });
 
   it('the main has a LoadWrapper with appropriate parameters', function () {
-    const main = getShallowComponent().find('.nx-page-main');
-    expect(main.children().length).toEqual(1);
-    const loadWrapper = main.childAt(0);
-    expect(loadWrapper).toExist();
-    expect(loadWrapper).toHaveProp('loading', false);
-    expect(loadWrapper).toHaveProp('error', null);
-    loadWrapper.prop('retryHandler')();
-    expect(fetchLegalApplicationDetailsDataSpy).toHaveBeenCalledWith('app-id', 'stage-id');
+    const testLoadWrapper = (props, expectedIsSbomManager) => {
+      const main = getShallowComponent(props).find('.nx-page-main');
+      expect(main.children().length).toEqual(1);
+      const loadWrapper = main.childAt(0);
+      expect(loadWrapper).toExist();
+      expect(loadWrapper).toHaveProp('loading', false);
+      expect(loadWrapper).toHaveProp('error', null);
+      loadWrapper.prop('retryHandler')();
+      expect(fetchLegalApplicationDetailsDataSpy).toHaveBeenCalledWith('app-id', 'stage-id', expectedIsSbomManager);
+    };
+
+    testLoadWrapper(minimalProps, undefined);
+    testLoadWrapper({ ...minimalProps, isSbomManager: true }, true);
   });
 
   it('is wrapped by a LoadWrapper with appropriate parameters when loading', function () {

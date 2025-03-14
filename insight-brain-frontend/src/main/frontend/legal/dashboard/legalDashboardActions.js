@@ -9,6 +9,7 @@ import { getLegalDashboardApplicationsUrl, getLegalDashboardComponentsUrl } from
 import { payloadParamActionCreator } from '../../util/reduxUtil';
 import { DASHBOARD } from '../advancedLegalConstants';
 import { loadFilter } from 'MainRoot/legal/dashboard/filter/legalDashboardFilterActions';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED = 'LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED';
 export const LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED = 'LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED';
@@ -82,13 +83,14 @@ function dispatchResults(dispatch, resultsType, getState) {
 }
 
 function fetchResults(resultsType, state) {
+  const isSbomManager = selectIsSbomManager(state);
   const { applications, organizations, stages, categories, progressOptions } = state.legalDashboardFilter.appliedFilter;
   const backendPage = state.legalDashboard[resultsType].backendPage || 1;
 
   const appliedFilter = {
     applicationIds: Array.from(applications),
     organizationIds: Array.from(organizations),
-    stageTypeIds: Array.from(stages),
+    stageTypeIds: Array.from(isSbomManager ? ['compliance'] : stages),
     tagIds: Array.from(categories),
     reviewStatus: Array.from(progressOptions),
     page: backendPage,

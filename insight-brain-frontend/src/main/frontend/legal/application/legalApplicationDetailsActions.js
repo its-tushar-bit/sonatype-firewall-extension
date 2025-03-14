@@ -10,6 +10,7 @@ import {
   getLegalDashboardApplicationUrl,
   getActionStageUrl,
   getApplicationLegalReviewerUrl,
+  getSbomStageUrl,
 } from '../../util/CLMLocation';
 import { payloadParamActionCreator, noPayloadActionCreator } from '../../util/reduxUtil';
 
@@ -27,7 +28,7 @@ const legalApplicationDetailsLoadDataFailed = payloadParamActionCreator(LEGAL_AP
 
 const legalApplicationDetailsApplyFilters = noPayloadActionCreator(LEGAL_APPLICATION_DETAILS_APPLY_FILTERS);
 
-export function fetchLegalApplicationDetailsData(applicationPublicId, stageTypeId) {
+export function fetchLegalApplicationDetailsData(applicationPublicId, stageTypeId, isSbomManager = false) {
   return async (dispatch) => {
     dispatch(legalApplicationDetailsLoadDataRequested());
     if (!stageTypeId) {
@@ -35,9 +36,11 @@ export function fetchLegalApplicationDetailsData(applicationPublicId, stageTypeI
       throw 'stageTypeId is mandatory.';
     }
 
+    const stageUrl = isSbomManager ? getSbomStageUrl() : getActionStageUrl();
+
     const promises = [
       axios.get(getApplicationLegalReviewerUrl(applicationPublicId)),
-      axios.get(getActionStageUrl()),
+      axios.get(stageUrl),
       axios.post(getLegalDashboardApplicationUrl(applicationPublicId), {
         stageTypeIds: [stageTypeId],
       }),

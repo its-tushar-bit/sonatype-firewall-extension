@@ -5,15 +5,11 @@
  */
 import '@testing-library/jest-dom';
 import 'angular';
-import Enzyme from 'enzyme';
-import Adapter from 'enzyme-adapter-react-16';
 import customMatchers from './customMatchers';
 import $ from 'jquery';
 
 global.$ = $;
 global.jQuery = $;
-
-Enzyme.configure({ adapter: new Adapter() });
 
 for (const [name, matcherProvider] of Object.entries(customMatchers)) {
   expect.extend({ [name]: matcherProvider().compare });

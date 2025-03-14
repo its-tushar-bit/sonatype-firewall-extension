@@ -48,7 +48,7 @@ const config = {
       },
       {
         test: /\.jsx?$/,
-        include: /node_modules[\/\\](fuse\.js|asn1.js|@uirouter|enzyme-matchers)/,
+        include: /node_modules[\/\\](fuse\.js|asn1.js|@uirouter)/,
         use: {
           loader: 'babel-loader',
           options: {

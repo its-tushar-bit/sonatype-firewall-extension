@@ -137,8 +137,6 @@ For example, if you store the "isDirty" flag in the `addWaiver` reducer in a var
 
 ### Writing tests for React components
 
-⚠️ We no longer use Enzyme for testing. Please use **React Testing Library**.
-
 React Testing Library promotes testing of Redux connected components as a whole. Instead of writing separate unit test for components, async actions and reducers, we test components integrated with Redux as a whole. Action creators are considered to be implementation details and don't need tests. We still encourage providing unit tests for Reducers since they are extremely easy to test (pure functions) and usually contain important application logic.
 
 For en example of a test with React Testing Library see `insight-brain-frontend/src/test/frontend/configuration/successMetricsConfiguration/SuccessMetricsConfigurationSpec.jsx`

@@ -5,7 +5,15 @@
  */
 import React from 'react';
 import InnerSourceRepositoryBaseConfigurations from 'MainRoot/innerSourceRepositoryConfiguration/InnerSourceRepositoryBaseConfigurations';
-import { render, screen, fireEvent, within, axiosMockAdapter } from 'TestRoot/SpecUtil';
+import {
+  render,
+  screen,
+  fireEvent,
+  within,
+  axiosMockAdapter,
+  setupPortalContainer,
+  removePortalContainer,
+} from 'TestRoot/SpecUtil';
 import { getRepositoryConnectionUrl } from 'MainRoot/util/CLMLocation';
 import {
   actions,
@@ -26,6 +34,7 @@ describe('InnerSourceRepositoryBaseConfigurations', () => {
   });
 
   beforeEach(() => {
+    setupPortalContainer();
     spyOn(actions, 'load').and.callThrough();
     spyOn(actions, 'save').and.callThrough();
     spyOn(actions, 'cancel').and.callThrough();
@@ -57,6 +66,8 @@ describe('InnerSourceRepositoryBaseConfigurations', () => {
     axiosMock.onGet(getRepositoryConnectionUrl(ownerType, ownerId, null)).reply(200, {});
     axiosMock.onPut(getRepositoryConnectionUrl(ownerType, ownerId, null)).reply(200, {});
   });
+
+  afterEach(() => removePortalContainer());
 
   it('renders a loading indicator', () => {
     renderComponent(preloadedState);

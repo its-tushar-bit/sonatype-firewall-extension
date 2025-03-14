@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -21,6 +20,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
+
 import javax.inject.Inject;
 import javax.inject.Provider;
 
@@ -302,9 +302,7 @@ public class SbomResultsMergerTest
   }
 
   @Test
-  public void testMergeSonatypeDataWithSbomDataWithIndexing_BinaryScan_NoThirdPartyContent()
-      throws URISyntaxException, IOException
-  {
+  public void testMergeSonatypeDataWithSbomDataWithIndexing_BinaryScan_NoThirdPartyContent() throws Exception {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile("binary.temp");
@@ -489,9 +487,7 @@ public class SbomResultsMergerTest
   }
 
   @Test
-  public void testMergeSonatypeDataWithSbomDataWithIndexing_BinaryScan_duplicatedVulnerabilities()
-      throws URISyntaxException, IOException
-  {
+  public void testMergeSonatypeDataWithSbomDataWithIndexing_BinaryScan_duplicatedVulnerabilities() throws Exception {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile("binary.temp");
@@ -708,7 +704,7 @@ public class SbomResultsMergerTest
   @SuppressWarnings("unchecked")
   @Test
   public void testMergeSonatypeDataWithSbomData_VerifySecurityVulnerabilityUpdatesAndInsertsAndTelemetry()
-      throws URISyntaxException, IOException
+      throws Exception
   {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
@@ -836,9 +832,7 @@ public class SbomResultsMergerTest
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testMergeSonatypeDataWithSbomData_vulnerabilities_mergeLogicForCMAndTelemetry()
-      throws URISyntaxException, IOException
-  {
+  public void testMergeSonatypeDataWithSbomData_vulnerabilities_mergeLogicForCMAndTelemetry() throws Exception {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
@@ -1020,9 +1014,7 @@ public class SbomResultsMergerTest
   }
 
   @Test
-  public void testMergeSonatypeDataWithSbomData_licenses_mergeLogicForCM()
-      throws URISyntaxException, IOException
-  {
+  public void testMergeSonatypeDataWithSbomData_licenses_mergeLogicForCM() throws Exception {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
@@ -1085,9 +1077,7 @@ public class SbomResultsMergerTest
   }
 
   @Test
-  public void testMergeSonatypeDataWithSbomData_VerifyPythonSecurityAndVulnerabilityUpdates()
-      throws URISyntaxException, IOException
-  {
+  public void testMergeSonatypeDataWithSbomData_VerifyPythonSecurityAndVulnerabilityUpdates() throws Exception {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
@@ -1170,7 +1160,7 @@ public class SbomResultsMergerTest
 
   @Test
   public void testMergeSonatypeDataWithSbomData_duplicatedComponentsWithDifferentPurlHashGetsInsertedInsteadOfMerging()
-      throws URISyntaxException, IOException
+      throws Exception
   {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
@@ -1229,7 +1219,7 @@ public class SbomResultsMergerTest
 
   @Test
   public void testMergeSonatypeDataWithSbomData_VerifyComponentIdentificationSourceAndDependencyType()
-      throws URISyntaxException, IOException
+      throws Exception
   {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
@@ -1323,7 +1313,7 @@ public class SbomResultsMergerTest
   }
 
   @Test
-  public void testMergeSonatypeDataWithSbomData_CweIds() throws URISyntaxException, IOException {
+  public void testMergeSonatypeDataWithSbomData_CweIds() throws Exception {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
@@ -1357,7 +1347,7 @@ public class SbomResultsMergerTest
   }
 
   @Test
-  public void testMergeResults_OriginalBinaryFileName() throws URISyntaxException, IOException {
+  public void testMergeResults_OriginalBinaryFileName() throws Exception {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
     String filename = "postgres";
@@ -1495,7 +1485,7 @@ public class SbomResultsMergerTest
 
   private File mockReportZipWithUpdatedThirdPartyData(
       final String resource,
-      final ThirdPartyFileCoordinate tpComponent) throws URISyntaxException, IOException
+      final ThirdPartyFileCoordinate tpComponent) throws Exception
   {
     File testReportDir = new File(getResource(resource).toURI());
     File tmpReportDir = tempDir.newFolder();

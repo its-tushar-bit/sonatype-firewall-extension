@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.report;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Date;
@@ -16,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -817,7 +817,7 @@ public class ReportServiceTest
   }
 
   @Test
-  public void testGetBomForPolicyEvaluation() throws URISyntaxException, IOException {
+  public void testGetBomForPolicyEvaluation() throws Exception {
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), "SCAN_ID");
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "SCAN_ID");
 
@@ -829,7 +829,7 @@ public class ReportServiceTest
   }
 
   @Test
-  public void testGetBomForPolicyEvaluation_NoBomFile() throws URISyntaxException, IOException {
+  public void testGetBomForPolicyEvaluation_NoBomFile() throws Exception {
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-missing-bom-json",
         app.getId(), "SCAN_ID");
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "SCAN_ID");
@@ -1157,7 +1157,7 @@ public class ReportServiceTest
   }
 
   @Test
-  public void testReUploadScanReport_doNotReEvaluateIfScanIdDoesNotExist() throws IOException {
+  public void testReUploadScanReport_doNotReEvaluateIfScanIdDoesNotExist() {
     ReportService reportService = createReportService();
     String nonExistentScanId = "nonExistentScanId";
     String clientUserAgent = "userAgent";

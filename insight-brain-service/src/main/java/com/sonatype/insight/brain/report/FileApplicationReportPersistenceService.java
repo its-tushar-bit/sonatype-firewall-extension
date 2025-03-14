@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.experimental.ApiVulnerabilitySignatureService;
@@ -362,7 +363,7 @@ public class FileApplicationReportPersistenceService
   private ReportEntity getAdditionalReportEntity(
       final String applicationId,
       final String scanId,
-      final String name) throws IOException
+      final String name)
   {
     Path entityPath = getAdditionalFilesPath(applicationId, scanId, name);
     return new FileReportEntity(getAdditionalFilesPath(applicationId, scanId), entityPath);
@@ -385,7 +386,7 @@ public class FileApplicationReportPersistenceService
   private ReportEntity getLocalCopyReportEntity(
       final String applicationId,
       final String scanId,
-      final String name) throws IOException
+      final String name)
   {
     Path entityPath = getLocalCopyPath(applicationId, scanId, name);
     return new FileReportEntity(getLocalCopyPath(applicationId, scanId), entityPath);

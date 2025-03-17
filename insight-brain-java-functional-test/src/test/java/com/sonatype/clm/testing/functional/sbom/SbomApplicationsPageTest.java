@@ -36,7 +36,10 @@ import org.junit.Test;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.Calendar;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 
@@ -151,27 +154,27 @@ public class SbomApplicationsPageTest
     // sort desc by default -> newest first
     ElementsCollection tableRows = applicationsTable.tableBodyRows();
     ElementsCollection paginationButtons = applicationsTable.paginationButtons();
-    tableRows.get(0).findAll("td").get(3).shouldHave(text("a day ago"));
-    tableRows.get(8).findAll("td").get(3).shouldHave(text("9 days ago"));
-    tableRows.get(49).findAll("td").get(3).shouldHave(text("2 months ago"));
+    tableRows.get(0).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(0)));
+    tableRows.get(8).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(8)));
+    tableRows.get(49).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(49)));
     paginationButtons.get(1).shouldHave(text("2")).click();
-    tableRows.get(24).findAll("td").get(3).shouldHave(text("2 months ago"));
+    tableRows.get(24).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(74))); //50 + 24
 
     // sort asc
     refreshOrOpen(SbomApplicationsPage.url());
     paginationButtons.get(0).shouldHave(text("1")).click();
     applicationsTable.columnHeader(3).click();
-    tableRows.get(0).findAll("td").get(3).shouldHave(text("2 months ago"));
-    tableRows.get(49).findAll("td").get(3).shouldHave(text("a month ago"));
+    tableRows.get(0).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(74))); //(50 + 24) - 0
+    tableRows.get(49).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(74 - 49)));
     paginationButtons.get(1).shouldHave(text("2")).click();
-    tableRows.get(24).findAll("td").get(3).shouldHave(text("a day ago"));
+    tableRows.get(24).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(74 - 24)));
 
     // sort desc
     paginationButtons.get(0).shouldHave(text("1")).click();
     applicationsTable.columnHeader(3).click();
-    tableRows.get(0).findAll("td").get(3).shouldHave(text("a day ago"));
-    tableRows.get(8).findAll("td").get(3).shouldHave(text("9 days ago"));
-    tableRows.get(49).findAll("td").get(3).shouldHave(text("2 months ago"));
+    tableRows.get(0).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(0)));
+    tableRows.get(8).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(8)));
+    tableRows.get(49).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(49)));
   }
 
   @Test
@@ -297,14 +300,11 @@ public class SbomApplicationsPageTest
       tempEntity.newPolicyViolation(policyEvaluation, policy, "g1",
           "a1", "v1", "h1", "r1");
     }
-    Calendar calendar = Calendar.getInstance();
-    Date today;
     for (int i = 0; i < 75; i++) {
       Application app = tempEntity.newApplication("Test App " + i, "test-app-" + i, organization.getId());
       Path zippedBom = mockOriginalSbom(this.getClass(), "simple-bom.xml",
           insightWork.getSbomDir(app.getId()).toPath());
-      calendar.add(Calendar.DAY_OF_MONTH, -1);
-      today = calendar.getTime();
+      LocalDateTime today = LocalDateTime.now(ZoneId.systemDefault()).minusDays(i + 1);
       sbomMetadata = tempEntity.newThirdPartySbomMetadata(
           scannedFile.getId(),
           app.getId(),
@@ -313,7 +313,7 @@ public class SbomApplicationsPageTest
           zippedBom.getFileName().toString(),
           SbomSpecification.CYCLONEDX.name(),
           SbomFormat.XML.name(),
-          "0.0", today);
+          "0.0", Date.from(today.atZone(ZoneId.systemDefault()).toInstant()));
 
       ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
       PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
@@ -359,5 +359,53 @@ public class SbomApplicationsPageTest
   private void insertVEXToThirdPartyCoordinateSecurity(ThirdPartyCoordinateSecurity coordinateSecurity) {
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity, coordinateSecurity.getRefId(),
         "state", "justification", "response", "detail");
+  }
+
+  private static String getRelativeTimeSimilarToMomentJSFromNow(int rowNum) {
+    rowNum = rowNum + 1;
+    LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
+    LocalDateTime rowDateTime = now.minusDays(rowNum);
+    Duration duration = Duration.between(rowDateTime, now);
+
+    long seconds = duration.getSeconds();
+    // based off of https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/02-fromnow/
+    if (seconds <= 44) {
+      return seconds + "a few seconds ago";
+    }
+    else if (seconds <= 89) {
+      return "a minute ago";
+    }
+    else if (seconds <= 2640) { //90 seconds to 44 minutes
+      long minutes = duration.toMinutes();
+      return minutes + " minutes ago";
+    }
+    else if (seconds <= 5340) { //45 to 89 minutes
+      return "an hour ago";
+    }
+    else if (seconds <= 75600) { //90 minutes to 21 hours
+      long hours = duration.toHours();
+      return hours + " hours ago";
+    }
+    else if (seconds <= 126000) { //22 to 35 hours
+      return "a day ago";
+    }
+    else if (seconds <= 2160000) { //36 hours to 25 days
+      long days = duration.toDays();
+      return days + " days ago";
+    }
+    else if (seconds <= 3888000) { //26 to 45 days
+      return "a month ago";
+    }
+    else if (seconds <= 27561600) { //45 to 319 days
+      long months = ChronoUnit.MONTHS.between(rowDateTime, now) + 1;
+      return months + " months ago";
+    }
+    else if (seconds <= 47260800) { //320 to 547 days (1.5 years)
+      return "a year ago";
+    }
+    else {
+      long years = ChronoUnit.YEARS.between(rowDateTime, now) + 1;
+      return years + " years ago";
+    }
   }
 }

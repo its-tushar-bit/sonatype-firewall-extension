@@ -50,7 +50,7 @@ public class PostgresTestCluster
   private static final Logger log = LoggerFactory.getLogger(PostgresTestCluster.class);
 
   // This should match our minimum recommended version
-  private static final String DEFAULT_IMAGE_VERSION = "10.7-alpine";
+  private static final String DEFAULT_IMAGE_VERSION = "14.17-alpine";
 
   protected static final String TEMPLATE_DATABASE = "template_database";
 

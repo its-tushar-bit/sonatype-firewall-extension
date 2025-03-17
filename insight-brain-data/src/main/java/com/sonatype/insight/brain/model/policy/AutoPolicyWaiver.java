@@ -46,6 +46,9 @@ public class AutoPolicyWaiver
   @Column(name = "create_time")
   private Date createTime;
 
+  @Column(name = "scopes_operator_any")
+  private boolean scopesOperatorAny = true;
+
   public AutoPolicyWaiver() {
   }
 
@@ -153,5 +156,13 @@ public class AutoPolicyWaiver
 
   public void setCreateTime(Date createTime) {
     this.createTime = createTime;
+  }
+
+  public boolean getScopesOperatorAny() {
+    return scopesOperatorAny;
+  }
+
+  public void setScopesOperatorAny(boolean scopesOperatorAny) {
+    this.scopesOperatorAny = scopesOperatorAny;
   }
 }

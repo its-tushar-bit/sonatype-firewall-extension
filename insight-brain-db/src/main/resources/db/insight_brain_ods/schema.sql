@@ -1869,6 +1869,7 @@ CREATE TABLE IF NOT EXISTS  auto_policy_waiver (
     creator_id VARCHAR(60) NOT NULL,
     creator_name varchar(210) NOT NULL,
     create_time TIMESTAMP NOT NULL,
+    scopes_operator_any BOOLEAN NOT NULL DEFAULT true,
     CONSTRAINT auto_policy_waiver_pk
     PRIMARY KEY (auto_policy_waiver_id)
     );

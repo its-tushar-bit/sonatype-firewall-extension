@@ -170,7 +170,9 @@ public class MtiqApiComponentChangeDetectionResourceTest
         new ApiMalwareComponentEvaluationRequest("a13168d8f7c3b9c9a899",
             "pkg:maven/org.sonatype/maven-policy-demo@1.1.0?type=jar"),
         new ApiMalwareComponentEvaluationRequest("b24568d8f7c3b0n9a666",
-            "invalidPurl")
+            "invalidPurl"),
+        new ApiMalwareComponentEvaluationRequest("b24568d8f7c3b0n9a667",
+            "pkg:pypi/aiobotocore@2.4.0")
     );
 
     HttpResponse response =

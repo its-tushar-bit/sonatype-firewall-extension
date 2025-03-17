@@ -123,7 +123,8 @@ public class ApiComponentChangeDetectionResource
 
     for (ApiMalwareComponentEvaluationRequest component : components) {
       try {
-        new PackageURL(component.packageUrl);
+        PackageURL packageURL = new PackageURL(component.packageUrl);
+        checkPythonPackageUrl(packageURL);
         componentChangeConfigurationList.add(
             new ComponentChangeDetectionConfiguration(
                 ComponentChangeDetectionConfigurationDAO.COMPONENT_CHANGE_DETECTION_VERSION, component.packageUrl,
@@ -195,6 +196,14 @@ public class ApiComponentChangeDetectionResource
     catch (ParseException e) {
       throw new BadRequestException(
           String.format("Could not parse: %s. Expected format is: yyyy-MM-dd'T'HH:mm:ss'Z'.", timestamp));
+    }
+  }
+
+  private void checkPythonPackageUrl(final PackageURL packageURL) throws MalformedPackageURLException {
+    if (packageURL.getType().equals("pypi")) {
+      if (packageURL.getQualifiers() == null || !packageURL.getQualifiers().containsKey("filename")) {
+        throw new MalformedPackageURLException("Python package URL must have filename qualifier");
+      }
     }
   }
 }

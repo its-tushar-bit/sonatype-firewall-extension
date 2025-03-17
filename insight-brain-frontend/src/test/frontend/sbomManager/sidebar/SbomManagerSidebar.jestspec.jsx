@@ -105,8 +105,8 @@ describe('SbomManagerSidebar', () => {
     ]);
   });
 
-  it('does not render the legal link when isAlpForSbomManagerEnabled is false', () => {
-    renderComponent({ isAlpForSbomManagerEnabled: false });
+  it('does not render the legal link when isAlpForSbomManagerEnabled is false and isLegalEnabled is false', () => {
+    renderComponent({ isAlpForSbomManagerEnabled: false, isLegalEnabled: false });
     verifyLinks([
       { text: '', href: '#/sbomManager/dashboard' },
       { text: 'Dashboard', href: '#/sbomManager/dashboard' },
@@ -116,8 +116,19 @@ describe('SbomManagerSidebar', () => {
     ]);
   });
 
-  it('does render the legal link when isAlpForSbomManagerEnabled is true', () => {
-    renderComponent({ isAlpForSbomManagerEnabled: true });
+  it('does not render the legal link when isAlpForSbomManagerEnabled is false and isLegalEnabled is true', () => {
+    renderComponent({ isAlpForSbomManagerEnabled: false, isLegalEnabled: true });
+    verifyLinks([
+      { text: '', href: '#/sbomManager/dashboard' },
+      { text: 'Dashboard', href: '#/sbomManager/dashboard' },
+      { text: 'Applications', href: '#/sbomManager/applications' },
+      { text: 'Organizations', href: '#/sbomManager/management/view' },
+      { text: 'Advanced Search', href: '#/sbomManager/advancedSearch' },
+    ]);
+  });
+
+  it('does render the legal link when isAlpForSbomManagerEnabled is true and isLegalEnabled is true', () => {
+    renderComponent({ isAlpForSbomManagerEnabled: true, isLegalEnabled: true });
     verifyLinks([
       { text: '', href: '#/sbomManager/dashboard' },
       { text: 'Dashboard', href: '#/sbomManager/dashboard' },
@@ -125,6 +136,17 @@ describe('SbomManagerSidebar', () => {
       { text: 'Organizations', href: '#/sbomManager/management/view' },
       { text: 'Advanced Search', href: '#/sbomManager/advancedSearch' },
       { text: 'Legal', href: '#/sbomManager/legal/dashboard' },
+    ]);
+  });
+
+  it('does not render the legal link when isAlpForSbomManagerEnabled is true and isLegalEnabled is false', () => {
+    renderComponent({ isAlpForSbomManagerEnabled: true, isLegalEnabled: false });
+    verifyLinks([
+      { text: '', href: '#/sbomManager/dashboard' },
+      { text: 'Dashboard', href: '#/sbomManager/dashboard' },
+      { text: 'Applications', href: '#/sbomManager/applications' },
+      { text: 'Organizations', href: '#/sbomManager/management/view' },
+      { text: 'Advanced Search', href: '#/sbomManager/advancedSearch' },
     ]);
   });
 });

@@ -20,7 +20,7 @@ import IqSidebarNavFooter from 'MainRoot/react/iqSidebarNav/IqSidebarNavFooter';
 const logoImg = require('../assets/sbom-manager.svg');
 
 export default function SbomManagerSidebar(props) {
-  const { isLoggedIn, isSbomManagerEnabled, isApiPageEnabled, isAlpForSbomManagerEnabled } = props;
+  const { isLoggedIn, isSbomManagerEnabled, isApiPageEnabled, isAlpForSbomManagerEnabled, isLegalEnabled } = props;
   const uiRouterState = useRouterState();
   const dashboardState = 'sbomManager.dashboard';
   const applicationsState = 'sbomManager.applications';
@@ -80,7 +80,7 @@ export default function SbomManagerSidebar(props) {
             text="Advanced Search"
             href={advancedSearchHref}
           />
-          {isAlpForSbomManagerEnabled && (
+          {isLegalEnabled && isAlpForSbomManagerEnabled && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('sbomManager.legal')}
               id="sbom-manager-legal-button"
@@ -120,4 +120,6 @@ SbomManagerSidebar.propTypes = {
   isLoggedIn: PropTypes.bool,
   isSbomManagerEnabled: PropTypes.bool,
   isApiPageEnabled: PropTypes.bool,
+  isAlpForSbomManagerEnabled: PropTypes.bool,
+  isLegalEnabled: PropTypes.bool,
 };

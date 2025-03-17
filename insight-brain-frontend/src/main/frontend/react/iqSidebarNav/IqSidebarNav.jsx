@@ -100,6 +100,7 @@ function IqSidebarNav(props) {
       isSbomManagerEnabled={isSbomManagerEnabled}
       isApiPageEnabled={isApiPageEnabled}
       isAlpForSbomManagerEnabled={isAlpForSbomManagerEnabled}
+      isLegalEnabled={isLegalEnabled}
     />
   );
   const sonatypeDeveloperSidebar = (

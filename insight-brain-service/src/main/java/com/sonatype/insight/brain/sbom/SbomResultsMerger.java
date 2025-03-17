@@ -359,7 +359,7 @@ public class SbomResultsMerger
 
     for (String key : results.keySet()) {
 
-      ThirdPartyFileCoordinate sbomComponent = null;
+      ThirdPartyFileCoordinate sbomComponent;
       if (useComponentRef) {
         sbomComponent =
             thirdPartyFileCoordinateDAO.getByComponentRef(key, thirdPartySbomMetadata.getThirdPartyFileId());
@@ -536,6 +536,9 @@ public class SbomResultsMerger
       else {
         disclosedVulns = thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(sbomDbComponent.getId());
         disclosedLicenses = thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(sbomDbComponent.getId());
+        String newComponentRef = SbomIdentityUtils.getComponentRef(newComponentBomRef);
+        sbomDbComponent.setComponentRef(newComponentRef);
+        thirdPartyFileCoordinateDAO.update(tx, sbomDbComponent);
       }
       createAndSaveComponentInBom(newComponentBomRef, sbomDbComponent, disclosedVulns, disclosedLicenses, bomNode,
           originalBom, filteredBom);

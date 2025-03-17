@@ -53,7 +53,7 @@ public class TenantSupportInfoServiceTest
   }
 
   @Test
-  public void shouldGetSupportInfo() {
+  public void testGetSupportInfo() {
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
       when(supportInfoFiles.aNewListOfSupportFiles()).thenReturn(supportInfoFiles);
@@ -95,6 +95,8 @@ public class TenantSupportInfoServiceTest
       when(supportInfoFiles.withPolicyMonitoringInfo()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withMigrationTrackerInfo()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withInnerSourceRepositoryInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withSystemConfigPropertiesInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withFeatureConfigPropertiesInfo()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.build()).thenReturn(new ArrayList<>());
       when(supportInfoUtil.generateSupportInfo(any(), any())).thenReturn(
           new SupportInfo(new ByteArrayOutputStream(), "tenant-support-mtiq"));
@@ -105,7 +107,7 @@ public class TenantSupportInfoServiceTest
   }
 
   @Test
-  public void shouldThrowBadRequestException_whenUsingGlobalTenant() {
+  public void testGetSupportInfo_globalTenant() {
     final String errorMessage = "Invalid tenant";
 
     testAsGlobalTenant(global -> {
@@ -117,7 +119,7 @@ public class TenantSupportInfoServiceTest
   }
 
   @Test
-  public void shouldThrowNotFoundException_whenTenantDoesNotExist() {
+  public void testGetSupportInfo_tenantDoesNotExist() {
     final String errorMessage = "Tenant doesn't exist";
 
     testAsNewTenant(tenant -> {

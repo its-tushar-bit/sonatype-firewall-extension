@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -30,6 +31,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.SystemNotice;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
@@ -58,6 +60,7 @@ import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
+import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
 import com.sonatype.insight.brain.support.SupportService.SupportFile;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import com.sonatype.insight.brain.version.VersionService;
@@ -107,6 +110,9 @@ public class SupportInfoFilesTest
   private SourceControlConfigurationInfo sourceControlConfigurationInfo;
 
   @Mock
+  private FeaturePropertiesInfo featurePropertiesInfo;
+
+  @Mock
   private SupportInfoUtil supportInfoUtil;
 
   private SupportInfoFiles supportInfoFiles;
@@ -115,7 +121,7 @@ public class SupportInfoFilesTest
   public void setup() {
     supportInfoFiles =
         new SupportInfoFiles(versionService, dbData, samlUserDAO, oAuth2UserDAO, configurationInfo, systemInfo,
-            sourceControlConfigurationInfo, supportInfoUtil);
+            sourceControlConfigurationInfo, featurePropertiesInfo, supportInfoUtil);
   }
 
   @AfterClass
@@ -1048,6 +1054,70 @@ public class SupportInfoFilesTest
     assertThat(supportFile.file).exists();
     String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
     assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedRepositoryConfigs));
+  }
+
+  @Test
+  public void testWithSystemConfigPropertiesInfo() throws IOException {
+    // Given
+    Map<String, Object> sysConfigProperties = new HashMap<>();
+    sysConfigProperties.put("autoWaivers", true);
+    sysConfigProperties.put("newScanProcess", false);
+    sysConfigProperties.put("blockNonAsciiInPath", false);
+    sysConfigProperties.put("ADVANCED_REPORTING_INSIGHTS_ENABLED", true);
+    sysConfigProperties.put("sbomBinaryScanning", true);
+    String sysConfigPropertiesJson = JsonUtils.format(sysConfigProperties);
+
+    // When
+    when(featurePropertiesInfo.getSystemConfigPropertiesJson()).thenReturn(sysConfigPropertiesJson);
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, sysConfigPropertiesJson, "systemConfigurationProperties.json"));
+    SupportFile supportFile = supportInfoFiles.aNewListOfSupportFiles().withSystemConfigPropertiesInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo("""
+        {
+          "autoWaivers" : true,
+          "newScanProcess" : false,
+          "blockNonAsciiInPath" : false,
+          "ADVANCED_REPORTING_INSIGHTS_ENABLED" : true,
+          "sbomBinaryScanning" : true
+        }""");
+  }
+
+  @Test
+  public void testWithFeatureConfigPropertiesInfo() throws IOException {
+    // Given
+    Map<String, Boolean> featureConfigProperties = new LinkedHashMap<>();
+    featureConfigProperties.put("ADVANCED_SEARCH_ENABLED", true);
+    featureConfigProperties.put("dashboard", true);
+    featureConfigProperties.put("enableSsoOnly", true);
+    featureConfigProperties.put("saasLifecycleScmEnabled", true);
+    featureConfigProperties.put("SSO_IDP_MANAGED_BY_SONATYPE", false);
+    List<SystemConfigurationPropertyFeature> filteredFeatures =
+        MTIQFeatureService.BANNED_SYSTEM_CONFIGURATION_PROPERTY_FEATURES;
+
+    String featureConfigPropertiesJson = JsonUtils.format(featureConfigProperties);
+
+    // When
+    when(featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures)).thenReturn(featureConfigProperties);
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, featureConfigPropertiesJson, "featuresConfigurationProperties.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withFeatureConfigPropertiesInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo("""
+        {
+          "ADVANCED_SEARCH_ENABLED" : true,
+          "dashboard" : true,
+          "enableSsoOnly" : true,
+          "saasLifecycleScmEnabled" : true,
+          "SSO_IDP_MANAGED_BY_SONATYPE" : false
+        }""");
   }
 
   private Entry<String, SortedMap<String, Object>> wrapEntry(String entryName, SortedMap<String, Object> objectToPut) {

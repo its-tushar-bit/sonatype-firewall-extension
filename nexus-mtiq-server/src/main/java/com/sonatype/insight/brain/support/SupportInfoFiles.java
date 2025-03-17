@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import javax.inject.Inject;
@@ -18,6 +19,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
+import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
 import com.sonatype.insight.brain.support.SupportService.SupportFile;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.version.VersionService;
@@ -114,6 +116,10 @@ public class SupportInfoFiles
 
   private static final String INNER_SOURCE_REPOSITORY_CONFIGURATION_FILE = "innerSourceRepositoryConnection.json";
 
+  private static final String SYSTEM_CONFIG_PROPERTIES_FILE = "systemConfigurationProperties.json";
+
+  private static final String FEATURE_CONFIG_PROPERTIES_FILE = "featuresConfigurationProperties.json";
+
   private final VersionService versionService;
 
   private final DbData dbData;
@@ -128,6 +134,8 @@ public class SupportInfoFiles
 
   private final SourceControlConfigurationInfo sourceControlConfigurationInfo;
 
+  private final FeaturePropertiesInfo featurePropertiesInfo;
+
   private final SupportInfoUtil supportInfoUtil;
 
   private List<SupportFile> supportFiles;
@@ -141,6 +149,7 @@ public class SupportInfoFiles
       ConfigurationInfo configurationInfo,
       SystemInfo systemInfo,
       SourceControlConfigurationInfo sourceControlConfigurationInfo,
+      FeaturePropertiesInfo featurePropertiesInfo,
       SupportInfoUtil supportInfoUtil)
   {
     this.versionService = versionService;
@@ -150,6 +159,7 @@ public class SupportInfoFiles
     this.configurationInfo = configurationInfo;
     this.systemInfo = systemInfo;
     this.sourceControlConfigurationInfo = sourceControlConfigurationInfo;
+    this.featurePropertiesInfo = featurePropertiesInfo;
     this.supportInfoUtil = supportInfoUtil;
   }
 
@@ -158,8 +168,6 @@ public class SupportInfoFiles
     return this;
   }
 
-  // CONFIG folder:
-
   public SupportInfoFiles withConfigPropertiesInfo() {
     String configPropertiesJson = configurationInfo.getConfigurationInfo();
 
@@ -167,8 +175,6 @@ public class SupportInfoFiles
 
     return this;
   }
-
-  // INFO folder:
 
   public SupportInfoFiles withJavaVersion() {
     String javaVersionJson = JsonUtils.format(systemInfo.getObfuscatedSystemProperties("java", JAVA_INFO_ENTRY));
@@ -205,8 +211,6 @@ public class SupportInfoFiles
 
     return this;
   }
-
-  // DB Folder:
 
   public SupportInfoFiles withUsersDetails() {
     Entry<String, Object> users = dbData.getUser();
@@ -502,6 +506,24 @@ public class SupportInfoFiles
 
     createAndAddSupportFile(innerSourceRepositoriesConfigurationJson, INNER_SOURCE_REPOSITORY_CONFIGURATION_FILE,
         SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withSystemConfigPropertiesInfo() {
+    String flagConfigPropertiesJson = featurePropertiesInfo.getSystemConfigPropertiesJson();
+
+    createAndAddSupportFile(flagConfigPropertiesJson, SYSTEM_CONFIG_PROPERTIES_FILE, SupportFileType.CONFIG);
+
+    return this;
+  }
+
+  public SupportInfoFiles withFeatureConfigPropertiesInfo() {
+    Map<String, Boolean> featureConfigProperties = featurePropertiesInfo.getFeatureConfigProperties(
+        MTIQFeatureService.BANNED_SYSTEM_CONFIGURATION_PROPERTY_FEATURES);
+    String featureConfigPropertiesJson = JsonUtils.format(featureConfigProperties);
+
+    createAndAddSupportFile(featureConfigPropertiesJson, FEATURE_CONFIG_PROPERTIES_FILE, SupportFileType.CONFIG);
 
     return this;
   }

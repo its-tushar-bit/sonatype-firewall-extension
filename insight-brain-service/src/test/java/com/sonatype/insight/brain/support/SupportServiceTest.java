@@ -126,36 +126,40 @@ public class SupportServiceTest
   private static void verifyRequiredEntries(final File supportZipFile, final Enumeration<? extends ZipEntry> entries) {
     final String zipFileBasename = getZipFileBasename(supportZipFile);
 
-    assertThat(entries.nextElement().getName())
-        .isEqualTo(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/sysinfo.json");
-    assertThat(entries.nextElement().getName())
-        .isEqualTo(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/product-version.json");
-    assertThat(entries.nextElement().getName())
-        .isEqualTo(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/product-license.json");
-    assertThat(entries.nextElement().getName())
-        .isEqualTo(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/threads.txt");
-    assertThat(entries.nextElement().getName())
-        .isEqualTo(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/jmx.json");
-    assertThat(entries.nextElement().getName())
-        .isEqualTo(zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/ldap.json");
-    assertThat(entries.nextElement().getName())
-        .isEqualTo(zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/proxy-server.json");
-    assertThat(entries.nextElement().getName())
-        .isEqualTo(zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/saml.json");
-    assertThat(entries.nextElement().getName())
-        .isEqualTo(zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/mail.json");
-    assertThat(entries.nextElement().getName())
-        .isEqualTo(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/dbFileInfo.txt");
-    assertThat(entries.nextElement().getName())
-        .isEqualTo(zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/config.json");
-    assertThat(entries.nextElement().getName())
-        .isEqualTo(zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/scm.json");
-    assertThat(entries.nextElement().getName())
-        .isEqualTo(zipFileBasename + "/" + SupportFileType.DB.getDirName() + "/migrationTracker.json");
-    assertThat(entries.nextElement().getName())
-        .isEqualTo(zipFileBasename + "/" + SupportFileType.DB.getDirName() + "/systemConfiguration.json");
-    assertThat(entries.nextElement().getName())
-        .isEqualTo(zipFileBasename + "/" + SupportFileType.DB.getDirName() + "/dataRetentionPolicy.json");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/sysinfo.json");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/product-version.json");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/product-license.json");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/threads.txt");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/jmx.json");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/ldap.json");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/proxy-server.json");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/saml.json");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/mail.json");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/dbFileInfo.txt");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/config.json");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/scm.json");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/systemConfigurationProperties.json");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/featuresConfigurationProperties.json");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.DB.getDirName() + "/migrationTracker.json");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.DB.getDirName() + "/systemConfiguration.json");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.DB.getDirName() + "/dataRetentionPolicy.json");
   }
 
   private static String getZipFileBasename(final File supportZipFile) {

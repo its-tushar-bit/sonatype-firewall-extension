@@ -111,6 +111,8 @@ public class SupportService
 
   private final SourceControlConfigurationInfo sourceControlConfigurationInfo;
 
+  private final FeaturePropertiesInfo featurePropertiesInfo;
+
   private final Set<File> excludedDirs;
 
   private final DbDiagnostics dbDiagnostics;
@@ -131,6 +133,7 @@ public class SupportService
                         final SystemInfo systemInfo,
                         final ConfigurationInfo configurationInfo,
                         final SourceControlConfigurationInfo sourceControlConfigurationInfo,
+                        final FeaturePropertiesInfo featurePropertiesInfo,
                         final InsightWork work,
                         final DbDiagnostics dbDiagnostics,
                         final LdapServerDAO ldapServerDAO,
@@ -145,6 +148,7 @@ public class SupportService
     this.systemInfo = systemInfo;
     this.configurationInfo = configurationInfo;
     this.sourceControlConfigurationInfo = sourceControlConfigurationInfo;
+    this.featurePropertiesInfo = featurePropertiesInfo;
     this.excludedDirs = Sets.newHashSet(
         work.getReportDir(),
         work.getClusterCacheDir(),
@@ -375,6 +379,14 @@ public class SupportService
 
     addFileIfExists(filesToZip, writeTextToFile(sourceControlConfigurationInfo.getSourceControlConfigurationInfo(),
         new File(workDir, "scm.json")), "scm", SupportFileType.CONFIG, true);
+
+    addFileIfExists(filesToZip, writeTextToFile(featurePropertiesInfo.getSystemConfigPropertiesJson(),
+            new File(workDir, "systemConfigurationProperties.json")), "system-config-properties",
+        SupportFileType.CONFIG, true);
+
+    addFileIfExists(filesToZip, writeTextToFile(featurePropertiesInfo.getFeatureConfigPropertiesJson(),
+            new File(workDir, "featuresConfigurationProperties.json")), "features-config-properties",
+        SupportFileType.CONFIG, true);
 
     addDbData(filesToZip, workDir, dbData.getMigrationTracker());
     addDbData(filesToZip, workDir, dbData.getSystemConfiguration());

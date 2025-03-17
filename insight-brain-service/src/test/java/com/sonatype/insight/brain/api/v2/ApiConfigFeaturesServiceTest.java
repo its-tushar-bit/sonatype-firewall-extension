@@ -5,20 +5,64 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.mockito.Mockito;
 
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.*;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.*;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_CODE_INSIGHTS;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_COMPONENT_SEARCH_API_WITH_INNERSOURCE;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_DASHBOARD;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_DEFAULT_BRANCH_MONITORING;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_DEPENDENCY_DATA_IN_API;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_ENABLE_UNAUTHENTICATED_PAGES;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_INNER_SOURCE_REPOSITORY_INTEGRATION;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_INNER_SOURCE_TRANSITIVE_WAIVER;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_PR_COMMENTING;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_PR_LINE_COMMENTING;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_REPORTS_LIST;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_SAAS_LIFECYCLE_SCM_ENABLED;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_TRANSITIVE_SOLVER;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.NOT_SUPPORTED_SELF_HOSTED_SYSTEM_PROPERTIES;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ALP_FOR_SBOM_MANAGER;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTO_WAIVERS;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.CODE_INSIGHTS;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.COMPONENT_SEARCH_API_WITH_INNERSOURCE;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DEFAULT_BRANCH_MONITORING;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DEPENDENCY_DATA_IN_API;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DEVELOPER_BULK_RECOMMENDATIONS;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DEVELOPER_SUMMARY_TABLE;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ENABLE_UNAUTHENTICATED_PAGES;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.INNER_SOURCE_REPOSITORY_INTEGRATION;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.INNER_SOURCE_TRANSITIVE_WAIVER;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.MANUAL_PULL_REQUESTS;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.NEW_SCAN_PROCESS;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.PR_COMMENTING;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.PR_LINE_COMMENTING;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.REPORTS_LIST_DISABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SCAN_POM_FILES_IN_META_INF_DIRECTORY;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.TRANSITIVE_SOLVER_ENABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -57,6 +101,34 @@ public class ApiConfigFeaturesServiceTest
     assertThat(service.getPropertyNameForFeature(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)).isEqualTo(
         SAAS_LIFECYCLE_SCM_ENABLED);
     assertThat(service.getPropertyNameForFeature("default-value")).isEqualTo("default-value");
+  }
+
+  @Test
+  public void testGetFeatureForPropertyName() {
+    assertThat(service.getFeatureForPropertyName(DASHBOARD_DISABLED)).isEqualTo(FEATURE_DASHBOARD);
+    assertThat(service.getFeatureForPropertyName(REPORTS_LIST_DISABLED)).isEqualTo(FEATURE_REPORTS_LIST);
+    assertThat(service.getFeatureForPropertyName(SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED)).isEqualTo(
+        FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION);
+    assertThat(service.getFeatureForPropertyName(TRANSITIVE_SOLVER_ENABLED)).isEqualTo(FEATURE_TRANSITIVE_SOLVER);
+    assertThat(service.getFeatureForPropertyName(CODE_INSIGHTS)).isEqualTo(FEATURE_CODE_INSIGHTS);
+    assertThat(service.getFeatureForPropertyName(COMPONENT_SEARCH_API_WITH_INNERSOURCE)).isEqualTo(
+        FEATURE_COMPONENT_SEARCH_API_WITH_INNERSOURCE);
+    assertThat(service.getFeatureForPropertyName(DEFAULT_BRANCH_MONITORING)).isEqualTo(
+        FEATURE_DEFAULT_BRANCH_MONITORING);
+    assertThat(service.getFeatureForPropertyName(DEPENDENCY_DATA_IN_API)).isEqualTo(FEATURE_DEPENDENCY_DATA_IN_API);
+    assertThat(service.getFeatureForPropertyName(INNER_SOURCE_TRANSITIVE_WAIVER)).isEqualTo(
+        FEATURE_INNER_SOURCE_TRANSITIVE_WAIVER);
+    assertThat(service.getFeatureForPropertyName(INNER_SOURCE_REPOSITORY_INTEGRATION)).isEqualTo(
+        FEATURE_INNER_SOURCE_REPOSITORY_INTEGRATION);
+    assertThat(service.getFeatureForPropertyName(PR_COMMENTING)).isEqualTo(FEATURE_PR_COMMENTING);
+    assertThat(service.getFeatureForPropertyName(PR_LINE_COMMENTING)).isEqualTo(FEATURE_PR_LINE_COMMENTING);
+    assertThat(service.getFeatureForPropertyName(ENABLE_UNAUTHENTICATED_PAGES)).isEqualTo(
+        FEATURE_ENABLE_UNAUTHENTICATED_PAGES);
+    assertThat(service.getFeatureForPropertyName(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS)).isEqualTo(
+        FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
+    assertThat(service.getFeatureForPropertyName(SAAS_LIFECYCLE_SCM_ENABLED)).isEqualTo(
+        FEATURE_SAAS_LIFECYCLE_SCM_ENABLED);
+    assertThat(service.getFeatureForPropertyName("default-value")).isEqualTo("default-value");
   }
 
   @Test
@@ -1274,5 +1346,120 @@ public class ApiConfigFeaturesServiceTest
         .hasMessage("Feature is already disabled.");
 
     assertThat(SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testGetAllSystemConfigurationPropertyFeatureWithValue_singleTenant() {
+    Map<String, Boolean> expectedFeatureConfigMap = getExpectedFeatureConfigMap();
+
+    Map<String, Boolean> featureConfigMap = service.getAllSystemConfigurationPropertyFeatureWithValue(List.of());
+
+    assertThat(featureConfigMap)
+        .hasSize(expectedFeatureConfigMap.size())
+        .containsExactlyInAnyOrderEntriesOf(expectedFeatureConfigMap)
+        .doesNotContainKeys("transitiveSolver", "SAAS_LIFECYCLE_SCM_ENABLED");
+  }
+
+  @Test
+  public void testGetAllSystemConfigurationPropertyFeatureWithValue_multiTenant() {
+    TenantUtil tenantUtilMock = Mockito.mock(TenantUtil.class);
+    Mockito.when(tenantUtilMock.isSingleTenant()).thenReturn(false);
+    ApiConfigFeaturesService service = new ApiConfigFeaturesService(tenantUtilMock);
+
+    Map<String, Boolean> expectedFeatureConfigMap = getExpectedFeatureConfigMap();
+    expectedFeatureConfigMap.put("saasLifecycleScmEnabled", true);
+
+    Map<String, Boolean> featureConfigMap = service.getAllSystemConfigurationPropertyFeatureWithValue(List.of());
+
+    assertThat(featureConfigMap)
+        .hasSize(expectedFeatureConfigMap.size())
+        .containsExactlyInAnyOrderEntriesOf(expectedFeatureConfigMap)
+        .doesNotContainKeys("transitiveSolver");
+  }
+
+  @Test
+  public void testGetAllSystemConfigurationPropertyFeatureWithValue_customFilter() {
+    Map<String, Boolean> expectedFeatureConfigMap = getExpectedFeatureConfigMap();
+    List<SystemConfigurationPropertyFeature> customFilter = List.of(
+        SystemConfigurationPropertyFeature.SUCCESS_METRICS_CONFIGURATION,
+        SystemConfigurationPropertyFeature.PRODUCT_LICENSE_CONFIGURATION,
+        SystemConfigurationPropertyFeature.SYSTEM_NOTICE_CONFIGURATION,
+        SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES,
+        SystemConfigurationPropertyFeature.PROXY_CONFIGURATION,
+        SystemConfigurationPropertyFeature.DEPENDENCY_DATA_IN_API,
+        SystemConfigurationPropertyFeature.CODE_INSIGHTS,
+        SystemConfigurationPropertyFeature.LDAP_CONFIGURATION,
+        SystemConfigurationPropertyFeature.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES,
+        SystemConfigurationPropertyFeature.SCAN_POM_FILES_IN_META_INF_DIRECTORY);
+    customFilter.forEach(
+        filtered -> expectedFeatureConfigMap.remove(service.getFeatureForPropertyName(filtered.getPropertyName())));
+
+    Map<String, Boolean> featureConfigMap = service.getAllSystemConfigurationPropertyFeatureWithValue(customFilter);
+
+    assertThat(featureConfigMap)
+        .hasSize(expectedFeatureConfigMap.size())
+        .containsExactlyInAnyOrderEntriesOf(expectedFeatureConfigMap)
+        .doesNotContainKeys("transitiveSolver", "SAAS_LIFECYCLE_SCM_ENABLED");
+  }
+
+  private Map<String, Boolean> getExpectedFeatureConfigMap() {
+    Map<String, Boolean> expectedFeatureConfigMap = new LinkedHashMap<>();
+
+    expectedFeatureConfigMap.put("ADVANCED_SEARCH_CONFIGURATION", true);
+    expectedFeatureConfigMap.put("ADVANCED_SEARCH_ENABLED", false);
+    expectedFeatureConfigMap.put("alpForSbomManager", false);
+    expectedFeatureConfigMap.put("API_PAGE", true);
+    expectedFeatureConfigMap.put("AUTOMATIC_APPLICATION_CONFIGURATION", true);
+    expectedFeatureConfigMap.put("AUTOMATIC_SCM_CONFIGURATION", true);
+    expectedFeatureConfigMap.put("autoWaivers", true);
+    expectedFeatureConfigMap.put("BUILT_FROM_SOURCE", false);
+    expectedFeatureConfigMap.put("cleanUpSbomContinuousMonitoringReport", true);
+    expectedFeatureConfigMap.put("codeInsights", true);
+    expectedFeatureConfigMap.put("componentChangeDetectionApi", false);
+    expectedFeatureConfigMap.put("componentSearchApiWithInnerSource", true);
+    expectedFeatureConfigMap.put("CROWD_INTEGRATION", true);
+    expectedFeatureConfigMap.put("dashboard", true);
+    expectedFeatureConfigMap.put("defaultBranchMonitoring", true);
+    expectedFeatureConfigMap.put("dependencyDataInApi", true);
+    expectedFeatureConfigMap.put("developerBulkRecommendations", false);
+    expectedFeatureConfigMap.put("developerSuggestNonBreakingVersion", true);
+    expectedFeatureConfigMap.put("developerSummaryTable", true);
+    expectedFeatureConfigMap.put("developmentDashboardMetricCollection", true);
+    expectedFeatureConfigMap.put("EMAIL_CONFIGURATION", true);
+    expectedFeatureConfigMap.put("enableSsoOnly", false);
+    expectedFeatureConfigMap.put("enableUnauthenticatedPages", true);
+    expectedFeatureConfigMap.put("expireWaiverWhenRemediationAvailable", false);
+    expectedFeatureConfigMap.put("innerSourceRepositoryIntegration", true);
+    expectedFeatureConfigMap.put("innerSourceTransitiveWaiver", true);
+    expectedFeatureConfigMap.put("internalFirewallOnboardingEnabled", false);
+    expectedFeatureConfigMap.put("internalSourceControlPolicyEvaluations", true);
+    expectedFeatureConfigMap.put("LDAP_CONFIGURATION", true);
+    expectedFeatureConfigMap.put("logoutAuth0OnLogout", false);
+    expectedFeatureConfigMap.put("malwareDefenseApi", false);
+    expectedFeatureConfigMap.put("manualPullRequests", false);
+    expectedFeatureConfigMap.put("newScanProcess", false);
+    expectedFeatureConfigMap.put("nonBreakingVersionSuggestionTelemetry", true);
+    expectedFeatureConfigMap.put("OAUTH2_ENABLED", false);
+    expectedFeatureConfigMap.put("prioritizedFindingsReport", true);
+    expectedFeatureConfigMap.put("PRODUCT_LICENSE_CONFIGURATION", true);
+    expectedFeatureConfigMap.put("PROXY_CONFIGURATION", true);
+    expectedFeatureConfigMap.put("prCommenting", true);
+    expectedFeatureConfigMap.put("prLineCommenting", true);
+    expectedFeatureConfigMap.put("reportsList", true);
+    expectedFeatureConfigMap.put("sbomBinaryScanning", true);
+    expectedFeatureConfigMap.put("sbomContinuousMonitoringUi", true);
+    expectedFeatureConfigMap.put("sbomManager", false);
+    expectedFeatureConfigMap.put("sbomPolicies", true);
+    expectedFeatureConfigMap.put("scanNpmDevAndOptDependencies", false);
+    expectedFeatureConfigMap.put("scanPomFilesInMetaInfDirectory", false);
+    expectedFeatureConfigMap.put("scmUxImprovements", false);
+    expectedFeatureConfigMap.put("skipSbomImportValidation", false);
+    expectedFeatureConfigMap.put("SSO_IDP_MANAGED_BY_SONATYPE", false);
+    expectedFeatureConfigMap.put("SUCCESS_METRICS_CONFIGURATION", true);
+    expectedFeatureConfigMap.put("SYSTEM_NOTICE_CONFIGURATION", true);
+    expectedFeatureConfigMap.put("vulnerabilitySource", false);
+    expectedFeatureConfigMap.put("WEBHOOK_CONFIGURATION", true);
+
+    return expectedFeatureConfigMap;
   }
 }

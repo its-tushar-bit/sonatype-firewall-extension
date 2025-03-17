@@ -81,6 +81,12 @@ public class MTIQFeatureService
 
   private final ApiConfigFeaturesService service;
 
+  public static final List<SystemConfigurationPropertyFeature> BANNED_SYSTEM_CONFIGURATION_PROPERTY_FEATURES =
+      MTIQ_BANNED_FEATURES.stream()
+          .filter(SystemConfigurationPropertyFeature.class::isInstance)
+          .map(SystemConfigurationPropertyFeature.class::cast)
+          .toList();
+
   @Inject
   public MTIQFeatureService(
       ProductLicense productLicense,

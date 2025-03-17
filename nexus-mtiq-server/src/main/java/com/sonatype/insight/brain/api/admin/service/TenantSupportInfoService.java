@@ -101,6 +101,8 @@ public class TenantSupportInfoService
         .withPolicyMonitoringInfo()
         .withMigrationTrackerInfo()
         .withInnerSourceRepositoryInfo()
+        .withSystemConfigPropertiesInfo()
+        .withFeatureConfigPropertiesInfo()
         .build();
 
     return supportInfoUtil.generateSupportInfo(tenantSlug, supportFiles);

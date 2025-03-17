@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -263,6 +264,11 @@ public class ConfigurationProperty
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(
       Collectors.toMap(ConfigurationProperty::getName, Function.identity()));
 
+  private static final Map<String, ConfigurationProperty> BOOLEAN_PROPERTIES_BY_NAME = Collections.unmodifiableMap(
+      Arrays.stream(PROPERTIES)
+      .filter(property -> property.getType().equals(Boolean.class))
+      .collect(Collectors.toMap(ConfigurationProperty::getName, Function.identity())));
+
   // Multiple permissions grouped by each Triple will be ORed in order to check access
   public static final Map<String, Set<Triple<OwnerType, String, Set<Permission>>>> additionalPermissionsPerProperty =
       ImmutableMap.of(
@@ -310,5 +316,9 @@ public class ConfigurationProperty
 
   public static Map<String, ConfigurationProperty> getConfigurationPropertiesByName() {
     return PROPERTY_BY_NAME;
+  }
+
+  public static Map<String, ConfigurationProperty> getBooleanConfigurationPropertiesByName() {
+    return BOOLEAN_PROPERTIES_BY_NAME;
   }
 }

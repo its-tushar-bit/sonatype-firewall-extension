@@ -555,6 +555,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.RELEASE_INTEGRITY,
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WAIVERS_DASHBOARD, //
+        LicensedFeature.MALWARE_DEFENSE_EVALUATION,
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES,
         LicensedFeature.API_PAGE,
         LicensedFeature.APPLICATION_REPORTS,
@@ -593,6 +594,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.WAIVERS_DASHBOARD, //
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES,
         LicensedFeature.API_PAGE,
+        LicensedFeature.MALWARE_DEFENSE_EVALUATION,
         LicensedFeature.APPLICATION_REPORTS,
         LicensedFeature.APPLICATION_EVALUATION,
         LicensedFeature.CALL_FLOW_ANALYSIS,
@@ -669,6 +671,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WAIVERS_DASHBOARD, //
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES,
+        LicensedFeature.MALWARE_DEFENSE_EVALUATION,
         LicensedFeature.API_PAGE,
         LicensedFeature.APPLICATION_REPORTS,
         LicensedFeature.APPLICATION_EVALUATION,

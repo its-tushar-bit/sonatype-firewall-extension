@@ -781,6 +781,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
       features.add(LicensedFeature.RELEASE_INTEGRITY);
       features.add(LicensedFeature.FIREWALL);
+      features.add(LicensedFeature.MALWARE_DEFENSE_EVALUATION);
       features.add(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);

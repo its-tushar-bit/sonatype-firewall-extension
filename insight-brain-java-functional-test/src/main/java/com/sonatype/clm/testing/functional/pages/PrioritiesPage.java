@@ -8,43 +8,57 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.NxDropdown;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import static com.codeborne.selenide.Selectors.by;
-import static com.codeborne.selenide.Selenide.$;
 
 public class PrioritiesPage
+    extends BasicElement<PrioritiesPage>
 {
-  private PrioritiesPage() {
-    // No op
+  public PrioritiesPage() {
+    super(".iq-priorities-page");
   }
 
-  public static SelenideElement title() {
-    return $("h2");
+  public static String url(String applicationId, String scanId) {
+    return BaseUrl.resolvePageUrl( "/developer/priorities/{publicAppId}/{scanId}", applicationId, scanId);
   }
 
-  public static SelenideElement summaryTile() {
-    return $(by("data-testid", "iq-priorities-page-summary-section"));
+  public SelenideElement title() {
+    return child("h2");
   }
 
-  public static SelenideElement backLink() {
-    return $(".nx-text-link.iq-priorities-page-breadcrumbs-crumb");
+  public SelenideElement summaryTile() {
+    return getElement().$(by("data-testid", "iq-priorities-page-summary-section"));
   }
 
-  public static SelenideElement prioritiesTable() {
-    return $(".iq-priorities-page-table");
+  public SelenideElement backLink() {
+    return child(".nx-text-link.iq-priorities-page-breadcrumbs-crumb");
   }
 
-  public static ElementsCollection prioritiesTableRows() {
+  public SelenideElement prioritiesTable() {
+    return child(".iq-priorities-table");
+  }
+
+  public ElementsCollection prioritiesTableRows() {
     return prioritiesTable()
         .findAll(by("data-analytics-id", "sonatype-developer-priorities-page-component-row"));
   }
 
-  public static NxDropdown viewDropdown() {
-    return new NxDropdown(".iq-priorities-page-view-dropdown");
+  public SelenideElement prioritiesTableCell(int rowNum, int colNum) {
+    return prioritiesTable().$("tbody tr", rowNum).$("td", colNum);
   }
 
-  public static SelenideElement lastPageLink() {
-    return $(by("aria-label", "goto last page"));
+  public SelenideElement rowComponentLink(int rowNum) {
+    return prioritiesTableCell(rowNum, 1).$("a");
+  }
+
+  public NxDropdown viewDropdown() {
+    return new NxDropdown(childSelector(".iq-priorities-page-view-dropdown"));
+  }
+
+  public SelenideElement lastPageLink() {
+    return getElement().$(by("aria-label", "goto last page"));
   }
 }

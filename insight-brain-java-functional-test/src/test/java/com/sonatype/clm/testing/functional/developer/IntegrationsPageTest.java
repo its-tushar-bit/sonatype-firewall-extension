@@ -163,9 +163,10 @@ public class IntegrationsPageTest
 
     prioritiesReportViewLink(9).click();
 
-    PrioritiesPage.title().shouldBe(visible);
-    PrioritiesPage.summaryTile().shouldBe(visible);
-    PrioritiesPage.prioritiesTable().shouldBe(visible);
+    PrioritiesPage prioritiesPage = new PrioritiesPage();
+    prioritiesPage.title().shouldBe(visible);
+    prioritiesPage.summaryTile().shouldBe(visible);
+    prioritiesPage.prioritiesTable().shouldBe(visible);
     back();
 
     // Showing all rows

@@ -17,8 +17,7 @@ import {
   NxToggle,
 } from '@sonatype/react-shared-components';
 import PrioritiesPageRow from 'MainRoot/development/prioritiesPage/PrioritiesPageRow';
-import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
-import { selectComponent } from 'MainRoot/applicationReport/applicationReportActions';
+import { faArrowDownWideShort } from '@fortawesome/pro-solid-svg-icons';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectRouterCurrentParams, selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions } from 'MainRoot/development/prioritiesPage/slices/prioritiesPageSlice';
@@ -27,6 +26,7 @@ import { debounce } from 'debounce';
 import { isNil } from 'ramda';
 import { selectApplicationReportMetaData } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { defaultIntegrationParamsMap, validIntegrationTypes } from './utils';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function PrioritiesPageTable() {
   const dispatch = useDispatch();
@@ -44,8 +44,6 @@ export default function PrioritiesPageTable() {
     filterOnPolicyActions: filterOnPolicyActionsValue,
     hasDefaultFilters,
   } = useSelector(selectPrioritiesPageSlice);
-
-  const hasPolicyAction = priorities?.find((priority) => priority.action === 'fail' || priority.action === 'warn');
 
   const metadata = useSelector(selectApplicationReportMetaData);
   const { forMonitoring } = metadata || {};
@@ -69,7 +67,9 @@ export default function PrioritiesPageTable() {
 
   const setPage = (page) => dispatch(actions.setPage(page));
 
-  const priorityTooltip = `Priority of actionable items based on the policy action, component reachability status, and threat score severity.`;
+  const priorityTooltip =
+      `Priority of actionable items based on the policy action,
+      component reachability status, and threat score severity.`;
 
   const setFilters = () => {
     dispatch(actions.setFilterOnPolicyActions(derivedActionFilter));
@@ -184,20 +184,23 @@ export default function PrioritiesPageTable() {
       </div>
       <NxTile.Content>
         <div className="nx-table-container">
-          <NxTable className="iq-priorities-page-table nx-table--fixed-layout">
+          <NxTable id="iq-priorities-table" className="iq-priorities-table">
             <NxTable.Head>
               <NxTable.Row>
-                <NxTable.Cell className="iq-priorities-page-priority-header-cell">
+                <NxTable.Cell aria-label="Priority" className="nx-cell--num">
                   <NxTooltip title={priorityTooltip}>
-                    <span>
-                      Priority <NxFontAwesomeIcon className="iq-priorities-page-table-info-icon" icon={faInfoCircle} />
-                    </span>
+                    <NxFontAwesomeIcon
+                      className="iq-priorities-table__priority-column-header"
+                      icon={faArrowDownWideShort}
+                    />
                   </NxTooltip>
                 </NxTable.Cell>
                 <NxTable.Cell>Component</NxTable.Cell>
-                <NxTable.Cell>Reason for priority</NxTable.Cell>
-                <NxTable.Cell className="iq-priorities-page-suggested-fix-header-cell">Suggested fix</NxTable.Cell>
-                <NxTable.Cell chevron />
+                <NxTable.Cell>Build Action</NxTable.Cell>
+                <NxTable.Cell>Reachability</NxTable.Cell>
+                <NxTable.Cell>
+                  Suggested Remediation
+                </NxTable.Cell>
               </NxTable.Row>
             </NxTable.Head>
             <NxTable.Body
@@ -206,12 +209,12 @@ export default function PrioritiesPageTable() {
               error={loadErrorTableData}
               emptyMessage={getEmptyMessage()}
             >
-              <DataRows dataset={priorities} hasPolicyAction={!!hasPolicyAction} />
+              <DataRows dataset={priorities} />
             </NxTable.Body>
           </NxTable>
           <div className="nx-table-container__footer">
             <NxPagination
-              aria-controls="pagination-table"
+              aria-controls="iq-priorities-table"
               pageCount={pageCount}
               currentPage={currentPage}
               onChange={setPage}
@@ -223,10 +226,10 @@ export default function PrioritiesPageTable() {
   );
 }
 
-function DataRows({ dataset, hasPolicyAction }) {
+function DataRows({ dataset }) {
   const dispatch = useDispatch();
+  const routerState = useRouterState();
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
-  const setSelectedComponent = (idx) => dispatch(selectComponent(idx));
   const currentRouteName = useSelector(selectCurrentRouteName);
 
   const getCurrentPrioritiesContainer = () => {
@@ -241,25 +244,16 @@ function DataRows({ dataset, hasPolicyAction }) {
   };
 
   const prioritiesState = `${getCurrentPrioritiesContainer()}.componentDetails.overview`;
+  const getHref = hash => routerState.href(prioritiesState, { hash, publicId: publicAppId, scanId });
 
-  const dispatchComponentDetailsPage = (hash) =>
-    dispatch(stateGo(prioritiesState, { hash, publicId: publicAppId, scanId }));
-  if (!dataset) return [];
-
-  return dataset.map((component, index) => {
+  return (dataset ?? []).map((component) => {
     const { componentHash } = component;
-
-    const onRowClick = () => {
-      setSelectedComponent(index);
-      dispatchComponentDetailsPage(componentHash);
-    };
 
     return (
       <PrioritiesPageRow
         key={componentHash}
         component={component}
-        onClick={onRowClick}
-        hasPolicyAction={hasPolicyAction}
+        href={getHref(componentHash)}
       />
     );
   });

@@ -65,10 +65,11 @@ public class DeveloperReportListPageTest
   public void testPrioritiesReportPage_shouldEnterReportFromListAndBack() {
     refreshOrOpen(DeveloperReportListPage.url());
     DeveloperReportListPage.reportListTable().findAll(byText("View Priorities")).first().click();
-    PrioritiesPage.title().shouldHave(text(title(0)));
+    PrioritiesPage prioritiesPage = new PrioritiesPage();
+    prioritiesPage.title().shouldHave(text(title(0)));
 
     // Go back to the report list page
-    PrioritiesPage.backLink().click();
+    prioritiesPage.backLink().click();
     DeveloperReportListPage.title().shouldHave(text("Priorities"));
   }
 
@@ -76,8 +77,9 @@ public class DeveloperReportListPageTest
   public void testPrioritiesReportPage_shouldEnterFullReportAndBack() {
     refreshOrOpen(DeveloperReportListPage.url());
     DeveloperReportListPage.reportListTable().findAll(byText("View Priorities")).first().click();
-    PrioritiesPage.title().shouldHave(text(title(0)));
-    NxDropdown viewDropdown = PrioritiesPage.viewDropdown();
+    PrioritiesPage prioritiesPage = new PrioritiesPage();
+    prioritiesPage.title().shouldHave(text(title(0)));
+    NxDropdown viewDropdown = prioritiesPage.viewDropdown();
     viewDropdown.shouldHave(text("View"));
     viewDropdown.click();
     viewDropdown
@@ -104,40 +106,29 @@ public class DeveloperReportListPageTest
 
     WebDriverRunner.getWebDriver().close();
     Selenide.switchTo().window(0);
-    PrioritiesPage.title().shouldHave(text("Priorities"));
+    prioritiesPage.title().shouldHave(text("Priorities"));
   }
 
   @Test
   public void testPrioritiesReportPage_shouldListViolatingComponentsProperly() {
     refreshOrOpen(DeveloperReportListPage.url());
     DeveloperReportListPage.reportListTable().findAll(byText("View Priorities")).first().click();
-    PrioritiesPage.title().shouldHave(text(title(0)));
+    PrioritiesPage prioritiesPage = new PrioritiesPage();
+    prioritiesPage.title().shouldHave(text(title(0)));
 
-    ElementsCollection firstPage =
-        PrioritiesPage.prioritiesTableRows();
+    prioritiesPage.prioritiesTableRows().shouldHave(size(TOTAL_PRIORITIES_PER_PAGE));
 
-    firstPage.shouldHave(size(TOTAL_PRIORITIES_PER_PAGE));
+    prioritiesPage.prioritiesTableCell(0, 1).shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
 
-    firstPage.get(0).find(".iq-priorities-page-components__component")
-        .shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
-    firstPage.get(0).find(".iq-priorities-page-policy-details__desc-threat")
-        .shouldHave(text("10"));
+    prioritiesPage.prioritiesTableCell(1, 1).shouldHave(text("com.vaadin.addon : vaadin-touchkit-agpl : 3.0.0-beta1"));
 
-    firstPage.get(1).find(".iq-priorities-page-components__component")
-        .shouldHave(text("com.vaadin.addon : vaadin-touchkit-agpl : 3.0.0-beta1"));
-    firstPage.get(1).find(".iq-priorities-page-policy-details__desc-threat")
-        .shouldHave(text("10"));
-
-    firstPage.get(2).find(".iq-priorities-page-components__component")
+    prioritiesPage.prioritiesTableCell(2, 1)
         .shouldHave(text("org.springframework.security : spring-security-web : 3.2.4.RELEASE"));
-    firstPage.get(2).find(".iq-priorities-page-policy-details__desc-threat")
-        .shouldHave(text("9"));
 
-    ScrollUtil.scrollIntoView(PrioritiesPage.lastPageLink());
-    PrioritiesPage.lastPageLink().shouldHave(text("2")).click();
+    ScrollUtil.scrollIntoView(prioritiesPage.lastPageLink());
+    prioritiesPage.lastPageLink().shouldHave(text("2")).click();
 
-    ElementsCollection lastPage =
-        PrioritiesPage.prioritiesTableRows();
+    ElementsCollection lastPage = prioritiesPage.prioritiesTableRows();
 
     lastPage.shouldHave(size(13));
   }
@@ -146,11 +137,10 @@ public class DeveloperReportListPageTest
   public void testPrioritiesReportPage_shouldOpenComponentDetailsPageFromRow() {
     refreshOrOpen(DeveloperReportListPage.url());
     DeveloperReportListPage.reportListTable().findAll(byText("View Priorities")).get(1).click();
-    PrioritiesPage.title().shouldHave(text(title(1)));
+    PrioritiesPage prioritiesPage = new PrioritiesPage();
+    prioritiesPage.title().shouldHave(text(title(1)));
 
-    ElementsCollection firstPage =
-        PrioritiesPage.prioritiesTableRows();
-    firstPage.get(0).find(".iq-priorities-page-components__component").click();
+    prioritiesPage.rowComponentLink(0).click();
 
     DependencyTreeTile dependencyTreeTile = componentDetailsPage.dependencyTreeTile();
     ScrollUtil.scrollIntoView(dependencyTreeTile.title());

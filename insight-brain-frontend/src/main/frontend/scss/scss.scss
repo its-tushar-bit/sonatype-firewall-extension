@@ -166,6 +166,7 @@
 @use '../sbomManager/features/componentDetails/componentDetails';
 @use '../applicationLatestEvaluations/applicationLatestEvaluations';
 @use '../OrgsAndPolicies/importSbomModal/import-sbom-modal';
+@use '../react/policyActionTag';
 
 // Overrides
 @use 'responsive';

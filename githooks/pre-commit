@@ -17,7 +17,10 @@ md_files=$(echo "$staged_files" | grep -E '\.md$')
 if [ -n "$js_files" ] || [ -n "$css_scss_files" ] || [ -n "$md_files" ]; then
   found_files=true
   echo -e "${GREEN}Running Prettier...${NC}"
-  echo "$js_files"$'\n'"$css_scss_files"$'\n'"$md_files" | tr '\n' '\0' | xargs -0 ./insight-brain-frontend/node_modules/.bin/prettier --write
+  echo "$js_files"$'\n'"$css_scss_files"$'\n'"$md_files" | \
+    grep -v '^$' | \
+    tr '\n' '\0' | \
+    xargs -0 ./insight-brain-frontend/node_modules/.bin/prettier --write
   prettier_exit_code=$?
 else
   prettier_exit_code=0
@@ -34,6 +37,9 @@ else
 fi
 
 # Add the formatted files back to the staging area
-echo "$js_files"$'\n'"$css_scss_files"$'\n'"$md_files" | tr '\n' '\0' | xargs -0 git add
+echo "$js_files"$'\n'"$css_scss_files"$'\n'"$md_files" | \
+  grep -v '^$' | \
+  tr '\n' '\0' | \
+  xargs -0 git add
 
 exit 0

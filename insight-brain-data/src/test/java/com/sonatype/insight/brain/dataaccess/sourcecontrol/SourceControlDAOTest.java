@@ -1299,6 +1299,7 @@ public class SourceControlDAOTest
         .withSourceControlEvaluations(false, null, null)
         .withSsh(false, null, null)
         .withCommitStatusEnabled(false, null, null)
+        .withManualPullRequestsEnabled(false, null, null)
         .withStatusChecks(false, null, null)
         .build();
 
@@ -1320,6 +1321,7 @@ public class SourceControlDAOTest
         .withDefaultBranch("trunk", null, null)
         .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
         .withCommitStatusEnabled(null, null, null)
+        .withManualPullRequestsEnabled(null, null, null)
         .build();
 
     SourceControl appSourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(
@@ -1344,6 +1346,7 @@ public class SourceControlDAOTest
         .withSsh(false, null, true, null, null)
         .withCommitStatusEnabled(false, null, true, null, null)
         .withStatusChecks(false, null, true, null, null)
+        .withManualPullRequestsEnabled(false, null, true, null, null)
         .branchFrom("org2", "org4", "app2")
         .withRepositoryUrl("https://test.sonatype.com/app/2", "ssh://test.sonatype.com/app/2.git")
         .withToken("org4.token", null)
@@ -1374,6 +1377,7 @@ public class SourceControlDAOTest
         .withSsh(false, null, true, null, null)
         .withCommitStatusEnabled(false, null, true, null, null)
         .withStatusChecks(false, null, true, null, null)
+        .withManualPullRequestsEnabled(false, null, true, null, null)
         .build();
 
     SourceControl org3SourceControl = sourceControlDAO.buildCompositeSourceControlInApplication("org3");
@@ -1399,6 +1403,7 @@ public class SourceControlDAOTest
         .withSsh(false, true, null)
         .withCommitStatusEnabled(false, true, null)
         .withStatusChecks(false, true, null)
+        .withManualPullRequestsEnabled(false, true, null)
         .build();
 
     SourceControl appSourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(
@@ -1426,6 +1431,7 @@ public class SourceControlDAOTest
         .withSsh(false, true, false)
         .withCommitStatusEnabled(false, true, false)
         .withStatusChecks(false, null, true)
+        .withManualPullRequestsEnabled(false, true, false)
         .build();
 
     SourceControl appSourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(
@@ -1520,6 +1526,7 @@ public class SourceControlDAOTest
         .withSourceControlEvaluations(false, null, null)
         .withSsh(false, null, null)
         .withCommitStatusEnabled(false, null, null)
+        .withManualPullRequestsEnabled(false, null, null)
         .withStatusChecks(false, null, null)
         .build();
 
@@ -1549,6 +1556,7 @@ public class SourceControlDAOTest
         .withSourceControlEvaluations(false, null, null)
         .withSsh(false, null, null)
         .withCommitStatusEnabled(false, null, null)
+        .withManualPullRequestsEnabled(false, null, null)
         .withStatusChecks(false, null, null)
         .build();
 
@@ -1574,6 +1582,7 @@ public class SourceControlDAOTest
         .withDefaultBranch("main", null, null)
         .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
         .withCommitStatusEnabled(null, null, null)
+        .withManualPullRequestsEnabled(null, null, null)
         .build();
 
     // when: build the composite source control for appOne
@@ -1621,6 +1630,7 @@ public class SourceControlDAOTest
         .withSsh(false, null, true, null, null)
         .withCommitStatusEnabled(false, null, true, null, null)
         .withStatusChecks(false, null, true, null, null)
+        .withManualPullRequestsEnabled(false, null, true, null, null)
         .branchFrom("org2", "org4", "app2")
         .withRepositoryUrl("https://test.sonatype.com/app/2", "ssh://test.sonatype.com/app/2.git")
         .withToken("org4.token", null)
@@ -1653,6 +1663,7 @@ public class SourceControlDAOTest
         .withSsh(false, null, true, null, null)
         .withCommitStatusEnabled(false, null, true, null, null)
         .withStatusChecks(false, null, true, null, null)
+        .withManualPullRequestsEnabled(false, null, true, null, null)
         .branchFrom("org2", "org4", "app2")
         .withRepositoryUrl("https://test.sonatype.com/app/2", "ssh://test.sonatype.com/app/2.git")
         .withToken("org4.token", null)
@@ -1686,6 +1697,7 @@ public class SourceControlDAOTest
         .withSsh(false, true, null)
         .withCommitStatusEnabled(false, true, null)
         .withStatusChecks(false, true, null)
+        .withManualPullRequestsEnabled(false, true, null)
         .build();
 
     // when: build the composite source control for appOne
@@ -1715,6 +1727,7 @@ public class SourceControlDAOTest
         .withSsh(false, true, null)
         .withCommitStatusEnabled(false, true, null)
         .withStatusChecks(false, true, null)
+        .withManualPullRequestsEnabled(false, true, null)
         .build();
 
     // when: build the composite source control for appOne
@@ -1745,6 +1758,7 @@ public class SourceControlDAOTest
         .withSsh(false, true, false)
         .withCommitStatusEnabled(false, true, false)
         .withStatusChecks(false, null, true)
+        .withManualPullRequestsEnabled(false, true, false)
         .build();
 
     // when: build the composite source control for appOne
@@ -1774,6 +1788,7 @@ public class SourceControlDAOTest
         .withSsh(false, true, false)
         .withCommitStatusEnabled(false, true, false)
         .withStatusChecks(false, null, true)
+        .withManualPullRequestsEnabled(false, true, false)
         .build();
 
     // when: build the composite source control for appOne
@@ -2098,6 +2113,23 @@ public class SourceControlDAOTest
         });
   }
 
+  @Test
+  public void testGetCompositeSourceControlByOwnerId_ManualPullRequestEnabled_AllNull() {
+    TestableHierarchy testableHierarchy = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appComposite")
+        .withProvider(GITLAB, null, null)
+        .withDefaultBranch("trunk", null, null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withManualPullRequestsEnabled(null, null, null)
+        .build();
+
+    SourceControl appSourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(
+        testableHierarchy.getApplication("appComposite").getId()
+    );
+
+    assertThat(appSourceControl.getManualPullRequestsEnabled()).isNull();
+  }
+
   private void assertSourceControl(SourceControl actualSC, SourceControl expectedSC) {
     assertThat(actualSC.getId()).isEqualTo(expectedSC.getId());
     assertThat(actualSC.getOwnerId()).isEqualTo(expectedSC.getOwnerId());
@@ -2114,6 +2146,7 @@ public class SourceControlDAOTest
     assertThat(actualSC.getSourceControlEvaluationsEnabled())
         .isEqualTo(expectedSC.getSourceControlEvaluationsEnabled());
     assertThat(actualSC.getSourceControlScanTarget()).isEqualTo(expectedSC.getSourceControlScanTarget());
+    assertThat(actualSC.getManualPullRequestsEnabled()).isEqualTo(expectedSC.getManualPullRequestsEnabled());
   }
 
   private Date getScanLimitDate() {
@@ -2269,6 +2302,14 @@ public class SourceControlDAOTest
       assertHierarchyDepth(statusCheckFlags.length);
       for (int i = 0; i < statusCheckFlags.length; i++) {
         getSourceControl(i).setStatusChecksEnabled(statusCheckFlags[i]);
+      }
+      return this;
+    }
+
+    private TestableHierarchy withManualPullRequestsEnabled(Boolean... manualPullRequestsEnabledFlags) {
+      assertHierarchyDepth(manualPullRequestsEnabledFlags.length);
+      for (int i = 0; i < manualPullRequestsEnabledFlags.length; i++) {
+        getSourceControl(i).setManualPullRequestsEnabled(manualPullRequestsEnabledFlags[i]);
       }
       return this;
     }

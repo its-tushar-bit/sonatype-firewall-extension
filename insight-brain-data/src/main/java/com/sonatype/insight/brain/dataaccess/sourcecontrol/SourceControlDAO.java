@@ -121,7 +121,9 @@ public class SourceControlDAO
       "as source_control_scan_target," +
       "(ARRAY_REMOVE(ARRAY_AGG(ssh_enabled ORDER BY hierarchy_order), NULL))[1] as ssh_enabled," +
       "(ARRAY_REMOVE(ARRAY_AGG(commit_status_enabled ORDER BY hierarchy_order), NULL))[1] " +
-      "as commit_status_enabled " +
+      "as commit_status_enabled, " +
+      "(ARRAY_REMOVE(ARRAY_AGG(manual_pull_requests_enabled ORDER BY hierarchy_order), NULL))[1] " +
+      "as manual_pull_requests_enabled " +
       "FROM (" +
       // Create ordered set of Source Control records, from application to root organization
       "SELECT * FROM (" +

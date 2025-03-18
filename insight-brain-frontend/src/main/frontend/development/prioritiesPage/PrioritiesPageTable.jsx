@@ -67,8 +67,7 @@ export default function PrioritiesPageTable() {
 
   const setPage = (page) => dispatch(actions.setPage(page));
 
-  const priorityTooltip =
-      `Priority of actionable items based on the policy action,
+  const priorityTooltip = `Priority of actionable items based on the policy action,
       component reachability status, and threat score severity.`;
 
   const setFilters = () => {
@@ -198,9 +197,7 @@ export default function PrioritiesPageTable() {
                 <NxTable.Cell>Component</NxTable.Cell>
                 <NxTable.Cell>Build Action</NxTable.Cell>
                 <NxTable.Cell>Reachability</NxTable.Cell>
-                <NxTable.Cell>
-                  Suggested Remediation
-                </NxTable.Cell>
+                <NxTable.Cell>Suggested Remediation</NxTable.Cell>
               </NxTable.Row>
             </NxTable.Head>
             <NxTable.Body
@@ -244,17 +241,11 @@ function DataRows({ dataset }) {
   };
 
   const prioritiesState = `${getCurrentPrioritiesContainer()}.componentDetails.overview`;
-  const getHref = hash => routerState.href(prioritiesState, { hash, publicId: publicAppId, scanId });
+  const getHref = (hash) => routerState.href(prioritiesState, { hash, publicId: publicAppId, scanId });
 
   return (dataset ?? []).map((component) => {
     const { componentHash } = component;
 
-    return (
-      <PrioritiesPageRow
-        key={componentHash}
-        component={component}
-        href={getHref(componentHash)}
-      />
-    );
+    return <PrioritiesPageRow key={componentHash} component={component} href={getHref(componentHash)} />;
   });
 }

@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceContro
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.sourcecontrol.ScmUserMappings;
@@ -100,6 +101,7 @@ public class ApiSourceControlResourceTest
     app = tempEntity.newApplicationWithParent();
     org = tempEntity.newOrganization();
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
   }
 
   @Override
@@ -122,6 +124,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
     assertThat(result.provider).isNull();
     assertThat(result.commitStatusEnabled).isNull();
+    assertThat(result.manualPullRequestsEnabled).isNull();
   }
 
   @Test
@@ -139,12 +142,14 @@ public class ApiSourceControlResourceTest
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
     assertThat(result.provider).isNull();
     assertThat(result.commitStatusEnabled).isNull();
+    assertThat(result.manualPullRequestsEnabled).isNull();
   }
 
   @Test
   public void testAddSourceControlByOwner_ByOrganization() throws Exception {
     ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(org.getId()).setToken("token").setCommitStatusEnabled(false)
+            .setManualPullRequestsEnabled(false)
             .build());
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
@@ -160,6 +165,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
     assertThat(result.provider).isNull();
     assertThat(result.commitStatusEnabled).isFalse();
+    assertThat(result.manualPullRequestsEnabled).isFalse();
   }
 
   @Test
@@ -168,6 +174,7 @@ public class ApiSourceControlResourceTest
     ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(repoUrl).setToken("token")
             .setCommitStatusEnabled(false)
+            .setManualPullRequestsEnabled(false)
             .build());
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
@@ -182,6 +189,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
     assertThat(result.provider).isNull();
     assertThat(result.commitStatusEnabled).isFalse();
+    assertThat(result.manualPullRequestsEnabled).isFalse();
   }
 
   @Test
@@ -190,6 +198,7 @@ public class ApiSourceControlResourceTest
         org.getId(), null, "token", null);
     sourceControl.setToken("NEW_TOKEN");
     sourceControl.setCommitStatusEnabled(false);
+    sourceControl.setManualPullRequestsEnabled(false);
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, org.getId())
@@ -203,6 +212,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
     assertThat(result.provider).isNull();
     assertThat(result.commitStatusEnabled).isFalse();
+    assertThat(result.manualPullRequestsEnabled).isFalse();
   }
 
   @Test
@@ -699,6 +709,31 @@ public class ApiSourceControlResourceTest
     assertResponseStatus(400, response);
     assertThat(response.getBodyText())
         .isEqualTo("An SCMUserMappingsDTO must be provided either with the request or via at the organization level");
+  }
+
+  @Test
+  public void testAddSourceControlByOwner_ByOrganization_ManualPullRequestsFeatureFlagDisabled() throws Exception {
+    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(false);
+    ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
+        new SourceControl.Builder()
+            .setOwnerId(org.getId())
+            .setManualPullRequestsEnabled(true)
+            .build());
+
+    HttpResponse response = restRequest()
+        .path(ApiSourceControlResource.BY_OWNER)
+        .parameter(OwnerType.ORGANIZATION, org.getId())
+        .body(sourceControl)
+        .post();
+    assertResponseStatus(200, response);
+
+    ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
+
+    String rawJson = response.getBodyText();
+    //assert that the manualPullRequestsEnabled field is not present in the response before deserialized
+    assertThat(rawJson).doesNotContain("manualPullRequestsEnabled");
+    //FF is disabled, so the value should be null
+    assertThat(result.manualPullRequestsEnabled).isNull();
   }
 
   /**

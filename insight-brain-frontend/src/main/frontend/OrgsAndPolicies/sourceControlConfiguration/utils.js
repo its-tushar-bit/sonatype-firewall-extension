@@ -74,6 +74,13 @@ export const SOURCE_CONTROL_OPTIONS = [
     description: 'Allow IQ server to create commit statuses.',
     optionName: 'commitStatusEnabled',
   },
+  {
+    id: 'manual-pull-requests',
+    title: 'Manual Pull Requests',
+    description:
+      'Display an option to manually create a pull request against the default branch when suggested version changes are available.',
+    optionName: 'manualPullRequestsEnabled',
+  },
 ];
 
 export const compositeSourceControlToModel = (
@@ -91,6 +98,7 @@ export const compositeSourceControlToModel = (
     commitStatusEnabled,
     statusChecksEnabled,
     sshEnabled,
+    manualPullRequestsEnabled,
   },
   isRootOrg
 ) => {
@@ -143,8 +151,16 @@ export const compositeSourceControlToModel = (
       value: setDefaultIfNull(commitStatusEnabled.value, commitStatusEnabled.parentValue, true),
     },
     statusChecksEnabled,
+    manualPullRequestsEnabled: {
+      ...manualPullRequestsEnabled,
+      isInherited: manualPullRequestsEnabled?.value == null && !isRootOrg,
+      value: setDefaultIfNull(
+        manualPullRequestsEnabled?.value ?? null,
+        manualPullRequestsEnabled?.parentValue ?? null,
+        false
+      ),
+    },
   };
-
   //set username and token
   if (provider.parentName !== ROOT_ORG_NAME && token.parentName === ROOT_ORG_NAME) {
     // provider is inherited from a suborg but the token is at the root
@@ -220,6 +236,12 @@ export const prepareSubmitData = (sourceControl, serverSourceControl, isApp, isR
       isAutomationSupported
     ),
     sourceControlEvaluationsEnabled: getSourceControlEvaluationsEnabledFlagFromModel(
+      sourceControl,
+      serverSourceControl,
+      isRootOrg,
+      isAutomationSupported
+    ),
+    manualPullRequestsEnabled: getManualPullRequestsEnabledFlagFromModel(
       sourceControl,
       serverSourceControl,
       isRootOrg,
@@ -365,6 +387,19 @@ export const getSourceControlEvaluationsEnabledFlagFromModel = (
     : serverSourceControl.sourceControlEvaluationsEnabled.value;
 };
 
+export const getManualPullRequestsEnabledFlagFromModel = (
+  sourceControl,
+  serverSourceControl,
+  isRootOrg,
+  isAutomationSupported
+) => {
+  if (!isRootOrg || arePullRequestsSupported(sourceControl, serverSourceControl, isAutomationSupported)) {
+    return sourceControl.manualPullRequestsEnabled?.value ?? null;
+  }
+
+  return serverSourceControl.manualPullRequestsEnabled?.value ?? false;
+};
+
 export const getBaseBranchValueFromModel = (sourceControl, serverSourceControl, isRootOrg, isAutomationSupported) => {
   if (!isRootOrg || arePullRequestsSupported(sourceControl, serverSourceControl, isAutomationSupported)) {
     return sourceControl.baseBranch.rscValue.trimmedValue;
@@ -388,6 +423,7 @@ export const getDataFromSourceControl = (
     sourceControlEvaluationsEnabled,
     statusChecksEnabled,
     sshEnabled,
+    manualPullRequestsEnabled,
     repositoryUrl,
   }
 ) => {
@@ -402,6 +438,7 @@ export const getDataFromSourceControl = (
     commitStatusEnabled,
     sourceControlEvaluationsEnabled,
     sshEnabled,
+    manualPullRequestsEnabled,
   };
   if (ownerType === 'application') {
     data.repositoryUrl = repositoryUrl;
@@ -430,6 +467,7 @@ export const setIsDirty = (state) => {
     'commitStatusEnabled',
     'remediationPullRequestsEnabled',
     'sourceControlEvaluationsEnabled',
+    'manualPullRequestsEnabled',
     'sshEnabled',
     'repositoryUrl',
   ];

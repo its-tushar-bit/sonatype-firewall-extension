@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -259,6 +260,14 @@ public class ApiCompositeSourceControlService
         ancestorsSourceControl,
         SourceControl::getCommitStatusEnabled
     );
+
+    dto.manualPullRequestsEnabled = SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()
+        ? collateCompositeDTO(
+        sourceControl,
+        ancestorsNameHierarchy,
+        ancestorsSourceControl,
+        SourceControl::getManualPullRequestsEnabled
+    ) : null;
   }
 
   private <T> ApiCompositeValueDTO<T> collateCompositeDTO(

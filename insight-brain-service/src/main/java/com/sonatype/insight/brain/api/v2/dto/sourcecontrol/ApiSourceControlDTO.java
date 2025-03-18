@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.dto.sourcecontrol;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 public class ApiSourceControlDTO
 {
   public String id;
@@ -48,4 +51,9 @@ public class ApiSourceControlDTO
   public Boolean sshEnabled;
 
   public Boolean commitStatusEnabled;
+
+  //TODO: Remove these two annotations when we enable SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS by default
+  @JsonInclude(value = JsonInclude.Include.NON_NULL)
+  @Schema(hidden = true)
+  public Boolean manualPullRequestsEnabled;
 }

@@ -98,7 +98,9 @@ priorities-page {
     grid-template-columns: auto 1fr repeat(3, auto);
   }
 
-  tbody, thead, tr {
+  tbody,
+  thead,
+  tr {
     display: contents;
   }
 

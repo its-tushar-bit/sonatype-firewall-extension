@@ -276,7 +276,8 @@ public class IntegrationsPageTest
         true,
         "/target/*",
         true,
-        true
+        true,
+        false
     );
 
     refreshOrOpen(IntegrationsPage.urlOverview());

@@ -6,8 +6,9 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Test;
@@ -15,7 +16,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MtiqApiSourceControlAdapterTest
-    extends AbstractMultiTenantTest
+    extends AbstractMultiTenantBaseIntegrationTest
 {
   @Test
   public void convertFromDTO() {
@@ -51,5 +52,21 @@ public class MtiqApiSourceControlAdapterTest
     assertThat(sourceControl.getSourceControlScanTarget()).isEqualTo("/target/*");
     assertThat(sourceControl.getSshEnabled()).isTrue();
     assertThat(sourceControl.getCommitStatusEnabled()).isFalse();
+  }
+
+  @Test
+  public void convertFromDTO_ManualPullRequestsFeatureFlag() {
+    ApiSourceControlDTO apiSourceControlDTO = new ApiSourceControlDTO();
+    apiSourceControlDTO.manualPullRequestsEnabled = true;
+
+    SourceControl sourceControl = ApiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
+
+    assertThat(sourceControl.getManualPullRequestsEnabled()).isEqualTo(null);
+
+    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
+
+    sourceControl = ApiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
+
+    assertThat(sourceControl.getManualPullRequestsEnabled()).isEqualTo(false);
   }
 }

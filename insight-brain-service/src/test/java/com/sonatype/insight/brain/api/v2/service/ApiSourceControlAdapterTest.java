@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Test;
@@ -14,6 +16,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiSourceControlAdapterTest
+    extends AbstractComponentTest
 {
   @SuppressWarnings("deprecation")
   @Test
@@ -33,6 +36,7 @@ public class ApiSourceControlAdapterTest
     sourceControl.setSourceControlScanTarget("/target/*");
     sourceControl.setSshEnabled(true);
     sourceControl.setCommitStatusEnabled(false);
+    sourceControl.setManualPullRequestsEnabled(false);
 
     ApiSourceControlDTO dto = ApiSourceControlAdapter.convertToDTO(sourceControl);
 
@@ -52,6 +56,7 @@ public class ApiSourceControlAdapterTest
     assertThat(dto.sourceControlScanTarget).isEqualTo("/target/*");
     assertThat(dto.sshEnabled).isTrue();
     assertThat(dto.commitStatusEnabled).isFalse();
+    assertThat(dto.manualPullRequestsEnabled).isFalse();
   }
 
   @Test
@@ -71,6 +76,7 @@ public class ApiSourceControlAdapterTest
     apiSourceControlDTO.sourceControlScanTarget = "/target/*";
     apiSourceControlDTO.sshEnabled = true;
     apiSourceControlDTO.commitStatusEnabled = false;
+    apiSourceControlDTO.manualPullRequestsEnabled = false;
 
     SourceControl sourceControl = ApiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
 
@@ -88,6 +94,7 @@ public class ApiSourceControlAdapterTest
     assertThat(sourceControl.getSourceControlScanTarget()).isEqualTo("/target/*");
     assertThat(sourceControl.getSshEnabled()).isTrue();
     assertThat(sourceControl.getCommitStatusEnabled()).isFalse();
+    assertThat(sourceControl.getManualPullRequestsEnabled()).isNull();
   }
 
   @SuppressWarnings("deprecation")
@@ -101,5 +108,22 @@ public class ApiSourceControlAdapterTest
 
     assertThat(sourceControl.getRemediationPullRequestsEnabled()).isEqualTo(true);
     assertThat(sourceControl.getStatusChecksEnabled()).isEqualTo(false);
+  }
+
+  @Test
+  public void convertFromDTO_ManualPullRequestsFeatureFlag() {
+    ApiSourceControlDTO apiSourceControlDTO = new ApiSourceControlDTO();
+    apiSourceControlDTO.manualPullRequestsEnabled = true;
+
+    SourceControl sourceControl = ApiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
+
+    assertThat(sourceControl.getManualPullRequestsEnabled()).isEqualTo(null);
+
+    //enable feature flag
+    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
+
+    sourceControl = ApiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
+
+    assertThat(sourceControl.getManualPullRequestsEnabled()).isEqualTo(true);
   }
 }

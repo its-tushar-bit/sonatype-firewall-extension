@@ -12,10 +12,12 @@ import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.codeborne.selenide.Selenide;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -531,6 +533,72 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.credentialsFieldset().labels().forEach(label -> label.shouldNotBe(visible));
     SourceControlEditorPage.token().shouldBe(visible, enabled);
     SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
+  }
+
+  @Test
+  public void testSourceControlEditor_manualPullRequests() {
+    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
+    refresh();
+    Selenide.sleep(1000);
+
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+    verifyStartNoSourceControl();
+    SourceControlEditorPage.manualPullRequestsFieldset().toggle().shouldNotBe(visible);
+    SourceControlEditorPage.manualPullRequestsFieldset().shouldBe(visible);
+    SourceControlEditorPage.manualPullRequestsFieldset().radioInputs()
+        .forEach(input -> input.shouldBe(disabled));
+    SourceControlEditorPage.manualPullRequestsFieldset().labels()
+        .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
+
+    //root org source control with manual pull requests enabled
+    tempEntity.newSourceControl(
+        rootOrganization.getId(), null, null, null, TOKEN, SourceControlProvider.GITHUB, false, true, "main", null,
+        true, true, null, null, true, true
+    );
+
+    //org source control
+    tempEntity.newSourceControl(organization.getId(), null, null, null, null, null, null, null, null, null, null, null,
+        null, null, null, null);
+
+    refresh();
+
+    SourceControlEditorPage.manualPullRequestsFieldset().shouldBe(visible);
+    SourceControlEditorPage.manualPullRequestsFieldset().radioInputs().get(0).shouldBe(selected);
+    SourceControlEditorPage.manualPullRequestsFieldset().radioInputs().get(0).shouldBe(enabled);
+    SourceControlEditorPage.manualPullRequestsFieldset().labels().get(0)
+        .shouldHave(text("Inherit from Root Organization"));
+
+    //override to Disabled
+    SourceControlEditorPage.manualPullRequestsFieldset().labels().get(2).click();
+
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.manualPullRequestsFieldset().radioInputs().get(2).shouldBe(selected);
+    assertSourceControlManualPullRequest(organization.getId(), false);
+
+    //override to Enabled
+    SourceControlEditorPage.manualPullRequestsFieldset().labels().get(1).click();
+
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.manualPullRequestsFieldset().radioInputs().get(1).shouldBe(selected);
+    assertSourceControlManualPullRequest(organization.getId(), true);
+
+    //back to inherit
+    SourceControlEditorPage.manualPullRequestsFieldset().labels().get(0).click();
+
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.manualPullRequestsFieldset().radioInputs().get(0).shouldBe(selected);
+    assertSourceControlManualPullRequest(organization.getId(), null);
+
+    //disable feature flag
+    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(false);
+    refresh();
+    SourceControlEditorPage.manualPullRequestsFieldset().shouldNotBe(visible);
   }
 
   @Override

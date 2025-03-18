@@ -692,7 +692,8 @@ public class ApplicationCountHistoryServiceTest
         true,
         "/target/*",
         true,
-        commitStatusEnabled
+        commitStatusEnabled,
+        false
     );
   }
 

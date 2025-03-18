@@ -41,6 +41,7 @@ export const defaultRootOrgConfigResponse = {
   sourceControlEvaluationsEnabled: { value: null, parentValue: null, parentName: null },
   sourceControlScanTarget: { value: null, parentValue: null, parentName: null },
   sshEnabled: { value: null, parentValue: null, parentName: null },
+  manualPullRequestsEnabled: { value: null, parentValue: null, parentName: null },
 };
 
 export const existingRootOrgConfigResponse = {
@@ -58,6 +59,7 @@ export const existingRootOrgConfigResponse = {
   sourceControlEvaluationsEnabled: { value: true, parentValue: null, parentName: null },
   sourceControlScanTarget: { value: null, parentValue: null, parentName: null },
   sshEnabled: { value: null, parentValue: null, parentName: null },
+  manualPullRequestsEnabled: { value: false, parentValue: null, parentName: null },
 };
 
 export const defaultOrgConfigResponse = {
@@ -75,6 +77,7 @@ export const defaultOrgConfigResponse = {
   sourceControlEvaluationsEnabled: { value: null, parentValue: null, parentName: null },
   sourceControlScanTarget: { value: null, parentValue: null, parentName: null },
   sshEnabled: { value: null, parentValue: null, parentName: null },
+  manualPullRequestsEnabled: { value: null, parentValue: null, parentName: null },
 };
 
 export const inheritedOrgConfigResponse = {
@@ -92,6 +95,7 @@ export const inheritedOrgConfigResponse = {
   sourceControlEvaluationsEnabled: { value: null, parentValue: true, parentName: ROOT_ORGANIZATION_NAME },
   sourceControlScanTarget: { value: null, parentValue: null, parentName: ROOT_ORGANIZATION_NAME },
   sshEnabled: { value: null, parentValue: true, parentName: ROOT_ORGANIZATION_NAME },
+  manualPullRequestsEnabled: { value: null, parentValue: false, parentName: ROOT_ORGANIZATION_NAME },
 };
 
 export const existingOrgConfigResponse = {
@@ -109,6 +113,7 @@ export const existingOrgConfigResponse = {
   sourceControlEvaluationsEnabled: { value: false, parentValue: true, parentName: ROOT_ORGANIZATION_NAME },
   sourceControlScanTarget: { value: null, parentValue: null, parentName: ROOT_ORGANIZATION_NAME },
   sshEnabled: { value: false, parentValue: true, parentName: ROOT_ORGANIZATION_NAME },
+  manualPullRequestsEnabled: { value: false, parentValue: false, parentName: ROOT_ORGANIZATION_NAME },
 };
 
 export const assertionsForOrgDefaultState = [
@@ -192,6 +197,15 @@ export const assertionsForOrgDefaultState = [
     enabled: true,
     disabled: false,
   },
+  {
+    name: 'Manual Pull Requests',
+    visibility: { assertion: 'toBeVisible' },
+    isDisabled: { assertion: 'toBeDisabled' },
+    type: 'radio',
+    inherit: false,
+    enabled: false,
+    disabled: true,
+  },
 ];
 
 export const assertionsForOrgInheritedState = [
@@ -268,6 +282,15 @@ export const assertionsForOrgInheritedState = [
   },
   {
     name: 'Automated Commit',
+    visibility: { assertion: 'toBeVisible' },
+    isDisabled: { assertion: 'toBeDisabled', isNegative: true },
+    type: 'radio',
+    inherit: true,
+    enabled: false,
+    disabled: false,
+  },
+  {
+    name: 'Manual Pull Requests',
     visibility: { assertion: 'toBeVisible' },
     isDisabled: { assertion: 'toBeDisabled', isNegative: true },
     type: 'radio',
@@ -357,6 +380,15 @@ export const assertionsForOrgExistingState = [
     enabled: false,
     disabled: true,
   },
+  {
+    name: 'Manual Pull Requests',
+    visibility: { assertion: 'toBeVisible' },
+    isDisabled: { assertion: 'toBeDisabled', isNegative: true },
+    type: 'radio',
+    inherit: false,
+    enabled: false,
+    disabled: true,
+  },
 ];
 
 export const defaultAppConfigResponse = {
@@ -374,6 +406,7 @@ export const defaultAppConfigResponse = {
   sourceControlEvaluationsEnabled: { value: null, parentValue: null, parentName: null },
   sourceControlScanTarget: { value: null, parentValue: null, parentName: null },
   sshEnabled: { value: null, parentValue: null, parentName: null },
+  manualPullRequestsEnabled: { value: null, parentValue: null, parentName: null },
 };
 
 export const inheritedAppConfigResponse = {
@@ -391,6 +424,7 @@ export const inheritedAppConfigResponse = {
   sourceControlEvaluationsEnabled: { value: null, parentValue: true, parentName: ROOT_ORGANIZATION_NAME },
   sourceControlScanTarget: { value: null, parentValue: null, parentName: ROOT_ORGANIZATION_NAME },
   sshEnabled: { value: null, parentValue: true, parentName: ROOT_ORGANIZATION_NAME },
+  manualPullRequestsEnabled: { value: null, parentValue: false, parentName: ROOT_ORGANIZATION_NAME },
 };
 
 export const inheritedAppNoTokenConfigResponse = {
@@ -408,6 +442,7 @@ export const inheritedAppNoTokenConfigResponse = {
   sourceControlEvaluationsEnabled: { value: null, parentValue: true, parentName: ROOT_ORGANIZATION_NAME },
   sourceControlScanTarget: { value: null, parentValue: null, parentName: ROOT_ORGANIZATION_NAME },
   sshEnabled: { value: null, parentValue: true, parentName: ROOT_ORGANIZATION_NAME },
+  manualPullRequestsEnabled: { value: null, parentValue: false, parentName: ROOT_ORGANIZATION_NAME },
 };
 
 export const existingAppConfigResponse = {
@@ -425,6 +460,7 @@ export const existingAppConfigResponse = {
   sourceControlEvaluationsEnabled: { value: false, parentValue: true, parentName: ROOT_ORGANIZATION_NAME },
   sourceControlScanTarget: { value: null, parentValue: null, parentName: ROOT_ORGANIZATION_NAME },
   sshEnabled: { value: false, parentValue: true, parentName: ROOT_ORGANIZATION_NAME },
+  manualPullRequestsEnabled: { value: false, parentValue: false, parentName: ROOT_ORGANIZATION_NAME },
 };
 
 export const assertionsForAppDefaultState = [
@@ -508,6 +544,15 @@ export const assertionsForAppDefaultState = [
     enabled: true,
     disabled: false,
   },
+  {
+    name: 'Manual Pull Requests',
+    visibility: { assertion: 'toBeVisible' },
+    isDisabled: { assertion: 'toBeDisabled' },
+    type: 'radio',
+    inherit: false,
+    enabled: false,
+    disabled: true,
+  },
 ];
 
 export const assertionsForAppInheritedState = [
@@ -584,6 +629,15 @@ export const assertionsForAppInheritedState = [
   },
   {
     name: 'Automated Commit',
+    visibility: { assertion: 'toBeVisible' },
+    isDisabled: { assertion: 'toBeDisabled', isNegative: true },
+    type: 'radio',
+    inherit: true,
+    enabled: false,
+    disabled: false,
+  },
+  {
+    name: 'Manual Pull Requests',
     visibility: { assertion: 'toBeVisible' },
     isDisabled: { assertion: 'toBeDisabled', isNegative: true },
     type: 'radio',
@@ -674,6 +728,15 @@ export const assertionsForAppNoTokenInheritedState = [
     enabled: false,
     disabled: false,
   },
+  {
+    name: 'Manual Pull Requests',
+    visibility: { assertion: 'toBeVisible' },
+    isDisabled: { assertion: 'toBeDisabled', isNegative: true },
+    type: 'radio',
+    inherit: true,
+    enabled: false,
+    disabled: false,
+  },
 ];
 
 export const assertionsForAppExistingState = [
@@ -749,6 +812,15 @@ export const assertionsForAppExistingState = [
   },
   {
     name: 'Automated Commit',
+    visibility: { assertion: 'toBeVisible' },
+    isDisabled: { assertion: 'toBeDisabled', isNegative: true },
+    type: 'radio',
+    inherit: false,
+    enabled: false,
+    disabled: true,
+  },
+  {
+    name: 'Manual Pull Requests',
     visibility: { assertion: 'toBeVisible' },
     isDisabled: { assertion: 'toBeDisabled', isNegative: true },
     type: 'radio',

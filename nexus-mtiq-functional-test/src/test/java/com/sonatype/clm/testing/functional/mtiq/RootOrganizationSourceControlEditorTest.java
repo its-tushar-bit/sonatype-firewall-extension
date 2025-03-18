@@ -89,6 +89,8 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.remediationPullRequestsFieldset().shouldBe(hidden);
     // SSH not enabled in MTIQ, only in IQ
     SourceControlEditorPage.sshEnabledFieldset().shouldBe(hidden);
+    // manual pull request not enabled in MTIQ, only in IQ
+    SourceControlEditorPage.manualPullRequestsFieldset().shouldBe(hidden);
     SourceControlEditorPage.automatedCommitFeedbackFieldset().toggleControl().shouldBe(enabled).click();
     SourceControlEditorPage.sourceControlEvaluationsFieldset().toggleControl().shouldBe(enabled).click();
     SourceControlEditorPage.saveButton().shouldHave(text("Update")).click();

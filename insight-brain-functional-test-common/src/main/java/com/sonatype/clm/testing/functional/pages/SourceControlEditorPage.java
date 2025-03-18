@@ -123,6 +123,10 @@ public class SourceControlEditorPage
     return new SourceControlFieldset("#automated-commit-feedback");
   }
 
+  public static SourceControlFieldset manualPullRequestsFieldset() {
+    return new SourceControlFieldset("#manual-pull-requests");
+  }
+
   public static SourceControlFieldset baseBranchFieldset() {
     return new SourceControlFieldset("#source-control-default-branch");
   }

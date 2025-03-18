@@ -11,11 +11,13 @@ import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.codeborne.selenide.Selenide;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -389,6 +391,44 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.form().shouldNotBe(visible);
     SourceControlEditorPage.notSupported().shouldBe(visible);
     SourceControlEditorPage.notSupported().shouldHave(text("Source Control is not supported by your license"));
+  }
+
+  @Test
+  public void testSourceControlEditor_manualPullRequests() {
+    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
+    refresh();
+    Selenide.sleep(1000);
+
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+
+    verifyStartNoSourceControl();
+    SourceControlEditorPage.manualPullRequestsFieldset().shouldBe(visible);
+    SourceControlEditorPage.manualPullRequestsFieldset().toggle().shouldBe(disabled)
+        .shouldNotBe(selected);
+    SourceControlEditorPage.manualPullRequestsFieldset().labels().forEach(label -> label.shouldNotBe(visible));
+
+    SourceControlEditorPage.providerSelect().chooseOption(new Option(3, "Github"));
+    SourceControlEditorPage.token().shouldBe(enabled).setValue("secret_key");
+
+    SourceControlEditorPage.manualPullRequestsFieldset().toggleControl().shouldBe(enabled).click();
+
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+    assertSourceControlManualPullRequest(organization.getId(), true);
+
+    //disable manual pull requests
+    SourceControlEditorPage.manualPullRequestsFieldset().toggleControl().shouldBe(enabled).click();
+
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.manualPullRequestsFieldset().toggle().shouldNotBe(selected);
+    assertSourceControlManualPullRequest(organization.getId(), false);
+
+    //disable manual pull requests feature flag
+    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(false);
+    refresh();
+    SourceControlEditorPage.manualPullRequestsFieldset().shouldNotBe(visible);
   }
 
   @Override

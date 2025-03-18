@@ -304,6 +304,7 @@
                 <include>**/DatamartUpdaterState*</include>
                 <include>**/TemporaryEntity*</include>
                 <include>**/TemporaryEntity/**</include>
+                <include>**/PolicyWaiverBuilder*</include>
                 <include>**/PolicyViolationAggregationDataHelper*</include>
                 <include>**/LicenseThreatGroupDataHelper*</include>
                 <include>**/TestLicenseThreatGroups.json</include>

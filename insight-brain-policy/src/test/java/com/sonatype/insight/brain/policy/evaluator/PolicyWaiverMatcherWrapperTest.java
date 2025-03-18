@@ -5,18 +5,14 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
-import java.util.UUID;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
-import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.policy.PolicyWaiverBuilder;
 import com.sonatype.insight.test.LogOutput;
 
 import org.junit.Rule;
@@ -396,52 +392,5 @@ public class PolicyWaiverMatcherWrapperTest
 
     assertThat(policyWaiverMatcherWrapper.matchesComponent(componentFact)).isFalse();
     assertThat(logOutput).atWarnLevel().contains("The following coordinates are missing for given format: [extension]");
-  }
-
-  private static class PolicyWaiverBuilder
-  {
-    private final PolicyWaiver policyWaiver;
-
-    PolicyWaiverBuilder() {
-      this.policyWaiver = new PolicyWaiver();
-    }
-
-    public PolicyWaiverBuilder setHash(final String hash) {
-      policyWaiver.setHash(hash);
-      return this;
-    }
-
-    public PolicyWaiverBuilder setPolicyId(final String policyId) {
-      policyWaiver.setPolicyId(policyId);
-      return this;
-    }
-
-    private PolicyWaiverBuilder setConstraintFacts(int count) {
-      List<ConstraintFact> constraintFacts = new ArrayList<>();
-      for (int i = 0; i < count; i++) {
-        ConstraintFact constraintFact = new ConstraintFact(UUID.randomUUID().toString(), "constraintName " + i, "and");
-        ConditionFact conditionFact = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
-            0 /* conditionIndex */, "some summary", "some reason");
-        conditionFact.setTriggerJson("{ \"conditionIndex\": " + i + ", \"trigger\": \"some trigger\" }");
-        constraintFact.addConditionFact(conditionFact);
-        constraintFacts.add(constraintFact);
-      }
-      policyWaiver.setConstraintFacts(constraintFacts);
-      return this;
-    }
-
-    public PolicyWaiverBuilder setComponentMatchStrategy(final ComponentMatcherStrategyForWaiver matchStrategy) {
-      this.policyWaiver.setComponentMatchStrategy(matchStrategy);
-      return this;
-    }
-
-    public PolicyWaiverBuilder setAssociatedPackagedUrl(final String associatedPackagedUrl) {
-      this.policyWaiver.setAssociatedPackageUrl(associatedPackagedUrl);
-      return this;
-    }
-
-    public PolicyWaiver build() {
-      return this.policyWaiver;
-    }
   }
 }

@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverStatus;
 import com.sonatype.insight.brain.policy.comparison.ConstraintFactsListComparator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -39,6 +40,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiverStatus.APPROVED;
 
 @Named
 @Singleton
@@ -174,10 +176,13 @@ public class PolicyWaiverDAO
       String hash,
       ComponentMatcherStrategyForWaiver matcherStrategy)
   {
-    String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
-        " WHERE entity.ownerId=?1 AND entity.hash=?2" + //
-        " AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)" + //
-        " AND entity.componentMatchStrategy=?3";
+    String sQuery = """
+        SELECT entity FROM PolicyWaiver entity
+        WHERE entity.ownerId=?1 AND entity.hash=?2
+        AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)
+        AND (entity.status is null OR entity.status = PolicyWaiverStatus.APPROVED)
+        AND entity.componentMatchStrategy=?3""";
+
     return getList(tx, sQuery, ownerId, hash, matcherStrategy);
   }
 
@@ -194,8 +199,13 @@ public class PolicyWaiverDAO
   }
 
   public List<PolicyWaiver> getActiveByOwnerId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
-        " WHERE entity.ownerId=?1 AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)";
+    String sQuery = """
+        SELECT entity FROM PolicyWaiver entity
+        WHERE entity.ownerId=?1
+        AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)
+        AND (entity.status is null OR entity.status = PolicyWaiverStatus.APPROVED)
+        """;
+
     return getList(tx, sQuery, ownerId);
   }
 
@@ -212,8 +222,12 @@ public class PolicyWaiverDAO
   }
 
   public List<PolicyWaiver> getActiveByPolicyId(String policyId) {
-    String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
-        " WHERE entity.policyId=?1 AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)";
+    String sQuery = """
+        SELECT entity FROM PolicyWaiver entity
+        WHERE entity.policyId=?1
+        AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)
+        AND (entity.status is null OR entity.status = PolicyWaiverStatus.APPROVED)
+        """;
     return getList(sQuery, policyId);
   }
 
@@ -336,13 +350,13 @@ public class PolicyWaiverDAO
 
     if (Objects.isNull(constraintFacts)) {
       Function<String, PolicyWaiver> getFunction =
-          getPolicyWaiverFunction(tx, hash, policyId, ownerId, componentMatchStrategy);
+          getPolicyWaiverFunction(tx, hash, policyId, ownerId, APPROVED, componentMatchStrategy);
 
       return getFunction.apply(sQuery);
     }
 
     Function<String, List<PolicyWaiver>> getListFunction =
-        getPolicyWaiverListFunction(tx, hash, policyId, ownerId, componentMatchStrategy);
+        getPolicyWaiverListFunction(tx, hash, policyId, ownerId, APPROVED, componentMatchStrategy);
     List<PolicyWaiver> policyWaivers = getListFunction.apply(sQuery);
 
     Predicate<PolicyWaiver> waiverFilter = policyWaiver -> policyWaiver.getConstraintFacts() != null &&
@@ -374,17 +388,19 @@ public class PolicyWaiverDAO
       ComponentMatcherStrategyForWaiver componentMatchStrategy,
       List<ConstraintFact> constraintFacts)
   {
-    String query = "SELECT entity FROM PolicyWaiver entity" + //
-        " WHERE entity.hash=?1 AND entity.policyId=?2 AND entity.ownerId=?3" + //
-        " AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)";
+    String query = """
+        SELECT entity FROM PolicyWaiver entity
+        WHERE entity.hash=?1 AND entity.policyId=?2 AND entity.ownerId=?3
+        AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)
+        AND (entity.status is null OR entity.status IN (?4))""";
 
     if (Objects.nonNull(associatedPackageURL) && Objects.nonNull(componentMatchStrategy)) {
       // Applies to exact or all versions waivers
-      query += " AND entity.componentMatchStrategy=?4";
+      query += " AND entity.componentMatchStrategy=?5";
     }
     else if (Objects.nonNull(componentMatchStrategy)) {
       // applies to all components waivers
-      query += " AND entity.associatedPackageUrl IS NULL AND entity.componentMatchStrategy=?4";
+      query += " AND entity.associatedPackageUrl IS NULL AND entity.componentMatchStrategy=?5";
     }
     else {
       // default case for legacy waivers
@@ -403,13 +419,14 @@ public class PolicyWaiverDAO
       String hash,
       String policyId,
       String ownerId,
+      PolicyWaiverStatus status,
       ComponentMatcherStrategyForWaiver componentMatchStrategy)
   {
     if (Objects.nonNull(componentMatchStrategy)) {
-      return (String query) -> get(tx, query, hash, policyId, ownerId, componentMatchStrategy);
+      return (String query) -> get(tx, query, hash, policyId, ownerId, status, componentMatchStrategy);
     }
     // default case for legacy waivers
-    return (String query) -> get(tx, query, hash, policyId, ownerId);
+    return (String query) -> get(tx, query, hash, policyId, ownerId, status);
   }
 
   private Function<String, List<PolicyWaiver>> getPolicyWaiverListFunction(
@@ -417,13 +434,14 @@ public class PolicyWaiverDAO
       String hash,
       String policyId,
       String ownerId,
+      PolicyWaiverStatus status,
       ComponentMatcherStrategyForWaiver componentMatchStrategy)
   {
     if (Objects.nonNull(componentMatchStrategy)) {
-      return (String query) -> getList(tx, query, hash, policyId, ownerId, componentMatchStrategy);
+      return (String query) -> getList(tx, query, hash, policyId, ownerId, status, componentMatchStrategy);
     }
     // default case for legacy waivers
-    return (String query) -> getList(tx, query, hash, policyId, ownerId);
+    return (String query) -> getList(tx, query, hash, policyId, ownerId, status);
   }
 
   public List<WaiverReasonData> getPolicyWaiverReasonMappings() {

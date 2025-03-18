@@ -10,13 +10,6 @@ import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -25,6 +18,13 @@ import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -102,6 +102,55 @@ public class PolicyWaiver
    */
   @Column(name = "expire_when_remediation_available")
   private boolean expireWhenRemediationAvailable;
+
+  /**
+   * @since 1.189
+   */
+  @Column(name = "status")
+  @Enumerated(EnumType.STRING)
+  private PolicyWaiverStatus status;
+
+  /**
+   * @since 1.189
+   */
+  @Column(name = "approver_id")
+  private String approverId;
+
+  /**
+   * @since 1.189
+   */
+  @Column(name = "approver_name")
+  private String approverName;
+
+  /**
+   * @since 1.189
+   */
+  @Column(name = "requester_id")
+  private String requesterId;
+
+  /**
+   * @since 1.189
+   */
+  @Column(name = "requester_name")
+  private String requesterName;
+
+  /**
+   * @since 1.189
+   */
+  @Column(name = "approval_time")
+  private Date approvalTime;
+
+  /**
+   * @since 1.189
+   */
+  @Column(name = "request_reason")
+  private String requestReason;
+
+  /**
+   * @since 1.189
+   */
+  @Column(name = "rejection_reason")
+  private String rejectionReason;
 
   /**
    * @since 1.140
@@ -304,6 +353,70 @@ public class PolicyWaiver
 
   public void setExpireWhenRemediationAvailable(boolean expireWhenRemediationAvailable) {
     this.expireWhenRemediationAvailable = expireWhenRemediationAvailable;
+  }
+
+  public PolicyWaiverStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(final PolicyWaiverStatus status) {
+    this.status = status;
+  }
+
+  public String getApproverId() {
+    return approverId;
+  }
+
+  public void setApproverId(final String approverId) {
+    this.approverId = approverId;
+  }
+
+  public String getApproverName() {
+    return approverName;
+  }
+
+  public void setApproverName(final String approverName) {
+    this.approverName = approverName;
+  }
+
+  public String getRequesterId() {
+    return requesterId;
+  }
+
+  public void setRequesterId(final String requesterId) {
+    this.requesterId = requesterId;
+  }
+
+  public String getRequesterName() {
+    return requesterName;
+  }
+
+  public void setRequesterName(final String requesterName) {
+    this.requesterName = requesterName;
+  }
+
+  public Date getApprovalTime() {
+    return approvalTime;
+  }
+
+  public void setApprovalTime(final Date approvalTime) {
+    this.approvalTime = approvalTime;
+  }
+
+  public String getRequestReason() {
+    return requestReason;
+  }
+
+  public void setRequestReason(final String requestReason) {
+    this.requestReason = requestReason;
+  }
+
+  public String getRejectionReason() {
+    return rejectionReason;
+  }
+
+  public void setRejectionReason(final String rejectionReason) {
+    this.rejectionReason = rejectionReason;
   }
 
   public ComponentIdentifier getComponentIdentifier() {

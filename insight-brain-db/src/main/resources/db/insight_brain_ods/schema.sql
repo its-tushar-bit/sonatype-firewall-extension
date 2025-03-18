@@ -126,6 +126,14 @@ CREATE TABLE policy_waiver (
   component_upgrade_available boolean,
   waiver_reason_id varchar(50) NULL,
   expire_when_remediation_available boolean DEFAULT false,
+  status varchar(20) NULL,
+  approver_id varchar(60) NULL,
+  approver_name varchar(210) NULL,
+  requester_id varchar(60) NULL,
+  requester_name varchar(210) NULL,
+  approval_time timestamp NULL,
+  request_reason text NULL,
+  rejection_reason text NULL,
   CONSTRAINT policy_waiver_pk PRIMARY KEY (policy_waiver_id),
   CONSTRAINT policy_waiver_policy_fk FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
 );

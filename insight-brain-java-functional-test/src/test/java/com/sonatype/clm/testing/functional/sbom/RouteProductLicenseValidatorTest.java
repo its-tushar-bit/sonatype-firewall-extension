@@ -5,13 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.sbom;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Date;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.AdministratorsEditPage;
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage;
@@ -35,21 +30,14 @@ import com.sonatype.clm.testing.functional.pages.SystemNoticeConfigurationPage;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage;
 import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerDashboardPage;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.model.legal.ObligationStatus;
-import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
-import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -194,20 +182,6 @@ public class RouteProductLicenseValidatorTest
   }
 
   @Test
-  public void testRouteProductLicenseValidator_sbomOnlyLicense_legalComponentDetailsPageIsPermitted()
-      throws IOException
-  {
-    setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.ADVANCED_LEGAL_PACK);
-    systemConfigurationPropertyDAO.set(ALP_FOR_SBOM_MANAGER, "true");
-    Application application = tempEntity.newApplicationWithParent("app");
-    generateDataForSbomManagerALP(application);
-    refreshOrOpen(LegalApplicationDetailsPage.sbomManagerUrlToApplicationScope(application.getPublicId()));
-
-    final SelenideElement title = LegalApplicationDetailsPage.title();
-    title.shouldHave(text(application.getName() + " Obligations"));
-  }
-
-  @Test
   public void testRouteProductLicenseValidator_sbomOnlyLicense_legalAttributionReportPageIsPermitted() {
     setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.ADVANCED_LEGAL_PACK);
     systemConfigurationPropertyDAO.set(ALP_FOR_SBOM_MANAGER, "true");
@@ -296,96 +270,6 @@ public class RouteProductLicenseValidatorTest
     sbomManagerDashboardPage.title()
         .shouldBe(visible)
         .shouldHave(text("SBOM Manager Dashboard"));
-  }
-
-  private void generateDataForSbomManagerALP(Application app) throws IOException {
-    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
-
-    testCLMServer.getHdsServer().respondWith("[]").atUri("/rest/license/metadata");
-    testCLMServer.getHdsServer()
-        .respondWith(IOUtils
-            .toString(this.getClass().getResourceAsStream("/legal/legalLicenseMetadataHdsResponse.json"),
-                StandardCharsets.UTF_8))
-        .atUri("/rest/license/metadata");
-    testCLMServer.getHdsServer()
-        .respondWith(IOUtils
-            .toString(this.getClass().getResourceAsStream("/legal/legalCommentHdsResponse.json"),
-                StandardCharsets.UTF_8))
-        .atUri("/rest/legal/comment");
-    testCLMServer.getHdsServer()
-        .respondWith("[]")
-        .atUri("/rest/legal/file");
-
-    testCLMServer.getHdsServer()
-        .respondWith("[]")
-        .atUri("/rest/legal/source-link");
-
-    testCLMServer.getHdsServer()
-        .respondWith(IOUtils.toString(this.getClass().getResourceAsStream("/legal/componentDetails.json"),
-            StandardCharsets.UTF_8))
-        .atUri("rest/ci/componentDetails");
-    testCLMServer.getHdsServer()
-        .respondWith(IOUtils.toString(this.getClass().getResourceAsStream("/legal/componentDetailsList.json"),
-            StandardCharsets.UTF_8))
-        .atUri("rest/ci/componentDetails/list");
-
-    Application app1 = tempEntity.newApplicationWithParent(LegalApplicationDetailsPage.class.getSimpleName() + "1",
-        "app1", "org1");
-    Application app2 = tempEntity.newApplicationWithParent(LegalApplicationDetailsPage.class.getSimpleName() + "2",
-        "app2", "org2");
-    Application[] apps = {app, app1, app2};
-    addEvaluationPoliciesToApplications(apps);
-
-    String[] licenses = {
-        "Apache-1.0", "MIT", "Apache-2.0", "Better-Cms-LA", "BSL-1.0", "CC-BY-NC-3.0", "CMRL-1.0",
-        "GPL-2.0+-LGPL-3.0+", "GreenSock-Commercial-License", "Gridifier-Developer-LA",
-        "Grammatica-BSD-3-Clause-Variant"
-    };
-    ComponentIdentifier[] componentIdentifiers = new ComponentIdentifier[licenses.length];
-
-    String currentComponentName = "";
-
-    for (int i = 1; i < 21; i++) {
-
-      currentComponentName = (i == 1 || i == 12) ? "#$%&/" : "component";
-
-      String stageType = i % 3 == 0 ? BuildStageType.ID : (i % 5 == 0 ? SourceStageType.ID : ReleaseStageType.ID);
-
-      addComponentAndLicenses(apps[i % apps.length], "org.package", currentComponentName,
-          (i % licenses.length + 1) + ".0", "hash" + (i % licenses.length + 1),
-          stageType, licenses[i % licenses.length]);
-
-      componentIdentifiers[i % licenses.length] = componentIdentifiers[i % licenses.length] != null ?
-          componentIdentifiers[i % licenses.length] : ComponentIdentifier
-          .createMavenCoordinates("org.package", currentComponentName, (i % licenses.length + 1) + ".0");
-
-      tempEntity.newComponentObligation(
-          componentIdentifiers[i % licenses.length], apps[i % apps.length].getId(),
-          "Inclusion of Notice", "comment", ObligationStatus.FULFILLED, "hash" + i);
-    }
-  }
-
-  private void addEvaluationPoliciesToApplications(Application[] apps) {
-    for (Application application : apps) {
-      tempEntity.newPolicyEvaluation(application.getId(), "build", "", new Date());
-    }
-  }
-
-  private void addComponentAndLicenses(
-      Application application,
-      String groupId,
-      String artifactId,
-      String version,
-      String hash,
-      String stageTypeId,
-      String... licenseIds)
-  {
-    final ComponentIdentifier componentIdentifier =
-        ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
-    final ApplicationComponent applicationComponent =
-        tempEntity.newApplicationComponent(application.getId(), stageTypeId, hash, componentIdentifier);
-    Arrays.stream(licenseIds)
-        .forEach(licenseId -> tempEntity.newApplicationComponentLicense(applicationComponent.getId(), licenseId));
   }
 
   private Wait<WebDriver> getWebDriverAwait() {

@@ -61,6 +61,8 @@ import {
   PUB,
   PYPI,
   RPM,
+  SWID,
+  SWIFT,
 } from 'MainRoot/OrgsAndPolicies/formats';
 
 export const selectPolicySlice = createSelector(selectOrgsAndPoliciesSlice, prop('policy'));
@@ -98,7 +100,7 @@ const computeValidatableFieldsForCoordinates = (fields) => {
     );
   } else if (fields.format === CARGO) {
     return values(omit(['format', isEmpty(fields.type?.trimmedValue) ? 'type' : null], fields));
-  } else if ([NPM, COCOAPODS, COMPOSER, GOLANG, HF_MODEL, NUGET, PUB, RPM].includes(fields.format)) {
+  } else if ([NPM, COCOAPODS, COMPOSER, GOLANG, HF_MODEL, NUGET, PUB, RPM, SWIFT].includes(fields.format)) {
     return values(omit(['format'], fields));
   } else if (fields.format === CONDA) {
     return values(
@@ -119,6 +121,20 @@ const computeValidatableFieldsForCoordinates = (fields) => {
     return values(omit(['format', isEmpty(fields.platform?.trimmedValue) ? 'platform' : null], fields));
   } else if (fields.format === PECOFF) {
     return values(omit(['format', isEmpty(fields.namespace?.trimmedValue) ? 'namespace' : null], fields));
+  } else if (fields.format === SWID) {
+    return values(
+      omit(
+        [
+          'format',
+          isEmpty(fields.namespace?.trimmedValue) ? 'namespace' : null,
+          isEmpty(fields.tag_version?.trimmedValue) ? 'tag_version' : null,
+          isEmpty(fields.tag_creator_name?.trimmedValue) ? 'tag_creator_name' : null,
+          isEmpty(fields.tag_creator_regid?.trimmedValue) ? 'tag_creator_regid' : null,
+          isEmpty(fields.patch?.trimmedValue) ? 'patch' : null,
+        ],
+        fields
+      )
+    );
   }
 };
 

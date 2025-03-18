@@ -1155,6 +1155,80 @@ describe('PolicyEditorSpec', () => {
           expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
           expect(conditionArchitectureInput.parentElement.parentElement).toHaveClass('invalid');
         });
+
+        it('for swid', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
+          renderComponent(initState);
+
+          const conditionTypeSelect = await screen.findByTestId('constraint__condition-type');
+          fireEvent.change(conditionTypeSelect, { target: { value: 'Coordinates' } });
+          const coordinatesFormatSelect = await screen.findByTestId('constraint__coordinates-format');
+
+          fireEvent.change(coordinatesFormatSelect, { target: { value: 'swid' } });
+
+          const conditionNamespaceInput = screen.getByPlaceholderText('Namespace');
+          const conditionNameInput = screen.getByPlaceholderText('Name');
+          const conditionVersionInput = screen.getByPlaceholderText('Version');
+          const conditionTagIdInput = screen.getByPlaceholderText('Tag ID');
+          const conditionTagVersionInput = screen.getByPlaceholderText('Tag Version');
+          const conditionTagCreatorNameInput = screen.getByPlaceholderText('Tag Creator Name');
+          const conditionTagCreatorRegidInput = screen.getByPlaceholderText('Tag Creator Regid');
+          const conditionPatchInput = screen.getByPlaceholderText('Patch');
+
+          expect(conditionNamespaceInput).toBeVisible();
+          expect(conditionNameInput).toBeVisible();
+          expect(conditionVersionInput).toBeVisible();
+          expect(conditionTagIdInput).toBeVisible();
+          expect(conditionTagVersionInput).toBeVisible();
+          expect(conditionTagCreatorNameInput).toBeVisible();
+          expect(conditionTagCreatorRegidInput).toBeVisible();
+          expect(conditionPatchInput).toBeVisible();
+
+          let createButton = await screen.findByText('Create');
+
+          fireEvent.click(createButton);
+          const alert = screen.getByText(
+            'There were validation errors. Unable to save: fields with invalid or missing data'
+          );
+          expect(alert).toBeVisible();
+
+          expect(conditionNamespaceInput.parentElement.parentElement).not.toHaveClass('invalid');
+          expect(conditionNameInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionTagIdInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionTagVersionInput.parentElement.parentElement).not.toHaveClass('invalid');
+          expect(conditionTagCreatorNameInput.parentElement.parentElement).not.toHaveClass('invalid');
+          expect(conditionTagCreatorRegidInput.parentElement.parentElement).not.toHaveClass('invalid');
+          expect(conditionPatchInput.parentElement.parentElement).not.toHaveClass('invalid');
+        });
+
+        it('for swift', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
+          renderComponent(initState);
+
+          const conditionTypeSelect = await screen.findByTestId('constraint__condition-type');
+          fireEvent.change(conditionTypeSelect, { target: { value: 'Coordinates' } });
+          const coordinatesFormatSelect = await screen.findByTestId('constraint__coordinates-format');
+
+          fireEvent.change(coordinatesFormatSelect, { target: { value: 'swift' } });
+
+          const conditionNameInput = screen.getByPlaceholderText('Name');
+          const conditionVersionInput = screen.getByPlaceholderText('Version');
+
+          expect(conditionNameInput).toBeVisible();
+          expect(conditionVersionInput).toBeVisible();
+
+          let createButton = await screen.findByText('Create');
+
+          fireEvent.click(createButton);
+          const alert = screen.getByText(
+            'There were validation errors. Unable to save: fields with invalid or missing data'
+          );
+          expect(alert).toBeVisible();
+
+          expect(conditionNameInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
+        });
       });
     });
   });

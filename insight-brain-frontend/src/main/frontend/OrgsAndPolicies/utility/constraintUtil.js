@@ -28,6 +28,8 @@ import {
   PUB,
   PYPI,
   RPM,
+  SWID,
+  SWIFT,
 } from 'MainRoot/OrgsAndPolicies/formats';
 
 function parseDays(days) {
@@ -90,6 +92,10 @@ export function getCoordinatesValue(value) {
     return `${value.format}:${fields.name}:${fields.version}`;
   } else if (value.format === RPM) {
     return `${value.format}:${fields.name}:${fields.version}:${fields.architecture}`;
+  } else if (value.format === SWID) {
+    return `${value.format}:${fields.namespace}:${fields.name}:${fields.version}:${fields.tag_id}:${fields.tag_version}:${fields.tag_creator_name}:${fields.tag_creator_regid}:${fields.patch}`;
+  } else if (value.format === SWIFT) {
+    return `${value.format}:${fields.name}:${fields.version}`;
   }
 }
 
@@ -212,6 +218,8 @@ export const withDefaultValue = {
   pecoff: ['namespace'],
   pub: [],
   rpm: [],
+  swid: ['namespace', 'tag_version', 'tag_creator_name', 'tag_creator_regid', 'patch'],
+  swift: [],
 };
 
 export const optionalFields = {
@@ -232,6 +240,8 @@ export const optionalFields = {
   pecoff: ['namespace'],
   pub: [],
   rpm: [],
+  swid: ['namespace', 'tag_version', 'tag_creator_name', 'tag_creator_regid', 'patch'],
+  swift: [],
 };
 // but if value is present it should not contain : symbol
 export const validatePatternMatchAndEmptyValue = curryN(
@@ -270,6 +280,8 @@ export const coordinatesTypes = {
   pecoff: ['name', 'version', 'namespace'],
   pub: ['name', 'version'],
   rpm: ['name', 'version', 'architecture'],
+  swid: ['namespace', 'name', 'version', 'tag_id', 'tag_version', 'tag_creator_name', 'tag_creator_regid', 'patch'],
+  swift: ['name', 'version'],
 };
 
 // This determines the order of the formats in the form
@@ -291,6 +303,8 @@ export const coordinatesFormatOptions = [
   PUB,
   PYPI,
   RPM,
+  SWID,
+  SWIFT,
 ];
 
 export const fieldTypeToPlaceholder = {
@@ -313,6 +327,11 @@ export const fieldTypeToPlaceholder = {
   build: 'Build',
   architecture: 'Architecture',
   platform: 'Platform',
+  tag_id: 'Tag ID',
+  tag_version: 'Tag Version',
+  tag_creator_name: 'Tag Creator Name',
+  tag_creator_regid: 'Tag Creator Regid',
+  patch: 'Patch',
 };
 
 export const conditionsWithoutValue = [

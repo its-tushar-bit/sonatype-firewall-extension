@@ -20,3 +20,5 @@ export const PECOFF = 'pecoff';
 export const PUB = 'pub';
 export const PYPI = 'pypi';
 export const RPM = 'rpm';
+export const SWID = 'swid';
+export const SWIFT = 'swift';

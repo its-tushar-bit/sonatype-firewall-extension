@@ -351,5 +351,36 @@ describe('constraintUtil', () => {
         expect(getCoordinatesValue(value)).toBe('rpm:name:version:architecture');
       });
     });
+
+    describe('swid', () => {
+      const value = {
+        format: 'swid',
+        namespace: initUserInput('namespace'),
+        name: initUserInput('name'),
+        version: initUserInput('version'),
+        tag_id: initUserInput('tag_id'),
+        tag_version: initUserInput('tag_version'),
+        tag_creator_name: initUserInput('tag_creator_name'),
+        tag_creator_regid: initUserInput('tag_creator_regid'),
+        patch: initUserInput('patch'),
+      };
+
+      it('returns combined coordinates value for swid', () => {
+        const actual = getCoordinatesValue(value);
+        expect(actual).toBe('swid:namespace:name:version:tag_id:tag_version:tag_creator_name:tag_creator_regid:patch');
+      });
+    });
+
+    describe('swift', () => {
+      const value = {
+        format: 'swift',
+        name: initUserInput('name'),
+        version: initUserInput('version'),
+      };
+
+      it('returns combined coordinates value for swift', () => {
+        expect(getCoordinatesValue(value)).toBe('swift:name:version');
+      });
+    });
   });
 });

@@ -8,8 +8,10 @@ package com.sonatype.insight.brain.model;
 import java.util.Date;
 import java.util.Objects;
 
+import com.sonatype.insight.json.store.ISODateSerializer;
 import com.sonatype.insight.model.HasStringId;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -31,6 +33,7 @@ public class ComponentChangeDetectionEvent
   private String componentEvaluationData;
 
   @Column(name = "added_time")
+  @JsonSerialize(using = ISODateSerializer.class)
   private Date addedTime;
 
   public ComponentChangeDetectionEvent() {

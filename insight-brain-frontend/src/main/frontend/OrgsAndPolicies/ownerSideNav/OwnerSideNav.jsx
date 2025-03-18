@@ -154,11 +154,13 @@ export default function OwnerSideNav() {
 
     return (
       <>
-        <NxOverflowTooltip>
-          <a className={orgClassnames} href={organizationUrl}>
-            {displayedOrganization.name}
-          </a>
-        </NxOverflowTooltip>
+        {displayedOrganization.name ? (
+          <NxOverflowTooltip>
+            <a className={orgClassnames} href={organizationUrl}>
+              {displayedOrganization.name}
+            </a>
+          </NxOverflowTooltip>
+        ) : null}
         {(isApplication || isRepositoriesRelated) && <div className="iq-selected-org__pseudo-border"></div>}
       </>
     );

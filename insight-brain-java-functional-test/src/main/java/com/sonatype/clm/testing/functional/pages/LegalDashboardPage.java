@@ -32,6 +32,10 @@ public class LegalDashboardPage extends BasicElement<LegalDashboardPage>
     return BaseUrl.resolvePageUrl("/legal/dashboard");
   }
 
+  public static String sbomManagerUrl() {
+    return BaseUrl.resolvePageUrl("/sbomManager/legal/dashboard");
+  }
+
   public SelenideElement componentsTab() {
     return children(".nx-tab").get(1);
   }

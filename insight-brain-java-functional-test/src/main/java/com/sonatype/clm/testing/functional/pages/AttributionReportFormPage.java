@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -26,6 +27,11 @@ public final class AttributionReportFormPage
   public static String url(String applicationPublicId, String stageTypeId) {
     return BaseUrl.resolvePageUrl(
         String.format("/legal/application/%s/stage/%s/attributionReport", applicationPublicId, stageTypeId));
+  }
+
+  public static String sbomManagerUrl(String applicationPublicId) {
+    return BaseUrl.resolvePageUrl(String.format("/sbomManager/legal/application/%s/stage/%s/attributionReport",
+        applicationPublicId, StageTypes.COMPLIANCE.getId()));
   }
 
   public SelenideElement getTitleInput() {

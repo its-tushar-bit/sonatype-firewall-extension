@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.elements.NxCheckbox;
 import com.sonatype.clm.testing.functional.elements.NxTreeViewMultiSelect;
 import com.sonatype.clm.testing.functional.pages.ComponentCopyrightDetailsPage.CopyrightOverview;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -57,6 +58,11 @@ public class LegalApplicationDetailsPage
     return BaseUrl.resolvePageUrl(
         String.format("/legal/component/componentIdentifier/%s/application/%s/component/%s/scan/%s/%s",
             componentIdentifier, publicAppId, hash, scanId, tabId));
+  }
+
+  public static String sbomManagerUrlToApplicationScope(String publicAppId) {
+    return BaseUrl.resolvePageUrl(
+        String.format("/sbomManager/legal/application/%s/stage/%s", publicAppId, StageTypes.COMPLIANCE.getId()));
   }
 
   public static SelenideElement title() {

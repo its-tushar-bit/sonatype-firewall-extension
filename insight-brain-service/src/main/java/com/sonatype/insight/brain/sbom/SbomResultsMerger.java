@@ -9,8 +9,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -90,6 +88,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -832,7 +831,7 @@ public class SbomResultsMerger
     //in the case of cli/container scans the filtered scan file may already exist
     if (!filteredScanFile.exists()) {
       try {
-        Files.copy(scanResult.getScanFile().toPath(), filteredScanFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        FileUtils.moveFile(scanResult.getScanFile(), filteredScanFile);
         tpScan.setFilteredScanFile(filteredScanFile.getName());
         thirdPartyScanDAO.update(tpScan);
       }

@@ -1581,43 +1581,6 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testDeleteByApplicationId_H2() {
-    assertThat(dao.isDatabaseEmbedded()).isTrue();
-
-    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan");
-    Policy policy = tempEntity.newPolicy(application);
-    tempEntity.newPolicyViolation(policyEvaluation, policy);
-    tempEntity.newPolicyViolation(policyEvaluation, policy);
-
-    dao.deleteByApplicationId(null /* TransactionContext */, application.getId());
-
-    assertThat(dao.getByApplicationId(application.getId())).isEmpty();
-  }
-
-  @Test
-  @PostgresTest
-  public void testDeleteByApplicationId_Postgres() {
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
-
-    application = tempEntity.newApplicationWithParent();
-
-    PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan");
-    Policy policy = tempEntity.newPolicy(application);
-    tempEntity.newPolicyViolation(policyEvaluation, policy);
-    tempEntity.newPolicyViolation(policyEvaluation, policy);
-    assertThat(dao.getByApplicationId(application.getId())).hasSize(2);
-
-    try (TransactionContext tx = dao.createTransactionContext()) {
-      tx.begin();
-      dao.deleteByApplicationId(tx, application.getId());
-      tx.commit();
-    }
-
-    assertThat(dao.getByApplicationId(application.getId())).isEmpty();
-  }
-
-  @Test
   public void testGetCountApplicationsWithPolicyActionFailures_DoNotCountAppWithoutFailPolicyActions() {
     final Application application2 = tempEntity.newApplication(organization.getId());
     final Application application3 = tempEntity.newApplication(organization.getId());

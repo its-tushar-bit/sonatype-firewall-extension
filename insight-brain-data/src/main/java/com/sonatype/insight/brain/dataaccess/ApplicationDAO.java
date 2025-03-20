@@ -626,9 +626,6 @@ public class ApplicationDAO
     // Since non-transactional, we delete violations first such that no violations without corresponding evaluation
     // are left behind in case of a failure.
 
-    // Cascade to policy violations
-    policyViolationDAO.deleteByApplicationId(tx, application.getId());
-
     // Cascade to policy evaluations
     for (PolicyEvaluation policyEvaluation : policyEvaluationDAO.getByApplicationId(tx, application.getId())) {
       // The update of the last policy evaluation is time consuming. Since the application is deleted and all policy

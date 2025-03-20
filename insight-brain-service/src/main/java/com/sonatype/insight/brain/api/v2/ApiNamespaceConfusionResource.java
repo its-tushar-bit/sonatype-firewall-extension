@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.integration.repository.RepositoryService;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -29,6 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Singleton
 @Timed
 @Path(ApiNamespaceConfusionResource.NAMESPACE_CONFUSION_PATH)
+@Tag(name = ApiFirewallResource.SWAGGER_UI_API_LABEL)
 public class ApiNamespaceConfusionResource
 {
   public static final String NAMESPACE_CONFUSION_ROOT = "namespace_confusion";

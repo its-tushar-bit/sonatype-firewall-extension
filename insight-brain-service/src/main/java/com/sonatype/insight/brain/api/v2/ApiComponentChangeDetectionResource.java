@@ -45,6 +45,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +56,9 @@ import org.slf4j.LoggerFactory;
 @ProductLicenseEnforcementPoint(LicensedFeature.FIREWALL)
 @HasFeature(SystemConfigurationPropertyFeature.COMPONENT_CHANGE_DETECTION_API)
 @Path(PublicApiPaths.COMPONENT_CHANGE_DETECTION_RESOURCE_PATH)
+@Tag(name = "Component Change Detection",
+    description = "Use this REST API to populate and evaluate the catalog of components " +
+        "and retrieve change detection events.")
 public class ApiComponentChangeDetectionResource
 {
   public static final String CONFIGURATION_PATH = "configuration";

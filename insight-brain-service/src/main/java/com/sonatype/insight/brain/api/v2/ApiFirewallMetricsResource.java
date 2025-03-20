@@ -30,8 +30,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Named
 @Timed
 @Path(ApiFirewallMetricsResource.RESOURCE_PATH)
-@Tag(name = "Malware-Defense",
-    description = "Use this REST API to view metrics for malware defense.")
+@Tag(name = ApiFirewallResource.SWAGGER_UI_API_LABEL)
 public class ApiFirewallMetricsResource
 {
   public static final String RESOURCE_PATH = "/api/v2/malware-defense/metrics/embedded";

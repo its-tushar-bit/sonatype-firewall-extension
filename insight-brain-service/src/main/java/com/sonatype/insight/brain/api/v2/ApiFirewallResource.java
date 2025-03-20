@@ -69,8 +69,9 @@ import org.apache.commons.lang3.StringUtils;
 @Named
 @Path(PublicApiPaths.FIREWALL_RESOURCE_PATH)
 @Produces(MediaType.APPLICATION_JSON)
-@Tag(name = "Malware-Defense",
-    description = "Use this REST API to manage malware defense.")
+@Tag(name = ApiFirewallResource.SWAGGER_UI_API_LABEL,
+    description = "Use this REST API for managing and monitoring malware defense features, including metrics, " +
+        "repository management, quarantine operations, and namespace confusion prevention.")
 public class ApiFirewallResource
 {
   static final String CONFIGURATION_PATH = "configuration";
@@ -100,6 +101,8 @@ public class ApiFirewallResource
       QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS + "/{enabled: true|false}";
 
   static final String REPOSITORY_MANAGERS_PATH = "repositoryManagers";
+
+  static final String SWAGGER_UI_API_LABEL = "Malware Defense";
 
   private static final String REPOSITORIES_PATH = "repositories";
 

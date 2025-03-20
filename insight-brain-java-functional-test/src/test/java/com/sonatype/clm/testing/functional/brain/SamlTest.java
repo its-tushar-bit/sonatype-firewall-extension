@@ -11,12 +11,14 @@ import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.UserDetailsModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
+import com.sonatype.clm.testing.functional.pages.BackupLoginPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.KeycloakLoginPage;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
 import com.sonatype.insight.brain.api.v2.service.ApiSamlConfigurationService;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -161,6 +163,88 @@ public class SamlTest
     refreshOrOpen(IndexPage.url());
     loginModal.loginButton().shouldBe(visible);
     loginModal.ssoButton().shouldBe(visible, focused);
+  }
+
+  @Test
+  public void testLoginSsoOnly() {
+    SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.setEnabled(true);
+
+    // Upload Identity Provider metadata to IQ Server
+    apiSamlConfigurationService.insertOrUpdateSamlConfiguration(keycloak.getSamlMetadataXml(), null);
+
+    // Register IQ in Keycloak
+    String metadata = apiSamlConfigurationService.getMetadata();
+    ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
+    clientRepresentation.setProtocolMappers(KeycloakServerUtil.protocolMappers());
+    keycloak.createClient(clientRepresentation);
+
+    // Create a group and a user
+    String groupId = keycloak.createGroup("group-developers");
+    String username = "john.doe";
+    String password = "password";
+    String userId = keycloak.createUser("John", "Doe", username, "john@doe.com", password, null);
+    keycloak.assignUserToGroup(userId, groupId);
+
+    // Load the page.  Redirection to SSO login should happen automatically
+    refreshOrOpen(IndexPage.url());
+    KeycloakLoginPage.login(username, password);
+
+    DashboardPage.dashboardContainer().shouldBe(visible);
+  }
+
+  @Test
+  public void testLoginSsoOnly_backupLogin() {
+    SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.setEnabled(true);
+
+    // Upload Identity Provider metadata to IQ Server
+    apiSamlConfigurationService.insertOrUpdateSamlConfiguration(keycloak.getSamlMetadataXml(), null);
+
+    // Register IQ in Keycloak
+    String metadata = apiSamlConfigurationService.getMetadata();
+    ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
+    clientRepresentation.setProtocolMappers(KeycloakServerUtil.protocolMappers());
+    keycloak.createClient(clientRepresentation);
+
+    // Create a group and a user
+    String groupId = keycloak.createGroup("group-developers");
+    String username = "john.doe";
+    String password = "password";
+    String userId = keycloak.createUser("John", "Doe", username, "john@doe.com", password, null);
+    keycloak.assignUserToGroup(userId, groupId);
+
+    // Load the backup login page which should NOT redirect to SSO login automatically
+    refreshOrOpen(BackupLoginPage.url());
+    loginAsAdmin();
+
+    DashboardPage.dashboardContainer().shouldBe(visible);
+  }
+
+  @Test
+  public void testLoginSsoOnly_backupLogin_SsoButton() {
+    SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.setEnabled(true);
+
+    // Upload Identity Provider metadata to IQ Server
+    apiSamlConfigurationService.insertOrUpdateSamlConfiguration(keycloak.getSamlMetadataXml(), null);
+
+    // Register IQ in Keycloak
+    String metadata = apiSamlConfigurationService.getMetadata();
+    ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
+    clientRepresentation.setProtocolMappers(KeycloakServerUtil.protocolMappers());
+    keycloak.createClient(clientRepresentation);
+
+    // Create a group and a user
+    String groupId = keycloak.createGroup("group-developers");
+    String username = "john.doe";
+    String password = "password";
+    String userId = keycloak.createUser("John", "Doe", username, "john@doe.com", password, null);
+    keycloak.assignUserToGroup(userId, groupId);
+
+    // Load the backup login page which should NOT redirect to SSO login automatically
+    refreshOrOpen(BackupLoginPage.url());
+    new LoginModal().ssoButton().shouldBe(visible).click();
+    KeycloakLoginPage.login(username, password);
+
+    DashboardPage.dashboardContainer().shouldBe(visible);
   }
 
   @Test

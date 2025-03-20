@@ -154,6 +154,14 @@ export const InitModule = angular
           .state('home', {
             url: '/',
             redirectTo: 'root',
+          })
+
+          // See CLM-34076. Some customers want a way to get to the local login page even if they have
+          // SSO exclusively enabled, as a recovery option in case of SSO misconfiguration. LoginModalService
+          // has special case handling for this state.
+          .state('backupLogin', {
+            url: '/backupLogin',
+            redirectTo: 'root',
           });
 
         var unknownErrorFunction = function ($rootScope) {

@@ -10,7 +10,7 @@ import { assign } from 'MainRoot/util/CLMLocation';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { unwrapResult } from '@reduxjs/toolkit';
 
-export default function LoginModalService(rootScope, ngRedux, UnauthenticatedRequestQueueService) {
+export default function LoginModalService(rootScope, ngRedux, $window, UnauthenticatedRequestQueueService) {
   let modalPromise = null;
   let resolveModalPromise;
   let rejectModalPromise;
@@ -21,6 +21,15 @@ export default function LoginModalService(rootScope, ngRedux, UnauthenticatedReq
 
   function redirect(destination) {
     assign(destination);
+  }
+
+  /**
+   * See CLM-34076. Some customers want a way to get to the local login page even if they have
+   * SSO exclusively enabled, as a recovery option in case of SSO misconfiguration. So if they
+   * go to the backupLogin state, we always show the login modal rather than redirecting to SSO.
+   */
+  function isBackupLogin() {
+    return $window.location.hash === '#/backupLogin';
   }
 
   const onSubmit = (loginUsername, loginPassword) => {
@@ -42,7 +51,7 @@ export default function LoginModalService(rootScope, ngRedux, UnauthenticatedReq
     const isSsoOnlyEnabled = await loadIsSsoOnlyEnabled();
     const isOAuth2Enabled = await loadOAuth2Enabled();
 
-    if (isSsoOnlyEnabled && (showSamlSso || isOAuth2Enabled)) {
+    if (isSsoOnlyEnabled && (showSamlSso || isOAuth2Enabled) && !isBackupLogin()) {
       UnauthenticatedRequestQueueService.clearRequests();
       return await redirectToIdP(isOAuth2Enabled);
     }
@@ -101,4 +110,4 @@ export default function LoginModalService(rootScope, ngRedux, UnauthenticatedReq
   return { onClickSSO, onSubmit, dismiss, open, redirectToIdP, authenticate };
 }
 
-LoginModalService.$inject = ['$rootScope', '$ngRedux', 'UnauthenticatedRequestQueueService'];
+LoginModalService.$inject = ['$rootScope', '$ngRedux', '$window', 'UnauthenticatedRequestQueueService'];

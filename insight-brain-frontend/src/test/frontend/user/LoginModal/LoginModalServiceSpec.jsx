@@ -12,20 +12,26 @@ import { getEnableSsoOnly, getOAuth2Enabled, getSessionUrl } from 'MainRoot/util
 describe('LoginModalService', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
 
-  let LoginModalService, $ngRedux, $rootScope;
+  let LoginModalService, $ngRedux, $rootScope, $window;
   let loadOAuth2EnabledWithValue, loadIsSsoOnlyEnabledWithValue;
 
   beforeEach(
     angular.mock.module(loginModalModule.name, ($provide) => {
       // provide redux so we can test action calls
       SpecUtil.mockNgRedux($provide);
+      $provide.value('$window', {
+        location: {
+          hash: '',
+        },
+      });
     })
   );
 
-  beforeEach(inject(function (_LoginModalService_, _$ngRedux_, _$rootScope_) {
+  beforeEach(inject(function (_LoginModalService_, _$ngRedux_, _$rootScope_, _$window_) {
     LoginModalService = _LoginModalService_;
     $ngRedux = _$ngRedux_;
     $rootScope = _$rootScope_;
+    $window = _$window_;
 
     $rootScope.licensed = true;
 
@@ -81,6 +87,30 @@ describe('LoginModalService', function () {
     loadIsSsoOnlyEnabledWithValue({ data: ['enable-sso-only'] });
 
     assertAuthenticateCallsRedirectToIdPAndRedirectsUser(false, '/oidc/login', done);
+  });
+
+  describe('when current route is "backupLogin"', () => {
+    beforeEach(() => {
+      $window.location.hash = '#/backupLogin';
+    });
+
+    it('authenticate opens the login modal if isSsoOnlyEnabled and showSamlSso is enabled', (done) => {
+      // The OAUTH2_ENABLED feature is not enabled
+      loadOAuth2EnabledWithValue({ data: [] });
+      // The isSsoOnlyEnabled feature is enabled
+      loadIsSsoOnlyEnabledWithValue({ data: ['enable-sso-only'] });
+
+      authenticateOpensLoginModalAndAssertItIsOpen(true, done);
+    });
+
+    it('authenticate opens the login modal if isSsoOnlyEnabled and loadOAuth2Enabled is enabled', (done) => {
+      // The OAUTH2_ENABLED feature is enabled
+      loadOAuth2EnabledWithValue({ data: ['oauth2-enabled'] });
+      // The isSsoOnlyEnabled feature is enabled
+      loadIsSsoOnlyEnabledWithValue({ data: ['enable-sso-only'] });
+
+      authenticateOpensLoginModalAndAssertItIsOpen(true, done);
+    });
   });
 
   it('opens the login modal when open() is called', (done) => {

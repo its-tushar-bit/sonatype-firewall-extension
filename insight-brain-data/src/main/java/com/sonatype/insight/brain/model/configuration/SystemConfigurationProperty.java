@@ -274,6 +274,8 @@ public class SystemConfigurationProperty
 
   public static final String COMPONENT_CHANGE_DETECTION_API = "componentChangeDetectionApi";
 
+  public static final String CONTAINER_IMAGES_EVALUATION = "containerImagesEvaluation";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

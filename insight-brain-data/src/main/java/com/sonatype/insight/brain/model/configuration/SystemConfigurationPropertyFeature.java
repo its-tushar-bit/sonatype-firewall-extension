@@ -271,7 +271,9 @@ public enum SystemConfigurationPropertyFeature
       }
       return super.isEnabled(tx);
     }
-  };
+  },
+
+  CONTAINER_IMAGES_EVALUATION(SystemConfigurationProperty.CONTAINER_IMAGES_EVALUATION, false);
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

@@ -1402,6 +1402,45 @@ public class ApiConfigFeaturesServiceTest
         .doesNotContainKeys("transitiveSolver", "SAAS_LIFECYCLE_SCM_ENABLED");
   }
 
+  @Test
+  public void testGetSystemConfigurationPropertyFeature_ContainerImagesEvaluation() {
+    assertThat(service.getSystemConfigurationPropertyFeature("containerImagesEvaluation")).isEqualTo(
+        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVALUATION);
+    assertThat(service.getSystemConfigurationPropertyFeature("container-images-evaluation")).isEqualTo(
+        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVALUATION);
+    assertThat(service.getSystemConfigurationPropertyFeature("Container-Images-Evaluation")).isEqualTo(
+        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVALUATION);
+    assertThat(service.getSystemConfigurationPropertyFeature("CONTAINER-IMAGES-EVALUATION")).isEqualTo(
+        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVALUATION);
+  }
+
+  @Test
+  public void testEnableFeature_ContainerImagesEvaluation() {
+    service.enableFeature(SystemConfigurationProperty.CONTAINER_IMAGES_EVALUATION);
+
+    assertThat(
+        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.CONTAINER_IMAGES_EVALUATION)
+            .getValue())
+        .isEqualTo("true");
+  }
+
+  @Test
+  public void testEnableFeature_ContainerImagesEvaluation_AlreadyEnabled() {
+    service.enableFeature(SystemConfigurationProperty.CONTAINER_IMAGES_EVALUATION);
+    assertThatThrownBy(
+        () -> service.enableFeature(
+            SystemConfigurationProperty.CONTAINER_IMAGES_EVALUATION)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_ContainerImagesEvaluation_AlreadyDisabled() {
+    assertThatThrownBy(
+        () -> service.disableFeature(
+            SystemConfigurationProperty.CONTAINER_IMAGES_EVALUATION)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
   private Map<String, Boolean> getExpectedFeatureConfigMap() {
     Map<String, Boolean> expectedFeatureConfigMap = new LinkedHashMap<>();
 
@@ -1459,6 +1498,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("SYSTEM_NOTICE_CONFIGURATION", true);
     expectedFeatureConfigMap.put("vulnerabilitySource", false);
     expectedFeatureConfigMap.put("WEBHOOK_CONFIGURATION", true);
+    expectedFeatureConfigMap.put("containerImagesEvaluation", false);
 
     return expectedFeatureConfigMap;
   }

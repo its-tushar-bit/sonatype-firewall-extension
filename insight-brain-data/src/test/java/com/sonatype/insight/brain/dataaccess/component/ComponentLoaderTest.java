@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sonatype.clm.dto.model.DerivedFromAiModel;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -216,6 +217,10 @@ public class ComponentLoaderTest
     matchedComponent
         .addSecurityVulnerability(sv);
     matchedComponent.setEndOfLife(END_OF_LIFE_TRUE);
+    ComponentIdentifier derivedFromAiModelComponentIdentifier = ComponentIdentifier
+        .createHuggingfaceModelCoordinates("repoId", "model", "version", "modelFormat", "modelExtension");
+    DerivedFromAiModel derivedFromAiModel = new DerivedFromAiModel(derivedFromAiModelComponentIdentifier, 0.9F);
+    matchedComponent.setDerivedFromAiModel(derivedFromAiModel);
 
     Component component = componentLoader.getComponent(matchedComponent, true);
 
@@ -248,6 +253,7 @@ public class ComponentLoaderTest
     assertThat(component.getComponentCategories().get(0).getId())
         .isEqualTo(String.valueOf(componentCategory.getComponentCategoryId()));
     assertThat(component.getEndOfLife()).isEqualTo(END_OF_LIFE_TRUE);
+    assertThat(component.getDerivedFromAiModel()).usingRecursiveComparison().isEqualTo(derivedFromAiModel);
   }
 
   @Test
@@ -443,6 +449,9 @@ public class ComponentLoaderTest
     component1.put("relativePopularity", 100.0);
     component1.put("createTime", System.currentTimeMillis());
     component1.put("endOfLife", END_OF_LIFE_TRUE.name());
+    DerivedFromAiModel derivedFromAiModel = new DerivedFromAiModel(ComponentIdentifier
+        .createHuggingfaceModelCoordinates("repoId", "model", "version", "modelFormat", "modelExtension"), 0.9F);
+    component1.set("derivedFromAiModel", objectMapper.valueToTree(derivedFromAiModel));
 
     ObjectNode component2 = objectMapper.createObjectNode();
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier
@@ -489,6 +498,10 @@ public class ComponentLoaderTest
 
     // should copy endOfLife from the bomRow
     assertThat(components.get(0).getEndOfLife()).isEqualTo(END_OF_LIFE_TRUE);
+
+    // should copy derivedFromAiModel from the bomRow
+    assertThat(components.get(0).getDerivedFromAiModel()).usingRecursiveComparison().isEqualTo(derivedFromAiModel);
+    assertThat(components.get(1).getDerivedFromAiModel()).isNull();
 
     // should be convert missing endOfLife to unknown
     assertThat(components.get(1).getEndOfLife()).isEqualTo(END_OF_LIFE_UNKNOWN);

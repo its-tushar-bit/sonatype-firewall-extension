@@ -1,0 +1,47 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "hf-model",
+      "coordinates" : {
+        "repo_id" : "testRepoId",
+        "model" : "testModel",
+        "version" : "testVersion",
+        "model_format" : "testModelFormat",
+        "extension" : "testExtension"
+      }
+    },
+    "filenames" : [ "testFilename" ],
+    "pathnames" : [ "testPathname" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a64cd74171f427720480",
+    "relativePopularity" : 0.0,
+    "createTime" : 1453427378000,
+    "lastModifiedTime" : 1549542000000,
+    "lastModifiedEntryTime" : 1187431150000,
+    "website" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "derivedFromAiModel" : {
+      "componentIdentifier" : {
+        "format" : "hf-model",
+        "coordinates" : {
+          "repo_id" : "derivedFromRepoId",
+          "model" : "derivedFromModel",
+          "version" : "derivedFromVersion",
+          "model_format" : "derivedFromModelFormat",
+          "extension" : "derivedFromModelExtension"
+        }
+      },
+      "similarityScore" : 0.6700000166893005
+    }
+
+  } ]
+}

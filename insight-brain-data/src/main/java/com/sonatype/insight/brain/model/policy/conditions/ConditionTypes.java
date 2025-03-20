@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.policy.ConditionType;
@@ -84,6 +85,8 @@ public class ConditionTypes
 
   public static ComponentEndOfLifeConditionType ComponentEndOfLifeConditionType;
 
+  public static DerivativeAiModelConditionType DerivativeAiModelConditionType;
+
   @Inject
   public static void injectConditionTypes(
       final AgeInDaysConditionType ageInDaysConditionType,
@@ -117,7 +120,8 @@ public class ConditionTypes
       final VulnerabilityGroupConditionType vulnerabilityGroupConditionType,
       final SecurityVulnerabilityCustomCVSSVectorStringConditionType
           securityVulnerabilityCustomCVSSVectorStringConditionType,
-      final ComponentEndOfLifeConditionType componentEndOfLifeConditionType)
+      final ComponentEndOfLifeConditionType componentEndOfLifeConditionType,
+      final DerivativeAiModelConditionType derivativeAiModelConditionType)
   {
     ConditionTypes.AgeInDaysConditionType = ageInDaysConditionType;
     ConditionTypes.CoordinatesConditionType = coordinatesConditionType;
@@ -152,6 +156,7 @@ public class ConditionTypes
     ConditionTypes.SecurityVulnerabilityCustomCVSSVectorStringConditionType =
         securityVulnerabilityCustomCVSSVectorStringConditionType;
     ConditionTypes.ComponentEndOfLifeConditionType = componentEndOfLifeConditionType;
+    ConditionTypes.DerivativeAiModelConditionType = derivativeAiModelConditionType;
 
     allConditionTypes.clear();
 
@@ -186,6 +191,7 @@ public class ConditionTypes
     add(DependencyTypeConditionType);
     addDisabledConditionType(IacControlConditionType);
     add(ComponentEndOfLifeConditionType);
+    add(DerivativeAiModelConditionType);
   }
 
   public static Collection<ConditionType> getAll() {

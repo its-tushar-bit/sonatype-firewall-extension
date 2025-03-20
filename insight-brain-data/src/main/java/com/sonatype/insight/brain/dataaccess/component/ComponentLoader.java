@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.ComponentEndOfLifeStatus;
 import com.sonatype.clm.dto.model.ComponentInfo;
+import com.sonatype.clm.dto.model.DerivedFromAiModel;
 import com.sonatype.clm.dto.model.component.AggregateFile;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
@@ -445,12 +446,25 @@ public class ComponentLoader
           component.setParentComponentPurls(
               JsonUtils.getStringSetFromArray(componentJson.path(PARENT_COMPONENT_PURLS_FIELD)));
 
+          setDerivedFromAiModel(componentJson.get("derivedFromAiModel"), component);
+
           bomComponents.components.add(component);
         }
       }
     }
 
     return bomComponents;
+  }
+
+  private void setDerivedFromAiModel(JsonNode derivedFromAiModelJsonNode, Component component) {
+    if (derivedFromAiModelJsonNode != null && !derivedFromAiModelJsonNode.isNull()) {
+      try {
+        component.setDerivedFromAiModel(JsonUtils.asPojo(derivedFromAiModelJsonNode, DerivedFromAiModel.class));
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
   }
 
   private void setAnalyzerFeatures(JsonNode analyzerFeaturesNode, Component component) {
@@ -769,6 +783,8 @@ public class ComponentLoader
     }
 
     loadComponentLabels(component);
+
+    component.setDerivedFromAiModel(componentInfo.getDerivedFromAiModel());
 
     return component;
   }

@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.DeprecatedSecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.DerivativeAiModelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IacControlConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
@@ -80,7 +81,8 @@ public class ConditionTypesTestHelper
         new VulnerabilityGroupConditionType(daoFactory.createVulnerabilityGroupDAO(),
             daoFactory.createVulnerabilityGroupVulnerabilityDAO(), daoFactory.createOwnerDAO()),
         new SecurityVulnerabilityCustomCVSSVectorStringConditionType(),
-        new ComponentEndOfLifeConditionType()
+        new ComponentEndOfLifeConditionType(), //
+        new DerivativeAiModelConditionType()
     );
   }
 

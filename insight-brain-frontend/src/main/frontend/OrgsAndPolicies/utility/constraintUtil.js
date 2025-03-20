@@ -339,6 +339,7 @@ export const conditionsWithoutValue = [
   'ProprietaryNameConflict',
   'SecurityVulnerabilityCustomRemediation',
   'ComponentEndOfLife',
+  'DerivativeAiModel',
 ];
 
 export const getDisabledConditions = (conditionTypesMap) => {

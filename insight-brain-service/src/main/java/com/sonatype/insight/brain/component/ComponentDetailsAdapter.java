@@ -24,6 +24,7 @@ public class ComponentDetailsAdapter
     componentDetails.setHygieneRating(componentEvaluationData.hygieneRating);
     componentDetails.setIntegrityRating(componentEvaluationData.integrityRating);
     componentDetails.setEndOfLife(componentEvaluationData.endOfLife);
+    componentDetails.setDerivedFromAiModel(componentEvaluationData.derivedFromAiModel);
     return componentDetails;
   }
 }

@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -86,6 +87,7 @@ import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.DerivativeAiModelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IacControlConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
@@ -3931,6 +3933,8 @@ public class ScanPolicyEvaluatorTest
       Set<String> expectedConditionTypeIds = ConditionTypes.getAll().stream().map(ConditionType::getId)
           .filter(id -> !ProprietaryNameConflictConditionType.ID.equals(id))
           .filter(id -> !IacControlConditionType.ID.equals(id))
+          // Tested in testEvaluate_PolicyViolationLogger_DerivativeAiModelConditionType
+          .filter(id -> !DerivativeAiModelConditionType.ID.equals(id))
           .collect(toSet());
       assertThat(conditions.stream().map(Condition::getConditionTypeId).collect(toSet()))
           .isEqualTo(expectedConditionTypeIds);
@@ -3953,6 +3957,25 @@ public class ScanPolicyEvaluatorTest
       ConditionTypes.disableConditionType(ConditionTypes.IntegrityRatingConditionType);
       ConditionTypes.disableConditionType(ConditionTypes.SecurityVulnerabilitySourceConditionType);
     }
+  }
+
+  @Test
+  public void testEvaluate_PolicyViolationLogger_DerivativeAiModelConditionType() throws Exception {
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
+    Condition derivativeAiModelCondition = new Condition(DerivativeAiModelConditionType.ID, "is false");
+
+    List<Condition> conditions = List.of(derivativeAiModelCondition);
+    Constraint constraint = new Constraint(null, "constraintName", LogicalOperator.OR);
+    constraint.addCondition(derivativeAiModelCondition);
+    tempEntity.newPolicy("policyName", constraint);
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application,
+        simulateReportIsAvailable("LogPolicyViolationDerivativeAiModelConditionType"), new Stage(Stage.ID_BUILD),
+        ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
+
+    assertThat(results.allViolations).hasSize(conditions.size());
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations,
+        currentUser.getUsernameOrSystem());
   }
 
   @Test
@@ -4425,6 +4448,23 @@ public class ScanPolicyEvaluatorTest
 
     results.autoWaivedViolations
         .forEach(policyViolation -> assertThat(policyViolation.getReachabilityStatus()).isNotNull());
+  }
+
+  @Test
+  public void testEvaluate_DerivativeAiModel() throws Exception {
+    Policy policy = newPolicy(new Condition(DerivativeAiModelConditionType.ID, "is true"));
+    Constraint constraint = policy.getConstraints().get(0);
+
+    String scanId = simulateReportIsAvailable("DerivativeAiModel");
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId,
+        new Stage(Stage.ID_BUILD), ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
+
+    assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(1);
+    assertContainsPolicyViolation(
+        ComponentIdentifier.createHuggingfaceModelCoordinates("testRepoId", "testModel", "testVersion",
+            "testModelFormat", "testExtension"),
+        "a64cd74171f427720480", policy, constraint, Action.ID_FAIL, DerivativeAiModelConditionType.ID,
+        scanPolicyEvaluatorResults.activeViolations);
   }
 
   private void restoreConstraintFactsToPreMigratedState() {

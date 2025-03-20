@@ -20,6 +20,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.ComponentEndOfLifeStatus;
+import com.sonatype.clm.dto.model.DerivedFromAiModel;
 import com.sonatype.clm.dto.model.component.AggregateFile;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
@@ -106,6 +107,8 @@ public class Component
   private boolean hiddenObservedLicenses;
 
   private ComponentEndOfLifeStatus endOfLife;
+
+  private DerivedFromAiModel derivedFromAiModel;
 
   public Component() {
   }
@@ -542,5 +545,13 @@ public class Component
 
   public void setHiddenObservedLicenses(Boolean hiddenObservedLicenses) {
     this.hiddenObservedLicenses = hiddenObservedLicenses;
+  }
+
+  public DerivedFromAiModel getDerivedFromAiModel() {
+    return derivedFromAiModel;
+  }
+
+  public void setDerivedFromAiModel(DerivedFromAiModel derivedFromAiModel) {
+    this.derivedFromAiModel = derivedFromAiModel;
   }
 }

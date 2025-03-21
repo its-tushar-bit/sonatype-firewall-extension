@@ -52,6 +52,8 @@ public class ApiAutoPolicyWaiverResource
 
   static final String BY_AUTO_POLICY_WAIVER_ID_PATH = OWNERS_PATH + "/{autoPolicyWaiverId}";
 
+  static final String APPLICABLE_WAIVERS_PATH = "/v2/" + OWNERS_PATH + "/applicableAutoWaivers";
+
   @Inject
   public ApiAutoPolicyWaiverResource(ApiAutoPolicyWaiverService apiAutoPolicyWaiverService) {
     this.apiAutoPolicyWaiverService = apiAutoPolicyWaiverService;
@@ -244,5 +246,33 @@ public class ApiAutoPolicyWaiverResource
       @PathParam("ownerId") String ownerId)
   {
     return apiAutoPolicyWaiverService.getAutoPolicyWaiverStatus(ownerType, ownerId);
+  }
+
+  @GET
+  @Path(APPLICABLE_WAIVERS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(description = "Use this method to retrieve all applicable auto waivers for the scope specified. " +
+      "You can specify the scope by using the parameters ownerType and ownerId." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description =
+                  "The response contains applicable auto policy waivers for the specified ownerType and the " +
+                      "corresponding ownerId.",
+              useReturnTypeSchema = true
+          )
+      })
+  public List<ApiAutoPolicyWaiverStatusDTO> getApplicableAutoWaivers(
+      @Parameter(description = "Enter the ownerType to specify the scope. The response will contain " +
+          "applicable auto policy waivers, if any, that are within the scope specified.",
+          required = true)
+      @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the corresponding id for the ownerType.", required = true)
+      @PathParam("ownerId") String ownerId)
+  {
+    return apiAutoPolicyWaiverService.getApplicableAutoWaivers(ownerType, ownerId);
   }
 }

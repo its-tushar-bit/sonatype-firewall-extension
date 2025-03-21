@@ -28,6 +28,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverResource.APPLICABLE_WAIVERS_PATH;
 import static com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverResource.AUTO_WAIVER_STATUS_PATH;
 import static com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverResource.BY_AUTO_POLICY_WAIVER_ID_PATH;
 import static com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverResource.OWNERS_PATH;
@@ -462,5 +463,115 @@ public class ApiAutoPolicyWaiverResourceTest
     assertThat(dto.autoPolicyWaiverId).isEqualTo(autoPolicyWaiver.getId());
     assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(organization.getId());
     assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(organization.getName());
+  }
+
+  @Test
+  public void testGetApplicableAutoWaivers_MissingDeveloperDashboardFeature() throws Exception {
+    when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(false);
+    setMissingFeature(LicensedFeature.DEVELOPER_DASHBOARD);
+
+    final Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newAutoPolicyWaiver(application.getId());
+
+    final HttpResponse response =
+        restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH, APPLICABLE_WAIVERS_PATH)
+            .parameter(OwnerType.APPLICATION, application.getId())
+            .get();
+
+    assertResponseStatus(HttpStatus.PAYMENT_REQUIRED_402, response);
+  }
+
+  @Test
+  public void testGetApplicableAutoWaivers_Application() throws Exception {
+    final Application app = tempEntity.newApplicationWithParent();
+    final AutoPolicyWaiver autoWaiver = tempEntity.newAutoPolicyWaiver(app.getId());
+
+    final HttpResponse response =
+        restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH, APPLICABLE_WAIVERS_PATH)
+            .parameter(OwnerType.APPLICATION, app.getId())
+            .get();
+
+    assertResponseStatus(200, response);
+
+    final List<ApiAutoPolicyWaiverStatusDTO> applicableWaivers =
+        Arrays.asList(response.getBody(ApiAutoPolicyWaiverStatusDTO[].class));
+    assertThat(applicableWaivers).hasSize(1);
+    final ApiAutoPolicyWaiverStatusDTO dto = applicableWaivers.get(0);
+    assertThat(dto.isAutoWaiverEnabled).isTrue();
+    assertThat(dto.isInherited).isFalse();
+    assertThat(dto.autoPolicyWaiverId).isEqualTo(autoWaiver.getId());
+    assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(app.getId());
+    assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(app.getName());
+  }
+
+  @Test
+  public void testGetApplicableAutoWaivers_Organization() throws Exception {
+    final Organization org = tempEntity.newOrganization();
+    final AutoPolicyWaiver autoWaiver = tempEntity.newAutoPolicyWaiver(org.getId());
+
+    final HttpResponse response =
+        restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH, APPLICABLE_WAIVERS_PATH)
+            .parameter(OwnerType.ORGANIZATION, org.getId())
+            .get();
+
+    assertResponseStatus(200, response);
+
+    final List<ApiAutoPolicyWaiverStatusDTO> applicableWaivers =
+        Arrays.asList(response.getBody(ApiAutoPolicyWaiverStatusDTO[].class));
+    assertThat(applicableWaivers).hasSize(1);
+    final ApiAutoPolicyWaiverStatusDTO dto = applicableWaivers.get(0);
+    assertThat(dto.isAutoWaiverEnabled).isTrue();
+    assertThat(dto.isInherited).isFalse();
+    assertThat(dto.autoPolicyWaiverId).isEqualTo(autoWaiver.getId());
+    assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(org.getId());
+    assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(org.getName());
+  }
+
+  @Test
+  public void testGetApplicableAutoWaivers_NoAutoWaivers() throws Exception {
+    final Organization org = tempEntity.newOrganization();
+
+    final HttpResponse response =
+        restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH, APPLICABLE_WAIVERS_PATH)
+            .parameter(OwnerType.ORGANIZATION, org.getId())
+            .get();
+
+    assertResponseStatus(200, response);
+
+    final List<ApiAutoPolicyWaiverStatusDTO> applicableWaivers =
+        Arrays.asList(response.getBody(ApiAutoPolicyWaiverStatusDTO[].class));
+    assertThat(applicableWaivers).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicableAutoWaivers_AutoWaiversDisabled() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
+    final Organization org = tempEntity.newOrganization();
+
+    final HttpResponse response =
+        restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH, APPLICABLE_WAIVERS_PATH)
+            .parameter(OwnerType.ORGANIZATION, org.getId())
+            .get();
+    assertResponseStatus(403, response);
+  }
+
+  @Test
+  public void testGetApplicableAutoWaivers_InvalidOwnerType() throws Exception {
+    final Organization org = tempEntity.newOrganization();
+
+    final HttpResponse response =
+        restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH, APPLICABLE_WAIVERS_PATH)
+            .parameter(OwnerType.REPOSITORY, org.getId())
+            .get();
+    assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void testGetApplicableAutoWaivers_NonexistentOwnerId() throws Exception {
+    final HttpResponse response =
+        restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH, APPLICABLE_WAIVERS_PATH)
+            .parameter(OwnerType.ORGANIZATION, "does-not-exist")
+            .get();
+    assertResponseStatus(404, response);
   }
 }

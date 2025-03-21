@@ -207,4 +207,24 @@ public class ApiAutoPolicyWaiverServiceAuthzTest
     apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiverWithPermissionCheck(
         autoPolicyWaiver.getId(), application);
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetApplicableAutoWaivers_Unauthenticated() {
+    Application application = tempEntity.newApplicationWithParent();
+    apiAutoPolicyWaiverService.getApplicableAutoWaivers(OwnerType.APPLICATION, application.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetApplicableAutoWaivers_Unauthorized() {
+    login();
+    Application application = tempEntity.newApplicationWithParent();
+    apiAutoPolicyWaiverService.getApplicableAutoWaivers(OwnerType.APPLICATION, application.getId());
+  }
+
+  @Test
+  public void testGetApplicableAutoWaivers_Authorized() {
+    Application application = tempEntity.newApplicationWithParent();
+    grantReadPermission(application.getId());
+    apiAutoPolicyWaiverService.getApplicableAutoWaivers(OwnerType.APPLICATION, application.getId());
+  }
 }

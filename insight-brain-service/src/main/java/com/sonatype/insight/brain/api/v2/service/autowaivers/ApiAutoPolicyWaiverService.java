@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverAdapter;
@@ -311,6 +312,78 @@ public class ApiAutoPolicyWaiverService
       @AuthzContext(Key.OWNER) Owner owner)
   {
     return autoPolicyWaiverDAO.getByIdAndOwnerIdNullable(autoPolicyWaiverId, owner.getId());
+  }
+
+  @Authorize(permission = Permission.READ)
+  public List<ApiAutoPolicyWaiverStatusDTO> getApplicableAutoWaivers(
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) final String ownerId)
+  {
+    AutoPolicyWaiverUtil.validateAutoWaiversFeatureEnabled();
+    checkOwnerType(ownerType, ownerId);
+    final List<ApiAutoPolicyWaiverStatusDTO> autoPolicyWaiverStatuses = new ArrayList<>();
+    final List<String> ownerIds = ownerDAO.getOwnerIds(ownerId);
+    final List<AutoPolicyWaiver> autoPolicyWaivers = new ArrayList<>();
+    // Adds auto waivers in order of lowest to highest owner (application level -> organization level)
+    ownerIds.forEach(id -> autoPolicyWaivers.addAll(autoPolicyWaiverDAO.getByOwnerId(id)));
+
+    if (autoPolicyWaivers.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    final List<AutoPolicyWaiver> applicableAutoWaivers = new ArrayList<>();
+    final Optional<AutoPolicyWaiver> autoPolicyWaiverWithReachabilityAndNPF = autoPolicyWaivers.stream()
+        .filter(this::hasReachabilityAndNPF)
+        .findFirst();
+    autoPolicyWaiverWithReachabilityAndNPF.ifPresent(applicableAutoWaivers::add);
+    final Optional<AutoPolicyWaiver> autoPolicyWaiverWithReachability = autoPolicyWaivers.stream()
+        .filter(this::hasReachability)
+        .findFirst();
+    autoPolicyWaiverWithReachability.ifPresent(applicableAutoWaivers::add);
+    final Optional<AutoPolicyWaiver> autoPolicyWaiverWithPathForward = autoPolicyWaivers.stream()
+        .filter(this::hasPathForward)
+        .findFirst();
+    autoPolicyWaiverWithPathForward.ifPresent(applicableAutoWaivers::add);
+
+    applicableAutoWaivers.forEach(autoPolicyWaiver ->
+        autoPolicyWaiverStatuses.add(buildApiAutoPolicyWaiverStatusDTO(autoPolicyWaiver, ownerType, ownerId)));
+    return autoPolicyWaiverStatuses;
+  }
+
+  private boolean hasReachabilityAndNPF(final AutoPolicyWaiver autoPolicyWaiver) {
+    return autoPolicyWaiver.hasReachability() && autoPolicyWaiver.hasPathForward();
+  }
+
+  private boolean hasReachability(final AutoPolicyWaiver autoPolicyWaiver) {
+    return autoPolicyWaiver.hasReachability() && !autoPolicyWaiver.hasPathForward();
+  }
+
+  private boolean hasPathForward(final AutoPolicyWaiver autoPolicyWaiver) {
+    return autoPolicyWaiver.hasPathForward() && !autoPolicyWaiver.hasReachability();
+  }
+
+  private ApiAutoPolicyWaiverStatusDTO buildApiAutoPolicyWaiverStatusDTO(
+      final AutoPolicyWaiver autoPolicyWaiver,
+      final OwnerType ownerType,
+      final String ownerId)
+  {
+    ApiAutoPolicyWaiverStatusDTO dto = new ApiAutoPolicyWaiverStatusDTO();
+
+    dto.isAutoWaiverEnabled = true;
+    dto.autoPolicyWaiverId = autoPolicyWaiver.getId();
+    dto.autoPolicyWaiverOwnerId = autoPolicyWaiver.getOwnerId();
+    dto.isInherited = !autoPolicyWaiver.getOwnerId().equals(ownerId);
+    if (Boolean.TRUE.equals(dto.isInherited) || ownerType == OwnerType.ORGANIZATION) {
+      Organization owner = organizationDAO.getById(autoPolicyWaiver.getOwnerId());
+      dto.autoPolicyWaiverOwnerName = owner.getName();
+      dto.autoPolicyWaiverOwnerType = OwnerType.ORGANIZATION.toString();
+    }
+    else {
+      Application owner = applicationDAO.getById(autoPolicyWaiver.getOwnerId());
+      dto.autoPolicyWaiverOwnerName = owner.getName();
+      dto.autoPolicyWaiverOwnerType = OwnerType.APPLICATION.toString();
+    }
+    return dto;
   }
 
   private AutoPolicyWaiver getAutoPolicyWaiverByAppOwnerHierarchy(String autoPolicyWaiverId, String applicationId) {

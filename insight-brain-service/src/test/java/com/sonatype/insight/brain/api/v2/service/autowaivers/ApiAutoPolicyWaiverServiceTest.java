@@ -981,6 +981,140 @@ public class ApiAutoPolicyWaiverServiceTest
         apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver("fakeViolationId")).isInstanceOf(
         UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
 
+    assertThatThrownBy(() ->
+        apiAutoPolicyWaiverService.getApplicableAutoWaivers(OwnerType.APPLICATION, application.getId()))
+        .isInstanceOf(UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
+
+    verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
+  }
+
+  @Test
+  public void testGetApplicableAutoWaivers_CorrectlyFetchesAllApplicableAutoWaivers_AtEachOwnerLevel() {
+    // Hierarchy = org1 -> org2 -> app
+    final Organization org1 = tempEntity.newOrganization();
+    final Organization org2 = tempEntity.newOrganization(org1);
+    final Application app = tempEntity.newApplication(org2.getId());
+
+    // Org1 auto waivers:
+    // NPF
+    // Not Reachable
+    final AutoPolicyWaiver waiver1 = tempEntity.newAutoPolicyWaiver(org1.getId(), 10, false, true);
+    final AutoPolicyWaiver waiver2 = tempEntity.newAutoPolicyWaiver(org1.getId(), 7, true, false);
+
+    // Org2 auto waivers:
+    // Not Reachable + NPF
+    // NPF (overrides org1 auto waiver)
+    final AutoPolicyWaiver waiver3 = tempEntity.newAutoPolicyWaiver(org2.getId(), 4, true, true);
+    final AutoPolicyWaiver waiver4 = tempEntity.newAutoPolicyWaiver(org2.getId(), 5, false, true);
+
+    // App auto waivers:
+    // Not Reachable (overrides org1 auto waiver)
+    final AutoPolicyWaiver waiver5 = tempEntity.newAutoPolicyWaiver(app.getId(), 8, true, false);
+
+    // The applicable auto waivers for org1 should be:
+    // waiver1: NPF (from org1)
+    // waiver2: Not Reachable (from org1)
+    List<ApiAutoPolicyWaiverStatusDTO> applicableAutoWaivers =
+        apiAutoPolicyWaiverService.getApplicableAutoWaivers(OwnerType.ORGANIZATION, org1.getId());
+    assertThat(applicableAutoWaivers)
+        .hasSize(2);
+    ApiAutoPolicyWaiverStatusDTO dto = applicableAutoWaivers.get(0);
+    assertThat(dto.isAutoWaiverEnabled).isTrue();
+    assertThat(dto.isInherited).isFalse();
+    assertThat(dto.autoPolicyWaiverId).isEqualTo(waiver2.getId());
+    assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(org1.getId());
+    assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(org1.getName());
+    dto = applicableAutoWaivers.get(1);
+    assertThat(dto.isAutoWaiverEnabled).isTrue();
+    assertThat(dto.isInherited).isFalse();
+    assertThat(dto.autoPolicyWaiverId).isEqualTo(waiver1.getId());
+    assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(org1.getId());
+    assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(org1.getName());
+
+    // The applicable auto waivers for org2 should be:
+    // waiver3: Not Reachable + NPF (from org2)
+    // waiver4: NPF (from org2)
+    // waiver2: Not Reachable (from org1)
+    applicableAutoWaivers =
+        apiAutoPolicyWaiverService.getApplicableAutoWaivers(OwnerType.ORGANIZATION, org2.getId());
+    assertThat(applicableAutoWaivers)
+        .hasSize(3);
+    dto = applicableAutoWaivers.get(0);
+    assertThat(dto.isAutoWaiverEnabled).isTrue();
+    assertThat(dto.isInherited).isFalse();
+    assertThat(dto.autoPolicyWaiverId).isEqualTo(waiver3.getId());
+    assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(org2.getId());
+    assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(org2.getName());
+    dto = applicableAutoWaivers.get(1);
+    assertThat(dto.isAutoWaiverEnabled).isTrue();
+    assertThat(dto.isInherited).isTrue();
+    assertThat(dto.autoPolicyWaiverId).isEqualTo(waiver2.getId());
+    assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(org1.getId());
+    assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(org1.getName());
+    dto = applicableAutoWaivers.get(2);
+    assertThat(dto.isAutoWaiverEnabled).isTrue();
+    assertThat(dto.isInherited).isFalse();
+    assertThat(dto.autoPolicyWaiverId).isEqualTo(waiver4.getId());
+    assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(org2.getId());
+    assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(org2.getName());
+
+    // The applicable auto waivers for app should be:
+    // waiver3: Not Reachable + NPF (from org2)
+    // waiver4: NPF (from org2)
+    // waiver5: Not Reachable (from app)
+    applicableAutoWaivers =
+        apiAutoPolicyWaiverService.getApplicableAutoWaivers(OwnerType.APPLICATION, app.getId());
+    assertThat(applicableAutoWaivers)
+        .hasSize(3);
+    dto = applicableAutoWaivers.get(0);
+    assertThat(dto.isAutoWaiverEnabled).isTrue();
+    assertThat(dto.isInherited).isTrue();
+    assertThat(dto.autoPolicyWaiverId).isEqualTo(waiver3.getId());
+    assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(org2.getId());
+    assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(org2.getName());
+    dto = applicableAutoWaivers.get(1);
+    assertThat(dto.isAutoWaiverEnabled).isTrue();
+    assertThat(dto.isInherited).isFalse();
+    assertThat(dto.autoPolicyWaiverId).isEqualTo(waiver5.getId());
+    assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(app.getId());
+    assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(app.getName());
+    dto = applicableAutoWaivers.get(2);
+    assertThat(dto.isAutoWaiverEnabled).isTrue();
+    assertThat(dto.isInherited).isTrue();
+    assertThat(dto.autoPolicyWaiverId).isEqualTo(waiver4.getId());
+    assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(org2.getId());
+    assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(org2.getName());
+  }
+
+  @Test
+  public void testGetApplicableAutoWaivers_NoApplicableAutoWaivers_AtEachOwnerLevel() {
+    // Hierarchy = org1 -> org2 -> app
+    final Organization org1 = tempEntity.newOrganization();
+    final Organization org2 = tempEntity.newOrganization(org1);
+    final Application app = tempEntity.newApplication(org2.getId());
+
+    List<ApiAutoPolicyWaiverStatusDTO> applicableAutoWaivers =
+        apiAutoPolicyWaiverService.getApplicableAutoWaivers(OwnerType.ORGANIZATION, org1.getId());
+    assertThat(applicableAutoWaivers)
+        .isEmpty();
+
+    applicableAutoWaivers =
+        apiAutoPolicyWaiverService.getApplicableAutoWaivers(OwnerType.ORGANIZATION, org2.getId());
+    assertThat(applicableAutoWaivers)
+        .isEmpty();
+
+    applicableAutoWaivers =
+        apiAutoPolicyWaiverService.getApplicableAutoWaivers(OwnerType.APPLICATION, app.getId());
+    assertThat(applicableAutoWaivers)
+        .isEmpty();
+  }
+
+  @Test
+  public void testGetApplicableAutoWaivers_InvalidOwnerType() {
+    assertThatThrownBy(() ->
+        apiAutoPolicyWaiverService.getApplicableAutoWaivers(OwnerType.REPOSITORY, "fakeRepoId")).isInstanceOf(
+        IllegalStateException.class).hasMessage("Unknown owner type: repository");
+
     verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 }

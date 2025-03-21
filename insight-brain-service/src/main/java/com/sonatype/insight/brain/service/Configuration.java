@@ -209,6 +209,7 @@ public class Configuration
         SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS,
         SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_BATCH_SIZE,
         SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_TASK_PERIOD,
+        SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_EVENTS,
         SystemConfigurationProperty.ALP_FOR_SBOM_MANAGER,
         SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API,
         SystemConfigurationProperty.CONTAINER_IMAGES_EVALUATION
@@ -688,6 +689,10 @@ public class Configuration
 
   public Integer getComponentChangeDetectionTaskPeriod() {
     return configCache.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_TASK_PERIOD);
+  }
+
+  public Integer getComponentChangeDetectionMaxEvents() {
+    return configCache.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_EVENTS);
   }
 
   /**

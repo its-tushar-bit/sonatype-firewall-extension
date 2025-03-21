@@ -257,6 +257,8 @@ public class ConfigurationInfoTest
         .isEqualTo("100");
     assertThat(configNode.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS).asText())
         .isEqualTo("1500000");
+    assertThat(configNode.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_EVENTS).asText())
+        .isEqualTo("1500000");
   }
 
   @Test

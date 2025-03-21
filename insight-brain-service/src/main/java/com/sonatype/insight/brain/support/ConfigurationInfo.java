@@ -110,6 +110,8 @@ public class ConfigurationInfo
         configuration.getComponentChangeDetectionBatchSize());
     entries.put(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_TASK_PERIOD,
         configuration.getComponentChangeDetectionTaskPeriod());
+    entries.put(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_EVENTS,
+        configuration.getComponentChangeDetectionMaxEvents());
 
     return JsonUtils.format(entries);
   }

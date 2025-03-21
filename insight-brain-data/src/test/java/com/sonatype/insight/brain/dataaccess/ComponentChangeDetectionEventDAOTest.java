@@ -6,6 +6,10 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.sonatype.insight.brain.model.ComponentChangeDetectionEvent;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -31,6 +35,20 @@ public class ComponentChangeDetectionEventDAOTest extends AbstractDbDAOTest
           assert event.getPurl().equals("purl1");
           assert event.getComponentEvaluationData().equals("some data");
         });
+  }
+
+  @Test
+  public void test_CanRemoveExcessEvents() throws Exception {
+    tempEntity.newComponentChangeDetectionEvent("purl1", "some data", new Date());
+    Thread.sleep(2);
+    tempEntity.newComponentChangeDetectionEvent("purl2", "some data", new Date());
+    Thread.sleep(2);
+    tempEntity.newComponentChangeDetectionEvent("purl3", "some data", new Date());
+
+    underTest.removeExcessEvents(2);
+    assertThat(underTest.getAll().size()).isEqualTo(2);
+    assertThat(underTest.getAll().stream().map(ComponentChangeDetectionEvent::getPurl).collect(Collectors.toList()))
+        .isEqualTo(List.of("purl2", "purl3"));
   }
 
   @Test

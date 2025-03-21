@@ -270,6 +270,8 @@ public class SystemConfigurationProperty
 
   public static final String COMPONENT_CHANGE_DETECTION_TASK_PERIOD = "componentChangeDetectionTaskPeriod";
 
+  public static final String COMPONENT_CHANGE_DETECTION_MAX_EVENTS = "componentChangeDetectionMaxEvents";
+
   public static final String MANUAL_PULL_REQUESTS = "manualPullRequests";
 
   public static final String COMPONENT_CHANGE_DETECTION_API = "componentChangeDetectionApi";

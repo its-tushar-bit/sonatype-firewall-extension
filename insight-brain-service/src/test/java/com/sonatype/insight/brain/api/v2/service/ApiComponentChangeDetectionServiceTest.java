@@ -113,6 +113,25 @@ public class ApiComponentChangeDetectionServiceTest
   }
 
   @Test
+  public void removeExcessEvents() throws Exception {
+    when(configuration.getComponentChangeDetectionMaxEvents()).thenReturn(2);
+    underTest.addEvent(new ComponentChangeDetectionEvent("purl1", "data", new Date()));
+    Thread.sleep(2);
+
+    underTest.addEvent(new ComponentChangeDetectionEvent("purl2", "data", new Date()));
+    Thread.sleep(2);
+
+    underTest.addEvent(new ComponentChangeDetectionEvent("purl3", "data", new Date()));
+
+    assertThat(eventDAO.getAll().size()).isEqualTo(3);
+
+    underTest.removeExcessEvents();
+    assertThat(eventDAO.getAll().size()).isEqualTo(2);
+    assertThat(eventDAO.getAll().stream().map(ComponentChangeDetectionEvent::getPurl).collect(Collectors.toList()))
+        .isEqualTo(List.of("purl2", "purl3"));
+  }
+
+  @Test
   public void acknowledgeEventsOlderThan_deletesOldEvents() throws Exception {
     Date time = new Date();
     // Allow a small amount of time to pass to ensure the events are added at a unique to that tested against

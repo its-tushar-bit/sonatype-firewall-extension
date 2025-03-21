@@ -82,6 +82,11 @@ public class ApiComponentChangeDetectionService
     componentChangeDetectionEventDAO.deleteEntriesOlderThan(time);
   }
 
+  public void removeExcessEvents() {
+    validateLicense();
+    componentChangeDetectionEventDAO.removeExcessEvents(configuration.getComponentChangeDetectionMaxEvents());
+  }
+
   public void updateHashAndVersionForComponent(final String purl, final String hash, final String version) {
     validateLicense();
     componentChangeDetectionConfigurationDAO.updateComparisonHashAndVersionOfPurl(purl, hash, version);

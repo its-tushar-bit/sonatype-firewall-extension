@@ -24,6 +24,7 @@ function routes($stateProvider, $urlServiceProvider) {
       component: 'prioritiesPage',
       data: {
         title: 'Priorities',
+        favicon: 'productIcons/Developer', // "Priorities" is a "Developer" feature. Should use the same icon.
       },
     })
 
@@ -33,6 +34,7 @@ function routes($stateProvider, $urlServiceProvider) {
       component: 'prioritiesPage',
       data: {
         title: 'Priorities',
+        favicon: 'productIcons/Developer', // "Priorities" is a "Developer" feature. Should use the same icon.
       },
     })
 
@@ -42,6 +44,7 @@ function routes($stateProvider, $urlServiceProvider) {
       component: 'prioritiesPage',
       data: {
         title: 'Priorities',
+        favicon: 'productIcons/Developer', // "Priorities" is a "Developer" feature. Should use the same icon.
       },
     })
 

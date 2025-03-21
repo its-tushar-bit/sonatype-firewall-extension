@@ -51,12 +51,16 @@ function routes($stateProvider) {
     .state('sbomManager', {
       url: '/sbomManager',
       abstract: true,
+      data: {
+        product: 'SBOM Manager',
+        favicon: 'productIcons/SBOM',
+      },
     })
     .state('sbomManager.dashboard', {
       url: '/dashboard',
       component: 'sbomManagerDashboard',
       data: {
-        title: 'SBOM Manager - Dashboard',
+        title: 'Dashboard',
         authenticationRequired: true,
       },
     })
@@ -64,7 +68,7 @@ function routes($stateProvider) {
       url: '/advancedSearch?search',
       component: 'advancedSearch',
       data: {
-        title: 'SBOM Manager - Advanced Search',
+        title: 'Advanced Search',
         authenticationRequired: true,
       },
     })
@@ -95,7 +99,7 @@ function routes($stateProvider) {
       url: '/application/{applicationPublicId}/bom/{versionId}/overview',
       component: 'billOfMaterials',
       data: {
-        title: 'SBOM Manager - Bill Of Materials',
+        title: 'Bill Of Materials',
         authenticationRequired: true,
         noSidebar: true,
       },
@@ -104,7 +108,7 @@ function routes($stateProvider) {
       url: '/application/{applicationPublicId}/bom/{sbomVersion}/componentDetails/{componentHash}/overview',
       component: 'sbomManagerComponentDetails',
       data: {
-        title: 'SBOM Manager - Component Details',
+        title: 'Component Details',
         authenticationRequired: true,
       },
     })
@@ -112,7 +116,7 @@ function routes($stateProvider) {
       url: '/applications?sortBy?sortDirection',
       component: 'sbomManagerApplicationsPage',
       data: {
-        title: 'SBOM Manager - Applications',
+        title: 'Applications',
         authenticationRequired: true,
       },
     })

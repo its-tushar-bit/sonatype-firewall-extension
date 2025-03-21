@@ -63,6 +63,10 @@ function routes($stateProvider) {
     .state('firewall', {
       url: '/malware-defense',
       abstract: true,
+      data: {
+        product: 'Firewall',
+        favicon: 'productIcons/Firewall',
+      },
     })
     .state('firewall.home', {
       url: '/',
@@ -72,27 +76,27 @@ function routes($stateProvider) {
       url: '/dashboard?roiEnabled',
       component: 'firewallPage',
       data: {
-        title: 'Firewall Dashboard',
+        title: 'Dashboard',
       },
     })
     .state('firewall.firewallPage.quarantine', {
       url: '/quarantine',
       data: {
-        title: 'Firewall Dashboard - Quarantine',
+        title: 'Dashboard - Quarantine',
         activeTab: QUARANTINE,
       },
     })
     .state('firewall.firewallPage.waivers', {
       url: '/waivers',
       data: {
-        title: 'Firewall Dashboard - Waivers',
+        title: 'Dashboard - Waivers',
         activeTab: WAIVERS,
       },
     })
     .state('firewall.firewallPage.roi', {
       url: '/roi',
       data: {
-        title: 'Firewall Dashboard - ROI',
+        title: 'Dashboard - ROI',
         activeTab: ROI,
       },
     })
@@ -143,7 +147,7 @@ function routes($stateProvider) {
         '/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}?pathname&componentDisplayName',
       component: 'firewallComponentDetailsPage',
       data: {
-        title: 'Firewall Component Details',
+        title: 'Component Details',
       },
       params: {
         tabId: 'overview',

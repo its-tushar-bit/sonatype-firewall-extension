@@ -26,13 +26,17 @@ function routes($stateProvider, $urlServiceProvider) {
     .state('developer', {
       url: '/developer',
       abstract: true,
+      data: {
+        product: 'Developer',
+        favicon: 'productIcons/Developer',
+      },
     })
     .state('developer.dashboard', {
       url: '/dashboard',
       component: 'sonatypeDeveloperPage',
       redirectTo: `developer.dashboard.${SECTIONS.OVERVIEW}`,
       data: {
-        title: 'Sonatype Developer - Dashboard',
+        title: 'Dashboard',
         authenticationRequired: true,
       },
     })
@@ -65,14 +69,14 @@ function routes($stateProvider, $urlServiceProvider) {
       url: '/advancedSearch?search',
       component: 'advancedSearch',
       data: {
-        title: 'Sonatype Developer - Advanced Search',
+        title: 'Advanced Search',
         authenticationRequired: true,
       },
     })
     .state('developer.addWaiver', {
       component: 'addWaiverPage',
       data: {
-        title: 'Sonatype Developer - Add Waiver',
+        title: 'Add Waiver',
         isDirty: ['addWaiver', 'isDirty'],
       },
       url: '/addWaiver/{violationId}?comments&reasonId',
@@ -80,7 +84,7 @@ function routes($stateProvider, $urlServiceProvider) {
     .state('developer.requestWaiver', {
       component: 'requestWaiverPage',
       data: {
-        title: 'Sonatype Developer - Request Waiver',
+        title: 'Request Waiver',
         isDirty: ['requestWaiver', 'isDirty'],
       },
       url: '/requestWaiver/{violationId}',

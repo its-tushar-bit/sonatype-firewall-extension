@@ -51,6 +51,12 @@ public class PolicyWaiver
   @Column(name = "comment")
   private String comment;
 
+  @Column(name = "is_for_container_image")
+  private boolean isForContainerImage;
+
+  @Column(name = "is_for_container_image_component")
+  private boolean isForContainerImageComponent;
+
   @Column(name = "create_time")
   private Date createTime;
 
@@ -281,6 +287,22 @@ public class PolicyWaiver
 
   public void setComment(String comment) {
     this.comment = comment;
+  }
+
+  public boolean isForContainerImage() {
+    return isForContainerImage;
+  }
+
+  public boolean isForContainerImageComponent() {
+    return isForContainerImageComponent;
+  }
+
+  public void setForContainerImage(final boolean forContainerImage) {
+    isForContainerImage = forContainerImage;
+  }
+
+  public void setForContainerImageComponent(final boolean forContainerImageComponent) {
+    isForContainerImageComponent = forContainerImageComponent;
   }
 
   public Date getCreateTime() {

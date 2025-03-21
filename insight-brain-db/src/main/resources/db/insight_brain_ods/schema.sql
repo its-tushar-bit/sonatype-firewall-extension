@@ -134,6 +134,8 @@ CREATE TABLE policy_waiver (
   approval_time timestamp NULL,
   request_reason text NULL,
   rejection_reason text NULL,
+  is_for_container_image boolean DEFAULT false,
+  is_for_container_image_component boolean DEFAULT false,
   CONSTRAINT policy_waiver_pk PRIMARY KEY (policy_waiver_id),
   CONSTRAINT policy_waiver_policy_fk FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
 );

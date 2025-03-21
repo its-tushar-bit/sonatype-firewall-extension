@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -561,7 +562,7 @@ public class ApiFirewallService
   }
 
   private Set<String> getSupportedFormats() {
-    Set<String> supportedFormats = new HashSet<>(ComponentIdentifier.getSupportedFormats());
+    Set<String> supportedFormats = new HashSet<>(ComponentIdentifier.getFormatsSupportedByHds());
     supportedFormats.add(LqaComponentIdentifier.FORMAT_ALPINE);
     supportedFormats.add(LqaComponentIdentifier.FORMAT_BOWER);
     supportedFormats.add(LqaComponentIdentifier.FORMAT_DEBIAN);

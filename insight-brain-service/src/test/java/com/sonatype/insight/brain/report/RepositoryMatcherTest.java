@@ -1656,7 +1656,7 @@ public class RepositoryMatcherTest
   @Test
   public void testCreateAnalyzerFeatures_Supported_WithLicense() {
     String scanClient = "someScanClient";
-    Set<String> formats = new HashSet<>(ComponentIdentifier.getSupportedFormats());
+    Set<String> formats = new HashSet<>(ComponentIdentifier.getFormatsSupportedByHds());
     ComponentIdentifier.NO_LICENSE_FORMATS.forEach(formats::remove);
     for (String format : formats) {
       assertThat(RepositoryMatcher.createAnalyzerFeatures(format, scanClient)).usingRecursiveComparison().isEqualTo(
@@ -1671,7 +1671,7 @@ public class RepositoryMatcherTest
     for (LqaFormat value : LqaFormat.values()) {
       formats.add(value.format);
     }
-    ComponentIdentifier.getSupportedFormats().forEach(formats::remove);
+    ComponentIdentifier.getFormatsSupportedByHds().forEach(formats::remove);
     for (String format : formats) {
       assertThat(RepositoryMatcher.createAnalyzerFeatures(format, scanClient)).usingRecursiveComparison()
           .isEqualTo(new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.COORDINATE, scanClient, false, false, true));

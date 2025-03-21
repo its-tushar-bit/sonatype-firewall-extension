@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -83,8 +84,8 @@ import com.sonatype.insight.lqa.LqaFormat;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.util.HashUtils;
 
-import com.google.common.collect.Maps;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -1011,13 +1012,14 @@ public class ComponentInfoService
   }
 
   private boolean isKnownFormat(ComponentIdentifier identifier) {
-    return ComponentIdentifier.getSupportedFormats().contains(identifier.getFormat()) ||
+    return ComponentIdentifier.getFormatsSupportedByHds().contains(identifier.getFormat())
+        ||
         LqaFormat.isLqaFormat(identifier.getFormat());
   }
 
   private boolean isKnownSupportedFormat(ComponentIdentifier identifier) {
     // SDEV-1097 Bulk request would not include deprecated format "deb"
-    return ComponentIdentifier.getSupportedFormats().contains(identifier.getFormat());
+    return ComponentIdentifier.getFormatsSupportedByHds().contains(identifier.getFormat());
   }
 
   private Map<ComponentIdentifier, List<ComponentDetails>> getInformationVersionsHdsBulk(

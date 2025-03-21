@@ -7,13 +7,14 @@ package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.Arrays;
 import java.util.List;
+
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
+import com.sonatype.insight.brain.model.policy.conditions.valuetype.ComponentFormat;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ComponentFormatValueType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -95,7 +96,7 @@ public class ComponentFormatConditionType
       throw new InvalidConditionException(condition, "Component format is required");
     }
 
-    if (!ComponentIdentifier.getSupportedFormats().contains(value)) {
+    if (!ComponentFormat.getAllAsStrings().contains(value)) {
       throw new InvalidConditionException(condition, "Unsupported component format: '" + value + "'");
     }
 

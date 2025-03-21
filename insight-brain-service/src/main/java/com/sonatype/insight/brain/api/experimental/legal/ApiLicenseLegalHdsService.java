@@ -92,7 +92,7 @@ public class ApiLicenseLegalHdsService
       final Collection<ComponentIdentifier> componentIdentifiers)
   {
     return componentIdentifiers.stream()
-        .filter(c -> ComponentIdentifier.getSupportedFormats().contains(c.getFormat()))
+        .filter(c -> ComponentIdentifier.getFormatsSupportedByHds().contains(c.getFormat()))
         .collect(Collectors.toSet());
   }
 

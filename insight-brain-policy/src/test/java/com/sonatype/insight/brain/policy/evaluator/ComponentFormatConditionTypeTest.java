@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.ComponentFormatConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.model.policy.conditions.valuetype.ComponentFormat;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.junit.Test;
@@ -99,7 +100,7 @@ public class ComponentFormatConditionTypeTest
 
   @Test
   public void testValidateCondition_ValidValues() {
-    for (String format : ComponentIdentifier.getSupportedFormats()) {
+    for (String format : ComponentFormat.getAllAsStrings()) {
       // Should not throw exceptions
       Condition conditionIs = new Condition(ComponentFormatConditionType.ID, "is", format);
       ConditionTypes.ComponentFormatConditionType.validateCondition(null /* tx */, conditionIs, null /* ownerId */);

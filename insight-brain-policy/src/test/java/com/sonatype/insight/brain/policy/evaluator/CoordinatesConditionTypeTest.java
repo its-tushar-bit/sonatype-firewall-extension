@@ -101,7 +101,8 @@ public class CoordinatesConditionTypeTest
     catch (Exception e) {
       StringWriter sw = new StringWriter();
       e.printStackTrace(new PrintWriter(sw));
-      if (!sw.toString().contains("Unsupported component identifier format:hf-repo")) {
+      if (!sw.toString()
+          .contains("Unsupported component identifier format for coordinates policy condition: 'hf-repo'")) {
         throw e;
       }
     }
@@ -870,7 +871,7 @@ public class CoordinatesConditionTypeTest
     Condition condition = new Condition(CoordinatesConditionType.ID, "match", "hf-repo");
     assertThatThrownBy(
         () -> new CoordinatesConditionType().validateCondition(null, condition, null /* applicationId */))
-        .isInstanceOf(InvalidConditionException.class)
+            .isInstanceOf(IllegalArgumentException.class)
             .hasMessageEndingWith(
                 "Unsupported component identifier format for coordinates policy condition: 'hf-repo'");
   }

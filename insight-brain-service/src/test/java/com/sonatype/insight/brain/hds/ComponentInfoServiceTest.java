@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -1200,46 +1201,6 @@ public class ComponentInfoServiceTest
   }
 
   @Test
-  public void testGetComponentDetailsListBulk_terraformComponents() {
-    // Create an application without LTGs
-    Organization organization = tempEntity.newOrganization("testGetComponentDetailsList");
-    String applicationPublicId = "testGetComponentDetailsList";
-    Application application = tempEntity.newApplication(applicationPublicId, applicationPublicId, organization.getId());
-
-    ComponentIdentifier componentIdentifier1 = new ComponentIdentifier("terraform", new TreeMap<String, String>() {{
-        this.put("plan", "a1");
-        this.put("name", "g1");
-        this.put("version", "1.0.0");
-      }});
-
-    //Mock
-    List<ComponentIdentifier> componentIdentifiers = Collections.singletonList(componentIdentifier1);
-
-    ComponentDetails componentDetails1 = new ComponentDetails();
-    componentDetails1.setComponentIdentifier(componentIdentifier1);
-    componentDetails1.setDeclaredLicenses(Sets.newHashSet(new License("Apache-2.0", "Apache-2.0")));
-
-    ComponentDetailsList componentDetailsList = new ComponentDetailsList();
-    componentDetailsList.setList(Collections.singletonList(componentDetails1));
-
-    when(thirdPartyComponentDAO.getAllVersions(eq(application.getId()), eq(componentIdentifier1), eq(null)))
-        .thenReturn(componentDetailsList);
-
-    Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
-        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null, false);
-
-    assertThat(componentDetailsMap).hasSize(1);
-    ComponentDetails componentDetails = componentDetailsMap.get(componentIdentifier1).get(0);
-    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier1);
-
-    assertThat(componentDetails.getDeclaredLicenses()).hasSize(1);
-    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseName()).isEqualTo("Apache-2.0");
-    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseId()).isEqualTo("Apache-2.0");
-    assertThat(componentDetails.getObservedLicenses()).isEmpty();
-    assertThat(componentDetails.getEffectiveLicenseStatus()).isNull();
-  }
-
-  @Test
   public void testGetComponentDetailsListBulk_genericComponents() {
     // Create an application without LTGs
     Organization organization = tempEntity.newOrganization("testGetComponentDetailsList");
@@ -1338,36 +1299,21 @@ public class ComponentInfoServiceTest
         "3.0.0");
     mockGetComponentDetailsListFromHds(Collections.singletonList(componentEvaluationData1));
 
-    //terraform
-    ComponentIdentifier componentIdentifier2 = new ComponentIdentifier("terraform", new TreeMap<String, String>() {{
-        this.put("plan", "a1");
-        this.put("name", "g1");
-        this.put("version", "1.0.0");
-      }});
-
-    ComponentDetails componentDetails1 = new ComponentDetails();
-    componentDetails1.setComponentIdentifier(componentIdentifier2);
-    componentDetails1.setDeclaredLicenses(Sets.newHashSet(new License("Apache-2.0", "Apache-2.0")));
-
-    ComponentDetailsList componentDetailsList = new ComponentDetailsList();
-    componentDetailsList.setList(Collections.singletonList(componentDetails1));
-
-    when(thirdPartyComponentDAO.getAllVersions(eq(application.getId()), eq(componentIdentifier2), eq("myScanId")))
-        .thenReturn(componentDetailsList);
-
     //generic
-    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createGenericCoordinates("a1", "1.0", null);
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createGenericCoordinates("a1", "1.0", null);
     when(thirdPartyComponentDAO.resolveComponentDetails(
-        eq(application.getId()), eq(componentIdentifier3), eq("myScanId")))
+        eq(application.getId()), eq(componentIdentifier2), eq("myScanId")))
         .thenReturn(null);
 
     //generic third party component
-    ComponentIdentifier componentIdentifier4 = ComponentIdentifier.createGenericCoordinates("b1", "2.0", null);
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createGenericCoordinates("b1", "2.0", null);
 
-    mockComponentResolution(componentIdentifier4, application.getId());
+    mockComponentResolution(componentIdentifier3, application.getId());
 
     // unidentified component (discarded)
-    ComponentIdentifier componentIdentifier5 = new ComponentIdentifier("apt", new TreeMap<String, String>() {{
+    ComponentIdentifier componentIdentifier4 = new ComponentIdentifier("apt", new TreeMap<String, String>()
+    {
+      {
         this.put("plan", "a1");
         this.put("name", "g1");
         this.put("version", "1.0.0");
@@ -1377,13 +1323,12 @@ public class ComponentInfoServiceTest
         asList(componentIdentifier1,
             componentIdentifier2,
             componentIdentifier3,
-            componentIdentifier4,
-            componentIdentifier5);
+            componentIdentifier4);
 
     Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
         componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, "myScanId", false);
 
-    assertThat(componentDetailsMap).hasSize(4);
+    assertThat(componentDetailsMap).hasSize(3);
 
     // nonTerraform assertion
     ComponentDetails componentDetails = componentDetailsMap.get(componentIdentifier1).get(0);
@@ -1393,22 +1338,14 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.getObservedLicenses()).isNull();
     assertThat(componentDetails.getEffectiveLicenseStatus()).isNull();
 
-    //terraform assertion
-    componentDetails = componentDetailsMap.get(componentIdentifier2).get(0);
-    assertThat(componentDetails.getDeclaredLicenses()).hasSize(1);
-    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseName()).isEqualTo("Apache-2.0");
-    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseId()).isEqualTo("Apache-2.0");
-    assertThat(componentDetails.getObservedLicenses()).isEmpty();
-    assertThat(componentDetails.getEffectiveLicenseStatus()).isNull();
-
     //generic assertion
-    assertGenericComponentDetails(componentDetailsMap.get(componentIdentifier3).get(0), componentIdentifier3);
+    assertGenericComponentDetails(componentDetailsMap.get(componentIdentifier2).get(0), componentIdentifier2);
 
     //generic third party assertion
-    componentDetails = componentDetailsMap.get(componentIdentifier4).get(0);
+    componentDetails = componentDetailsMap.get(componentIdentifier3).get(0);
     assertThat(componentDetails.getIdentificationSource()).isEqualTo("randomIdentificationSource");
     assertThat(componentDetails.getComponentIdentifier())
-        .isEqualTo(componentIdentifier4);
+        .isEqualTo(componentIdentifier3);
   }
 
   @Test
@@ -2910,47 +2847,6 @@ public class ComponentInfoServiceTest
     assertThat(componentDetailsList).isNotNull();
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
     assertThat(componentDetails.getIdentificationSource()).isEqualTo("IaC");
-    ComponentIdentifier componentIdentifier = componentDetails.getComponentIdentifier();
-    assertThat(componentIdentifier.getFormat()).isEqualTo(ComponentIdentifier.FORMAT_TERRAFORM);
-    assertThat(componentIdentifier.get("plan")).isEqualTo("plan.tfplan");
-    assertThat(componentIdentifier.get("name")).isEqualTo("test");
-    assertThat(componentIdentifier.get("version")).isEqualTo("current");
-    assertThat(componentDetails.getSecurityVulnerabilities()).hasSize(2);
-    assertThat(componentDetails.getSecurityVulnerabilities().get(0).getRefId()).isEqualTo("cve-8");
-    assertThat(componentDetails.getSecurityVulnerabilities().get(1).getRefId()).isEqualTo("cve-4");
-  }
-
-  @Test
-  public void testGetComponentDetailsList_TerraformWithNullIdentificationSource() {
-    String scanId = "test";
-    String identificationSource = null;
-
-    Map<String, String> coordinates = new HashMap<>();
-    coordinates.put("plan", "plan.tfplan");
-    coordinates.put("name", "test");
-    coordinates.put("version", "current");
-    ComponentIdentifier componentIdentifier1 =
-        new ComponentIdentifier(ComponentIdentifier.FORMAT_TERRAFORM, coordinates);
-
-    ComponentDetails tpComponentDetails = newNamedComponentDetails(componentIdentifier1);
-    tpComponentDetails.setIdentificationSource(identificationSource);
-    tpComponentDetails.setSecurityVulnerabilities(asList(
-        new SecurityVulnerability("cve-8", "cve", 8.1f),
-        new SecurityVulnerability("cve-4", "cve", 4f)));
-
-    ComponentDetailsList tpComponentDetailsList = new ComponentDetailsList();
-    tpComponentDetailsList.setList(Collections.singletonList(tpComponentDetails));
-
-    when(thirdPartyComponentDAO.getAllVersions(application.getId(), componentIdentifier1, scanId))
-        .thenReturn(tpComponentDetailsList);
-
-    ComponentDetailsList componentDetailsList =
-        componentInfoService.getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId,
-            null, true).getLeft();
-
-    assertThat(componentDetailsList).isNotNull();
-    ComponentDetails componentDetails = componentDetailsList.getList().get(0);
-    assertThat(componentDetails.getIdentificationSource()).isNull();
     ComponentIdentifier componentIdentifier = componentDetails.getComponentIdentifier();
     assertThat(componentIdentifier.getFormat()).isEqualTo(ComponentIdentifier.FORMAT_TERRAFORM);
     assertThat(componentIdentifier.get("plan")).isEqualTo("plan.tfplan");

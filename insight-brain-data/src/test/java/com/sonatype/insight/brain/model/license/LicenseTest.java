@@ -15,7 +15,7 @@ public class LicenseTest
 {
   @Test
   public void testIsAlpObservedLicenseFormatHidden() {
-    for (String format : ComponentIdentifier.getSupportedFormats()) {
+    for (String format : ComponentIdentifier.getFormatsSupportedByHds()) {
       if (ComponentIdentifier.FORMAT_MAVEN.equals(format)) {
         assertThat(License.isAlpObservedLicenseFormatHidden(format))
             .withFailMessage("Expected isAlpObservedLicenseFormatHidden to be false for format 'maven':").isFalse();

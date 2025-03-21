@@ -23,6 +23,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
+import com.sonatype.insight.brain.model.policy.conditions.valuetype.ComponentFormat;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.CoordinatesValueType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -142,11 +143,11 @@ public class CoordinatesConditionType
   private ComponentIdentifier getComponentIdentifier(final String value) {
     final String[] coordinates = value.split(":", -1);
     final String format = coordinates[0];
+    validateFormat(format);
 
     final ComponentIdentifier componentIdentifier;
     // We need a special case for a format only if the order of the coordinates in
-    // ComponentIdentifier.getAllCoordinateNames(format) doesn't match the order of the coordinates in the UI or the
-    // format is not supported.
+    // ComponentIdentifier.getAllCoordinateNames(format) doesn't match the order of the coordinates in the UI.
     switch (format) {
       case ComponentIdentifier.FORMAT_MAVEN:
         // this method takes maven coordinates in the order GAVCE, but we have them as GAVEC, so swap the last two
@@ -168,8 +169,6 @@ public class CoordinatesConditionType
         componentIdentifier = ComponentIdentifier.createHuggingfaceModelCoordinates(coordinates[1], coordinates[2],
             coordinates[3], coordinates[5], coordinates[4]);
         break;
-      case ComponentIdentifier.FORMAT_HUGGINGFACE_REPO:
-        throw new IllegalArgumentException("Unsupported component identifier format:" + format);
       default:
         // The Set returned by ComponentIdentifier.getAllCoordinateNames is LinkedHashSet, so the order is deterministic
         Set<String> coordinateNames = ComponentIdentifier.getAllCoordinateNames(format);
@@ -195,15 +194,16 @@ public class CoordinatesConditionType
 
     String[] coordinates = value.split(":");
     String format = coordinates[0].trim();
-    switch (format) {
-      case ComponentIdentifier.FORMAT_HUGGINGFACE_REPO:
-        throw new InvalidConditionException(condition,
-            "Unsupported component identifier format for coordinates policy condition: '" + format + "'");
-      default:
-        // All other formats are supported
-    }
+    validateFormat(format);
 
     super.validateCondition(tx, condition, ownerId);
+  }
+
+  private void validateFormat(String format) {
+    if (!ComponentFormat.getAllAsStrings().contains(format)) {
+      throw new IllegalArgumentException(
+          "Unsupported component identifier format for coordinates policy condition: '" + format + "'");
+    }
   }
 
   static {

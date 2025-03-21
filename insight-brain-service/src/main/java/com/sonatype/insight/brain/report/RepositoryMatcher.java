@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -399,7 +400,7 @@ public class RepositoryMatcher
 
   // Visible for testing
   static AnalyzerFeatures createAnalyzerFeatures(String format, String scanClient) {
-    if (ComponentIdentifier.getSupportedFormats().contains(format)) {
+    if (ComponentIdentifier.getFormatsSupportedByHds().contains(format)) {
       if (ComponentIdentifier.NO_LICENSE_FORMATS.contains(format)) {
         return new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.COORDINATE, scanClient, false, true, true);
       }
@@ -817,7 +818,7 @@ public class RepositoryMatcher
     }
     ComponentIdentifier componentIdentifier = getCoordinates(node);
     return componentIdentifier == null ||
-        !ComponentIdentifier.getSupportedFormats().contains(componentIdentifier.getFormat());
+        !ComponentIdentifier.getFormatsSupportedByHds().contains(componentIdentifier.getFormat());
   }
 
   private static boolean isSbomComponent(final ObjectNode bomObjectNode) {

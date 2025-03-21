@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.IntStream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -115,8 +116,8 @@ public class PathForwardInspector
   }
 
   private boolean isKnownFormat(ComponentIdentifier identifier) {
-    return ComponentIdentifier.getSupportedFormats().contains(identifier.getFormat()) ||
-        LqaFormat.isLqaFormat(identifier.getFormat());
+    return ComponentIdentifier.getFormatsSupportedByHds().contains(identifier.getFormat())
+        || LqaFormat.isLqaFormat(identifier.getFormat());
   }
 
   public void cleanUp() {

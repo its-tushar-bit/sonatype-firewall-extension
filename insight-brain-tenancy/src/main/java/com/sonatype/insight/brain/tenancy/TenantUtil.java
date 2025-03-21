@@ -193,7 +193,7 @@ public class TenantUtil
     return isAdminApiRequest(request) || InetAddresses.isInetAddress(request.getServerName());
   }
 
-  public String getTenantNameFromSchema(String schema) {
+  public static String getTenantNameFromSchema(String schema) {
     return schema.replaceFirst("t_", "").replace('_', '-');
   }
 

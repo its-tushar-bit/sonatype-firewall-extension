@@ -24,6 +24,8 @@ import com.sonatype.insight.db.DatabaseException;
 import com.sonatype.insight.db.H2DatabaseEngine;
 import com.sonatype.insight.db.PostgresDatabaseEngine;
 
+import datadog.trace.api.Trace;
+
 public class DatabaseUtil
 {
   public static boolean legacySchemaVersionTableExists(final DataStore dataStore) {
@@ -42,6 +44,7 @@ public class DatabaseUtil
     return tableExists(dataSource, databaseSchema, "system_configuration_property");
   }
 
+  @Trace
   public static boolean tableExists(DataSource dataSource, String databaseSchema, String tableName) {
     try (Connection connection = dataSource.getConnection();
          PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES " +
@@ -58,6 +61,7 @@ public class DatabaseUtil
     }
   }
 
+  @Trace
   public static boolean schemaExists(DataSource dataSource, String databaseSchema) {
     try (Connection connection = dataSource.getConnection();
          PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES " +
@@ -73,6 +77,7 @@ public class DatabaseUtil
     }
   }
 
+  @Trace
   public static boolean databaseSchemaExists(DataSource dataSource, String databaseSchema) {
     try (Connection connection = dataSource.getConnection();
          PreparedStatement preparedStatement = connection.prepareStatement(
@@ -89,6 +94,7 @@ public class DatabaseUtil
     }
   }
 
+  @Trace
   public static boolean tableExistsWithColumn(
       final DataSource dataSource,
       final String databaseSchema,
@@ -114,6 +120,7 @@ public class DatabaseUtil
     return getLegacyDatabaseSchemaVersion(dataStore.getDataSource(), dataStore.getID(), dataStore.getDatabaseSchema());
   }
 
+  @Trace
   public static int getLegacyDatabaseSchemaVersion(
       final DataSource dataSource,
       final String dataStoreId,
@@ -149,6 +156,7 @@ public class DatabaseUtil
     }
   }
 
+  @Trace
   public static Long getLastCheckinTime(final DataSource dataSource, final String databaseSchema) {
     try (Connection connection = dataSource.getConnection();
          Statement statement = connection.createStatement();
@@ -203,6 +211,7 @@ public class DatabaseUtil
     return H2DatabaseEngine.INSTANCE.equals(databaseEngine);
   }
 
+  @Trace
   public static Map<String, Integer> getDatabaseSchemaVersions(DataSource dataSource, String databaseSchema) {
     String sql = setSchema("SELECT * FROM %s.schema_version", databaseSchema);
     Map<String, Integer> schemaVersions = new HashMap<>();
@@ -224,29 +233,27 @@ public class DatabaseUtil
     return String.format(sql, databaseSchema.trim().replace(" ", "-"));
   }
 
-  public static List<String> getSchemasList(DataSource dataSource) {
-    List<String> schemas = new ArrayList<>();
-
-    try (Connection connection = dataSource.getConnection();
-         PreparedStatement preparedStatement = connection.prepareStatement(
-             "SELECT * FROM INFORMATION_SCHEMA.SCHEMATA ")) {
+  @Trace
+  public static List<String> getTenantSchemas(DataSource dataSource) {
+    final List<String> schemas = new ArrayList<>();
+    try (
+        Connection connection = dataSource.getConnection();
+        PreparedStatement preparedStatement = connection.prepareStatement(
+            "select schema_name from information_schema.schemata where schema_name like 't\\_%'"
+        )
+    ) {
       ResultSet result = preparedStatement.executeQuery();
       while (result != null && result.next()) {
-        schemas.add(result.getString("SCHEMA_NAME"));
+        schemas.add(result.getString("schema_name"));
       }
     }
     catch (Exception e) {
-      throw new IllegalStateException(
-          String.format("Failed attempt to get list of existing schemas."), e);
+      throw new IllegalStateException("Failed attempt to get list of existing schemas.", e);
     }
-
     return schemas;
   }
 
   public static boolean isInMemoryDatabase(final DatabaseConfig databaseConfig) {
-    if (databaseConfig.getUrl().contains("jdbc:h2:mem")) {
-      return true;
-    }
-    return false;
+    return databaseConfig.getUrl().contains("jdbc:h2:mem");
   }
 }

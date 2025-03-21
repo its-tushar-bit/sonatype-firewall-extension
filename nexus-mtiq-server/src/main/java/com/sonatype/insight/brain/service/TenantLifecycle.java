@@ -13,6 +13,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.migration.DataMigrator;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 
+import datadog.trace.api.Trace;
 import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,7 @@ public class TenantLifecycle
     this.config = config;
   }
 
+  @Trace
   public void bootTenant() {
     try {
       log.info("TenantLifecycle start");

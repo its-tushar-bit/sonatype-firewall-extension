@@ -32,6 +32,11 @@
       <groupId>org.slf4j</groupId>
       <artifactId>jcl-over-slf4j</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.datadoghq</groupId>
+      <artifactId>dd-java-agent</artifactId>
+      <version>${datadog.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>

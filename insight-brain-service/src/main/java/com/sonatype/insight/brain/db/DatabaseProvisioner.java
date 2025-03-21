@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
 
 import com.google.common.annotations.VisibleForTesting;
+import datadog.trace.api.Trace;
 
 /**
  * Responsible for provisioning the database including initialization (i.e. connecting), populating (new db schema), and
@@ -52,6 +53,7 @@ public class DatabaseProvisioner
   /**
    * Init (connect to) the database, but do not perform migration
    */
+  @Trace
   public void initializeDatabaseWithoutMigration() {
     operationalDataStore.initialize();
     dataMartDataStore.initialize();

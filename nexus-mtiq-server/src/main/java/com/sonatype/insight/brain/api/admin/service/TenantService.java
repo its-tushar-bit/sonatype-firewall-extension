@@ -18,22 +18,18 @@ import com.sonatype.insight.brain.tenancy.TenantUtil;
 @Named
 public class TenantService
 {
-  private final TenantUtil tenantUtil;
-
   private final OperationalDataStore operationalDataStore;
 
   @Inject
-  public TenantService(final TenantUtil tenantUtil, final OperationalDataStore operationalDataStore) {
-    this.tenantUtil = tenantUtil;
+  public TenantService(final OperationalDataStore operationalDataStore) {
     this.operationalDataStore = operationalDataStore;
   }
 
   public List<String> getAllTenantsNames() {
-    List<String> schemas = DatabaseUtil.getSchemasList(operationalDataStore.getDataSource());
-
-    return schemas.stream()
-        .filter(schema -> schema.startsWith("t_"))
-        .map(t -> tenantUtil.getTenantNameFromSchema(t))
+    return DatabaseUtil
+        .getTenantSchemas(operationalDataStore.getDataSource())
+        .stream()
+        .map(TenantUtil::getTenantNameFromSchema)
         .collect(Collectors.toList());
   }
 

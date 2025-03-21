@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.TenantLifecycle;
 
 import com.google.common.annotations.VisibleForTesting;
+import datadog.trace.api.Trace;
 import io.dropwizard.lifecycle.Managed;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -127,18 +128,22 @@ public class TenantManager
   }
 
   @Override
+  @Trace
   public void start() {
     preregisterAllTenants();
   }
 
   @VisibleForTesting
+  @Trace
   void preregisterAllTenants() {
     log.info("Pre-registering all tenants");
 
-    List<String> deletedTenants = deletedTenantDAO.getAllTenantDeletions().stream()
+    final List<String> deletedTenants = deletedTenantDAO.getAllTenantDeletions().stream()
         .map(DeletedTenant::getId).collect(Collectors.toList());
 
-    List<String> nonDeletedTenants = tenantService.getAllTenantsNames().stream()
+    final List<String> nonDeletedTenants = tenantService
+        .getAllTenantsNames()
+        .stream()
         .filter(t -> !deletedTenants.contains(t))
         .collect(Collectors.toList());
 
@@ -153,6 +158,7 @@ public class TenantManager
     return tenantsPreRegistered;
   }
 
+  @Trace
   private void registerTenants(List<String> tenants) {
     TenantThreadLocal.runForAllTenantsOnBoot(tenants, "preRegisterAllTenants",
         tenant -> {
@@ -172,6 +178,7 @@ public class TenantManager
    * Validate and then register a tenant. This method is `synchronized` as it is possible for multiple Quartz jobs for a
    * single tenant to execute at the same time on a single node. But registration should only happen once.
    */
+  @Trace
   private synchronized void validateAndRegisterTenant(final Tenant tenant) {
     // Global tenant does not require tenant registration
     if (Tenant.GLOBAL_TENANT.equals(tenant)) {
@@ -181,10 +188,8 @@ public class TenantManager
     try {
       if (registeredTenants.putIfAbsent(tenant, true) == null) {
         log.info("Starting tenant {} registration", tenant.tenantSlug);
-        long start = runAndLogTime("validate tenant", tenant, System.currentTimeMillis(),
-            () -> validateTenant(tenant));
-
-        runAndLogTime("registration", tenant, start, () -> performRegistration(tenant));
+        validateTenant(tenant);
+        performRegistration();
         log.info("Tenant {} registration fully complete", tenant.tenantSlug);
       }
     }
@@ -201,19 +206,18 @@ public class TenantManager
   /**
    * Perform all registration for a tenant: database init (not migration), tenant jobs, and app lifecycle boot
    */
-  private void performRegistration(final Tenant tenant) {
-    long start = runAndLogTime("database init", tenant, System.currentTimeMillis(),
-        databaseProvisioner::initializeDatabaseWithoutMigration);
-
-    start = runAndLogTime("jobs init", tenant, start, this::setupTenantJobs);
-
-    runAndLogTime("app boot", tenant, start, tenantLifecycle.get()::bootTenant);
+  @Trace
+  private void performRegistration() {
+    databaseProvisioner.initializeDatabaseWithoutMigration();
+    setupTenantJobs();
+    tenantLifecycle.get().bootTenant();
   }
 
   /**
    * performDatabaseRegistrationAndRun perform only the database init (not migration) for a tenant and run method. This
    * is used for tenant deletion, where the tenant should not be registered as this causes the Quartz jobs to run.
    */
+  @Trace
   protected <T> T performDatabaseRegistrationAndRunAs(final String tenantSlug, final Supplier<T> supplier) {
     if (StringUtils.isBlank(tenantSlug)) {
       throw new IllegalArgumentException(TENANT_PARAMETER_CANNOT_BE_NULL);
@@ -246,6 +250,7 @@ public class TenantManager
   /**
    * Validates a tenant exists and is not deleted before registration
    */
+  @Trace
   private void validateTenant(final Tenant tenant) {
     if (!tenantValidator.validateTenantExists(tenant)) {
       log.debug("Tenant doesn't exist: {}", tenant.tenantSlug);
@@ -258,39 +263,23 @@ public class TenantManager
     }
   }
 
+  @Trace
   private void setupTenantJobs() {
-    List<TenantManaged> prioritizedBeans = tenantManagedBeans.stream()
+    tenantManagedBeans
+        .stream()
+        // GlobalTenantJob are initialized on startup by MultiTenantTenantManagedInitializer rather than per tenant.
+        .filter(tenantManaged -> !(tenantManaged instanceof GlobalTenantJob))
         .sorted(comparingInt(TenantManaged::registrationPriority))
-        .collect(toList());
-
-    for (TenantManaged tenantManaged : prioritizedBeans) {
-      if (tenantManaged instanceof GlobalTenantJob) {
-        /*
-          GlobalTenantJob are initialized on startup by MultiTenantTenantManagedInitializer rather than per tenant.
-         */
-        continue;
-      }
-
-      try {
-        tenantManaged.register();
-      }
-      catch (Exception e) {
-        log.error("Failed to load bean {} for tenant {}", tenantManaged.getClass(), TenantThreadLocal.getTenant(), e);
-      }
-    }
-  }
-
-  private long runAndLogTime(
-      final String name,
-      final Tenant tenant,
-      final long start,
-      final Runnable runnable)
-  {
-    runnable.run();
-
-    log.info("Tenant {} {} completed in {}ms", tenant.tenantSlug, name, System.currentTimeMillis() - start);
-
-    return System.currentTimeMillis();
+        .forEach(tenantManaged -> {
+          try {
+            tenantManaged.register();
+          }
+          catch (Exception e) {
+            log.error(
+                "Failed to register bean {} for tenant {}", tenantManaged.getClass(), TenantThreadLocal.getTenant(), e
+            );
+          }
+        });
   }
 
   boolean isRegistered() {
@@ -305,10 +294,10 @@ public class TenantManager
 
   boolean isTenantRegistered(Tenant tenant) {
     Boolean registered = registeredTenants.get(tenant);
-
     return registered != null && registered;
   }
 
+  @Trace
   public void deregisterTenant(String tenantSlug) {
     if (StringUtils.isBlank(tenantSlug)) {
       log.warn("There was an attempt to deregister a tenant with blank slug");

@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantManager;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper.ConsumerWithException;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
@@ -53,7 +52,7 @@ public abstract class AbstractMultiTenantDatabaseTest
     Provider<TenantLifecycle> tenantLifecycleProvider = () -> Mockito.mock(TenantLifecycle.class);
     TenantValidator tenantValidator = new TenantValidator(databaseRule.getOperationalDataStore());
     DeletedTenantDAO deletedTenantDAO = daoFactory.createDeletedTenantDAO();
-    TenantService tenantService = new TenantService(new TenantUtil(), databaseContainer.getOperationalDataStore());
+    TenantService tenantService = new TenantService(databaseContainer.getOperationalDataStore());
 
     tenantManager = new TenantManager(tenantManagedBeans, tenantLifecycleProvider,
         databaseContainer.getDatabaseProvisioner(), tenantValidator, deletedTenantDAO, tenantService);

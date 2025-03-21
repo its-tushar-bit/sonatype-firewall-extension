@@ -11,7 +11,6 @@ import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
 import org.junit.Before;
@@ -40,7 +39,7 @@ public class TenantServiceTest
 
   @Before
   public void setup() {
-    underTest = new TenantService(new TenantUtil(), mockOperationalDataStore);
+    underTest = new TenantService(mockOperationalDataStore);
 
     when(mockOperationalDataStore.getDataSource()).thenReturn(dataSource);
   }
@@ -48,7 +47,7 @@ public class TenantServiceTest
   @Test
   public void shouldReturnEmptyTenantListWhenThereAreNoTenants() {
     try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class)) {
-      dataBaseUtil.when(() -> DatabaseUtil.getSchemasList(dataSource)).thenReturn(emptyList());
+      dataBaseUtil.when(() -> DatabaseUtil.getTenantSchemas(dataSource)).thenReturn(emptyList());
 
       List<String> tenants = underTest.getAllTenantsNames();
 
@@ -58,10 +57,10 @@ public class TenantServiceTest
 
   @Test
   public void shouldReturnCorrectTenantListForAllTenants() {
-    List<String> schemaList = Arrays.asList("t_tenant_1", "t_tenant_2", "global", "public", "postgres");
+    List<String> schemaList = Arrays.asList("t_tenant_1", "t_tenant_2");
 
     try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class)) {
-      dataBaseUtil.when(() -> DatabaseUtil.getSchemasList(dataSource)).thenReturn(schemaList);
+      dataBaseUtil.when(() -> DatabaseUtil.getTenantSchemas(dataSource)).thenReturn(schemaList);
 
       List<String> tenants = underTest.getAllTenantsNames();
 

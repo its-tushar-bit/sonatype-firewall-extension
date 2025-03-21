@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.tenancy;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.DatabaseUtil;
@@ -43,37 +42,25 @@ public class TenantMigrator
   }
 
   public void migrateAllSchemas() {
-    List<String> schemas =
-        DatabaseUtil.getSchemasList(databaseProvisioner.getOperationalDataStore().getDataSource());
-
-    List<Tenant> tenants = schemas.stream()
-        .filter(schema -> schema.startsWith("t_"))
-        .map(this::createTenantFromSchema)
-        .sorted() // sort so we run the migrations in a consistent order
-        .collect(Collectors.toList());
-
-    log.info("Total of {} tenants to migrate: {}", tenants.size(),
-        tenants.stream().map(tenant -> tenant.tenantSlug).collect(Collectors.toList()));
-
-    int index = 1;
-    for (Tenant tenant : tenants) {
-      Integer finalIndex = index;
+    List<String> schemas = DatabaseUtil.getTenantSchemas(databaseProvisioner.getOperationalDataStore().getDataSource());
+    log.info("Total of {} tenant schemas to migrate", schemas.size());
+    schemas.forEach(schema -> {
+      final Tenant tenant = createTenantFromSchema(schema);
       runAs(tenant, () -> {
         try {
-          log.info("Running database migrations {} of {}. Processing tenant: {}", finalIndex, tenants.size(),
-              TenantThreadLocal.getTenant().databaseSchema);
+          log.info("Running database migrations for tenant {}", TenantThreadLocal.getTenant().databaseSchema);
           migrateSchema();
         }
         catch (Exception e) {
-          String message = String.format("Error trying to migrate the database for tenant: %s.",
-              TenantThreadLocal.getTenant().tenantSlug);
-          throw new IllegalStateException(message, e);
+          throw new IllegalStateException(
+              String.format("Error migrating the database for tenant %s", TenantThreadLocal.getTenant().tenantSlug),
+              e
+          );
         }
         tenant.invalidate();
         return null;
       });
-      index++;
-    }
+    });
   }
 
   private void migrateSchema() {
@@ -87,7 +74,7 @@ public class TenantMigrator
     }
   }
 
-  public Tenant createTenantFromSchema(String schema) {
+  public static Tenant createTenantFromSchema(String schema) {
     String tenantSlug = schema.replaceFirst("t_", "").replace('_', '-');
     return new Tenant(tenantSlug);
   }

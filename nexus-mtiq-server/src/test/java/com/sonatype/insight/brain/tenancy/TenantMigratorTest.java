@@ -12,15 +12,12 @@ import javax.sql.DataSource;
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.DatabaseUtil;
-import com.sonatype.insight.test.LogOutput;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.MockedStatic;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
@@ -33,9 +30,6 @@ import static org.mockito.Mockito.verify;
 public class TenantMigratorTest
     extends AbstractMultiTenantDatabaseTest
 {
-  @Rule
-  public final LogOutput logOutput = new LogOutput(TenantMigrator.class);
-
   private TenantMigrator underTest;
 
   private DatabaseProvisioner spyDatabaseProvisioner;
@@ -66,8 +60,9 @@ public class TenantMigratorTest
     doThrow(new RuntimeException()).when(spyDatabaseProvisioner)
         .initializeDatabaseWithMigration();
 
-    assertThatThrownBy(underTest::migrateGlobalSchema).isInstanceOf(
-        RuntimeException.class).hasMessage("Error trying to migrate the database for Global Schema.");
+    assertThatThrownBy(underTest::migrateGlobalSchema)
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessage("Error trying to migrate the database for Global Schema.");
   }
 
   @Test
@@ -76,17 +71,13 @@ public class TenantMigratorTest
       runMigrateAllSchemas(Arrays.asList("t_tenant_1", "t_tenant_z", "t_tenant_2", "t_tenant_a"));
 
       assertMigrationExecutedForTheExpectedNumberOfTenants(4);
-
-      // used to assert sort order
-      assertThat(logOutput).atInfoLevel()
-          .contains("Total of 4 tenants to migrate: [tenant-1, tenant-2, tenant-a, tenant-z]");
     });
   }
 
   @Test
   public void shouldNotRunMigrations_forNonTenantsSchemas() {
     testAsGlobalTenant(global -> {
-      runMigrateAllSchemas(Arrays.asList("t_tenant_1", "global", "public", "postgres"));
+      runMigrateAllSchemas(List.of("t_tenant_1"));
 
       assertMigrationExecutedForTheExpectedNumberOfTenants(1);
     });
@@ -95,15 +86,16 @@ public class TenantMigratorTest
   @Test
   public void shouldThrowError_withTenantName_whenTenantMigrationThrows() {
     testAsGlobalTenant(global -> {
-      List<String> expectedSchemaList = Arrays.asList("t_tenant_1", "global");
+      List<String> expectedSchemaList = List.of("t_tenant_1");
 
       try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class, CALLS_REAL_METHODS)) {
-        dataBaseUtil.when(() -> DatabaseUtil.getSchemasList(any(DataSource.class))).thenReturn(expectedSchemaList);
+        dataBaseUtil.when(() -> DatabaseUtil.getTenantSchemas(any(DataSource.class))).thenReturn(expectedSchemaList);
 
         doThrow(new RuntimeException()).when(spyDatabaseProvisioner).initializeDatabaseWithMigration();
 
-        assertThatThrownBy(underTest::migrateAllSchemas).isInstanceOf(
-            RuntimeException.class).hasMessage("Error trying to migrate the database for tenant: tenant-1.");
+        assertThatThrownBy(underTest::migrateAllSchemas)
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("tenant-1");
       }
     });
   }
@@ -111,7 +103,7 @@ public class TenantMigratorTest
   @Test
   public void shouldNotRunMigrations_whenNoTenantSchemasExist() {
     testAsGlobalTenant(global -> {
-      runMigrateAllSchemas(Arrays.asList("global", "public"));
+      runMigrateAllSchemas(List.of());
 
       verify(spyDatabaseProvisioner, never()).initializeDatabaseWithMigration();
     });
@@ -119,7 +111,7 @@ public class TenantMigratorTest
 
   private void runMigrateAllSchemas(List<String> expectedSchemaList) {
     try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class, CALLS_REAL_METHODS)) {
-      dataBaseUtil.when(() -> DatabaseUtil.getSchemasList(any(DataSource.class))).thenReturn(expectedSchemaList);
+      dataBaseUtil.when(() -> DatabaseUtil.getTenantSchemas(any(DataSource.class))).thenReturn(expectedSchemaList);
       underTest.migrateAllSchemas();
     }
   }

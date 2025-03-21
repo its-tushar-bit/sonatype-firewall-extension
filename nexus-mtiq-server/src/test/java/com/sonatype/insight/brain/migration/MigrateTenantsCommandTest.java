@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.db.MultiTenantDatabaseContainer;
 import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -43,7 +42,7 @@ public class MigrateTenantsCommandTest
   public void setup() {
     super.setup();
 
-    tenantService = new TenantService(new TenantUtil(), databaseRule.getOperationalDataStore());
+    tenantService = new TenantService(databaseRule.getOperationalDataStore());
 
     // get the spy out of TestDatabaseContainer
     spyDatabaseProvisioner = databaseRule.getDatabaseContainer().getDatabaseProvisioner();

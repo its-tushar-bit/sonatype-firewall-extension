@@ -808,6 +808,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
       features.add(LicensedFeature.WAIVER_REPORTS);
       features.add(LicensedFeature.ROI_CONFIGURATION);
+      features.add(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
 
       stageTypes.add(StageTypes.STAGE_RELEASE);
       stageTypes.add(StageTypes.RELEASE);
@@ -891,6 +892,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
       features.add(LicensedFeature.WAIVER_REPORTS);
       features.add(LicensedFeature.ROI_CONFIGURATION);
+      features.add(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
 
       stageTypes.add(StageTypes.STAGE_RELEASE);
       stageTypes.add(StageTypes.RELEASE);

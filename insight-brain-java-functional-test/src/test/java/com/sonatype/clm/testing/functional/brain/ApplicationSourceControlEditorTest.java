@@ -807,10 +807,10 @@ public class ApplicationSourceControlEditorTest
     assertThat(metricsTable().rowCount()).isEqualTo(3);
 
     MetricsTableRow row1 = metricsTable().getRow(0);
-    row1.title().shouldHave(exactText("Bump bar to 1.4"));
-    row1.statusIcon().shouldHave(cssClass("fa-exclamation-triangle"));
+    row1.title().shouldHave(exactText("Bump bar to 1.1"));
+    row1.statusIcon().shouldHave(cssClass("fa-circle-check"));
     row1.statusIcon().hover();
-    row1.statusIconTooltip().should(exist).shouldHave(exactText(String.format(FAILURE_MESSAGE, "foo : bar : 1.3")));
+    row1.statusIconTooltip().should(exist).shouldHave(exactText(String.format(SUCCESS_MESSAGE, "foo : bar : 1.0")));;
     row1.totalTime().shouldHave(exactText("0"));
     row1.started().shouldNotBe(empty);
 
@@ -823,10 +823,10 @@ public class ApplicationSourceControlEditorTest
     row2.started().shouldNotBe(empty);
 
     MetricsTableRow row3 = metricsTable().getRow(2);
-    row3.title().shouldHave(exactText("Bump bar to 1.1"));
-    row3.statusIcon().shouldHave(cssClass("fa-circle-check"));
+    row3.title().shouldHave(exactText("Bump bar to 1.4"));
+    row3.statusIcon().shouldHave(cssClass("fa-exclamation-triangle"));
     row3.statusIcon().hover();
-    row3.statusIconTooltip().should(exist).shouldHave(exactText(String.format(SUCCESS_MESSAGE, "foo : bar : 1.0")));;
+    row3.statusIconTooltip().should(exist).shouldHave(exactText(String.format(FAILURE_MESSAGE, "foo : bar : 1.3")));
     row3.totalTime().shouldHave(exactText("0"));
     row3.started().shouldNotBe(empty);
   }
@@ -1181,13 +1181,13 @@ public class ApplicationSourceControlEditorTest
     PullRequestResult failure = new PullRequestResult();
     failure.setSuccessful(false);
     metrics.addResult(application.getId(),
-        new EnhancedPullRequestResult(failure, new Date(), ComponentIdentifier
+        new EnhancedPullRequestResult(failure, new Date(System.currentTimeMillis() - 2000), ComponentIdentifier
             .createMavenCoordinates("foo", "bar", "1.1"), "Bump bar to 1.2", true));
 
     PullRequestResult warning = new PullRequestResult();
     warning.setSuccessful(false);
     metrics.addResult(application.getId(),
-        new EnhancedPullRequestResult(warning, new Date(), ComponentIdentifier
+        new EnhancedPullRequestResult(warning, new Date(System.currentTimeMillis() - 3000), ComponentIdentifier
             .createMavenCoordinates("foo", "bar", "1.3"), "Bump bar to 1.4", false));
   }
 }

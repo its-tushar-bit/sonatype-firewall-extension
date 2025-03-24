@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
 import org.apache.http.client.HttpResponseException;
@@ -480,6 +481,16 @@ public class ConfigurationClientTest
         .isThrownBy(() -> new ConfigurationClient(config).getOrganizationsForApplicationEvaluation())
         .withMessage(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT)
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(401));
+  }
+
+  @Test
+  public void testSendTelemetry() throws IOException {
+    Configuration clientConfiguration = getCLMServer().getClientConfiguration();
+    HashMap<String, Object> telemetryData = new HashMap<>();
+    telemetryData.put("telemetry_purpose", "INTEGRATIONS_FEATURE_USAGE_METRICS");
+    Result result = new ConfigurationClient(clientConfiguration).sendTelemetry(telemetryData);
+    assertThat(result.status()).isEqualTo(400);
+    assertThat(result.text()).isEqualTo("Telemetry property 'feature' is required.");
   }
 
   private void assertOrganizationSummaryList(OrganizationSummaryList actual, Organization expected) {

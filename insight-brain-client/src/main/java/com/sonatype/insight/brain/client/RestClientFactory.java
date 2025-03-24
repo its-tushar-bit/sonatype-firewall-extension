@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.client;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Named;
@@ -254,6 +255,10 @@ public class RestClientFactory
 
     public Set<String> getLicensedFeatures() throws IOException {
       return new ConfigurationClient(config).getLicensedFeatures();
+    }
+
+    public void sendTelemetry(Map<String, Object> telemetryData) throws IOException {
+      new ConfigurationClient(config).sendTelemetry(telemetryData);
     }
 
     public ComponentWithSignaturesList getVulnerableComponentsWithSignatures(

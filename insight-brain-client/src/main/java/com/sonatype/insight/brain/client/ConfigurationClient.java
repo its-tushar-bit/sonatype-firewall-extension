@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.organization.OrganizationSummaryList;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.client.utils.AbstractClientBuilder;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
@@ -27,7 +28,10 @@ import org.sonatype.aether.util.version.GenericVersionScheme;
 import org.sonatype.aether.version.InvalidVersionSpecificationException;
 import org.sonatype.aether.version.Version;
 
+import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 
 public class ConfigurationClient
     extends AbstractRequestClient
@@ -37,6 +41,13 @@ public class ConfigurationClient
   public Set<String> getLicensedFeatures() throws IOException {
     Result result = path("rest/product/features").get();
     return new HashSet<>(Arrays.asList(parseResult(result, String[].class)));
+  }
+
+  public Result sendTelemetry(Map<String, Object> telemetryData) throws IOException {
+    AbstractClientBuilder<Result>.RequestBuilder path = path("/api/v2/telemetry");
+    StringEntity entity = new StringEntity(new Gson().toJson(telemetryData), "UTF-8");
+    entity.setContentType(ContentType.APPLICATION_JSON.getMimeType());
+    return path.post(entity);
   }
 
   public enum Context

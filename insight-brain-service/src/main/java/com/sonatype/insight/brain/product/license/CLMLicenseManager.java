@@ -781,7 +781,6 @@ public class CLMLicenseManager
       features.add(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
       features.add(LicensedFeature.RELEASE_INTEGRITY);
       features.add(LicensedFeature.FIREWALL);
-      features.add(LicensedFeature.MALWARE_DEFENSE_EVALUATION);
       features.add(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
@@ -808,6 +807,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
       features.add(LicensedFeature.WAIVER_REPORTS);
       features.add(LicensedFeature.ROI_CONFIGURATION);
+      features.add(LicensedFeature.MALWARE_DEFENSE_EVALUATION);
       features.add(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
 
       stageTypes.add(StageTypes.STAGE_RELEASE);
@@ -892,6 +892,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
       features.add(LicensedFeature.WAIVER_REPORTS);
       features.add(LicensedFeature.ROI_CONFIGURATION);
+      features.add(LicensedFeature.MALWARE_DEFENSE_EVALUATION);
       features.add(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
 
       stageTypes.add(StageTypes.STAGE_RELEASE);

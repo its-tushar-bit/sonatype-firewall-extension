@@ -41,6 +41,8 @@ describe('ApplicationLatestEvaluationsPage', () => {
         {
           evaluationDate: '2025-01-21T10:32:51.641Z',
           scanTriggerTypeDisplayName: 'Web UI',
+          scanTriggerInternal: true,
+          scannerVersion: 'someScannerVersion',
           scanId: 'someScanId',
           isForMonitoring: false,
           policyEvaluationResult: {
@@ -65,6 +67,7 @@ describe('ApplicationLatestEvaluationsPage', () => {
   });
 
   it('renders the page', async () => {
+    const user = userEvent.setup();
     renderComponent(state);
 
     expect(await screen.findByRole('heading', { name: 'appName Latest Evaluations' })).toBeVisible();
@@ -76,31 +79,125 @@ describe('ApplicationLatestEvaluationsPage', () => {
     expect(rows.length).toBe(2);
 
     const headers = within(rows[0]).getAllByRole('columnheader');
-    expect(headers.length).toBe(5);
+    expect(headers.length).toBe(6);
     expect(headers[0]).toHaveTextContent('Evaluation Date');
     expect(headers[1]).toHaveTextContent('Trigger');
-    expect(headers[2]).toHaveTextContent('Violations');
-    expect(headers[3]).toHaveTextContent('Components');
-    expect(headers[4]).toHaveTextContent('');
+    expect(headers[2]).toHaveTextContent('Version');
+    expect(headers[3]).toHaveTextContent('Violations');
+    expect(headers[4]).toHaveTextContent('Components');
+    expect(headers[5]).toHaveTextContent('');
+
+    const versionText = screen.getByText('Version');
+    await user.hover(versionText);
+    const tooltip = await screen.findByRole('tooltip');
+    expect(tooltip).toHaveTextContent('The integration version that triggered the evaluation.');
 
     const cells = within(rows[1]).getAllByRole('cell');
-    expect(cells.length).toBe(5);
+    expect(cells.length).toBe(6);
     expect(cells[0]).toHaveTextContent('2025-01-21 05:32:51');
     expect(cells[1]).toHaveTextContent(/^Web UI$/);
-    expect(within(cells[2]).getByText('Critical').closest('.nx-small-threat-counter')).toHaveTextContent('1');
-    expect(within(cells[2]).getByText('Severe').closest('.nx-small-threat-counter')).toHaveTextContent('2');
-    expect(within(cells[2]).getByText('Moderate').closest('.nx-small-threat-counter')).toHaveTextContent('3');
-    expect(cells[3]).toHaveTextContent('10');
-    expect(cells[4]).toHaveTextContent('View Report');
+    expect(cells[2]).toHaveTextContent(/^someScannerVersion$/);
+    expect(within(cells[3]).getByText('Critical').closest('.nx-small-threat-counter')).toHaveTextContent('1');
+    expect(within(cells[3]).getByText('Severe').closest('.nx-small-threat-counter')).toHaveTextContent('2');
+    expect(within(cells[3]).getByText('Moderate').closest('.nx-small-threat-counter')).toHaveTextContent('3');
+    expect(cells[4]).toHaveTextContent('10');
+    expect(cells[5]).toHaveTextContent('View Report');
     expect(mockRouterState.href).toHaveBeenCalledWith('applicationReport.policy', {
       publicId: 'appPublicId',
       scanId: 'someScanId',
     });
-    expect(within(cells[4]).getByRole('link', { name: 'View Report' })).toHaveAttribute('href', 'someHref');
+    expect(within(cells[5]).getByRole('link', { name: 'View Report' })).toHaveAttribute('href', 'someHref');
 
     expect(axiosMock.history.get.length).toBe(2);
     expect(axiosMock.history.get[0].url).toBe(getApplicationUrl('appPublicId'));
     expect(axiosMock.history.get[1].url).toBe(getApplicationReportHistoryUrl('appId', 'build'));
+  });
+
+  it('renders an em dash when the scanner version is not available', async () => {
+    axiosMock.onGet(getApplicationReportHistoryUrl('appId', 'build')).reply(200, {
+      applicationId: 'appId',
+      reports: [
+        {
+          evaluationDate: '2025-01-21T10:32:51.641Z',
+          scanTriggerTypeDisplayName: 'Web UI',
+          scanTriggerInternal: true,
+          scannerVersion: null,
+          scanId: 'someScanId',
+          isForMonitoring: false,
+          policyEvaluationResult: {
+            criticalPolicyViolationCount: 1,
+            severePolicyViolationCount: 2,
+            moderatePolicyViolationCount: 3,
+            totalComponentCount: 10,
+          },
+        },
+      ],
+    });
+    renderComponent(state);
+
+    expect(await screen.findByRole('heading', { name: 'appName Latest Evaluations' })).toBeVisible();
+    const table = screen.getByRole('table');
+    const rows = within(table).getAllByRole('rowgroup');
+    const cells = within(rows[1]).getAllByRole('cell');
+    expect(cells[2]).toHaveTextContent(/^—$/);
+  });
+
+  it('renders a scanner version without a qualifier when not internal', async () => {
+    axiosMock.onGet(getApplicationReportHistoryUrl('appId', 'build')).reply(200, {
+      applicationId: 'appId',
+      reports: [
+        {
+          evaluationDate: '2025-01-21T10:32:51.641Z',
+          scanTriggerTypeDisplayName: 'CLI',
+          scanTriggerInternal: false,
+          scannerVersion: '1.2.3-01',
+          scanId: 'someScanId',
+          isForMonitoring: false,
+          policyEvaluationResult: {
+            criticalPolicyViolationCount: 1,
+            severePolicyViolationCount: 2,
+            moderatePolicyViolationCount: 3,
+            totalComponentCount: 10,
+          },
+        },
+      ],
+    });
+    renderComponent(state);
+
+    expect(await screen.findByRole('heading', { name: 'appName Latest Evaluations' })).toBeVisible();
+    const table = screen.getByRole('table');
+    const rows = within(table).getAllByRole('rowgroup');
+    const cells = within(rows[1]).getAllByRole('cell');
+    expect(cells[2]).toHaveTextContent(/^1.2.3$/);
+  });
+
+  it('renders a scanner version as the release version when internal', async () => {
+    axiosMock.onGet(getApplicationReportHistoryUrl('appId', 'build')).reply(200, {
+      applicationId: 'appId',
+      reports: [
+        {
+          evaluationDate: '2025-01-21T10:32:51.641Z',
+          scanTriggerTypeDisplayName: 'Web Ui',
+          scanTriggerInternal: true,
+          scannerVersion: '1.189.0-01',
+          scanId: 'someScanId',
+          isForMonitoring: false,
+          policyEvaluationResult: {
+            criticalPolicyViolationCount: 1,
+            severePolicyViolationCount: 2,
+            moderatePolicyViolationCount: 3,
+            totalComponentCount: 10,
+          },
+        },
+      ],
+    });
+    renderComponent(state);
+
+    expect(await screen.findByRole('heading', { name: 'appName Latest Evaluations' })).toBeVisible();
+    const table = screen.getByRole('table');
+    const rows = within(table).getAllByRole('rowgroup');
+    const cells = within(rows[1]).getAllByRole('cell');
+    expect(cells[2]).toHaveTextContent(/^189$/);
   });
 
   it('renders continuous monitoring', async () => {
@@ -110,6 +207,8 @@ describe('ApplicationLatestEvaluationsPage', () => {
         {
           evaluationDate: '2025-01-21T10:32:51.641Z',
           scanTriggerTypeDisplayName: 'Web UI',
+          scanTriggerInternal: true,
+          scannerVersion: 'someScannerVersion',
           scanId: 'someScanId',
           isForMonitoring: true,
           policyEvaluationResult: {
@@ -126,7 +225,7 @@ describe('ApplicationLatestEvaluationsPage', () => {
     const table = await screen.findByRole('table');
     const rows = within(table).getAllByRole('rowgroup');
     const cells = within(rows[1]).getAllByRole('cell');
-    expect(cells.length).toBe(5);
+    expect(cells.length).toBe(6);
     expect(cells[1]).toHaveTextContent(/^Web UI \(Continuous Monitoring\)$/);
   });
 
@@ -173,6 +272,8 @@ describe('ApplicationLatestEvaluationsPage', () => {
         {
           evaluationDate: '2025-01-21T10:32:51.641Z',
           scanTriggerTypeDisplayName: 'Web UI',
+          scanTriggerInternal: true,
+          scannerVersion: 'someScannerVersion',
           scanId: 'someScanId',
           policyEvaluationResult: {
             criticalPolicyViolationCount: 1,

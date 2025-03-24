@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -21,6 +23,7 @@ import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -31,13 +34,18 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
+import com.sonatype.insight.brain.report.ReportEntity;
 import com.sonatype.insight.brain.report.ReportPurger;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang.time.DateUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -90,22 +98,84 @@ public class ApplicationLatestEvaluationsPageTest
     page.title().shouldBe(visible).shouldHave(exactText(application.getName() + " Latest Evaluations"));
     page.description().shouldBe(visible).shouldHave(exactText("Stage: " + new BuildStageType().getName()));
     page.table().shouldBe(visible);
-    ElementsCollection tableHeaders = page.tableHeaders().shouldHave(size(5));
+    ElementsCollection tableHeaders = page.tableHeaders().shouldHave(size(6));
     tableHeaders.get(0).shouldBe(visible).shouldHave(exactText("Evaluation Date"));
     tableHeaders.get(1).shouldBe(visible).shouldHave(exactText("Trigger"));
-    tableHeaders.get(2).shouldBe(visible).shouldHave(exactText("Violations"));
-    tableHeaders.get(3).shouldBe(visible).shouldHave(exactText("Components"));
-    tableHeaders.get(4).shouldBe(visible).shouldBe(empty);
-    ElementsCollection tableBodyRowColumns = page.tableBodyRowColumns(0).shouldHave(size(5));
+    tableHeaders.get(2).shouldBe(visible).shouldHave(exactText("Version"));
+    tableHeaders.get(3).shouldBe(visible).shouldHave(exactText("Violations"));
+    tableHeaders.get(4).shouldBe(visible).shouldHave(exactText("Components"));
+    tableHeaders.get(5).shouldBe(visible).shouldBe(empty);
+    ElementsCollection tableBodyRowColumns = page.tableBodyRowColumns(0).shouldHave(size(6));
     tableBodyRowColumns.get(0).shouldBe(visible)
         .shouldHave(exactText(DATE_TIME_FORMATTER.format(policyEvaluation.getTime().toInstant())));
     tableBodyRowColumns.get(1).shouldBe(visible)
         .shouldHave(exactText(policyEvaluation.getScanTriggerType().getDisplayName()));
+    // Since tempEntity.newPolicyEvaluation sets scanTriggerType to CLI, we only trim the qualifier
+    tableBodyRowColumns.get(2).shouldBe(visible).shouldHave(exactText("1.53.0"));
     page.criticalPolicyViolationCount(0).shouldHave(exactText("1"));
     page.severePolicyViolationCount(0).shouldHave(exactText("2"));
     page.moderatePolicyViolationCount(0).shouldHave(exactText("3"));
-    tableBodyRowColumns.get(3).shouldBe(visible).shouldHave(exactText("64"));
-    tableBodyRowColumns.get(4).shouldBe(visible).shouldHave(exactText("View Report"));
+    tableBodyRowColumns.get(4).shouldBe(visible).shouldHave(exactText("64"));
+    tableBodyRowColumns.get(5).shouldBe(visible).shouldHave(exactText("View Report"));
+  }
+  
+  @Test
+  public void testApplicationLatestEvaluationsPage_ScannerVersion_Trimmed() throws Exception {
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(
+        application.getId(),
+        BuildStageType.ID,
+        "scan-id-0",
+        false,
+        false,
+        "system",
+        ScanTriggerType.WEB_UI,
+        ClientScanType.SONATYPE
+    );
+    policyEvaluation.setTime(new Date());
+    lookup(PolicyEvaluationDAO.class).insert(policyEvaluation);
+    createReport(policyEvaluation);
+    refreshOrOpen(ApplicationLatestEvaluationsPage.url(application, BuildStageType.ID));
+
+    ElementsCollection tableBodyRowColumns = page.tableBodyRowColumns(0).shouldHave(size(6));
+    tableBodyRowColumns.get(2).shouldBe(visible).shouldHave(exactText("53"));
+  }
+
+  @Test
+  public void testApplicationLatestEvaluationsPage_ScannerVersion_DoesNotExist() throws Exception {
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(
+        application.getId(),
+        BuildStageType.ID,
+        "scan-id-0",
+        false,
+        false,
+        "system",
+        ScanTriggerType.WEB_UI,
+        ClientScanType.SONATYPE
+    );
+    policyEvaluation.setTime(new Date());
+    lookup(PolicyEvaluationDAO.class).insert(policyEvaluation);
+    createReport(policyEvaluation);
+
+    // Open the page once so summary.json gets created
+    refreshOrOpen(ApplicationLatestEvaluationsPage.url(application, BuildStageType.ID));
+
+    // Remove the scannerVersion
+    ReportEntity reportEntity = lookup(ApplicationReportPersistenceService.class).getReportEntity(application.getId(),
+        policyEvaluation.getScanId(), "summary.json");
+    ObjectNode objectNode;
+    try (InputStream inputStream = reportEntity.getInputStream()) {
+      objectNode = JsonUtils.parse(inputStream.readAllBytes());
+    }
+    objectNode.remove("scannerVersion");
+    try (OutputStream outputStream = reportEntity.getOutputStream()) {
+      JsonUtils.write(outputStream, objectNode);
+    }
+
+    // Refresh to check how it handles it
+    refresh();
+
+    ElementsCollection tableBodyRowColumns = page.tableBodyRowColumns(0).shouldHave(size(6));
+    tableBodyRowColumns.get(2).shouldBe(visible).shouldHave(exactText("—"));
   }
 
   @Test
@@ -140,7 +210,7 @@ public class ApplicationLatestEvaluationsPageTest
     createReport(policyEvaluation);
     refreshOrOpen(ApplicationLatestEvaluationsPage.url(application, BuildStageType.ID));
 
-    page.tableBodyRowColumns(0).get(4).shouldBe(visible).shouldHave(exactText("View Report"));
+    page.tableBodyRowColumns(0).get(5).shouldBe(visible).shouldHave(exactText("View Report"));
     page.reportLink(0).click();
     waitUntilUrl(ApplicationReportPage.url(application, policyEvaluation.getScanId()));
   }
@@ -203,7 +273,7 @@ public class ApplicationLatestEvaluationsPageTest
     refreshOrOpen(ApplicationLatestEvaluationsPage.url(application, BuildStageType.ID));
 
     page.tableBodyRows().shouldHave(size(1));
-    ElementsCollection tableBodyRowColumns = page.tableBodyRowColumns(0).shouldHave(size(5));
+    ElementsCollection tableBodyRowColumns = page.tableBodyRowColumns(0).shouldHave(size(6));
     tableBodyRowColumns.get(0).shouldBe(visible)
         .shouldHave(exactText(DATE_TIME_FORMATTER.format(policyReEvaluation.getTime().toInstant())));
   }

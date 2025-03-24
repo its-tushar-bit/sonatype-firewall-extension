@@ -32,14 +32,16 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
-import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -173,8 +175,11 @@ public class ApiReportServiceV2
       List<PolicyViolation> policyViolations =
           PolicyAlertUtil.getDummyPolicyViolationsFromPolicyThreatsForCounts(policyThreats);
 
-      ApiReportResultsDTO apiReportResultsDTO = new ApiReportResultsDTO(policyEvaluation,
-          scanPolicyEvaluator.createPolicyEvaluationResult(policyEvaluation, policyViolations, false));
+      ApiReportResultsDTO apiReportResultsDTO = new ApiReportResultsDTO(
+          policyEvaluation,
+          scanPolicyEvaluator.createPolicyEvaluationResult(policyEvaluation, policyViolations, false),
+          getScannerVersion(applicationReport)
+      );
       populateReportDTO(apiReportResultsDTO, application, policyEvaluation);
       apiReportHistoryDTO.reports.add(apiReportResultsDTO);
     }
@@ -186,5 +191,14 @@ public class ApiReportServiceV2
       log.debug("Could not load violations from report file for application {} scan {}, report is not available.",
           policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
     }
+  }
+
+  private String getScannerVersion(final ApplicationReport applicationReport) throws IOException {
+    ReportEntry entry = applicationReport.getEntry(ApplicationReport.SUMMARY_JSON_FILENAME);
+    if (entry == null || entry.buf == null) {
+      return null;
+    }
+    JsonNode summary = JsonUtils.parse(entry.buf);
+    return summary.path("scannerVersion").asText();
   }
 }

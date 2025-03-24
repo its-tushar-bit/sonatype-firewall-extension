@@ -14,6 +14,7 @@ import {
   NxTable,
   NxTextLink,
   NxTile,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectRouterCurrentParams, selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -24,6 +25,7 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { STANDARD_DATE_TIME_FORMAT_NO_TZ } from 'MainRoot/util/dateUtils';
 import { capitalize } from 'MainRoot/util/jsUtil';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import { getReleaseVersion } from 'MainRoot/util/versionUtil';
 
 export default function ApplicationLatestEvaluationsPage() {
   const { applicationPublicId, stageId } = useSelector(selectRouterCurrentParams);
@@ -45,6 +47,16 @@ export default function ApplicationLatestEvaluationsPage() {
       : uiRouterState.href('violations');
 
   useEffect(load, []);
+
+  const getScannerVersionToDisplay = (evaluation) => {
+    if (!evaluation.scannerVersion) {
+      return '—';
+    }
+    if (evaluation.scanTriggerInternal) {
+      return getReleaseVersion(evaluation.scannerVersion);
+    }
+    return evaluation.scannerVersion.split('-')[0];
+  };
 
   return (
     <NxPageMain id="application-latest-evaluations-page">
@@ -69,6 +81,11 @@ export default function ApplicationLatestEvaluationsPage() {
                     <NxTable.Row>
                       <NxTable.Cell>Evaluation Date</NxTable.Cell>
                       <NxTable.Cell className="iq-application-latest-evaluations__trigger-cell">Trigger</NxTable.Cell>
+                      <NxTable.Cell>
+                        <NxTooltip title="The integration version that triggered the evaluation.">
+                          <span>Version</span>
+                        </NxTooltip>
+                      </NxTable.Cell>
                       <NxTable.Cell>Violations</NxTable.Cell>
                       <NxTable.Cell isNumeric>Components</NxTable.Cell>
                       <NxTable.Cell />
@@ -94,6 +111,7 @@ export default function ApplicationLatestEvaluationsPage() {
                             )}
                           </div>
                         </NxTable.Cell>
+                        <NxTable.Cell>{getScannerVersionToDisplay(evaluation)}</NxTable.Cell>
                         <NxTable.Cell>
                           <NxSmallThreatCounter
                             criticalCount={evaluation.policyEvaluationResult.criticalPolicyViolationCount}

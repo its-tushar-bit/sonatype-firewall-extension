@@ -35,6 +35,7 @@ import {
   selectIsFirewallOnlyLicense,
   selectLoadingProducts,
 } from 'MainRoot/productFeatures/productLicenseSelectors';
+import { getReleaseVersion } from 'MainRoot/util/versionUtil';
 
 /* global clmServerVersion */
 function NavigationContainerController($rootScope, $state, $scope, CurrentUser, $ngRedux) {
@@ -46,7 +47,7 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
   vm.isSuccessMetricsEnabled = false;
   vm.isAdvancedSearchEnabled = false;
   vm.$onInit = doLoad;
-  vm.getReleaseVersion = getReleaseVersion;
+  vm.getReleaseVersion = () => getReleaseVersion(clmServerVersion);
   vm.isLoggedIn = isLoggedIn;
   vm.isLicensed = isLicensed;
   vm.isFirewallSupported = false;
@@ -70,22 +71,6 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
   $scope.$on('$destroy', () => {
     vm.unsubscribe();
   });
-
-  function getReleaseVersion() {
-    const serverVersionWithoutBuildNumber = clmServerVersion.substring(0, clmServerVersion.indexOf('-'));
-    const serverVersionParts = serverVersionWithoutBuildNumber.split('.');
-    // remove major version if present
-    if (serverVersionParts.length === 3) {
-      serverVersionParts.shift();
-    }
-    const [minorVersion, pointVersion] = serverVersionParts;
-    let result = minorVersion;
-    if (pointVersion !== '0') {
-      result += '.';
-      result += pointVersion;
-    }
-    return result;
-  }
 
   function doLoad() {
     const { loadUnconfiguredRepoManagers } = firewallOnboardingActions;

@@ -128,7 +128,8 @@ public class ApiReportServiceV2Test
     ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId1);
     ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId2);
     ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId3);
-    createReportFile(app.getId(), scanId1, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
+    createReportFile(app.getId(), scanId1,
+        zipReportDir("/ApiReportResourceV2Test/report-with-iq-scanner-version", tempDir), insightWork);
     createReportFile(app.getId(), scanId2, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
     createReportFile(app.getId(), scanId3, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
 
@@ -150,10 +151,16 @@ public class ApiReportServiceV2Test
     assertThat(reports.reports.get(0).scanTriggerType).isEqualTo(ScanTriggerType.REPOSITORY_MANAGER.getId());
     assertThat(reports.reports.get(0).scanTriggerTypeDisplayName).isEqualTo(
         ScanTriggerType.REPOSITORY_MANAGER.getDisplayName());
+    assertThat(reports.reports.get(0).scanTriggerInternal).isFalse();
+    assertThat(reports.reports.get(0).scannerVersion).isEqualTo("2.6-SNAPSHOT");
     assertThat(reports.reports.get(1).scanTriggerType).isEqualTo(ScanTriggerType.IDE.getId());
     assertThat(reports.reports.get(1).scanTriggerTypeDisplayName).isEqualTo(ScanTriggerType.IDE.getDisplayName());
+    assertThat(reports.reports.get(1).scanTriggerInternal).isFalse();
+    assertThat(reports.reports.get(1).scannerVersion).isEqualTo("2.6-SNAPSHOT");
     assertThat(reports.reports.get(2).scanTriggerType).isEqualTo(ScanTriggerType.WEB_UI.getId());
     assertThat(reports.reports.get(2).scanTriggerTypeDisplayName).isEqualTo(ScanTriggerType.WEB_UI.getDisplayName());
+    assertThat(reports.reports.get(2).scanTriggerInternal).isTrue();
+    assertThat(reports.reports.get(2).scannerVersion).isEqualTo("1.189.0-01");
   }
 
   @Test

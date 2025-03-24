@@ -53,18 +53,18 @@ public class ApplicationLatestEvaluationsPage
   }
 
   public SelenideElement reportLink(final int row) {
-    return tableBodyRowColumns(row).get(4).find("a");
+    return tableBodyRowColumns(row).get(5).find("a");
   }
 
   public SelenideElement criticalPolicyViolationCount(final int row) {
-    return tableBodyRowColumns(row).get(2).find(".nx-small-threat-counter--critical .nx-small-threat-counter__count");
+    return tableBodyRowColumns(row).get(3).find(".nx-small-threat-counter--critical .nx-small-threat-counter__count");
   }
 
   public SelenideElement severePolicyViolationCount(final int row) {
-    return tableBodyRowColumns(row).get(2).find(".nx-small-threat-counter--severe .nx-small-threat-counter__count");
+    return tableBodyRowColumns(row).get(3).find(".nx-small-threat-counter--severe .nx-small-threat-counter__count");
   }
 
   public SelenideElement moderatePolicyViolationCount(final int row) {
-    return tableBodyRowColumns(row).get(2).find(".nx-small-threat-counter--moderate .nx-small-threat-counter__count");
+    return tableBodyRowColumns(row).get(3).find(".nx-small-threat-counter--moderate .nx-small-threat-counter__count");
   }
 }

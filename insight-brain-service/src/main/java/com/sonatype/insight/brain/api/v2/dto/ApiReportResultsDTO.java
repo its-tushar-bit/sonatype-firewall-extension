@@ -29,6 +29,10 @@ public class ApiReportResultsDTO
 
   public String scanTriggerTypeDisplayName;
 
+  public Boolean scanTriggerInternal;
+
+  public String scannerVersion;
+
   public PolicyEvaluationResult policyEvaluationResult;
 
   public ApiReportResultsDTO() {
@@ -36,7 +40,8 @@ public class ApiReportResultsDTO
 
   public ApiReportResultsDTO(
       final PolicyEvaluation policyEvaluation,
-      final PolicyEvaluationResult policyEvaluationResult)
+      final PolicyEvaluationResult policyEvaluationResult,
+      final String scannerVersion)
   {
     this.applicationId = policyEvaluation.getApplicationId();
     this.stage = policyEvaluation.getStageTypeId();
@@ -50,8 +55,10 @@ public class ApiReportResultsDTO
     if (scanTriggerType != null) {
       this.scanTriggerType = scanTriggerType.getId();
       this.scanTriggerTypeDisplayName = scanTriggerType.getDisplayName();
+      this.scanTriggerInternal = scanTriggerType.isInternal();
     }
     this.policyEvaluationResult = policyEvaluationResult;
+    this.scannerVersion = scannerVersion;
   }
 
   @Override
@@ -67,6 +74,8 @@ public class ApiReportResultsDTO
         ", commitHash='" + commitHash + '\'' + //
         ", scanTriggerType='" + scanTriggerType + //
         ", scanTriggerTypeDisplayName='" + scanTriggerTypeDisplayName + //
+        ", scanTriggerInternal='" + scanTriggerInternal + //
+        ", scannerVersion='" + scannerVersion + //
         '}';
   }
 }

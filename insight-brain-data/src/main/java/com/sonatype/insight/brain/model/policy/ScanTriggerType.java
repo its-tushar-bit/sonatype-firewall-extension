@@ -16,23 +16,33 @@ public enum ScanTriggerType
   CLI("CLI"), //
   CONTINUOUS_INTEGRATION("Continuous Integration"), //
   REPOSITORY_MANAGER("Repository Manager"), //
-  SOURCE_CONTROL_API("Source Control API"), //
-  SOURCE_CONTROL_INTERNAL_ONBOARDING("Source Control Onboarding"), //
-  SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING("Source Control Default Branch Monitoring"), //
-  SOURCE_CONTROL_INTERNAL_PULL_REQUEST("Source Control Pull Request"), //
-  THIRD_PARTY("Third Party"), //
-  WEB_UI("Web UI"), //
+  SOURCE_CONTROL_API("Source Control API", true), //
+  SOURCE_CONTROL_INTERNAL_ONBOARDING("Source Control Onboarding", true), //
+  SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING("Source Control Default Branch Monitoring", true), //
+  SOURCE_CONTROL_INTERNAL_PULL_REQUEST("Source Control Pull Request", true), //
+  THIRD_PARTY("Third Party", true), //
+  WEB_UI("Web UI", true), //
   IDE("IDE"), //
-  SBOM_UI("SBOM Manager UI"), //
-  SBOM_API("SBOM Manager API"), //
+  SBOM_UI("SBOM Manager UI", true), //
+  SBOM_API("SBOM Manager API", true), //
   // The Unknown trigger type is only for policy evaluations created before scan trigger type was introduced.
   // It should never be used in new code anywhere.
-  UNKNOWN("Unknown");
+  UNKNOWN("Unknown", null);
 
   private final String displayName;
 
+  /**
+   * True if the scan was triggered internally by IQ
+   */
+  private final Boolean internal;
+
   ScanTriggerType(String displayName) {
+    this(displayName, false);
+  }
+  
+  ScanTriggerType(String displayName, Boolean internal) {
     this.displayName = displayName;
+    this.internal = internal;
   }
 
   public String getId() {
@@ -43,13 +53,14 @@ public enum ScanTriggerType
     return this.displayName;
   }
 
+  public Boolean isInternal() {
+    return internal;
+  }
+
+  // TODO: check if this can be refactored to use `isInternal` see CLM-34546
   public static final List<ScanTriggerType> internalScanTypes = Arrays.asList(
       SOURCE_CONTROL_INTERNAL_ONBOARDING,
       SOURCE_CONTROL_INTERNAL_PULL_REQUEST,
       SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING
   );
-
-  public static boolean isSbomTrigger(ScanTriggerType triggerType) {
-    return triggerType == SBOM_UI || triggerType == SBOM_API;
-  }
 }

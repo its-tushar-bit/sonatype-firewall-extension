@@ -393,6 +393,22 @@ public class ApiCycloneDxServiceV2Test
   }
 
   @Test
+  public void testGetByScanId_correctLicenseIdWithWrongLetterCase() throws Exception {
+    createReportAndPolicyEvaluation("licenseIdSimilarCaseWrongId");
+    Response response = service.getByScanId(application.getId(), scanId, MediaType.APPLICATION_XML, Version.VERSION_14);
+    byte[] bytes = response.getEntity().toString().getBytes(StandardCharsets.UTF_8);
+    Parser parser = BomParserFactory.createParser(bytes);
+    Bom bom = parser.parse(bytes);
+    assertThat(bom.getMetadata()).isNotNull();
+    assertThat(bom.getComponents()).hasSize(1);
+    Component testComponent = bom.getComponents().get(0);
+    List<License> licenses = testComponent.getLicenses().getLicenses();
+    assertThat(licenses).hasSize(4);
+    // Original test values were WXwindows and MiT
+    assertThat(licenses.stream().map(License::getId)).containsAnyOf("wxWindows", "MIT");
+  }
+
+  @Test
   public void testGetByScanId_cpeAndSwid() throws Exception {
     createReportAndPolicyEvaluation("cpeAndSwid");
     Response response = service.getByScanId(application.getId(), scanId, MediaType.APPLICATION_XML, Version.VERSION_15);

@@ -617,7 +617,9 @@ public class ApiCycloneDxServiceV2
       license.setName(name);
     }
     else {
-      license.setId(id);
+      // License Id was resolved successfully meaning that we found a valid SPDX license ID match, therefore
+      // we use(trust) the license id value returned by resolver instead of the original value.
+      license.setId(licenseChoice.getLicenses().get(0).getId());
     }
     return license;
   }

@@ -10,6 +10,7 @@ import java.util.List;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage.ListRow;
@@ -46,6 +47,7 @@ public class LdapServerListTest
   public void before() {
     ldapServerDAO = lookup(LdapServerDAO.class);
     refreshOrOpen(IndexPage.url());
+    waitUntilUrl(DashboardPage.url());
   }
 
   @After

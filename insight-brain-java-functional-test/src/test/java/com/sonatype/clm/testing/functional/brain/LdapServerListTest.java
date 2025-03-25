@@ -9,6 +9,8 @@ import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
+import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
+import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage.ListRow;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
@@ -36,14 +38,14 @@ public class LdapServerListTest
 
   @BeforeClass
   public static void startup() {
-    refreshOrOpen(LdapServerListPage.url());
+    refreshOrOpen(IndexPage.url());
     loginAsAdmin();
   }
 
   @Before
   public void before() {
     ldapServerDAO = lookup(LdapServerDAO.class);
-    refreshOrOpen(LdapServerListPage.url());
+    refreshOrOpen(IndexPage.url());
   }
 
   @After
@@ -53,8 +55,14 @@ public class LdapServerListTest
     }
   }
 
+  protected LdapServerListPage getLdapServerListPage() {
+    return new LdapServerListPage();
+  }
+
   @Test
   public void testLdapServerList() {
+    navigateToLdapServerList();
+
     LdapServerListPage ldapServerListPage = new LdapServerListPage();
     ldapServerListPage.shouldBe(visible);
 
@@ -80,6 +88,8 @@ public class LdapServerListTest
 
   @Test
   public void testReorderLdapServers() {
+    navigateToLdapServerList();
+
     tempEntity.newLdapServer("Fourth Server");
     tempEntity.newLdapServer("Third Server");
     tempEntity.newLdapServer("Second Server");
@@ -129,5 +139,11 @@ public class LdapServerListTest
       assertThat(ldapServer.getName()).isEqualTo(ldapServerNames[i]);
       assertThat(ldapServer.getPriority()).isEqualTo(i + 1);
     }
+  }
+
+  protected void navigateToLdapServerList() {
+    var systemConfigMenu = new SystemConfigMenu();
+    systemConfigMenu.dropdownToggle().click();
+    systemConfigMenu.ldap().shouldBe(visible).click();
   }
 }

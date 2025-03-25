@@ -13,6 +13,7 @@ import LdapServerNameForm from './LdapServerNameForm';
 import LdapRemoveServerModal, { ldapRemoveServerModalPropTypes } from './LdapRemoveServerModal';
 import CheckLogin from './checkLogin/CheckLogin';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
+import { head, match } from 'ramda';
 
 const getValidationMessage = ({ isDirty, validationError, mustReenterPassword }) => {
   if (!isDirty) {
@@ -60,8 +61,11 @@ export default function withLdapHeader(WrappedComponent, { formId }) {
     } = props;
     const {
       currentParams: { ldapId },
-      currentState: { name: currentTab },
+      currentState: { name: currentState },
     } = router;
+
+    // Tab name is final subroute, e.g. `firewall.edit-ldap-connection` -> `edit-ldap-connection`
+    const currentTab = head(match(/[^.]*$/, currentState));
 
     const [showModal, setShowModal] = useState(false);
     const [showCheckLoginModal, toggleShowCheckLoginModal] = useToggle();

@@ -211,7 +211,7 @@ public class RouteProductLicenseValidatorTest
 
   @Test
   public void testRouteProductLicenseValidator_sbomOnlyLicense_ldapServerListPageIsPermitted() {
-    refreshOrOpen(LdapServerListPage.url());
+    refreshOrOpen(new LdapServerListPage().url());
     final LdapServerListPage ldapServerListPage = new LdapServerListPage();
     ldapServerListPage.shouldBe(visible);
   }

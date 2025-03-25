@@ -12,7 +12,9 @@ import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm
 import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm.CheckUserMappingModal;
 import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm.TestLoginModal;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
+import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
+import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.LdapConfigurationPage;
 import com.sonatype.clm.testing.functional.pages.LdapConfigurationPage.CreateServer;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
@@ -63,6 +65,10 @@ public class LdapConfigurationTest
 
   private LdapUserMappingDAO ldapUserMappingDAO;
 
+  private LdapConfigurationPage ldapConfigurationPage;
+
+  private LdapServerListPage ldapServerListPage;
+
   @BeforeClass
   public static void startup() {
     refreshOrOpen(ReportListPage.url());
@@ -71,12 +77,15 @@ public class LdapConfigurationTest
 
   @Before
   public void before() {
+    ldapConfigurationPage = getLdapConfigurationPage();
+    ldapServerListPage = getLdapServerListPage();
+
     ldapConnectionDAO = lookup(LdapConnectionDAO.class);
     ldapServerDAO = lookup(LdapServerDAO.class);
     ldapUserMappingDAO = lookup(LdapUserMappingDAO.class);
 
     ldapServer = tempEntity.newLdapServer("Test Ldap Server");
-    refresh();
+    refreshOrOpen(IndexPage.url());
   }
 
   @After
@@ -86,21 +95,28 @@ public class LdapConfigurationTest
     }
   }
 
+  protected LdapConfigurationPage getLdapConfigurationPage() {
+    return new LdapConfigurationPage();
+  }
+
+  protected LdapServerListPage getLdapServerListPage() {
+    return new LdapServerListPage();
+  }
+
   @Test
   public void testCreateLdapServer() throws Exception {
-    refreshOrOpen(LdapServerListPage.url());
+    navigateToLdapServerList();
 
-    LdapServerListPage serverListPage = new LdapServerListPage();
-    serverListPage.listElements().shouldHave(size(1));
-    serverListPage.addButton().click();
+    ldapServerListPage.listElements().shouldHave(size(1));
+    ldapServerListPage.addButton().click();
 
-    waitUntilUrl(LdapConfigurationPage.urlToCreate());
+    waitUntilUrl(ldapConfigurationPage.urlToCreate());
 
     LdapConfigurationPage.backButton().shouldHave(text("Back to LDAP Servers")).click();
-    serverListPage.listElements().shouldHave(size(1));
-    serverListPage.addButton().click();
+    ldapServerListPage.listElements().shouldHave(size(1));
+    ldapServerListPage.addButton().click();
 
-    waitUntilUrl(LdapConfigurationPage.urlToCreate());
+    waitUntilUrl(ldapConfigurationPage.urlToCreate());
 
     CreateServer createPage = LdapConfigurationPage.ldapNameEditor();
     SelenideElement serverNameInput = createPage.serverNameInput();
@@ -136,7 +152,7 @@ public class LdapConfigurationTest
 
   @Test
   public void testCancelCreate() {
-    refreshOrOpen(LdapServerListPage.url());
+    navigateToLdapServerList();
 
     LdapServerListPage serverListPage = new LdapServerListPage();
     serverListPage.addButton().click();
@@ -161,7 +177,7 @@ public class LdapConfigurationTest
 
   @Test
   public void testResetForm() {
-    refreshOrOpen(LdapConfigurationPage.urlToEdit(ldapServer.getId()));
+    refreshOrOpen(ldapConfigurationPage.urlToEdit(ldapServer.getId()));
     LdapConfigurationPage.root().should(appear);
     LdapConnectionForm ldapConnectionForm = LdapConfigurationPage.ldapConnectionForm();
 
@@ -170,7 +186,7 @@ public class LdapConfigurationTest
 
     discardChangesAndReset(ldapConnectionForm);
 
-    refreshOrOpen(LdapConfigurationPage.urlToEdit(ldapServer.getId()));
+    refreshOrOpen(ldapConfigurationPage.urlToEdit(ldapServer.getId()));
 
     // User And Group Form
     LdapConfigurationPage.userAndGroupSettingsTab().scrollIntoView(false).click();
@@ -187,7 +203,7 @@ public class LdapConfigurationTest
 
   @Test
   public void testDeleteServer() {
-    refreshOrOpen(LdapServerListPage.url());
+    navigateToLdapServerList();
 
     LdapServerListPage serverListPage = new LdapServerListPage();
     serverListPage.listElements().shouldHave(size(1));
@@ -195,14 +211,14 @@ public class LdapConfigurationTest
     ListRow row = serverListPage.listRow(1);
     row.element().shouldBe(visible).click();
 
-    waitUntilUrl(LdapConfigurationPage.urlToEdit(ldapServer.getId()));
+    waitUntilUrl(ldapConfigurationPage.urlToEdit(ldapServer.getId()));
 
     LdapConfigurationPage.root().should(appear);
 
     LdapConfigurationPage.deleteButton().shouldBe(visible).click();
     LdapConfigurationPage.deleteConfirmationButton().shouldBe(visible).click();
 
-    waitUntilUrl(LdapServerListPage.url());
+    waitUntilUrl(ldapServerListPage.url());
 
     serverListPage.listElements().shouldHave(size(0));
     serverListPage.emptyDescriptor().shouldBe(visible);
@@ -213,13 +229,13 @@ public class LdapConfigurationTest
   public void testHostOrPortUpdateWithAuthentication_RequiresPasswordEntry() {
     LdapServer ldapServer = tempEntity.newLdapServer("test");
     tempEntity.newLdapConnection(ldapServer.getId(), passwordHandler.encryptPassword("password".toCharArray()));
-    refreshOrOpen(LdapServerListPage.url());
+    navigateToLdapServerList();
 
     LdapServerListPage serverListPage = new LdapServerListPage();
     ListRow row = serverListPage.listRow(2);
     row.element().click();
 
-    waitUntilUrl(LdapConfigurationPage.urlToEdit(ldapServer.getId()));
+    waitUntilUrl(ldapConfigurationPage.urlToEdit(ldapServer.getId()));
     LdapConfigurationPage.root().should(appear);
 
     LdapConnectionForm ldapConnectionForm = LdapConfigurationPage.ldapConnectionForm();
@@ -290,7 +306,7 @@ public class LdapConfigurationTest
 
     testRequiredFormFields(ldapConnectionForm);
 
-    refreshOrOpen(LdapConfigurationPage.urlToEdit(ldapServer.getId()));
+    refreshOrOpen(ldapConfigurationPage.urlToEdit(ldapServer.getId()));
 
     LdapConfigurationPage.userAndGroupSettingsTab().scrollIntoView(false).click();
     LdapUserAndGroupSettingsForm userAndGroupSettingsForm = LdapConfigurationPage.ldapUserAndGroupSettingsForm();
@@ -338,7 +354,7 @@ public class LdapConfigurationTest
   }
 
   private void testConnection() {
-    refreshOrOpen(LdapConfigurationPage.urlToEdit(ldapServer.getId()));
+    refreshOrOpen(ldapConfigurationPage.urlToEdit(ldapServer.getId()));
     LdapConnectionForm connectionForm = LdapConfigurationPage.ldapConnectionForm();
     connectionForm.should(visible);
 
@@ -477,7 +493,7 @@ public class LdapConfigurationTest
   }
 
   private void testLdapFormDataMatchesPersistedData() {
-    refreshOrOpen(LdapConfigurationPage.urlToEdit(ldapServer.getId()));
+    refreshOrOpen(ldapConfigurationPage.urlToEdit(ldapServer.getId()));
 
     LdapConnection persistedConnection = ldapConnectionDAO.getByServerId(ldapServer.getId());
     LdapUserMapping persistedUserMapping = ldapUserMappingDAO.getByServerId(ldapServer.getId());
@@ -515,5 +531,11 @@ public class LdapConfigurationTest
         .shouldHave(text(persistedUserMapping.getGroupMappingType().toString()));
     userAndGroupSettingsForm.userMemberOfGroupAttribute()
         .shouldHave(value(persistedUserMapping.getUserMemberOfGroupAttribute()));
+  }
+
+  protected void navigateToLdapServerList() {
+    var systemConfigMenu = new SystemConfigMenu();
+    systemConfigMenu.dropdownToggle().click();
+    systemConfigMenu.ldap().shouldBe(visible).click();
   }
 }

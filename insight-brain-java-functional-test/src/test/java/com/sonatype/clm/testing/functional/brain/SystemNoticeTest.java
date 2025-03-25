@@ -57,7 +57,7 @@ public class SystemNoticeTest
       RoleManagementPage.url(),
       ProductLicensePage.url(),
       AdministratorsPage.url(),
-      LdapServerListPage.url(),
+      new LdapServerListPage().url(),
       WebhookConfigurationPage.url(),
       SystemNoticeConfigurationPage.url()
   };

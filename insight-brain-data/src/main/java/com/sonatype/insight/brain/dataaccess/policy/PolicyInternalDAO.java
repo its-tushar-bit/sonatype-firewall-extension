@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -160,6 +161,7 @@ public class PolicyInternalDAO
 
   @Override
   public void delete(TransactionContext tx, PolicyInternal policy) {
+    // Cascade to policy waiver requests is done in the db by foreign key constraint
     // Cascade to policy waivers
     List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByPolicyId(tx, policy.getId());
     for (PolicyWaiver policyWaiver : policyWaivers) {

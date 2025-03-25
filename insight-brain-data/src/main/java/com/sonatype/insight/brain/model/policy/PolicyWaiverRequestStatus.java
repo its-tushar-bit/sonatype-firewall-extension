@@ -7,22 +7,22 @@ package com.sonatype.insight.brain.model.policy;
 
 import org.apache.commons.lang3.StringUtils;
 
-public enum PolicyWaiverStatus
+public enum PolicyWaiverRequestStatus
 {
   APPROVED, REJECTED, REQUESTED;
 
-  public static PolicyWaiverStatus fromString(String name) {
+  public static PolicyWaiverRequestStatus fromString(String name) {
     if (StringUtils.isBlank(name)) {
       return null;
     }
 
-    for (PolicyWaiverStatus status : values()) {
+    for (PolicyWaiverRequestStatus status : values()) {
       if (name.equalsIgnoreCase(status.getId())) {
         return status;
       }
     }
 
-    throw new IllegalArgumentException("Unknown policy waiver status with name: " + name);
+    throw new IllegalArgumentException("Unknown policy waiver request status with name: " + name);
   }
 
   public String getId() {

@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 
@@ -27,16 +28,13 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * @since 1.6
- */
 @Entity
-@Table(name = "policy_waiver")
-public class PolicyWaiver
+@Table(name = "policy_waiver_request")
+public class PolicyWaiverRequest
     implements HasStringId
 {
   @Id
-  @Column(name = "policy_waiver_id")
+  @Column(name = "policy_waiver_request_id")
   private String id;
 
   @Column(name = "hash")
@@ -51,85 +49,80 @@ public class PolicyWaiver
   @Column(name = "comment")
   private String comment;
 
-  @Column(name = "is_for_container_image")
-  private boolean isForContainerImage;
-
-  @Column(name = "is_for_container_image_component")
-  private boolean isForContainerImageComponent;
-
-  @Column(name = "create_time")
-  private Date createTime;
+  @Column(name = "request_time")
+  private Date requestTime;
 
   @Column(name = "expiry_time")
   private Date expiryTime;
 
-  @Column(name = "creator_id")
-  private String creatorId;
-
-  @Column(name = "creator_name")
-  private String creatorName;
-
-  /**
-   * @since 1.53
-   */
   @Column(name = "constraint_facts_json")
   private String constraintFactsJson;
 
   @Transient
   private List<ConstraintFact> constraintFacts;
 
-  /**
-   * @since 1.140
-   */
   @Column(name = "associated_package_url")
   private String associatedPackageUrl;
 
-  /**
-   * @since 1.140
-   */
   @Column(name = "component_match_strategy")
   @Enumerated(EnumType.STRING)
   private ComponentMatcherStrategyForWaiver componentMatchStrategy;
 
-  /**
-   * @since 1.159
-   */
   @Column(name = "component_upgrade_available")
   private Boolean componentUpgradeAvailable;
 
-  /**
-   * @since 1.181
-   */
   @Column(name = "waiver_reason_id")
   private String waiverReasonId;
 
-  /**
-   * @since 1.185
-   */
   @Column(name = "expire_when_remediation_available")
   private boolean expireWhenRemediationAvailable;
 
-  /**
-   * @since 1.140
-   */
+  @Column(name = "status")
+  @Enumerated(EnumType.STRING)
+  private PolicyWaiverRequestStatus status = PolicyWaiverRequestStatus.REQUESTED;
+
+  @Column(name = "requester_id")
+  private String requesterId;
+
+  @Column(name = "requester_name")
+  private String requesterName;
+
+  @Column(name = "request_reason")
+  private String requestReason;
+
+  @Column(name = "reviewer_id")
+  private String reviewerId;
+
+  @Column(name = "reviewer_name")
+  private String reviewerName;
+
+  @Column(name = "review_time")
+  private Date reviewTime;
+
+  @Column(name = "rejection_reason")
+  private String rejectionReason;
+
+  @Column(name = "policy_waiver_id")
+  private String policyWaiverId;
+
   @Transient
   private ComponentIdentifier componentIdentifier;
 
-  public PolicyWaiver() {
+  public PolicyWaiverRequest() {
   }
 
-  public PolicyWaiver(String policyId, String ownerId, String comment) {
+  public PolicyWaiverRequest(String policyId, String ownerId, String comment) {
     this.policyId = policyId;
     this.ownerId = ownerId;
     this.comment = comment;
   }
 
-  public PolicyWaiver(String hash, String policyId, String ownerId, String comment) {
+  public PolicyWaiverRequest(String hash, String policyId, String ownerId, String comment) {
     this(policyId, ownerId, comment);
     setHash(hash);
   }
 
-  public PolicyWaiver(String hash,
+  public PolicyWaiverRequest(String hash,
                       String policyId,
                       String ownerId,
                       List<ConstraintFact> constraintFacts,
@@ -140,7 +133,7 @@ public class PolicyWaiver
     setConstraintFacts(constraintFacts);
   }
 
-  public PolicyWaiver(String hash,
+  public PolicyWaiverRequest(String hash,
                       String policyId,
                       String ownerId,
                       List<ConstraintFact> constraintFacts,
@@ -153,7 +146,7 @@ public class PolicyWaiver
     setComponentMatchStrategy(componentMatchStrategy);
   }
 
-  public PolicyWaiver(String hash,
+  public PolicyWaiverRequest(String hash,
                       String policyId,
                       String ownerId,
                       String associatedPackageUrl,
@@ -240,52 +233,12 @@ public class PolicyWaiver
     this.comment = comment;
   }
 
-  public boolean isForContainerImage() {
-    return isForContainerImage;
-  }
-
-  public boolean isForContainerImageComponent() {
-    return isForContainerImageComponent;
-  }
-
-  public void setForContainerImage(final boolean forContainerImage) {
-    isForContainerImage = forContainerImage;
-  }
-
-  public void setForContainerImageComponent(final boolean forContainerImageComponent) {
-    isForContainerImageComponent = forContainerImageComponent;
-  }
-
-  public Date getCreateTime() {
-    return createTime;
-  }
-
-  public void setCreateTime(Date createTime) {
-    this.createTime = createTime;
-  }
-
   public Date getExpiryTime() {
     return expiryTime;
   }
 
   public void setExpiryTime(Date expiryTime) {
     this.expiryTime = expiryTime;
-  }
-
-  public String getCreatorId() {
-    return creatorId;
-  }
-
-  public void setCreatorId(String creatorId) {
-    this.creatorId = creatorId;
-  }
-
-  public String getCreatorName() {
-    return creatorName;
-  }
-
-  public void setCreatorName(String creatorName) {
-    this.creatorName = creatorName;
   }
 
   public String getAssociatedPackageUrl() {
@@ -328,6 +281,46 @@ public class PolicyWaiver
     this.expireWhenRemediationAvailable = expireWhenRemediationAvailable;
   }
 
+  public PolicyWaiverRequestStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(final PolicyWaiverRequestStatus status) {
+    this.status = status;
+  }
+
+  public String getRequesterId() {
+    return requesterId;
+  }
+
+  public void setRequesterId(final String requesterId) {
+    this.requesterId = requesterId;
+  }
+
+  public String getRequesterName() {
+    return requesterName;
+  }
+
+  public void setRequesterName(final String requesterName) {
+    this.requesterName = requesterName;
+  }
+
+  public String getRequestReason() {
+    return requestReason;
+  }
+
+  public void setRequestReason(final String requestReason) {
+    this.requestReason = requestReason;
+  }
+
+  public String getRejectionReason() {
+    return rejectionReason;
+  }
+
+  public void setRejectionReason(final String rejectionReason) {
+    this.rejectionReason = rejectionReason;
+  }
+
   public ComponentIdentifier getComponentIdentifier() {
     if (componentIdentifier == null) {
       if (associatedPackageUrl == null) {
@@ -338,16 +331,43 @@ public class PolicyWaiver
     return componentIdentifier;
   }
 
-  public enum ComponentMatcherStrategyForWaiver
-  {
-    DEFAULT,
-    EXACT_COMPONENT,
-    ALL_COMPONENTS,
-    ALL_VERSIONS;
+  public String getPolicyWaiverId() {
+    return policyWaiverId;
+  }
 
-    @Override
-    public String toString() {
-      return values()[this.ordinal()].name();
-    }
+  public void setPolicyWaiverId(String policyWaiverId) {
+    this.policyWaiverId = policyWaiverId;
+  }
+
+  public Date getRequestTime() {
+    return requestTime;
+  }
+
+  public void setRequestTime(Date requestTime) {
+    this.requestTime = requestTime;
+  }
+
+  public String getReviewerId() {
+    return reviewerId;
+  }
+
+  public void setReviewerId(String reviewerId) {
+    this.reviewerId = reviewerId;
+  }
+
+  public String getReviewerName() {
+    return reviewerName;
+  }
+
+  public void setReviewerName(String reviewerName) {
+    this.reviewerName = reviewerName;
+  }
+
+  public Date getReviewTime() {
+    return reviewTime;
+  }
+
+  public void setReviewTime(Date reviewTime) {
+    this.reviewTime = reviewTime;
   }
 }

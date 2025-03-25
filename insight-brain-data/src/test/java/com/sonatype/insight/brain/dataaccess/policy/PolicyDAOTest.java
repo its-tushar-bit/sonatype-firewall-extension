@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -55,6 +56,8 @@ public class PolicyDAOTest
 
   private PolicyWaiverDAO policyWaiverDAO;
 
+  private PolicyWaiverRequestDAO policyWaiverRequestDAO;
+
   private PolicyTagDAO policyTagDAO;
 
   private PolicyViolationDAO policyViolationDAO;
@@ -72,6 +75,7 @@ public class PolicyDAOTest
     ownerDAO = daoFactory.createOwnerDAO();
     policyInternalDAO = daoFactory.createPolicyInternalDAO();
     policyWaiverDAO = daoFactory.createPolicyWaiverDAO();
+    policyWaiverRequestDAO = daoFactory.createPolicyWaiverRequestDAO();
     policyTagDAO = daoFactory.createPolicyTagDAO();
     policyViolationDAO = daoFactory.createPolicyViolationDAO();
     systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
@@ -528,6 +532,19 @@ public class PolicyDAOTest
     policyDAO.delete(policy);
     policyWaivers = policyWaiverDAO.getByPolicyId(policy.getId());
     assertThat(policyWaivers).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadesToPolicyWaiverRequests() {
+    Policy policy = tempEntity.newPolicy(application.getId());
+
+    tempEntity.newPolicyWaiverRequest(policy.getId(), "ownerId");
+    List<PolicyWaiverRequest> policyWaiverRequests = policyWaiverRequestDAO.getByPolicyId(policy.getId());
+    assertThat(policyWaiverRequests).hasSize(1);
+
+    policyDAO.delete(policy);
+    policyWaiverRequests = policyWaiverRequestDAO.getByPolicyId(policy.getId());
+    assertThat(policyWaiverRequests).isEmpty();
   }
 
   @Test

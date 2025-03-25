@@ -110,6 +110,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFac
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
@@ -118,8 +119,8 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
-import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastPullRequestCommentDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
@@ -258,6 +259,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
@@ -440,6 +442,8 @@ public class TemporaryEntity
   private LicenseOverrideDAO licenseOverrideDAO;
 
   private PolicyWaiverDAO waiverDAO;
+
+  private PolicyWaiverRequestDAO policyWaiverRequestDAO;
 
   private PolicyWaiverReasonDAO waiverReasonDAO;
 
@@ -851,6 +855,7 @@ public class TemporaryEntity
     // - LicenseThreatGroupLicense: cascaded from LicenseThreatGroup
     // - PolicyTag: cascaded from Policy
     // - PolicyWaiver: cascaded from Policy
+    // - PolicyWaiverRequest: cascaded from Policy
     // - ProprietaryComponentNamePattern: cascaded from Repository
     // - Repository: cascaded from RepositoryManager
     // - RepositoryComponent: cascaded from Repository
@@ -6106,6 +6111,7 @@ public class TemporaryEntity
     licenseThreatGroupLicenseDAO = daoFactory.createLicenseThreatGroupLicenseDAO();
     licenseOverrideDAO = daoFactory.createLicenseOverrideDAO();
     waiverDAO = daoFactory.createPolicyWaiverDAO();
+    policyWaiverRequestDAO = daoFactory.createPolicyWaiverRequestDAO();
     waiverReasonDAO = daoFactory.createPolicyWaiverReasonDAO();
     autoPolicyWaiverDAO = daoFactory.createAutoPolicyWaiverDAO();
     autoPolicyWaiverExclusionDAO = daoFactory.createAutoPolicyWaiverExclusionDAO();
@@ -6226,5 +6232,67 @@ public class TemporaryEntity
     thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
     thirdPartySbomMetadataDAO = daoFactory.createThirdPartySbomMetadataDAO();
     thirdPartyUnknownComponentDAO = daoFactory.createThirdPartyUnknownComponentDAO();
+  }
+
+  private void fillAdditionalFixedData(String hash, PolicyWaiverRequest policyWaiverRequest) {
+    ComponentMatcherStrategyForWaiver strategyForWaiver =
+        hash != null ? ComponentMatcherStrategyForWaiver.EXACT_COMPONENT
+            : ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
+    policyWaiverRequest.setComponentMatchStrategy(strategyForWaiver);
+  }
+
+  public PolicyWaiverRequest newPolicyWaiverRequest(String policyId, String ownerId) {
+    return newPolicyWaiverRequest(null, policyId, ownerId);
+  }
+
+  public PolicyWaiverRequest newPolicyWaiverRequest(String hash, String policyId, String ownerId) {
+    return newPolicyWaiverRequest(hash, policyId, ownerId, "testing");
+  }
+
+  public PolicyWaiverRequest newPolicyWaiverRequest(String hash, String policyId, String ownerId, String comment) {
+    return newPolicyWaiverRequest(hash, policyId, ownerId, comment, null);
+  }
+
+  public PolicyWaiverRequest newPolicyWaiverRequest(
+      String hash,
+      String policyId,
+      String ownerId,
+      String comment,
+      Date expiryTime)
+  {
+    PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequest(hash, policyId, ownerId, comment);
+    policyWaiverRequest.setExpiryTime(expiryTime);
+    fillAdditionalFixedData(hash, policyWaiverRequest);
+    return newPolicyWaiverRequest(policyWaiverRequest);
+  }
+
+  public PolicyWaiverRequest newPolicyWaiverRequest(
+      String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts,
+      String comment)
+  {
+    PolicyWaiverRequest policyWaiverRequest =
+        new PolicyWaiverRequest(hash, policyId, ownerId, constraintFacts, comment);
+    fillAdditionalFixedData(hash, policyWaiverRequest);
+    return newPolicyWaiverRequest(policyWaiverRequest);
+  }
+
+  public PolicyWaiverRequest newPolicyWaiverRequest(PolicyWaiverRequest policyWaiverRequest) {
+    if (policyWaiverRequest.getConstraintFactsJson() == null) {
+      policyWaiverRequest.setConstraintFactsJson("[]");
+    }
+    if (policyWaiverRequest.getWaiverReasonId() == null) {
+      policyWaiverRequest.setWaiverReasonId("testWaiverReasonId");
+    }
+    if (policyWaiverRequest.getRequesterId() == null) {
+      policyWaiverRequest.setRequesterId("testRequesterId");
+    }
+    if (policyWaiverRequest.getRequesterName() == null) {
+      policyWaiverRequest.setRequesterName("testRequesterName");
+    }
+    policyWaiverRequestDAO.insert(policyWaiverRequest);
+    return policyWaiverRequest;
   }
 }

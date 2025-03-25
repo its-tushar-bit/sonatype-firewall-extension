@@ -7,11 +7,14 @@ package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.util.List;
 import java.util.Objects;
+
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -33,13 +36,17 @@ public class RepositoryManagerDAO
 
   private final RepositoryDAO repositoryDAO;
 
+  private final Provider<OwnerDAO> ownerDAOProvider;
+
   @Inject
   public RepositoryManagerDAO(
       final OperationalDataStore operationalDataStore,
-      final RepositoryDAO repositoryDAO)
+      final RepositoryDAO repositoryDAO,
+      final Provider<OwnerDAO> ownerDAOProvider)
   {
     super(operationalDataStore);
     this.repositoryDAO = repositoryDAO;
+    this.ownerDAOProvider = ownerDAOProvider;
   }
 
   public RepositoryManager getByInstanceId(String instanceId) {
@@ -139,6 +146,9 @@ public class RepositoryManagerDAO
     for (Repository repository : repositories) {
       repositoryDAO.delete(tx, repository);
     }
+
+    // Cascade to owned entities
+    ownerDAOProvider.get().cascadeDelete(tx, repositoryManager);
 
     super.delete(tx, repositoryManager);
 

@@ -73,6 +73,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFac
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
@@ -81,8 +82,8 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
-import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastPullRequestCommentDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastRemediationDAO;
@@ -558,6 +559,7 @@ public class TestDAOFactory
   @Override
   public OwnerDAO createOwnerDAO() {
     Provider<PolicyWaiverDAO> policyWaiverDAOProvider = this::createPolicyWaiverDAO;
+    Provider<PolicyWaiverRequestDAO> policyWaiverRequestDAOProvider = this::createPolicyWaiverRequestDAO;
     Provider<LicenseOverrideDAO> licenseOverrideDAOProvider = this::createLicenseOverrideDAO;
     Provider<PolicyDAO> policyDAOProvider = this::createPolicyDAO;
     Provider<ComponentCopyrightDAO> componentCopyrightDAOProvider = this::createComponentCopyrightDAO;
@@ -584,7 +586,7 @@ public class TestDAOFactory
     SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO = createSecurityVulnerabilityOverrideDAO();
 
     return new OwnerDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager, appDAO, orgDAO, repoDAO,
-        repoManagerDAO, policyWaiverDAOProvider, licenseOverrideDAOProvider,
+        repoManagerDAO, policyWaiverDAOProvider, policyWaiverRequestDAOProvider, licenseOverrideDAOProvider,
         securityVulnerabilityOverrideDAO, policyDAOProvider, dataRetentionPolicyDAO, policyMonitoringDAO,
         componentCopyrightDAOProvider, componentLegalFileDAOProvider, componentObligationDAOProvider,
         componentObligationAttributionDAOProvider, vulnerabilityGroupDAOProvider,
@@ -670,6 +672,11 @@ public class TestDAOFactory
   }
 
   @Override
+  public PolicyWaiverRequestDAO createPolicyWaiverRequestDAO() {
+    return new PolicyWaiverRequestDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
   public PolicyWaiverReasonDAO createPolicyWaiverReasonDAO() {
     return new PolicyWaiverReasonDAO(dataStoreProvider.getOperationalDataStore());
   }
@@ -717,7 +724,8 @@ public class TestDAOFactory
   @Override
   public RepositoryManagerDAO createRepositoryManagerDAO() {
     RepositoryDAO repositoryDAO = createRepositoryDAO();
-    return new RepositoryManagerDAO(dataStoreProvider.getOperationalDataStore(), repositoryDAO);
+    Provider<OwnerDAO> ownerDAOProvider = this::createOwnerDAO;
+    return new RepositoryManagerDAO(dataStoreProvider.getOperationalDataStore(), repositoryDAO, ownerDAOProvider);
   }
 
   @Override

@@ -10,6 +10,8 @@ import java.util.Date;
 
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class JPA
 {
   public static final String[] IGNORE_FIELDS = {"pcStateManager", "pcDetachedState", "field", "sm"};
@@ -22,4 +24,13 @@ public class JPA
   public static final RecursiveComparisonConfiguration RECURSIVE_COMPARISON_CONFIG =
       RecursiveComparisonConfiguration.builder().withComparatorForType(Comparator.comparing(Date::getTime), Date.class)
           .withIgnoredFieldsMatchingRegexes(JPA.IGNORE_FIELDS).build();
+
+  public static <T> void assertEntityEquals(T actual, T expected) {
+    assertThat(actual).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(expected);
+  }
+
+  public static <T> void assertContainsEntitiesExactlyInAnyOrder(Iterable<T> actual, T... expected) {
+    assertThat(actual).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .containsExactlyInAnyOrder(expected);
+  }
 }

@@ -18,6 +18,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -33,6 +34,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
@@ -58,6 +60,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -87,6 +90,8 @@ public class OwnerDAO
   private final RepositoryManagerDAO repoManagerDAO;
 
   private final Provider<PolicyWaiverDAO> policyWaiverDAOProvider;
+
+  private final Provider<PolicyWaiverRequestDAO> policyWaiverRequestDAOProvider;
 
   private final Provider<LicenseOverrideDAO> licenseOverrideDAOProvider;
 
@@ -127,6 +132,7 @@ public class OwnerDAO
       final RepositoryDAO repoDAO,
       final RepositoryManagerDAO repoManagerDAO,
       final Provider<PolicyWaiverDAO> policyWaiverDAOProvider,
+      final Provider<PolicyWaiverRequestDAO> policyWaiverRequestDAOProvider,
       final Provider<LicenseOverrideDAO> licenseOverrideDAOProvider,
       final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO,
       final Provider<PolicyDAO> policyDAOProvider,
@@ -149,6 +155,7 @@ public class OwnerDAO
     this.repoDAO = repoDAO;
     this.repoManagerDAO = repoManagerDAO;
     this.policyWaiverDAOProvider = policyWaiverDAOProvider;
+    this.policyWaiverRequestDAOProvider = policyWaiverRequestDAOProvider;
     this.licenseOverrideDAOProvider = licenseOverrideDAOProvider;
     this.securityVulnerabilityOverrideDAO = securityVulnerabilityOverrideDAO;
     this.policyDAOProvider = policyDAOProvider;
@@ -467,6 +474,13 @@ public class OwnerDAO
       if (updated) {
         policyDAO.update(tx, policy);
       }
+    }
+
+    // Cascade to policy waiver requests
+    PolicyWaiverRequestDAO policyWaiverRequestDAO = policyWaiverRequestDAOProvider.get();
+    List<PolicyWaiverRequest> policyWaiverRequests = policyWaiverRequestDAO.getByOwnerId(tx, owner.getId());
+    for (PolicyWaiverRequest policyWaiverRequest : policyWaiverRequests) {
+      policyWaiverRequestDAO.delete(tx, policyWaiverRequest);
     }
 
     // Cascade to data retention policies

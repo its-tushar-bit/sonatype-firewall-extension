@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
@@ -73,6 +74,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -727,12 +729,31 @@ public class ApplicationDAOTest
         "My comment");
     PolicyWaiverDAO policyWaiverDAO = daoFactory.createPolicyWaiverDAO();
     policyWaiverDAO.insert(policyWaiver);
-    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(application.getId());
+
+    // sanity check
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(application.getId());
     assertThat(policyWaivers).hasSize(1);
 
     applicationDAO.delete(application);
-    policyWaivers = policyWaiverDAO.getActiveByOwnerId(application.getId());
+    policyWaivers = policyWaiverDAO.getByOwnerId(application.getId());
     assertThat(policyWaivers).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadesToPolicyWaiverRequests() {
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiverRequest policyWaiverRequest =
+        new PolicyWaiverRequest("12345678901234567890", policy.getId(), application.getId(), "My comment");
+    tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
+
+    // sanity check
+    PolicyWaiverRequestDAO policyWaiverRequestDAO = daoFactory.createPolicyWaiverRequestDAO();
+    List<PolicyWaiverRequest> policyWaiverRequests = policyWaiverRequestDAO.getByOwnerId(application.getId());
+    assertThat(policyWaiverRequests).hasSize(1);
+
+    applicationDAO.delete(application);
+    policyWaiverRequests = policyWaiverRequestDAO.getByOwnerId(application.getId());
+    assertThat(policyWaiverRequests).isEmpty();
   }
 
   @Test

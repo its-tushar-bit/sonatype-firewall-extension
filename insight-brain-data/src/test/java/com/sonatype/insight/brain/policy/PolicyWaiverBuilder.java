@@ -14,7 +14,6 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
-import com.sonatype.insight.brain.model.policy.PolicyWaiverStatus;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 
 public class PolicyWaiverBuilder
@@ -71,11 +70,6 @@ public class PolicyWaiverBuilder
 
   public PolicyWaiverBuilder setAssociatedPackagedUrl(final String associatedPackagedUrl) {
     this.policyWaiver.setAssociatedPackageUrl(associatedPackagedUrl);
-    return this;
-  }
-
-  public PolicyWaiverBuilder setStatus(final PolicyWaiverStatus status) {
-    policyWaiver.setStatus(status);
     return this;
   }
 

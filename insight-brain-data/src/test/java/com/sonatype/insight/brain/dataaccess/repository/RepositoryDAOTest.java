@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -30,6 +31,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
@@ -217,9 +219,28 @@ public class RepositoryDAOTest
     PolicyWaiver policyWaiver = new PolicyWaiver(policy.getId(), repository.getId(), "Comment");
     policyWaiverDAO.insert(policyWaiver);
 
+    // sanity check
+    assertThat(policyWaiverDAO.getByOwnerId(repository.getId())).hasSize(1);
+
     dao.delete(repository);
 
-    assertThat(policyWaiverDAO.getActiveByOwnerId(repository.getId())).isEmpty();
+    assertThat(policyWaiverDAO.getByOwnerId(repository.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadesToPolicyWaiverRequests() {
+    Repository repository = tempEntity.newRepository();
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequest(policy.getId(), repository.getId(), "Comment");
+    tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
+
+    // sanity check
+    PolicyWaiverRequestDAO policyWaiverRequestDAO = daoFactory.createPolicyWaiverRequestDAO();
+    assertThat(policyWaiverRequestDAO.getByOwnerId(repository.getId())).hasSize(1);
+
+    dao.delete(repository);
+
+    assertThat(policyWaiverRequestDAO.getByOwnerId(repository.getId())).isEmpty();
   }
 
   @Test

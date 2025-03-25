@@ -7,8 +7,14 @@ package com.sonatype.insight.brain.dataaccess.repository;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.NameableDAOTest;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -137,6 +143,38 @@ public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
     dao.delete(repoManager);
 
     assertThat(repositoryDAO.getById(repository.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToPolicyWaivers() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    PolicyWaiver policyWaiver = new PolicyWaiver(policy.getId(), repoManager.getId(), "Comment");
+    PolicyWaiverDAO policyWaiverDAO = daoFactory.createPolicyWaiverDAO();
+    policyWaiverDAO.insert(policyWaiver);
+
+    // sanity check
+    assertThat(policyWaiverDAO.getByOwnerId(repoManager.getId())).hasSize(1);
+
+    dao.delete(repoManager);
+
+    assertThat(policyWaiverDAO.getByOwnerId(repoManager.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadesToPolicyWaiverRequests() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequest(policy.getId(), repoManager.getId(), "Comment");
+    tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
+
+    // sanity check
+    PolicyWaiverRequestDAO policyWaiverRequestDAO = daoFactory.createPolicyWaiverRequestDAO();
+    assertThat(policyWaiverRequestDAO.getByOwnerId(repoManager.getId())).hasSize(1);
+
+    dao.delete(repoManager);
+
+    assertThat(policyWaiverRequestDAO.getByOwnerId(repoManager.getId())).isEmpty();
   }
 
   @Test

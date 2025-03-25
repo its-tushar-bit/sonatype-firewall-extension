@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
@@ -54,6 +55,7 @@ import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -578,12 +580,33 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policy.getId(), organization.getId(),
         "My comment");
     policyWaiverDAO.insert(policyWaiver);
-    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(organization.getId());
+
+    // sanity check
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(organization.getId());
     assertThat(policyWaivers).hasSize(1);
 
     dao.delete(organization);
-    policyWaivers = policyWaiverDAO.getActiveByOwnerId(organization.getId());
+    policyWaivers = policyWaiverDAO.getByOwnerId(organization.getId());
     assertThat(policyWaivers).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadeToPolicyWaiverRequests() {
+    Organization organization = tempEntity.newOrganization();
+
+    Policy policy = tempEntity.newPolicy(organization);
+    PolicyWaiverRequest policyWaiverRequest =
+        new PolicyWaiverRequest("12345678901234567890", policy.getId(), organization.getId(), "My comment");
+    tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
+
+    // sanity check
+    PolicyWaiverRequestDAO policyWaiverRequestDAO = daoFactory.createPolicyWaiverRequestDAO();
+    List<PolicyWaiverRequest> policyWaiverRequests = policyWaiverRequestDAO.getByOwnerId(organization.getId());
+    assertThat(policyWaiverRequests).hasSize(1);
+
+    dao.delete(organization);
+    policyWaiverRequests = policyWaiverRequestDAO.getByOwnerId(organization.getId());
+    assertThat(policyWaiverRequests).isEmpty();
   }
 
   @Test

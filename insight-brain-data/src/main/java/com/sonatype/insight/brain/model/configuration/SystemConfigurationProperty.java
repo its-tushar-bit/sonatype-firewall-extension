@@ -278,6 +278,8 @@ public class SystemConfigurationProperty
 
   public static final String CONTAINER_IMAGES_EVALUATION = "containerImagesEvaluation";
 
+  public static final String DARK_MODE = "darkMode";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

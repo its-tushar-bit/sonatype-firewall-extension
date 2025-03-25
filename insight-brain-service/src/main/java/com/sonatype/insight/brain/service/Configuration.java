@@ -212,7 +212,8 @@ public class Configuration
         SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_EVENTS,
         SystemConfigurationProperty.ALP_FOR_SBOM_MANAGER,
         SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API,
-        SystemConfigurationProperty.CONTAINER_IMAGES_EVALUATION
+        SystemConfigurationProperty.CONTAINER_IMAGES_EVALUATION,
+        SystemConfigurationProperty.DARK_MODE
         )
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());

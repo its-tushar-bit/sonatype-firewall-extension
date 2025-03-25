@@ -63,6 +63,8 @@ import static com.sonatype.insight.brain.model.configuration.SystemConfiguration
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.TRANSITIVE_SOLVER_ENABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DARK_MODE;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -1499,7 +1501,60 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("vulnerabilitySource", false);
     expectedFeatureConfigMap.put("WEBHOOK_CONFIGURATION", true);
     expectedFeatureConfigMap.put("containerImagesEvaluation", false);
+    expectedFeatureConfigMap.put("darkMode", false);
 
     return expectedFeatureConfigMap;
+  }
+
+  @Test
+  public void testGetSystemConfigurationPropertyFeature_DarkMode() {
+    assertThat(service.getSystemConfigurationPropertyFeature("darkMode")).isEqualTo(
+        SystemConfigurationPropertyFeature.DARK_MODE);
+    assertThat(service.getSystemConfigurationPropertyFeature("darkmode")).isEqualTo(
+        SystemConfigurationPropertyFeature.DARK_MODE);
+    assertThat(service.getSystemConfigurationPropertyFeature("Darkmode")).isEqualTo(
+        SystemConfigurationPropertyFeature.DARK_MODE);
+    assertThat(service.getSystemConfigurationPropertyFeature("DarkMode")).isEqualTo(
+        SystemConfigurationPropertyFeature.DARK_MODE);
+    assertThat(service.getSystemConfigurationPropertyFeature("DARKMODE")).isEqualTo(
+        SystemConfigurationPropertyFeature.DARK_MODE);
+  }
+
+  @Test
+  public void testEnableFeature_DarkMode() {
+    service.enableFeature(DARK_MODE);
+
+    assertThat(
+        systemConfigurationPropertyDAO.getByName(DARK_MODE)
+            .getValue())
+        .isEqualTo("true");
+  }
+
+  @Test
+  public void testEnableFeature_DarkMode_AlreadyEnabled() {
+    service.enableFeature(DARK_MODE);
+    assertThatThrownBy(
+        () -> service.enableFeature(
+            DARK_MODE)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_DarkMode_AlreadyDisabled() {
+    assertThatThrownBy(
+        () -> service.disableFeature(
+            DARK_MODE)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testIsEnabled_DarkMode() {
+    final SystemConfigurationProperty systemConfigurationProperty =
+        new SystemConfigurationProperty(DARK_MODE, "true");
+    systemConfigurationPropertyDAO.insert(systemConfigurationProperty);
+    assertThat(
+        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.DARK_MODE).getValue())
+        .isEqualTo("true");
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.DARK_MODE)).isTrue();
   }
 }

@@ -289,7 +289,9 @@ public class ConfigurationInfoTest
         "idTokenCookieExpirationTime",
         "alpForSbomManager",
         "componentChangeDetectionApi",
-        "containerImagesEvaluation");
+        "containerImagesEvaluation",
+        "darkMode"
+        );
 
     // Properties included in the config.json in support zip
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());

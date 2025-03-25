@@ -126,6 +126,7 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.getId(),
           SystemConfigurationPropertyFeature.COMPONENT_CHANGE_DETECTION_API.getId(),
           SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVALUATION.getId(),
+          SystemConfigurationPropertyFeature.DARK_MODE.getId(),
       }
   )).toArray(String[]::new);
 

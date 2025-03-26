@@ -25,7 +25,8 @@ describe('RepositoriesConfigurationTile', () => {
     deleteRepositorySpy,
     loadRepositoriesSpy,
     editRepositoryManagerNameSpy,
-    loadRepositoriesByManagerIdSpy;
+    loadRepositoriesByManagerIdSpy,
+    goToRepositorySummaryViewSpy;
 
   repos = [
     {
@@ -97,6 +98,7 @@ describe('RepositoriesConfigurationTile', () => {
     openDeleteModalSpy = jest.spyOn(repositoriesActions, 'openDeleteModal');
     openEditRepositoryManagerNameModalSpy = jest.spyOn(repositoriesActions, 'openEditRepositoryManagerNameModal');
     loadRepositoriesByManagerIdSpy = jest.spyOn(repositoriesActions, 'loadRepositoriesByManagerId');
+    goToRepositorySummaryViewSpy = jest.spyOn(repositoriesActions, 'goToRepositorySummaryView');
 
     axiosMock.onGet(getRepositoriesUrl()).reply(200, repos);
     axiosMock.onDelete(getRepositoryInfoUrl('repositoryA')).reply(204);
@@ -245,6 +247,18 @@ describe('RepositoriesConfigurationTile', () => {
         expect(
           screen.getByText('Any changes made will apply to all repositories for this repository manager.')
         ).toBeInTheDocument();
+      });
+    });
+
+    describe('Edit repository button at repository managers level', () => {
+      it('navigates user to corresponding repository page on click', () => {
+        renderComponent();
+        const editIcons = screen.queryAllByTestId('repository-edit-button');
+
+        expect(editIcons.length).toBe(2);
+        fireEvent.click(editIcons[0]);
+
+        expect(goToRepositorySummaryViewSpy).toHaveBeenCalledWith('repositoryA');
       });
     });
   });
@@ -399,6 +413,18 @@ describe('RepositoriesConfigurationTile', () => {
         expect(openDeleteModalSpy).toHaveBeenCalled();
         expect(deleteModal).toBeVisible();
         expect(screen.getByText(REPOSITORY_A_WARNING)).toBeInTheDocument();
+      });
+    });
+
+    describe('Edit repository button at repository manager level', () => {
+      it('navigates user to corresponding repository page on click', () => {
+        renderComponent();
+        const editIcons = screen.queryAllByTestId('repository-edit-button');
+
+        expect(editIcons.length).toBe(1);
+        fireEvent.click(editIcons[0]);
+
+        expect(goToRepositorySummaryViewSpy).toHaveBeenCalledWith('repository');
       });
     });
   });

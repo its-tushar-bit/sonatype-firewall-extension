@@ -113,8 +113,12 @@ public class RepositoryConfigurationTile
         return child("td", nthChild(2));
       }
 
+      public SelenideElement editRepositoryButton() {
+        return $("[data-testid='repository-edit-button']");
+      }
+
       public SelenideElement deleteButton() {
-        return child("td", nthChild(5));
+        return $("[data-testid='repository-delete-button']");
       }
 
       public static WebElementCondition deleteRepositoryText(String publicId) {

@@ -8,6 +8,7 @@ import { getRepositoryManagerUrl } from 'MainRoot/util/CLMLocation';
 import { actions } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSlice';
 import { omit } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('repositoriesConfigurationSliceActions', () => {
   let axiosMock, store, state;
@@ -18,6 +19,7 @@ describe('repositoriesConfigurationSliceActions', () => {
       {
         managerInstanceId: 'someManagerInstanceId',
         repository: {
+          id: 'repositoryId',
           repositoryManagerId: 'someManagerId',
         },
       },
@@ -143,6 +145,27 @@ describe('repositoriesConfigurationSliceActions', () => {
           managerInstanceId: 'someManagerInstanceId',
           managerName: 'someManagerName',
           repoManagerId: 'repoManagerId',
+        },
+      });
+    });
+  });
+
+  describe('goToRepositorySummaryView', () => {
+    it('calls stateGo with the appropriate parameters', () => {
+      const mockRouterParams = {
+        repositoryId: 'repositoryId',
+      };
+
+      jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue(mockRouterParams);
+      const store = SpecUtil.mockReduxStore({});
+      store.dispatch(actions.goToRepositorySummaryView('repositoryId'));
+
+      expect(store.getActions()).toHaveAction({
+        type: '@@reduxUiRouter/stateGo',
+        payload: {
+          to: 'management.view.repository',
+          params: { ...mockRouterParams, repositoryId: 'repositoryId' },
+          options: undefined,
         },
       });
     });

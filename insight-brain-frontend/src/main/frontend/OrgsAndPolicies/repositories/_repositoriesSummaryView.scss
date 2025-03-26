@@ -13,6 +13,7 @@
     minmax(48px, max-content)
     minmax(48px, max-content)
     minmax(48px, max-content)
+    min-content
     min-content;
 
   tbody,
@@ -27,7 +28,7 @@
 
   .nx-cell--meta-info,
   .iq-collapsible-row__header {
-    grid-column: 1 / 5;
+    grid-column: 1 / 6;
   }
 
   .nx-cell--meta-info {

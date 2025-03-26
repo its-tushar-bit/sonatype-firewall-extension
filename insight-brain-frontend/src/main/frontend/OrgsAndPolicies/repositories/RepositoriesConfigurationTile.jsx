@@ -64,6 +64,7 @@ const RepositoriesConfigurationTile = () => {
   const setRepositoryPublicIdFilter = (value) => dispatch(actions.setRepositoryPublicIdFilter(value));
   const setRepositoryFormatsFilter = (value) => dispatch(actions.setRepositoryFormatsFilter(value));
   const loadRepositoriesByManagerId = () => dispatch(actions.loadRepositoriesByManagerId(owner.id));
+  const goToRepositorySummaryView = (repositoryId) => dispatch(actions.goToRepositorySummaryView(repositoryId));
 
   const repositoriesByManagerInstanceId = useSelector(selectRepositoriesByManagerInstanceId);
   const repoManagerOwnersEntries = useSelector(selectRepoManagerOwnersEntriesSorted);
@@ -213,6 +214,18 @@ const RepositoriesConfigurationTile = () => {
         <NxTable.Cell>
           <div className="nx-btn-bar">
             <NxButton
+              data-testid="repository-edit-button"
+              variant="icon-only"
+              title="Edit"
+              onClick={() => goToRepositorySummaryView(repositoryData.id)}
+            >
+              <NxFontAwesomeIcon icon={faPen} />
+            </NxButton>
+          </div>
+        </NxTable.Cell>
+        <NxTable.Cell>
+          <div className="nx-btn-bar">
+            <NxButton
               data-testid="repository-delete-button"
               variant="icon-only"
               title="Delete"
@@ -332,6 +345,7 @@ const RepositoriesConfigurationTile = () => {
                 </NxOverflowTooltip>
               </NxTable.Cell>
               <NxTable.Cell />
+              <NxTable.Cell />
             </NxTable.Row>
             <NxTable.Row isFilterHeader>
               <NxTable.Cell>
@@ -354,6 +368,7 @@ const RepositoriesConfigurationTile = () => {
                   className="iq-repositories-configuration-table-filter"
                 />
               </NxTable.Cell>
+              <NxTable.Cell />
               <NxTable.Cell />
               <NxTable.Cell />
               <NxTable.Cell />

@@ -1084,14 +1084,14 @@ public class RepositoriesSummaryViewTest
     tempEntity.newProxyRepository(rm2, "e", "maven", true, true);
     tempEntity.newProxyRepository(rm2, "f", "npm", false, false);
     tempEntity.newRepositoryManager("instanceId3", "rmAE","repoProductName3",
-            "repoProductVersion3");
+        "repoProductVersion3");
     RepositoryManager rm3 = tempEntity.newRepositoryManager("instanceId4", "rmBC","repoProductName4",
-            "repoProductVersion4");
+        "repoProductVersion4");
     tempEntity.newProxyRepository(rm3, "ad", "maven", true, false);
     tempEntity.newProxyRepository(rm3, "ae", "maven", true, true);
     tempEntity.newProxyRepository(rm3, "af", "npm", false, false);
     tempEntity.newRepositoryManager("instanceId5", "emptyrmC","repoProductName5",
-            "repoProductVersion5");
+        "repoProductVersion5");
 
     refreshOrOpen(RepositoryResultsSummaryPage.url());
 
@@ -1103,7 +1103,7 @@ public class RepositoriesSummaryViewTest
 
     RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().click();
     RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
-            attribute("aria-label", "Repository descending"));
+        attribute("aria-label", "Repository descending"));
 
     RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
     ConfigurationTable configurationTable = configurationTile.configurationTable();
@@ -1730,6 +1730,69 @@ public class RepositoriesSummaryViewTest
     assertImageIsNotEquals(originalDefaultImage, displayedImage);
   }
 
+  @Test
+  public void testRepositoryManagersSummaryView_configurationTile_editRepositoryButton() {
+    RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-EUD79639-D031F7AE");
+    Repository repository = tempEntity.newProxyRepository(repositoryManager, "a1", "maven", true, true);
+
+    refreshOrOpen(RepositoriesSummaryPage.url());
+
+    RepositoriesSummaryTile summaryTile = RepositoriesSummaryPage.summaryTile();
+    summaryTile.name().shouldBe(visible).shouldHave(text("Repository Managers"));
+
+    NxBreadcrumb breadcrumb = new NxBreadcrumb();
+    breadcrumb.listItems().shouldHave(size(2));
+    breadcrumb.listItems().get(0).shouldHave(text("Root Organization"));
+    breadcrumb.listItems().get(1).shouldHave(text("Repository Managers"));
+
+    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
+    configurationTile.configurationTable().row(1, 2).editRepositoryButton().shouldBe(visible, enabled).click();
+
+    waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(repository.getId()));
+
+    summaryTile.name().shouldBe(visible).shouldHave(text(repository.getPublicId()));
+
+    breadcrumb.listItems().shouldHave(size(4));
+    breadcrumb.listItems().get(0).shouldHave(text("Root Organization"));
+    breadcrumb.listItems().get(1).shouldHave(text("Repository Managers"));
+    breadcrumb.listItems().get(2).shouldHave(text(repositoryManager.getName()));
+    breadcrumb.listItems().get(3).shouldHave(text(repository.getPublicId()));
+  }
+
+  @Test
+  public void testRepositoryManagerSummaryView_configurationTile_editRepositoryButton() {
+    RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D03UF7AE");
+    Repository repository = tempEntity.newHostedRepository(repositoryManager, "a1", "maven", true);
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+
+    RepositoriesSummaryTile summaryTile = RepositoriesSummaryPage.summaryTile();
+    summaryTile.name().shouldBe(visible).shouldHave(text(repositoryManager.getName()));
+
+    NxBreadcrumb breadcrumb = new NxBreadcrumb();
+    breadcrumb.listItems().shouldHave(size(3));
+    breadcrumb.listItems().get(0).shouldHave(text("Root Organization"));
+    breadcrumb.listItems().get(1).shouldHave(text("Repository Managers"));
+    breadcrumb.listItems().get(2).shouldHave(text(repositoryManager.getName()));
+
+    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
+    configurationTile.configurationTable().repoManagerConfigTableRow(1).editRepositoryButton()
+        .shouldBe(visible, enabled).click();
+
+    waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(repository.getId()));
+
+    summaryTile.name().shouldBe(visible).shouldHave(text(repository.getPublicId()));
+
+    breadcrumb.listItems().shouldHave(size(4));
+    breadcrumb.listItems().get(0).shouldHave(text("Root Organization"));
+    breadcrumb.listItems().get(1).shouldHave(text("Repository Managers"));
+    breadcrumb.listItems().get(2).shouldHave(text(repositoryManager.getName()));
+    breadcrumb.listItems().get(3).shouldHave(text(repository.getPublicId()));
+  }
+
   private void assertImageEquals(BufferedImage image1, BufferedImage image2) throws IOException {
     BufferedImage resizedImage1 = resizeImage(image1, image1.getType());
     byte[] resizedImage1Bytes = bufferedImageToBytesArray(resizedImage1);
@@ -1764,7 +1827,7 @@ public class RepositoriesSummaryViewTest
     HttpClient client = HttpClientBuilder.create().build();
     HttpGet get = new HttpGet(BaseUrl.convertContainerUrlToHostUrl(urlString));
     get.setHeader("Authorization",
-            "Basic " + Base64.getEncoder().encodeToString("admin:admin123".getBytes(StandardCharsets.UTF_8)));
+        "Basic " + Base64.getEncoder().encodeToString("admin:admin123".getBytes(StandardCharsets.UTF_8)));
     HttpResponse response = client.execute(get);
     return ImageIO.read(response.getEntity().getContent());
   }

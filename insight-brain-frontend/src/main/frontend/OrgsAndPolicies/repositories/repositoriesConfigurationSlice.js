@@ -24,6 +24,7 @@ import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSel
 import { actions as namespaceConfusionProtectionTileSliceActions } from 'MainRoot/OrgsAndPolicies/repositories/namespaceConfusionProtectionTile/namespaceConfusionProtectionTileSlice';
 import { actions as ownerSideNavSliceActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { ascend, descend, path, pathOr, prop, sortWith, toLower } from 'ramda';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 
 const REDUCER_NAME = 'repositories';
 
@@ -305,6 +306,12 @@ const loadRepositoriesByManagerId = createAsyncThunk(
   }
 );
 
+const goToRepositorySummaryView = (repositoryId) => {
+  return (dispatch) => {
+    dispatch(stateGo('management.view.repository', { repositoryId }));
+  };
+};
+
 const repositoriesSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -318,6 +325,7 @@ const repositoriesSlice = createSlice({
     sortRepositories,
     setRepositoryPublicIdFilter,
     setRepositoryFormatsFilter,
+    goToRepositorySummaryView,
   },
   extraReducers: {
     [loadRepositories.pending]: loadRepositoriesRequested,
@@ -343,4 +351,5 @@ export const actions = {
   deleteRepository,
   editRepositoryManagerName,
   loadRepositoriesByManagerId,
+  goToRepositorySummaryView,
 };

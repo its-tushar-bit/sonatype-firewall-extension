@@ -19,8 +19,14 @@ public class SuccessMetricsServiceAuthzTest
   @Inject
   private SuccessMetricsService successMetricsService;
 
-  @Test
+  @Test(expected = UnauthenticatedException.class)
   public void testGet_Unauthenticated() {
+    successMetricsService.get();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGet_Unauthorized() {
+    login();
     successMetricsService.get();
   }
 

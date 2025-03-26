@@ -29,6 +29,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class SuccessMetricsReportResourceAuditTest
     extends AbstractAuditTest
 {
@@ -203,12 +205,9 @@ public class SuccessMetricsReportResourceAuditTest
     successMetricsReportRequest().subpath("{successMetricsId}").parameter(report.getId()).with(unauthorizedUser())
         .delete();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_SUCCESS_METRICS_REPORT, "not-found",
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_SUCCESS_METRICS_REPORT, "unauthorized",
         getUnauthorizedUsername());
-    assertCustomData(auditDTO, "reportId", report.getId());
-    assertCustomData(auditDTO, "reportName", null);
-    assertCustomData(auditDTO, "selectedOrganizations", null);
-    assertCustomData(auditDTO, "selectedApplications", null);
+    assertThat(auditDTO.data).isNull();
   }
 
   private void testViewSuccessMetricsData_Unauthorized(final String resourceSubpath) throws Exception {
@@ -220,7 +219,7 @@ public class SuccessMetricsReportResourceAuditTest
         .parameter(report.getId()).get();
 
     // user allowed to access resource but no apps included in report
-    assertViewSuccessMetricsReport(report, 0, getUnauthorizedUsername());
+    assertViewSuccessMetricsReport_Unauthorized(getUnauthorizedUsername());
   }
 
   private void testViewSuccessMetricsData(final String resourceSubpath) throws Exception {
@@ -233,6 +232,11 @@ public class SuccessMetricsReportResourceAuditTest
     successMetricsReportRequest().path(resourceSubpath).parameter(report.getId()).get();
 
     assertViewSuccessMetricsReport(report, 2, "admin");
+  }
+
+  private void assertViewSuccessMetricsReport_Unauthorized(final String username) {
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_SUCCESS_METRICS_REPORT, "unauthorized", username);
+    assertThat(auditDTO.data).isNull();
   }
 
   private void assertViewSuccessMetricsReport(final SuccessMetricsReport report,

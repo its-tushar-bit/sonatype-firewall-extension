@@ -31,6 +31,7 @@ public class SuccessMetricsService
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
   }
 
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public SuccessMetricsConfigurationDTO get() {
     SystemConfigurationProperty property = systemConfigurationPropertyDAO.getByNameNotNull(PROPERTY_ENABLED);
     SuccessMetricsConfigurationDTO configuration = new SuccessMetricsConfigurationDTO();

@@ -26,12 +26,14 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.collect.Sets;
+import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -82,10 +84,10 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app, today, ONE_HOUR);
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, Collections.singleton(app.getId()));
 
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() -> {
       successMetricsReportDataService.getChartData(successMetricsReport.getId());
       // can't look up SuccessMetricsReport if the user isn't logged in
-    }).withMessageContaining("Cannot find a success metrics report");
+    }).withMessageContaining("Anonymous access forbidden");
   }
 
   @Test
@@ -93,7 +95,11 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app, today, ONE_HOUR);
     login();
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, Collections.singleton(app.getId()));
-    assertEmptyResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()));
+
+    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() -> {
+      successMetricsReportDataService.getChartData(successMetricsReport.getId());
+      // can't look up SuccessMetricsReport if the user does not have permissions
+    }).withMessageContaining("Insufficient permissions");
   }
 
   @Test
@@ -101,10 +107,10 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app, today, ONE_HOUR);
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.singleton(org.getId()), null);
 
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() -> {
       successMetricsReportDataService.getChartData(successMetricsReport.getId());
       // can't look up SuccessMetricsReport if the user isn't logged in
-    }).withMessageContaining("Cannot find a success metrics report");
+    }).withMessageContaining("Anonymous access forbidden");
   }
 
   @Test
@@ -112,7 +118,11 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app, today, ONE_HOUR);
     login();
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.singleton(org.getId()), null);
-    assertEmptyResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()));
+
+    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() -> {
+      successMetricsReportDataService.getChartData(successMetricsReport.getId());
+      // can't look up SuccessMetricsReport if the user does not have permissions
+    }).withMessageContaining("Insufficient permissions");
   }
 
   @Test
@@ -122,6 +132,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app, today, ONE_HOUR);
     createPolicyViolation(app2, today, ONE_HOUR * 2);
     grantReadPermission(app.getId());
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
 
     Set<String> appIds = Sets.newHashSet(app.getId(), app2.getId());
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, appIds);
@@ -136,6 +147,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app2, today, ONE_HOUR * 2);
 
     grantReadPermission(app.getId());
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.singleton(org.getId()), null);
     assertMttrResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()).mttrs, today);
   }
@@ -149,6 +161,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app2, today, ONE_HOUR * 2);
 
     grantReadPermission(org.getId());
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
 
     Set<String> orgIds = Sets.newHashSet(org.getId(), org2.getId());
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(orgIds, null);
@@ -160,10 +173,10 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app, today, ONE_HOUR);
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
 
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() -> {
       successMetricsReportDataService.getChartData(successMetricsReport.getId());
       // can't look up SuccessMetricsReport if the user isn't logged in
-    }).withMessageContaining("Cannot find a success metrics report");
+    }).withMessageContaining("Anonymous access forbidden");
   }
 
   @Test
@@ -171,7 +184,11 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app, today, ONE_HOUR);
     login();
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
-    assertEmptyResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()));
+
+    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() -> {
+      successMetricsReportDataService.getChartData(successMetricsReport.getId());
+      // can't look up SuccessMetricsReport if the user does not have permissions
+    }).withMessageContaining("Insufficient permissions");
   }
 
   @Test
@@ -181,6 +198,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app, today, ONE_HOUR);
     createPolicyViolation(app2, today, ONE_HOUR * 2);
     grantReadPermission(app.getId());
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
     assertMttrResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()).mttrs, today);
   }
@@ -193,6 +211,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app2, today);
 
     grantReadPermission(app.getId());
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
 
     Set<String> appIds = Sets.newHashSet(app.getId(), app2.getId());
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, appIds);
@@ -207,6 +226,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app2, today);
 
     grantReadPermission(app.getId());
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.singleton(org.getId()), null);
     assertAveragesResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()).averages);
   }
@@ -220,6 +240,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app2, today);
 
     grantReadPermission(org.getId());
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
 
     Set<String> orgIds = Sets.newHashSet(org.getId(), org2.getId());
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(orgIds, null);
@@ -233,6 +254,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app, today, ONE_HOUR);
     createPolicyViolation(app2, today, ONE_HOUR * 2);
     grantReadPermission(app.getId());
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
     assertAveragesResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()).averages);
   }
@@ -244,6 +266,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app, today);
     createPolicyViolation(app2, today);
     grantReadPermission(app.getId());
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
 
     Set<String> appIds = Sets.newHashSet(app.getId(), app2.getId());
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, appIds);
@@ -259,6 +282,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app2, today);
 
     grantReadPermission(app.getId());
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.singleton(org.getId()), null);
     assertApplicationCountsResult(
         successMetricsReportDataService.getChartData(successMetricsReport.getId()).applicationCounts);
@@ -273,6 +297,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app2, today);
 
     grantReadPermission(org.getId());
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
 
     Set<String> orgIds = Sets.newHashSet(org.getId(), org2.getId());
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(orgIds, null);
@@ -287,6 +312,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app, today);
     createPolicyViolation(app2, today);
     grantReadPermission(app.getId());
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
     assertApplicationCountsResult(
         successMetricsReportDataService.getChartData(successMetricsReport.getId()).applicationCounts);
@@ -301,6 +327,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, Collections.singleton(app.getId()));
 
     login();
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
     createPolicyViolation(app, today, ONE_HOUR);
 
     // cause the initial report data to be generated
@@ -409,26 +436,26 @@ public class SuccessMetricsReportDataServiceAuthzTest
   @Test
   public void testGetComponentCounts_Organization_Unauthenticated() {
     SuccessMetricsReport report = createSuccessMetricsReport(orgIds, null);
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      successMetricsReportDataService.getComponentCounts(report.getId());
+    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() -> {
+      successMetricsReportDataService.getChartData(report.getId());
       // can't look up SuccessMetricsReport if the user isn't logged in
-    }).withMessageContaining("Cannot find a success metrics report");
+    }).withMessageContaining("Anonymous access forbidden");
   }
 
   @Test
   public void testGetComponentCounts_Organization_Unauthorized() {
     login();
     SuccessMetricsReport report = createSuccessMetricsReport(orgIds, null);
-    ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(report.getId());
-    assertThat(result).isNotNull();
-    assertThat(result.componentsPerApplication).isEqualTo(0);
-    assertThat(result.componentsInTheMostApplications).hasSize(0);
-    assertThat(result.componentsWithTheMostViolations).hasSize(0);
+    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() -> {
+      successMetricsReportDataService.getComponentCounts(report.getId());
+      // can't look up SuccessMetricsReport if the user does not have permissions
+    }).withMessageContaining("Insufficient permissions");
   }
 
   @Test
   public void testGetComponentCounts_Organization_Authorized() {
     grantReadPermission(app.getId());
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
     SuccessMetricsReport report = createSuccessMetricsReport(orgIds, null);
     ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(report.getId());
     assertThat(result).isNotNull();
@@ -440,26 +467,26 @@ public class SuccessMetricsReportDataServiceAuthzTest
   @Test
   public void testGetComponentCounts_Application_Unauthenticated() {
     SuccessMetricsReport report = createSuccessMetricsReport(null, appIds);
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      successMetricsReportDataService.getComponentCounts(report.getId());
+    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() -> {
+      successMetricsReportDataService.getChartData(report.getId());
       // can't look up SuccessMetricsReport if the user isn't logged in
-    }).withMessageContaining("Cannot find a success metrics report");
+    }).withMessageContaining("Anonymous access forbidden");
   }
 
   @Test
   public void testGetComponentCounts_Application_Unauthorized() {
     login();
     SuccessMetricsReport report = createSuccessMetricsReport(null, appIds);
-    ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(report.getId());
-    assertThat(result).isNotNull();
-    assertThat(result.componentsPerApplication).isEqualTo(0);
-    assertThat(result.componentsInTheMostApplications).hasSize(0);
-    assertThat(result.componentsWithTheMostViolations).hasSize(0);
+    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() -> {
+      successMetricsReportDataService.getComponentCounts(report.getId());
+      // can't look up SuccessMetricsReport if the user does not have permissions
+    }).withMessageContaining("Insufficient permissions");
   }
 
   @Test
   public void testGetComponentCount_Application_Authorized() {
     grantReadPermission(app.getId());
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
     SuccessMetricsReport report = createSuccessMetricsReport(null, appIds);
     ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(report.getId());
     assertThat(result).isNotNull();

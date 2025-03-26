@@ -15,7 +15,9 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditService;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
+import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -44,6 +46,7 @@ public class SuccessMetricsReportService
     this.auditService = auditService;
   }
 
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   List<SuccessMetricsReportDTO> getSuccessMetricsReportsForCurrentUser() throws IOException {
     String username = currentUser.getUsername();
 
@@ -63,6 +66,7 @@ public class SuccessMetricsReportService
     return successMetricsDTOs;
   }
 
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   SuccessMetricsReportDTO createSuccessMetricsReportForCurrentUser(SuccessMetricsReportDTO successMetricsDTO) {
     if (successMetricsDTO.scope == null) {
       throw new BadRequestException("Scope cannot be null or missing.");
@@ -83,6 +87,7 @@ public class SuccessMetricsReportService
     return successMetricsDTO;
   }
 
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   void deleteSuccessMetricsReportForCurrentUser(String successMetricsId) {
     AuditData.get().setData("reportId", successMetricsId);
     SuccessMetricsReport successMetricsReport = findSuccessMetricsReportByIdForCurrentUser(successMetricsId);
@@ -96,6 +101,7 @@ public class SuccessMetricsReportService
   /**
    * @since 1.39
    */
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public SuccessMetricsReport findSuccessMetricsReportByIdForCurrentUser(String successMetricsId) {
     SuccessMetricsReport successMetricsReport = successMetricsReportDAO.getById(successMetricsId);
 

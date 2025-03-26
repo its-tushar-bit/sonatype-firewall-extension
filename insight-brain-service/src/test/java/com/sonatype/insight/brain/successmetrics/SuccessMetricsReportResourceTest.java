@@ -24,6 +24,9 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -57,6 +60,8 @@ public class SuccessMetricsReportResourceTest
   public void testSuccessMetricCRUD() throws Exception {
     String metricsName = "Metrics";
     User tempUser = tempEntity.newUser();
+    Role role = tempEntity.newRole(true, Permission.CONFIGURE_SYSTEM);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), tempUser.getUsername());
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
 

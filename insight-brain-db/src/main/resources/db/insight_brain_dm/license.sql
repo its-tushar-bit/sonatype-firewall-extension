@@ -705,6 +705,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('DarkM
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Dartcom-Incorporated-EULA','Dartcom-Incorporated-EULA','Dartcom Incorporated End User License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Databricks-JDBC-ODBC-DL','Databricks-JDBC-ODBC-DL','Databricks JDBC ODBC Driver License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Databricks-OML-RD03272024','Databricks-OML-RD03272024','Databricks Open Model License - Release Date 03-27-2024');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Databricks-OML-UNSPECIFIED','Databricks-OML','Databricks-OML-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Datalogics-EULA','Datalogics-EULA','Datalogics End User License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('DataPM-1.0','DataPM-1.0','DataPM License Version 1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('DataStax-DSE-Driver-License','DataStax-DSE-Driver-License','DataStax DSE Driver License Terms');
@@ -1880,6 +1881,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Mules
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('MuleSource-Public-License-1.1.4','MuleSource-Public-License-1.1.4','MuleSource Public License Version 1.1.4');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Mulle-Kybernetik','Mulle-Kybernetik','Mulle Kybernetik License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Multi-token-Prediction-RL-06182024','Multi-token-Prediction-RL-06182024','Meta Multi-token Prediction Research License - Dated 06-18-2024');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Multi-token-Prediction-RL-UNSPECIFIED','Multi-token-Prediction-RL','Multi-token-Prediction-RL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Multiavatar-License-1.0','Multiavatar-License-1.0','Multiavatar License v1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Multics','Multics','Multics License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Multividas-Proprietary-License-2024','Multividas-Proprietary-License-2024','Multividas Proprietary License - Dated 2024');
@@ -2170,6 +2172,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Oracl
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('ORCID-MIT-Style-License','ORCID-MIT-Style-License','ORCID MIT Style License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Original-SSLeay','Original-SSLeay','Original SSLeay License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OrionStar-Orion-14B-Series-MCLA-1.0','OrionStar-Orion-14B-Series-MCLA-1.0','OrionStar Orion-14B Series Models Community License Agreement Version 1.0');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OrionStar-Orion-14B-Series-MCLA-UNSPECIFIED','OrionStar-Orion-14B-Series-MCLA','OrionStar-Orion-14B-Series-MCLA-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Orkes-CLA','Orkes-CLA','Orkes Community License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OrthoFi-Inc-TOU','OrthoFi-Inc-TOU','OrthoFi Inc Terms of Use');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OS-MIT-Non-Military-Non-Spy-License','OS-MIT-Non-Military-Non-Spy-License','Oliver Schneider - The MIT Non-Military Non-Spy License');
@@ -2208,6 +2211,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('PayPa
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('PayPal-SDK','PayPal-SDK','The PayPal Node SDK License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('PCRE-License','PCRE-License','Perl Compatible Regular Expressions License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('PDDL-1.0','PDDL-1.0','ODC Public Domain Dedication & License 1.0');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('PDDL-UNSPECIFIED','PDDL','ODC Public Domain Dedication & License-Style Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('PDF-Tools-AG-GTC','PDF-Tools-AG-GTC','PDF Tools AG General Terms and Conditions');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('PDFGen.net-License','PDFGen.net-License','PDFGen.net License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Pdfium-.Net-SDK-SLA-LW-RD11152018','Pdfium-.Net-SDK-SLA-LW-RD11152018','Pdfium.Net Software Development Kit Software License Agreement And Limited Warranty - Release Date Nov 15, 2018');
@@ -2477,6 +2481,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Seald
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('SeaLights-License','SeaLights-License','SeaLights License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('SeaLLMs-LA','SeaLLMs-LA','Damo Academy''s Southeast Asia Large Language Models (SeaLLMs) License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Seamless-LA-UD12182023','Seamless-LA-UD12182023','Meta Seamless Licensing Agreement - Updated Date 12-18-2023');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Seamless-LA-UNSPECIFIED','Seamless-LA','Seamless-LA-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('SecureBlackbox-EULA','SecureBlackbox-EULA','SecureBlackbox End User License Agreement - Version 11012017');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Secured-Signing-TOU-and-Privacy','Secured-Signing-TOU-and-Privacy','Secured-Signing Terms of use and Privacy');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Sedris-LA','Sedris-LA','Sedris License Agreement');
@@ -2949,6 +2954,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Yi-Se
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Yi-Series-Models-Community-LA-2.1','Yi-Series-Models-Community-LA-2.1','Yi Series Models Community License Agreement Version 2.1');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Yi-Series-Models-LA-1.0','Yi-Series-Models-LA-1.0','Yi Series Models License Agreement Version 1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Yi-Series-Models-LA-2.0','Yi-Series-Models-LA-2.0','Yi Series Models License Agreement Version 2.0');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Yi-Series-Models-LA-UNSPECIFIED','Yi-Series-Models-LA','Yi-Series-Models-LA-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Yoctopuce-License','Yoctopuce-License','Yoctopuce License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('YOLO-1.0','YOLO-1.0','YOLO License Version 1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('YOLO-2.0','YOLO-2.0','YOLO License Version 2.0');

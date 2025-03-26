@@ -185,7 +185,6 @@ public class ApiAutoPolicyWaiverResource
               "<li>threatLevel</li>" +
               "<li>pathForward</li>" +
               "<li>reachable</li>" +
-              "<li>durationInDays</li>" +
               "</ol>",
           required = true
       ) final ApiAutoPolicyWaiverDTO autoPolicyWaiverDTO)
@@ -224,7 +223,6 @@ public class ApiAutoPolicyWaiverResource
               "<li>threatLevel</li>" +
               "<li>pathForward</li>" +
               "<li>reachable</li>" +
-              "<li>durationInDays</li>" +
               "</ol>",
           required = true
       ) final ApiAutoPolicyWaiverDTO autoPolicyWaiverDTO)

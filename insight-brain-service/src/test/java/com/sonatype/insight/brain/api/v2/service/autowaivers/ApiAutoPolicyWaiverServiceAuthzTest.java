@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service.autowaivers;
 
+import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverAdapter;
@@ -96,6 +97,46 @@ public class ApiAutoPolicyWaiverServiceAuthzTest
     dto.reachability = true;
     grantPermission(application.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
     apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(), dto);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddAutoPolicyWaivers_Unauthenticated() {
+    Application application = tempEntity.newApplicationWithParent();
+    apiAutoPolicyWaiverService.addAutoPolicyWaivers(
+        OwnerType.APPLICATION,
+        application.getId(),
+        List.of(new ApiAutoPolicyWaiverDTO(), new ApiAutoPolicyWaiverDTO())
+    );
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddAutoPolicyWaivers_Unauthorized() {
+    login();
+    Application application = tempEntity.newApplicationWithParent();
+    apiAutoPolicyWaiverService.addAutoPolicyWaivers(
+        OwnerType.APPLICATION,
+        application.getId(),
+        List.of(new ApiAutoPolicyWaiverDTO(), new ApiAutoPolicyWaiverDTO())
+    );
+  }
+
+  @Test
+  public void testAddAutoPolicyWaivers_Authorized() {
+    Application application = tempEntity.newApplicationWithParent();
+    ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver1 = new ApiAutoPolicyWaiverDTO();
+    apiAutoPolicyWaiver1.threatLevel = 8;
+    apiAutoPolicyWaiver1.reachability = true;
+
+    ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver2 = new ApiAutoPolicyWaiverDTO();
+    apiAutoPolicyWaiver2.threatLevel = 8;
+    apiAutoPolicyWaiver2.reachability = true;
+
+    grantPermission(application.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
+    apiAutoPolicyWaiverService.addAutoPolicyWaivers(
+        OwnerType.APPLICATION,
+        application.getId(),
+        List.of(apiAutoPolicyWaiver1, apiAutoPolicyWaiver2)
+    );
   }
 
   @Test(expected = UnauthenticatedException.class)

@@ -502,36 +502,124 @@ public class ApiAutoPolicyWaiverServiceTest
   @Test
   public void testAddAutoPolicyWaiver_AlreadyExists_Application() {
     Application application = tempEntity.newApplicationWithParent();
-    tempEntity.newAutoPolicyWaiver(application.getId());
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
+
+    List<ApiAutoPolicyWaiverDTO> autoPolicyWaivers =
+        apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.APPLICATION, application.getId());
+    assertThat(autoPolicyWaivers).hasSize(1);
 
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
     dto.threatLevel = 1;
     dto.reachability = true;
     dto.pathForward = true;
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(), dto)).isInstanceOf(
-        BadRequestException.class).hasMessage("An auto policy waiver is already configured for " + application.getId());
+    ApiAutoPolicyWaiverDTO apiAutoPolicyWaiverDTO =
+        apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(), dto);
 
-    verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
+    assertThat(apiAutoPolicyWaiverDTO).isNotNull();
+    assertThat(autoPolicyWaiver.getId()).isNotEqualTo(apiAutoPolicyWaiverDTO.autoPolicyWaiverId);
+
+    autoPolicyWaivers = apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.APPLICATION, application.getId());
+    assertThat(autoPolicyWaivers).hasSize(2);
+
+    assertThat(autoPolicyWaivers.get(0).autoPolicyWaiverId).isEqualTo(autoPolicyWaiver.getId());
+    assertThat(autoPolicyWaivers.get(1).autoPolicyWaiverId).isEqualTo(apiAutoPolicyWaiverDTO.autoPolicyWaiverId);
+  }
+
+  @Test
+  public void testAddAutoPolicyWaiver_AlreadyExists_Application_And_Scope() {
+    Application application = tempEntity.newApplicationWithParent();
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
+
+    assertThat(apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.APPLICATION, application.getId()))
+        .hasSize(1);
+
+    ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
+    dto.threatLevel = autoPolicyWaiver.getThreatLevel();
+    dto.reachability = autoPolicyWaiver.hasReachability();
+    dto.pathForward = autoPolicyWaiver.hasPathForward();
+
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(), dto)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Only one auto policy waiver is allowed for a given owner and scope " +
+            "(not reachable/no path forward combination)");
+
+    assertThat(apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.APPLICATION, application.getId()))
+        .hasSize(1);
+
+    // changing thread level still does not permit an additional waiver
+    dto.threatLevel = 5;
+
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(), dto)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Only one auto policy waiver is allowed for a given owner and scope " +
+            "(not reachable/no path forward combination)");
+
+    assertThat(apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.APPLICATION, application.getId()))
+        .hasSize(1);
   }
 
   @Test
   public void testAddAutoPolicyWaiver_AlreadyExists_Organization() {
     Organization organization = tempEntity.newOrganization();
-    tempEntity.newAutoPolicyWaiver(organization.getId());
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(organization.getId());
+
+    List<ApiAutoPolicyWaiverDTO> autoPolicyWaivers =
+        apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.ORGANIZATION, organization.getId());
+    assertThat(autoPolicyWaivers).hasSize(1);
 
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
     dto.threatLevel = 1;
     dto.reachability = true;
     dto.pathForward = true;
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto)).isInstanceOf(
-            BadRequestException.class)
-        .hasMessage("An auto policy waiver is already configured for " + organization.getId());
+    ApiAutoPolicyWaiverDTO apiAutoPolicyWaiverDTO =
+        apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto);
+    assertThat(apiAutoPolicyWaiverDTO).isNotNull();
+    assertThat(autoPolicyWaiver.getId()).isNotEqualTo(apiAutoPolicyWaiverDTO.autoPolicyWaiverId);
 
-    verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
+    autoPolicyWaivers = apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.ORGANIZATION, organization.getId());
+    assertThat(autoPolicyWaivers).hasSize(2);
+
+    assertThat(autoPolicyWaivers.get(0).autoPolicyWaiverId).isEqualTo(autoPolicyWaiver.getId());
+    assertThat(autoPolicyWaivers.get(1).autoPolicyWaiverId).isEqualTo(apiAutoPolicyWaiverDTO.autoPolicyWaiverId);
+  }
+
+  @Test
+  public void testAddAutoPolicyWaiver_AlreadyExists_Organization_And_Scope() {
+    Organization organization = tempEntity.newOrganization();
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(organization.getId(), 8, true, true);
+
+    assertThat(apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.ORGANIZATION, organization.getId()))
+        .hasSize(1);
+
+    ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
+    dto.threatLevel = autoPolicyWaiver.getThreatLevel();
+    dto.reachability = autoPolicyWaiver.hasReachability();
+    dto.pathForward = autoPolicyWaiver.hasPathForward();
+
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Only one auto policy waiver is allowed for a given owner and scope " +
+            "(not reachable/no path forward combination)");
+
+    assertThat(apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.ORGANIZATION, organization.getId()))
+        .hasSize(1);
+
+    // changing thread level still does not permit an additional waiver
+    dto.threatLevel = 5;
+
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Only one auto policy waiver is allowed for a given owner and scope " +
+            "(not reachable/no path forward combination)");
+
+    assertThat(apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.ORGANIZATION, organization.getId()))
+        .hasSize(1);
   }
 
   @Test

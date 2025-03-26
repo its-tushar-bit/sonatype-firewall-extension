@@ -171,6 +171,89 @@ public class ApiAutoPolicyWaiverResourceTest
   }
 
   @Test
+  public void testAddAutoPolicyWaivers_Application() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+
+    ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver1 = new ApiAutoPolicyWaiverDTO();
+    apiAutoPolicyWaiver1.threatLevel = 2;
+    apiAutoPolicyWaiver1.reachability = false;
+    apiAutoPolicyWaiver1.pathForward = true;
+
+    ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver2 = new ApiAutoPolicyWaiverDTO();
+    apiAutoPolicyWaiver2.threatLevel = 2;
+    apiAutoPolicyWaiver2.reachability = true;
+    apiAutoPolicyWaiver2.pathForward = false;
+
+    HttpResponse response = restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/v2/" + OWNERS_PATH)
+        .parameter(OwnerType.APPLICATION, app.getId())
+        .body(List.of(apiAutoPolicyWaiver1, apiAutoPolicyWaiver2), MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(200, response);
+    List<AutoPolicyWaiver> autoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId(app.getId());
+    assertThat(autoPolicyWaivers.size()).isEqualTo(2);
+
+    // try to add the same waivers again
+    response = restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/v2/" + OWNERS_PATH)
+        .parameter(OwnerType.APPLICATION, app.getId())
+        .body(List.of(apiAutoPolicyWaiver1, apiAutoPolicyWaiver2), MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(400, response);
+    autoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId(app.getId());
+    assertThat(autoPolicyWaivers.size()).isEqualTo(2);
+
+    // try to add the same waivers again with different values that are not allowed
+    apiAutoPolicyWaiver1.reachability = true;
+    apiAutoPolicyWaiver1.pathForward = true;
+    apiAutoPolicyWaiver2.reachability = true;
+    apiAutoPolicyWaiver2.pathForward = true;
+
+    response = restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/v2/" + OWNERS_PATH)
+        .parameter(OwnerType.APPLICATION, app.getId())
+        .body(List.of(apiAutoPolicyWaiver1, apiAutoPolicyWaiver2), MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(400, response);
+    autoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId(app.getId());
+    assertThat(autoPolicyWaivers.size()).isEqualTo(2);
+  }
+
+  @Test
+  public void testAddAutoPolicyWaivers_OrganizationWithApplication() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+
+    ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver1 = new ApiAutoPolicyWaiverDTO();
+    apiAutoPolicyWaiver1.threatLevel = 2;
+    apiAutoPolicyWaiver1.reachability = false;
+    apiAutoPolicyWaiver1.pathForward = true;
+
+    HttpResponse response = restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/v2/" + OWNERS_PATH)
+        .parameter(OwnerType.ORGANIZATION, app.getOrganizationId())
+        .body(List.of(apiAutoPolicyWaiver1), MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(200, response);
+    List<AutoPolicyWaiver> autoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId(app.getOrganizationId());
+    assertThat(autoPolicyWaivers.size()).isEqualTo(1);
+
+    ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver2 = new ApiAutoPolicyWaiverDTO();
+    apiAutoPolicyWaiver2.threatLevel = 2;
+    apiAutoPolicyWaiver2.reachability = true;
+    apiAutoPolicyWaiver2.pathForward = false;
+
+    // try to add the same type of waiver as the org, and a new one.
+    response = restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/v2/" + OWNERS_PATH)
+        .parameter(OwnerType.APPLICATION, app.getId())
+        .body(List.of(apiAutoPolicyWaiver1, apiAutoPolicyWaiver2), MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(200, response);
+    autoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId(app.getId());
+    assertThat(autoPolicyWaivers.size()).isEqualTo(2);
+  }
+
+  @Test
   public void testAddAutoPolicyWaiver_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization();
 
@@ -191,6 +274,55 @@ public class ApiAutoPolicyWaiverResourceTest
     assertResponseStatus(200, response);
     List<AutoPolicyWaiver> autoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId(organization.getId());
     assertThat(autoPolicyWaivers.size()).isEqualTo(1);
+  }
+
+  @Test
+  public void testAddAutoPolicyWaivers_Organization() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+
+    ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver1 = new ApiAutoPolicyWaiverDTO();
+    apiAutoPolicyWaiver1.threatLevel = 2;
+    apiAutoPolicyWaiver1.reachability = false;
+    apiAutoPolicyWaiver1.pathForward = true;
+
+    ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver2 = new ApiAutoPolicyWaiverDTO();
+    apiAutoPolicyWaiver2.threatLevel = 2;
+    apiAutoPolicyWaiver2.reachability = true;
+    apiAutoPolicyWaiver2.pathForward = false;
+
+    HttpResponse response = restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/v2/" + OWNERS_PATH)
+        .parameter(OwnerType.ORGANIZATION, organization.getId())
+        .body(List.of(apiAutoPolicyWaiver1, apiAutoPolicyWaiver2), MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(200, response);
+    List<AutoPolicyWaiver> autoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId(organization.getId());
+    assertThat(autoPolicyWaivers.size()).isEqualTo(2);
+
+    // try to add the same waivers again
+    response = restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/v2/" + OWNERS_PATH)
+        .parameter(OwnerType.ORGANIZATION, organization.getId())
+        .body(List.of(apiAutoPolicyWaiver1, apiAutoPolicyWaiver2), MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(400, response);
+    autoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId(organization.getId());
+    assertThat(autoPolicyWaivers.size()).isEqualTo(2);
+
+    // try to add the same waivers again with different values that are not allowed
+    apiAutoPolicyWaiver1.reachability = true;
+    apiAutoPolicyWaiver1.pathForward = true;
+    apiAutoPolicyWaiver2.reachability = true;
+    apiAutoPolicyWaiver2.pathForward = true;
+
+    response = restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/v2/" + OWNERS_PATH)
+        .parameter(OwnerType.ORGANIZATION, organization.getId())
+        .body(List.of(apiAutoPolicyWaiver1, apiAutoPolicyWaiver2), MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(400, response);
+    autoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId(organization.getId());
+    assertThat(autoPolicyWaivers.size()).isEqualTo(2);
   }
 
   @Test

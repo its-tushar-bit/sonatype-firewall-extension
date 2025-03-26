@@ -44,6 +44,8 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.api.v2.service.autowaivers.AutoPolicyWaiverUtil.anyEqualByOwnerAndScope;
+
 public class ApiAutoPolicyWaiverService
 {
   private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
@@ -125,28 +127,54 @@ public class ApiAutoPolicyWaiverService
   }
 
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
-  public ApiAutoPolicyWaiverDTO addAutoPolicyWaiver(
-      @AuthzContext(Key.TYPE) OwnerType ownerType,
-      @AuthzContext(Key.INTERNAL_ID) String ownerId,
-      ApiAutoPolicyWaiverDTO apiAutoPolicyWaiverDTO)
+  public List<ApiAutoPolicyWaiverDTO> addAutoPolicyWaivers(
+      final @AuthzContext(Key.TYPE) OwnerType ownerType,
+      final @AuthzContext(Key.INTERNAL_ID) String ownerId,
+      final List<ApiAutoPolicyWaiverDTO> apiAutoPolicyWaivers)
   {
     AutoPolicyWaiverUtil.validateAutoWaiversFeatureEnabled();
     checkOwnerType(ownerType, ownerId);
-    validateRequestDto(apiAutoPolicyWaiverDTO);
 
-    // Only one auto policy waiver configuration should exist at a time for a given app or org.
-    List<AutoPolicyWaiver> existingWaivers = autoPolicyWaiverDAO.getByOwnerId(ownerId);
-    if (!existingWaivers.isEmpty()) {
-      throw new BadRequestException("An auto policy waiver is already configured for " + ownerId);
+    validateApiAutoPolicyWaivers(apiAutoPolicyWaivers);
+
+    // validate that we weren't given duplicates by owner and scope
+    if (AutoPolicyWaiverUtil.anyEqualByScope(apiAutoPolicyWaivers)) {
+      throw new BadRequestException("Only one auto policy waiver is allowed for a given owner and scope "
+          + "(not reachable/no path forward combination)");
     }
 
-    AutoPolicyWaiver autoPolicyWaiver = getAutoPolicyWaiver(ownerId, apiAutoPolicyWaiverDTO);
-    autoPolicyWaiverDAO.insert(autoPolicyWaiver);
-    auditAutoPolicyWaiver(autoPolicyWaiver);
-    autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, ownerType,
-        AutoPolicyWaiverAction.CREATE, null);
-    log.debug("Auto policy waiver created for {} with ID {}", ownerType, autoPolicyWaiver.getId());
-    return ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
+    // validate that we weren't given duplicates by owner and scope for existing waivers
+    if (anyEqualByOwnerAndScope(ownerId, apiAutoPolicyWaivers, autoPolicyWaiverDAO.getByOwnerId(ownerId))) {
+      throw new BadRequestException("Only one auto policy waiver is allowed for a given owner and scope "
+          + "(not reachable/no path forward combination)");
+    }
+
+    List<ApiAutoPolicyWaiverDTO> storedApiAutoPolicyWaivers = new ArrayList<>();
+
+    for (ApiAutoPolicyWaiverDTO apiAutoPolicyWaiverDTO : apiAutoPolicyWaivers) {
+      AutoPolicyWaiver autoPolicyWaiver = getAutoPolicyWaiver(ownerId, apiAutoPolicyWaiverDTO);
+      autoPolicyWaiverDAO.insert(autoPolicyWaiver);
+      auditAutoPolicyWaiver(autoPolicyWaiver);
+      autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, ownerType, AutoPolicyWaiverAction.CREATE, null);
+      log.debug("Auto policy waiver created for {} with ID {}", ownerType, autoPolicyWaiver.getId());
+
+      storedApiAutoPolicyWaivers.add(ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver));
+    }
+
+    return storedApiAutoPolicyWaivers;
+  }
+
+  @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
+  public ApiAutoPolicyWaiverDTO addAutoPolicyWaiver(
+      final @AuthzContext(Key.TYPE) OwnerType ownerType,
+      final @AuthzContext(Key.INTERNAL_ID) String ownerId,
+      final ApiAutoPolicyWaiverDTO apiAutoPolicyWaiverDTO)
+  {
+    List<ApiAutoPolicyWaiverDTO> storedAutoPolicyWaivers =
+        addAutoPolicyWaivers(ownerType, ownerId, Collections.singletonList(apiAutoPolicyWaiverDTO));
+
+    // when we get here no exceptions were thrown, so we can safely return the first element of the list
+    return storedAutoPolicyWaivers.get(0);
   }
 
   @NotNull
@@ -251,7 +279,6 @@ public class ApiAutoPolicyWaiverService
       Organization owner = organizationDAO.getById(applicableWaiver.getOwnerId());
       dto.autoPolicyWaiverOwnerName = owner.getName();
       dto.autoPolicyWaiverOwnerType = OwnerType.ORGANIZATION.toString();
-
     }
     else {
       Application owner = applicationDAO.getById(applicableWaiver.getOwnerId());
@@ -410,6 +437,16 @@ public class ApiAutoPolicyWaiverService
       default:
         throw new IllegalStateException("Unknown owner type: " + ownerType);
     }
+  }
+
+  private void validateApiAutoPolicyWaivers(final List<ApiAutoPolicyWaiverDTO> apiAutoPolicyWaivers)
+      throws BadRequestException
+  {
+    if (apiAutoPolicyWaivers == null || apiAutoPolicyWaivers.isEmpty()) {
+      throw new BadRequestException("No auto policy waiver configurations provided");
+    }
+
+    apiAutoPolicyWaivers.forEach(this::validateRequestDto);
   }
 
   private void validateRequestDto(ApiAutoPolicyWaiverDTO dto) throws BadRequestException {

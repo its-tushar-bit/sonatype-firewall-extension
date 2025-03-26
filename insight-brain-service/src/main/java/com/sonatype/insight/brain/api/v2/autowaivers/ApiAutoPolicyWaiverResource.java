@@ -116,6 +116,45 @@ public class ApiAutoPolicyWaiverResource
   }
 
   @POST
+  @Path("/v2/" + OWNERS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CREATE_AUTO_WAIVER)
+  @Operation(
+      description = "Use this method to create an auto policy waiver configuration. Only three configurations can " +
+          " exist at a time for a given application or organization. With different combinations for" +
+          " reachable/pathForward" +
+          "\n" +
+          "\n" +
+          "Permissions required: Waive Policy Violations",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "Auto waiver has been created successfully.",
+              useReturnTypeSchema = true
+          )
+      }
+  )
+  public List<ApiAutoPolicyWaiverDTO> addAutoPolicyWaivers(
+      @Parameter(description = "Enter the ownerType to specify the scope. The response will contain the details " +
+          "for waivers within the scope.", required = true)
+      @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the corresponding id for the ownerType specified above.", required = true)
+      @PathParam("ownerId") String ownerId,
+      @RequestBody(
+          description = "The request JSON can be an array that include the fields" +
+              "<ol>" +
+              "<li>threatLevel</li>" +
+              "<li>pathForward</li>" +
+              "<li>reachable</li>" +
+              "</ol>",
+          required = true
+      ) final List<ApiAutoPolicyWaiverDTO> autoPolicyWaivers)
+  {
+    return apiAutoPolicyWaiverService.addAutoPolicyWaivers(ownerType, ownerId, autoPolicyWaivers);
+  }
+
+  @POST
   @Path(OWNERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_JSON)

@@ -173,7 +173,7 @@ public class FeaturePropertiesInfoTest
               "SYSTEM_NOTICE_CONFIGURATION": true,
               "vulnerabilitySource": false,
               "WEBHOOK_CONFIGURATION": true,
-              "containerImagesEvaluation": false,
+              "containerImagesEvalEnabled": false,
               "darkMode": false
             }"""));
   }
@@ -247,7 +247,7 @@ public class FeaturePropertiesInfoTest
               "SYSTEM_NOTICE_CONFIGURATION": false,
               "vulnerabilitySource": false,
               "WEBHOOK_CONFIGURATION": true,
-              "containerImagesEvaluation": false,
+              "containerImagesEvalEnabled": false,
               "darkMode": false
             }"""));
   }

@@ -262,7 +262,7 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
           (p, o) -> Objects.toString(o, null)),
-      new ConfigurationProperty(SystemConfigurationProperty.CONTAINER_IMAGES_EVALUATION, Boolean.class,
+      new ConfigurationProperty(SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.DARK_MODE, Boolean.class,

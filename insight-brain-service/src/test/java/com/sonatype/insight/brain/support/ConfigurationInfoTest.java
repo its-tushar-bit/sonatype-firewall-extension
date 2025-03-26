@@ -289,7 +289,7 @@ public class ConfigurationInfoTest
         "idTokenCookieExpirationTime",
         "alpForSbomManager",
         "componentChangeDetectionApi",
-        "containerImagesEvaluation",
+        "containerImagesEvalEnabled",
         "darkMode"
         );
 

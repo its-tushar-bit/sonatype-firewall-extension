@@ -1405,41 +1405,41 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
-  public void testGetSystemConfigurationPropertyFeature_ContainerImagesEvaluation() {
-    assertThat(service.getSystemConfigurationPropertyFeature("containerImagesEvaluation")).isEqualTo(
-        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVALUATION);
-    assertThat(service.getSystemConfigurationPropertyFeature("container-images-evaluation")).isEqualTo(
-        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVALUATION);
-    assertThat(service.getSystemConfigurationPropertyFeature("Container-Images-Evaluation")).isEqualTo(
-        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVALUATION);
-    assertThat(service.getSystemConfigurationPropertyFeature("CONTAINER-IMAGES-EVALUATION")).isEqualTo(
-        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVALUATION);
+  public void testGetSystemConfigurationPropertyFeature_ContainerImagesEvalEnabled() {
+    assertThat(service.getSystemConfigurationPropertyFeature("containerImagesEvalEnabled")).isEqualTo(
+        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED);
+    assertThat(service.getSystemConfigurationPropertyFeature("container-images-eval-enabled")).isEqualTo(
+        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED);
+    assertThat(service.getSystemConfigurationPropertyFeature("Container-Images-Eval-Enabled")).isEqualTo(
+        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED);
+    assertThat(service.getSystemConfigurationPropertyFeature("CONTAINER-IMAGES-EVAL-ENABLED")).isEqualTo(
+        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED);
   }
 
   @Test
-  public void testEnableFeature_ContainerImagesEvaluation() {
-    service.enableFeature(SystemConfigurationProperty.CONTAINER_IMAGES_EVALUATION);
+  public void testEnableFeature_ContainerImagesEvalEnabled() {
+    service.enableFeature(SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED);
 
     assertThat(
-        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.CONTAINER_IMAGES_EVALUATION)
+        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED)
             .getValue())
         .isEqualTo("true");
   }
 
   @Test
-  public void testEnableFeature_ContainerImagesEvaluation_AlreadyEnabled() {
-    service.enableFeature(SystemConfigurationProperty.CONTAINER_IMAGES_EVALUATION);
+  public void testEnableFeature_ContainerImagesEvalEnabled_AlreadyEnabled() {
+    service.enableFeature(SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED);
     assertThatThrownBy(
         () -> service.enableFeature(
-            SystemConfigurationProperty.CONTAINER_IMAGES_EVALUATION)).isInstanceOf(
+            SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED)).isInstanceOf(
         BadRequestException.class).hasMessage("Feature is already enabled.");
   }
 
   @Test
-  public void testDisableFeature_ContainerImagesEvaluation_AlreadyDisabled() {
+  public void testDisableFeature_ContainerImagesEvalEnabled_AlreadyDisabled() {
     assertThatThrownBy(
         () -> service.disableFeature(
-            SystemConfigurationProperty.CONTAINER_IMAGES_EVALUATION)).isInstanceOf(
+            SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED)).isInstanceOf(
         BadRequestException.class).hasMessage("Feature is already disabled.");
   }
 
@@ -1500,7 +1500,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("SYSTEM_NOTICE_CONFIGURATION", true);
     expectedFeatureConfigMap.put("vulnerabilitySource", false);
     expectedFeatureConfigMap.put("WEBHOOK_CONFIGURATION", true);
-    expectedFeatureConfigMap.put("containerImagesEvaluation", false);
+    expectedFeatureConfigMap.put("containerImagesEvalEnabled", false);
     expectedFeatureConfigMap.put("darkMode", false);
 
     return expectedFeatureConfigMap;

@@ -273,7 +273,7 @@ public enum SystemConfigurationPropertyFeature
     }
   },
 
-  CONTAINER_IMAGES_EVALUATION(SystemConfigurationProperty.CONTAINER_IMAGES_EVALUATION, false),
+  CONTAINER_IMAGES_EVAL_ENABLED(SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED, false),
 
   DARK_MODE(SystemConfigurationProperty.DARK_MODE, false)
   {

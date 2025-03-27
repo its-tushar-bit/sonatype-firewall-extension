@@ -16,6 +16,7 @@ const formatsThatHaveIcon = {
   gem: require('../../img/tag/gem.svg'),
   golang: require('../../img/tag/golang.svg'),
   swift: require('../../img/tag/swift.svg'),
+  'hf-model': require('../../img/tag/hf.svg'),
 };
 
 const nameMapping = {
@@ -36,6 +37,7 @@ const nameMapping = {
   rpm: 'RPM',
   gem: 'RubyGems',
   swift: 'Swift',
+  'hf-model': 'HF Model',
 };
 
 export default function ComponentFormatTag({ name, ...props }) {

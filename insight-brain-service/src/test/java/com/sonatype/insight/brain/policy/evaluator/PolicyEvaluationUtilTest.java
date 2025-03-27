@@ -72,6 +72,50 @@ public class PolicyEvaluationUtilTest
     verify(mockStageTypeService).getLicensedStageTypes();
   }
 
+  @Test(expected = InvalidLicenseException.class)
+  public void testValidateEvaluationTypeAndFeature_CLI_Proxy() {
+    Stage stage = new Stage(Stage.ID_PROXY);
+
+    policyEvaluationUtil.validateEvaluationTypeAndFeature(IntegrationType.CLI, stage);
+
+    verify(mockStageTypeService).getLicensedStageTypes();
+  }
+
+  @Test(expected = InvalidLicenseException.class)
+  public void testValidateEvaluationTypeAndFeature_CLI_ProxyWithCorrectFeatureOnly() {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_PROXY);    
+    
+    policyEvaluationUtil.validateEvaluationTypeAndFeature(IntegrationType.CLI, stage);
+
+    verify(mockStageTypeService).getLicensedStageTypes();
+  }
+
+  @Test(expected = InvalidLicenseException.class)
+  public void testValidateEvaluationTypeAndFeature_CLI_ProxyWithCorrectLicenseOnly() {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
+    lenient().when(mockProductLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)).thenReturn(true);
+
+    Stage stage = new Stage(Stage.ID_PROXY);
+
+    policyEvaluationUtil.validateEvaluationTypeAndFeature(IntegrationType.CLI, stage);
+
+    verify(mockStageTypeService).getLicensedStageTypes();
+  }
+
+  @Test
+  public void testValidateEvaluationTypeAndFeature_CLI_ProxyWithCorrectFeatureAndLicense() {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    lenient().when(mockProductLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)).thenReturn(true);
+
+    Stage stage = new Stage(Stage.ID_PROXY);    
+    
+    policyEvaluationUtil.validateEvaluationTypeAndFeature(IntegrationType.CLI, stage);
+
+    verify(mockStageTypeService).getLicensedStageTypes();
+  }
+
   @Test
   public void testValidateEvaluationTypeAndFeature_CI() {
     Stage stage = new Stage(Stage.ID_BUILD);

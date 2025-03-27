@@ -13,13 +13,13 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
-
 import javax.inject.Inject;
 import javax.inject.Provider;
 
@@ -56,6 +56,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -77,6 +78,8 @@ import org.mockito.ArgumentCaptor;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
+import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
+import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REFS;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -298,6 +301,15 @@ public class SbomResultsMergerTest
     assertThat(telemetry.getUnverifiedVulnerabilityCount()).isEqualTo(0);
     assertThat(telemetry.getAdditionalVulnerabilitiesCount()).isEqualTo(1);
     assertThat(telemetry.getTotalVulnerabilitiesCount()).isEqualTo(1);
+
+    //verify bom.json update
+    ContainerNode<ObjectNode> bomJsonData =
+        JsonUtils.parse(Objects.requireNonNull(appReport.getEntry(BOM_JSON_FILENAME)).buf);
+    ArrayNode bomArray = (ArrayNode) bomJsonData.get("aaData");
+    for (JsonNode jsonNode : bomArray) {
+      List<String> bomNodeComponentRefs = JsonUtils.getStringListFromArray(jsonNode.get(PROPERTY_COMPONENT_REFS));
+      assertThat(bomNodeComponentRefs).hasSize(1).allMatch(ref -> ref.length() == 40);
+    }
   }
 
   @Test
@@ -681,16 +693,16 @@ public class SbomResultsMergerTest
       sbomComponent = thirdPartyFileCoordinateDAO.getById(sbomComponent.getId());
       assertThat(sbomComponent.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
       assertThat(sbomComponent.getPackageUrl()).isEqualTo(
-              "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar");
+          "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar");
       //updated hash from the matched result from HDS
       assertThat(sbomComponent.getHash()).isEqualTo("af008de6e523b6eeb5e8");
 
       List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
-              thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(sbomComponent.getId());
+          thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(sbomComponent.getId());
       assertThat(thirdPartyCoordinateSecurityList).hasSize(8);
 
       List<ThirdPartyCoordinateLicense> licenses =
-              thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(sbomComponent.getId());
+          thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(sbomComponent.getId());
       assertThat(licenses).hasSize(1);
     }
     finally {

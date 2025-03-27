@@ -149,18 +149,24 @@ public class SbomPolicyServiceTest
 
   @Test
   public void testGetPolicyViolationsJsonNodeByFileCoordinateIdOrHash_ByComponentRef() throws IOException {
-    doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef,fileCoordinateId) -> {
-      try {
-        JsonNode jsonNode =
-            service.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), sbomVersion, componentRef,
-                fileCoordinateId, null, null);
-        assertThat(jsonNode).isNotNull();
-        return JsonUtils.asPojo(jsonNode, PolicyThreats.Component.class);
-      }
-      catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
-    }, false);
+    String sbomVersion = "sbomVersion1";
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), sbomVersion, ACTIVE, "fileName", "spec",
+        "specFormat", "specVersion");
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
+
+    File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper.zipReport("/ReportResourceTest/report-bom-componentRefs", tempDir),
+        reportFile);
+
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, thirdPartyScan.getScanId());
+    JsonNode jsonNode =
+        service.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), sbomVersion,
+            "eb95f7c60bd3ae19e4ee272c96b62ca473614987",
+            null, null, null);
+    assertThat(jsonNode).isNotNull();
+    Component cp = JsonUtils.asPojo(jsonNode, Component.class);
+    assertThat(cp.policyThreatLevel).isEqualTo(9);
   }
 
   @Test

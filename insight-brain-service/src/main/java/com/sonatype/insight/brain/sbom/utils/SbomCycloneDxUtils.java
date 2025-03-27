@@ -65,6 +65,8 @@ public class SbomCycloneDxUtils
 
   public static final String PROPERTY_COMPONENT_REF = "componentRef";
 
+  public static final String PROPERTY_COMPONENT_REFS = "componentRefs";
+
   public static final String VULNERABILITY_KEY = "vulnerabilities";
 
   private SbomCycloneDxUtils() {

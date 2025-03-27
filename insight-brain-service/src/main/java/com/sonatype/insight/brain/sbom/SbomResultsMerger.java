@@ -54,7 +54,6 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
-import com.sonatype.insight.brain.thirdparty.DuplicateAwareThirdPartyFileCoordinatePersister;
 import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -67,6 +66,7 @@ import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.brain.thirdparty.DuplicateAwareThirdPartyFileCoordinatePersister;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -82,6 +82,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.collections4.CollectionUtils;
@@ -119,6 +120,7 @@ import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCyclo
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxProperty;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxVulnerabilityFromDbData;
 import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REF;
+import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REFS;
 import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.resolveRatingMethodFromSeveritySource;
 import static com.sonatype.insight.brain.utils.CvssV3Severity.resolveRatingSeverity;
 
@@ -238,6 +240,7 @@ public class SbomResultsMerger
   {
     initializeMerge(sbomMetadata, applicationReport);
     mergeSonatypeDataWithSbomData(sbomMetadata, scanId);
+    updateReportJsons(sbomMetadata, applicationReport);
     addDependencyDataForOriginalSbom();
     sendTelemetries();
     createAndSaveOriginalSbom(sbomMetadata);
@@ -344,6 +347,19 @@ public class SbomResultsMerger
     }
   }
 
+  private void updateReportJsons(final ThirdPartySbomMetadata sbomMetadata, final ApplicationReport applicationReport) {
+    // update bom.json only in the case of binary scans
+    if (originalBom != null) {
+      try {
+        applicationReport.saveReportEntry(BOM_JSON_FILENAME, bomJsonData);
+      }
+      catch (IOException e) {
+        log.debug("Failed to update bom.json in the binary scan application report for thirdPartyFileId {} ",
+            sbomMetadata.getThirdPartyFileId(), e);
+      }
+    }
+  }
+
   private void mergeResultsWithComponentRefOrSonatypeIdentifier(
       final String scanId,
       final MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> results,
@@ -384,8 +400,9 @@ public class SbomResultsMerger
         //more than 1 hds result for the thirdparty component. perform best match
         idResult = SbomResultsMatcher.bestMatch(sbomComponent, identityResults, bestMatchResultsTelemetry);
       }
-      doMergeWithSonatypeIdentifier(scanId, sonatypeVulnerabilityResults,
-          sonatypeLicenseResults, thirdPartySbomMetadata, originalBom, filteredBom, idResult, sbomComponent, tx);
+      doMergeWithWithUniqueReference(scanId, sonatypeVulnerabilityResults,
+          sonatypeLicenseResults, thirdPartySbomMetadata, originalBom, filteredBom, idResult, sbomComponent,
+          tx);
     }
   }
 
@@ -427,7 +444,7 @@ public class SbomResultsMerger
     }
   }
 
-  private void doMergeWithSonatypeIdentifier(
+  private void doMergeWithWithUniqueReference(
       final String scanId,
       final Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeVulnerabilityResults,
       final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
@@ -519,8 +536,8 @@ public class SbomResultsMerger
 
   private ThirdPartyFileCoordinate addNewComponentsForBinaryScan(
       final JsonNode bomNode,
-      Bom originalBom,
-      Bom filteredBom,
+      final Bom originalBom,
+      final Bom filteredBom,
       ThirdPartyFileCoordinate sbomDbComponent,
       final String thirdPartyFileId,
       final TransactionContext tx)
@@ -529,16 +546,19 @@ public class SbomResultsMerger
       List<ThirdPartyCoordinateSecurity> disclosedVulns = null;
       List<ThirdPartyCoordinateLicense> disclosedLicenses = null;
       String newComponentBomRef = UUID.randomUUID().toString().replace("-", "");
+      String newComponentRef = SbomIdentityUtils.getComponentRef(newComponentBomRef);
       if (sbomDbComponent == null) {
         sbomDbComponent = createAndSaveComponentInThirdPartyDatabase(newComponentBomRef, bomNode, thirdPartyFileId, tx);
       }
       else {
         disclosedVulns = thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(sbomDbComponent.getId());
         disclosedLicenses = thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(sbomDbComponent.getId());
-        String newComponentRef = SbomIdentityUtils.getComponentRef(newComponentBomRef);
         sbomDbComponent.setComponentRef(newComponentRef);
         thirdPartyFileCoordinateDAO.update(tx, sbomDbComponent);
       }
+      //replace any existing component refs with the new component ref
+      ArrayNode componentRefs = ((ObjectNode) bomNode).putArray(PROPERTY_COMPONENT_REFS);
+      componentRefs.add(newComponentRef);
       createAndSaveComponentInBom(newComponentBomRef, sbomDbComponent, disclosedVulns, disclosedLicenses, bomNode,
           originalBom, filteredBom);
     }
@@ -793,7 +813,7 @@ public class SbomResultsMerger
         continue;
       }
 
-      List<String> bomNodeComponentRefs = JsonUtils.getStringListFromArray(bomNode.get("componentRefs"));
+      List<String> bomNodeComponentRefs = JsonUtils.getStringListFromArray(bomNode.get(PROPERTY_COMPONENT_REFS));
       String bomNodeComponentRef = JsonUtils.getNullableString(bomNode.get("componentRef"));
       String sonatypeIdentifier = JsonUtils.getNullableString(bomNode.get("sonatypeIdentifier"));
       if (CollectionUtils.isNotEmpty(bomNodeComponentRefs)) {

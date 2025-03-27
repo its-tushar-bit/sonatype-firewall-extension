@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.sbom.policy;
 
 import java.io.IOException;
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -27,6 +28,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
@@ -127,15 +129,18 @@ public class SbomPolicyService
     String matchingHash = null;
 
     for (JsonNode bomComponentNode : bomReportAaData) {
-      JsonNode componentRefNode = bomComponentNode.get(SbomCycloneDxUtils.PROPERTY_COMPONENT_REF);
+      JsonNode componentRefsNode = bomComponentNode.get(SbomCycloneDxUtils.PROPERTY_COMPONENT_REFS);
       JsonNode hashNode = bomComponentNode.get("hash");
 
       if (isJsonNodeNotNull(hashNode)) {
-        // Match first by componentRef
-        if (isJsonNodeNotNull(componentRefNode)
-            && StringUtils.isNotBlank(componentRef)
-            && componentRef.equals(componentRefNode.asText())) {
-          return hashNode.asText();
+        // Match first by componentRefs
+        if (isJsonNodeNotNull(componentRefsNode)) {
+          List<String> bomNodeComponentRefs = JsonUtils.getStringListFromArray(componentRefsNode);
+          //given that we consolidate any possible multiple componentRefs into a single componentRef during merge
+          // we can safely assume that the first componentRef in the list is the one we are looking for
+          if (CollectionUtils.isNotEmpty(bomNodeComponentRefs) && bomNodeComponentRefs.get(0).equals(componentRef)) {
+            return hashNode.asText();
+          }
         }
 
         //Fallback to Match by sonatypeIdentifier for old sbom reports

@@ -30,6 +30,7 @@ import unsavedChangesModalModule from './unsavedChangesModal/module';
 import loginModalModule from './user/LoginModal/module';
 import legalModule from './legal/legal.module';
 import toastContainerModule from './toastContainer/module';
+import displayThemeModule from './configuration/displayTheme/module';
 import { contains, isEmpty, not, path, tryCatch } from 'ramda';
 import { attachAxiosInterceptors } from './utility/axiosConfig';
 import { requestNotificationPermission } from './utility/services/notificationService';
@@ -95,6 +96,7 @@ export const InitModule = angular
       loginModalModule.name,
       toastContainerModule.name,
       routeProductLicenseValidator.name,
+      displayThemeModule.name,
     ],
     [
       '$stateProvider',

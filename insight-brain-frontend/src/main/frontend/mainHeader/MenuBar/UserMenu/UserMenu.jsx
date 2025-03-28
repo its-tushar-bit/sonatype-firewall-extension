@@ -9,9 +9,11 @@ import { faUserCircle } from '@fortawesome/pro-solid-svg-icons';
 import { MenuButton, MenuTitle } from '../MenuButton/MenuButton';
 import UserTokenModalContainer from './UserToken/UserTokenModalContainer';
 import { useStateTransition } from '../../../react/useStateTransition';
-
+import DisplayThemeModal from 'MainRoot/configuration/displayTheme/DisplayThemeModal';
 import ChangePasswordModal from './ChangePasswordModal';
 import UserDetailsModal from './UserDetailsModal';
+import { useSelector } from 'react-redux';
+import { selectIsDarkModeFeatureFlagEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 const UserMenu = ({
   user,
@@ -29,6 +31,9 @@ const UserMenu = ({
   useEffect(() => void loadUser(), []);
   const [isChangePasswordModalVisible, setIsChangePasswordModalVisible] = useState(false);
   const [isUserDetailsModalVisible, setIsUserDetailsModalVisible] = useState(false);
+  const [isDisplayThemeModalVisible, setIsDisplayThemeModalVisible] = useState(false);
+
+  const isDarkModeFeatureFlagEnabled = useSelector(selectIsDarkModeFeatureFlagEnabled);
 
   // used to close the modal after a successful password change
   useStateTransition(changePasswordStatus, 'success', 'idle', () => {
@@ -77,6 +82,17 @@ const UserMenu = ({
           Details
         </a>
 
+        {isDarkModeFeatureFlagEnabled && (
+          <a
+            id="display-theme"
+            tabIndex="0"
+            onClick={() => setIsDisplayThemeModalVisible(true)}
+            className="iq-dropdown-menu__link--main-header"
+          >
+            Display Theme
+          </a>
+        )}
+
         <a id="logout" tabIndex="0" onClick={onLogout} className="iq-dropdown-menu__link--main-header">
           Logout
         </a>
@@ -93,6 +109,7 @@ const UserMenu = ({
       {isUserDetailsModalVisible && (
         <UserDetailsModal user={user} onClose={() => setIsUserDetailsModalVisible(false)} />
       )}
+      {isDisplayThemeModalVisible && <DisplayThemeModal onClose={() => setIsDisplayThemeModalVisible(false)} />}
     </div>
   );
 };

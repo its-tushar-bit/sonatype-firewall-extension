@@ -9,6 +9,7 @@ const preferences = {
   leftNavigation: {
     isOpen: 'leftNavigation.isOpen',
   },
+  displayTheme: 'displayTheme',
 };
 
 const defaults = {
@@ -31,6 +32,31 @@ export const setLeftNavigationOpen = (newLeftNavigationOpenState) => {
   setItemInStorage(preferences.leftNavigation.isOpen, newLeftNavigationOpenState);
   window.dispatchEvent(new Event('storage'));
 };
+
+export const getDisplayTheme = () => {
+  const currentLocalValue = getItemFromStorageForKey(preferences.displayTheme);
+  if (isNilOrEmpty(currentLocalValue)) {
+    return null;
+  }
+
+  return currentLocalValue;
+};
+
+export const setDisplayTheme = (displayTheme) => {
+  setItemInStorage(preferences.displayTheme, displayTheme);
+};
+
+/**
+ * Register a callback to be called when the display theme changes, potentially due to action in another window.
+ * The callback will be passed the new display theme.
+ */
+export function onDisplayThemeChange(callback) {
+  window.addEventListener('storage', (evt) => {
+    if (evt.key === preferences.displayTheme && evt.newValue !== null && evt.newValue !== evt.oldValue) {
+      callback(evt.newValue);
+    }
+  });
+}
 
 const getItemFromStorageForKey = (key) => localStorage.getItem(key);
 

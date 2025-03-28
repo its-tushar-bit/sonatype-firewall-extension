@@ -408,7 +408,7 @@ beforeEach(function () {
   }
 });
 
-function configureStore(opts) {
+export function configureStore(opts) {
   return reduxToolkitConfigureStore({
     ...opts,
     middleware: getDefaultMiddleware({

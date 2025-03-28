@@ -111,6 +111,7 @@ import applicationLatestEvaluationsSlice from 'MainRoot/applicationLatestEvaluat
 import roiFirewallMetricsSlice from 'MainRoot/firewall/roiMetrics/roiFirewallMetricsSlice';
 import roiConfigurationPageSlice from 'MainRoot/configuration/roiConfiguration/roiConfigurationPageSlice';
 import editRoiConfigurationPageSlice from 'MainRoot/configuration/editRoiConfiguration/editRoiConfigurationPageSlice';
+import displayThemeSlice from 'MainRoot/configuration/displayTheme/displayThemeSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -220,4 +221,5 @@ export default combineReducers({
   roiFirewallMetrics: roiFirewallMetricsSlice,
   roiConfigurationPage: roiConfigurationPageSlice,
   editRoiConfigurationPage: editRoiConfigurationPageSlice,
+  displayTheme: displayThemeSlice,
 });

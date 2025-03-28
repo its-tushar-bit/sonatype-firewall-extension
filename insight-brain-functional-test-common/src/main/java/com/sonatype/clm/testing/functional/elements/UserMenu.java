@@ -36,6 +36,10 @@ public class UserMenu
     return child("#user-details");
   }
 
+  public SelenideElement displayTheme() {
+    return child("#display-theme");
+  }
+
   public SelenideElement logout() {
     return child("#logout");
   }

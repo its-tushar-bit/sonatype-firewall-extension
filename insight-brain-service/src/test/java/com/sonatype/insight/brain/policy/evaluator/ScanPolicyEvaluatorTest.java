@@ -325,6 +325,76 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
+  public void testEvaluate_Results_ContainerImageEvaluation() throws Exception {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+
+    Stage stage = new Stage(Stage.ID_PROXY);
+
+    String scanId = simulateReportIsAvailable("report");
+
+    ScanPolicyEvaluatorResults results =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
+
+    assertThat(results.evaluation).isNotNull();
+    assertThat(results.evaluation.getApplicationId()).isEqualTo(application.getId());
+    assertThat(results.evaluation.getStageTypeId()).isEqualTo(stage.getStageTypeId());
+    assertThat(results.evaluation.getScanId()).isEqualTo(scanId);
+    assertThat(results.evaluation.getCommitHash()).isEqualTo("testCommitHash");
+    assertThat(results.evaluation.getScanTriggerType()).isEqualTo(ScanTriggerType.CLI);
+    assertThat(results.evaluation.getBranchName()).isEqualTo("testBranchName");
+  }
+
+  @Test
+  public void testEvaluate_Results_ContainerImageEvaluation_NotCLI() throws Exception {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    Stage stage = new Stage(Stage.ID_PROXY);
+
+    assertThatExceptionOfType(InvalidStageException.class)
+        .isThrownBy(() -> scanPolicyEvaluator.evaluate(application, "test-scan", stage,
+            ScanTriggerType.CONTINUOUS_INTEGRATION, ClientScanType.SONATYPE, false))
+        .withMessage("Invalid stage id=proxy");
+  }
+
+  @Test
+  public void testEvaluate_Results_ContainerImageEvaluation_MissingLicense() throws Exception {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    testProductLicense.setMissingFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    Stage stage = new Stage(Stage.ID_PROXY);
+
+    assertThatExceptionOfType(InvalidStageException.class)
+        .isThrownBy(() -> scanPolicyEvaluator.evaluate(application, "test-scan", stage,
+            ScanTriggerType.CLI, ClientScanType.SONATYPE, false))
+        .withMessage("Invalid stage id=proxy");
+  }
+
+  @Test
+  public void testEvaluate_Results_ContainerImageEvaluation_MissingFeature() throws Exception {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
+    testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    Stage stage = new Stage(Stage.ID_PROXY);
+
+    assertThatExceptionOfType(InvalidStageException.class)
+        .isThrownBy(() -> scanPolicyEvaluator.evaluate(application, "test-scan", stage,
+            ScanTriggerType.CLI, ClientScanType.SONATYPE, false))
+        .withMessage("Invalid stage id=proxy");
+  }
+
+  @Test
+  public void testEvaluate_Results_ContainerImageEvaluation_MissingLicenseAndFeature() throws Exception {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
+    testProductLicense.setMissingFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    Stage stage = new Stage(Stage.ID_PROXY);
+
+    assertThatExceptionOfType(InvalidStageException.class)
+        .isThrownBy(() -> scanPolicyEvaluator.evaluate(application, "test-scan", stage,
+            ScanTriggerType.CLI, ClientScanType.SONATYPE, false))
+        .withMessage("Invalid stage id=proxy");
+  }
+
+  @Test
   public void testEvaluate_Results_AllViolations() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");

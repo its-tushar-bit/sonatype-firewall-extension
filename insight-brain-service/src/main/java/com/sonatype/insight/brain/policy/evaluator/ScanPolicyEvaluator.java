@@ -355,7 +355,15 @@ public class ScanPolicyEvaluator
         "Evaluating policies for application ID {}, scan ID {}, stage {}, scan trigger type {}, for monitoring {}.",
         application.getId(), scanId, stage.getStageTypeId(), scanTriggerType.name(), forMonitoring);
 
-    if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
+    boolean isContainerImageEval = (
+        scanTriggerType.equals(ScanTriggerType.CLI) &&
+        stage.getStageTypeId().equals(Stage.ID_PROXY) &&
+        productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION) &&
+        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled()
+    );
+
+    // Only validate stage type when it is not a container image evaluation
+    if (!isContainerImageEval && !Stage.isValidStageTypeId(stage.getStageTypeId())) {
       throw new InvalidStageException(stage.getStageTypeId());
     }
 

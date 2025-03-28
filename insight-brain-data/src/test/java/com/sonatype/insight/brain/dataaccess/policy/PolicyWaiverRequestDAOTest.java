@@ -60,7 +60,7 @@ public class PolicyWaiverRequestDAOTest
     String requesterId = "requesterId";
     String requesterName = "requesterName";
     Date reviewTime = new Date();
-    String requestReason = "request reason comment";
+    String noteToReviewer = "note to reviewer";
     String rejectionReason = "";
 
     ComponentMatcherStrategyForWaiver componentMatcherStrategy = ComponentMatcherStrategyForWaiver.DEFAULT;
@@ -76,7 +76,7 @@ public class PolicyWaiverRequestDAOTest
     policyWaiverRequest.setRequesterId(requesterId);
     policyWaiverRequest.setRequesterName(requesterName);
     policyWaiverRequest.setReviewTime(reviewTime);
-    policyWaiverRequest.setRequestReason(requestReason);
+    policyWaiverRequest.setNoteToReviewer(noteToReviewer);
     policyWaiverRequest.setRejectionReason(rejectionReason);
 
     Date beforeInsert = new Date();
@@ -107,7 +107,6 @@ public class PolicyWaiverRequestDAOTest
     policyWaiverRequest.setRequesterId(requesterId);
     policyWaiverRequest.setRequesterName(requesterName);
     policyWaiverRequest.setReviewTime(reviewTime);
-    policyWaiverRequest.setRequestReason(requestReason);
     policyWaiverRequest.setRejectionReason(rejectionReason);
 
     dao.update(policyWaiverRequest);

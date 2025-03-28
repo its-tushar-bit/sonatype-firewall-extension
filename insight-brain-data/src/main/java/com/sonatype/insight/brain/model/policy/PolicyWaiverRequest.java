@@ -87,8 +87,8 @@ public class PolicyWaiverRequest
   @Column(name = "requester_name")
   private String requesterName;
 
-  @Column(name = "request_reason")
-  private String requestReason;
+  @Column(name = "note_to_reviewer")
+  private String noteToReviewer;
 
   @Column(name = "reviewer_id")
   private String reviewerId;
@@ -305,12 +305,12 @@ public class PolicyWaiverRequest
     this.requesterName = requesterName;
   }
 
-  public String getRequestReason() {
-    return requestReason;
+  public String getNoteToReviewer() {
+    return noteToReviewer;
   }
 
-  public void setRequestReason(final String requestReason) {
-    this.requestReason = requestReason;
+  public void setNoteToReviewer(String noteToReviewer) {
+    this.noteToReviewer = noteToReviewer;
   }
 
   public String getRejectionReason() {

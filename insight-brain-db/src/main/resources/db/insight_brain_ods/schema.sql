@@ -146,7 +146,7 @@ CREATE TABLE policy_waiver_request (
   request_time timestamp NOT NULL,
   expiry_time timestamp default NULL,
   component_upgrade_available boolean,
-  waiver_reason_id varchar(50) NOT NULL,
+  waiver_reason_id varchar(50) NULL,
   expire_when_remediation_available boolean DEFAULT false,
   status varchar(20) NOT NULL,
   -- ID of the policy waiver created on policy waiver request approval
@@ -158,6 +158,7 @@ CREATE TABLE policy_waiver_request (
   review_time timestamp NULL,
   request_reason text NULL,
   rejection_reason text NULL,
+  note_to_reviewer text NULL,
   CONSTRAINT policy_waiver_request_pk PRIMARY KEY (policy_waiver_request_id),
   CONSTRAINT policy_waiver_request_policy_fk FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
      ON DELETE CASCADE,

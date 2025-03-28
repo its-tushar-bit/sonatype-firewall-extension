@@ -287,8 +287,8 @@ public class SbomResultHandlerTest
     assertThat(components).extracting(Component::getPurl).containsExactlyInAnyOrder(
         "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar",
         "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library",
-        "pkg:generic/apache/log4j@2.11.2?update=rc3",
-        "pkg:generic/apache/log4j@2.12.2?language=en&update=rc1",
+        "pkg:generic/apache/log4j@2.11.2?part=a&update=rc3",
+        "pkg:generic/apache/log4j@2.12.2?language=en&part=a&update=rc1",
         "pkg:generic/django@1.2.3?sbom_type=library",
         "pkg:generic/joda-time/joda-time@2.1.0?sbom_type=library");
     assertThat(components).extracting("properties.size")
@@ -2547,7 +2547,7 @@ public class SbomResultHandlerTest
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     assertThat(coordinates).hasSize(1).extracting(ThirdPartyFileCoordinate::getPackageUrl)
-        .containsExactlyInAnyOrder("pkg:generic/red_inc./fonts-filesystem@2.0.5");
+        .containsExactlyInAnyOrder("pkg:generic/red_inc./fonts-filesystem@2.0.5?part=a");
 
     assertDebugLogOutput("Invalid Component Identifier for provided purl pkg:rpm/fonts-filesystem@2.0.5");
   }

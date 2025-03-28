@@ -174,7 +174,7 @@ public class SpdxResultHandlerTest
             "pkg:generic/sonatype/iq_application_SCM%20Test%201@76b10b862e7b42009f2415097620928c",
             "pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar",
             "pkg:generic/org.apache.logging.log4j/log4j-api@2.13.2?sbom_type=library",
-            "pkg:generic/apache/log4j@2.11.2?update=rc3",
+            "pkg:generic/apache/log4j@2.11.2?part=a&update=rc3",
             null);
     assertThat(components).extracting("properties.size")
         .containsOnly(2, 2, 2, 2, 2);
@@ -220,7 +220,7 @@ public class SpdxResultHandlerTest
     assertThat(components).extracting(Component::getVersion).containsExactly("2.0.5");
 
     assertThat(components).extracting(Component::getPurl)
-        .containsExactly("pkg:generic/red_inc./fonts-filesystem@2.0.5");
+        .containsExactly("pkg:generic/red_inc./fonts-filesystem@2.0.5?part=a");
     assertComponentRef(thirdPartyFile.getId());
     assertDebugLogOutput("Invalid purl: pkg:rpm/fonts-filesystem@2.0.5");
   }

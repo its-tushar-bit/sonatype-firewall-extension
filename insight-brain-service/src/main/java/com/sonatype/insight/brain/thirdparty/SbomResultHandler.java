@@ -455,12 +455,14 @@ public class SbomResultHandler
     catch (InvalidComponentIdentifierException e) {
       log.debug("Invalid Component Identifier for provided purl {}", packageUrl, e);
     }
+
     String cpe = sourceComponent.getCpe();
-    PackageUrlIdentifier packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromCpe(cpe);
+    PackageUrlIdentifier packageUrlIdentifier = SbomCommonUtils.getPackageUrlIdentifierFromCpe(cpe);
     if (SbomIdentityUtils.packageUrlIdentifierHasMandatoryCoordinates(packageUrlIdentifier)) {
       componentInfoTelemetry.incrementCpeCount();
       return createComponent(sourceComponent, packageUrlIdentifier);
     }
+
     Swid swid = sourceComponent.getSwid();
     packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromSwid(swid);
     if (SbomIdentityUtils.packageUrlIdentifierHasMandatoryCoordinates(packageUrlIdentifier)) {

@@ -24,7 +24,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.SbomValidationException;
@@ -210,13 +209,10 @@ public final class SbomSpdxUtils
     }
     //fallback to cpe
     String cpe = getCpe(spdxPackage);
-    if (cpe != null) {
-      PackageUrlIdentifier packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromCpe(cpe);
-      if (packageUrlIdentifier != null) {
-        return packageUrlIdentifier.getPackageUrl();
-      }
+    PackageUrlIdentifier packageUrlIdentifier = SbomCommonUtils.getPackageUrlIdentifierFromCpe(cpe);
+    if (packageUrlIdentifier != null) {
+      return packageUrlIdentifier.getPackageUrl();
     }
-
     return null;
   }
 

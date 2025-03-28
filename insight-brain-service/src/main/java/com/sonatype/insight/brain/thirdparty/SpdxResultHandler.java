@@ -457,7 +457,7 @@ public class SpdxResultHandler
     Optional<String> cpeOptional = getCpe(spdxPackage);
     if (cpeOptional.isPresent()) {
       String cpe = cpeOptional.get();
-      PackageUrlIdentifier packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromCpe(cpe);
+      PackageUrlIdentifier packageUrlIdentifier = SbomCommonUtils.getPackageUrlIdentifierFromCpe(cpe);
       if (SbomIdentityUtils.packageUrlIdentifierHasMandatoryCoordinates(packageUrlIdentifier)) {
         componentInfoTelemetry.incrementCpeCount();
         return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId);

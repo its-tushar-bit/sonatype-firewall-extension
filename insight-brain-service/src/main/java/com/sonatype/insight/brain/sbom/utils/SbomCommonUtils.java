@@ -9,10 +9,12 @@ import java.util.UUID;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils;
+import com.sonatype.insight.cpe.CPEIdentifier;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.model.Component;
+import us.springett.parsers.cpe.util.Validate;
 
 public class SbomCommonUtils
 {
@@ -21,6 +23,13 @@ public class SbomCommonUtils
       scanId = UUID.randomUUID().toString().replace("-", "");
     }
     return "scan-" + scanId + "-filtered.xml.gz";
+  }
+
+  public static PackageUrlIdentifier getPackageUrlIdentifierFromCpe(String cpe) {
+    if (cpe == null || !Validate.cpe(cpe).isValid()) {
+      return null;
+    }
+    return CPEIdentifier.fromCpeString(cpe).toPackageUrlIdentifier();
   }
 
   public static ComponentIdentifier getComponentIdentifier(

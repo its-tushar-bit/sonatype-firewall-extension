@@ -14,6 +14,8 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseOverrideDTO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -199,5 +201,30 @@ public class LicenseOverrideServiceTest
     assertThat(handler.getEvent().licenseOverride.getLicenseIds()).isEqualTo(licenses);
     assertThat(handler.getEvent().initiator).isEqualTo("testuser");
     assertThat(handler.getEvent().licenseOverride.getOwnerId()).isEqualTo(organization.getId());
+  }
+
+  @Test
+  public void testToInternalLicenseOverrideConversion() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1",
+        "a1", "v1");
+    ApiComponentIdentifierDTOV2 componentIdentifierDTOV2 =
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
+    ApiLicenseOverrideDTO apiLicenseOverrideDTO = new ApiLicenseOverrideDTO("ownerId", "comment",
+        "licenseId",
+        componentIdentifierDTOV2, OVERRIDDEN);
+
+    LicenseOverride licenseOverride = service.toInternalLicenseOverride(apiLicenseOverrideDTO);
+
+    assertThat(licenseOverride.getComment()).isEqualTo("comment");
+    assertThat(licenseOverride.getLicenseIds()).containsExactly("licenseId");
+    assertThat(licenseOverride.getComponentIdentifier()).isEqualTo(componentIdentifier);
+    assertThat(licenseOverride.getStatus()).isEqualTo(OVERRIDDEN);
+
+    LicenseOverride licenseOverrideNull = service.toInternalLicenseOverride(null);
+    assertThat(licenseOverrideNull).isNull();
+
+    LicenseOverride licenseOverrideComponentIdNull = service.toInternalLicenseOverride(
+        new ApiLicenseOverrideDTO("ownerId", "comment", "licenseId", null, OVERRIDDEN));
+    assertThat(licenseOverrideComponentIdNull.getComponentIdentifier()).isNull();
   }
 }

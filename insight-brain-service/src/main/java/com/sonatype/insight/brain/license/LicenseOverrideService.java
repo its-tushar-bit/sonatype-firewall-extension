@@ -14,6 +14,9 @@ import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiAppliedLicenseOverridesDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseOverrideDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentIdentifierValidator;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -39,6 +42,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
@@ -50,6 +55,8 @@ import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 @Named
 public class LicenseOverrideService
 {
+  private static final Logger log = LoggerFactory.getLogger(LicenseOverrideService.class);
+
   private final InsightWork work;
 
   private final CurrentUser currentUser;
@@ -105,11 +112,14 @@ public class LicenseOverrideService
       licenseOverride.setId(existingLicenseOverride.getId());
       licenseOverrideDAO.update(licenseOverride);
       licenseOverrideEventService.postEvent(UPDATED, licenseOverride);
+      log.debug("Updated license override with id {} for {} {}", existingLicenseOverride.getId(),
+          ownerType, ownerId);
     }
     else {
       licenseOverride.setId(null);
       licenseOverrideDAO.insert(licenseOverride);
       licenseOverrideEventService.postEvent(CREATED, licenseOverride);
+      log.debug("Created license override for {} {}", ownerType, ownerId);
     }
     auditLicenseOverride(licenseOverride, false);
 
@@ -178,6 +188,7 @@ public class LicenseOverrideService
     auditLicenseOverride(licenseOverride, true);
 
     licenseOverrideEventService.postEvent(DELETED, licenseOverride);
+    log.debug("Deleted license override {} for {} {}", licenseOverrideId, ownerType, ownerId);
   }
 
   @Authorize(permission = Permission.READ)
@@ -196,6 +207,30 @@ public class LicenseOverrideService
       final ComponentIdentifier componentIdentifier)
   {
     return getAppliedLicenseOverridesNoAuth(ownerType, ownerId, componentIdentifier);
+  }
+
+  public LicenseOverride toInternalLicenseOverride(ApiLicenseOverrideDTO apiLicenseOverrideDTO) {
+    if (apiLicenseOverrideDTO == null) {
+      return null;
+    }
+
+    return new LicenseOverride(
+        apiLicenseOverrideDTO.ownerId,
+        apiLicenseOverrideDTO.componentIdentifier != null ?
+            apiLicenseOverrideDTO.componentIdentifier.toComponentIdentifier() : null,
+        apiLicenseOverrideDTO.status,
+        apiLicenseOverrideDTO.licenseIds,
+        apiLicenseOverrideDTO.comment);
+  }
+
+  public ApiLicenseOverrideDTO toApiLicenseOverrideDTO(LicenseOverride licenseOverride) {
+    return new ApiLicenseOverrideDTO(
+        licenseOverride.getId(),
+        licenseOverride.getOwnerId(),
+        licenseOverride.getComment(),
+        licenseOverride.getLicenseIds(),
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(licenseOverride.getComponentIdentifier()),
+        licenseOverride.getStatus());
   }
 
   @VisibleForTesting
@@ -228,6 +263,12 @@ public class LicenseOverrideService
   public static class AppliedLicenseOverrides
   {
     public List<LicenseOverrideByOwner> licenseOverridesByOwner;
+
+    public ApiAppliedLicenseOverridesDTO toDto() {
+      ApiAppliedLicenseOverridesDTO dto = new ApiAppliedLicenseOverridesDTO();
+      dto.licenseOverridesByOwner = licenseOverridesByOwner;
+      return dto;
+    }
   }
 
   public static class LicenseOverrideByOwner

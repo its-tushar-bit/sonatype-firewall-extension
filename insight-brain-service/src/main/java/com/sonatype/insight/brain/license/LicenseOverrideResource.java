@@ -57,10 +57,10 @@ public class LicenseOverrideResource
   @Audited(AuditEvent.UPDATE_COMPONENT_LICENSE)
   @ProductLicenseEnforcementPoint(LicensedFeature.POLICY_MANAGEMENT)
   public LicenseOverride addLicenseOverride(@PathParam("ownerType") OwnerType ownerType,
-                                            @PathParam("ownerId") String ownerId,
-                                            LicenseOverride licenseOverride,
-                                            @QueryParam("where") String where,
-                                            @Context final HttpServletRequest request) throws IOException
+                                                  @PathParam("ownerId") String ownerId,
+                                                  LicenseOverride licenseOverride,
+                                                  @QueryParam("where") String where,
+                                                  @Context final HttpServletRequest request) throws IOException
   {
     return licenseOverrideService.addLicenseOverride(ownerType, ownerId, licenseOverride, where, request);
   }
@@ -85,7 +85,8 @@ public class LicenseOverrideResource
       @PathParam("ownerId") String ownerId,
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
   {
-    return licenseOverrideService.getAppliedLicenseOverridesForRead(ownerType, ownerId, componentIdentifier);
+    return licenseOverrideService.getAppliedLicenseOverridesForRead(ownerType, ownerId,
+        componentIdentifier);
   }
 
   @GET
@@ -96,6 +97,7 @@ public class LicenseOverrideResource
       @PathParam("ownerId") String ownerId,
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
   {
-    return licenseOverrideService.getAppliedLicenseOverridesForLegalReviewer(ownerType, ownerId, componentIdentifier);
+    return licenseOverrideService.getAppliedLicenseOverridesForLegalReviewer(ownerType, ownerId,
+        componentIdentifier);
   }
 }

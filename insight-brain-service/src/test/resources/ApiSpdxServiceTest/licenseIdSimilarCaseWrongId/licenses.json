@@ -1,0 +1,32 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format": "maven",
+      "coordinates" : {
+        "artifactId" : "httpcore",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.httpcomponents",
+        "version" : "4.4.13"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "853b96d3afbb7bf8cc30",
+    "declaredLicenses" : [ "CC0-1.0", "MiT", "WXwindows" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "CC0-1.0", "MiT", "WXwindows" ],
+    "securityCounters" : {
+      "Critical" : 1,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 9.8,
+    "catalogDate" : 1594228480866
+  }]
+}

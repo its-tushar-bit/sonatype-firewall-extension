@@ -1,0 +1,69 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "httpcore",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.httpcomponents",
+        "version" : "4.4.13"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.httpcomponents/httpcore@4.4.13?type=jar",
+    "groupId" : "org.apache.httpcomponents",
+    "artifactId" : "httpcore",
+    "version" : "4.4.13",
+    "filenames" : [ "httpcore-4.4.13.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.36.19-SNAPSHOT/org.apache.httpcomponents:httpcore:jar:4.4.13", "dependency:/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.36.19-SNAPSHOT/org.apache.httpcomponents:httpcore:jar:4.4.13" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "853b96d3afbb7bf8cc30",
+    "relativePopularity" : 1.0,
+    "createTime" : 1578574658000,
+    "lastModifiedTime" : 1650503362000,
+    "lastModifiedEntryTime" : 1578596236000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.httpcomponents"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "httpcore"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "4.4.13"
+      } ],
+      "name" : "httpcore"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/org.apache.httpcomponents/httpclient@4.5.13?type=jar" ]
+  }]
+}

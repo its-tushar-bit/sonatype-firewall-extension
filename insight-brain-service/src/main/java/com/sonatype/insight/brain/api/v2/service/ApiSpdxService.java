@@ -24,6 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -419,7 +420,12 @@ public class ApiSpdxService
       throws InvalidSPDXAnalysisException
   {
     if (ListedLicenses.getListedLicenses().isSpdxListedLicenseId(licenseId)) {
-      return ListedLicenses.getListedLicenses().getListedLicenseById(licenseId);
+      //Recover valid SPDX license ID here respecting the case instead of trusting original value which might not
+      // be an exact match. As a fallback we use the original value
+      Optional<String> foundSpdxLicenseIdCaseSensitiveOptional = ListedLicenses.getListedLicenses()
+          .listedLicenseIdCaseSensitive(licenseId);
+      return ListedLicenses.getListedLicenses().getListedLicenseById(foundSpdxLicenseIdCaseSensitiveOptional
+          .orElse(licenseId));
     }
     if (extractedLicenseInfoMap.containsKey(licenseId)) {
       return extractedLicenseInfoMap.get(licenseId);

@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -210,6 +211,25 @@ public class ApiSpdxServiceTest
     assertThatNoException().isThrownBy(() -> {
       service.addDependencyRelationships(nodeDTO, new SpdxDocument("uri"), purlElementMap, true);
     });
+  }
+
+  @Test
+  public void testGetByScanId_exportWithCorrectLicenseIdCase() throws Exception {
+    createReportAndPolicyEvaluation("licenseIdSimilarCaseWrongId");
+
+    Response response = service.getByScanId(application.getId(), scanId, "json", false, "2.3");
+    SpdxDocument document = deserialize(response.getEntity().toString(), "json");
+
+    // assert top level relationship
+    Collection<Relationship> relationships = document.getRelationships();
+    assertThat(relationships).hasSize(1);
+
+    SpdxPackage onlyPackage = SbomSpdxUtils.getAllPackages(document).get(0);
+    // Original license id with incorrect letter case were: MiT and WXwindows. We check case is corrected to comply
+    // with IDs recognized by SPDX library(MIT and wxWindows)
+    assertThat(onlyPackage.getLicenseConcluded().toString()).isEqualTo("(wxWindows AND CC0-1.0 AND MIT)");
+    assertThat(onlyPackage.getLicenseDeclared().toString()).isEqualTo(
+        "(wxWindows AND LicenseRef-Not-Supported AND CC0-1.0 AND MIT)");
   }
 
   private SpdxDocument testGetByScanId(

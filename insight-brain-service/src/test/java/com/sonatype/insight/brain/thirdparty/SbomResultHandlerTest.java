@@ -96,6 +96,7 @@ import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.PU
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.THIRD_PARTY_IDENTIFICATION_SOURCE_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VERSION_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VULNERABILITY_SOURCE_MAX_LENGTH;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.entry;
@@ -2766,6 +2767,22 @@ public class SbomResultHandlerTest
     // Check original filename property in ingested sbom metadata
     assertThat(sbomMetadata).isNotNull().extracting(ThirdPartySbomMetadata::getOriginalBinaryFileName)
         .isEqualTo("binary.temp");
+  }
+
+  @Test
+  public void testHandleAndFilterContents_filteredIdentitySbom() throws Exception {
+    String ingestedFilename = "sbom-identity-order.xml";
+    String sbomContent = getSbomXmlFile(ingestedFilename);
+    ThirdPartyScanContent content = new ThirdPartyScanContent(ingestedFilename, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    Application app = tempEntity.newApplicationWithParent();
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, ingestedFilename);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+
+    String expectedContent = getSbomJsonFile("sbom-identity-order-expected.json");
+    assertThatJson(filteredContent)
+        .whenIgnoringPaths("components[*].properties[*].value")
+        .isEqualTo(expectedContent);
   }
 
   @Test

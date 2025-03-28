@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.thirdparty;
 
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoord
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
@@ -57,7 +58,9 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.spdx.library.model.SpdxDocument;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REF;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.entry;
@@ -447,7 +450,7 @@ public class SpdxResultHandlerTest
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     assertThat(coordinates).hasSize(10);
-    List<String> coordinateIds = coordinates.stream().map(ThirdPartyFileCoordinate::getId).collect(Collectors.toList());
+    List<String> coordinateIds = coordinates.stream().map(ThirdPartyFileCoordinate::getId).toList();
 
     try (TransactionContext tx = thirdPartyCoordinateLicenseDAO.createTransactionContext()) {
       List<ThirdPartyCoordinateLicense> coordinatesLicenses = new ArrayList<>();
@@ -515,7 +518,7 @@ public class SpdxResultHandlerTest
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     assertThat(coordinates).hasSize(6);
-    List<String> coordinateIds = coordinates.stream().map(ThirdPartyFileCoordinate::getId).collect(Collectors.toList());
+    List<String> coordinateIds = coordinates.stream().map(ThirdPartyFileCoordinate::getId).toList();
 
     try (TransactionContext tx = thirdPartyCoordinateSecurityDAO.createTransactionContext()) {
       List<ThirdPartyCoordinateSecurity> allSecurityRecords = new ArrayList<>();
@@ -874,6 +877,22 @@ public class SpdxResultHandlerTest
     assertComponentRef(thirdPartyFile.getId());
   }
 
+  @Test
+  public void testHandleAndFilterContents_filteredIdentitySbom() throws Exception {
+    String ingestedFilename = "sbom-identity-order.xml";
+    String sbomContent = getSbomXmlFile(ingestedFilename);
+    ThirdPartyScanContent content = new ThirdPartyScanContent(ingestedFilename, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    Application app = tempEntity.newApplicationWithParent();
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, ingestedFilename);
+    String filteredContent = spdxResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+
+    String expectedContent = getSbomJsonFile("sbom-identity-order-expected.json");
+    assertThatJson(filteredContent)
+        .whenIgnoringPaths("metadata.timestamp", "components[*].properties[*].value")
+        .isEqualTo(expectedContent);
+  }
+
   private void assertCpeAndSwid(ThirdPartyScanContent content) throws Exception {
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String cpeValue = "cpe:2.3:a:pivotal_software:spring_framework:4.1.0:*:*:*:*:*:*:*";
@@ -909,7 +928,7 @@ public class SpdxResultHandlerTest
 
   private String getSbomFile(final String fileType, final String fileName) throws Exception {
     URL resource = getClass().getResource("/SpdxResultHandlerTest/" + fileType + "/" + fileName);
-    return new String(Files.readAllBytes(Paths.get(resource.toURI())), StandardCharsets.UTF_8);
+    return Files.readString(Paths.get(resource.toURI()));
   }
 
   private String getSbomXmlFile(final String fileName) throws Exception {

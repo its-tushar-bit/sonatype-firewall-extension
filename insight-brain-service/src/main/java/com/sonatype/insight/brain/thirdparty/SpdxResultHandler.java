@@ -68,6 +68,7 @@ import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.Hash.Algorithm;
 import org.cyclonedx.model.Metadata;
+import org.cyclonedx.model.Swid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spdx.library.InvalidSPDXAnalysisException;
@@ -75,7 +76,6 @@ import org.spdx.library.Read;
 import org.spdx.library.SpdxConstants;
 import org.spdx.library.model.ExternalRef;
 import org.spdx.library.model.ModelObject;
-import org.spdx.library.model.ReferenceType;
 import org.spdx.library.model.Relationship;
 import org.spdx.library.model.SpdxDocument;
 import org.spdx.library.model.SpdxPackage;
@@ -85,7 +85,6 @@ import org.spdx.library.model.enumerations.RelationshipType;
 import org.spdx.library.model.license.AnyLicenseInfo;
 import org.spdx.library.model.license.SpdxNoAssertionLicense;
 import org.spdx.library.model.license.SpdxNoneLicense;
-import us.springett.parsers.cpe.util.Validate;
 
 import static com.sonatype.insight.brain.sbom.SbomSpecification.SPDX;
 import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REF;
@@ -249,15 +248,6 @@ public class SpdxResultHandler
         String componentRef = SbomIdentityUtils.getComponentRef(spdxPackage);
         resolvedComponent.getRight()
             .addProperty(SbomExportUtils.createCycloneDxProperty(PROPERTY_COMPONENT_REF, componentRef));
-        getCpe(spdxPackage).ifPresent(cpe -> {
-          if (StringUtils.isNotEmpty(cpe) && Validate.cpe(cpe).isValid()) {
-            resolvedComponent.getRight().setCpe(cpe);
-          }
-          else {
-            log.debug("Skipping invalid CPE {} for component with ID {}", cpe, spdxPackage.getId());
-          }
-        });
-        SbomSpdxUtils.getSwid(spdxPackage).ifPresent(swid -> resolvedComponent.getRight().setSwid(swid));
         ComponentIdentifier componentIdentifier = resolvedComponent.getLeft();
         if (componentIdentifier == null) {
           targetBom.addComponent(resolvedComponent.getRight());
@@ -317,7 +307,6 @@ public class SpdxResultHandler
       fileCoordinate.setCpe(component.getCpe());
     }
     if (component.getSwid() != null) {
-      componentInfoTelemetry.incrementSwidCount();
       fileCoordinate.setSwid(ThirdPartyComponentDAO.MAPPER.writeValueAsString(component.getSwid()));
     }
     if (StringUtils.isNotEmpty(componentRef)) {
@@ -433,6 +422,8 @@ public class SpdxResultHandler
       throws InvalidSPDXAnalysisException, MalformedPackageURLException
   {
     Optional<String> purlOptional = getPurl(spdxPackage);
+    String cpe = SbomSpdxUtils.getCpe(spdxPackage);
+
     try {
       if (purlOptional.isPresent()) {
         String packageUrl = purlOptional.get();
@@ -440,7 +431,7 @@ public class SpdxResultHandler
         packageUrlIdentifier.ensureCompleteIdentifier();
         if (SbomIdentityUtils.packageUrlIdentifierHasMandatoryCoordinates(packageUrlIdentifier)) {
           componentInfoTelemetry.incrementPurlCount();
-          return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId);
+          return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId, cpe);
         }
         else {
           log.debug("PackageUrl is not valid {}", packageUrl);
@@ -454,13 +445,10 @@ public class SpdxResultHandler
       log.debug("Invalid Component Identifier for provided purl {}", purlOptional.orElse(""), e);
     }
 
-    Optional<String> cpeOptional = getCpe(spdxPackage);
-    if (cpeOptional.isPresent()) {
-      String cpe = cpeOptional.get();
+    if (StringUtils.isNotBlank(cpe)) {
       PackageUrlIdentifier packageUrlIdentifier = SbomCommonUtils.getPackageUrlIdentifierFromCpe(cpe);
       if (SbomIdentityUtils.packageUrlIdentifierHasMandatoryCoordinates(packageUrlIdentifier)) {
-        componentInfoTelemetry.incrementCpeCount();
-        return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId);
+        return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId, cpe);
       }
     }
     return processComponentFromHashOrCoordinates(spdxPackage, rootPackageId);
@@ -469,11 +457,23 @@ public class SpdxResultHandler
   private Pair<ComponentIdentifier, Component> createComponent(
       final SpdxPackage spdxPackage,
       final PackageUrlIdentifier packageUrlIdentifier,
-      final String rootPackageId) throws InvalidSPDXAnalysisException
+      final String rootPackageId,
+      final String cpe) throws InvalidSPDXAnalysisException
   {
     Component component = new Component();
     component.setType(spdxPackage.getId().equals(rootPackageId) ? Type.APPLICATION : Type.LIBRARY);
     component.setBomRef(spdxPackage.getId());
+
+    if (StringUtils.isNotBlank(cpe)) {
+      componentInfoTelemetry.incrementCpeCount();
+      component.setCpe(cpe);
+    }
+
+    Optional<Swid> swidOptional = SbomSpdxUtils.getSwid(spdxPackage);
+    if (swidOptional.isPresent()) {
+      component.setSwid(swidOptional.get());
+      componentInfoTelemetry.incrementSwidCount();
+    }
 
     final Optional<String> sha1Optional = SbomSpdxUtils.getChecksum(spdxPackage, ChecksumAlgorithm.SHA1);
     boolean hasHash = sha1Optional.isPresent();
@@ -508,7 +508,7 @@ public class SpdxResultHandler
       componentInfoTelemetry.incrementCoordinateCount();
       PackageUrlIdentifier packageUrlIdentifier = resolvePackageUrl(
           getPackageUrlFromCoordinates(name, version, isRootPackage));
-      return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId);
+      return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId, null);
     }
     else {
       // This scenario is only possible when only the hash is sent without coordinates nor purl
@@ -670,23 +670,6 @@ public class SpdxResultHandler
       if (externalRef.getReferenceCategory() == ReferenceCategory.PACKAGE_MANAGER &&
           externalRef.getReferenceType().getIndividualURI().endsWith("/purl")) {
         return Optional.of(externalRef.getReferenceLocator());
-      }
-    }
-    return Optional.empty();
-  }
-
-  private Optional<String> getCpe(final SpdxPackage spdxPackage)
-      throws InvalidSPDXAnalysisException
-  {
-    final Collection<ExternalRef> externalRefs = spdxPackage.getExternalRefs();
-    for (ExternalRef externalRef : externalRefs) {
-      if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY) {
-        String referenceType = externalRef.getReferenceType().getIndividualURI();
-        if (referenceType.endsWith("cpe23Type") || referenceType.endsWith("cpe22Type") ||
-            (referenceType.equals(ReferenceType.MISSING_REFERENCE_TYPE_URI) &&
-                externalRef.getReferenceLocator().startsWith("cpe"))) {
-          return Optional.of(externalRef.getReferenceLocator());
-        }
       }
     }
     return Optional.empty();

@@ -386,21 +386,10 @@ public class SbomResultHandler
     try {
       Pair<ComponentIdentifier, Component> resolvedComponent = getResolvedComponent(sourceComponent);
       if (resolvedComponent != null) {
-        String sourceSbomComponentCpe = sourceComponent.getCpe();
-        String componentRef = com.sonatype.insight.SbomIdentityUtils.getComponentRef(sourceComponent);
+        String componentRef = SbomIdentityUtils.getComponentRef(sourceComponent);
         resolvedComponent.getRight()
             .addProperty(SbomExportUtils.createCycloneDxProperty(SbomCycloneDxUtils.PROPERTY_COMPONENT_REF,
                 componentRef));
-        if (sourceSbomComponentCpe != null) {
-          if (StringUtils.isNotBlank(sourceSbomComponentCpe) && Validate.cpe(sourceSbomComponentCpe).isValid()) {
-            resolvedComponent.getRight().setCpe(sourceComponent.getCpe());
-          }
-          else {
-            log.debug("Skipping invalid CPE {} for component with name {}", sourceSbomComponentCpe,
-                sourceComponent.getName());
-          }
-        }
-        resolvedComponent.getRight().setSwid(sourceComponent.getSwid());
         ComponentIdentifier componentIdentifier = resolvedComponent.getLeft();
         if (componentIdentifier == null) {
           targetBom.addComponent(resolvedComponent.getRight());
@@ -457,17 +446,20 @@ public class SbomResultHandler
     }
 
     String cpe = sourceComponent.getCpe();
-    PackageUrlIdentifier packageUrlIdentifier = SbomCommonUtils.getPackageUrlIdentifierFromCpe(cpe);
-    if (SbomIdentityUtils.packageUrlIdentifierHasMandatoryCoordinates(packageUrlIdentifier)) {
-      componentInfoTelemetry.incrementCpeCount();
-      return createComponent(sourceComponent, packageUrlIdentifier);
+    if (StringUtils.isNotBlank(cpe)) {
+      PackageUrlIdentifier packageUrlIdentifier = SbomCommonUtils.getPackageUrlIdentifierFromCpe(cpe);
+      if (SbomIdentityUtils.packageUrlIdentifierHasMandatoryCoordinates(packageUrlIdentifier)) {
+        return createComponent(sourceComponent, packageUrlIdentifier);
+      }
     }
 
     Swid swid = sourceComponent.getSwid();
-    packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromSwid(swid);
-    if (SbomIdentityUtils.packageUrlIdentifierHasMandatoryCoordinates(packageUrlIdentifier)) {
-      componentInfoTelemetry.incrementSwidCount();
-      return createComponent(sourceComponent, packageUrlIdentifier);
+    if (swid != null) {
+      PackageUrlIdentifier packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromSwid(swid);
+      if (SbomIdentityUtils.packageUrlIdentifierHasMandatoryCoordinates(packageUrlIdentifier)) {
+        componentInfoTelemetry.incrementSwidCount();
+        return createComponent(sourceComponent, packageUrlIdentifier);
+      }
     }
 
     return processComponentFromHashOrCoordinates(sourceComponent);
@@ -533,8 +525,23 @@ public class SbomResultHandler
   {
     ComponentIdentifier componentIdentifier;
     Component component = new Component();
+
     component.setType(sourceComponent.getType());
     component.setBomRef(sourceComponent.getBomRef());
+
+    String cpe = sourceComponent.getCpe();
+    if (StringUtils.isNotBlank(cpe)) {
+      if (Validate.cpe(cpe).isValid()) {
+        component.setCpe(sourceComponent.getCpe());
+        componentInfoTelemetry.incrementCpeCount();
+      }
+      else {
+        log.debug("Skipping invalid CPE {} for component with name {}, it's invalid", cpe,
+            sourceComponent.getName());
+      }
+    }
+
+    component.setSwid(sourceComponent.getSwid());
 
     setHashes(sourceComponent, component);
 

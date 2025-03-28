@@ -720,11 +720,6 @@
     </dependency>
 
     <dependency>
-      <groupId>us.springett</groupId>
-      <artifactId>cpe-parser</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>s3</artifactId>
       <exclusions>

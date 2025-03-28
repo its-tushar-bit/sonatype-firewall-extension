@@ -42,6 +42,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclonedx.model.Swid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spdx.jacksonstore.MultiFormatStore;
 import org.spdx.jacksonstore.MultiFormatStore.Format;
 import org.spdx.jacksonstore.MultiFormatStore.Verbose;
@@ -58,9 +60,12 @@ import org.spdx.library.model.enumerations.ChecksumAlgorithm;
 import org.spdx.library.model.enumerations.ReferenceCategory;
 import org.spdx.storage.IModelStore;
 import org.spdx.storage.simple.InMemSpdxStore;
+import us.springett.parsers.cpe.util.Validate;
 
 public final class SbomSpdxUtils
 {
+  private static final Logger log = LoggerFactory.getLogger(SbomSpdxUtils.class);
+
   private static final Gson gson = new GsonBuilder().create();
 
   public static final Pattern personSpdxPattern = Pattern.compile("Person: (.+)");
@@ -225,7 +230,12 @@ public final class SbomSpdxUtils
         if (referenceType.endsWith("cpe23Type") || referenceType.endsWith("cpe22Type") ||
             (referenceType.equals(ReferenceType.MISSING_REFERENCE_TYPE_URI) &&
                 externalRef.getReferenceLocator().startsWith("cpe"))) {
-          return externalRef.getReferenceLocator();
+          if (Validate.cpe(externalRef.getReferenceLocator()).isValid()) {
+            return externalRef.getReferenceLocator();
+          }
+          else {
+            log.debug("Invalid CPE: {}", externalRef.getReferenceLocator());
+          }
         }
       }
     }

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.git;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
-
 import javax.inject.Provider;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
@@ -87,7 +86,7 @@ public class PullRequestCommentingServiceTest
 
     GitRepositoryInfo repositoryInfo =
         new GitRepositoryInfo(null, null, null, null, SourceControlProvider.GITHUB, null, null, null, null, null, null,
-            null);
+            null, null);
 
     PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO = new PullRequestPolicyEvaluationsDTO()
         .setGitRepositoryInfo(repositoryInfo)
@@ -117,7 +116,7 @@ public class PullRequestCommentingServiceTest
 
     GitRepositoryInfo repositoryInfo =
         new GitRepositoryInfo(null, null, null, null, SourceControlProvider.BITBUCKET, null, null, null, null, null,
-            null, null);
+            null, null, null);
 
     PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO = new PullRequestPolicyEvaluationsDTO()
         .setGitRepositoryInfo(repositoryInfo)

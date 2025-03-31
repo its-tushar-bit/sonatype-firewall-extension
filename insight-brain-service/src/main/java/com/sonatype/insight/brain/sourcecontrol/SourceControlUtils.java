@@ -90,6 +90,7 @@ public class SourceControlUtils
         sourceControl.getRepositoryUrl(), sourceControl.getNormalizedRepositoryUrl(),
         sourceControl.getRepositorySshUrl(), sourceControl.getUsername(), sourceControl.getToken(),
         sourceControl.getProvider(), sourceControl.getBaseBranch(), sourceControl.getRemediationPullRequestsEnabled(),
+        sourceControl.getManualPullRequestsEnabled(),
         sourceControl.getStatusChecksEnabled(),
         sourceControl.getPullRequestCommentingEnabled(), sourceControl.getSourceControlEvaluationsEnabled(),
         sourceControl.getSshEnabled(), sourceControl.getSourceControlScanTarget());

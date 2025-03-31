@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.sourcecontrol;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import org.apache.commons.lang3.StringUtils;
-
 public class GitRepositoryInfo
 {
   public GitRepositoryInfo() {
@@ -22,6 +20,7 @@ public class GitRepositoryInfo
                            final SourceControlProvider provider,
                            final String baseBranch,
                            final Boolean remediationPullRequestsEnabled,
+                           final Boolean manualPullRequestsEnabled,
                            final Boolean statusChecksEnabled,
                            final Boolean pullRequestCommentingEnabled,
                            final Boolean sourceControlEvaluationsEnabled,
@@ -29,7 +28,7 @@ public class GitRepositoryInfo
                            final String sourceControlScanTarget)
   {
     this(repositoryUrl, SourceControl.normalizeRepositoryUrl(repositoryUrl), sshRepositoryUrl, username, token,
-        provider, baseBranch, remediationPullRequestsEnabled, statusChecksEnabled,
+        provider, baseBranch, remediationPullRequestsEnabled, manualPullRequestsEnabled, statusChecksEnabled,
         pullRequestCommentingEnabled, sourceControlEvaluationsEnabled, sshEnabled, sourceControlScanTarget);
   }
 
@@ -41,6 +40,7 @@ public class GitRepositoryInfo
                            final SourceControlProvider provider,
                            final String baseBranch,
                            final Boolean remediationPullRequestsEnabled,
+                           final Boolean manualPullRequestsEnabled,
                            final Boolean statusChecksEnabled,
                            final Boolean pullRequestCommentingEnabled,
                            final Boolean sourceControlEvaluationsEnabled,
@@ -55,6 +55,7 @@ public class GitRepositoryInfo
     this.provider = provider;
     this.baseBranch = baseBranch;
     this.remediationPullRequestsEnabled = remediationPullRequestsEnabled;
+    this.manualPullRequestsEnabled = manualPullRequestsEnabled;
     this.statusChecksEnabled = statusChecksEnabled;
     this.pullRequestCommentingEnabled = pullRequestCommentingEnabled;
     this.sourceControlEvaluationsEnabled = sourceControlEvaluationsEnabled;
@@ -77,6 +78,8 @@ public class GitRepositoryInfo
   public String baseBranch;
 
   public Boolean remediationPullRequestsEnabled;
+
+  public Boolean manualPullRequestsEnabled;
 
   public Boolean statusChecksEnabled;
 
@@ -116,6 +119,10 @@ public class GitRepositoryInfo
     return remediationPullRequestsEnabled;
   }
 
+  public Boolean getManualPullRequestsEnabled() {
+    return manualPullRequestsEnabled;
+  }
+
   public Boolean getStatusChecksEnabled() {
     return statusChecksEnabled;
   }
@@ -134,22 +141,5 @@ public class GitRepositoryInfo
 
   public String getSourceControlScanTarget() {
     return sourceControlScanTarget;
-  }
-
-  /**
-   * Is the object considered 'complete'? A complete {@link GitRepositoryInfo} object is one that no longer needs any
-   * attributes loaded from the hierarchy above.
-   */
-  public boolean isDataComplete() {
-    return !(provider == null
-        || StringUtils.isBlank(repositoryUrl)
-        || StringUtils.isBlank(token)
-        || (provider.requiresUsername() && StringUtils.isBlank(username))
-        || remediationPullRequestsEnabled == null
-        || statusChecksEnabled == null
-        || pullRequestCommentingEnabled == null
-        || sourceControlEvaluationsEnabled == null
-        || sshEnabled == null
-        || sourceControlScanTarget == null);
   }
 }

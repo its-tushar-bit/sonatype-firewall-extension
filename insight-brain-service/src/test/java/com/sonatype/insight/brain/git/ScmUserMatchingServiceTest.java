@@ -1152,7 +1152,7 @@ public class ScmUserMatchingServiceTest
 
   private GitRepositoryInfo getGitRepositoryInfo() {
     return new GitRepositoryInfo(repoUrl, null, "user", "pass", SourceControlProvider.GITHUB, "main", true, true,
-        true, true, false, null);
+        true, true, true, false, null);
   }
 
   private void assertMembershipEqual(

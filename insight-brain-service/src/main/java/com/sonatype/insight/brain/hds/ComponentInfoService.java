@@ -17,6 +17,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.function.Function;
@@ -52,6 +53,8 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.git.ManualPullRequestImpossibilityReason;
+import com.sonatype.insight.brain.git.ManualPullRequestService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.Owner;
@@ -136,6 +139,8 @@ public class ComponentInfoService
 
   private final ApiComponentDetailsServiceV2 apiComponentDetailsServiceV2;
 
+  private final ManualPullRequestService manualPullRequestService;
+
   private final MultiLicenseDAO multiLicenseDAO;
 
   private final IdUtils idUtils;
@@ -160,7 +165,8 @@ public class ComponentInfoService
       LicenseThreatGroupDAO licenseThreatGroupDAO,
       final OwnerDAO ownerDAO,
       final PolicyDAO policyDAO,
-      final IdUtils idUtils)
+      final IdUtils idUtils,
+      ManualPullRequestService manualPullRequestService)
   {
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
@@ -177,6 +183,7 @@ public class ComponentInfoService
     this.ownerDAO = ownerDAO;
     this.policyDAO = policyDAO;
     this.idUtils = idUtils;
+    this.manualPullRequestService = manualPullRequestService;
     initUnspecifiedLicense();
     initOtherCategory();
   }
@@ -517,7 +524,35 @@ public class ComponentInfoService
       remediationDto = componentRemediationService.getSuggestedRemediation(componentIdentifier, componentDetailsDTOs,
           owner, stageId, componentDetailsLoader, sourceEndpoint);
     }
-    return new ComponentVersionInfoDTO(componentDetailsDTOs, remediationDto, result.getRight());
+
+    AutomatedRemediationStatusDTO remediationStatusDTO =
+        getAutomatedRemediationStatusDTO(componentIdentifier, stageId, dependencyType, owner, remediationDto);
+
+    return new ComponentVersionInfoDTO(
+        componentDetailsDTOs,
+        remediationDto,
+        result.getRight(),
+        remediationStatusDTO);
+  }
+
+  private AutomatedRemediationStatusDTO getAutomatedRemediationStatusDTO(
+      ComponentIdentifier componentIdentifier,
+      String stageId,
+      DependencyType dependencyType,
+      Owner owner,
+      ApiComponentRemediationValueDTO remediationDto)
+  {
+    if (SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()) {
+      Optional<ManualPullRequestImpossibilityReason> manualPRDisabledReason =
+          manualPullRequestService.isManualPullRequestPossible(componentIdentifier, stageId, dependencyType, owner,
+              remediationDto);
+      if (manualPRDisabledReason.isEmpty()) {
+        return new AutomatedRemediationStatusDTO.ManualPullRequestPossibleDTO();
+      }
+      return new AutomatedRemediationStatusDTO.ManualPullRequestNotPossibleDTO(manualPRDisabledReason.get());
+    }
+
+    return null;
   }
 
   /**

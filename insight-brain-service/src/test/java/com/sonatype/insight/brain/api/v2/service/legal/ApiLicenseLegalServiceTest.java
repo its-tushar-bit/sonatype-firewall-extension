@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -330,7 +329,8 @@ public class ApiLicenseLegalServiceTest
             new ComponentDetailsLoaderFactory(null, configurationMock, licenseDAO, componentLoaderFactory),
             null,
             mockThirdPartyComponentDAO, repositoryQueryService, apiComponentDetailsServiceV2, multiLicenseDAO,
-            applicationDAO, licenseDAO, componentCategoryDAO, licenseThreatGroupDAO, ownerDAO, policyDAO, idUtils);
+            applicationDAO, licenseDAO, componentCategoryDAO, licenseThreatGroupDAO, ownerDAO, policyDAO, idUtils,
+            null);
     return componentInfoService;
   }
 

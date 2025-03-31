@@ -44,6 +44,8 @@ public class RemediationPullRequestFeatureCheckTest
 
   private static final boolean DEFAULT_REMEDIATION_PULL_REQUESTS_ENABLED = true;
 
+  private static final boolean DEFAULT_MANUAL_PULL_REQUESTS_ENABLED = true;
+
   private static final boolean DEFAULT_STATUS_CHECKS_ENABLED = true;
 
   private static final boolean DEFAULT_PULL_REQUEST_COMMENTING_ENABLED = true;
@@ -67,7 +69,7 @@ public class RemediationPullRequestFeatureCheckTest
   private PullRequestRepositoryValidator pullRequestRepositoryValidator;
 
   @Rule
-  public LogOutput logOutput = new LogOutput(RemediationPullRequestFeatureCheck.class);
+  public LogOutput logOutput = new LogOutput(PullRequestFeatureCheck.class);
 
   @Before
   public void setup() {
@@ -208,14 +210,16 @@ public class RemediationPullRequestFeatureCheckTest
 
   private GitRepositoryInfo newGitHubRepositoryInfo() {
     return new GitRepositoryInfo(REPO_URL, REPO_SSH_URL, null, TOKEN, SourceControlProvider.GITHUB,
-        BASE_BRANCH, DEFAULT_REMEDIATION_PULL_REQUESTS_ENABLED, DEFAULT_STATUS_CHECKS_ENABLED,
+        BASE_BRANCH, DEFAULT_REMEDIATION_PULL_REQUESTS_ENABLED, DEFAULT_MANUAL_PULL_REQUESTS_ENABLED,
+        DEFAULT_STATUS_CHECKS_ENABLED,
         DEFAULT_PULL_REQUEST_COMMENTING_ENABLED, DEFAULT_SOURCE_CONTROL_EVALUATIONS_ENABLED,
         DEFAULT_SSH_ENABLED, DEFAULT_SOURCE_CONTROL_SCAN_TARGET);
   }
 
   private GitRepositoryInfo newBitBucketRepositoryInfo() {
     return new GitRepositoryInfo(REPO_URL, REPO_SSH_URL, USERNAME, TOKEN, SourceControlProvider.BITBUCKET,
-        BASE_BRANCH, DEFAULT_REMEDIATION_PULL_REQUESTS_ENABLED, DEFAULT_STATUS_CHECKS_ENABLED,
+        BASE_BRANCH, DEFAULT_REMEDIATION_PULL_REQUESTS_ENABLED, DEFAULT_MANUAL_PULL_REQUESTS_ENABLED,
+        DEFAULT_STATUS_CHECKS_ENABLED,
         DEFAULT_PULL_REQUEST_COMMENTING_ENABLED, DEFAULT_SOURCE_CONTROL_EVALUATIONS_ENABLED,
         DEFAULT_SSH_ENABLED, DEFAULT_SOURCE_CONTROL_SCAN_TARGET);
   }

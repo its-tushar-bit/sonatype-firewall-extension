@@ -90,7 +90,7 @@ public class PullRequestRemediationServiceTest
 
   private void setupGitRepositoryInfoForApp(String appId) {
     GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("repoUrl", "sshRepoUrl", "username", "token",
-        SourceControlProvider.GITLAB, "baseBranch", true, true, true, true, false, null);
+        SourceControlProvider.GITLAB, "baseBranch", true, true, true, true, true, false, null);
 
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(appId)).thenReturn(gitRepositoryInfo);
   }
@@ -150,7 +150,7 @@ public class PullRequestRemediationServiceTest
     setupBranchExistence(branchName, true);
     SourceControlEvent event = new SourceControlEvent().setBranchName(branchName);
     GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("repoUrl", "sshRepoUrl", "username", "token",
-        SourceControlProvider.GITLAB, "baseBranch", true, true, true, true, false, null);
+        SourceControlProvider.GITLAB, "baseBranch", true, true, true, true, true, false, null);
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     // when: try to remediate a component for this same branch

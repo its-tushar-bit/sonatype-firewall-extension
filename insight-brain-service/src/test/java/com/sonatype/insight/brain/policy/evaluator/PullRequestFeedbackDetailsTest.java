@@ -18,7 +18,6 @@ import java.util.Optional;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -237,7 +236,7 @@ public class PullRequestFeedbackDetailsTest
     // override repository information to include webContext
     bitbucketGitRepositoryInfo =
         new GitRepositoryInfo("https://bitbucket.com/webContext/scm/sonatype/enhanced-commit-information", null,
-            "user", "token", SourceControlProvider.BITBUCKET, "master", true, true, true, true, false, null);
+            "user", "token", SourceControlProvider.BITBUCKET, "master", true, true, true, true, true, false, null);
 
     //when
     final PullRequestFeedbackDetails details =
@@ -249,7 +248,7 @@ public class PullRequestFeedbackDetailsTest
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertRenderedOutput(contents, getClass(), "PullRequestFeedback_Added_noEmbeddedHtml_WithContext.md");
   }
-  
+
   private String readResource(String contentFile) throws Exception {
     return TemplateHelper.readResource(PullRequestFeedbackDetailsTest.class, contentFile);
   }
@@ -1103,19 +1102,21 @@ public class PullRequestFeedbackDetailsTest
 
     gitlabGitRepositoryInfo =
         new GitRepositoryInfo("https://gitlab.com/sonatype/enhanced-commit-information", null, null, "token",
-            SourceControlProvider.GITLAB, "master", true, true, true, true, false, null);
+            SourceControlProvider.GITLAB, "master", true, true, true, true, true, false, null);
 
     bitbucketGitRepositoryInfo =
         new GitRepositoryInfo("https://bitbucket.com/scm/sonatype/enhanced-commit-information", null, "user", "token",
-            SourceControlProvider.BITBUCKET, "master", true, true, true, true, false, null);
+            SourceControlProvider.BITBUCKET, "master", true, true, true, true, true, false, null);
 
     azureGitRepositoryInfo =
         new GitRepositoryInfo("https://dev.azure.com/sonatype/int/_git/enhanced-commit-information", null,
-            "user@sonatype.com", "token", SourceControlProvider.AZURE, "main", true, true, true, true, false, null);
+            "user@sonatype.com", "token", SourceControlProvider.AZURE, "main", true, true, true, true, true, false,
+            null);
 
     azureOnPremGitRepositoryInfo =
         new GitRepositoryInfo("https://azure-on-prem.com/sonatype/int/_git/enhanced-commit-information", null,
-            "user@sonatype.com", "token", SourceControlProvider.AZURE, "main", true, true, true, true, false, null);
+            "user@sonatype.com", "token", SourceControlProvider.AZURE, "main", true, true, true, true, true, false,
+            null);
 
     //setup source control component details
     componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(
@@ -1287,6 +1288,7 @@ public class PullRequestFeedbackDetailsTest
         "token",
         SourceControlProvider.GITHUB,
         "master",
+        true,
         true,
         true,
         true,

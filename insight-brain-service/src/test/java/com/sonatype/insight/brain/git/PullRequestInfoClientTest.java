@@ -52,7 +52,7 @@ public class PullRequestInfoClientTest
         .getCommitInformationForCommit(any(), any(), any(), any(), anyInt(), anyInt());
 
     GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("http://gitlab.com/test/project", null, "user", "token",
-        SourceControlProvider.GITLAB, "master", true, true, true, true, false, null);
+        SourceControlProvider.GITLAB, "master", true, true, true, true, true, false, null);
 
     // when: get pull request info
     PullRequestInfoClient pullRequestInfoClient = new PullRequestInfoClient(mockGitClientFactory);
@@ -73,7 +73,7 @@ public class PullRequestInfoClientTest
         .getCommitInformationForCommit(any(), any(), any(), any(), anyInt(), anyInt());
 
     GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("http://gitlab.com/test/project", null, "user", "token",
-        SourceControlProvider.GITLAB, "master", true, true, true, true, false, null);
+        SourceControlProvider.GITLAB, "master", true, true, true, true, true, false, null);
 
     PullRequestInfoClient pullRequestInfoClient = new PullRequestInfoClient(mockGitClientFactory);
 

@@ -512,7 +512,7 @@ public class PullRequestPolicyEvaluationResolverTest
 
   private GitRepositoryInfo createDefaultGitRepositoryInfo() {
     return new GitRepositoryInfo("https://gitlab.com/test/project1", null, "user", "token",
-        SourceControlProvider.GITLAB, "main", true, true, true, true, false, null);
+        SourceControlProvider.GITLAB, "main", true, true, true, true, true, false, null);
   }
 
   private class TestablePolicyEvaluationResolver

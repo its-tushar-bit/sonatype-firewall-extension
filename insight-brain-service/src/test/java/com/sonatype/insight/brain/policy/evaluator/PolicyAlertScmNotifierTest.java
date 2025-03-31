@@ -228,7 +228,7 @@ public class PolicyAlertScmNotifierTest
   public void test_remediationEventForBranchAlreadyExists() throws Exception {
     // given we have repository info for an application
     GitRepositoryInfo githubRepositoryInfo = new GitRepositoryInfo(null, null, null, null, SourceControlProvider.GITHUB,
-        null, true, true, true, true, false, null);
+        null, true, true, true, true, true, false, null);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
         .thenReturn(githubRepositoryInfo);
 
@@ -267,7 +267,7 @@ public class PolicyAlertScmNotifierTest
   public void test_pullRequestEventCreated() throws Exception {
     // given we have repository info for an application
     GitRepositoryInfo githubRepositoryInfo = new GitRepositoryInfo(null, null, null, null, SourceControlProvider.GITHUB,
-        null, true, true, true, true, false, null);
+        null, true, true, true, true, true, false, null);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
         .thenReturn(githubRepositoryInfo);
 
@@ -318,7 +318,7 @@ public class PolicyAlertScmNotifierTest
   public void test_pullRequestEventCreated_NonBreakingWithDependenciesRemediationOnly() throws Exception {
     // given we have repository info for an application
     GitRepositoryInfo githubRepositoryInfo = new GitRepositoryInfo(null, null, null, null, SourceControlProvider.GITHUB,
-        null, true, true, true, true, false, null);
+        null, true, true, true, true, true, false, null);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
         .thenReturn(githubRepositoryInfo);
 

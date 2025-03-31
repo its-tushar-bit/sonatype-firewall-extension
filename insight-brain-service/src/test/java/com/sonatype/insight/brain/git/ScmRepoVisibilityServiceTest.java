@@ -126,6 +126,7 @@ public class ScmRepoVisibilityServiceTest
 
   private GitRepositoryInfo newGitRepositoryInfo(String repoUrl, SourceControlProvider provider) {
     boolean remediationPullRequestEnabled = true;
+    boolean manualPullRequestEnabled = true;
     boolean statusChecksEnabled = true;
     boolean pullRequestCommentingEnabled = true;
     boolean sourceControlEvaluationsEnabled = true;
@@ -134,7 +135,7 @@ public class ScmRepoVisibilityServiceTest
     String sourceControlScanTarget = null;
     String username = provider.requiresUsername() ? "username" : null;
     return new GitRepositoryInfo(repoUrl, null, username, "token", provider, "baseBranch",
-        remediationPullRequestEnabled, statusChecksEnabled, pullRequestCommentingEnabled,
+        remediationPullRequestEnabled, manualPullRequestEnabled, statusChecksEnabled, pullRequestCommentingEnabled,
         sourceControlEvaluationsEnabled, sshEnabled, sourceControlScanTarget);
   }
 }

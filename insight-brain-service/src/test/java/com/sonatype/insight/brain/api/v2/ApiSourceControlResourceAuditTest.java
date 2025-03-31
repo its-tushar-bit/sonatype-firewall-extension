@@ -249,7 +249,7 @@ public class ApiSourceControlResourceAuditTest
   private GitRepositoryInfo getGitRepositoryInfo() {
     String repositoryUrl = String.format("%s/organization/project", gitService.baseUrl());
     return new GitRepositoryInfo(repositoryUrl, null, "user", "pass",
-        SourceControlProvider.GITHUB, "main", true, true, true, true, false, null);
+        SourceControlProvider.GITHUB, "main", true, true, true, true, true, false, null);
   }
 
   protected void assertRoleMembershipData(AuditDTO auditDTO, String roleId, List<String> members) {

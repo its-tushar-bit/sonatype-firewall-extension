@@ -300,7 +300,7 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
 
   private GitRepositoryInfo createDefaultGitRepositoryInfo() {
     return new GitRepositoryInfo("https://gitlab.com/test/project1", null, "user", "token",
-        SourceControlProvider.GITLAB, "master", true, true, true, true, false, null);
+        SourceControlProvider.GITLAB, "master", true, true, true, true, true, false, null);
   }
 
   private PolicyEvaluation createPolicyEvaluation(String stageTypeId, ScanTriggerType scanTriggerType, Date time) {

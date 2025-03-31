@@ -36,7 +36,7 @@ public class GitApiFactoryTest
   private static final String GIT_EXECUTABLE = "/usr/bin/git";
 
   private static final GitRepositoryInfo GIT_REPOSITORY_INFO = new GitRepositoryInfo("localhost", null, null, "token",
-      SourceControlProvider.GITHUB, "master", true, true, true, true, false, null);
+      SourceControlProvider.GITHUB, "master", true, true, true, true, true, false, null);
 
   @Inject
   private SourceControlConfigurationDAO sourceControlConfigurationDAO;
@@ -171,7 +171,7 @@ public class GitApiFactoryTest
   @Test
   public void test_sshEnabledButNoSshUrl() {
     GitRepositoryInfo sshGitRepositoryInfo = new GitRepositoryInfo("localhost", null, null, "token",
-        SourceControlProvider.GITHUB, "master", true, true, true, true, true, null);
+        SourceControlProvider.GITHUB, "master", true, true, true, true, true, true, null);
     SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
     sourceControlConfiguration.setGitImplementation(GitImplementation.NATIVE);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
@@ -187,7 +187,7 @@ public class GitApiFactoryTest
   public void test_sshEnabledWithSshUrl() {
     String sshUrl = "git@github.com:foo/bar.git";
     GitRepositoryInfo sshGitRepositoryInfo = new GitRepositoryInfo("localhost", sshUrl, null,
-        "token", SourceControlProvider.GITHUB, "master", true, true, true, true, true, null);
+        "token", SourceControlProvider.GITHUB, "master", true, true, true, true, true, true, null);
     SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
     sourceControlConfiguration.setGitImplementation(GitImplementation.NATIVE);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
@@ -201,7 +201,7 @@ public class GitApiFactoryTest
   public void test_sshEnabledButJgitConfigured() {
     String sshUrl = "git@github.com:foo/bar.git";
     GitRepositoryInfo sshGitRepositoryInfo = new GitRepositoryInfo("localhost", sshUrl, null, "token",
-        SourceControlProvider.GITHUB, "master", true, true, true, true, true, null);
+        SourceControlProvider.GITHUB, "master", true, true, true, true, true, true, null);
     SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
     sourceControlConfiguration.setGitImplementation(GitImplementation.JAVA);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);

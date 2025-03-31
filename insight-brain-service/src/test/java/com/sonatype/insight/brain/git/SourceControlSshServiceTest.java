@@ -122,6 +122,6 @@ public class SourceControlSshServiceTest
   }
 
   private GitRepositoryInfo createGitRepositoryInfo(String sshUrl, boolean enabled) {
-    return new GitRepositoryInfo(null, sshUrl, null, null, null, null, null, null, null, null, enabled, null);
+    return new GitRepositoryInfo(null, sshUrl, null, null, null, null, null, null, null, null, null, enabled, null);
   }
 }

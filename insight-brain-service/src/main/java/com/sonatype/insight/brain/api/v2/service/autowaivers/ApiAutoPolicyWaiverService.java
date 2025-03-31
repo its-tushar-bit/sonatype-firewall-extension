@@ -371,6 +371,11 @@ public class ApiAutoPolicyWaiverService
     dto.isAutoWaiverEnabled = true;
     dto.autoPolicyWaiverId = autoPolicyWaiver.getId();
     dto.autoPolicyWaiverOwnerId = autoPolicyWaiver.getOwnerId();
+    dto.createTime = autoPolicyWaiver.getCreateTime();
+    dto.threatLevel = autoPolicyWaiver.getThreatLevel();
+    dto.hasNotReachable = autoPolicyWaiver.hasReachability();
+    dto.hasNoPathForward = autoPolicyWaiver.hasPathForward();
+    dto.scopesOperatorAny = autoPolicyWaiver.getScopesOperatorAny();
     dto.isInherited = !autoPolicyWaiver.getOwnerId().equals(ownerId);
     if (Boolean.TRUE.equals(dto.isInherited) || ownerType == OwnerType.ORGANIZATION) {
       Organization owner = organizationDAO.getById(autoPolicyWaiver.getOwnerId());

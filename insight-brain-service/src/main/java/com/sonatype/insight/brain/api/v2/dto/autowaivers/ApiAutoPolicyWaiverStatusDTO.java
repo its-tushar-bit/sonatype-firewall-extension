@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.dto.autowaivers;
 
+import java.util.Date;
+
 public class ApiAutoPolicyWaiverStatusDTO
 {
   public boolean isAutoWaiverEnabled;
@@ -19,4 +21,14 @@ public class ApiAutoPolicyWaiverStatusDTO
   public String autoPolicyWaiverOwnerName;
 
   public String autoPolicyWaiverOwnerType;
+
+  public Date createTime;
+
+  public Integer threatLevel;
+
+  public Boolean hasNotReachable;
+
+  public Boolean hasNoPathForward;
+
+  public Boolean scopesOperatorAny;
 }

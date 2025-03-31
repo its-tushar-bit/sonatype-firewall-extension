@@ -1112,12 +1112,22 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(dto.autoPolicyWaiverId).isEqualTo(waiver2.getId());
     assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(org1.getId());
     assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(org1.getName());
+    assertThat(dto.createTime).isNotNull();
+    assertThat(dto.threatLevel).isEqualTo(waiver2.getThreatLevel());
+    assertThat(dto.hasNotReachable).isEqualTo(waiver2.hasReachability());
+    assertThat(dto.hasNoPathForward).isEqualTo(waiver2.hasPathForward());
+    assertThat(dto.scopesOperatorAny).isEqualTo(waiver2.getScopesOperatorAny());
     dto = applicableAutoWaivers.get(1);
     assertThat(dto.isAutoWaiverEnabled).isTrue();
     assertThat(dto.isInherited).isFalse();
     assertThat(dto.autoPolicyWaiverId).isEqualTo(waiver1.getId());
     assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(org1.getId());
     assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(org1.getName());
+    assertThat(dto.createTime).isNotNull();
+    assertThat(dto.threatLevel).isEqualTo(waiver1.getThreatLevel());
+    assertThat(dto.hasNotReachable).isEqualTo(waiver1.hasReachability());
+    assertThat(dto.hasNoPathForward).isEqualTo(waiver1.hasPathForward());
+    assertThat(dto.scopesOperatorAny).isEqualTo(waiver1.getScopesOperatorAny());
 
     // The applicable auto waivers for org2 should be:
     // waiver3: Not Reachable + NPF (from org2)
@@ -1133,18 +1143,33 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(dto.autoPolicyWaiverId).isEqualTo(waiver3.getId());
     assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(org2.getId());
     assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(org2.getName());
+    assertThat(dto.createTime).isNotNull();
+    assertThat(dto.threatLevel).isEqualTo(waiver3.getThreatLevel());
+    assertThat(dto.hasNotReachable).isEqualTo(waiver3.hasReachability());
+    assertThat(dto.hasNoPathForward).isEqualTo(waiver3.hasPathForward());
+    assertThat(dto.scopesOperatorAny).isEqualTo(waiver3.getScopesOperatorAny());
     dto = applicableAutoWaivers.get(1);
     assertThat(dto.isAutoWaiverEnabled).isTrue();
     assertThat(dto.isInherited).isTrue();
     assertThat(dto.autoPolicyWaiverId).isEqualTo(waiver2.getId());
     assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(org1.getId());
     assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(org1.getName());
+    assertThat(dto.createTime).isNotNull();
+    assertThat(dto.threatLevel).isEqualTo(waiver2.getThreatLevel());
+    assertThat(dto.hasNotReachable).isEqualTo(waiver2.hasReachability());
+    assertThat(dto.hasNoPathForward).isEqualTo(waiver2.hasPathForward());
+    assertThat(dto.scopesOperatorAny).isEqualTo(waiver2.getScopesOperatorAny());
     dto = applicableAutoWaivers.get(2);
     assertThat(dto.isAutoWaiverEnabled).isTrue();
     assertThat(dto.isInherited).isFalse();
     assertThat(dto.autoPolicyWaiverId).isEqualTo(waiver4.getId());
     assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(org2.getId());
     assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(org2.getName());
+    assertThat(dto.createTime).isNotNull();
+    assertThat(dto.threatLevel).isEqualTo(waiver4.getThreatLevel());
+    assertThat(dto.hasNotReachable).isEqualTo(waiver4.hasReachability());
+    assertThat(dto.hasNoPathForward).isEqualTo(waiver4.hasPathForward());
+    assertThat(dto.scopesOperatorAny).isEqualTo(waiver4.getScopesOperatorAny());
 
     // The applicable auto waivers for app should be:
     // waiver3: Not Reachable + NPF (from org2)
@@ -1160,18 +1185,33 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(dto.autoPolicyWaiverId).isEqualTo(waiver3.getId());
     assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(org2.getId());
     assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(org2.getName());
+    assertThat(dto.createTime).isNotNull();
+    assertThat(dto.threatLevel).isEqualTo(waiver3.getThreatLevel());
+    assertThat(dto.hasNotReachable).isEqualTo(waiver3.hasReachability());
+    assertThat(dto.hasNoPathForward).isEqualTo(waiver3.hasPathForward());
+    assertThat(dto.scopesOperatorAny).isEqualTo(waiver3.getScopesOperatorAny());
     dto = applicableAutoWaivers.get(1);
     assertThat(dto.isAutoWaiverEnabled).isTrue();
     assertThat(dto.isInherited).isFalse();
     assertThat(dto.autoPolicyWaiverId).isEqualTo(waiver5.getId());
     assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(app.getId());
     assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(app.getName());
+    assertThat(dto.createTime).isNotNull();
+    assertThat(dto.threatLevel).isEqualTo(waiver5.getThreatLevel());
+    assertThat(dto.hasNotReachable).isEqualTo(waiver5.hasReachability());
+    assertThat(dto.hasNoPathForward).isEqualTo(waiver5.hasPathForward());
+    assertThat(dto.scopesOperatorAny).isEqualTo(waiver5.getScopesOperatorAny());
     dto = applicableAutoWaivers.get(2);
     assertThat(dto.isAutoWaiverEnabled).isTrue();
     assertThat(dto.isInherited).isTrue();
     assertThat(dto.autoPolicyWaiverId).isEqualTo(waiver4.getId());
     assertThat(dto.autoPolicyWaiverOwnerId).isEqualTo(org2.getId());
     assertThat(dto.autoPolicyWaiverOwnerName).isEqualTo(org2.getName());
+    assertThat(dto.createTime).isNotNull();
+    assertThat(dto.threatLevel).isEqualTo(waiver4.getThreatLevel());
+    assertThat(dto.hasNotReachable).isEqualTo(waiver4.hasReachability());
+    assertThat(dto.hasNoPathForward).isEqualTo(waiver4.hasPathForward());
+    assertThat(dto.scopesOperatorAny).isEqualTo(waiver4.getScopesOperatorAny());
   }
 
   @Test

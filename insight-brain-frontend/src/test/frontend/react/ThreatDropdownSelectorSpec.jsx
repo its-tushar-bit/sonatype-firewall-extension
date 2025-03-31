@@ -49,4 +49,40 @@ describe('ThreatDropdownSelector', () => {
     button = screen.getByRole('button');
     expect(onSelectThreatLevelSpy).toHaveBeenCalledOnceWith(4);
   });
+
+  it('renders with threat level zero excluded', () => {
+    renderComponent({ excludeThreatLevelZero: true });
+
+    const button = screen.getByRole('button');
+
+    fireEvent.click(button);
+
+    const threatButtons = screen.getAllByRole('button');
+    expect(threatButtons.length).toBe(11);
+    expect(threatButtons[10]).toHaveTextContent('1 - Low');
+  });
+
+  it('renders with threat level zero included as default', () => {
+    renderComponent();
+
+    const button = screen.getByRole('button');
+
+    fireEvent.click(button);
+
+    const threatButtons = screen.getAllByRole('button');
+    expect(threatButtons.length).toBe(12);
+    expect(threatButtons[11]).toHaveTextContent('0 - None');
+  });
+
+  it('renders with threat level zero included', () => {
+    renderComponent({ excludeThreatLevelZero: false });
+
+    const button = screen.getByRole('button');
+
+    fireEvent.click(button);
+
+    const threatButtons = screen.getAllByRole('button');
+    expect(threatButtons.length).toBe(12);
+    expect(threatButtons[11]).toHaveTextContent('0 - None');
+  });
 });

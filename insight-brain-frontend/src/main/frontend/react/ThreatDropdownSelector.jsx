@@ -18,7 +18,13 @@ import { is, reverse } from 'ramda';
 import cx from 'classnames';
 import { capitalize } from 'MainRoot/util/jsUtil';
 
-export default function ThreatDropdownSelector({ threatLevel, onSelectThreatLevel, className, ...props }) {
+export default function ThreatDropdownSelector({
+  threatLevel,
+  onSelectThreatLevel,
+  className,
+  excludeThreatLevelZero = false,
+  ...props
+}) {
   const renderThreatLevel = (level) =>
     is(Number, level) ? (
       <>
@@ -35,6 +41,8 @@ export default function ThreatDropdownSelector({ threatLevel, onSelectThreatLeve
 
   const classnames = cx('iq-threat-dropdown-selector', className);
 
+  const threatLevels = excludeThreatLevelZero ? getThreatLevelsExcludingZero() : allThreatLevelNumbers;
+
   return (
     <NxDropdown
       {...props}
@@ -43,7 +51,7 @@ export default function ThreatDropdownSelector({ threatLevel, onSelectThreatLeve
       onToggleCollapse={toggleIsThreatDropdownOpen}
       className={classnames}
     >
-      {reverse(allThreatLevelNumbers).map((level) => {
+      {reverse(threatLevels).map((level) => {
         return (
           <button
             onClick={() => {
@@ -61,6 +69,10 @@ export default function ThreatDropdownSelector({ threatLevel, onSelectThreatLeve
     </NxDropdown>
   );
 }
+
+const getThreatLevelsExcludingZero = () => {
+  return allThreatLevelNumbers.filter((level) => level !== 0);
+};
 
 ThreatDropdownSelector.defaultProps = {
   onSelectThreatLevel: () => {},

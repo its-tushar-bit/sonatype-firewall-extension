@@ -154,6 +154,7 @@ function AutoWaiversConfigurationContents() {
                   threatLevel={threatLevel}
                   onSelectThreatLevel={setThreatLevel}
                   id="editor-auto-waiver-threat-level"
+                  excludeThreatLevelZero={true}
                 />
               </div>
             </NxFieldset>

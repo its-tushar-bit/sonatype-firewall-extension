@@ -1801,6 +1801,27 @@ public class TemporaryEntity
     return autoPolicyWaiver;
   }
 
+  public AutoPolicyWaiver newAutoPolicyWaiver(
+      String ownerId,
+      int threatLevel,
+      boolean reachable,
+      boolean pathForward,
+      boolean scopesOperatorAny)
+  {
+    AutoPolicyWaiver autoPolicyWaiver = new AutoPolicyWaiver(
+        ownerId,
+        threatLevel,
+        reachable,
+        pathForward,
+        "fakeCreatorId",
+        "fakeCreatorName",
+        new Date(),
+        scopesOperatorAny
+    );
+    autoPolicyWaiverDAO.insert(autoPolicyWaiver);
+    return autoPolicyWaiver;
+  }
+
   public AutoPolicyWaiver newAutoPolicyWaiver(String ownerId) {
     AutoPolicyWaiver autoPolicyWaiver = new AutoPolicyWaiver(
         ownerId,

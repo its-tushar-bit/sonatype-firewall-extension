@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverAdapter;
@@ -354,39 +353,12 @@ public class ApiAutoPolicyWaiverService
     // Adds auto waivers in order of lowest to highest owner (application level -> organization level)
     ownerIds.forEach(id -> autoPolicyWaivers.addAll(autoPolicyWaiverDAO.getByOwnerId(id)));
 
-    if (autoPolicyWaivers.isEmpty()) {
-      return Collections.emptyList();
-    }
-
-    final List<AutoPolicyWaiver> applicableAutoWaivers = new ArrayList<>();
-    final Optional<AutoPolicyWaiver> autoPolicyWaiverWithReachabilityAndNPF = autoPolicyWaivers.stream()
-        .filter(this::hasReachabilityAndNPF)
-        .findFirst();
-    autoPolicyWaiverWithReachabilityAndNPF.ifPresent(applicableAutoWaivers::add);
-    final Optional<AutoPolicyWaiver> autoPolicyWaiverWithReachability = autoPolicyWaivers.stream()
-        .filter(this::hasReachability)
-        .findFirst();
-    autoPolicyWaiverWithReachability.ifPresent(applicableAutoWaivers::add);
-    final Optional<AutoPolicyWaiver> autoPolicyWaiverWithPathForward = autoPolicyWaivers.stream()
-        .filter(this::hasPathForward)
-        .findFirst();
-    autoPolicyWaiverWithPathForward.ifPresent(applicableAutoWaivers::add);
+    final List<AutoPolicyWaiver> applicableAutoWaivers =
+        AutoPolicyWaiverUtil.getApplicableAutoPolicyWaivers(autoPolicyWaivers);
 
     applicableAutoWaivers.forEach(autoPolicyWaiver ->
         autoPolicyWaiverStatuses.add(buildApiAutoPolicyWaiverStatusDTO(autoPolicyWaiver, ownerType, ownerId)));
     return autoPolicyWaiverStatuses;
-  }
-
-  private boolean hasReachabilityAndNPF(final AutoPolicyWaiver autoPolicyWaiver) {
-    return autoPolicyWaiver.hasReachability() && autoPolicyWaiver.hasPathForward();
-  }
-
-  private boolean hasReachability(final AutoPolicyWaiver autoPolicyWaiver) {
-    return autoPolicyWaiver.hasReachability() && !autoPolicyWaiver.hasPathForward();
-  }
-
-  private boolean hasPathForward(final AutoPolicyWaiver autoPolicyWaiver) {
-    return autoPolicyWaiver.hasPathForward() && !autoPolicyWaiver.hasReachability();
   }
 
   private ApiAutoPolicyWaiverStatusDTO buildApiAutoPolicyWaiverStatusDTO(

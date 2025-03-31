@@ -5,11 +5,14 @@
  */
 package com.sonatype.insight.brain.api.v2.service.autowaivers;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
-import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverDTO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
+import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverDTO;
 
 import org.apache.shiro.authz.UnauthorizedException;
 import org.slf4j.Logger;
@@ -23,12 +26,52 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class AutoPolicyWaiverUtil
 {
+  private AutoPolicyWaiverUtil() {
+    // no-op
+  }
+
   private static final Logger log = LoggerFactory.getLogger(AutoPolicyWaiverUtil.class);
 
   public static void validateAutoWaiversFeatureEnabled() {
     if (!SystemConfigurationPropertyFeature.AUTO_WAIVERS.isEnabled()) {
       throw new UnauthorizedException("Auto Policy Waivers feature is not enabled");
     }
+  }
+
+  public static List<AutoPolicyWaiver> getApplicableAutoPolicyWaivers(final List<AutoPolicyWaiver> autoPolicyWaivers) {
+    if (autoPolicyWaivers.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    // The below order of insertion is important as it determines the order in which the waivers will be evaluated
+    // when called by ScanPolicyEvaluator. Do not change the order of insertion.
+    final List<AutoPolicyWaiver> applicableAutoWaivers = new ArrayList<>();
+    final Optional<AutoPolicyWaiver> autoPolicyWaiverWithReachabilityAndNPF = autoPolicyWaivers.stream()
+        .filter(AutoPolicyWaiverUtil::hasReachabilityAndNPF)
+        .findFirst();
+    autoPolicyWaiverWithReachabilityAndNPF.ifPresent(applicableAutoWaivers::add);
+    final Optional<AutoPolicyWaiver> autoPolicyWaiverWithReachability = autoPolicyWaivers.stream()
+        .filter(AutoPolicyWaiverUtil::hasReachability)
+        .findFirst();
+    autoPolicyWaiverWithReachability.ifPresent(applicableAutoWaivers::add);
+    final Optional<AutoPolicyWaiver> autoPolicyWaiverWithPathForward = autoPolicyWaivers.stream()
+        .filter(AutoPolicyWaiverUtil::hasPathForward)
+        .findFirst();
+    autoPolicyWaiverWithPathForward.ifPresent(applicableAutoWaivers::add);
+
+    return applicableAutoWaivers;
+  }
+
+  private static boolean hasReachabilityAndNPF(final AutoPolicyWaiver autoPolicyWaiver) {
+    return autoPolicyWaiver.hasReachability() && autoPolicyWaiver.hasPathForward();
+  }
+
+  private static boolean hasReachability(final AutoPolicyWaiver autoPolicyWaiver) {
+    return autoPolicyWaiver.hasReachability() && !autoPolicyWaiver.hasPathForward();
+  }
+
+  private static boolean hasPathForward(final AutoPolicyWaiver autoPolicyWaiver) {
+    return autoPolicyWaiver.hasPathForward() && !autoPolicyWaiver.hasReachability();
   }
 
   /**

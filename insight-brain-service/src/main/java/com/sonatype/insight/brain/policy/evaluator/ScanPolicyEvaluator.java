@@ -36,6 +36,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
 import com.sonatype.insight.brain.api.experimental.ApiVulnerabilityReachabilityStatusService;
 import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
+import com.sonatype.insight.brain.api.v2.service.autowaivers.AutoPolicyWaiverUtil;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
@@ -526,8 +527,6 @@ public class ScanPolicyEvaluator
       results.autoWaivedViolations = new ArrayList<>();
 
       List<String> ownerIds = getOwnerIds(appId);
-      AutoPolicyWaiver autoPolicyWaiver = getApplicableAutoPolicyWaiver(ownerIds);
-      List<AutoPolicyWaiverExclusion> autoPolicyWaiverExclusions = getApplicableAutoPolicyWaiverExclusions(ownerIds);
 
       List<PolicyViolation> autoWaivedPolicyViolations = Collections.emptyList();
       boolean skipAutoWaiversForReevaluation = skipAutoWaivers && isReevaluation;
@@ -548,7 +547,7 @@ public class ScanPolicyEvaluator
       List<PolicyAlert> allPolicyAlerts = new ArrayList<>();
       allPolicyAlerts.addAll(policyResults.getActiveAlerts());
       allPolicyAlerts.addAll(policyResults.getWaivedAlerts());
-      Map<String, Owner> policyIdPolicyOwnerMap = new HashMap();
+      Map<String, Owner> policyIdPolicyOwnerMap = new HashMap<>();
 
       for (PolicyAlert policyAlert : allPolicyAlerts) {
         PolicyFact policyFact = policyAlert.getTrigger();
@@ -584,47 +583,50 @@ public class ScanPolicyEvaluator
             policyViolation.setPolicyWaiverComment(policyWaiver.getComment());
           }
 
-          if (canEvaluateWithAutoWaiver(autoPolicyWaiver, policyViolation)) {
-            Owner owner = ownerDAO.getById(autoPolicyWaiver.getOwnerId());
+          updateReachabilityStatus(policyViolation, reachablePurlIdentifiersWithVulnerabilities);
 
-            updateReachabilityStatus(policyViolation, reachablePurlIdentifiersWithVulnerabilities);
-
-            if (skipAutoWaiversForReevaluation) {
-
-              autoWaivedPolicyViolations.stream()
-                  .filter(violation ->
+          if (skipAutoWaiversForReevaluation) {
+            autoWaivedPolicyViolations.stream()
+                .filter(violation ->
                     PolicyViolationComparator.COMPARATOR.compare(violation, policyViolation) == 0)
-                  .forEach(violation -> {
-                    policyViolation.setWaiveTime(violation.getWaiveTime());
-                    policyViolation.setAutoPolicyWaiverId(violation.getAutoPolicyWaiverId());
-                    autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, owner != null ? owner.getType() : null,
-                        AutoPolicyWaiverAction.APPLY, policyViolation);
-                  });
-            }
-            else {
-              Component component =
-                  findComponentByComponentIdentifier(components, policyViolation.getComponentIdentifier());
-              boolean hasReachabilityData = reachablePurlIdentifiersWithVulnerabilities != null;
-              boolean violationShouldBeAutoWaived = evaluateAutoPolicyWaiver(
-                  appId,
-                  component,
-                  policyViolation,
-                  autoPolicyWaiver,
-                  autoPolicyWaiverExclusions,
-                  stage.getStageTypeId(),
-                  scanId,
-                  hasReachabilityData);
-              if (violationShouldBeAutoWaived) {
-                policyViolation.setWaiveTime(policyEvaluation.getTime());
-                policyViolation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+                .forEach(violation -> {
+                  final AutoPolicyWaiver autoPolicyWaiver =
+                      autoPolicyWaiverDAO.getById(violation.getAutoPolicyWaiverId());
+                  final Owner owner = ownerDAO.getById(autoPolicyWaiver.getOwnerId());
+                  policyViolation.setWaiveTime(violation.getWaiveTime());
+                  policyViolation.setAutoPolicyWaiverId(violation.getAutoPolicyWaiverId());
+                  autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, owner != null ? owner.getType() : null,
+                      AutoPolicyWaiverAction.APPLY, policyViolation);
+                });
+          }
+          else {
+            List<AutoPolicyWaiver> autoPolicyWaivers = getApplicableAutoPolicyWaivers(ownerIds);
+            List<AutoPolicyWaiverExclusion> autoPolicyWaiverExclusions =
+                getApplicableAutoPolicyWaiverExclusions(ownerIds);
+            Component component =
+                findComponentByComponentIdentifier(components, policyViolation.getComponentIdentifier());
+            boolean hasReachabilityData = reachablePurlIdentifiersWithVulnerabilities != null;
+            for (AutoPolicyWaiver autoPolicyWaiver : autoPolicyWaivers) {
+              if (canEvaluateWithAutoWaiver(autoPolicyWaiver, policyViolation)) {
+                boolean violationShouldBeAutoWaived = evaluateAutoPolicyWaiver(
+                    appId,
+                    component,
+                    policyViolation,
+                    autoPolicyWaiver,
+                    autoPolicyWaiverExclusions,
+                    stage.getStageTypeId(),
+                    scanId,
+                    hasReachabilityData);
+                if (violationShouldBeAutoWaived) {
+                  policyViolation.setWaiveTime(policyEvaluation.getTime());
+                  policyViolation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
 
-                if (owner != null) {
-                  autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, owner.getType(),
+                  Owner owner = ownerDAO.getById(autoPolicyWaiver.getOwnerId());
+                  autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, owner != null ? owner.getType() : null,
                       AutoPolicyWaiverAction.APPLY, policyViolation);
-                }
-                else {
-                  autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, null,
-                      AutoPolicyWaiverAction.APPLY, policyViolation);
+
+                  // Do not evaluate further auto waivers when one has been applied
+                  break;
                 }
               }
             }
@@ -1434,14 +1436,14 @@ public class ScanPolicyEvaluator
   }
 
   private boolean evaluateAutoPolicyWaiver(
-      String appId,
-      Component component,
-      PolicyViolation policyViolation,
-      AutoPolicyWaiver autoPolicyWaiver,
-      List<AutoPolicyWaiverExclusion> autoPolicyWaiverExclusions,
-      String stageId,
-      String scanId,
-      boolean hasReachabilityData)
+      final String appId,
+      final Component component,
+      final PolicyViolation policyViolation,
+      final AutoPolicyWaiver autoPolicyWaiver,
+      final List<AutoPolicyWaiverExclusion> autoPolicyWaiverExclusions,
+      final String stageId,
+      final String scanId,
+      final boolean hasReachabilityData)
   {
     if (violationHasPolicyWaiver(policyViolation)) {
       return false;
@@ -1452,72 +1454,85 @@ public class ScanPolicyEvaluator
     if (!violationMeetsThreatLevelCriteria(policyViolation, autoPolicyWaiver)) {
       return false;
     }
-    if (violationMeetsReachabilityCriteriaAndIsReachable(hasReachabilityData, autoPolicyWaiver, policyViolation)) {
-      return false;
-    }
 
-    return !componentHavePathForward(appId, component, autoPolicyWaiver, stageId, scanId);
+    return shouldAutoWaiveBasedOnScopesAndOperator(appId, component, policyViolation, autoPolicyWaiver, stageId, scanId,
+        hasReachabilityData);
   }
 
-  private boolean violationHasPolicyWaiver(PolicyViolation policyViolation) {
+  private boolean shouldAutoWaiveBasedOnScopesAndOperator(
+      final String appId,
+      final Component component,
+      final PolicyViolation policyViolation,
+      final AutoPolicyWaiver autoPolicyWaiver,
+      final String stageId,
+      final String scanId,
+      final boolean hasReachabilityData)
+  {
+    final boolean isReachabilityConfigured =
+        violationMeetsReachabilityConfigurationCriteria(hasReachabilityData, autoPolicyWaiver);
+    boolean isNotReachable = false;
+    if (isReachabilityConfigured) {
+      isNotReachable = !violationIsReachable(policyViolation);
+      if (autoPolicyWaiver.getScopesOperatorAny() && isNotReachable) {
+        return true;
+      }
+    }
+
+    final boolean isNoPathForwardConfigured = isNoPathForwardConfigured(autoPolicyWaiver, component);
+    boolean hasNoPathForward = false;
+    if (isNoPathForwardConfigured) {
+      hasNoPathForward = !componentHasPathForward(appId, component, stageId, scanId);
+      if (autoPolicyWaiver.getScopesOperatorAny() && hasNoPathForward) {
+        return true;
+      }
+    }
+
+    if (!autoPolicyWaiver.getScopesOperatorAny()) {
+      return isNotReachable && hasNoPathForward;
+    }
+
+    return false;
+  }
+
+  private boolean violationHasPolicyWaiver(final PolicyViolation policyViolation) {
     return policyViolation.getPolicyWaiverId() != null && policyViolation.getWaiveTime() != null;
   }
 
   private boolean violationMeetsThreatLevelCriteria(
-      PolicyViolation policyViolation, AutoPolicyWaiver autoPolicyWaiver)
+      final PolicyViolation policyViolation, final AutoPolicyWaiver autoPolicyWaiver)
   {
     return policyViolation.getThreatLevel() <= autoPolicyWaiver.getThreatLevel();
   }
 
   private boolean violationMeetsReachabilityConfigurationCriteria(
-      boolean hasReachabilityData, AutoPolicyWaiver autoPolicyWaiver)
+      final boolean hasReachabilityData, final AutoPolicyWaiver autoPolicyWaiver)
   {
-    return hasReachabilityData && isReachabilityConfigured(autoPolicyWaiver)
+    return hasReachabilityData && autoPolicyWaiver.hasReachability()
         && SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.isEnabled();
   }
 
-  private boolean isReachabilityConfigured(AutoPolicyWaiver autoPolicyWaiver) {
-    Boolean isReachabilityConfigured = autoPolicyWaiver.hasReachability();
-    return isReachabilityConfigured != null && isReachabilityConfigured;
-  }
-
-  private boolean violationIsReachable(
-      PolicyViolation policyViolation)
-  {
+  private boolean violationIsReachable(final PolicyViolation policyViolation) {
     return ReachabilityStatus.REACHABLE.equals(policyViolation.getReachabilityStatus());
   }
 
-  private boolean violationMeetsReachabilityCriteriaAndIsReachable(
-      boolean hasReachabilityData, AutoPolicyWaiver autoPolicyWaiver, PolicyViolation policyViolation)
-  {
-    return violationMeetsReachabilityConfigurationCriteria(hasReachabilityData, autoPolicyWaiver)
-        && violationIsReachable(policyViolation);
+  private boolean isNoPathForwardConfigured(final AutoPolicyWaiver autoPolicyWaiver, final Component component) {
+    return autoPolicyWaiver.hasPathForward() && component.getComponentIdentifier() != null;
   }
 
-  private boolean componentHavePathForward(
-      String appId,
-      Component component,
-      AutoPolicyWaiver autoPolicyWaiver,
-      String stageId,
-      String scanId)
+  private boolean componentHasPathForward(
+      final String appId,
+      final Component component,
+      final String stageId,
+      final String scanId)
   {
-    Boolean hasPathForward = autoPolicyWaiver.hasPathForward();
-    if (hasPathForward == null || !hasPathForward || component.getComponentIdentifier() == null) {
-      // Auto waiver does not have path forward enabled. No need to evaluate this condition.
-      return false;
-    }
-
     return pathForwardInspector.containsUpgradeableVersion(component, appId, stageId, scanId);
   }
 
-  private AutoPolicyWaiver getApplicableAutoPolicyWaiver(final List<String> ownerIds) {
-    for (String id : ownerIds) {
-      List<AutoPolicyWaiver> autoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId(id);
-      if (!autoPolicyWaivers.isEmpty()) {
-        return autoPolicyWaivers.get(0);
-      }
-    }
-    return null;
+  private List<AutoPolicyWaiver> getApplicableAutoPolicyWaivers(final List<String> ownerIds) {
+    final List<AutoPolicyWaiver> autoPolicyWaivers = new ArrayList<>();
+    ownerIds.forEach(id -> autoPolicyWaivers.addAll(autoPolicyWaiverDAO.getByOwnerId(id)));
+
+    return AutoPolicyWaiverUtil.getApplicableAutoPolicyWaivers(autoPolicyWaivers);
   }
 
   private List<AutoPolicyWaiverExclusion> getApplicableAutoPolicyWaiverExclusions(final List<String> ownerIds) {

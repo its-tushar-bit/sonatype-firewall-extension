@@ -1,0 +1,80 @@
+{
+  "aaData" : [ {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "hash" : "1249e25aebb15358bedd",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-3385",
+    "reference" : "CVE-2007-3385",
+    "source" : "cve",
+    "score" : 4.3,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "hash" : "1249e25aebb15358bedd",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-5333",
+    "reference" : "CVE-2007-5333",
+    "source" : "cve",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "org.mortbay.jetty",
+    "artifactId" : "jetty",
+    "version" : "6.1.15",
+    "hash" : "494308fc2d433720c778",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-1523",
+    "reference" : "CVE-2009-1523",
+    "source" : "cve",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "org.mortbay.jetty",
+    "artifactId" : "jetty",
+    "version" : "6.1.15",
+    "hash" : "494308fc2d433720c778",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-1524",
+    "reference" : "CVE-2009-1524",
+    "source" : "cve",
+    "score" : 4.3,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "org.mortbay.jetty",
+    "artifactId" : "jetty",
+    "version" : "6.1.15",
+    "hash" : "494308fc2d433720c778",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-4461",
+    "reference" : "CVE-2011-4461",
+    "source" : "cve",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "org.openid4java",
+    "artifactId" : "openid4java",
+    "version" : "0.9.5",
+    "hash" : "62923bdfdfff066ea088",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-4314",
+    "reference" : "CVE-2011-4314",
+    "source" : "cve",
+    "score" : 5.8,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "org.openid4java",
+    "artifactId" : "openid4java",
+    "version" : "0.9.5",
+    "hash" : "62923bdfdfff066ea088",
+    "url" : "http://osvdb.org/73737",
+    "reference" : "73737",
+    "source" : "osvdb",
+    "score" : 5.8,
+    "matchState" : "exact",
+    "proprietary" : false
+  }]
+}

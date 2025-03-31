@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service.autowaivers;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverDTO;
@@ -13,14 +14,62 @@ import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.api.v2.dto.ApiPolicyOwnerType.ORGANIZATION;
 import static com.sonatype.insight.brain.api.v2.service.autowaivers.AutoPolicyWaiverUtil.anyEqualByOwnerAndScope;
 import static com.sonatype.insight.brain.api.v2.service.autowaivers.AutoPolicyWaiverUtil.anyEqualByScope;
-import static com.sonatype.insight.brain.model.OwnerType.ORGANIZATION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class AutoPolicyWaiverUtilTest
 {
+  private static final String OWNER_ID = "ownerId";
+
+  private static final int THREAT_LEVEL = 7;
+
+  private static final String CREATOR_ID = "creatorId";
+
+  private static final String CREATOR_NAME = "creatorName";
+
+  private static final Date NOW = new Date(System.currentTimeMillis());
+
+  @Test
+  public void testGetApplicableAutoPolicyWaivers_ReturnsFirstOfEachType() {
+    final AutoPolicyWaiver waiverNRAndNPF1 = createAutoWaiver(true, true);
+    final AutoPolicyWaiver waiverNRAndNPF2 = createAutoWaiver(true, true);
+    final AutoPolicyWaiver waiverNRAndNPF3 = createAutoWaiver(true, true);
+
+    final AutoPolicyWaiver waiverNR1 = createAutoWaiver(true, false);
+    final AutoPolicyWaiver waiverNR2 = createAutoWaiver(true, false);
+    final AutoPolicyWaiver waiverNR3 = createAutoWaiver(true, false);
+
+    final AutoPolicyWaiver waiverNPF1 = createAutoWaiver(false, true);
+    final AutoPolicyWaiver waiverNPF2 = createAutoWaiver(false, true);
+    final AutoPolicyWaiver waiverNPF3 = createAutoWaiver(false, true);
+
+    final List<AutoPolicyWaiver> autoWaivers = List.of(
+        waiverNRAndNPF1,
+        waiverNRAndNPF2,
+        waiverNR1,
+        waiverNRAndNPF3,
+        waiverNPF1,
+        waiverNR2,
+        waiverNR3,
+        waiverNPF2,
+        waiverNPF3
+    );
+
+    final List<AutoPolicyWaiver> applicableAutoWaivers =
+        AutoPolicyWaiverUtil.getApplicableAutoPolicyWaivers(autoWaivers);
+    assertThat(applicableAutoWaivers)
+        .hasSize(3)
+        .containsExactly(waiverNRAndNPF1, waiverNR1, waiverNPF1);
+  }
+
+  @Test
+  public void testGetApplicableAutoPolicyWaivers_ReturnsEmptyResult_WhenInputIsEmpty() {
+    assertThat(AutoPolicyWaiverUtil.getApplicableAutoPolicyWaivers(List.of())).isEmpty();
+  }
+
   @Test
   public void testAnyEqualByScope_WithNullAndEmptyValues_ForApiAutoPolicyWaivers() {
     assertThat(anyEqualByScope(null)).isFalse();
@@ -230,13 +279,11 @@ public class AutoPolicyWaiverUtilTest
     apiAutoPolicyWaiverDTO.ownerId = ownerId;
     apiAutoPolicyWaiverDTO.ownerType = ORGANIZATION.name();
 
-    AutoPolicyWaiver autoPolicyWaiver = new AutoPolicyWaiver();
+    AutoPolicyWaiver autoPolicyWaiver = createAutoWaiver(true, true);
     autoPolicyWaiver.setOwnerId("5678");
 
     apiAutoPolicyWaiverDTO.reachability = true;
     apiAutoPolicyWaiverDTO.pathForward = true;
-    autoPolicyWaiver.setReachability(true);
-    autoPolicyWaiver.setPathForward(true);
 
     assertThat(
         anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
@@ -251,13 +298,11 @@ public class AutoPolicyWaiverUtilTest
     apiAutoPolicyWaiverDTO.ownerId = ownerId;
     apiAutoPolicyWaiverDTO.ownerType = ORGANIZATION.name();
 
-    AutoPolicyWaiver autoPolicyWaiver = new AutoPolicyWaiver();
+    AutoPolicyWaiver autoPolicyWaiver = createAutoWaiver(true, true);
     autoPolicyWaiver.setOwnerId(ownerId);
 
     apiAutoPolicyWaiverDTO.reachability = true;
     apiAutoPolicyWaiverDTO.pathForward = true;
-    autoPolicyWaiver.setReachability(true);
-    autoPolicyWaiver.setPathForward(true);
 
     assertThat(
         anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
@@ -373,5 +418,10 @@ public class AutoPolicyWaiverUtilTest
         .hasMessage("Auto Policy Waiver with id: null is equal by owner id: 1234 and reachability: 'false' and " +
             "pathForward 'false' but are not allowed to be both false.");
 
+  }
+
+  private static AutoPolicyWaiver createAutoWaiver(final boolean hasNotReachable, final boolean hasNoPathForward) {
+    return new AutoPolicyWaiver(OWNER_ID, THREAT_LEVEL, hasNotReachable, hasNoPathForward, CREATOR_ID, CREATOR_NAME,
+        NOW);
   }
 }

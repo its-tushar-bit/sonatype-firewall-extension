@@ -92,6 +92,27 @@ public class AutoPolicyWaiver
     this.createTime = createTime;
   }
 
+  public AutoPolicyWaiver(
+      String ownerId,
+      int threatLevel,
+      boolean reachability,
+      boolean pathForward,
+      String creatorId,
+      String creatorName,
+      Date createTime,
+      boolean scopesOperatorAny
+  )
+  {
+    this.ownerId = ownerId;
+    this.threatLevel = threatLevel;
+    this.reachability = reachability;
+    this.pathForward = pathForward;
+    this.creatorId = creatorId;
+    this.creatorName = creatorName;
+    this.createTime = createTime;
+    this.scopesOperatorAny = scopesOperatorAny;
+  }
+
   @Override
   public String getId() {
     return id;
@@ -118,7 +139,7 @@ public class AutoPolicyWaiver
     this.threatLevel = threatLevel;
   }
 
-  public Boolean hasReachability() {
+  public boolean hasReachability() {
     return reachability != null && reachability;
   }
 
@@ -126,7 +147,7 @@ public class AutoPolicyWaiver
     this.reachability = reachability;
   }
 
-  public Boolean hasPathForward() {
+  public boolean hasPathForward() {
     return pathForward != null && pathForward;
   }
 

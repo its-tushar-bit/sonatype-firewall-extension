@@ -16,6 +16,11 @@ body {
   &.nx-body {
     // override bootstrap
     @include nx-text-helpers.font-size(var(--nx-font-size));
+
+    // See https://sonatype.atlassian.net/browse/RSC-1798
+    .nx-btn--small {
+      font-size: var(--nx-font-size-s);
+    }
   }
 }
 

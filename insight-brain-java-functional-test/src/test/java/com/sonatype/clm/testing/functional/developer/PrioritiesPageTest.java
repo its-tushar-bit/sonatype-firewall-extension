@@ -11,50 +11,87 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
-
 import javax.ws.rs.core.UriBuilder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.remediation.VersionScoringDTO;
+import com.sonatype.clm.dto.model.remediation.VersionScoringDTO.ToVersionData;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.PrioritiesPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.git.ScmRepoVisibilityService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
 import com.sonatype.insight.brain.report.ReportEntity;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.codeborne.selenide.SelenideElement;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.http.HttpHeaders;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
-
 import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 public class PrioritiesPageTest
     extends AbstractFunctionalTest
 {
+  @Rule
+  public final WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
+
+  @Before
+  public void setup() {
+    gitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody("{\"username\":\"foo\"}")));
+    gitService.stubFor(get(urlPathMatching("/api/v3/repos/.*/.*"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody("{ \"private\": true }")));
+  }
+  
   private Application application;
 
   private PolicyDAO policyDAO;
@@ -99,12 +136,19 @@ public class PrioritiesPageTest
     page.prioritiesTableCell(0, 3).shouldHave(text("Detected"));
     page.prioritiesTableCell(0, 4).shouldHave(text("Investigate"));
 
-    // a row with an upgrade path
+    // a row with a transitive violation
     page.prioritiesTableCell(1, 0).shouldHave(text("2"));
     page.prioritiesTableCell(1, 1).shouldHave(text("Ttomcat : tomcat-util : 5.5.23"));
     page.prioritiesTableCell(1, 2).shouldHave(text("Fail"));
     page.prioritiesTableCell(1, 3).shouldHave(text("Not detected"));
-    page.prioritiesTableCell(1, 4).shouldHave(text("Upgrade to 5.6.0"));
+    page.prioritiesTableCell(1, 4).shouldHave(text("Investigate"));
+
+    // a row with an upgrade path
+    page.prioritiesTableCell(8, 0).shouldHave(text("9"));
+    page.prioritiesTableCell(8, 1).shouldHave(text("Dapache-httpclient : commons-httpclient : 3.1"));
+    page.prioritiesTableCell(8, 2).shouldHave(text("Fail"));
+    page.prioritiesTableCell(8, 3).shouldHave(text("Not detected"));
+    page.prioritiesTableCell(8, 4).shouldHave(text("Upgrade to 3.2"));
 
     // a row with a Warn action
     page.prioritiesTableCell(13, 0).shouldHave(text("14"));
@@ -137,6 +181,112 @@ public class PrioritiesPageTest
     page.prioritiesTableCell(0, 2).shouldBe(empty);
     page.prioritiesTableCell(0, 3).shouldHave(text("Not detected"));
     page.prioritiesTableCell(0, 4).shouldHave(text("Investigate"));
+  }
+
+  @Test
+  public void testManualPullRequestsDisabled() {
+    PrioritiesPage page = new PrioritiesPage();
+    page.prioritiesTableCell(0, 4).shouldBe(visible);
+    page.prioritiesTableCell(0, 5).shouldNot(exist);
+  }
+
+  @Test
+  public void testManualPullRequestsEnabled() {
+    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
+    refresh();
+    PrioritiesPage page = new PrioritiesPage();
+    page.prioritiesTableCell(0, 4).shouldBe(visible);
+    page.prioritiesTableCell(0, 5).shouldBe(visible);
+  }
+
+  @Test
+  public void testRowData_ManualPullRequestsEnabled() throws Exception {
+    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
+    refresh();
+    PrioritiesPage page = new PrioritiesPage();
+
+    // a row where a manual pull request is not possible
+    page.prioritiesTableCell(0, 0).shouldHave(text("1"));
+    page.prioritiesTableCell(0, 1).shouldHave(text("Dorg.openid4java : openid4java : 0.9.5"));
+    page.prioritiesTableCell(0, 2).shouldHave(text("Fail"));
+    page.prioritiesTableCell(0, 3).shouldHave(text("Detected"));
+    page.prioritiesTableCell(0, 4).shouldHave(text("Investigate"));
+    page.prioritiesTableCell(0, 5).shouldHave(text("—"));
+    
+    // another row with a null automatedRemediationStatus where a manual PR should not be possible
+    page.prioritiesTableCell(13, 0).shouldHave(text("14"));
+    page.prioritiesTableCell(13, 1).shouldHave(text("sample-application.zip"));
+    page.prioritiesTableCell(13, 2).shouldHave(text("Warn"));
+    page.prioritiesTableCell(13, 3).shouldHave(text("Not detected"));
+    page.prioritiesTableCell(13, 4).shouldHave(text("Investigate"));
+    page.prioritiesTableCell(13, 5).shouldHave(text("—"));
+
+    // a row where a manual pull request is possible but source control is not configured
+    assertManualPullRequest("Source Control is not configured");
+
+    // a row where a manual pull request is possible but manual pull requests is not configured
+    SourceControl sourceControl = tempEntity.newSourceControl(
+        application.getId(),
+        gitService.baseUrl() + "/someOrg/someRepo",
+        lookup(PasswordHandler.class).encryptPassword("someToken"),
+        SourceControlProvider.GITHUB
+    );
+    assertManualPullRequest("Manual Pull Requests are disabled");
+
+    // a row where a manual pull request is possible and enabled
+    sourceControl.setManualPullRequestsEnabled(true);
+    lookup(SourceControlDAO.class).update(sourceControl);
+    assertManualPullRequest(null);
+
+    // a row where a manual pull request is possible but the license feature is missing
+    setMissingFeature(LicensedFeature.AUTOMATION);
+    assertManualPullRequest("Manual Pull Requests are disabled");
+
+    // a row where a manual pull request is possible and enabled
+    setMissingFeature(LicensedFeature.ALLOW_SCM_ON_PUBLIC_REPOS);
+    assertManualPullRequest(null);
+
+    // a row where a manual pull request is possible but the repository is public
+    ScmRepoVisibilityService scmRepoVisibilityServiceSpy = spy(lookup(ScmRepoVisibilityService.class));
+    doReturn(false).when(scmRepoVisibilityServiceSpy).isInternalRepository(any());
+    mocks.put(ScmRepoVisibilityService.class, scmRepoVisibilityServiceSpy);
+    gitService.stubFor(get(urlPathMatching("/api/v3/repos/.*/.*"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody("{ \"private\": false }")));
+    assertManualPullRequest("Manual Pull Requests are disabled");
+    
+    // a row where a manual pull request is possible and enabled
+    mocks.clear();
+    gitService.stubFor(get(urlPathMatching("/api/v3/repos/.*/.*"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody("{ \"private\": true }")));
+    assertManualPullRequest(null);
+  }
+
+  private void assertManualPullRequest(final String expectedTooltipText) throws Exception {
+    refresh();
+    PrioritiesPage page = new PrioritiesPage();
+    page.prioritiesTableCell(8, 0).shouldHave(text("9"));
+    page.prioritiesTableCell(8, 1).shouldHave(text("Dapache-httpclient : commons-httpclient : 3.1"));
+    page.prioritiesTableCell(8, 2).shouldHave(text("Fail"));
+    page.prioritiesTableCell(8, 3).shouldHave(text("Not detected"));
+    page.prioritiesTableCell(8, 4).shouldHave(text("Upgrade to 3.2"));
+    page.prioritiesTableCell(8, 5).shouldHave(text("Create PR"));
+    SelenideElement createPullRequestButton =
+        page.createPullRequestButton(8).shouldBe(visible).shouldHave(text("Create PR"));
+    if (expectedTooltipText == null) {
+      createPullRequestButton.shouldNotHave(cssClass("disabled"));
+      createPullRequestButton.hover();
+      Thread.sleep(500);
+      Tooltip.get().shouldNot(exist);
+    }
+    else {
+      createPullRequestButton.shouldHave(cssClass("disabled"));
+      createPullRequestButton.hover();
+      Tooltip.get().shouldBe(visible).shouldHave(text(expectedTooltipText));
+    }
   }
 
   private ImmutablePair<Application, String> setUpAppsWithPriorities() throws IOException {
@@ -214,13 +364,13 @@ public class PrioritiesPageTest
   }
 
   private void mockRemediationData() throws Exception {
-    ComponentIdentifier tomcatUtilCoordFromReport =
-        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar");
-    ComponentIdentifier tomcatUtilCoordNonFailing =
-        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.6.0", "", "jar");
+    ComponentIdentifier logbackAccessCoordFromReport =
+        ComponentIdentifier.createMavenCoordinates("apache-httpclient", "commons-httpclient", "3.1", "", "jar");
+    ComponentIdentifier logbackAccessCoordNonFailing =
+        ComponentIdentifier.createMavenCoordinates("apache-httpclient", "commons-httpclient", "3.2", "", "jar");
 
-    ComponentDetails fromReport = createComponentDetailsForSecurityViolation(tomcatUtilCoordFromReport);
-    ComponentDetails nonFailing = createComponentDetailsForNoViolation(tomcatUtilCoordNonFailing);
+    ComponentDetails fromReport = createComponentDetailsForSecurityViolation(logbackAccessCoordFromReport);
+    ComponentDetails nonFailing = createComponentDetailsForNoViolation(logbackAccessCoordNonFailing);
     ComponentDetailsList detailsList = new ComponentDetailsList();
     detailsList.setList(List.of(fromReport, nonFailing));
 
@@ -231,16 +381,27 @@ public class PrioritiesPageTest
     testCLMServer.getHdsServer().respondWith(ComponentSummary.create(true)).atUri(
         UriBuilder.fromPath("rest/component/summary")
             .queryParam("componentIdentifier",
-                URLEncoder.encode(new ObjectMapper().writeValueAsString(tomcatUtilCoordFromReport), "UTF-8"))
+                URLEncoder.encode(new ObjectMapper().writeValueAsString(logbackAccessCoordFromReport), "UTF-8"))
             .build()
     );
 
     testCLMServer.getHdsServer().respondWith(new ComponentDependenciesDTO(Map.of(), Map.of()))
         .atUri("rest/component/dependencies");
+    
+    VersionScoringDTO versionScoringDTO = new VersionScoringDTO();
+    versionScoringDTO.setComponentIdentifier(logbackAccessCoordFromReport);
+    versionScoringDTO.setVersionScore(0);
+    versionScoringDTO.setMaxSeverity(5.0d);
+    VersionScoringDTO.ToVersionData toVersionData = new ToVersionData();
+    toVersionData.setBreakingChangeCount(0);
+    versionScoringDTO.setToVersionsNonBreaking(Map.of("3.2", toVersionData));
+    testCLMServer.getHdsServer().respondWith(new VersionScoringDTO[] {versionScoringDTO})
+        .atUri("rest/component/version-scoring/list");
   }
 
   private ComponentDetails createComponentDetailsForNoViolation(final ComponentIdentifier componentIdentifier) {
     ComponentDetails componentDetails = new ComponentDetails();
+    componentDetails.setBreakingChangesCount(0);
     componentDetails.setComponentIdentifier(componentIdentifier);
     return componentDetails;
   }

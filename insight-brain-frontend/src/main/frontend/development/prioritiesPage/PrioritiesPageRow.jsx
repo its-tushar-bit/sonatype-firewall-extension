@@ -13,15 +13,21 @@ import {
   NxTooltip,
   NxTextLink,
   NxFontAwesomeIcon,
+  NxButton,
 } from '@sonatype/react-shared-components';
 import { faStar } from '@fortawesome/sharp-solid-svg-icons';
-import DependencyIndicator from 'MainRoot/DependencyTree/DependencyIndicator';
+import classnames from 'classnames';
+import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from './slices/prioritiesPageSlice';
+import DependencyIndicator from 'MainRoot/DependencyTree/DependencyIndicator';
 import { stringifyComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
-import { selectIsDeveloperBulkRecommendationsEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsDeveloperBulkRecommendationsEnabled,
+  selectIsManualPullRequestEnabled,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   getAsyncRecommendationsPrioritiesPage,
   getRecommendationsPrioritiesPage,
@@ -32,7 +38,6 @@ import {
   RECOMMENDED_NON_BREAKING,
   RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
 } from '../../componentDetails/overview/riskRemediation/recommendedVersionsUtils';
-import PropTypes from 'prop-types';
 import { selectReportStageId } from 'MainRoot/applicationReport/applicationReportSelectors';
 import PolicyActionTag from 'MainRoot/react/PolicyActionTag';
 
@@ -52,6 +57,14 @@ export const recommendationTypeMap = {
   'recommended-non-breaking-with-dependencies': 'Recommended non-breaking with dependencies version',
 };
 
+const manualPullRequestHiddenReasons = [
+  'UNSUPPORTED_STAGE',
+  'UNSUPPORTED_DEPENDENCY_TYPE',
+  'UNSUPPORTED_FORMAT',
+  'REMEDIATION_EVENT_EXISTS',
+  'NO_REMEDIATION_VERSION_AVAILABLE',
+];
+
 export default function PrioritiesPageRow({ component, href }) {
   const dispatch = useDispatch();
 
@@ -60,6 +73,7 @@ export default function PrioritiesPageRow({ component, href }) {
   const stageId = useSelector(selectReportStageId);
 
   const isDeveloperBulkRecommendationsEnabled = useSelector(selectIsDeveloperBulkRecommendationsEnabled);
+  const isManualPullRequestEnabled = useSelector(selectIsManualPullRequestEnabled);
 
   const {
     displayName,
@@ -82,6 +96,14 @@ export default function PrioritiesPageRow({ component, href }) {
   const loading = isDeveloperBulkRecommendationsEnabled ? false : recommendations[componentHash]?.loading;
   const error = isDeveloperBulkRecommendationsEnabled ? null : recommendations[componentHash]?.error;
   const remediation = isDeveloperBulkRecommendationsEnabled ? null : recommendations[componentHash]?.remediation;
+  const automatedRemediationStatus = recommendations[componentHash]?.automatedRemediationStatus;
+  const isManualPullRequestVisible =
+    automatedRemediationStatus && !manualPullRequestHiddenReasons.includes(automatedRemediationStatus.reason);
+  const manualPullRequestDisabledTooltip = automatedRemediationStatus?.reason
+    ? automatedRemediationStatus?.reason === 'SCM_NOT_CONFIGURED'
+      ? 'Source Control is not configured'
+      : 'Manual Pull Requests are disabled'
+    : null;
 
   const recommendation = isDeveloperBulkRecommendationsEnabled
     ? useMemo(() => getRecommendationsPrioritiesPage(remediationType, remediationVersion, actualVersion, stageId), [
@@ -149,6 +171,23 @@ export default function PrioritiesPageRow({ component, href }) {
           recommendation={recommendation}
         />
       </NxTableCell>
+      {isManualPullRequestEnabled && (
+        <NxTableCell>
+          {isManualPullRequestVisible ? (
+            <NxTooltip title={manualPullRequestDisabledTooltip} placement="top-end">
+              <NxButton
+                className={classnames('nx-btn--small', {
+                  disabled: manualPullRequestDisabledTooltip,
+                })}
+              >
+                Create PR
+              </NxButton>
+            </NxTooltip>
+          ) : (
+            '—'
+          )}
+        </NxTableCell>
+      )}
     </NxTableRow>
   );
 }

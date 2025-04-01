@@ -5,17 +5,15 @@
  */
 
 import React from 'react';
-import { render, screen, within, axiosMockAdapter, waitFor, act } from 'TestRoot/SpecUtil';
 import userEvent from '@testing-library/user-event';
+import { faker } from '@faker-js/faker';
+import { mergeDeepRight } from 'ramda';
+import { render, screen, within, axiosMockAdapter, waitFor, act } from 'TestRoot/SpecUtil';
 import PrioritiesPageTable from 'MainRoot/development/prioritiesPage/PrioritiesPageTable';
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
 import { getPrioritiesPageTableData } from 'MainRoot/util/CLMLocation';
 import * as RouterStateContextModule from 'MainRoot/react/RouterStateContext';
-import { faker } from '@faker-js/faker';
-import {
-  defaultIntegrationParamsMap,
-  validIntegrationTypes,
-} from '../../../../main/frontend/development/prioritiesPage/utils';
+import { defaultIntegrationParamsMap, validIntegrationTypes } from 'MainRoot/development/prioritiesPage/utils';
 
 const publicAppId = 'testPublicAppId';
 const scanId = 'testScanId';
@@ -147,7 +145,7 @@ describe('PrioritiesPageTable', () => {
     });
   });
 
-  it('renders column headers with correct names in the correct order', async () => {
+  it('renders column headers with correct names in the correct order when the manual pull requests feature flag is disabled', async () => {
     renderComponent();
 
     const table = await screen.findByRole('table');
@@ -160,6 +158,30 @@ describe('PrioritiesPageTable', () => {
     expect(columnHeaders[2]).toHaveAccessibleName(/build action/i);
     expect(columnHeaders[3]).toHaveAccessibleName(/reachability/i);
     expect(columnHeaders[4]).toHaveAccessibleName(/suggested remediation/i);
+  });
+
+  it('renders column headers with correct names in the correct order when the manual pull requests feature flag is enabled', async () => {
+    renderComponent(
+      mergeDeepRight(defaultPreloadedState, {
+        productFeatures: {
+          productFeatures: {
+            'manual-pull-requests': true,
+          },
+        },
+      })
+    );
+
+    const table = await screen.findByRole('table');
+    expect(table).toBeInTheDocument();
+
+    const columnHeaders = within(table).getAllByRole('columnheader');
+    expect(columnHeaders).toHaveLength(6);
+    expect(columnHeaders[0]).toHaveAccessibleName(/priority/i);
+    expect(columnHeaders[1]).toHaveAccessibleName(/component/i);
+    expect(columnHeaders[2]).toHaveAccessibleName(/build action/i);
+    expect(columnHeaders[3]).toHaveAccessibleName(/reachability/i);
+    expect(columnHeaders[4]).toHaveAccessibleName(/suggested remediation/i);
+    expect(columnHeaders[5]).toHaveAccessibleName(/next step/i);
   });
 
   it('renders the priority column header with an icon and tooltip', async () => {

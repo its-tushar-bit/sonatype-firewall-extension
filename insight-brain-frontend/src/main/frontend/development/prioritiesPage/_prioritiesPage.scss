@@ -98,6 +98,10 @@ priorities-page {
     grid-template-columns: auto 1fr repeat(3, auto);
   }
 
+  &.iq-priorities-table--manual-pr-enabled {
+    grid-template-columns: auto 1fr repeat(4, auto);
+  }
+
   tbody,
   thead,
   tr {

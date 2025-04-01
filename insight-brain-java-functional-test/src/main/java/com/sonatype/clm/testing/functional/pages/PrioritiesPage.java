@@ -61,4 +61,8 @@ public class PrioritiesPage
   public SelenideElement lastPageLink() {
     return getElement().$(by("aria-label", "goto last page"));
   }
+
+  public SelenideElement createPullRequestButton(int rowNum) {
+    return prioritiesTableCell(rowNum, 5).find("button");
+  }
 }

@@ -6,13 +6,16 @@
 package com.sonatype.clm.testing.functional;
 
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
@@ -92,6 +95,7 @@ import com.codeborne.selenide.WebDriverRunner;
 import com.codeborne.selenide.ex.UIAssertionError;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
+import com.google.inject.matcher.Matchers;
 import io.dropwizard.core.server.DefaultServerFactory;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
@@ -166,6 +170,15 @@ public abstract class AbstractFunctionalTest
   // in contrast, Configuration.baseUrl is the URL of the IQ server as seen from the containerized browser and should
   // not be used to reference the server from the test code.
   protected static String baseUrlFromTest;
+
+  /**
+   * A map from class to mock instance.
+   * <br /><br />
+   * Individual test methods should add mocks to this map if needed.
+   * <br /><br />
+   * Mock instances are cleared at the end of each test.
+   */
+  protected static Map<Class<?>, Object> mocks = new HashMap<>();
 
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
@@ -401,6 +414,7 @@ public abstract class AbstractFunctionalTest
   @After
   public final void afterTest() throws Exception {
     log.info("After: {}", testName.getMethodName());
+    mocks.clear();
     InsightConfig insightConfig = testCLMServer.getCLMServer().getConfiguration();
     if (insightConfig != null) {
       insightConfig.setFeatures(Collections.emptyMap());
@@ -467,8 +481,29 @@ public abstract class AbstractFunctionalTest
         bind(JiraService.class).toInstance(jiraService);
         bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
         bind(TaskScheduler.class).to(TestTaskScheduler.class);
+
+        // Bind an interceptor to intercept method calls to classes that can normally be mocked / spied
+        // i.e. not final and containing a non-private constructor or no constructor.
+        // 
+        // When a method is intercepted, get its declaring class and check if there is a mock object for that class.
+        // If there is, invoke the method on the mock object instead.
+        //
+        // Using an interceptor allows us to change mocks/spies without having to restart the server.
+        bindInterceptor(AbstractFunctionalTest::isInterceptable, Matchers.any(),
+            invocation -> {
+              Object object = mocks.get(invocation.getMethod().getDeclaringClass());
+              if (object == null || invocation.getThis() == object) {
+                return invocation.proceed();
+              }
+              return invocation.getMethod().invoke(object, invocation.getArguments());
+            });
       }
     });
+  }
+
+  private static boolean isInterceptable(final Class<?> clazz) {
+    return !Modifier.isFinal(clazz.getModifiers()) && !Arrays.stream(clazz.getConstructors())
+        .allMatch(constructor -> Modifier.isPrivate(constructor.getModifiers()));
   }
 
   protected static void loginAsAdmin() {

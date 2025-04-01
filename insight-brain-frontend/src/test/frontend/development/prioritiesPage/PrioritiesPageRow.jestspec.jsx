@@ -5,13 +5,14 @@
  */
 
 import React from 'react';
+import { faker } from '@faker-js/faker';
+import { mergeDeepRight } from 'ramda';
+import userEvent from '@testing-library/user-event';
 import { render, screen, within, axiosMockAdapter, waitFor } from 'TestRoot/SpecUtil';
 import PrioritiesPageRow from 'MainRoot/development/prioritiesPage/PrioritiesPageRow';
-import { faker } from '@faker-js/faker';
 import { getVersionGraphUrl } from 'MainRoot/util/CLMLocation';
 import { stringifyComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
 import { dependencyTypeMap } from 'MainRoot/development/prioritiesPage/PrioritiesPageRow';
-import { mergeDeepRight } from 'ramda';
 
 const publicAppId = 'testPublicAppId';
 const scanId = 'testScanId';
@@ -340,6 +341,189 @@ describe('PrioritiesPageRow', () => {
 
         const cell = screen.getAllByRole('cell')[4];
         await waitFor(() => expect(cell).toHaveTextContent('Investigate'));
+      });
+
+      it('does not render a "Next Step" cell if the manual pull requests feature flag is disabled', async () => {
+        const preloadedState = mergeDeepRight(asyncRecPreloadedState, {
+          productFeatures: {
+            productFeatures: {
+              'manual-pull-requests': false,
+            },
+          },
+          prioritiesPage: {
+            recommendations: {
+              [mockData.componentHash]: {
+                loading: false,
+                error: null,
+                remediation: {},
+                automatedRemediationStatus: {
+                  status: 'MANUAL_PULL_REQUEST_POSSIBLE',
+                },
+              },
+            },
+          },
+        });
+        renderComponent(preloadedState);
+
+        const cell = screen.queryAllByRole('cell')[5];
+        expect(cell).toBeUndefined();
+      });
+
+      it('renders a "Create PR" button if a manual pull request is possible', async () => {
+        const user = userEvent.setup();
+
+        const preloadedState = mergeDeepRight(asyncRecPreloadedState, {
+          productFeatures: {
+            productFeatures: {
+              'manual-pull-requests': true,
+            },
+          },
+          prioritiesPage: {
+            recommendations: {
+              [mockData.componentHash]: {
+                loading: false,
+                error: null,
+                remediation: {},
+                automatedRemediationStatus: {
+                  status: 'MANUAL_PULL_REQUEST_POSSIBLE',
+                },
+              },
+            },
+          },
+        });
+        renderComponent(preloadedState);
+
+        const cell = screen.getAllByRole('cell')[5];
+        const button = within(cell).getByRole('button');
+        expect(button).not.toHaveClass('disabled');
+        expect(button).toHaveTextContent('Create PR');
+
+        await user.hover(button);
+        await expect(screen.findByRole('tooltip')).rejects.toThrow();
+      });
+
+      it('renders a disabled "Create PR" button if a manual pull request is possible but disabled', async () => {
+        const user = userEvent.setup();
+
+        const preloadedState = mergeDeepRight(asyncRecPreloadedState, {
+          productFeatures: {
+            productFeatures: {
+              'manual-pull-requests': true,
+            },
+          },
+          prioritiesPage: {
+            recommendations: {
+              [mockData.componentHash]: {
+                loading: false,
+                error: null,
+                remediation: {},
+                automatedRemediationStatus: {
+                  status: 'MANUAL_PULL_REQUEST_NOT_POSSIBLE',
+                  reason: 'CONFIGURATION_DISABLED',
+                },
+              },
+            },
+          },
+        });
+        renderComponent(preloadedState);
+
+        const cell = screen.getAllByRole('cell')[5];
+        const button = within(cell).getByRole('button');
+        expect(button).toHaveClass('disabled');
+        expect(button).toHaveTextContent('Create PR');
+
+        await user.hover(button);
+        const tooltip = await screen.findByRole('tooltip');
+        expect(tooltip).toHaveTextContent('Manual Pull Requests are disabled');
+      });
+
+      it('renders a disabled "Create PR" button if a manual pull request is possible but SCM is not configured', async () => {
+        const user = userEvent.setup();
+
+        const preloadedState = mergeDeepRight(asyncRecPreloadedState, {
+          productFeatures: {
+            productFeatures: {
+              'manual-pull-requests': true,
+            },
+          },
+          prioritiesPage: {
+            recommendations: {
+              [mockData.componentHash]: {
+                loading: false,
+                error: null,
+                remediation: {},
+                automatedRemediationStatus: {
+                  status: 'MANUAL_PULL_REQUEST_NOT_POSSIBLE',
+                  reason: 'SCM_NOT_CONFIGURED',
+                },
+              },
+            },
+          },
+        });
+        renderComponent(preloadedState);
+
+        const cell = screen.getAllByRole('cell')[5];
+        const button = within(cell).getByRole('button');
+        expect(button).toHaveClass('disabled');
+        expect(button).toHaveTextContent('Create PR');
+
+        await user.hover(button);
+        const tooltip = await screen.findByRole('tooltip');
+        expect(tooltip).toHaveTextContent('Source Control is not configured');
+      });
+
+      it('does not render a "Create PR" button if a manual pull request is not possible', async () => {
+        const preloadedState = mergeDeepRight(asyncRecPreloadedState, {
+          productFeatures: {
+            productFeatures: {
+              'manual-pull-requests': true,
+            },
+          },
+          prioritiesPage: {
+            recommendations: {
+              [mockData.componentHash]: {
+                loading: false,
+                error: null,
+                remediation: {},
+                automatedRemediationStatus: {
+                  status: 'MANUAL_PULL_REQUEST_NOT_POSSIBLE',
+                  reason: 'UNSUPPORTED_STAGE',
+                },
+              },
+            },
+          },
+        });
+        renderComponent(preloadedState);
+
+        const cell = screen.getAllByRole('cell')[5];
+        expect(cell).toHaveTextContent('—');
+        const button = within(cell).queryByRole('button');
+        expect(button).toBeNull();
+      });
+
+      it('does not render a "Create PR" button if a manual pull request is not possible due to no data being returned', async () => {
+        const preloadedState = mergeDeepRight(asyncRecPreloadedState, {
+          productFeatures: {
+            productFeatures: {
+              'manual-pull-requests': true,
+            },
+          },
+          prioritiesPage: {
+            recommendations: {
+              [mockData.componentHash]: {
+                loading: false,
+                error: null,
+                remediation: {},
+              },
+            },
+          },
+        });
+        renderComponent(preloadedState);
+
+        const cell = screen.getAllByRole('cell')[5];
+        expect(cell).toHaveTextContent('—');
+        const button = within(cell).queryByRole('button');
+        expect(button).toBeNull();
       });
     });
   });

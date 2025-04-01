@@ -16,21 +16,24 @@ import {
   NxTile,
   NxToggle,
 } from '@sonatype/react-shared-components';
-import PrioritiesPageRow from 'MainRoot/development/prioritiesPage/PrioritiesPageRow';
+import { debounce } from 'debounce';
+import { isNil } from 'ramda';
 import { faArrowDownWideShort } from '@fortawesome/pro-solid-svg-icons';
+import classnames from 'classnames';
+import PrioritiesPageRow from 'MainRoot/development/prioritiesPage/PrioritiesPageRow';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectRouterCurrentParams, selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions } from 'MainRoot/development/prioritiesPage/slices/prioritiesPageSlice';
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
-import { debounce } from 'debounce';
-import { isNil } from 'ramda';
 import { selectApplicationReportMetaData } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { defaultIntegrationParamsMap, validIntegrationTypes } from './utils';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { selectIsManualPullRequestEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function PrioritiesPageTable() {
   const dispatch = useDispatch();
   const doLoad = () => dispatch(actions.loadTableData());
+  const isManualPullRequestEnabled = useSelector(selectIsManualPullRequestEnabled);
 
   const {
     loadingTableData,
@@ -183,7 +186,12 @@ export default function PrioritiesPageTable() {
       </div>
       <NxTile.Content>
         <div className="nx-table-container">
-          <NxTable id="iq-priorities-table" className="iq-priorities-table">
+          <NxTable
+            id="iq-priorities-table"
+            className={classnames('iq-priorities-table', {
+              'iq-priorities-table--manual-pr-enabled': isManualPullRequestEnabled,
+            })}
+          >
             <NxTable.Head>
               <NxTable.Row>
                 <NxTable.Cell aria-label="Priority" className="nx-cell--num">
@@ -198,6 +206,7 @@ export default function PrioritiesPageTable() {
                 <NxTable.Cell>Build Action</NxTable.Cell>
                 <NxTable.Cell>Reachability</NxTable.Cell>
                 <NxTable.Cell>Suggested Remediation</NxTable.Cell>
+                {isManualPullRequestEnabled && <NxTable.Cell>Next Step</NxTable.Cell>}
               </NxTable.Row>
             </NxTable.Head>
             <NxTable.Body
@@ -224,7 +233,6 @@ export default function PrioritiesPageTable() {
 }
 
 function DataRows({ dataset }) {
-  const dispatch = useDispatch();
   const routerState = useRouterState();
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
   const currentRouteName = useSelector(selectCurrentRouteName);

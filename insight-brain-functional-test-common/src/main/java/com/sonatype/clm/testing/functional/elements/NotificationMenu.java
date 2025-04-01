@@ -26,16 +26,24 @@ public class NotificationMenu
     return new NotificationListItem(childSelector(".iq-notification", nthChild(index + 1)));
   }
 
+  public SelenideElement detailModal() {
+    return child(".iq-notification-detail-modal");
+  }
+
   public SelenideElement detailBody() {
-    return child(".iq-dropdown-submenu .iq-dropdown-submenu__container");
+    return detailModal().$(".iq-notification-detail-modal-content");
   }
 
   public SelenideElement detailHeader() {
-    return child(".iq-dropdown-submenu .iq-dropdown-submenu__title");
+    return detailModal().$(".iq-notification-detail-modal-header");
   }
 
   public SelenideElement detailLink() {
     return detailBody().$("a");
+  }
+
+  public SelenideElement detailModalCloseButton() {
+    return detailModal().$(".nx-btn");
   }
 
   public static class NotificationListItem
@@ -47,10 +55,6 @@ public class NotificationMenu
 
     public SelenideElement age() {
       return child(".iq-notification__age");
-    }
-
-    public SelenideElement ageLabel() {
-      return child(".iq-notification__age-qualifier");
     }
 
     public SelenideElement summary() {

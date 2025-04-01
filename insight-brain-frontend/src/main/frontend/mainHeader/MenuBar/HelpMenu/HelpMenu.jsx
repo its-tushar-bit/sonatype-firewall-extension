@@ -6,13 +6,23 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { faQuestionCircle } from '@fortawesome/pro-solid-svg-icons';
-import { MenuButton, MenuTitle, NavLink } from '../MenuButton/MenuButton';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectIsSbomManager, selectIsStandaloneDeveloper } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { useSelector } from 'react-redux';
+import {
+  NxH4,
+  NxNavigationDropdown,
+  NxStatefulNavigationDropdown,
+  NxTextLink,
+} from '@sonatype/react-shared-components';
 
 export const HelpMenu = ({ majorMinorVersion = '' }) => {
+  const uiRouterState = useRouterState();
+
   const isStandaloneDeveloper = useSelector(selectIsStandaloneDeveloper);
   const isSbomManager = useSelector(selectIsSbomManager);
+
+  const gettingStartedUrl = uiRouterState.href('gettingStarted');
 
   const getHelpUrl = () => {
     if (isSbomManager) {
@@ -27,28 +37,29 @@ export const HelpMenu = ({ majorMinorVersion = '' }) => {
   };
 
   return (
-    <MenuButton icon={faQuestionCircle} iconLabel="Support Options" id="help-menu-dropdown">
-      <MenuTitle>Support Options</MenuTitle>
-
+    <NxStatefulNavigationDropdown icon={faQuestionCircle} title="Support Options" id="help-menu-dropdown">
+      <NxNavigationDropdown.MenuHeader>
+        <NxH4>Support Options</NxH4>
+      </NxNavigationDropdown.MenuHeader>
       {!isStandaloneDeveloper && (
-        <NavLink id="getting-started-link" stateName="gettingStarted" title="Getting Started">
+        <NxTextLink id="getting-started-link" href={gettingStartedUrl} className="nx-dropdown-link">
           Getting Started
-        </NavLink>
+        </NxTextLink>
       )}
 
-      <NavLink id="documentation-link" href={getHelpUrl()} title="Go to Online Help" openInNewTab>
+      <NxTextLink id="documentation-link" href={getHelpUrl()} newTab className="nx-dropdown-link">
         Online Help
-      </NavLink>
+      </NxTextLink>
 
-      <NavLink
+      <NxTextLink
         id="support-link"
         href="http://links.sonatype.com/products/clm/support"
-        title="Submit a request to Sonatype support"
-        openInNewTab
+        newTab
+        className="nx-dropdown-link"
       >
         Request Support
-      </NavLink>
-    </MenuButton>
+      </NxTextLink>
+    </NxStatefulNavigationDropdown>
   );
 };
 

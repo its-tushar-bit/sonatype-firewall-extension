@@ -57,46 +57,33 @@ public class NotificationTest
     NotificationMenu notificationMenu = new NotificationMenu();
     notificationMenu.click();
 
-    notificationMenu.notificationListItem(0).age().shouldHave(text("10"));
-    notificationMenu.notificationListItem(0).ageLabel().shouldHave(text("minutes ago"));
+    notificationMenu.notificationListItem(0).age().shouldHave(text("10 minutes ago"));
     notificationMenu.notificationListItem(0).summary().shouldHave(text("summary1"));
-    notificationMenu.notificationListItem(1).age().shouldHave(text("10"));
-    notificationMenu.notificationListItem(1).ageLabel().shouldHave(text("hours ago"));
+    notificationMenu.notificationListItem(1).age().shouldHave(text("10 hours ago"));
     notificationMenu.notificationListItem(1).summary().shouldHave(text("summary2"));
 
     notificationMenu.notificationListItem(0).click();
+    notificationMenu.detailModal().shouldBe(visible);
     notificationMenu.detailHeader().shouldHave(text("summary1"));
     notificationMenu.detailBody().shouldHave(text("detail1"));
+    notificationMenu.detailModalCloseButton().click();
+    notificationMenu.detailModal().shouldNotBe(visible);
 
+    notificationMenu.click();
     notificationMenu.notificationListItem(1).click();
+    notificationMenu.detailModal().shouldBe(visible);
     notificationMenu.detailHeader().shouldHave(text("summary2"));
     notificationMenu.detailBody().shouldHave(text("detail2"));
+    notificationMenu.detailModalCloseButton().click();
+    notificationMenu.detailModal().shouldNotBe(visible);
 
     // unread notification dot should disappear
     notificationMenu.notificationDot().shouldNotBe(visible);
 
-    // click the same notification again to remove the details
+    // open the second notification again and click its link; ensure it opens in a new tab
+    notificationMenu.click();
     notificationMenu.notificationListItem(1).click();
-    notificationMenu.detailHeader().shouldNotBe(visible);
-
-    // open the first one again
-    notificationMenu.notificationListItem(0).click();
-    notificationMenu.detailHeader().shouldHave(text("summary1"));
-    notificationMenu.detailBody().shouldHave(text("detail1"));
-
-    // clicking on the details should not close them
-    notificationMenu.detailHeader().click();
-    notificationMenu.detailHeader().shouldBe(visible);
-    notificationMenu.detailBody().shouldBe(visible);
-
-    notificationMenu.detailBody().click();
-    notificationMenu.detailHeader().shouldBe(visible);
-    notificationMenu.detailBody().shouldBe(visible);
-
-    // open the second notification again and click its link
-    notificationMenu.notificationListItem(1).click();
-
-    // click the link; ensure it opens in a new tab
+    notificationMenu.detailModal().shouldBe(visible);
     notificationMenu.detailLink().shouldBe(visible).click();
     Selenide.switchTo().window(1);
     waitUntilUrl("about:blank?foo");

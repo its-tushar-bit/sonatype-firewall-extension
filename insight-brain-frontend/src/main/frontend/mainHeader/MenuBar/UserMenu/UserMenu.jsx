@@ -6,10 +6,16 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { faUserCircle } from '@fortawesome/pro-solid-svg-icons';
-import { MenuButton, MenuTitle } from '../MenuButton/MenuButton';
 import UserTokenModalContainer from './UserToken/UserTokenModalContainer';
 import { useStateTransition } from '../../../react/useStateTransition';
 import DisplayThemeModal from 'MainRoot/configuration/displayTheme/DisplayThemeModal';
+import {
+  NxStatefulNavigationDropdown,
+  NxTextLink,
+  NxH4,
+  NxP,
+  NxNavigationDropdown,
+} from '@sonatype/react-shared-components';
 import ChangePasswordModal from './ChangePasswordModal';
 import UserDetailsModal from './UserDetailsModal';
 import { useSelector } from 'react-redux';
@@ -45,58 +51,42 @@ const UserMenu = ({
   }, [isChangePasswordModalVisible]);
 
   return (
-    <div id="user-menu">
-      <MenuButton icon={faUserCircle} id="user-menu-dropdown" iconLabel="Manage User Account">
-        <MenuTitle>
-          Current User:
-          <span id="user-name" className="iq-user-name">
-            {user ? user.displayName : ''}
-          </span>
-        </MenuTitle>
+    <div id="user-menu" className="iq-user-menu">
+      <NxStatefulNavigationDropdown id="user-menu-dropdown" icon={faUserCircle} title="Manage User Account">
+        <NxNavigationDropdown.MenuHeader>
+          <NxH4>Current User:</NxH4>
+          {user && user.displayName && <NxP id="user-name">{user.displayName}</NxP>}
+        </NxNavigationDropdown.MenuHeader>
         {canChangePassword && !isStandaloneDeveloper && (
-          <a
+          <button
             id="change-password"
-            tabIndex="0"
             onClick={() => setIsChangePasswordModalVisible(true)}
-            className="iq-dropdown-menu__link--main-header"
+            className="nx-dropdown-button"
           >
             Change Password
-          </a>
+          </button>
         )}
-
-        <a
-          id="user-token-management"
-          tabIndex="0"
-          onClick={onManageUserToken}
-          className="iq-dropdown-menu__link--main-header"
-        >
+        <button id="user-token-management" onClick={onManageUserToken} className="nx-dropdown-button">
           Manage User Token
-        </a>
-
-        <a
-          id="user-details"
-          tabIndex="0"
-          onClick={() => setIsUserDetailsModalVisible(true)}
-          className="iq-dropdown-menu__link--main-header"
-        >
+        </button>
+        <NxTextLink id="user-details" onClick={() => setIsUserDetailsModalVisible(true)} className="nx-dropdown-button">
           Details
-        </a>
-
+        </NxTextLink>
         {isDarkModeFeatureFlagEnabled && (
-          <a
+          <button
             id="display-theme"
             tabIndex="0"
             onClick={() => setIsDisplayThemeModalVisible(true)}
-            className="iq-dropdown-menu__link--main-header"
+            className="nx-dropdown-button"
           >
             Display Theme
-          </a>
+          </button>
         )}
-
-        <a id="logout" tabIndex="0" onClick={onLogout} className="iq-dropdown-menu__link--main-header">
+        <button id="logout" onClick={onLogout} className="nx-dropdown-button">
           Logout
-        </a>
-      </MenuButton>
+        </button>
+      </NxStatefulNavigationDropdown>
+
       {isUserTokenModalVisible && <UserTokenModalContainer />}
       {isChangePasswordModalVisible && (
         <ChangePasswordModal

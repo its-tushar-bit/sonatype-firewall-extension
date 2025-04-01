@@ -52,7 +52,7 @@ describe('HelpMenu', () => {
       const btn = screen.getByRole('button');
       fireEvent.click(btn);
 
-      expect(screen.getByRole('link', { name: /go to online help/i })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /online help/i })).toBeInTheDocument();
     });
 
     it('renders a link to lifecycle documentation url by default', () => {
@@ -60,7 +60,7 @@ describe('HelpMenu', () => {
       const btn = screen.getByRole('button');
       fireEvent.click(btn);
 
-      const link = screen.getByRole('link', { name: /go to online help/i });
+      const link = screen.getByRole('link', { name: /online help/i });
       expect(link).toHaveAttribute('href', 'http://links.sonatype.com/products/clm/doc/');
     });
 
@@ -69,7 +69,7 @@ describe('HelpMenu', () => {
       const btn = screen.getByRole('button');
       fireEvent.click(btn);
 
-      const link = screen.getByRole('link', { name: /go to online help/i });
+      const link = screen.getByRole('link', { name: /online help/i });
       expect(link).toHaveAttribute('href', 'http://links.sonatype.com/products/sbom/doc');
     });
 
@@ -78,7 +78,7 @@ describe('HelpMenu', () => {
       const btn = screen.getByRole('button');
       fireEvent.click(btn);
 
-      const link = screen.getByRole('link', { name: /go to online help/i });
+      const link = screen.getByRole('link', { name: /online help/i });
       expect(link).toHaveAttribute('href', 'http://links.sonatype.com/products/nxiq/doc/sonatype-developer');
     });
 
@@ -96,7 +96,7 @@ describe('HelpMenu', () => {
     const btn = screen.getByRole('button');
     fireEvent.click(btn);
 
-    const link = screen.getByRole('link', { name: /submit a request to sonatype support/i });
+    const link = screen.getByRole('link', { name: /request support/i });
 
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute('href', 'http://links.sonatype.com/products/clm/support');

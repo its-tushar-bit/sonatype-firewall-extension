@@ -13,13 +13,13 @@ import {
   NxLoadError,
   NxModal,
   NxProgressBar,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
 import { selectEvaluateApplicationSlice } from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/evaluateApplicationSelectors';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import NavLink from 'MainRoot/mainHeader/MenuBar/MenuButton/NavLink';
 import { getApplicationReportUrl } from 'MainRoot/util/CLMLocation';
 
 const EvaluationStatusModal = ({
@@ -78,11 +78,11 @@ const EvaluationStatusModal = ({
       <NxFooter>
         <NxButtonBar>
           <NxButton onClick={close}>Close</NxButton>
-          <NavLink openInNewTab href={getApplicationReportUrl(applicationId, scanId)} disabled={!scanId}>
+          <NxTextLink newTab href={getApplicationReportUrl(applicationId, scanId)} disabled={!scanId}>
             <NxButton variant="primary" disabled={!scanId}>
               View Report
             </NxButton>
-          </NavLink>
+          </NxTextLink>
         </NxButtonBar>
       </NxFooter>
     </NxModal>

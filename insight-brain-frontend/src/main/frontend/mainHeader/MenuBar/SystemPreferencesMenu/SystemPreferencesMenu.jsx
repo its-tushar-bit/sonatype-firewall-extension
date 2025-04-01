@@ -7,11 +7,11 @@ import React, { Children } from 'react';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { faCog } from '@fortawesome/pro-solid-svg-icons';
-import { NxTooltip } from '@sonatype/react-shared-components';
+import { NxH4, NxNavigationDropdown, NxStatefulNavigationDropdown, NxTooltip } from '@sonatype/react-shared-components';
 import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectProductLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 
-import { MenuButton, MenuTitle, NavLink } from '../MenuButton/MenuButton';
+import { NavLink } from '../MenuButton/MenuButton';
 
 export const SystemPreferencesMenu = ({
   permissions = {},
@@ -50,8 +50,10 @@ export const SystemPreferencesMenu = ({
   const sbomManagerPrefix = isSbomManager ? 'sbomManager' : '';
 
   return (
-    <MenuButton icon={faCog} iconLabel="System Preferences" id="system-configuration-menu">
-      <MenuTitle>System Preferences</MenuTitle>
+    <NxStatefulNavigationDropdown icon={faCog} title="System Preferences" id="system-configuration-menu">
+      <NxNavigationDropdown.MenuHeader>
+        <NxH4>System Preferences</NxH4>
+      </NxNavigationDropdown.MenuHeader>
       <NavLink
         stateName="users"
         id="system-configuration-users"
@@ -228,7 +230,7 @@ export const SystemPreferencesMenu = ({
       )}
       */}
       <EarlyAccessLinks></EarlyAccessLinks>
-    </MenuButton>
+    </NxStatefulNavigationDropdown>
   );
 };
 

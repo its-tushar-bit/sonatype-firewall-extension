@@ -37,6 +37,20 @@ main-header.nx-page-header {
   border-bottom: none;
 }
 
+main-header .menu-bar {
+  .nx-navigation-dropdown {
+    margin: 0;
+
+    .nx-icon-dropdown__toggle {
+      width: 32px;
+      height: 32px;
+    }
+  }
+  .nx-dropdown-menu {
+    z-index: 1500;
+  }
+}
+
 .iq-login-button-container,
 .iq-nav-bar--system {
   position: absolute;

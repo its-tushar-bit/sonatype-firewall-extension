@@ -5,11 +5,9 @@
  */
 
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
 @use '../../../scss/variables' as *;
-
-$-notification-age-qualifier-width: 67px;
-$-notification-age-width: 43px;
 
 .iq-notifications-menu-button {
   position: relative;
@@ -62,44 +60,46 @@ $-notification-age-width: 43px;
   }
 }
 
-.iq-notification {
-  background-color: $iq-off-white;
-  color: $iq-off-black;
-  cursor: auto;
-  min-height: 36px;
-  line-height: 18px;
-  padding: 8px;
+.iq-notifications-menu {
+  .nx-dropdown-menu {
+    width: 284px;
 
-  &.selected {
-    background-color: $iq-grey-1;
+    .nx-alert {
+      margin: 0 var(--nx-spacing-2x);
+    }
+
+    .iq-notification {
+      &.nx-dropdown-button {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .iq-notification__age {
+        font-size: 12px;
+        color: var(--nx-color-text-stark);
+      }
+
+      .iq-notification__text {
+        color: var(--nx-color-text-stark);
+      }
+
+      &.viewed {
+        .iq-notification__text,
+        .iq-notification__age {
+          color: var(--nx-swatch-grey-50);
+          @include nx-dark-mode-helpers.dark-mode {
+            color: var(--nx-swatch-indigo-65);
+          }
+        }
+      }
+    }
   }
+}
 
-  &.viewed {
-    color: $iq-slate;
+.iq-notification-detail-modal-content {
+  a:focus {
+    color: var(--nx-color-link);
   }
-}
-
-.iq-notification__age {
-  box-sizing: border-box;
-  float: left;
-  font-size: 20px;
-  line-height: 20px;
-  padding-right: 8px;
-  text-align: right;
-  width: $-notification-age-width;
-}
-
-.iq-notification__age-qualifier {
-  box-sizing: border-box;
-  float: left;
-  padding-right: 16px;
-  text-align: left;
-  white-space: normal;
-  width: $-notification-age-qualifier-width;
-}
-
-.iq-notification__text {
-  display: inline-block;
-  width: calc(100% - #{$-notification-age-qualifier-width + $-notification-age-width});
-  white-space: normal;
 }

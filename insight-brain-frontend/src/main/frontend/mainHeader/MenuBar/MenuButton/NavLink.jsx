@@ -7,6 +7,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { useRouterState } from '../../../react/RouterStateContext';
+import { NxOverflowTooltip } from '@sonatype/react-shared-components';
 
 export const NavLink = ({
   stateName,
@@ -22,7 +23,7 @@ export const NavLink = ({
   if (!showIf) {
     return null;
   }
-  const classes = classnames('iq-menu-button__nav-link', props.className, {
+  const classes = classnames('nx-dropdown-link', props.className, {
     active: includes(stateName),
     disabled: disabled,
   });
@@ -39,9 +40,11 @@ export const NavLink = ({
       }
     : {};
   return (
-    <a {...props} {...openTabProps} className={classes} href={linkHref}>
-      {children}
-    </a>
+    <NxOverflowTooltip>
+      <a {...props} {...openTabProps} className={classes} href={linkHref}>
+        {children}
+      </a>
+    </NxOverflowTooltip>
   );
 };
 

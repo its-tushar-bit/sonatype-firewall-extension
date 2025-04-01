@@ -8,6 +8,8 @@
 @use './UserMenu/UserMenu';
 @use './LoginButton/LoginButton';
 @use './NotificationsMenu/NotificationsMenu';
+@use './SolutionSwitcherContainer/SolutionSwitcherContainer';
+@use './SystemPreferencesMenu/SystemPreferencesMenu';
 
 menu-bar {
   display: contents;

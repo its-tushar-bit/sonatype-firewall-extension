@@ -117,6 +117,31 @@ public class PolicyEvaluationUtilTest
   }
 
   @Test
+  public void testValidateEvaluationTypeAndFeature_CLI_ProxyWithCorrectFeatureAndLicense_WithoutCiIntegration() {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    lenient().when(mockProductLicense.hasFeature(LicensedFeature.CI_INTEGRATION)).thenReturn(false);
+    lenient().when(mockProductLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)).thenReturn(true);
+
+    Stage stage = new Stage(Stage.ID_PROXY);    
+    
+    policyEvaluationUtil.validateEvaluationTypeAndFeature(IntegrationType.CLI, stage);
+
+    verify(mockStageTypeService).getLicensedStageTypes();
+  }
+
+  @Test(expected = InvalidLicenseException.class)
+  public void testValidateEvaluationTypeAndFeature_CLI_ProxyWithoutContainerImagesEval_WithCiIntegration() {
+    lenient().when(mockProductLicense.hasFeature(LicensedFeature.CI_INTEGRATION)).thenReturn(true);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
+
+    Stage stage = new Stage(Stage.ID_PROXY);
+
+    policyEvaluationUtil.validateEvaluationTypeAndFeature(IntegrationType.CLI, stage);
+
+    verify(mockStageTypeService).getLicensedStageTypes();
+  }
+
+  @Test
   public void testValidateEvaluationTypeAndFeature_CI() {
     Stage stage = new Stage(Stage.ID_BUILD);
     when(mockStageTypeService.getLicensedStageTypes()).thenReturn(Collections.singleton(StageTypes.BUILD));

@@ -52,12 +52,14 @@ public class PolicyEvaluationUtil
     );
 
     if (integrationType.equals(IntegrationType.CLI)) {
-      productLicense.validateFeature(LicensedFeature.CLI_INTEGRATION);
-
-      if (!hasContainerImagesEvaluationFeature && stage.getStageTypeId().equals(Stage.ID_PROXY)) {
-        throw new InvalidLicenseException(
-            "Application evaluation using the proxy stage is not supported by your license."
-        );
+      if (!hasContainerImagesEvaluationFeature) {
+        productLicense.validateFeature(LicensedFeature.CLI_INTEGRATION);
+        
+        if (stage.getStageTypeId().equals(Stage.ID_PROXY)) {
+          throw new InvalidLicenseException(
+              "Application evaluation using the proxy stage is not supported by your license."
+          );
+        }
       }
     }
     else if (integrationType.equals(IntegrationType.CI)) {

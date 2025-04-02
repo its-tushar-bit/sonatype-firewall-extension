@@ -156,7 +156,6 @@ CREATE TABLE policy_waiver_request (
   reviewer_id varchar(60) NULL,
   reviewer_name varchar(210) NULL,
   review_time timestamp NULL,
-  request_reason text NULL,
   rejection_reason text NULL,
   note_to_reviewer text NULL,
   CONSTRAINT policy_waiver_request_pk PRIMARY KEY (policy_waiver_request_id),

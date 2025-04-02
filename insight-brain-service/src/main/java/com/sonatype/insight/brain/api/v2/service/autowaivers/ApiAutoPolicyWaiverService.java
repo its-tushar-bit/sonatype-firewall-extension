@@ -187,6 +187,7 @@ public class ApiAutoPolicyWaiverService
     if (apiAutoPolicyWaiverDTO.pathForward != null) {
       autoPolicyWaiver.setPathForward(apiAutoPolicyWaiverDTO.pathForward);
     }
+    autoPolicyWaiver.setScopesOperatorAny(apiAutoPolicyWaiverDTO.scopesOperatorAny);
     autoPolicyWaiver.setCreatorId(currentUser.getUserPrincipal().getUsername());
     autoPolicyWaiver.setCreatorName(currentUser.getUserPrincipal().getDisplayName());
     autoPolicyWaiver.setCreateTime(new Date());
@@ -218,6 +219,7 @@ public class ApiAutoPolicyWaiverService
 
     autoPolicyWaiver.setReachability(apiAutoPolicyWaiverDTO.reachability);
     autoPolicyWaiver.setPathForward(apiAutoPolicyWaiverDTO.pathForward);
+    autoPolicyWaiver.setScopesOperatorAny(apiAutoPolicyWaiverDTO.scopesOperatorAny);
     autoPolicyWaiverDAO.update(autoPolicyWaiver);
     auditAutoPolicyWaiver(autoPolicyWaiver);
     autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, ownerType,

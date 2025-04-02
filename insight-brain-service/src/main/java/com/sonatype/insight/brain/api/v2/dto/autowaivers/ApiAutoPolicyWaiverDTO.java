@@ -47,4 +47,7 @@ public class ApiAutoPolicyWaiverDTO
   @JsonInclude(Include.NON_EMPTY)
   @ApiDateFormat
   public Date createTime;
+
+  // Default to true, matching the default of AutoPolicyWaiver
+  public boolean scopesOperatorAny = true;
 }

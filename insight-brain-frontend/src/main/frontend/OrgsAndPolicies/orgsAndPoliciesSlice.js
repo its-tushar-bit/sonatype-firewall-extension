@@ -37,6 +37,7 @@ import importSbomModalSlice from 'MainRoot/OrgsAndPolicies/importSbomModal/impor
 import sbomsTileSlice from 'MainRoot/OrgsAndPolicies/ownerSummary/sbomsTile/sbomsTileSlice.js';
 import automatedWaiversSlice from 'MainRoot/OrgsAndPolicies/automatedWaiversSlice';
 import automatedWaiversExclusionsSlice from 'MainRoot/OrgsAndPolicies/automatedWaiversExclusionsSlice';
+import autoWaiverModalSlice from './autoWaiversConfiguration/autoWaiverModalSlice';
 
 export default combineReducers({
   root: rootSlice,
@@ -76,4 +77,7 @@ export default combineReducers({
   sbomsTile: sbomsTileSlice,
   waivers: automatedWaiversSlice,
   autoWaiverExclusions: automatedWaiversExclusionsSlice,
+  autoWaiverActions: combineReducers({
+    autoWaiverModal: autoWaiverModalSlice,
+  }),
 });

@@ -163,30 +163,31 @@ public class EnterpriseReportingLandingPageTest
   }
 
   private static DashboardMetadataDTO mockDashboardMetadataDTOSpotlightDefaultColor() {
-    return new DashboardMetadataDTO("id", "title", "description", Arrays.asList("feature 1", "feature 2"),
-        "button text", "rolling-recap.svg", 1, true, "dashboards/rolling_recap::rolling_recap", null, null);
+    return new DashboardMetadataDTO("id", "title", "enterprise", "description", Arrays.asList("feature 1", "feature 2"),
+        "button text", "rolling-recap.svg", "faBrain", 1, true, "dashboards/rolling_recap::rolling_recap", null, null);
   }
 
   private static DashboardMetadataDTO mockDashboardMetadataDTOSpotlightProvidedColor() {
-    return new DashboardMetadataDTO("id", "title", "description",
-        Arrays.asList("feature 1", "feature 2"), "button text", "rolling-recap.svg", 2, true,
+    return new DashboardMetadataDTO("id", "title", "enterprise", "description",
+        Arrays.asList("feature 1", "feature 2"), "button text", "rolling-recap.svg", "faBrain", 2, true,
         "dashboards/rolling_recap::rolling_recap", "kiwi", null);
   }
 
   private static DashboardMetadataDTO mockDashboardMetadataDTO() {
-    return new DashboardMetadataDTO("id 2", "title 2", "description 2", Arrays.asList("feature 3", "feature 4"),
-        "button text 2", "rolling-recap.svg", 3, false, "dashboards/rolling_recap::rolling_recap", null, null);
+    return new DashboardMetadataDTO("id 2", "title 2", "dataInsight", "description 2",
+        Arrays.asList("feature 3", "feature 4"), "button text 2", "rolling-recap.svg", "faBrain", 3, false,
+        "dashboards/rolling_recap::rolling_recap", null, null);
   }
 
   private static DashboardMetadataDTO mockDashboardMetadataDTOSpotlightTextProvided() {
-    return new DashboardMetadataDTO("id3", "title 3", "description",
-        Arrays.asList("feature 5", "feature 6"), "button text", "rolling-recap.svg", 4, true,
+    return new DashboardMetadataDTO("id3", "title 3", "dataInsight", "description",
+        Arrays.asList("feature 5", "feature 6"), "button text", "rolling-recap.svg", "faThumbsUp", 4, true,
         "dashboards/rolling_recap::rolling_recap", null, "TEST");
   }
 
   private static DashboardMetadataDTO mockDashboardMetadataDTOSpotlightTextProvidedDisabledSpotlight() {
-    return new DashboardMetadataDTO("id3", "title 3", "description",
-        Arrays.asList("feature 5", "feature 6"), "button text", "rolling-recap.svg", 4, false,
+    return new DashboardMetadataDTO("id3", "title 3", "dataInsihgt", "description",
+        Arrays.asList("feature 5", "feature 6"), "button text", "rolling-recap.svg", "faThumbsUp", 4, false,
         "dashboards/rolling_recap::rolling_recap", null, "TEST");
   }
 }

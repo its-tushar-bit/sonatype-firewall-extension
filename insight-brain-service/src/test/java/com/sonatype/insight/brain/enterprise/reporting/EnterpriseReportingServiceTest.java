@@ -252,17 +252,7 @@ public class EnterpriseReportingServiceTest
         .getResource("/EnterpriseReportingServiceTest/" + firstIconImageFileName).toURI()));
     byte[] firstIconZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
-    DashboardMetadataDTO firstDashboardMetadataDTO = new DashboardMetadataDTO(
-        TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
-        TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
-        TemporaryEntity.uuid().substring(0, 8),
-        firstIconImageFileName,
-        1,
-        false,
-        "dashboards/rolling_recap::rolling_recap",
-        null,
-        null
-    );
+    DashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
     DashboardMetadataListDTO firstDashboardMetadataListDTO =
         new DashboardMetadataListDTO(Collections.singletonList(firstDashboardMetadataDTO));
     when(mockHdsClient.get(DashboardsVersionDTO.class,
@@ -284,31 +274,11 @@ public class EnterpriseReportingServiceTest
         .getResource("/EnterpriseReportingServiceTest/" + firstIconImageFileName).toURI()));
     byte[] iconsZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icons.zip").toURI()));
-    DashboardMetadataDTO firstDashboardMetadataDTO = new DashboardMetadataDTO(
-        TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
-        TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
-        TemporaryEntity.uuid().substring(0, 8),
-        firstIconImageFileName,
-        1,
-        false,
-        "dashboards/rolling_recap::rolling_recap",
-        null,
-        null
-    );
+    DashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
     String secondIconImageFileName = "icon-2.png";
     byte[] secondIconBytes = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/" + secondIconImageFileName).toURI()));
-    DashboardMetadataDTO secondDashboardMetadataDTO = new DashboardMetadataDTO(
-        TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
-        TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
-        TemporaryEntity.uuid().substring(0, 8),
-        secondIconImageFileName,
-        1,
-        false,
-        "dashboards/rolling_recap::rolling_recap",
-        null,
-        null
-    );
+    DashboardMetadataDTO secondDashboardMetadataDTO = createDashboardMetadata(secondIconImageFileName);
     DashboardMetadataListDTO dashboardMetadataListDTO =
         new DashboardMetadataListDTO(Arrays.asList(firstDashboardMetadataDTO, secondDashboardMetadataDTO));
     when(mockHdsClient.get(DashboardsVersionDTO.class,
@@ -332,17 +302,7 @@ public class EnterpriseReportingServiceTest
         .getResource("/EnterpriseReportingServiceTest/" + firstIconImageFileName).toURI()));
     byte[] firstIconZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
-    DashboardMetadataDTO firstDashboardMetadataDTO = new DashboardMetadataDTO(
-        TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
-        TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
-        TemporaryEntity.uuid().substring(0, 8),
-        firstIconImageFileName,
-        1,
-        false,
-        "dashboards/rolling_recap::rolling_recap",
-        null,
-        null
-    );
+    DashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
     DashboardMetadataListDTO firstDashboardMetadataListDTO =
         new DashboardMetadataListDTO(Collections.singletonList(firstDashboardMetadataDTO));
     when(mockHdsClient.get(DashboardsVersionDTO.class,
@@ -366,17 +326,7 @@ public class EnterpriseReportingServiceTest
         .getResource("/EnterpriseReportingServiceTest/" + firstIconImageFileName).toURI()));
     byte[] firstIconZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
-    DashboardMetadataDTO firstDashboardMetadataDTO = new DashboardMetadataDTO(
-        TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
-        TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
-        TemporaryEntity.uuid().substring(0, 8),
-        firstIconImageFileName,
-        1,
-        false,
-        "dashboards/rolling_recap::rolling_recap",
-        null,
-        null
-    );
+    DashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
     DashboardMetadataListDTO firstDashboardMetadataListDTO =
         new DashboardMetadataListDTO(Collections.singletonList(firstDashboardMetadataDTO));
 
@@ -396,17 +346,7 @@ public class EnterpriseReportingServiceTest
         .getResource("/EnterpriseReportingServiceTest/" + secondIconImageFileName).toURI()));
     byte[] secondIconZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-2.zip").toURI()));
-    DashboardMetadataDTO secondDashboardMetadataDTO = new DashboardMetadataDTO(
-        TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
-        TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
-        TemporaryEntity.uuid().substring(0, 8),
-        secondIconImageFileName,
-        1,
-        false,
-        "dashboards/rolling_recap::rolling_recap",
-        null,
-        null
-    );
+    DashboardMetadataDTO secondDashboardMetadataDTO = createDashboardMetadata(secondIconImageFileName);
     DashboardMetadataListDTO secondDashboardMetadataListDTO =
         new DashboardMetadataListDTO(Collections.singletonList(secondDashboardMetadataDTO));
 
@@ -423,16 +363,31 @@ public class EnterpriseReportingServiceTest
     assertDashboardIconImage(secondIconBytes, secondIconImageFileName);
   }
 
-  private static DashboardMetadataListDTO mockGetLookerDashboardMetadata() {
-    return new DashboardMetadataListDTO(Arrays.asList(generateLookerDashboardMetadata(),
-        generateLookerDashboardMetadata(), generateLookerDashboardMetadata()));
+  private static String generateRandomString() {
+    return TemporaryEntity.uuid().substring(0, 8);
   }
 
-  private static DashboardMetadataDTO generateLookerDashboardMetadata() {
-    return new DashboardMetadataDTO(TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
-        TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
-        TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8), 1, false,
-        "dashboards/rolling_recap::rolling_recap", null, null);
+  private static DashboardMetadataDTO createDashboardMetadata(String iconImage) {
+    final var dashboardId = generateRandomString();
+    final var title = generateRandomString();
+    final var category = generateRandomString();
+    final var description = generateRandomString();
+    final var features = Collections.singletonList(generateRandomString());
+    final var accessButtonText = generateRandomString();
+    final var previewImage = iconImage;
+    final var previewImageIcon = generateRandomString();
+    final var priority = 1;
+    final var spotlight = false;
+    final var dashboardPath =  "dashboards/rolling_recap::rolling_recap";
+    final String spotlightColor = null;
+    final String spotlightText = null;
+    return new DashboardMetadataDTO(dashboardId, title, category, description, features, accessButtonText,
+        previewImage, previewImageIcon, priority, spotlight, dashboardPath, spotlightColor, spotlightText);
+  }
+
+  private static DashboardMetadataListDTO mockGetLookerDashboardMetadata() {
+    return new DashboardMetadataListDTO(Arrays.asList(createDashboardMetadata("icon-1.png"),
+        createDashboardMetadata("icon-2.png"), createDashboardMetadata("icon-3.png")));
   }
 
   private void assertDashboardIconImage(
@@ -450,11 +405,8 @@ public class EnterpriseReportingServiceTest
   @Test
   public void testGetIcon_valid_onlyRequestedOnce() throws Exception {
     String iconName = "icon-1.png";
-    DashboardMetadataListDTO dashboardMetadataListDTO = new DashboardMetadataListDTO(Collections.singletonList(
-        new DashboardMetadataDTO(TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
-            TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
-            TemporaryEntity.uuid().substring(0, 8), iconName,
-            1, false, "dashboards/rolling_recap::rolling_recap", null, null)));
+    DashboardMetadataListDTO dashboardMetadataListDTO = 
+        new DashboardMetadataListDTO(Collections.singletonList(createDashboardMetadata(iconName)));
     when(mockHdsClient.get(DashboardsVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
     when(mockHdsClient.get(DashboardMetadataListDTO.class,
@@ -508,11 +460,8 @@ public class EnterpriseReportingServiceTest
   @Test
   public void testGetIcon_badRequest() throws Exception {
     String iconName = "icon-1.png";
-    DashboardMetadataListDTO dashboardMetadataListDTO = new DashboardMetadataListDTO(Collections.singletonList(
-        new DashboardMetadataDTO(TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
-            TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
-            TemporaryEntity.uuid().substring(0, 8), iconName,
-            1, false, "dashboards/rolling_recap::rolling_recap", null, null)));
+    DashboardMetadataListDTO dashboardMetadataListDTO =
+        new DashboardMetadataListDTO(Collections.singletonList(createDashboardMetadata(iconName)));
     when(mockHdsClient.get(DashboardsVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
     when(mockHdsClient.get(DashboardMetadataListDTO.class,

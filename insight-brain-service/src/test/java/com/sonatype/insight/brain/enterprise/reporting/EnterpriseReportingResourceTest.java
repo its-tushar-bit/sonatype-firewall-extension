@@ -63,6 +63,20 @@ public class EnterpriseReportingResourceTest
   }
 
   @Test
+  public void testGetDashboardMetadataAdditionalAttribute_Success() throws Exception {
+    hdsMockServer.respondWith(createDashboardVersionJson()).atUri("rest/enterpriseReporting/currentVersion");
+    hdsMockServer.respondWith(createDashboardMetadataAdditionalAttrJsonList())
+        .atUri("rest/enterpriseReporting/dashboards");
+    hdsMockServer.respondWith(new byte[0]).atUri("rest/enterpriseReporting/icons/rolling-recap.svg");
+    HttpResponse response = restRequest().path(EnterpriseReportingResource.DASHBOARDS_METADATA_PATH).get();
+    assertResponseStatus(200, response);
+    DashboardMetadataListDTO responseList =
+        response.getBody(DashboardMetadataListDTO.class);
+    assertThat(responseList).isNotNull();
+    assertThat(responseList.dashboardMetadata.size()).isEqualTo(1);
+  }
+
+  @Test
   public void testGetIcon_Success() throws Exception {
     assertTestGetIcon(200, "rolling-recap.svg");
   }
@@ -207,6 +221,29 @@ public class EnterpriseReportingResourceTest
         "      \"previewImage\": \"rolling-recap.svg\",\n" +
         "      \"priority\": 1,\n" +
         "      \"spotlight\": true\n" +
+        "    }\n" +
+        "  ]\n" +
+        "}";
+  }
+
+  private String createDashboardMetadataAdditionalAttrJsonList() {
+    return "{\n" +
+        "  \"dashboardMetadata\": [\n" +
+        "    {\n" +
+        "      \"dashboardId\": \"sbom-scorecard\",\n" +
+        "      \"title\": \"Sbom Report Overview\",\n" +
+        "      \"category\": \"enterprise\",\n" +
+        "      \"description\": \"A comprehensive view of monthly sboms\",\n" +
+        "      \"features\": [\n" +
+        "        \"Graphs\",\n" +
+        "        \"Tables\"\n" +
+        "      ],\n" +
+        "      \"accessButtonText\": \"Open Dashboard\",\n" +
+        "      \"previewImage\": \"rolling-recap.svg\",\n" +
+        "      \"previewImageIcon\": \"faBrain\",\n" +
+        "      \"priority\": 1,\n" +
+        "      \"spotlight\": true,\n" +
+        "      \"unexpectedAttr\": \"what is this\"\n" +
         "    }\n" +
         "  ]\n" +
         "}";

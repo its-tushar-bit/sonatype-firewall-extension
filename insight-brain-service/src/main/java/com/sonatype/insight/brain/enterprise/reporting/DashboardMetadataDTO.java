@@ -13,6 +13,8 @@ public class DashboardMetadataDTO
 
   public String title;
 
+  public String category;
+
   public String description;
 
   public List<String> features;
@@ -20,6 +22,8 @@ public class DashboardMetadataDTO
   public String accessButtonText;
 
   public String previewImage;
+
+  public String previewImageIcon;
 
   public Integer priority;
 
@@ -37,10 +41,12 @@ public class DashboardMetadataDTO
 
   public DashboardMetadataDTO(final String dashboardId,
                               final String title,
+                              final String category,
                               final String description,
                               final List<String> features,
                               final String accessButtonText,
                               final String previewImage,
+                              final String previewImageIcon,
                               final Integer priority,
                               final boolean spotlight,
                               final String dashboardPath,
@@ -49,10 +55,12 @@ public class DashboardMetadataDTO
   {
     this.dashboardId = dashboardId;
     this.title = title;
+    this.category = category;
     this.description = description;
     this.features = features;
     this.accessButtonText = accessButtonText;
     this.previewImage = previewImage;
+    this.previewImageIcon = previewImageIcon;
     this.priority = priority;
     this.spotlight = spotlight;
     this.dashboardPath = dashboardPath;

@@ -46,6 +46,7 @@ pipeline {
             def dashboardEntry = [
               dashboardId: params.dashboardId,
               title: params.title,
+              category: params.category,
               description: params.description,
               dashboardPath: params.dashboardPath,
               sinceIQVersion: covertEmtpyToNull(params.sinceIQVersion),
@@ -53,6 +54,7 @@ pipeline {
               featuresCsv: params.featuresCsv,
               accessButtonText: params.accessButtonText,
               previewImageFilename: params.previewImageFilename,
+              previewImageIcon: params.previewImageIcon,
               priorityOrder: params.priorityOrder.toInteger(),
               spotlightColor: covertEmtpyToNull(params.spotlightColor),
               spotlight: params.spotlight,
@@ -105,6 +107,12 @@ pipeline {
         defaultValue: ''
     )
 
+    choice(
+        name: 'category',
+        choices: ['enterprise', 'dataInsight'],
+        description: 'Select the category for the dashboard (Provided by UI/UX Design team).'
+    )
+
     string(
         name: 'dashboardPath',
         description: 'The Looker path to link to. It starts with "dashboards/" (Provided by BI team).',
@@ -143,6 +151,13 @@ pipeline {
     string(
         name: 'previewImageFilename',
         description: 'Dashboard icon file name (Provided by UI/UX Design team).',
+        trim: true,
+        defaultValue: ''
+    )
+
+    string(
+        name: 'previewImageIcon',
+        description: 'Dashboard icon name (Provided by UI/UX Design team).',
         trim: true,
         defaultValue: ''
     )
@@ -227,6 +242,7 @@ def copyFromEastBucketToWestBucket(s3Configuration, fileName) {
 def printUserInput (params) {
   echo "User Inputs ->"
   echo "  dashboardId: ${params.dashboardId}"
+  echo "  category: ${params.category}"
   echo "  title: ${params.title}"
   echo "  description: ${params.description}"
   echo "  dashboardPath: ${params.dashboardPath}"
@@ -235,6 +251,7 @@ def printUserInput (params) {
   echo "  featuresCsv: ${params.featuresCsv}"
   echo "  accessButtonText: ${params.accessButtonText}"
   echo "  previewImageFilename: ${params.previewImageFilename}"
+  echo "  previewImageIcon: ${params.previewImageIcon}"
   echo "  priorityOrder: ${params.priorityOrder}"
   echo "  spotlightColor: ${params.spotlightColor}"
   echo "  spotlight: ${params.spotlight}"
@@ -254,6 +271,7 @@ def validateInput(params, existingConfig) {
 def validateRequiredFields(params) {
   // spotlightColor and sinceIQVersion are optional and not validated here
   validateFieldHasValue(params, 'dashboardId')
+  validateFieldHasValue(params, 'category')
   validateFieldHasValue(params, 'title')
   validateFieldHasValue(params, 'description')
   validateFieldHasValue(params, 'dashboardPath')
@@ -261,6 +279,7 @@ def validateRequiredFields(params) {
   validateFieldHasValue(params, 'featuresCsv')
   validateFieldHasValue(params, 'accessButtonText')
   validateFieldHasValue(params, 'previewImageFilename')
+  validateFieldHasValue(params, 'previewImageIcon')
   validateFieldHasValue(params, 'priorityOrder')
 }
 
@@ -270,7 +289,6 @@ def validateFieldHasValue(params, fieldName) {
     error "'${fieldName}' is a required field"
   }
 }
-
 
 def assertThatNewPriorityOrderIsUnique(existingConfig, specifiedDashboardId, newPriorityOrder) {
   def dashboards = existingConfig.dashboards

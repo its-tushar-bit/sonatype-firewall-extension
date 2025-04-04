@@ -16,24 +16,21 @@ import {
   NxTile,
   NxToggle,
 } from '@sonatype/react-shared-components';
-import { debounce } from 'debounce';
-import { isNil } from 'ramda';
-import { faArrowDownWideShort } from '@fortawesome/pro-solid-svg-icons';
-import classnames from 'classnames';
 import PrioritiesPageRow from 'MainRoot/development/prioritiesPage/PrioritiesPageRow';
+import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import { selectComponent } from 'MainRoot/applicationReport/applicationReportActions';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectRouterCurrentParams, selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions } from 'MainRoot/development/prioritiesPage/slices/prioritiesPageSlice';
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
+import { debounce } from 'debounce';
+import { isNil } from 'ramda';
 import { selectApplicationReportMetaData } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { defaultIntegrationParamsMap, validIntegrationTypes } from './utils';
-import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import { selectIsManualPullRequestEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function PrioritiesPageTable() {
   const dispatch = useDispatch();
   const doLoad = () => dispatch(actions.loadTableData());
-  const isManualPullRequestEnabled = useSelector(selectIsManualPullRequestEnabled);
 
   const {
     loadingTableData,
@@ -47,6 +44,8 @@ export default function PrioritiesPageTable() {
     filterOnPolicyActions: filterOnPolicyActionsValue,
     hasDefaultFilters,
   } = useSelector(selectPrioritiesPageSlice);
+
+  const hasPolicyAction = priorities?.find((priority) => priority.action === 'fail' || priority.action === 'warn');
 
   const metadata = useSelector(selectApplicationReportMetaData);
   const { forMonitoring } = metadata || {};
@@ -70,8 +69,7 @@ export default function PrioritiesPageTable() {
 
   const setPage = (page) => dispatch(actions.setPage(page));
 
-  const priorityTooltip = `Priority of actionable items based on the policy action,
-      component reachability status, and threat score severity.`;
+  const priorityTooltip = `Priority of actionable items based on the policy action, component reachability status, and threat score severity.`;
 
   const setFilters = () => {
     dispatch(actions.setFilterOnPolicyActions(derivedActionFilter));
@@ -186,27 +184,20 @@ export default function PrioritiesPageTable() {
       </div>
       <NxTile.Content>
         <div className="nx-table-container">
-          <NxTable
-            id="iq-priorities-table"
-            className={classnames('iq-priorities-table', {
-              'iq-priorities-table--manual-pr-enabled': isManualPullRequestEnabled,
-            })}
-          >
+          <NxTable className="iq-priorities-page-table nx-table--fixed-layout">
             <NxTable.Head>
               <NxTable.Row>
-                <NxTable.Cell aria-label="Priority" className="nx-cell--num">
+                <NxTable.Cell className="iq-priorities-page-priority-header-cell">
                   <NxTooltip title={priorityTooltip}>
-                    <NxFontAwesomeIcon
-                      className="iq-priorities-table__priority-column-header"
-                      icon={faArrowDownWideShort}
-                    />
+                    <span>
+                      Priority <NxFontAwesomeIcon className="iq-priorities-page-table-info-icon" icon={faInfoCircle} />
+                    </span>
                   </NxTooltip>
                 </NxTable.Cell>
                 <NxTable.Cell>Component</NxTable.Cell>
-                <NxTable.Cell>Build Action</NxTable.Cell>
-                <NxTable.Cell>Reachability</NxTable.Cell>
-                <NxTable.Cell>Suggested Remediation</NxTable.Cell>
-                {isManualPullRequestEnabled && <NxTable.Cell>Next Step</NxTable.Cell>}
+                <NxTable.Cell>Reason for priority</NxTable.Cell>
+                <NxTable.Cell className="iq-priorities-page-suggested-fix-header-cell">Suggested fix</NxTable.Cell>
+                <NxTable.Cell chevron />
               </NxTable.Row>
             </NxTable.Head>
             <NxTable.Body
@@ -215,12 +206,12 @@ export default function PrioritiesPageTable() {
               error={loadErrorTableData}
               emptyMessage={getEmptyMessage()}
             >
-              <DataRows dataset={priorities} />
+              <DataRows dataset={priorities} hasPolicyAction={!!hasPolicyAction} />
             </NxTable.Body>
           </NxTable>
           <div className="nx-table-container__footer">
             <NxPagination
-              aria-controls="iq-priorities-table"
+              aria-controls="pagination-table"
               pageCount={pageCount}
               currentPage={currentPage}
               onChange={setPage}
@@ -232,9 +223,10 @@ export default function PrioritiesPageTable() {
   );
 }
 
-function DataRows({ dataset }) {
-  const routerState = useRouterState();
+function DataRows({ dataset, hasPolicyAction }) {
+  const dispatch = useDispatch();
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
+  const setSelectedComponent = (idx) => dispatch(selectComponent(idx));
   const currentRouteName = useSelector(selectCurrentRouteName);
 
   const getCurrentPrioritiesContainer = () => {
@@ -249,11 +241,26 @@ function DataRows({ dataset }) {
   };
 
   const prioritiesState = `${getCurrentPrioritiesContainer()}.componentDetails.overview`;
-  const getHref = (hash) => routerState.href(prioritiesState, { hash, publicId: publicAppId, scanId });
 
-  return (dataset ?? []).map((component) => {
+  const dispatchComponentDetailsPage = (hash) =>
+    dispatch(stateGo(prioritiesState, { hash, publicId: publicAppId, scanId }));
+  if (!dataset) return [];
+
+  return dataset.map((component, index) => {
     const { componentHash } = component;
 
-    return <PrioritiesPageRow key={componentHash} component={component} href={getHref(componentHash)} />;
+    const onRowClick = () => {
+      setSelectedComponent(index);
+      dispatchComponentDetailsPage(componentHash);
+    };
+
+    return (
+      <PrioritiesPageRow
+        key={componentHash}
+        component={component}
+        onClick={onRowClick}
+        hasPolicyAction={hasPolicyAction}
+      />
+    );
   });
 }

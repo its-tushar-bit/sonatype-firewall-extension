@@ -78,10 +78,7 @@ const loadRecommendations = createAsyncThunk(
       .get(getVersionGraphUrl(requestData))
       .then(({ data }) => {
         return {
-          [requestData.hash]: {
-            remediation: data.remediation,
-            automatedRemediationStatus: data.automatedRemediationStatus,
-          },
+          [requestData.hash]: { remediation: data.remediation },
         };
       })
       .catch(rejectWithValue);

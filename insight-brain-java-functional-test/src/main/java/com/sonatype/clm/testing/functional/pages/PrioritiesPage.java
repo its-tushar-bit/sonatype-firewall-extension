@@ -8,61 +8,43 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
-import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.NxDropdown;
-import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import static com.codeborne.selenide.Selectors.by;
+import static com.codeborne.selenide.Selenide.$;
 
 public class PrioritiesPage
-    extends BasicElement<PrioritiesPage>
 {
-  public PrioritiesPage() {
-    super(".iq-priorities-page");
+  private PrioritiesPage() {
+    // No op
   }
 
-  public static String url(String applicationId, String scanId) {
-    return BaseUrl.resolvePageUrl( "/developer/priorities/{publicAppId}/{scanId}", applicationId, scanId);
+  public static SelenideElement title() {
+    return $("h2");
   }
 
-  public SelenideElement title() {
-    return child("h2");
+  public static SelenideElement summaryTile() {
+    return $(by("data-testid", "iq-priorities-page-summary-section"));
   }
 
-  public SelenideElement summaryTile() {
-    return getElement().$(by("data-testid", "iq-priorities-page-summary-section"));
+  public static SelenideElement backLink() {
+    return $(".nx-text-link.iq-priorities-page-breadcrumbs-crumb");
   }
 
-  public SelenideElement backLink() {
-    return child(".nx-text-link.iq-priorities-page-breadcrumbs-crumb");
+  public static SelenideElement prioritiesTable() {
+    return $(".iq-priorities-page-table");
   }
 
-  public SelenideElement prioritiesTable() {
-    return child(".iq-priorities-table");
-  }
-
-  public ElementsCollection prioritiesTableRows() {
+  public static ElementsCollection prioritiesTableRows() {
     return prioritiesTable()
         .findAll(by("data-analytics-id", "sonatype-developer-priorities-page-component-row"));
   }
 
-  public SelenideElement prioritiesTableCell(int rowNum, int colNum) {
-    return prioritiesTable().$("tbody tr", rowNum).$("td", colNum);
+  public static NxDropdown viewDropdown() {
+    return new NxDropdown(".iq-priorities-page-view-dropdown");
   }
 
-  public SelenideElement rowComponentLink(int rowNum) {
-    return prioritiesTableCell(rowNum, 1).$("a");
-  }
-
-  public NxDropdown viewDropdown() {
-    return new NxDropdown(childSelector(".iq-priorities-page-view-dropdown"));
-  }
-
-  public SelenideElement lastPageLink() {
-    return getElement().$(by("aria-label", "goto last page"));
-  }
-
-  public SelenideElement createPullRequestButton(int rowNum) {
-    return prioritiesTableCell(rowNum, 5).find("button");
+  public static SelenideElement lastPageLink() {
+    return $(by("aria-label", "goto last page"));
   }
 }

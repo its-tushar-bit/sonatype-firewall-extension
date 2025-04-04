@@ -59,7 +59,7 @@ import org.apache.shiro.util.CollectionUtils;
 @Singleton
 public class Configuration
     implements ConfigurationListener, ReverseProxyAuthenticationConfigurationListener, JiraConfigurationListener,
-               SourceControlConfigurationListener, ProxyServerConfigurationListener, TenantManaged
+               SourceControlConfigurationListener, ProxyServerConfigurationListener, TenantManaged, BaseUrlProvider
 {
   private static final String BASE_URL_CONFIGURATION = "baseUrlConfiguration";
 
@@ -425,6 +425,11 @@ public class Configuration
             sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()) {
       pullRequestMonitor.schedulePullRequestMonitor();
     }
+  }
+
+  @Override
+  public String getBaseUrl() {
+    return null != getBaseUrlConfiguration() ? getBaseUrlConfiguration().getBaseUrl() : null;
   }
 
   public BaseUrlConfiguration getBaseUrlConfiguration() {

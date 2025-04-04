@@ -157,6 +157,7 @@ import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReport
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.dataaccess.telemetry.ClusterIdentificationDAO;
 import com.sonatype.insight.brain.dataaccess.telemetry.HistoricalTelemetryStateDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
@@ -661,6 +662,8 @@ public class TemporaryEntity
 
   private ComponentChangeDetectionEventDAO componentChangeDetectionEventDAO;
 
+  private ClusterIdentificationDAO clusterIdentificationDAO;
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -947,6 +950,7 @@ public class TemporaryEntity
       delete(historicalTelemetryStateDAO.getAll(), historicalTelemetryStateDAO);
       delete(componentChangeDetectionConfigurationDAO.getAll(), componentChangeDetectionConfigurationDAO);
       delete(componentChangeDetectionEventDAO.getAll(), componentChangeDetectionEventDAO);
+      delete(clusterIdentificationDAO.getAll(), clusterIdentificationDAO);
 
       restoreInitialWaiverReasons();
       productLicenseDAO.delete();
@@ -6227,6 +6231,7 @@ public class TemporaryEntity
     historicalTelemetryStateDAO = daoFactory.createHistoricalTelemetryStateDAO();
     componentChangeDetectionConfigurationDAO = daoFactory.createComponentChangeDetectionConfigurationDAO();
     componentChangeDetectionEventDAO = daoFactory.createComponentChangeDetectionEventDAO();
+    clusterIdentificationDAO = daoFactory.createClusterIdentificationDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {

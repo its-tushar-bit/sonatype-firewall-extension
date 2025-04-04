@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.hds;
 import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.hds.util.TelemetryTestUtils;
 import com.sonatype.insight.brain.service.DatabaseConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
@@ -22,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class MultiTenantTelemetryIdTest
+public class TelemetryIdMultiTenantTest
     extends AbstractMultiTenantTest
 {
   @Mock
@@ -93,7 +94,8 @@ public class MultiTenantTelemetryIdTest
         InsightConfig insightConfig,
         SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
     {
-      super(insightConfig, systemConfigurationPropertyDAO);
+      super(insightConfig, systemConfigurationPropertyDAO,
+          TelemetryTestUtils.setupReflectiveMockClusterIdentificationService());
     }
 
     @Override

@@ -15,10 +15,12 @@ import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.hds.util.TelemetryTestUtils;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.PasswordHandler;
@@ -111,7 +113,8 @@ public class DefaultHdsClientKeepConnectionAliveTest
     systemConfigurationPropertyDAO.set(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, "1");
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL,
         SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS);
-    telemetryId = new TelemetryId(config, systemConfigurationPropertyDAO);
+    var mockClusterIdentificationService = TelemetryTestUtils.setupReflectiveMockClusterIdentificationService();
+    telemetryId = new TelemetryId(config, systemConfigurationPropertyDAO, mockClusterIdentificationService);
 
     productLicense = mock(ProductLicense.class);
     when(productLicense.getFingerprint()).thenReturn("license-fingerprint");

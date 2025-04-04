@@ -10,9 +10,11 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
+import com.sonatype.insight.brain.hds.util.TelemetryTestUtils;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.DatabaseConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.telemetry.ClusterIdentificationService;
 
 import io.dropwizard.core.server.DefaultServerFactory;
 import io.dropwizard.jetty.ConnectorFactory;
@@ -20,6 +22,7 @@ import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.jetty.HttpsConnectorFactory;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.hds.TelemetryIdGenerator.TELEMETRY_ID_PATTERN;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +30,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TelemetryIdTest
     extends AbstractDatabaseTest
 {
+  @Mock
+  private ClusterIdentificationService mockClusterIdentificationService;
+
   private SystemConfigurationPropertyDAO dao;
 
   @Before
@@ -39,6 +45,11 @@ public class TelemetryIdTest
     }
   }
 
+  @Before
+  public void setup() {
+    mockClusterIdentificationService = TelemetryTestUtils.setupReflectiveMockClusterIdentificationService();
+  }
+
   @Test
   public void testInitialize() {
     int port = 8700;
@@ -46,7 +57,7 @@ public class TelemetryIdTest
     setFirstApplicationConnectorPort(insightConfig, port);
 
     // Initialize the telemetry ID, the generated and derived parts must be calculated.
-    TelemetryId telemetryId = new TelemetryId(insightConfig, dao);
+    TelemetryId telemetryId = new TelemetryId(insightConfig, dao, mockClusterIdentificationService);
 
     // when:
     final var telemetryId1 = telemetryId.getId();
@@ -58,7 +69,7 @@ public class TelemetryIdTest
     assertThat(telemetryId1).startsWith(generatedIdProperty1.getValue() + "-").hasSize(11);
 
     // Initialize the telemetry ID again, the generated and derived parts should not change.
-    telemetryId = new TelemetryId(insightConfig, dao);
+    telemetryId = new TelemetryId(insightConfig, dao, mockClusterIdentificationService);
     final var telemetryId2 = telemetryId.getId();
 
     SystemConfigurationProperty generatedIdProperty2 = dao
@@ -71,7 +82,7 @@ public class TelemetryIdTest
     // Initialize the telemetry ID again using a different port, the generated part should not change, but the derived
     // part should change.
     setFirstApplicationConnectorPort(insightConfig, port + 1);
-    telemetryId = new TelemetryId(insightConfig, dao);
+    telemetryId = new TelemetryId(insightConfig, dao, mockClusterIdentificationService);
 
     final var telemetryId3 = telemetryId.getId();
 
@@ -90,7 +101,7 @@ public class TelemetryIdTest
     setApplicationHttpConnectors(insightConfig, 8090, 7080, 8080);
 
     // Initialize the telemetry ID, the generated and derived parts must be calculated.
-    TelemetryId telemetryId = new TelemetryId(insightConfig, dao);
+    TelemetryId telemetryId = new TelemetryId(insightConfig, dao, mockClusterIdentificationService);
     final var telemetryIdValue = telemetryId.getId();
 
     SystemConfigurationProperty generatedIdProperty = dao
@@ -99,40 +110,48 @@ public class TelemetryIdTest
     assertValidTelemetryId(generatedIdProperty, telemetryIdValue);
 
     // Initialize the telemetry ID again, the generated and derived parts should not change.
-    assertTelemetryIdSame(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao));
+    assertTelemetryIdSame(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao,
+        mockClusterIdentificationService));
 
     // Initialize the telemetry ID again with a different port order, the generated and derived parts should not change.
     setApplicationHttpConnectors(insightConfig, 8080, 7080, 8090);
-    assertTelemetryIdSame(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao));
+    assertTelemetryIdSame(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao,
+        mockClusterIdentificationService));
 
     // Initialize the telemetry ID again using a different port, the generated part should not change, but the derived
     // part should change.
     setApplicationHttpConnectors(insightConfig, 8081, 7080, 8090);
-    assertTelemetryIdDifferentDerived(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao));
+    assertTelemetryIdDifferentDerived(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao,
+        mockClusterIdentificationService));
 
     // Initialize the telemetry ID again using different ports, the generated part should not change, but the derived
     // part should change.
     setApplicationHttpConnectors(insightConfig, 8081, 7081, 8091);
-    assertTelemetryIdDifferentDerived(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao));
+    assertTelemetryIdDifferentDerived(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao,
+        mockClusterIdentificationService));
 
     // Initialize the telemetry ID again adding a port, the generated part should not change, but the derived part
     // should change.
     setApplicationHttpConnectors(insightConfig, 8090, 7080, 8080, 8060);
-    assertTelemetryIdDifferentDerived(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao));
+    assertTelemetryIdDifferentDerived(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao,
+        mockClusterIdentificationService));
 
     // Initialize the telemetry ID again removing a port, the generated part should not change, but the derived part
     // should change.
     setApplicationHttpConnectors(insightConfig, 8090, 8080);
-    assertTelemetryIdDifferentDerived(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao));
+    assertTelemetryIdDifferentDerived(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao,
+        mockClusterIdentificationService));
 
     // Initialize the telemetry ID again changing ports to have the same sorted concatenation without a separator, the
     // generated part should not change, but the derived part should change.
     setApplicationHttpConnectors(insightConfig, 8090, 70, 80, 8080);
-    assertTelemetryIdDifferentDerived(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao));
+    assertTelemetryIdDifferentDerived(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao,
+        mockClusterIdentificationService));
 
     // Initialize the telemetry ID again with https ports, the generated and derived parts should not change.
     setApplicationHttpsConnectors(insightConfig, 8090, 7080, 8080);
-    assertTelemetryIdSame(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao));
+    assertTelemetryIdSame(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao,
+        mockClusterIdentificationService));
   }
 
   private void assertValidTelemetryId(SystemConfigurationProperty generatedIdProperty, String telemetryId) {
@@ -198,7 +217,7 @@ public class TelemetryIdTest
     // given: telemetry ID with configuration
     var insightConfig = new InsightConfig();
     setFirstApplicationConnectorPort(insightConfig, 1234);
-    var telemetryId = new TelemetryId(insightConfig, dao);
+    var telemetryId = new TelemetryId(insightConfig, dao, mockClusterIdentificationService);
 
     // when:
     final var actualId = telemetryId.getId();
@@ -217,14 +236,14 @@ public class TelemetryIdTest
   public void testInitialize_ClusterIdIncludedForExternalDatabase() {
     InsightConfig insightConfig = new InsightConfig();
     insightConfig.setDatabase(getSampleDatabaseConfig());
-    TelemetryId telemetryId = new TelemetryId(insightConfig, dao);
+    TelemetryId telemetryId = new TelemetryId(insightConfig, dao, mockClusterIdentificationService);
     assertThat(telemetryId.getClusterId()).isEqualTo(getSampleDatabaseConfigFingerPrint());
   }
 
   @Test
   public void testInitialize_ClusterIdNullForEmbeddedDatabase() {
     InsightConfig insightConfig = new InsightConfig();
-    TelemetryId telemetryId = new TelemetryId(insightConfig, dao);
+    TelemetryId telemetryId = new TelemetryId(insightConfig, dao, mockClusterIdentificationService);
     assertThat(telemetryId.getClusterId()).isNull();
   }
 

@@ -119,6 +119,7 @@ import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReport
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.dataaccess.telemetry.ClusterIdentificationDAO;
 import com.sonatype.insight.brain.dataaccess.telemetry.HistoricalTelemetryStateDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
@@ -450,4 +451,6 @@ public interface DAOFactory
   ComponentChangeDetectionEventDAO createComponentChangeDetectionEventDAO();
 
   HistoricalTelemetryStateDAO createHistoricalTelemetryStateDAO();
+
+  ClusterIdentificationDAO createClusterIdentificationDAO();
 }

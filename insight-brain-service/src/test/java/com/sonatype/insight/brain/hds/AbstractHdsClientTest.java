@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
 import java.util.Set;
+
 import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.hds.util.TelemetryTestUtils;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.DatabaseConfig;
@@ -22,8 +24,8 @@ import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Binder;
-import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.core.server.DefaultServerFactory;
+import io.dropwizard.jetty.HttpConnectorFactory;
 import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -88,7 +90,9 @@ public abstract class AbstractHdsClientTest
     setUserAgentSuffix(USER_AGENT_SUFFIX);
     ((HttpConnectorFactory) ((DefaultServerFactory) config.getServerFactory()).getApplicationConnectors().get(0))
         .setPort(1234);
-    telemetryId = new TelemetryId(config, systemConfigurationPropertyDAO);
+
+    var mockClusterIdentificationService = TelemetryTestUtils.setupReflectiveMockClusterIdentificationService();
+    telemetryId = new TelemetryId(config, systemConfigurationPropertyDAO, mockClusterIdentificationService);
     initClient();
   }
 

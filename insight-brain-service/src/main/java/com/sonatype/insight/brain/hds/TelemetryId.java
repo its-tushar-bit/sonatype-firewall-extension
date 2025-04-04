@@ -12,6 +12,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.service.DatabaseConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.telemetry.ClusterIdentificationService;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 
 import org.slf4j.Logger;
@@ -40,6 +41,8 @@ public class TelemetryId
   @Deprecated
   public static final String TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME = "TELEMETRY_GENERATED_INSTANCE_ID";
 
+  private final ClusterIdentificationService clusterIdentificationService;
+
   private final InsightConfig insightConfig;
 
   private final SystemConfigurationPropertyDAO dao;
@@ -49,9 +52,14 @@ public class TelemetryId
   private final String globalTelemetryId;
 
   @Inject
-  public TelemetryId(InsightConfig insightConfig, final SystemConfigurationPropertyDAO dao) {
+  public TelemetryId(
+      InsightConfig insightConfig,
+      final SystemConfigurationPropertyDAO dao,
+      ClusterIdentificationService clusterIdentificationService)
+  {
     this.insightConfig = insightConfig;
     this.dao = dao;
+    this.clusterIdentificationService = clusterIdentificationService;
     this.globalTelemetryId = generateId();
   }
 
@@ -76,14 +84,14 @@ public class TelemetryId
     var clusterIdentity = tenantClusterIdentity.get();
     if (null == clusterIdentity) {
       // currently, the system effectively (and inadvertently) defaults the telemetry ID to what is in the global
-      // configuration for multi-tenant;  so, we'll preserve that behavior for now;  But, in the future we won't write
-      // that property if it isn't already present, but rather shift over to a new mechanism for saving the
-      // telemetry ID prefix
-      final var assignedTelemetryId = globalTelemetryId;
+      // configuration for multi-tenant;  so, we'll preserve that behavior for existing instances when seeding
+      // cluster identification with an initial value;  at that point the telemetry ID is maintained per tenant
+      final var computedTelemetryId = globalTelemetryId;
+      final var computedClusterId = ClusterIdCalculator.calculateClusterId(insightConfig.getDatabase());
 
-      final var assignedClusterId = ClusterIdCalculator.calculateClusterId(insightConfig.getDatabase());
+      var resolvedIds = clusterIdentificationService.resolveClusterIdentity(computedClusterId, computedTelemetryId);
 
-      clusterIdentity = new ClusterIdentity(assignedClusterId, assignedTelemetryId);
+      clusterIdentity = new ClusterIdentity(resolvedIds.assignedClusterId(), resolvedIds.assignedTelemetryId());
       tenantClusterIdentity.set(clusterIdentity);
     }
     return clusterIdentity;

@@ -42,8 +42,6 @@ import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.git.BranchMonitorExecutor;
 import com.sonatype.insight.brain.git.MultiTenantDefaultBranchMonitorExecutor;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
-import com.sonatype.insight.brain.hds.MultiTenantTelemetryId;
-import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.health.ServerBootHealthCheck;
 import com.sonatype.insight.brain.micrometer.MultiTenantMeterRegistryProvider;
 import com.sonatype.insight.brain.migration.MigrateTenantsCommand;
@@ -363,7 +361,6 @@ public class MultiTenantInsightBrainService
         bind(QuartzJobStoreTX.class).to(MultiTenantQuartzJobStoreTX.class);
         bind(TaskScheduler.class).to(MultiTenantTaskScheduler.class);
 
-        bind(TelemetryId.class).to(MultiTenantTelemetryId.class);
         bind(TelemetryCollectorsProvider.class).to(MultiTenantTelemetryCollectorsProvider.class);
 
         bind(FeaturesService.class).to(MTIQFeatureService.class);

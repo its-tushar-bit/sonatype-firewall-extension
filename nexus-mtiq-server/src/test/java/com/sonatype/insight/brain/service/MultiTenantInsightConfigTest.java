@@ -48,4 +48,9 @@ public class MultiTenantInsightConfigTest
         t -> assertThat(underTest.getClusterDirectory().getPath()).isEqualTo(
             CLUSTER_ROOT + File.separator + t.tenantSlug));
   }
+
+  @Test
+  public void testGetApplicationConnectorPorts() {
+    assertThat(underTest.getApplicationConnectorPorts()).isNotNull();
+  }
 }

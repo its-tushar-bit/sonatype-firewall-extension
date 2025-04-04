@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,13 +14,14 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.service.DatabaseConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
 
+import io.dropwizard.core.server.DefaultServerFactory;
 import io.dropwizard.jetty.ConnectorFactory;
 import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.jetty.HttpsConnectorFactory;
-import io.dropwizard.core.server.DefaultServerFactory;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.hds.TelemetryIdGenerator.TELEMETRY_ID_PATTERN;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TelemetryIdTest
@@ -47,30 +47,39 @@ public class TelemetryIdTest
 
     // Initialize the telemetry ID, the generated and derived parts must be calculated.
     TelemetryId telemetryId = new TelemetryId(insightConfig, dao);
+
+    // when:
+    final var telemetryId1 = telemetryId.getId();
+
     SystemConfigurationProperty generatedIdProperty1 = dao
         .getByName(TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
+
     assertThat(generatedIdProperty1.getValue()).isNotNull();
-    String telemetryId1 = telemetryId.getId();
     assertThat(telemetryId1).startsWith(generatedIdProperty1.getValue() + "-").hasSize(11);
 
     // Initialize the telemetry ID again, the generated and derived parts should not change.
     telemetryId = new TelemetryId(insightConfig, dao);
+    final var telemetryId2 = telemetryId.getId();
+
     SystemConfigurationProperty generatedIdProperty2 = dao
         .getByName(TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
+
     assertThat(generatedIdProperty2.getId()).isEqualTo(generatedIdProperty1.getId());
     assertThat(generatedIdProperty2.getValue()).isEqualTo(generatedIdProperty1.getValue());
-    String telemetryId2 = telemetryId.getId();
     assertThat(telemetryId2).isEqualTo(telemetryId1);
 
     // Initialize the telemetry ID again using a different port, the generated part should not change, but the derived
     // part should change.
     setFirstApplicationConnectorPort(insightConfig, port + 1);
     telemetryId = new TelemetryId(insightConfig, dao);
+
+    final var telemetryId3 = telemetryId.getId();
+
     SystemConfigurationProperty generatedIdProperty3 = dao
         .getByName(TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
+
     assertThat(generatedIdProperty3.getId()).isEqualTo(generatedIdProperty2.getId());
     assertThat(generatedIdProperty3.getValue()).isEqualTo(generatedIdProperty2.getValue());
-    String telemetryId3 = telemetryId.getId();
     assertThat(telemetryId3.substring(0, 6)).isEqualTo(telemetryId2.substring(0, 6));
     assertThat(telemetryId3).isNotEqualTo(telemetryId2);
   }
@@ -82,9 +91,12 @@ public class TelemetryIdTest
 
     // Initialize the telemetry ID, the generated and derived parts must be calculated.
     TelemetryId telemetryId = new TelemetryId(insightConfig, dao);
+    final var telemetryIdValue = telemetryId.getId();
+
     SystemConfigurationProperty generatedIdProperty = dao
         .getByName(TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
-    assertValidTelemetryId(generatedIdProperty, telemetryId);
+
+    assertValidTelemetryId(generatedIdProperty, telemetryIdValue);
 
     // Initialize the telemetry ID again, the generated and derived parts should not change.
     assertTelemetryIdSame(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao));
@@ -113,7 +125,7 @@ public class TelemetryIdTest
     setApplicationHttpConnectors(insightConfig, 8090, 8080);
     assertTelemetryIdDifferentDerived(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao));
 
-    // Initialize the telemetry ID again changing ports to have the same sorted concatenation without a separator, the 
+    // Initialize the telemetry ID again changing ports to have the same sorted concatenation without a separator, the
     // generated part should not change, but the derived part should change.
     setApplicationHttpConnectors(insightConfig, 8090, 70, 80, 8080);
     assertTelemetryIdDifferentDerived(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao));
@@ -123,33 +135,40 @@ public class TelemetryIdTest
     assertTelemetryIdSame(generatedIdProperty, telemetryId, new TelemetryId(insightConfig, dao));
   }
 
-  private void assertValidTelemetryId(SystemConfigurationProperty generatedIdProperty, TelemetryId telemetryId) {
+  private void assertValidTelemetryId(SystemConfigurationProperty generatedIdProperty, String telemetryId) {
     assertThat(generatedIdProperty.getValue()).isNotNull();
-    String telemetryId1 = telemetryId.getId();
-    assertThat(telemetryId1).startsWith(generatedIdProperty.getValue() + "-").hasSize(11);
+    assertThat(telemetryId).matches(TELEMETRY_ID_PATTERN).startsWith(generatedIdProperty.getValue());
   }
 
   private void assertTelemetryIdSame(SystemConfigurationProperty generatedIdProperty,
                                      TelemetryId telemetryId,
                                      TelemetryId newTelemetryId)
   {
+    final var telemetryIdValue = telemetryId.getId();
+    final var newTelemetryIdValue = newTelemetryId.getId();
+
     SystemConfigurationProperty newGeneratedIdProperty = dao
         .getByName(TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
+
     assertThat(newGeneratedIdProperty.getId()).isEqualTo(generatedIdProperty.getId());
     assertThat(newGeneratedIdProperty.getValue()).isEqualTo(generatedIdProperty.getValue());
-    assertThat(newTelemetryId.getId()).isEqualTo(telemetryId.getId());
+    assertThat(telemetryIdValue).isEqualTo(newTelemetryIdValue);
   }
 
   private void assertTelemetryIdDifferentDerived(SystemConfigurationProperty generatedIdProperty,
                                                  TelemetryId telemetryId,
                                                  TelemetryId newTelemetryId)
   {
+    var telemetryIdValue = telemetryId.getId();
+    var newTelemetryIdValue = newTelemetryId.getId();
+
     SystemConfigurationProperty newGeneratedIdProperty = dao
         .getByName(TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
+
     assertThat(newGeneratedIdProperty.getId()).isEqualTo(generatedIdProperty.getId());
     assertThat(newGeneratedIdProperty.getValue()).isEqualTo(generatedIdProperty.getValue());
-    assertThat(newTelemetryId.getId().substring(0, 6)).isEqualTo(telemetryId.getId().substring(0, 6));
-    assertThat(newTelemetryId.getId()).isNotEqualTo(telemetryId.getId());
+    assertThat(newTelemetryIdValue.substring(0, 6)).isEqualTo(telemetryIdValue.substring(0, 6));
+    assertThat(newTelemetryIdValue).isNotEqualTo(telemetryIdValue);
   }
 
   private void setApplicationHttpConnectors(InsightConfig insightConfig, int... ports) {
@@ -175,60 +194,18 @@ public class TelemetryIdTest
   }
 
   @Test
-  public void testCalculateClusterId() {
-    String sampleConfigFingerPrint = getSampleDatabaseConfigFingerPrint();
-
-    DatabaseConfig databaseConfig = getSampleDatabaseConfig();
-    assertThat(TelemetryId.calculateClusterId(databaseConfig)).isEqualTo(sampleConfigFingerPrint);
-
-    // changing hostname changes the fingerprint
-    databaseConfig = getSampleDatabaseConfig();
-    databaseConfig.setHostname(databaseConfig.getHostname() + "-changed");
-    assertThat(TelemetryId.calculateClusterId(databaseConfig)).isNotEqualTo(sampleConfigFingerPrint);
-
-    // changing port changes the fingerprint
-    databaseConfig = getSampleDatabaseConfig();
-    databaseConfig.setPort(databaseConfig.getPort() + 1);
-    assertThat(TelemetryId.calculateClusterId(databaseConfig)).isNotEqualTo(sampleConfigFingerPrint);
-
-    // changing name changes the fingerprint
-    databaseConfig = getSampleDatabaseConfig();
-    databaseConfig.setName(databaseConfig.getName() + "-changed");
-    assertThat(TelemetryId.calculateClusterId(databaseConfig)).isNotEqualTo(sampleConfigFingerPrint);
-
-    // changing username does not modify the fingerprint
-    databaseConfig = getSampleDatabaseConfig();
-    databaseConfig.setUsername(databaseConfig.getUsername() + "-changed");
-    assertThat(TelemetryId.calculateClusterId(databaseConfig)).isEqualTo(sampleConfigFingerPrint);
-
-    // changing password does not modify the fingerprint
-    databaseConfig = getSampleDatabaseConfig();
-    databaseConfig.setPassword(databaseConfig.getPassword() + "-changed");
-    assertThat(TelemetryId.calculateClusterId(databaseConfig)).isEqualTo(sampleConfigFingerPrint);
-  }
-
-  @Test
-  public void testCalculateDerivedId() {
-    List<byte[]> hardwareAddresses = new ArrayList<>();
-    hardwareAddresses.add("123456789ABC".getBytes(StandardCharsets.UTF_8));
-    assertThat(TelemetryId.calculateDerivedId("somehost", "7788", hardwareAddresses)).isEqualTo("e7c7e");
-
-    assertThat(TelemetryId.calculateDerivedId("otherhost", "7788", hardwareAddresses)).isEqualTo("9ee29");
-
-    assertThat(TelemetryId.calculateDerivedId("somehost", "8899", hardwareAddresses)).isEqualTo("17868");
-
-    hardwareAddresses.add("123456789DEF".getBytes(StandardCharsets.UTF_8));
-    assertThat(TelemetryId.calculateDerivedId("somehost", "7788", hardwareAddresses)).isEqualTo("e1380");
-  }
-
-  @Test
   public void testGetId() {
-    InsightConfig insightConfig = new InsightConfig();
+    // given: telemetry ID with configuration
+    var insightConfig = new InsightConfig();
     setFirstApplicationConnectorPort(insightConfig, 1234);
-    TelemetryId telemetryId = new TelemetryId(insightConfig, dao);
-    SystemConfigurationProperty generatedIdProperty = dao
-        .getByName(TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
-    assertThat(telemetryId.getId()).startsWith(generatedIdProperty.getValue() + "-");
+    var telemetryId = new TelemetryId(insightConfig, dao);
+
+    // when:
+    final var actualId = telemetryId.getId();
+
+    // then:
+    final var generatedIdProperty = dao.getByName(TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
+    assertThat(actualId).matches(TELEMETRY_ID_PATTERN).startsWith(generatedIdProperty.getValue());
   }
 
   private void setFirstApplicationConnectorPort(InsightConfig insightConfig, int port) {

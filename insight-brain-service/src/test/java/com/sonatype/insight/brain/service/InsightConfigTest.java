@@ -248,6 +248,12 @@ public class InsightConfigTest
             "webhookSecretPassphrase");
   }
 
+  @Test
+  public void testGetApplicationConnectorPorts() {
+    InsightConfig config = new InsightConfig();
+    assertThat(config.getApplicationConnectorPorts()).isNotNull();
+  }
+
   private void getAllFieldNames(String name, JsonNode jsonNode, Set<String> fieldNames) {
     if (jsonNode.isObject()) {
       Iterator<Entry<String, JsonNode>> fields = jsonNode.fields();

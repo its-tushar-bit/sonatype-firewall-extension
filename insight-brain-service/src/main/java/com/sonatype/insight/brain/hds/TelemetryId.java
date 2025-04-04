@@ -5,27 +5,15 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.DatabaseConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
-import io.dropwizard.core.server.DefaultServerFactory;
-import io.dropwizard.jetty.HttpConnectorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,129 +37,57 @@ public class TelemetryId
 {
   private static final Logger log = LoggerFactory.getLogger(TelemetryId.class);
 
+  @Deprecated
   public static final String TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME = "TELEMETRY_GENERATED_INSTANCE_ID";
-
-  private static final int ID_PART_LENGTH = 5;
 
   private final InsightConfig insightConfig;
 
   private final SystemConfigurationPropertyDAO dao;
 
-  private final String id;
+  private final TenantReference<ClusterIdentity> tenantClusterIdentity = new TenantReference<>();
 
-  private final String clusterId;
+  private final String globalTelemetryId;
 
   @Inject
   public TelemetryId(InsightConfig insightConfig, final SystemConfigurationPropertyDAO dao) {
     this.insightConfig = insightConfig;
     this.dao = dao;
-    id = generateId();
-    clusterId = calculateClusterId(insightConfig.getDatabase());
+    this.globalTelemetryId = generateId();
   }
 
   protected String generateId() {
-    // There is a requirement to not be able to link the telemetry IDs to customers.
-    // This means we should not log them anywhere, because if we have the logs from a customer, then we can link the IDs
-    // to the customer.
-
-    // The generated part of the telemetry instance id is generated the first time the server is started on a machine,
-    // i.e. if it wasn't generated before.
-    SystemConfigurationProperty generatedIdProperty = dao.getByName(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
-    if (generatedIdProperty == null) {
-      String generatedId = UUID.randomUUID().toString().substring(0, ID_PART_LENGTH);
-      generatedIdProperty = new SystemConfigurationProperty(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME, generatedId);
-      dao.insert(generatedIdProperty);
-      log.debug("Generated a new instance ID.");
-    }
-    else {
-      log.debug("The generated instance ID already exists.");
-    }
-
-    String hostname;
-    try {
-      hostname = InetAddress.getLocalHost().getHostName();
-    }
-    catch (Exception e) {
-      log.warn("Cannot get the hostname for the local machine: " + e.getMessage(), e);
-      hostname = "localhost";
-    }
-    List<NetworkInterface> networkInterfaces;
-    try {
-      networkInterfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
-    }
-    catch (Exception e) {
-      log.warn("Cannot get the network interfaces for the local machine: " + e.getMessage(), e);
-      networkInterfaces = new ArrayList<>();
-    }
-
-    List<byte[]> hardwareAddresses = new ArrayList<>();
-    for (NetworkInterface networkInterface : networkInterfaces) {
-      try {
-        if (!networkInterface.isUp()) {
-          // If the interface is down, then it may not be configured properly.
-          continue;
-        }
-
-        byte[] hardwareAddress = networkInterface.getHardwareAddress();
-        if (hardwareAddress == null || hardwareAddress.length == 0) {
-          continue;
-        }
-
-        hardwareAddresses.add(hardwareAddress);
-      }
-      catch (Exception e) {
-        log.warn("Error loading details for a network interface: " + e.getMessage(), e);
-      }
-    }
-
-    String ports = ((DefaultServerFactory) insightConfig.getServerFactory()).getApplicationConnectors().stream()
-        .map(applicationConnector -> ((HttpConnectorFactory) applicationConnector).getPort()).sorted()
-        .map(String::valueOf).collect(Collectors.joining(","));
-
-    String derivedId = calculateDerivedId(hostname, ports, hardwareAddresses);
-    String result = generatedIdProperty.getValue() + "-" + derivedId;
-    return result;
+    return TelemetryIdGenerator.generateId(insightConfig, dao);
   }
 
   static String calculateClusterId(DatabaseConfig databaseConfig) {
-    if (databaseConfig == null) {
-      return null;
-    }
-
-    String databaseHostname = databaseConfig.getHostname();
-    if ("localhost".equalsIgnoreCase(databaseHostname)) {
-      try {
-        databaseHostname = InetAddress.getLocalHost().getHostName();
-      }
-      catch (Exception e) {
-        log.warn("Cannot get the hostname for the local machine: " + e.getMessage(), e);
-      }
-    }
-
-    String idBasedOnDatabaseConfig = databaseHostname + databaseConfig.getPort() + databaseConfig.getName();
-    Hasher hasher = Hashing.sha512().newHasher();
-    hasher.putString(idBasedOnDatabaseConfig, StandardCharsets.UTF_8);
-    return hasher.hash().toString();
-  }
-
-  @SuppressWarnings("deprecation")
-  static String calculateDerivedId(String hostname, String ports, List<byte[]> hardwareAddresses) {
-    // Calculate the derived ID as the SHA1 of the bytes of hostname + port + all network interface hardware addresses.
-    Hasher hasher = Hashing.sha1().newHasher();
-    hasher.putString(hostname + ports, StandardCharsets.UTF_8);
-
-    for (byte[] hardwareAddress : hardwareAddresses) {
-      hasher.putBytes(hardwareAddress);
-    }
-
-    return hasher.hash().toString().substring(0, ID_PART_LENGTH);
+    return ClusterIdCalculator.calculateClusterId(databaseConfig);
   }
 
   public String getId() {
-    return id;
+    return getClusterIdentity().telemetryId();
   }
 
   public String getClusterId() {
-    return clusterId;
+    return getClusterIdentity().clusterId();
   }
+
+  // lazily initialize the cluster identity per tenant
+  private ClusterIdentity getClusterIdentity() {
+    var clusterIdentity = tenantClusterIdentity.get();
+    if (null == clusterIdentity) {
+      // currently, the system effectively (and inadvertently) defaults the telemetry ID to what is in the global
+      // configuration for multi-tenant;  so, we'll preserve that behavior for now;  But, in the future we won't write
+      // that property if it isn't already present, but rather shift over to a new mechanism for saving the
+      // telemetry ID prefix
+      final var assignedTelemetryId = globalTelemetryId;
+
+      final var assignedClusterId = ClusterIdCalculator.calculateClusterId(insightConfig.getDatabase());
+
+      clusterIdentity = new ClusterIdentity(assignedClusterId, assignedTelemetryId);
+      tenantClusterIdentity.set(clusterIdentity);
+    }
+    return clusterIdentity;
+  }
+
+  private record ClusterIdentity(String clusterId, String telemetryId) { }
 }

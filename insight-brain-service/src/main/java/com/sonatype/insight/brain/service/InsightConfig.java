@@ -10,6 +10,8 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -30,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.annotations.VisibleForTesting;
 import io.dropwizard.core.Configuration;
 import io.dropwizard.core.server.DefaultServerFactory;
+import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.validation.ValidationMethod;
 import io.dropwizard.web.conf.WebConfiguration;
 import org.slf4j.Logger;
@@ -972,5 +975,11 @@ public class InsightConfig
 
   public ReportDataStoreConfig getReportDataStoreConfig() {
     return reportDataStoreConfig;
+  }
+
+  public String getApplicationConnectorPorts() {
+    return ((DefaultServerFactory) getServerFactory()).getApplicationConnectors().stream()
+        .map(applicationConnector -> ((HttpConnectorFactory) applicationConnector).getPort()).sorted()
+        .map(String::valueOf).collect(Collectors.joining(","));
   }
 }

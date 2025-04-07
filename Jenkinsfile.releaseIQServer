@@ -51,7 +51,7 @@ pipeline {
         build(job: 'insight/insight-brain/release',
               parameters: [ booleanParam(name: 'hotfix', value: params.hotfix),
                             string(name: 'version', value: params.releaseVersion),
-                            run(name: 'snapshotBuild', runId: "insight/insight-brain/master-snapshot#${buildNumber}")])
+                            run(name: 'snapshotBuild', runId: "insight/insight-brain/feature-snapshots/main#${buildNumber}")])
       }
     }
     stage('Release Jira Version - IQ') {

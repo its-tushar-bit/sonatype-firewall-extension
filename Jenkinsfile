@@ -18,10 +18,10 @@ make(
     javaVersion: 'OpenJDK 17',
     mavenVersion: 'Maven 3.9.x',
     mavenOptions: "-D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
-    retentionPolicy: currentBuild.fullProjectName.contains('master-snapshot') ? RetentionPolicy.DEFAULT : RetentionPolicy.SHORT_TERM,
+    retentionPolicy: currentBuild.fullProjectName.endsWith('/main') ? RetentionPolicy.DEFAULT : RetentionPolicy.SHORT_TERM,
     prepare: {
 
-    if (currentBuild.fullProjectName.toLowerCase().contains('insight/insight-brain/master-snapshot')) {
+    if (currentBuild.fullProjectName.toLowerCase().endsWith('/main')) {
         String fixVersion = 'brain-next'
         List<String> newFixVersions = ['saas-next']
         echo "Replacing '${fixVersion}' with [${newFixVersions.join(', ')}]"
@@ -69,7 +69,7 @@ make(
       }
     },
     releaseFromCommit: true,
-    snapshotProjectName: 'insight/insight-brain/master-snapshot',
+    snapshotProjectName: 'insight/insight-brain/feature-snapshots/main',
     githubProjectUrl: 'git@github.com:sonatype/insight-brain.git',
     runFeatureBranchPolicyEvaluations: true,
     iqPolicyEvaluation: { stage ->
@@ -190,7 +190,7 @@ void configureBranchJob() {
         stringParam(name: 'nextVersion',
             description: 'The next SNAPSHOT version to use after the release. Optional as will be automatically be ' +
                 'calculated if left blank.'),
-        run(name:'snapshotBuild', filter: 'SUCCESSFUL', projectName: 'insight/insight-brain/master-snapshot',
+        run(name:'snapshotBuild', filter: 'SUCCESSFUL', projectName: 'insight/insight-brain/feature-snapshots/main',
             description: 'The snapshot build to release from.')
     ]
   }

@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.apache.commons.lang3.StringUtils;
@@ -342,8 +343,8 @@ public class PolicyEvaluationDAO
   public List<PolicyEvaluation> getPrimaryNonMonitoringByApplicationIdAndStageId(String applicationId, String stageId) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2" + //
-        " AND entity.isForMonitoring=false AND entity.isReevaluation=false";
-    return getList(sQuery, applicationId, stageId);
+        " AND entity.isForMonitoring=false AND entity.isReevaluation=false AND entity.stageTypeId<>?3";
+    return getList(sQuery, applicationId, stageId, StageTypes.COMPLIANCE.getId());
   }
 
   private static final List<String> stageList = Arrays.asList(Stage.ID_SOURCE, Stage.ID_BUILD, Stage.ID_DEVELOP);
@@ -360,8 +361,8 @@ public class PolicyEvaluationDAO
   public List<PolicyEvaluation> getPrimaryForMonitoringByApplicationId(String applicationId) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId=?1" + //
-        " AND entity.isForMonitoring=true AND entity.isReevaluation=false";
-    return getList(sQuery, applicationId);
+        " AND entity.isForMonitoring=true AND entity.isReevaluation=false AND entity.stageTypeId<>?2";
+    return getList(sQuery, applicationId, StageTypes.COMPLIANCE.getId());
   }
 
   public PolicyEvaluation getLastByCommitHash(String commitHash) {

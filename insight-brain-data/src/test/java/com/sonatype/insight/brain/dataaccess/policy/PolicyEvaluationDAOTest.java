@@ -683,6 +683,16 @@ public class PolicyEvaluationDAOTest
   }
 
   @Test
+  public void testGetPrimaryNonMonitoringByApplicationIdAndStageId_ComplianceStage_IsNotIncluded() {
+    Application app1 = tempEntity.newApplicationWithParent();
+
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_COMPLIANCE, "scan1", false, false, new Date());
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_COMPLIANCE, "scan2", false, false, new Date());
+
+    assertThat(dao.getPrimaryNonMonitoringByApplicationIdAndStageId(app1.getId(), Stage.ID_COMPLIANCE)).isEmpty();
+  }
+
+  @Test
   public void testGetPrimaryForMonitoringByApplicationId() {
     Application app1 = tempEntity.newApplicationWithParent();
     Application app2 = tempEntity.newApplicationWithParent();
@@ -698,6 +708,16 @@ public class PolicyEvaluationDAOTest
     assertThat(dao.getPrimaryForMonitoringByApplicationId(app1.getId()))
         .usingElementComparator(Comparator.comparing(PolicyEvaluation::getId))
         .containsExactlyInAnyOrder(evaluation1, evaluation2);
+  }
+
+  @Test
+  public void testGetPrimaryForMonitoringByApplicationId_ComplianceStage_IsNotIncluded() {
+    Application app1 = tempEntity.newApplicationWithParent();
+
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_COMPLIANCE, "scan1", false, true, new Date());
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_COMPLIANCE, "scan2", false, true, new Date());
+
+    assertThat(dao.getPrimaryForMonitoringByApplicationId(app1.getId())).isEmpty();
   }
 
   @Test

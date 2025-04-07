@@ -157,7 +157,7 @@ void postBuild() {
 void configureBranchJob() {
   // Use the project name to determine the branch
   String projName = currentBuild.fullProjectName
-  boolean mtiqImagePushEnabledByDefault = (projName.toLowerCase().contains('master') || projName.endsWith('_mtiq'))
+  boolean mtiqImagePushEnabledByDefault = (projName.toLowerCase().endsWith('/main') || projName.endsWith('_mtiq'))
 
   List params = [
       booleanParam(defaultValue: false,
@@ -195,7 +195,10 @@ void configureBranchJob() {
     ]
   }
   def propertyList = [copyArtifactPermission("/${projName}"), parameters(params)]
-  if (!projName.toLowerCase().contains('master-snapshot')) {
+  if (projName.toLowerCase().endsWith('/main')) {
+    propertyList.add(disableConcurrentBuilds(abortPrevious: false))
+    propertyList.add(pipelineTriggers([cron('@midnight')]))
+  } else {
     propertyList.add(disableConcurrentBuilds(abortPrevious: true))
   }
   properties(propertyList)

@@ -1451,6 +1451,10 @@ export const getAuditReportSummary = function (repositoryId) {
 export const getLegacyViolationURL = (ownerType, ownerId) =>
   uriTemplate`/rest/legacyViolations/${ownerType}/${ownerId}`;
 
+export const getApplicableAutoWaiversURL = (ownerType, ownerId) => {
+  return uriTemplate`/api/v2/autoPolicyWaivers/v2/${ownerType}/${ownerId}/applicableAutoWaivers`;
+};
+
 export const getAutoWaiversConfigurationURL = (ownerType, ownerId) => {
   return uriTemplate`/api/v2/autoPolicyWaivers/${ownerType}/${ownerId}/status`;
 };

@@ -16,6 +16,8 @@ import {
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { selectWaiver } from './autoWaiverModalSelectors';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { propSet } from 'MainRoot/util/jsUtil';
+import { actions as applicableAutoWaiversActions } from 'MainRoot/OrgsAndPolicies/applicableAutoWaiversSlice';
 
 const REDUCER_NAME = 'autoWaiverActions/autoWaiverModal';
 
@@ -131,7 +133,10 @@ const createAutoWaiver = createAsyncThunk(
     return axios
       .post(getAutoWaiversConfigurationURLnoStatus(ownerType, ownerId), putData)
       .then(() => {
-        startSaveMaskSuccessTimer(dispatch, actions.closeModal);
+        startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone).then(() => {
+          dispatch(applicableAutoWaiversActions.loadApplicableAutoWaivers());
+          dispatch(actions.closeModal());
+        });
       })
       .catch(rejectWithValue);
   }
@@ -193,6 +198,7 @@ const autoWaiver = createSlice({
     toggleCheckboxReachability,
     setThreatLevel,
     setScope,
+    saveMaskTimerDone: propSet('submitMaskState', null),
   },
   extraReducers: {
     [createAutoWaiver.pending]: createAutoWaiverRequested,

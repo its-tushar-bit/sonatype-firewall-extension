@@ -28,3 +28,14 @@
     display: inline;
   }
 }
+
+.iq-inherited-waiver-header {
+  font-weight: bold;
+  background-color: var(--nx-color-site-background);
+}
+
+.iq-auto-waiver-row {
+  .nx-cell.iq-auto-waiver-delete-cell.nx-cell--icon {
+    padding: var(--nx-spacing-base);
+  }
+}

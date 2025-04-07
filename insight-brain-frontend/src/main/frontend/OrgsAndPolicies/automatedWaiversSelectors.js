@@ -7,6 +7,7 @@ import { createSelector } from '@reduxjs/toolkit';
 import { pick, prop } from 'ramda';
 import { selectOrgsAndPoliciesSlice } from './orgsAndPoliciesSelectors';
 
+export const selectAutomatedWaiversSlice = createSelector(selectOrgsAndPoliciesSlice, prop('automatedWaivers'));
 export const selectWaiversSlice = createSelector(selectOrgsAndPoliciesSlice, prop('waivers'));
 export const selectWaivers = createSelector(selectWaiversSlice, prop('data'));
 
@@ -28,3 +29,7 @@ export const selectWaiversStatusMessage = createSelector(selectWaiversConfig, (c
     ? message + ` (Inheriting from ${configuration.autoPolicyWaiverOwnerName})`
     : message;
 });
+
+export const selectApplicableAutoWaivers = createSelector(selectAutomatedWaiversSlice, prop('applicableAutoWaivers'));
+
+export const selectAutoWaiverToDelete = createSelector(selectApplicableAutoWaivers, prop('autoWaiverIdToDelete'));

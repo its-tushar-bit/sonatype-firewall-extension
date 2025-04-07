@@ -88,12 +88,47 @@ describe('Auto Waiver Modal Component', () => {
       expect(await screen.findByRole('button', { name: /7 - Severe/i }));
     });
 
-    it('should display content for scope', async () => {
-      renderComponent();
+    describe('scope dropdown', () => {
+      it('should be disabled with tooltip and text "any/all" when both checkboxes are not checked', async () => {
+        renderComponent();
 
-      expect(await screen.findByText(/And, when /)).toBeVisible();
-      expect(await screen.findByText(/ of the below are true:/)).toBeVisible();
-      expect(await screen.findByRole('button', { name: /any/i }));
+        expect(await screen.findByText(/And, when /)).toBeVisible();
+        expect(await screen.findByText(/ of the following are true:/)).toBeVisible();
+
+        const dropdown = await screen.findByRole('button', { name: 'any/all' });
+        expect(dropdown).toBeInTheDocument();
+        expect(dropdown).toHaveClass('disabled');
+
+        await user.hover(dropdown);
+
+        const tooltip = await screen.findByRole('tooltip');
+        expect(tooltip).toBeInTheDocument();
+        expect(tooltip).toHaveTextContent('Select both conditions below to enable this option');
+      });
+
+      it('should be enabled with text "any" when both checkboxes are checked', async () => {
+        renderComponent();
+
+        let dropdown = await screen.findByRole('button', { name: 'any/all' });
+        expect(dropdown).toBeInTheDocument();
+        expect(dropdown).toHaveClass('disabled');
+
+        const upgradePathNotAvailableCheckbox = await screen.findByLabelText(
+          'No newer, non-violating component version is available'
+        );
+        const vulnerabilityNotReachableCheckbox = await screen.findByLabelText(
+          'Application does not execute any calls to the vulnerable method'
+        );
+
+        await user.click(upgradePathNotAvailableCheckbox);
+        await user.click(vulnerabilityNotReachableCheckbox);
+
+        expect(screen.queryByRole('button', { name: 'any/all' })).not.toBeInTheDocument();
+
+        dropdown = await screen.findByRole('button', { name: 'any' });
+        expect(dropdown).toBeInTheDocument();
+        expect(dropdown).not.toHaveClass('disabled');
+      });
     });
 
     it('should display content for Upgrade Path is not available', async () => {
@@ -201,12 +236,38 @@ describe('Auto Waiver Modal Component', () => {
       expect(await screen.findByRole('button', { name: /8 - Critical/i }));
     });
 
-    it('should display content for scope', async () => {
-      renderComponent();
+    describe('scope dropdown', () => {
+      it('should be enabled with text "all" when both checkboxes are checked', async () => {
+        renderComponent();
 
-      expect(await screen.findByText(/And, when /)).toBeVisible();
-      expect(await screen.findByText(/ of the below are true:/)).toBeVisible();
-      expect(await screen.findByRole('button', { name: /all/i }));
+        expect(await screen.findByText(/And, when /)).toBeVisible();
+        expect(await screen.findByText(/ of the following are true:/)).toBeVisible();
+        expect(await screen.findByRole('button', { name: /all/i }));
+      });
+
+      it('should be disabled with tooltip and text "any/all" when both checkboxes are not checked', async () => {
+        renderComponent();
+
+        expect(await screen.findByRole('button', { name: 'all' })).not.toHaveClass('disabled');
+
+        const upgradePathNotAvailableCheckbox = await screen.findByLabelText(
+          'No newer, non-violating component version is available'
+        );
+
+        await user.click(upgradePathNotAvailableCheckbox);
+
+        expect(screen.queryByRole('button', { name: 'all' })).not.toBeInTheDocument();
+
+        const dropdown = await screen.queryByRole('button', { name: 'any/all' });
+        expect(dropdown).toBeInTheDocument();
+        expect(dropdown).toHaveClass('disabled');
+
+        await user.hover(dropdown);
+
+        const tooltip = await screen.findByRole('tooltip');
+        expect(tooltip).toBeInTheDocument();
+        expect(tooltip).toHaveTextContent('Select both conditions below to enable this option');
+      });
     });
 
     it('should display content for Upgrade Path is not available', async () => {

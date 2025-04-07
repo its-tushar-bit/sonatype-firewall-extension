@@ -744,6 +744,7 @@ public class ApplicationDAOTest
     Policy policy = tempEntity.newPolicy(application);
     PolicyWaiverRequest policyWaiverRequest =
         new PolicyWaiverRequest("12345678901234567890", policy.getId(), application.getId(), "My comment");
+    policyWaiverRequest.setPolicyViolationId("policyViolationId");
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
 
     // sanity check

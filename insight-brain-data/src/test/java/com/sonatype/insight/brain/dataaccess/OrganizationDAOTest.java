@@ -597,6 +597,7 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     Policy policy = tempEntity.newPolicy(organization);
     PolicyWaiverRequest policyWaiverRequest =
         new PolicyWaiverRequest("12345678901234567890", policy.getId(), organization.getId(), "My comment");
+    policyWaiverRequest.setPolicyViolationId("policyViolationId");
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
 
     // sanity check

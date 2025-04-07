@@ -417,6 +417,8 @@ public abstract class AuditData
           return setOrganization((Organization) owner);
         case REPOSITORY:
           return setRepository((Repository) owner);
+        case REPOSITORY_MANAGER:
+          return setRepositoryManager((RepositoryManager) owner);
         case REPOSITORY_CONTAINER:
           return setRepositoryContainer();
         default:

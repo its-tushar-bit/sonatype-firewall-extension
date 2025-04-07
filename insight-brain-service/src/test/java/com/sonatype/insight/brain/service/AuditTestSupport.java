@@ -169,6 +169,9 @@ public interface AuditTestSupport
       case REPOSITORY:
         assertRepositoryData(auditDTO, (Repository) owner);
         return;
+      case REPOSITORY_MANAGER:
+        assertRepositoryManagerData(auditDTO, (RepositoryManager) owner);
+        return;
       case REPOSITORY_CONTAINER:
         assertRepositoryContainerData(auditDTO);
         return;

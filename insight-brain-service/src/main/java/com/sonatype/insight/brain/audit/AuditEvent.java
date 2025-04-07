@@ -66,6 +66,7 @@ public enum AuditEvent
   VIEW_WAIVER(Domain.GOVERNANCE_WAIVER, Type.VIEW),
 
   CREATE_WAIVER_REQUEST(Domain.GOVERNANCE_WAIVER_REQUEST, Type.CREATE),
+  REVIEW_WAIVER_REQUEST(Domain.GOVERNANCE_WAIVER_REQUEST, Type.REVIEW),
 
   CREATE_LABEL(Domain.GOVERNANCE_LABEL, Type.CREATE),
   UPDATE_LABEL(Domain.GOVERNANCE_LABEL, Type.UPDATE),
@@ -677,5 +678,7 @@ public enum AuditEvent
     String SEND = "send";
 
     String GRANT = "grant";
+
+    String REVIEW = "review";
   }
 }

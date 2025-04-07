@@ -90,6 +90,11 @@ public class PolicyWaiverRequestBuilder
     return this;
   }
 
+  public PolicyWaiverRequestBuilder setPolicyViolationId(final String policyViolationId) {
+    policyWaiverRequest.setPolicyViolationId(policyViolationId);
+    return this;
+  }
+
   public PolicyWaiverRequest build() {
     return this.policyWaiverRequest;
   }

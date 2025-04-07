@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.validation.constraints.NotNull;
@@ -286,8 +287,7 @@ public class ApiPolicyWaiverService
 
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
   void addPolicyWaiver(
-      /* used to perform authz check even though owner type is unused */
-      @AuthzContext(Key.TYPE) @SuppressWarnings("unused") final OwnerType ownerType,
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) final String ownerId,
       final AbstractPolicyViolation abstractPolicyViolation,
       final String comment,
@@ -299,6 +299,15 @@ public class ApiPolicyWaiverService
     PolicyWaiver policyWaiver =
         savePolicyWaiver(ownerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime, waiverReasonId,
             expireWhenRemediationAvailable);
+    auditAndSendTelemetry(ownerType, ownerId, policyWaiver, abstractPolicyViolation);
+  }
+
+  void auditAndSendTelemetry(
+      OwnerType ownerType,
+      String ownerId,
+      PolicyWaiver policyWaiver,
+      AbstractPolicyViolation abstractPolicyViolation)
+  {
     auditPolicyWaiver(policyWaiver);
     policyWaiverTelemetryCreator.sendWaiverTelemetryForOwnerType(policyWaiver, ownerType, abstractPolicyViolation);
     sendTelemetry(ownerType, ownerId);

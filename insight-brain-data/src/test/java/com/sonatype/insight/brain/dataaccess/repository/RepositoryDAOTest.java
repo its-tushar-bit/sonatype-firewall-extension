@@ -31,7 +31,6 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
@@ -43,6 +42,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.policy.PolicyWaiverRequestBuilder;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Before;
@@ -231,8 +231,9 @@ public class RepositoryDAOTest
   public void testDelete_CascadesToPolicyWaiverRequests() {
     Repository repository = tempEntity.newRepository();
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
-    PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequest(policy.getId(), repository.getId(), "Comment");
-    tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
+    RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setOwnerId(repository.getId())
+        .setPolicyId(policy.getId()).setPolicyViolationId(policyViolation.getId()).build());
 
     // sanity check
     PolicyWaiverRequestDAO policyWaiverRequestDAO = daoFactory.createPolicyWaiverRequestDAO();

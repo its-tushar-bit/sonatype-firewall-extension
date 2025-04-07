@@ -17,6 +17,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestOptionsDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestReviewDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverRequestService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -40,10 +41,12 @@ public class ApiPolicyWaiverRequestResource
 {
   private final ApiPolicyWaiverRequestService apiPolicyWaiverRequestService;
 
-  static final String OWNERS_PATH =
+  private static final String OWNERS_PATH =
       "{ownerType: application|organization|repository|repository_manager|repository_container}/{ownerId}";
 
-  static final String BY_POLICY_VIOLATION_ID_PATH = OWNERS_PATH + "/{policyViolationId}";
+  static final String POLICY_VIOLATION_ID_PATH = OWNERS_PATH + "/{policyViolationId}";
+
+  static final String POLICY_WAIVER_REQUEST_REVIEW_PATH = OWNERS_PATH + "/review/{policyWaiverRequestId}";
 
   @Inject
   public ApiPolicyWaiverRequestResource(ApiPolicyWaiverRequestService apiPolicyWaiverRequestService) {
@@ -54,7 +57,7 @@ public class ApiPolicyWaiverRequestResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_WAIVER_REQUEST)
-  @Path(BY_POLICY_VIOLATION_ID_PATH)
+  @Path(POLICY_VIOLATION_ID_PATH)
   @Operation(
       description = "Use this method to create a policy waiver request." +
           "\n" +
@@ -68,29 +71,65 @@ public class ApiPolicyWaiverRequestResource
       }
   )
   public ApiPolicyWaiverRequestDTO addPolicyWaiverRequestByPolicyViolationId(
-      @Parameter(description = "Indicates the scope of the policy waiver request. Possible values are application, " +
+      @Parameter(description = "The scope of the policy waiver request. Possible values are application, " +
           "organization, repository, repository_manager, repository_container.", required = true)
       @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the id for the ownerType provided above. E.g. applicationId if the " +
+      @Parameter(description = "The id for the ownerType provided above. E.g. applicationId if the " +
           "ownerType is application.", required = true)
       @PathParam("ownerId") String ownerId,
-      @Parameter(description = "Enter the policyViolationId for the policy on which you want to create a policy "
+      @Parameter(description = "The policyViolationId for the policy on which you want to create a policy "
           + "waiver request. Use the Policy Violation REST API or Reports REST API to obtain the policyViolationId.")
       @PathParam("policyViolationId") String policyViolationId,
-      @RequestBody(
-          description = "The request JSON can include the fields" +
-              "<ol>" +
-              "<li>comment (optional, to indicate the reason of " +
-              "the waiver) default value is null</li>" +
-              "<li>matcherStrategy (enumeration, required) can have values DEFAULT, EXACT_COMPONENT, ALL_COMPONENTS, " +
-              "ALL_VERSIONS. DEFAULT will match all components if no hash is provided.</li>" +
-              "<li>expiryTime (default null) to set the datetime when the waiver expires.</li>" +
-              "</ol>",
-          required = true
-      )
+      @RequestBody(description = "The request JSON can include the fields<ol>"
+          + "<li>comment (optional, to indicate the reason of the waiver) default value is null</li>"
+          + "<li>matcherStrategy (enumeration, required) can have values DEFAULT, EXACT_COMPONENT, ALL_COMPONENTS, "
+          + "ALL_VERSIONS. DEFAULT will match all components if no hash is provided.</li>"
+          + "<li>expiryTime (default null) to set the datetime when the waiver expires.</li>"
+          + "<li>expireWhenRemediationAvailable (default false) to expire the waiver when a remediation is available."
+          + "</li>"
+          + "<li>noteToReviewer (optional) to add a note to the reviewer</li></ol>",
+          required = true)
       ApiPolicyWaiverRequestOptionsDTO apiPolicyWaiverRequestOptionsDTO)
   {
     return apiPolicyWaiverRequestService.addPolicyWaiverRequestByPolicyViolationId(ownerType, ownerId,
         policyViolationId, apiPolicyWaiverRequestOptionsDTO);
+  }
+
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.REVIEW_WAIVER_REQUEST)
+  @Path(POLICY_WAIVER_REQUEST_REVIEW_PATH)
+  @Operation(
+      description = "Use this method to approve or reject a policy waiver request." + //
+          "\n" + //
+          "\n" + //
+          "Permissions required: Waive Policy Violations",
+      responses = {@ApiResponse(responseCode = "200", description = "The updated policy waiver request.",
+          useReturnTypeSchema = true)})
+  public ApiPolicyWaiverRequestDTO reviewPolicyWaiverRequest(
+      @Parameter(
+          description = "The scope of the policy waiver request. Possible values are application, "
+              + "organization, repository, repository_manager, repository_container.",
+          required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "The id for the ownerType provided above. E.g. applicationId if the "
+          + "ownerType is application.", required = true) @PathParam("ownerId") String ownerId,
+      @Parameter(
+          description = "The policyWaiverRequestId for the policy waiver request to be approved or rejected.") //
+      @PathParam("policyWaiverRequestId") String policyWaiverRequestId,
+      @RequestBody(description = "The request JSON can include the fields<ol>"
+          + "<li>status. Can be APPROVED or REJECTED</li>"
+          + "<li>rejectionReason (optional). A text explaining the reason for the rejection., "
+          + "<li>comment (optional, to indicate the reason of the waiver) default value is null</li>"
+          + "<li>matcherStrategy (enumeration, required) can have values DEFAULT, EXACT_COMPONENT, ALL_COMPONENTS, "
+          + "ALL_VERSIONS. DEFAULT will match all components if no hash is provided.</li>"
+          + "<li>expiryTime (default null) to set the datetime when the waiver expires.</li></ol>"
+          + "<li>expireWhenRemediationAvailable (default false) to expire the waiver when a remediation is available."
+          + "</li>",
+          required = true) //
+      ApiPolicyWaiverRequestReviewDTO apiPolicyWaiverRequestReviewDTO)
+  {
+    return apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(ownerType, ownerId, policyWaiverRequestId,
+        apiPolicyWaiverRequestReviewDTO);
   }
 }

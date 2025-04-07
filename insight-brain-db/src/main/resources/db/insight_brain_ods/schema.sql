@@ -158,6 +158,8 @@ CREATE TABLE policy_waiver_request (
   review_time timestamp NULL,
   rejection_reason text NULL,
   note_to_reviewer text NULL,
+  -- ID of the policy violation requested to be waived. Can be an application or repository policy violation.
+  policy_violation_id varchar(50) NOT NULL,
   CONSTRAINT policy_waiver_request_pk PRIMARY KEY (policy_waiver_request_id),
   CONSTRAINT policy_waiver_request_policy_fk FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
      ON DELETE CASCADE,

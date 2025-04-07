@@ -604,7 +604,8 @@ public class PolicyWaiverDAOTest
     Policy policy = tempEntity.newPolicy(application);
     PolicyWaiver policyWaiver = tempEntity.newWaiver("ababababab", policy.getId(), application.getId());
     tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setPolicyId(policy.getId())
-        .setOwnerId(application.getId()).setPolicyWaiverId(policyWaiver.getId()).build());
+        .setOwnerId(application.getId()).setPolicyWaiverId(policyWaiver.getId())
+        .setPolicyViolationId("policyViolationId").build());
 
     // sanity check
     PolicyWaiverRequestDAO policyWaiverRequestDAO = daoFactory.createPolicyWaiverRequestDAO();

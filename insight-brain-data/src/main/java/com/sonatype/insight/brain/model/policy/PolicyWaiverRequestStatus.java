@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
+import com.sonatype.insight.error.exception.BadRequestException;
+
 import org.apache.commons.lang3.StringUtils;
 
 public enum PolicyWaiverRequestStatus
@@ -22,7 +24,7 @@ public enum PolicyWaiverRequestStatus
       }
     }
 
-    throw new IllegalArgumentException("Unknown policy waiver request status with name: " + name);
+    throw new BadRequestException("Unknown policy waiver request status with name: " + name);
   }
 
   public String getId() {

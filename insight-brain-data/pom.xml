@@ -305,6 +305,7 @@
                 <include>**/TemporaryEntity*</include>
                 <include>**/TemporaryEntity/**</include>
                 <include>**/PolicyWaiverBuilder*</include>
+                <include>**/PolicyWaiverRequestBuilder*</include>
                 <include>**/PolicyViolationAggregationDataHelper*</include>
                 <include>**/LicenseThreatGroupDataHelper*</include>
                 <include>**/TestLicenseThreatGroups.json</include>

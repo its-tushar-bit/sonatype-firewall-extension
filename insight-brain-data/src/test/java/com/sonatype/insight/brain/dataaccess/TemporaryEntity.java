@@ -6260,51 +6260,6 @@ public class TemporaryEntity
     thirdPartyUnknownComponentDAO = daoFactory.createThirdPartyUnknownComponentDAO();
   }
 
-  private void fillAdditionalFixedData(String hash, PolicyWaiverRequest policyWaiverRequest) {
-    ComponentMatcherStrategyForWaiver strategyForWaiver =
-        hash != null ? ComponentMatcherStrategyForWaiver.EXACT_COMPONENT
-            : ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
-    policyWaiverRequest.setComponentMatchStrategy(strategyForWaiver);
-  }
-
-  public PolicyWaiverRequest newPolicyWaiverRequest(String policyId, String ownerId) {
-    return newPolicyWaiverRequest(null, policyId, ownerId);
-  }
-
-  public PolicyWaiverRequest newPolicyWaiverRequest(String hash, String policyId, String ownerId) {
-    return newPolicyWaiverRequest(hash, policyId, ownerId, "testing");
-  }
-
-  public PolicyWaiverRequest newPolicyWaiverRequest(String hash, String policyId, String ownerId, String comment) {
-    return newPolicyWaiverRequest(hash, policyId, ownerId, comment, null);
-  }
-
-  public PolicyWaiverRequest newPolicyWaiverRequest(
-      String hash,
-      String policyId,
-      String ownerId,
-      String comment,
-      Date expiryTime)
-  {
-    PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequest(hash, policyId, ownerId, comment);
-    policyWaiverRequest.setExpiryTime(expiryTime);
-    fillAdditionalFixedData(hash, policyWaiverRequest);
-    return newPolicyWaiverRequest(policyWaiverRequest);
-  }
-
-  public PolicyWaiverRequest newPolicyWaiverRequest(
-      String hash,
-      String policyId,
-      String ownerId,
-      List<ConstraintFact> constraintFacts,
-      String comment)
-  {
-    PolicyWaiverRequest policyWaiverRequest =
-        new PolicyWaiverRequest(hash, policyId, ownerId, constraintFacts, comment);
-    fillAdditionalFixedData(hash, policyWaiverRequest);
-    return newPolicyWaiverRequest(policyWaiverRequest);
-  }
-
   public PolicyWaiverRequest newPolicyWaiverRequest(PolicyWaiverRequest policyWaiverRequest) {
     if (policyWaiverRequest.getConstraintFactsJson() == null) {
       policyWaiverRequest.setConstraintFactsJson("[]");

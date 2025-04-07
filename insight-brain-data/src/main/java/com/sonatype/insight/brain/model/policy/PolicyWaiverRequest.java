@@ -46,6 +46,12 @@ public class PolicyWaiverRequest
   @Column(name = "owner_id")
   private String ownerId;
 
+  /**
+   * ID of the policy violation requested to be waived. Can be an application or repository policy violation.
+   */
+  @Column(name = "policy_violation_id")
+  private String policyViolationId;
+
   @Column(name = "comment")
   private String comment;
 
@@ -369,5 +375,13 @@ public class PolicyWaiverRequest
 
   public void setReviewTime(Date reviewTime) {
     this.reviewTime = reviewTime;
+  }
+
+  public String getPolicyViolationId() {
+    return policyViolationId;
+  }
+
+  public void setPolicyViolationId(String policyViolationId) {
+    this.policyViolationId = policyViolationId;
   }
 }

@@ -98,4 +98,6 @@ public class ApiPolicyWaiverRequestDTO
   public boolean expireWhenRemediationAvailable;
 
   public String policyWaiverReasonId;
+
+  public String status;
 }

@@ -78,6 +78,7 @@ public class PolicyWaiverRequestDAOTest
     policyWaiverRequest.setReviewTime(reviewTime);
     policyWaiverRequest.setNoteToReviewer(noteToReviewer);
     policyWaiverRequest.setRejectionReason(rejectionReason);
+    policyWaiverRequest.setPolicyViolationId("policyViolationId");
 
     Date beforeInsert = new Date();
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
@@ -150,7 +151,8 @@ public class PolicyWaiverRequestDAOTest
     String hash = "12345678901234567890";
     Policy policy = tempEntity.newPolicy(organization);
     String ownerId = organization.getId();
-    PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequest(hash, policy.getId(), ownerId, "comment");
+    PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequestBuilder().setPolicyId(policy.getId())
+        .setOwnerId(ownerId).setHash(hash).setPolicyViolationId("policyViolationId").setStatus(null).build();
 
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
 
@@ -162,7 +164,8 @@ public class PolicyWaiverRequestDAOTest
     Policy policy = tempEntity.newPolicy(organization);
 
     PolicyWaiverRequest policyWaiverRequest =
-        new PolicyWaiverRequest("testHash", policy.getId(), organization.getId(), "test comment");
+        new PolicyWaiverRequestBuilder().setPolicyId(policy.getId()).setOwnerId(organization.getId())
+            .setHash("testHash").setPolicyViolationId("policyViolationId").setStatus(null).build();
     assertThat(policyWaiverRequest.getComponentMatchStrategy()).isNull();
 
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
@@ -176,8 +179,8 @@ public class PolicyWaiverRequestDAOTest
   public void testInsert_ComponentMatchStrategyNotProvided_HashNull() {
     Policy policy = tempEntity.newPolicy(organization);
 
-    PolicyWaiverRequest policyWaiverRequest =
-        new PolicyWaiverRequest(null /* hash */, policy.getId(), organization.getId(), "test comment");
+    PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequestBuilder().setPolicyId(policy.getId())
+        .setOwnerId(organization.getId()).setPolicyViolationId("policyViolationId").setStatus(null).build();
     assertThat(policyWaiverRequest.getComponentMatchStrategy()).isNull();
 
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
@@ -194,13 +197,14 @@ public class PolicyWaiverRequestDAOTest
     String policyId = policy.getId();
     String ownerId = organization.getId();
     List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
-    String comment = "My comment";
     PolicyWaiverRequest policyWaiverRequest1 =
-        new PolicyWaiverRequest(hash, policyId, ownerId, constraintFacts, comment);
+        new PolicyWaiverRequestBuilder().setOwnerId(ownerId).setPolicyId(policyId).setHash(hash)
+            .setConstraintFacts(constraintFacts).setPolicyViolationId("policyViolationId").build();
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest1);
 
     PolicyWaiverRequest policyWaiverRequest2 =
-        new PolicyWaiverRequest(hash, policyId, ownerId, constraintFacts, comment);
+        new PolicyWaiverRequestBuilder().setOwnerId(ownerId).setPolicyId(policyId).setHash(hash)
+            .setConstraintFacts(constraintFacts).setPolicyViolationId("policyViolationId").build();
     assertThatThrownBy(() -> tempEntity.newPolicyWaiverRequest(policyWaiverRequest2))
         .isInstanceOf(BadRequestException.class).hasMessage("This policy waiver request already exists.");
   }
@@ -211,13 +215,12 @@ public class PolicyWaiverRequestDAOTest
     String policyId = policy.getId();
     String ownerId = organization.getId();
     List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
-    String comment = "My comment";
-    PolicyWaiverRequest policyWaiverRequest1 =
-        new PolicyWaiverRequest(null /* hash */, policyId, ownerId, constraintFacts, comment);
+    PolicyWaiverRequest policyWaiverRequest1 = new PolicyWaiverRequestBuilder().setOwnerId(ownerId)
+        .setPolicyId(policyId).setConstraintFacts(constraintFacts).setPolicyViolationId("policyViolationId").build();
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest1);
 
-    PolicyWaiverRequest policyWaiverRequest2 =
-        new PolicyWaiverRequest(null /* hash */, policyId, ownerId, constraintFacts, comment);
+    PolicyWaiverRequest policyWaiverRequest2 = new PolicyWaiverRequestBuilder().setOwnerId(ownerId)
+        .setPolicyId(policyId).setConstraintFacts(constraintFacts).setPolicyViolationId("policyViolationId").build();
     assertThatThrownBy(() -> tempEntity.newPolicyWaiverRequest(policyWaiverRequest2))
         .isInstanceOf(BadRequestException.class).hasMessage("This policy waiver request already exists.");
   }
@@ -226,8 +229,9 @@ public class PolicyWaiverRequestDAOTest
   public void testUpdate_ComponentMatchStrategyNotProvided_HashNotNull() {
     Policy policy = tempEntity.newPolicy(organization);
 
-    PolicyWaiverRequest policyWaiverRequest =
-        tempEntity.newPolicyWaiverRequest("testHash", policy.getId(), organization.getId(), "test comment");
+    PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder()
+        .setHash("testHash").setPolicyId(policy.getId()).setOwnerId(organization.getId()).setComment("test comment")
+        .setPolicyViolationId("policyViolationId").build());
     assertThat(policyWaiverRequest.getComponentMatchStrategy())
         .isEqualTo(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT);
 
@@ -242,8 +246,9 @@ public class PolicyWaiverRequestDAOTest
   public void testUpdate_ComponentMatchStrategyNotProvided_HashNull() {
     Policy policy = tempEntity.newPolicy(organization);
 
-    PolicyWaiverRequest policyWaiverRequest =
-        tempEntity.newPolicyWaiverRequest(null /* hash */, policy.getId(), organization.getId(), "test comment");
+    PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(
+        new PolicyWaiverRequestBuilder().setPolicyId(policy.getId()).setOwnerId(organization.getId())
+            .setComment("test comment").setPolicyViolationId("policyViolationId").build());
     assertThat(policyWaiverRequest.getComponentMatchStrategy())
         .isEqualTo(ComponentMatcherStrategyForWaiver.ALL_COMPONENTS);
 
@@ -257,7 +262,8 @@ public class PolicyWaiverRequestDAOTest
   @Test
   public void testUpdate_CommentTooLong() {
     Policy policy = tempEntity.newPolicy(application);
-    PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(policy.getId(), application.getId());
+    PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder()
+        .setPolicyId(policy.getId()).setOwnerId(application.getId()).setPolicyViolationId("policyViolationId").build());
     String comment = StringUtils.repeat("X", 1001);
     policyWaiverRequest.setComment(comment);
 
@@ -273,7 +279,8 @@ public class PolicyWaiverRequestDAOTest
   @Test
   public void testUpdate_StatusNull() {
     Policy policy = tempEntity.newPolicy(application);
-    PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(policy.getId(), application.getId());
+    PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder()
+        .setPolicyId(policy.getId()).setOwnerId(application.getId()).setPolicyViolationId("policyViolationId").build());
     policyWaiverRequest.setStatus(null);
 
     assertThatThrownBy(() -> dao.update(policyWaiverRequest)).isInstanceOf(BadRequestException.class)
@@ -285,7 +292,8 @@ public class PolicyWaiverRequestDAOTest
     Policy policy = tempEntity.newPolicy(application);
     PolicyWaiverRequest policyWaiverRequest =
         tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setPolicyId(policy.getId())
-            .setOwnerId(application.getId()).setStatus(PolicyWaiverRequestStatus.APPROVED).build());
+            .setOwnerId(application.getId()).setStatus(PolicyWaiverRequestStatus.APPROVED)
+            .setPolicyViolationId("policyViolationId").build());
 
     assertThatThrownBy(() -> dao.update(policyWaiverRequest)).isInstanceOf(BadRequestException.class)
         .hasMessage("Cannot update an approved policy waiver request.");
@@ -300,9 +308,13 @@ public class PolicyWaiverRequestDAOTest
     String ownerId = organization.getId();
     List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
     String comment = "My comment";
-    tempEntity.newPolicyWaiverRequest(hash1, policyId, ownerId, constraintFacts, comment);
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash(hash1).setPolicyId(policyId)
+        .setOwnerId(ownerId).setConstraintFacts(constraintFacts).setComment(comment)
+        .setPolicyViolationId("policyViolationId1").build());
     PolicyWaiverRequest policyWaiverRequest2 =
-        tempEntity.newPolicyWaiverRequest(hash2, policyId, ownerId, constraintFacts, comment);
+        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash(hash2).setPolicyId(policyId)
+            .setOwnerId(ownerId).setConstraintFacts(constraintFacts).setComment(comment)
+            .setPolicyViolationId("policyViolationId2").build());
 
     policyWaiverRequest2.setHash(hash1);
     assertThatThrownBy(() -> dao.update(policyWaiverRequest2)).isInstanceOf(BadRequestException.class)
@@ -318,9 +330,12 @@ public class PolicyWaiverRequestDAOTest
     String ownerId = organization.getId();
     List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
     String comment = "My comment";
-    tempEntity.newPolicyWaiverRequest(null /* hash */, policyId1, ownerId, constraintFacts, comment);
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setPolicyId(policyId1).setOwnerId(ownerId)
+        .setConstraintFacts(constraintFacts).setComment(comment).setPolicyViolationId("policyViolationId1").build());
     PolicyWaiverRequest policyWaiverRequest2 =
-        tempEntity.newPolicyWaiverRequest(null /* hash */, policyId2, ownerId, constraintFacts, comment);
+        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setPolicyId(policyId2).setOwnerId(ownerId)
+            .setConstraintFacts(constraintFacts).setComment(comment).setPolicyViolationId("policyViolationId2")
+            .build());
 
     policyWaiverRequest2.setPolicyId(policyId1);
     assertThatThrownBy(() -> dao.update(policyWaiverRequest2)).isInstanceOf(BadRequestException.class)
@@ -334,9 +349,10 @@ public class PolicyWaiverRequestDAOTest
     String ownerId = organization.getId();
     PolicyWaiverRequest policyWaiverRequestRequested =
         tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("requested").setPolicyId(policyId)
-            .setOwnerId(ownerId).setStatus(REQUESTED).build());
+            .setOwnerId(ownerId).setPolicyViolationId("policyViolationId").setStatus(REQUESTED).build());
     PolicyWaiverRequest policyWaiverRequestRejected = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder()
-        .setHash("rejected").setPolicyId(policyId).setOwnerId(ownerId).setStatus(REJECTED).build());
+        .setHash("rejected").setPolicyId(policyId).setOwnerId(ownerId).setPolicyViolationId("policyViolationId")
+        .setStatus(REJECTED).build());
 
     assertThat(dao.getByOwnerId(ownerId)).extracting(PolicyWaiverRequest::getId)
         .containsExactly(policyWaiverRequestRequested.getId(), policyWaiverRequestRejected.getId());
@@ -348,13 +364,15 @@ public class PolicyWaiverRequestDAOTest
     Policy policy2 = tempEntity.newPolicy(organization);
 
     tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("requested").setPolicyId(policy1.getId())
-        .setOwnerId(application.getId()).setStatus(REQUESTED).build());
+        .setOwnerId(application.getId()).setStatus(REQUESTED).setPolicyViolationId("policyViolationId").build());
     PolicyWaiverRequest policy2RequestedWaiverRequest =
         tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("requested")
-            .setPolicyId(policy2.getId()).setOwnerId(application.getId()).setStatus(REQUESTED).build());
+            .setPolicyId(policy2.getId()).setOwnerId(application.getId()).setPolicyViolationId("policyViolationId")
+            .setStatus(REQUESTED).build());
     PolicyWaiverRequest policy2RejectedWaiverRequest =
         tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("rejected")
-            .setPolicyId(policy2.getId()).setOwnerId(application.getId()).setStatus(REJECTED).build());
+            .setPolicyId(policy2.getId()).setOwnerId(application.getId()).setPolicyViolationId("policyViolationId")
+            .setStatus(REJECTED).build());
 
     assertThat(dao.getByPolicyId(policy2.getId())).extracting(PolicyWaiverRequest::getId)
         .contains(policy2RequestedWaiverRequest.getId(), policy2RejectedWaiverRequest.getId());

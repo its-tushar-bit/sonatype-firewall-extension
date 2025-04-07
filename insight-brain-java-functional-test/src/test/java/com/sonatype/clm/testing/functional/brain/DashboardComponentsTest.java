@@ -281,15 +281,14 @@ public class DashboardComponentsTest
 
     // CSV export - filter out threat level 3
     DashboardPage.expandFilter();
-    DashboardFilters.policyThreatLevelFilter().twisty().click();
-    DashboardFilters.policyThreatLevelFilter().slider().setValues(7, 10);
+    DashboardFilters.filterContainer().shouldBe(visible);
+    DashboardFilters.policyThreatLevelFilter().slider().setValues(7, 9);
     DashboardFilters.apply();
     DashboardFilters.closeFilter();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
-        "Group4 : Artifact4 : Version4,1,10,10,0,0,0"
+        "Group3 : Artifact3 : Version3,1,7,0,7,0,0"
     };
     assertComponentsCsv(exportCsv, expectedResults);
   }

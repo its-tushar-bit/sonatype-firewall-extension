@@ -3,20 +3,20 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { Fragment } from 'react';
-import { map, curryN, prop, path } from 'ramda';
-import classnames from 'classnames';
+import React from 'react';
+import { map, curryN, path } from 'ramda';
 import {
   NxErrorAlert,
   NxStatefulTreeViewMultiSelect,
   NxStatefulTreeViewRadioSelect,
   NxStatefulCollapsibleMultiSelect,
+  NxDrawer,
+  NxFooter,
 } from '@sonatype/react-shared-components';
 
 import { selectIsAutoWaiversEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import IqOrgAppPicker from '../../../components/iqOrgAppPicker/IqOrgAppPicker';
 import IqTreeViewPolicyThreatSlider from '../../../react/IqTreeViewPolicyThreatSlider';
-import IqPopover from '../../../react/IqPopover';
 import LoadWrapper from '../../../react/LoadWrapper';
 import Hexagon from '../../../react/Hexagon';
 import { filterToJson } from '../dashboardFilterService';
@@ -32,15 +32,22 @@ import {
   selectOwnersMap,
   selectTopParentOrganizationId,
 } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
+import { selectDashboardFilter } from 'MainRoot/dashboard/dashboardSelectors';
+import { selectManageFilters } from 'MainRoot/dashboard/filter/manageFilterSelectors';
 
 export default function DashboardFilter() {
   const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
+
+  const dashboardFilter = useSelector(selectDashboardFilter);
+  const manageFilters = useSelector(selectManageFilters);
+
   const dispatch = useDispatch();
 
   const applyFilter = (filter, basedOnFilterName) =>
     dispatch(dashboardFilterActions.applyFilter(filter, basedOnFilterName));
   const applyFilterCancelled = () => dispatch(dashboardFilterActions.applyFilterCancelled());
   const setDisplaySaveFilterModal = (payload) => dispatch(dashboardFilterActions.setDisplaySaveFilterModal(payload));
+  const displayDeleteFilterModal = () => dispatch(dashboardFilterActions.displayDeleteFilterModal());
   const loadFilter = (resultsType, isLoadResults) =>
     dispatch(dashboardFilterActions.loadFilter(resultsType, isLoadResults));
   const revert = () => dispatch(dashboardFilterActions.revert());
@@ -55,14 +62,14 @@ export default function DashboardFilter() {
   const toggleFilterSidebar = (payload) => dispatch(dashboardFilterActions.toggleFilterSidebar(payload));
   const selectFilterToDelete = (payload) => dispatch(manageFiltersActions.selectFilterToDelete(payload));
 
-  const { appliedFilterName, showDirtyAsterisk, savedFilters } = useSelector(prop('manageFilters'));
+  const { appliedFilterName, showDirtyAsterisk, savedFilters } = manageFilters;
   const ownersMap = useSelector(selectOwnersMap);
   const topParentOrganizationId = useSelector(selectTopParentOrganizationId);
   const { data: waiverReasons, loading: waiverReasonsLoading, loadError: waiverReasonsLoadError } = useSelector(
     path(['waivers', 'waiverReasons'])
   );
 
-  let {
+  const {
     loading: dashboardFilterLoading,
     loadError: dashboardFilterLoadError,
     loadErrorFilterName,
@@ -76,6 +83,7 @@ export default function DashboardFilter() {
     showRepositoriesFilter,
     showPolicyWaiverReasonFilter,
     showSaveFilterModal,
+    showDeleteFilterModal,
     applications,
     categories,
     stages,
@@ -85,9 +93,12 @@ export default function DashboardFilter() {
     policyViolationStates,
     repositories,
     selected,
-  } = useSelector(prop('dashboardFilter'));
+    filterSidebarOpen,
+  } = dashboardFilter;
 
-  expirationDates = filterAutoExpirationDates(expirationDates, isAutoWaiversEnabled);
+  const isDrawerDisabled = filtersAreDirty || needsAcknowledgement || showSaveFilterModal || showDeleteFilterModal;
+
+  const filteredExpirationDates = filterAutoExpirationDates(expirationDates, isAutoWaiversEnabled);
 
   const loading = dashboardFilterLoading || waiverReasonsLoading;
   const loadError = dashboardFilterLoadError || waiverReasonsLoadError;
@@ -126,7 +137,7 @@ export default function DashboardFilter() {
   }
 
   function handleCloseBtnClick() {
-    if (filtersAreDirty || needsAcknowledgement) {
+    if (isDrawerDisabled) {
       return;
     }
     toggleFilterSidebar(false);
@@ -149,169 +160,169 @@ export default function DashboardFilter() {
     : 'Close';
 
   return (
-    <IqPopover id="dashboard-filter-container" onClose={() => toggleFilterSidebar(false)}>
+    <>
       {showSaveFilterModal && <SaveFilterModalContainer />}
-      <IqPopover.Header
-        className="dashboard-filter-header"
-        id="dashboard-filter-header"
-        headerSize="h3"
-        headerTitle="Filter"
-        buttonId="dashboard-filter-close-btn"
+      {showDeleteFilterModal && <DeleteFilterModalContainer />}
+      <NxDrawer
+        id="dashboard-filter-container"
+        open={filterSidebarOpen}
         onClose={handleCloseBtnClick}
-        buttonClassnames={classnames({
-          disabled: filtersAreDirty || needsAcknowledgement,
-        })}
-        closeTitle={closeFilterBtnTooltip}
+        aria-labelledby="dashboard-filter-header"
+        variant="narrow"
+        closeBtnTooltip={closeFilterBtnTooltip}
+        closeDisabled={isDrawerDisabled}
+        data-testid="dashboard-filter-container"
       >
-        {!loading && !loadError && (
-          <ManageFiltersDropdown
+        <NxDrawer.Header>
+          <NxDrawer.HeaderTitle id="dashboard-filter-header">Filter</NxDrawer.HeaderTitle>
+          {!loading && !loadError && (
+            <ManageFiltersDropdown
+              {...{
+                appliedFilterName,
+                showDirtyAsterisk,
+                savedFilters,
+                applyDefaultFilter,
+                applySavedFilter,
+                selectFilterToDelete,
+                displayDeleteFilterModal,
+              }}
+            />
+          )}
+          {loadErrorFilterName && <NxErrorAlert>Failed to load {loadErrorFilterName}</NxErrorAlert>}
+        </NxDrawer.Header>
+        <NxDrawer.Content>
+          <LoadWrapper loading={loading} error={loadError} retryHandler={handleRetry}>
+            {() => (
+              <>
+                <IqOrgAppPicker
+                  applications={applications}
+                  selectedApplications={selected.applications}
+                  selectedOrganizations={selected.organizations}
+                  onChange={toggleAppsAndOrgs}
+                  id="org-app-filters"
+                  ownersMap={ownersMap}
+                  topParentOrganizationId={topParentOrganizationId}
+                />
+                {showRepositoriesFilter && (
+                  <NxStatefulCollapsibleMultiSelect
+                    options={repositories}
+                    optionTooltipGenerator={(repository) => repository.fullName}
+                    selectedIds={selected.repositories}
+                    onChange={onRepositoriesChange}
+                    filterThreshold={3}
+                    filterPlaceholder="Repository Name"
+                    name="repositories"
+                    id="repositories-filter"
+                  >
+                    <span>Repositories</span>
+                  </NxStatefulCollapsibleMultiSelect>
+                )}
+                <NxStatefulTreeViewMultiSelect
+                  options={categories}
+                  selectedIds={selected.categories}
+                  onChange={onCategoriesChange}
+                  optionTooltipGenerator={applicationCategoryTooltip}
+                  filterPlaceholder="Category"
+                  name="application categories"
+                  id="category-filter"
+                >
+                  <Hexagon className="size-16px size-fw outline" />
+                  <span>Application Categories</span>
+                </NxStatefulTreeViewMultiSelect>
+                {showStagesFilter && (
+                  <NxStatefulTreeViewMultiSelect
+                    options={stages}
+                    selectedIds={selected.stages}
+                    onChange={onStagesChange}
+                    filterPlaceholder="Stage"
+                    name="stages"
+                    id="stage-filter"
+                  >
+                    <span>Stages</span>
+                  </NxStatefulTreeViewMultiSelect>
+                )}
+                <NxStatefulTreeViewMultiSelect
+                  options={policyTypes}
+                  selectedIds={selected.policyTypes}
+                  onChange={onPolicyTypesChange}
+                  filterPlaceholder="Policy Type"
+                  name="policy types"
+                  id="policy-type-filter"
+                >
+                  <span>Policy Types</span>
+                </NxStatefulTreeViewMultiSelect>
+                {showViolationStateFilter && (
+                  <NxStatefulTreeViewMultiSelect
+                    options={policyViolationStates}
+                    selectedIds={selected.policyViolationStates}
+                    onChange={onPolicyViolationStatesChange}
+                    filterPlaceholder="Violation State"
+                    name="violation states"
+                    id="policy-violation-state-filter"
+                  >
+                    <span>Violation State</span>
+                  </NxStatefulTreeViewMultiSelect>
+                )}
+                {showExpirationDateFilter && (
+                  <NxStatefulTreeViewRadioSelect
+                    id="expiration-date-filter"
+                    options={filteredExpirationDates}
+                    name="expiration date"
+                    onChange={onExpirationDatesChange}
+                    selectedId={selected.expirationDate}
+                  >
+                    <span>Expiration Date</span>
+                  </NxStatefulTreeViewRadioSelect>
+                )}
+                {showAgeFilter && (
+                  <NxStatefulTreeViewRadioSelect
+                    id="age-filter"
+                    options={stringifiedAges}
+                    name="Age Filter"
+                    onChange={onAgeChange}
+                    selectedId={stringifiedSelectedAge}
+                  >
+                    <span>Age</span>
+                  </NxStatefulTreeViewRadioSelect>
+                )}
+                <IqTreeViewPolicyThreatSlider
+                  id="threat-level-filter"
+                  value={selected.policyThreatLevels}
+                  onChange={onPolicyThreatChange}
+                >
+                  <span>Policy Threat Level</span>
+                </IqTreeViewPolicyThreatSlider>
+
+                {showPolicyWaiverReasonFilter && (
+                  <NxStatefulTreeViewMultiSelect
+                    id="policy-waiver-reason-filter"
+                    name={'policy waiver reason'}
+                    options={getWaiverReasonOptions()}
+                    selectedIds={selected.policyWaiverReasonIds}
+                    onChange={onPolicyWaiverReasonChange}
+                  >
+                    <span>Reason</span>
+                  </NxStatefulTreeViewMultiSelect>
+                )}
+              </>
+            )}
+          </LoadWrapper>
+        </NxDrawer.Content>
+        <NxFooter className="dashboard-filter-footer">
+          <DashboardFilterFooter
             {...{
-              appliedFilterName,
-              showDirtyAsterisk,
-              savedFilters,
-              applyDefaultFilter,
-              applySavedFilter,
-              selectFilterToDelete,
-              DeleteFilterModal: DeleteFilterModalContainer,
+              applyFilterError,
+              filtersAreDirty,
+              needsAcknowledgement,
+              setDisplaySaveFilterModal,
+              revert,
+              onApplyCurrentFilter: () => applyFilter(filterToJson(selected), appliedFilterName),
+              onCancelApplyFilter: applyFilterCancelled,
             }}
           />
-        )}
-        {loadErrorFilterName && <NxErrorAlert>Failed to load {loadErrorFilterName}</NxErrorAlert>}
-      </IqPopover.Header>
-
-      <div className="dashboard-filter">
-        <LoadWrapper loading={loading} error={loadError} retryHandler={handleRetry}>
-          {() => (
-            <Fragment>
-              <IqOrgAppPicker
-                applications={applications}
-                selectedApplications={selected.applications}
-                selectedOrganizations={selected.organizations}
-                onChange={toggleAppsAndOrgs}
-                id="org-app-filters"
-                ownersMap={ownersMap}
-                topParentOrganizationId={topParentOrganizationId}
-              />
-              {showRepositoriesFilter && (
-                <NxStatefulCollapsibleMultiSelect
-                  options={repositories}
-                  optionTooltipGenerator={(repository) => repository.fullName}
-                  selectedIds={selected.repositories}
-                  onChange={onRepositoriesChange}
-                  filterThreshold={3}
-                  filterPlaceholder="Repository Name"
-                  name="repositories"
-                  id="repositories-filter"
-                >
-                  <span>Repositories</span>
-                </NxStatefulCollapsibleMultiSelect>
-              )}
-              <NxStatefulTreeViewMultiSelect
-                options={categories}
-                selectedIds={selected.categories}
-                onChange={onCategoriesChange}
-                optionTooltipGenerator={applicationCategoryTooltip}
-                filterPlaceholder="Category"
-                name="application categories"
-                id="category-filter"
-              >
-                <Hexagon className="size-16px size-fw outline" />
-                <span>Application Categories</span>
-              </NxStatefulTreeViewMultiSelect>
-              {showStagesFilter && (
-                <NxStatefulTreeViewMultiSelect
-                  options={stages}
-                  selectedIds={selected.stages}
-                  onChange={onStagesChange}
-                  filterPlaceholder="Stage"
-                  name="stages"
-                  id="stage-filter"
-                >
-                  <span>Stages</span>
-                </NxStatefulTreeViewMultiSelect>
-              )}
-              <NxStatefulTreeViewMultiSelect
-                options={policyTypes}
-                selectedIds={selected.policyTypes}
-                onChange={onPolicyTypesChange}
-                filterPlaceholder="Policy Type"
-                name="policy types"
-                id="policy-type-filter"
-              >
-                <span>Policy Types</span>
-              </NxStatefulTreeViewMultiSelect>
-              {showViolationStateFilter && (
-                <NxStatefulTreeViewMultiSelect
-                  options={policyViolationStates}
-                  selectedIds={selected.policyViolationStates}
-                  onChange={onPolicyViolationStatesChange}
-                  filterPlaceholder="Violation State"
-                  name="violation states"
-                  id="policy-violation-state-filter"
-                >
-                  <span>Violation State</span>
-                </NxStatefulTreeViewMultiSelect>
-              )}
-              {showExpirationDateFilter && (
-                <NxStatefulTreeViewRadioSelect
-                  id="expiration-date-filter"
-                  options={expirationDates}
-                  name="expiration date"
-                  onChange={onExpirationDatesChange}
-                  selectedId={selected.expirationDate}
-                >
-                  <span>Expiration Date</span>
-                </NxStatefulTreeViewRadioSelect>
-              )}
-              {showAgeFilter && (
-                <NxStatefulTreeViewRadioSelect
-                  id="age-filter"
-                  options={stringifiedAges}
-                  name="Age Filter"
-                  onChange={onAgeChange}
-                  selectedId={stringifiedSelectedAge}
-                >
-                  <span>Age</span>
-                </NxStatefulTreeViewRadioSelect>
-              )}
-              <IqTreeViewPolicyThreatSlider
-                id="threat-level-filter"
-                value={selected.policyThreatLevels}
-                onChange={onPolicyThreatChange}
-              >
-                <span>Policy Threat Level</span>
-              </IqTreeViewPolicyThreatSlider>
-
-              {showPolicyWaiverReasonFilter && (
-                <NxStatefulTreeViewMultiSelect
-                  id="policy-waiver-reason-filter"
-                  name={'policy waiver reason'}
-                  options={getWaiverReasonOptions()}
-                  selectedIds={selected.policyWaiverReasonIds}
-                  onChange={onPolicyWaiverReasonChange}
-                >
-                  <span>Reason</span>
-                </NxStatefulTreeViewMultiSelect>
-              )}
-            </Fragment>
-          )}
-        </LoadWrapper>
-      </div>
-
-      <IqPopover.Footer className="dashboard-filter-footer">
-        <DashboardFilterFooter
-          {...{
-            applyFilterError,
-            filtersAreDirty,
-            needsAcknowledgement,
-            setDisplaySaveFilterModal,
-            revert,
-            onApplyCurrentFilter: () => applyFilter(filterToJson(selected), appliedFilterName),
-            onCancelApplyFilter: applyFilterCancelled,
-          }}
-        />
-      </IqPopover.Footer>
-    </IqPopover>
+        </NxFooter>
+      </NxDrawer>
+    </>
   );
 
   function getWaiverReasonOptions() {

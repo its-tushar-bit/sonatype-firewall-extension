@@ -18,15 +18,17 @@ import {
   LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED,
   LEGAL_DASHBOARD_REVERT_FILTER,
   LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL,
+  LEGAL_DASHBOARD_DISPLAY_DELETE_FILTER_MODAL,
   LEGAL_DASHBOARD_TOGGLE_APPS_AND_ORGS,
   LEGAL_DASHBOARD_TOGGLE_FILTER,
   LEGAL_DASHBOARD_TOGGLE_FILTER_SIDEBAR,
 } from './legalDashboardFilterActions';
 import defaultFilter from './defaultFilter';
 import { progressOptions } from '../legalDashboardConstants';
+import { LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL } from 'MainRoot/legal/dashboard/filter/manageLegalFiltersActions';
 
 const initState = Object.freeze({
-  filterSideBarOpen: false,
+  filterSidebarOpen: false,
   loading: true,
   loadError: null,
   applyFilterError: null,
@@ -35,6 +37,7 @@ const initState = Object.freeze({
   isViolationsTab: false,
   showAgeFilter: false,
   showSaveFilterModal: false,
+  showDeleteFilterModal: false,
 
   // available filter items
   organizations: [],
@@ -91,6 +94,12 @@ export default function dashboardFilterReducer(state = initState, { type, payloa
 
     case LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL:
       return { ...state, showSaveFilterModal: payload };
+
+    case LEGAL_DASHBOARD_DISPLAY_DELETE_FILTER_MODAL:
+      return { ...state, showDeleteFilterModal: true, showSaveFilterModal: false };
+
+    case LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL:
+      return { ...state, showDeleteFilterModal: false };
 
     case LEGAL_DASHBOARD_TOGGLE_FILTER_SIDEBAR:
       return state.filterSidebarOpen && state.filtersAreDirty

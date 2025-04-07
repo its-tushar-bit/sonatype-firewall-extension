@@ -19,11 +19,14 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebElementCondition;
+import com.codeborne.selenide.Selenide;
 
 import static com.codeborne.selenide.Condition.clickable;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
+
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
@@ -122,16 +125,22 @@ public class DashboardPage extends BasicElement<DashboardPage>
 
   public static void expandFilter() {
     // make sure the toggle is ready before trying to click it
+    DashboardFilters.filterContainer().shouldBe(hidden);
     filterToggle().shouldBe(clickable);
 
     filterToggle().click();
 
     // make sure it's visible before we move on, increasing timeout because I've observed this taking slightly longer
     // than the default 4 seconds
+    waitForDrawerAnimation();
     DashboardFilters.filterContainer().shouldBe(visible, Duration.ofSeconds(10));
   }
 
   public static void waitUntilSpinnersGone() {
     pageLoadSpinner().shouldNotBe(visible, Duration.ofSeconds(10));
+  }
+
+  public static void waitForDrawerAnimation() {
+    Selenide.sleep(300);
   }
 }

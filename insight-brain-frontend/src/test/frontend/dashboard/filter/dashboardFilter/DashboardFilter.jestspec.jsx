@@ -54,7 +54,9 @@ describe('DashboardFilter', () => {
       renderComponent();
       await waitFor(() => expect(screen.queryByText('Loading...')).not.toBeInTheDocument());
 
-      let filters = within(getFilter()).getAllByRole('group');
+      const filterContainer = getFilter();
+
+      const filters = within(filterContainer).getAllByRole('group');
       expect(filters.length).toBe(5);
       expect(filters[0]).toHaveTextContent('Organizations');
       expect(filters[1]).toHaveTextContent('Applications');
@@ -170,9 +172,13 @@ describe('DashboardFilter', () => {
     it('shows saved filters in dropdown', async () => {
       renderComponent();
       const header = getHeader();
-      const filterDropdown = within(header.children[1]).getByRole('button');
+      const filterDropdown = header.querySelector('.nx-dropdown__toggle');
       fireEvent.click(filterDropdown);
-      const filterOptions = within(header.children[1].children[0].children[1]).getAllByRole('button');
+
+      const dropdownContent = header.querySelector('.nx-dropdown-menu');
+      expect(dropdownContent).toBeInTheDocument();
+
+      const filterOptions = within(dropdownContent).getAllByRole('button');
       // The result is 5 because the delete icon is also a button
       expect(filterOptions.length).toBe(5);
       expect(filterOptions[0]).toHaveTextContent('Default');
@@ -183,17 +189,20 @@ describe('DashboardFilter', () => {
     it('deletes a saved filter', async () => {
       renderComponent();
       const header = getHeader();
-      let filterDropdown = within(header.children[1]).getByRole('button');
+      const filterDropdown = header.querySelector('.nx-dropdown__toggle');
       fireEvent.click(filterDropdown);
-      let filterOptions = within(header.children[1].children[0].children[1]).getAllByRole('button');
+
+      let filterOptions = header.querySelector('.nx-dropdown-menu').querySelectorAll('button');
       // The result is 5 because the delete icon is also a button
       expect(filterOptions.length).toBe(5);
       expect(filterOptions[0]).toHaveTextContent('Default');
       expect(filterOptions[1]).toHaveTextContent('foo');
       expect(filterOptions[3]).toHaveTextContent('bar');
-      deleteFilter('foo');
+
+      await deleteFilter('foo');
+
       await waitFor(() => {
-        filterOptions = within(header.children[1].children[0].children[1]).getAllByRole('button');
+        filterOptions = header.querySelector('.nx-dropdown-menu').querySelectorAll('button');
         expect(filterOptions.length).toBe(3);
       });
       expect(filterOptions[0]).toHaveTextContent('Default');
@@ -587,7 +596,10 @@ describe('DashboardFilter', () => {
       ...preloadedStateOverrides,
     };
 
-    return render(<DashboardFilter />, { preloadedState });
+    render(<DashboardFilter />, { preloadedState });
+
+    const drawer = screen.getByRole('dialog', { hidden: true });
+    fireEvent.animationEnd(drawer);
   };
 
   const getMinimalReduxState = (overrides = {}) => {
@@ -602,6 +614,7 @@ describe('DashboardFilter', () => {
 
   const getFilterState = (overrides = {}) => {
     return {
+      filterSidebarOpen: true,
       selected: getSelected(),
       applications: [
         {
@@ -720,7 +733,7 @@ describe('DashboardFilter', () => {
   };
 
   const getFilter = () => {
-    return screen.getByRole('complementary');
+    return screen.getByRole('dialog');
   };
 
   const getFooter = () => {
@@ -744,9 +757,12 @@ describe('DashboardFilter', () => {
   const selectFilter = (filterName) => {
     // Selects a saved filter from the dropdown
     const header = getHeader();
-    const filterDropdown = within(header.children[1]).getByRole('button');
+    const filterDropdown = header.querySelector('.nx-dropdown__toggle');
     fireEvent.click(filterDropdown);
-    const filterOption = within(header.children[1].children[0].children[1]).getByRole('button', { name: filterName });
+
+    const filterOption = Array.from(header.querySelectorAll('.nx-dropdown-menu button')).find(
+      (button) => button.textContent === filterName
+    );
     fireEvent.click(filterOption);
   };
 
@@ -758,11 +774,15 @@ describe('DashboardFilter', () => {
       getSavedFilters().filter((f) => f.name !== filterName)
     );
     const header = getHeader();
-    const filterDropdown = within(header.children[1]).getAllByRole('button')[0];
+    const filterDropdown = header.querySelector('.nx-dropdown__toggle');
     fireEvent.click(filterDropdown);
-    const filterOption = within(header.children[1].children[0].children[1]).getByRole('button', { name: filterName });
-    const deleteButton = filterOption.parentElement.children[1];
+
+    const filterOption = Array.from(header.querySelectorAll('.nx-dropdown-menu button')).find(
+      (button) => button.textContent === filterName
+    );
+    const deleteButton = filterOption.nextElementSibling;
     deleteButton.click();
+
     const alert = screen.getByText(`You are about to delete "${filterName}" filter. This action can not be undone.`);
     expect(alert).toBeInTheDocument();
     const continueButton = screen.getByText('Continue');

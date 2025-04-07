@@ -412,6 +412,7 @@ public class DashboardViolationsTest
     DashboardFilters.applicationFilter().allItems().click();
     DashboardFilters.applicationFilter().checkboxItem(2).click();
     DashboardFilters.apply();
+    DashboardFilters.filterContainer().shouldBe(visible);
     DashboardFilters.closeFilter();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
@@ -788,7 +789,6 @@ public class DashboardViolationsTest
     table.lastViolation().policy().shouldHave(text(licensePolicy3.getName()));
 
     DashboardPage.expandFilter();
-    DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(4, 10);
     DashboardFilters.apply();
     DashboardFilters.closeFilter();

@@ -34,6 +34,7 @@ export const LEGAL_DASHBOARD_TOGGLE_FILTER = 'LEGAL_DASHBOARD_TOGGLE_FILTER';
 export const LEGAL_DASHBOARD_TOGGLE_APPS_AND_ORGS = 'LEGAL_DASHBOARD_TOGGLE_APPS_AND_ORGS';
 export const LEGAL_DASHBOARD_REVERT_FILTER = 'LEGAL_DASHBOARD_REVERT_FILTER';
 export const LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL = 'LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL';
+export const LEGAL_DASHBOARD_DISPLAY_DELETE_FILTER_MODAL = 'LEGAL_DASHBOARD_DISPLAY_DELETE_FILTER_MODAL';
 export const LEGAL_DASHBOARD_TOGGLE_FILTER_SIDEBAR = 'LEGAL_DASHBOARD_TOGGLE_FILTER_SIDEBAR';
 
 export function loadFilter() {
@@ -158,6 +159,7 @@ export function toggleFilter(filterName, selectedIds) {
   };
 }
 export const setDisplaySaveFilterModal = payloadParamActionCreator(LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL);
+export const displayDeleteFilterModal = noPayloadActionCreator(LEGAL_DASHBOARD_DISPLAY_DELETE_FILTER_MODAL);
 
 export function toggleAppsAndOrgs(selectedOrganizations, selectedApplications) {
   return {

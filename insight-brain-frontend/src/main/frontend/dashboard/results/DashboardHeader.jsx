@@ -6,7 +6,6 @@
 import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import LoadWrapper from '../../react/LoadWrapper';
-import DashboardFilter from '../filter/dashboardFilter/DashboardFilter';
 import ExportButton, { exportButtonPropTypes } from './dashboardSummary/ExportButton';
 import DashboardTabs, { dashboardTabsPropTypes } from './dashboardTabs/DashboardTabs';
 import { DEFAULT_FILTER_NAME } from '../filter/defaultFilter';
@@ -47,7 +46,6 @@ export default function DashboardResults(props) {
 
   return (
     <Fragment>
-      {filterSidebarOpen && <DashboardFilter />}
       <div className="dashboard-summary">
         <div className="nx-page-title">
           <h1 className="nx-h1">Results</h1>

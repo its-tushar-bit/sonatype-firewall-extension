@@ -44,6 +44,7 @@ waivers {
   right: 0;
   height: auto;
   padding: $iq-spacing-md;
+  z-index: calc(var(--nx-z-index-drawer) - 10);
 
   .nx-alert {
     display: inline-flex;

@@ -102,11 +102,10 @@ export default function ReportPage() {
   return (
     <Fragment>
       {!reevaluationError && <ReevaluationStatusModal reevaluating={reevaluating} />}
-
+      <ReportFilterPopover />
       <main id="app-report" className="nx-page-main iq-app-report">
         <BackButton />
         <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadReport}>
-          <ReportFilterPopover />
           {hasUnscannedComponents && (
             <NxErrorAlert id="application-report-unscannable-components-error">
               <span>You have unscannable components in this build</span>

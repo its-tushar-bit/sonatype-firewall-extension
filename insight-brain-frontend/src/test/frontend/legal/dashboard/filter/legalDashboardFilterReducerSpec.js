@@ -487,4 +487,30 @@ describe('legalDashboardFilterReducer', function () {
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
+
+  describe('LEGAL_DASHBOARD_DISPLAY_DELETE_FILTER_MODAL action', function () {
+    it('sets showDeleteFilterModal to true', function () {
+      var state = Object.freeze({
+        showDeleteFilterModal: false,
+        showSaveFilterModal: true,
+      });
+      const newState = legalDashboardFilterReducer(state, {
+        type: 'LEGAL_DASHBOARD_DISPLAY_DELETE_FILTER_MODAL',
+      });
+      expect(newState.showDeleteFilterModal).toBe(true);
+      expect(newState.showSaveFilterModal).toBe(false);
+    });
+  });
+
+  describe('LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL action', function () {
+    it('sets showDeleteFilterModal to false', function () {
+      var state = Object.freeze({
+        showDeleteFilterModal: true,
+      });
+      const newState = legalDashboardFilterReducer(state, {
+        type: 'LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL',
+      });
+      expect(newState.showDeleteFilterModal).toBe(false);
+    });
+  });
 });

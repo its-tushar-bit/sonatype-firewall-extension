@@ -40,6 +40,7 @@ export const SELECT_AGE = 'SELECT_AGE';
 export const SELECT_EXPIRATION_DATE = 'SELECT_EXPIRATION_DATE';
 export const REVERT_FILTER = 'REVERT_FILTER';
 export const SET_DISPLAY_SAVE_FILTER_MODAL = 'SET_DISPLAY_SAVE_FILTER_MODAL';
+export const DISPLAY_DELETE_FILTER_MODAL = 'DISPLAY_DELETE_FILTER_MODAL';
 export const TOGGLE_FILTER_SIDEBAR = 'TOGGLE_FILTER_SIDEBAR';
 
 export function loadFilter(resultsType = null, isLoadResults = false) {
@@ -172,6 +173,7 @@ export const selectAge = payloadParamActionCreator(SELECT_AGE);
 export const selectExpirationDate = payloadParamActionCreator(SELECT_EXPIRATION_DATE);
 
 export const setDisplaySaveFilterModal = payloadParamActionCreator(SET_DISPLAY_SAVE_FILTER_MODAL);
+export const displayDeleteFilterModal = noPayloadActionCreator(DISPLAY_DELETE_FILTER_MODAL);
 
 export function toggleAppsAndOrgs(selectedOrganizations, selectedApplications) {
   return {

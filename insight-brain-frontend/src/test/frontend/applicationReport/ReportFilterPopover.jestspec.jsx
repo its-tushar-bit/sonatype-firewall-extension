@@ -11,13 +11,18 @@ import * as applicationReportSelectors from 'MainRoot/applicationReport/applicat
 import { render, screen, fireEvent, within, getAllByRole } from 'TestRoot/SpecUtil';
 
 describe('ReportFilterPopover', () => {
-  let renderComponent, selectShowFilterPopoverSpy;
+  let renderComponent, selectShowFilterPopoverSpy, renderPopoverAndWaitForAnimation;
   beforeEach(() => {
     selectShowFilterPopoverSpy = jest
       .spyOn(applicationReportSelectors, 'selectShowFilterPopover')
       .mockReturnValue(true);
     jest.spyOn(applicationReportSelectors, 'selectIsPolicyTypeFilterEnabled').mockReturnValue(true);
     renderComponent = (props) => render(<ReportFilterPopover {...props} />);
+    renderPopoverAndWaitForAnimation = () => {
+      renderComponent();
+      const drawer = screen.getByRole('dialog', { hidden: true });
+      fireEvent.animationEnd(drawer);
+    };
   });
 
   it('does not render the tree when selectShowFilterPopover is false', () => {
@@ -26,32 +31,32 @@ describe('ReportFilterPopover', () => {
     expect(screen.queryByText('Filter')).toBeNull();
   });
 
-  it('renders the tree with the correct title', () => {
-    renderComponent();
+  it('renders the filter popover', () => {
+    renderPopoverAndWaitForAnimation();
     expect(screen.getByText('Filter')).toBeVisible();
   });
 
   it('enables policy types filter by default', () => {
-    renderComponent();
+    renderPopoverAndWaitForAnimation();
     expect(screen.getByRole('button', { name: /policy types/i, exact: false })).toBeEnabled();
   });
 
   it('enables policy types filter when isPolicyTypeFilterEnabled flag is true', () => {
     applicationReportSelectors.selectIsPolicyTypeFilterEnabled.mockReturnValue(true);
-    renderComponent();
+    renderPopoverAndWaitForAnimation();
     expect(screen.getByRole('button', { name: /policy types/i, exact: false })).toBeEnabled();
   });
 
   it('disables policy types filter when isPolicyTypeFilterEnabled flag is false', () => {
     applicationReportSelectors.selectIsPolicyTypeFilterEnabled.mockReturnValue(false);
-    renderComponent();
+    renderPopoverAndWaitForAnimation();
     expect(screen.getByRole('button', { name: /policy types/i, exact: false })).toBeDisabled();
   });
 
   it('renders tooltip when policy types filter is disabled', async () => {
     applicationReportSelectors.selectIsPolicyTypeFilterEnabled.mockReturnValue(false);
     SpecUtil.requestIdleCallbackInvokeImmediateJest();
-    renderComponent();
+    renderPopoverAndWaitForAnimation();
     fireEvent.mouseOver(screen.getByRole('button', { name: /policy types/i, exact: false }));
     const tooltip = await screen.findByRole('tooltip');
 
@@ -64,7 +69,7 @@ describe('ReportFilterPopover', () => {
     it('Handles the click in the proprietary items', async () => {
       const user = userEvent.setup();
 
-      renderComponent();
+      renderPopoverAndWaitForAnimation();
       await user.click(screen.getByRole('button', { name: /Proprietary/ }));
 
       const proprietaryList = screen.getAllByRole('menu')[0];
@@ -93,7 +98,7 @@ describe('ReportFilterPopover', () => {
     it('Handles the click in the InnerSource items', async () => {
       const user = userEvent.setup();
 
-      renderComponent();
+      renderPopoverAndWaitForAnimation();
       await user.click(screen.getByRole('button', { name: /InnerSource/ }));
 
       const innerSourceList = screen.getAllByRole('menu')[1];
@@ -122,7 +127,7 @@ describe('ReportFilterPopover', () => {
     it('Handles the click in the component match state items', async () => {
       const user = userEvent.setup();
 
-      renderComponent();
+      renderPopoverAndWaitForAnimation();
       await user.click(screen.getByRole('button', { name: /Match State/ }));
 
       const matchStateList = screen.getAllByRole('menu')[2];
@@ -161,7 +166,7 @@ describe('ReportFilterPopover', () => {
     it('Handles the click in the violation state items', async () => {
       const user = userEvent.setup();
 
-      renderComponent();
+      renderPopoverAndWaitForAnimation();
       await user.click(screen.getByRole('button', { name: /Violation State/ }));
 
       const violationList = screen.getAllByRole('menu')[3];
@@ -212,7 +217,7 @@ describe('ReportFilterPopover', () => {
     it('Handles the click in the dependency type items', async () => {
       const user = userEvent.setup();
 
-      renderComponent();
+      renderPopoverAndWaitForAnimation();
       await user.click(screen.getByRole('button', { name: /Dependency Type/ }));
 
       const dependencyTypeList = screen.getAllByRole('menu')[4];
@@ -251,7 +256,7 @@ describe('ReportFilterPopover', () => {
     it('Handles the click in the policy types items', async () => {
       const user = userEvent.setup();
 
-      renderComponent();
+      renderPopoverAndWaitForAnimation();
       await user.click(screen.getByRole('button', { name: /Policy Type/ }));
 
       const policyList = screen.getAllByRole('menu')[5];
@@ -302,7 +307,7 @@ describe('ReportFilterPopover', () => {
     it('Handles the click in the policy threat level', async () => {
       const user = userEvent.setup();
 
-      renderComponent();
+      renderPopoverAndWaitForAnimation();
       await user.click(screen.getByRole('button', { name: /Policy Threat Level/ }));
 
       const policyThreat = screen.getAllByRole('list')[0];

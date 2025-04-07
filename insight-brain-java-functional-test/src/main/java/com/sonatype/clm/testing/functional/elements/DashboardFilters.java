@@ -37,11 +37,11 @@ public class DashboardFilters
   }
 
   public static SelenideElement modalBackdrop() {
-    return $("#dashboard-filter-container .nx-modal-backdrop");
+    return $(".nx-modal-backdrop");
   }
 
   public static SelenideElement closeButton() {
-    return $("#dashboard-filter-close-btn");
+    return $(".nx-drawer-header__close-button");
   }
 
   public static void closeFilter() {
@@ -142,7 +142,7 @@ public class DashboardFilters
       extends BasicElement<ManageFiltersDropdown>
   {
     public ManageFiltersDropdown() {
-      super("#dashboard-filter-header .iq-manage-filters-dropdown");
+      super(".nx-drawer-header .iq-manage-filters-dropdown");
     }
 
     public SelenideElement selectedFilterLabel() {

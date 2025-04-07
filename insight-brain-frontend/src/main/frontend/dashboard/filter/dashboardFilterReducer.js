@@ -33,10 +33,12 @@ import {
   SELECT_EXPIRATION_DATE,
   REVERT_FILTER,
   SET_DISPLAY_SAVE_FILTER_MODAL,
+  DISPLAY_DELETE_FILTER_MODAL,
   TOGGLE_FILTER_SIDEBAR,
 } from './dashboardFilterActions';
 
 import { UI_ROUTER_ON_FINISH } from '../../reduxUiRouter/routerActions';
+import { HIDE_DELETE_FILTER_MODAL } from 'MainRoot/dashboard/filter/manageFiltersActions';
 
 const initState = Object.freeze({
   filterSidebarOpen: false,
@@ -52,6 +54,7 @@ const initState = Object.freeze({
   showViolationStateFilter: false,
   showExpirationDateFilter: false,
   showSaveFilterModal: false,
+  showDeleteFilterModal: false,
   isWaiversTab: false,
   showPolicyWaiverReasonFilter: false,
 
@@ -137,6 +140,12 @@ export default function dashboardFilterReducer(state = initState, { type, payloa
 
     case SET_DISPLAY_SAVE_FILTER_MODAL:
       return { ...state, showSaveFilterModal: payload };
+
+    case DISPLAY_DELETE_FILTER_MODAL:
+      return { ...state, showDeleteFilterModal: true, showSaveFilterModal: false };
+
+    case HIDE_DELETE_FILTER_MODAL:
+      return { ...state, showDeleteFilterModal: false };
 
     case TOGGLE_FILTER_SIDEBAR:
       return state.filterSidebarOpen && (state.filtersAreDirty || state.needsAcknowledgement)

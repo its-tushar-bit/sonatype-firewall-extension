@@ -17,7 +17,7 @@ public class ApplicationReportFilter
   }
 
   public SelenideElement closeButton() {
-    return child(".iq-popover-header__close-btn");
+    return child(".nx-drawer-header__close-button");
   }
 
   public ProprietaryFilter proprietaryFilter() {

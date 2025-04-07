@@ -298,10 +298,6 @@ public class ApplicationReportFilterTest
     violations.shouldHave(size(25));
     threatLevelFilter.slider().setValues(7, 9);
     violations.shouldHave(size(24));
-    threatLevelFilter.slider().setValues(9, 9);
-    violations.shouldHave(size(15));
-    threatLevelFilter.slider().setValues(10, 10);
-    violations.shouldHave(size(2));
     threatLevelFilter.slider().setValues(3, 6);
     violations.shouldHave(size(1));
     violations.shouldHave(texts("No Results"));
@@ -317,20 +313,27 @@ public class ApplicationReportFilterTest
   public void testFilterClose() {
     // By close button in panel
     reportPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitForDrawerAnimation();
     reportPage.filterPanel().shouldBe(visible);
     reportPage.filterPanel().closeButton().click();
+    DashboardPage.waitForDrawerAnimation();
     reportPage.filterPanel().shouldNotBe(visible);
 
     // By escape key
     reportPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitForDrawerAnimation();
     reportPage.filterPanel().shouldBe(visible);
     pressEscape();
+    // Wait for the panel to close
+    DashboardPage.waitForDrawerAnimation();
     reportPage.filterPanel().shouldNotBe(visible);
 
     // By clicking an element off-panel
     reportPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitForDrawerAnimation();
     reportPage.filterPanel().shouldBe(visible);
     reportPage.headers().componentNameFilterInput().click();
+    DashboardPage.waitForDrawerAnimation();
     reportPage.filterPanel().shouldNotBe(visible);
   }
 

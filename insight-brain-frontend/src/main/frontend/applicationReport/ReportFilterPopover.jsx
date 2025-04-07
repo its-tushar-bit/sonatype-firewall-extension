@@ -7,8 +7,7 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { equals, head, last, map, range, reduce, reject } from 'ramda';
 
-import { NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
-import { IqPopover } from 'MainRoot/react/IqPopover';
+import { NxDrawer, NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
 import IqTreeViewPolicyThreatSlider from 'MainRoot/react/IqTreeViewPolicyThreatSlider';
 import { policyTypes } from 'MainRoot/dashboard/filter/staticFilterEntries';
 import { lookup, setToArray, union } from 'MainRoot/util/jsUtil';
@@ -138,9 +137,18 @@ export default function ReportFilterPopover() {
   };
 
   return (
-    <IqPopover id="iq-component-filter-popover" size="small" onClose={toggleShowFilterPopover}>
-      <IqPopover.Header headerTitle="Filter" onClose={toggleShowFilterPopover} />
-      <div className="report-filters">
+    <NxDrawer
+      open={showFilterPopover}
+      id="iq-component-filter-popover"
+      aria-labelledby="application-report-filter-drawer"
+      size="small"
+      onClose={toggleShowFilterPopover}
+      variant="narrow"
+    >
+      <NxDrawer.Header>
+        <NxDrawer.HeaderTitle id="application-report-filter-drawer">Filter</NxDrawer.HeaderTitle>
+      </NxDrawer.Header>
+      <NxDrawer.Content>
         <NxStatefulTreeViewMultiSelect
           options={proprietaryFilterOptions}
           selectedIds={derivedSelectedProprietaryOptions}
@@ -210,7 +218,7 @@ export default function ReportFilterPopover() {
         >
           <span>Policy Threat Level</span>
         </IqTreeViewPolicyThreatSlider>
-      </div>
-    </IqPopover>
+      </NxDrawer.Content>
+    </NxDrawer>
   );
 }

@@ -480,6 +480,28 @@ describe('dashboardFilterReducer', () => {
     });
   });
 
+  describe('DISPLAY_DELETE_FILTER_MODAL', () => {
+    it('sets showDeleteFilterModal to true', () => {
+      const state = Object.freeze({
+        showDeleteFilterModal: false,
+        showSaveFilterModal: true,
+      });
+      const newState = reduce(state, { type: 'DISPLAY_DELETE_FILTER_MODAL' });
+      expect(newState.showDeleteFilterModal).toBe(true);
+      expect(newState.showSaveFilterModal).toBe(false);
+    });
+  });
+
+  describe('HIDE_DELETE_FILTER_MODAL', () => {
+    it('sets showDeleteFilterModal to false', () => {
+      const state = Object.freeze({
+        showDeleteFilterModal: true,
+      });
+      const newState = reduce(state, { type: 'HIDE_DELETE_FILTER_MODAL' });
+      expect(newState.showDeleteFilterModal).toBe(false);
+    });
+  });
+
   describe('@@reduxUiRouter/onFinish action', () => {
     let initState;
     const NxTabs = Object.entries(dashboardFilterOptionsTab);

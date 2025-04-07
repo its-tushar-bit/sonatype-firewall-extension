@@ -15,7 +15,13 @@ import useClickAway from '../../../react/useClickAway';
 import useEscapeKeyStack from '../../../react/useEscapeKeyStack';
 
 export default function ManageFiltersDropdown(props) {
-  const { showDirtyAsterisk, applyDefaultFilter, applySavedFilter, selectFilterToDelete, DeleteFilterModal } = props;
+  const {
+    showDirtyAsterisk,
+    applyDefaultFilter,
+    applySavedFilter,
+    selectFilterToDelete,
+    displayDeleteFilterModal,
+  } = props;
 
   const ref = useRef(null);
 
@@ -33,6 +39,7 @@ export default function ManageFiltersDropdown(props) {
 
   const handleDeleteFilter = ({ name }) => {
     selectFilterToDelete(name);
+    displayDeleteFilterModal();
   };
 
   const handleSelectDefaultFilter = () => {
@@ -95,7 +102,6 @@ export default function ManageFiltersDropdown(props) {
 
   return (
     <div ref={ref}>
-      <DeleteFilterModal />
       <NxDropdown
         className="iq-manage-filters-dropdown"
         isOpen={filtersDropdownOpen}
@@ -128,4 +134,5 @@ ManageFiltersDropdown.propTypes = {
   applySavedFilter: PropTypes.func.isRequired,
   selectFilterToDelete: PropTypes.func.isRequired,
   DeleteFilterModal: PropTypes.elementType,
+  displayDeleteFilterModal: PropTypes.func.isRequired,
 };

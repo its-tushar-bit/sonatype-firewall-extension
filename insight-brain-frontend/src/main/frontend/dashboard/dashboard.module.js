@@ -15,6 +15,7 @@ import DashboardComponentsContainer from './results/components/DashboardComponen
 import ComponentRisk from './results/componentRisk/ComponentRisk';
 import DashboardApplicationsContainer from './results/applications/DashboardApplicationsContainer';
 import DashboardWaivers from './results/waivers/DashboardWaivers';
+import DashboardFilter from 'MainRoot/dashboard/filter/dashboardFilter/DashboardFilter';
 
 var dashboardModule = angular
   .module('dashboard.module', ['ui.router', ComponentDisplayModule.name])
@@ -24,7 +25,8 @@ var dashboardModule = angular
   .component('components', iqReact2Angular(DashboardComponentsContainer, [], ['$ngRedux']))
   .component('applications', iqReact2Angular(DashboardApplicationsContainer, [], ['$ngRedux', '$state']))
   .component('waivers', iqReact2Angular(DashboardWaivers, [], ['$ngRedux', '$state']))
-  .component('component', iqReact2Angular(ComponentRisk, [], ['$ngRedux', '$state']));
+  .component('component', iqReact2Angular(ComponentRisk, [], ['$ngRedux', '$state']))
+  .component('dashboardFilter', iqReact2Angular(DashboardFilter, [], ['$ngRedux', '$state']));
 
 export default dashboardModule;
 

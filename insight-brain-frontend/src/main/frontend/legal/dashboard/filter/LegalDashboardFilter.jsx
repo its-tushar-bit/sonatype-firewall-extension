@@ -4,9 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment } from 'react';
-import { NxErrorAlert, NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
+import { NxDrawer, NxErrorAlert, NxStatefulTreeViewMultiSelect, NxFooter } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../../react/LoadWrapper';
-import IqPopover from '../../../react/IqPopover';
 import IqOrgAppPicker from '../../../components/iqOrgAppPicker/IqOrgAppPicker';
 import Hexagon from '../../../react/Hexagon';
 import * as PropTypes from 'prop-types';
@@ -14,9 +13,10 @@ import { curryN } from 'ramda';
 import LegalDashboardFilterFooter from './LegalDashboardFilterFooter';
 import ManageFiltersDropdown from '../../../dashboard/filter/manageFiltersDropdown/ManageFiltersDropdown';
 import { filterToJson } from './legalDashboardFilterService';
-import classnames from 'classnames';
 import SaveLegalFilterModalContainer from './SaveLegalFilterModalContainer';
 import DeleteLegalFilterModalContainer from './DeleteLegalFilterModalContainer';
+import * as legalDashboardFilterActions from './legalDashboardFilterActions';
+import { useDispatch } from 'react-redux';
 
 export default function LegalDashboardFilter(props) {
   const {
@@ -27,10 +27,12 @@ export default function LegalDashboardFilter(props) {
     showDirtyAsterisk,
     filtersAreDirty,
     showSaveFilterModal,
+    showDeleteFilterModal,
     savedFilters,
     ownersMap,
     topParentOrganizationId,
     isSbomManager,
+    filterSidebarOpen,
 
     // filter items
     organizations,
@@ -46,7 +48,6 @@ export default function LegalDashboardFilter(props) {
     // actions
     applyFilter,
     applyFilterCancelled,
-    setDisplaySaveFilterModal,
     loadFilter,
     revert,
     toggleFilter,
@@ -63,6 +64,14 @@ export default function LegalDashboardFilter(props) {
   const onProgressOptionsChange = curriedToggleFilter('progressOptions');
 
   const applicationCategoryTooltip = (prop) => (prop && prop.owner && `in ${prop.owner}`) || '';
+
+  const isDrawerDisabled = filtersAreDirty || showSaveFilterModal || showDeleteFilterModal;
+
+  const dispatch = useDispatch();
+
+  const setDisplaySaveFilterModal = (payload) =>
+    dispatch(legalDashboardFilterActions.setDisplaySaveFilterModal(payload));
+  const displayDeleteFilterModal = () => dispatch(legalDashboardFilterActions.displayDeleteFilterModal());
 
   function handleCloseBtnClick() {
     if (filtersAreDirty) {
@@ -81,100 +90,106 @@ export default function LegalDashboardFilter(props) {
 
   const closeFilterBtnTooltip = filtersAreDirty ? 'Please apply or revert filter' : 'Close';
   return (
-    <IqPopover onClose={() => toggleFilterSidebar(false)}>
+    <>
       {showSaveFilterModal && <SaveLegalFilterModalContainer />}
-      <IqPopover.Header
-        className="legal-dashboard-filter-header"
-        buttonId="legal-dashboard-filter-close-btn"
+      {showDeleteFilterModal && <DeleteLegalFilterModalContainer />}
+      <NxDrawer
+        id="iq-legal-dashboard-filter-drawer"
+        open={filterSidebarOpen}
         onClose={handleCloseBtnClick}
-        headerSize="h3"
-        headerTitle="Filter"
-        buttonClassnames={classnames({ disabled: filtersAreDirty })}
-        closeTitle={closeFilterBtnTooltip}
+        aria-labelledby="legal-dashboard-filter-drawer"
+        variant="narrow"
+        size="small"
+        closeBtnTooltip={closeFilterBtnTooltip}
+        closeDisabled={isDrawerDisabled}
       >
-        {!loading && !loadError && (
-          <ManageFiltersDropdown
+        <NxDrawer.Header className="legal-dashboard-filter-header">
+          <NxDrawer.HeaderTitle id="legal-dashboard-filter-drawer">Filter</NxDrawer.HeaderTitle>
+          {!loading && !loadError && (
+            <ManageFiltersDropdown
+              {...{
+                appliedFilterName,
+                showDirtyAsterisk,
+                savedFilters,
+                applyDefaultFilter,
+                applySavedFilter,
+                selectFilterToDelete,
+                displayDeleteFilterModal,
+              }}
+            />
+          )}
+          {loadErrorFilterName && (
+            <NxErrorAlert id="legal-dashboard-filter-header-alert">Failed to load {loadErrorFilterName}</NxErrorAlert>
+          )}
+        </NxDrawer.Header>
+        <NxDrawer.Content>
+          <LoadWrapper loading={loading} error={loadError} retryHandler={handleRetry}>
+            {() => (
+              <Fragment>
+                <IqOrgAppPicker
+                  organizations={organizations}
+                  applications={applications}
+                  selectedApplications={selected.applications}
+                  selectedOrganizations={selected.organizations}
+                  onChange={toggleAppsAndOrgs}
+                  id="legal-org-app-filters"
+                  ownersMap={ownersMap}
+                  topParentOrganizationId={topParentOrganizationId}
+                />
+                {!isSbomManager && (
+                  <NxStatefulTreeViewMultiSelect
+                    options={categories}
+                    selectedIds={selected.categories}
+                    onChange={onCategoriesChange}
+                    optionTooltipGenerator={applicationCategoryTooltip}
+                    filterPlaceholder="Category"
+                    name="application categories"
+                    id="legal-category-filter"
+                  >
+                    <Hexagon className="size-16px size-fw outline" />
+                    <span>Application Categories</span>
+                  </NxStatefulTreeViewMultiSelect>
+                )}
+                {!isSbomManager && (
+                  <NxStatefulTreeViewMultiSelect
+                    options={stages}
+                    selectedIds={selected.stages}
+                    onChange={onStagesChange}
+                    filterPlaceholder="Stage"
+                    name="stages"
+                    id="legal-stage-filter"
+                  >
+                    Stages
+                  </NxStatefulTreeViewMultiSelect>
+                )}
+                <NxStatefulTreeViewMultiSelect
+                  options={progressOptions}
+                  selectedIds={selected.progressOptions}
+                  onChange={onProgressOptionsChange}
+                  filterPlaceholder="Review Progress"
+                  name="progressOptions"
+                  id="legal-progress-options-filter"
+                >
+                  Review Progress
+                </NxStatefulTreeViewMultiSelect>
+              </Fragment>
+            )}
+          </LoadWrapper>
+        </NxDrawer.Content>
+        <NxFooter>
+          <LegalDashboardFilterFooter
             {...{
-              appliedFilterName,
-              showDirtyAsterisk,
-              savedFilters,
-              applyDefaultFilter,
-              applySavedFilter,
-              selectFilterToDelete,
-              DeleteFilterModal: DeleteLegalFilterModalContainer,
+              applyFilterError,
+              filtersAreDirty,
+              setDisplaySaveFilterModal,
+              revert,
+              onApplyCurrentFilter: () => applyFilter(filterToJson(selected), appliedFilterName),
+              onCancelApplyFilter: applyFilterCancelled,
             }}
           />
-        )}
-        {loadErrorFilterName && <NxErrorAlert>Failed to load {loadErrorFilterName}</NxErrorAlert>}
-      </IqPopover.Header>
-      <div className="legal-dashboard-filter nx-viewport-sized__scrollable">
-        <LoadWrapper loading={loading} error={loadError} retryHandler={handleRetry}>
-          {() => (
-            <Fragment>
-              <IqOrgAppPicker
-                organizations={organizations}
-                applications={applications}
-                selectedApplications={selected.applications}
-                selectedOrganizations={selected.organizations}
-                onChange={toggleAppsAndOrgs}
-                id="legal-org-app-filters"
-                ownersMap={ownersMap}
-                topParentOrganizationId={topParentOrganizationId}
-              />
-              {!isSbomManager && (
-                <NxStatefulTreeViewMultiSelect
-                  options={categories}
-                  selectedIds={selected.categories}
-                  onChange={onCategoriesChange}
-                  optionTooltipGenerator={applicationCategoryTooltip}
-                  filterPlaceholder="Category"
-                  name="application categories"
-                  id="legal-category-filter"
-                >
-                  <Hexagon className="size-16px size-fw outline" />
-                  <span>Application Categories</span>
-                </NxStatefulTreeViewMultiSelect>
-              )}
-              {!isSbomManager && (
-                <NxStatefulTreeViewMultiSelect
-                  options={stages}
-                  selectedIds={selected.stages}
-                  onChange={onStagesChange}
-                  filterPlaceholder="Stage"
-                  name="stages"
-                  id="legal-stage-filter"
-                >
-                  Stages
-                </NxStatefulTreeViewMultiSelect>
-              )}
-              <NxStatefulTreeViewMultiSelect
-                options={progressOptions}
-                selectedIds={selected.progressOptions}
-                onChange={onProgressOptionsChange}
-                filterPlaceholder="Review Progress"
-                name="progressOptions"
-                id="legal-progress-options-filter"
-              >
-                Review Progress
-              </NxStatefulTreeViewMultiSelect>
-            </Fragment>
-          )}
-        </LoadWrapper>
-      </div>
-
-      <IqPopover.Footer>
-        <LegalDashboardFilterFooter
-          {...{
-            applyFilterError,
-            filtersAreDirty,
-            setDisplaySaveFilterModal,
-            revert,
-            onApplyCurrentFilter: () => applyFilter(filterToJson(selected), appliedFilterName),
-            onCancelApplyFilter: applyFilterCancelled,
-          }}
-        />
-      </IqPopover.Footer>
-    </IqPopover>
+        </NxFooter>
+      </NxDrawer>
+    </>
   );
 }
 
@@ -186,6 +201,7 @@ LegalDashboardFilter.propTypes = {
   filtersAreDirty: PropTypes.bool,
   showAgeFilter: PropTypes.bool,
   showSaveFilterModal: PropTypes.bool,
+  showDeleteFilterModal: PropTypes.bool,
   organizations: PropTypes.array,
   applications: PropTypes.array,
   categories: PropTypes.array,

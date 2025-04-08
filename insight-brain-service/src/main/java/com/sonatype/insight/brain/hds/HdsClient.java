@@ -25,6 +25,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.net.ssl.SSLException;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
@@ -58,6 +59,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.entity.ByteArrayEntity;
@@ -423,6 +425,9 @@ public class HdsClient
           throw new NotFoundException(getErrorMessage(response));
         case 409:
           throw new ConflictException(getErrorMessage(response));
+        case 500:
+          throw new InternalServerErrorException(
+              "The Sonatype Data Services returned error 500, please retry in a bit.");
         case 502:  // Bad Gateway
         case 504:  // Gateway Timeout
           throw new BadGatewayException(
@@ -657,7 +662,7 @@ public class HdsClient
       requestId = getRequestId(response);
       statusLine = response.getStatusLine();
     }
-    catch (HttpHostConnectException e) {
+    catch (HttpHostConnectException | ConnectTimeoutException e) {
       throw new GatewayTimeoutException(e.getMessage(), e);
     }
     catch (UnknownHostException e) {

@@ -204,8 +204,7 @@ public class ApiEvaluationResourceV2Test
     ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
     assertThat(details).isNotNull();
     assertThat(details.isError).isTrue();
-    assertThat(details.errorMessage)
-        .startsWith("The Sonatype Data Services returned error 500, please retry in a bit.");
+    assertThat(details.errorMessage).startsWith("Internal Server Error");
     assertThat(details.applicationId).isEqualTo(app.getId());
     assertThat(details.evaluationDate).isNotNull();
     assertThat(details.submittedDate).isNotNull();

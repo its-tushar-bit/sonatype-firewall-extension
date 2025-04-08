@@ -57,7 +57,7 @@ public class NewInstancePopulatorAuditTest
 
     getCLMServer().getInstance(NewInstancePopulator.class).populateIfNewInstance();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "bad-gateway", SYSTEM_USER);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "server-error", SYSTEM_USER);
     assertOrganizationData(auditDTO, Organization.ROOT_ORGANIZATION_ID, "Root Organization");
     assertPolicyImportData(auditDTO, null, null, null, null);
   }

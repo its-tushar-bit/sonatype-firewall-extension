@@ -33,6 +33,7 @@ import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.InternalServerErrorException;
 
 import com.sonatype.insight.brain.NetworkingHelper;
 import com.sonatype.insight.brain.model.Application;
@@ -579,7 +580,7 @@ public class DefaultHdsClientTest
       }
     };
 
-    assertThatExceptionOfType(BadGatewayException.class)
+    assertThatExceptionOfType(InternalServerErrorException.class)
         .isThrownBy(() -> client.get(String.class, "/any", null))
         .withMessage("The Sonatype Data Services returned error 500, please retry in a bit.");
   }

@@ -21,6 +21,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
 import javax.mail.Message;
+import javax.ws.rs.InternalServerErrorException;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -63,7 +64,6 @@ import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
-import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
@@ -631,7 +631,7 @@ public class PolicyMonitorTest
 
     // Mock an HDS error on scan upload and evaluate policies again.
     hdsRespondWith("HDS Error").andStatus(500).atUri("rest/application/analysis");
-    assertThatExceptionOfType(BadGatewayException.class)
+    assertThatExceptionOfType(InternalServerErrorException.class)
         .isThrownBy(() -> policyMonitor.evaluate(app, policyMonitoring));
 
     // Verify there are no temp scan files left behind.

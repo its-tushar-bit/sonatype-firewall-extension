@@ -20,6 +20,7 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -72,7 +73,6 @@ import com.sonatype.insight.test.LogOutput;
 import com.google.inject.Binder;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -382,8 +382,8 @@ public class ApiPolicyWaiverServiceTest
   }
 
   @Test
-  public void testAddPolicyWaiverByPolicyViolationId_WithExpiry_InFuture() {
-    Date expiryTime = DateTime.now().plusDays(1).toDate();
+  public void testAddPolicyWaiverByPolicyViolationId_WithExpiry_InTheFuture() {
+    Date expiryTime = DateUtils.addDays(new Date(), 1);
 
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
         policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_COMPONENTS, expiryTime, null, false));
@@ -464,19 +464,22 @@ public class ApiPolicyWaiverServiceTest
         .isNotEqualTo(policyWaivers.get(1).getAssociatedPackageUrl());
   }
 
-  @Test(expected = BadRequestException.class)
-  public void should_not_create_waiver_when_expiry_date_is_in_past() {
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_WithExpiry_InThePast() {
+    Date yesterday = DateUtils.addDays(new Date(), -1);
 
-    Date yesterday = new Date(System.currentTimeMillis() - 1000L * 60L * 60L * 24L);
-
-    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-        policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_VERSIONS, yesterday, null, false));
+    assertThatThrownBy(() -> {
+      apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+          policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_VERSIONS, yesterday, null, false));
+    }).isInstanceOf(BadRequestException.class).hasMessage("Expiration date must be in the future.");
   }
 
-  @Test(expected = BadRequestException.class)
-  public void should_not_create_waiver_when_expiry_date_is_today() {
-    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-        policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_VERSIONS, new Date(), null, false));
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_WithExpiry_Today() {
+    assertThatThrownBy(() -> {
+      apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+          policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_VERSIONS, new Date(), null, false));
+    }).isInstanceOf(BadRequestException.class).hasMessage("Expiration date must be in the future.");
   }
 
   @Test
@@ -777,11 +780,11 @@ public class ApiPolicyWaiverServiceTest
 
   @Test
   public void testGetPolicyWaivers_Expired() {
-    DateTime now = DateTime.now();
+    Date now = new Date();
 
     Application application = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(application);
-    tempEntity.newWaiver("hash", policy.getId(), application.getId(), null, "comment", now.toDate(), now.toDate());
+    tempEntity.newWaiver("hash", policy.getId(), application.getId(), null, "comment", now, now);
 
     List<ApiPolicyWaiverDTO> policyWaiverDtoList =
         apiPolicyWaiverService.getPolicyWaivers(OwnerType.APPLICATION, application.getId());
@@ -791,12 +794,13 @@ public class ApiPolicyWaiverServiceTest
 
   @Test
   public void testGetPolicyWaivers_ExpiringInFuture() {
-    DateTime now = DateTime.now();
+    Date now = new Date();
+    Date oneHourLater = DateUtils.addHours(now, 1);
 
     Application application = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(application);
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), application.getId(), null, "comment",
-        now.toDate(), now.plusHours(1).toDate()); // expiring in future
+        now, oneHourLater); // expiring in future
 
     List<ApiPolicyWaiverDTO> policyWaiverDtoList =
         apiPolicyWaiverService.getPolicyWaivers(OwnerType.APPLICATION, application.getId());
@@ -864,7 +868,7 @@ public class ApiPolicyWaiverServiceTest
 
   @Test
   public void testGetApplicableWaivers_Application() {
-    DateTime now = DateTime.now();
+    Date now = new Date();
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
     List<ConstraintFact> constraintFacts2 = tempEntity.createArbitraryConstraintFacts();
     Organization newOrg = tempEntity.newOrganization("NewOrg");
@@ -889,29 +893,28 @@ public class ApiPolicyWaiverServiceTest
     String orgId = newOrg.getId();
     String appId = newApp.getId();
 
-    Date expiredExpiryTime = now.minusMillis(1).toDate();
-    Date expiringInFutureExpiryTime = now.plusMinutes(1).toDate();
+    Date expiredExpiryTime = DateUtils.addMilliseconds(now, -1);
+    Date expiringInFutureExpiryTime = DateUtils.addMinutes(now, 1);
 
     // applicable waivers that the service should return for the given violation
     PolicyWaiverReason policyWaiverReason = tempEntity.newWaiverReason("reasonType", "some reason");
     tempEntity.newWaiver("hashX", policyId, orgId, constraintFacts, packageUrlAllVersions, ALL_VERSIONS, "",
-        policyWaiverReason, now.minusDays(10).toDate());
-    tempEntity.newWaiver(null, policyId, orgId, constraintFacts, ALL_COMPONENTS, "", now.minusDays(9).toDate(), null);
+        policyWaiverReason, DateUtils.addDays(now, -10));
+    tempEntity.newWaiver(null, policyId, orgId, constraintFacts, ALL_COMPONENTS, "", DateUtils.addDays(now, -9), null);
     tempEntity.newWaiver("hash", policyId, appId, constraintFacts, packageUrlAllVersions2, EXACT_COMPONENT, "",
-        now.minusDays(8).toDate(), expiredExpiryTime); // expired
-    tempEntity.newWaiver(null, policyId, appId, constraintFacts, ALL_COMPONENTS, "A comment", now.minusDays(7).toDate(),
-        expiringInFutureExpiryTime); // expiring in the future
+        DateUtils.addDays(now, -8), expiredExpiryTime); // expired
+    tempEntity.newWaiver(null, policyId, appId, constraintFacts, ALL_COMPONENTS, "A comment",
+        DateUtils.addDays(now, -7), expiringInFutureExpiryTime); // expiring in the future
     // add more waivers with different attributes — for diversity
-    tempEntity.newWaiver("hash", policyId, appId, null, EXACT_COMPONENT, "", now.minusDays(6).toDate());
+    tempEntity.newWaiver("hash", policyId, appId, null, EXACT_COMPONENT, "", DateUtils.addDays(now, -6));
     tempEntity.newWaiver(null, policyId, appId, null, packageUrlAllVersions2, ALL_VERSIONS, "",
-        now.minusDays(5).toDate());
-    tempEntity.newWaiver("hashX", policyId, appId, constraintFacts, EXACT_COMPONENT, "", now.minusDays(4).toDate());
-    tempEntity.newWaiver("hash", policyId, appId, constraintFacts2, EXACT_COMPONENT, "", now.minusDays(3).toDate());
-    tempEntity.newWaiver("hash2", policy2Id, appId, null, EXACT_COMPONENT, "", now.minusDays(2).toDate(), null);
-    tempEntity.newWaiver(null, policy2Id, appId, null, ALL_COMPONENTS, "", now.minusDays(1).toDate(),
-        now.plusMinutes(1).toDate());
-    tempEntity.newWaiver("hash", policy2Id, appId, constraintFacts, EXACT_COMPONENT, "", now.toDate(),
-        now.minusMillis(1).toDate());
+        DateUtils.addDays(now, -5));
+    tempEntity.newWaiver("hashX", policyId, appId, constraintFacts, EXACT_COMPONENT, "", DateUtils.addDays(now, -4));
+    tempEntity.newWaiver("hash", policyId, appId, constraintFacts2, EXACT_COMPONENT, "", DateUtils.addDays(now, -3));
+    tempEntity.newWaiver("hash2", policy2Id, appId, null, EXACT_COMPONENT, "", DateUtils.addDays(now, -2), null);
+    tempEntity.newWaiver(null, policy2Id, appId, null, ALL_COMPONENTS, "", DateUtils.addDays(now, -1),
+        expiringInFutureExpiryTime);
+    tempEntity.newWaiver("hash", policy2Id, appId, constraintFacts, EXACT_COMPONENT, "", now, expiredExpiryTime);
 
     String policyViolationId = violation.getId();
 
@@ -941,7 +944,7 @@ public class ApiPolicyWaiverServiceTest
 
   @Test
   public void testGetApplicableWaivers_Repository() {
-    DateTime now = DateTime.now();
+    Date now = new Date();
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
     List<ConstraintFact> constraintFacts2 = tempEntity.createArbitraryConstraintFacts();
     Repository repository = tempEntity.newRepository();
@@ -965,29 +968,28 @@ public class ApiPolicyWaiverServiceTest
     String orgId = Organization.ROOT_ORGANIZATION_ID;
     String repoId = repository.getId();
 
-    Date expiredExpiryTime = now.minusMillis(1).toDate();
-    Date expiringInFutureExpiryTime = now.plusMinutes(1).toDate();
+    Date expiredExpiryTime = DateUtils.addMilliseconds(now, -1);
+    Date expiringInFutureExpiryTime = DateUtils.addMinutes(now, 1);
 
     // applicable waivers that the service should return for the given violation
     PolicyWaiverReason policyWaiverReason = tempEntity.newWaiverReason("reasonType", "some reason");
     tempEntity.newWaiver("hashX", policyId, orgId, constraintFacts, packageUrlAllVersions, ALL_VERSIONS, "",
-        policyWaiverReason, now.minusDays(10).toDate());
-    tempEntity.newWaiver(null, policyId, orgId, constraintFacts, ALL_COMPONENTS, "", now.minusDays(9).toDate(), null);
+        policyWaiverReason, DateUtils.addDays(now, -10));
+    tempEntity.newWaiver(null, policyId, orgId, constraintFacts, ALL_COMPONENTS, "", DateUtils.addDays(now, -9), null);
     tempEntity.newWaiver("hash", policyId, repoId, constraintFacts, packageUrlAllVersions2, EXACT_COMPONENT, "",
-        now.minusDays(8).toDate(), expiredExpiryTime); // expired
+        DateUtils.addDays(now, -8), expiredExpiryTime); // expired
     tempEntity.newWaiver(null, policyId, repoId, constraintFacts, ALL_COMPONENTS, "A comment",
-        now.minusDays(7).toDate(), expiringInFutureExpiryTime); // expiring in the future
+        DateUtils.addDays(now, -7), expiringInFutureExpiryTime); // expiring in the future
     // add more waivers with different attributes — for diversity
-    tempEntity.newWaiver("hash", policyId, repoId, null, EXACT_COMPONENT, "", now.minusDays(6).toDate());
+    tempEntity.newWaiver("hash", policyId, repoId, null, EXACT_COMPONENT, "", DateUtils.addDays(now, -6));
     tempEntity.newWaiver(null, policyId, repoId, null, packageUrlAllVersions2, ALL_VERSIONS, "",
-        now.minusDays(5).toDate());
-    tempEntity.newWaiver("hashX", policyId, repoId, constraintFacts, EXACT_COMPONENT, "", now.minusDays(4).toDate());
-    tempEntity.newWaiver("hash", policyId, repoId, constraintFacts2, EXACT_COMPONENT, "", now.minusDays(3).toDate());
-    tempEntity.newWaiver("hash2", policy2Id, repoId, null, EXACT_COMPONENT, "", now.minusDays(2).toDate(), null);
-    tempEntity.newWaiver(null, policy2Id, repoId, null, ALL_COMPONENTS, "", now.minusDays(1).toDate(),
-        now.plusMinutes(1).toDate());
-    tempEntity.newWaiver("hash", policy2Id, repoId, constraintFacts, EXACT_COMPONENT, "", now.toDate(),
-        now.minusMillis(1).toDate());
+        DateUtils.addDays(now, -5));
+    tempEntity.newWaiver("hashX", policyId, repoId, constraintFacts, EXACT_COMPONENT, "", DateUtils.addDays(now, -4));
+    tempEntity.newWaiver("hash", policyId, repoId, constraintFacts2, EXACT_COMPONENT, "", DateUtils.addDays(now, -3));
+    tempEntity.newWaiver("hash2", policy2Id, repoId, null, EXACT_COMPONENT, "", DateUtils.addDays(now, -2), null);
+    tempEntity.newWaiver(null, policy2Id, repoId, null, ALL_COMPONENTS, "", DateUtils.addDays(now, -1),
+        expiringInFutureExpiryTime);
+    tempEntity.newWaiver("hash", policy2Id, repoId, constraintFacts, EXACT_COMPONENT, "", now, expiredExpiryTime);
 
     String policyViolationId = violation.getId();
 

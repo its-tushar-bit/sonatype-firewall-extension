@@ -101,7 +101,7 @@ describe('advancedLegalFileActions', function () {
 
         const actions = store.getActions();
         expect(axios.get).toHaveBeenCalledWith(
-          '/rest/licenseOverride/application/ownerId?componentIdentifier=componentIdentifier123'
+          '/api/v2/licenseOverride/application/ownerId?componentIdentifier=componentIdentifier123'
         );
         expect(axios.get).toHaveBeenCalledWith('/rest/license?filterSynthetic=true');
         expect(actions.length).toBe(2);
@@ -190,7 +190,7 @@ describe('advancedLegalFileActions', function () {
           comment: 'comment',
           ownerId,
         };
-        expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/application/ownerId', expectedPostBody);
+        expect(axios.post).toHaveBeenCalledWith('/api/v2/licenseOverride/application/ownerId', expectedPostBody);
         expect(axios.get).toHaveBeenCalledWith('/api/v2/licenseLegalMetadata/application/app/component?hash=hash123');
         expect(axios.get).toHaveBeenCalledWith('/rest/owner/application/app/hierarchy/legalReviewer');
         expect(actions.length).toBe(7);
@@ -261,7 +261,7 @@ describe('advancedLegalFileActions', function () {
             ownerId: 'ROOT_ORGANIZATION_ID',
           };
           expect(axios.post).toHaveBeenCalledWith(
-            '/rest/licenseOverride/organization/ROOT_ORGANIZATION_ID',
+            '/api/v2/licenseOverride/organization/ROOT_ORGANIZATION_ID',
             expectedPostBody
           );
           expect(axios.get).toHaveBeenCalledWith(
@@ -302,7 +302,7 @@ describe('advancedLegalFileActions', function () {
           comment: 'comment',
           ownerId: 'ownerId',
         };
-        expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/application/ownerId', expectedPostBody);
+        expect(axios.post).toHaveBeenCalledWith('/api/v2/licenseOverride/application/ownerId', expectedPostBody);
         expect(actions.length).toBe(2);
         expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_FAILED);
         expect(actions[1].payload).toEqual('error');
@@ -384,7 +384,7 @@ describe('advancedLegalFileActions', function () {
 
         const actions = store.getActions();
 
-        expect(axios.delete).toHaveBeenCalledWith('/rest/licenseOverride/application/ownerId/licenseOverrideId');
+        expect(axios.delete).toHaveBeenCalledWith('/api/v2/licenseOverride/application/ownerId/licenseOverrideId');
         expect(axios.get).toHaveBeenCalledWith('/api/v2/licenseLegalMetadata/application/app/component?hash=hash123');
         expect(axios.get).toHaveBeenCalledWith('/rest/owner/application/app/hierarchy/legalReviewer');
         expect(actions.length).toBe(7);
@@ -411,7 +411,7 @@ describe('advancedLegalFileActions', function () {
       });
       store.dispatch(deleteLicenses({ ownerType, ownerId, hash })).catch(() => {
         const actions = store.getActions();
-        expect(axios.delete).toHaveBeenCalledWith('/rest/licenseOverride/application/ownerId/licenseOverrideId');
+        expect(axios.delete).toHaveBeenCalledWith('/api/v2/licenseOverride/application/ownerId/licenseOverrideId');
         expect(actions.length).toBe(2);
         expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_FAILED);
         expect(actions[1].payload).toEqual('error');

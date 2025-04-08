@@ -59,6 +59,20 @@ public class ApiLicenseOverrideDTO
     this.status = status;
   }
 
+  public ApiLicenseOverrideDTO(
+      final String ownerId,
+      final String comment,
+      final Set<String> licenseIds,
+      final ApiComponentIdentifierDTOV2 componentIdentifier,
+      final LicenseOverrideStatus status)
+  {
+    this.ownerId = ownerId;
+    this.comment = comment;
+    this.licenseIds = licenseIds;
+    this.componentIdentifier = componentIdentifier;
+    this.status = status;
+  }
+
   @Override
   public String toString() {
     return "ApiLicenseOverrideDTO{" +

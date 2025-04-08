@@ -14,9 +14,7 @@ import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiAppliedLicenseOverridesDTO;
-import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseOverrideDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentIdentifierValidator;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -100,6 +98,11 @@ public class LicenseOverrideService
                                             final String where,
                                             final HttpServletRequest request) throws IOException
   {
+    if (licenseOverride == null) {
+      throw new BadRequestException("The license override cannot be null. Validate the body of " +
+          "the request.");
+    }
+
     ComponentIdentifierValidator.validate(licenseOverride.getComponentIdentifier());
 
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
@@ -207,30 +210,6 @@ public class LicenseOverrideService
       final ComponentIdentifier componentIdentifier)
   {
     return getAppliedLicenseOverridesNoAuth(ownerType, ownerId, componentIdentifier);
-  }
-
-  public LicenseOverride toInternalLicenseOverride(ApiLicenseOverrideDTO apiLicenseOverrideDTO) {
-    if (apiLicenseOverrideDTO == null) {
-      return null;
-    }
-
-    return new LicenseOverride(
-        apiLicenseOverrideDTO.ownerId,
-        apiLicenseOverrideDTO.componentIdentifier != null ?
-            apiLicenseOverrideDTO.componentIdentifier.toComponentIdentifier() : null,
-        apiLicenseOverrideDTO.status,
-        apiLicenseOverrideDTO.licenseIds,
-        apiLicenseOverrideDTO.comment);
-  }
-
-  public ApiLicenseOverrideDTO toApiLicenseOverrideDTO(LicenseOverride licenseOverride) {
-    return new ApiLicenseOverrideDTO(
-        licenseOverride.getId(),
-        licenseOverride.getOwnerId(),
-        licenseOverride.getComment(),
-        licenseOverride.getLicenseIds(),
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(licenseOverride.getComponentIdentifier()),
-        licenseOverride.getStatus());
   }
 
   @VisibleForTesting

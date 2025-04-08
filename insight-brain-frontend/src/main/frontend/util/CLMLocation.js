@@ -1060,10 +1060,10 @@ export function getLicenseOverrideUrl(ownerType, ownerId, componentIdentifier) {
      * `componentIdentifier` is already a stringified json, but it still needs encoding
      * `uriTemplate` handles that encoding for us.
      */
-    return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}?componentIdentifier=${componentIdentifier}`;
+    return uriTemplate`/api/v2/licenseOverride/${ownerType}/${ownerId}?componentIdentifier=${componentIdentifier}`;
   }
 
-  return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}`;
+  return uriTemplate`/api/v2/licenseOverride/${ownerType}/${ownerId}`;
 }
 
 export function getLicenseOverrideLegalReviewerUrl(ownerType, ownerId, componentIdentifier) {
@@ -1072,18 +1072,18 @@ export function getLicenseOverrideLegalReviewerUrl(ownerType, ownerId, component
      * `componentIdentifier` is already a stringified json, but it still needs encoding
      * `uriTemplate` handles that encoding for us.
      */
-    return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}/legalReviewer?componentIdentifier=${componentIdentifier}`;
+    return uriTemplate`/api/v2/licenseOverride/${ownerType}/${ownerId}/legalReviewer?componentIdentifier=${componentIdentifier}`;
   }
 
-  return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}/legalReviewer`;
+  return uriTemplate`/api/v2/licenseOverride/${ownerType}/${ownerId}/legalReviewer`;
 }
 
 export function getBaseLicenseOverrideUrl(ownerType, ownerId) {
-  return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}`;
+  return uriTemplate`/api/v2/licenseOverride/${ownerType}/${ownerId}`;
 }
 
 export function getDeleteLicenseOverrideUrl(ownerType, ownerId, licenseOverrideId) {
-  return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}/${licenseOverrideId}`;
+  return uriTemplate`/api/v2/licenseOverride/${ownerType}/${ownerId}/${licenseOverrideId}`;
 }
 
 export function getLicensesWithSyntheticFilterUrl() {

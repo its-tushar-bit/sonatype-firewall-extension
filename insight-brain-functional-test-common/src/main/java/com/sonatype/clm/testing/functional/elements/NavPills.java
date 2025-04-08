@@ -69,6 +69,6 @@ public class NavPills
   }
 
   public SelenideElement autoWaivers() {
-    return $("#owner-pill-waivers-configuration-button");
+    return $("#owner-pill-auto-waivers-configuration-button");
   }
 }

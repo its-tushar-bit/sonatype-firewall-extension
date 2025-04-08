@@ -5,9 +5,9 @@
  */
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { NxH2, NxTile, NxList, NxLoadWrapper, NxSmallTag } from '@sonatype/react-shared-components';
-import { selectWaiversStatusMessage, selectWaiversSlice } from './../automatedWaiversSelectors';
-import { actions } from '../automatedWaiversSlice';
+import { NxH2, NxTile, NxList, NxLoadWrapper } from '@sonatype/react-shared-components';
+import { selectApplicableAutoWaivers } from './../automatedWaiversSelectors';
+import { actions } from 'MainRoot/OrgsAndPolicies/applicableAutoWaiversSlice';
 import {
   selectIsAutoWaiversEnabled,
   selectIsDeveloperDashboardEnabled,
@@ -15,20 +15,38 @@ import {
 import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { selectIsSbomManager, selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { selectIsRootOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
 
-export default function AutomatedWaiversTile() {
+export default function AutoWaiversTile() {
   const dispatch = useDispatch();
-  const waiversConfigurationStatusMessage = useSelector(selectWaiversStatusMessage);
-  const { loading, loadError } = useSelector(selectWaiversSlice);
   const isDeveloperEnabled = useSelector(selectIsDeveloperDashboardEnabled);
   const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
   const uiStateRouter = useRouterState();
-  const router = useSelector(selectRouterSlice());
+  const router = useSelector(selectRouterSlice);
   const { to, params } = deriveEditRoute(router, 'edit-waivers');
   const href = uiStateRouter.href(to, params);
   const isSbomManager = useSelector(selectIsSbomManager);
+  const isRootOrg = useSelector(selectIsRootOrganization);
 
-  const doLoad = () => dispatch(actions.loadAutoWaiversConfiguration());
+  const applicableAutoWaivers = useSelector(selectApplicableAutoWaivers);
+  const { loading, loadError, data } = applicableAutoWaivers || {};
+
+  const getMessage = () => {
+    const { localWaiversCount, inheritedWaiversCount } = data?.reduce(
+      (counts, waiver) => {
+        if (waiver.isAutoWaiverEnabled) {
+          waiver.isInherited ? counts.inheritedWaiversCount++ : counts.localWaiversCount++;
+        }
+        return counts;
+      },
+      { localWaiversCount: 0, inheritedWaiversCount: 0 }
+    );
+
+    return isRootOrg ? `${localWaiversCount} local` : `${localWaiversCount} local, ${inheritedWaiversCount} inherited`;
+  };
+
+  const doLoad = () => dispatch(actions.loadApplicableAutoWaivers());
+
   useEffect(() => {
     doLoad();
   }, []);
@@ -37,22 +55,17 @@ export default function AutomatedWaiversTile() {
     return null;
   }
 
-  const waiversConfigurationEnabled = waiversConfigurationStatusMessage.includes('enabled');
-
   return (
-    <NxTile id="owner-pill-waivers-configuration">
+    <NxTile id="owner-pill-auto-waivers-configuration" data-testid="iq-auto-waivers-tile">
       <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
         <NxTile.Header>
           <NxTile.HeaderTitle>
-            <NxH2>Waivers</NxH2>
+            <NxH2>Auto-Waivers</NxH2>
           </NxTile.HeaderTitle>
         </NxTile.Header>
         <NxTile.Content>
-          <NxList id="waivers-configuration">
-            <NxList.LinkItem href={href}>
-              {waiversConfigurationStatusMessage}
-              {waiversConfigurationEnabled && <NxSmallTag color="green">Auto</NxSmallTag>}
-            </NxList.LinkItem>
+          <NxList>
+            <NxList.LinkItem href={href}>{getMessage()}</NxList.LinkItem>
           </NxList>
         </NxTile.Content>
       </NxLoadWrapper>

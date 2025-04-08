@@ -112,8 +112,8 @@ export default function OwnerSummaryPills() {
         isDisplayed: isArtifactoryRepositorySupported && (isOrg || isApp) && !isSbomManager,
       },
       {
-        label: 'Waivers',
-        target: 'owner-pill-waivers-configuration',
+        label: 'Auto-Waivers',
+        target: 'owner-pill-auto-waivers-configuration',
         isDisplayed: isAutoWaiversEnabled && !isSbomManager && isDeveloperDashboardEnabled,
       },
       {

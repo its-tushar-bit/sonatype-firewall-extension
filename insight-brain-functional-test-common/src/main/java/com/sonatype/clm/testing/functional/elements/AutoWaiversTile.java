@@ -10,7 +10,7 @@ import com.codeborne.selenide.ElementsCollection;
 public class AutoWaiversTile
     extends OwnerTile
 {
-  private static final String AUTO_WAIVERS_TILE_ID = "#owner-pill-waivers-configuration";
+  private static final String AUTO_WAIVERS_TILE_ID = "#owner-pill-auto-waivers-configuration";
 
   public AutoWaiversTile() {
     super(AUTO_WAIVERS_TILE_ID);

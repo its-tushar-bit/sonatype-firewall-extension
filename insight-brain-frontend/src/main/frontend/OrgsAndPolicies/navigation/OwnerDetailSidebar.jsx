@@ -439,7 +439,7 @@ export default function OwnerDetailSidebar() {
       {!isRepositoriesRelated && isDeveloperDashboardEnabled && !isSbomManager && isAutoWaiverEnabled && (
         <NxCollapsibleItems.Child role="menuitem">
           <NxTextLink className={`iq-noncollapsible ${isWaivers ? 'selected' : ''}`} href={`${linkMainHref}/waivers`}>
-            Waivers
+            Auto-Waivers
           </NxTextLink>
         </NxCollapsibleItems.Child>
       )}

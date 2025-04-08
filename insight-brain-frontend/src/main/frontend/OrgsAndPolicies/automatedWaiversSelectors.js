@@ -23,13 +23,6 @@ export const selectWaiversConfigPage = createSelector(selectWaivers, (waiver) =>
   return config;
 });
 
-export const selectWaiversStatusMessage = createSelector(selectWaiversConfig, (configuration) => {
-  const message = 'Automated Waivers are ' + (configuration.isAutoWaiverEnabled ? 'enabled' : 'disabled');
-  return configuration.isInherited
-    ? message + ` (Inheriting from ${configuration.autoPolicyWaiverOwnerName})`
-    : message;
-});
-
 export const selectApplicableAutoWaivers = createSelector(selectAutomatedWaiversSlice, prop('applicableAutoWaivers'));
 
 export const selectAutoWaiverToDelete = createSelector(selectApplicableAutoWaivers, prop('autoWaiverIdToDelete'));

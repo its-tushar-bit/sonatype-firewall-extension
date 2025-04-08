@@ -13,22 +13,6 @@ import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPolic
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 
-const APPS = [
-  {
-    id: 'applicationOneID',
-    publicId: 'applicationOnePublicID',
-    organizationId: 'organizationOneID',
-    name: 'ApplicationOneName',
-  },
-];
-
-const ORGS = [
-  {
-    id: 'organizationOneID',
-    name: 'OrganizationOneName',
-  },
-];
-
 const defaultPreloadedState = {
   router: {
     currentState: {
@@ -51,12 +35,6 @@ const defaultPreloadedState = {
     },
   },
   orgsAndPolicies: {
-    applications: {
-      applications: APPS,
-    },
-    organizations: {
-      organizations: ORGS,
-    },
     root: {
       selectedOwner: {
         id: 'ROOT_ORGANIZATION_ID',
@@ -545,6 +523,6 @@ describe('OwnerDetailSidebar', () => {
       },
     });
 
-    expect(screen.getByText('Waivers')).toBeInTheDocument();
+    expect(screen.getByText('Auto-Waivers')).toBeInTheDocument();
   });
 });

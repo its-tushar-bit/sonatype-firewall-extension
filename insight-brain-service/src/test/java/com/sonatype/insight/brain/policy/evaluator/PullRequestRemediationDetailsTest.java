@@ -179,11 +179,88 @@ public class PullRequestRemediationDetailsTest
         "/PullRequestRemediationDetailsTest/VulnerabilityReport_Suggested_noHtml.md", 0, "recommended-non-breaking");
   }
 
+  @Test
+  public void testSecurityVulnerabilityReport_RecommendedNonBreakingWithDependencies_Manual() throws Exception {
+    testSecurityVulnerabilityReport(
+        SourceControlProvider.GITHUB,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_Golden_manual.md",
+        0,
+        "recommended-non-breaking-with-dependencies",
+        true
+    );
+  }
+
+  @Test
+  public void testSecurityVulnerabilityReport_RecommendedNonBreaking_Manual() throws Exception {
+    testSecurityVulnerabilityReport(
+        SourceControlProvider.GITHUB,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_Suggested_manual.md",
+        0,
+        "recommended-non-breaking",
+        true
+    );
+  }
+
+  @Test
+  public void testSecurityVulnerabilityReport_NextNoViolations_Manual() throws Exception {
+    testSecurityVulnerabilityReport(
+        SourceControlProvider.GITHUB,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_manual.md",
+        null,
+        "next-no-violations",
+        true
+    );
+  }
+
+  @Test
+  public void testSecurityVulnerabilityReport_Minimal_RecommendedNonBreakingWithDependencies_Manual() throws Exception {
+    testSecurityVulnerabilityReport(
+        SourceControlProvider.AZURE,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_Golden_noHtml_manual.md",
+        0,
+        "recommended-non-breaking-with-dependencies",
+        true
+    );
+  }
+
+  @Test
+  public void testSecurityVulnerabilityReport_Minimal_RecommendedNonBreaking_Manual() throws Exception {
+    testSecurityVulnerabilityReport(
+        SourceControlProvider.AZURE,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_Suggested_noHtml_manual.md",
+        0,
+        "recommended-non-breaking",
+        true
+    );
+  }
+
+  @Test
+  public void testSecurityVulnerabilityReport_Minimal_NextNoViolations_Manual() throws Exception {
+    testSecurityVulnerabilityReport(
+        SourceControlProvider.AZURE,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_noHtml_manual.md",
+        null,
+        "next-no-violations",
+        true
+    );
+  }
+
   private void testSecurityVulnerabilityReport(
       SourceControlProvider provider,
       String expectedResource,
       Integer breakingChangesCount,
       String targetVersionType)
+      throws Exception
+  {
+    testSecurityVulnerabilityReport(provider, expectedResource, breakingChangesCount, targetVersionType, false);
+  }
+
+  private void testSecurityVulnerabilityReport(
+      SourceControlProvider provider,
+      String expectedResource,
+      Integer breakingChangesCount,
+      String targetVersionType,
+      boolean isManualPullRequest)
       throws Exception
   {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("org.jooq", "jooq", "3.11.2");
@@ -193,8 +270,8 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", targetVersionType, breakingChangesCount,
-            "pullRequest",
-            policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO);
+            "pullRequest", policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL,
+            organizationDAO, isManualPullRequest);
 
     assertThat(details.getTitle()).isEqualTo("Bump jooq to 3.11.3");
 
@@ -243,7 +320,7 @@ public class PullRequestRemediationDetailsTest
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "1.1", "next-no-violations", null, "pullRequest",
             policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO);
+            SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO, false);
 
     assertThat(details.getTitle()).isEqualTo("Bump @sonatype/foo to 1.1");
 
@@ -288,7 +365,7 @@ public class PullRequestRemediationDetailsTest
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "v0.3.3", "next-no-violations", null, "pullRequest",
             policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO);
+            SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO, false);
 
     assertThat(details.getTitle()).isEqualTo("Bump golang.org/x/text to v0.3.3");
 
@@ -305,7 +382,7 @@ public class PullRequestRemediationDetailsTest
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "next-no-violations", null, "pullRequest",
             policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, getBaseUrl(), SourceControlProvider.GITHUB, TEST_SCM_URL, organizationDAO);
+            SCAN_ID, Stage.ID_BUILD, getBaseUrl(), SourceControlProvider.GITHUB, TEST_SCM_URL, organizationDAO, false);
 
     assertThat(details.getContents().replace("\r\n", "\n"))
         .startsWith("## :shield: Automated pull request: Nexus IQ found 1 Policy Violation\n");

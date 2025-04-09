@@ -2,7 +2,8 @@
 <#assign recommendedNonBreaking = "recommended-non-breaking" >
 <#assign recommendedNonBreakingWithDependencies = "recommended-non-breaking-with-dependencies" >
 <#if provider.name() == "GITLAB"><#assign width=14><#else><#assign width=12></#if>
-<#if targetVersionType == recommendedNonBreakingWithDependencies>## <img src="https://cdn.sonatype.com/iq-for-scm/1.0/golden-pr.png" width="34" height="22" alt="golden PR icon"> Auto<#if provider.name() == "GITLAB">M<#else>P</#if>R: Bump ${componentName} to resolve ${threatList?size} policy violation<#if (threatList?size > 1)>s</#if>
+<#if targetVersionType == recommendedNonBreakingWithDependencies>
+## <img src="https://cdn.sonatype.com/iq-for-scm/1.0/golden-pr.png" width="34" height="22" alt="golden PR icon"> <#if !isManualPullRequest>Auto</#if><#if provider.name() == "GITLAB">M<#else>P</#if>R: Bump ${componentName} to resolve ${threatList?size} policy violation<#if (threatList?size > 1)>s</#if>
 
 **Component: ${componentName}**
 - **Suggested version: ${targetVersionDisplay}**<#if provider.name() == "GITLAB">\</#if>
@@ -13,7 +14,7 @@
 
 **Violations resolved by new version:**
 <#elseif targetVersionType == recommendedNonBreaking>
-## Auto<#if provider.name() == "GITLAB">M<#else>P</#if>R: Bump ${componentName} to resolve ${threatList?size} policy violation<#if (threatList?size > 1)>s</#if>
+## <#if !isManualPullRequest>Auto</#if><#if provider.name() == "GITLAB">M<#else>P</#if>R: Bump ${componentName} to resolve ${threatList?size} policy violation<#if (threatList?size > 1)>s</#if>
 
 **Component: ${componentName}**
 - **Suggested version: ${targetVersionDisplay}**<#if provider.name() == "GITLAB">\</#if>
@@ -23,7 +24,7 @@
 
 **Violations resolved by new version:**
 <#else>
-## :shield: Automated pull request: Nexus IQ found ${threatList?size} Policy Violation<#if (threatList?size > 1)>s</#if>
+## :shield: <#if !isManualPullRequest>Automated p<#else>P</#if>ull request: Nexus IQ found ${threatList?size} Policy Violation<#if (threatList?size > 1)>s</#if>
 
 ### Description
 
@@ -56,4 +57,4 @@ Threat (of 10) | Policy | Violation Details
 
 [Review full report](${detailedReportUrl})
 
-_This <#if provider.name() == "GITLAB">MR<#else>PR</#if> was automatically created by your friendly neighbourhood [IQ Server](${baseIqUrl})_
+_This <#if provider.name() == "GITLAB">MR<#else>PR</#if> was <#if !isManualPullRequest>automatically </#if>created by your friendly neighbourhood [IQ Server](${baseIqUrl})_

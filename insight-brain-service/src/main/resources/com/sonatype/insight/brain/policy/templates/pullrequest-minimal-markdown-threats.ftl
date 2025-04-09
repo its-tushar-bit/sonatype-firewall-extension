@@ -1,7 +1,8 @@
 <#include "iq-for-scm-common.ftl">
 <#assign recommendedNonBreaking = "recommended-non-breaking" >
 <#assign recommendedNonBreakingWithDependencies = "recommended-non-breaking-with-dependencies" >
-<#if targetVersionType == recommendedNonBreakingWithDependencies>## :star: AutoPR: Bump ${componentName} to resolve ${threatList?size} policy violation<#if (threatList?size > 1)>s</#if>
+<#if targetVersionType == recommendedNonBreakingWithDependencies>
+## :star: <#if !isManualPullRequest>Auto</#if>PR: Bump ${componentName} to resolve ${threatList?size} policy violation<#if (threatList?size > 1)>s</#if>
 
 **Component: ${componentName}**
 - **Suggested version: ${targetVersionDisplay}**
@@ -13,7 +14,7 @@
 **Violations resolved by new version:**
 
 <#elseif targetVersionType == recommendedNonBreaking>
-## AutoPR: Bump ${componentName} to resolve ${threatList?size} policy violation<#if (threatList?size > 1)>s</#if>
+## <#if !isManualPullRequest>Auto</#if>PR: Bump ${componentName} to resolve ${threatList?size} policy violation<#if (threatList?size > 1)>s</#if>
 
 **Component: ${componentName}**
 - **Suggested version: ${targetVersionDisplay}**
@@ -24,7 +25,7 @@
 **Violations resolved by new version:**
 
 <#else>
-## :shield: Automated pull request: Nexus IQ found ${threatList?size} Policy Violation<#if (threatList?size > 1)>s</#if>
+## :shield: <#if !isManualPullRequest>Automated p<#else>P</#if>ull request: Nexus IQ found ${threatList?size} Policy Violation<#if (threatList?size > 1)>s</#if>
 
 ### Description
 
@@ -52,4 +53,4 @@
 
 [Review full report](${detailedReportUrl})
 
-_This PR was automatically created by your friendly neighbourhood [IQ Server](${baseIqUrl})_
+_This PR was <#if !isManualPullRequest>automatically </#if>created by your friendly neighbourhood [IQ Server](${baseIqUrl})_

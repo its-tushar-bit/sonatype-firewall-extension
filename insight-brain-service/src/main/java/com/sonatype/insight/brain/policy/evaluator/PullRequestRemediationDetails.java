@@ -125,10 +125,11 @@ public class PullRequestRemediationDetails
       final String iqBaseUrl,
       final SourceControlProvider provider,
       final String scmBaseUrl,
-      final OrganizationDAO organizationDAO) throws IOException
+      final OrganizationDAO organizationDAO,
+      final boolean isManualPullRequest) throws IOException
   {
     this(toBeRemediated, remediatedVersion, breakingChangesCount, pullRequestBranchName, app, scanId, stage,
-        organizationDAO, false);
+        organizationDAO, isManualPullRequest);
     this.contents = constructContents(notifications, targetVersionType, iqBaseUrl, provider, scmBaseUrl);
   }
 
@@ -241,7 +242,8 @@ public class PullRequestRemediationDetails
         .put("date", DATE_TIME_FORMATTER.format(ZonedDateTime.now(clock)))
         .put("stage", stage)
         .put("detailedReportUrl",
-            iqBaseUrl + UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), scanId) + "?source=auto-pr")
+            iqBaseUrl + UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), scanId) + "?source=" +
+                (isManualPullRequest ? "manual" : "auto") + "-pr")
         .put("baseIqUrl", iqBaseUrl)
         .put("provider", provider)
         .put("isManualPullRequest", isManualPullRequest)

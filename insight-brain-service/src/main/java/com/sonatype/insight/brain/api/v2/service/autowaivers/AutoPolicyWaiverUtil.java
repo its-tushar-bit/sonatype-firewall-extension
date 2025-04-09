@@ -198,63 +198,79 @@ public class AutoPolicyWaiverUtil
       final ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver1,
       final ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver2)
   {
-    return TRUE.equals(apiAutoPolicyWaiver1.reachability) && TRUE.equals(apiAutoPolicyWaiver2.reachability) &&
-        TRUE.equals(apiAutoPolicyWaiver1.pathForward) && TRUE.equals(apiAutoPolicyWaiver2.pathForward);
+    return checkSettingEnabled(apiAutoPolicyWaiver1.reachability) &&
+        checkSettingEnabled(apiAutoPolicyWaiver2.reachability) &&
+        checkSettingEnabled(apiAutoPolicyWaiver1.pathForward) &&
+        checkSettingEnabled(apiAutoPolicyWaiver2.pathForward);
   }
 
   private static boolean allScopesDisabled(
       final ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver1,
       final ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver2)
   {
-    return FALSE.equals(apiAutoPolicyWaiver1.reachability) && FALSE.equals(apiAutoPolicyWaiver2.reachability) &&
-        FALSE.equals(apiAutoPolicyWaiver1.pathForward) && FALSE.equals(apiAutoPolicyWaiver2.pathForward);
+    return checkSettingDisabled(apiAutoPolicyWaiver1.reachability) &&
+        checkSettingDisabled(apiAutoPolicyWaiver2.reachability) &&
+        checkSettingDisabled(apiAutoPolicyWaiver1.pathForward) &&
+        checkSettingDisabled(apiAutoPolicyWaiver2.pathForward);
   }
 
   private static boolean isOnlyReachabilityEnabled(
       final ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver1,
       final ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver2)
   {
-    return TRUE.equals(apiAutoPolicyWaiver1.reachability) && TRUE.equals(apiAutoPolicyWaiver2.reachability) &&
-        FALSE.equals(apiAutoPolicyWaiver1.pathForward) && FALSE.equals(apiAutoPolicyWaiver2.pathForward);
+    return checkSettingEnabled(apiAutoPolicyWaiver1.reachability) &&
+        checkSettingEnabled(apiAutoPolicyWaiver2.reachability) &&
+        checkSettingDisabled(apiAutoPolicyWaiver1.pathForward) &&
+        checkSettingDisabled(apiAutoPolicyWaiver2.pathForward);
   }
 
   private static boolean isOnlyPathForwardEnabled(
       final ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver1,
       final ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver2)
   {
-    return FALSE.equals(apiAutoPolicyWaiver1.reachability) && FALSE.equals(apiAutoPolicyWaiver2.reachability) &&
-        TRUE.equals(apiAutoPolicyWaiver1.pathForward) && TRUE.equals(apiAutoPolicyWaiver2.pathForward);
+    return checkSettingDisabled(apiAutoPolicyWaiver1.reachability) &&
+        checkSettingDisabled(apiAutoPolicyWaiver2.reachability) &&
+        checkSettingEnabled(apiAutoPolicyWaiver1.pathForward) &&
+        checkSettingEnabled(apiAutoPolicyWaiver2.pathForward);
   }
 
   private static boolean isOnlyReachabilityEnabled(
       final ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver,
       final AutoPolicyWaiver autoPolicyWaiver)
   {
-    return TRUE.equals(apiAutoPolicyWaiver.reachability) && autoPolicyWaiver.hasReachability() &&
-        FALSE.equals(apiAutoPolicyWaiver.pathForward) && !autoPolicyWaiver.hasPathForward();
+    return checkSettingEnabled(apiAutoPolicyWaiver.reachability) && autoPolicyWaiver.hasReachability() &&
+        checkSettingDisabled(apiAutoPolicyWaiver.pathForward) && !autoPolicyWaiver.hasPathForward();
   }
 
   private static boolean isOnlyPathForwardEnabled(
       final ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver,
       final AutoPolicyWaiver autoPolicyWaiver)
   {
-    return FALSE.equals(apiAutoPolicyWaiver.reachability) && !autoPolicyWaiver.hasReachability() &&
-        TRUE.equals(apiAutoPolicyWaiver.pathForward) && autoPolicyWaiver.hasPathForward();
+    return checkSettingDisabled(apiAutoPolicyWaiver.reachability) && !autoPolicyWaiver.hasReachability() &&
+        checkSettingEnabled(apiAutoPolicyWaiver.pathForward) && autoPolicyWaiver.hasPathForward();
   }
 
   private static boolean allScopesEnabled(
       final ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver,
       final AutoPolicyWaiver autoPolicyWaiver)
   {
-    return TRUE.equals(apiAutoPolicyWaiver.reachability) && autoPolicyWaiver.hasReachability() &&
-        TRUE.equals(apiAutoPolicyWaiver.pathForward) && autoPolicyWaiver.hasPathForward();
+    return checkSettingEnabled(apiAutoPolicyWaiver.reachability) && autoPolicyWaiver.hasReachability() &&
+        checkSettingEnabled(apiAutoPolicyWaiver.pathForward) && autoPolicyWaiver.hasPathForward();
   }
 
   private static boolean allScopesDisabled(
       final ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver,
       final AutoPolicyWaiver autoPolicyWaiver)
   {
-    return FALSE.equals(apiAutoPolicyWaiver.reachability) && !autoPolicyWaiver.hasReachability() &&
-        FALSE.equals(apiAutoPolicyWaiver.pathForward) && !autoPolicyWaiver.hasPathForward();
+    return checkSettingDisabled(apiAutoPolicyWaiver.reachability) && !autoPolicyWaiver.hasReachability() &&
+        checkSettingDisabled(apiAutoPolicyWaiver.pathForward) && !autoPolicyWaiver.hasPathForward();
+  }
+
+  public static boolean checkSettingDisabled(Boolean autoWaiverSetting) {
+    return autoWaiverSetting == null || FALSE.equals(autoWaiverSetting);
+  }
+
+  private static boolean checkSettingEnabled(Boolean autoWaiverSetting) {
+    return TRUE.equals(autoWaiverSetting);
   }
 }

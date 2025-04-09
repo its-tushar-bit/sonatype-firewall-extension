@@ -129,7 +129,7 @@ public class ApiAutoPolicyWaiverServiceAuthzTest
 
     ApiAutoPolicyWaiverDTO apiAutoPolicyWaiver2 = new ApiAutoPolicyWaiverDTO();
     apiAutoPolicyWaiver2.threatLevel = 8;
-    apiAutoPolicyWaiver2.reachability = true;
+    apiAutoPolicyWaiver2.pathForward = true;
 
     grantPermission(application.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
     apiAutoPolicyWaiverService.addAutoPolicyWaivers(

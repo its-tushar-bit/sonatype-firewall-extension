@@ -242,9 +242,11 @@ public class AutoPolicyWaiverUtilTest
     AutoPolicyWaiver autoPolicyWaiver = new AutoPolicyWaiver();
     autoPolicyWaiver.setOwnerId(ownerId);
 
-    assertThat(
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isFalse();
+    assertThatThrownBy(
+        () -> anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
+    ).isInstanceOf(IllegalStateException.class)
+        .hasMessage("Auto Policy Waiver with id: null is equal by owner id: 1234 and reachability: 'null' and " +
+            "pathForward 'null' but are not allowed to be both false.");
 
     apiAutoPolicyWaiverDTO.reachability = true;
 

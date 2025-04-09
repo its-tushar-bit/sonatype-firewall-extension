@@ -175,7 +175,7 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThatThrownBy(() ->
         apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto)).isInstanceOf(
             BadRequestException.class)
-        .hasMessage("Path forward and reachable cannot both be false");
+        .hasMessage("Path forward and reachability cannot both be false");
 
     verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
@@ -195,7 +195,7 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThatThrownBy(() ->
         apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto)).isInstanceOf(
             BadRequestException.class)
-        .hasMessage("Path forward and reachable cannot both be false");
+        .hasMessage("Path forward and reachability cannot both be false");
 
     verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }

@@ -433,9 +433,9 @@ public class ApiAutoPolicyWaiverService
       throw new BadRequestException(
           "Invalid threat level: " + dto.threatLevel + ". Value must be between 1 and 10.");
     }
-    if (dto.pathForward == null && dto.reachability == null ||
-        (Boolean.FALSE.equals(dto.pathForward) && Boolean.FALSE.equals(dto.reachability))) {
-      throw new BadRequestException("Path forward and reachable cannot both be false");
+    if (AutoPolicyWaiverUtil.checkSettingDisabled(dto.pathForward)
+        && AutoPolicyWaiverUtil.checkSettingDisabled(dto.reachability)) {
+      throw new BadRequestException("Path forward and reachability cannot both be false");
     }
   }
 

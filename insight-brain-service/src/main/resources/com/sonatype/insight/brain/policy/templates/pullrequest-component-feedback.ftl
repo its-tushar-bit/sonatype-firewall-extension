@@ -29,7 +29,7 @@ There are no breaking changes. This version upgrade requires minimal effort.
 <#macro verificationIndicatorComponent data>
   <#compress>
       <#if data.severityInfo?hasContent && data.severityInfo.verificationImage?hasContent>
-<br><br><@imageComponent mdImage=data.severityInfo.verificationImage imgWidth=900/>
+<br><br><@imageComponent mdImage=data.severityInfo.verificationImage imgWidth=150/>
       </#if>
   </#compress>
 </#macro>
@@ -50,9 +50,22 @@ There are no breaking changes. This version upgrade requires minimal effort.
   </#compress>
 </#macro>
 
+<#macro insertBreaks text x>
+    <#assign words = text?split(" ")>
+    <#assign result = []>
+    <#list words as word>
+        <#if (word?index + 1) % x == 0>
+            <#assign result += [word, "<br>"]>
+        <#else>
+            <#assign result += [word]>
+        </#if>
+    </#list>
+    ${result?join(" ")}
+</#macro>
+
 <#macro issueComponent data>
     <#compress>
-<#if data.severityInfo?hasContent>[${data.severityInfo.refId}]<#else>None</#if> <#if data.description?hasContent>${data.description}</#if>
+<p><#if data.severityInfo?hasContent>[${data.severityInfo.refId}]<#else>None</#if></p><#if data.description?hasContent><@insertBreaks text=data.description x=10/></#if>
     </#compress>
 </#macro>
 
@@ -124,7 +137,7 @@ Threat Level: <strong>${threatLevelDisplay.image.alt} (${threatLevelDisplay.valu
 | **Severity** | **Issue** | **Organization Policy Violation** |
 | --- | --- | --- |
 <#list securityIssues as securityIssue>
-| <@severityComponent data=securityIssue/> | <@issueComponent data=securityIssue/> | [View Details](${securityIssue.policyViolationDetailsLink}) <br /><img src="https://cdn.sonatype.com/iq-for-scm/1.0/Filler.svg" width="600" height="0" display="hidden">|
+| <@severityComponent data=securityIssue/> | <@issueComponent data=securityIssue/> | [View Details](${securityIssue.policyViolationDetailsLink})|
 </#list>
 </details>
 </#if>

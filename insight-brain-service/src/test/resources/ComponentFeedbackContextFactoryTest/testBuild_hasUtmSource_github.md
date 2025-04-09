@@ -20,7 +20,7 @@ No recommended versions are available for this component (as of _Aug 16, 2023_)
 
 | **Severity** | **Issue** | **Organization Policy Violation** |
 | --- | --- | --- |
-| <b>Threat level:</b> 7<br><b>CVSS Score:</b> 6.7<br><br><a href="#;"> <img title="Sonatype Deep Dive" alt="Sonatype Deep Dive" src="https://cdn.sonatype.com/iq-for-scm/1.0/deep-dive-large.png" width="900" /></a> | [SONATYPE-123-01] The is a description of SONATYPE-123-01 | [View Details](https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github) <br /><img src="https://cdn.sonatype.com/iq-for-scm/1.0/Filler.svg" width="600" height="0" display="hidden">|
-| <b>Threat level:</b> 7<br><b>CVSS Score:</b> 5.6<br><br><a href="#;"> <img title="Sonatype Fast Track" alt="Sonatype Fast Track" src="https://cdn.sonatype.com/iq-for-scm/1.0/fast-track-large.png" width="900" /></a> | [CVE-123-01] The is a description of CVE-123-01 | [View Details](https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github) <br /><img src="https://cdn.sonatype.com/iq-for-scm/1.0/Filler.svg" width="600" height="0" display="hidden">|
+| <b>Threat level:</b> 7<br><b>CVSS Score:</b> 6.7<br><br><a href="#;"> <img title="Sonatype Deep Dive" alt="Sonatype Deep Dive" src="https://cdn.sonatype.com/iq-for-scm/1.0/sonatype-deep-dive.svg" width="150" /></a> | <p>[SONATYPE-123-01]</p> The is a description of SONATYPE-123-01 | [View Details](https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github)|
+| <b>Threat level:</b> 7<br><b>CVSS Score:</b> 5.6<br><br><a href="#;"> <img title="Sonatype Fast Track" alt="Sonatype Fast Track" src="https://cdn.sonatype.com/iq-for-scm/1.0/sonatype-fast-track.svg" width="150" /></a> | <p>[CVE-123-01]</p> The is a description of CVE-123-01 | [View Details](https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github)|
 </details>
 </details>

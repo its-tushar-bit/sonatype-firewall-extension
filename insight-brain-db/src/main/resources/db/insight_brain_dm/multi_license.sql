@@ -213,6 +213,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AMSDAL-EULA-1.0','AMSDAL-EULA-1.0','AMSDAL End User License Agreement Version 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Android-SDK','Android-SDK','Android Software Development Kit License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Anduril-Lattice-SDK-LA-11272024','Anduril-Lattice-SDK-LA-11272024','Anduril Lattice Software Development Kit License Agreement - Terms and Conditions - 11-27-2024');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Anduril-Lattice-SDK-LA-UNSPECIFIED','Anduril-Lattice-SDK-LA','Anduril-Lattice-SDK-LA-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Anti-996-License-1.0','Anti-996-License-1.0','Anti 996 License Version 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Anti-996-License-UNSPECIFIED','Anti-996-License','Anti-996-License-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AntiBERTa2-License-1.0','AntiBERTa2-License-1.0','Alchemab Therapeutics Ltd AntiBERTa2 License Version 1.0');
@@ -393,6 +394,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-MPL-2.0','Apache-2.0 or MPL-2.0','Dual License Consisting of Apache License 2.0 and Mozilla Public License 2.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-MS-PL','Apache-2.0 or MS-PL','Dual License Consisting of Apache License 2.0 and Microsoft Public License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-NCSA','Apache-2.0 or NCSA','Dual License Consisting of Apache 2.0 and University of Illinois/NCSA Open Source License');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-NON-AI-Apache-2.0','NON-AI-Apache-2.0 or Apache-2.0','Dual License Consisting of Apache NON-AI License, Version 2.0 and Apache 2.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-OFL-UNSPECIFIED','Apache-2.0 or OFL','Dual License Consisting of Apache License 2.0 and OFL-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-PostgreSQL','Apache-2.0 or PostgreSQL','Dual License Consisting of Apache License 2.0 and PostgreSQL License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-PUBLIC-DOMAIN','Apache-2.0 or Public Domain','Dual License Consisting of Apache License 2.0 and The work has been placed in the public domain');
@@ -1702,6 +1704,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GLWTPL','GLWTPL','Good Luck With That Public License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GLWTSPL','GLWTSPL','Good Luck With That S*it Public License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GNCL-1.0','GNCL-1.0','g.tec Non-Commercial License (GNCL) v1.0');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GNCL-UNSPECIFIED','GNCL','GNCL-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Gnostice-PDFOne-.NET-Registered-SLA','Gnostice-PDFOne-.NET-Registered-SLA','Gnostice PDFOne .NET Registered Software License Agreement and Limited Warranty - Release Date 07-12-2016');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Gnostice-PDFOne-.NET-Trial-SLA','Gnostice-PDFOne-.NET-Trial-SLA','Gnostice PDFOne .NET Trial Software License Agreement and Limited Warranty - Release Date 02-03-2014');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Gnostice-StarDocs-TOS','Gnostice-StarDocs-TOS','Gnostice StarDocs Terms of Service');
@@ -2988,6 +2991,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('OCTL-0.19','OCTL-0.19','Open Compensation Token License Version 0.19');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('OCTL-0.20','OCTL-0.20','Open Compensation Token License Version 0.20');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('OCTL-0.21','OCTL-0.21','Open Compensation Token License Version 0.21');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('OCTL-UNSPECIFIED','OCTL','OCTL-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Oculus-VR-SDK-LA','Oculus-VR-SDK-LA','Oculus Software Development Kit License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ODbL-1.0','ODbL-1.0','ODC Open Database License v1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ODbL-UNSPECIFIED','ODbL-UNSPECIFIED','ODC Open Database License');

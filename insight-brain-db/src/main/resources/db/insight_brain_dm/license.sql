@@ -128,6 +128,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('AMS-S
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('AMSDAL-EULA-1.0','AMSDAL-EULA-1.0','AMSDAL End User License Agreement Version 1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Android-SDK','Android-SDK','Android Software Development Kit License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Anduril-Lattice-SDK-LA-11272024','Anduril-Lattice-SDK-LA-11272024','Anduril Lattice Software Development Kit License Agreement - Terms and Conditions - 11-27-2024');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Anduril-Lattice-SDK-LA-UNSPECIFIED','Anduril-Lattice-SDK-LA','Anduril-Lattice-SDK-LA-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Anti-996-License-1.0','Anti-996-License-1.0','Anti 996 License Version 1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Anti-996-License-UNSPECIFIED','Anti-996-License','Anti-996-License-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('AntiBERTa2-License-1.0','AntiBERTa2-License-1.0','Alchemab Therapeutics Ltd AntiBERTa2 License Version 1.0');
@@ -1057,6 +1058,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Glulx
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GLWTPL','GLWTPL','Good Luck With That Public License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GLWTSPL','GLWTSPL','Good Luck With That S*it Public License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GNCL-1.0','GNCL-1.0','g.tec Non-Commercial License (GNCL) v1.0');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GNCL-UNSPECIFIED','GNCL','GNCL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Gnostice-PDFOne-.NET-Registered-SLA','Gnostice-PDFOne-.NET-Registered-SLA','Gnostice PDFOne .NET Registered Software License Agreement and Limited Warranty - Release Date 07-12-2016');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Gnostice-PDFOne-.NET-Trial-SLA','Gnostice-PDFOne-.NET-Trial-SLA','Gnostice PDFOne .NET Trial Software License Agreement and Limited Warranty - Release Date 02-03-2014');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Gnostice-StarDocs-TOS','Gnostice-StarDocs-TOS','Gnostice StarDocs Terms of Service');
@@ -2082,6 +2084,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OCSL-
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OCTL-0.19','OCTL-0.19','Open Compensation Token License Version 0.19');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OCTL-0.20','OCTL-0.20','Open Compensation Token License Version 0.20');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OCTL-0.21','OCTL-0.21','Open Compensation Token License Version 0.21');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('OCTL-UNSPECIFIED','OCTL','OCTL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Oculus-VR-SDK-LA','Oculus-VR-SDK-LA','Oculus Software Development Kit License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('ODbL-1.0','ODbL-1.0','ODC Open Database License v1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('ODbL-UNSPECIFIED','ODbL-UNSPECIFIED','ODC Open Database License');

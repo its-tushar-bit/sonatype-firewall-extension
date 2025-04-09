@@ -358,6 +358,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AMS-SDK
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AMSDAL-EULA-1.0','AMSDAL-EULA-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Android-SDK','Android-SDK');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Anduril-Lattice-SDK-LA-11272024','Anduril-Lattice-SDK-LA-11272024');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Anduril-Lattice-SDK-LA-UNSPECIFIED','Anduril-Lattice-SDK-LA-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Anti-996-License-1.0','Anti-996-License-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Anti-996-License-UNSPECIFIED','Anti-996-License-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AntiBERTa2-License-1.0','AntiBERTa2-License-1.0');
@@ -990,6 +991,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-MS-PL','MS-PL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-NCSA','Apache-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-NCSA','NCSA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-NON-AI-Apache-2.0','Apache-2.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-NON-AI-Apache-2.0','NON-AI-Apache-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-OFL-UNSPECIFIED','Apache-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-OFL-UNSPECIFIED','OFL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-PostgreSQL','Apache-2.0');
@@ -2995,6 +2998,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Glulxe'
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GLWTPL','GLWTPL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GLWTSPL','GLWTSPL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GNCL-1.0','GNCL-1.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GNCL-UNSPECIFIED','GNCL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Gnostice-PDFOne-.NET-Registered-SLA','Gnostice-PDFOne-.NET-Registered-SLA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Gnostice-PDFOne-.NET-Trial-SLA','Gnostice-PDFOne-.NET-Trial-SLA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Gnostice-StarDocs-TOS','Gnostice-StarDocs-TOS');
@@ -4710,6 +4714,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OCSL-1.
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OCTL-0.19','OCTL-0.19');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OCTL-0.20','OCTL-0.20');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OCTL-0.21','OCTL-0.21');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OCTL-UNSPECIFIED','OCTL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Oculus-VR-SDK-LA','Oculus-VR-SDK-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ODbL-1.0','ODbL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ODbL-UNSPECIFIED','ODbL-UNSPECIFIED');

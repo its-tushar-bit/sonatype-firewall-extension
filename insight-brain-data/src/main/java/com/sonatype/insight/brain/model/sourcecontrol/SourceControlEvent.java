@@ -51,9 +51,12 @@ public class  SourceControlEvent
 
   public static final String UPDATED_PULL_REQUEST_EVENT = "updated pull request";
 
+  public static final String MANUAL_REMEDIATION_PULL_REQUEST_EVENT = "manual_remediation_pull_request";
+
   public static final List<String> EVENT_TYPES = ImmutableList.of(
       APPLICATION_EVALUATION_EVENT,
       DISCOVERED_PULL_REQUEST_EVENT,
+      MANUAL_REMEDIATION_PULL_REQUEST_EVENT,
       REMEDIATION_PULL_REQUEST_EVENT,
       REPOSITORY_URL_UPDATED_EVENT,
       SOURCE_CONTROL_EVALUATION_EVENT,
@@ -265,6 +268,10 @@ public class  SourceControlEvent
 
   public SourceControlEvent forStatusUpdate() {
     return setEventType(STATUS_UPDATE_EVENT);
+  }
+
+  public SourceControlEvent forManualRemediationPullRequest() {
+    return setEventType(MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
   }
 
   public int getEventPriority() {

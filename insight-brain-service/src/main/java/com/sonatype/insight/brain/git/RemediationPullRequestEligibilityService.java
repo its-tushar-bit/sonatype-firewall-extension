@@ -1,0 +1,154 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.git;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Service to check eligibility for remediation pull requests and manual pull requests
+ */
+@Named
+@Singleton
+public class RemediationPullRequestEligibilityService
+{
+  private static final Logger log = LoggerFactory.getLogger(RemediationPullRequestEligibilityService.class);
+
+  private final RemediationPullRequestFeatureCheck remediationPullRequestFeatureCheck;
+
+  private final ManualPullRequestFeatureCheck manualPullRequestFeatureCheck;
+
+  private final PullRequestRemediationService pullRequestRemediationService;
+
+  private final StageTypeService stageTypeService;
+
+  private final SourceControlUtils sourceControlUtils;
+
+  private final SourceControlEventDAO sourceControlEventDAO;
+
+  @Inject
+  public RemediationPullRequestEligibilityService(
+      final RemediationPullRequestFeatureCheck remediationPullRequestFeatureCheck,
+      final ManualPullRequestFeatureCheck manualPullRequestFeatureCheck,
+      final PullRequestRemediationService pullRequestRemediationService,
+      final StageTypeService stageTypeService,
+      final SourceControlUtils sourceControlUtils,
+      final SourceControlEventDAO sourceControlEventDAO)
+  {
+    this.remediationPullRequestFeatureCheck = remediationPullRequestFeatureCheck;
+    this.manualPullRequestFeatureCheck = manualPullRequestFeatureCheck;
+    this.pullRequestRemediationService = pullRequestRemediationService;
+    this.stageTypeService = stageTypeService;
+    this.sourceControlUtils = sourceControlUtils;
+    this.sourceControlEventDAO = sourceControlEventDAO;
+  }
+
+  public boolean isEligibleForAutoPullRequest(
+      final Application app,
+      final Stage stage,
+      final ComponentIdentifier componentIdentifier)
+  {
+    try {
+      if (!isEligibleForPullRequest(app, stage, componentIdentifier)) {
+        return false;
+      }
+
+      GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
+      return gitRepositoryInfo != null &&
+          remediationPullRequestFeatureCheck.isPullRequestFeatureSupported(app, gitRepositoryInfo);
+    }
+    catch (Exception e) {
+      log.debug("Error checking eligibility for auto PR for application '{}' component '{}'",
+          app.getPublicId(), componentIdentifier, e);
+      throw e;
+    }
+  }
+
+  public boolean isEligibleForManualPullRequest(
+      final Application app,
+      final Stage stage,
+      final ComponentIdentifier componentIdentifier)
+  {
+    try {
+      if (!isEligibleForPullRequest(app, stage, componentIdentifier)) {
+        return false;
+      }
+
+      GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
+      return gitRepositoryInfo != null &&
+          manualPullRequestFeatureCheck.isManualPullRequestFeatureSupported(gitRepositoryInfo).isEmpty();
+    }
+    catch (Exception e) {
+      log.debug("Error checking eligibility for manual PR for application '{}' component '{}'",
+          app.getPublicId(), componentIdentifier, e);
+      throw e;
+    }
+  }
+
+  /**
+   * Checks if any branch exists with the given name (either automated or manual)
+   */
+  public boolean doesBranchExist(final String applicationId, final String branchName) {
+    boolean exists = sourceControlEventDAO.hasRemediationEventForBranch(applicationId, branchName);
+
+    if (exists) {
+      log.debug("{} branch already exists for application '{}'", branchName, applicationId);
+    }
+    return exists;
+  }
+
+  private boolean isFormatSupported(final String format) {
+    boolean supported = pullRequestRemediationService.isFormatSupportedForPullRequestRemediation(format);
+    if (!supported) {
+      log.debug("Format '{}' is not supported for remediation", format);
+    }
+    return supported;
+  }
+
+  private boolean isStageSupported(final Stage stage) {
+    if (Stage.ID_DEVELOP.equals(stage.getStageTypeId())) {
+      return false;
+    }
+
+    return stageTypeService.getLicensedStageTypes(StageTypeService.LIFECYCLE_CONTEXT)
+        .stream()
+        .anyMatch(stageType -> stageType.getId().equals(stage.getStageTypeId()));
+  }
+
+  /**
+   * Performs common eligibility checks for both auto and manual pull requests, excluding the branch existence check
+   */
+  private boolean isEligibleForPullRequest(
+      final Application app,
+      final Stage stage,
+      final ComponentIdentifier componentIdentifier)
+  {
+    if (app == null || stage == null || componentIdentifier == null) {
+      log.debug("One or more required parameters is null");
+      return false;
+    }
+
+    if (!isStageSupported(stage)) {
+      log.debug("Pull Request not supported for the stage '{}' for application '{}'",
+          stage.getStageTypeId(), app.getPublicId());
+      return false;
+    }
+
+    return isFormatSupported(componentIdentifier.getFormat());
+  }
+}

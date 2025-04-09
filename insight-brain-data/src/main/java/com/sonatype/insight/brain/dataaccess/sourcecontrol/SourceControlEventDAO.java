@@ -34,6 +34,7 @@ import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_IN_PROGRESS;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_NEW;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_PARTIALLY_COMPLETE;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.UPDATED_PULL_REQUEST_EVENT;
@@ -309,9 +310,9 @@ public class SourceControlEventDAO
 
   public boolean hasRemediationEventForBranch(String applicationId, String branchName) {
     String sQuery = "SELECT count(entity) FROM SourceControlEvent entity" +
-        " WHERE entity.applicationId = ?1 AND entity.eventType = ?2 AND entity.branchName = ?3";
-    return 0 !=
-        getSingle(Long.class, sQuery, applicationId, REMEDIATION_PULL_REQUEST_EVENT, branchName);
+        " WHERE entity.applicationId = ?1 AND entity.eventType IN ?2 AND entity.branchName = ?3";
+    List<String> eventTypes = Arrays.asList(REMEDIATION_PULL_REQUEST_EVENT, MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+    return 0 != getSingle(Long.class, sQuery, applicationId, eventTypes, branchName);
   }
 
   @Override

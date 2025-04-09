@@ -147,20 +147,17 @@ public class PullRequestTaskTest
         "master", true, true, true, true, true, false, null);
   }
 
-  @Test
-  public void testRun_notInited() {
+  @Test(expected = IllegalArgumentException.class)
+  public void testRun_notInited_nullDetails() {
     pullRequestTask.run(null, null);
-    assertThat(logOutput).atErrorLevel().contains("Missing required PullRequestRemediationDetails");
-    verifyNoInteractions(mockSourceControlUtils, mockGitClientFactory, mockFileCleaner, mockApplication,
-        mockSourceControlPullRequestMetrics, mockAuditRecorder, mockPullRequestRemediationDetails);
-
-    pullRequestTask.run(mockPullRequestRemediationDetails, null);
-    assertThat(logOutput).atErrorLevel().contains("Missing required PullRequestRemediationDetails");
-    verifyNoInteractions(mockSourceControlUtils, mockGitClientFactory, mockFileCleaner, mockApplication,
-        mockSourceControlPullRequestMetrics, mockAuditRecorder, mockPullRequestRemediationDetails);
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
+  public void testRun_notInited_nullExecutor() {
+    pullRequestTask.run(mockPullRequestRemediationDetails, null);
+  }
+
+  @Test(expected = RuntimeException.class)
   public void testRun_nothing_remediated() throws Exception {
     File sonatypeWorkDir = tempDir.newFolder();
     insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
@@ -179,7 +176,7 @@ public class PullRequestTaskTest
     verifyNoInteractions(mockFileCleaner, mockGitClient);
   }
 
-  @Test
+  @Test(expected = RuntimeException.class)
   public void testRun_nothing_remediated_custom_directory() throws Exception {
     File sonatypeWorkDir = tempDir.newFolder();
     insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
@@ -229,7 +226,7 @@ public class PullRequestTaskTest
     assertThat(logOutput).atInfoLevel().contains("successful=true");
   }
 
-  @Test
+  @Test(expected = RuntimeException.class)
   public void testRun_failure() throws Exception {
     File sonatypeWorkDir = tempDir.newFolder();
     insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
@@ -243,9 +240,6 @@ public class PullRequestTaskTest
         .thenThrow(new GitException("Something bad happened"));
 
     pullRequestTask.run(mockPullRequestRemediationDetails, new PullRequestExecutor());
-
-    verify(mockSourceControlUtils).deleteCheckoutDirectory(mockApplication);
-    assertThat(logOutput).atErrorLevel().contains("Failed to execute pull request, cleaning pull request directory");
   }
 
   @Test

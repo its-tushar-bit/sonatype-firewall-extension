@@ -385,6 +385,67 @@ public class ComponentRemediationService
   }
 
   /**
+   * This method will return an `ApiVersionChangeOptionDTO` representing the `suggestedVersionChange` if it is not null.
+   * Otherwise, it will return a `NEXT_NO_VIOLATING_WITH_DEPENDENCIES` or `NEXT_NON_VIOLATIONS` entry from the
+   * versionChange if one is present, or an empty `Optional` otherwise.
+   */
+  public Optional<ApiVersionChangeOptionDTO> getApplicableVersionChange(
+      ApiSuggestedVersionChangeOptionDTO suggestedVersionChange,
+      List<ApiVersionChangeOptionDTO> versionChanges)
+  {
+    if (versionChanges.isEmpty() && suggestedVersionChange == null) {
+      return Optional.empty();
+    }
+
+    if (suggestedVersionChange != null) {
+      ApiVersionChangeOptionDTO changeOption = new ApiVersionChangeOptionDTO(
+          suggestedVersionChange.getType(),
+          suggestedVersionChange.getData()
+      );
+      return Optional.of(changeOption);
+    }
+
+    Optional<ApiVersionChangeOptionDTO> versionChange = versionChanges.stream().filter(
+        vChange -> vChange.getType() ==
+            ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES).findFirst();
+
+    if (!versionChange.isPresent()) {
+      versionChange = versionChanges.stream().filter(
+          vChange -> vChange.getType() ==
+              ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS).findFirst();
+    }
+
+    return versionChange;
+  }
+
+  /**
+   * This method is similar to `getApplicableVersionChange`, but it also considers the case where
+   * `NEXT_NON_FAILING` and `NEXT_NON_FAILING_WITH_DEPENDENCIES` are presented
+   */
+  public Optional<ApiVersionChangeOptionDTO> getApplicableVersionChangeFromAllType(
+      ApiSuggestedVersionChangeOptionDTO suggestedVersionChange,
+      List<ApiVersionChangeOptionDTO> versionChanges)
+  {
+    if (versionChanges.isEmpty() && suggestedVersionChange == null) {
+      return Optional.empty();
+    }
+
+    if (suggestedVersionChange != null) {
+      ApiVersionChangeOptionDTO changeOption = new ApiVersionChangeOptionDTO(
+          suggestedVersionChange.getType(),
+          suggestedVersionChange.getData()
+      );
+      return Optional.of(changeOption);
+    }
+
+    Optional<ApiVersionChangeOptionDTO> versionChange = versionChanges.stream()
+        .sorted(Comparator.comparingInt(v -> PREFERABLE_TYPE_ORDER.indexOf(v.getType())))
+        .findFirst();
+
+    return versionChange;
+  }
+
+  /**
    * evaluates dependencies and returns a map of each version's component identifier to its dependencies policy alerts
    */
   private Map<PackageUrlIdentifier, List<PolicyAlert>> getDependencyAlerts(

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.git;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Optional;
 import java.util.Set;
 
@@ -15,10 +14,14 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.hds.ComponentRemediationService;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -27,7 +30,6 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
-import com.sonatype.nexus.git.utils.VersionRemediationTitleGenerator;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 
 import jakarta.inject.Inject;
@@ -53,11 +55,9 @@ public class ManualPullRequestService
 
   private final PasswordHandler passwordHandler;
 
-  private final RemediationBranchNamePrefixGenerator remediationBranchNamePrefixGenerator =
-      new RemediationBranchNamePrefixGenerator();
+  private final PullRequestBranchNameGenerator pullRequestBranchNameGenerator;
 
-  private final VersionRemediationTitleGenerator versionRemediationTitleGenerator =
-      new VersionRemediationTitleGenerator();
+  private final ComponentRemediationService componentRemediationService;
 
   @Inject
   public ManualPullRequestService(
@@ -66,7 +66,9 @@ public class ManualPullRequestService
       StageTypeService stageTypeService, PermissionService permissionService,
       PullRequestExecutor pullRequestExecutor,
       ManualPullRequestFeatureCheck manualPullRequestFeatureCheck,
-      PasswordHandler passwordHandler)
+      PasswordHandler passwordHandler,
+      PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
+      ComponentRemediationService componentRemediationService)
   {
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlDAO = sourceControlDAO;
@@ -75,16 +77,18 @@ public class ManualPullRequestService
     this.pullRequestExecutor = pullRequestExecutor;
     this.manualPullRequestFeatureCheck = manualPullRequestFeatureCheck;
     this.passwordHandler = passwordHandler;
+    this.pullRequestBranchNameGenerator = pullRequestBranchNameGenerator;
+    this.componentRemediationService = componentRemediationService;
   }
 
   /**
    * Check if a manual pull request is possible for the given component within its context.
    *
    * @param componentIdentifier the component identifier
-   * @param stageId the stage ID
-   * @param dependencyType the dependency type
-   * @param owner the owner
-   * @param remediationDto the remediation DTO
+   * @param stageId             the stage ID
+   * @param dependencyType      the dependency type
+   * @param owner               the owner
+   * @param remediationDto      the remediation DTO
    * @return the reason why a manual pull request is not possible, if any
    */
   public Optional<ManualPullRequestImpossibilityReason> isManualPullRequestPossible(
@@ -104,7 +108,14 @@ public class ManualPullRequestService
       return Optional.of(ManualPullRequestImpossibilityReason.INSUFFICIENT_PERMISSIONS);
     }
 
-    Optional<String> suggestedVersion = getSuggestedVersion(remediationDto);
+    if (remediationDto == null) {
+      return Optional.of(ManualPullRequestImpossibilityReason.NO_REMEDIATION_VERSION_AVAILABLE);
+    }
+
+    Optional<ApiVersionChangeOptionDTO> suggestedVersion =
+        componentRemediationService.getApplicableVersionChangeFromAllType(remediationDto.suggestedVersionChange,
+            remediationDto.versionChanges);
+
     if (suggestedVersion.isEmpty()) {
       return Optional.of(ManualPullRequestImpossibilityReason.NO_REMEDIATION_VERSION_AVAILABLE);
     }
@@ -119,7 +130,13 @@ public class ManualPullRequestService
       return Optional.of(ManualPullRequestImpossibilityReason.UNSUPPORTED_FORMAT);
     }
 
-    String branchName = generateBranchName(owner, componentIdentifier, suggestedVersion.get());
+    if (owner.getType() != OwnerType.APPLICATION) {
+      return Optional.of(ManualPullRequestImpossibilityReason.UNSUPPORTED_OWNER_TYPE);
+    }
+
+    Application application = (Application) owner;
+    String branchName = pullRequestBranchNameGenerator.getBranchName(application, componentIdentifier,
+        extractVersion(suggestedVersion.get().getData()).get());
     if (doesRemediationEventExist(owner, branchName)) {
       return Optional.of(ManualPullRequestImpossibilityReason.REMEDIATION_EVENT_EXISTS);
     }
@@ -141,34 +158,12 @@ public class ManualPullRequestService
     return manualPullRequestFeatureCheck.isManualPullRequestFeatureSupported(gitRepositoryInfo);
   }
 
-  private Optional<String> getSuggestedVersion(ApiComponentRemediationValueDTO remediationDto) {
-    if (remediationDto == null ||
-        (remediationDto.versionChanges.isEmpty() && remediationDto.suggestedVersionChange == null)) {
-      return Optional.empty();
-    }
-
-    if (remediationDto.suggestedVersionChange != null) {
-      return extractVersion(remediationDto.suggestedVersionChange.getData());
-    }
-
-    return remediationDto.versionChanges.stream()
-        .sorted(Comparator.comparingInt(v -> ComponentRemediationService.PREFERABLE_TYPE_ORDER.indexOf(v.getType())))
-        .flatMap(versionChange -> extractVersion(versionChange.getData()).stream())
-        .findFirst();
-  }
-
   private Optional<String> extractVersion(ApiComponentChangeActionDTO changeAction) {
     return Optional.ofNullable(changeAction)
         .map(ApiComponentChangeActionDTO::getComponent)
         .map(component -> component.componentIdentifier)
         .map(ApiComponentIdentifierDTOV2::getCoordinates)
         .map(coordinates -> coordinates.get(ComponentIdentifier.VERSION));
-  }
-
-  private String generateBranchName(Owner owner, ComponentIdentifier componentIdentifier, String suggestedVersion) {
-    String branchPrefix = remediationBranchNamePrefixGenerator.generatePrefixForApplication(owner.getId());
-    return versionRemediationTitleGenerator.generateBranchNameForVersionRemediation(branchPrefix, componentIdentifier,
-        suggestedVersion);
   }
 
   private boolean isSupportedStage(String stageId) {

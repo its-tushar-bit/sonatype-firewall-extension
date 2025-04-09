@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -71,6 +72,21 @@ public class PolicyEvaluationDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getLastByApplicationIdAndScanId(tx, appId, scanId);
     }
+  }
+
+  public PolicyEvaluation getLastByApplicationIdAndScanIdNotNull(String appId, String scanId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getLastByApplicationIdAndScanIdNotNull(tx, appId, scanId);
+    }
+  }
+
+  public PolicyEvaluation getLastByApplicationIdAndScanIdNotNull(TransactionContext tx, String appId, String scanId) {
+    PolicyEvaluation policyEvaluation = getLastByApplicationIdAndScanId(tx, appId, scanId);
+    if (policyEvaluation == null) {
+      throw new NotFoundException(
+          "PolicyEvaluation for applicationId " + appId + " and scanId " + scanId + " does not exist.");
+    }
+    return policyEvaluation;
   }
 
   public List<PolicyEvaluation> getLastByApplicationIds(Set<String> appIds) {

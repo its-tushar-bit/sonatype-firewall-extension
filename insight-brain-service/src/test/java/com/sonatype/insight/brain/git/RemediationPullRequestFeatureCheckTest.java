@@ -164,7 +164,7 @@ public class RemediationPullRequestFeatureCheckTest
     assertThat(result).isFalse();
     assertThat(logOutput)
         .atDebugLevel()
-          .contains(String.format("Pull requests have not been configured for application '%s'", app.getId()));
+        .contains(String.format("Pull requests have not been configured for application '%s'", app.getId()));
     if (missingFields != null) {
       assertThat(logOutput)
           .atDebugLevel()

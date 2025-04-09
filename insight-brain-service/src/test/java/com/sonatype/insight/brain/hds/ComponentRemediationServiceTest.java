@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiSuggestedVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -1504,5 +1506,156 @@ public class ComponentRemediationServiceTest
             v11NextNonFailingWithDependencies)))
         .hasSize(3)
         .containsExactly(v11NextNoViolationsWithDependencies, v6NextNoViolations, v5NextNonFailing);
+  }
+
+  @Test
+  public void testGetApplicableVersionChange_suggestedVersionChange_notNull() {
+    ApiVersionChangeOptionDTO v11NextNoViolations =
+        buildChangeDto(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, componentDtoA1V11);
+    ApiVersionChangeOptionDTO v11NextNoViolationsWithDependencies =
+        buildChangeDto(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V11);
+
+    List<ApiVersionChangeOptionDTO> versionChanges =
+        Arrays.asList(v11NextNoViolations, v11NextNoViolationsWithDependencies);
+
+    ApiSuggestedVersionChangeOptionDTO suggestedVersionChange = new ApiSuggestedVersionChangeOptionDTO(
+        ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING,
+        true,
+        new ApiComponentChangeActionDTO(componentDtoA1V6));
+
+    Optional<ApiVersionChangeOptionDTO> result = componentRemediationService.getApplicableVersionChange(
+        suggestedVersionChange, versionChanges);
+
+    assertThat(result).isPresent();
+    assertThat(result.get().getType()).isEqualTo(ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING);
+    assertThat(result.get().getData().getComponent().packageUrl).isEqualTo(componentDtoA1V6.packageUrl);
+  }
+
+  @Test
+  public void testGetApplicableVersionChange_suggestedVersionChange_null_withNextNoViolationsWithDependencies() {
+    ApiVersionChangeOptionDTO v11NextNoViolations =
+        buildChangeDto(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, componentDtoA1V11);
+    ApiVersionChangeOptionDTO v11NextNoViolationsWithDependencies =
+        buildChangeDto(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V11);
+    ApiVersionChangeOptionDTO v11NextNonFailing =
+        buildChangeDto(ApiVersionChangeOptionType.NEXT_NON_FAILING, componentDtoA1V5);
+
+    List<ApiVersionChangeOptionDTO> versionChanges =
+        Arrays.asList(v11NextNoViolations, v11NextNoViolationsWithDependencies, v11NextNonFailing);
+
+    Optional<ApiVersionChangeOptionDTO> result = componentRemediationService.getApplicableVersionChange(
+        null, versionChanges);
+
+    assertThat(result).isPresent();
+    assertThat(result.get().getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
+    assertThat(result.get().getData().getComponent().packageUrl).isEqualTo(componentDtoA1V11.packageUrl);
+  }
+
+  @Test
+  public void testGetApplicableVersionChange_suggestedVersionChange_null_withNextNoViolations() {
+    ApiVersionChangeOptionDTO v11NextNoViolations =
+        buildChangeDto(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, componentDtoA1V11);
+    ApiVersionChangeOptionDTO v11NextNonFailing =
+        buildChangeDto(ApiVersionChangeOptionType.NEXT_NON_FAILING, componentDtoA1V5);
+
+    List<ApiVersionChangeOptionDTO> versionChanges = Arrays.asList(v11NextNoViolations, v11NextNonFailing);
+
+    Optional<ApiVersionChangeOptionDTO> result = componentRemediationService.getApplicableVersionChange(
+        null, versionChanges);
+
+    assertThat(result).isPresent();
+    assertThat(result.get().getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+    assertThat(result.get().getData().getComponent().packageUrl).isEqualTo(componentDtoA1V11.packageUrl);
+  }
+
+  @Test
+  public void testGetApplicableVersionChange_suggestedVersionChange_null_noPreferredTypes() {
+    ApiVersionChangeOptionDTO v11NextNonFailing =
+        buildChangeDto(ApiVersionChangeOptionType.NEXT_NON_FAILING, componentDtoA1V11);
+
+    List<ApiVersionChangeOptionDTO> versionChanges = Collections.singletonList(v11NextNonFailing);
+
+    Optional<ApiVersionChangeOptionDTO> result = componentRemediationService.getApplicableVersionChange(
+        null, versionChanges);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicableVersionChange_suggestedVersionChange_null_emptyVersionChanges() {
+    Optional<ApiVersionChangeOptionDTO> result = componentRemediationService.getApplicableVersionChange(
+        null, Collections.emptyList());
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicableVersionChangeFromAllType_suggestedVersionChange_notNull() {
+    ApiVersionChangeOptionDTO v11NextNoViolations =
+        buildChangeDto(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, componentDtoA1V11);
+    ApiVersionChangeOptionDTO v5NextNonFailing =
+        buildChangeDto(ApiVersionChangeOptionType.NEXT_NON_FAILING, componentDtoA1V5);
+
+    List<ApiVersionChangeOptionDTO> versionChanges = Arrays.asList(v11NextNoViolations, v5NextNonFailing);
+
+    ApiSuggestedVersionChangeOptionDTO suggestedVersionChange = new ApiSuggestedVersionChangeOptionDTO(
+        ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING,
+        true,
+        new ApiComponentChangeActionDTO(componentDtoA1V6));
+
+    Optional<ApiVersionChangeOptionDTO> result = componentRemediationService.getApplicableVersionChangeFromAllType(
+        suggestedVersionChange, versionChanges);
+
+    assertThat(result).isPresent();
+    assertThat(result.get().getType()).isEqualTo(ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING);
+    assertThat(result.get().getData().getComponent().packageUrl).isEqualTo(componentDtoA1V6.packageUrl);
+  }
+
+  @Test
+  public void testGetApplicableVersionChangeFromAllType_suggestedVersionChange_null_withPrioritizedOrder() {
+    ApiVersionChangeOptionDTO v11NextNonFailing =
+        buildChangeDto(ApiVersionChangeOptionType.NEXT_NON_FAILING, componentDtoA1V11);
+    ApiVersionChangeOptionDTO v5NextNoViolations =
+        buildChangeDto(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, componentDtoA1V5);
+    ApiVersionChangeOptionDTO v6NextNoViolationsWithDependencies =
+        buildChangeDto(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V6);
+    ApiVersionChangeOptionDTO v3NextNonFailingWithDependencies =
+        buildChangeDto(ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V3);
+
+    // Order is intentionally shuffled to test sorting
+    List<ApiVersionChangeOptionDTO> versionChanges =
+        Arrays.asList(v11NextNonFailing, v3NextNonFailingWithDependencies, v5NextNoViolations,
+            v6NextNoViolationsWithDependencies);
+
+    Optional<ApiVersionChangeOptionDTO> result = componentRemediationService.getApplicableVersionChangeFromAllType(
+        null, versionChanges);
+
+    assertThat(result).isPresent();
+    // Should select based on the preference order in PREFERABLE_TYPE_ORDER
+    assertThat(result.get().getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
+    assertThat(result.get().getData().getComponent().packageUrl).isEqualTo(componentDtoA1V6.packageUrl);
+  }
+
+  @Test
+  public void testGetApplicableVersionChangeFromAllType_suggestedVersionChange_null_emptyVersionChanges() {
+    Optional<ApiVersionChangeOptionDTO> result = componentRemediationService.getApplicableVersionChangeFromAllType(
+        null, Collections.emptyList());
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicableVersionChangeFromAllType_suggestedVersionChange_null_withSingleOption() {
+    ApiVersionChangeOptionDTO v11NextNonFailing =
+        buildChangeDto(ApiVersionChangeOptionType.NEXT_NON_FAILING, componentDtoA1V11);
+
+    List<ApiVersionChangeOptionDTO> versionChanges = Collections.singletonList(v11NextNonFailing);
+
+    Optional<ApiVersionChangeOptionDTO> result = componentRemediationService.getApplicableVersionChangeFromAllType(
+        null, versionChanges);
+
+    assertThat(result).isPresent();
+    assertThat(result.get().getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NON_FAILING);
+    assertThat(result.get().getData().getComponent().packageUrl).isEqualTo(componentDtoA1V11.packageUrl);
   }
 }

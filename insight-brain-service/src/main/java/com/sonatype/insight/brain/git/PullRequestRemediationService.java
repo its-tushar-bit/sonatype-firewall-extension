@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -14,12 +13,14 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
+import com.sonatype.nexus.iq.manager.PullRequestResult;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +47,8 @@ public class PullRequestRemediationService
 
   private final SourceControlSshService sourceControlSshService;
 
+  private final SourceControlEventDAO sourceControlEventDAO;
+
   @Inject
   public PullRequestRemediationService(
       PullRequestExecutor pullRequestExecutor,
@@ -54,7 +57,8 @@ public class PullRequestRemediationService
       OrganizationDAO organizationDAO,
       SourceControlUtils sourceControlUtils,
       Provider<PullRequestTask> pullRequestTaskProvider,
-      SourceControlSshService sourceControlSshService)
+      SourceControlSshService sourceControlSshService,
+      SourceControlEventDAO sourceControlEventDAO)
   {
     this.pullRequestExecutor = pullRequestExecutor;
     this.gitClientFactory = gitClientFactory;
@@ -63,10 +67,11 @@ public class PullRequestRemediationService
     this.sourceControlUtils = sourceControlUtils;
     this.pullRequestTaskProvider = pullRequestTaskProvider;
     this.sourceControlSshService = sourceControlSshService;
+    this.sourceControlEventDAO = sourceControlEventDAO;
   }
 
   /**
-   * Handles the source control event associated with automated remediation pull requests.
+   * Handles the source control event associated with automated/manual remediation pull requests.
    *
    * @param event contains the details needed for pull request generation
    */
@@ -88,10 +93,17 @@ public class PullRequestRemediationService
           event.getScanId(),
           event.getStageTypeId(),
           event.getPullRequestContents(),
-          organizationDAO);
+          organizationDAO,
+          SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT.equals(event.getEventType())
+      );
 
       PullRequestTask pullRequestTask = pullRequestTaskProvider.get();
-      pullRequestTask.run(pullRequestRemediationDetails, pullRequestExecutor);
+      PullRequestResult pullRequestResult =
+          pullRequestTask.run(pullRequestRemediationDetails, pullRequestExecutor);
+      if (pullRequestResult.isSuccessful()) {
+        event.setEventStatusDetails(pullRequestResult.getPullRequestUrl());
+        sourceControlEventDAO.update(event);
+      }
     }
   }
 

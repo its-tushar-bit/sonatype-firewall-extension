@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -271,6 +272,22 @@ public class ManualPullRequestServiceTest
             app, remediationDto);
 
     assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.SCM_NOT_CONFIGURED);
+  }
+
+  @Test
+  public void testIsManualPullRequestPossible_False_UnSupportedOwnerType() {
+    Repository repository = tempEntity.newRepository("Repository 1");
+    grantPermission(repository.getId(), Permission.CREATE_PULL_REQUESTS);
+    ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
+    remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");
+
+    Optional<ManualPullRequestImpossibilityReason> result =
+        manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
+            VALID_DEPENDENCY_TYPE,
+            repository,
+            remediationDto);
+
+    assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.UNSUPPORTED_OWNER_TYPE);
   }
 
   private SourceControl getSourceControl() {

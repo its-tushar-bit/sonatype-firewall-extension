@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.git;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Optional;
+import javax.inject.Inject;
 
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -16,7 +17,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.inject.Binder;
-import jakarta.inject.Inject;
 import org.junit.Test;
 import org.mockito.Mock;
 

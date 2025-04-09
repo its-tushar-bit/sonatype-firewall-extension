@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.git;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -193,10 +194,16 @@ public class PullRequestCommentingRemediationServiceTest
     if (componentIdentifier != null) {
       remediationValueDto.versionChanges
           .add(getApiVersionChangeOptionDTO(componentIdentifier, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS));
+      when(mockComponentRemediationService.getApplicableVersionChange(any(), any())).thenReturn(
+          Optional.ofNullable(
+              remediationValueDto.versionChanges.isEmpty() ? null : remediationValueDto.versionChanges.get(0)));
     }
     if (noViolationsWithDependenciesAvailable) {
-      remediationValueDto.versionChanges.add(getApiVersionChangeOptionDTO(componentIdentifier,
-          ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES));
+      ApiVersionChangeOptionDTO apiVersionChangeOptionDTO = getApiVersionChangeOptionDTO(componentIdentifier,
+          ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
+      remediationValueDto.versionChanges.add(apiVersionChangeOptionDTO);
+      when(mockComponentRemediationService.getApplicableVersionChange(any(), any())).thenReturn(
+          Optional.of(apiVersionChangeOptionDTO));
     }
     when(mockComponentRemediationService.getSuggestedRemediation(
         any(), any(), any(), any(), any(), any())).thenReturn(remediationValueDto);

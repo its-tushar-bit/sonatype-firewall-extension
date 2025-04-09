@@ -18,9 +18,7 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
-import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiSuggestedVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
-import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
@@ -112,7 +110,8 @@ public class PullRequestCommentingRemediationService
 
     if (remediationValueDto != null) {
       Optional<ApiVersionChangeOptionDTO> versionChangeDTO =
-          getApplicableVersionChange(remediationValueDto.suggestedVersionChange, remediationValueDto.versionChanges);
+          componentRemediationService.getApplicableVersionChange(remediationValueDto.suggestedVersionChange,
+              remediationValueDto.versionChanges);
       remediationVersionDTO = getRemediationVersionDTO(componentDetailsDTOs, versionChangeDTO);
     }
     return Optional.ofNullable(remediationVersionDTO);
@@ -154,34 +153,5 @@ public class PullRequestCommentingRemediationService
     ApiComponentIdentifierDTOV2 identifierDTOV2 =
         versionChangeDTO.getData().getComponent().componentIdentifier;
     return new ComponentIdentifier(identifierDTOV2.getFormat(), identifierDTOV2.getCoordinates());
-  }
-
-  private Optional<ApiVersionChangeOptionDTO> getApplicableVersionChange(
-      ApiSuggestedVersionChangeOptionDTO suggestedVersionChange,
-      List<ApiVersionChangeOptionDTO> versionChanges)
-  {
-    if (versionChanges.isEmpty() && suggestedVersionChange == null) {
-      return Optional.empty();
-    }
-
-    if (suggestedVersionChange != null) {
-      ApiVersionChangeOptionDTO changeOption = new ApiVersionChangeOptionDTO(
-          suggestedVersionChange.getType(),
-          suggestedVersionChange.getData()
-      );
-      return Optional.ofNullable(changeOption);
-    }
-    
-    Optional<ApiVersionChangeOptionDTO> versionChange = versionChanges.stream().filter(
-        vChange -> vChange.getType() ==
-            ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES).findFirst();
-
-    if (!versionChange.isPresent()) {
-      versionChange = versionChanges.stream().filter(
-          vChange -> vChange.getType() ==
-              ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS).findFirst();
-    }
-
-    return versionChange;
   }
 }

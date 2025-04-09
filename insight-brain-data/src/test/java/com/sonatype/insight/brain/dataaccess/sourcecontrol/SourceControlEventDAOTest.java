@@ -615,6 +615,54 @@ public class SourceControlEventDAOTest
   }
 
   @Test
+  public void testHasRemediationEventForBranch_Manual() {
+    final String branchName = "manual/fix/branch";
+
+    assertThat(sourceControlEventDAO.hasRemediationEventForBranch(app.getId(), branchName)).isFalse();
+
+    // when: create an event that's not a manual pull request event and not for the given branch
+    sourceControlEventDAO.insert(getNewSourceControlEvent());
+
+    // then: still doesn't exist
+    assertThat(sourceControlEventDAO.hasRemediationEventForBranch(app.getId(), branchName)).isFalse();
+
+    // when: create a manual remediation event, but not for the given branch
+    SourceControlEvent event = getNewSourceControlEvent();
+    event.setEventType(SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+    sourceControlEventDAO.insert(event);
+
+    // then: still doesn't exist
+    assertThat(sourceControlEventDAO.hasRemediationEventForBranch(app.getId(), branchName)).isFalse();
+
+    // when: create a non-remediation event for the given branch
+    event = getNewSourceControlEvent();
+    event.setBranchName(branchName);
+    sourceControlEventDAO.insert(event);
+
+    // then: still doesn't exist
+    assertThat(sourceControlEventDAO.hasRemediationEventForBranch(app.getId(), branchName)).isFalse();
+
+    // when: create a regular remediation event for the given branch
+    event = getNewSourceControlEvent();
+    event.setBranchName(branchName);
+    event.setEventType(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
+    sourceControlEventDAO.insert(event);
+
+    // then: should already exist
+    assertThat(sourceControlEventDAO.hasRemediationEventForBranch(app.getId(), branchName)).isTrue();
+
+    //when: create a manual remediation event for the given branch
+    sourceControlEventDAO.delete(event);
+    event = getNewSourceControlEvent();
+    event.setBranchName(branchName);
+    event.setEventType(SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+    sourceControlEventDAO.insert(event);
+
+    // then: should exist
+    assertThat(sourceControlEventDAO.hasRemediationEventForBranch(app.getId(), branchName)).isTrue();
+  }
+
+  @Test
   public void testClearEventsAndInsert() {
     //Given: Application with 2 existing events
     createNewSourceControlEvents(2);

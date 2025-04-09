@@ -12,12 +12,14 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
+import com.sonatype.nexus.iq.manager.PullRequestResult;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 
@@ -61,6 +63,9 @@ public class PullRequestRemediationServiceTest
   @Mock
   private SourceControlSshService mockSourceControlSshService;
 
+  @Mock
+  private SourceControlEventDAO mockSourceControlEventDAO;
+
   // subject
   private PullRequestRemediationService pullRequestRemediationService;
 
@@ -78,7 +83,7 @@ public class PullRequestRemediationServiceTest
     organizationDAO = daoFactory.createOrganizationDAO();
     pullRequestRemediationService = new PullRequestRemediationService(mockPullRequestExecutor, mockGitClientFactory,
         mockApplicationDAO, organizationDAO, mockSourceControlUtils, mockPullRequestTaskProvider,
-        mockSourceControlSshService);
+        mockSourceControlSshService, mockSourceControlEventDAO);
   }
 
   private Application setupApplication(String appId) {
@@ -105,6 +110,7 @@ public class PullRequestRemediationServiceTest
     final String stage = Stage.ID_BUILD;
     final String prContents = "pull request details here";
     final ComponentIdentifier componentId = ComponentIdentifier.createNpmCoordinates("pkg-A", "version-X");
+    final String prUrl = "https://gitlab.com/sonatype/test/-/merge_requests/99";
 
     // given: a repo branch that does not already exist
     Application application = setupApplication(appId);
@@ -112,6 +118,8 @@ public class PullRequestRemediationServiceTest
     setupGitRepositoryInfoForApp(appId);
 
     when(mockPullRequestTaskProvider.get()).thenReturn(mockPullRequestTask);
+    PullRequestResult pullRequestResult = createPullRequestResult(true, prUrl);
+    when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
 
     SourceControlEvent event = new SourceControlEvent()
         .withComponentIdentifier(componentId)
@@ -189,6 +197,76 @@ public class PullRequestRemediationServiceTest
     assertThat(supported).isTrue();
   }
 
+  @Test
+  public void testOnRemediateComponent_manualRemediationPullRequest() throws Exception {
+    final String branchName = "manual/fix/branch";
+    final String appId = "app-123-abc";
+    final String prUrl = "https://gitlab.com/sonatype/test/-/merge_requests/99";
+    Application application = setupApplication(appId);
+    setupBranchExistence(branchName, false);
+    setupGitRepositoryInfoForApp(appId);
+
+    when(mockPullRequestTaskProvider.get()).thenReturn(mockPullRequestTask);
+
+    PullRequestResult pullRequestResult = createPullRequestResult(true, prUrl);
+    when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
+
+    //create a manual remediation event
+    SourceControlEvent event = new SourceControlEvent()
+        .withComponentIdentifier(ComponentIdentifier.createNpmCoordinates("pkg-A", "version-X"))
+        .setApplicationId(application.getId())
+        .setRemediationVersion("version-Y")
+        .setScanId("scan-345")
+        .setStageTypeId(Stage.ID_BUILD)
+        .setPullRequestContents("manual remediation contents")
+        .setBranchName(branchName)
+        .setEventType(SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+
+    pullRequestRemediationService.onRemediateComponent(event);
+
+    //verify the isManualRemediation flag is set in the PullRequestRemediationDetails
+    ArgumentCaptor<PullRequestRemediationDetails> detailsCaptor =
+        ArgumentCaptor.forClass(PullRequestRemediationDetails.class);
+    verify(mockPullRequestTask).run(detailsCaptor.capture(), any());
+
+    PullRequestRemediationDetails capturedDetails = detailsCaptor.getValue();
+    assertThat(capturedDetails.isManualPullRequest()).isTrue();
+
+    ArgumentCaptor<SourceControlEvent> eventCaptor = ArgumentCaptor.forClass(SourceControlEvent.class);
+    verify(mockSourceControlEventDAO).update(eventCaptor.capture());
+
+    SourceControlEvent capturedEvent = eventCaptor.getValue();
+    assertThat(capturedEvent.getEventStatusDetails()).isEqualTo(prUrl);
+  }
+
+  @Test
+  public void testOnRemediateComponent_noUpdateWhenInvalidPullRequestUrl() throws Exception {
+    final String branchName = "unique/branch";
+    final String appId = "app-123-abc";
+    Application application = setupApplication(appId);
+    setupBranchExistence(branchName, false);
+    setupGitRepositoryInfoForApp(appId);
+
+    when(mockPullRequestTaskProvider.get()).thenReturn(mockPullRequestTask);
+
+    PullRequestResult pullRequestResult = createPullRequestResult(false, null);
+
+    when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
+
+    SourceControlEvent event = new SourceControlEvent()
+        .withComponentIdentifier(ComponentIdentifier.createNpmCoordinates("pkg-A", "version-X"))
+        .setApplicationId(application.getId())
+        .setRemediationVersion("version-Y")
+        .setScanId("scan-345")
+        .setStageTypeId(Stage.ID_BUILD)
+        .setPullRequestContents("pull request contents")
+        .setBranchName(branchName);
+
+    pullRequestRemediationService.onRemediateComponent(event);
+
+    verify(mockSourceControlEventDAO, times(0)).update(event);
+  }
+
   private void setupBranchExistence(String branchName, boolean exists) throws IOException {
     when(mockGitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockGitApiClient);
     when(mockGitApiClient.isBranchOnServer(branchName)).thenReturn(exists);
@@ -196,5 +274,12 @@ public class PullRequestRemediationServiceTest
 
   private void verifySshServiceInvoked(String appId) {
     verify(mockSourceControlSshService, times(1)).verifySshUrlAndUpdateIfNeeded(appId);
+  }
+
+  private PullRequestResult createPullRequestResult(boolean successful, String url) {
+    PullRequestResult result = new PullRequestResult();
+    result.setSuccessful(successful);
+    result.setPullRequestUrl(url);
+    return result;
   }
 }

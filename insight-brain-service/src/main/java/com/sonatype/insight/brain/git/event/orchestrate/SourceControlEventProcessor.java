@@ -221,7 +221,8 @@ public class SourceControlEventProcessor
           pullRequestCommentingEventHandler.onDiscoveredPullRequest(event);
           break;
 
-        case SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT:
+        case SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT,
+             SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT:
           pullRequestRemediationService.onRemediateComponent(event);
           break;
 

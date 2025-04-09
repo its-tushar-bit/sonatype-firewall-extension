@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
@@ -65,6 +66,8 @@ public class PullRequestRemediationDetails
 
   private final Integer breakingChangesCount;
 
+  private final boolean isManualPullRequest;
+
   static {
     try {
       policyThreatsMDEmbeddedHtmlTemplate =
@@ -85,7 +88,8 @@ public class PullRequestRemediationDetails
       final Application app,
       final String scanId,
       final String stage,
-      final OrganizationDAO organizationDAO) throws IOException
+      final OrganizationDAO organizationDAO,
+      final boolean isManualPullRequest) throws IOException
   {
     super(organizationDAO);
     if (policyThreatsMDEmbeddedHtmlTemplate == null) {
@@ -105,6 +109,7 @@ public class PullRequestRemediationDetails
     this.app = app;
     this.scanId = scanId;
     this.stage = stage;
+    this.isManualPullRequest = isManualPullRequest;
   }
 
   public PullRequestRemediationDetails(
@@ -123,7 +128,7 @@ public class PullRequestRemediationDetails
       final OrganizationDAO organizationDAO) throws IOException
   {
     this(toBeRemediated, remediatedVersion, breakingChangesCount, pullRequestBranchName, app, scanId, stage,
-        organizationDAO);
+        organizationDAO, false);
     this.contents = constructContents(notifications, targetVersionType, iqBaseUrl, provider, scmBaseUrl);
   }
 
@@ -135,10 +140,34 @@ public class PullRequestRemediationDetails
       final String scanId,
       final String stage,
       final String contents,
-      final OrganizationDAO organizationDAO) throws IOException
+      final OrganizationDAO organizationDAO,
+      final boolean isManualPullRequest) throws IOException
   {
-    this(toBeRemediated, remediatedVersion, null, pullRequestBranchName, app, scanId, stage, organizationDAO);
+    this(toBeRemediated, remediatedVersion, null, pullRequestBranchName, app, scanId, stage, organizationDAO,
+        isManualPullRequest);
     this.contents = contents;
+  }
+
+  public PullRequestRemediationDetails(
+      final ComponentIdentifier toBeRemediated,
+      final RemediationVersionDTO remediationVersionDTO,
+      final String pullRequestBranchName,
+      final List<PolicyNotification> notifications,
+      final Application app,
+      final String scanId,
+      final String stage,
+      final String iqBaseUrl,
+      final SourceControlProvider provider,
+      final String scmBaseUrl,
+      final OrganizationDAO organizationDAO,
+      final boolean isManualRequest) throws IOException
+  {
+    this(toBeRemediated, remediationVersionDTO.getVersion(), remediationVersionDTO.getBreakingChangesCount(),
+        pullRequestBranchName, app, scanId, stage,
+        organizationDAO, isManualRequest);
+    this.contents =
+        constructContents(notifications, remediationVersionDTO.getRemediationType().getDisplayName(), iqBaseUrl,
+            provider, scmBaseUrl);
   }
 
   public String getTitle() {
@@ -176,6 +205,10 @@ public class PullRequestRemediationDetails
     return stage;
   }
 
+  public boolean isManualPullRequest() {
+    return isManualPullRequest;
+  }
+
   private String constructTitle() {
     return MessageFormat.format("Bump {0} to {1}", getShortComponentName(toBeRemediated), remediatedVersion);
   }
@@ -211,6 +244,7 @@ public class PullRequestRemediationDetails
             iqBaseUrl + UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), scanId) + "?source=auto-pr")
         .put("baseIqUrl", iqBaseUrl)
         .put("provider", provider)
+        .put("isManualPullRequest", isManualPullRequest)
         .build();
 
     return TemplateUtils.render(getPolicyTemplate(provider, scmBaseUrl), model);

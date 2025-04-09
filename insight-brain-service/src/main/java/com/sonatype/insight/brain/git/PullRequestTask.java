@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.git;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.util.Date;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.audit.AuditData;
@@ -71,17 +70,15 @@ public class PullRequestTask
     this.configuration = configuration;
   }
 
-  public void run(
+  public PullRequestResult run(
       PullRequestRemediationDetails pullRequestRemediationDetails,
       PullRequestExecutor pullRequestExecutor)
   {
     if (pullRequestRemediationDetails == null) {
-      log.error("Missing required PullRequestRemediationDetails");
-      return;
+      throw new IllegalArgumentException("PullRequestRemediationDetails cannot be null");
     }
     if (pullRequestExecutor == null) {
-      log.error("Missing required PullRequestExecutor");
-      return;
+      throw new IllegalArgumentException("PullRequestExecutor cannot be null");
     }
     String applicationId = pullRequestRemediationDetails.getApp().getId();
     GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
@@ -111,9 +108,9 @@ public class PullRequestTask
           .withGitApi(gitApiFactory.createGitApi(gitRepositoryInfo))
           .build();
 
-      PullRequestResult result = pullRequestExecutor.execute(command);
+      PullRequestResult pullRequestResult = pullRequestExecutor.execute(command);
       metrics.addResult(applicationId,
-          new EnhancedPullRequestResult(result, start, pullRequestRemediationDetails.getToBeRemediated(),
+          new EnhancedPullRequestResult(pullRequestResult, start, pullRequestRemediationDetails.getToBeRemediated(),
               pullRequestRemediationDetails.getTitle(), false));
 
       try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.CREATE_PULL_REQUEST)) {
@@ -122,9 +119,10 @@ public class PullRequestTask
             .setScanId(pullRequestRemediationDetails.getScanId())
             .setStageId(pullRequestRemediationDetails.getStage())
             .setComponentIdentifier(pullRequestRemediationDetails.getToBeRemediated())
-            .setData("pullRequestUrl", result.getPullRequestUrl());
+            .setData("pullRequestUrl", pullRequestResult.getPullRequestUrl());
       }
-      log.info("Pull request task completed for application '{}': {}", applicationId, result);
+      log.info("Pull request task completed for application '{}': {}", applicationId, pullRequestResult);
+      return pullRequestResult;
     }
     catch (Exception e) {
       log.error("Failed to execute pull request, cleaning pull request directory", e);
@@ -132,6 +130,7 @@ public class PullRequestTask
       metrics.addResult(applicationId, new EnhancedPullRequestResult(new PullRequestResult(), start,
           pullRequestRemediationDetails.getToBeRemediated(),
           pullRequestRemediationDetails.getTitle(), true));
+      throw new RuntimeException("Failed to execute pull request for application '" + applicationId + "'", e);
     }
     catch (Throwable t) {
       // Try to log to stderr before trying the standard logging because the standard logging may not be operational at
@@ -140,6 +139,7 @@ public class PullRequestTask
       log.error(t.getMessage(), t);
       System.exit(1);
     }
+    return null;
   }
 
   private void maybeUpdateRepoUrlWithUsername(

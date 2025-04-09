@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.APPLICATION_EVALUATION_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.REPOSITORY_URL_UPDATED_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT;
@@ -52,6 +53,7 @@ public class EventCostSelectionRule
   private static final ImmutableMap<String, Integer> EVENT_COST_POINTS = ImmutableMap.<String, Integer>builder()
       .put(APPLICATION_EVALUATION_EVENT, 8)
       .put(DISCOVERED_PULL_REQUEST_EVENT, 12)
+      .put(MANUAL_REMEDIATION_PULL_REQUEST_EVENT, 4)
       .put(REMEDIATION_PULL_REQUEST_EVENT, 4)
       .put(REPOSITORY_URL_UPDATED_EVENT, 0)
       .put(SOURCE_CONTROL_EVALUATION_EVENT, 2)

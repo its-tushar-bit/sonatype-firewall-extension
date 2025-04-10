@@ -139,9 +139,8 @@ make(
 
 void postBuild() {
   if (isDeployBranch(env, 'main')) {
-    def pushMtiqImage = params.mtiqImagePushEnabled == null ? true : params.mtiqImagePushEnabled
     def imageVersion = mtiqImageVersion()
-    pushMTIQDockerImage(pushMtiqImage, imageVersion)
+    pushMTIQDockerImage(isMtiqImagePushEnabled(), imageVersion)
     // Successful builds on the `main` branch trigger the MTIQ job to bump the image version in the K8S deployment
     def isSuccess = currentBuild.currentResult == 'SUCCESS'
     if (isSuccess) {
@@ -170,7 +169,7 @@ void configureBranchJob() {
           description: 'Only run policy violations when manifests have changed (not available on Main)',
           name: 'dynamicPolicyEvaluationEnabled'),
       booleanParam(defaultValue: mtiqImagePushEnabledByDefault,
-          description: 'If checked will push the MTIQ Docker image to RSC for this branch',
+          description: 'If checked will push the MTIQ Docker image to RSC for this branch (not available on Main)',
           name: 'mtiqImagePushEnabled'),
       booleanParam(defaultValue: false,
           description: 'If checked will run ReferencePolicyImportIntegrationTest for snapshot builds of feature branches',
@@ -546,6 +545,10 @@ boolean isBuildCachingEnabled() {
 
 boolean isDynamicPolicyEvaluationEnabled() {
   return !isDeployBranch(env, 'main') && params.dynamicPolicyEvaluationEnabled
+}
+
+boolean isMtiqImagePushEnabled() {
+  return isDeployBranch(env, 'main') || params.mtiqImagePushEnabled
 }
 
 boolean isFastCopyEnabled() {

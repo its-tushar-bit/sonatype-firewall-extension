@@ -24,6 +24,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -123,6 +124,8 @@ public class ApplicationDAO
 
   private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
 
+  private final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO;
+
   @Inject
   public ApplicationDAO(
       final OperationalDataStore operationalDataStore,
@@ -147,7 +150,8 @@ public class ApplicationDAO
       final SastScanDAO sastScanDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final ThirdPartyFileDAO thirdPartyFileDAO,
-      final AutoPolicyWaiverDAO autoPolicyWaiverDAO)
+      final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
+      final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO)
   {
     super(operationalDataStore, searchIndexManager);
     this.sourceControlDAOProvider = sourceControlDAOProvider;
@@ -171,6 +175,7 @@ public class ApplicationDAO
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
+    this.cpeMatchingConfigurationDAO = cpeMatchingConfigurationDAO;
   }
 
   public Application getByPublicId(TransactionContext tx, String publicId) {
@@ -725,6 +730,8 @@ public class ApplicationDAO
     for (AutoPolicyWaiver autoPolicyWaiver : autoPolicyWaiverDAO.getByOwnerId(tx, application.getId())) {
       autoPolicyWaiverDAO.delete(tx, autoPolicyWaiver);
     }
+
+    cpeMatchingConfigurationDAO.delete(tx, cpeMatchingConfigurationDAO.getByOwnerId(tx, application.getId()));
 
     long duration = System.currentTimeMillis() - start;
     if (duration > 500) {

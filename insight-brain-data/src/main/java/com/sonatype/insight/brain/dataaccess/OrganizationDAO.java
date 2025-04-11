@@ -15,6 +15,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -82,7 +83,9 @@ public class OrganizationDAO
 
   private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
 
-  private ScmUserMappingsDAO scmUserMappingsDAO;
+  private final ScmUserMappingsDAO scmUserMappingsDAO;
+
+  private final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO;
 
   @Inject
   public OrganizationDAO(
@@ -101,7 +104,8 @@ public class OrganizationDAO
       final ProprietaryConfigDAO proprietaryConfigDAO,
       final OrganizationAncestorDAO organizationAncestorDAO,
       final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
-      final ScmUserMappingsDAO scmUserMappingsDAO)
+      final ScmUserMappingsDAO scmUserMappingsDAO,
+      final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO)
   {
     super(operationalDataStore, searchIndexManager);
     this.automaticApplicationsConfigurationDAO = automaticApplicationsConfigurationDAO;
@@ -118,6 +122,7 @@ public class OrganizationDAO
     this.organizationAncestorDAO = organizationAncestorDAO;
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
     this.scmUserMappingsDAO = scmUserMappingsDAO;
+    this.cpeMatchingConfigurationDAO = cpeMatchingConfigurationDAO;
   }
 
   private Organization getByName(TransactionContext tx, String name) {
@@ -287,6 +292,8 @@ public class OrganizationDAO
     for (OrganizationAncestor orgAncestor : organizationAncestorDAO.getByOrganizationId(tx, organization.getId())) {
       organizationAncestorDAO.delete(tx, orgAncestor);
     }
+
+    cpeMatchingConfigurationDAO.delete(tx, cpeMatchingConfigurationDAO.getByOwnerId(tx, organization.getId()));
 
     super.delete(tx, organization);
 

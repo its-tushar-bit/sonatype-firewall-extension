@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedCompo
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.FirewallIgnorePatternsDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
@@ -453,4 +454,6 @@ public interface DAOFactory
   HistoricalTelemetryStateDAO createHistoricalTelemetryStateDAO();
 
   ClusterIdentificationDAO createClusterIdentificationDAO();
+
+  CpeMatchingConfigurationDAO createCpeMatchingConfigurationDAO();
 }

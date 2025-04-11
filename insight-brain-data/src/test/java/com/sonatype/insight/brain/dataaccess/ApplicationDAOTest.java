@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
@@ -64,6 +65,7 @@ import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
+import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.label.Label;
@@ -1222,6 +1224,23 @@ public class ApplicationDAOTest
 
     thirdPartySbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(thirdPartyFileId);
     assertThat(thirdPartySbomMetadata).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToCpeMatchingConfiguration() {
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getPublicId());
+    CpeMatchingConfiguration cpeMatchingConfiguration = new CpeMatchingConfiguration(application.getId(), true, false);
+    CpeMatchingConfigurationDAO cpeMatchingConfigurationDao = daoFactory.createCpeMatchingConfigurationDAO();
+
+    // create
+    cpeMatchingConfigurationDao.insert(cpeMatchingConfiguration);
+
+    // delete application
+    applicationDAO.delete(application);
+
+    // verify deletion
+    assertThat(cpeMatchingConfigurationDao.getByOwnerId(cpeMatchingConfiguration.getOwnerId())).isNull();
   }
 
   @Test

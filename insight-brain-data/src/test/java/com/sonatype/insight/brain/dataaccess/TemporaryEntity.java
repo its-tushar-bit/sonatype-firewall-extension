@@ -61,6 +61,7 @@ import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedCompo
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.FirewallIgnorePatternsDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
@@ -664,6 +665,8 @@ public class TemporaryEntity
 
   private ClusterIdentificationDAO clusterIdentificationDAO;
 
+  private CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO;
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -1001,6 +1004,7 @@ public class TemporaryEntity
 
       delete(developmentPrioritizationComponentInfoDAO.getAll(), developmentPrioritizationComponentInfoDAO);
       delete(developmentPrioritizationDAO.getAll(), developmentPrioritizationDAO);
+      delete(cpeMatchingConfigurationDAO.getAll(), cpeMatchingConfigurationDAO);
 
       detectEntityLeaks(testEntityLeaksDetectionData);
     }
@@ -6232,6 +6236,7 @@ public class TemporaryEntity
     componentChangeDetectionConfigurationDAO = daoFactory.createComponentChangeDetectionConfigurationDAO();
     componentChangeDetectionEventDAO = daoFactory.createComponentChangeDetectionEventDAO();
     clusterIdentificationDAO = daoFactory.createClusterIdentificationDAO();
+    cpeMatchingConfigurationDAO = daoFactory.createCpeMatchingConfigurationDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {

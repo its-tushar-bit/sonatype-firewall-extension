@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -46,6 +47,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
+import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.label.Label;
@@ -934,6 +936,22 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
         .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
     dao.delete(organization);
     assertThat(vulnerabilityCustomCvssSeverityDAO.getByOwnerId(organization.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadeToCpeMatchingConfiguration() {
+    Organization organization = tempEntity.newOrganization();
+    CpeMatchingConfiguration cpeMatchingConfiguration = new CpeMatchingConfiguration(organization.getId(), true, false);
+    CpeMatchingConfigurationDAO cpeMatchingConfigurationDao = daoFactory.createCpeMatchingConfigurationDAO();
+
+    // create
+    cpeMatchingConfigurationDao.insert(cpeMatchingConfiguration);
+
+    // delete organization
+    dao.delete(organization);
+
+    // verify deletion
+    assertThat(cpeMatchingConfigurationDao.getByOwnerId(organization.getId())).isNull();
   }
 
   @Test

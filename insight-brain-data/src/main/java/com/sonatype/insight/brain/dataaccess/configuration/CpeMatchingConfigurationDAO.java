@@ -37,4 +37,19 @@ public class CpeMatchingConfigurationDAO
     String sQuery = "SELECT entity FROM CpeMatchingConfiguration entity WHERE entity.ownerId = ?1";
     return get(tx, sQuery, ownerId);
   }
+
+  public void delete(final String internalOwnerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      delete(tx, internalOwnerId);
+      tx.commit();
+    }
+  }
+
+  public void delete(final TransactionContext tx, final String internalOwnerId) {
+    CpeMatchingConfiguration cpeConfig = getByOwnerId(tx, internalOwnerId);
+    if (cpeConfig != null) {
+      delete(tx, cpeConfig);
+    }
+  }
 }

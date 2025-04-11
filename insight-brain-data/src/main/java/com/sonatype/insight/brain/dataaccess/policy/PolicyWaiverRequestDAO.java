@@ -229,4 +229,13 @@ public class PolicyWaiverRequestDAO
         WHERE entity.ownerId=?1""";
     return getList(tx, sQuery, ownerId);
   }
+
+  public List<PolicyWaiverRequest> getActiveByPolicyId(String policyId) {
+    String sQuery = """
+        SELECT entity FROM PolicyWaiverRequest entity
+        WHERE entity.policyId=?1
+        AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)
+        """;
+    return getList(sQuery, policyId);
+  }
 }

@@ -46,6 +46,11 @@ public class PolicyWaiverRequestBuilder
     return this;
   }
 
+  public PolicyWaiverRequestBuilder setWaiverReasonId(final String waiverReasonId) {
+    policyWaiverRequest.setWaiverReasonId(waiverReasonId);
+    return this;
+  }
+
   public PolicyWaiverRequestBuilder setConstraintFacts(int count) {
     List<ConstraintFact> constraintFacts = new ArrayList<>();
     for (int i = 0; i < count; i++) {
@@ -70,8 +75,8 @@ public class PolicyWaiverRequestBuilder
     return this;
   }
 
-  public PolicyWaiverRequestBuilder setAssociatedPackagedUrl(final String associatedPackagedUrl) {
-    this.policyWaiverRequest.setAssociatedPackageUrl(associatedPackagedUrl);
+  public PolicyWaiverRequestBuilder setAssociatedPackageUrl(final String associatedPackageUrl) {
+    this.policyWaiverRequest.setAssociatedPackageUrl(associatedPackageUrl);
     return this;
   }
 
@@ -82,6 +87,16 @@ public class PolicyWaiverRequestBuilder
 
   public PolicyWaiverRequestBuilder setRequestTime(final Date createTime) {
     policyWaiverRequest.setRequestTime(createTime);
+    return this;
+  }
+
+  public PolicyWaiverRequestBuilder setExpiryTime(final Date expiryTime) {
+    policyWaiverRequest.setExpiryTime(expiryTime);
+    return this;
+  }
+
+  public PolicyWaiverRequestBuilder setComponentUpgradeAvailable(final Boolean componentUpgradeAvailable) {
+    policyWaiverRequest.setComponentUpgradeAvailable(componentUpgradeAvailable);
     return this;
   }
 
@@ -97,5 +112,10 @@ public class PolicyWaiverRequestBuilder
 
   public PolicyWaiverRequest build() {
     return this.policyWaiverRequest;
+  }
+
+  public PolicyWaiverRequestBuilder setRequesterId(final String requesterId) {
+    policyWaiverRequest.setRequesterId(requesterId);
+    return this;
   }
 }

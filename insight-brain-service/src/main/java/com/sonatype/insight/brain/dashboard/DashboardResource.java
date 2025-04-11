@@ -53,6 +53,10 @@ public class DashboardResource
 
   public static final String GET_POLICY_WAIVERS_EXPORT_PATH = "export/policyWaivers";
 
+  static final String GET_POLICY_WAIVER_REQUESTS_PATH = "policy/policyWaiverRequests";
+
+  static final String GET_POLICY_WAIVER_REQUESTS_EXPORT_PATH = "export/policyWaiverRequests";
+
   public static final String FILTERS_PATH = "filters/active";
 
   public static final String NAMED_FILTERS_PATH = "filters/named";
@@ -69,19 +73,23 @@ public class DashboardResource
 
   private final PolicyWaiverService policyWaiverService;
 
+  private final DashboardPolicyWaiverRequestService dashboardPolicyWaiverRequestService;
+
   @Inject
   public DashboardResource(
       ApplicationRiskService applicationRiskService,
       DashboardFilterService dashboardFilterService,
       DashboardComponentRiskService componentRiskService,
       DashboardViolationRiskService dashboardViolationRiskService,
-      PolicyWaiverService policyWaiverService)
+      PolicyWaiverService policyWaiverService,
+      DashboardPolicyWaiverRequestService dashboardPolicyWaiverRequestService)
   {
     this.applicationRiskService = applicationRiskService;
     this.componentRiskService = componentRiskService;
     this.dashboardFilterService = dashboardFilterService;
     this.dashboardViolationRiskService = dashboardViolationRiskService;
     this.policyWaiverService = policyWaiverService;
+    this.dashboardPolicyWaiverRequestService = dashboardPolicyWaiverRequestService;
   }
 
   @POST
@@ -290,6 +298,33 @@ public class DashboardResource
 
     String fileNamePrefix = calculateFileNamePrefixForView("waivers");
     return Csv.generate(Response.ok(), fileNamePrefix, DashboardPolicyWaiverDTO.getCsvHeader(), results).build();
+  }
+
+  @POST
+  @Path(GET_POLICY_WAIVER_REQUESTS_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @ExceptionMetered(name = "getPolicyWaiverRequestsExceptionMeter")
+  public DashboardResultsDTO<DashboardPolicyWaiverRequestDTO> getPolicyWaiverRequests(RisksFilterDTO risksFilterDTO) {
+    return dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTO);
+  }
+
+  @POST
+  @Path(GET_POLICY_WAIVER_REQUESTS_EXPORT_PATH)
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Produces("text/csv")
+  @ExceptionMetered(name = "getPolicyWaiverRequestsExportExceptionMeter")
+  public Response getPolicyWaiverRequestsExport(
+      @FormDataParam("filter") RisksFilterDTO risksFilterDTO) throws IOException
+  {
+    risksFilterDTO.pageSize = Integer.MAX_VALUE;
+    risksFilterDTO.page = 0;
+
+    List<DashboardPolicyWaiverRequestDTO> results =
+        dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequestsForExport(risksFilterDTO).dashboardResults;
+
+    String fileNamePrefix = calculateFileNamePrefixForView("waiver-requests");
+    return Csv.generate(Response.ok(), fileNamePrefix, DashboardPolicyWaiverRequestDTO.getCsvHeader(), results).build();
   }
 
   private String calculateFileNamePrefixForView(final String viewName) throws IOException {

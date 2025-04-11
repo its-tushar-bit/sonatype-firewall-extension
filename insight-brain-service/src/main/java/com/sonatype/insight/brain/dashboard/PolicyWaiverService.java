@@ -60,9 +60,9 @@ import static java.util.Objects.nonNull;
 
 public class PolicyWaiverService
 {
-  protected static final Logger log = LoggerFactory.getLogger(PolicyWaiverService.class);
+  private static final Logger log = LoggerFactory.getLogger(PolicyWaiverService.class);
 
-  protected static final Collector<Owner, ?, Map<String, Owner>> ownerCollector =
+  private static final Collector<Owner, ?, Map<String, Owner>> ownerCollector =
       Collectors.toMap(Owner::getId, Function.identity(), (existing, replacement) -> existing);
 
   private final DashboardUtils dashboardUtils;

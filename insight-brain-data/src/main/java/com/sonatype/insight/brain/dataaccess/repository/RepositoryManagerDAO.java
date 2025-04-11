@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -192,5 +193,14 @@ public class RepositoryManagerDAO
         "AND oa.id = ?1";
 
     return get(tx, sQuery, ownerId);
+  }
+
+  public List<RepositoryManager> getByRepositoryIds(Set<String> repositoryIds) {
+    String sQuery = """
+        SELECT repositoryManager FROM RepositoryManager repositoryManager, Repository repository
+        WHERE repositoryManager.id = repository.repositoryManagerId AND
+        repository.id IN ?1
+        """;
+    return getList(sQuery, repositoryIds);
   }
 }

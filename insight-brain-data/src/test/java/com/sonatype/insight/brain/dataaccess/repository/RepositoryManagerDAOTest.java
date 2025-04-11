@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
+import java.util.Set;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.NameableDAOTest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
@@ -273,5 +276,21 @@ public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
     assertThat(dao.getByIdOrRepositoryId(repo11.getId()).getId()).isEqualTo(repoMan1.getId());
 
     assertThat(dao.getByIdOrRepositoryId("ROOT_ORGANIZATION_ID")).isNull();
+  }
+
+  @Test
+  public void testGetByRepositoryIds() {
+    RepositoryManager repoMan1 = tempEntity.newRepositoryManager();
+    Repository repo1 = tempEntity.newRepository(repoMan1);
+
+    RepositoryManager repoMan2 = tempEntity.newRepositoryManager();
+    Repository repo2 = tempEntity.newRepository(repoMan2);
+
+    tempEntity.newRepositoryManager();
+
+    JPA.assertContainsEntitiesExactlyInAnyOrder(dao.getByRepositoryIds(Set.of(repo1.getId())), repoMan1);
+    JPA.assertContainsEntitiesExactlyInAnyOrder(dao.getByRepositoryIds(Set.of(repo2.getId())), repoMan2);
+    JPA.assertContainsEntitiesExactlyInAnyOrder(dao.getByRepositoryIds(Set.of(repo1.getId(), repo2.getId())), repoMan1,
+        repoMan2);
   }
 }

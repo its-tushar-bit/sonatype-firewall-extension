@@ -6269,15 +6269,16 @@ public class TemporaryEntity
     if (policyWaiverRequest.getConstraintFactsJson() == null) {
       policyWaiverRequest.setConstraintFactsJson("[]");
     }
-    if (policyWaiverRequest.getWaiverReasonId() == null) {
-      policyWaiverRequest.setWaiverReasonId("testWaiverReasonId");
-    }
     if (policyWaiverRequest.getRequesterId() == null) {
       policyWaiverRequest.setRequesterId("testRequesterId");
     }
     if (policyWaiverRequest.getRequesterName() == null) {
       policyWaiverRequest.setRequesterName("testRequesterName");
     }
+    if (policyWaiverRequest.getPolicyViolationId() == null) {
+      policyWaiverRequest.setPolicyViolationId("testPolicyViolationId");
+    }
+
     policyWaiverRequestDAO.insert(policyWaiverRequest);
     return policyWaiverRequest;
   }

@@ -40,12 +40,14 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.policy.PolicyWaiverRequestBuilder;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -788,6 +790,88 @@ public class DashboardResourceTest
     exportResponse = restRequest().auth(tempUser).path(GET_POLICY_WAIVERS_EXPORT_PATH)
         .part("filter", new RisksFilterDTO()).post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "results-waivers");
+  }
+
+  @Test
+  public void testGetPolicyWaiverRequests() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+
+    Policy policy = tempEntity.newPolicy();
+    PolicyWaiverRequest policyWaiverRequest =
+        new PolicyWaiverRequestBuilder().setPolicyId(policy.getId()).setOwnerId(app.getId()).build();
+    tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
+
+    HttpResponse response =
+        restRequest().path(DashboardResource.GET_POLICY_WAIVER_REQUESTS_PATH).body(new RisksFilterDTO()).post();
+
+    assertResponseStatus(200, response);
+    DashboardResultsDTO<?> dto = response.getBody(DashboardResultsDTO.class);
+    assertThat(dto.dashboardResults).hasSize(1);
+    // Due to type erasure at runtime this is the current best way to try to assert the properties of the inner objects
+    LinkedHashMap<String, Object> resultAsMap = (LinkedHashMap<String, Object>) dto.dashboardResults.get(0);
+    assertThat(resultAsMap.get("id")).isEqualTo(policyWaiverRequest.getId());
+  }
+
+  @Test
+  public void testGetPolicyWaiverRequests_EmptyFilter() throws Exception {
+    HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_WAIVER_REQUESTS_PATH).body(null).post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Invalid filter supplied for request.");
+  }
+
+  @Test
+  public void testGetPolicyWaiverRequestsExport() throws Exception {
+    Organization org = tempEntity.newOrganization("Main organization");
+    Application app = tempEntity.newApplication("New-App", org.getId());
+
+    Policy policy = tempEntity.newPolicy();
+    Constraint sourceConstraint = policy.getConstraints().get(0);
+    ConstraintFact sourceConstraintFact =
+        new ConstraintFact(sourceConstraint.getId(), sourceConstraint.getName(), sourceConstraint.getOperator().name());
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("GroupId", "ArtifactId", "1.0.0", "Classifier", "Extension");
+    PolicyWaiverRequest policyWaiverRequest1 = new PolicyWaiverRequestBuilder().setHash("hash1")
+        .setPolicyId(policy.getId()).setOwnerId(app.getId())
+        .setConstraintFacts(Collections.singletonList(sourceConstraintFact))
+        .setAssociatedPackageUrl(PackageUrlIdentifier.toPackageUrl(componentIdentifier))
+        .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT).setComment("comment 1").build();
+    tempEntity.newPolicyWaiverRequest(policyWaiverRequest1);
+    PolicyWaiverReason waiverReason = tempEntity.newWaiverReason("system", "Something");
+    PolicyWaiverRequest policyWaiverRequest2 =
+        new PolicyWaiverRequestBuilder().setHash("hash2").setPolicyId(policy.getId()).setOwnerId(org.getId())
+            .setConstraintFacts(Collections.singletonList(sourceConstraintFact))
+            .setAssociatedPackageUrl(PackageUrlIdentifier.toPackageUrl(componentIdentifier))
+            .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT).setComment("comment 2")
+            .setWaiverReasonId(waiverReason.getId()).build();
+    tempEntity.newPolicyWaiverRequest(policyWaiverRequest2);
+
+    RisksFilterDTO filter = new RisksFilterDTO();
+    HttpResponse response =
+        restRequest().path(DashboardResource.GET_POLICY_WAIVER_REQUESTS_EXPORT_PATH).part("filter", filter).post();
+    assertResponseOkAndCsvHeadersSet(response, "results-waiver-requests");
+
+    String expectedConstraints = "\"" + policyWaiverRequest1.getConstraintFactsJson().replace("\"", "\"\"") + "\"";
+    ComponentDisplayName expectedComponentName =
+        ComponentDisplayNameUtil.fromIdentifier(policyWaiverRequest1.getComponentIdentifier());
+    String responseContent = response.getBodyText();
+    System.err.println(responseContent);
+    String[] lines = responseContent.split("\r\n");
+    String expectedLine1 =
+        format("%s,5,%s,%s,%s,%s,%s,application,%s,%s,EXACT_COMPONENT,hash1,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+            policyWaiverRequest1.getId(), csvTimestampFormatter.format(policyWaiverRequest1.getRequestTime()),
+            "" /* no expiry */, policy.getId(), policy.getName(), expectedConstraints, app.getId(), app.getName(),
+            expectedComponentName, "", policyWaiverRequest1.getRequesterId(), policyWaiverRequest1.getRequesterName(),
+            policyWaiverRequest1.getComment(), policyWaiverRequest1.getStatus().name(), false, "", "");
+    String expectedLine2 =
+        format("%s,5,%s,%s,%s,%s,%s,organization,%s,%s,EXACT_COMPONENT,hash2,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+            policyWaiverRequest2.getId(), csvTimestampFormatter.format(policyWaiverRequest2.getRequestTime()),
+            "" /* no expiry */, policy.getId(), policy.getName(), expectedConstraints, org.getId(), org.getName(),
+            expectedComponentName, "", policyWaiverRequest2.getRequesterId(), policyWaiverRequest2.getRequesterName(),
+            policyWaiverRequest2.getComment(), policyWaiverRequest2.getStatus().name(), false, waiverReason.getId(),
+            waiverReason.getReasonText());
+
+    assertThat(lines).containsExactly(DashboardPolicyWaiverRequestDTO.getCsvHeader(), expectedLine1, expectedLine2);
   }
 
   private void verifyDbState(final User tempUser, final String filterName, final NamedDashboardFilterDTO expected)

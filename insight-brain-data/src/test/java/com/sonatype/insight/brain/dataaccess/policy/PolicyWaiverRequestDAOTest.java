@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.policy.PolicyWaiverRequestBuilder;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -376,5 +377,24 @@ public class PolicyWaiverRequestDAOTest
 
     assertThat(dao.getByPolicyId(policy2.getId())).extracting(PolicyWaiverRequest::getId)
         .contains(policy2RequestedWaiverRequest.getId(), policy2RejectedWaiverRequest.getId());
+  }
+
+  @Test
+  public void testGetActiveByPolicyId() {
+    Policy policy1 = tempEntity.newPolicy(application);
+    Policy policy2 = tempEntity.newPolicy(application);
+
+    // Active waiver request for policy1
+    PolicyWaiverRequest policyWaiverRequest1Active =
+        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("hash1").setPolicyId(policy1.getId())
+            .setOwnerId(application.getId()).setExpiryTime(DateUtils.addDays(new Date(), 1)).build());
+    // Inactive waiver request for policy1
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("hash2").setPolicyId(policy1.getId())
+            .setOwnerId(application.getId()).setExpiryTime(DateUtils.addDays(new Date(), -1)).build());
+    // Active waiver request for policy2
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("hash3").setPolicyId(policy2.getId())
+            .setOwnerId(application.getId()).setExpiryTime(DateUtils.addDays(new Date(), 1)).build());
+
+    JPA.assertContainsEntitiesExactlyInAnyOrder(dao.getActiveByPolicyId(policy1.getId()), policyWaiverRequest1Active);
   }
 }

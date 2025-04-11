@@ -101,8 +101,8 @@ public class SidebarNavigation
     return new MainHeaderNavigationButton("#sbom-manager-api-navigation-button");
   }
 
-  public static MainHeaderNavigationButton dataInsightsNavigationButton() {
-    return new MainHeaderNavigationButton("#data-insights-button");
+  public static MainHeaderNavigationButton enterpriseReportingNavigationButton() {
+    return new MainHeaderNavigationButton("#enterprise-reporting-buttonn");
   }
 
   public static MainHeaderNavigationButton firewallDashboardNavigationButton() {

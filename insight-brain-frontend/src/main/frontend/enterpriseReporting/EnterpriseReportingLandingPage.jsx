@@ -26,7 +26,7 @@ import { selectEnterpriseReportingLandingPage } from 'MainRoot/enterpriseReporti
 import { actions } from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSlice';
 import { actions as dashboardActions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 import {
-  selectDataInsightsLicenseError,
+  selectEnterpriseReportingLicenseError,
   selectLoadingFeatures,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import ScheduleDiscussion from './img/schedule-discussion.svg';
@@ -38,8 +38,9 @@ export default function EnterpriseReportingLandingPage() {
   const { dashboardsData, iqVersion, loading, loadError } = useSelector(selectEnterpriseReportingLandingPage);
   const loadingFeatures = useSelector(selectLoadingFeatures);
   const isLoading = loading || loadingFeatures;
-  const licenseError = useSelector(selectDataInsightsLicenseError);
+  const licenseError = useSelector(selectEnterpriseReportingLicenseError);
   const error = licenseError || loadError;
+
   const load = () => {
     dispatch(dashboardActions.reset());
     dispatch(actions.load());

@@ -131,11 +131,11 @@ export const selectIsIntegratedEnterpriseReportingSupported = createSelector(
   selectProductFeatures,
   propOr(false, 'integrated-enterprise-reporting')
 );
-export const selectDataInsightsLicenseError = createSelector(
+export const selectEnterpriseReportingLicenseError = createSelector(
   selectIsIntegratedEnterpriseReportingSupported,
   selectLoadingFeatures,
   (isIntegratedEnterpriseReportingSupported, loading) =>
-    isIntegratedEnterpriseReportingSupported || loading ? null : 'Data Insights feature not supported'
+    isIntegratedEnterpriseReportingSupported || loading ? null : 'Enterprise Reporting feature not supported'
 );
 
 export const selectIsScmEnabled = createSelector(selectProductFeatures, propOr(false, 'saas-lifecycle-scm-enabled'));

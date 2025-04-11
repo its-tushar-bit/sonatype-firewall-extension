@@ -126,13 +126,15 @@ describe('EnterpriseReportingDashboardPage', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
-  it('shows error when there license does not have data-insights', async () => {
+  it('shows error when there license does not have integrated-enterprise-reporting', async () => {
     axiosMock.onGet(getProductFeaturesUrl()).reply(200, []);
 
     renderPage();
 
     expect(screen.getByRole('status')).toBeInTheDocument();
-    const errorMessage = await screen.findByText('An error occurred loading data. Data Insights feature not supported');
+    const errorMessage = await screen.findByText(
+      'An error occurred loading data. Enterprise Reporting feature not supported'
+    );
     expect(errorMessage).toBeVisible();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });

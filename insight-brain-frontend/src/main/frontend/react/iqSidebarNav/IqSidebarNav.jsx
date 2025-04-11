@@ -190,10 +190,10 @@ function IqSidebarNav(props) {
           {isLicensed && isIntegratedEnterpriseReportingSupported && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('enterpriseReporting')}
-              id="data-insights-button"
+              id="enterprise-reporting-button"
               className="iq-enterprise-reporting-nav-link"
               icon={faChartPieAlt}
-              text="Data Insights"
+              text="Enterprise Reporting"
               href={enterpriseReportingHref}
             />
           )}

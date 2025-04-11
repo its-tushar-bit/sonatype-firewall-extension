@@ -229,24 +229,24 @@ describe('IqSidebarNav', function () {
       assertNavSectionContainsLink('href-legal.dashboard', 'Legal', 'gavel');
     });
 
-    it('renders an NxGlobalSidebarNavigationLink for Data Insights (Enterprise Reporting) with "Labs" badge if allowed', function () {
+    it('renders an NxGlobalSidebarNavigationLink for Enterprise Reporting with "Labs" badge if allowed', function () {
       renderComponent({
         isLoggedIn: true,
         isLicensed: true,
         isIntegratedEnterpriseReportingSupported: true,
       });
 
-      assertNavSectionContainsLink('href-enterpriseReporting', 'Data Insights', 'chart-pie-simple');
+      assertNavSectionContainsLink('href-enterpriseReporting', 'Enterprise Reporting', 'chart-pie-simple');
     });
 
-    it('does not render an NxGlobalSidebarNavigationLink for Data Insights (Enterprise Reporting) if not allowed', function () {
+    it('does not render an NxGlobalSidebarNavigationLink for Enterprise Reporting if not allowed', function () {
       renderComponent({
         isLoggedIn: true,
         isLicensed: true,
         isIntegratedEnterpriseReportingSupported: false,
       });
 
-      expect(screen.queryByRole('link', { name: 'Data Insights' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Enterprise Reporting' })).not.toBeInTheDocument();
     });
 
     describe('selected state', function () {

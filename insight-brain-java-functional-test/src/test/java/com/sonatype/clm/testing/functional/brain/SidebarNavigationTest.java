@@ -358,10 +358,10 @@ public class SidebarNavigationTest
   }
 
   @Test
-  public void testDataInsightsNavigation_toDataInsights() {
+  public void testEnterpriseReportingNavigation_toEnterpriseReporting() {
     setFeatures(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING);
     refresh();
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible).click();
+    SidebarNavigation.enterpriseReportingNavigationButton().shouldBe(visible).click();
     waitUntilUrl(BaseUrl.resolvePageUrl("/enterpriseReportingLandingPage"));
   }
 
@@ -439,7 +439,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(visible);
     SidebarNavigation.lifecycleApiNavigationButton().shouldBe(visible);
-    SidebarNavigation.dataInsightsNavigationButton().shouldNotBe(visible);
+    SidebarNavigation.enterpriseReportingNavigationButton().shouldNotBe(visible);
   }
 
   @Test
@@ -520,7 +520,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(hidden);
     SidebarNavigation.lifecycleApiNavigationButton().shouldBe(visible);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+    SidebarNavigation.enterpriseReportingNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -542,7 +542,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(visible);
     SidebarNavigation.lifecycleApiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldNotBe(visible);
+    SidebarNavigation.enterpriseReportingNavigationButton().shouldNotBe(visible);
   }
 
   @Test
@@ -567,7 +567,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(visible);
     SidebarNavigation.lifecycleApiNavigationButton().shouldBe(visible);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+    SidebarNavigation.enterpriseReportingNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -593,7 +593,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(visible);
     SidebarNavigation.lifecycleApiNavigationButton().shouldBe(visible);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+    SidebarNavigation.enterpriseReportingNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -620,7 +620,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(visible);
     SidebarNavigation.lifecycleApiNavigationButton().shouldBe(visible);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+    SidebarNavigation.enterpriseReportingNavigationButton().shouldBe(visible);
   }
 
   @Test

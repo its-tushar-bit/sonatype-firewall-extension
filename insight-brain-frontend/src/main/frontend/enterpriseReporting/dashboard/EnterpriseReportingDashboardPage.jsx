@@ -15,7 +15,7 @@ import { selectEnterpriseReportingDashboard } from 'MainRoot/enterpriseReporting
 import { selectRouterCurrentParams, selectRouterState } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import {
-  selectDataInsightsLicenseError,
+  selectEnterpriseReportingLicenseError,
   selectLoadingFeatures,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import useLookerDashboard from 'MainRoot/react/useLookerDashboard';
@@ -23,7 +23,7 @@ import useLookerDashboard from 'MainRoot/react/useLookerDashboard';
 export default function EnterpriseReportingDashboardPage() {
   const dispatch = useDispatch();
   const loadingFeatures = useSelector(selectLoadingFeatures);
-  const licenseError = useSelector(selectDataInsightsLicenseError);
+  const licenseError = useSelector(selectEnterpriseReportingLicenseError);
   const { loading, loadError, dashboardsData } = useSelector(selectEnterpriseReportingDashboard);
   const { id } = useSelector(selectRouterCurrentParams); //need to pull the dashboard's id from the URL to query Looker
   const routerState = useSelector(selectRouterState);

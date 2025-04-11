@@ -6,12 +6,7 @@
 import React from 'react';
 import { axiosMockAdapter, render, waitFor, within } from 'TestRoot/SpecUtil';
 import EnterpriseReportingLandingPage from 'MainRoot/enterpriseReporting/EnterpriseReportingLandingPage';
-import {
-  getEnterpriseReportingDashboardsUrl,
-  getProductFeaturesUrl,
-  getIqVersion,
-  getAdvancedReportingInsightsUrl,
-} from 'MainRoot/util/CLMLocation';
+import { getEnterpriseReportingDashboardsUrl, getProductFeaturesUrl, getIqVersion } from 'MainRoot/util/CLMLocation';
 import { screen } from '@testing-library/dom';
 import { actions as dashboardActions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 
@@ -59,9 +54,6 @@ describe('EnterpriseReportingLandingPage', () => {
       },
     ],
   };
-  const advancedReportingResponse = {
-    ADVANCED_REPORTING_INSIGHTS_ENABLED: true,
-  };
   const iqVersionResponse = {
     version: '1.188.0-SNAPSHOT',
   };
@@ -72,7 +64,6 @@ describe('EnterpriseReportingLandingPage', () => {
 
   beforeEach(() => {
     axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(200, mockDashboardsData);
-    axiosMock.onGet(getAdvancedReportingInsightsUrl()).reply(200, advancedReportingResponse);
     axiosMock.onGet(getIqVersion()).reply(200, iqVersionResponse);
     axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['integrated-enterprise-reporting']);
     renderPage = () => render(<EnterpriseReportingLandingPage />);
@@ -82,11 +73,11 @@ describe('EnterpriseReportingLandingPage', () => {
     renderPage();
 
     const loadingSpinners = screen.getAllByRole('status');
-    expect(loadingSpinners.length).toBe(3); //1 loading spinner per dashboard category + status indicator
+    expect(loadingSpinners.length).toBe(2); //1 loading spinner per dashboard category
     expect(screen.getByRole('heading', { name: 'Enterprise Dashboards' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Data Insights' })).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: 'Contact Us' })).toBeInTheDocument();
-    expect(screen.getAllByRole('status').length).toBe(1);
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
   it('renders a page description and NxInfoAlert', async () => {
@@ -103,9 +94,9 @@ describe('EnterpriseReportingLandingPage', () => {
   it('shows dashboard data', async () => {
     renderPage();
 
-    expect(screen.getAllByRole('status').length).toBe(3);
+    expect(screen.getAllByRole('status').length).toBe(2);
     expect(await screen.findByRole('heading', { name: 'Contact Us' })).toBeInTheDocument();
-    expect(screen.getAllByRole('status').length).toBe(1);
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
     mockDashboardsData.dashboardMetadata.forEach((dashboard) => {
       expect(screen.getByRole('heading', { name: dashboard.title })).toBeInTheDocument();
       expect(screen.queryByText(dashboard.description)).toBeInTheDocument();
@@ -122,7 +113,7 @@ describe('EnterpriseReportingLandingPage', () => {
   it('splits dashboards into assigned categories', async () => {
     renderPage();
     await waitFor(() => {
-      expect(screen.getAllByRole('status').length).toBe(1);
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
     });
     const enterpriseDashboards = screen.getByRole('heading', { name: 'Enterprise Dashboards' }).nextElementSibling;
     const enterpriseChildren = within(enterpriseDashboards).getAllByRole('enterprise-reporting-dashboard-card');
@@ -138,9 +129,9 @@ describe('EnterpriseReportingLandingPage', () => {
 
     renderPage();
 
-    expect(screen.getAllByRole('status').length).toBe(3);
+    expect(screen.getAllByRole('status').length).toBe(2);
     expect(await screen.findByRole('heading', { name: 'Data Insights' })).toBeInTheDocument();
-    expect(screen.getAllByRole('status').length).toBe(1);
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
     const errorMessages = screen.getAllByText('An error occurred loading data. Unauthorized');
     expect(errorMessages.length).toBe(2); //error message for each dashboard category
   });
@@ -150,9 +141,9 @@ describe('EnterpriseReportingLandingPage', () => {
 
     renderPage();
 
-    expect(screen.getAllByRole('status').length).toBe(3);
+    expect(screen.getAllByRole('status').length).toBe(2);
     expect(await screen.findByRole('heading', { name: 'Data Insights' })).toBeInTheDocument();
-    expect(screen.getAllByRole('status').length).toBe(1);
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
     const errorMessages = screen.getAllByText('An error occurred loading data. Data Insights feature not supported');
     expect(errorMessages.length).toBe(2); //error message for each dashboard category
   });
@@ -162,41 +153,6 @@ describe('EnterpriseReportingLandingPage', () => {
     renderPage();
 
     expect(resetSpy).toHaveBeenCalled();
-  });
-
-  describe('status indicator', () => {
-    it('renders a positive indicator with appropriate text when advancedReporting is enabled', async () => {
-      renderPage();
-      const indicator = screen.getAllByRole('status')[0];
-      expect(indicator).toBeInTheDocument();
-      await waitFor(() => {
-        expect(indicator).toHaveTextContent('Advanced Reporting: On');
-      });
-    });
-
-    it('renders an error indicator with appropriate text when advancedReporting is disabled', async () => {
-      const advancedReportingResponse = {
-        ADVANCED_REPORTING_INSIGHTS_ENABLED: false,
-      };
-      axiosMock.onGet(getAdvancedReportingInsightsUrl()).reply(200, advancedReportingResponse);
-
-      renderPage();
-      const indicator = screen.getAllByRole('status')[0];
-      expect(indicator).toBeInTheDocument();
-      await waitFor(() => {
-        expect(indicator).toHaveTextContent('Advanced Reporting: Off');
-      });
-    });
-
-    it('renders a text link alongside the status indicator', () => {
-      renderPage();
-
-      const textLink = screen.getByRole('link', { name: "What's this?" });
-      expect(textLink).toHaveAttribute(
-        'href',
-        'https://help.sonatype.com/en/data-insights.html#advanced-reporting-insights'
-      );
-    });
   });
 
   it('renders three contact cards', () => {

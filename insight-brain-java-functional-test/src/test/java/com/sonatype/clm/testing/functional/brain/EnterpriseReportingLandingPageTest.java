@@ -13,13 +13,11 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.EnterpriseReportingLandingPage;
 import com.sonatype.clm.testing.functional.pages.EnterpriseReportingLandingPage.DashboardCard;
 import com.sonatype.clm.testing.functional.pages.EnterpriseReportingLandingPage.ContactCard;
-import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataDTO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataListDTO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardsVersionDTO;
 import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingConfigDTO;
 import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -64,23 +62,6 @@ public class EnterpriseReportingLandingPageTest
     page.enterpriseReportingNotEnabledError().shouldBe(visible);
     page.enterpriseReports().shouldBe(hidden);
     page.insightsReports().shouldBe(hidden);
-  }
-
-  @Test
-  public void testAdvancedReportingIndicator() throws IOException {
-    DashboardMetadataDTO spotlightDefautColorDashboardMetadataDTO = mockDashboardMetadataDTOSpotlightDefaultColor();
-    DashboardMetadataListDTO dashboardList =
-        new DashboardMetadataListDTO(List.of(spotlightDefautColorDashboardMetadataDTO));
-    int version = 1;
-    setupTests(dashboardList, version);
-
-    setAdvancedReportingEnabled(false);
-    refreshOrOpen(EnterpriseReportingLandingPage.url());
-    page.statusIndicator().shouldHave(cssClass("nx-status-indicator--negative"));
-
-    setAdvancedReportingEnabled(true);
-    refreshOrOpen(EnterpriseReportingLandingPage.url());
-    page.statusIndicator().shouldHave(cssClass("nx-status-indicator--positive"));
   }
 
   @Test
@@ -214,14 +195,6 @@ public class EnterpriseReportingLandingPageTest
     testCLMServer.getHdsServer()
         .respondWith(dashboardList)
         .atUri("/rest/enterpriseReporting/dashboards");
-  }
-
-  private void setAdvancedReportingEnabled(Boolean enabled) {
-    ApiConfigurationService configurationService =
-        testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
-    configurationService.setConfigurationNoAuthz(
-        SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED,
-        enabled);
   }
 
   private static DashboardMetadataDTO mockDashboardMetadataDTOSpotlightDefaultColor() {

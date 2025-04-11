@@ -35,9 +35,7 @@ import ReceiveSupport from './img/receive-support.svg';
 
 export default function EnterpriseReportingLandingPage() {
   const dispatch = useDispatch();
-  const { dashboardsData, advancedReporting, iqVersion, loading, loadError } = useSelector(
-    selectEnterpriseReportingLandingPage
-  );
+  const { dashboardsData, iqVersion, loading, loadError } = useSelector(selectEnterpriseReportingLandingPage);
   const loadingFeatures = useSelector(selectLoadingFeatures);
   const isLoading = loading || loadingFeatures;
   const licenseError = useSelector(selectDataInsightsLicenseError);
@@ -60,12 +58,6 @@ export default function EnterpriseReportingLandingPage() {
   const dataInsightsTooltipText = `Data Insights reveal specific/singular open-source trends and test data like EOL, AI/ML use, scoring
     and tech diversity.`;
 
-  const statusIndicatorText = advancedReporting ? 'On' : 'Off';
-  const statusIndicatorClassNames = classnames('nx-status-indicator', {
-    'nx-status-indicator--positive': advancedReporting,
-    'nx-status-indicator--negative': !advancedReporting,
-  });
-
   return (
     <NxPageMain id="enterprise-reporting-landing-page">
       <NxPageTitle id="enterprise-reporting-landing-page-title">
@@ -73,14 +65,6 @@ export default function EnterpriseReportingLandingPage() {
           <NxH1 id="enterprise-reporting-landing-page-heading" className="iq-enterprise-reporting__header__title">
             Enterprise Reporting
           </NxH1>
-          <div className="iq-enterprise-reporting__advanced-reporting">
-            <span className={statusIndicatorClassNames} role="status">
-              Advanced Reporting: {statusIndicatorText}
-            </span>
-            <NxTextLink external href={'https://help.sonatype.com/en/data-insights.html#advanced-reporting-insights'}>
-              What&apos;s this?
-            </NxTextLink>
-          </div>
         </div>
         <NxPageTitle.Description
           id="enterprise-reporting-landing-page-description"

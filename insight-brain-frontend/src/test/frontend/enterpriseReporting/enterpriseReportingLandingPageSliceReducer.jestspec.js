@@ -41,7 +41,6 @@ describe('EnterpriseReportingReducer', () => {
         spotlight: false,
       },
     ],
-    advancedReporting: true,
     iqVersion: '1.188.0-SNAPSHOT',
   };
 
@@ -56,7 +55,6 @@ describe('EnterpriseReportingReducer', () => {
       expect(initialState.loadError).toBeNull();
       expect(initialState.dashboardsData).toBeNull();
       expect(initialState.iqVersion).toBeNull();
-      expect(initialState.advancedReporting).toBeNull();
     });
   });
 
@@ -94,7 +92,6 @@ describe('EnterpriseReportingReducer', () => {
 
       expect(newState).toEqual({
         dashboardsData: fakeData.dashboardsData,
-        advancedReporting: fakeData.advancedReporting,
         iqVersion: fakeData.iqVersion,
         loadError: null,
         loading: false,

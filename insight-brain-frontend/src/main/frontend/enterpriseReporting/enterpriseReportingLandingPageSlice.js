@@ -5,11 +5,7 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import {
-  getEnterpriseReportingDashboardsUrl,
-  getAdvancedReportingInsightsUrl,
-  getIqVersion,
-} from 'MainRoot/util/CLMLocation';
+import { getEnterpriseReportingDashboardsUrl, getIqVersion } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { applySpec, path, compose, nth } from 'ramda';
@@ -19,7 +15,6 @@ const REDUCER_NAME = 'enterpriseReportingLandingPage';
 export const initialState = {
   loading: false,
   loadError: null,
-  advancedReporting: null,
   dashboardsData: null,
   iqVersion: null,
 };
@@ -35,7 +30,6 @@ function loadRequested(state) {
 const loadFulfilled = (state, { payload }) => {
   return {
     ...state,
-    advancedReporting: payload.advancedReporting,
     dashboardsData: payload.dashboardsData,
     iqVersion: payload.iqVersion,
     loading: false,
@@ -55,7 +49,6 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { rejectWithValue, dis
   const promises = [
     dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded()),
     axios.get(getEnterpriseReportingDashboardsUrl()),
-    axios.get(getAdvancedReportingInsightsUrl()),
     axios.get(getIqVersion()),
   ];
 
@@ -63,8 +56,7 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { rejectWithValue, dis
     .then(
       applySpec({
         dashboardsData: compose(path(['data', 'dashboardMetadata']), nth(1)),
-        advancedReporting: compose(path(['data', 'ADVANCED_REPORTING_INSIGHTS_ENABLED']), nth(2)),
-        iqVersion: compose(path(['data', 'version']), nth(3)),
+        iqVersion: compose(path(['data', 'version']), nth(2)),
       })
     )
     .catch(rejectWithValue);

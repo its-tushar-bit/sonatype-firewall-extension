@@ -7,12 +7,7 @@ import { actions, initialState } from 'MainRoot/enterpriseReporting/enterpriseRe
 import { omit } from 'ramda';
 import '../SpecUtil';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
-import {
-  getEnterpriseReportingDashboardsUrl,
-  getProductFeaturesUrl,
-  getIqVersion,
-  getAdvancedReportingInsightsUrl,
-} from 'MainRoot/util/CLMLocation';
+import { getEnterpriseReportingDashboardsUrl, getProductFeaturesUrl, getIqVersion } from 'MainRoot/util/CLMLocation';
 
 describe('enterpriseReportingLandingPageSliceAction', () => {
   let store, axiosMock;
@@ -38,7 +33,6 @@ describe('enterpriseReportingLandingPageSliceAction', () => {
       const errorMessage = 'error on load';
       axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(500, errorMessage);
       axiosMock.onGet(getIqVersion()).reply(200, '1.188.0-SNAPSHOT');
-      axiosMock.onGet(getAdvancedReportingInsightsUrl()).reply(200, true);
 
       store.dispatch(actions.load()).then(() => {
         const actions = store.getActions();
@@ -64,12 +58,10 @@ describe('enterpriseReportingLandingPageSliceAction', () => {
           spotlight: false,
         },
       ];
-      const advancedReportingResponse = true;
       const iqVersionResponse = '1.188.0-SNAPSHOT';
 
       axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(200, response);
-      axiosMock.onGet(getIqVersion()).reply(200, advancedReportingResponse);
-      axiosMock.onGet(getAdvancedReportingInsightsUrl()).reply(200, iqVersionResponse);
+      axiosMock.onGet(getIqVersion()).reply(200, iqVersionResponse);
 
       store.dispatch(actions.load()).then(() => {
         const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
@@ -80,8 +72,7 @@ describe('enterpriseReportingLandingPageSliceAction', () => {
           type: 'enterpriseReportingLandingPage/load/fulfilled',
           payload: {
             dashboardsData: response.data,
-            iqVersion: advancedReportingResponse.data,
-            advancedReporting: advancedReportingResponse.data,
+            iqVersion: iqVersionResponse.data,
           },
         });
         done();

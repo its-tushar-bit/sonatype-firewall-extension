@@ -96,8 +96,10 @@ public class MTIQFeatureServiceTest
   public void testGetFeatures_onlyIncludesAllowedFeatures() {
     Set<Feature> features = underTest.getFeatures();
     Set<Feature> expectedFeatures = getExpectedFeatures();
-    // This feature is enabled via HDS only, so we cannot expect it to be enabled here.
+    // These features are enabled via HDS only, so we cannot expect it to be enabled here.
     expectedFeatures.remove(LicensedFeature.ALLOW_SCM_ON_PUBLIC_REPOS);
+    expectedFeatures.remove(LicensedFeature.CPE_MATCHING);
+
     expectedFeatures.remove(LicensedFeature.MALWARE_DEFENSE);
 
     assertThat(features).containsExactlyInAnyOrderElementsOf(expectedFeatures);

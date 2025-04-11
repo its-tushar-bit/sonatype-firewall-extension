@@ -1514,6 +1514,17 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testInstallLicense_CpeMatchingFeatureFromHds() throws Exception {
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).doesNotContain(LicensedFeature.CPE_MATCHING);
+
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.CPE_MATCHING));
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.CPE_MATCHING);
+  }
+
+  @Test
   public void testNotifyListener_LoadLicense() {
     ProductLicenseListener listener = mock(ProductLicenseListener.class);
     clmLicenseManager.addListener(listener);

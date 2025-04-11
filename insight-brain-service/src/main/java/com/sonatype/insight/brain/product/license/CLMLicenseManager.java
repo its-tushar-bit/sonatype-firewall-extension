@@ -939,7 +939,8 @@ public class CLMLicenseManager
         LicensedFeature.BREAKING_CHANGE, //
         LicensedFeature.DEVELOPER_DASHBOARD, //
         LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING, //
-        LicensedFeature.ALLOW_SCM_ON_PUBLIC_REPOS
+        LicensedFeature.ALLOW_SCM_ON_PUBLIC_REPOS, //
+        LicensedFeature.CPE_MATCHING //
     );
     for (LicensedFeature feature : hdsControlledFeatures) {
       if (licenseDetails.features.contains(feature.name())) {

@@ -5,13 +5,18 @@
  */
 package com.sonatype.insight.brain.sourcecontrol;
 
+import java.io.IOException;
 import javax.inject.Named;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.PullRequestSubmissionDTO;
+import com.sonatype.insight.brain.git.pullrequestcreationservice.PullRequestSubmissionResultDTO;
 import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO;
 
 import com.codahale.metrics.annotation.Timed;
@@ -38,5 +43,14 @@ public class SourceControlPullRequestResource
   @Produces(MediaType.APPLICATION_JSON)
   public AutomatedRemediationStatusDTO getPullRequestStatus(@PathParam("id") final String id) {
     return sourceControlPullRequestService.getPullRequestStatus(id);
+  }
+
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public PullRequestSubmissionResultDTO createPullRequest(
+      final PullRequestSubmissionDTO pullRequestSubmission) throws IOException
+  {
+    return sourceControlPullRequestService.createPullRequest(pullRequestSubmission);
   }
 }

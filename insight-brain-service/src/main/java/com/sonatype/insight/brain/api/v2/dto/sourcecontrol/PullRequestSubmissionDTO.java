@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.dto.sourcecontrol;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
 public record PullRequestSubmissionDTO(
+    String applicationId,
     String scanId,
     ComponentIdentifier componentIdentifier,
     String targetVersion,

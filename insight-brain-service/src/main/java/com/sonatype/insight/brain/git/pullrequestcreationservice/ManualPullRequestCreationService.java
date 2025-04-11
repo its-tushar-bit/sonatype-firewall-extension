@@ -11,7 +11,6 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.ws.rs.BadRequestException;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -34,19 +33,17 @@ import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
-import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyNotificationUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
-import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,9 +100,8 @@ public class ManualPullRequestCreationService
   /**
    * Create a manual remediation pull request
    */
-  @Authorize(permission = Permission.CREATE_PULL_REQUESTS)
   public PullRequestSubmissionResultDTO createManualRemediationPullRequest(
-      @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
+      final String applicationId,
       final String scanId,
       final ComponentIdentifier componentIdentifier,
       final String targetVersion,

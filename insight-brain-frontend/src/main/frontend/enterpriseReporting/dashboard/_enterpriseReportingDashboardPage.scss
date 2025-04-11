@@ -36,7 +36,7 @@ enterprise-reporting-dashboard-page {
   &__link-item {
     &:not(:last-child) {
       &::after {
-        color: var(--nx-swatch-black);
+        color: var(--nx-color-text-stark);
         content: '|';
         margin: 0 8px;
       }
@@ -44,7 +44,7 @@ enterprise-reporting-dashboard-page {
   }
   &__type {
     &.nx-h3 {
-      color: var(--nx-swatch-black);
+      color: var(--nx-color-text-stark);
       flex-shrink: 0;
       font-weight: 600;
       font-size: 12px;

@@ -4,41 +4,44 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
+import classnames from 'classnames';
 import {
+  NxFontAwesomeIcon,
   NxH1,
   NxH2,
-  NxH3,
   NxLoadWrapper,
   NxP,
   NxPageMain,
   NxPageTitle,
   NxTextLink,
-  NxTile,
+  NxTooltip,
+  NxCard,
+  NxStatefulInfoAlert,
 } from '@sonatype/react-shared-components';
-
+import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import EnterpriseReportCard from 'MainRoot/enterpriseReporting/card/EnterpriseReportCard';
+import EnterpriseReportContactCard from 'MainRoot/enterpriseReporting/card/EnterpriseReportContactCard';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  selectDashboardsData,
-  selectError,
-  selectLoading,
-} from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSelectors';
+import { selectEnterpriseReportingLandingPage } from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSelectors';
 import { actions } from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSlice';
 import { actions as dashboardActions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 import {
   selectDataInsightsLicenseError,
   selectLoadingFeatures,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import ScheduleDiscussion from './img/schedule-discussion.svg';
+import SuggestImprovement from './img/suggest-improvement.svg';
+import ReceiveSupport from './img/receive-support.svg';
 
 export default function EnterpriseReportingLandingPage() {
   const dispatch = useDispatch();
-  const dashboardsData = useSelector(selectDashboardsData);
-  const loading = useSelector(selectLoading);
+  const { dashboardsData, advancedReporting, iqVersion, loading, loadError } = useSelector(
+    selectEnterpriseReportingLandingPage
+  );
   const loadingFeatures = useSelector(selectLoadingFeatures);
   const isLoading = loading || loadingFeatures;
-  const apiError = useSelector(selectError);
   const licenseError = useSelector(selectDataInsightsLicenseError);
-  const error = licenseError || apiError;
+  const error = licenseError || loadError;
   const load = () => {
     dispatch(dashboardActions.reset());
     dispatch(actions.load());
@@ -48,89 +51,125 @@ export default function EnterpriseReportingLandingPage() {
     load();
   }, []);
 
+  const enterpriseDashboards = dashboardsData?.filter((dashboard) => dashboard.category === 'enterprise');
+  const dataInsightsDashboards = dashboardsData?.filter((dashboard) => dashboard.category === 'dataInsight');
+
+  const enterpriseTooltipText = `Enterprise Reports are product features offering a holistic view of OSS usage, risks, and policy
+    compliance using Sonatype solutions.`;
+
+  const dataInsightsTooltipText = `Data Insights reveal specific/singular open-source trends and test data like EOL, AI/ML use, scoring
+    and tech diversity.`;
+
+  const statusIndicatorText = advancedReporting ? 'On' : 'Off';
+  const statusIndicatorClassNames = classnames('nx-status-indicator', {
+    'nx-status-indicator--positive': advancedReporting,
+    'nx-status-indicator--negative': !advancedReporting,
+  });
+
   return (
     <NxPageMain id="enterprise-reporting-landing-page">
       <NxPageTitle id="enterprise-reporting-landing-page-title">
-        <NxPageTitle.Headings>
-          <NxH1 id="enterprise-reporting-landing-page-heading">Data Insights</NxH1>
-        </NxPageTitle.Headings>
-        <NxPageTitle.Description id="enterprise-reporting-landing-page-description">
+        <div className="iq-enterprise-reporting__header">
+          <NxH1 id="enterprise-reporting-landing-page-heading" className="iq-enterprise-reporting__header__title">
+            Enterprise Reporting
+          </NxH1>
+          <div className="iq-enterprise-reporting__advanced-reporting">
+            <span className={statusIndicatorClassNames} role="status">
+              Advanced Reporting: {statusIndicatorText}
+            </span>
+            <NxTextLink external href={'https://help.sonatype.com/en/data-insights.html#advanced-reporting-insights'}>
+              What&apos;s this?
+            </NxTextLink>
+          </div>
+        </div>
+        <NxPageTitle.Description
+          id="enterprise-reporting-landing-page-description"
+          className="iq-enterprise-reporting__page-description"
+        >
           <NxP>
-            The following visualizations have been generated to help you better understand your product usage, start
-            conversations about new product features, and reveal what is happening within your organizations. Click the
-            buttons below to view or use the links listed to share your feedback with our team.
+            If you have disabled Advanced Reporting, application names will be obfuscated. To see application names,{' '}
+            <NxTextLink external href={'https://help.sonatype.com/en/data-insights.html#advanced-reporting-insights'}>
+              enable Advanced Reporting
+            </NxTextLink>
+            .
+          </NxP>
+          <NxP>
+            Application names will also be obfuscated if you are using an older verison of Lifcycle.{' '}
+            <NxTextLink external href={'https://help.sonatype.com/en/download-and-compatibility.html'}>
+              Update Lifecycle
+            </NxTextLink>{' '}
+            to resolve this issue.
           </NxP>
         </NxPageTitle.Description>
       </NxPageTitle>
-
+      <NxStatefulInfoAlert>
+        Dashboards and Insights may appear incomplete and/or nonfunctional if there is insufficient data.
+      </NxStatefulInfoAlert>
+      <NxH2>
+        <span className="iq-enterprise-reporting__dashboard-grouping__title">Enterprise Dashboards</span>
+        <NxTooltip title={enterpriseTooltipText}>
+          <NxFontAwesomeIcon icon={faInfoCircle} className="iq-enterprise-reporting__dashboard-grouping__icon" />
+        </NxTooltip>
+      </NxH2>
       <NxLoadWrapper loading={isLoading} retryHandler={load} error={error}>
-        <div className="iq-enterprise-reporting__dashboards-container" id="enterprise-reporting-dashboards-container">
+        <NxCard.Container
+          className="iq-enterprise-reporting-card__container"
+          id="enterprise-reporting-dashboards--enterprise"
+        >
           {dashboardsData
-            ? dashboardsData.map((dashboard, idx) => <EnterpriseReportCard dashboard={dashboard} key={idx} />)
+            ? enterpriseDashboards.map((dashboard, idx) => (
+                <EnterpriseReportCard dashboard={dashboard} key={idx} iqVersion={iqVersion} />
+              ))
             : ''}
-
-          <div className="iq-enterprise-reporting__contactus">
-            <NxTile>
-              <NxTile.Header>
-                <NxTile.HeaderTitle>
-                  <NxH2>Contact Us</NxH2>
-                </NxTile.HeaderTitle>
-              </NxTile.Header>
-              <NxTile.Content>
-                <NxTile.Subsection>
-                  <NxTile.SubsectionHeader>
-                    <NxH3>Schedule a Discussion</NxH3>
-                  </NxTile.SubsectionHeader>
-                  <NxP>
-                    Book a session with our team to talk about these insights.
-                    <br />
-                    <NxTextLink
-                      href="mailto:data-insights-pm@sonatype.com"
-                      className="enterprise-reporting-contact-us-schedule-session"
-                    >
-                      data-insights-pm@sonatype.com
-                    </NxTextLink>
-                  </NxP>
-                </NxTile.Subsection>
-
-                <NxTile.Subsection>
-                  <NxTile.SubsectionHeader>
-                    <NxH3>Suggest an Improvement</NxH3>
-                  </NxTile.SubsectionHeader>
-                  <NxP>
-                    Send an email about how we can better what you see here.
-                    <br />
-                    <NxTextLink
-                      href="http://links.sonatype.com/products/nxiq/feedback/data-insights-ideas"
-                      external
-                      className="enterprise-reporting-contact-us-suggest-improvement"
-                    >
-                      Sonatype Ideas Portal - Data Insights
-                    </NxTextLink>
-                  </NxP>
-                </NxTile.Subsection>
-
-                <NxTile.Subsection>
-                  <NxTile.SubsectionHeader>
-                    <NxH3>Receive Technical Support</NxH3>
-                  </NxTile.SubsectionHeader>
-                  <NxP>
-                    Use the email to connect with our experts about issues.
-                    <br />
-                    <NxTextLink
-                      href="http://links.sonatype.com/products/nexus/pro/support"
-                      external
-                      className="enterprise-reporting-contact-us-tech-support"
-                    >
-                      support.sonatype.com
-                    </NxTextLink>
-                  </NxP>
-                </NxTile.Subsection>
-              </NxTile.Content>
-            </NxTile>
-          </div>
-        </div>
+        </NxCard.Container>
       </NxLoadWrapper>
+
+      <NxH2>
+        <span className="iq-enterprise-reporting__dashboard-grouping__title">Data Insights</span>
+        <NxTooltip title={dataInsightsTooltipText}>
+          <NxFontAwesomeIcon icon={faInfoCircle} className="iq-enterprise-reporting__dashboard-grouping__icon" />
+        </NxTooltip>
+      </NxH2>
+      <NxLoadWrapper loading={isLoading} retryHandler={load} error={error}>
+        <NxCard.Container
+          className="iq-enterprise-reporting-card__container"
+          id="enterprise-reporting-dashboards--insights"
+        >
+          {dashboardsData
+            ? dataInsightsDashboards.map((dashboard, idx) => (
+                <EnterpriseReportCard dashboard={dashboard} key={idx} iqVersion={iqVersion} />
+              ))
+            : ''}
+        </NxCard.Container>
+      </NxLoadWrapper>
+
+      <NxH2 className="iq-enterprise-reporting__header--contact">Contact Us</NxH2>
+      <NxCard.Container className="iq-enterprise-reporting-card__container iq-enterprise-reporting__contactus">
+        <EnterpriseReportContactCard
+          imgSrc={ScheduleDiscussion}
+          title={'Schedule a Discussion'}
+          description={'Book a session with our team to talk about these insights.'}
+          buttonText={'Email Us'}
+          linkUrl={'mailto:data-insights-pm@sonatype.com'}
+          external={false}
+        />
+        <EnterpriseReportContactCard
+          imgSrc={SuggestImprovement}
+          title={'Suggest an Improvement'}
+          description={'Let us know how we can optimize what you see here.'}
+          buttonText={'Explore the Ideas Portal'}
+          linkUrl={'http://links.sonatype.com/products/nxiq/feedback/data-insights-ideas'}
+          external={true}
+        />
+        <EnterpriseReportContactCard
+          imgSrc={ReceiveSupport}
+          title={'Receive Technical Support'}
+          description={'Reach out to connect with our experts about issues.'}
+          buttonText={'Explore Support'}
+          linkUrl={'http://links.sonatype.com/products/nexus/pro/support'}
+          external={true}
+        />
+      </NxCard.Container>
     </NxPageMain>
   );
 }

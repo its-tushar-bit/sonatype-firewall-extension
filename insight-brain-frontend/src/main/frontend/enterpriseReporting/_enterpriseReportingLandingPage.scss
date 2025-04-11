@@ -9,92 +9,81 @@ enterprise-reporting-landing-page {
   display: contents;
 
   .iq-enterprise-reporting {
-    &__dashboards-container {
-      $cardWidth: 522px;
-      $cardGap: 24px;
+    &__header {
+      display: contents;
+    }
 
+    &__dashboards-container {
       display: flex;
-      max-width: ($cardWidth * 3) + ($cardGap * 2);
       flex-wrap: wrap;
       gap: var(--nx-spacing-6x);
+      margin-bottom: 40px;
     }
 
-    &__dashboard {
-      $width: 522px;
-      width: $width;
-
-      $height: 345px;
-      height: $height;
-
-      &__tile {
-        margin-top: 0;
+    &__dashboard-grouping {
+      &__icon {
+        color: var(--nx-color-text-stark);
+        font-size: var(--nx-font-size);
       }
-
-      &__header-title {
-        display: flex;
-      }
-
-      &__spotlight {
-        margin: 0 0 0 10px;
-      }
-
-      &__btn {
-        margin: 0;
+      &__title {
+        margin-right: var(--nx-spacing-base);
       }
     }
 
-    &__dashboard-content {
+    &__page-description {
+      padding: 4px;
+    }
+
+    &__advanced-reporting {
+      width: max-content;
+      grid-area: actions;
       display: flex;
-    }
-
-    &__dashboard-data p {
-      margin-top: 0;
-    }
-
-    &__dashboard-icon {
-      width: 206px;
-      height: 240px;
-      display: flex;
-      flex: none;
-      justify-content: center;
-      align-items: center;
-      background-color: #d7e7ec;
-      border-radius: 6px;
-      margin: 0 18px 0 0;
-
-      &__circle {
-        background-color: var(--nx-swatch-white);
-        $size: 100px;
-        width: $size;
-        height: $size;
-        border-radius: math.div($size, 2);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-
-        svg {
-          font-size: 50px;
-          color: #d7e7ec;
-        }
+      flex-direction: column;
+      align-items: end;
+      gap: var(--nx-spacing-base);
+      .nx-text-link {
+        font-size: var(--nx-font-size-xs);
+        margin-right: var(--nx-spacing-2x);
       }
     }
+  }
 
-    &__dashboard-data {
-      &__description {
-        margin-top: 0;
-      }
+  .nx-alert--info {
+    margin-bottom: 20px;
+  }
+}
 
-      &__features {
-        margin-bottom: 15px;
-      }
-
-      &__feature {
-        padding-right: 0;
-      }
+//layout styling for cards & styles specific to contact cards
+.iq-enterprise-reporting-card {
+  &__container {
+    &.nx-card-container {
+      justify-content: start;
+      gap: var(--nx-spacing-6x);
+      margin: var(--nx-spacing-6x) 0 40px;
     }
+  }
 
-    &__contactus {
-      width: 522px;
+  &.iq-enterprise-reporting-card--contact {
+    padding-left: 88px;
+    text-align: left;
+    max-width: 340px;
+  }
+
+  &__description {
+    &.contact-card {
+      text-align: left;
+    }
+  }
+
+  &__icon--contact {
+    position: absolute;
+    left: var(--nx-spacing-6x);
+    top: var(--nx-spacing-6x);
+  }
+
+  &__button {
+    .nx-icon.fa-external-link {
+      margin-left: var(--nx-spacing-2x);
     }
   }
 }

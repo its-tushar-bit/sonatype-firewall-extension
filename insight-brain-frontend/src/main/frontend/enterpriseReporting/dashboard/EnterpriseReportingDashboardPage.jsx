@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxLoadWrapper, NxPageMain, NxTextLink, NxH3 } from '@sonatype/react-shared-components';
+import { NxLoadWrapper, NxPageMain, NxTextLink, NxH3, NxTooltip } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { filter, propEq } from 'ramda';
 
@@ -19,19 +19,6 @@ import {
   selectLoadingFeatures,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import useLookerDashboard from 'MainRoot/react/useLookerDashboard';
-
-const enterprise = ['success-metrics', 'security-risk-analysis'];
-const dataInsights = [
-  'ai-models',
-  'rolling-recap',
-  'ai-consumption',
-  'component-eol',
-  'supply-chain-monitoring',
-  'dependency-scorecard',
-  'ml-derivative',
-  'stack-divergence',
-  'upgrade-posture',
-];
 
 export default function EnterpriseReportingDashboardPage() {
   const dispatch = useDispatch();
@@ -47,8 +34,8 @@ export default function EnterpriseReportingDashboardPage() {
 
   const isLoading = loading || loadingFeatures || loadingDashboard;
 
-  const enterpriseDashboards = dashboardsData?.filter((dashboard) => enterprise.includes(dashboard.dashboardId));
-  const dataInsightsDashboards = dashboardsData?.filter((dashboard) => dataInsights.includes(dashboard.dashboardId));
+  const enterpriseDashboards = dashboardsData?.filter((dashboard) => dashboard.category === 'enterprise');
+  const dataInsightsDashboards = dashboardsData?.filter((dashboard) => dashboard.category === 'dataInsight');
 
   useEffect(() => {
     load();
@@ -90,11 +77,54 @@ export default function EnterpriseReportingDashboardPage() {
 }
 
 function NavigationBarRow({ dashboards, title, activeDashboard }) {
+  const DASHBOARD_SELECTOR = '.enterprise-reporting-dashboard__container iframe';
+  const clmVersion = window.clmServerVersion.split('.')[1];
+
   const uiRouterState = useRouterState();
   const cleanTitle = (title) => {
     const cleanedTitle = title.includes('Dashboard:') ? title.split(':')[1] : title;
     return cleanedTitle;
   };
+  const disableLink = (dashboard) =>
+    !!dashboard.sinceIQVersion && !!clmVersion && parseInt(clmVersion) < parseInt(dashboard.sinceIQVersion);
+
+  // This is to override a bug from MUI Tooltips causing iframes to resize on tooltip render:
+  // https://github.com/mui/material-ui/issues/23266
+  // It is resolved by setting a fixed width on the iframe. This is called to override the iframe's width of 100% when
+  // a tooltip renders, on initial load of the page, and after a window resizing event.
+  const handleIframeSizing = () => {
+    const dashboard = document.querySelector(DASHBOARD_SELECTOR);
+    if (dashboard) {
+      const dashboardSize = dashboard.getBoundingClientRect();
+      dashboard.style.width = `${dashboardSize.width}px`;
+    }
+  };
+
+  useEffect(() => {
+    // find the iframe once it renders on page load
+    const findIframe = setInterval(() => {
+      const iframe = document.querySelector(DASHBOARD_SELECTOR);
+      if (iframe) {
+        handleIframeSizing();
+        clearInterval(findIframe);
+        return iframe;
+      }
+    }, 1000);
+
+    // set the iframe's width back to 100% to allow it to resize with its parent container, then set fixed width
+    const handleWindowResize = () => {
+      const dashboard = document.querySelector(DASHBOARD_SELECTOR);
+      dashboard.style.width = '100%';
+
+      setTimeout(() => {
+        handleIframeSizing();
+      }, 200);
+    };
+
+    window.addEventListener('resize', handleWindowResize);
+    return () => window.removeEventListener('resize', handleWindowResize);
+  }, []);
+
   return (
     <div className="enterprise-reporting-dashboard__navigation-links">
       <NxH3 className="enterprise-reporting-dashboard__type">{title}:</NxH3>
@@ -105,12 +135,22 @@ function NavigationBarRow({ dashboards, title, activeDashboard }) {
               {dashboard.dashboardId === activeDashboard ? (
                 <span>{cleanTitle(dashboard.title)}</span>
               ) : (
-                <NxTextLink
-                  className="enterprise-reporting-dashboard__text-link"
-                  href={uiRouterState.href('enterpriseReportingDashboard', { id: dashboard.dashboardId })}
+                <NxTooltip
+                  onOpen={handleIframeSizing}
+                  title={
+                    disableLink(dashboard)
+                      ? `Upgrade to IQ version ${dashboard.sinceIQVersion} to access this insight`
+                      : null
+                  }
                 >
-                  {cleanTitle(dashboard.title)}
-                </NxTextLink>
+                  <NxTextLink
+                    className="enterprise-reporting-dashboard__text-link"
+                    href={uiRouterState.href('enterpriseReportingDashboard', { id: dashboard.dashboardId })}
+                    disabled={disableLink(dashboard)}
+                  >
+                    {cleanTitle(dashboard.title)}
+                  </NxTextLink>
+                </NxTooltip>
               )}
             </li>
           ))}

@@ -103,7 +103,7 @@ public class EnterpriseReportingService
   static final String TASK_PARAM_CURRENT_VERSION = "CURRENT_VERSION";
 
   // Visible for testing
-  final ResettableExpiringMemoizingSupplier<Integer> currentDashboardsVersionSupplier;
+  public final ResettableExpiringMemoizingSupplier<Integer> currentDashboardsVersionSupplier;
 
   private final TenantReference<ResettableExpiringMemoizingSupplier<String>>
       enterpriseReportingConfigDTOBaseUrlSupplier;

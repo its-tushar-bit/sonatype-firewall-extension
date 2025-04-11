@@ -69,6 +69,13 @@ export const getEnterpriseReportingSelectedDashboardUrl = (dashboardId) => {
   return uriTemplate`/ui/links/enterpriseReporting/${dashboardId}`;
 };
 
+export const getAdvancedReportingInsightsUrl = () =>
+  uriTemplate`/api/v2/config?property=ADVANCED_REPORTING_INSIGHTS_ENABLED`;
+
+export const getIqVersion = () => {
+  return uriTemplate`/rest/product/version`;
+};
+
 export function getRoleForNewUrl() {
   return uriTemplate`/rest/security/roles/new`;
 }

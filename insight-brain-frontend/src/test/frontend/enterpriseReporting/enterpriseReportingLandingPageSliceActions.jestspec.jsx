@@ -7,7 +7,12 @@ import { actions, initialState } from 'MainRoot/enterpriseReporting/enterpriseRe
 import { omit } from 'ramda';
 import '../SpecUtil';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
-import { getEnterpriseReportingDashboardsUrl, getProductFeaturesUrl } from 'MainRoot/util/CLMLocation';
+import {
+  getEnterpriseReportingDashboardsUrl,
+  getProductFeaturesUrl,
+  getIqVersion,
+  getAdvancedReportingInsightsUrl,
+} from 'MainRoot/util/CLMLocation';
 
 describe('enterpriseReportingLandingPageSliceAction', () => {
   let store, axiosMock;
@@ -32,6 +37,9 @@ describe('enterpriseReportingLandingPageSliceAction', () => {
     it('dispatches enterpriseReportingLandingPage/load/rejected on loading error', (done) => {
       const errorMessage = 'error on load';
       axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(500, errorMessage);
+      axiosMock.onGet(getIqVersion()).reply(200, '1.188.0-SNAPSHOT');
+      axiosMock.onGet(getAdvancedReportingInsightsUrl()).reply(200, true);
+
       store.dispatch(actions.load()).then(() => {
         const actions = store.getActions();
         expect(actions[0].type).toBe('enterpriseReportingLandingPage/load/pending');
@@ -56,8 +64,12 @@ describe('enterpriseReportingLandingPageSliceAction', () => {
           spotlight: false,
         },
       ];
+      const advancedReportingResponse = true;
+      const iqVersionResponse = '1.188.0-SNAPSHOT';
 
       axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(200, response);
+      axiosMock.onGet(getIqVersion()).reply(200, advancedReportingResponse);
+      axiosMock.onGet(getAdvancedReportingInsightsUrl()).reply(200, iqVersionResponse);
 
       store.dispatch(actions.load()).then(() => {
         const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
@@ -66,7 +78,11 @@ describe('enterpriseReportingLandingPageSliceAction', () => {
         expect(actions[2].type).toBe('productFeatures/fetchProductFeaturesIfNeeded/fulfilled');
         expect(actions[3]).toEqual({
           type: 'enterpriseReportingLandingPage/load/fulfilled',
-          payload: response.data,
+          payload: {
+            dashboardsData: response.data,
+            iqVersion: advancedReportingResponse.data,
+            advancedReporting: advancedReportingResponse.data,
+          },
         });
         done();
       });

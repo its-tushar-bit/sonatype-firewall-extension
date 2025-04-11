@@ -1,0 +1,91 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+.iq-enterprise-reporting-card {
+  border: 1px solid var(--nx-swatch-indigo-80);
+  position: relative;
+
+  &--dashboard {
+    width: 250px;
+    height: 100%;
+    font-size: 14px;
+  }
+
+  &__header {
+    &.nx-card__header {
+      margin-top: 68px;
+    }
+    .nx-h3 {
+      font-size: var(--nx-font-size);
+      margin: 0;
+    }
+  }
+
+  &__spotlight {
+    margin: 0;
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    cursor: default;
+  }
+
+  &__icon {
+    background-color: var(--nx-swatch-purple-50);
+    border-radius: 50%;
+    color: var(--nx-swatch-white);
+    font-size: 24px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: var(--nx-spacing-6x);
+    &.enterprise {
+      background-color: var(--nx-swatch-teal-40);
+    }
+    .nx-icon.custom-positioning {
+      margin-top: -2px;
+    }
+  }
+
+  &__features {
+    margin-top: 0px;
+    padding-left: 0;
+    text-align: left;
+    .nx-list__item {
+      display: flex;
+      gap: var(--nx-spacing-3x);
+      list-style: none;
+      .nx-icon {
+        color: var(--nx-swatch-purple-30);
+        margin: 0;
+        font-size: var(--nx-font-size-xs);
+        &.enterprise {
+          color: var(--nx-swatch-teal-30);
+        }
+      }
+    }
+  }
+
+  &__feature-item {
+    padding-right: 0;
+  }
+
+  &__button {
+    &.nx-btn.nx-btn--tertiary {
+      font-size: var(--nx-font-size-s);
+      font-weight: 400;
+      padding: var(--nx-spacing-base) var(--nx-spacing-3x);
+      margin: 0px;
+      width: max-content;
+    }
+  }
+
+  &__footer {
+    border-top: none;
+    padding-top: 0;
+  }
+}

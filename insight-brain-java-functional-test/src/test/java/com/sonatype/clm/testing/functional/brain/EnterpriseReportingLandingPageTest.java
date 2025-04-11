@@ -6,32 +6,38 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.EnterpriseReportingLandingPage;
-import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.clm.testing.functional.pages.EnterpriseReportingLandingPage.DashboardCard;
+import com.sonatype.clm.testing.functional.pages.EnterpriseReportingLandingPage.ContactCard;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataDTO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataListDTO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardsVersionDTO;
 import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingConfigDTO;
+import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import org.apache.commons.lang3.StringUtils;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_CONFIG_PATH;
-import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EnterpriseReportingLandingPageTest
@@ -40,154 +46,211 @@ public class EnterpriseReportingLandingPageTest
   private final EnterpriseReportingLandingPage page = new EnterpriseReportingLandingPage();
 
   @BeforeClass
-  public static void beforeClass() {
+  public static void before() {
     refreshOrOpen(EnterpriseReportingLandingPage.url());
     loginAsAdmin();
+  }
+
+  @After
+  public void after() {
+    EnterpriseReportingService enterpriseReportingService =
+        testCLMServer.getCLMServer().getInstance(EnterpriseReportingService.class);
+    enterpriseReportingService.currentDashboardsVersionSupplier.reset();
   }
 
   @Test
   public void testFeatureDisabled_ShowsError() {
     pageHeaderShouldBeVisible();
     page.enterpriseReportingNotEnabledError().shouldBe(visible);
-    page.reports().shouldBe(hidden);
+    page.enterpriseReports().shouldBe(hidden);
+    page.insightsReports().shouldBe(hidden);
+  }
+
+  @Test
+  public void testAdvancedReportingIndicator() throws IOException {
+    DashboardMetadataDTO spotlightDefautColorDashboardMetadataDTO = mockDashboardMetadataDTOSpotlightDefaultColor();
+    DashboardMetadataListDTO dashboardList =
+        new DashboardMetadataListDTO(List.of(spotlightDefautColorDashboardMetadataDTO));
+    int version = 1;
+    setupTests(dashboardList, version);
+
+    setAdvancedReportingEnabled(false);
+    refreshOrOpen(EnterpriseReportingLandingPage.url());
+    page.statusIndicator().shouldHave(cssClass("nx-status-indicator--negative"));
+
+    setAdvancedReportingEnabled(true);
+    refreshOrOpen(EnterpriseReportingLandingPage.url());
+    page.statusIndicator().shouldHave(cssClass("nx-status-indicator--positive"));
   }
 
   @Test
   public void testFeatureEnabled_Success() throws IOException {
-    setFeatures(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING);
-    mockHDSResponses();
     DashboardMetadataDTO spotlightDefautColorDashboardMetadataDTO = mockDashboardMetadataDTOSpotlightDefaultColor();
     DashboardMetadataDTO spotlightProvidedColorDashboardMetadataDTO = mockDashboardMetadataDTOSpotlightProvidedColor();
     DashboardMetadataDTO nonSpotlightDashboardMetadataDTO = mockDashboardMetadataDTO();
     DashboardMetadataDTO spotlightTextProvidedDashboardMetadataDTO = mockDashboardMetadataDTOSpotlightTextProvided();
     DashboardMetadataDTO spotlightTextProvidedDisabledSpotlightDashboardMetadataDTO =
         mockDashboardMetadataDTOSpotlightTextProvidedDisabledSpotlight();
-    testCLMServer.getHdsServer()
-        .respondWith(new DashboardsVersionDTO(1))
-        .atUri("/rest/enterpriseReporting/currentVersion");
-    testCLMServer.getHdsServer()
-        .respondWith(new DashboardMetadataListDTO(Arrays.asList(
-            spotlightDefautColorDashboardMetadataDTO,
-            spotlightProvidedColorDashboardMetadataDTO,
-            nonSpotlightDashboardMetadataDTO,
-            spotlightTextProvidedDashboardMetadataDTO, 
-            spotlightTextProvidedDisabledSpotlightDashboardMetadataDTO
-        )))
-        .atUri("/rest/enterpriseReporting/dashboards");
+    DashboardMetadataListDTO dashboardList = new DashboardMetadataListDTO(List.of(
+        spotlightDefautColorDashboardMetadataDTO,
+        spotlightProvidedColorDashboardMetadataDTO,
+        nonSpotlightDashboardMetadataDTO,
+        spotlightTextProvidedDashboardMetadataDTO,
+        spotlightTextProvidedDisabledSpotlightDashboardMetadataDTO
+    ));
+    int version = 2;
+    setupTests(dashboardList, version);
     refreshOrOpen(EnterpriseReportingLandingPage.url());
+
     page.enterpriseReportingNotEnabledError().shouldBe(hidden);
     pageHeaderShouldBeVisible();
-    page.reports().shouldBe(visible);
+    page.infoAlert().shouldBe(visible);
+    page.enterpriseReports().shouldBe(visible);
+    page.insightsReports().shouldBe(visible);
     assertReportContent(spotlightDefautColorDashboardMetadataDTO);
     assertReportContent(spotlightProvidedColorDashboardMetadataDTO);
     assertReportContent(nonSpotlightDashboardMetadataDTO);
     assertReportContent(spotlightTextProvidedDashboardMetadataDTO);
     assertReportContent(spotlightTextProvidedDisabledSpotlightDashboardMetadataDTO);
-    contactusShouldBeVisible();
+    contactUsShouldBeVisible();
     eyesWatcher.eyesCheck();
   }
 
   private void pageHeaderShouldBeVisible() {
     page.heading().shouldBe(visible);
-    page.heading().shouldHave(text("Data Insights"));
+    page.heading().shouldHave(text("Enterprise Reporting"));
     page.description().shouldBe(visible);
     assertThat(page.description().innerText()).isNotEmpty();
   }
 
   private void assertReportContent(DashboardMetadataDTO dashboardMetadataDTO) {
-    String imageSource = BaseUrl.resolveRestUrl("/enterpriseReporting/dashboard/icons/{iconName}",
-        dashboardMetadataDTO.previewImage);
-    int index = dashboardMetadataDTO.priority - 1;
-    SelenideElement report = page.reports().findAll(".iq-enterprise-reporting__dashboard").get(index);
-    SelenideElement icon = report.$(By.tagName("img"));
-    ElementsCollection features =
-        report.$(".iq-enterprise-reporting__dashboard-data__features").findAll(".nx-list__item");
-    report.$(".iq-enterprise-reporting__dashboard__header-title .nx-h2").shouldHave(text(dashboardMetadataDTO.title));
-    icon.shouldHave(attribute("src", imageSource));
+    DashboardCard report = page.dashboardAt(dashboardMetadataDTO.dashboardId);
+    SelenideElement icon = report.icon();
+    ElementsCollection features = report.featureText();
+    report.dashboardTitle().shouldHave(text(dashboardMetadataDTO.title));
     icon.isDisplayed();
-    report.$(".nx-p").shouldBe(text(dashboardMetadataDTO.description));
-    report.$(".iq-enterprise-reporting__dashboard__btn").shouldHave(text(dashboardMetadataDTO.accessButtonText));
+    checkIconClassName(dashboardMetadataDTO.previewImageIcon, icon);
+    report.dashboardDescription().shouldBe(text(dashboardMetadataDTO.description));
+    report.dashboardButton().shouldHave(text(dashboardMetadataDTO.accessButtonText));
     assertThat(features.size()).isEqualTo(dashboardMetadataDTO.features.size());
     for (int i = 0; i < features.size(); i++) {
       features.get(i).shouldHave(text(dashboardMetadataDTO.features.get(i)));
     }
     if (dashboardMetadataDTO.spotlight) {
-      report.$(".iq-enterprise-reporting__dashboard__spotlight").shouldBe(visible);
-      if (dashboardMetadataDTO.spotlightColor == null) {
-        report.$(".iq-enterprise-reporting__dashboard__spotlight")
-            .shouldHave(cssClass("nx-selectable-color--turquoise"));
+      report.spotlight().shouldBe(visible);
+      if (StringUtils.isNotBlank(dashboardMetadataDTO.spotlightColor)) {
+        report.spotlight().shouldHave(cssClass("nx-small-tag--" + dashboardMetadataDTO.spotlightColor));
       }
       else {
-        report.$(".iq-enterprise-reporting__dashboard__spotlight").shouldHave(cssClass("nx-selectable-color--kiwi"));
+        if (StringUtils.equals(dashboardMetadataDTO.category, "enterprise")) {
+          report.spotlight().shouldHave(cssClass("nx-small-tag--teal"));
+        }
+        else {
+          report.spotlight().shouldHave(cssClass("nx-small-tag--purple"));
+        }
       }
     }
-    if (dashboardMetadataDTO.spotlightText != null) {
-      report.$(".iq-enterprise-reporting__dashboard__spotlight").shouldBe(visible);
-      report.$(".iq-enterprise-reporting__dashboard__spotlight")
-            .shouldHave(text(dashboardMetadataDTO.spotlightText));
+    if (StringUtils.isNotBlank(dashboardMetadataDTO.spotlightText)) {
+      report.spotlight().shouldBe(visible);
+      report.spotlight().shouldHave(text(dashboardMetadataDTO.spotlightText));
+    }
+
+    if (StringUtils.isNotBlank(dashboardMetadataDTO.sinceIQVersion)) {
+      String fullVersion = testCLMServer.getCLMServer().getInstance(VersionService.class).getLogDisplayVersion();
+      int userVersion = Integer.parseInt(fullVersion.substring(0, fullVersion.indexOf("-")).replace(".0", ""));
+      int sinceIqVersion = Integer.parseInt(dashboardMetadataDTO.sinceIQVersion);
+      SelenideElement dashboardButton = report.dashboardButton();
+      if (userVersion < sinceIqVersion) {
+        dashboardButton.shouldBe(disabled);
+      }
+      else {
+        dashboardButton.shouldBe(enabled);
+      }
     }
   }
 
-  private void contactusShouldBeVisible() {
-    page.contactus().shouldBe(visible);
-    page.contactus().$(".nx-tile-header__title .nx-h2").shouldHave(text("Contact Us"));
-    ElementsCollection subsections = page.contactus().$(".nx-tile-content").findAll(".nx-tile-subsection");
-    SelenideElement firstSubSection = subsections.get(0);
-    SelenideElement secondSubSection = subsections.get(1);
-    SelenideElement thirdSubSection = subsections.get(2);
-    firstSubSection.$(".nx-h3").shouldHave(text("Schedule a Discussion"));
-    assertThat(firstSubSection.$(".nx-p").innerText()).isNotEmpty();
-    firstSubSection.$(".nx-text-link")
-        .shouldHave(attribute("href", "mailto:data-insights-pm@sonatype.com"));
-    firstSubSection.$(By.tagName("span")).shouldHave(text("data-insights-pm@sonatype.com"));
-    secondSubSection.$(".nx-h3").shouldHave(text("Suggest an Improvement"));
-    assertThat(secondSubSection.$(".nx-p").innerText()).isNotEmpty();
-    secondSubSection.$(".nx-text-link")
+  private void checkIconClassName(String iconName, SelenideElement icon) {
+    String regex = "(?=[A-Z])";
+    String iconClassName = String.join("-", iconName.split(regex)).toLowerCase();
+    icon.shouldHave(cssClass(iconClassName));
+  }
+
+  private void contactUsShouldBeVisible() {
+    page.contactUsHeading().shouldHave(text("Contact Us"));
+
+    ContactCard firstCard = page.contactCard(1);
+    firstCard.contactTitle().shouldHave(text("Schedule a Discussion"));
+    assertThat(firstCard.contactDescription().innerText()).isNotEmpty();
+    firstCard.contactButton().shouldHave(attribute("href", "mailto:data-insights-pm@sonatype.com"));
+    firstCard.contactButton().shouldHave(text("Email Us"));
+
+    ContactCard secondCard = page.contactCard(2);
+    secondCard.contactTitle().shouldHave(text("Suggest an Improvement"));
+    assertThat(secondCard.contactDescription().innerText()).isNotEmpty();
+    secondCard.contactButton()
         .shouldHave(attribute("href", "http://links.sonatype.com/products/nxiq/feedback/data-insights-ideas"));
-    secondSubSection.$(By.tagName("span")).shouldHave(text("Sonatype Ideas Portal - Data Insights"));
-    thirdSubSection.$(".nx-h3").shouldHave(text("Receive Technical Support"));
-    assertThat(thirdSubSection.$(".nx-p").innerText()).isNotEmpty();
-    thirdSubSection.$(".nx-text-link")
+    secondCard.contactButton().shouldHave(text("Explore the Ideas Portal"));
+
+    ContactCard thirdCard = page.contactCard(3);
+    thirdCard.contactTitle().shouldHave(text("Receive Technical Support"));
+    assertThat(thirdCard.contactDescription().innerText()).isNotEmpty();
+    thirdCard.contactButton()
         .shouldHave(attribute("href", "http://links.sonatype.com/products/nexus/pro/support"));
-    thirdSubSection.$(By.tagName("span")).shouldHave(text("support.sonatype.com"));
+    thirdCard.contactButton().shouldHave(text("Explore Support"));
   }
 
   private void mockHDSResponses() throws IOException {
     testCLMServer.getHdsServer()
         .respondWith(new EnterpriseReportingConfigDTO("sonatype.looker.com"))
         .atUri(ENTERPRISE_REPORTING_CONFIG_PATH);
+  }
+
+  private void setupTests(DashboardMetadataListDTO dashboardList, int version) throws IOException {
+    setFeatures(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING);
+    mockHDSResponses();
     testCLMServer.getHdsServer()
-        .respondWith(Files.readAllBytes(Paths.get(getClass()
-            .getResource("/EnterpriseReporting/icons_svg.zip").getPath())))
-        .atUri(ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH);
+        .respondWith(new DashboardsVersionDTO(version))
+        .atUri("/rest/enterpriseReporting/currentVersion");
+    testCLMServer.getHdsServer()
+        .respondWith(dashboardList)
+        .atUri("/rest/enterpriseReporting/dashboards");
+  }
+
+  private void setAdvancedReportingEnabled(Boolean enabled) {
+    ApiConfigurationService configurationService =
+        testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
+    configurationService.setConfigurationNoAuthz(
+        SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED,
+        enabled);
   }
 
   private static DashboardMetadataDTO mockDashboardMetadataDTOSpotlightDefaultColor() {
     return new DashboardMetadataDTO("id", "title", "enterprise", "description", Arrays.asList("feature 1", "feature 2"),
-        "button text", "rolling-recap.svg", "faBrain", 1, true, "dashboards/rolling_recap::rolling_recap", null, null);
+        "button text", "rolling-recap.svg", "faBrain", 1, true, "dashboards/rolling_recap::rolling_recap", null, null,
+        "185");
   }
 
   private static DashboardMetadataDTO mockDashboardMetadataDTOSpotlightProvidedColor() {
-    return new DashboardMetadataDTO("id", "title", "enterprise", "description",
-        Arrays.asList("feature 1", "feature 2"), "button text", "rolling-recap.svg", "faBrain", 2, true,
-        "dashboards/rolling_recap::rolling_recap", "kiwi", null);
+    return new DashboardMetadataDTO("id2", "title 2", "enterprise", "description",
+        Arrays.asList("feature 3", "feature 4"), "button text", "rolling-recap.svg", "faBrain", 2, true,
+        "dashboards/rolling_recap::rolling_recap", "pink", null, "400");
   }
 
   private static DashboardMetadataDTO mockDashboardMetadataDTO() {
-    return new DashboardMetadataDTO("id 2", "title 2", "dataInsight", "description 2",
-        Arrays.asList("feature 3", "feature 4"), "button text 2", "rolling-recap.svg", "faBrain", 3, false,
+    return new DashboardMetadataDTO("id3", "title 3", "dataInsight", "description 2",
+        Arrays.asList("feature 5", "feature 6"), "button text 2", "rolling-recap.svg", "faBrain", 3, false,
         "dashboards/rolling_recap::rolling_recap", null, null);
   }
 
   private static DashboardMetadataDTO mockDashboardMetadataDTOSpotlightTextProvided() {
-    return new DashboardMetadataDTO("id3", "title 3", "dataInsight", "description",
-        Arrays.asList("feature 5", "feature 6"), "button text", "rolling-recap.svg", "faThumbsUp", 4, true,
+    return new DashboardMetadataDTO("id4", "title 4", "dataInsight", "description",
+        Arrays.asList("feature 7", "feature 8"), "button text", "rolling-recap.svg", "faThumbsUp", 4, true,
         "dashboards/rolling_recap::rolling_recap", null, "TEST");
   }
 
   private static DashboardMetadataDTO mockDashboardMetadataDTOSpotlightTextProvidedDisabledSpotlight() {
-    return new DashboardMetadataDTO("id3", "title 3", "dataInsihgt", "description",
-        Arrays.asList("feature 5", "feature 6"), "button text", "rolling-recap.svg", "faThumbsUp", 4, false,
+    return new DashboardMetadataDTO("id5", "title 5", "dataInsight", "description",
+        Arrays.asList("feature 9", "feature 10"), "button text", "rolling-recap.svg", "faThumbsUp", 4, false,
         "dashboards/rolling_recap::rolling_recap", null, "TEST");
   }
 }

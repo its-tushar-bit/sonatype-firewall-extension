@@ -35,6 +35,8 @@ public class DashboardMetadataDTO
 
   public String dashboardPath;
 
+  public String sinceIQVersion;
+
   public DashboardMetadataDTO() {
     //for jackson;
   }
@@ -66,5 +68,37 @@ public class DashboardMetadataDTO
     this.dashboardPath = dashboardPath;
     this.spotlightColor = spotlightColor;
     this.spotlightText = spotlightText;
+  }
+
+  //for testing
+  public DashboardMetadataDTO(final String dashboardId,
+                              final String title,
+                              final String category,
+                              final String description,
+                              final List<String> features,
+                              final String accessButtonText,
+                              final String previewImage,
+                              final String previewImageIcon,
+                              final Integer priority,
+                              final boolean spotlight,
+                              final String dashboardPath,
+                              final String spotlightColor,
+                              final String spotlightText,
+                              final String sinceIQVersion)
+  {
+    this.dashboardId = dashboardId;
+    this.title = title;
+    this.category = category;
+    this.description = description;
+    this.features = features;
+    this.accessButtonText = accessButtonText;
+    this.previewImage = previewImage;
+    this.previewImageIcon = previewImageIcon;
+    this.priority = priority;
+    this.spotlight = spotlight;
+    this.dashboardPath = dashboardPath;
+    this.spotlightColor = spotlightColor;
+    this.spotlightText = spotlightText;
+    this.sinceIQVersion = sinceIQVersion;
   }
 }

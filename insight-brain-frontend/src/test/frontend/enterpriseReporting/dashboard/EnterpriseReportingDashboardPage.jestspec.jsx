@@ -18,6 +18,7 @@ import { actions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReport
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 import { screen } from '@testing-library/dom';
+import userEvent from '@testing-library/user-event';
 import { LookerEmbedSDK } from '@looker/embed-sdk';
 
 describe('EnterpriseReportingDashboardPage', () => {
@@ -28,30 +29,36 @@ describe('EnterpriseReportingDashboardPage', () => {
     {
       dashboardId: 'rolling-recap',
       title: 'Rolling Recap Dashboard',
+      category: 'dataInsight',
       description: 'Unlock trends by comparing your usage with the rest of the industry, over the past year.',
       features: ['Analyze app performance', 'Compare initial & latest scans', 'View security experts’ rating'],
       accessButtonText: 'View Rolling Recap',
       previewImage: '',
+      previewImageIcon: '',
       priority: 1,
       spotlight: false,
     },
     {
       dashboardId: 'ai-consumption',
       title: 'Machine Learning AI',
+      category: 'dataInsight',
       description: 'Observe Machine Learning (ML) components and integrations within your software.',
       features: ['Sort components by AI type', 'Monitor AI within your apps', 'Isolate exact locations of AI'],
       accessButtonText: 'View ML/AI',
       previewImage: '',
+      previewImageIcon: '',
       priority: 2,
       spotlight: true,
     },
     {
       dashboardId: 'success-metrics',
       title: 'Success Metrics',
+      category: 'enterprise',
       description: 'Explore your vulnerability discovery and remediation patterns',
       features: ['Follow remediation activity', 'Analyze violation pattners', 'Explore apps an components'],
       accessButtonText: 'View Success Metrics',
       previewImage: '',
+      previewImageIcon: '',
       priority: -20,
       spotlight: true,
     },
@@ -67,6 +74,7 @@ describe('EnterpriseReportingDashboardPage', () => {
     });
 
   beforeAll(() => {
+    window.clmServerVersion = '1.188.0-SNAPSHOT';
     axiosMock = axiosMockAdapter();
   });
 
@@ -141,6 +149,7 @@ describe('EnterpriseReportingDashboardPage', () => {
 
   describe('Dashboard Navigation Links', () => {
     let hrefSpy, routerContextMock;
+
     const loadedState = {
       dashboardsData: dashboardMetadata,
       loading: false,
@@ -171,23 +180,20 @@ describe('EnterpriseReportingDashboardPage', () => {
         });
       };
 
-      await waitFor(() => {
-        const linkItems = within(nav).getAllByRole('link');
-        expect(linkItems.length).toBe(2);
-        linkItemTests(linkItems[0], 'Success Metrics', 'success-metrics');
-        linkItemTests(linkItems[1], 'Machine Learning AI', 'ai-consumption');
-      });
+      const linkItems = await within(nav).findAllByRole('link');
+      expect(linkItems.length).toBe(2);
+      linkItemTests(linkItems[0], 'Success Metrics', 'success-metrics');
+      linkItemTests(linkItems[1], 'Machine Learning AI', 'ai-consumption');
     });
 
     it("renders text instead of navigation link when on dashboard's page", async () => {
       renderComponent(loadedState);
       const nav = screen.getByRole('navigation');
 
-      await waitFor(() => {
-        const rollingRecap = screen.getByText('Rolling Recap Dashboard');
-        expect(rollingRecap).toBeInTheDocument();
-        expect(rollingRecap.tagName).toBe('SPAN');
-      });
+      const rollingRecap = await screen.findByText('Rolling Recap Dashboard');
+      expect(rollingRecap).toBeInTheDocument();
+      expect(rollingRecap.tagName).toBe('SPAN');
+
       const rollingRecapLink = within(nav).queryByRole('link', { name: 'Rolling Recap Dashboard' });
       expect(rollingRecapLink).not.toBeInTheDocument();
     });
@@ -202,14 +208,52 @@ describe('EnterpriseReportingDashboardPage', () => {
       expect(enterprise).toBeInTheDocument();
       expect(dataInsights).toBeInTheDocument();
 
-      await waitFor(() => {
-        const enterpriseList = within(enterprise.nextElementSibling).getAllByRole('link');
-        expect(enterpriseList.length).toBe(1);
-        expect(enterpriseList[0]).toHaveTextContent('Success Metrics');
+      const enterpriseList = await within(enterprise.nextElementSibling).findAllByRole('link');
+      expect(enterpriseList.length).toBe(1);
+      expect(enterpriseList[0]).toHaveTextContent('Success Metrics');
 
-        const dataInsightsList = within(dataInsights.nextElementSibling).getAllByRole('link');
-        expect(dataInsightsList.length).toBe(1);
-        expect(dataInsightsList[0]).toHaveTextContent('Machine Learning AI');
+      const dataInsightsList = await within(dataInsights.nextElementSibling).findAllByRole('link');
+      expect(dataInsightsList.length).toBe(1);
+      expect(dataInsightsList[0]).toHaveTextContent('Machine Learning AI');
+    });
+
+    describe('disabled', () => {
+      beforeEach(() => {
+        window.clmServerVersion = '1.182.0-SNAPSHOT';
+        const updatedDashbaord = {
+          dashboardId: 'success-metrics',
+          title: 'Success Metrics',
+          category: 'enterprise',
+          description: 'Explore your vulnerability discovery and remediation patterns',
+          features: ['Follow remediation activity', 'Analyze violation pattners', 'Explore apps an components'],
+          accessButtonText: 'View Success Metrics',
+          previewImage: '',
+          previewImageIcon: '',
+          priority: -20,
+          spotlight: true,
+          sinceIQVersion: '184',
+        };
+        axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(200, { dashboardMetadata: [updatedDashbaord] });
+      });
+
+      it('disables links when sinceIQVersion is greater than serverVersion', async () => {
+        renderPage();
+
+        const successMetricsLink = await screen.findByRole('link');
+        expect(successMetricsLink).toHaveTextContent('Success Metrics');
+        expect(successMetricsLink).toHaveAttribute('aria-disabled', 'true');
+      });
+
+      it('renders a tooltip on hover', async () => {
+        const user = userEvent.setup();
+        renderPage();
+
+        const successMetricsLink = await screen.findByRole('link');
+        expect(successMetricsLink).toHaveAttribute('aria-disabled', 'true');
+
+        await user.hover(successMetricsLink);
+        const tooltip = await screen.findByRole('tooltip');
+        expect(tooltip).toHaveTextContent('Upgrade to IQ version 184 to access this insight');
       });
     });
   });

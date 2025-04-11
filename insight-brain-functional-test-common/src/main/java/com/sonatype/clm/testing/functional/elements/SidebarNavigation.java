@@ -102,7 +102,7 @@ public class SidebarNavigation
   }
 
   public static MainHeaderNavigationButton enterpriseReportingNavigationButton() {
-    return new MainHeaderNavigationButton("#enterprise-reporting-buttonn");
+    return new MainHeaderNavigationButton("#enterprise-reporting-button");
   }
 
   public static MainHeaderNavigationButton firewallDashboardNavigationButton() {

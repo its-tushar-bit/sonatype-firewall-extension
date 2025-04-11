@@ -107,6 +107,7 @@
           <name>Not Declared</name>
         </license>
       </licenses>
+      <cpe>cpe:/a:commons-discovery:commons-discovery:0.2</cpe>
       <purl>pkg:maven/commons-discovery/commons-discovery@0.2?type=jar</purl>
       <modified>false</modified>
       <properties>
@@ -134,6 +135,7 @@
           <name>See-License-Clause</name>
         </license>
       </licenses>
+      <cpe>cpe:2.3:a:commons-logging:commons-logging:1.0.4:*:*:*:*:*:*:*</cpe>
       <purl>pkg:maven/commons-logging/commons-logging@1.0.4?type=jar</purl>
       <modified>false</modified>
       <properties>

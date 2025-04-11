@@ -50,6 +50,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationHelper;
+import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -348,7 +349,7 @@ public class ApiSpdxService
     }
 
     if (reportComponent.cpe != null) {
-      String cpeVersion = reportComponent.cpe.startsWith("cpe:2.3") ? "cpe23Type" : "cpe22Type";
+      String cpeVersion = SbomSpdxUtils.getSpdxCpeVersion(reportComponent.cpe);
       additionalExternalRefs.add(document.createExternalRef(ReferenceCategory.SECURITY,
           new ReferenceType(SpdxConstants.SPDX_LISTED_REFERENCE_TYPES_PREFIX + cpeVersion), reportComponent.cpe,
           null));

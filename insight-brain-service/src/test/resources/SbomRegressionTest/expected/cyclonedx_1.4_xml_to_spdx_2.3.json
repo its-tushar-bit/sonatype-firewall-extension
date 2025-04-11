@@ -130,7 +130,7 @@
     "externalRefs" : [ {
       "referenceCategory" : "SECURITY",
       "referenceLocator" : "cpe:/a:example:myapplication:1.0.0",
-      "referenceType" : "cpe23Type"
+      "referenceType" : "cpe22Type"
     }, {
       "comment" : "All component versions are documented here",
       "referenceCategory" : "OTHER",

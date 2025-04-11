@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabi
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.report.pdf.PdfData;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
+import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -533,7 +534,7 @@ public class CycloneDxToSpdxExporter
     if (cpe != null && !cpe.isEmpty()) {
       ExternalRef cpeRef = spdxPackage.createExternalRef(ReferenceCategory.SECURITY,
           ListedReferenceTypes.getListedReferenceTypes()
-              .getListedReferenceTypeByName("cpe23Type"),
+              .getListedReferenceTypeByName(SbomSpdxUtils.getSpdxCpeVersion(cpe)),
           cpe, null);
       spdxPackage.addExternalRef(cpeRef);
     }

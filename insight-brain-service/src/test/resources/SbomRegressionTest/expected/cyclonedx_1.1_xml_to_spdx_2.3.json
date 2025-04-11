@@ -85,7 +85,7 @@
     }, {
       "referenceCategory" : "SECURITY",
       "referenceLocator" : "cpe:/a:example:myapplication:1.0.0",
-      "referenceType" : "cpe23Type"
+      "referenceType" : "cpe22Type"
     }, {
       "referenceCategory" : "PACKAGE-MANAGER",
       "referenceLocator" : "pkg:maven/com.example/myapplication@1.0.0?packaging=war",

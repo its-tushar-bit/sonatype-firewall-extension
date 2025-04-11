@@ -94,7 +94,7 @@
     <externalRefs>
       <referenceCategory>SECURITY</referenceCategory>
       <referenceLocator>cpe:/a:example:myapplication:1.0.0</referenceLocator>
-      <referenceType>cpe23Type</referenceType>
+      <referenceType>cpe22Type</referenceType>
     </externalRefs>
     <externalRefs>
       <referenceCategory>PACKAGE-MANAGER</referenceCategory>

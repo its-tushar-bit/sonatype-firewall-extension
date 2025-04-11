@@ -486,4 +486,8 @@ public final class SbomSpdxUtils
     return spdxDocument.contains("SPDXRef-DOCUMENT") && 
         (spdxDocument.contains("<SPDXID>") || spdxDocument.contains("\"SPDXID\""));
   }
+
+  public static String getSpdxCpeVersion(String cpe) {
+    return cpe.startsWith("cpe:2.3") ? "cpe23Type" : "cpe22Type";
+  }
 }

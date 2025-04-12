@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverExclusionDAO;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion;
@@ -213,6 +214,7 @@ public class ApiAutoPolicyWaiverExclusionService
   {
     AutoPolicyWaiverUtil.validateAutoWaiversFeatureEnabled();
     checkOwnerType(ownerType, ownerId);
+
     List<AutoPolicyWaiverExclusion> exclusions =
         autoPolicyWaiverExclusionDAO.getByOwnerIdAndAutoPolicyWaiverIdPaginated(
             ownerId,
@@ -221,9 +223,11 @@ public class ApiAutoPolicyWaiverExclusionService
             pageSize
         );
 
+    Owner owner = getOwner(ownerType, ownerId);
+
     List<ApiAutoPolicyWaiverExclusionResponseDTO> results = new ArrayList<>();
     for (AutoPolicyWaiverExclusion exclusion : exclusions) {
-      results.add(ApiAutoPolicyWaiverExclusionAdapter.convertToDTO(exclusion));
+      results.add(ApiAutoPolicyWaiverExclusionAdapter.convertToDTO(owner, exclusion));
     }
     return results;
   }
@@ -236,6 +240,17 @@ public class ApiAutoPolicyWaiverExclusionService
       case ORGANIZATION:
         AuditData.get().setData("organizationId", ownerId).setOrganization(organizationDAO.getById(ownerId));
         break;
+      default:
+        throw new BadRequestException("Unknown owner type: " + ownerType);
+    }
+  }
+
+  private Owner getOwner(final OwnerType ownerType, final String ownerId) throws BadRequestException {
+    switch (ownerType) {
+      case APPLICATION:
+        return applicationDAO.getById(ownerId);
+      case ORGANIZATION:
+        return organizationDAO.getById(ownerId);
       default:
         throw new BadRequestException("Unknown owner type: " + ownerType);
     }

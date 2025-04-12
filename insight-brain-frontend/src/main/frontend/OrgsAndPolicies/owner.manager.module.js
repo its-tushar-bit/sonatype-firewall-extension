@@ -36,6 +36,7 @@ import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdo
 import { selectIsDirty as policyEditorSelectIsDirty } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import AutoWaiversConfiguration from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiversConfiguration';
 import AutomatedWaiversConfiguration from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutomatedWaiversConfiguration';
+import AutoWaiverDetails from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverDetails';
 
 export default angular
   .module('owner.manager.module', [
@@ -72,7 +73,11 @@ export default angular
   .component('actionDropdown', iqReact2Angular(ActionDropdown, [], ['$ngRedux', '$state']))
   .component('ownerDetailSidebar', iqReact2Angular(OwnerDetailSidebar, [], ['$ngRedux', '$state']))
   .component('repositoriesPills', iqReact2Angular(RepositoriesPills, [], []))
-  .component('automatedWaiversConfiguration', iqReact2Angular(AutomatedWaiversConfiguration, [], ['$ngRedux']))
+  .component(
+    'automatedWaiversConfiguration',
+    iqReact2Angular(AutomatedWaiversConfiguration, [], ['$ngRedux', '$state'])
+  )
+  .component('autoWaiverDetails', iqReact2Angular(AutoWaiverDetails, [], ['$ngRedux', '$state']))
   .config([
     '$stateProvider',
     function ($stateProvider) {
@@ -246,6 +251,13 @@ export default angular
               title: ownerType.name + ' Auto Waivers Configuration',
             },
             component: 'automatedWaiversConfiguration',
+          })
+          .state('management.edit.' + ownerType.type + '.auto-waiver-details', {
+            url: `/ownertype/{ownerType}/autowaiverowner/{autoWaiverOwnerId}/autowaiver/{autoWaiverId}`,
+            data: {
+              title: ownerType.name + ' Auto Waiver Details',
+            },
+            component: 'autoWaiverDetails',
           });
       });
 

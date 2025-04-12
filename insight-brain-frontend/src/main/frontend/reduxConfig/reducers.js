@@ -107,6 +107,9 @@ import latestReportForStageSlice from 'MainRoot/applicationReport/latestReportFo
 import sbomApplicationsPageSlice from 'MainRoot/sbomManager/features/sbomApplicationsPage/sbomApplicationsPageSlice';
 import sbomExportSlice from 'MainRoot/sbomManager/features/sbomExport/sbomExportSlice';
 import autoWaiverDetailsSlice from 'MainRoot/waivers/waiverDetails/autoWaiverDetailsSlice';
+import autoWaiverDetailsSlice2 from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverDetailsSlice';
+import autoWaiverDetailsExclusionsSlice from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverExclusionsSlice';
+import autoWaiverExclusionDeleteModalSlice from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverExclusionDeleteModalSlice';
 import applicationLatestEvaluationsSlice from 'MainRoot/applicationLatestEvaluations/applicationLatestEvaluationsSlice';
 import roiFirewallMetricsSlice from 'MainRoot/firewall/roiMetrics/roiFirewallMetricsSlice';
 import roiConfigurationPageSlice from 'MainRoot/configuration/roiConfiguration/roiConfigurationPageSlice';
@@ -217,6 +220,9 @@ export default combineReducers({
   latestReportForStage: latestReportForStageSlice,
   sbomApplicationsPage: sbomApplicationsPageSlice,
   autoWaiverDetails: autoWaiverDetailsSlice,
+  autoWaiverDetails2: autoWaiverDetailsSlice2,
+  autoWaiverDetailsExclusions: autoWaiverDetailsExclusionsSlice,
+  autoWaiverExclusionDeleteModal: autoWaiverExclusionDeleteModalSlice,
   applicationLatestEvaluations: applicationLatestEvaluationsSlice,
   roiFirewallMetrics: roiFirewallMetricsSlice,
   roiConfigurationPage: roiConfigurationPageSlice,

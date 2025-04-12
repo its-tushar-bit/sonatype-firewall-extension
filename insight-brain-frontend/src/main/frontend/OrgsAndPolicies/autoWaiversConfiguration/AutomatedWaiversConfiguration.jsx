@@ -21,11 +21,12 @@ import {
   NxTable,
   NxThreatIndicator,
   NxTooltip,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 import { actions } from 'MainRoot/OrgsAndPolicies/applicableAutoWaiversSlice';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as autoWaiverActions } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverModalSlice';
-import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsSbomManager, selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectApplicableAutoWaivers } from 'MainRoot/OrgsAndPolicies/automatedWaiversSelectors';
 import { faPlus, faTrash } from '@fortawesome/pro-solid-svg-icons';
@@ -37,6 +38,8 @@ import { groupBy } from 'lodash';
 import classNames from 'classnames';
 import './_autoWaiversConfiguration.scss';
 import PropTypes from 'prop-types';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
 
 export const formatDate = (date) => moment(date).format('YYYY-MM-DD');
 
@@ -166,9 +169,13 @@ function AutomatedWaiversConfigurationContents() {
 
 function AutomatedWaiversConfigurationRow({ autoWaiver }) {
   const dispatch = useDispatch();
+  const uiStateRouter = useRouterState();
+  const router = useSelector(selectRouterSlice());
   const {
     autoPolicyWaiverId,
+    autoPolicyWaiverOwnerId,
     autoPolicyWaiverOwnerName,
+    autoPolicyWaiverOwnerType,
     createTime,
     threatLevel,
     hasNotReachable,
@@ -176,12 +183,24 @@ function AutomatedWaiversConfigurationRow({ autoWaiver }) {
     isInherited,
   } = autoWaiver || {};
 
+  const { to, params } = deriveEditRoute(router, 'auto-waiver-details', {
+    ownerType: autoPolicyWaiverOwnerType,
+    autoWaiverOwnerId: autoPolicyWaiverOwnerId,
+    autoWaiverId: autoPolicyWaiverId,
+  });
+
+  const href = uiStateRouter.href(to, params);
+
   const scope = [hasNotReachable && 'Not Reachable', hasNoPathForward && 'No Path Forward'].filter(Boolean).join('; ');
 
   const handleDeleteClick = () => {
     if (!isInherited) {
       dispatch(actions.openDeleteModal(autoPolicyWaiverId));
     }
+  };
+
+  const viewEditLink = () => {
+    return <NxTextLink href={href}>{isInherited ? 'View' : 'View/Edit'}</NxTextLink>;
   };
 
   return (
@@ -193,13 +212,13 @@ function AutomatedWaiversConfigurationRow({ autoWaiver }) {
         <span>{threatLevel}</span>
       </NxTable.Cell>
       <NxTable.Cell>{scope}</NxTable.Cell>
-      <NxTable.Cell>{isInherited ? 'View' : 'View/Edit'}</NxTable.Cell>
+      <NxTable.Cell>{viewEditLink()}</NxTable.Cell>
       <NxTable.Cell hasIcon className="iq-auto-waiver-delete-cell">
         <NxButton
-          variant={'icon-only'}
-          title={isInherited ? 'Cannot delete an inherited auto-waiver' : 'Delete'}
-          className={classNames('iq-auto-waiver-delete-button', { disabled: isInherited })}
-          onClick={handleDeleteClick}
+            variant={'icon-only'}
+            title={isInherited ? 'Cannot delete an inherited auto-waiver' : 'Delete'}
+            className={classNames('iq-auto-waiver-delete-button', { disabled: isInherited })}
+            onClick={handleDeleteClick}
         >
           <NxFontAwesomeIcon icon={faTrash} />
         </NxButton>

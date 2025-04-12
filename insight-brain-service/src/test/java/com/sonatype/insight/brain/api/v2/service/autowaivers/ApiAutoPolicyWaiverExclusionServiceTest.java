@@ -838,6 +838,9 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     assertThat(result.get(0).autoPolicyWaiverExclusionId).isEqualTo(exclusion.getId());
     assertThat(result.get(0).ownerId).isEqualTo(app.getId());
     assertThat(result.get(0).autoPolicyWaiverId).isEqualTo(waiver.getId());
+    assertThat(result.get(0).ownerName).isEqualTo(app.getName());
+    assertThat(result.get(0).ownerPublicId).isEqualTo(app.getPublicId());
+    assertThat(result.get(0).ownerType).isEqualTo(app.getType().toString());
   }
 
   @Test

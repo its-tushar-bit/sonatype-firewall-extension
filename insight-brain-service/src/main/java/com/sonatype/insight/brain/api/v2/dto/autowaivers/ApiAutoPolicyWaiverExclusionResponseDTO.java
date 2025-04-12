@@ -37,6 +37,12 @@ public class ApiAutoPolicyWaiverExclusionResponseDTO
 
   public String autoPolicyWaiverId;
 
+  public String ownerName;
+
+  public String ownerPublicId;
+
+  public String ownerType;
+
   public String hash;
   
   public String scanId;

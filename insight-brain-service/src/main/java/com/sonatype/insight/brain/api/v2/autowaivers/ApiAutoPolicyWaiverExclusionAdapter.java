@@ -6,10 +6,22 @@
 package com.sonatype.insight.brain.api.v2.autowaivers;
 
 import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverExclusionResponseDTO;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
 
 public class ApiAutoPolicyWaiverExclusionAdapter
 {
+  public static ApiAutoPolicyWaiverExclusionResponseDTO convertToDTO(
+      final Owner owner,
+      final AutoPolicyWaiverExclusion autoPolicyWaiverExclusion)
+  {
+    ApiAutoPolicyWaiverExclusionResponseDTO responseDTO = convertToDTO(autoPolicyWaiverExclusion);
+    responseDTO.ownerName = owner.getName();
+    responseDTO.ownerType = owner.getType().toString();
+    responseDTO.ownerPublicId = owner.getPublicId();
+    return responseDTO;
+  }
+
   public static ApiAutoPolicyWaiverExclusionResponseDTO convertToDTO(
       final AutoPolicyWaiverExclusion autoPolicyWaiverExclusion)
   {

@@ -1,0 +1,68 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import axios from 'axios';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { getAutoWaiversConfigurationURLWaiver } from 'MainRoot/util/CLMLocation';
+import { prop } from 'ramda';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+
+const REDUCER_NAME = 'autoWaiverDetails2';
+
+export const initialState = Object.freeze({
+  loading: false,
+  loadError: null,
+  waiverDetails: null,
+});
+
+// Axios request to get waiver details
+const loadAutoWaiverDetails = createAsyncThunk(
+  `${REDUCER_NAME}/loadWaiver`,
+  async (_, { getState, rejectWithValue }) => {
+    const state = getState();
+    const { ownerType, autoWaiverOwnerId, autoWaiverId } = selectRouterCurrentParams(state);
+
+    return axios
+      .get(getAutoWaiversConfigurationURLWaiver(ownerType, autoWaiverOwnerId, autoWaiverId))
+      .then(prop('data'))
+      .catch(rejectWithValue);
+  }
+);
+
+const loadAutoWaiverRequestedDetails = (state) => {
+  state.loading = true;
+  state.loadError = null;
+};
+
+const loadAutoWaiverFulfilledDetails = (state, { payload }) => {
+  state.loading = false;
+  state.loadError = null;
+  state.waiverDetails = payload;
+};
+
+const loadAutoWaiverFailedDetails = (state, { payload }) => {
+  state.waiverDetails = null;
+  state.loading = false;
+  state.loadError = Messages.getHttpErrorMessage(payload);
+};
+
+const autoWaiverDetailsSlice = createSlice({
+  name: REDUCER_NAME,
+  initialState,
+  reducers: {},
+  extraReducers: {
+    [loadAutoWaiverDetails.pending]: loadAutoWaiverRequestedDetails,
+    [loadAutoWaiverDetails.fulfilled]: loadAutoWaiverFulfilledDetails,
+    [loadAutoWaiverDetails.rejected]: loadAutoWaiverFailedDetails,
+  },
+});
+
+export default autoWaiverDetailsSlice.reducer;
+
+export const actions = {
+  ...autoWaiverDetailsSlice.actions,
+  loadAutoWaiverDetails,
+};

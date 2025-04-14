@@ -184,6 +184,7 @@ describe('Auto Waiver Modal Component', () => {
         expect(axiosMock.history.post[0].url).toBe('/api/v2/autoPolicyWaivers/application/app');
         expect(axiosMock.history.post[0].data).toBe(
           JSON.stringify({
+            reachability: false,
             pathForward: true,
             threatLevel: 7,
             scopesOperatorAny: true,
@@ -335,6 +336,7 @@ describe('Auto Waiver Modal Component', () => {
             autoPolicyWaiverId: 'abc123',
             reachability: true,
             pathForward: false,
+            scopesOperatorAny: true,
           })
         );
       });

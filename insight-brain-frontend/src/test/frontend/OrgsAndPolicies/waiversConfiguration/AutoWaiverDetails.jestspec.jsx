@@ -8,6 +8,7 @@ import { render, screen, fireEvent, axiosMockAdapter, within, waitFor } from 'Te
 import { getAutoWaiversConfigurationURLWaiver } from 'MainRoot/util/CLMLocation';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 import AutoWaiverDetails from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverDetails';
+import { lensPath, set } from 'ramda';
 
 describe('Auto Waiver Details', function () {
   let axiosMock,
@@ -277,6 +278,83 @@ describe('Auto Waiver Details', function () {
         expect(reason).toBeInTheDocument();
         expect(reason).toHaveTextContent('Not reachable');
         expect(reason).not.toHaveTextContent('No upgrade path');
+      });
+    });
+  });
+
+  describe('action buttons', () => {
+    it('renders edit and delete buttons', async () => {
+      await waitFor(() => {
+        renderComponent();
+      });
+
+      expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument();
+    });
+
+    describe('edit button', () => {
+      it('opens the auto-waiver modal in edit mode', async () => {
+        await waitFor(() => {
+          renderComponent();
+        });
+
+        const editButton = screen.getByRole('button', { name: 'Edit' });
+        fireEvent.click(editButton);
+
+        const autoWaiverModal = screen.getByTestId('iq-auto-waiver-modal');
+        expect(autoWaiverModal).toBeInTheDocument();
+        expect(within(autoWaiverModal).getByRole('heading', { name: 'Edit Auto-Waiver' })).toBeInTheDocument();
+      });
+
+      it('is disabled with a tooltip when waiver is inherited', async () => {
+        const selectedOwnerLens = lensPath(['orgsAndPolicies', 'root', 'selectedOwner', 'id']);
+        const newState = set(selectedOwnerLens, 'some-other-owner', initialState);
+
+        await waitFor(() => {
+          renderComponent(newState);
+        });
+
+        const editButton = screen.getByRole('button', { name: 'Edit' });
+        expect(editButton).toHaveClass('disabled');
+
+        fireEvent.mouseOver(editButton);
+
+        const tooltip = await screen.findByRole('tooltip');
+        expect(tooltip).toBeInTheDocument();
+        expect(tooltip).toHaveTextContent('Cannot edit an inherited auto-waiver');
+      });
+    });
+
+    describe('delete button', () => {
+      it('opens the delete auto-waiver modal', async () => {
+        await waitFor(() => {
+          renderComponent();
+        });
+
+        const deleteButton = screen.getByRole('button', { name: 'Delete' });
+        fireEvent.click(deleteButton);
+
+        const deleteAutoWaiverModal = screen.getByTestId('iq-delete-auto-waiver-modal');
+        expect(deleteAutoWaiverModal).toBeInTheDocument();
+        expect(within(deleteAutoWaiverModal).getByRole('heading', { name: 'Delete Auto-Waiver' })).toBeInTheDocument();
+      });
+
+      it('is disabled with a tooltip when waiver is inherited', async () => {
+        const selectedOwnerLens = lensPath(['orgsAndPolicies', 'root', 'selectedOwner', 'id']);
+        const newState = set(selectedOwnerLens, 'some-other-owner', initialState);
+
+        await waitFor(() => {
+          renderComponent(newState);
+        });
+
+        const deleteButton = screen.getByRole('button', { name: 'Delete' });
+        expect(deleteButton).toHaveClass('disabled');
+
+        fireEvent.mouseOver(deleteButton);
+
+        const tooltip = await screen.findByRole('tooltip');
+        expect(tooltip).toBeInTheDocument();
+        expect(tooltip).toHaveTextContent('Cannot delete an inherited auto-waiver');
       });
     });
   });

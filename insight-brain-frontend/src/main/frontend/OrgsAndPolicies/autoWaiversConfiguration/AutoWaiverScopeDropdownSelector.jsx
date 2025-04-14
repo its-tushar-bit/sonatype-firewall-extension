@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NxDropdown, NxTooltip, useToggle } from '@sonatype/react-shared-components';
 
 import * as PropTypes from 'prop-types';
@@ -19,6 +19,12 @@ export default function AutoWaiverScopeDropdownSelector({ scope, onSelectScope, 
   const [isScopeDropdownOpen, toggleIsScopeDropdownOpen] = useToggle(false);
 
   const classnames = cx('iq-threat-dropdown-selector', { disabled }, className);
+
+  useEffect(() => {
+    if (disabled && scope === 'all') {
+      onSelectScope('any');
+    }
+  }, [scope, disabled]);
 
   return (
     <NxTooltip title={disabled ? 'Select both conditions below to enable this option' : ''}>

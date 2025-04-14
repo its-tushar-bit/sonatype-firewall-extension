@@ -20,16 +20,23 @@ import { propSet } from 'MainRoot/util/jsUtil';
 import { actions as applicableAutoWaiversActions } from 'MainRoot/OrgsAndPolicies/applicableAutoWaiversSlice';
 
 const REDUCER_NAME = 'autoWaiverActions/autoWaiverModal';
+const DEFAULT_CONFIG = {
+  reachability: false,
+  pathForward: false,
+  threatLevel: 7,
+  scope: 'any',
+};
 
-export const initialState = {
+export const initialState = Object.freeze({
   submitError: null,
   submitMaskState: null,
   isModalOpen: false,
   isEditMode: false,
   isDirty: false,
   isUnsavedChangesModalOpen: false,
-  data: null,
-};
+  data: DEFAULT_CONFIG,
+  serverData: DEFAULT_CONFIG,
+});
 
 const setIsDirty = (state, { payload }) => {
   return { ...state, isDirty: payload };
@@ -52,7 +59,8 @@ const closeModal = (state, { payload }) => {
   state.isEditMode = false;
   state.isDirty = false;
   state.isUnsavedChangesModalOpen = false;
-  state.data = null;
+  state.data = DEFAULT_CONFIG;
+  state.serverData = DEFAULT_CONFIG;
 };
 
 const openModal = (state) => {
@@ -65,6 +73,7 @@ const openEditModal = (state, { payload }) => {
   state.isModalOpen = true;
   state.isEditMode = true;
   state.data = payload;
+  state.serverData = payload;
 };
 
 const closeUnsavedChangesModal = (state) => {
@@ -74,7 +83,7 @@ const closeUnsavedChangesModal = (state) => {
 const toggleCheckboxNoUpgradePath = (state) => {
   const newData = {
     ...state.data,
-    pathForward: !(state.data?.pathForward ?? false),
+    pathForward: !state.data?.pathForward,
   };
   return computeIsDirty({ ...state, data: newData });
 };
@@ -82,7 +91,7 @@ const toggleCheckboxNoUpgradePath = (state) => {
 const toggleCheckboxReachability = (state) => {
   const newData = {
     ...state.data,
-    reachability: !(state.data?.reachability ?? false),
+    reachability: !state.data?.reachability,
   };
   return computeIsDirty({ ...state, data: newData });
 };
@@ -175,6 +184,7 @@ const saveAutoWaiver = createAsyncThunk(
       ownerId: waivers.ownerId,
       reachability: waivers.reachability,
       pathForward: waivers.pathForward,
+      scopesOperatorAny: waivers.scope !== 'all',
     };
     return axios
       .put(getAutoWaiversConfigurationURLWaiver(ownerType, ownerId, waiversId), putData)

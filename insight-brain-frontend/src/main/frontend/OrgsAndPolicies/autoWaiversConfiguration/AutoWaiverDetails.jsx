@@ -13,22 +13,37 @@ import {
   NxFontAwesomeIcon,
   NxSmallTag,
   NxThreatIndicator,
-  NxTextLink, NxH3,
+  NxTextLink,
+  NxH3,
+  NxButton,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
+
+import AutoWaiverExclusionLogTable from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverExclusionLogTable';
+import AutoWaiverModal from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverModal';
+import DeleteAutoWaiverModal from './DeleteAutoWaiverModal';
+import ReachabilityStatus from 'MainRoot/componentDetails/ReachabilityStatus/ReachabilityStatus';
 
 import {
   selectAutoWaiverDetails,
   selectAutoWaiverDetailsLoading,
   selectAutoWaiverDetailsError,
 } from './autoWaiverDetailsSelectors';
-import { actions } from './autoWaiverDetailsSlice';
-import { faSitemap, faTerminal } from '@fortawesome/pro-solid-svg-icons';
-import moment from 'moment';
-import ReachabilityStatus from 'MainRoot/componentDetails/ReachabilityStatus/ReachabilityStatus';
-import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import AutoWaiverExclusionLogTable from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverExclusionLogTable';
+import { selectAutoWaiverModalSlice } from './autoWaiverModalSelectors';
+import { selectApplicableAutoWaivers } from 'MainRoot/OrgsAndPolicies/automatedWaiversSelectors';
+import { selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+
+import { actions } from './autoWaiverDetailsSlice';
+import { actions as autoWaiverActions } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverModalSlice';
+import { actions as applicableAutoWaiversActions } from 'MainRoot/OrgsAndPolicies/applicableAutoWaiversSlice';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
+
+import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
+import { faSitemap, faTerminal } from '@fortawesome/pro-solid-svg-icons';
+import moment from 'moment';
 import './_autoWaiverDetails.scss';
 
 export default function AutoWaiverDetails() {
@@ -40,8 +55,27 @@ export default function AutoWaiverDetails() {
   const selectedOwner = useSelector(selectSelectedOwner);
   const routerCurrentParams = useSelector(selectRouterCurrentParams);
 
-  const { createTime, pathForward, reachability, threatLevel, ownerName, ownerType, publicId } = details || {};
+  const {
+    createTime,
+    pathForward,
+    reachability,
+    threatLevel,
+    scopesOperatorAny,
+    ownerId,
+    ownerName,
+    ownerType,
+    publicId,
+    autoPolicyWaiverId,
+  } = details || {};
   const formatDate = (date) => moment(date).format('MMMM D, YYYY');
+
+  const applicableAutoWaivers = useSelector(selectApplicableAutoWaivers);
+  const { isDeleteModalOpen, deleteSubmitMask } = applicableAutoWaivers || {};
+
+  const router = useSelector(selectRouterSlice);
+  const { to, params } = deriveEditRoute(router, 'auto-waivers-config');
+
+  const { submitMaskState } = useSelector(selectAutoWaiverModalSlice);
 
   const isApplication = ownerType === 'application';
   const ownerManagementUrl = isApplication
@@ -58,13 +92,48 @@ export default function AutoWaiverDetails() {
     dispatch(actions.loadAutoWaiverDetails());
   };
 
-  const isInherited = selectedOwner && routerCurrentParams &&
-      selectedOwner.id && routerCurrentParams.autoWaiverOwnerId &&
-      selectedOwner.id !== routerCurrentParams.autoWaiverOwnerId;
+  const isInherited =
+    selectedOwner &&
+    routerCurrentParams &&
+    selectedOwner.id &&
+    routerCurrentParams.autoWaiverOwnerId &&
+    selectedOwner.id !== routerCurrentParams.autoWaiverOwnerId;
+
+  const handleEditClick = () => {
+    const autoWaiverDetails = {
+      threatLevel,
+      autoPolicyWaiverId,
+      ownerId,
+      reachability,
+      pathForward,
+      scope: scopesOperatorAny ? 'any' : 'all',
+    };
+    if (!isInherited) {
+      dispatch(autoWaiverActions.openEditModal(autoWaiverDetails));
+    }
+  };
+
+  const handleDeleteClick = () => {
+    if (!isInherited) {
+      dispatch(applicableAutoWaiversActions.openDeleteModal(autoPolicyWaiverId));
+    }
+  };
 
   useEffect(() => {
     loadAutoWaiverDetails();
   }, []);
+
+  useEffect(() => {
+    if (deleteSubmitMask) {
+      dispatch(stateGo(to, params));
+    }
+  }, [deleteSubmitMask]);
+
+  useEffect(() => {
+    if (submitMaskState) {
+      loadAutoWaiverDetails();
+    }
+  }, [submitMaskState]);
 
   return (
     <>
@@ -73,6 +142,19 @@ export default function AutoWaiverDetails() {
           <NxTile.HeaderTitle>
             <NxH2>Auto-Waiver Details</NxH2>
           </NxTile.HeaderTitle>
+          <NxTile.HeaderActions>
+            <NxTooltip title={isInherited ? 'Cannot edit an inherited auto-waiver' : ''}>
+              <NxButton variant="tertiary" className={isInherited ? 'disabled' : ''} onClick={handleEditClick}>
+                Edit
+              </NxButton>
+            </NxTooltip>
+
+            <NxTooltip title={isInherited ? 'Cannot delete an inherited auto-waiver' : ''}>
+              <NxButton variant="primary" className={isInherited ? 'disabled' : ''} onClick={handleDeleteClick}>
+                Delete
+              </NxButton>
+            </NxTooltip>
+          </NxTile.HeaderActions>
         </NxTile.Header>
         <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={loadAutoWaiverDetails}>
           <div>
@@ -147,8 +229,10 @@ export default function AutoWaiverDetails() {
       <NxTile className="iq-exclusion-log-tile">
         <NxH2>Exclusion Log</NxH2>
         <NxH3>Violations excluded from this automation</NxH3>
-        <AutoWaiverExclusionLogTable disableDelete={isInherited}/>
+        <AutoWaiverExclusionLogTable disableDelete={isInherited} />
       </NxTile>
+      <AutoWaiverModal />
+      {isDeleteModalOpen && <DeleteAutoWaiverModal />}
     </>
   );
 }

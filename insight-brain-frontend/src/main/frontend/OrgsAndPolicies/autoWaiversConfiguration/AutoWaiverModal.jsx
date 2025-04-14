@@ -5,7 +5,6 @@
  */
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { isNil } from 'ramda';
 import UnsavedChangesModal from '../../unsavedChangesModal/UnsavedChangesModal';
 import {
   NxModal,
@@ -40,10 +39,10 @@ export default function AutoWaiverModal() {
   );
   const isNewScanProcessEnabled = useSelector(selectIsNewScanProcessEnabled);
   const waiverModal = useSelector(selectAutoWaiverDetails);
-  const reachability = isNewScanProcessEnabled ? waiverModal?.reachability ?? false : false;
-  const pathForward = waiverModal?.pathForward ?? false;
-  const threatLevel = waiverModal?.threatLevel ?? 7;
-  const scope = waiverModal?.scope ?? 'any';
+  const reachability = isNewScanProcessEnabled ? waiverModal.reachability : false;
+  const pathForward = waiverModal.pathForward;
+  const threatLevel = waiverModal.threatLevel;
+  const scope = waiverModal.scope;
 
   const closeModalWithCheck = () => dispatch(actions.closeModal({ isDirty }));
   const closeUnsavedChangesModal = () => dispatch(actions.closeUnsavedChangesModal());
@@ -75,13 +74,6 @@ export default function AutoWaiverModal() {
 
     return undefined;
   };
-
-  useEffect(() => {
-    if (isNil(waiverModal?.threatLevel)) {
-      setThreatLevel(7);
-      dispatch(actions.setIsDirty(false)); // reset dirty flag since this isn't a user-made change
-    }
-  }, [waiverModal.threatLevel]);
 
   useEffect(() => {
     return () => {

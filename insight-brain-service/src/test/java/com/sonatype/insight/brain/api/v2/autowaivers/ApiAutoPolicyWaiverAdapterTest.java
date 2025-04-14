@@ -33,6 +33,7 @@ public class ApiAutoPolicyWaiverAdapterTest
     autoPolicyWaiver.setCreatorId("creatorId");
     autoPolicyWaiver.setCreatorName("creatorName");
     autoPolicyWaiver.setCreateTime(new Date());
+    autoPolicyWaiver.setScopesOperatorAny(false);
 
     ApiAutoPolicyWaiverDTO apiAutoPolicyWaiverDTO = ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
     assertThat(apiAutoPolicyWaiverDTO).isNotNull();
@@ -44,5 +45,6 @@ public class ApiAutoPolicyWaiverAdapterTest
     assertThat(apiAutoPolicyWaiverDTO.creatorId).isEqualTo(autoPolicyWaiver.getCreatorId());
     assertThat(apiAutoPolicyWaiverDTO.creatorName).isEqualTo(autoPolicyWaiver.getCreatorName());
     assertThat(apiAutoPolicyWaiverDTO.createTime).isEqualTo(autoPolicyWaiver.getCreateTime());
+    assertThat(apiAutoPolicyWaiverDTO.scopesOperatorAny).isEqualTo(autoPolicyWaiver.getScopesOperatorAny());
   }
 }

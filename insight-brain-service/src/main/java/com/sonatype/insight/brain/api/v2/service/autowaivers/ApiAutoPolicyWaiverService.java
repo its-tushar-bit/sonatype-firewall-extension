@@ -446,7 +446,8 @@ public class ApiAutoPolicyWaiverService
   {
     if (apiAutoPolicyWaiverDTO.threatLevel == autoPolicyWaiver.getThreatLevel() &&
         apiAutoPolicyWaiverDTO.reachability == autoPolicyWaiver.hasReachability() &&
-        apiAutoPolicyWaiverDTO.pathForward == autoPolicyWaiver.hasPathForward()) {
+        apiAutoPolicyWaiverDTO.pathForward == autoPolicyWaiver.hasPathForward() &&
+        apiAutoPolicyWaiverDTO.scopesOperatorAny == autoPolicyWaiver.getScopesOperatorAny()) {
       throw new BadRequestException("No changes made to auto policy waiver configuration");
     }
   }

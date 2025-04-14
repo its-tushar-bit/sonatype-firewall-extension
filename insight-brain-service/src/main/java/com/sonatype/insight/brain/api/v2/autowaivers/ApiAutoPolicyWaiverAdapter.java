@@ -27,6 +27,7 @@ public class ApiAutoPolicyWaiverAdapter
     dto.creatorId = autoPolicyWaiver.getCreatorId();
     dto.creatorName = autoPolicyWaiver.getCreatorName();
     dto.createTime = autoPolicyWaiver.getCreateTime();
+    dto.scopesOperatorAny = autoPolicyWaiver.getScopesOperatorAny();
     return dto;
   }
 

@@ -19,10 +19,6 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
 import Overview from './sections/overview/Overview';
-import CiCd from './sections/CiCd';
-import Scm from './sections/Scm';
-import IssueTracking from './sections/IssueTracking';
-import Ide from './sections/Ide';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { SECTIONS } from 'MainRoot/development/developmentDashboard/sections';
 import {
@@ -76,56 +72,9 @@ export default function SonatypeDeveloperPage() {
   return (
     <NxPageMain>
       <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
-        {isDeveloperDashboardEnabled ? <SonatypeDeveloperPageContents /> : <LicenseLockScreen />}
+        <NxH1>Dashboard</NxH1>
+        {isDeveloperDashboardEnabled ? <Overview /> : <LicenseLockScreen />}
       </NxLoadWrapper>
     </NxPageMain>
-  );
-}
-
-function SonatypeDeveloperPageContents() {
-  const dispatch = useDispatch();
-
-  const currentRouteName = useSelector(selectCurrentRouteName);
-
-  const activeTabId = tabStates.find(({ state }) => state === currentRouteName)?.ndx || 0;
-
-  const setTab = (index) => dispatch(stateGo(tabStates.find(({ ndx }) => ndx === index)?.state));
-
-  return (
-    <>
-      <NxPageTitle>
-        <NxH1>Sonatype Developer</NxH1>
-      </NxPageTitle>
-      <div className="iq-integrations-content">
-        <NxP className="iq-integrations__full-width-text">
-          Sonatype Developer seamlessly automates open-source risk management within your development pipelines. Use
-          Sonatype Developer to receive real-time feedback on risk and remediation suggestions.
-        </NxP>
-        <NxTabs activeTab={activeTabId} onTabSelect={(index) => setTab(index)}>
-          <NxTabList>
-            {tabStates.map(({ dataAnalyticsId, tabName }) => (
-              <NxTab key={tabName} data-analytics-id={dataAnalyticsId}>
-                {tabName}
-              </NxTab>
-            ))}
-          </NxTabList>
-          <NxTabPanel>
-            <Overview />
-          </NxTabPanel>
-          <NxTabPanel>
-            <CiCd />
-          </NxTabPanel>
-          <NxTabPanel>
-            <Scm />
-          </NxTabPanel>
-          <NxTabPanel>
-            <IssueTracking />
-          </NxTabPanel>
-          <NxTabPanel>
-            <Ide />
-          </NxTabPanel>
-        </NxTabs>
-      </div>
-    </>
   );
 }

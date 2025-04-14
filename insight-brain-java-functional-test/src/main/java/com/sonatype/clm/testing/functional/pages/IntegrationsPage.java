@@ -14,20 +14,4 @@ public class IntegrationsPage extends BasicElement<IntegrationsPage>
   public static String urlOverview() {
     return BaseUrl.resolvePageUrl("/developer/dashboard/overview");
   }
-
-  public static String urlCiCd() {
-    return BaseUrl.resolvePageUrl("/developer/dashboard/ci-cd");
-  }
-
-  public static String urlScm() {
-    return BaseUrl.resolvePageUrl("/developer/dashboard/scm");
-  }
-
-  public static String urlIssueTracking() {
-    return BaseUrl.resolvePageUrl("/developer/dashboard/issue-tracking");
-  }
-
-  public static String urlIde() {
-    return BaseUrl.resolvePageUrl("/developer/dashboard/ide");
-  }
 }

@@ -11,7 +11,7 @@ import {
   useToggle,
   NxGlobalSidebarNavigationLink,
 } from '@sonatype/react-shared-components';
-import { faHome, faFileChartLine } from '@fortawesome/pro-solid-svg-icons';
+import { faHome, faFileChartLine, faExternalLinkAlt } from '@fortawesome/pro-solid-svg-icons';
 import { faArrowToLeft, faBars, faSearch, faStars } from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
@@ -71,6 +71,13 @@ export default function SonatypeDeveloperSidebar(props) {
               href={advancedSearchHref}
             />
           )}
+          <NxGlobalSidebarNavigationLink
+            id="sonatype-developer-integrations-help-navigation-button"
+            icon={faExternalLinkAlt}
+            text="Integrations Help"
+            href="https://links.sonatype.com/products/nxiq/doc/iq-server-integrations"
+            target="_blank"
+          />
           {isApiPageEnabled && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected(apiState)}

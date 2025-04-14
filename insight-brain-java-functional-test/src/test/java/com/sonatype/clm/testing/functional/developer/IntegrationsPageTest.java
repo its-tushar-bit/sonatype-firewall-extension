@@ -82,26 +82,6 @@ public class IntegrationsPageTest
   @Test
   public void testNavigation() {
     refreshOrOpen(IntegrationsPage.urlOverview());
-    navigationTabs().shouldBe(visible);
-
-    cicdTab().shouldBe(visible).click();
-    waitUntilUrl(IntegrationsPage.urlCiCd());
-    ciCdSection().shouldBe(visible);
-
-    scmTab().shouldBe(visible).click();
-    waitUntilUrl(IntegrationsPage.urlScm());
-    scmSection().shouldBe(visible);
-
-    issueTrackingTab().shouldBe(visible).click();
-    waitUntilUrl(IntegrationsPage.urlIssueTracking());
-    issueTrackingSection().shouldBe(visible);
-
-    ideTab().shouldBe(visible).click();
-    waitUntilUrl(IntegrationsPage.urlIde());
-    ideSection().shouldBe(visible);
-
-    overviewTab().shouldBe(visible).click();
-    waitUntilUrl(IntegrationsPage.urlOverview());
     overviewSection().shouldBe(visible);
   }
 
@@ -401,18 +381,6 @@ public class IntegrationsPageTest
     setMissingFeature(LicensedFeature.DEVELOPER_DASHBOARD);
 
     refreshOrOpen(IntegrationsPage.urlOverview());
-    assertDisabled();
-
-    refreshOrOpen(IntegrationsPage.urlCiCd());
-    assertDisabled();
-
-    refreshOrOpen(IntegrationsPage.urlScm());
-    assertDisabled();
-
-    refreshOrOpen(IntegrationsPage.urlIssueTracking());
-    assertDisabled();
-
-    refreshOrOpen(IntegrationsPage.urlIde());
     assertDisabled();
   }
 

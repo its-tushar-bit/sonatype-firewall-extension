@@ -49,11 +49,12 @@ describe('SonatypeDeveloperSidebar', () => {
   it('renders correctly when user is logged in ', () => {
     renderComponent();
     const sidebarLinks = screen.getAllByRole('link');
-    expect(sidebarLinks.length).toBe(4);
+    expect(sidebarLinks.length).toBe(5);
     const mainLink = sidebarLinks[0];
     const dashboardLink = sidebarLinks[1];
     const prioritiesLink = sidebarLinks[2];
     const searchLink = sidebarLinks[3];
+    const integrationsHelpLink = sidebarLinks[4];
     expect(mainLink).toHaveAttribute('href', '#/developer/dashboard');
     expect(dashboardLink).toHaveTextContent('Dashboard');
     expect(dashboardLink).toHaveAttribute('href', '#/developer/dashboard');
@@ -61,6 +62,11 @@ describe('SonatypeDeveloperSidebar', () => {
     expect(prioritiesLink).toHaveAttribute('href', '#/developer/priorities');
     expect(searchLink).toHaveTextContent('Advanced Search');
     expect(searchLink).toHaveAttribute('href', '#/developer/advancedSearch');
+    expect(integrationsHelpLink).toHaveTextContent('Integrations Help');
+    expect(integrationsHelpLink).toHaveAttribute(
+      'href',
+      'https://links.sonatype.com/products/nxiq/doc/iq-server-integrations'
+    );
   });
 
   it('does not render advanced search link when isAdvancedSearchEnabled is false', () => {
@@ -88,11 +94,12 @@ describe('SonatypeDeveloperSidebar', () => {
   it('does not render the api link when isApiPageEnabled is false', () => {
     renderComponent({ isApiPageEnabled: false });
     const sidebarLinks = screen.getAllByRole('link');
-    expect(sidebarLinks.length).toBe(4);
+    expect(sidebarLinks.length).toBe(5);
     const mainLink = sidebarLinks[0];
     const dashboardLink = sidebarLinks[1];
     const prioritiesLink = sidebarLinks[2];
     const searchLink = sidebarLinks[3];
+    const integrationsHelpLink = sidebarLinks[4];
     expect(mainLink).toHaveAttribute('href', '#/developer/dashboard');
     expect(dashboardLink).toHaveTextContent('Dashboard');
     expect(dashboardLink).toHaveAttribute('href', '#/developer/dashboard');
@@ -100,18 +107,24 @@ describe('SonatypeDeveloperSidebar', () => {
     expect(prioritiesLink).toHaveAttribute('href', '#/developer/priorities');
     expect(searchLink).toHaveTextContent('Advanced Search');
     expect(searchLink).toHaveAttribute('href', '#/developer/advancedSearch');
+    expect(integrationsHelpLink).toHaveTextContent('Integrations Help');
+    expect(integrationsHelpLink).toHaveAttribute(
+      'href',
+      'https://links.sonatype.com/products/nxiq/doc/iq-server-integrations'
+    );
     expect(screen.queryByRole('link', { name: 'API' })).not.toBeInTheDocument();
   });
 
   it('does render the api link when isApiPageEnabled is true', () => {
     renderComponent({ isApiPageEnabled: true });
     const sidebarLinks = screen.getAllByRole('link');
-    expect(sidebarLinks.length).toBe(5);
+    expect(sidebarLinks.length).toBe(6);
     const mainLink = sidebarLinks[0];
     const dashboardLink = sidebarLinks[1];
     const prioritiesLink = sidebarLinks[2];
     const searchLink = sidebarLinks[3];
-    const apiLink = sidebarLinks[4];
+    const integrationsHelpLink = sidebarLinks[4];
+    const apiLink = sidebarLinks[5];
     expect(mainLink).toHaveAttribute('href', '#/developer/dashboard');
     expect(dashboardLink).toHaveTextContent('Dashboard');
     expect(dashboardLink).toHaveAttribute('href', '#/developer/dashboard');
@@ -119,6 +132,11 @@ describe('SonatypeDeveloperSidebar', () => {
     expect(prioritiesLink).toHaveAttribute('href', '#/developer/priorities');
     expect(searchLink).toHaveTextContent('Advanced Search');
     expect(searchLink).toHaveAttribute('href', '#/developer/advancedSearch');
+    expect(integrationsHelpLink).toHaveTextContent('Integrations Help');
+    expect(integrationsHelpLink).toHaveAttribute(
+      'href',
+      'https://links.sonatype.com/products/nxiq/doc/iq-server-integrations'
+    );
     expect(apiLink).toHaveTextContent('API');
     expect(apiLink).toHaveAttribute('href', '#/developer/api');
   });

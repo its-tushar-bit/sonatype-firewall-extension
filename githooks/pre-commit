@@ -6,7 +6,7 @@ GREEN="\033[1;32m"
 NC="\033[0m"
 
 # Get all staged files
-staged_files=$(git diff --cached --name-only --diff-filter=d)
+staged_files=$(git diff --cached --name-only --diff-filter=d insight-brain-frontend/)
 
 # Filter JavaScript, JSX, CSS, SCSS, and Markdown files
 js_files=$(echo "$staged_files" | grep -E '\.(js|jsx)$')

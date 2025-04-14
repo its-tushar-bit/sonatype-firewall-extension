@@ -11,7 +11,7 @@ $GREEN = "`e[1;32m"
 $NC = "`e[0m"
 
 # Get all staged files
-$staged_files = git diff --cached --name-only --diff-filter=d
+$staged_files = git diff --cached --name-only --diff-filter=d insight-brain-frontend/
 
 # Filter JavaScript, JSX, CSS, SCSS, and Markdown files
 $js_files = $staged_files | Select-String -Pattern '\.(js|jsx)$'

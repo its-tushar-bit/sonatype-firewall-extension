@@ -8,18 +8,24 @@ package com.sonatype.insight.brain.api.v2.service.autowaivers;
 import java.util.List;
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverAdapter;
 import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 public class ApiAutoPolicyWaiverServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -218,7 +224,7 @@ public class ApiAutoPolicyWaiverServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetApplicableAutoPolicyWaivers_Unauthenticated() {
+  public void testGetApplicableAutoPolicyWaiverWithPermissionCheck_Unauthenticated() {
     Organization organization = tempEntity.newOrganization("test-org");
     Application application = tempEntity.newApplication(organization.getId());
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
@@ -227,7 +233,7 @@ public class ApiAutoPolicyWaiverServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetApplicableAutoPolicyWaivers_Unauthorized() {
+  public void testGetApplicableAutoPolicyWaiverWithPermissionCheck_Unauthorized() {
     login();
     Organization organization = tempEntity.newOrganization("test-org");
     Application application = tempEntity.newApplication(organization.getId());
@@ -238,7 +244,7 @@ public class ApiAutoPolicyWaiverServiceAuthzTest
   }
 
   @Test
-  public void testGetApplicableAutoPolicyWaivers_Authorized() {
+  public void testGetApplicableAutoPolicyWaiverWithPermissionCheck_Authorized() {
     Organization organization = tempEntity.newOrganization("test-org");
     Application application = tempEntity.newApplication(organization.getId());
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
@@ -267,5 +273,42 @@ public class ApiAutoPolicyWaiverServiceAuthzTest
     Application application = tempEntity.newApplicationWithParent();
     grantReadPermission(application.getId());
     apiAutoPolicyWaiverService.getApplicableAutoWaivers(OwnerType.APPLICATION, application.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetApplicableAutoPolicyWaivers_Unauthenticated() {
+    final Organization org = tempEntity.newOrganization("test-org");
+    final Application app = tempEntity.newApplication(org.getId());
+    final PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-ID");
+    final Policy policy = tempEntity.newPolicy(app.getId(), evaluation.getId());
+    final PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, policy);
+
+    apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(policyViolation.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetApplicableAutoPolicyWaivers_Unauthorized() {
+    login();
+    final Organization org = tempEntity.newOrganization("test-org");
+    final Application app = tempEntity.newApplication(org.getId());
+    final PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-ID");
+    final Policy policy = tempEntity.newPolicy(app.getId(), evaluation.getId());
+    final PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, policy);
+
+    apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(policyViolation.getId());
+  }
+
+  @Test
+  public void testGetApplicableAutoPolicyWaivers_Authorized() {
+    final Organization org = tempEntity.newOrganization("test-org");
+    final Application app = tempEntity.newApplication(org.getId());
+    final PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-ID");
+    final Policy policy = tempEntity.newPolicy(app.getId(), evaluation.getId());
+    final PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, policy);
+
+    grantReadPermission(app.getId());
+
+    assertThatCode(() -> apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(policyViolation.getId()))
+        .doesNotThrowAnyException();
   }
 }

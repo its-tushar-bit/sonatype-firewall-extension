@@ -289,13 +289,14 @@ public class ApiAutoPolicyWaiverService
     return dto;
   }
 
-  @Authorize(permission = Permission.READ)
   public ApiAutoPolicyWaiverDTO getApplicableAutoPolicyWaiver(final String violationId) {
     AutoPolicyWaiverUtil.validateAutoWaiversFeatureEnabled();
     PolicyViolation policyViolation = policyViolationDAO.getById(violationId);
     if (policyViolation == null) {
       throw new NotFoundException("Could not find policy violation with ID " + violationId + ".");
     }
+
+    checkReadPermission(policyViolation.getApplicationId());
 
     if (policyViolation.getAutoPolicyWaiverId() == null) {
       return null;
@@ -452,5 +453,10 @@ public class ApiAutoPolicyWaiverService
 
   private void auditAutoPolicyWaiver(AutoPolicyWaiver autoPolicyWaiver) {
     AuditData.get().setData("autoPolicyWaiverId", autoPolicyWaiver.getId());
+  }
+
+  @Authorize(permission = Permission.READ)
+  void checkReadPermission(@SuppressWarnings("unused") @AuthzContext(Key.APPLICATION_ID) String applicationId) {
+    // no-op
   }
 }

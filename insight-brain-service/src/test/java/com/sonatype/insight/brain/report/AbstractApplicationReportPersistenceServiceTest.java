@@ -14,6 +14,7 @@ import java.nio.file.FileSystems;
 import java.time.Instant;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
@@ -647,24 +648,6 @@ public abstract class AbstractApplicationReportPersistenceServiceTest
     assertThat(entity.getTime()).isGreaterThan(0);
 
     helper.assertEntityContents(entity, newContents);
-  }
-
-  @Test
-  public void testRestoreOriginalReport() throws Exception {
-    helper.saveMockReport();
-    helper.writeLocalFile("bom.json", "old local file contents");
-    helper.writeAdditionalFile("foo.txt", "additional file contents");
-
-    service.restoreOriginalReport(APPLICATION_ID, SCAN_ID);
-
-    assertThat(helper.readFromLocalFiles("bom.json")).isNull();
-    assertThat(helper.readFromOriginalFiles("bom.json")).isEqualTo("{}\n");
-    assertThat(helper.readFromAdditionalFiles("foo.txt")).isEqualTo("additional file contents");
-  }
-
-  @Test
-  public void testRestoreOriginalReport_notExists() throws Exception {
-    assertThatThrownBy(() -> service.restoreOriginalReport(APPLICATION_ID, SCAN_ID)).isInstanceOf(IOException.class);
   }
 
   @Test

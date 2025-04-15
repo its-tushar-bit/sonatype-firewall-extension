@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -487,10 +488,6 @@ public class ReportService
       return;
     }
 
-    // If this is called from a policy re-evaluation, some files may be cached.
-    // Start fresh by deleting any cached files.
-    applicationReport.deleteCacheDir();
-    applicationReport.deletePdfReport();
     applicationReport.embedApplicationPublicId();
 
     applyComponentRelatedChanges(application, applicationReport, repositoryMatcher, telemetrySender, telemetryUtils);

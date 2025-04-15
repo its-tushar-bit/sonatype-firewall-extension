@@ -16,14 +16,12 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Stream;
 
-import org.apache.commons.io.input.CharSequenceInputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
 import com.sonatype.insight.json.store.JsonUtils;
+
 import com.fasterxml.jackson.databind.node.ContainerNode;
+import org.apache.commons.io.input.CharSequenceInputStream;
 
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME;
@@ -31,8 +29,6 @@ import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD
 
 public class ApplicationReport
 {
-  private static final Logger log = LoggerFactory.getLogger(ApplicationReport.class);
-
   public static final String INDEX_HTML_FILENAME = "index.html";
 
   public static final String BOM_JSON_FILENAME = "bom.json";
@@ -155,17 +151,6 @@ public class ApplicationReport
     }
   }
 
-  public void deletePdfReport() {
-    try {
-      persistenceService.getPdfEntity(application.getId(), scanId).deleteIfExists();
-      log.debug("Deleted obsolete PDF report file for application {} and scan {}", application.getId(), scanId);
-    }
-    catch (Exception e) {
-      log.error("Cannot delete obsolete PDF report file for application {} and scan {}. Cause: {}",
-          application.getId(), scanId, e.getMessage(), e);
-    }
-  }
-
   public void appendToReport(final ThirdPartyApplicationReportDTO dto) throws IOException {
     saveAdditionalReportFile(THIRD_PARTY_BOM_JSON_FILENAME, dto.billOfMaterials);
     saveAdditionalReportFile(THIRD_PARTY_SECURITY_JSON_FILENAME, dto.securityRows);
@@ -180,10 +165,6 @@ public class ApplicationReport
       return ReportType.ERROR;
     }
     return ReportType.FULL;
-  }
-
-  public void deleteCacheDir() throws IOException {
-    persistenceService.restoreOriginalReport(application.getId(), scanId);
   }
 
   /**

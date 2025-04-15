@@ -12,9 +12,7 @@ import java.util.stream.Stream;
 
 /**
  * Backend for persisting file-based parts of an application report. Maintains both the original report files
- * and any modifcations/additions to them. The original can be restored (discarding the modifications and additions)
- * by calling restoreOriginalReport. Additionally, "additional" files can be added to the report with
- * saveAdditionalReportFile. The "additional" files are not wiped out by restoreOriginalReport.
+ * and any modifications/additions to them.
  */
 public abstract class ApplicationReportPersistenceService
 {
@@ -65,8 +63,7 @@ public abstract class ApplicationReportPersistenceService
       throws IOException;
 
   /**
-   * Save an updated copy of an entity. The file is not required to already exist. Files/changes saved in this way are
-   * deleted/undone when restoreOriginalReport is called.
+   * Save an updated copy of an entity. The file is not required to already exist.
    */
   public final void saveReportFile(
       final String applicationId,
@@ -112,12 +109,6 @@ public abstract class ApplicationReportPersistenceService
    * the correct folders, so getReportEntity can't find it and it requires its own special case method
    */
   public abstract BaseReportEntity getVulnerabilitySignaturesEntity(final String applicationId, final String scanId);
-
-  /**
-   * Undo all changes made via saveReportFile for this application and scan, restoring the report to its original state.
-   * Does not delete "additional" files added via saveAdditionalReportFile.
-   */
-  public abstract void restoreOriginalReport(final String applicationId, final String scanId) throws IOException;
 
   /**
    * @return a string (typically a path or URI) indicating the "location" of this report. No guarantees are made

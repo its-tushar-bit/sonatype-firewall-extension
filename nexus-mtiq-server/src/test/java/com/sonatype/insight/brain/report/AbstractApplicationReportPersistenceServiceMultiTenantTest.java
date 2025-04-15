@@ -23,10 +23,9 @@ import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.APPLICATION_ID;
 import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.SCAN_ID;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static com.sonatype.insight.brain.testing.FunctionUtils.wrapException;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -958,44 +957,6 @@ public abstract class AbstractApplicationReportPersistenceServiceMultiTenantTest
     testAsTenant(tenant2, tenant -> {
       var entity = service.getVulnerabilitySignaturesEntity(APPLICATION_ID, SCAN_ID);
       helper.assertEntityContents(entity, "sig2");
-    });
-  }
-
-  @Test
-  @ManualIqServerInit
-  public void testRestoreOriginalReport() throws Exception {
-    Tenant tenant1 = testAsNewTenant("tenant1", tenant -> {
-      helper.saveMockReport("report1");
-      helper.writeLocalFile("bom.json", "overridden bom 1");
-      helper.writeAdditionalFile("foo.txt", "foo 1");
-      helper.writeAdditionalFile("bar.txt", "bar 1");
-    });
-
-    Tenant tenant2 = testAsNewTenant("tenant2", tenant -> {
-      helper.saveMockReport("report2");
-      helper.writeLocalFile("bom.json", "overridden bom 2");
-      helper.writeLocalFile("licenses.json", "overridden licenses 2");
-      helper.writeAdditionalFile("foo.txt", "foo 2");
-      helper.writeAdditionalFile("baz.txt", "baz 2");
-    });
-
-    testAsTenant(tenant1, tenant -> {
-      service.restoreOriginalReport(APPLICATION_ID, SCAN_ID);
-
-      assertThat(helper.readFromLocalFiles("bom.json")).isNull();
-      assertThat(helper.readFromOriginalFiles("bom.json")).isEqualTo("report1 bom\n");
-      assertThat(helper.readFromOriginalFiles("licenses.json")).isEqualTo("report1 licenses\n");
-      assertThat(helper.readFromAdditionalFiles("foo.txt")).isEqualTo("foo 1");
-      assertThat(helper.readFromAdditionalFiles("bar.txt")).isEqualTo("bar 1");
-    });
-
-    testAsTenant(tenant2, tenant -> {
-      assertThat(helper.readFromLocalFiles("bom.json")).isEqualTo("overridden bom 2");
-      assertThat(helper.readFromLocalFiles("licenses.json")).isEqualTo("overridden licenses 2");
-      assertThat(helper.readFromOriginalFiles("bom.json")).isEqualTo("report2 bom\n");
-      assertThat(helper.readFromOriginalFiles("licenses.json")).isEqualTo("report2 licenses\n");
-      assertThat(helper.readFromAdditionalFiles("foo.txt")).isEqualTo("foo 2");
-      assertThat(helper.readFromAdditionalFiles("baz.txt")).isEqualTo("baz 2");
     });
   }
 

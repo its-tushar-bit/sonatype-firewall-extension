@@ -324,20 +324,6 @@ public class FileApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
-  public void restoreOriginalReport(final String applicationId, final String scanId) throws IOException {
-    Path cachePath = getLocalCopyPath(applicationId, scanId);
-    Path reportPath = getReportDirPath(applicationId, scanId);
-
-    if (Files.exists(reportPath)) {
-      fileCleaner.delete(cachePath.toFile());
-    }
-    else {
-      throw new IOException("Report not found: " + reportPath);
-    }
-  }
-
-  @Override
   public String getReportLocation(final String applicationId, final String scanId) {
     return getReportDirPath(applicationId, scanId).toString();
   }

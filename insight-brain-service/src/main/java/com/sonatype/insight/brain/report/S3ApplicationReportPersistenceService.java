@@ -25,11 +25,9 @@ import com.sonatype.insight.brain.aws.s3.S3OutputStream;
 import com.sonatype.insight.brain.service.InsightConfig;
 
 import datadog.trace.api.Trace;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
@@ -44,8 +42,8 @@ import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
-import static java.util.Objects.requireNonNull;
 import static com.sonatype.insight.brain.aws.s3.S3ExceptionUtil.wrapS3Exception;
+import static java.util.Objects.requireNonNull;
 
 public class S3ApplicationReportPersistenceService
     extends ApplicationReportPersistenceService
@@ -88,10 +86,6 @@ public class S3ApplicationReportPersistenceService
 
     public S3ReportEntity(final S3ObjectKey key) {
       this.key = key;
-    }
-
-    public S3ObjectKey getKey() {
-      return key;
     }
 
     @Override
@@ -288,25 +282,6 @@ public class S3ApplicationReportPersistenceService
   public ReportEntity getVulnerabilitySignaturesEntity(final String applicationId, final String scanId) {
     var key = new S3ObjectKey(SPECIAL_FILE_FORMAT, applicationId, scanId, VULNERABILITY_SIGNATURE_FILENAME, keyPrefix);
     return new S3ReportEntity(key);
-  }
-
-  @Override
-  @Trace
-  public void restoreOriginalReport(
-      final String applicationId,
-      final String scanId) throws IOException
-  {
-    Set<ObjectIdentifier> keysToDelete = getLocalCopyEntities(applicationId, scanId, Set.of()).stream()
-        .map(entity -> ObjectIdentifier.builder().key(entity.getKey().toString()).build())
-        .collect(Collectors.toSet());
-
-    var deleteObjectsRequest = DeleteObjectsRequest.builder()
-        .bucket(bucketName)
-        .delete(delete -> delete.objects(keysToDelete))
-        .build();
-
-    log.debug("Restoring report files in S3 for applicationId '{}' scanId '{}'", applicationId, scanId);
-    wrapS3Exception(() -> s3Client.deleteObjects(deleteObjectsRequest));
   }
 
   @Override

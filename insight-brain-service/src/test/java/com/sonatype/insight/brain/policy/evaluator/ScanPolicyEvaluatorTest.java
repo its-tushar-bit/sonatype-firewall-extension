@@ -130,7 +130,6 @@ import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
-import com.sonatype.insight.brain.report.ReportPdfEntity;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -2011,32 +2010,6 @@ public class ScanPolicyEvaluatorTest
     scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, false);
     assertThat(scanFile).isFile();
-  }
-
-  @Test
-  public void testEvaluate_ReEvaluationDeletesPdfReport() throws Exception {
-    Stage stage = new Stage(Stage.ID_BUILD);
-
-    // Evaluate a scan.
-    String scanId = simulateReportIsAvailable("report");
-    createScanFile(application, scanId);
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
-        ClientScanType.SONATYPE, false);
-
-    // Create a fake PDF report.
-    ReportPdfEntity reportPdf = reportService.getPdfReport(application.getId(), scanId);
-    try (var pdfStream = reportPdf.getOutputStream()) {
-      IOUtils.write("%PDF-1.0", pdfStream, StandardCharsets.UTF_8);
-    }
-    assertThat(reportPdf.exists()).isTrue();
-
-    // Make sure we don't have two evaluations at exactly the same time.
-    waitForTimeAdvance();
-
-    // Re-evaluate and check that the PDF report was deleted.
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
-        ClientScanType.SONATYPE, false);
-    assertThat(reportPdf.exists()).isFalse();
   }
 
   @Test

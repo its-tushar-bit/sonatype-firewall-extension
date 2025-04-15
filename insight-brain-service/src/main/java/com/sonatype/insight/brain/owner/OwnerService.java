@@ -137,13 +137,13 @@ public class OwnerService
             && CollectionUtils.isEmpty(applicationIds)
             && CollectionUtils.isEmpty(tagIds)
             && CollectionUtils.isEmpty(repositoryIds);
-    Predicate<Set<Repository>> reposAreNotEmptyOrIsOnlyRepoContainer = repos ->
+    Predicate<List<Repository>> reposAreNotEmptyOrIsOnlyRepoContainer = repos ->
         !repos.isEmpty() || (CollectionUtils.isNotEmpty(repositoryIds)
             && repositoryIds.contains(RepositoryContainer.REPOSITORY_CONTAINER_ID));
     BooleanSupplier filtersAreEmptyAndRepoContainerReadPermission = () ->
         isOwnerFilterEmpty.getAsBoolean()
             && repositoryService.checkReadPermissionRepositoryContainer();
-    Predicate<Set<Repository>> shouldAddRepoContainer = repos ->
+    Predicate<List<Repository>> shouldAddRepoContainer = repos ->
         reposAreNotEmptyOrIsOnlyRepoContainer.test(repos)
             || filtersAreEmptyAndRepoContainerReadPermission.getAsBoolean();
 
@@ -152,7 +152,7 @@ public class OwnerService
     List<Organization> organizations = getOrganizations(organizationIds, isOwnerFilterEmpty);
     Map<String, Organization> orgsParentOrgs = organizationService
         .getAllParentOrgsNoAuthz(organizations, appsParentOrgs);
-    Set<Repository> repositories = getRepositories(repositoryIds, isOwnerFilterEmpty);
+    List<Repository> repositories = getRepositories(repositoryIds, isOwnerFilterEmpty);
 
     owners.putAll(applications.stream().collect(ownerCollector));
     owners.putAll(appsParentOrgs);
@@ -200,14 +200,13 @@ public class OwnerService
     return organizations;
   }
 
-  private Set<Repository> getRepositories(
+  private List<Repository> getRepositories(
       Set<String> repositoryIds,
       BooleanSupplier isOwnerFilterEmpty)
   {
-    Set<Repository> repositories = Collections.emptySet();
     if (isOwnerFilterEmpty.getAsBoolean() || CollectionUtils.isNotEmpty(repositoryIds)) {
-      repositories = repositoryService.getRepositoriesByIds(repositoryIds);
+      return repositoryService.getRepositoriesWithReadPermissionByIds(repositoryIds);
     }
-    return repositories;
+    return Collections.emptyList();
   }
 }

@@ -200,7 +200,7 @@ public class DashboardPolicyWaiverRequestService
     Map<String, ? extends Owner> lifeCycleOwners =
         getApplicationsAndOrgs(applicationIds, tagIds, organizationIds, isOwnerFilterEmpty);
 
-    Set<Repository> repositories = getRepositories(repositoryIds, isOwnerFilterEmpty);
+    List<Repository> repositories = getRepositories(repositoryIds, isOwnerFilterEmpty);
     List<RepositoryManager> repositoryManagers = getRepositoryManagers(
         repositories.stream().map(Repository::getId).collect(Collectors.toSet()), isOwnerFilterEmpty);
 
@@ -220,11 +220,11 @@ public class DashboardPolicyWaiverRequestService
     return owners;
   }
 
-  private Set<Repository> getRepositories(Set<String> repositoryIds, boolean isOwnerFilterEmpty) {
+  private List<Repository> getRepositories(Set<String> repositoryIds, boolean isOwnerFilterEmpty) {
     if (isOwnerFilterEmpty || CollectionUtils.isNotEmpty(repositoryIds)) {
-      return repositoryService.getRepositoriesByIds(repositoryIds);
+      return repositoryService.getRepositoriesWithReadPermissionByIds(repositoryIds);
     }
-    return Collections.emptySet();
+    return Collections.emptyList();
   }
 
   @AuthzFilter(permission = Permission.READ, context = Context.REPOSITORY_MANAGER)

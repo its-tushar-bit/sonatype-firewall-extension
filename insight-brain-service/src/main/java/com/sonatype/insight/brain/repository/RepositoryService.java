@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.repository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -285,17 +284,17 @@ public class RepositoryService
     return new RepositoriesDTO(repositoryDTOs);
   }
 
-  public Set<Repository> getRepositoriesByIds(final Set<String> repositoryIds) {
-    Set<Repository> allRepositories = new HashSet<>(getRepositoriesWithReadPermission());
+  public List<Repository> getRepositoriesWithReadPermissionByIds(final Set<String> repositoryIds) {
+    List<Repository> repositories = getRepositoriesWithReadPermission();
 
     if (CollectionUtils.isEmpty(repositoryIds)) {
-      return allRepositories;
+      return repositories;
     }
 
-    return allRepositories
+    return repositories
         .stream()
         .filter(repository -> repositoryIds.contains(repository.getId()))
-        .collect(Collectors.toSet());
+        .toList();
   }
 
   public List<Repository> getRepositoriesWithReadPermission() {

@@ -5,11 +5,8 @@
  */
 package com.sonatype.insight.brain.repository;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -295,35 +292,38 @@ public class RepositoryServiceAuthzTest
   }
 
   @Test
-  public void testGetRepositoriesByIds_Unauthorized() {
+  public void testGetRepositoriesWithReadPermissionByIds_Unauthorized() {
     Repository repo = createRepository();
     login();
-    Set<Repository> repositories = repositoryService.getRepositoriesByIds(Collections.singleton(repo.getId()));
+    List<Repository> repositories =
+        repositoryService.getRepositoriesWithReadPermissionByIds(Collections.singleton(repo.getId()));
     assertThat(repositories).isEmpty();
   }
 
   @Test
-  public void testGetRepositoriesByIds_Unauthenticated() {
+  public void testGetRepositoriesWithReadPermissionByIds_Unauthenticated() {
     Repository repo = createRepository();
-    Set<Repository> repositories = repositoryService.getRepositoriesByIds(Collections.singleton(repo.getId()));
+    List<Repository> repositories =
+        repositoryService.getRepositoriesWithReadPermissionByIds(Collections.singleton(repo.getId()));
     assertThat(repositories).isEmpty();
   }
 
   @Test
-  public void testGetRepositoriesByIds() {
+  public void testGetRepositoriesWithReadPermissionByIds() {
     Repository repo = createRepository();
     Repository repo2 = tempEntity.newRepository();
 
     grantReadPermission(repo.getId());
-    Set<Repository> repositories = repositoryService.getRepositoriesByIds(Collections.singleton(repo.getId()));
+    List<Repository> repositories =
+        repositoryService.getRepositoriesWithReadPermissionByIds(Collections.singleton(repo.getId()));
 
     assertThat(repositories)
         .as("Read permission given for only one of the repositories.")
         .hasSize(1);
-    assertThat(new ArrayList<>(repositories).get(0).getId()).isEqualTo(repo.getId());
+    assertThat(repositories.get(0).getId()).isEqualTo(repo.getId());
 
     grantReadPermission(repo2.getId());
-    repositories = repositoryService.getRepositoriesByIds(new HashSet<>(Arrays.asList(repo.getId(), repo2.getId())));
+    repositories = repositoryService.getRepositoriesWithReadPermissionByIds(Set.of(repo.getId(), repo2.getId()));
     assertThat(repositories).hasSize(2);
   }
 

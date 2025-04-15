@@ -222,20 +222,20 @@ public class PolicyWaiverService
             && CollectionUtils.isEmpty(tagIds)
             && CollectionUtils.isEmpty(repositoryIds);
 
-    final Predicate<Set<Repository>> reposAreNotEmptyOrIsOnlyRepoContainer = repos ->
+    final Predicate<List<Repository>> reposAreNotEmptyOrIsOnlyRepoContainer = repos ->
         !repos.isEmpty() || (CollectionUtils.isNotEmpty(repositoryIds)
             && repositoryIds.contains(RepositoryContainer.REPOSITORY_CONTAINER_ID));
     final BooleanSupplier filtersAreEmptyAndRepoContainerReadPermission = () ->
         isOwnerFilterEmpty.getAsBoolean()
             && repositoryService.checkReadPermissionRepositoryContainer();
-    final Predicate<Set<Repository>> shouldAddRepoContainer = repos ->
+    final Predicate<List<Repository>> shouldAddRepoContainer = repos ->
         reposAreNotEmptyOrIsOnlyRepoContainer.test(repos)
             || filtersAreEmptyAndRepoContainerReadPermission.getAsBoolean();
 
     final Map<String, ? extends Owner> lifeCycleOwners =
         getApplicationsAndOrgs(applicationIds, tagIds, organizationIds, isOwnerFilterEmpty);
 
-    final Set<Repository> repositories = getRepositories(repositoryIds, isOwnerFilterEmpty);
+    final List<Repository> repositories = getRepositories(repositoryIds, isOwnerFilterEmpty);
 
     owners.putAll(lifeCycleOwners);
     owners.putAll(repositories.stream().collect(ownerCollector));
@@ -251,15 +251,14 @@ public class PolicyWaiverService
     return owners;
   }
 
-  private Set<Repository> getRepositories(
+  private List<Repository> getRepositories(
       Set<String> repositoryIds,
       BooleanSupplier isOwnerFilterEmpty)
   {
-    Set<Repository> repositories = Collections.emptySet();
     if (isOwnerFilterEmpty.getAsBoolean() || CollectionUtils.isNotEmpty(repositoryIds)) {
-      repositories = repositoryService.getRepositoriesByIds(repositoryIds);
+      return repositoryService.getRepositoriesWithReadPermissionByIds(repositoryIds);
     }
-    return repositories;
+    return Collections.emptyList();
   }
 
   private DashboardPolicyWaiverDTOComparator verifyOrderByAndBuildComparator(final String orderBy) {

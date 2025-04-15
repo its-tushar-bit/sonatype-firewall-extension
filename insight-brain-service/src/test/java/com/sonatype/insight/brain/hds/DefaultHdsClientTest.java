@@ -37,6 +37,7 @@ import javax.ws.rs.InternalServerErrorException;
 
 import com.sonatype.insight.brain.NetworkingHelper;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
@@ -82,13 +83,16 @@ public class DefaultHdsClientTest
 
   private InsightProxy spyInsightProxy;
 
+  private ProductLicense mockProductLicense;
+
   @Override
   protected void initClient() {
-    ProductLicense productLicense = mock(ProductLicense.class);
-    when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
+    mockProductLicense = mock(ProductLicense.class);
+    when(mockProductLicense.isValid()).thenReturn(true);
+    when(mockProductLicense.getFingerprint()).thenReturn("license-fingerprint");
     spyInsightProxy = spy(new InsightProxy(configuration, passwordHandler));
     client =
-        new HdsClient(spyInsightProxy, productLicense, configuration, new DefaultVersionService(), telemetryId,
+        new HdsClient(spyInsightProxy, mockProductLicense, configuration, new DefaultVersionService(), telemetryId,
             20,
             name -> new Retry(name, 0, null, e -> false, i -> Duration.ZERO));
   }
@@ -931,5 +935,33 @@ public class DefaultHdsClientTest
     finally {
       System.clearProperty(HdsClient.DISABLE_TELEMETRY_CONFIG_KEY);
     }
+  }
+
+  @Test
+  public void testGet_InvalidProductLicense() throws Exception {
+    when(mockProductLicense.isValid()).thenReturn(false);
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      client.get(InputStream.class, "/rest/test", null, new String[]{});
+    }).withMessage("The product license is invalid.");
+  }
+
+  @Test
+  public void testPost_InvalidProductLicense() throws Exception {
+    when(mockProductLicense.isValid()).thenReturn(false);
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      client.post("/rest/test", new StringEntity(""), "test-client-user-agent");
+    }).withMessage("The product license is invalid.");
+  }
+
+  @Test
+  public void testPut_InvalidProductLicense() throws Exception {
+    when(mockProductLicense.isValid()).thenReturn(false);
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      client.put(null, InputStream.class, "client_user_agent", "/rest/test",
+          new File(getClass().getResource("/config-test.yml").toURI()), Collections.emptyMap(), new String[]{});
+    }).withMessage("The product license is invalid.");
   }
 }

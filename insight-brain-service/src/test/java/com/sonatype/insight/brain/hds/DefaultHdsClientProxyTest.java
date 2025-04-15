@@ -93,9 +93,10 @@ public class DefaultHdsClientProxyTest
   }
 
   private void initClient() {
-    ProductLicense productLicense = mock(ProductLicense.class);
-    lenient().when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
-    client = new HdsClient(new InsightProxy(configuration, passwordHandler), productLicense, configuration,
+    ProductLicense mockProductLicense = mock(ProductLicense.class);
+    lenient().when(mockProductLicense.isValid()).thenReturn(true);
+    lenient().when(mockProductLicense.getFingerprint()).thenReturn("license-fingerprint");
+    client = new HdsClient(new InsightProxy(configuration, passwordHandler), mockProductLicense, configuration,
         new DefaultVersionService(), telemetryId, 20, name -> new Retry(name, 0, null, e -> false, i -> Duration.ZERO));
   }
 

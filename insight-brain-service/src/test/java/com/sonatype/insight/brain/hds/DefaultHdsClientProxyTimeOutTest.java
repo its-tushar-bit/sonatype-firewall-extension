@@ -68,7 +68,7 @@ public class DefaultHdsClientProxyTimeOutTest
 
   private TelemetryId telemetryId;
 
-  private ProductLicense productLicense;
+  private ProductLicense mockProductLicense;
 
   private InsightProxy insightProxy;
 
@@ -125,8 +125,9 @@ public class DefaultHdsClientProxyTimeOutTest
     var mockClusterIdentificationService = TelemetryTestUtils.setupReflectiveMockClusterIdentificationService();
     telemetryId = new TelemetryId(config, systemConfigurationPropertyDAO, mockClusterIdentificationService);
 
-    productLicense = mock(ProductLicense.class);
-    when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
+    mockProductLicense = mock(ProductLicense.class);
+    when(mockProductLicense.isValid()).thenReturn(true);
+    when(mockProductLicense.getFingerprint()).thenReturn("license-fingerprint");
 
     nonResponsiveServerThread = new Thread(nonResponsiveServer);
     insightProxy = new InsightProxy(configuration, passwordHandler);
@@ -143,7 +144,7 @@ public class DefaultHdsClientProxyTimeOutTest
 
   @Test(timeout = 5000)
   public void testMustTimeOutAndNotWaitForever() throws InterruptedException {
-    HdsClient client = new HdsClient(insightProxy, productLicense, configuration, new DefaultVersionService(),
+    HdsClient client = new HdsClient(insightProxy, mockProductLicense, configuration, new DefaultVersionService(),
         telemetryId, 20, name -> new Retry(name, 0, null, e -> false, i -> Duration.ZERO));
 
     nonResponsiveServerThread.start();

@@ -62,7 +62,7 @@ public class DefaultHdsClientKeepConnectionAliveTest
 
   private TelemetryId telemetryId;
 
-  private ProductLicense productLicense;
+  private ProductLicense mockProductLicense;
 
   private InsightProxy insightProxy;
 
@@ -116,8 +116,9 @@ public class DefaultHdsClientKeepConnectionAliveTest
     var mockClusterIdentificationService = TelemetryTestUtils.setupReflectiveMockClusterIdentificationService();
     telemetryId = new TelemetryId(config, systemConfigurationPropertyDAO, mockClusterIdentificationService);
 
-    productLicense = mock(ProductLicense.class);
-    when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
+    mockProductLicense = mock(ProductLicense.class);
+    when(mockProductLicense.isValid()).thenReturn(true);
+    when(mockProductLicense.getFingerprint()).thenReturn("license-fingerprint");
 
     stallingServerThread = new Thread(stallingServer);
     insightProxy = new InsightProxy(configuration, passwordHandler);
@@ -134,7 +135,7 @@ public class DefaultHdsClientKeepConnectionAliveTest
 
   @Test
   public void testConnectTimeoutMustNotAffectRequestConfigSocketTimeout() throws InterruptedException {
-    HdsClient client = new HdsClient(insightProxy, productLicense, configuration, new DefaultVersionService(),
+    HdsClient client = new HdsClient(insightProxy, mockProductLicense, configuration, new DefaultVersionService(),
         telemetryId, 20, name -> new Retry(name, 0, null, e -> false, i -> Duration.ZERO));
 
     stallingServerThread.start();

@@ -29,6 +29,7 @@ import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
@@ -46,6 +47,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import io.dropwizard.lifecycle.Managed;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -646,7 +648,23 @@ public class HdsClient
     return retry.executeSupplier(() -> execute(request, retryCount.getAndIncrement()));
   }
 
+  /**
+   * Validates the product license if needed - i.e. for HDS requests that require a product license.
+   * 
+   * The requests that do require a product license, pass it to HDS via the "X-CLM-Token" http header.
+   * This method assumes that the above header was already set on the request param.
+   */
+  private void validateProductLicenseIfNeeded(HttpUriRequest request) {
+    Header productLicenseHeader = request.getFirstHeader("X-CLM-Token");
+    if (productLicenseHeader != null && !StringUtils.isBlank(productLicenseHeader.getValue())
+        && !productLicense.isValid()) {
+      throw new InvalidLicenseException("The product license is invalid.");
+    }
+  }
+
   private HttpResponse execute(HttpUriRequest request, int retryCount) {
+    validateProductLicenseIfNeeded(request);
+
     HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(request);
     if (retryCount > 0) {
       wrapper.setURI(UriBuilder.fromUri(request.getURI()).queryParam("retryCount", retryCount).build());

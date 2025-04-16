@@ -127,4 +127,49 @@ public class ApiPolicyWaiverRequestServiceAuthzTest
     login();
     reviewPolicyWaiverRequestWithDefaultOptions(OwnerType.APPLICATION, app.getPublicId());
   }
+
+  @Test
+  public void testGetPolicyWaiverRequest_Authorized() {
+    grantPermission(app.getId(), Permission.READ);
+    getPolicyWaiverRequest(OwnerType.APPLICATION, app.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetPolicyWaiverRequest_Unauthenticated() {
+    getPolicyWaiverRequest(OwnerType.APPLICATION, app.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetPolicyWaiverRequest_Unauthorized() {
+    login();
+    getPolicyWaiverRequest(OwnerType.APPLICATION, app.getId());
+  }
+
+  @Test
+  public void testGetPolicyWaiverRequest_AppPublicId_Authorized() {
+    grantPermission(app.getId(), Permission.READ);
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder()
+        .setPolicyId(policy.getId()).setOwnerId(app.getId()).setPolicyViolationId("policyViolationId").build());
+    apiPolicyWaiverRequestService.getPolicyWaiverRequest(OwnerType.APPLICATION, app.getPublicId(),
+        policyWaiverRequest.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetPolicyWaiverRequest_AppPublicId_Unauthenticated() {
+    getPolicyWaiverRequest(OwnerType.APPLICATION, app.getPublicId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetPolicyWaiverRequest_AppPublicId_Unauthorized() {
+    login();
+    getPolicyWaiverRequest(OwnerType.APPLICATION, app.getPublicId());
+  }
+
+  private void getPolicyWaiverRequest(OwnerType ownerType, String ownerId) {
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder()
+        .setPolicyId(policy.getId()).setOwnerId(ownerId).setPolicyViolationId("policyViolationId").build());
+    apiPolicyWaiverRequestService.getPolicyWaiverRequest(ownerType, ownerId, policyWaiverRequest.getId());
+  }
 }

@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus;
 import com.sonatype.insight.brain.policy.comparison.ConstraintFactsListComparator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
@@ -237,5 +238,19 @@ public class PolicyWaiverRequestDAO
         AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)
         """;
     return getList(sQuery, policyId);
+  }
+
+  public PolicyWaiverRequest getByIdAndOwnerIdNotNull(String policyWaiverRequestId, String ownerId) {
+    String sQuery = """
+        SELECT entity FROM PolicyWaiverRequest entity
+        WHERE entity.id=?1
+        AND entity.ownerId=?2""";
+    PolicyWaiverRequest policyWaiverRequest = get(sQuery, policyWaiverRequestId, ownerId);
+    if (policyWaiverRequest == null) {
+      String errorMessage =
+          "Cannot find a policy waiver request with ID " + policyWaiverRequestId + " for owner " + ownerId + ".";
+      throw new NotFoundException(errorMessage);
+    }
+    return policyWaiverRequest;
   }
 }

@@ -514,4 +514,22 @@ public class ApiPolicyWaiverRequestService
     }
     return false;
   }
+
+  public ApiPolicyWaiverRequestDTO getPolicyWaiverRequest(
+      OwnerType ownerType,
+      String ownerId,
+      String policyWaiverRequestId)
+  {
+    log.debug("Received request to get policy waiver request for ownerType {}, ownerId {}, policy waiver request ID {}",
+        ownerType, ownerId, policyWaiverRequestId);
+
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
+    // Check permission before anything else, to avoid giving away extra information to an unauthorized user.
+    checkReadPermission(ownerType, internalOwnerId);
+
+    PolicyWaiverRequest policyWaiverRequest =
+        policyWaiverRequestDAO.getByIdAndOwnerIdNotNull(policyWaiverRequestId, internalOwnerId);
+    PolicyWaiverReason policyWaiverReason = policyWaiverReasonDAO.getById(policyWaiverRequest.getWaiverReasonId());
+    return toDto(policyWaiverRequest, policyWaiverReason);
+  }
 }

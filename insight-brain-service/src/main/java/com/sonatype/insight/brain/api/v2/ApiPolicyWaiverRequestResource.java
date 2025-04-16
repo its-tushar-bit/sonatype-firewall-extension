@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -45,6 +46,8 @@ public class ApiPolicyWaiverRequestResource
       "{ownerType: application|organization|repository|repository_manager|repository_container}/{ownerId}";
 
   static final String POLICY_VIOLATION_ID_PATH = OWNERS_PATH + "/{policyViolationId}";
+
+  static final String POLICY_WAIVER_REQUEST_ID_PATH = OWNERS_PATH + "/{policyWaiverRequestId}";
 
   static final String POLICY_WAIVER_REQUEST_REVIEW_PATH = OWNERS_PATH + "/review/{policyWaiverRequestId}";
 
@@ -131,5 +134,28 @@ public class ApiPolicyWaiverRequestResource
   {
     return apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(ownerType, ownerId, policyWaiverRequestId,
         apiPolicyWaiverRequestReviewDTO);
+  }
+
+  @GET
+  @Path(POLICY_WAIVER_REQUEST_ID_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(
+      description = "Use this method to retrieve policy waiver request details for the policyWaiverRequestId specified."
+          + "\n" //
+          + "\n" //
+          + "Permissions required: View IQ Elements",
+      responses = {@ApiResponse(responseCode = "200", description = "The requested policy waiver request.",
+          useReturnTypeSchema = true)})
+  public ApiPolicyWaiverRequestDTO getPolicyWaiverRequest(
+      @Parameter(description = """
+          The scope of the policy waiver request. Possible values are application,
+          organization, repository, repository_manager, repository_container.""",
+          required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "The id for the ownerType provided above.",
+          required = true) @PathParam("ownerId") String ownerId,
+      @Parameter(description = "The policyWaiverRequestId for which you want to retrieve the details.",
+          required = true) @PathParam("policyWaiverRequestId") String policyWaiverRequestId)
+  {
+    return apiPolicyWaiverRequestService.getPolicyWaiverRequest(ownerType, ownerId, policyWaiverRequestId);
   }
 }

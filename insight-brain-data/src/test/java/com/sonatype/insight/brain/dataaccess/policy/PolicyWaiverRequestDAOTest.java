@@ -14,6 +14,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
@@ -22,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.policy.PolicyWaiverRequestBuilder;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -396,5 +398,40 @@ public class PolicyWaiverRequestDAOTest
             .setOwnerId(application.getId()).setExpiryTime(DateUtils.addDays(new Date(), 1)).build());
 
     JPA.assertContainsEntitiesExactlyInAnyOrder(dao.getActiveByPolicyId(policy1.getId()), policyWaiverRequest1Active);
+  }
+
+  @Test
+  public void testGetByIdAndOwnerIdNotNull() {
+    Policy policy = tempEntity.newPolicy(organization);
+    String policyId = policy.getId();
+
+    PolicyWaiverRequest policyWaiverRequestApp =
+        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("testHash1").setPolicyId(policyId)
+            .setOwnerId(application.getId()).setPolicyViolationId("policyViolationId").build());
+    PolicyWaiverRequest policyWaiverRequestOrg =
+        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("testHash2").setPolicyId(policyId)
+            .setOwnerId(organization.getId()).setPolicyViolationId("policyViolationId").build());
+
+    JPA.assertEntityEquals(dao.getByIdAndOwnerIdNotNull(policyWaiverRequestApp.getId(), application.getId()),
+        policyWaiverRequestApp);
+    JPA.assertEntityEquals(dao.getByIdAndOwnerIdNotNull(policyWaiverRequestOrg.getId(), organization.getId()),
+        policyWaiverRequestOrg);
+  }
+
+  @Test
+  public void testGetByIdAndOwnerIdNotNull_IncorrectParent() {
+    Policy policy = tempEntity.newPolicy(organization);
+    String policyId = policy.getId();
+
+    PolicyWaiverRequest policyWaiverRequest =
+        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("testHash1").setPolicyId(policyId)
+            .setOwnerId(application.getId()).setPolicyViolationId("policyViolationId").build());
+    
+    Application otherApp = tempEntity.newApplication(organization.getId());
+
+    assertThatThrownBy(() -> {
+      dao.getByIdAndOwnerIdNotNull(policyWaiverRequest.getId(), otherApp.getId());
+    }).isInstanceOf(NotFoundException.class).hasMessage("Cannot find a policy waiver request with ID "
+        + policyWaiverRequest.getId() + " for owner " + otherApp.getId() + ".");
   }
 }

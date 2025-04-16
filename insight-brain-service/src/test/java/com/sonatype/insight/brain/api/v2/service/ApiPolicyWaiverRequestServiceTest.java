@@ -883,4 +883,50 @@ public class ApiPolicyWaiverRequestServiceTest
     assertPolicyWaiver(org.getId(), policy, policyViolation, "waiver comment", "testuser", "Test User",
         policyViolation.getHash(), null, EXACT_COMPONENT, null, policyWaiverRequest.getPolicyWaiverId());
   }
+
+  @Test
+  public void testGetPolicyWaiverRequest_ApplicationPublicId() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getPublicId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    PolicyWaiverRequest policyWaiverRequest =
+        policyWaiverRequestDAO.getById(policyWaiverRequestDTO.policyWaiverRequestId);
+
+    policyWaiverRequestDTO = apiPolicyWaiverRequestService.getPolicyWaiverRequest(OwnerType.APPLICATION,
+        app.getPublicId(), policyWaiverRequestDTO.policyWaiverRequestId);
+
+    assertPolicyWaiverRequestDTO(policyWaiverRequestDTO, policyWaiverRequest);
+  }
+
+  @Test
+  public void testGetPolicyWaiverRequest() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    PolicyWaiverRequest policyWaiverRequest =
+        policyWaiverRequestDAO.getById(policyWaiverRequestDTO.policyWaiverRequestId);
+
+    policyWaiverRequestDTO = apiPolicyWaiverRequestService.getPolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
+        policyWaiverRequestDTO.policyWaiverRequestId);
+
+    assertPolicyWaiverRequestDTO(policyWaiverRequestDTO, policyWaiverRequest);
+  }
+
+  @Test
+  public void testGetPolicyWaiverRequest_IncorrectParent() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    PolicyWaiverRequest policyWaiverRequest =
+        policyWaiverRequestDAO.getById(policyWaiverRequestDTO.policyWaiverRequestId);
+
+    Application otherApp = tempEntity.newApplication(org.getId());
+
+    assertThatThrownBy(() -> {
+      apiPolicyWaiverRequestService.getPolicyWaiverRequest(OwnerType.APPLICATION, otherApp.getId(),
+          policyWaiverRequestDTO.policyWaiverRequestId);
+    }).isInstanceOf(NotFoundException.class)
+        .hasMessage("Cannot find a policy waiver request with ID " + policyWaiverRequest.getId() + " for owner "
+            + otherApp.getId() + ".");
+  }
 }

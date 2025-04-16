@@ -15,36 +15,34 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class FileCleanerTest
 {
   @Rule
-  public TemporaryFolder folder = new TemporaryFolder();
+  public TemporaryFolder tempFolder = new TemporaryFolder();
 
   @Test
   public void canDeleteFile() throws IOException {
-    File file = folder.newFile();
+    File file = tempFolder.newFile();
     assertThat(file).exists();
 
     new FileCleaner().delete(file);
     assertThat(file).doesNotExist();
   }
 
-  @Test(expected = FileDeletionException.class)
-  public void undeletableFileThrowsSpecializedException() throws IOException {
-    File file = mock(File.class, RETURNS_DEEP_STUBS);
+  @Test
+  public void canDeleteFolder() throws IOException {
+    File folder = tempFolder.newFolder();
+    assertThat(folder).exists();
+    File file = new File(folder, "test.txt");
+    file.createNewFile();
+    assertThat(file).exists();
 
-    // simulate system that couldn't delete the file
-    when(file.delete()).thenReturn(false);
-    when(file.exists()).thenReturn(true);
-
-    // satisfy encapsulated library calls
-    when(file.getCanonicalFile().exists()).thenReturn(true);
-
-    new FileCleaner().delete(file);
+    new FileCleaner().delete(folder);
+    assertThat(file).doesNotExist();
+    assertThat(folder).doesNotExist();
   }
 
   @Test(expected = FileDeletionException.class)
@@ -52,7 +50,7 @@ public class FileCleanerTest
     File file = mock(File.class);
 
     // specific call from encapsulated library that can cause exceptions
-    when(file.getCanonicalFile()).thenThrow(new IOException("BOOM"));
+    when(file.toPath()).thenThrow(new RuntimeException("BOOM"));
     when(file.exists()).thenReturn(true);
 
     new FileCleaner().delete(file);
@@ -65,7 +63,7 @@ public class FileCleanerTest
 
   @Test
   public void ignoresNonExistentFileObjects() throws Exception {
-    File file = new File(folder.getRoot(), "lochness.monster");
+    File file = new File(tempFolder.getRoot(), "lochness.monster");
     assertThat(file).doesNotExist();
     new FileCleaner().delete(file);
   }

@@ -10,7 +10,7 @@ import java.io.IOException;
 
 import javax.inject.Named;
 
-import org.codehaus.plexus.util.FileUtils;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,15 +31,13 @@ public class FileCleaner
    * Delete a file. If file is directory delete it with all sub-directories and containing files.
    */
   public void delete(File file) throws FileDeletionException {
-    // FileUtils.forceDelete(file) will try to delete the file even if it doesn't exist and that will also cause a call
-    // to System.gc() and a 10 millisec sleep, which can cause performance problems.
     if (file != null && file.exists()) {
       long start = System.currentTimeMillis();
 
       try {
         FileUtils.forceDelete(file);
       }
-      catch (IOException e) {
+      catch (Exception e) {
         throw new FileDeletionException(file, e);
       }
 

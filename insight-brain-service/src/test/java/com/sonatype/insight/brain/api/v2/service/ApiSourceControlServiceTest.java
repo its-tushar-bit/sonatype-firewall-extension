@@ -15,11 +15,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.sourcecontrol.ApiSourceControlRepositoryUserDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiOwnerUserRateLimitsDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiRateLimitDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiUserRateLimitsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerDTO;
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiPullRequestResults;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService.METHOD;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -27,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceContro
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
+import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
 import com.sonatype.insight.brain.git.GitApiFactory;
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
@@ -51,6 +54,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
+import com.sonatype.nexus.iq.manager.PullRequestResult;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient;
@@ -1445,6 +1449,41 @@ public class ApiSourceControlServiceTest
     assertThat(sourceControlByApplicationId.getUsername()).isNull();
     assertThat(sourceControlByApplicationId.getRemediationPullRequestsEnabled()).isFalse(); // from org1
     assertThat(sourceControlByApplicationId.getProvider()).isEqualTo(SourceControlProvider.GITHUB); // from root org
+  }
+
+  @Test
+  public void testGetSourceControlMetricsForApplication_filtersOutManualPRs() {
+    setLicensedForSourceControlByAutomation();
+    PullRequestResult automatedPR = new PullRequestResult();
+    automatedPR.setCheckoutTime(1L);
+    automatedPR.setRemediationTime(1L);
+    automatedPR.setPushTime(1L);
+    automatedPR.setPullRequestCreationTime(1L);
+    automatedPR.setSuccessful(true);
+    EnhancedPullRequestResult enhancedAutomatedPR =
+        new EnhancedPullRequestResult(automatedPR, new Date(System.currentTimeMillis() - 1000),
+            ComponentIdentifier.createMavenCoordinates("foo", "bar", "1.0"),
+            "Auto Bump bar to 1.1", false, false);
+
+    PullRequestResult manualPR = new PullRequestResult();
+    manualPR.setCheckoutTime(1L);
+    manualPR.setRemediationTime(1L);
+    manualPR.setPushTime(1L);
+    manualPR.setPullRequestCreationTime(1L);
+    manualPR.setSuccessful(true);
+    EnhancedPullRequestResult enhancedManualPR =
+        new EnhancedPullRequestResult(manualPR, new Date(System.currentTimeMillis() - 2000),
+            ComponentIdentifier.createMavenCoordinates("foo", "bar", "1.0"),
+            "Manual Bump bar to 1.1", false, true);
+
+    tempEntity.newSourceControlPullRequestResult(app.getId(), JsonUtils.writeUnformatted(enhancedAutomatedPR));
+    tempEntity.newSourceControlPullRequestResult(app.getId(), JsonUtils.writeUnformatted(enhancedManualPR));
+
+    ApiPullRequestResults results = sourceControlService.getSourceControlMetricsForApplication(
+        OwnerType.APPLICATION, app.getId());
+
+    assertThat(results.results).hasSize(1);
+    assertThat(results.results.get(0).title).isEqualTo("Auto Bump bar to 1.1");
   }
 
   private GeneralSCMApiClient createMockGeneralSCMApiClient() throws Exception {

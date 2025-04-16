@@ -36,6 +36,8 @@ public class EnhancedPullRequestResult
 
   private boolean exceptionThrown;
 
+  private boolean manualPR;
+
   public EnhancedPullRequestResult() {
     // for Jackson
   }
@@ -47,11 +49,23 @@ public class EnhancedPullRequestResult
       final String title,
       final boolean exceptionThrown)
   {
+    this(timing, startTime, target, title, exceptionThrown, false);
+  }
+
+  public EnhancedPullRequestResult(
+      final PullRequestResult timing,
+      final Date startTime,
+      final ComponentIdentifier target,
+      final String title,
+      final boolean exceptionThrown,
+      final boolean manualPR)
+  {
     this.timing = timing;
     this.startTime = startTime;
     this.target = target;
     this.title = title;
     this.exceptionThrown = exceptionThrown;
+    this.manualPR = manualPR;
   }
 
   public PullRequestResult getTiming() {
@@ -74,6 +88,10 @@ public class EnhancedPullRequestResult
     return exceptionThrown;
   }
 
+  public boolean isManualPR() {
+    return manualPR;
+  }
+
   public String getReasoning() {
     return intuitReasoning(timing, exceptionThrown);
   }
@@ -86,6 +104,7 @@ public class EnhancedPullRequestResult
         ", target=" + target +
         ", title='" + title + '\'' +
         ", exceptionThrown=" + exceptionThrown +
+        ", manualPR=" + manualPR +
         ", reasoning='" + getReasoning() + '\'' +
         '}';
   }

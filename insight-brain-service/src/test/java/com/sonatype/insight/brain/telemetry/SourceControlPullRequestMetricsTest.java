@@ -192,6 +192,32 @@ public class SourceControlPullRequestMetricsTest
   }
 
   @Test
+  public void testMetricsForApplication_hasBothPRTypes() {
+    //an application with both automated and manual PRs
+    PullRequestResult automatedPr = new PullRequestResult();
+    automatedPr.setSuccessful(true);
+    EnhancedPullRequestResult automatedResult = new EnhancedPullRequestResult(automatedPr, new Date(),
+        MAVEN_COORDINATES, "Automated PR", false, false);
+
+    PullRequestResult manualPr = new PullRequestResult();
+    manualPr.setSuccessful(true);
+    EnhancedPullRequestResult manualResult = new EnhancedPullRequestResult(manualPr, new Date(),
+        MAVEN_COORDINATES, "Manual PR", false, true);
+
+    String applicationId = tempEntity.newApplicationWithParent().getId();
+    metrics.addResult(applicationId, automatedResult);
+    metrics.addResult(applicationId, manualResult);
+
+    List<EnhancedPullRequestResult> results = metrics.metricsForApplication(applicationId);
+
+    assertThat(results).hasSize(2);
+    assertThat(results.get(0).getTitle()).isEqualTo("Automated PR");
+    assertThat(results.get(0).isManualPR()).isFalse();
+    assertThat(results.get(1).getTitle()).isEqualTo("Manual PR");
+    assertThat(results.get(1).isManualPR()).isTrue();
+  }
+
+  @Test
   public void testComputeStats_Unparsable() {
     Application application = tempEntity.newApplicationWithParent();
     tempEntity.newSourceControlPullRequestResult(application.getId(), "{\"startTime\": true}");

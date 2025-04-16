@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -39,6 +40,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.git.ScmRepoVisibilityService;
@@ -565,6 +567,10 @@ public class ApiSourceControlService
     }
   }
 
+  /**
+   * Retrieves the source control metrics for the specified application. These metrics will be displayed in the "Daily
+   * Automated Pull Requests" table. Note that manual pull requests are excluded from the response.
+   */
   @Authorize(permission = Permission.READ)
   public ApiPullRequestResults getSourceControlMetricsForApplication(
       @AuthzContext(Key.TYPE) @SuppressWarnings("unused") final OwnerType ownerType,
@@ -572,7 +578,12 @@ public class ApiSourceControlService
   {
     checkLicense();
 
-    return ApiSourceControlMetricsAdapter.convertToDTO(sourceControlPullRequestMetrics.metricsForApplication(ownerId));
+    List<EnhancedPullRequestResult> enhancedPullRequestResults =
+        sourceControlPullRequestMetrics.metricsForApplication(ownerId).stream()
+            .filter(Predicate.not(EnhancedPullRequestResult::isManualPR))
+            .toList();
+
+    return ApiSourceControlMetricsAdapter.convertToDTO(enhancedPullRequestResults);
   }
 
   @Authorize(permission = Permission.READ)

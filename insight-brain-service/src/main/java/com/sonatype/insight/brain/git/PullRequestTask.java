@@ -111,7 +111,8 @@ public class PullRequestTask
       PullRequestResult pullRequestResult = pullRequestExecutor.execute(command);
       metrics.addResult(applicationId,
           new EnhancedPullRequestResult(pullRequestResult, start, pullRequestRemediationDetails.getToBeRemediated(),
-              pullRequestRemediationDetails.getTitle(), false));
+              pullRequestRemediationDetails.getTitle(),
+              false, pullRequestRemediationDetails.isManualPullRequest()));
 
       try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.CREATE_PULL_REQUEST)) {
         AuditData.get()
@@ -129,7 +130,7 @@ public class PullRequestTask
       sourceControlUtils.deleteCheckoutDirectory(pullRequestRemediationDetails.getApp());
       metrics.addResult(applicationId, new EnhancedPullRequestResult(new PullRequestResult(), start,
           pullRequestRemediationDetails.getToBeRemediated(),
-          pullRequestRemediationDetails.getTitle(), true));
+          pullRequestRemediationDetails.getTitle(), true, pullRequestRemediationDetails.isManualPullRequest()));
       throw new RuntimeException("Failed to execute pull request for application '" + applicationId + "'", e);
     }
     catch (Throwable t) {

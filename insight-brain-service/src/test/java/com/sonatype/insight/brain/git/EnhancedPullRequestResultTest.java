@@ -49,4 +49,22 @@ public class EnhancedPullRequestResultTest
     assertThat(result.getReasoning())
         .isEqualTo("An error happened trying to create this PR, look in server logs for more information.");
   }
+
+  @Test
+  public void testEnhancedPullRequestResult_manualPR_defaultConstructor() {
+    PullRequestResult prResult = new PullRequestResult();
+    prResult.setSuccessful(true);
+    EnhancedPullRequestResult result = new EnhancedPullRequestResult(prResult, new Date(),
+        COMPONENT, "Bump bar to 1.1", false);
+    assertThat(result.isManualPR()).isFalse();
+  }
+
+  @Test
+  public void testEnhancedPullRequestResult_manualPR_extendedConstructor() {
+    PullRequestResult prResult = new PullRequestResult();
+    prResult.setSuccessful(true);
+    EnhancedPullRequestResult result = new EnhancedPullRequestResult(prResult, new Date(),
+        COMPONENT, "Bump bar to 1.1", false, true);
+    assertThat(result.isManualPR()).isTrue();
+  }
 }

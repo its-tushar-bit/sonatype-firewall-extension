@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.organization.ApplicationTelemetryCollector;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.FIPSModeDetector;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
 import com.sonatype.insight.brain.telemetry.DatabaseTelemetryCollector;
@@ -131,6 +132,7 @@ public class InsightBrainServiceTest
   @After
   public void after() {
     System.setProperty(InsightBrainService.SISU_URL_CACHES, "true");
+    InsightBrainService.fipsModeDetector = new FIPSModeDetector();
   }
 
   @Test
@@ -569,5 +571,47 @@ public class InsightBrainServiceTest
         .withCauseInstanceOf(ConfigurationParsingException.class)
         .withStackTraceContaining(
             "database.maxConnections; Numeric value (2147483648) out of range of int (-2147483648 - 2147483647)");
+  }
+
+  @Test
+  @ManualIqServerInit
+  public void testInitialize_FIPSEnabled_LogError() throws Exception {
+    InsightBrainService.fipsModeDetector = mock(FIPSModeDetector.class);
+    when(InsightBrainService.fipsModeDetector.isEnabled()).thenReturn(true);
+
+    startIqTestServer(config -> {
+    });
+
+    assertThat(logOutput)
+        .atErrorLevel()
+        .contains("FIPS mode appears to be enabled, Nexus IQ Server cannot run in FIPS mode.");
+  }
+
+  @Test
+  @ManualIqServerInit
+  public void testInitialize_FIPSDisabled_NoLogError() throws Exception {
+    InsightBrainService.fipsModeDetector = mock(FIPSModeDetector.class);
+    when(InsightBrainService.fipsModeDetector.isEnabled()).thenReturn(false);
+
+    startIqTestServer(config -> {
+    });
+
+    assertThat(logOutput)
+        .atErrorLevel()
+        .doesNotContain("FIPS mode appears to be enabled, Nexus IQ Server cannot run in FIPS mode.");
+  }
+
+  @Test
+  @ManualIqServerInit
+  public void testInitialize_FIPSUnknown_NoLogError() throws Exception {
+    InsightBrainService.fipsModeDetector = mock(FIPSModeDetector.class);
+    when(InsightBrainService.fipsModeDetector.isEnabled()).thenReturn(null);
+
+    startIqTestServer(config -> {
+    });
+
+    assertThat(logOutput)
+        .atErrorLevel()
+        .doesNotContain("FIPS mode appears to be enabled, Nexus IQ Server cannot run in FIPS mode.");
   }
 }

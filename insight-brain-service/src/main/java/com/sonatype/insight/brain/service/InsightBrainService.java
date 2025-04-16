@@ -56,6 +56,7 @@ import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionVal
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
 import com.sonatype.insight.brain.security.ContentTypeOptionsHeaderFilter;
 import com.sonatype.insight.brain.security.CspHeaderFilter;
+import com.sonatype.insight.brain.security.FIPSModeDetector;
 import com.sonatype.insight.brain.security.HttpHeaderValidatorFilter;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.SecurityAopModule;
@@ -87,19 +88,19 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.name.Names;
 import io.dropwizard.assets.AssetsBundle;
-import io.dropwizard.core.cli.Cli;
-import io.dropwizard.core.cli.Command;
-import io.dropwizard.core.cli.ServerCommand;
 import io.dropwizard.configuration.ConfigurationFactory;
 import io.dropwizard.configuration.DefaultConfigurationFactoryFactory;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
+import io.dropwizard.core.cli.Cli;
+import io.dropwizard.core.cli.Command;
+import io.dropwizard.core.cli.ServerCommand;
+import io.dropwizard.core.setup.Bootstrap;
+import io.dropwizard.core.setup.Environment;
 import io.dropwizard.forms.MultiPartBundle;
 import io.dropwizard.jackson.AnnotationSensitivePropertyNamingStrategy;
 import io.dropwizard.jackson.DiscoverableSubtypeResolver;
 import io.dropwizard.jackson.GuavaExtrasModule;
-import io.dropwizard.core.setup.Bootstrap;
-import io.dropwizard.core.setup.Environment;
 import io.dropwizard.util.JarLocation;
 import io.dropwizard.web.WebBundle;
 import io.dropwizard.web.conf.WebConfiguration;
@@ -144,6 +145,15 @@ public class InsightBrainService
       System.err.println(
           "Fatal error: Expecting to run as SINGLE tenant, but found tenant: " + TenantThreadLocal.getTenant());
       System.exit(10);
+    }
+  }
+  
+  // Visible for testing
+  static FIPSModeDetector fipsModeDetector = new FIPSModeDetector();
+
+  private static void logErrorIfFIPSModeIsEnabled() {
+    if (Boolean.TRUE.equals(fipsModeDetector.isEnabled())) {
+      log.error("FIPS mode appears to be enabled, Nexus IQ Server cannot run in FIPS mode.");
     }
   }
 
@@ -203,6 +213,7 @@ public class InsightBrainService
   @Override
   public void run(String... arguments) throws Exception {
     startTime = System.currentTimeMillis();
+    logErrorIfFIPSModeIsEnabled();
     setSisuUrlCachesToTrueIfNotSet();
 
     final Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(this);

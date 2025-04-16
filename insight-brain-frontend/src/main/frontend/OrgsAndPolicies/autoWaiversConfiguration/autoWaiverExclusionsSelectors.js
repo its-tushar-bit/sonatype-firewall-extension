@@ -5,8 +5,9 @@
  */
 import { createSelector } from '@reduxjs/toolkit';
 import { prop } from 'ramda';
+import { selectAutoWaiversSlice } from '../autoWaiversSelectors';
 
-const selectAutoWaiverExclusionsSlice = prop('autoWaiverDetailsExclusions');
+const selectAutoWaiverExclusionsSlice = createSelector(selectAutoWaiversSlice, prop('autoWaiverDetailsExclusions'));
 export const selectAutoWaiverExclusions = createSelector(selectAutoWaiverExclusionsSlice, prop('data'));
 export const selectAutoWaiverExclusionsLoading = createSelector(selectAutoWaiverExclusionsSlice, prop('loading'));
 export const selectAutoWaiverExclusionError = createSelector(selectAutoWaiverExclusionsSlice, prop('loadError'));

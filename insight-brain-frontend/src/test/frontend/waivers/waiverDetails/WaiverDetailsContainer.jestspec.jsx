@@ -27,7 +27,7 @@ describe('WaiverDetailsContainer', () => {
 
   it('should render AutoWaiverDetails when type is autoWaiver', () => {
     renderComponent();
-    expect(screen.getByTestId('auto-waiver-details-page')).toBeInTheDocument();
+    expect(screen.getByTestId('auto-waiver-details')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Auto-Waiver Details' })).toBeInTheDocument();
   });
 

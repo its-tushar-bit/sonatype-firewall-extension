@@ -6,8 +6,8 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { NxH2, NxTile, NxList, NxLoadWrapper } from '@sonatype/react-shared-components';
-import { selectApplicableAutoWaivers } from './../automatedWaiversSelectors';
-import { actions } from 'MainRoot/OrgsAndPolicies/applicableAutoWaiversSlice';
+import { selectApplicableAutoWaivers } from './../autoWaiversSelectors';
+import { actions } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/applicableAutoWaiversSlice';
 import {
   selectIsAutoWaiversEnabled,
   selectIsDeveloperDashboardEnabled,
@@ -23,7 +23,7 @@ export default function AutoWaiversTile() {
   const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
   const uiStateRouter = useRouterState();
   const router = useSelector(selectRouterSlice);
-  const { to, params } = deriveEditRoute(router, 'edit-waivers');
+  const { to, params } = deriveEditRoute(router, 'auto-waivers-config');
   const href = uiStateRouter.href(to, params);
   const isSbomManager = useSelector(selectIsSbomManager);
   const isRootOrg = useSelector(selectIsRootOrganization);

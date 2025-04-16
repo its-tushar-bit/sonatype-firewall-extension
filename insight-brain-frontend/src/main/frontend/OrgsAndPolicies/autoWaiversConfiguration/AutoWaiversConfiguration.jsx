@@ -3,43 +3,46 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   selectIsAutoWaiversEnabled,
   selectIsDeveloperDashboardEnabled,
   selectProductFeaturesSlice,
-  selectIsNewScanProcessEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   NxTile,
-  NxCheckbox,
-  NxFieldset,
   NxH1,
   NxLoadWrapper,
   NxPageTitle,
-  NxStatefulForm,
   NxH2,
-  NxH4,
-  NxInfoAlert,
-  NxTooltip,
   NxFontAwesomeIcon,
+  NxButton,
+  NxTable,
+  NxThreatIndicator,
+  NxTooltip,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
-import { actions } from 'MainRoot/OrgsAndPolicies/automatedWaiversSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/applicableAutoWaiversSlice';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import './_autoWaiversConfiguration.scss';
-import { selectWaiversConfigPage, selectWaiversSlice } from 'MainRoot/OrgsAndPolicies/automatedWaiversSelectors';
-import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
-import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
-import LicenseLockScreenForAutoWaivers from './LicenseLockScreenForAutoWaivers';
-import ConfirmationModal from 'MainRoot/legal/application/ConfirmationModal';
-import ThreatDropdownSelector from 'MainRoot/react/ThreatDropdownSelector';
-import ExclusionLogTable from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/ExclusionLogTable';
-import { selectExclusions } from 'MainRoot/OrgsAndPolicies/automatedWaiversExclusionsSelector';
-import { isNil } from 'ramda';
-import { faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
-import ReachabilityStatus from 'MainRoot/componentDetails/ReachabilityStatus/ReachabilityStatus';
+import { actions as autoWaiverActions } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverModalSlice';
+import { selectIsSbomManager, selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
+import { selectApplicableAutoWaivers } from 'MainRoot/OrgsAndPolicies/autoWaiversSelectors';
+import { faPlus, faTrash } from '@fortawesome/pro-solid-svg-icons';
+import LicenseLockScreenForAutoWaivers from './LicenseLockScreenForAutoWaivers';
+import DeleteAutoWaiverModal from './DeleteAutoWaiverModal';
+import AutoWaiverModal from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverModal';
+import moment from 'moment';
+import { groupBy } from 'lodash';
+import classNames from 'classnames';
+import './_autoWaiversConfiguration.scss';
+import PropTypes from 'prop-types';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
+
+export const formatDate = (date) => moment(date).format('YYYY-MM-DD');
+
 const AutoWaiversConfiguration = () => {
   const dispatch = useDispatch();
   const { loading, loadError, productFeatures } = useSelector(selectProductFeaturesSlice);
@@ -69,54 +72,28 @@ const AutoWaiversConfiguration = () => {
 };
 
 function AutoWaiversConfigurationContents() {
+  const MAX_LOCAL_WAIVERS = 3;
+
   const dispatch = useDispatch();
-  const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] = useState(false);
-  const setThreatLevel = (val) => dispatch(actions.setThreatLevel(val));
 
-  const waiversConfigPage = useSelector(selectWaiversConfigPage);
-  const exclusions = useSelector(selectExclusions);
-  const { loading, loadError, isDirty, submitMaskState, submitError } = useSelector(selectWaiversSlice);
-  const isNewScanProcessEnabled = useSelector(selectIsNewScanProcessEnabled);
-  const reachability = isNewScanProcessEnabled ? waiversConfigPage?.reachability ?? false : false;
-  const pathForward = waiversConfigPage?.pathForward ?? false;
-  const threatLevel = waiversConfigPage?.threatLevel ?? 7;
-  const hasExistingWaiver = !isNil(waiversConfigPage?.autoPolicyWaiverId);
+  const doLoad = () => dispatch(actions.loadApplicableAutoWaivers());
 
-  useEffect(() => {
-    if (isNil(waiversConfigPage?.threatLevel)) {
-      setThreatLevel(7);
-      dispatch(actions.setIsDirty(false)); // reset dirty flag since this isn't a user-made change
-    }
-  }, [waiversConfigPage.threatLevel]);
+  const applicableAutoWaivers = useSelector(selectApplicableAutoWaivers);
+  const { isDeleteModalOpen, loading, loadError, data } = applicableAutoWaivers || {};
 
-  const handleDelete = () => {
-    setIsDeleteConfirmationModalOpen(false);
-    dispatch(actions.deleteAutoWaiver());
-  };
+  const localWaivers = data?.filter((waiver) => waiver.isInherited === false) || [];
+  const inheritedWaivers = groupBy(
+    data?.filter((waiver) => waiver.isInherited),
+    'autoPolicyWaiverOwnerName'
+  );
 
-  const invalidConfigState = !isNewScanProcessEnabled && waiversConfigPage?.reachability && !pathForward;
+  const waiverCreationDisabled = localWaivers?.length >= MAX_LOCAL_WAIVERS;
 
-  const shouldDeleteAutoWaiver = (isDirty && !reachability && !pathForward && hasExistingWaiver) || invalidConfigState;
-
-  const handleSubmit = () => {
-    if (shouldDeleteAutoWaiver) {
-      setIsDeleteConfirmationModalOpen(true);
-    } else if (waiversConfigPage?.isInherited === null || waiversConfigPage?.isInherited === true) {
-      dispatch(actions.createAutoWaiver());
-    } else {
-      dispatch(actions.saveAutoWaiversConfiguration());
+  const handleNewAutoWaiverClick = () => {
+    if (!waiverCreationDisabled) {
+      dispatch(autoWaiverActions.openModal());
     }
   };
-
-  const validationError = () => {
-    if (!reachability && !pathForward && !hasExistingWaiver)
-      return 'Can not save without selecting at least one option';
-    if (invalidConfigState) return undefined;
-    if (!isDirty) return MSG_NO_CHANGES_TO_SAVE;
-    return undefined;
-  };
-
-  const doLoad = () => dispatch(actions.loadAllAutoWaiverData());
 
   useEffect(() => {
     doLoad();
@@ -130,92 +107,136 @@ function AutoWaiversConfigurationContents() {
           Limit disruptions by deprioritizing low-threat violations until a remediation path is available.
         </NxPageTitle.Description>
       </NxPageTitle>
-      <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
-        <NxTile aria-label="Configure Auto-Waiver">
-          <NxStatefulForm
-            submitBtnText={shouldDeleteAutoWaiver ? 'Delete Auto Waiver' : 'Update'}
-            submitMaskState={submitMaskState}
-            submitMaskMessage="Saving…"
-            onSubmit={handleSubmit}
-            validationErrors={validationError()}
-            submitError={submitError}
-          >
-            <NxH2>Configure Auto-Waiver</NxH2>
-            {waiversConfigPage?.isInherited === true && (
-              <NxInfoAlert>
-                Automated waivers are enabled for the parent organization. Changes made here will only affect this
-                application.
-              </NxInfoAlert>
-            )}
-            <NxFieldset label="Max. Threat Level" sublabel="Violations with higher threats will not be waived">
-              <div className="iq-waivers-configuration-upgrades">
-                <ThreatDropdownSelector
-                  className="edit-auto-waiver-threat-dropdown"
-                  threatLevel={threatLevel}
-                  onSelectThreatLevel={setThreatLevel}
-                  id="editor-auto-waiver-threat-level"
-                  excludeThreatLevelZero={true}
-                />
-              </div>
-            </NxFieldset>
-            <NxFieldset label="Scope" sublabel="Eligible violations will be waived if/when:">
-              <div className="iq-auto-waivers-configuration-upgrades-fieldset__item">
-                <NxH4>No Upgrade Path</NxH4>
-                <NxTooltip title={waiversConfigPage?.isInherited ? 'Inheriting from parent organization' : ''}>
-                  <NxCheckbox
-                    onChange={() => dispatch(actions.toggleCheckboxPath())}
-                    isChecked={pathForward || false}
-                    disabled={waiversConfigPage?.isInherited}
-                  >
-                    No newer, non-violating component version is available
-                  </NxCheckbox>
-                </NxTooltip>
-              </div>
-              {isNewScanProcessEnabled && (
-                <div className="iq-auto-waivers-configuration-upgrades-fieldset__item">
-                  <div className="iq-auto-waivers-configuration-upgrades-fieldset__item-reachability-header">
-                    <NxH4>Reachability Analysis</NxH4>
-                    <NxTooltip title="Callflow must be enabled via Jenkins or Sonatype CLI">
-                      <NxFontAwesomeIcon
-                        data-testid="auto-waivers-configuration-reachability-icon"
-                        icon={faInfoCircle}
-                        className="iq-auto-waivers-configuration-upgrades-fieldset__item-icon"
-                      />
-                    </NxTooltip>
-                  </div>
-                  <NxTooltip title={waiversConfigPage?.isInherited ? 'Inheriting from parent organization' : ''}>
-                    <NxCheckbox
-                      onChange={() => dispatch(actions.toggleCheckboxReachability())}
-                      isChecked={reachability || false}
-                      disabled={waiversConfigPage?.isInherited}
-                    >
-                      Security vulnerability is <ReachabilityStatus reachabilityStatus={'NOT_REACHABLE'} />
-                    </NxCheckbox>
-                  </NxTooltip>
-                </div>
-              )}
-            </NxFieldset>
-          </NxStatefulForm>
-        </NxTile>
+      <NxTile>
+        <NxTile.Header>
+          <NxH2>Configured Auto-Waivers</NxH2>
+          <NxTile.HeaderActions>
+            <NxTooltip title={waiverCreationDisabled ? 'Max. configurations reached' : ''}>
+              <NxButton
+                variant={'tertiary'}
+                className={classNames({ disabled: waiverCreationDisabled })}
+                onClick={handleNewAutoWaiverClick}
+              >
+                <NxFontAwesomeIcon icon={faPlus}></NxFontAwesomeIcon>
+                <span>New Auto-Waiver</span>
+              </NxButton>
+            </NxTooltip>
+          </NxTile.HeaderActions>
+        </NxTile.Header>
+        <NxTile.Content>
+          <NxTable>
+            <NxTable.Head>
+              <NxTable.Row>
+                <NxTable.Cell>Created</NxTable.Cell>
+                <NxTable.Cell>Owner</NxTable.Cell>
+                <NxTable.Cell>Max. Threat</NxTable.Cell>
+                <NxTable.Cell>Scope</NxTable.Cell>
+                <NxTable.Cell>Details</NxTable.Cell>
+                <NxTable.Cell hasIcon>Delete</NxTable.Cell>
+              </NxTable.Row>
+            </NxTable.Head>
+            <NxTable.Body
+              emptyMessage="No automations to display"
+              isLoading={loading}
+              error={loadError}
+              retryHandler={doLoad}
+            >
+              {localWaivers.map((autoWaiver) => (
+                <AutoWaiversConfigurationRow key={autoWaiver.autoPolicyWaiverId} autoWaiver={autoWaiver} />
+              ))}
 
-        <NxTile className="iq-exclusion-log-tile">
-          <NxH2>Exclusion Log</NxH2>
-          <ExclusionLogTable exclusions={exclusions || []} />
-        </NxTile>
-      </NxLoadWrapper>
-      {isDeleteConfirmationModalOpen && (
-        <ConfirmationModal
-          id="delete-auto-waiver-modal"
-          cancelHandler={() => setIsDeleteConfirmationModalOpen(false)}
-          titleContent={<span>Confirm Delete</span>}
-          confirmationMessage="Are you sure you want to delete this auto waiver configuration?"
-          closeHandler={() => setIsDeleteConfirmationModalOpen(false)}
-          confirmationHandler={handleDelete}
-          confirmationButtonText="Delete"
-        />
-      )}
+              {Object.keys(inheritedWaivers).map((parent) => {
+                return (
+                  <React.Fragment key={parent}>
+                    <NxTable.Row className="iq-inherited-waiver-header">
+                      <NxTable.Cell colSpan={6}>Inheriting from {parent}</NxTable.Cell>
+                    </NxTable.Row>
+                    {inheritedWaivers[parent].map((autoWaiver) => (
+                      <AutoWaiversConfigurationRow key={autoWaiver.autoPolicyWaiverId} autoWaiver={autoWaiver} />
+                    ))}
+                  </React.Fragment>
+                );
+              })}
+            </NxTable.Body>
+          </NxTable>
+        </NxTile.Content>
+      </NxTile>
+      <AutoWaiverModal />
+      {isDeleteModalOpen && <DeleteAutoWaiverModal />}
     </div>
   );
 }
+
+function AutoWaiversConfigurationRow({ autoWaiver }) {
+  const dispatch = useDispatch();
+  const uiStateRouter = useRouterState();
+  const router = useSelector(selectRouterSlice());
+  const {
+    autoPolicyWaiverId,
+    autoPolicyWaiverOwnerId,
+    autoPolicyWaiverOwnerName,
+    autoPolicyWaiverOwnerType,
+    createTime,
+    threatLevel,
+    hasNotReachable,
+    hasNoPathForward,
+    isInherited,
+  } = autoWaiver || {};
+
+  const { to, params } = deriveEditRoute(router, 'auto-waiver-details', {
+    ownerType: autoPolicyWaiverOwnerType,
+    autoWaiverOwnerId: autoPolicyWaiverOwnerId,
+    autoWaiverId: autoPolicyWaiverId,
+  });
+
+  const href = uiStateRouter.href(to, params);
+
+  const scope = [hasNotReachable && 'Not Reachable', hasNoPathForward && 'No Path Forward'].filter(Boolean).join('; ');
+
+  const handleDeleteClick = () => {
+    if (!isInherited) {
+      dispatch(actions.openDeleteModal(autoPolicyWaiverId));
+    }
+  };
+
+  const viewEditLink = () => {
+    return <NxTextLink href={href}>{isInherited ? 'View' : 'View/Edit'}</NxTextLink>;
+  };
+
+  return (
+    <NxTable.Row className="iq-auto-waiver-row">
+      <NxTable.Cell>{formatDate(createTime)}</NxTable.Cell>
+      <NxTable.Cell>{autoPolicyWaiverOwnerName}</NxTable.Cell>
+      <NxTable.Cell>
+        <NxThreatIndicator policyThreatLevel={threatLevel} />
+        <span>{threatLevel}</span>
+      </NxTable.Cell>
+      <NxTable.Cell>{scope}</NxTable.Cell>
+      <NxTable.Cell>{viewEditLink()}</NxTable.Cell>
+      <NxTable.Cell hasIcon className="iq-auto-waiver-delete-cell">
+        <NxButton
+          variant={'icon-only'}
+          title={isInherited ? 'Cannot delete an inherited auto-waiver' : 'Delete'}
+          className={classNames('iq-auto-waiver-delete-button', { disabled: isInherited })}
+          onClick={handleDeleteClick}
+        >
+          <NxFontAwesomeIcon icon={faTrash} />
+        </NxButton>
+      </NxTable.Cell>
+    </NxTable.Row>
+  );
+}
+
+AutoWaiversConfigurationRow.propTypes = {
+  autoWaiver: PropTypes.shape({
+    autoPolicyWaiverId: PropTypes.string.isRequired,
+    autoPolicyWaiverOwnerName: PropTypes.string.isRequired,
+    createTime: PropTypes.number.isRequired,
+    threatLevel: PropTypes.number.isRequired,
+    hasNotReachable: PropTypes.bool.isRequired,
+    hasNoPathForward: PropTypes.bool.isRequired,
+    isInherited: PropTypes.bool.isRequired,
+  }).isRequired,
+};
 
 export default AutoWaiversConfiguration;

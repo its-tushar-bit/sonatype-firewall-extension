@@ -30,14 +30,14 @@ import {
   selectAutoWaiverDetailsError,
 } from './autoWaiverDetailsSelectors';
 import { selectAutoWaiverModalSlice } from './autoWaiverModalSelectors';
-import { selectApplicableAutoWaivers } from 'MainRoot/OrgsAndPolicies/automatedWaiversSelectors';
-import { selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectApplicableAutoWaivers } from 'MainRoot/OrgsAndPolicies/autoWaiversSelectors';
+import { selectCurrentRouteName, selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 import { actions } from './autoWaiverDetailsSlice';
 import { actions as autoWaiverActions } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverModalSlice';
-import { actions as applicableAutoWaiversActions } from 'MainRoot/OrgsAndPolicies/applicableAutoWaiversSlice';
+import { actions as applicableAutoWaiversActions } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/applicableAutoWaiversSlice';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
@@ -54,6 +54,8 @@ export default function AutoWaiverDetails() {
   const details = useSelector(selectAutoWaiverDetails);
   const selectedOwner = useSelector(selectSelectedOwner);
   const routerCurrentParams = useSelector(selectRouterCurrentParams);
+  const currentRouteName = useSelector(selectCurrentRouteName);
+  const isWaiverDetailsPage = currentRouteName === 'waiver.details';
 
   const {
     createTime,
@@ -142,19 +144,21 @@ export default function AutoWaiverDetails() {
           <NxTile.HeaderTitle>
             <NxH2>Auto-Waiver Details</NxH2>
           </NxTile.HeaderTitle>
-          <NxTile.HeaderActions>
-            <NxTooltip title={isInherited ? 'Cannot edit an inherited auto-waiver' : ''}>
-              <NxButton variant="tertiary" className={isInherited ? 'disabled' : ''} onClick={handleEditClick}>
-                Edit
-              </NxButton>
-            </NxTooltip>
+          {!isWaiverDetailsPage && (
+            <NxTile.HeaderActions>
+              <NxTooltip title={isInherited ? 'Cannot edit an inherited auto-waiver' : ''}>
+                <NxButton variant="tertiary" className={isInherited ? 'disabled' : ''} onClick={handleEditClick}>
+                  Edit
+                </NxButton>
+              </NxTooltip>
 
-            <NxTooltip title={isInherited ? 'Cannot delete an inherited auto-waiver' : ''}>
-              <NxButton variant="primary" className={isInherited ? 'disabled' : ''} onClick={handleDeleteClick}>
-                Delete
-              </NxButton>
-            </NxTooltip>
-          </NxTile.HeaderActions>
+              <NxTooltip title={isInherited ? 'Cannot delete an inherited auto-waiver' : ''}>
+                <NxButton variant="primary" className={isInherited ? 'disabled' : ''} onClick={handleDeleteClick}>
+                  Delete
+                </NxButton>
+              </NxTooltip>
+            </NxTile.HeaderActions>
+          )}
         </NxTile.Header>
         <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={loadAutoWaiverDetails}>
           <div>
@@ -226,11 +230,13 @@ export default function AutoWaiverDetails() {
           </div>
         </NxLoadWrapper>
       </NxTile>
-      <NxTile className="iq-exclusion-log-tile">
-        <NxH2>Exclusion Log</NxH2>
-        <NxH3>Violations excluded from this automation</NxH3>
-        <AutoWaiverExclusionLogTable disableDelete={isInherited} />
-      </NxTile>
+      {!isWaiverDetailsPage && (
+        <NxTile className="iq-exclusion-log-tile">
+          <NxH2>Exclusion Log</NxH2>
+          <NxH3>Violations excluded from this automation</NxH3>
+          <AutoWaiverExclusionLogTable disableDelete={isInherited} />
+        </NxTile>
+      )}
       <AutoWaiverModal />
       {isDeleteModalOpen && <DeleteAutoWaiverModal />}
     </>

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useState } from 'react';
+import React from 'react';
 import * as PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { faCog, faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
@@ -18,19 +18,19 @@ import {
 import { formatDate, STANDARD_DATE_FORMAT } from 'MainRoot/util/dateUtils';
 import { capitalize } from 'MainRoot/util/jsUtil';
 import { isWaiverAllVersionsOrExact, displayWaiverScope } from 'MainRoot/util/waiverUtils';
-import DeleteAutoWaiverModal from './DeleteAutoWaiverModal';
+import AutoWaiverExclusionCreateModal from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverExclusionCreateModal';
 import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
 import { violationDetailsPropTypes } from 'MainRoot/violation/ViolationDetailsTile';
 import { constraintViolationsPropType } from 'MainRoot/violation/PolicyViolationConstraintInfo';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectAutoWaiverExclusionCreateModalSlice } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverExclusionCreateModalSelectors';
+import { actions } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverExclusionCreateModalSlice';
 
 const DisplayAutoWaiver = ({ waiver }) => {
-  const [showDeleteAutoWaiverModal, setShowDeleteAutoWaiverModal] = useState(false);
+  const { isOpen } = useSelector(selectAutoWaiverExclusionCreateModalSlice);
+  const dispatch = useDispatch();
   const autoKey = `auto_waiver-${waiver.autoPolicyWaiverId}`;
   const classPrefix = 'iq-waivers-table__';
-
-  const handleCloseAutoWaiverModal = () => {
-    setShowDeleteAutoWaiverModal(false);
-  };
 
   return (
     <NxTableRow className="list-auto-waiver-row" key={autoKey}>
@@ -67,16 +67,12 @@ const DisplayAutoWaiver = ({ waiver }) => {
             title="Remove auto-waiver for this policy violation"
             className="list-auto-waiver-row__exclusion-btn"
             onClick={() => {
-              setShowDeleteAutoWaiverModal(true);
+              dispatch(actions.openModal());
             }}
           >
             <NxFontAwesomeIcon icon={faCog} />
           </NxButton>
-          <DeleteAutoWaiverModal
-            onClose={handleCloseAutoWaiverModal}
-            setShowModal={setShowDeleteAutoWaiverModal}
-            showModal={showDeleteAutoWaiverModal}
-          />
+          {isOpen && <AutoWaiverExclusionCreateModal />}
         </div>
       </NxTableCell>
     </NxTableRow>

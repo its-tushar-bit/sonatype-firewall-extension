@@ -6,7 +6,7 @@
 import React from 'react';
 import { render, screen, axiosMockAdapter, within } from 'TestRoot/SpecUtil';
 import { getProductFeaturesUrl, getApplicableAutoWaiversURL } from 'MainRoot/util/CLMLocation';
-import AutomatedWaiversConfiguration from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutomatedWaiversConfiguration';
+import AutoWaiversConfiguration from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiversConfiguration';
 import { DEVELOPER_FEATURE_DISABLED_MESSAGE_WAIVERS } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/LicenseLockScreenForAutoWaivers';
 import {
   mockResponse_Application_All_Local,
@@ -16,7 +16,7 @@ import {
   mockResponse_Organization_Local_RootOrg,
   mockResponse_RootOrg_Local,
 } from './mockApplicableWaiversResponses';
-import { formatDate } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutomatedWaiversConfiguration';
+import { formatDate } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiversConfiguration';
 import userEvent from '@testing-library/user-event';
 
 describe('Auto Waivers Configuration Component', () => {
@@ -34,7 +34,7 @@ describe('Auto Waivers Configuration Component', () => {
     },
     router: {
       currentState: {
-        name: 'management.edit.application.edit-waivers',
+        name: 'management.edit.application.auto-waivers-config',
       },
       currentParams: {
         applicationPublicId: 'Application1',
@@ -50,7 +50,7 @@ describe('Auto Waivers Configuration Component', () => {
     axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['developer-dashboard', 'auto-waivers', 'new-scan-process']);
 
     renderComponent = (preloadedState) =>
-      render(<AutomatedWaiversConfiguration />, { preloadedState: preloadedState || defaultPreloadedState });
+      render(<AutoWaiversConfiguration />, { preloadedState: preloadedState || defaultPreloadedState });
   });
 
   it('renders a loading spinner', () => {
@@ -135,7 +135,7 @@ describe('Auto Waivers Configuration Component', () => {
   it('renders the content when the feature is enabled for the license', async () => {
     renderComponent();
 
-    expect(await screen.findByTestId('automated-waivers-configuration')).toBeInTheDocument();
+    expect(await screen.findByTestId('auto-waivers-configuration')).toBeInTheDocument();
     expect(screen.queryByText(DEVELOPER_FEATURE_DISABLED_MESSAGE_WAIVERS)).not.toBeInTheDocument();
   });
 
@@ -284,7 +284,7 @@ describe('Auto Waivers Configuration Component', () => {
           },
           router: {
             currentState: {
-              name: 'management.edit.organization.edit-waivers',
+              name: 'management.edit.organization.auto-waivers-config',
             },
             currentParams: {
               organizationId: 'Organization1',
@@ -316,7 +316,7 @@ describe('Auto Waivers Configuration Component', () => {
           },
           router: {
             currentState: {
-              name: 'management.edit.organization.edit-waivers',
+              name: 'management.edit.organization.auto-waivers-config',
             },
             currentParams: {
               organizationId: 'Organization1',
@@ -358,7 +358,7 @@ describe('Auto Waivers Configuration Component', () => {
           },
           router: {
             currentState: {
-              name: 'management.edit.organization.edit-waivers',
+              name: 'management.edit.organization.auto-waivers-config',
             },
             currentParams: {
               organizationId: 'ROOT_ORGANIZATION',

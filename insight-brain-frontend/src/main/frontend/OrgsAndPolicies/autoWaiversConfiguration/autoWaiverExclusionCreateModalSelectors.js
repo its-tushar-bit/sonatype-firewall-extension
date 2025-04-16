@@ -7,12 +7,7 @@ import { prop } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 import { selectAutoWaiversSlice } from '../autoWaiversSelectors';
 
-export const selectAutoWaiverExclusionDeleteModalSlice = createSelector(
+export const selectAutoWaiverExclusionCreateModalSlice = createSelector(
   selectAutoWaiversSlice,
-  prop('autoWaiverExclusionDeleteModal')
-);
-
-export const selectAutoWaiverExclusionDeleteModalData = createSelector(
-  selectAutoWaiverExclusionDeleteModalSlice,
-  prop('data')
+  prop('autoWaiverExclusionCreateModal')
 );

@@ -5,13 +5,11 @@
  */
 import React from 'react';
 import { fireEvent, render, screen, axiosMockAdapter, waitFor } from 'TestRoot/SpecUtil';
-import DeleteAutoWaiverModal from 'MainRoot/waivers/DeleteAutoWaiverModal';
+import AutoWaiverExclusionCreateModal from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverExclusionCreateModal';
 import { getAutoWaiverExclusionsUrl } from 'MainRoot/util/CLMLocation';
-import * as automatedWaiversExclusionsSelector from 'MainRoot/OrgsAndPolicies/automatedWaiversExclusionsSelector';
+import * as autoWaiverExclusionCreateModalSelectors from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverExclusionCreateModalSelectors';
 
-describe('DeleteAutoWaiverModal', () => {
-  let onCloseMock = jest.fn();
-  let setShowModalMock = jest.fn();
+describe('AutoWaiverExclusionCreateModal', () => {
   let axiosMock;
   let defaultPreloadedState;
 
@@ -37,6 +35,13 @@ describe('DeleteAutoWaiverModal', () => {
             },
           },
         },
+        orgsAndPolicies: {
+          autoWaivers: {
+            autoWaiverExclusionCreateModal: {
+              isOpen: true,
+            },
+          },
+        },
       };
     };
   });
@@ -46,10 +51,9 @@ describe('DeleteAutoWaiverModal', () => {
   });
 
   it('does not render modal without being open', () => {
-    renderComponent(false, {
-      showModal: false,
-      onClose: onCloseMock,
-    });
+    const newState = defaultPreloadedState();
+    newState.orgsAndPolicies.autoWaivers.autoWaiverExclusionCreateModal.isOpen = false;
+    renderComponent(false, newState);
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
@@ -60,13 +64,13 @@ describe('DeleteAutoWaiverModal', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Remove Automated Waiver' })).toBeVisible();
     expect(screen.getByRole('heading', { name: 'Do not auto-waive this violation' })).toBeVisible();
-    expect(screen.getByText('Remove waiver and exclude from future automations')).toBeVisible();
+    expect(screen.getByText('Remove auto-waiver and exclude from future automations')).toBeVisible();
 
     const confirmationCheckbox = screen.getByRole('checkbox', { name: 'Remove auto-waiver from this violation' });
     expect(confirmationCheckbox).toBeVisible();
     expect(confirmationCheckbox).not.toBeChecked();
 
-    expect(screen.getByText('Removing this waiver does not disable all automated waivers.')).toBeVisible();
+    expect(screen.getByText('Removing this auto-waiver does not disable all automated waivers.')).toBeVisible();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Submit' })).toBeVisible();
   });
@@ -78,7 +82,7 @@ describe('DeleteAutoWaiverModal', () => {
     expect(closeButton).toBeVisible();
     expect(closeButton).not.toBeDisabled();
     fireEvent.click(closeButton);
-    expect(onCloseMock).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('close modal on escape button typed', () => {
@@ -86,7 +90,7 @@ describe('DeleteAutoWaiverModal', () => {
 
     const modal = screen.getByRole('dialog');
     fireEvent.keyDown(modal, { key: 'Escape' });
-    expect(onCloseMock).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('shows validation error when submitting without confirmation and then removes it after fixing issues', async () => {
@@ -205,7 +209,7 @@ describe('DeleteAutoWaiverModal', () => {
     const submitButton = screen.getByRole('button', { name: 'Submit' });
     fireEvent.click(submitButton);
 
-    jest.spyOn(automatedWaiversExclusionsSelector, 'selectAutomatedWaiversExclusionSlice').mockReturnValue({
+    jest.spyOn(autoWaiverExclusionCreateModalSelectors, 'selectAutoWaiverExclusionCreateModalSlice').mockReturnValue({
       submitMaskState: true,
       submitError: null,
     });
@@ -224,15 +228,13 @@ describe('DeleteAutoWaiverModal', () => {
       );
       expect(axiosMock.history.post[0].url).toBe('/api/v2/autoPolicyWaiverExclusions/application/application-owner-id');
 
-      expect(setShowModalMock).toHaveBeenCalledWith(false);
-      expect(setShowModalMock).toHaveBeenCalledTimes(1);
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
   });
 
-  function renderComponent(
-    isRoot = false,
-    props = { showModal: true, onClose: onCloseMock, setShowModal: setShowModalMock }
-  ) {
-    return render(<DeleteAutoWaiverModal {...props} />, { preloadedState: defaultPreloadedState(isRoot) });
+  function renderComponent(isRoot = false, preloadedState) {
+    return render(<AutoWaiverExclusionCreateModal />, {
+      preloadedState: preloadedState || defaultPreloadedState(isRoot),
+    });
   }
 });

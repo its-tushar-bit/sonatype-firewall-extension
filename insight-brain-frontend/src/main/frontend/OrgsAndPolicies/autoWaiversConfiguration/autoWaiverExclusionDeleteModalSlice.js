@@ -10,6 +10,7 @@ import { getAutoWaiverExclusionsByExclusionIdUrl } from 'MainRoot/util/CLMLocati
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { selectSelectedOwnerTypeAndId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectAutoWaiverExclusionDeleteModalData } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverExclusionDeleteModalSelectors';
+import { actions as autoWaiverExclusionActions } from './autoWaiverExclusionsSlice';
 
 const REDUCER_NAME = 'autoWaiverExclusionDeleteModal';
 
@@ -45,7 +46,9 @@ const deleteAutoWaiverExclusion = createAsyncThunk(
         getAutoWaiverExclusionsByExclusionIdUrl(ownerType, ownerId, autoPolicyWaiverId, autoPolicyWaiverExclusionId)
       )
       .then(() => {
-        startSaveMaskSuccessTimer(dispatch, actions.closeModal);
+        startSaveMaskSuccessTimer(dispatch, actions.closeModal).then(() =>
+          dispatch(autoWaiverExclusionActions.loadAutoWaiverExclusion())
+        );
       })
       .catch(rejectWithValue);
   }

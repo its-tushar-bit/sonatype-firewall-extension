@@ -9,7 +9,7 @@ import { selectOrgsAndPoliciesSlice } from '../orgsAndPoliciesSelectors';
 
 export const selectAutoWaiverModalSlice = createSelector(
   selectOrgsAndPoliciesSlice,
-  path(['autoWaiverActions', 'autoWaiverModal'])
+  path(['autoWaivers', 'autoWaiverModal'])
 );
 
 export const selectWaiver = createSelector(selectAutoWaiverModalSlice, prop('data'));

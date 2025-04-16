@@ -6,9 +6,9 @@
 import React from 'react';
 import { NxFontAwesomeIcon, NxH2, NxModal, NxStatefulForm, NxWarningAlert } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectApplicableAutoWaivers } from 'MainRoot/OrgsAndPolicies/automatedWaiversSelectors';
+import { selectApplicableAutoWaivers } from 'MainRoot/OrgsAndPolicies/autoWaiversSelectors';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
-import { actions } from 'MainRoot/OrgsAndPolicies/applicableAutoWaiversSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/applicableAutoWaiversSlice';
 
 export default function DeleteAutoWaiverModal() {
   const dispatch = useDispatch();

@@ -4,23 +4,25 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, fireEvent, axiosMockAdapter, within } from 'TestRoot/SpecUtil';
+import { render, screen, fireEvent, axiosMockAdapter, within, waitFor } from 'TestRoot/SpecUtil';
 import { getAutoWaiversConfigurationURLWaiver } from 'MainRoot/util/CLMLocation';
-import AutoWaiverDetails from 'MainRoot/waivers/waiverDetails/AutoWaiverDetails';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
+import AutoWaiverDetails from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverDetails';
+import { lensPath, set } from 'ramda';
 
-describe('AutoWaiverDetailsPage', function () {
+describe('Auto Waiver Details', function () {
   let axiosMock,
     renderComponent,
     autoWaiverDetails,
-    ownerType,
-    ownerId,
-    waiverId,
     publicId,
     ownerName,
     initialState,
     expectedAutoWaiverDetailsUrl,
-    hrefSpy;
+    hrefSpy,
+    ownerType,
+    autoWaiverId,
+    autoWaiverOwnerId,
+    organizationId;
 
   beforeAll(function () {
     axiosMock = axiosMockAdapter();
@@ -28,10 +30,11 @@ describe('AutoWaiverDetailsPage', function () {
 
   beforeEach(function () {
     ownerType = 'organization';
-    ownerId = 'owner-id';
-    waiverId = 'autowaiver-id';
     publicId = 'public-id';
     ownerName = 'owner-name';
+    autoWaiverId = 'autowaiver-id';
+    autoWaiverOwnerId = 'ROOT_ORGANIZATION_ID';
+    organizationId = 'ROOT_ORGANIZATION_ID';
 
     hrefSpy = jest.fn('href').mockImplementation((state, params) => {
       if (state === 'management.view.organization') {
@@ -44,8 +47,8 @@ describe('AutoWaiverDetailsPage', function () {
     jest.spyOn(routerStateContext, 'useRouterState').mockReturnValue(routerContextMock);
 
     autoWaiverDetails = {
-      autoPolicyWaiverId: waiverId,
-      ownerId,
+      autoPolicyWaiverId: autoWaiverId,
+      ownerId: autoWaiverOwnerId,
       threatLevel: 7,
       reachability: true,
       pathForward: true,
@@ -59,19 +62,40 @@ describe('AutoWaiverDetailsPage', function () {
     initialState = {
       router: {
         currentParams: {
+          autoWaiverId,
+          autoWaiverOwnerId,
+          organizationId,
           ownerType,
-          ownerId,
-          waiverId,
-          type: 'autoWaiver',
-          publicId,
         },
         currentState: {
-          name: 'waiver.details',
+          name: 'management.edit.organization.auto-waiver-details',
+          data: {
+            title: 'Organization Auto Waiver Details',
+          },
+        },
+      },
+      orgsAndPolicies: {
+        root: {
+          loading: false,
+          loadError: null,
+          selectedOwner: {
+            name: 'Root Organization',
+            nameLowercaseNoWhitespace: 'rootorganization',
+            id: 'ROOT_ORGANIZATION_ID',
+            parentOrganizationId: null,
+            legacyViolationEnabled: null,
+            allowLegacyViolationOverride: true,
+            repositoryConnectionEnabled: null,
+            allowRepositoryConnectionOverride: true,
+            artifactoryConnectionEnabled: null,
+            allowArtifactoryConnectionOverride: true,
+          },
+          policiesByOwner: null,
         },
       },
     };
 
-    expectedAutoWaiverDetailsUrl = getAutoWaiversConfigurationURLWaiver(ownerType, ownerId, waiverId);
+    expectedAutoWaiverDetailsUrl = getAutoWaiversConfigurationURLWaiver(ownerType, autoWaiverOwnerId, autoWaiverId);
     renderComponent = (preloadedState = initialState) => render(<AutoWaiverDetails />, { preloadedState });
   });
 
@@ -79,12 +103,13 @@ describe('AutoWaiverDetailsPage', function () {
     it('it renders an error with the error message and a retry button', async () => {
       axiosMock.onGet(expectedAutoWaiverDetailsUrl).reply(404, 'some error');
 
-      renderComponent();
+      await waitFor(() => {
+        renderComponent();
+      });
 
-      expect(axiosMock.history.get.length).toBe(1);
-      expect(axiosMock.history.get[0].url).toBe(expectedAutoWaiverDetailsUrl);
-
-      expect(screen.getByText('Loading…')).toBeInTheDocument();
+      // hits one for auto waiver details and one for exclusions
+      expect(axiosMock.history.get.length).toBe(2);
+      expect(axiosMock.history.get[1].url).toBe(expectedAutoWaiverDetailsUrl);
 
       expect(await screen.findByRole('alert')).toBeInTheDocument();
       expect(await screen.findByText(/Some error/i)).toBeInTheDocument();
@@ -95,17 +120,18 @@ describe('AutoWaiverDetailsPage', function () {
 
       expect(screen.getByText('Loading…')).toBeInTheDocument();
       expect(await screen.findByRole('alert')).toBeInTheDocument();
-      expect(axiosMock.history.get.length).toBe(2);
-      expect(axiosMock.history.get[1].url).toBe(expectedAutoWaiverDetailsUrl);
+      expect(axiosMock.history.get.length).toBe(3);
+      expect(axiosMock.history.get[2].url).toBe(expectedAutoWaiverDetailsUrl);
     });
   });
 
   describe('successfully loads waiver details', () => {
     it('it renders the expected auto waiver details', async function () {
       axiosMock.onGet(expectedAutoWaiverDetailsUrl).reply(200, autoWaiverDetails);
-      renderComponent();
+      await waitFor(() => {
+        renderComponent();
+      });
 
-      expect(screen.getByText('Loading…')).toBeInTheDocument();
       const autoWaiver = await screen.findByTestId('auto-waiver-details-version');
       expect(autoWaiver).toBeInTheDocument();
 
@@ -147,7 +173,7 @@ describe('AutoWaiverDetailsPage', function () {
         ownerType = 'application';
         publicId = 'app-public-id';
 
-        expectedAutoWaiverDetailsUrl = getAutoWaiversConfigurationURLWaiver(ownerType, ownerId, waiverId);
+        expectedAutoWaiverDetailsUrl = getAutoWaiversConfigurationURLWaiver(ownerType, autoWaiverOwnerId, autoWaiverId);
 
         const mockResponse = { ...autoWaiverDetails, ownerType, publicId };
         axiosMock.onGet(expectedAutoWaiverDetailsUrl).reply(200, mockResponse);
@@ -156,10 +182,12 @@ describe('AutoWaiverDetailsPage', function () {
           router: {
             currentParams: {
               ownerType,
-              ownerId,
-              waiverId,
+              autoWaiverOwnerId,
+              autoWaiverId,
               type: 'autoWaiver',
               publicId,
+              ownerId: autoWaiverOwnerId,
+              waiverId: autoWaiverId,
             },
             currentState: {
               name: 'waiver.details',
@@ -167,7 +195,9 @@ describe('AutoWaiverDetailsPage', function () {
           },
         };
 
-        renderComponent();
+        await waitFor(() => {
+          renderComponent();
+        });
 
         const scope = await screen.findByRole('definition', { name: 'Scope' });
         expect(scope).toBeInTheDocument();
@@ -181,7 +211,7 @@ describe('AutoWaiverDetailsPage', function () {
         ownerType = 'organization';
         publicId = 'org-public-id';
 
-        expectedAutoWaiverDetailsUrl = getAutoWaiversConfigurationURLWaiver(ownerType, ownerId, waiverId);
+        expectedAutoWaiverDetailsUrl = getAutoWaiversConfigurationURLWaiver(ownerType, autoWaiverOwnerId, autoWaiverId);
 
         const mockResponse = { ...autoWaiverDetails, ownerType, publicId };
         axiosMock.onGet(expectedAutoWaiverDetailsUrl).reply(200, mockResponse);
@@ -190,10 +220,12 @@ describe('AutoWaiverDetailsPage', function () {
           router: {
             currentParams: {
               ownerType,
-              ownerId,
-              waiverId,
+              autoWaiverOwnerId,
+              autoWaiverId,
               type: 'autoWaiver',
               publicId,
+              ownerId: autoWaiverOwnerId,
+              waiverId: autoWaiverId,
             },
             currentState: {
               name: 'waiver.details',
@@ -201,7 +233,9 @@ describe('AutoWaiverDetailsPage', function () {
           },
         };
 
-        renderComponent();
+        await waitFor(() => {
+          renderComponent();
+        });
 
         const scope = await screen.findByRole('definition', { name: 'Scope' });
         expect(scope).toBeInTheDocument();
@@ -217,7 +251,9 @@ describe('AutoWaiverDetailsPage', function () {
         axiosMock
           .onGet(expectedAutoWaiverDetailsUrl)
           .reply(200, { ...autoWaiverDetails, pathForward: false, reachability: false });
-        renderComponent();
+        await waitFor(() => {
+          renderComponent();
+        });
 
         const reason = await screen.findByRole('definition', { name: 'Reason' });
         expect(reason).toBeInTheDocument();
@@ -226,7 +262,9 @@ describe('AutoWaiverDetailsPage', function () {
 
       it('renders "No upgrade path" only when pathForward is true and reachable is false', async () => {
         axiosMock.onGet(expectedAutoWaiverDetailsUrl).reply(200, { ...autoWaiverDetails, reachability: false });
-        renderComponent();
+        await waitFor(() => {
+          renderComponent();
+        });
 
         const reason = await screen.findByRole('definition', { name: 'Reason' });
         expect(reason).toBeInTheDocument();
@@ -236,7 +274,9 @@ describe('AutoWaiverDetailsPage', function () {
 
       it('renders "Not reachable" only when pathForward is false and reachable is true', async () => {
         axiosMock.onGet(expectedAutoWaiverDetailsUrl).reply(200, { ...autoWaiverDetails, pathForward: false });
-        renderComponent();
+        await waitFor(() => {
+          renderComponent();
+        });
 
         const reason = await screen.findByRole('definition', { name: 'Reason' });
         expect(reason).toBeInTheDocument();
@@ -244,5 +284,131 @@ describe('AutoWaiverDetailsPage', function () {
         expect(reason).not.toHaveTextContent('No upgrade path');
       });
     });
+  });
+
+  describe('action buttons', () => {
+    it('renders edit and delete buttons', async () => {
+      await waitFor(() => {
+        renderComponent();
+      });
+
+      expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument();
+    });
+
+    describe('edit button', () => {
+      it('opens the auto-waiver modal in edit mode', async () => {
+        await waitFor(() => {
+          renderComponent();
+        });
+
+        const editButton = screen.getByRole('button', { name: 'Edit' });
+        fireEvent.click(editButton);
+
+        const autoWaiverModal = screen.getByTestId('iq-auto-waiver-modal');
+        expect(autoWaiverModal).toBeInTheDocument();
+        expect(within(autoWaiverModal).getByRole('heading', { name: 'Edit Auto-Waiver' })).toBeInTheDocument();
+      });
+
+      it('is disabled with a tooltip when waiver is inherited', async () => {
+        const selectedOwnerLens = lensPath(['orgsAndPolicies', 'root', 'selectedOwner', 'id']);
+        const newState = set(selectedOwnerLens, 'some-other-owner', initialState);
+
+        await waitFor(() => {
+          renderComponent(newState);
+        });
+
+        const editButton = screen.getByRole('button', { name: 'Edit' });
+        expect(editButton).toHaveClass('disabled');
+
+        fireEvent.mouseOver(editButton);
+
+        const tooltip = await screen.findByRole('tooltip');
+        expect(tooltip).toBeInTheDocument();
+        expect(tooltip).toHaveTextContent('Cannot edit an inherited auto-waiver');
+      });
+    });
+
+    describe('delete button', () => {
+      it('opens the delete auto-waiver modal', async () => {
+        await waitFor(() => {
+          renderComponent();
+        });
+
+        const deleteButton = screen.getByRole('button', { name: 'Delete' });
+        fireEvent.click(deleteButton);
+
+        const deleteAutoWaiverModal = screen.getByTestId('iq-delete-auto-waiver-modal');
+        expect(deleteAutoWaiverModal).toBeInTheDocument();
+        expect(within(deleteAutoWaiverModal).getByRole('heading', { name: 'Delete Auto-Waiver' })).toBeInTheDocument();
+      });
+
+      it('is disabled with a tooltip when waiver is inherited', async () => {
+        const selectedOwnerLens = lensPath(['orgsAndPolicies', 'root', 'selectedOwner', 'id']);
+        const newState = set(selectedOwnerLens, 'some-other-owner', initialState);
+
+        await waitFor(() => {
+          renderComponent(newState);
+        });
+
+        const deleteButton = screen.getByRole('button', { name: 'Delete' });
+        expect(deleteButton).toHaveClass('disabled');
+
+        fireEvent.mouseOver(deleteButton);
+
+        const tooltip = await screen.findByRole('tooltip');
+        expect(tooltip).toBeInTheDocument();
+        expect(tooltip).toHaveTextContent('Cannot delete an inherited auto-waiver');
+      });
+    });
+  });
+
+  describe('when viewing auto-waiver details from the waiver detail page', () => {
+    beforeEach(() => {
+      initialState = {
+        router: {
+          currentParams: {
+            autoWaiverId,
+            autoWaiverOwnerId,
+            organizationId,
+            ownerType,
+          },
+          currentState: {
+            name: 'waiver.details',
+          },
+        },
+      };
+    });
+
+    it('does not render the edit and delete buttons', async () => {
+      await waitFor(() => {
+        renderComponent();
+      });
+
+      expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument();
+    });
+
+    it('does not render the exclusion log table', async () => {
+      await waitFor(() => {
+        renderComponent();
+      });
+
+      expect(screen.queryByRole('heading', { name: 'Exclusion Log' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    });
+  });
+
+  it('renders the exclusion log table', async () => {
+    axiosMock.onGet(expectedAutoWaiverDetailsUrl).reply(200, autoWaiverDetails);
+    await waitFor(() => {
+      renderComponent();
+    });
+
+    const exclusionLogHeader = screen.getByRole('heading', { name: 'Exclusion Log' });
+    expect(exclusionLogHeader).toBeInTheDocument();
+
+    const exclusionLogTable = await screen.findByRole('table');
+    expect(exclusionLogTable).toBeInTheDocument();
   });
 });

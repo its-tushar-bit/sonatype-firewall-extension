@@ -6,8 +6,8 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { selectRouterCurrentParams, selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
-import AutoWaiverDetails from './AutoWaiverDetails';
 import WaiverDetails from './WaiverDetails';
+import AutoWaiverDetails from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverDetails';
 
 export default function WaiverDetailsContainer() {
   const currentRouteName = useSelector(selectCurrentRouteName);

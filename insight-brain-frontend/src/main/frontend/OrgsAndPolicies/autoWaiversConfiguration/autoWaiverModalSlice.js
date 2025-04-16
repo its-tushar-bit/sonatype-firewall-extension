@@ -17,7 +17,7 @@ import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { selectWaiver } from './autoWaiverModalSelectors';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { propSet } from 'MainRoot/util/jsUtil';
-import { actions as applicableAutoWaiversActions } from 'MainRoot/OrgsAndPolicies/applicableAutoWaiversSlice';
+import { actions as applicableAutoWaiversActions } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/applicableAutoWaiversSlice';
 
 const REDUCER_NAME = 'autoWaiverActions/autoWaiverModal';
 const DEFAULT_CONFIG = {

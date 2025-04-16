@@ -8,44 +8,39 @@ import {
   NxButton,
   NxFontAwesomeIcon,
   NxOverflowTooltip,
-  NxTable, NxTextLink,
-  NxThreatIndicator
+  NxTable,
+  NxTextLink,
+  NxThreatIndicator,
 } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectAutoWaiverExclusions,
   selectAutoWaiverExclusionError,
-  selectAutoWaiverExclusionsLoading
+  selectAutoWaiverExclusionsLoading,
 } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverExclusionsSelectors';
 import { actions } from './autoWaiverExclusionsSlice';
 import { actions as deleteModalActions } from './autoWaiverExclusionDeleteModalSlice';
 import moment from 'moment/moment';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
-import AutoWaiverExclusionDeleteModal
-  from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverExclusionDeleteModal';
-import {
-  selectAutoWaiverExclusionDeleteModalSlice
-} from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverExclusionDeleteModalSelectors';
+import AutoWaiverExclusionDeleteModal from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverExclusionDeleteModal';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
-const AutoWaiverExclusionLogTable = ({disableDelete}) => {
-
+const AutoWaiverExclusionLogTable = ({ disableDelete }) => {
   const dispatch = useDispatch();
   const uiRouterState = useRouterState();
   const exclusions = useSelector(selectAutoWaiverExclusions);
   const isLoading = useSelector(selectAutoWaiverExclusionsLoading);
   const loadError = useSelector(selectAutoWaiverExclusionError);
-  const { submitMaskState } =  useSelector(selectAutoWaiverExclusionDeleteModalSlice);
 
   const loadAutoWaiverExclusion = () => {
     dispatch(actions.loadAutoWaiverExclusion());
-  }
+  };
 
   const openDeleteModal = (val) => {
     dispatch(deleteModalActions.openModal(val));
-  }
+  };
 
   const TableRow = ({ exclusion }) => {
     const {
@@ -64,27 +59,21 @@ const AutoWaiverExclusionLogTable = ({disableDelete}) => {
     const formattedCreateTime = moment(createTime).format('YYYY-MM-DD');
     const isApplication = ownerType === 'application';
     const ownerUrl = isApplication
-      ? uiRouterState.href('management.edit.application.edit-waivers', {
-        applicationPublicId: ownerPublicId,
-      })
-      : uiRouterState.href('management.edit.organization.edit-waivers', {
-        organizationId: ownerPublicId,
-      });
+      ? uiRouterState.href('management.edit.application.auto-waivers-config', {
+          applicationPublicId: ownerPublicId,
+        })
+      : uiRouterState.href('management.edit.organization.auto-waivers-config', {
+          organizationId: ownerPublicId,
+        });
 
     const handleDeleteClick = () => {
       if (!disableDelete) {
         openDeleteModal({
           autoPolicyWaiverId: autoPolicyWaiverId,
           autoPolicyWaiverExclusionId: autoPolicyWaiverExclusionId,
-        })
+        });
       }
-    }
-
-    useEffect(() => {
-      if (submitMaskState === true) {
-        loadAutoWaiverExclusion()
-      }
-    }, [submitMaskState]);
+    };
 
     return (
       <NxTable.Row>
@@ -120,22 +109,22 @@ const AutoWaiverExclusionLogTable = ({disableDelete}) => {
         <NxTable.Cell>
           <div className="nx-btn-bar">
             <NxButton
-                variant="icon-only"
-                title={disableDelete ? 'Cannot delete an inherited auto-waiver' : 'Delete'}
-                key={`${autoPolicyWaiverId}-${autoPolicyWaiverExclusionId}--delete`}
-                className={classNames('iq-auto-waivers-exclusion-log__delete-bt', { disabled: disableDelete })}
-                onClick={handleDeleteClick}
+              variant="icon-only"
+              title={disableDelete ? 'Cannot delete an inherited auto-waiver' : 'Delete'}
+              key={`${autoPolicyWaiverId}-${autoPolicyWaiverExclusionId}--delete`}
+              className={classNames('iq-auto-waivers-exclusion-log__delete-bt', { disabled: disableDelete })}
+              onClick={handleDeleteClick}
             >
               <NxFontAwesomeIcon icon={faTrashAlt} />
             </NxButton>
           </div>
         </NxTable.Cell>
       </NxTable.Row>
-    )
-  }
+    );
+  };
 
   useEffect(() => {
-    loadAutoWaiverExclusion()
+    loadAutoWaiverExclusion();
   }, []);
 
   return (
@@ -166,25 +155,28 @@ const AutoWaiverExclusionLogTable = ({disableDelete}) => {
             </NxTable.Cell>
           </NxTable.Row>
         </NxTable.Head>
-        <NxTable.Body emptyMessage={'No exclusions found'}
-                      isLoading={isLoading}
-                      error={loadError}
-                      retryHandler={loadAutoWaiverExclusion}>
-          {exclusions && exclusions.map((exclusion) => (
-            <TableRow
-              key={`${exclusion.autoPolicyWaiverId}-${exclusion.autoPolicyWaiverExclusionId}`}
-              exclusion={exclusion}/>
-          ))}
+        <NxTable.Body
+          emptyMessage={'No exclusions found'}
+          isLoading={isLoading}
+          error={loadError}
+          retryHandler={loadAutoWaiverExclusion}
+        >
+          {exclusions &&
+            exclusions.map((exclusion) => (
+              <TableRow
+                key={`${exclusion.autoPolicyWaiverId}-${exclusion.autoPolicyWaiverExclusionId}`}
+                exclusion={exclusion}
+              />
+            ))}
         </NxTable.Body>
       </NxTable>
       <AutoWaiverExclusionDeleteModal />
     </>
   );
-}
+};
 
 AutoWaiverExclusionLogTable.propTypes = {
   disableDelete: PropTypes.bool.isRequired,
-}
+};
 
 export default AutoWaiverExclusionLogTable;
-

@@ -8,9 +8,9 @@ import axios from 'axios';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getAutoWaiversConfigurationURLWaiver } from 'MainRoot/util/CLMLocation';
 import { prop } from 'ramda';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectCurrentRouteName, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
-const REDUCER_NAME = 'autoWaiverDetails2';
+const REDUCER_NAME = 'autoWaiverDetails';
 
 export const initialState = Object.freeze({
   loading: false,
@@ -23,7 +23,15 @@ const loadAutoWaiverDetails = createAsyncThunk(
   `${REDUCER_NAME}/loadWaiver`,
   async (_, { getState, rejectWithValue }) => {
     const state = getState();
-    const { ownerType, autoWaiverOwnerId, autoWaiverId } = selectRouterCurrentParams(state);
+    const { ownerType, autoWaiverOwnerId, autoWaiverId, ownerId, waiverId } = selectRouterCurrentParams(state);
+    const currentRoute = selectCurrentRouteName(state);
+
+    if (currentRoute === 'waiver.details') {
+      return axios
+        .get(getAutoWaiversConfigurationURLWaiver(ownerType, ownerId, waiverId))
+        .then(prop('data'))
+        .catch(rejectWithValue);
+    }
 
     return axios
       .get(getAutoWaiversConfigurationURLWaiver(ownerType, autoWaiverOwnerId, autoWaiverId))

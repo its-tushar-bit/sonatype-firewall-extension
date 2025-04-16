@@ -35,8 +35,20 @@ describe('WaiverRow', () => {
 
   let renderComponent;
 
+  const defaultPreloadedState = {
+    orgsAndPolicies: {
+      autoWaivers: {
+        autoWaiverModal: {},
+        autoWaiverExclusions: {
+          submitMaskState: false,
+        },
+      },
+    },
+  };
+
   beforeEach(() => {
-    renderComponent = (props = {}) => render(<WaiverRow {...defaultProps} {...props} />);
+    renderComponent = (props = {}) =>
+      render(<WaiverRow {...defaultProps} {...props} />, { preloadedState: defaultPreloadedState });
   });
 
   describe('Non auto waiver', () => {
@@ -167,7 +179,7 @@ describe('WaiverRow', () => {
       expect(within(detailsCell).getByText('Creator Name')).toBeVisible();
     });
 
-    it('opens and closes DeleteAutoWaiverModal', () => {
+    it('opens and closes Create Auto-Waiver Exclusion Modal', () => {
       renderComponent({
         isAutoWaiver: true,
         waiver: { ...mockWaiver, ownerType: 'application', ownerName: 'auto owner' },

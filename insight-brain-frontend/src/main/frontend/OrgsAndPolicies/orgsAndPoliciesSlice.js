@@ -35,10 +35,12 @@ import sourceControlConfigurationSlice from 'MainRoot/OrgsAndPolicies/sourceCont
 import ownersTreeSlice from 'MainRoot/OrgsAndPolicies/ownersTreeSlice';
 import importSbomModalSlice from 'MainRoot/OrgsAndPolicies/importSbomModal/importSbomModalSlice';
 import sbomsTileSlice from 'MainRoot/OrgsAndPolicies/ownerSummary/sbomsTile/sbomsTileSlice.js';
-import automatedWaiversSlice from 'MainRoot/OrgsAndPolicies/automatedWaiversSlice';
-import automatedWaiversExclusionsSlice from 'MainRoot/OrgsAndPolicies/automatedWaiversExclusionsSlice';
-import autoWaiversSlice from 'MainRoot/OrgsAndPolicies/autoWaiversSlice';
 import autoWaiverModalSlice from './autoWaiversConfiguration/autoWaiverModalSlice';
+import applicableAutoWaiversSlice from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/applicableAutoWaiversSlice';
+import autoWaiverDetailsExclusionsSlice from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverExclusionsSlice';
+import autoWaiverExclusionDeleteModalSlice from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverExclusionDeleteModalSlice';
+import autoWaiverExclusionCreateModalSlice from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverExclusionCreateModalSlice';
+import autoWaiverDetailsSlice from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverDetailsSlice';
 
 export default combineReducers({
   root: rootSlice,
@@ -76,10 +78,12 @@ export default combineReducers({
   ownerSideNav: ownerSideNavSlice,
   ownersTree: ownersTreeSlice,
   sbomsTile: sbomsTileSlice,
-  waivers: automatedWaiversSlice,
-  autoWaiverExclusions: automatedWaiversExclusionsSlice,
-  automatedWaivers: autoWaiversSlice,
-  autoWaiverActions: combineReducers({
+  autoWaivers: combineReducers({
+    applicableAutoWaivers: applicableAutoWaiversSlice,
     autoWaiverModal: autoWaiverModalSlice,
+    autoWaiverDetailsExclusions: autoWaiverDetailsExclusionsSlice,
+    autoWaiverExclusionDeleteModal: autoWaiverExclusionDeleteModalSlice,
+    autoWaiverExclusionCreateModal: autoWaiverExclusionCreateModalSlice,
+    autoWaiverDetails: autoWaiverDetailsSlice,
   }),
 });

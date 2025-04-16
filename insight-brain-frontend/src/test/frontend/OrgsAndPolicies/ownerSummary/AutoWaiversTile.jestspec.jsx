@@ -16,7 +16,7 @@ import {
   mockResponse_Organization_Local,
   mockResponse_Organization_Local_RootOrg,
   mockResponse_RootOrg_Local,
-} from '../waiversConfiguration/mockApplicableWaiversResponses';
+} from '../autoWaiversConfiguration/mockApplicableWaiversResponses';
 
 describe('AutoWaiversTile', () => {
   let axiosMock, renderComponent;

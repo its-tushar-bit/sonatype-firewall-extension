@@ -21,7 +21,7 @@ describe('DeleteAutoWaiverModal', () => {
           name: 'Application1',
         },
       },
-      automatedWaivers: {
+      autoWaivers: {
         applicableAutoWaivers: {
           isDeleteModalOpen: true,
           deleteError: null,
@@ -31,7 +31,7 @@ describe('DeleteAutoWaiverModal', () => {
     },
     router: {
       currentState: {
-        name: 'management.edit.application.edit-waivers',
+        name: 'management.edit.application.auto-waivers-config',
       },
       currentParams: {
         applicationPublicId: 'Application1',
@@ -87,7 +87,7 @@ describe('DeleteAutoWaiverModal', () => {
     renderComponent({
       ...defaultPreloadedState,
       orgsAndPolicies: {
-        automatedWaivers: {
+        autoWaivers: {
           applicableAutoWaivers: {
             ...defaultPreloadedState.orgsAndPolicies.applicableAutoWaivers,
             deleteError: 'Error deleting auto waiver',

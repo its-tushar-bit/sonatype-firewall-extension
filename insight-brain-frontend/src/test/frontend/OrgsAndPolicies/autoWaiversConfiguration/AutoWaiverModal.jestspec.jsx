@@ -23,7 +23,7 @@ describe('Auto Waiver Modal Component', () => {
           name: 'App',
         },
       },
-      autoWaiverActions: {
+      autoWaivers: {
         autoWaiverModal: {
           ...initialState,
           isModalOpen: true,
@@ -52,7 +52,7 @@ describe('Auto Waiver Modal Component', () => {
 
   it('does not render a dialog when model is not open', () => {
     const state = clone(defaultPreloadedState);
-    state.orgsAndPolicies.autoWaiverActions.autoWaiverModal.isModalOpen = false;
+    state.orgsAndPolicies.autoWaivers.autoWaiverModal.isModalOpen = false;
     renderComponent(state);
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -196,7 +196,7 @@ describe('Auto Waiver Modal Component', () => {
 
   describe('edit existing waiver dialog', () => {
     beforeEach(() => {
-      const autoWaiverModal = defaultPreloadedState.orgsAndPolicies.autoWaiverActions.autoWaiverModal;
+      const autoWaiverModal = defaultPreloadedState.orgsAndPolicies.autoWaivers.autoWaiverModal;
       autoWaiverModal.isEditMode = true;
       autoWaiverModal.data = {
         pathForward: true,
@@ -301,7 +301,7 @@ describe('Auto Waiver Modal Component', () => {
     });
 
     it('should save when Upgrade Path is unchecked', async () => {
-      const autoWaiverModal = defaultPreloadedState.orgsAndPolicies.autoWaiverActions.autoWaiverModal;
+      const autoWaiverModal = defaultPreloadedState.orgsAndPolicies.autoWaivers.autoWaiverModal;
       const appId = defaultPreloadedState.orgsAndPolicies.root.selectedOwner.id;
 
       axiosMock.onGet(getAutoWaiversConfigurationURL('application', appId)).reply(200, autoWaiverModal.data);

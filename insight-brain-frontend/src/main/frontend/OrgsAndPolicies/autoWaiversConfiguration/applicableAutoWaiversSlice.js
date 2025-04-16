@@ -8,11 +8,11 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getApplicableAutoWaiversURL, getAutoWaiversConfigurationURLWaiver } from 'MainRoot/util/CLMLocation';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
-import { selectSelectedOwnerTypeAndId } from './orgsAndPoliciesSelectors';
+import { selectSelectedOwnerTypeAndId } from '../orgsAndPoliciesSelectors';
 import { prop } from 'ramda';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { propSet } from 'MainRoot/util/jsUtil';
-import { selectAutoWaiverToDelete } from './automatedWaiversSelectors';
+import { selectAutoWaiverToDelete } from '../autoWaiversSelectors';
 
 const REDUCER_NAME = 'applicableAutoWaivers';
 

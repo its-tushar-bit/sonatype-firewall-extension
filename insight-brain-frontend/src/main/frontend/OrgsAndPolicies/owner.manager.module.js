@@ -35,7 +35,6 @@ import OwnerSummaryPills from 'MainRoot/OrgsAndPolicies/OwnerSummaryPills/OwnerS
 import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
 import { selectIsDirty as policyEditorSelectIsDirty } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import AutoWaiversConfiguration from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiversConfiguration';
-import AutomatedWaiversConfiguration from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutomatedWaiversConfiguration';
 import AutoWaiverDetails from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverDetails';
 
 export default angular
@@ -59,7 +58,6 @@ export default angular
   .component('repositorySummaryView', iqReact2Angular(RepositorySummaryView, [], ['$ngRedux', '$state']))
   .component('licenseThreatGroupEditor', iqReact2Angular(LicenseThreatGroupEditor, [], ['$ngRedux']))
   .component('continuousMonitoring', iqReact2Angular(ContinuousMonitoringEditor, [], ['$ngRedux']))
-  .component('autoWaiversConfiguration', iqReact2Angular(AutoWaiversConfiguration, [], ['$ngRedux']))
   .component('createComponentLabel', iqReact2Angular(CreateComponentLabel, [], ['$ngRedux', '$state']))
   .component('accessPage', iqReact2Angular(AccessPage, [], ['$ngRedux', '$state']))
   .component('policyEditor', iqReact2Angular(PolicyEditor, [], ['$ngRedux', '$state']))
@@ -73,10 +71,7 @@ export default angular
   .component('actionDropdown', iqReact2Angular(ActionDropdown, [], ['$ngRedux', '$state']))
   .component('ownerDetailSidebar', iqReact2Angular(OwnerDetailSidebar, [], ['$ngRedux', '$state']))
   .component('repositoriesPills', iqReact2Angular(RepositoriesPills, [], []))
-  .component(
-    'automatedWaiversConfiguration',
-    iqReact2Angular(AutomatedWaiversConfiguration, [], ['$ngRedux', '$state'])
-  )
+  .component('autoWaiversConfiguration', iqReact2Angular(AutoWaiversConfiguration, [], ['$ngRedux', '$state']))
   .component('autoWaiverDetails', iqReact2Angular(AutoWaiverDetails, [], ['$ngRedux', '$state']))
   .config([
     '$stateProvider',
@@ -238,19 +233,12 @@ export default angular
             },
             component: 'sourceControlConfiguration',
           })
-          .state('management.edit.' + ownerType.type + '.edit-waivers', {
-            url: '/waivers',
-            data: {
-              title: ownerType.name + ' Waivers Configuration',
-            },
-            component: 'autoWaiversConfiguration',
-          })
           .state('management.edit.' + ownerType.type + '.auto-waivers-config', {
             url: '/autowaivers',
             data: {
               title: ownerType.name + ' Auto Waivers Configuration',
             },
-            component: 'automatedWaiversConfiguration',
+            component: 'autoWaiversConfiguration',
           })
           .state('management.edit.' + ownerType.type + '.auto-waiver-details', {
             url: `/ownertype/{ownerType}/autowaiverowner/{autoWaiverOwnerId}/autowaiver/{autoWaiverId}`,

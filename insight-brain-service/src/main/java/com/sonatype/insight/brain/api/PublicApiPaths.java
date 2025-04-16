@@ -187,4 +187,7 @@ public class PublicApiPaths
 
   public static final String
       COMPONENT_CHANGE_DETECTION_RESOURCE_PATH = API_VERSION_PATH_V2 + "component-change-detection";
+
+  public static final String CPE_MATCHING_CONFIGURATION_RESOURCE_PATH = API_VERSION_PATH_V2 +
+      "{ownerType: application|organization}/{internalOwnerId}/configuration/publicSource/cpe";
 }

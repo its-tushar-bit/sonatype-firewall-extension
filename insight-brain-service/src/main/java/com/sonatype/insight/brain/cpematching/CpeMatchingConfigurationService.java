@@ -122,19 +122,21 @@ public class CpeMatchingConfigurationService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public void updateCpeMatchingConfiguration(
+  public CpeMatchingConfigurationDTO updateCpeMatchingConfiguration(
       @AuthzContext(Key.TYPE) OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
       CpeMatchingConfigurationRequest configRequest)
   {
+    CpeMatchingConfiguration cpeConfigUpdated;
     validateConfigurationDTO(configRequest);
     ownerDAO.getByIdNotNull(internalOwnerId); // will trigger a 404 if the owner does not exist
     switch (ownerType) {
       case APPLICATION:
-        updateConfigurationForOwner(new CpeMatchingConfiguration(internalOwnerId, configRequest.enabled, false));
+        cpeConfigUpdated = updateConfigurationForOwner(new CpeMatchingConfiguration(internalOwnerId,
+            configRequest.enabled, false));
         break;
       case ORGANIZATION:
-        updateConfigurationForOwner(
+        cpeConfigUpdated = updateConfigurationForOwner(
             new CpeMatchingConfiguration(internalOwnerId, configRequest.enabled, configRequest.allowOverride));
         if (!configRequest.allowOverride) {
           disableCpeMatchingConfiguration(ownerType, internalOwnerId, false);
@@ -143,6 +145,10 @@ public class CpeMatchingConfigurationService
       default:
         throw new IllegalStateException("Unknown owner type: " + ownerType);
     }
+    CpeMatchingConfigurationDTO cpeConfigUpdatedDTO = new CpeMatchingConfigurationDTO();
+    cpeConfigUpdatedDTO.enabled = cpeConfigUpdated.isCpeEnabled();
+    cpeConfigUpdatedDTO.allowOverride = cpeConfigUpdated.isAllowOverride();
+    return cpeConfigUpdatedDTO;
   }
 
   private void validateConfigurationDTO(final CpeMatchingConfigurationRequest request) {
@@ -217,15 +223,17 @@ public class CpeMatchingConfigurationService
     cpeMatchingConfigurationDAO.delete(applicationId);
   }
 
-  private void updateConfigurationForOwner(CpeMatchingConfiguration cpeMatchingConfig) {
+  private CpeMatchingConfiguration updateConfigurationForOwner(CpeMatchingConfiguration cpeMatchingConfig) {
     CpeMatchingConfiguration existingConfig = cpeMatchingConfigurationDAO.getByOwnerId(cpeMatchingConfig.getOwnerId());
     if (existingConfig == null) {
       cpeMatchingConfigurationDAO.insert(cpeMatchingConfig);
+      return cpeMatchingConfig;
     }
     else {
       existingConfig.setCpeEnabled(cpeMatchingConfig.isCpeEnabled());
       existingConfig.setAllowOverride(cpeMatchingConfig.isAllowOverride());
       cpeMatchingConfigurationDAO.update(existingConfig);
+      return existingConfig;
     }
   }
 }

@@ -26,10 +26,10 @@ const loadRequested = (state) => {
 };
 
 const loadFulfilled = (state, { payload }) => {
-  if (payload) {
+  if (payload.baseUrl) {
     state.baseUrl = new URL(payload.baseUrl).host;
-    state.dashboardsData = payload.dashboards;
   }
+  state.dashboardsData = payload.dashboards;
   state.loading = false;
 };
 

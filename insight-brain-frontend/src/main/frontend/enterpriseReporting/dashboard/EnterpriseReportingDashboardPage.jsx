@@ -131,7 +131,10 @@ function NavigationBarRow({ dashboards, title, activeDashboard }) {
       <ul className="enterprise-reporting-dashboard__link-list">
         {dashboards?.length &&
           dashboards.map((dashboard) => (
-            <li className="enterprise-reporting-dashboard__link-item" key={dashboard.dashboardId}>
+            <li
+              className={`enterprise-reporting-dashboard__link-item item--${dashboard.dashboardId}`}
+              key={dashboard.dashboardId}
+            >
               {dashboard.dashboardId === activeDashboard ? (
                 <span>{cleanTitle(dashboard.title)}</span>
               ) : (

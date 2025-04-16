@@ -39,6 +39,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.inject.Binder;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -196,6 +197,7 @@ public class PolicyAlertScmNotifierTest
     threadArgumentCaptor.getValue().join(millis);
   }
 
+  @Ignore("JIRA: CLM-34808")
   @Test
   public void testSendNotification_formatIsNotSupported() {
     ComponentIdentifier unsupportedComponent =

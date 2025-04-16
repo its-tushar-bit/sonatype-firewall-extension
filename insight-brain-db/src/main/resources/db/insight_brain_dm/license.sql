@@ -193,6 +193,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Arcti
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Ardigen-ARDisplay-I-AUS-TAC','Ardigen-ARDisplay-I-AUS-TAC','Ardigen ARDisplay-I Academic Use of Software Terms and Conditions');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('ARM-LLVM-SGLA','ARM-LLVM-SGLA','ARM Limited LLVM Software Grant License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Arphic-1999','Arphic-1999','Arphic Public License');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Arphic-UNSPECIFIED','Arphic','Arphic-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Artistic-1.0','Artistic-1.0','Artistic License 1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Artistic-1.0-cl8','Artistic-1.0-cl8','Artistic License 1.0 w/clause 8');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Artistic-1.0-Perl','Artistic-1.0-Perl','Artistic License 1.0 Perl');

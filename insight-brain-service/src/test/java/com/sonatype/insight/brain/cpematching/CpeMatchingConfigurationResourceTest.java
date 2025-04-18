@@ -7,9 +7,12 @@ package com.sonatype.insight.brain.cpematching;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -24,9 +27,12 @@ public class CpeMatchingConfigurationResourceTest
 {
   private OrganizationDAO organizationDAO;
 
+  private CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO;
+
   @Before
   public void setUp() {
     organizationDAO = lookup(OrganizationDAO.class);
+    cpeMatchingConfigurationDAO = lookup(CpeMatchingConfigurationDAO.class);
     getTestProductLicenseManager().setFeatures(LicensedFeature.CPE_MATCHING);
   }
 
@@ -102,5 +108,97 @@ public class CpeMatchingConfigurationResourceTest
         .body(requestDTO).put();
     assertResponseStatus(402, response);
     assertThat(response.getBodyText()).isEqualTo("Your IQ Server license does not enable this feature.");
+  }
+
+  @Test
+  public void testGetCpeMatchingConfiguration_application() throws Exception {
+    Application app1 = tempEntity.newApplicationWithParent();
+    CpeMatchingConfiguration savedCpeMatchingConfig = new CpeMatchingConfiguration(app1.getId(), true,
+        true);
+    cpeMatchingConfigurationDAO.insert(savedCpeMatchingConfig);
+
+    ApplicationDAO aDao = lookup(ApplicationDAO.class);
+    aDao.getById(app1.getId());
+
+    HttpResponse response = restRequest().parameter("application", app1.getId()).get();
+    assertResponseStatus(200, response);
+    CpeMatchingConfigurationDTO actualRestResponse = response.getBody(CpeMatchingConfigurationDTO.class);
+    assertThat(actualRestResponse).isNotNull();
+    assertThat(actualRestResponse.enabled).isTrue();
+    assertThat(actualRestResponse.allowOverride).isFalse();
+    assertThat(actualRestResponse.inheritedFromOrganizationName).isNull();
+    assertThat(actualRestResponse.enabledInParent).isFalse();
+  }
+
+  @Test
+  public void testGetCpeMatchingConfiguration_organization() throws Exception {
+    Organization org1 = tempEntity.newOrganization();
+    CpeMatchingConfiguration savedCpeMatchingConfig = new CpeMatchingConfiguration(org1.getId(), true,
+        false);
+    cpeMatchingConfigurationDAO.insert(savedCpeMatchingConfig);
+
+    HttpResponse response = restRequest().parameter("organization", org1.getId()).get();
+    assertResponseStatus(200, response);
+    CpeMatchingConfigurationDTO actualRestResponse = response.getBody(CpeMatchingConfigurationDTO.class);
+    assertThat(actualRestResponse).isNotNull();
+    assertThat(actualRestResponse.enabled).isTrue();
+    assertThat(actualRestResponse.allowOverride).isFalse();
+    assertThat(actualRestResponse.inheritedFromOrganizationName).isNull();
+    assertThat(actualRestResponse.enabledInParent).isFalse();
+  }
+
+  @Test
+  public void testGetCpeMatchingConfiguration_getInheritedConfig_noOverrides() throws Exception {
+    Application app1 = tempEntity.newApplicationWithParent();
+    Organization org1 = organizationDAO.getById(app1.getParentOwnerId());
+    Organization root = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    CpeMatchingConfiguration rootSavedCpeMatchingConfig = new CpeMatchingConfiguration(root.getId(), true, false);
+    cpeMatchingConfigurationDAO.insert(rootSavedCpeMatchingConfig);
+    CpeMatchingConfiguration orgSavedCpeMatchingConfig = new CpeMatchingConfiguration(org1.getId(), true,
+        true);
+    cpeMatchingConfigurationDAO.insert(orgSavedCpeMatchingConfig);
+
+    HttpResponse response = restRequest().parameter("application", app1.getId()).get();
+    assertResponseStatus(200, response);
+    CpeMatchingConfigurationDTO actualRestResponse = response.getBody(CpeMatchingConfigurationDTO.class);
+    assertThat(actualRestResponse).isNotNull();
+    assertThat(actualRestResponse.enabled).isTrue();
+    assertThat(actualRestResponse.allowOverride).isFalse();
+    assertThat(actualRestResponse.inheritedFromOrganizationName).isEqualTo(root.getName());
+    assertThat(actualRestResponse.enabledInParent).isTrue();
+
+    response = restRequest().parameter("organization", org1.getId()).get();
+    assertResponseStatus(200, response);
+    actualRestResponse = response.getBody(CpeMatchingConfigurationDTO.class);
+    assertThat(actualRestResponse).isNotNull();
+    assertThat(actualRestResponse.enabled).isTrue();
+    assertThat(actualRestResponse.allowOverride).isFalse();
+    assertThat(actualRestResponse.inheritedFromOrganizationName).isEqualTo(root.getName());
+    assertThat(actualRestResponse.enabledInParent).isTrue();
+
+    response = restRequest().parameter("organization", root.getId()).get();
+    assertResponseStatus(200, response);
+    actualRestResponse = response.getBody(CpeMatchingConfigurationDTO.class);
+    assertThat(actualRestResponse).isNotNull();
+    assertThat(actualRestResponse.enabled).isTrue();
+    assertThat(actualRestResponse.allowOverride).isFalse();
+    assertThat(actualRestResponse.inheritedFromOrganizationName).isNull();
+    assertThat(actualRestResponse.enabledInParent).isFalse();
+  }
+
+  @Test
+  public void testGetCpeMatchingConfiguration_licenseFeatureNotEnabledError() throws Exception {
+    getTestProductLicenseManager().getFeatures().remove(LicensedFeature.CPE_MATCHING);
+    Application app1 = tempEntity.newApplicationWithParent();
+    HttpResponse response = restRequest().parameter("application", app1.getId()).get();
+    assertResponseStatus(402, response);
+    assertThat(response.getBodyText()).isEqualTo("Your IQ Server license does not enable this feature.");
+  }
+
+  @Test
+  public void testGetCpeMatchingConfiguration_notFoundError() throws Exception {
+    HttpResponse response = restRequest().parameter("application", "fakeApp").get();
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).isEqualTo("Application with ID fakeApp does not exist.");
   }
 }

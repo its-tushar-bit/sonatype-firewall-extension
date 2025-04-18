@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.cpematching;
 public class CpeMatchingConfigurationDTO
 {
   /**
-   * Whether CPE Matching status is enabled for this org/app. If null, then CPE matching status was never set for
-   * this org/app.
+   * Whether CPE Matching status is enabled for this org/app. If null, then CPE matching status was never set for this
+   * org/app.
    */
   public Boolean enabled;
 

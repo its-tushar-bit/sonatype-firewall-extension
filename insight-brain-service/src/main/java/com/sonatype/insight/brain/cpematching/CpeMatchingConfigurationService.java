@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.cpematching;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -57,16 +58,17 @@ public class CpeMatchingConfigurationService
   }
 
   @Authorize(permission = Permission.READ)
-  public CpeMatchingConfigurationDTO getCpeMatchingStatus(
+  public CpeMatchingConfigurationDTO getCpeMatchingConfiguration(
       @AuthzContext(Key.TYPE) OwnerType ownerType,
-      @AuthzContext(Key.ID) String ownerId)
+      @AuthzContext(Key.INTERNAL_ID) String ownerId)
   {
     CpeMatchingConfigurationDTO cpeMatchingConfigurationDTO = new CpeMatchingConfigurationDTO();
+    ownerDAO.getByIdNotNull(ownerId); // will trigger a 404 if the owner does not exist
 
     String parentOrgId;
     switch (ownerType) {
       case APPLICATION:
-        Application app = applicationDAO.getByPublicIdNotNull(ownerId);
+        Application app = applicationDAO.getById(ownerId);
         CpeMatchingConfiguration appCpeMatchingConfiguration = cpeMatchingConfigurationDAO.getByOwnerId(ownerId);
         parentOrgId = app.getOrganizationId();
         if (appCpeMatchingConfiguration != null) {

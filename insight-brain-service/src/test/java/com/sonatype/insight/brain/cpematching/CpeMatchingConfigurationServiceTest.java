@@ -40,16 +40,16 @@ public class CpeMatchingConfigurationServiceTest
   public LogOutput logOutput = new LogOutput(CpeMatchingConfigurationService.class);
 
   @Test
-  public void testGetCpeMatchingStatus_ForApp_NoParentEnabled_NoOverrides() {
+  public void testGetCpeMatchingConfiguration_ForApp_NoParentEnabled_NoOverrides() {
     Application app1 = tempEntity.newApplicationWithParent();
     CpeMatchingConfiguration appCpeConfig = new CpeMatchingConfiguration(
-        app1.getPublicId(), true, true
+        app1.getId(), true, true
     );
 
     cpeMatchingConfigurationDAO.insert(appCpeConfig);
 
-    CpeMatchingConfigurationDTO actualCpeMatchingConfiguration = cpeMatchingConfigurationService.getCpeMatchingStatus(
-        app1.getType(), app1.getPublicId());
+    CpeMatchingConfigurationDTO actualCpeMatchingConfiguration = cpeMatchingConfigurationService
+        .getCpeMatchingConfiguration(app1.getType(), app1.getId());
     assertThat(actualCpeMatchingConfiguration).isNotNull();
     assertThat(actualCpeMatchingConfiguration.enabled).isTrue();
     assertThat(actualCpeMatchingConfiguration.enabledInParent).isFalse();
@@ -58,7 +58,7 @@ public class CpeMatchingConfigurationServiceTest
   }
 
   @Test
-  public void testGetCpeMatchingStatus_ForOrg_NoParentEnabled_NoOverrides() {
+  public void testGetCpeMatchingConfiguration_ForOrg_NoParentEnabled_NoOverrides() {
     Application app1 = tempEntity.newApplicationWithParent();
     Organization parentOrg = organizationDAO.getById(app1.getParentOwnerId());
     CpeMatchingConfiguration orgCpeConfig = new CpeMatchingConfiguration(
@@ -66,8 +66,8 @@ public class CpeMatchingConfigurationServiceTest
     );
     cpeMatchingConfigurationDAO.insert(orgCpeConfig);
 
-    CpeMatchingConfigurationDTO actualCpeMatchingConfiguration = cpeMatchingConfigurationService.getCpeMatchingStatus(
-        parentOrg.getType(), parentOrg.getId());
+    CpeMatchingConfigurationDTO actualCpeMatchingConfiguration = cpeMatchingConfigurationService
+        .getCpeMatchingConfiguration(parentOrg.getType(), parentOrg.getId());
     assertThat(actualCpeMatchingConfiguration).isNotNull();
     assertThat(actualCpeMatchingConfiguration.enabled).isTrue();
     assertThat(actualCpeMatchingConfiguration.enabledInParent).isFalse();
@@ -76,7 +76,7 @@ public class CpeMatchingConfigurationServiceTest
   }
 
   @Test
-  public void testGetCpeMatchingStatus_RootParentEnabled_NoOverrides() {
+  public void testGetCpeMatchingConfiguration_RootParentEnabled_NoOverrides() {
     // ROOT -> Dummy Org -> App1
     Application app1 = tempEntity.newApplicationWithParent();
     Organization rootOrg = organizationDAO.getById("ROOT_ORGANIZATION_ID");
@@ -89,7 +89,7 @@ public class CpeMatchingConfigurationServiceTest
     cpeMatchingConfigurationDAO.insert(rootCpeConfig);
 
     CpeMatchingConfigurationDTO rootCpeMatchingConfigurationDtoAppTest = cpeMatchingConfigurationService
-        .getCpeMatchingStatus(rootOrg.getType(), rootOrg.getId());
+        .getCpeMatchingConfiguration(rootOrg.getType(), rootOrg.getId());
 
     assertThat(rootCpeMatchingConfigurationDtoAppTest).isNotNull();
     assertThat(rootCpeMatchingConfigurationDtoAppTest.enabled).isTrue();
@@ -99,7 +99,7 @@ public class CpeMatchingConfigurationServiceTest
 
     // Check cpe matching configuration status for dummy Org
     CpeMatchingConfigurationDTO dummyOrgCpeMatchingConfigurationDtoAppTest =
-        cpeMatchingConfigurationService.getCpeMatchingStatus(
+        cpeMatchingConfigurationService.getCpeMatchingConfiguration(
             dummyOrg.getType(), dummyOrg.getId());
 
     assertThat(dummyOrgCpeMatchingConfigurationDtoAppTest).isNotNull();
@@ -111,8 +111,8 @@ public class CpeMatchingConfigurationServiceTest
 
     // Check cpe matching configuration status for app1
     CpeMatchingConfigurationDTO app1CpeMatchingConfigurationDtoAppTest =
-        cpeMatchingConfigurationService.getCpeMatchingStatus(
-            app1.getType(), app1.getPublicId());
+        cpeMatchingConfigurationService.getCpeMatchingConfiguration(
+            app1.getType(), app1.getId());
 
     assertThat(app1CpeMatchingConfigurationDtoAppTest).isNotNull();
     assertThat(app1CpeMatchingConfigurationDtoAppTest.enabled).isTrue();
@@ -123,7 +123,7 @@ public class CpeMatchingConfigurationServiceTest
   }
 
   @Test
-  public void testGetCpeMatchingStatus_RootParentEnabled_DummyOrgOverrides() {
+  public void testGetCpeMatchingConfiguration_RootParentEnabled_DummyOrgOverrides() {
     // ROOT -> Dummy Org -> App1
     Application app1 = tempEntity.newApplicationWithParent();
     Organization rootOrg = organizationDAO.getById("ROOT_ORGANIZATION_ID");
@@ -138,7 +138,7 @@ public class CpeMatchingConfigurationServiceTest
     );
 
     CpeMatchingConfiguration app1OverrideCpeConfig = new CpeMatchingConfiguration(
-        app1.getPublicId(), true, true
+        app1.getId(), true, true
     );
 
     cpeMatchingConfigurationDAO.insert(rootCpeConfig);
@@ -146,7 +146,7 @@ public class CpeMatchingConfigurationServiceTest
     cpeMatchingConfigurationDAO.insert(app1OverrideCpeConfig);
 
     CpeMatchingConfigurationDTO rootCpeMatchingConfigurationDtoAppTest =
-        cpeMatchingConfigurationService.getCpeMatchingStatus(
+        cpeMatchingConfigurationService.getCpeMatchingConfiguration(
             rootOrg.getType(), rootOrg.getId());
 
     assertThat(rootCpeMatchingConfigurationDtoAppTest).isNotNull();
@@ -158,7 +158,7 @@ public class CpeMatchingConfigurationServiceTest
 
     // Check cpe matching configuration status for dummy Org
     CpeMatchingConfigurationDTO dummyOrgCpeMatchingConfigurationDtoAppTest =
-        cpeMatchingConfigurationService.getCpeMatchingStatus(
+        cpeMatchingConfigurationService.getCpeMatchingConfiguration(
             dummyOrg.getType(), dummyOrg.getId());
 
     assertThat(dummyOrgCpeMatchingConfigurationDtoAppTest).isNotNull();
@@ -170,8 +170,8 @@ public class CpeMatchingConfigurationServiceTest
 
     // Check cpe matching configuration status for app1
     CpeMatchingConfigurationDTO app1CpeMatchingConfigurationDtoAppTest =
-        cpeMatchingConfigurationService.getCpeMatchingStatus(
-            app1.getType(), app1.getPublicId());
+        cpeMatchingConfigurationService.getCpeMatchingConfiguration(
+            app1.getType(), app1.getId());
 
     assertThat(app1CpeMatchingConfigurationDtoAppTest).isNotNull();
     assertThat(app1CpeMatchingConfigurationDtoAppTest.enabledInParent).isFalse();

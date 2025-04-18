@@ -21,20 +21,20 @@ public class CpeMatchingConfigurationServiceAuthzTest
   private CpeMatchingConfigurationService cpeMatchingConfigurationService;
 
   @Test
-  public void testGetCpeMatchingStatus_Authorized() {
+  public void testGetCpeMatchingConfiguration_Authorized() {
     grantReadPermission(app.getId());
-    cpeMatchingConfigurationService.getCpeMatchingStatus(app.getType(), app.getPublicId());
+    cpeMatchingConfigurationService.getCpeMatchingConfiguration(app.getType(), app.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetCpeMatchingStatus_Unauthorized() {
+  public void testGetCpeMatchingConfiguration_Unauthorized() {
     login();
-    cpeMatchingConfigurationService.getCpeMatchingStatus(app.getType(), app.getPublicId());
+    cpeMatchingConfigurationService.getCpeMatchingConfiguration(app.getType(), app.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetCpeMatchingStatus_Unauthenticated() {
-    cpeMatchingConfigurationService.getCpeMatchingStatus(app.getType(), app.getPublicId());
+  public void testGetCpeMatchingConfiguration_Unauthenticated() {
+    cpeMatchingConfigurationService.getCpeMatchingConfiguration(app.getType(), app.getId());
   }
 
   @Test

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.cpematching;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -54,6 +55,7 @@ public class CpeMatchingConfigurationResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.UPDATE_CPE_MATCHING_CONFIGURATION)
+  @ProductLicenseEnforcementPoint(LicensedFeature.CPE_MATCHING)
   @Operation(
       hidden = true,
       description = "Use this method to apply a given cpe matching configuration to an organization or application." +
@@ -73,5 +75,23 @@ public class CpeMatchingConfigurationResource
   {
     AuditData.get().setData("enabled", configRequest == null ? null : configRequest.enabled);
     return cpeMatchingConfigurationService.updateCpeMatchingConfiguration(ownerType, internalOwnerId, configRequest);
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(
+      hidden = true,
+      description = "This method allows to retrieve the applicable cpe matching configuration of a given " +
+          "organization or application." +
+          "<p>" +
+          "Permissions Required: View IQ Elements"
+  )
+  @ApiResponse(responseCode = "200", description = "Applicable cpe matching configuration for given ownerId")
+  @ProductLicenseEnforcementPoint(LicensedFeature.CPE_MATCHING)
+  public CpeMatchingConfigurationDTO getCpeMatchingConfiguration(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("internalOwnerId") String internalOwnerId)
+  {
+    return cpeMatchingConfigurationService.getCpeMatchingConfiguration(ownerType, internalOwnerId);
   }
 }

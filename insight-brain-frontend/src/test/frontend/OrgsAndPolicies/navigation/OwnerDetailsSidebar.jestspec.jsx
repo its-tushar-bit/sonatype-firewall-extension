@@ -458,71 +458,74 @@ describe('OwnerDetailSidebar', () => {
     expect(screen.getAllByRole('group')[1]).toHaveClass('nx-collapsible-items--expanded');
   });
 
-  it('does not render waivers when developerDashboardEnabled is false', () => {
+  it('does not render auto-waivers when developerDashboardEnabled is false', () => {
     jest.spyOn(productFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(false);
 
     mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
 
     renderComponent();
 
-    expect(screen.queryByText('Waivers')).not.toBeInTheDocument();
+    expect(screen.queryByText('Auto-Waivers')).not.toBeInTheDocument();
   });
 
-  it('does not render waivers when isSbomManager is true', () => {
+  it('does not render auto-waivers when isSbomManager is true', () => {
     jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(true);
 
     mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
 
     renderComponent();
 
-    expect(screen.queryByText('Waivers')).not.toBeInTheDocument();
+    expect(screen.queryByText('Auto-Waivers')).not.toBeInTheDocument();
   });
 
-  it('should not render waivers when developerDashboardEnabled is true', () => {
+  it('should not render auto-waivers when developerDashboardEnabled is true', () => {
     renderComponent({
-      ...sbomOrgLevelState,
+      ...appsLevelState,
       productFeatures: {
         productFeatures: { 'developer-dashboard': true },
       },
     });
 
-    expect(screen.queryByText('Waivers')).not.toBeInTheDocument();
+    expect(screen.queryByText('Auto-Waivers')).not.toBeInTheDocument();
   });
 
-  it('should not render waivers when isAutoWaiversEnabled is false', () => {
+  it('should not render auto-waivers when isAutoWaiversEnabled is false', () => {
     renderComponent({
-      ...sbomOrgLevelState,
+      ...appsLevelState,
       productFeatures: {
         productFeatures: { 'auto-waivers': false },
       },
     });
 
-    expect(screen.queryByText('Waivers')).not.toBeInTheDocument();
+    expect(screen.queryByText('Auto-Waivers')).not.toBeInTheDocument();
   });
 
-  it('should not render waivers when isAutoWaiversEnabled is true, isDeveloperDashboard is true, and sbomManager is true', () => {
+  it('should not render auto-waivers when isAutoWaiversEnabled is true, isDeveloperDashboard is true, and sbomManager is true', () => {
     jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(true);
 
     renderComponent({
-      ...sbomOrgLevelState,
+      ...appsLevelState,
       productFeatures: {
         productFeatures: { 'auto-waivers': true, 'developer-dashboard': true },
       },
     });
 
-    expect(screen.queryByText('Waivers')).not.toBeInTheDocument();
+    expect(screen.queryByText('Auto-Waivers')).not.toBeInTheDocument();
   });
 
-  it('should render waivers when isAutoWaiversEnabled is true, isDeveloperDashboard is true, and sbomManager is false', () => {
+  it('should render auto-waivers when isAutoWaiversEnabled is true, isDeveloperDashboard is true, and sbomManager is false', () => {
     jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(false);
 
     renderComponent({
-      ...sbomOrgLevelState,
+      ...appsLevelState,
       productFeatures: {
         productFeatures: { 'auto-waivers': true, 'developer-dashboard': true },
       },
     });
 
-    expect(screen.getByText('Auto-Waivers')).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: 'Auto-Waivers' });
+    expect(link).toBeInTheDocument();
+    const href = link.getAttribute('href');
+    expect(href).toContain('/autowaivers');
   });
 });

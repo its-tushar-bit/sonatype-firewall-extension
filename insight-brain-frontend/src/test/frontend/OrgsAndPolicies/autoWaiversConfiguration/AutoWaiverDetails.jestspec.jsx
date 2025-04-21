@@ -310,7 +310,8 @@ describe('Auto Waiver Details', function () {
         expect(within(autoWaiverModal).getByRole('heading', { name: 'Edit Auto-Waiver' })).toBeInTheDocument();
       });
 
-      it('is disabled with a tooltip when waiver is inherited', async () => {
+      // Disabled flaky test https://sonatype.atlassian.net/browse/SDEV-1988
+      xit('is disabled with a tooltip when waiver is inherited', async () => {
         const selectedOwnerLens = lensPath(['orgsAndPolicies', 'root', 'selectedOwner', 'id']);
         const newState = set(selectedOwnerLens, 'some-other-owner', initialState);
 
@@ -343,7 +344,8 @@ describe('Auto Waiver Details', function () {
         expect(within(deleteAutoWaiverModal).getByRole('heading', { name: 'Delete Auto-Waiver' })).toBeInTheDocument();
       });
 
-      it('is disabled with a tooltip when waiver is inherited', async () => {
+      // Disabled flaky test https://sonatype.atlassian.net/browse/SDEV-1988
+      xit('is disabled with a tooltip when waiver is inherited', async () => {
         const selectedOwnerLens = lensPath(['orgsAndPolicies', 'root', 'selectedOwner', 'id']);
         const newState = set(selectedOwnerLens, 'some-other-owner', initialState);
 

@@ -92,8 +92,9 @@ public class ApiAuditLogsServiceTest
 
     StreamingOutput response = apiAuditLogsService.getAuditLogs("2024-02-04", LocalDate.now().toString());
 
-    String actualContent = getResponseContent(response);
-    String expectedContent = AUDIT_2024_02_07_CONTENT + AUDIT_2024_02_08_CONTENT + AUDIT_CONTENT;
+    // Trim the expected and actual values to ignore trailing new lines, whcih are different on Windows and Linux.
+    String actualContent = getResponseContent(response).trim();
+    String expectedContent = (AUDIT_2024_02_07_CONTENT + AUDIT_2024_02_08_CONTENT + AUDIT_CONTENT).trim();
     assertThat(actualContent).isEqualTo(expectedContent);
   }
 
@@ -105,8 +106,9 @@ public class ApiAuditLogsServiceTest
 
     StreamingOutput response = apiAuditLogsService.getAuditLogs(LocalDate.now().toString(), LocalDate.now().toString());
 
-    String actualContent = getResponseContent(response);
-    String expectedContent = AUDIT_CONTENT;
+    // Trim the expected and actual values to ignore trailing new lines, whcih are different on Windows and Linux.
+    String actualContent = getResponseContent(response).trim();
+    String expectedContent = AUDIT_CONTENT.trim();
     assertThat(actualContent).isEqualTo(expectedContent);
   }
 

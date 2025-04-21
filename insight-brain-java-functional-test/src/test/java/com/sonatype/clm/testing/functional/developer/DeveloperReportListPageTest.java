@@ -113,31 +113,26 @@ public class DeveloperReportListPageTest
     DeveloperReportListPage.reportListTable().findAll(byText("View Priorities")).first().click();
     PrioritiesPage.title().shouldHave(text(title(0)));
 
-    ElementsCollection firstPage =
-        PrioritiesPage.prioritiesTableRows();
+    ElementsCollection firstPage = PrioritiesPage.prioritiesTableRows();
 
     firstPage.shouldHave(size(TOTAL_PRIORITIES_PER_PAGE));
 
-    firstPage.get(0).find(".iq-priorities-page-components__component")
+    PrioritiesPage.prioritiesTableRowComponentName(0)
         .shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
-    firstPage.get(0).find(".iq-priorities-page-policy-details__desc-threat")
-        .shouldHave(text("10"));
+    PrioritiesPage.prioritiesTableRowThreatLevel(0).shouldHave(text("10"));
 
-    firstPage.get(1).find(".iq-priorities-page-components__component")
+    PrioritiesPage.prioritiesTableRowComponentName(1)
         .shouldHave(text("com.vaadin.addon : vaadin-touchkit-agpl : 3.0.0-beta1"));
-    firstPage.get(1).find(".iq-priorities-page-policy-details__desc-threat")
-        .shouldHave(text("10"));
+    PrioritiesPage.prioritiesTableRowThreatLevel(1).shouldHave(text("10"));
 
-    firstPage.get(2).find(".iq-priorities-page-components__component")
+    PrioritiesPage.prioritiesTableRowComponentName(2)
         .shouldHave(text("org.springframework.security : spring-security-web : 3.2.4.RELEASE"));
-    firstPage.get(2).find(".iq-priorities-page-policy-details__desc-threat")
-        .shouldHave(text("9"));
+    PrioritiesPage.prioritiesTableRowThreatLevel(2).shouldHave(text("9"));
 
     ScrollUtil.scrollIntoView(PrioritiesPage.lastPageLink());
     PrioritiesPage.lastPageLink().shouldHave(text("2")).click();
 
-    ElementsCollection lastPage =
-        PrioritiesPage.prioritiesTableRows();
+    ElementsCollection lastPage = PrioritiesPage.prioritiesTableRows();
 
     lastPage.shouldHave(size(13));
   }
@@ -148,9 +143,7 @@ public class DeveloperReportListPageTest
     DeveloperReportListPage.reportListTable().findAll(byText("View Priorities")).get(1).click();
     PrioritiesPage.title().shouldHave(text(title(1)));
 
-    ElementsCollection firstPage =
-        PrioritiesPage.prioritiesTableRows();
-    firstPage.get(0).find(".iq-priorities-page-components__component").click();
+    PrioritiesPage.prioritiesTableRow(0).click();
 
     DependencyTreeTile dependencyTreeTile = componentDetailsPage.dependencyTreeTile();
     ScrollUtil.scrollIntoView(dependencyTreeTile.title());
@@ -168,6 +161,37 @@ public class DeveloperReportListPageTest
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
     componentDetailsPage.violationsTab().shouldBe(visible).click();
     componentDetailsPage.violationsTabContent().shouldBe(visible);
+  }
+
+  @Test
+  public void testPrioritiesReportPage_shouldFilterByComponentNameWhenNotOnFirstPage() {
+    refreshOrOpen(DeveloperReportListPage.url());
+    DeveloperReportListPage.reportListTable().findAll(byText("View Priorities")).get(1).click();
+    PrioritiesPage.title().shouldHave(text(title(1)));
+
+    PrioritiesPage.nextPageButton().shouldBe(visible).click();
+    PrioritiesPage.componentNameFilter().type("http");
+
+    PrioritiesPage.prioritiesTableRowComponentName(0).shouldHave(text("http"));
+  }
+
+  @Test
+  public void testPrioritiesReportPage_shouldRetainPaginationStateWhenNavigatedToCDPAndBack() {
+    refreshOrOpen(DeveloperReportListPage.url());
+    DeveloperReportListPage.reportListTable().findAll(byText("View Priorities")).get(1).click();
+    PrioritiesPage.title().shouldHave(text(title(1)));
+
+    PrioritiesPage.nextPageButton().shouldBe(visible).click();
+
+    PrioritiesPage.prioritiesTableRow(0).click();
+
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.shouldBe(visible);
+    componentDetailsPage.backButton().click();
+
+    PrioritiesPage.title().shouldBe(visible);
+
+    PrioritiesPage.currentPageButton().shouldHave((text("2")));
   }
 
   private String title(int appId) {

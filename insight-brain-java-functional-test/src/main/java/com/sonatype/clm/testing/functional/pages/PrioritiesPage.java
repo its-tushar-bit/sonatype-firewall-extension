@@ -40,11 +40,35 @@ public class PrioritiesPage
         .findAll(by("data-analytics-id", "sonatype-developer-priorities-page-component-row"));
   }
 
+  public static SelenideElement prioritiesTableRow(int index) {
+    return prioritiesTableRows().get(index);
+  }
+
+  public static SelenideElement prioritiesTableRowComponentName(int index) {
+    return prioritiesTableRow(index).$(".iq-priorities-page-components__component");
+  }
+
+  public static SelenideElement prioritiesTableRowThreatLevel(int index) {
+    return prioritiesTableRow(index).$(".iq-priorities-page-policy-details__desc-threat");
+  }
+
   public static NxDropdown viewDropdown() {
     return new NxDropdown(".iq-priorities-page-view-dropdown");
   }
 
   public static SelenideElement lastPageLink() {
     return $(by("aria-label", "goto last page"));
+  }
+
+  public static SelenideElement nextPageButton() {
+    return $(by("aria-label", "goto next page"));
+  }
+
+  public static SelenideElement componentNameFilter() {
+    return $("#priorities-component-name-filter");
+  }
+
+  public static SelenideElement currentPageButton() {
+    return $(by("aria-current", "page"));
   }
 }

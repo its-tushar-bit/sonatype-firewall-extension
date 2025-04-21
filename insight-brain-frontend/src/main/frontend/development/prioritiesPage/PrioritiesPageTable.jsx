@@ -43,6 +43,7 @@ export default function PrioritiesPageTable() {
     componentNameFilter: componentNameFilterValue,
     filterOnPolicyActions: filterOnPolicyActionsValue,
     hasDefaultFilters,
+    integrationType: storedIntegrationType,
   } = useSelector(selectPrioritiesPageSlice);
 
   const hasPolicyAction = priorities?.find((priority) => priority.action === 'fail' || priority.action === 'warn');
@@ -72,6 +73,7 @@ export default function PrioritiesPageTable() {
   const priorityTooltip = `Priority of actionable items based on the policy action, component reachability status, and threat score severity.`;
 
   const setFilters = () => {
+    dispatch(actions.setIntegrationType(null));
     dispatch(actions.setFilterOnPolicyActions(derivedActionFilter));
     dispatch(actions.setComponentNameFilter(derivedComponentName));
   };
@@ -92,6 +94,7 @@ export default function PrioritiesPageTable() {
   };
 
   const setContinuousMonitoringViewFilters = () => {
+    dispatch(actions.setIntegrationType(null));
     dispatch(actions.setFilterOnPolicyActions(false));
     dispatch(
       stateGo(currentRouteName, {
@@ -102,8 +105,12 @@ export default function PrioritiesPageTable() {
   };
 
   useEffect(() => {
-    if (isIntegrationView && hasDefaultFilters) {
-      setIntegrationViewFilters();
+    if (isIntegrationView) {
+      dispatch(actions.setIntegrationType(integrationType));
+
+      if (hasDefaultFilters) {
+        setIntegrationViewFilters();
+      }
     } else if (forMonitoring) {
       setContinuousMonitoringViewFilters();
     } else {
@@ -117,8 +124,9 @@ export default function PrioritiesPageTable() {
     doLoad();
   }, [page]);
 
+  // Wwhen integration type changes, set the default filters
   useEffect(() => {
-    if (isIntegrationView && !hasDefaultFilters) {
+    if (isIntegrationView && !hasDefaultFilters && integrationType !== storedIntegrationType) {
       dispatch(actions.setHasDefaultFilters(true));
     }
   }, [integrationType]);

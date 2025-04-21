@@ -11,6 +11,7 @@ import { getPrioritiesPageTableData, getVersionGraphUrl } from 'MainRoot/util/CL
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { isNil, keys } from 'ramda';
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
+import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 
 export const PRIORITIES_PAGE_REDUCER_NAME = 'prioritiesPage';
 
@@ -138,8 +139,22 @@ const setPage = (state, { payload }) => {
   };
 };
 
+const restoreSavedPagination = (state) => {
+  const { savedPage, savedPageCount } = state;
+  if (savedPage !== null && savedPageCount !== null) {
+    return {
+      ...state,
+      page: savedPage,
+      pageCount: savedPageCount,
+      savedPage: null,
+      savedPageCount: null,
+    };
+  }
+  return state;
+};
+
 const resetState = (state) => {
-  return {
+  return restoreSavedPagination({
     ...state,
     priorities: null,
     loadingTableData: false,
@@ -147,7 +162,27 @@ const resetState = (state) => {
     loadingMetadata: false,
     loadErrorMetaData: null,
     recommendations: {},
-  };
+    page: 1,
+    pageCount: 1,
+  });
+};
+
+const isValidSavePaginationTransition = (router) => {
+  const { fromState, toState } = router || {};
+  return (
+    fromState?.name?.includes('prioritiesPage') &&
+    toState?.name?.includes('componentDetailsPageWithinPrioritiesPageContainer')
+  );
+};
+
+const savePagination = (state, { payload }) => {
+  if (isValidSavePaginationTransition(payload)) {
+    return {
+      ...state,
+      savedPage: state.page,
+      savedPageCount: state.pageCount,
+    };
+  }
 };
 
 const setComponentNameFilter = (state, { payload }) => {
@@ -171,10 +206,25 @@ const setHasDefaultFilters = (state, { payload }) => {
   };
 };
 
+const setIntegrationType = (state, { payload }) => {
+  return {
+    ...state,
+    integrationType: payload,
+  };
+};
+
 const prioritiesPageSlice = createSlice({
   name: PRIORITIES_PAGE_REDUCER_NAME,
   initialState: initialState(),
-  reducers: { resetState, setPage, setComponentNameFilter, setFilterOnPolicyActions, setHasDefaultFilters },
+  reducers: {
+    resetState,
+    setPage,
+    setComponentNameFilter,
+    setFilterOnPolicyActions,
+    setHasDefaultFilters,
+    savePagination,
+    setIntegrationType,
+  },
   extraReducers: {
     [loadTableData.pending]: loadTableDataRequested,
     [loadTableData.fulfilled]: loadTableDataFulfilled,
@@ -182,6 +232,7 @@ const prioritiesPageSlice = createSlice({
     [loadRecommendations.pending]: loadRecommendationsRequested,
     [loadRecommendations.fulfilled]: loadRecommendationsFulfilled,
     [loadRecommendations.rejected]: loadRecommendationsFailed,
+    [UI_ROUTER_ON_FINISH]: savePagination,
   },
 });
 
@@ -202,6 +253,9 @@ function initialState() {
     componentNameFilter: '',
     filterOnPolicyActions: false,
     hasDefaultFilters: true,
+    savedPage: null,
+    savedPageCount: null,
+    integrationType: null,
   };
 }
 

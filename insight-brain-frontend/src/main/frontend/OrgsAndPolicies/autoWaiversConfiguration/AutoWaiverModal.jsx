@@ -146,7 +146,7 @@ export default function AutoWaiverModal() {
                   <div className="iq-auto-waiver-modal-fieldset__item">
                     <div className="iq-auto-waiver-modal-fieldset__item-reachability-header">
                       <NxH4>{VULNERABILITY_IS_NOT_REACHABLE_TEXT}</NxH4>
-                      <NxTooltip title="Reachability Analysis must be enabled via Jenkins or Sonatype CLI">
+                      <NxTooltip title="Reachability Analysis must be enabled (via Sonatype CLI or CI/CD Integration).">
                         <NxFontAwesomeIcon
                           className="iq-auto-waiver-modal-fieldset__item-icon"
                           data-testid="auto-waiver-modal-reachability-icon"

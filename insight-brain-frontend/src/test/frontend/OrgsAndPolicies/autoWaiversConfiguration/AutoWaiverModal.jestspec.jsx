@@ -58,6 +58,19 @@ describe('Auto Waiver Modal Component', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
+  it('renders reachability info in tooltip', async () => {
+    renderComponent();
+
+    const reachabilityInfoIcon = screen.getByTestId('auto-waiver-modal-reachability-icon');
+    expect(reachabilityInfoIcon).toBeInTheDocument();
+
+    user.hover(reachabilityInfoIcon);
+
+    const tooltip = await screen.findByRole('tooltip');
+    expect(tooltip).toBeInTheDocument();
+    expect(tooltip).toHaveTextContent('Reachability Analysis must be enabled (via Sonatype CLI or CI/CD Integration).');
+  });
+
   describe('create new waiver dialog', () => {
     it('should display a dialog element', () => {
       renderComponent();

@@ -7,13 +7,12 @@ package com.sonatype.insight.brain.report;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.stream.Stream;
+import java.util.zip.ZipFile;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
-import de.schlichtherle.truezip.file.TFile;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.mockito.MockedStatic;
@@ -89,13 +88,15 @@ public class ReportDiskSaverTest
     FileUtils.deleteDirectory(testReportDir);
   }
 
-  private void assertThatReportZipContains(File zipFile, final String thirdPartyFile) {
-    assertThat(Stream.of(new TFile(zipFile).listFiles()).anyMatch(f -> f.getName().endsWith(thirdPartyFile)))
-        .isTrue();
+  private void assertThatReportZipContains(File zipFile, final String thirdPartyFile) throws IOException {
+    try (ZipFile y = new ZipFile(zipFile)) {
+      assertThat(y.stream().anyMatch(zipEntry -> zipEntry.getName().endsWith(thirdPartyFile))).isTrue();
+    }
   }
 
-  private void assertThatReportZipDoesNotContain(File zipFile, final String thirdPartyFile) {
-    assertThat(Stream.of(new TFile(zipFile).listFiles()).anyMatch(f -> f.getName().endsWith(thirdPartyFile)))
-        .isFalse();
+  private void assertThatReportZipDoesNotContain(File zipFile, final String thirdPartyFile) throws IOException {
+    try (ZipFile y = new ZipFile(zipFile)) {
+      assertThat(y.stream().anyMatch(zipEntry -> zipEntry.getName().endsWith(thirdPartyFile))).isFalse();
+    }
   }
 }

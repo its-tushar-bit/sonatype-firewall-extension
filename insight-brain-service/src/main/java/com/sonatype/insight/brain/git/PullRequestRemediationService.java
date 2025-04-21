@@ -80,6 +80,10 @@ public class PullRequestRemediationService
         sourceControlUtils.getGitRepositoryInfoForApplication(event.getApplicationId());
     if (isBranchOnServer(gitRepositoryInfo, event.getBranchName())) {
       log.info("Branch already exists on remote server for remediation [{}]", event.getBranchName());
+
+      throw new SourceControlException(
+          "Branch already exists on remote server for remediation: " + event.getBranchName()
+      );
     }
     else {
       sourceControlSshService.verifySshUrlAndUpdateIfNeeded(event.getApplicationId());

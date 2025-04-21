@@ -45,6 +45,7 @@ import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.git.PullRequestTask.DEFAULT_COMMITTER;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -310,6 +311,25 @@ public class PullRequestTaskTest
     pullRequestTask.run(mockPullRequestRemediationDetails, mockPullRequestExecutor);
 
     assertThat(gitRepositoryInfo.getRepositoryUrl()).isEqualTo("http://foo@localhost");
+  }
+
+  @Test
+  public void testRun_unsuccessful() throws Exception {
+    tempEntity.newSourceControlConfiguration();
+
+    File sonatypeWorkDir = tempDir.newFolder();
+    insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
+
+    configuration.sourceControlConfigurationChanged();
+    File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
+    configureExpectations();
+    when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
+
+    when(mockPullRequestExecutor.execute(any(PullRequestCommand.class))).thenReturn(createPullRequestResult(false));
+
+    assertThatThrownBy(() -> pullRequestTask.run(mockPullRequestRemediationDetails, mockPullRequestExecutor))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessage("Failed to execute pull request for application '%s'".formatted(APP_INTERNAL_ID));
   }
 
   private void configureExpectations() {

@@ -3179,12 +3179,35 @@ public class TemporaryEntity
       PolicyEvaluation sourcePolicyEvaluation,
       String scmUsername)
   {
+    return newSourceControlEvent(application, sourcePolicyEvaluation, scmUsername, "branch",
+        SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_NEW);
+  }
+
+  public SourceControlEvent newSourceControlEvent(
+      Application application,
+      PolicyEvaluation sourcePolicyEvaluation,
+      String branchName,
+      String eventType,
+      String eventStatus)
+  {
+    return newSourceControlEvent(application, sourcePolicyEvaluation, "user", branchName, eventType, eventStatus);
+  }
+
+  public SourceControlEvent newSourceControlEvent(
+      Application application,
+      PolicyEvaluation sourcePolicyEvaluation,
+      String scmUsername,
+      String branchName,
+      String eventType,
+      String eventStatus)
+  {
     SourceControlEvent sourceControlEvent = new SourceControlEvent()
         .setApplicationId(application.getId())
         .setCommitHash("abcdefg")
-        .setEventType(SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT)
+        .setEventType(eventType)
         .setPolicyEvaluationId(sourcePolicyEvaluation.getId())
-        .setBranchName("branch")
+        .setBranchName(branchName)
+        .setEventStatus(eventStatus)
         .setPullRequestNumber(2)
         .setScmUsername(scmUsername)
         .setInitiator("webhook");

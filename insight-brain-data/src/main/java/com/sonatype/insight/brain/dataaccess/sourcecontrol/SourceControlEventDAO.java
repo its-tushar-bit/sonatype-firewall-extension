@@ -308,6 +308,16 @@ public class SourceControlEventDAO
     }
   }
 
+  public boolean hasRemediationEventForBranchAndStatus(String applicationId, String branchName, String eventStatus) {
+    String sQuery = "SELECT count(entity) FROM SourceControlEvent entity " +
+        "WHERE entity.applicationId = ?1 AND" +
+        "  entity.eventType IN ?2 AND" +
+        "  entity.branchName = ?3 AND" +
+        "  entity.eventStatus = ?4";
+    List<String> eventTypes = Arrays.asList(REMEDIATION_PULL_REQUEST_EVENT, MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+    return 0 != getSingle(Long.class, sQuery, applicationId, eventTypes, branchName, eventStatus);
+  }
+
   public boolean hasRemediationEventForBranch(String applicationId, String branchName) {
     String sQuery = "SELECT count(entity) FROM SourceControlEvent entity" +
         " WHERE entity.applicationId = ?1 AND entity.eventType IN ?2 AND entity.branchName = ?3";

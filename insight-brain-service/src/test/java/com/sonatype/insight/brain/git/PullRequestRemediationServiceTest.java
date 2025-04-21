@@ -30,6 +30,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -162,9 +163,10 @@ public class PullRequestRemediationServiceTest
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     // when: try to remediate a component for this same branch
-    pullRequestRemediationService.onRemediateComponent(event);
+    assertThatThrownBy(() -> pullRequestRemediationService.onRemediateComponent(event))
+        .isInstanceOf(SourceControlException.class)
+        .hasMessage("Branch already exists on remote server for remediation: branch/already/exists");
 
-    // then:
     assertThatLogMessagesEqual(
         info("Branch already exists on remote server for remediation [branch/already/exists]")
     );

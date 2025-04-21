@@ -160,7 +160,7 @@ public class ManualPullRequestCreationServiceTest
   }
 
   @Test
-  public void testCreateManualRemediationPullRequest_branchExist() {
+  public void testCreateManualRemediationPullRequest_branchExistComplete() {
     setupPolicyEvaluationAndViolation();
     //branch exist
     SourceControlEvent sourceControlEvent = new SourceControlEvent();
@@ -168,6 +168,7 @@ public class ManualPullRequestCreationServiceTest
         branchNameGenerator.getBranchName(application, mavenComponent, DEFAULT_REMEDIATION_VERSION));
     sourceControlEvent.setApplicationId(application.getId());
     sourceControlEvent.setEventType(MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+    sourceControlEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
     sourceControlEvent.setScanId(DEFAULT_SCAN_ID);
     sourceControlEventDAO.insert(sourceControlEvent);
 
@@ -183,6 +184,43 @@ public class ManualPullRequestCreationServiceTest
                 branchNameGenerator.getBranchName(application, mavenComponent, DEFAULT_REMEDIATION_VERSION) +
                 "' already exists for application '" + application.getPublicId() +
                 "'. Please choose a different branch name.");
+  }
+
+  @Test
+  public void testCreateManualRemediationPullRequest_branchExistError() throws Exception {
+    setupPolicyEvaluationAndViolation();
+    when(mockComponentInfoService.getComponentVersionInfoNoAuth(OwnerType.APPLICATION, application.getPublicId(),
+        mavenComponent, "build", "Sonatype", DEFAULT_SCAN_ID, DependencyType.DIRECT,
+        SourceEndpoint.MANUAL_PULL_REQUEST,
+        true)).thenReturn(setupComponentVersionInfoDTO());
+
+    //branch exist
+    String branchName = branchNameGenerator.getBranchName(application, mavenComponent, DEFAULT_REMEDIATION_VERSION);
+    SourceControlEvent sourceControlEvent = new SourceControlEvent();
+    sourceControlEvent.setBranchName(branchName);
+    sourceControlEvent.setApplicationId(application.getId());
+    sourceControlEvent.setEventType(MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+    sourceControlEvent.setScanId(DEFAULT_SCAN_ID);
+    sourceControlEventDAO.insert(sourceControlEvent);
+
+    PullRequestSubmissionResultDTO result = manualPrService.createManualRemediationPullRequest(
+        application.getId(),
+        DEFAULT_SCAN_ID,
+        mavenComponent,
+        DEFAULT_REMEDIATION_VERSION,
+        "Sonatype"
+    );
+    assertThat(result.id()).isNotEmpty();
+    //verify that the event is created
+    SourceControlEvent resultEvent = sourceControlEventDAO.getById(result.id());
+    assertThat(resultEvent.getEventType()).isEqualTo(MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+    assertThat(resultEvent.getApplicationId()).isEqualTo(application.getId());
+    assertThat(resultEvent.getScanId()).isEqualTo(DEFAULT_SCAN_ID);
+    assertThat(resultEvent.getComponentIdentifier()).isEqualTo(mavenComponent);
+    assertThat(resultEvent.getBranchName()).isEqualTo(branchName);
+    assertThat(resultEvent.getRemediationVersion()).isEqualTo(DEFAULT_REMEDIATION_VERSION);
+    assertThat(resultEvent.getStageTypeId()).isEqualTo(stage.getStageTypeId());
+    assertThat(resultEvent.getInitiator()).isEqualTo("manual request");
   }
 
   @Test

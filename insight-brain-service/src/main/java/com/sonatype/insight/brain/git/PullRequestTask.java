@@ -109,10 +109,16 @@ public class PullRequestTask
           .build();
 
       PullRequestResult pullRequestResult = pullRequestExecutor.execute(command);
-      metrics.addResult(applicationId,
-          new EnhancedPullRequestResult(pullRequestResult, start, pullRequestRemediationDetails.getToBeRemediated(),
-              pullRequestRemediationDetails.getTitle(),
-              false, pullRequestRemediationDetails.isManualPullRequest()));
+      EnhancedPullRequestResult enhancedResult = new EnhancedPullRequestResult(
+          pullRequestResult,
+          start,
+          pullRequestRemediationDetails.getToBeRemediated(),
+          pullRequestRemediationDetails.getTitle(),
+          false,
+          pullRequestRemediationDetails.isManualPullRequest()
+      );
+
+      metrics.addResult(applicationId, enhancedResult);
 
       try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.CREATE_PULL_REQUEST)) {
         AuditData.get()
@@ -122,6 +128,11 @@ public class PullRequestTask
             .setComponentIdentifier(pullRequestRemediationDetails.getToBeRemediated())
             .setData("pullRequestUrl", pullRequestResult.getPullRequestUrl());
       }
+
+      if (!pullRequestResult.isSuccessful()) {
+        throw new SourceControlException("Pull request creation failed: " + enhancedResult.getReasoning());
+      }
+
       log.info("Pull request task completed for application '{}': {}", applicationId, pullRequestResult);
       return pullRequestResult;
     }

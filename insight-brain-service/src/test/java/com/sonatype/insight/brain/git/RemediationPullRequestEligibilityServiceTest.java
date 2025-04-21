@@ -11,6 +11,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -123,6 +124,65 @@ public class RemediationPullRequestEligibilityServiceTest
         application, new Stage(Stage.ID_DEVELOP), mavenComponent);
     assertThat(result).isFalse();
     assertThat(logOutput).atDebugLevel().contains("Pull Request not supported for the stage 'develop'");
+  }
+
+  @Test
+  public void testDoesBranchExist() {
+    String branchName = "branchName";
+    var policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), "scanId");
+    tempEntity.newSourceControlEvent(application, policyEvaluation, branchName,
+        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_COMPLETE);
+    boolean result = eligibilityService.doesBranchExist(application.getId(), branchName);
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void testDoesBranchExist_manualPR() {
+    String branchName = "branchName";
+    var policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), "scanId");
+    tempEntity.newSourceControlEvent(application, policyEvaluation, branchName,
+        SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_COMPLETE);
+    boolean result = eligibilityService.doesBranchExist(application.getId(), branchName);
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void testDoesBranchExist_incompleteEvents() {
+    String branchName = "branchName";
+    var policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), "scanId");
+    tempEntity.newSourceControlEvent(application, policyEvaluation, branchName,
+        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_NEW);
+    tempEntity.newSourceControlEvent(application, policyEvaluation, branchName,
+        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_NEW);
+    tempEntity.newSourceControlEvent(application, policyEvaluation, branchName,
+        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_NEW);
+    tempEntity.newSourceControlEvent(application, policyEvaluation, branchName,
+        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_NEW);
+
+    assertThat(eligibilityService.doesBranchExist(application.getId(), branchName)).isFalse();
+  }
+
+  @Test
+  public void testDoesBranchExist_noEvents() {
+    String branchName = "branchName";
+    assertThat(eligibilityService.doesBranchExist(application.getId(), branchName)).isFalse();
+  }
+
+  @Test
+  public void testDoesBranchExist_otherTypes() {
+    String branchName = "branchName";
+    var policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), "scanId");
+    for (var eventType : SourceControlEvent.EVENT_TYPES) {
+      if (SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT.equals(eventType) ||
+          SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT.equals(eventType)) {
+        continue;
+      }
+      tempEntity.newSourceControlEvent(application, policyEvaluation, branchName,
+          eventType, SourceControlEvent.EVENT_STATUS_COMPLETE);
+    }
+
+    boolean result = eligibilityService.doesBranchExist(application.getId(), branchName);
+    assertThat(result).isFalse();
   }
 
   private void setupSourceControl() throws PlexusCipherException {

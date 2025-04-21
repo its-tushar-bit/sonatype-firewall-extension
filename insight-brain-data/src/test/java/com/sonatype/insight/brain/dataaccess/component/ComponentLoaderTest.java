@@ -397,7 +397,7 @@ public class ComponentLoaderTest
   }
 
   @Test
-  public void testGetComponent_UnknownComponent_WithComponentIdentifier() throws Exception {
+  public void testGetAll_UnknownComponent_WithComponentIdentifier() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper();
     ObjectNode bom = objectMapper.createObjectNode();
     ArrayNode aaData = objectMapper.createArrayNode();

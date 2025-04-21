@@ -60,7 +60,7 @@ public class PolicyViolationTest
   }
 
   @Test
-  public void testConstructorFilename_WithConstraintFacts() {
+  public void testConstructor_Filename_WithConstraintFacts() {
     String filename = "filename";
     // Violations must have constraint facts.
     List<ConstraintFact> constraintFacts = createConstraintFacts(1);
@@ -257,7 +257,7 @@ public class PolicyViolationTest
   }
 
   @Test
-  public void testGetNullReachabilityStatus() {
+  public void testGetReachabilityStatus_Null() {
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
 
@@ -265,7 +265,7 @@ public class PolicyViolationTest
   }
 
   @Test
-  public void testGetConstraintsJson_whereLegacy() {
+  public void testGetConstraintFactsJson_whereLegacy() {
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
 
@@ -274,7 +274,7 @@ public class PolicyViolationTest
   }
 
   @Test
-  public void testGetConstraintFactsWithoutLoading() {
+  public void testGetConstraintFactsJson_WithoutLoading() {
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
 

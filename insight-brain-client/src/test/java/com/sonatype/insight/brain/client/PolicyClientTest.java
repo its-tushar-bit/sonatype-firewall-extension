@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ConcurrentModificationException;
+
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -81,7 +83,8 @@ public class PolicyClientTest
         tempEntity.after();
         return;
       }
-      catch (RollbackException e) {
+      catch (RollbackException | ConcurrentModificationException e) {
+        // 10 secs is usually enough time for the async policy evaluations to finish.
         if (System.currentTimeMillis() - start > 10000) {
           throw e;
         }

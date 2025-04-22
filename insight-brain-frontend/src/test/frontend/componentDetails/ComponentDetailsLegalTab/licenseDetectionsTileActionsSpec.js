@@ -181,7 +181,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
           '/rest/ci/componentDetails/application/appPublicId/multiLicenses?componentIdentifier=%7B%22format%22%3A%22format%22%2C%22coordinates%22%3A%22coordinates%22%7D&identificationSource=identificationSource&scanId=currentScanId'
         );
         expect(mock.history.get[2].url).toBe(
-          '/api/v2/licenseOverride/application/appPublicId?componentIdentifier=%7B%22format%22%3A%22format%22%2C%22coordinates%22%3A%22coordinates%22%7D'
+          '/api/v2/licenseOverrides/application/appPublicId?componentIdentifier=%7B%22format%22%3A%22format%22%2C%22coordinates%22%3A%22coordinates%22%7D'
         );
         done();
       });
@@ -348,7 +348,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
         expect(mock.history.post.length).toBe(1);
-        expect(mock.history.post[0].url).toBe('/api/v2/licenseOverride/ownerType/ownerId');
+        expect(mock.history.post[0].url).toBe('/api/v2/licenseOverrides/ownerType/ownerId');
         expect(mock.history.post[0].data).toEqual(
           JSON.stringify({
             id: null,
@@ -383,7 +383,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
           jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
           expect(mock.history.post.length).toBe(1);
-          expect(mock.history.post[0].url).toBe('/api/v2/licenseOverride/ownerType/ownerId');
+          expect(mock.history.post[0].url).toBe('/api/v2/licenseOverrides/ownerType/ownerId');
           expect(mock.history.post[0].data).toEqual(
             JSON.stringify({
               id: null,
@@ -473,7 +473,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
         expect(mock.history.delete.length).toBe(1);
-        expect(mock.history.delete[0].url).toBe('/api/v2/licenseOverride/ownerType/ownerId/licenseOverrideId');
+        expect(mock.history.delete[0].url).toBe('/api/v2/licenseOverrides/ownerType/ownerId/licenseOverrideId');
 
         const actions = store.getActions();
         expect(actions.length).toBe(5);

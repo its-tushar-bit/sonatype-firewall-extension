@@ -135,7 +135,7 @@ public class PublicApiPaths
   public static final String LICENSE_LEGAL_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "licenseLegalMetadata";
 
   public static final String LICENSE_OVERRIDE_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 +
-      "licenseOverride/" +
+      "licenseOverrides/" +
       "{ownerType: application|organization|repository|repository_manager|repository_container}" +
       "/{ownerId}";
 

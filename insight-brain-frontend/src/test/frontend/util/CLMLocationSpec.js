@@ -687,25 +687,25 @@ describe('CLMLocation.js', function () {
 
     it('getLicenseOverrideUrl should return the URL with params', function () {
       expect(CLMLocation.getLicenseOverrideUrl('ownerType', 'ownerId', 'componentIdentifier')).toBe(
-        '/api/v2/licenseOverride/ownerType/ownerId?componentIdentifier=componentIdentifier'
+        '/api/v2/licenseOverrides/ownerType/ownerId?componentIdentifier=componentIdentifier'
       );
     });
 
     it('getBaseLicenseOverrideUrl should return the URL', () => {
       expect(CLMLocation.getBaseLicenseOverrideUrl('ownerType', 'ownerId')).toBe(
-        '/api/v2/licenseOverride/ownerType/ownerId'
+        '/api/v2/licenseOverrides/ownerType/ownerId'
       );
     });
 
     it('getDeleteLicenseOverrideUrl should return the URL', () => {
       expect(CLMLocation.getDeleteLicenseOverrideUrl('ownerType', 'ownerId', 'licenseOverrideId')).toBe(
-        '/api/v2/licenseOverride/ownerType/ownerId/licenseOverrideId'
+        '/api/v2/licenseOverrides/ownerType/ownerId/licenseOverrideId'
       );
     });
 
     it('getLicenseOverrideUrl should return the URL with no component identifier', function () {
       expect(CLMLocation.getLicenseOverrideUrl('ownerType', 'ownerId')).toBe(
-        '/api/v2/licenseOverride/ownerType/ownerId'
+        '/api/v2/licenseOverrides/ownerType/ownerId'
       );
     });
 
@@ -734,7 +734,7 @@ describe('CLMLocation.js', function () {
 
   describe('getLicenseOverrideUrl', function () {
     it('should return a URL without componentIdentifier if it is not provided', function () {
-      const expectedUrl = '/api/v2/licenseOverride/app/appId';
+      const expectedUrl = '/api/v2/licenseOverrides/app/appId';
       expect(clmLocation.getLicenseOverrideUrl('app', 'appId')).toEqual(expectedUrl);
     });
 
@@ -744,14 +744,14 @@ describe('CLMLocation.js', function () {
         coordinates: { version: 'version', group: 'group' },
       });
       const expectedUrl =
-        '/api/v2/licenseOverride/app/appId?componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22version%22%3A%22version%22%2C%22group%22%3A%22group%22%7D%7D';
+        '/api/v2/licenseOverrides/app/appId?componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22version%22%3A%22version%22%2C%22group%22%3A%22group%22%7D%7D';
       expect(clmLocation.getLicenseOverrideUrl('app', 'appId', stringComponentIdentifier)).toEqual(expectedUrl);
     });
   });
 
   describe('getLicenseOverrideLegalReviewerUrl', function () {
     it('should return a URL without componentIdentifier if it is not provided', function () {
-      const expectedUrl = '/api/v2/licenseOverride/app/appId/legalReviewer';
+      const expectedUrl = '/api/v2/licenseOverrides/app/appId/legalReviewer';
       expect(clmLocation.getLicenseOverrideLegalReviewerUrl('app', 'appId')).toEqual(expectedUrl);
     });
 
@@ -761,7 +761,7 @@ describe('CLMLocation.js', function () {
         coordinates: { version: 'version', group: 'group' },
       });
       const expectedUrl =
-        '/api/v2/licenseOverride/app/appId/legalReviewer?componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22version%22%3A%22version%22%2C%22group%22%3A%22group%22%7D%7D';
+        '/api/v2/licenseOverrides/app/appId/legalReviewer?componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22version%22%3A%22version%22%2C%22group%22%3A%22group%22%7D%7D';
       expect(clmLocation.getLicenseOverrideLegalReviewerUrl('app', 'appId', stringComponentIdentifier)).toEqual(
         expectedUrl
       );

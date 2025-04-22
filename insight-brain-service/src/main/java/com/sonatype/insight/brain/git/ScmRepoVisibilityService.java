@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.git;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -23,9 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Logic for the 'visibility' settings of a SCM repository. Mainly if 'public' or 'private', but some SCMs such as
- * GitHub also have the concept of an 'internal' repository which is a repo marked as 'private' but not available on the
- * public Internet.
+ * Logic for the 'visibility' of an SCM repository. This is primarily if the repo is 'public' or 'private', and then we
+ * restrict usage of some SCM features for public repositories. Note that some SCMs such as GitLab also have the concept
+ * of an 'internal' repository which is a repo marked as 'public' but still requiring authentication and therefore not
+ * available on the public Internet (so private as far as our logic is concerned).
  */
 @Named
 @Singleton

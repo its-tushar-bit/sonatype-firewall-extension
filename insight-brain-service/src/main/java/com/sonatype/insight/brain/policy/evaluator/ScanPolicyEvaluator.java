@@ -91,8 +91,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
-import com.sonatype.insight.brain.telemetry.autowaivers.AutoPolicyWaiverTelemetry.AutoPolicyWaiverAction;
-import com.sonatype.insight.brain.telemetry.autowaivers.AutoPolicyWaiverTelemetryMetrics;
+import com.sonatype.insight.brain.telemetry.autowaivers.AutoPolicyWaiverTelemetryCollector;
 import com.sonatype.insight.brain.utils.JacksonNodeUtils;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEventService;
@@ -191,7 +190,7 @@ public class ScanPolicyEvaluator
 
   private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
-  private final AutoPolicyWaiverTelemetryMetrics autoPolicyWaiverTelemetryMetrics;
+  private final AutoPolicyWaiverTelemetryCollector autoPolicyWaiverTelemetryCollector;
 
   private final PathForwardInspector pathForwardInspector;
 
@@ -229,7 +228,7 @@ public class ScanPolicyEvaluator
       final ComponentInfoService componentInfoService,
       final ReportComponentService reportComponentService,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
-      final AutoPolicyWaiverTelemetryMetrics autoPolicyWaiverTelemetryMetrics,
+      final AutoPolicyWaiverTelemetryCollector autoPolicyWaiverTelemetryCollector,
       final PathForwardInspector pathForwardInspector,
       final ApiVulnerabilityReachabilityStatusService apiVulnerabilityReachabilityStatusService)
   {
@@ -263,7 +262,7 @@ public class ScanPolicyEvaluator
     this.reportComponentService = reportComponentService;
     componentInfoService.setToolName("ci");
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
-    this.autoPolicyWaiverTelemetryMetrics = autoPolicyWaiverTelemetryMetrics;
+    this.autoPolicyWaiverTelemetryCollector = autoPolicyWaiverTelemetryCollector;
     this.pathForwardInspector = pathForwardInspector;
     this.apiVulnerabilityReachabilityStatusService = apiVulnerabilityReachabilityStatusService;
   }
@@ -595,8 +594,8 @@ public class ScanPolicyEvaluator
                   final Owner owner = ownerDAO.getById(autoPolicyWaiver.getOwnerId());
                   policyViolation.setWaiveTime(violation.getWaiveTime());
                   policyViolation.setAutoPolicyWaiverId(violation.getAutoPolicyWaiverId());
-                  autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, owner != null ? owner.getType() : null,
-                      AutoPolicyWaiverAction.APPLY, policyViolation);
+                  autoPolicyWaiverTelemetryCollector.addTelemetryForApplyAutoWaiver(autoPolicyWaiver,
+                      policyViolation, owner);
                 });
           }
           else {
@@ -622,8 +621,8 @@ public class ScanPolicyEvaluator
                   policyViolation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
 
                   Owner owner = ownerDAO.getById(autoPolicyWaiver.getOwnerId());
-                  autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, owner != null ? owner.getType() : null,
-                      AutoPolicyWaiverAction.APPLY, policyViolation);
+                  autoPolicyWaiverTelemetryCollector.addTelemetryForApplyAutoWaiver(autoPolicyWaiver,
+                      policyViolation, owner);
 
                   // Do not evaluate further auto waivers when one has been applied
                   break;
@@ -1420,7 +1419,7 @@ public class ScanPolicyEvaluator
             reportComponentData.components, telemetryCollector, reportComponentData.applicationReport,
             clientScanType, analysisDTO, skipAutoWaivers);
 
-    telemetrySender.send(telemetryCollector.getTelemetryData());
+    sendAggregatePolicyViolationAndAutoWaiverTelemetry(telemetryCollector);
 
     sendLegacyViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations,
         stage.getStageTypeId());
@@ -1590,5 +1589,14 @@ public class ScanPolicyEvaluator
         scanId,
         analysisDTO
     );
+  }
+
+  private void sendAggregatePolicyViolationAndAutoWaiverTelemetry(
+      final PolicyViolationTelemetryCollector policyViolationTelemetryCollector)
+  {
+    final List<TelemetryData> aggregateTelemetryDataList = new ArrayList<>();
+    aggregateTelemetryDataList.addAll(policyViolationTelemetryCollector.getTelemetryData());
+    aggregateTelemetryDataList.addAll(autoPolicyWaiverTelemetryCollector.getTelemetryData());
+    telemetrySender.send(aggregateTelemetryDataList);
   }
 }

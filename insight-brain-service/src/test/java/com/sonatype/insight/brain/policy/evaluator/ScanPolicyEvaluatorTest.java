@@ -136,6 +136,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.autowaivers.AutoPolicyWaiverTelemetryCollector;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.PolicyAlertEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
@@ -187,6 +188,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -198,6 +200,10 @@ import static org.mockito.Mockito.when;
 public class ScanPolicyEvaluatorTest
     extends AbstractComponentTest
 {
+  @Rule
+  public LogOutput policyViolationLoggerOutput =
+      new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
+
   @Inject
   private PolicyViolationDAO policyViolationDAO;
 
@@ -237,17 +243,6 @@ public class ScanPolicyEvaluatorTest
   @Inject
   private ThirdPartySbomMetadataDAO sbomMetadataDAO;
 
-  @Rule
-  public LogOutput policyViolationLoggerOutput =
-      new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
-
-  @Mock
-  private CurrentUser currentUser;
-
-  private Organization organization;
-
-  private Application application;
-
   @Inject
   private ScanPolicyEvaluator scanPolicyEvaluator;
 
@@ -256,17 +251,6 @@ public class ScanPolicyEvaluatorTest
 
   @Inject
   private AsyncEventBus asyncEventBus;
-
-  private TestEventHandler<ApplicationEvaluationEvent> handler;
-
-  private TestEventHandler<PolicyAlertEvent> policyAlertHandler;
-
-  private MockReportDownloader mockReportDownloader;
-
-  private TelemetrySender mockTelemetrySender;
-
-  @Mock
-  private ComponentInfoService mockComponentInfoService;
 
   @Inject
   private TestProductLicense testProductLicense;
@@ -281,7 +265,28 @@ public class ScanPolicyEvaluatorTest
   private ReportService reportService;
 
   @Mock
+  private CurrentUser currentUser;
+
+  @Mock
+  private ComponentInfoService mockComponentInfoService;
+
+  @Mock
   private ApiVulnerabilityReachabilityStatusService apiVulnerabilityReachabilityStatusService;
+
+  @Mock
+  private AutoPolicyWaiverTelemetryCollector autoPolicyWaiverTelemetryCollector;
+
+  private Organization organization;
+
+  private Application application;
+
+  private TestEventHandler<ApplicationEvaluationEvent> handler;
+
+  private TestEventHandler<PolicyAlertEvent> policyAlertHandler;
+
+  private MockReportDownloader mockReportDownloader;
+
+  private TelemetrySender mockTelemetrySender;
 
   @Override
   public void configure(Binder binder) {
@@ -293,6 +298,7 @@ public class ScanPolicyEvaluatorTest
     binder.bind(ComponentInfoService.class).toInstance(mockComponentInfoService);
     binder.bind(ApiVulnerabilityReachabilityStatusService.class)
         .toInstance(apiVulnerabilityReachabilityStatusService);
+    binder.bind(AutoPolicyWaiverTelemetryCollector.class).toInstance(autoPolicyWaiverTelemetryCollector);
     super.configure(binder);
   }
 
@@ -4861,6 +4867,56 @@ public class ScanPolicyEvaluatorTest
         .singleElement()
         .extracting(PolicyViolation::getAutoPolicyWaiverId)
         .isEqualTo(notReachableAndNoPathForward.getId());
+  }
+
+  @Test
+  public void testEvaluate_CollectAppliedAutoWaiverTelemetry() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+
+    // Set up no path forward:
+    ComponentDetailsDTO tomcatComponentDetailsDTO = new ComponentDetailsDTO();
+    tomcatComponentDetailsDTO.componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+    tomcatComponentDetailsDTO.violatedPolicyCount = 0;
+    doReturn(Pair.of(Collections.emptyList(), null))
+        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+            any(), any(), any(), any(), any(), any(), any(), anyBoolean());
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("MultiAutoWaivers");
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(4);
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
+        application.getId(),
+        scanId,
+        tomcatComponentDetailsDTO.componentIdentifier,
+        "CVE-2007-3385",
+        insightWork
+    );
+
+    // Create NPF auto waiver
+    final AutoPolicyWaiver noPFAutoWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, true);
+
+    // Match the auto waiver with No Path Forward
+    doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId",
+        Map.of(new PackageUrlIdentifier("pkg:maven/tomcat/tomcat-util@5.5.23"),
+            Set.of("CVE-2007-3385"))))
+        .when(apiVulnerabilityReachabilityStatusService)
+        .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(),
+            any(VulnerabilitySignatureAnalysisDTO.class));
+
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE, analysisDTO,
+        false);
+
+    verify(autoPolicyWaiverTelemetryCollector)
+        .addTelemetryForApplyAutoWaiver(refEq(noPFAutoWaiver), any(PolicyViolation.class),
+            any(Owner.class));
   }
 
   private void restoreConstraintFactsToPreMigratedState() {

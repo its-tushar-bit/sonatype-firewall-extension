@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverExclusionDAO;
 import com.sonatype.insight.brain.model.Owner;
@@ -39,18 +40,24 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.CurrentUser;
-import com.sonatype.insight.brain.telemetry.autowaivers.AutoPolicyWaiverExclusionTelemetry.AutoPolicyWaiverExclusionAction;
-import com.sonatype.insight.brain.telemetry.autowaivers.AutoPolicyWaiverExclusionTelemetryMetrics;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.autowaivers.AutoPolicyWaiverExclusionTelemetryCollector;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ApiAutoPolicyWaiverExclusionService
 {
+  private static final Logger log = LoggerFactory.getLogger(ApiAutoPolicyWaiverExclusionService.class);
+
+  private static final Pattern CVE_REGEX_PATTERN = Pattern.compile("((CVE|SONATYPE|sonatype)-\\d+-\\d+)");
+
+  private static final List<String> SECURITY_CONDITIONS = List.of(SecurityVulnerabilitySeverityConditionType.ID,
+      SecurityVulnerabilityStatusConditionType.ID);
+
   private final ReportService reportService;
 
   private final AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
@@ -63,14 +70,11 @@ public class ApiAutoPolicyWaiverExclusionService
 
   private final CurrentUser currentUser;
 
-  private final AutoPolicyWaiverExclusionTelemetryMetrics autoPolicyWaiverExclusionTelemetryMetrics;
+  private final OwnerDAO ownerDAO;
 
-  private static final Pattern CVE_REGEX_PATTERN = Pattern.compile("((CVE|SONATYPE|sonatype)-\\d+-\\d+)");
+  private final AutoPolicyWaiverExclusionTelemetryCollector autoPolicyWaiverExclusionTelemetryCollector;
 
-  private static final List<String> SECURITY_CONDITIONS = ImmutableList
-      .of(SecurityVulnerabilitySeverityConditionType.ID, SecurityVulnerabilityStatusConditionType.ID);
-
-  private static final Logger log = LoggerFactory.getLogger(ApiAutoPolicyWaiverExclusionService.class);
+  private final TelemetrySender telemetrySender;
 
   @Inject
   public ApiAutoPolicyWaiverExclusionService(
@@ -79,8 +83,10 @@ public class ApiAutoPolicyWaiverExclusionService
       AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       ApplicationDAO applicationDAO,
       OrganizationDAO organizationDAO,
-      CurrentUser currentUser,
-      AutoPolicyWaiverExclusionTelemetryMetrics autoPolicyWaiverExclusionTelemetryMetrics)
+      CurrentUser currentUser, 
+      OwnerDAO ownerDAO,
+      AutoPolicyWaiverExclusionTelemetryCollector autoPolicyWaiverExclusionTelemetryCollector,
+      TelemetrySender telemetrySender)
   {
     this.reportService = reportService;
     this.autoPolicyWaiverExclusionDAO = autoPolicyWaiverExclusionDAO;
@@ -88,7 +94,9 @@ public class ApiAutoPolicyWaiverExclusionService
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
     this.currentUser = currentUser;
-    this.autoPolicyWaiverExclusionTelemetryMetrics = autoPolicyWaiverExclusionTelemetryMetrics;
+    this.ownerDAO = ownerDAO;
+    this.autoPolicyWaiverExclusionTelemetryCollector = autoPolicyWaiverExclusionTelemetryCollector;
+    this.telemetrySender = telemetrySender;
   }
 
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
@@ -171,8 +179,11 @@ public class ApiAutoPolicyWaiverExclusionService
       autoPolicyWaiverExclusionDAO.insert(newExclusion);
       auditAutoPolicyWaiverRevocation(newExclusion);
       log.debug("Added auto policy waiver exclusion {}", newExclusion.getId());
-      autoPolicyWaiverExclusionTelemetryMetrics.collect(newExclusion, ownerType,
-          AutoPolicyWaiverExclusionAction.CREATE);
+
+      Owner owner = ownerDAO.getById(ownerId);
+      autoPolicyWaiverExclusionTelemetryCollector.addTelemetryForCreateAutoWaiverExclusion(newExclusion, owner);
+      sendTelemetry();
+
       return ApiAutoPolicyWaiverExclusionAdapter.convertToDTO(newExclusion);
     }
     catch (IOException e) {
@@ -198,9 +209,13 @@ public class ApiAutoPolicyWaiverExclusionService
     }
     auditAutoPolicyWaiverRevocation(autoPolicyWaiverExclusion);
     autoPolicyWaiverExclusionDAO.delete(autoPolicyWaiverExclusion);
+
+    Owner owner = ownerDAO.getById(ownerId);
+    autoPolicyWaiverExclusionTelemetryCollector.addTelemetryForDeleteAutoWaiverExclusion(autoPolicyWaiverExclusion,
+        owner);
+    sendTelemetry();
+
     log.debug("Deleted auto policy waiver exclusion {}", autoPolicyWaiverExclusionId);
-    autoPolicyWaiverExclusionTelemetryMetrics.collect(autoPolicyWaiverExclusion, ownerType,
-        AutoPolicyWaiverExclusionAction.DELETE);
   }
 
   @Authorize(permission = Permission.READ)
@@ -359,5 +374,9 @@ public class ApiAutoPolicyWaiverExclusionService
     if (existingExclusion != null) {
       throw new BadRequestException("Exclusion already exists for this policy violation");
     }
+  }
+
+  private void sendTelemetry() {
+    telemetrySender.send(autoPolicyWaiverExclusionTelemetryCollector.getTelemetryData());
   }
 }

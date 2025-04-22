@@ -132,7 +132,7 @@ export default function AutoWaiverModal() {
               <NxFieldset label="" className="iq-auto-waiver-modal-fieldset">
                 <div className="iq-auto-waiver-modal-fieldset__item">
                   <NxH4>{UPGRADE_PATH_IS_NOT_AVAILABLE_TEXT}</NxH4>
-                  <NxTooltip title={waiverModal?.isInherited ? 'Inheriting from parent organization' : ''}>
+                  <NxTooltip title={waiverModal?.isInherited ? 'Inherited from parent organization' : ''}>
                     <NxCheckbox
                       onChange={() => dispatch(actions.toggleCheckboxNoUpgradePath())}
                       isChecked={pathForward || false}
@@ -154,7 +154,7 @@ export default function AutoWaiverModal() {
                         />
                       </NxTooltip>
                     </div>
-                    <NxTooltip title={waiverModal?.isInherited ? 'Inheriting from parent organization' : ''}>
+                    <NxTooltip title={waiverModal?.isInherited ? 'Inherited from parent organization' : ''}>
                       <NxCheckbox
                         onChange={() => dispatch(actions.toggleCheckboxReachability())}
                         isChecked={reachability || false}

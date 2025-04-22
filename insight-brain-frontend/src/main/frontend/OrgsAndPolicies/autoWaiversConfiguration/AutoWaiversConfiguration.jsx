@@ -149,7 +149,7 @@ function AutoWaiversConfigurationContents() {
                 return (
                   <React.Fragment key={parent}>
                     <NxTable.Row className="iq-inherited-waiver-header">
-                      <NxTable.Cell colSpan={6}>Inheriting from {parent}</NxTable.Cell>
+                      <NxTable.Cell colSpan={6}>Inherited from {parent}</NxTable.Cell>
                     </NxTable.Row>
                     {inheritedWaivers[parent].map((autoWaiver) => (
                       <AutoWaiversConfigurationRow key={autoWaiver.autoPolicyWaiverId} autoWaiver={autoWaiver} />

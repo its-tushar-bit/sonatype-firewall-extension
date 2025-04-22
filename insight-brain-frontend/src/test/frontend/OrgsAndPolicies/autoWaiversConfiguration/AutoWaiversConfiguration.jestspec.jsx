@@ -230,14 +230,14 @@ describe('Auto Waivers Configuration Component', () => {
         const rows = within(table).getAllByRole('row');
         expect(rows.length).toBe(5); // 3 auto-waivers + 1 header + 1 inherited header
 
-        expect(within(table).getByRole('row', { name: 'Inheriting from Root Organization' })).toBeInTheDocument();
+        expect(within(table).getByRole('row', { name: 'Inherited from Root Organization' })).toBeInTheDocument();
 
         // Table header row is [0],
         // local row is [1],
         // Root Org herited header is [2],
         // Roor Org inherited rows are [3, 4]
         assertCorrectRows(rows[1], mockResponse, 0);
-        expect(rows[2]).toHaveTextContent('Inheriting from Root Organization');
+        expect(rows[2]).toHaveTextContent('Inherited from Root Organization');
         assertCorrectRows(rows[3], mockResponse, 1);
         assertCorrectRows(rows[4], mockResponse, 2);
       });
@@ -252,8 +252,8 @@ describe('Auto Waivers Configuration Component', () => {
         const rows = within(table).getAllByRole('row');
         expect(rows.length).toBe(6); // 1 table header + 2 inherited headers + 3 auto-waivers
 
-        expect(within(table).getByRole('row', { name: 'Inheriting from Test Organization' })).toBeInTheDocument();
-        expect(within(table).getByRole('row', { name: 'Inheriting from Root Organization' })).toBeInTheDocument();
+        expect(within(table).getByRole('row', { name: 'Inherited from Test Organization' })).toBeInTheDocument();
+        expect(within(table).getByRole('row', { name: 'Inherited from Root Organization' })).toBeInTheDocument();
 
         // Table header row is [0], local row is [1],
         // Test Organization inherited header is [2],
@@ -261,9 +261,9 @@ describe('Auto Waivers Configuration Component', () => {
         // Root Org inherited header is [4],
         // Root Org inherited row is [5]
         assertCorrectRows(rows[1], mockResponse, 0);
-        expect(rows[2]).toHaveTextContent('Inheriting from Test Organization');
+        expect(rows[2]).toHaveTextContent('Inherited from Test Organization');
         assertCorrectRows(rows[3], mockResponse, 1);
-        expect(rows[4]).toHaveTextContent('Inheriting from Root Organization');
+        expect(rows[4]).toHaveTextContent('Inherited from Root Organization');
         assertCorrectRows(rows[5], mockResponse, 2);
       });
     });
@@ -328,7 +328,7 @@ describe('Auto Waivers Configuration Component', () => {
         const rows = within(table).getAllByRole('row');
         expect(rows.length).toBe(5); // 1 table header + 1 inherited header + 3 auto-waivers
 
-        expect(within(table).getByRole('row', { name: 'Inheriting from Root Organization' })).toBeInTheDocument();
+        expect(within(table).getByRole('row', { name: 'Inherited from Root Organization' })).toBeInTheDocument();
 
         // Table header row is [0],
         // Local rows are [1,2]
@@ -337,7 +337,7 @@ describe('Auto Waivers Configuration Component', () => {
 
         assertCorrectRows(rows[1], mockResponse, 0);
         assertCorrectRows(rows[2], mockResponse, 2);
-        expect(rows[3]).toHaveTextContent('Inheriting from Root Organization');
+        expect(rows[3]).toHaveTextContent('Inherited from Root Organization');
         assertCorrectRows(rows[4], mockResponse, 1);
       });
     });

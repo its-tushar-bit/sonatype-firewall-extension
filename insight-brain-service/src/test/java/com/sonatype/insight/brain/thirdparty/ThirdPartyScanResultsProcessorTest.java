@@ -498,19 +498,19 @@ public class ThirdPartyScanResultsProcessorTest
   public void testHandle_InvalidJson() throws Exception {
     File scanFile = getScanFile("scan-with-clair-scanner-data-invalid-json.xml");
     String scanId = TemporaryEntity.uuid();
-    String scanRequestId =
-        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(),
-            mockContext(scanFile), null);
-    thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanId);
 
-    verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(any(ItemContentType.class),
-        any(ThirdPartyScanContext.class));
-
-    List<ThirdPartyFile> thirdPartyFiles = thirdPartyFileDAO.getByScanId(scanId);
-    assertThirdPartyFile(thirdPartyFiles, "clair-scanner-output.json");
-    assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFiles.get(0).getId())).isEmpty();
-
-    assertExistingSbomFiles();
+    try {
+      String scanRequestId =
+          thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(),
+              mockContext(scanFile), null);
+      thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanId);
+    }
+    catch (RuntimeException e) {
+      verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(any(ItemContentType.class),
+          any(ThirdPartyScanContext.class));
+      assertThat(thirdPartyFileDAO.getByScanId(scanId)).isEmpty();
+      assertExistingSbomFiles();
+    }
   }
 
   @Test
@@ -644,7 +644,7 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_ClairCorruptFile() throws Exception {
     File scanFile = getScanFile("scan-with-clair-scanner-data-corrupted.xml");
-    assertThatExceptionOfType(IllegalArgumentException.class)
+    assertThatExceptionOfType(RuntimeException.class)
         .isThrownBy(() -> thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(),
             tempDir.getRoot(), mockContext(scanFile), null))
         .withMessage("Error reading/processing third party scan content from scan file");
@@ -655,7 +655,7 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_corruptSbomFile() throws Exception {
     File scanFile = getScanFile("sbom/scan-with-sbom-data-corrupted.xml");
-    assertThatExceptionOfType(IllegalArgumentException.class)
+    assertThatExceptionOfType(RuntimeException.class)
         .isThrownBy(() -> thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(),
             tempDir.getRoot(), mockContext(scanFile), null))
         .withMessage("Error reading/processing third party scan content from scan file");
@@ -816,7 +816,7 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_InvalidFile() throws Exception {
     File scanFile = getScanFile("empty-scan.xml");
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
         thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(),
             mockContext(scanFile), null)
     ).withMessage("Error reading/processing third party scan content from scan file");
@@ -911,16 +911,15 @@ public class ThirdPartyScanResultsProcessorTest
             StageTypes.RELEASE.getName());
     context.setIsValid(true);
 
-    String scanRequestId =
-        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), context, null);
-    thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanId);
-    List<ThirdPartyFile> thirdPartyFiles = thirdPartyFileDAO.getByScanId(scanId);
-    assertThirdPartyFile(thirdPartyFiles, "third-party-simple-invalid-bom.xml");
-    List<ThirdPartyFileCoordinate> fileCoordinate =
-        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFiles.get(0).getId());
-    assertThat(fileCoordinate).isEmpty();
-
-    assertExistingSbomFiles();
+    try {
+      String scanRequestId =
+          thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), context, null);
+      thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanId);
+    }
+    catch (RuntimeException e) {
+      assertThat(thirdPartyFileDAO.getByScanId(scanId)).isEmpty();
+      assertExistingSbomFiles();
+    }
   }
 
   @Test

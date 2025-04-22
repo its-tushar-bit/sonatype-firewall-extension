@@ -146,7 +146,7 @@ public class ScanUploadService
       Files.delete(tempScanFile.toPath());
     }
     catch (IOException e) {
-      log.error("Unable to remove temporary scan file {}", tempScanFile.toPath());
+      log.error("Unable to remove temporary scan file {}", tempScanFile.toPath(), e);
     }
     return scanReceipt;
   }

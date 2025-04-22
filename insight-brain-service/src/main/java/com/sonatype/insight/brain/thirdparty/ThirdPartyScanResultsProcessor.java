@@ -128,35 +128,33 @@ public class ThirdPartyScanResultsProcessor
   {
     String scanRequestId = scanContext.getScanRequestId();
     log.info("Processing third party content with scanRequestId: {}", scanRequestId);
-    try {
-      File filteredFile = FileUtils.createTempFile("tmp-", ".xml", scanDir);
+    File filteredFile = FileUtils.createTempFile("tmp-", ".xml", scanDir);
 
-      try (GZIPInputStream gis = new GZIPInputStream(new FileInputStream(scanFile));
-           OutputStream out = new FileOutputStream(filteredFile)) {
+    try (GZIPInputStream gis = new GZIPInputStream(new FileInputStream(scanFile));
+         OutputStream out = new FileOutputStream(filteredFile)) {
 
-        XmlPullParser parser = new MXParser();
-        parser.setInput(new XmlStreamReader(gis));
+      XmlPullParser parser = new MXParser();
+      parser.setInput(new XmlStreamReader(gis));
 
-        XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
-        XMLEventWriter writer = outputFactory.createXMLEventWriter(out);
+      XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
+      XMLEventWriter writer = outputFactory.createXMLEventWriter(out);
 
-        parser.next();
-        while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
-          processEvent(scanContext, parser, writer, thirdPartyScanTelemetryData);
-        }
-        writer.flush();
-        writer.close();
-        compressScanFile(filteredFile, tempScanFile);
-        telemetrySender.send(thirdPartyScanTelemetryData);
-        log.info("Completed processing third party content in file {}", scanFile.getName());
-        return scanRequestId;
+      parser.next();
+      while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
+        processEvent(scanContext, parser, writer, thirdPartyScanTelemetryData);
       }
-      finally {
-        filteredFile.delete();
-      }
+      writer.flush();
+      writer.close();
+      compressScanFile(filteredFile, tempScanFile);
+      telemetrySender.send(thirdPartyScanTelemetryData);
+      log.info("Completed processing third party content in file {}", scanFile.getName());
+      return scanRequestId;
     }
     catch (Exception e) {
-      throw new IllegalArgumentException("Error reading/processing third party scan content from scan file", e);
+      throw new RuntimeException("Error reading/processing third party scan content from scan file", e);
+    }
+    finally {
+      filteredFile.delete();
     }
   }
 
@@ -164,36 +162,31 @@ public class ThirdPartyScanResultsProcessor
       ThirdPartyScanContext scanContext,
       XmlPullParser parser,
       XMLEventWriter writer,
-      TelemetryData thirdPartyScanTelemetryData)
+      TelemetryData thirdPartyScanTelemetryData) throws XmlPullParserException, XMLStreamException, IOException
   {
-    try {
-      int eventType = parser.getEventType();
-      boolean foundEndTag = false;
-      while (!foundEndTag) {
-        String elementName = parser.getName();
-        if (eventType == XmlPullParser.START_TAG) {
-          writer.add(EVENT_FACTORY.createStartElement(new QName(parser.getName()), null, null));
-          addElementAttributes(parser, writer);
-          if ("item".equals(elementName)) {
-            processItemElement(scanContext, parser, writer, thirdPartyScanTelemetryData);
-          }
+    int eventType = parser.getEventType();
+    boolean foundEndTag = false;
+    while (!foundEndTag) {
+      String elementName = parser.getName();
+      if (eventType == XmlPullParser.START_TAG) {
+        writer.add(EVENT_FACTORY.createStartElement(new QName(parser.getName()), null, null));
+        addElementAttributes(parser, writer);
+        if ("item".equals(elementName)) {
+          processItemElement(scanContext, parser, writer, thirdPartyScanTelemetryData);
         }
-        else if (eventType == XmlPullParser.END_TAG) {
-          if (!elementName.equals(parser.getName())) {
-            throw new XmlPullParserException(
-                "End tag '" + parser.getName() + "' does not match start tag '" + elementName + "'.");
-          }
-          writer.add(EVENT_FACTORY.createEndElement(new QName(parser.getName()), null));
-          foundEndTag = true;
-        }
-        else if (eventType == XmlPullParser.TEXT) {
-          writer.add(EVENT_FACTORY.createCharacters(parser.getText()));
-        }
-        eventType = parser.next();
       }
-    }
-    catch (Exception e) {
-      log.error("Error parsing third party scan file", e);
+      else if (eventType == XmlPullParser.END_TAG) {
+        if (!elementName.equals(parser.getName())) {
+          throw new XmlPullParserException(
+              "End tag '" + parser.getName() + "' does not match start tag '" + elementName + "'.");
+        }
+        writer.add(EVENT_FACTORY.createEndElement(new QName(parser.getName()), null));
+        foundEndTag = true;
+      }
+      else if (eventType == XmlPullParser.TEXT) {
+        writer.add(EVENT_FACTORY.createCharacters(parser.getText()));
+      }
+      eventType = parser.next();
     }
   }
 

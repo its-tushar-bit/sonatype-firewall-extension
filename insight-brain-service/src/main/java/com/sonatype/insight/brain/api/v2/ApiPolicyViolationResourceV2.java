@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.List;
 import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -24,9 +25,11 @@ import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentTransitivePolicyViolationsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrossStageViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestsApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyViolationServiceV2;
+import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverRequestService;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationType;
 import com.sonatype.insight.brain.api.v2.service.autowaivers.ApiAutoPolicyWaiverService;
@@ -67,6 +70,8 @@ public class ApiPolicyViolationResourceV2
 
   public static final String APPLICABLE_AUTO_WAIVER_PATH = "/applicableAutoWaiver";
 
+  public static final String APPLICABLE_WAIVER_REQUESTS_PATH = "/applicableWaiverRequests";
+
   public static final String SIMILAR_WAIVERS_PATH = "/similarWaivers";
 
   public static final String TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH =
@@ -83,17 +88,21 @@ public class ApiPolicyViolationResourceV2
 
   private final ApiAutoPolicyWaiverService apiAutoPolicyWaiverService;
 
+  private final ApiPolicyWaiverRequestService apiPolicyWaiverRequestService;
+
   @Inject
   public ApiPolicyViolationResourceV2(
       final ApiPolicyViolationServiceV2 apiPolicyViolationService,
       final ApiCrossStageViolationService apiCrossStageViolationService,
       final ApiPolicyWaiverService apiPolicyWaiverService,
-      final ApiAutoPolicyWaiverService apiAutoPolicyWaiverService)
+      final ApiAutoPolicyWaiverService apiAutoPolicyWaiverService,
+      final ApiPolicyWaiverRequestService apiPolicyWaiverRequestService)
   {
     this.apiPolicyViolationService = apiPolicyViolationService;
     this.apiCrossStageViolationService = apiCrossStageViolationService;
     this.apiPolicyWaiverService = apiPolicyWaiverService;
     this.apiAutoPolicyWaiverService = apiAutoPolicyWaiverService;
+    this.apiPolicyWaiverRequestService = apiPolicyWaiverRequestService;
   }
 
   @GET
@@ -225,6 +234,36 @@ public class ApiPolicyViolationResourceV2
           required = true) @PathParam("violationId") final String violationId)
   {
     return apiPolicyWaiverService.getApplicableWaivers(violationId);
+  }
+
+  @GET
+  @Path(VIOLATIONID + APPLICABLE_WAIVER_REQUESTS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Operation(description = "Use this method to obtain all existing waiver requests that are applicable to a policy "
+      + "violation. A waiver request is considered as 'applicable' if it matches the following conditions:" + "<ul>"
+      + "<li>The policyId for the policy violation matches the policyId associated with the waiver request</li>"
+      + "<li>The violated policy conditions match the policy conditions of the waiver request/li>"
+      + "<li>The waiver request scope matches the violating component</li>" + "</ul>" + "\n" + "\n"
+      + "Permissions required: View IQ Elements")
+  @ApiResponse(responseCode = "200",
+      description = "The response contains details for all applicable waiver requests for the `violationId` specified. "
+          + "It is grouped under 'activeWaiverRequests' and 'expiredWaiverRequests'. "
+          + "`scope` indicates the scope of the applicable waiver request. "
+          + "Possible values for the enum field `matcherStrategy` are EXACT_COMPONENT, ALL_COMPONENTS,"
+          + " ALL_VERSIONS)." //
+          + "\n" //
+          + "\n" //
+          + "`reference` shows the reference data that triggered the violation. "
+          + "`componentUpgradeAvailable` indicates if a non-violating version of the "
+          + "component is available to remediate the violation.",
+      useReturnTypeSchema = true)
+  public ApiPolicyWaiverRequestsApplicableToViolationDTO getApplicableWaiverRequests(
+      @Parameter(
+          description = "Enter the policy violationId for which you want to obtain the applicable waiver requests.",
+          required = true) @PathParam("violationId") String violationId)
+  {
+    return apiPolicyWaiverRequestService.getApplicableWaiverRequests(violationId);
   }
 
   @GET

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -18,7 +19,9 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus;
@@ -37,9 +40,12 @@ import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatc
 public class PolicyWaiverRequestDAO
     extends AbstractOperationalSqlDAO<PolicyWaiverRequest>
 {
+  private final OwnerDAO ownerDAO;
+
   @Inject
-  public PolicyWaiverRequestDAO(final OperationalDataStore operationalDataStore) {
+  public PolicyWaiverRequestDAO(OperationalDataStore operationalDataStore, OwnerDAO ownerDAO) {
     super(operationalDataStore);
+    this.ownerDAO = ownerDAO;
   }
 
   @Override
@@ -252,5 +258,34 @@ public class PolicyWaiverRequestDAO
       throw new NotFoundException(errorMessage);
     }
     return policyWaiverRequest;
+  }
+
+  public List<PolicyWaiverRequest> getByOwnerHierarchyAndPolicyId(Owner owner, String policyId) {
+    List<PolicyWaiverRequest> policyWaiverRequests = new ArrayList<>();
+
+    loadByOwnerAndPolicyId(policyWaiverRequests, owner, policyId);
+
+    return policyWaiverRequests;
+  }
+
+  private void loadByOwnerAndPolicyId(
+      List<PolicyWaiverRequest> policyWaiverRequests,
+      Owner owner,
+      String policyId)
+  {
+    if (owner == null) {
+      return;
+    }
+
+    Owner parentOwner = ownerDAO.getById(owner.getParentOwnerId());
+    loadByOwnerAndPolicyId(policyWaiverRequests, parentOwner, policyId);
+    policyWaiverRequests.addAll(getByOwnerIdAndPolicyId(owner.getId(), policyId));
+  }
+
+  private List<PolicyWaiverRequest> getByOwnerIdAndPolicyId(String ownerId, String policyId) {
+    String sQuery = """
+        SELECT entity FROM PolicyWaiverRequest entity
+        WHERE entity.ownerId=?1 AND entity.policyId=?2""";
+    return getList(sQuery, ownerId, policyId);
   }
 }

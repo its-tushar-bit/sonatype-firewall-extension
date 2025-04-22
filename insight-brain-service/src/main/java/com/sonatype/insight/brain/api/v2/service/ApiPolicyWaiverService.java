@@ -520,8 +520,9 @@ public class ApiPolicyWaiverService
     final var policyWaiversReasons =
         policyWaiverReasonDAO.getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
 
-    Map<Boolean, List<ApiPolicyWaiverDTO>> applicableWaivers = getAllApplicableWaiversWithAuthzCheck(owner).stream()
-        .filter(policyWaiver -> filterWaiverByCriteria(policyId, constraintFactsJson, constraintFacts,
+    Map<Boolean, List<ApiPolicyWaiverDTO>> applicableWaivers =
+        getByOwnerHierarchyAndPolicyIdWithReadPermission(owner, policyId).stream()
+            .filter(policyWaiver -> filterWaiverByCriteria(constraintFactsJson, constraintFacts,
             componentIdentifier, hash, policyWaiver))
         .map(policyWaiver ->
             ApiPolicyWaiverDTO.toDto(
@@ -718,7 +719,6 @@ public class ApiPolicyWaiverService
   }
 
   private boolean filterWaiverByCriteria(
-      String policyId,
       String constraintFactsJson,
       List<ConstraintFact> constraintFacts,
       ComponentIdentifier componentIdentifier,
@@ -729,8 +729,7 @@ public class ApiPolicyWaiverService
 
     ComponentFact componentFact = new ComponentFact(componentIdentifier, hash);
 
-    return policyWaiverMatcherWrapper.matchesPolicyId(policyId) &&
-        policyWaiverMatcherWrapper.matchesComponent(componentFact) &&
+    return policyWaiverMatcherWrapper.matchesComponent(componentFact) &&
         (policyWaiverMatcherWrapper.matchesConstraintFactsJson(constraintFactsJson) ||
             policyWaiverMatcherWrapper.matchesConstraintFacts(constraintFacts));
   }
@@ -740,10 +739,11 @@ public class ApiPolicyWaiverService
   }
 
   @Authorize(permission = Permission.READ)
-  List<PolicyWaiver> getAllApplicableWaiversWithAuthzCheck(
-      @AuthzContext(Key.OWNER) Owner owner)
+  List<PolicyWaiver> getByOwnerHierarchyAndPolicyIdWithReadPermission(
+      @AuthzContext(Key.OWNER) Owner owner,
+      String policyId)
   {
-    return policyWaiverDAO.getApplicableAndExpiredByOwnerId(owner.getId());
+    return policyWaiverDAO.getByOwnerHierarchyAndPolicyId(owner, policyId);
   }
 
   private PolicyWaiver savePolicyWaiver(

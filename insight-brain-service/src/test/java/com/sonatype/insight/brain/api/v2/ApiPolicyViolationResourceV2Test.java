@@ -5,11 +5,11 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentTransitivePolicyViolationsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationDTO;
@@ -28,8 +27,11 @@ import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrossStageViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestsApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStagePolicyViolationComponentDTO;
+import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationType;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverExclusionDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -45,20 +47,24 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.policy.PolicyWaiverRequestBuilder;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverDTOTestUtils.assertApiPolicyWaiverDTO;
+import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverRequestDTOTestUtils.assertPolicyWaiverRequestDTO;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
@@ -281,6 +287,85 @@ public class ApiPolicyViolationResourceV2Test
     assertApiPolicyWaiverDTO("hash", policyId, appId, "NewApp", "", violationId, expiredExpiryTime,
         "testuser", "Test User", EXACT_COMPONENT, packageUrlAllVersionsWaiver, null, null,
         expiredApplicableWaivers.get(0));
+  }
+
+  @Test
+  public void testGetApplicableWaiverRequests() throws Exception {
+    Date now = new Date();
+    List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId");
+    Policy policyOrg = tempEntity.newPolicy(org);
+    Policy policyApp = tempEntity.newPolicy(app);
+    ComponentIdentifier identifier =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0", "c1", "jar");
+    ComponentIdentifier identifierForAllVersionsWaiver =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "2.0", "c1", "jar");
+    ComponentIdentifier identifierForAllVersionsWaiver2 =
+        ComponentIdentifier.createMavenCoordinates("group", "otherArtifact", "2.0", "c1", "jar");
+    String packageUrlAllVersions1 = PackageUrlIdentifier.toPackageUrl(identifierForAllVersionsWaiver);
+    String packageUrlAllVersions2 = PackageUrlIdentifier.toPackageUrl(identifierForAllVersionsWaiver2);
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policyOrg, identifier, "hash");
+    violation.setConstraintFacts(constraintFacts);
+    policyViolationDAO.update(violation);
+
+    String policyIdOrg = policyOrg.getId();
+    String policyIdApp = policyApp.getId();
+    String orgId = org.getId();
+    String appId = app.getId();
+
+    Date expiredExpiryTime = DateUtils.addMilliseconds(now, -1);
+    Date expiringInFutureExpiryTime = DateUtils.addMinutes(now, 1);
+
+    PolicyWaiverRequest policyWaiverRequest1 =
+        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("hashX").setPolicyId(policyIdOrg)
+            .setOwnerId(orgId).setConstraintFacts(constraintFacts).setAssociatedPackageUrl(packageUrlAllVersions1)
+            .setComponentMatchStrategy(ALL_VERSIONS).setRequestTime(DateUtils.addDays(now, -10)).build());
+    PolicyWaiverRequest policyWaiverRequest2 = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder()
+        .setHash(null).setPolicyId(policyIdOrg).setOwnerId(orgId).setConstraintFacts(constraintFacts)
+        .setComponentMatchStrategy(ALL_COMPONENTS).setRequestTime(DateUtils.addDays(now, -9)).build());
+    PolicyWaiverRequest policyWaiverRequest3 = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder()
+        .setHash("hash").setPolicyId(policyIdOrg).setOwnerId(appId).setConstraintFacts(constraintFacts)
+        .setAssociatedPackageUrl(packageUrlAllVersions1).setComponentMatchStrategy(EXACT_COMPONENT)
+        .setExpiryTime(expiredExpiryTime).setRequestTime(DateUtils.addDays(now, -8)).build());
+    PolicyWaiverRequest policyWaiverRequest4 =
+        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash(null).setPolicyId(policyIdOrg)
+            .setOwnerId(appId).setConstraintFacts(constraintFacts).setComponentMatchStrategy(ALL_COMPONENTS)
+            .setExpiryTime(expiringInFutureExpiryTime).setRequestTime(DateUtils.addDays(now, -7)).build());
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("hash2").setPolicyId(policyIdApp)
+        .setOwnerId(appId).setConstraintFacts(null).setAssociatedPackageUrl(packageUrlAllVersions2)
+        .setComponentMatchStrategy(ALL_VERSIONS).setRequestTime(DateUtils.addDays(now, -2)).build());
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash(null).setPolicyId(policyIdApp)
+        .setOwnerId(appId).setConstraintFacts(null).setComponentMatchStrategy(ALL_COMPONENTS)
+        .setExpiryTime(expiringInFutureExpiryTime).setRequestTime(DateUtils.addDays(now, -1)).build());
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("hash").setPolicyId(policyIdApp)
+        .setOwnerId(appId).setConstraintFacts(constraintFacts).setAssociatedPackageUrl(packageUrlAllVersions1)
+        .setComponentMatchStrategy(EXACT_COMPONENT).setExpiryTime(expiredExpiryTime).setRequestTime(now).build());
+
+    HttpResponse response = restRequest().path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
+        .path(ApiPolicyViolationResourceV2.VIOLATIONID + ApiPolicyViolationResourceV2.APPLICABLE_WAIVER_REQUESTS_PATH)
+        .parameter(violation.getId()).get();
+
+    assertResponseStatus(200, response);
+    ApiPolicyWaiverRequestsApplicableToViolationDTO apiPolicyWaiverRequests =
+        response.getBody(ApiPolicyWaiverRequestsApplicableToViolationDTO.class);
+
+    List<ApiPolicyWaiverRequestDTO> activeApplicableWaiverRequests =
+        apiPolicyWaiverRequests.activeWaiverRequests.stream()
+            .sorted(Comparator.comparing(apiPolicyWaiverRequestDTO -> apiPolicyWaiverRequestDTO.requestTime)).toList();
+
+    assertThat(activeApplicableWaiverRequests).hasSize(3);
+    assertPolicyWaiverRequestDTO(activeApplicableWaiverRequests.get(0), policyWaiverRequest1);
+    assertPolicyWaiverRequestDTO(activeApplicableWaiverRequests.get(1), policyWaiverRequest2);
+    assertPolicyWaiverRequestDTO(activeApplicableWaiverRequests.get(2), policyWaiverRequest4);
+
+    List<ApiPolicyWaiverRequestDTO> expiredApplicableWaiverRequests =
+        apiPolicyWaiverRequests.expiredWaiverRequests.stream()
+            .sorted(Comparator.comparing(apiPolicyWaiverRequestDTO -> apiPolicyWaiverRequestDTO.requestTime)).toList();
+
+    assertThat(expiredApplicableWaiverRequests).hasSize(1);
+    assertPolicyWaiverRequestDTO(expiredApplicableWaiverRequests.get(0), policyWaiverRequest3);
   }
 
   @Test

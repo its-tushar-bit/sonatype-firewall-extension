@@ -434,4 +434,31 @@ public class PolicyWaiverRequestDAOTest
     }).isInstanceOf(NotFoundException.class).hasMessage("Cannot find a policy waiver request with ID "
         + policyWaiverRequest.getId() + " for owner " + otherApp.getId() + ".");
   }
+
+  @Test
+  public void testGetByOwnerHierarchyAndPolicyId() {
+    Date now = new Date();
+    Policy policy = tempEntity.newPolicy(organization);
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    PolicyWaiverRequest noExpiryWaiverRequest = tempEntity.newPolicyWaiverRequest(
+        new PolicyWaiverRequestBuilder().setHash("hash1").setPolicyId(policyId).setOwnerId(ownerId).build());
+    PolicyWaiverRequest expiringWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder()
+        .setHash("hash2").setPolicyId(policyId).setOwnerId(ownerId).setExpiryTime(DateUtils.addHours(now, 1)).build());
+    PolicyWaiverRequest expiredWaiverRequest =
+        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("hash3").setPolicyId(policyId)
+            .setOwnerId(organization.getParentOrganizationId()).setExpiryTime(DateUtils.addHours(now, -1)).build());
+
+    // PolicyWaiverRequest for unrelated owner
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("hash4").setPolicyId(policyId)
+        .setOwnerId(application.getId()).build());
+    // PolicyWaiverRequest for another policy
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("hash4")
+        .setPolicyId(tempEntity.newPolicy(organization).getId())
+        .setOwnerId(organization.getId()).build());
+
+    assertThat(dao.getByOwnerHierarchyAndPolicyId(organization, policyId)).extracting(PolicyWaiverRequest::getId)
+        .containsExactlyInAnyOrder(noExpiryWaiverRequest.getId(), expiringWaiverRequest.getId(),
+            expiredWaiverRequest.getId());
+  }
 }

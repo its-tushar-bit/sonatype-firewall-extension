@@ -8,18 +8,24 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.validation.constraints.NotNull;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestOptionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestReviewDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestsApplicableToViolationDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
@@ -42,6 +48,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.policy.ConstraintFactDTO;
+import com.sonatype.insight.brain.policy.evaluator.PolicyWaiverRequestMatcherWrapper;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -67,6 +74,7 @@ import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatc
 import static com.sonatype.insight.purl.PackageUrlIdentifier.toPackageUrl;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.POLICY_WAIVER_REQUEST;
 import static java.util.Objects.isNull;
+import static java.util.stream.Collectors.partitioningBy;
 import static java.util.stream.Collectors.toList;
 
 @Named
@@ -209,6 +217,7 @@ public class ApiPolicyWaiverRequestService
     dto.requesterName = policyWaiverRequest.getRequesterName();
     dto.componentUpgradeAvailable = policyWaiverRequest.isComponentUpgradeAvailable();
     dto.expireWhenRemediationAvailable = policyWaiverRequest.isExpireWhenRemediationAvailable();
+    dto.policyViolationId = policyWaiverRequest.getPolicyViolationId();
 
     if (policyWaiverRequest.getComponentIdentifier() != null) {
       dto.componentIdentifier =
@@ -531,5 +540,64 @@ public class ApiPolicyWaiverRequestService
         policyWaiverRequestDAO.getByIdAndOwnerIdNotNull(policyWaiverRequestId, internalOwnerId);
     PolicyWaiverReason policyWaiverReason = policyWaiverReasonDAO.getById(policyWaiverRequest.getWaiverReasonId());
     return toDto(policyWaiverRequest, policyWaiverReason);
+  }
+
+  public ApiPolicyWaiverRequestsApplicableToViolationDTO getApplicableWaiverRequests(String policyViolationId) {
+    // The violationId may reference an application policy violation or a repository policy violation
+    AbstractPolicyViolation policyViolation = getAbstractPolicyViolation(policyViolationId);
+
+    String policyId = policyViolation.getPolicyId();
+    String constraintFactsJson = policyViolation.getConstraintFactsJson();
+    List<ConstraintFact> constraintFacts = policyViolation.getConstraintFacts();
+    String hash = policyViolation.getHash();
+    String ownerId = policyViolation.getOwnerId();
+    ComponentIdentifier componentIdentifier = policyViolation.getComponentIdentifier();
+
+    Owner owner = ownerDAO.getById(ownerId);
+    Map<String, PolicyWaiverReason> policyWaiversReasons =
+        policyWaiverReasonDAO.getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
+
+    Map<Boolean, List<ApiPolicyWaiverRequestDTO>> applicableWaiverRequests =
+        getByOwnerHierarchyAndPolicyIdWithReadPermission(owner, policyId).stream()
+            .filter(policyWaiverRequest -> filterPolicyWaiverRequestByCriteria(constraintFactsJson,
+                constraintFacts, componentIdentifier, hash, policyWaiverRequest))
+            .map(policyWaiverRequest -> toDto(policyWaiverRequest,
+                policyWaiversReasons.get(policyWaiverRequest.getWaiverReasonId())))
+            .collect(partitioningBy(dto -> isExpired(dto.expiryTime), toList()));
+
+    ApiPolicyWaiverRequestsApplicableToViolationDTO result = new ApiPolicyWaiverRequestsApplicableToViolationDTO();
+    result.activeWaiverRequests = applicableWaiverRequests.get(Boolean.FALSE);
+    result.expiredWaiverRequests = applicableWaiverRequests.get(Boolean.TRUE);
+
+    return result;
+  }
+
+  @Authorize(permission = Permission.READ)
+  List<PolicyWaiverRequest> getByOwnerHierarchyAndPolicyIdWithReadPermission(
+      @AuthzContext(Key.OWNER) Owner owner,
+      String policyId)
+  {
+    return policyWaiverRequestDAO.getByOwnerHierarchyAndPolicyId(owner, policyId);
+  }
+
+  private boolean filterPolicyWaiverRequestByCriteria(
+      String constraintFactsJson,
+      List<ConstraintFact> constraintFacts,
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      PolicyWaiverRequest policyWaiverRequest)
+  {
+    PolicyWaiverRequestMatcherWrapper policyWaiverRequestMatcherWrapper =
+        new PolicyWaiverRequestMatcherWrapper(policyWaiverRequest);
+
+    ComponentFact componentFact = new ComponentFact(componentIdentifier, hash);
+
+    return policyWaiverRequestMatcherWrapper.matchesComponent(componentFact)
+        && (policyWaiverRequestMatcherWrapper.matchesConstraintFactsJson(constraintFactsJson)
+            || policyWaiverRequestMatcherWrapper.matchesConstraintFacts(constraintFacts));
+  }
+
+  private static boolean isExpired(Date expiryTime) {
+    return expiryTime != null && expiryTime.before(new Date());
   }
 }

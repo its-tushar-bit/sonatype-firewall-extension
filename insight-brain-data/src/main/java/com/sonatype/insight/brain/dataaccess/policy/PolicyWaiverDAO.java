@@ -132,22 +132,29 @@ public class PolicyWaiverDAO
     return Collections.emptyList();
   }
 
-  public List<PolicyWaiver> getApplicableAndExpiredByOwnerId(String ownerId) {
+  public List<PolicyWaiver> getByOwnerHierarchyAndPolicyId(Owner owner, String policyId) {
     List<PolicyWaiver> policyWaivers = new ArrayList<>();
 
-    loadAllByOwnerId(policyWaivers, ownerId);
+    loadByOwnerAndPolicyId(policyWaivers, owner, policyId);
 
     return policyWaivers;
   }
 
-  private void loadAllByOwnerId(List<PolicyWaiver> policyWaivers, String ownerId) {
-    if (ownerId == null) {
+  private void loadByOwnerAndPolicyId(List<PolicyWaiver> policyWaivers, Owner owner, String policyId) {
+    if (owner == null) {
       return;
     }
 
-    Owner owner = ownerDAO.getById(ownerId);
-    loadAllByOwnerId(policyWaivers, owner.getParentOwnerId());
-    policyWaivers.addAll(getByOwnerId(ownerId));
+    Owner parentOwner = ownerDAO.getById(owner.getParentOwnerId());
+    loadByOwnerAndPolicyId(policyWaivers, parentOwner, policyId);
+    policyWaivers.addAll(getByOwnerIdAndPolicyId(owner.getId(), policyId));
+  }
+
+  private List<PolicyWaiver> getByOwnerIdAndPolicyId(String ownerId, String policyId) {
+    String sQuery = """
+        SELECT entity FROM PolicyWaiver entity
+        WHERE entity.ownerId=?1 AND entity.policyId=?2""";
+    return getList(sQuery, ownerId, policyId);
   }
 
   public List<PolicyWaiver> getActiveApplicableByOwnerId(String ownerId) {

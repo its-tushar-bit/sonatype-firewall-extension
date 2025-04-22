@@ -20,7 +20,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.SbomIdentityUtils;
-import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
@@ -31,9 +30,9 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoord
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
-import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.report.pdf.PdfData;
+import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -54,7 +53,6 @@ import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
-import org.cyclonedx.model.Property;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.spdx.library.InvalidSPDXAnalysisException;
 import org.spdx.library.model.ExternalRef;
@@ -176,13 +174,6 @@ public class SpdxToCycloneDxExporter
     }
   }
 
-  private void setSonatypeSha1Hash(final String sha1, final Component component) {
-    Property property = new Property();
-    property.setName(SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
-    property.setValue(StringUtils.truncate(sha1, 0, HashHelper.MAX_LENGTH));
-    component.addProperty(property);
-  }
-
   private String resolvePurl(SpdxPackage spdxPackage) {
     try {
       String purlFromBase = getPurl(spdxPackage);
@@ -215,7 +206,7 @@ public class SpdxToCycloneDxExporter
     component.setBomRef(spdxPackageIdsToCdxBomRefs.get(spdxPackage.getId()));
     try {
       final Optional<String> sha1Optional = getChecksum(spdxPackage, ChecksumAlgorithm.SHA1);
-      sha1Optional.ifPresent(sha1 -> setSonatypeSha1Hash(sha1, component));
+      sha1Optional.ifPresent(sha1 -> SbomCycloneDxUtils.addSonatypeTruncatedSha1(sha1, component));
       sha1Optional.ifPresent(sha1 ->
           component.setHashes(Collections.singletonList(new Hash(Hash.Algorithm.SHA1, sha1))));
     }

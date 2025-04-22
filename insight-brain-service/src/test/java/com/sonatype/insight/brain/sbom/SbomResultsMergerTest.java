@@ -245,8 +245,12 @@ public class SbomResultsMergerTest
     assertThat(originalBom.getMetadata().getProperties().get(0).getName())
         .isEqualTo(SbomTaxonomy.CDX_ORIGINAL_FILE_PROPERTY_NAME);
     assertThat(originalBom.getMetadata().getProperties().get(0).getValue()).isEqualTo("binary.temp");
-    assertThat(originalBom.getComponents()).hasSize(4)
-        .allSatisfy(component -> assertThat(component.getProperties()).isNull());
+    assertThat(originalBom.getComponents()).hasSize(4);
+    originalBom.getComponents().forEach(component -> {
+      assertThat(component.getProperties()).hasSize(1);
+      assertThat(component.getProperties().get(0).getName()).isEqualTo(SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
+      assertThat(component.getProperties().get(0).getValue()).isNotEmpty();
+    });
     Component bomComponent =
         originalBom.getComponents().stream().filter(c -> new PackageUrlIdentifier(c.getPurl()).equals(purl1))
             .findFirst().get();
@@ -271,9 +275,8 @@ public class SbomResultsMergerTest
     Bom filteredBom = merger.getFilteredBom();
     assertThat(filteredBom.getComponents()).hasSize(4)
         .allSatisfy(component -> {
-          assertThat(component.getProperties()).hasSize(2);
-          assertThat(component.getProperties().get(0).getName()).isEqualTo("componentRef");
-          assertThat(component.getProperties().get(0).getValue()).isNotNull();
+          assertThat(component.getProperties()).hasSize(3);
+          assertComponentRefProperty(component);
         });
 
     Optional<Component> tpBomComponentOptional = filteredBom.getComponents().stream()
@@ -281,10 +284,8 @@ public class SbomResultsMergerTest
         .findFirst();
     assertThat(tpBomComponentOptional).isPresent();
     List<Property> properties = tpBomComponentOptional.get().getProperties();
-    assertThat(properties).hasSize(2);
-    Property property = properties.get(0);
-    assertThat(property.getName()).isEqualTo("componentRef");
-    assertThat(property.getValue()).isNotBlank().hasSize(40);
+    assertThat(properties).hasSize(3);
+    assertComponentRefProperty(tpBomComponentOptional.get());
 
     //verify telemetry data
     ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);
@@ -1572,5 +1573,12 @@ public class SbomResultsMergerTest
         .put("identificationSource", "Sonatype");
     componentNode.putArray("filenames").insert(0, "pkg:pypi/orange@1.0.1");
     componentNode.putArray("pathnames").insert(0, "dependency:/SBOM-bom.json/pkg:pypi\\orange@1.0.1");
+  }
+
+  private void assertComponentRefProperty(Component component) {
+    Property componentRefProperty = component.getProperties().stream().filter(property ->
+        property.getName().equals("componentRef")).findFirst().orElse(null);
+    assertThat(componentRefProperty).isNotNull();
+    assertThat(componentRefProperty.getValue()).isNotBlank().hasSize(40);
   }
 }

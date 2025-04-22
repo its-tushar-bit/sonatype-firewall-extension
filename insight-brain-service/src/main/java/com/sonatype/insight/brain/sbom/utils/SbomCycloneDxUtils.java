@@ -5,8 +5,10 @@
  */
 package com.sonatype.insight.brain.sbom.utils;
 
+import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.migration.DisplayNameForFileCoordinateAsyncDbMigration;
+import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import java.io.IOException;
@@ -455,5 +457,12 @@ public class SbomCycloneDxUtils
   public static Optional<Version> getVersionFromString(String versionString) {
     return Arrays.stream(Version.values())
         .filter(cycloneDxVersion -> cycloneDxVersion.getVersionString().equalsIgnoreCase(versionString)).findFirst();
+  }
+
+  public static void addSonatypeTruncatedSha1(String sha1, Component component) {
+    Property property = new Property();
+    property.setName(SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
+    property.setValue(StringUtils.truncate(sha1, 0, HashHelper.MAX_LENGTH));
+    component.addProperty(property);
   }
 }

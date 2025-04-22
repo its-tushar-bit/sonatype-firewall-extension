@@ -659,6 +659,7 @@ public class SbomResultsMerger
       swid.setName(fileCoordinate.getSwid());
       swid.setTagId(fileCoordinate.getSwid());
     }
+    SbomCycloneDxUtils.addSonatypeTruncatedSha1(fileCoordinate.getHash(), component);
     return component;
   }
 

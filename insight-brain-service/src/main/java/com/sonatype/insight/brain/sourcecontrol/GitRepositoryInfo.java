@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.sourcecontrol;
 
+import java.util.Objects;
+
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -141,5 +143,35 @@ public class GitRepositoryInfo
 
   public String getSourceControlScanTarget() {
     return sourceControlScanTarget;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    GitRepositoryInfo that = (GitRepositoryInfo) o;
+    return Objects.equals(repositoryUrl, that.repositoryUrl) &&
+        Objects.equals(normalizedRepositoryUrl, that.normalizedRepositoryUrl) &&
+        Objects.equals(sshRepositoryUrl, that.sshRepositoryUrl) &&
+        Objects.equals(username, that.username) &&
+        Objects.equals(token, that.token) &&
+        provider == that.provider &&
+        Objects.equals(baseBranch, that.baseBranch) &&
+        Objects.equals(remediationPullRequestsEnabled, that.remediationPullRequestsEnabled) &&
+        Objects.equals(manualPullRequestsEnabled, that.manualPullRequestsEnabled) &&
+        Objects.equals(statusChecksEnabled, that.statusChecksEnabled) &&
+        Objects.equals(pullRequestCommentingEnabled, that.pullRequestCommentingEnabled) &&
+        Objects.equals(sourceControlEvaluationsEnabled, that.sourceControlEvaluationsEnabled) &&
+        Objects.equals(sshEnabled, that.sshEnabled) &&
+        Objects.equals(sourceControlScanTarget, that.sourceControlScanTarget);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(normalizedRepositoryUrl);
   }
 }

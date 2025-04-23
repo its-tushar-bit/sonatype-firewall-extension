@@ -126,6 +126,16 @@ public class PolicyViolationDAO
     return getList(sQuery, applicationId, stageTypeId);
   }
 
+  public List<PolicyViolation> getActiveByApplicationIdAndStageIdAndActionId(String applicationId,
+                                                                             String stageTypeId,
+                                                                             String actionTypeId)
+  {
+    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2 AND entity.actionTypeId=?3" + //
+        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL AND entity.legacyViolationTime IS NULL";
+    return getList(sQuery, applicationId, stageTypeId, actionTypeId);
+  }
+
   public List<PolicyViolation> getActiveByApplicationIdAndStageIdAndHash(String applicationId,
                                                                          String stageTypeId,
                                                                          String hash)

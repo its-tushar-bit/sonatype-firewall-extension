@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -657,6 +658,41 @@ public class PolicyViolationDAOTest
     List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageId(application.getId(), BuildStageType.ID);
 
     assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(openViolation.getId());
+  }
+
+  @Test
+  public void testActiveByApplicationIdAndStageIdAndActionId() {
+    Policy policy = tempEntity.newPolicy(application);
+
+    PolicyEvaluation policyEvaluation1 =
+        tempEntity.newPolicyEvaluation(application.getId(), ProxyStageType.ID, "scan-1");
+
+    PolicyEvaluation policyEvaluation2 =
+            tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-2");
+
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy);
+    violation1.setActionTypeId(Action.ID_FAIL);
+    dao.update(violation1);
+
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(policyEvaluation2, policy);
+    violation2.setActionTypeId(Action.ID_FAIL);
+    dao.update(violation2);
+
+    PolicyViolation violation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy);
+    violation3.setActionTypeId(Action.ID_WARN);
+    dao.update(violation3);
+
+    tempEntity.newWaivedPolicyViolation(policyEvaluation1, policy,
+        tempEntity.newWaiver(policy.getId(), application.getId()));
+
+    tempEntity.newPolicyViolation(policyEvaluation1, policy);
+
+    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageIdAndActionId(
+            application.getId(), ProxyStageType.ID, Action.ID_FAIL);
+
+    assertThat(violations).hasSize(1);
+
+    assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(violation1.getId());
   }
 
   @Test

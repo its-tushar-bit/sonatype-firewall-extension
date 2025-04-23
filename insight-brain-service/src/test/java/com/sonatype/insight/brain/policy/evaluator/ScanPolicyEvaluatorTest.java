@@ -4148,7 +4148,12 @@ public class ScanPolicyEvaluatorTest
         ClientScanType.SONATYPE, false);
 
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
-    List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
+    List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor
+        .getValue()
+        .stream()
+        .filter(telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.CONDITION_TYPE_VIOLATION))
+        .toList();
+
     assertThat(telemetryDataList).hasSize(conditions.size());
 
     boolean hasHygieneViolation = telemetryDataList.stream().anyMatch(telemetryData ->
@@ -4225,11 +4230,13 @@ public class ScanPolicyEvaluatorTest
         ClientScanType.SONATYPE, false);
 
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
-    List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
+    List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor
+        .getValue()
+        .stream()
+        .filter(telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.CONDITION_TYPE_VIOLATION))
+        .toList();
+
     assertThat(telemetryDataList).hasSize(36);
-    for (TelemetryData telemetryData : telemetryDataList) {
-      assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.CONDITION_TYPE_VIOLATION);
-    }
 
     // When removing the policy
     policyDAO.delete(policy);
@@ -4335,7 +4342,7 @@ public class ScanPolicyEvaluatorTest
     // Then there should be two policy violations, of which one is waived.
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
-    assertThat(telemetryDataList).hasSize(3);
+    assertThat(telemetryDataList).hasSize(5);
     TelemetryData timeToWaiveTelemetryData = telemetryDataList.stream()
         .filter(telemetryData -> TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION.equals(telemetryData.getPurpose()))
         .findFirst().orElseThrow();
@@ -4350,7 +4357,12 @@ public class ScanPolicyEvaluatorTest
     // Then there should be two waived policy violations, one already waived and one newly waived.
     // Only one should be collected for telemetry
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
-    telemetryDataList = telemetryDataArgumentCaptor.getValue();
+    telemetryDataList = telemetryDataArgumentCaptor
+        .getValue()
+        .stream()
+        .filter(telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION))
+        .toList();
+
     assertThat(telemetryDataList).hasSize(1);
     assertThat(telemetryDataList.get(0).getPurpose()).isEqualTo(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION);
     assertThat(telemetryDataList.get(0).getAttributes().get(COUNT)).isEqualTo(1);
@@ -4362,7 +4374,12 @@ public class ScanPolicyEvaluatorTest
         ClientScanType.SONATYPE, false);
     // Then there should be an unwaived violation collected for telemetry
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
-    telemetryDataList = telemetryDataArgumentCaptor.getValue();
+    telemetryDataList = telemetryDataArgumentCaptor
+        .getValue()
+        .stream()
+        .filter(telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION))
+        .toList();
+
     assertThat(telemetryDataList).hasSize(1);
     assertThat(telemetryDataList.get(0).getPurpose()).isEqualTo(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION);
     assertThat(telemetryDataList.get(0).getAttributes().get(COUNT)).isEqualTo(-1);
@@ -4965,7 +4982,12 @@ public class ScanPolicyEvaluatorTest
         ClientScanType.SONATYPE, false);
 
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
-    List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
+    List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor
+        .getValue()
+        .stream()
+        .filter(telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.TIME_TO_LEGACY_VIOLATION))
+        .toList();
+
     assertThat(telemetryDataList).hasSize(36);
     for (TelemetryData telemetryData : telemetryDataList) {
       assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.TIME_TO_LEGACY_VIOLATION);

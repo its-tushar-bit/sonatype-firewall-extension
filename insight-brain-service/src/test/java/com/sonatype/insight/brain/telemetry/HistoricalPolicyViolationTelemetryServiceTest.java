@@ -212,7 +212,7 @@ public class HistoricalPolicyViolationTelemetryServiceTest
     assertThat(telemetryData.getAttributes()).containsEntry("cve_number", "CVE-2013-7285");
     assertThat(telemetryData.getAttributes()).containsEntry("cvss_score", 7);
     assertThat(telemetryData.getAttributes()).doesNotContainEntry("transmission", "complete");
-    assertThat(telemetryData.getAttributes()).hasSize(19);
+    assertThat(telemetryData.getAttributes()).hasSize(20);
 
     telemetryData = telemetryDataList.get(1);
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.HISTORICAL_POLICY_VIOLATION);
@@ -241,7 +241,7 @@ public class HistoricalPolicyViolationTelemetryServiceTest
     assertThat(telemetryData.getAttributes()).containsEntry("threat_level",
         nonSecurityPolicyViolation.getThreatLevel());
     assertThat(telemetryData.getAttributes()).doesNotContainEntry("transmission", "complete");
-    assertThat(telemetryData.getAttributes()).hasSize(17);
+    assertThat(telemetryData.getAttributes()).hasSize(18);
 
     telemetryData = telemetryDataList.get(2);
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.HISTORICAL_POLICY_VIOLATION);

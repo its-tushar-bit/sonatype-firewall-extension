@@ -582,7 +582,18 @@ public class ScanPolicyEvaluator
             policyViolation.setPolicyWaiverComment(policyWaiver.getComment());
           }
 
+          Component component =
+              findComponentByComponentIdentifier(components, policyViolation.getComponentIdentifier());
+
           updateReachabilityStatus(policyViolation, reachablePurlIdentifiersWithVulnerabilities);
+
+          // send telemetry information only after we updated the status, this will provide accurate
+          // reporting on how well call flow information for reachability is available.
+          telemetryCollector.addTelemetryForReachableViolation(
+              policyViolation,
+              component,
+              reachablePurlIdentifiersWithVulnerabilities
+          );
 
           if (skipAutoWaiversForReevaluation) {
             autoWaivedPolicyViolations.stream()
@@ -602,8 +613,7 @@ public class ScanPolicyEvaluator
             List<AutoPolicyWaiver> autoPolicyWaivers = getApplicableAutoPolicyWaivers(ownerIds);
             List<AutoPolicyWaiverExclusion> autoPolicyWaiverExclusions =
                 getApplicableAutoPolicyWaiverExclusions(ownerIds);
-            Component component =
-                findComponentByComponentIdentifier(components, policyViolation.getComponentIdentifier());
+
             boolean hasReachabilityData = reachablePurlIdentifiersWithVulnerabilities != null;
             for (AutoPolicyWaiver autoPolicyWaiver : autoPolicyWaivers) {
               if (canEvaluateWithAutoWaiver(autoPolicyWaiver, policyViolation)) {

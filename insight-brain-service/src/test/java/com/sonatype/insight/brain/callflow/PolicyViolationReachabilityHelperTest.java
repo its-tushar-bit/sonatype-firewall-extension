@@ -24,6 +24,7 @@ import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createNpm
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createPypiCoordinates;
 import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.filterOnReachableSecurityViolations;
+import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.hasPolicyViolationByComponentIdentifier;
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.updateReachabilityStatus;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
@@ -142,6 +143,31 @@ public class PolicyViolationReachabilityHelperTest
     updateReachabilityStatus(new PolicyViolation(), (Map<PackageUrlIdentifier, Set<String>>) null);
     updateReachabilityStatus(new PolicyViolation(), (PurlIdentifiersWithVulnerabilities) null);
     updateReachabilityStatus(new PolicyViolation(), new PurlIdentifiersWithVulnerabilities(null, null, null));
+  }
+
+  @Test
+  public void hasPolicyViolationByComponentIdentifier_ReturnsFalseWithNullOrEmptyData() {
+    assertThat(hasPolicyViolationByComponentIdentifier(null, null)).isFalse();
+    assertThat(hasPolicyViolationByComponentIdentifier(new PolicyViolation(), null)).isFalse();
+    assertThat(hasPolicyViolationByComponentIdentifier(null, new PurlIdentifiersWithVulnerabilities(null, null, null)))
+        .isFalse();
+    assertThat(hasPolicyViolationByComponentIdentifier(new PolicyViolation(),
+        new PurlIdentifiersWithVulnerabilities(null, null, null))).isFalse();
+  }
+
+  @Test
+  public void hasPolicyViolationByComponentIdentifier_ReturnsTrueWithPolicyViolation() {
+    PolicyViolation reachablePolicyViolation = createReachablePolicyViolation();
+
+    PurlIdentifiersWithVulnerabilities purlIdentifiersWithVulnerabilities =
+        new PurlIdentifiersWithVulnerabilities(
+            "applicationId",
+            "scanId",
+            createVulnerabilitiesByPurlIdentifiers(reachablePolicyViolation)
+        );
+
+    assertThat(hasPolicyViolationByComponentIdentifier( reachablePolicyViolation, purlIdentifiersWithVulnerabilities))
+        .isTrue();
   }
 
   private PolicyViolation createReachablePolicyViolation() {

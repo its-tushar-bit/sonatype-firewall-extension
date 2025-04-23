@@ -10,13 +10,14 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
@@ -25,6 +26,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
@@ -39,8 +41,11 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.hasPolicyViolationByComponentIdentifier;
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.*;
 import static com.sonatype.insight.brain.telemetry.TelemetryUtils.REAL_APPLICATION_ID;
+import static com.sonatype.insight.purl.PackageUrlIdentifier.fromComponentIdentifier;
+import static com.sonatype.insight.telemetry.model.TelemetryPurpose.CALLFLOW_EVALUATION_COMPONENT_COUNTS;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.CONDITION_TYPE_VIOLATION;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_CHANGE_VERSION_POLICY_VIOLATION;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_LEGACY_VIOLATION;
@@ -408,6 +413,49 @@ public class PolicyViolationTelemetryCollectorTest
     unwaivedPolicyViolation.validateTelemetryDataForPurposes(telemetryData, TIME_TO_WAIVE_POLICY_VIOLATION);
   }
 
+  @Test
+  public void testAddTelemetryForReachableViolation_When_ViolationIsNotReachable() {
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultViolationForComponent(lodashv3);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    telemetryCollector.addTelemetryForReachableViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponent(),
+        null
+    );
+
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, CALLFLOW_EVALUATION_COMPONENT_COUNTS);
+  }
+
+  @Test
+  public void testAddTelemetryForReachableViolation_When_ViolationIsReachable() {
+    TestablePolicyViolation testablePolicyViolation = TestablePolicyViolation
+        .createDefaultViolationForComponent(lodashv3);
+
+    PurlIdentifiersWithVulnerabilities purlIdentifiersWithVulnerabilities = new PurlIdentifiersWithVulnerabilities(
+        null, null, Map.of(
+        fromComponentIdentifier(testablePolicyViolation.policyViolation.getComponentIdentifier()), Set.of("CVE-1234")
+    ));
+
+    testablePolicyViolation.withPurlIdentifiersWithVulnerabilities(purlIdentifiersWithVulnerabilities);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    telemetryCollector.addTelemetryForReachableViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponent(),
+        purlIdentifiersWithVulnerabilities
+    );
+
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, CALLFLOW_EVALUATION_COMPONENT_COUNTS);
+  }
+
   private PolicyViolationTelemetryCollector createTelemetryCollector(boolean isScmEnabled) {
     PolicyViolationTelemetryCollector telemetryCollector =
         new PolicyViolationTelemetryCollector(policyWaiverDAO, telemetryUtils, isScmEnabled);
@@ -465,6 +513,8 @@ public class PolicyViolationTelemetryCollectorTest
     private Long openTime;
 
     private String waiverExpiration;
+
+    private PurlIdentifiersWithVulnerabilities reachablePurlIdentifiersWithVulnerabilities;
 
     TestablePolicyViolation(ComponentIdentifier componentIdentifier, String policyName) {
       this.component = new Component(componentIdentifier);
@@ -684,6 +734,13 @@ public class PolicyViolationTelemetryCollectorTest
       return this;
     }
 
+    TestablePolicyViolation withPurlIdentifiersWithVulnerabilities(
+        final PurlIdentifiersWithVulnerabilities purlIdentifiersWithVulnerabilities)
+    {
+      this.reachablePurlIdentifiersWithVulnerabilities = purlIdentifiersWithVulnerabilities;
+      return this;
+    }
+
     private String createPolicyId(String policyName) {
       return "ID_" + policyName;
     }
@@ -718,6 +775,10 @@ public class PolicyViolationTelemetryCollectorTest
       assertThat(attributes).containsEntry(STAGE, policyEvaluation.getStageTypeId());
       assertThat(attributes).containsEntry(THREAT_LEVEL, policyViolation.getThreatLevel());
       assertThat(attributes).containsEntry(THREAT_CATEGORY, policyViolation.getThreatCategory().getName());
+
+      ReachabilityStatus reachabilityStatus = policyViolation.getReachabilityStatus();
+      assertThat(attributes)
+          .containsEntry(REACHABILITY_STATUS, reachabilityStatus == null ? null : reachabilityStatus.getName());
     }
 
     void validateComponentInfo(Map<String, Object> attributes) {
@@ -781,6 +842,13 @@ public class PolicyViolationTelemetryCollectorTest
             validateMatchesOrNotExists(attributes, NEW_POLICY_VIOLATION_ID, replacementPolicyViolation.getId());
           }
           validateTimeAttribute(attributes, calculateExpectedUnwaiveTime());
+          break;
+
+        case CALLFLOW_EVALUATION_COMPONENT_COUNTS:
+          boolean evaluationSuccessful = reachablePurlIdentifiersWithVulnerabilities != null;
+          validateMatchesOrNotExists(attributes, CALL_FLOW_EVALUATION_SUCCESSFUL, evaluationSuccessful);
+          validateMatchesOrNotExists(attributes, CALL_FLOW_HAS_REACHABLE_INFORMATION_FOR_COMPONENT,
+              hasPolicyViolationByComponentIdentifier(policyViolation, reachablePurlIdentifiersWithVulnerabilities));
           break;
 
         default:
@@ -886,6 +954,7 @@ public class PolicyViolationTelemetryCollectorTest
       copy.setThreatCategory(original.getThreatCategory());
       copy.setThreatLevel(original.getThreatLevel());
       copy.setWaiveTime(original.getWaiveTime());
+      copy.setReachabilityStatus(original.getReachabilityStatus());
 
       return copy;
     }

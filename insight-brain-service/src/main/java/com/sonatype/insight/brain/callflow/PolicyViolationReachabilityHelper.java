@@ -92,6 +92,26 @@ public class PolicyViolationReachabilityHelper
         policyViolation.getApplicationId(), policyViolation.getId());
   }
 
+  /**
+   * Helper method to see whether the {@link PolicyViolation} was collected within
+   * {@link PurlIdentifiersWithVulnerabilities}
+   *
+   * @param policyViolation                    - the {@link PolicyViolation} to find
+   * @param purlIdentifiersWithVulnerabilities - the {@link PurlIdentifiersWithVulnerabilities} to check
+   * @return true if the {@link PolicyViolation} was found in the {@link PurlIdentifiersWithVulnerabilities}
+   */
+  public static boolean hasPolicyViolationByComponentIdentifier(
+      final PolicyViolation policyViolation,
+      final PurlIdentifiersWithVulnerabilities purlIdentifiersWithVulnerabilities)
+  {
+    return purlIdentifiersWithVulnerabilities != null &&
+        policyViolation != null &&
+        policyViolation.getComponentIdentifier() != null &&
+        purlIdentifiersWithVulnerabilities
+            .getVulnerabilitiesByPurlIdentifiers()
+            .containsKey(fromComponentIdentifier(policyViolation.getComponentIdentifier()));
+  }
+
   private static boolean isVulnerabilityReachable(
       final PolicyViolation policyViolation,
       final Map<PackageUrlIdentifier, Set<String>> purlIdentifiers)

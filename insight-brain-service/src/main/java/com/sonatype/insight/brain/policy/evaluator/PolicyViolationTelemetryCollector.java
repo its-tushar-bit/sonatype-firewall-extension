@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -25,6 +26,8 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+
+import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.hasPolicyViolationByComponentIdentifier;
 
 public class PolicyViolationTelemetryCollector
 {
@@ -65,6 +68,8 @@ public class PolicyViolationTelemetryCollector
 
   static final String THREAT_LEVEL = "threat_level";
 
+  static final String REACHABILITY_STATUS = "reachability_status";
+
   static final String TIME = "time";
 
   static final String UNWAIVE_TIME = "unwaive_time";
@@ -86,6 +91,11 @@ public class PolicyViolationTelemetryCollector
   static final String AUTO_POLICY_WAIVER_ID = "auto_policy_waiver_id";
 
   static final String FIX_BY_VERSION_CHANGE = "fix_by_version_change";
+
+  static final String CALL_FLOW_EVALUATION_SUCCESSFUL = "call_flow_evaluation_successful";
+
+  static final String CALL_FLOW_HAS_REACHABLE_INFORMATION_FOR_COMPONENT =
+      "call_flow_has_reachable_information_for_component";
 
   private final PolicyWaiverDAO policyWaiverDAO;
 
@@ -225,6 +235,26 @@ public class PolicyViolationTelemetryCollector
 
       telemetryDataList.add(telemetryData);
     }
+  }
+
+  public void addTelemetryForReachableViolation(
+      final PolicyViolation policyViolation,
+      final Component component,
+      final PurlIdentifiersWithVulnerabilities reachablePurlIdentifiersWithVulnerabilities)
+  {
+    TelemetryData telemetryData = createTelemetry(
+        TelemetryPurpose.CALLFLOW_EVALUATION_COMPONENT_COUNTS,
+        policyViolation,
+        component
+    );
+
+    // important to note that we don't add specific component/policy violation
+    // reachability status as that is being added through the createTelemetry method.
+    telemetryData.put(CALL_FLOW_EVALUATION_SUCCESSFUL, reachablePurlIdentifiersWithVulnerabilities != null);
+    telemetryData.put(CALL_FLOW_HAS_REACHABLE_INFORMATION_FOR_COMPONENT,
+        hasPolicyViolationByComponentIdentifier(policyViolation, reachablePurlIdentifiersWithVulnerabilities));
+
+    telemetryDataList.add(telemetryData);
   }
 
   public void setTimeOfPolicyEvaluation(final Date timeOfPolicyEvaluation) {

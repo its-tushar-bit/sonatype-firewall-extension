@@ -13,6 +13,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -61,6 +62,8 @@ public class PolicyViolationTelemetryBuilder
   static final String WAIVE_TIME = "waive_time";
 
   static final String LEGACY_VIOLATION_TIME = "legacy_violation_time";
+
+  static final String REACHABILITY_STATUS = "reachability_status";
 
   public static final String CVE_NUMBER = "cve_number";
 
@@ -122,6 +125,9 @@ public class PolicyViolationTelemetryBuilder
   }
 
   public TelemetryData build() {
+
+    ReachabilityStatus reachabilityStatus = policyViolation.getReachabilityStatus();
+
     telemetryData
         .put(APPLICATION_ID, HdsClientAnalytics.obfuscate(policyViolation.getApplicationId()))
         .put(COUNT, 1)
@@ -130,7 +136,8 @@ public class PolicyViolationTelemetryBuilder
         .put(POLICY_VIOLATION_ID, policyViolation.getId())
         .put(STAGE, policyViolation.getStageTypeId())
         .put(THREAT_CATEGORY, policyViolation.getThreatCategory().getName())
-        .put(THREAT_LEVEL, policyViolation.getThreatLevel());
+        .put(THREAT_LEVEL, policyViolation.getThreatLevel())
+        .put(REACHABILITY_STATUS, reachabilityStatus == null ? null : reachabilityStatus.getName());
 
     telemetryUtils.includeRealApplicationId(telemetryData.getAttributes(), policyViolation.getApplicationId());
     addSecurityVulnerabilityMetadataIfNeeded(telemetryData, policyViolation);

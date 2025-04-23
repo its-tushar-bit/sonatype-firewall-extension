@@ -19,19 +19,34 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrlProvider;
 import com.sonatype.insight.brain.telemetry.ClusterIdentificationService.IdResolutionResult;
 import com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.hash.Hashing;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.CORRUPTED_TELEMETRY_PREFIX;
 import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.DEFAULT_CLUSTER_IDENTIFICATION_ID;
+import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.BASE_URL_CHANGED;
+import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.DB_CONNECTION_INFO_CHANGED;
+import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.INITIALIZED;
+import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.INITIALIZED_AS_NEW_INSTANCE;
+import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.INITIALIZED_WITH_HOST_CORRECTION;
+import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.NEW_INSTANCE_DETECTED;
+import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.NO_CHANGE;
+import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.TAMPERING_DETECTED;
+import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.TAMPERING_DETECTED_AND_CORRECTED;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ClusterIdentificationServiceTest
@@ -46,6 +61,9 @@ public class ClusterIdentificationServiceTest
   @Mock
   private BaseUrlProvider mockBaseUrlProvider;
 
+  @Mock
+  private TelemetryQueue mockTelemetryQueue;
+
   private ClusterIdentificationService testSubject;
 
   private Date testStartTime;
@@ -55,7 +73,12 @@ public class ClusterIdentificationServiceTest
   @Before
   public void setup() {
     MockitoAnnotations.openMocks(this);
-    testSubject = new ClusterIdentificationService(mockApplicationDAO, mockBaseUrlProvider, clusterIdentificationDAO);
+    testSubject = new ClusterIdentificationService(
+        mockApplicationDAO,
+        mockBaseUrlProvider,
+        clusterIdentificationDAO,
+        mockTelemetryQueue
+    );
     testStartTime = new Date();
     updateTime = null;
   }
@@ -78,11 +101,13 @@ public class ClusterIdentificationServiceTest
     var result = testSubject.resolveClusterIdentity(calculatedClusterId, generatedTelemetryId);
 
     // then: should have initialized as a new instance
-    assertThat(result.outcome()).isEqualTo(ResolutionOutcome.INITIALIZED_AS_NEW_INSTANCE);
+    assertThat(result.outcome()).isEqualTo(INITIALIZED_AS_NEW_INSTANCE);
     validateCalculatedIdsReplaced(result, calculatedClusterId, generatedTelemetryId);
 
     // the persisted cluster identification record matches what we expect
     validatePersistedClusterIdentification(result, baseUrl, calculatedClusterId);
+
+    validateTelemetry(INITIALIZED_AS_NEW_INSTANCE);
   }
 
   @Test
@@ -99,11 +124,12 @@ public class ClusterIdentificationServiceTest
     var result = testSubject.resolveClusterIdentity(calculatedClusterId, generatedTelemetryId);
 
     // then: should have initialized as a new instance
-    assertThat(result.outcome()).isEqualTo(ResolutionOutcome.INITIALIZED_AS_NEW_INSTANCE);
+    assertThat(result.outcome()).isEqualTo(INITIALIZED_AS_NEW_INSTANCE);
     validateCalculatedIdsReplaced(result, calculatedClusterId, generatedTelemetryId);
 
     // the persisted cluster identification record matches what we expect
     validatePersistedClusterIdentification(result, baseUrl, calculatedClusterId);
+    validateTelemetry(INITIALIZED_AS_NEW_INSTANCE);
   }
 
   @Test
@@ -120,11 +146,12 @@ public class ClusterIdentificationServiceTest
     var result = testSubject.resolveClusterIdentity(calculatedClusterId, generatedTelemetryId);
 
     // then: should have initialized with the calculated IDs
-    assertThat(result.outcome()).isEqualTo(ResolutionOutcome.INITIALIZED);
+    assertThat(result.outcome()).isEqualTo(INITIALIZED);
     validateProvidedIdsPreserved(result, calculatedClusterId, generatedTelemetryId);
 
     // and the persisted cluster identification record matches what we expect
     validatePersistedClusterIdentification(result, baseUrl, calculatedClusterId);
+    validateTelemetry(INITIALIZED);
   }
 
   @Test
@@ -141,11 +168,12 @@ public class ClusterIdentificationServiceTest
     var result = testSubject.resolveClusterIdentity(calculatedClusterId, corruptedTelemetryId);
 
     // then: should have initialized with the calculated IDs
-    assertThat(result.outcome()).isEqualTo(ResolutionOutcome.INITIALIZED_WITH_HOST_CORRECTION);
+    assertThat(result.outcome()).isEqualTo(INITIALIZED_WITH_HOST_CORRECTION);
     validateCorruptedTelemetryIdFixed(result, calculatedClusterId, corruptedTelemetryId);
 
     // and the persisted cluster identification record matches what we expect
     validatePersistedClusterIdentification(result, baseUrl, calculatedClusterId);
+    validateTelemetry(INITIALIZED_WITH_HOST_CORRECTION);
   }
 
   @Test
@@ -162,11 +190,12 @@ public class ClusterIdentificationServiceTest
     var result = testSubject.resolveClusterIdentity(calculatedClusterId, generatedTelemetryId);
 
     // then: should have initialized as a new instance
-    assertThat(result.outcome()).isEqualTo(ResolutionOutcome.INITIALIZED_AS_NEW_INSTANCE);
+    assertThat(result.outcome()).isEqualTo(INITIALIZED_AS_NEW_INSTANCE);
     validateCalculatedIdsReplaced(result, calculatedClusterId, generatedTelemetryId);
 
     // the persisted cluster identification record matches what we expect
     validatePersistedClusterIdentification(result, baseUrl, calculatedClusterId);
+    validateTelemetry(INITIALIZED_AS_NEW_INSTANCE);
   }
 
   @Test
@@ -187,11 +216,12 @@ public class ClusterIdentificationServiceTest
     var result = testSubject.resolveClusterIdentity(nullClusterId, generatedTelemetryId);
 
     // then: should have initialized with the calculated IDs
-    assertThat(result.outcome()).isEqualTo(ResolutionOutcome.DB_CONNECTION_INFO_CHANGED);
+    assertThat(result.outcome()).isEqualTo(DB_CONNECTION_INFO_CHANGED);
     validateAssignedIdsPreserved(result, assignedClusterId, assignedTelemetryId);
 
     // and the persisted cluster identification record matches what we expect
     validatePersistedClusterIdentification(result, baseUrl, nullClusterId);
+    validateTelemetry(DB_CONNECTION_INFO_CHANGED);
   }
 
   @Test
@@ -212,11 +242,12 @@ public class ClusterIdentificationServiceTest
     var result = testSubject.resolveClusterIdentity(calculatedClusterId, generatedTelemetryId);
 
     // then: the calculated IDs and tamper code weren't changed and the base URL hash was updated
-    assertThat(result.outcome()).isEqualTo(ResolutionOutcome.BASE_URL_CHANGED);
+    assertThat(result.outcome()).isEqualTo(BASE_URL_CHANGED);
     validateAssignedIdsPreserved(result, assignedClusterId, assignedTelemetryId);
     validatePersistedClusterIdentification(result, newBaseUrl, calculatedClusterId);
     validateTamperCodeUnchanged(ogClusterIdentification);
     validateBaseUrlHashUpdated(ogClusterIdentification);
+    validateTelemetry(BASE_URL_CHANGED);
   }
 
   @Test
@@ -230,14 +261,15 @@ public class ClusterIdentificationServiceTest
         initializeClusterIdentificationWithApps(calculatedClusterId, generatedTelemetryId);
 
     // when: the calculated cluster ID changes
-    final var newCalculatedClusterdId = createHash("some.other.db.config");
-    var result = testSubject.resolveClusterIdentity(newCalculatedClusterdId, generatedTelemetryId);
+    final var newCalculatedClusterId = createHash("some.other.db.config");
+    var result = testSubject.resolveClusterIdentity(newCalculatedClusterId, generatedTelemetryId);
 
     // then: the calculated IDs and tamper code weren't changed and the last calculated cluster ID was updated
-    assertThat(result.outcome()).isEqualTo(ResolutionOutcome.DB_CONNECTION_INFO_CHANGED);
+    assertThat(result.outcome()).isEqualTo(DB_CONNECTION_INFO_CHANGED);
     validateProvidedIdsPreserved(result, calculatedClusterId, generatedTelemetryId);
-    validatePersistedClusterIdentification(result, baseUrl, newCalculatedClusterdId);
+    validatePersistedClusterIdentification(result, baseUrl, newCalculatedClusterId);
     validateTamperCodeUnchanged(ogClusterIdentification);
+    validateTelemetry(DB_CONNECTION_INFO_CHANGED);
   }
 
   @Test
@@ -258,11 +290,12 @@ public class ClusterIdentificationServiceTest
     var result = testSubject.resolveClusterIdentity(newCalculatedClusterId, generatedTelemetryId);
 
     // then: new ids were generated previous IDs were sent in telemetry
-    assertThat(result.outcome()).isEqualTo(ResolutionOutcome.NEW_INSTANCE_DETECTED);
+    assertThat(result.outcome()).isEqualTo(NEW_INSTANCE_DETECTED);
     validateNewIdsCreated(result, ogAssignedClusterId, ogAssignedTelemetryId);
     validatePersistedClusterIdentification(result, newBaseUrl, newCalculatedClusterId);
     validateTamperCodeUpdated();
     validateBaseUrlHashUpdated(ogClusterIdentification);
+    validateTelemetry(NEW_INSTANCE_DETECTED);
   }
 
   @Test
@@ -282,10 +315,11 @@ public class ClusterIdentificationServiceTest
     var result = testSubject.resolveClusterIdentity(calculatedClusterId, generatedTelemetryId);
 
     // then: the calculated IDs and tamper code weren't changed and the last calculated cluster ID was updated
-    assertThat(result.outcome()).isEqualTo(ResolutionOutcome.NO_CHANGE);
+    assertThat(result.outcome()).isEqualTo(NO_CHANGE);
     validateAssignedIdsPreserved(result, ogAssignedClusterId, ogAssignedTelemetryId);
     validatePersistedClusterIdentification(result, baseUrl, calculatedClusterId);
     validateTamperCodeUnchanged(ogClusterIdentification);
+    validateTelemetry(NO_CHANGE);
   }
 
   @Test
@@ -305,10 +339,11 @@ public class ClusterIdentificationServiceTest
     var result = testSubject.resolveClusterIdentity(calculatedClusterId, generatedTelemetryId);
 
     // then: the calculated IDs and tamper code weren't changed and the last calculated cluster ID was updated
-    assertThat(result.outcome()).isEqualTo(ResolutionOutcome.NO_CHANGE);
+    assertThat(result.outcome()).isEqualTo(NO_CHANGE);
     validateAssignedIdsPreserved(result, ogAssignedClusterId, ogAssignedTelemetryId);
     validatePersistedClusterIdentification(result, baseUrl, calculatedClusterId);
     validateTamperCodeUnchanged(ogClusterIdentification);
+    validateTelemetry(NO_CHANGE);
   }
 
   @Test
@@ -328,9 +363,10 @@ public class ClusterIdentificationServiceTest
     var result = testSubject.resolveClusterIdentity(calculatedClusterId, generatedTelemetryId);
 
     // then: the tampered IDs were preserved and the last calculated cluster ID was updated
-    assertThat(result.outcome()).isEqualTo(ResolutionOutcome.TAMPERING_DETECTED);
+    assertThat(result.outcome()).isEqualTo(TAMPERING_DETECTED);
     validateAssignedIdsPreserved(result, validTamperedClusterId, validTamperedTelemetryId);
     validatePersistedClusterIdentification(result, baseUrl, calculatedClusterId);
+    validateTelemetry(TAMPERING_DETECTED);
   }
 
   @Test
@@ -351,10 +387,11 @@ public class ClusterIdentificationServiceTest
     var result = testSubject.resolveClusterIdentity(newCalculatedClusterId, newGeneratedTelemetryId);
 
     // then: the invalid IDs were changed to the new calculated values
-    assertThat(result.outcome()).isEqualTo(ResolutionOutcome.TAMPERING_DETECTED_AND_CORRECTED);
+    assertThat(result.outcome()).isEqualTo(TAMPERING_DETECTED_AND_CORRECTED);
     assertThat(result.assignedClusterId()).isEqualTo(newCalculatedClusterId);
     assertThat(result.assignedTelemetryId()).isEqualTo(newGeneratedTelemetryId);
     validatePersistedClusterIdentification(result, baseUrl, newCalculatedClusterId);
+    validateTelemetry(TAMPERING_DETECTED_AND_CORRECTED);
   }
 
   private void tamperWithAssignedIdentifiers(
@@ -415,6 +452,7 @@ public class ClusterIdentificationServiceTest
   {
     testSubject.resolveClusterIdentity(calculatedClusterId, generatedTelemetryId);
     updateTime = new Date(); // update clock starts now
+    reset(mockTelemetryQueue);
     return clusterIdentificationDAO.getById(DEFAULT_CLUSTER_IDENTIFICATION_ID);
   }
 
@@ -540,6 +578,24 @@ public class ClusterIdentificationServiceTest
 
     assertThat(clusterIdentification.getBaseUrlHash()).isNotNull();
     assertThat(clusterIdentification.getBaseUrlHash()).isNotEqualTo(actualBaseUrl);
+  }
+
+  private void validateTelemetry(ResolutionOutcome expectedOutcome) {
+    ArgumentCaptor<TelemetryData> captor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetryQueue).add(captor.capture());
+
+    TelemetryData capturedData = captor.getValue();
+    assertThat(capturedData.getPurpose()).isEqualTo(TelemetryPurpose.CLUSTER_IDENTITY);
+    assertThat(capturedData.getAttributes())
+        .containsEntry(ClusterIdentificationService.RESOLUTION_OUTCOME, expectedOutcome.name());
+
+    verify(mockTelemetryQueue, never()).flush();
+
+    // when: send the telemetry
+    testSubject.sendTelemetry();
+
+    // then:
+    verify(mockTelemetryQueue, times(1)).flush();
   }
 
   private void withBaseUrl(String baseUrl) {

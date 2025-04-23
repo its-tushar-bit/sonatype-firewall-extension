@@ -20,12 +20,22 @@ import com.sonatype.insight.brain.model.telemetry.ClusterIdentification;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.service.BaseUrlProvider;
 import com.sonatype.insight.scan.util.HashUtils;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.*;
+import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.BASE_URL_CHANGED;
+import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.DB_CONNECTION_INFO_CHANGED;
+import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.INITIALIZED;
+import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.INITIALIZED_AS_NEW_INSTANCE;
+import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.INITIALIZED_WITH_HOST_CORRECTION;
+import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.NEW_INSTANCE_DETECTED;
+import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.NO_CHANGE;
+import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.TAMPERING_DETECTED;
+import static com.sonatype.insight.brain.telemetry.ClusterIdentificationService.ResolutionOutcome.TAMPERING_DETECTED_AND_CORRECTED;
 import static java.lang.String.format;
 
 @Named
@@ -38,6 +48,8 @@ public class ClusterIdentificationService
   // to manually tamper with the data without being detected
   private static final String HASH_SALT = "ce8432b0-a89f-4871-9400-02ae3fb6a094";
 
+  public static final String RESOLUTION_OUTCOME = "outcome";
+
   static final Pattern CLUSTER_ID_HASH_PATTERN = Pattern.compile("^[0-9a-f]{128}$");
 
   static final Pattern CLUSTER_ID_UUID_PATTERN = Pattern.compile(format("^%1$s{8}-(%1$s{4}-){3}%1$s{12}$", "[0-9a-f]"));
@@ -46,7 +58,17 @@ public class ClusterIdentificationService
 
   static final String CORRUPTED_TELEMETRY_PREFIX = "****-";
 
+  static final TelemetryPurpose TELEMETRY_PURPOSE = TelemetryPurpose.CLUSTER_IDENTITY;
+
+  static final String CLUSTER_ID_CORRECTED = "cluster_id_corrected";
+
   static final String DEFAULT_CLUSTER_IDENTIFICATION_ID = "DEFAULT_CLUSTER_IDENTIFICATION_ID";
+
+  static final String PREVIOUS_CLUSTER_ID = "previous_cluster_id";
+
+  static final String PREVIOUS_TELEMETRY_ID = "previous_telemetry_id";
+
+  static final String TELEMETRY_HOST_CORRECTED = "telemetry_host_corrected";
 
   public enum ResolutionOutcome
   {
@@ -67,15 +89,19 @@ public class ClusterIdentificationService
 
   private final ClusterIdentificationDAO clusterIdentificationDAO;
 
+  private final TelemetryQueue telemetryQueue;
+
   @Inject
   public ClusterIdentificationService(
       ApplicationDAO applicationDAO,
       BaseUrlProvider baseUrlProvider,
-      ClusterIdentificationDAO clusterIdentificationDAO)
+      ClusterIdentificationDAO clusterIdentificationDAO,
+      TelemetryQueue telemetryQueue)
   {
     this.applicationDAO = applicationDAO;
     this.baseUrlProvider = baseUrlProvider;
     this.clusterIdentificationDAO = clusterIdentificationDAO;
+    this.telemetryQueue = telemetryQueue;
   }
 
   /**
@@ -135,16 +161,26 @@ public class ClusterIdentificationService
 
     // otherwise, no changes, return the existing cluster identity
     log.info("Cluster identity loaded");
+    addTelemetryForNoChange();
+
     return new IdResolutionResult(
         clusterIdentification.getAssignedClusterId(),
         clusterIdentification.getAssignedTelemetryId(),
         NO_CHANGE);
   }
 
+  public void sendTelemetry() {
+    telemetryQueue.flush();
+  }
+
   @VisibleForTesting
   String calculateTamperCode(ClusterIdentification clusterIdentification) {
     return hashWithSalt(
         clusterIdentification.getAssignedClusterId() + clusterIdentification.getAssignedTelemetryId());
+  }
+
+  private TelemetryData createTelemetryData(ResolutionOutcome outcome) {
+    return new TelemetryData(TELEMETRY_PURPOSE).put(RESOLUTION_OUTCOME, outcome.name());
   }
 
   private boolean correctTelemetryHostIfNeeded(ClusterIdentification clusterIdentification) {
@@ -192,6 +228,8 @@ public class ClusterIdentificationService
     log.warn("Cluster identity tampering detected, cluster ID reset = {}, host corrected = {}", wasClusterIdCorrected,
         wasTelemetryHostCorrected);
 
+    addTelemetryForTampering(wasClusterIdCorrected, wasTelemetryHostCorrected);
+
     return new IdResolutionResult(
         clusterIdentification.getAssignedClusterId(),
         clusterIdentification.getAssignedTelemetryId(),
@@ -209,6 +247,7 @@ public class ClusterIdentificationService
     clusterIdentificationDAO.update(clusterIdentification);
 
     log.info("Cluster identity base URL changed");
+    addTelemetryForBaseUrlChange();
 
     return new IdResolutionResult(
         clusterIdentification.getAssignedClusterId(),
@@ -227,6 +266,7 @@ public class ClusterIdentificationService
     clusterIdentificationDAO.update(clusterIdentification);
 
     log.info("Cluster identity DB connection info changed");
+    addTelemetryForDbConnectionInfoChange();
 
     return new IdResolutionResult(
         clusterIdentification.getAssignedClusterId(),
@@ -246,6 +286,8 @@ public class ClusterIdentificationService
   {
     var newClusterId = createNewClusterId();
     var newTelemetryId = createNewTelemetryId(newClusterId, calculatedTelemetryId);
+    var previousClusterId = clusterIdentification.getAssignedClusterId();
+    var previousTelemetryId = clusterIdentification.getAssignedTelemetryId();
     clusterIdentification.setAssignedClusterId(newClusterId);
     clusterIdentification.setAssignedTelemetryId(newTelemetryId);
     clusterIdentification.setLastCalculatedClusterId(calculatedClusterId);
@@ -255,6 +297,7 @@ public class ClusterIdentificationService
     clusterIdentificationDAO.update(clusterIdentification);
 
     log.info("Cluster identity generated for new instance");
+    addTelemetryForNewInstance(previousClusterId, previousTelemetryId);
 
     return new IdResolutionResult(newClusterId, newTelemetryId, NEW_INSTANCE_DETECTED);
   }
@@ -300,6 +343,7 @@ public class ClusterIdentificationService
     clusterIdentificationDAO.insert(clusterIdentification);
 
     log.info("Cluster identity initialized for the first time");
+    addTelemetryForInitialClusterIdentification(outcome);
 
     return new IdResolutionResult(
         clusterIdentification.getAssignedClusterId(),
@@ -315,6 +359,38 @@ public class ClusterIdentificationService
 
   private String createNewClusterId() {
     return UUID.randomUUID().toString();
+  }
+
+  private void addTelemetryForBaseUrlChange() {
+    telemetryQueue.add(createTelemetryData(ResolutionOutcome.BASE_URL_CHANGED));
+  }
+
+  private void addTelemetryForDbConnectionInfoChange() {
+    telemetryQueue.add(createTelemetryData(ResolutionOutcome.DB_CONNECTION_INFO_CHANGED));
+  }
+
+  private void addTelemetryForInitialClusterIdentification(ResolutionOutcome outcome) {
+    telemetryQueue.add(createTelemetryData(outcome));
+  }
+
+  private void addTelemetryForNewInstance(String previousClusterId, String previousTelemetryId) {
+    var telemetryData = createTelemetryData(ResolutionOutcome.NEW_INSTANCE_DETECTED)
+        .put(PREVIOUS_CLUSTER_ID, previousClusterId)
+        .put(PREVIOUS_TELEMETRY_ID, previousTelemetryId);
+    telemetryQueue.add(telemetryData);
+  }
+
+  private void addTelemetryForNoChange() {
+    telemetryQueue.add(createTelemetryData(ResolutionOutcome.NO_CHANGE));
+  }
+
+  private void addTelemetryForTampering(boolean wasClusterIdCorrected, boolean wasTelemetryHostCorrected) {
+    final var corrected = wasClusterIdCorrected || wasTelemetryHostCorrected;
+    telemetryQueue.add(
+        createTelemetryData(corrected ? TAMPERING_DETECTED_AND_CORRECTED : TAMPERING_DETECTED)
+            .put(CLUSTER_ID_CORRECTED, wasClusterIdCorrected)
+            .put(TELEMETRY_HOST_CORRECTED, wasTelemetryHostCorrected)
+    );
   }
 
   /**
@@ -344,8 +420,7 @@ public class ClusterIdentificationService
     }
   }
 
-  public record IdResolutionResult(String assignedClusterId, String assignedTelemetryId,
-                                          ResolutionOutcome outcome)
+  public record IdResolutionResult(String assignedClusterId, String assignedTelemetryId, ResolutionOutcome outcome)
   {
   }
 }

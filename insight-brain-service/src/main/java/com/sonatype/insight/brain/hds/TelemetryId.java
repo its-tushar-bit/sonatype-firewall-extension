@@ -93,6 +93,10 @@ public class TelemetryId
 
       clusterIdentity = new ClusterIdentity(resolvedIds.assignedClusterId(), resolvedIds.assignedTelemetryId());
       tenantClusterIdentity.set(clusterIdentity);
+
+      // the clusterIdentificationService can queue up telemetry to be sent once the identity is fully resolved and
+      // set, which just happened above, so we can send that telemetry now
+      clusterIdentificationService.sendTelemetry();
     }
     return clusterIdentity;
   }

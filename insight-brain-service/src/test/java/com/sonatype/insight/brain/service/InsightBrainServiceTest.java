@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.FIPSModeDetector;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.telemetry.ClusterIdentificationService;
 import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
 import com.sonatype.insight.brain.telemetry.DatabaseTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.DefaultTelemetryScheduler;
@@ -105,7 +106,8 @@ public class InsightBrainServiceTest
       TelemetryPurpose.SOURCE_CONTROL_RATE_LIMITS, TelemetryPurpose.ROLE_USAGE, TelemetryPurpose.RUNTIME_ENVIRONMENT,
       TelemetryPurpose.REPOSITORY_CONFIGURATION, TelemetryPurpose.CLUSTER_USAGE, TelemetryPurpose.REAL_OWNER_IDS,
       TelemetryPurpose.REAL_OWNER_IDS, // One for apps and another for organizations
-      TelemetryPurpose.APPLICATION_CATEGORY
+      TelemetryPurpose.APPLICATION_CATEGORY,
+      TelemetryPurpose.CLUSTER_IDENTITY
   };
 
   @Rule
@@ -224,6 +226,10 @@ public class InsightBrainServiceTest
         case APPLICATION_CATEGORY:
           assertThat(telemetryDataReceived.getAttributes())
               .containsKey(DATA_LIST);
+          break;
+        case CLUSTER_IDENTITY:
+          assertThat(telemetryDataReceived.getAttributes())
+              .containsKey(ClusterIdentificationService.RESOLUTION_OUTCOME);
           break;
         default:
           fail("Unexpected telemetry purpose: " + telemetryPurpose);

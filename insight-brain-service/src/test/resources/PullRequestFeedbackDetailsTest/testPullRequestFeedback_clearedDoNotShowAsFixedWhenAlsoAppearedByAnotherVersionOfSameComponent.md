@@ -9,7 +9,7 @@
 
 Threat (of 10) | Policy | Violation Details
 --- | --- | --- |
-9 | policy-name-1 | <b>policy-violation-1-constraint:</b><ul><li>Found security vulnerability: [CVE-2024-1](http://localhost:1122/ui/links/vln/CVE-2024-1)</li></ul>
+9 | policy-name-1 | <b>policy-violation-1-constraint:</b><ul><li>Found 1 security vulnerability: [CVE-2024-1](http://localhost:1122/ui/links/vln/CVE-2024-1)</li></ul>
 
 </details>
 

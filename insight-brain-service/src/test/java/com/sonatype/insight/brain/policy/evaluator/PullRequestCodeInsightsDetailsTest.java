@@ -187,7 +187,7 @@ public class PullRequestCodeInsightsDetailsTest
         0);
     assertAnnotation(annotations, BitbucketCodeInsightSeverity.HIGH,
         "10 - Unlikely Test Policy - com.h2database : h2 : 1.4.190",
-        "Nonsensical Constraint: Found security vulnerability: CVE-2018-14335",
+        "Nonsensical Constraint: Found 1 security vulnerability: CVE-2018-14335",
         "/pom.xml", 19,
         22);
     assertAnnotation(annotations, BitbucketCodeInsightSeverity.LOW,
@@ -234,7 +234,7 @@ public class PullRequestCodeInsightsDetailsTest
         0);
     assertAnnotation(annotations, BitbucketCodeInsightSeverity.HIGH,
         "10 - Unlikely Test Policy - com.h2database : h2 : 1.4.190",
-        "Nonsensical Constraint: Found security vulnerability: CVE-2018-14335",
+        "Nonsensical Constraint: Found 1 security vulnerability: CVE-2018-14335",
         null, null,
         22);
     assertAnnotation(annotations, BitbucketCodeInsightSeverity.LOW,
@@ -300,7 +300,7 @@ public class PullRequestCodeInsightsDetailsTest
         0);
     assertAnnotation(annotations, BitbucketCodeInsightSeverity.HIGH,
         "10 - Unlikely Test Policy - com.h2database : h2 : 1.4.190",
-        "Nonsensical Constraint: Found security vulnerability: CVE-2018-14335",
+        "Nonsensical Constraint: Found 1 security vulnerability: CVE-2018-14335",
         22);
     assertAnnotation(annotations, BitbucketCodeInsightSeverity.LOW,
         "2 - Component-Unknown - webgoat-server-8.0.0.M1.jar",

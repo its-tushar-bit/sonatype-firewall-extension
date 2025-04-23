@@ -11,7 +11,7 @@ com.test : component-1 : 0.0.1</b></summary>
 
 Threat (of 10) | Policy | Violation Details
 --- | --- | --- |
-7 | policy-name-2 | <b>policy-violation-2-constraint:</b><ul><li>Found security vulnerability: [CVE-2024-2](http://localhost:1122/ui/links/vln/CVE-2024-2)</li></ul>
+7 | policy-name-2 | <b>policy-violation-2-constraint:</b><ul><li>Found 1 security vulnerability: [CVE-2024-2](http://localhost:1122/ui/links/vln/CVE-2024-2)</li></ul>
 
   [Component detail 🔍](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/toScanId/componentDetails/component-1-hash?source=pr-commenting)
 </details>

@@ -192,7 +192,7 @@ public class PullRequestDetailsBaseTest
     //Then
     assertThat(results).hasSize(4);
     assertThat(results).contains("Identification Reason", "Licence Reason", "Label Reason");
-    assertThat(results.get(0)).startsWith("Found security vulnerabilities");
+    assertThat(results.get(0)).startsWith("Found 2 security vulnerabilities");
   }
 
   @Test
@@ -221,7 +221,7 @@ public class PullRequestDetailsBaseTest
     //Then
     assertThat(results).hasSize(4);
     assertThat(results).contains("Identification Reason", "Licence Reason", "Label Reason");
-    assertThat(results.get(0)).startsWith("Found security vulnerabilities");
+    assertThat(results.get(0)).startsWith("Found 2 security vulnerabilities");
   }
 
   @Test
@@ -237,7 +237,7 @@ public class PullRequestDetailsBaseTest
 
     //Then
     assertThat(results).hasSize(1);
-    assertThat(results.get(0)).startsWith("Found security vulnerability");
+    assertThat(results.get(0)).startsWith("Found 1 security vulnerability");
   }
 
   @Test
@@ -289,8 +289,8 @@ public class PullRequestDetailsBaseTest
 
     //then
     assertThat(result).isNotEmpty();
-    assertThat(result.get())
-        .isEqualTo("Found security vulnerability: [CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123)");
+    assertThat(result.get()).isEqualTo(
+        "Found 1 security vulnerability: [CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123)");
   }
 
   @Test
@@ -305,8 +305,8 @@ public class PullRequestDetailsBaseTest
 
     //then
     assertThat(result).isNotEmpty();
-    assertThat(result.get())
-        .isEqualTo("Found security vulnerability: [CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123)");
+    assertThat(result.get()).isEqualTo(
+        "Found 1 security vulnerability: [CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123)");
   }
 
   @Test
@@ -322,8 +322,8 @@ public class PullRequestDetailsBaseTest
 
     //then
     assertThat(result).isNotEmpty();
-    assertThat(result.get())
-        .isEqualTo("Found security vulnerability: [CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123)");
+    assertThat(result.get()).isEqualTo(
+        "Found 1 security vulnerability: [CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123)");
   }
 
   @Test
@@ -342,7 +342,7 @@ public class PullRequestDetailsBaseTest
     //then
     assertThat(result).isNotEmpty();
     assertThat(result.get()).isEqualTo(
-        "Found security vulnerabilities: [CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123), " +
+        "Found 2 security vulnerabilities: [CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123), " +
             "[CVE-456-456](http://localhost:1122/ui/links/vln/CVE-456-456)");
   }
 
@@ -362,7 +362,7 @@ public class PullRequestDetailsBaseTest
     //then
     assertThat(result).isNotEmpty();
     assertThat(result.get()).isEqualTo(
-        "Found security vulnerabilities: [CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123), " +
+        "Found 2 security vulnerabilities: [CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123), " +
             "[CVE-456-456](http://localhost:1122/ui/links/vln/CVE-456-456)");
   }
 
@@ -383,7 +383,7 @@ public class PullRequestDetailsBaseTest
     //then
     assertThat(result).isNotEmpty();
     assertThat(result.get()).isEqualTo(
-        "Found security vulnerabilities: [CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123), " +
+        "Found 2 security vulnerabilities: [CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123), " +
             "[CVE-456-456](http://localhost:1122/ui/links/vln/CVE-456-456)");
   }
 
@@ -403,7 +403,7 @@ public class PullRequestDetailsBaseTest
     final String result = PullRequestDetailsBase.getSecurityPrefix(Lists.newArrayList(""));
 
     //then
-    assertThat(result).isEqualTo("Found security vulnerability:");
+    assertThat(result).isEqualTo("Found 1 security vulnerability:");
   }
 
   @Test
@@ -412,7 +412,7 @@ public class PullRequestDetailsBaseTest
     final String result = PullRequestDetailsBase.getSecurityPrefix(Lists.newArrayList("", ""));
 
     //then
-    assertThat(result).isEqualTo("Found security vulnerabilities:");
+    assertThat(result).isEqualTo("Found 2 security vulnerabilities:");
   }
 
   @Test

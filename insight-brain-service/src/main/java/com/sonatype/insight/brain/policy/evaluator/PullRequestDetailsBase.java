@@ -142,9 +142,10 @@ public class PullRequestDetailsBase
         .distinct()
         .collect(Collectors.toList());
 
-    if (securityConditionDescriptions.size() == 0) {
+    if (securityConditionDescriptions.isEmpty()) {
       return Optional.empty();
     }
+
     return Optional.of(String.format("%s %s", getSecurityPrefix(securityConditionDescriptions),
         String.join(", ", securityConditionDescriptions)));
   }
@@ -154,7 +155,7 @@ public class PullRequestDetailsBase
     if (securityConditionDescriptions.isEmpty()) {
       return "";
     }
-    return String.format("Found security %s:",
+    return String.format("Found %d security %s:", securityConditionDescriptions.size(),
         securityConditionDescriptions.size() == 1 ? "vulnerability" : "vulnerabilities");
   }
 

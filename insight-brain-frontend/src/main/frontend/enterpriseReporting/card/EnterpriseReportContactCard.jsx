@@ -10,7 +10,7 @@ import { NxFontAwesomeIcon, NxH3, NxCard } from '@sonatype/react-shared-componen
 import { faExternalLink } from '@fortawesome/pro-regular-svg-icons';
 
 export default function EnterpriseReportContactCard(props) {
-  const { imgSrc, description, title, buttonText, linkUrl, external } = props;
+  const { icon, description, title, buttonText, linkUrl, external } = props;
 
   return (
     <NxCard className="iq-enterprise-reporting-card iq-enterprise-reporting-card--contact">
@@ -18,8 +18,8 @@ export default function EnterpriseReportContactCard(props) {
         <NxH3 className="iq-enterprise-reporting-card__title">{title}</NxH3>
       </NxCard.Header>
       <NxCard.Content>
-        <NxCard.CallOut className="iq-enterprise-reporting-card__icon--contact">
-          <img src={imgSrc} alt="" />
+        <NxCard.CallOut className="iq-enterprise-reporting-card__icon iq-enterprise-reporting-card__icon--contact">
+          <NxFontAwesomeIcon icon={icon} />
         </NxCard.CallOut>
         <NxCard.Text className="iq-enterprise-reporting-card__description contact-card">{description}</NxCard.Text>
       </NxCard.Content>
@@ -37,7 +37,7 @@ export default function EnterpriseReportContactCard(props) {
 }
 
 EnterpriseReportContactCard.propTypes = {
-  imgSrc: PropTypes.string,
+  icon: PropTypes.object,
   title: PropTypes.string,
   description: PropTypes.string,
   buttonText: PropTypes.string,

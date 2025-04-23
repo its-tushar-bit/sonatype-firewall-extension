@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 @use "sass:math";
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
 enterprise-reporting-landing-page {
   display: contents;
@@ -31,7 +32,7 @@ enterprise-reporting-landing-page {
     }
 
     &__page-description {
-      padding: 4px;
+      padding: var(--nx-spacing-base);
     }
 
     &__advanced-reporting {
@@ -78,7 +79,10 @@ enterprise-reporting-landing-page {
   &__icon--contact {
     position: absolute;
     left: var(--nx-spacing-6x);
-    top: var(--nx-spacing-6x);
+    background: var(--nx-gradient-sonatype-platform);
+    @include nx-dark-mode-helpers.dark-mode {
+      color: var(--nx-swatch-indigo-05);
+    }
   }
 
   &__button {

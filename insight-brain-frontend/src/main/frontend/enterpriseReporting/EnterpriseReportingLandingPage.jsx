@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
-import classnames from 'classnames';
 import {
   NxFontAwesomeIcon,
   NxH1,
@@ -19,6 +18,8 @@ import {
   NxStatefulInfoAlert,
 } from '@sonatype/react-shared-components';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import { faCalendar } from '@fortawesome/free-regular-svg-icons';
+import { faLightbulbOn, faQuestionCircle } from '@fortawesome/pro-regular-svg-icons';
 import EnterpriseReportCard from 'MainRoot/enterpriseReporting/card/EnterpriseReportCard';
 import EnterpriseReportContactCard from 'MainRoot/enterpriseReporting/card/EnterpriseReportContactCard';
 import { useDispatch, useSelector } from 'react-redux';
@@ -29,9 +30,6 @@ import {
   selectEnterpriseReportingLicenseError,
   selectLoadingFeatures,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import ScheduleDiscussion from './img/schedule-discussion.svg';
-import SuggestImprovement from './img/suggest-improvement.svg';
-import ReceiveSupport from './img/receive-support.svg';
 
 export default function EnterpriseReportingLandingPage() {
   const dispatch = useDispatch();
@@ -131,7 +129,7 @@ export default function EnterpriseReportingLandingPage() {
       <NxH2 className="iq-enterprise-reporting__header--contact">Contact Us</NxH2>
       <NxCard.Container className="iq-enterprise-reporting-card__container iq-enterprise-reporting__contactus">
         <EnterpriseReportContactCard
-          imgSrc={ScheduleDiscussion}
+          icon={faCalendar}
           title={'Schedule a Discussion'}
           description={'Book a session with our team to talk about these insights.'}
           buttonText={'Email Us'}
@@ -139,7 +137,7 @@ export default function EnterpriseReportingLandingPage() {
           external={false}
         />
         <EnterpriseReportContactCard
-          imgSrc={SuggestImprovement}
+          icon={faLightbulbOn}
           title={'Suggest an Improvement'}
           description={'Let us know how we can optimize what you see here.'}
           buttonText={'Explore the Ideas Portal'}
@@ -147,7 +145,7 @@ export default function EnterpriseReportingLandingPage() {
           external={true}
         />
         <EnterpriseReportContactCard
-          imgSrc={ReceiveSupport}
+          icon={faQuestionCircle}
           title={'Receive Technical Support'}
           description={'Reach out to connect with our experts about issues.'}
           buttonText={'Explore Support'}

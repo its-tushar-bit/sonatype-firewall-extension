@@ -109,6 +109,8 @@ public class ThirdPartyPersistenceService
         extends PersistencePath
     {
       default String getExtension() {
+        // Note that this method behaves the same across Windows and UNIX (aside from one exception case, see docs).
+        // Both forward and backslashes are treated as directory separators on both.
         return FilenameUtils.getExtension(toString());
       }
     }
@@ -134,15 +136,23 @@ public class ThirdPartyPersistenceService
     static final class SanitizedSbomScanPath
         implements ExtensionSafePath
     {
-      private final Path sanitizedPath;
+      private final String scanPath;
+
+      private final String extension;
 
       private SanitizedSbomScanPath(String scanPath) throws CheckedIllegalArgumentException {
-        this.sanitizedPath = sanitizeUserPath(Path.of(scanPath));
+        this.scanPath = scanPath;
+        this.extension = FilenameUtils.getExtension(sanitizeUserPath(Path.of(scanPath)).toString());
       }
 
       @Override
       public String toString() {
-        return sanitizedPath.toString();
+        return scanPath;
+      }
+
+      @Override
+      public String getExtension() {
+        return extension;
       }
     }
 

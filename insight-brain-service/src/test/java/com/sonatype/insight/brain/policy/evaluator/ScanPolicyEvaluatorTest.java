@@ -777,7 +777,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_WithReachableVulnerability_NotReachable() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
     doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId",
         Map.of(new PackageUrlIdentifier("pkg:maven/tomcat/tomcat-util@5.5.23"), Set.of())))
         .when(apiVulnerabilityReachabilityStatusService)
@@ -826,7 +825,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_WithReachableVulnerability_Reachable() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
     doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId",
         Map.of(new PackageUrlIdentifier("pkg:maven/tomcat/tomcat-util@5.5.23"),
             Set.of("CVE-2012-0022"))))
@@ -939,7 +937,6 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_Results_AutoWaivedViolations_PathForward_WithVersionChanges_WithReachableVuln_Reachable()
       throws Exception
   {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
     doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId",
         Map.of(new PackageUrlIdentifier("pkg:maven/org.openid4java/openid4java@0.9.5"),
             Set.of("CVE-2011-4314"))))
@@ -3364,7 +3361,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_ClaimedComponentHasLegalNonePolicyViolation() throws Exception {
-
     Constraint constraintLicense1 =
         new Constraint(null /* constraintId */, "Constraint License No-Sources", LogicalOperator.AND);
     Condition condition1 = new Condition(LicenseConditionType.ID, "is", License.NO_SOURCES_ID);
@@ -4549,7 +4545,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testPerformPolicyEvaluation_WithReachableVulnerability() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
     doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId",
         Map.of(new PackageUrlIdentifier("pkg:maven/tomcat/tomcat-util@5.5.23"),
             Set.of("CVE-2012-0022"))))
@@ -4621,8 +4616,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_EvaluateAutoWaiverWithNotReachableAndNoPathForward_ByScopeOperator_And() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
     // Set up reachable vulnerability:
     String vulnerabilityIdentifier = "CVE-2007-3385";
     doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId",
@@ -4707,8 +4700,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_EvaluateAutoWaiverWithNotReachableAndNoPathForward_ByScopeOperator_Or() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
     // Set up reachable vulnerabilities:
     String vulnerabilityIdentifier = "CVE-2007-3385";
     doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId",
@@ -4798,8 +4789,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_ApplyFirstAutoWaiverThatMatches() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
     // Set up no path forward:
     ComponentDetailsDTO tomcatComponentDetailsDTO = new ComponentDetailsDTO();
     tomcatComponentDetailsDTO.componentIdentifier =

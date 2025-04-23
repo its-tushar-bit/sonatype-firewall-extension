@@ -26,7 +26,6 @@ import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -180,8 +179,6 @@ public class PolicyClientTest
   private void assertContinueEvaluationCLIWithThirdPartyScanContent(boolean thirdPartyScanningEnabled)
       throws Exception
   {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
     Application application = tempEntity.newApplicationWithParent();
     File scanFile = createScanFile(application);
     mockScanReceiptAndReport();
@@ -225,8 +222,6 @@ public class PolicyClientTest
 
   @Test
   public void testContinueEvaluateCLI_RetriesUntilComplete() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
     Application application = tempEntity.newApplicationWithParent();
     File scanFile = createScanFile(application);
     mockScanReceiptAndReport();
@@ -279,8 +274,6 @@ public class PolicyClientTest
 
   @Test
   public void testContinueEvaluateCLI_DoesNotPollWhenPolicyEvaluationReceiptRequestFails() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
     Application application = tempEntity.newApplicationWithParent();
     File scanFile = createScanFile(application);
     mockScanReceiptAndReport();
@@ -323,8 +316,6 @@ public class PolicyClientTest
 
   @Test
   public void testContinueEvaluateCLI_StopsRetryingWhenFailed() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
     Application application = tempEntity.newApplicationWithParent();
     File scanFile = createScanFile(application);
     mockScanReceiptAndReport();
@@ -394,8 +385,6 @@ public class PolicyClientTest
 
   @Test
   public void testContinueEvaluateCI() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
     Application application = tempEntity.newApplicationWithParent();
     File scanFile = createScanFile(application);
     mockScanReceiptAndReport();
@@ -568,7 +557,6 @@ public class PolicyClientTest
 
   @Test
   public void testRunComponentAnalysisForCI() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
     final Application application = tempEntity.newApplicationWithParent();
     final File scanFile = createScanFile(application);
     mockScanReceiptAndReport();
@@ -600,7 +588,6 @@ public class PolicyClientTest
 
   @Test
   public void testRunComponentAnalysisForCLI() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
     final Application application = tempEntity.newApplicationWithParent();
     final File scanFile = createScanFile(application);
     mockScanReceiptAndReport();
@@ -632,7 +619,6 @@ public class PolicyClientTest
 
   @Test
   public void testRunComponentAnalysis_RetriesUntilComplete() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
     final Application application = tempEntity.newApplicationWithParent("test-app");
     final File scanFile = createScanFile(application);
     mockScanReceiptAndReport();
@@ -661,7 +647,6 @@ public class PolicyClientTest
 
   @Test
   public void testRunComponentAnalysis_DoesNotPollWhenPolicyEvaluationReceiptRequestFails() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
     final Application application = tempEntity.newApplicationWithParent();
     final File scanFile = createScanFile(application);
     mockScanReceiptAndReport();
@@ -681,7 +666,6 @@ public class PolicyClientTest
 
   @Test
   public void testRunComponentAnalysis_StopsRetryingWhenFailed() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
     final Application application = tempEntity.newApplicationWithParent();
     final File scanFile = createScanFile(application);
     mockScanReceiptAndReport();

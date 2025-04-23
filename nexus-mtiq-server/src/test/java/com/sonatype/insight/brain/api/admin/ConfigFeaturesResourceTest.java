@@ -69,6 +69,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.SBOM_POLICIES.getId(),
       SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId(),
       SystemConfigurationPropertyFeature.API_PAGE.getId(),
+      SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.getId(),
       };
 
   /**
@@ -105,6 +106,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.SBOM_POLICIES.getId(),
       SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId(),
       SystemConfigurationPropertyFeature.API_PAGE.getId(),
+      SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.getId(),
       };
 
   /**
@@ -120,7 +122,6 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS.getId(),
           SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
           SystemConfigurationPropertyFeature.MALWARE_DEFENSE_API.getId(),
-          SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.getId(),
           SystemConfigurationPropertyFeature.EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE.getId(),
           SystemConfigurationPropertyFeature.ALP_FOR_SBOM_MANAGER.getId(),
           SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.getId(),

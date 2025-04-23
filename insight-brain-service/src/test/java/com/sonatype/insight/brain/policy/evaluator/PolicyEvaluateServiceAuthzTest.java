@@ -10,6 +10,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -109,6 +110,7 @@ public class PolicyEvaluateServiceAuthzTest
 
   @Test(expected = UnauthorizedException.class)
   public void testEvaluateWithPollingByStatusId_Authorized_MissingFeatureFlag() {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(false);
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
     policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
         new Stage(BuildStageType.ID), "statusId", null);

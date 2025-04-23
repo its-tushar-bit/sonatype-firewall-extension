@@ -187,7 +187,6 @@ public class PolicyEvaluationUtilTest
 
   @Test
   public void testCreatePersistedPolicyEvaluationPollingResultWithSubStatusIfNeeded_FeatureFlagEnabled() {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
     final String appId = "testAppId";
 
     final PersistedPolicyEvaluationPollingResult result =

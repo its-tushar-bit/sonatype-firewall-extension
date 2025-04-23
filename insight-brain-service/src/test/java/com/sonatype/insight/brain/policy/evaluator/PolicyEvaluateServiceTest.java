@@ -740,15 +740,8 @@ public class PolicyEvaluateServiceTest
 
     PersistedPolicyEvaluationPollingResult persistedResult = new PersistedPolicyEvaluationPollingResult("", "", result);
 
-    // before enabling, proof we don't get a sub status
     PolicyEvaluationPollingResultDTO resultDTO =
         policyEvaluateService.toPolicyEvaluationPollingResultDTO(persistedResult);
-    assertThat(resultDTO.subStatus).isNull();
-
-    // after enabling, proof we see the sub status
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
-    resultDTO = policyEvaluateService.toPolicyEvaluationPollingResultDTO(persistedResult);
     assertThat(resultDTO.subStatus).isEqualTo(result.getSubStatus());
   }
 
@@ -1061,8 +1054,6 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testEvaluateWithPolling_WithReachableVulnerability_And_CompletedComponentAnalysis() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
     PolicyEvaluationReceipt componentAnalyzeEvaluationReceipt = analyzeComponentsWithPolling();
 
     PersistedPolicyEvaluationPollingResult componentAnalyzePollingResult = persistedPolicyEvaluationPollingResultDAO
@@ -1115,8 +1106,6 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testEvaluateWithPolling_WithoutReachableVulnerability_And_CompletedComponentAnalysis() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
     PolicyEvaluationReceipt componentAnalyzeEvaluationReceipt = analyzeComponentsWithPolling();
 
     PersistedPolicyEvaluationPollingResult componentAnalyzePollingResult = persistedPolicyEvaluationPollingResultDAO
@@ -1158,6 +1147,7 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testEvaluateWithPolling_WithReachableVulnerability_And_NewScanProcessDisabled() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(false);
     VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
         app.getId(),
         "scanId",
@@ -1182,8 +1172,6 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testEvaluateWithPolling_WithReachableVulnerability_And_ComponentAnalysisNotFound() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
     VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
         app.getId(),
         "scanId",
@@ -1209,8 +1197,6 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testEvaluateWithPolling_WithReachableVulnerability_And_ComponentAnalysisNotCompleted() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
     PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
     policyEvaluationPollingResult.setSubStatus(COMPONENT_ANALYSIS_PENDING);
 

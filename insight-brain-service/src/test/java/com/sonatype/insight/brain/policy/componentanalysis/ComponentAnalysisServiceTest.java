@@ -102,7 +102,6 @@ public class ComponentAnalysisServiceTest
 
   @Override
   public void configure(Binder binder) {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
     binder.bind(HttpServletRequest.class).toInstance(httpRequest);
     binder.bind(ScanHandler.class).toInstance(scanHandler);
     binder.bind(StageTypeService.class).toInstance(stageTypeService);

@@ -1253,18 +1253,15 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
-  public void testEnableFeature_NEW_SCAN_PROCESS() {
-    service.enableFeature(NEW_SCAN_PROCESS);
-
+  public void testEnableFeature_NEW_SCAN_PROCESS_EnabledByDefault() {
     assertThat(
-        systemConfigurationPropertyDAO.getByName(NEW_SCAN_PROCESS)
-            .getValue())
-        .isEqualTo("true");
+        systemConfigurationPropertyDAO.getByName(NEW_SCAN_PROCESS))
+        .isNull();
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS)).isTrue();
   }
 
   @Test
   public void testEnableFeature_NEW_SCAN_PROCESS_AlreadyEnabled() {
-    service.enableFeature(NEW_SCAN_PROCESS);
     assertThatThrownBy(
         () -> service.enableFeature(
             NEW_SCAN_PROCESS)).isInstanceOf(
@@ -1273,6 +1270,7 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testDisableFeature_NEW_SCAN_PROCESS_AlreadyDisabled() {
+    service.disableFeature(NEW_SCAN_PROCESS);
     assertThatThrownBy(
         () -> service.disableFeature(
             NEW_SCAN_PROCESS)).isInstanceOf(
@@ -1392,7 +1390,8 @@ public class ApiConfigFeaturesServiceTest
         SystemConfigurationPropertyFeature.CODE_INSIGHTS,
         SystemConfigurationPropertyFeature.LDAP_CONFIGURATION,
         SystemConfigurationPropertyFeature.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES,
-        SystemConfigurationPropertyFeature.SCAN_POM_FILES_IN_META_INF_DIRECTORY);
+        SystemConfigurationPropertyFeature.SCAN_POM_FILES_IN_META_INF_DIRECTORY,
+        SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS);
     customFilter.forEach(
         filtered -> expectedFeatureConfigMap.remove(service.getFeatureForPropertyName(filtered.getPropertyName())));
 
@@ -1478,7 +1477,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("logoutAuth0OnLogout", false);
     expectedFeatureConfigMap.put("malwareDefenseApi", false);
     expectedFeatureConfigMap.put("manualPullRequests", false);
-    expectedFeatureConfigMap.put("newScanProcess", false);
+    expectedFeatureConfigMap.put("newScanProcess", true);
     expectedFeatureConfigMap.put("nonBreakingVersionSuggestionTelemetry", true);
     expectedFeatureConfigMap.put("OAUTH2_ENABLED", false);
     expectedFeatureConfigMap.put("prioritizedFindingsReport", true);

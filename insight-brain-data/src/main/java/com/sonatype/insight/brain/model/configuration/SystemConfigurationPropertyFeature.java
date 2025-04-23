@@ -237,7 +237,7 @@ public enum SystemConfigurationPropertyFeature
     }
   },
 
-  NEW_SCAN_PROCESS(SystemConfigurationProperty.NEW_SCAN_PROCESS, false)
+  NEW_SCAN_PROCESS(SystemConfigurationProperty.NEW_SCAN_PROCESS, true)
   {
     // A feature flag with enabledWhenAbsent = true and an entry in the db with a value of true is not
     // treated as enabled.

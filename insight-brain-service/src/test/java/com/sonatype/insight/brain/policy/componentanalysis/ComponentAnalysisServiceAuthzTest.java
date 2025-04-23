@@ -13,7 +13,6 @@ import com.google.inject.Binder;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -40,7 +39,6 @@ public class ComponentAnalysisServiceAuthzTest
 
   @Override
   public void configure(Binder binder) {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
     binder.bind(HttpServletRequest.class).toInstance(httpRequest);
     binder.bind(ScanHandler.class).toInstance(scanHandler);
     super.configure(binder);

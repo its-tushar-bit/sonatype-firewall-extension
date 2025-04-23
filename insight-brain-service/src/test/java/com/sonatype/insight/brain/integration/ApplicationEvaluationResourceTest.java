@@ -256,7 +256,6 @@ public class ApplicationEvaluationResourceTest
 
   @Test
   public void testAnalyzeComponentsWithPollingAndPollEvaluationResult_Success() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
 
@@ -299,7 +298,6 @@ public class ApplicationEvaluationResourceTest
 
   @Test
   public void testAnalyzeComponentsWithPollingAndPollEvaluationResult_Failure() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
 
@@ -330,6 +328,7 @@ public class ApplicationEvaluationResourceTest
 
   @Test
   public void testAnalyzeComponentsWithPollingAndPollEvaluationResult_FeatureFlagDisabled() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(false);
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
 
@@ -355,7 +354,6 @@ public class ApplicationEvaluationResourceTest
 
   @Test
   public void testAnalyzeComponentsWithPollingAndPollEvaluationResult_UnsupportedStage() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
 
@@ -382,7 +380,6 @@ public class ApplicationEvaluationResourceTest
 
   @Test
   public void testAnalyzeComponentsWithPollingAndPollEvaluationResult_InvalidStage() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
 
@@ -410,7 +407,7 @@ public class ApplicationEvaluationResourceTest
   @Test
   public void testAnalyzeComponentsWithPollingAndPollEvaluationResult_UnlicensedStage() throws Exception {
     licenseManager.setStageTypes(StageTypes.BUILD);
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
+    
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
 
@@ -438,6 +435,7 @@ public class ApplicationEvaluationResourceTest
 
   @Test
   public void testEvaluateWithPollingByStatusId_FeatureFlagDisabled() throws Exception {
+    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(false);
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
 
@@ -463,8 +461,6 @@ public class ApplicationEvaluationResourceTest
 
   @Test
   public void testEvaluateWithPollingByStatusId_ComponentAnalysisPending() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
 
@@ -505,8 +501,6 @@ public class ApplicationEvaluationResourceTest
 
   @Test
   public void testEvaluateWithPollingByStatusId_ComponentAnalysisComplete_Success() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
 
@@ -592,8 +586,6 @@ public class ApplicationEvaluationResourceTest
 
   @Test
   public void testEvaluateWithPollingByStatusId_ComponentAnalysisComplete_IncorrectStatusId() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
 
@@ -665,8 +657,6 @@ public class ApplicationEvaluationResourceTest
 
   @Test
   public void testEvaluateWithPollingByStatusId_ComponentAnalysisComplete_NullStatusId() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
 
@@ -736,8 +726,6 @@ public class ApplicationEvaluationResourceTest
 
   @Test
   public void testEvaluateWithPollingByStatusId_ComponentAnalysisComplete_WithoutVulnAnalysisDto() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
 
@@ -816,7 +804,6 @@ public class ApplicationEvaluationResourceTest
   @Test
   public void testEvaluateWithPollingByStatusId_UnlicensedStage() throws Exception {
     licenseManager.setStageTypes(StageTypes.BUILD);
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
 
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
@@ -844,7 +831,6 @@ public class ApplicationEvaluationResourceTest
 
   @Test
   public void testEvaluateWithPollingByStatusId_InvalidStage() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
 
@@ -872,7 +858,6 @@ public class ApplicationEvaluationResourceTest
   public void testEvaluateWithPollingByStatusId_ExceedingLicenseLimit() throws Exception {
     testProductLicense.setMaxSbom(0);
 
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
 

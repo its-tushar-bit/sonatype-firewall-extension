@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -71,6 +72,46 @@ public class PolicyWaiverResourceTest
     assertThat(actual.waivers).hasSize(1);
     assertPolicyWaiverDTO(policyId, expectedOwnerId, waiverComment, constraintFactsJson, constraints,
         creatorId, creatorName, reasonText, actual.waivers.get(0));
+  }
+
+  private void assertWaiversByOwner(
+      Owner owner,
+      String policyId,
+      String waiverComment,
+      String constraintFactsJson,
+      List<ConstraintFact> constraints,
+      String creatorId,
+      String creatorName,
+      String reasonText,
+      Date createTime,
+      String hash,
+      String associatedPackageUrl,
+      PolicyWaiver.ComponentMatcherStrategyForWaiver componentMatchStrategy,
+      boolean expireWhenRemediationAvailable,
+      Date expiryTime,
+      WaiversByOwner actual)
+  {
+    String expectedOwnerId = OwnerType.APPLICATION.equals(owner.getType()) ? owner.getPublicId() : owner.getId();
+    assertThat(actual.ownerId).isEqualTo(expectedOwnerId);
+    assertThat(actual.ownerName).isEqualTo(owner.getName());
+    assertThat(actual.ownerType).isEqualTo(owner.getType());
+    assertThat(actual.waivers).hasSize(1);
+    assertPolicyWaiverDTO(
+        policyId,
+        expectedOwnerId,
+        waiverComment,
+        constraintFactsJson,
+        constraints,
+        creatorId,
+        creatorName,
+        reasonText,
+        createTime,
+        hash,
+        associatedPackageUrl,
+        componentMatchStrategy,
+        expireWhenRemediationAvailable,
+        expiryTime,
+        actual.waivers.get(0));
   }
 
   @Test
@@ -194,21 +235,27 @@ public class PolicyWaiverResourceTest
     // Verify owner level
     PolicyWaiver activeWaiver =
         tempEntity.newWaiver(hash, policy1.getId(), owner.getId(), null, EXACT_COMPONENT,
-            "App Scope", null, now.plusHours(1).toDate());
+            "App Scope", now.toDate(), now.plusHours(1).toDate());
     tempEntity.newWaiver(hash, policy2.getId(), owner.getId(), null, EXACT_COMPONENT, "Expired", null, now.toDate());
     HttpResponse response = restRequest(owner.getType(), restId).path("component", hash).get();
     assertResponseStatus(200, response);
     AppliedWaivers waivers = response.getBody(AppliedWaivers.class);
     assertThat(waivers.waiversByOwner).hasSize(1);
-    assertWaiversByOwner(
-        owner,
+    assertWaiversByOwner(owner,
         policy1.getId(),
         "App Scope",
         activeWaiver.getConstraintFactsJson(),
         activeWaiver.getConstraintFacts(),
         "testuser",
         "Test User",
-            null, waivers.waiversByOwner.get(0));
+        null,
+        activeWaiver.getCreateTime(),
+        hash,
+        activeWaiver.getAssociatedPackageUrl(),
+        activeWaiver.getComponentMatchStrategy(),
+        activeWaiver.isExpireWhenRemediationAvailable(),
+        activeWaiver.getExpiryTime(),
+        waivers.waiversByOwner.get(0));
     response = restRequest(parent.getType(), parent.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
@@ -221,22 +268,61 @@ public class PolicyWaiverResourceTest
     // Verify parent owner level
     PolicyWaiver activeParentWaiver =
         tempEntity.newWaiver(hash, policy2.getId(), parent.getId(), null, EXACT_COMPONENT,
-            "Parent Scope", null, now.plusHours(1).toDate());
+            "Parent Scope", now.toDate(), now.plusHours(1).toDate());
     tempEntity.newWaiver(hash, policy1.getId(), parent.getId(), null, EXACT_COMPONENT, "Expired", null, now.toDate());
     response = restRequest(owner.getType(), restId).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
     assertThat(waivers.waiversByOwner).hasSize(2);
-    assertWaiversByOwner(owner, policy1.getId(), "App Scope", activeWaiver.getConstraintFactsJson(),
-        activeWaiver.getConstraintFacts(), "testuser", "Test User", null, waivers.waiversByOwner.get(0));
-    assertWaiversByOwner(parent, policy2.getId(), "Parent Scope", activeParentWaiver.getConstraintFactsJson(),
-        activeParentWaiver.getConstraintFacts(), "testuser", "Test User", null, waivers.waiversByOwner.get(1));
+    assertWaiversByOwner(owner,
+        policy1.getId(),
+        "App Scope",
+        activeWaiver.getConstraintFactsJson(),
+        activeWaiver.getConstraintFacts(),
+        "testuser",
+        "Test User",
+        null,
+        activeWaiver.getCreateTime(),
+        hash,
+        activeWaiver.getAssociatedPackageUrl(),
+        activeWaiver.getComponentMatchStrategy(),
+        activeWaiver.isExpireWhenRemediationAvailable(),
+        activeWaiver.getExpiryTime(),
+        waivers.waiversByOwner.get(0));
+    assertWaiversByOwner(parent,
+        policy2.getId(),
+        "Parent Scope",
+        activeParentWaiver.getConstraintFactsJson(),
+        activeParentWaiver.getConstraintFacts(),
+        "testuser",
+        "Test User",
+        null,
+        activeParentWaiver.getCreateTime(),
+        hash,
+        activeParentWaiver.getAssociatedPackageUrl(),
+        activeParentWaiver.getComponentMatchStrategy(),
+        activeParentWaiver.isExpireWhenRemediationAvailable(),
+        activeParentWaiver.getExpiryTime(),
+        waivers.waiversByOwner.get(1));
     response = restRequest(parent.getType(), parent.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
     assertThat(waivers.waiversByOwner).hasSize(1);
-    assertWaiversByOwner(parent, policy2.getId(), "Parent Scope", activeParentWaiver.getConstraintFactsJson(),
-        activeParentWaiver.getConstraintFacts(), "testuser", "Test User", null, waivers.waiversByOwner.get(0));
+    assertWaiversByOwner(parent,
+        policy2.getId(),
+        "Parent Scope",
+        activeParentWaiver.getConstraintFactsJson(),
+        activeParentWaiver.getConstraintFacts(),
+        "testuser",
+        "Test User",
+        null,
+        activeWaiver.getCreateTime(),
+        hash,
+        activeWaiver.getAssociatedPackageUrl(),
+        activeWaiver.getComponentMatchStrategy(),
+        activeWaiver.isExpireWhenRemediationAvailable(),
+        activeWaiver.getExpiryTime(),
+        waivers.waiversByOwner.get(0));
     response = restRequest(grandparent.getType(), grandparent.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
@@ -245,36 +331,114 @@ public class PolicyWaiverResourceTest
     // Verify grandparent organization level
     PolicyWaiver activeGrandparentWaiver = tempEntity
         .newWaiver(hash, policy1.getId(), grandparent.getId(), null, EXACT_COMPONENT,
-            "Grandparent Scope", null, now.plusHours(1).toDate());
+            "Grandparent Scope", now.toDate(), now.plusHours(1).toDate());
     tempEntity.newWaiver(hash, policy2.getId(), grandparent.getId(), null, EXACT_COMPONENT,
         "Expired", null, now.toDate());
     response = restRequest(owner.getType(), restId).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
     assertThat(waivers.waiversByOwner).hasSize(3);
-    assertWaiversByOwner(owner, policy1.getId(), "App Scope", activeWaiver.getConstraintFactsJson(),
-        activeWaiver.getConstraintFacts(), "testuser", "Test User", null, waivers.waiversByOwner.get(0));
-    assertWaiversByOwner(parent, policy2.getId(), "Parent Scope", activeParentWaiver.getConstraintFactsJson(),
-        activeParentWaiver.getConstraintFacts(), "testuser", "Test User", null, waivers.waiversByOwner.get(1));
-    assertWaiversByOwner(grandparent, policy1.getId(), "Grandparent Scope",
+    assertWaiversByOwner(owner,
+        policy1.getId(),
+        "App Scope",
+        activeWaiver.getConstraintFactsJson(),
+        activeWaiver.getConstraintFacts(),
+        "testuser",
+        "Test User",
+        null,
+        activeWaiver.getCreateTime(),
+        hash,
+        activeWaiver.getAssociatedPackageUrl(),
+        activeWaiver.getComponentMatchStrategy(),
+        activeWaiver.isExpireWhenRemediationAvailable(),
+        activeWaiver.getExpiryTime(),
+        waivers.waiversByOwner.get(0));
+
+    assertWaiversByOwner(parent,
+        policy2.getId(),
+        "Parent Scope",
+        activeParentWaiver.getConstraintFactsJson(),
+        activeParentWaiver.getConstraintFacts(),
+        "testuser",
+        "Test User",
+        null,
+        activeParentWaiver.getCreateTime(),
+        hash,
+        activeParentWaiver.getAssociatedPackageUrl(),
+        activeParentWaiver.getComponentMatchStrategy(),
+        activeParentWaiver.isExpireWhenRemediationAvailable(),
+        activeParentWaiver.getExpiryTime(),
+        waivers.waiversByOwner.get(1));
+
+    assertWaiversByOwner(grandparent,
+        policy1.getId(),
+        "Grandparent Scope",
         activeGrandparentWaiver.getConstraintFactsJson(),
-        activeGrandparentWaiver.getConstraintFacts(), "testuser", "Test User", null, waivers.waiversByOwner.get(2));
+        activeGrandparentWaiver.getConstraintFacts(),
+        "testuser",
+        "Test User",
+        null,
+        activeGrandparentWaiver.getCreateTime(),
+        hash,
+        activeGrandparentWaiver.getAssociatedPackageUrl(),
+        activeGrandparentWaiver.getComponentMatchStrategy(),
+        activeGrandparentWaiver.isExpireWhenRemediationAvailable(),
+        activeGrandparentWaiver.getExpiryTime(),
+        waivers.waiversByOwner.get(2));
     response = restRequest(parent.getType(), parent.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
     assertThat(waivers.waiversByOwner).hasSize(2);
-    assertWaiversByOwner(parent, policy2.getId(), "Parent Scope", activeParentWaiver.getConstraintFactsJson(),
-        activeParentWaiver.getConstraintFacts(), "testuser", "Test User", null, waivers.waiversByOwner.get(0));
-    assertWaiversByOwner(grandparent, policy1.getId(), "Grandparent Scope",
-        activeGrandparentWaiver.getConstraintFactsJson(), activeGrandparentWaiver.getConstraintFacts(),
-        "testuser", "Test User", null, waivers.waiversByOwner.get(1));
+    assertWaiversByOwner(parent,
+        policy2.getId(),
+        "Parent Scope",
+        activeParentWaiver.getConstraintFactsJson(),
+        activeParentWaiver.getConstraintFacts(),
+        "testuser",
+        "Test User",
+        null,
+        activeParentWaiver.getCreateTime(),
+        hash,
+        activeParentWaiver.getAssociatedPackageUrl(),
+        activeParentWaiver.getComponentMatchStrategy(),
+        activeParentWaiver.isExpireWhenRemediationAvailable(),
+        activeParentWaiver.getExpiryTime(),
+        waivers.waiversByOwner.get(0));
+
+    assertWaiversByOwner(grandparent,
+        policy1.getId(),
+        "Grandparent Scope",
+        activeGrandparentWaiver.getConstraintFactsJson(),
+        activeGrandparentWaiver.getConstraintFacts(),
+        "testuser",
+        "Test User",
+        null,
+        activeGrandparentWaiver.getCreateTime(),
+        hash,
+        activeGrandparentWaiver.getAssociatedPackageUrl(),
+        activeGrandparentWaiver.getComponentMatchStrategy(),
+        activeGrandparentWaiver.isExpireWhenRemediationAvailable(),
+        activeGrandparentWaiver.getExpiryTime(),
+        waivers.waiversByOwner.get(1));
     response = restRequest(grandparent.getType(), grandparent.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
     assertThat(waivers.waiversByOwner).hasSize(1);
-    assertWaiversByOwner(grandparent, policy1.getId(), "Grandparent Scope",
-        activeGrandparentWaiver.getConstraintFactsJson(), activeGrandparentWaiver.getConstraintFacts(),
-        "testuser", "Test User", null, waivers.waiversByOwner.get(0));
+    assertWaiversByOwner(grandparent,
+        policy1.getId(),
+        "Grandparent Scope",
+        activeGrandparentWaiver.getConstraintFactsJson(),
+        activeGrandparentWaiver.getConstraintFacts(),
+        "testuser",
+        "Test User",
+        null,
+        activeGrandparentWaiver.getCreateTime(),
+        hash,
+        activeGrandparentWaiver.getAssociatedPackageUrl(),
+        activeGrandparentWaiver.getComponentMatchStrategy(),
+        activeGrandparentWaiver.isExpireWhenRemediationAvailable(),
+        activeGrandparentWaiver.getExpiryTime(),
+        waivers.waiversByOwner.get(0));
   }
 
   @Test
@@ -336,6 +500,25 @@ public class PolicyWaiverResourceTest
 
   private void assertPolicyWaiverDTO(
       String policyId, String ownerId, String comment, String constraintFactsJson,
+      List<ConstraintFact> constraints, String creatorId, String creatorName, String reasonText, Date createTime,
+      String hash, String associatedPackageUrl, PolicyWaiver.ComponentMatcherStrategyForWaiver componentMatchStrategy,
+      boolean expireWhenRemediationAvailable, Date expiryTime, PolicyWaiverDTO actual)
+  {
+    assertPolicyWaiver(policyId, ownerId, comment, constraintFactsJson, constraints, creatorId, creatorName, null,
+        createTime, hash, associatedPackageUrl, componentMatchStrategy, expireWhenRemediationAvailable, expiryTime,
+        actual);
+    assertThat(actual.reasonText).isEqualTo(reasonText);
+    if (actual.reasonText != null) {
+      assertThat(actual.policyWaiverReasonId).isNotNull();
+    }
+    else {
+      assertThat(actual.policyWaiverReasonId).isNull();
+    }
+    assertThat(actual.policyName).isEqualTo(policyDAO.getById(policyId).getName());
+  }
+
+  private void assertPolicyWaiverDTO(
+      String policyId, String ownerId, String comment, String constraintFactsJson,
       List<ConstraintFact> constraints, String creatorId, String creatorName, String reasonText, PolicyWaiverDTO actual)
   {
     assertPolicyWaiver(policyId, ownerId, comment, constraintFactsJson, constraints, creatorId, creatorName, null,
@@ -367,6 +550,47 @@ public class PolicyWaiverResourceTest
     assertThat(actual.getConstraintFactsJson()).isEqualTo(constraintFactsJson);
     assertThat(actual.getCreatorId()).isEqualTo(creatorId);
     assertThat(actual.getCreatorName()).isEqualTo(creatorName);
+    if (reasonText == null) {
+      assertThat(actual.getWaiverReasonId()).isNull();
+    }
+    else {
+      assertThat(actual.getWaiverReasonId()).isNotNull();
+    }
+    if (actual.getConstraintFacts() != null) {
+      assertThat(actual.getConstraintFacts().get(0).getConstraintId()).isEqualTo(constraints.get(0).getConstraintId());
+    }
+  }
+
+  private void assertPolicyWaiver(
+      String policyId,
+      String ownerId,
+      String comment,
+      String constraintFactsJson,
+      List<ConstraintFact> constraints,
+      String creatorId,
+      String creatorName,
+      String reasonText,
+      Date createTime,
+      String hash,
+      String associatedPackageUrl,
+      PolicyWaiver.ComponentMatcherStrategyForWaiver componentMatchStrategy,
+      boolean expireWhenRemediationAvailable,
+      Date expiryTime,
+      PolicyWaiver actual)
+  {
+    assertThat(actual.getPolicyId()).isEqualTo(policyId);
+    assertThat(actual.getOwnerId()).isEqualTo(ownerId);
+    assertThat(actual.getComment()).isEqualTo(comment);
+    assertThat(actual.getConstraintFactsJson()).isEqualTo(constraintFactsJson);
+    assertThat(actual.getCreatorId()).isEqualTo(creatorId);
+    assertThat(actual.getCreatorName()).isEqualTo(creatorName);
+    assertThat(actual.getCreateTime()).isEqualTo(createTime);
+    assertThat(actual.getHash()).isEqualTo(hash);
+    assertThat(actual.getAssociatedPackageUrl()).isEqualTo(associatedPackageUrl);
+    assertThat(actual.getComponentMatchStrategy()).isEqualTo(componentMatchStrategy);
+    assertThat(actual.getExpiryTime()).isEqualTo(expiryTime);
+    assertThat(actual.isExpireWhenRemediationAvailable()).isEqualTo(expireWhenRemediationAvailable);
+
     if (reasonText == null) {
       assertThat(actual.getWaiverReasonId()).isNull();
     }

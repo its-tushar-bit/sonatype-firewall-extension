@@ -1497,6 +1497,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('LGPL-
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('LGPL-2.1','LGPL-2.1','GNU Lesser General Public License v2.1 only');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('LGPL-2.1-No-Military-License','LGPL-2.1-No-Military-License','GNU Lesser General Public License v2.1 only with No Military License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('LGPL-2.1-with-linking-exception','LGPL-2.1-with-linking-exception','LGPL-2.1 w/Linking Exception');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('LGPL-2.1-with-OCCT-exception-1.0','LGPL-2.1-with-OCCT-exception-1.0','LGPL-2.1 w/Open CASCADE Exception 1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('LGPL-2.1-with-Qwt-exception-1.0','LGPL-2.1-with-Qwt-exception-1.0','LGPL-2.1 w/Qwt exception 1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('LGPL-2.1-with-Unlimited-linking-exception','LGPL-2.1-with-Unlimited-linking-exception','LGPL-2.1 w/Unlimited Linking Exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('LGPL-3.0','LGPL-3.0','GNU Lesser General Public License v3.0 only');

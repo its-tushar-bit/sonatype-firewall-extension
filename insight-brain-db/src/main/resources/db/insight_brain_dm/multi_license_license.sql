@@ -4052,6 +4052,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('LGPL-2.
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('LGPL-2.1-UNKNOWN','LGPL-2.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('LGPL-2.1-UNKNOWN','UNKNOWN');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('LGPL-2.1-with-linking-exception','LGPL-2.1-with-linking-exception');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('LGPL-2.1-with-OCCT-exception-1.0','LGPL-2.1-with-OCCT-exception-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('LGPL-2.1-with-Qwt-exception-1.0','LGPL-2.1-with-Qwt-exception-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('LGPL-2.1-with-Unlimited-linking-exception','LGPL-2.1-with-Unlimited-linking-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('LGPL-3.0','LGPL-3.0');

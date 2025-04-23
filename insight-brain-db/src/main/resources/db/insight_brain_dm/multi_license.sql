@@ -2356,6 +2356,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('LGPL-2.1-SISSL-UNSPECIFIED','LGPL-2.1 or SISSL','Dual License Consisting of LGPL 2.1 or SISSL');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('LGPL-2.1-UNKNOWN','LGPL-2.1 or Non-Standard','Dual License Consisting of LGPL 2.1 and Raw License String Could Not Be Mapped to a Standardized SPDX License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('LGPL-2.1-with-linking-exception','LGPL-2.1-with-linking-exception','LGPL-2.1 w/Linking Exception');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('LGPL-2.1-with-OCCT-exception-1.0','LGPL-2.1-with-OCCT-exception-1.0','LGPL-2.1 w/Open CASCADE Exception 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('LGPL-2.1-with-Qwt-exception-1.0','LGPL-2.1-with-Qwt-exception-1.0','LGPL-2.1 w/Qwt exception 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('LGPL-2.1-with-Unlimited-linking-exception','LGPL-2.1-with-Unlimited-linking-exception','LGPL-2.1 w/Unlimited Linking Exception');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('LGPL-3.0','LGPL-3.0','GNU Lesser General Public License v3.0 only');

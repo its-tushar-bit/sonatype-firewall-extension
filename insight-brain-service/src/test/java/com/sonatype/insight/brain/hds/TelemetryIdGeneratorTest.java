@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 
 import org.junit.Before;
@@ -21,19 +22,19 @@ import org.mockito.MockitoAnnotations;
 import static com.sonatype.insight.brain.hds.TelemetryIdGenerator.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME;
 import static com.sonatype.insight.brain.hds.TelemetryIdGenerator.TELEMETRY_ID_PATTERN;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 public class TelemetryIdGeneratorTest
+    extends AbstractComponentTest
 {
   @Mock
   private InsightConfig mockInsightConfig;
 
-  @Mock
-  private SystemConfigurationPropertyDAO mockSystemConfigurationPropertyDAO;
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   @Before
   public void setup() {
     MockitoAnnotations.openMocks(this);
+    systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
   }
 
   @Test
@@ -54,11 +55,10 @@ public class TelemetryIdGeneratorTest
   public void testGenerateId_corruptedValue() {
     // given: a corrupted instance ID in the database
     final var corruptedInstanceId = new SystemConfigurationProperty(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME, "****");
-    when(mockSystemConfigurationPropertyDAO.getByName(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME))
-        .thenReturn(corruptedInstanceId);
+    systemConfigurationPropertyDAO.insert(corruptedInstanceId);
 
     // when:
-    final var generatedId = TelemetryIdGenerator.generateId(mockInsightConfig, mockSystemConfigurationPropertyDAO);
+    final var generatedId = TelemetryIdGenerator.generateId(mockInsightConfig, systemConfigurationPropertyDAO);
 
     // then: the generated ID has been fixed
     assertThat(generatedId).matches(TELEMETRY_ID_PATTERN);
@@ -66,15 +66,14 @@ public class TelemetryIdGeneratorTest
 
   @Test
   public void testGenerateId_acceptableValueUnchanged() {
-    // given: a corrupted instance ID in the database
+    // given: a valid instance ID in the database
     final var telemetryHost = "cde78";
     final var validInstanceId =
         new SystemConfigurationProperty(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME, telemetryHost);
-    when(mockSystemConfigurationPropertyDAO.getByName(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME))
-        .thenReturn(validInstanceId);
+    systemConfigurationPropertyDAO.insert(validInstanceId);
 
     // when:
-    final var generatedId = TelemetryIdGenerator.generateId(mockInsightConfig, mockSystemConfigurationPropertyDAO);
+    final var generatedId = TelemetryIdGenerator.generateId(mockInsightConfig, systemConfigurationPropertyDAO);
 
     // then: the telemetry host is unchanged
     assertThat(generatedId).matches(TELEMETRY_ID_PATTERN)

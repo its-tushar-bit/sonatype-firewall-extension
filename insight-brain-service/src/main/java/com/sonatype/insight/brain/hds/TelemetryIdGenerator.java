@@ -47,11 +47,17 @@ public class TelemetryIdGenerator
     // Note, there are cases where the telemetry host (first 5 chars of telemetry ID) becomes corrupted with '****',
     // which is invalid and should be corrected when encountered
     SystemConfigurationProperty generatedIdProperty = dao.getByName(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
-    if (null == generatedIdProperty || StringUtils.isBlank(generatedIdProperty.getValue())
+    final var configMissing = null == generatedIdProperty;
+    if (configMissing || StringUtils.isBlank(generatedIdProperty.getValue())
         || generatedIdProperty.getValue().startsWith(CORRUPTED_TELEMETRY_HOST)) {
       String generatedId = UUID.randomUUID().toString().substring(0, ID_PART_LENGTH);
       generatedIdProperty = new SystemConfigurationProperty(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME, generatedId);
-      dao.insert(generatedIdProperty);
+      if (configMissing) {
+        dao.insert(generatedIdProperty);
+      }
+      else {
+        dao.update(generatedIdProperty);
+      }
       log.debug("Generated a new instance ID.");
     }
     else {

@@ -12,12 +12,15 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -47,12 +50,16 @@ public class ScanUploaderTest
   @Mock
   private ThirdPartyScanContext thirdPartyScanContext;
 
+  @Mock
+  private ProductLicense mockProductLicense;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(mockHdsClient);
     binder.bind(InsightConfig.class).toInstance(insightConfig);
     binder.bind(Configuration.class).toInstance(mockConfiguration);
     binder.bind(ThirdPartyScanContext.class).toInstance(thirdPartyScanContext);
+    binder.bind(ProductLicense.class).toInstance(mockProductLicense);
     super.configure(binder);
   }
 
@@ -138,7 +145,10 @@ public class ScanUploaderTest
   }
 
   @Test
-  public void testUpload_SendUploadIdToHds() throws Exception {
+  public void testUpload_SendUploadIdToHds_CpeDataMatchingEnabled() throws Exception {
+    when(mockProductLicense.getProducts()).thenReturn(ImmutableSet.of("SbomManager", "SbomManagerSaas"));
+    when(mockProductLicense.hasFeature(LicensedFeature.CPE_MATCHING)).thenReturn(Boolean.TRUE);
+
     Application app = tempEntity.newApplicationWithParent("test-app-id");
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scanId");
@@ -152,5 +162,6 @@ public class ScanUploaderTest
     scanUploader.upload(tempDir.newFile(), app, null, null, thirdPartyScanContext);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
+    assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isTrue();
   }
 }

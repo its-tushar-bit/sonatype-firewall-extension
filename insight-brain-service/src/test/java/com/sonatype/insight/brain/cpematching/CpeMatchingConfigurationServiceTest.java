@@ -13,9 +13,12 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.test.LogOutput;
 
 import org.junit.Rule;
@@ -35,6 +38,9 @@ public class CpeMatchingConfigurationServiceTest
 
   @Inject
   private OrganizationDAO organizationDAO;
+
+  @Inject
+  private TestProductLicense productLicense;
 
   @Rule
   public LogOutput logOutput = new LogOutput(CpeMatchingConfigurationService.class);
@@ -440,6 +446,117 @@ public class CpeMatchingConfigurationServiceTest
     assertThat(level2AppConfig).isNotNull()
         .hasFieldOrPropertyWithValue("cpeEnabled", true)
         .hasFieldOrPropertyWithValue("allowOverride", false);
+  }
+
+  @Test
+  public void testIsCpeDataMatchingEnabled_LicenseDoesNotHaveCpeMatchingFeature() {
+    productLicense.setMissingFeatures(LicensedFeature.CPE_MATCHING);
+    Application app = tempEntity.newApplicationWithParent();
+
+    boolean isCpeDataMatchingEnabled = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(app.getId());
+
+    assertThat(isCpeDataMatchingEnabled).isFalse();
+  }
+
+  @Test
+  public void testIsCpeDataMatchingEnabled_ConfigurationDisabled_CpeMatchingMustBeEnabledForSbomManagerOnlyLicenses() {
+    productLicense.setFeatures(LicensedFeature.CPE_MATCHING);
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+
+    Application app = tempEntity.newApplicationWithParent();
+    CpeMatchingConfiguration appCpeConfig = new CpeMatchingConfiguration(app.getId(), false, false);
+    cpeMatchingConfigurationDAO.insert(appCpeConfig);
+
+    boolean isCpeDataMatchingEnabled = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(app.getId());
+
+    assertThat(isCpeDataMatchingEnabled).isTrue();
+  }
+
+  @Test
+  public void testIsCpeDataMatchingEnabled_LicenseContainsOnlySbomManagerProducts_MultipleProducts() {
+    productLicense.setFeatures(LicensedFeature.CPE_MATCHING);
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
+        ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+
+    Application app = tempEntity.newApplicationWithParent();
+    CpeMatchingConfiguration appCpeConfig = new CpeMatchingConfiguration(app.getId(), false, false);
+    cpeMatchingConfigurationDAO.insert(appCpeConfig);
+
+    boolean isCpeDataMatchingEnabled = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(app.getId());
+
+    assertThat(isCpeDataMatchingEnabled).isTrue();
+  }
+
+  @Test
+  public void testIsCpeDataMatchingEnabled_ConfigurationDisabled_CpeMatchingMustBeDisabledForLifecycleOnlyLicenses() {
+    productLicense.setFeatures(LicensedFeature.CPE_MATCHING);
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+
+    Application app = tempEntity.newApplicationWithParent();
+    CpeMatchingConfiguration appCpeConfig = new CpeMatchingConfiguration(app.getId(), false, false);
+    cpeMatchingConfigurationDAO.insert(appCpeConfig);
+
+    boolean isCpeDataMatchingEnabled = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(app.getId());
+
+    assertThat(isCpeDataMatchingEnabled).isFalse();
+  }
+
+  @Test
+  public void testIsCpeDataMatchingEnabled_ConfigurationEnabled_CpeMatchingMustBeEnabledForLifecycleOnlyLicenses() {
+    productLicense.setFeatures(LicensedFeature.CPE_MATCHING);
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+
+    Application app = tempEntity.newApplicationWithParent();
+    CpeMatchingConfiguration appCpeConfig = new CpeMatchingConfiguration(app.getId(), true, false);
+    cpeMatchingConfigurationDAO.insert(appCpeConfig);
+
+    boolean isCpeDataMatchingEnabled = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(app.getId());
+
+    assertThat(isCpeDataMatchingEnabled).isTrue();
+  }
+
+  @Test
+  public void testIsCpeDataMatchingEnabled_ConfigurationDisabled_CpeMatchingMustBeDisabledForMixedLicensesWithSM() {
+    productLicense.setFeatures(LicensedFeature.CPE_MATCHING);
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS,
+        ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+
+    Application app = tempEntity.newApplicationWithParent();
+    CpeMatchingConfiguration appCpeConfig = new CpeMatchingConfiguration(app.getId(), false, false);
+    cpeMatchingConfigurationDAO.insert(appCpeConfig);
+
+    boolean isCpeDataMatchingEnabled = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(app.getId());
+
+    assertThat(isCpeDataMatchingEnabled).isFalse();
+  }
+
+  @Test
+  public void testIsCpeDataMatchingEnabled_ConfigurationEnabled_CpeMatchingMustBeEnabledForMixedLicensesWithSM() {
+    productLicense.setFeatures(LicensedFeature.CPE_MATCHING);
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS,
+        ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+
+    Application app = tempEntity.newApplicationWithParent();
+    CpeMatchingConfiguration appCpeConfig = new CpeMatchingConfiguration(app.getId(), true, false);
+    cpeMatchingConfigurationDAO.insert(appCpeConfig);
+
+    boolean isCpeDataMatchingEnabled = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(app.getId());
+
+    assertThat(isCpeDataMatchingEnabled).isTrue();
+  }
+
+  @Test
+  public void testIsCpeDataMatchingEnabled_ConfigurationDisabled_CpeMatchingMustBeDisabledForMixedLicensesWithoutSM() {
+    productLicense.setFeatures(LicensedFeature.CPE_MATCHING);
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_NEXUS, ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+
+    Application app = tempEntity.newApplicationWithParent();
+    CpeMatchingConfiguration appCpeConfig = new CpeMatchingConfiguration(app.getId(), false, false);
+    cpeMatchingConfigurationDAO.insert(appCpeConfig);
+
+    boolean isCpeDataMatchingEnabled = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(app.getId());
+
+    assertThat(isCpeDataMatchingEnabled).isFalse();
   }
 }
 

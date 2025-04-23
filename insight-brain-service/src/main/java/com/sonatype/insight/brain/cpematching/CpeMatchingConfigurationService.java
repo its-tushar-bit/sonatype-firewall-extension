@@ -21,14 +21,18 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.license.model.ProductLicenseDetails.PRODUCT_SBOM_MANAGER;
 
 @Singleton
 @Named
@@ -42,6 +46,8 @@ public class CpeMatchingConfigurationService
 
   private final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO;
 
+  private final ProductLicense productLicense;
+
   private static final Logger log = LoggerFactory.getLogger(CpeMatchingConfigurationService.class);
 
   @Inject
@@ -49,12 +55,14 @@ public class CpeMatchingConfigurationService
       final OwnerDAO ownerDAO,
       final ApplicationDAO applicationDAO,
       final OrganizationDAO organizationDAO,
-      final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO)
+      final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO,
+      final ProductLicense productLicense)
   {
     this.ownerDAO = ownerDAO;
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
     this.cpeMatchingConfigurationDAO = cpeMatchingConfigurationDAO;
+    this.productLicense = productLicense;
   }
 
   @Authorize(permission = Permission.READ)
@@ -62,6 +70,10 @@ public class CpeMatchingConfigurationService
       @AuthzContext(Key.TYPE) OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) String ownerId)
   {
+    return getCpeMatchingConfigurationNoAuthz(ownerType, ownerId);
+  }
+
+  public CpeMatchingConfigurationDTO getCpeMatchingConfigurationNoAuthz(OwnerType ownerType, String ownerId) {
     CpeMatchingConfigurationDTO cpeMatchingConfigurationDTO = new CpeMatchingConfigurationDTO();
     ownerDAO.getByIdNotNull(ownerId); // will trigger a 404 if the owner does not exist
 
@@ -237,5 +249,19 @@ public class CpeMatchingConfigurationService
       cpeMatchingConfigurationDAO.update(existingConfig);
       return existingConfig;
     }
+  }
+
+  /*
+   * Returns true if license has CPE matching feature AND either:
+   * 1. this is an SBOM Manager only product
+   * OR
+   * 2. this is a multi product license and the CPE matching configuration
+   *    is enabled for the application or an organization in the hierarchy above
+   * */
+  public boolean isCpeDataMatchingEnabled(String applicationId) {
+    return productLicense.hasFeature(LicensedFeature.CPE_MATCHING) &&
+        ((!productLicense.getProducts().isEmpty() &&
+            productLicense.getProducts().stream().allMatch(p -> p.startsWith(PRODUCT_SBOM_MANAGER))) ||
+            getCpeMatchingConfigurationNoAuthz(OwnerType.APPLICATION, applicationId).enabled);
   }
 }

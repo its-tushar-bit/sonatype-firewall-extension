@@ -135,7 +135,7 @@ public class TestProductLicense
     return super.getProducts();
   }
 
-  public void setProducts(String products) {
+  public void setProducts(String... products) {
     testProductLicenseManager.setProducts(products);
   }
 

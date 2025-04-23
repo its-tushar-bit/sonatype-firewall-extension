@@ -17,6 +17,7 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.cpematching.CpeMatchingConfigurationService;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -39,10 +40,17 @@ public class ScanUploader
 
   private final Configuration configuration;
 
+  private final CpeMatchingConfigurationService cpeMatchingConfigurationService;
+
   @Inject
-  public ScanUploader(final HdsClient client, final Configuration configuration) {
+  public ScanUploader(
+      final HdsClient client,
+      final Configuration configuration,
+      final CpeMatchingConfigurationService cpeMatchingConfigurationService)
+  {
     this.client = client;
     this.configuration = configuration;
+    this.cpeMatchingConfigurationService = cpeMatchingConfigurationService;
   }
 
   /**
@@ -72,6 +80,8 @@ public class ScanUploader
     if (MapUtils.isNotEmpty(matcherConfiguration)) {
       uploadMetadata.putAll(matcherConfiguration);
     }
+    uploadMetadata.put("enableCpeDataMatching",
+        Boolean.toString(cpeMatchingConfigurationService.isCpeDataMatchingEnabled(application.getId())));
     ScanReceipt receipt = client.put(analytics, ScanReceipt.class, clientUserAgent, HDS_PATH, scanFile, uploadMetadata);
     augmentScanReceipt(application.getPublicId(), receipt, stageTypeId, thirdPartyScanContext);
     return receipt;

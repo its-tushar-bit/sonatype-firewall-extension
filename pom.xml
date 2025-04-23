@@ -1106,11 +1106,6 @@
         <version>${selenium.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.codeborne</groupId>
-        <artifactId>phantomjsdriver</artifactId>
-        <version>1.4.3</version>
-      </dependency>
-      <dependency>
         <groupId>com.applitools</groupId>
         <artifactId>eyes-selenium-java5</artifactId>
         <version>5.68.5</version>

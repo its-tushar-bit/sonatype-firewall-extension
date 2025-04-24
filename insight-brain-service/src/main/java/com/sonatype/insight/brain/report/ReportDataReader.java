@@ -37,7 +37,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -61,7 +60,8 @@ public class ReportDataReader
 
   private static final Logger log = LoggerFactory.getLogger(ReportDataReader.class);
 
-  public static final ObjectMapper MAPPER = new ObjectMapper();
+  public static final ObjectMapper MAPPER = new ObjectMapper()
+      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   // For testing visibility
   final TenantReference<Cache<String, Table<String, ComponentIdentifier, ReportComponentDTO>>>
@@ -75,7 +75,6 @@ public class ReportDataReader
 
   @Inject
   public ReportDataReader(final Provider<ReportService> reportServiceProvider, final MultiLicenseDAO multiLicenseDAO) {
-    configureMapper();
     this.reportServiceProvider = reportServiceProvider;
     this.multiLicenseDAO = multiLicenseDAO;
     componentCache = new TenantReference<>(() -> CacheBuilder.newBuilder()
@@ -84,15 +83,6 @@ public class ReportDataReader
         .weigher((Weigher<String, Table<String, ComponentIdentifier, ReportComponentDTO>>) (key, value) ->
             value.size())
         .build());
-  }
-
-  private static void configureMapper() {
-    SimpleModule module = new SimpleModule();
-    module.addDeserializer(HealthCheckReportSecurityRowDTO.class, new HealthCheckReportSecurityRowDTODeserializer());
-    module.addDeserializer(HealthCheckReportRowDTO.class, new HealthCheckReportRowDTODeserializer());
-    MAPPER
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .registerModule(module);
   }
 
   public NamedComponentDetails getComponentDetailsByIdentifier(

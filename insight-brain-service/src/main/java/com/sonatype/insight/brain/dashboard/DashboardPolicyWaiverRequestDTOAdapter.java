@@ -57,12 +57,12 @@ public class DashboardPolicyWaiverRequestDTOAdapter
           .fromComponentIdentifier(policyWaiverRequest.getComponentIdentifier());
     }
     dto.status = policyWaiverRequest.getStatus();
+    dto.requesterId = policyWaiverRequest.getRequesterId();
+    dto.requesterName = policyWaiverRequest.getRequesterName();
 
     if (includeDetails) {
       dto.comment = policyWaiverRequest.getComment();
       dto.constraintFacts = policyWaiverRequest.getConstraintFacts();
-      dto.requesterId = policyWaiverRequest.getRequesterId();
-      dto.requesterName = policyWaiverRequest.getRequesterName();
       dto.policyWaiverReason = policyWaiverReason;
     }
 

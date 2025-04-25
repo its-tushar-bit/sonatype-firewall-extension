@@ -1071,9 +1071,7 @@ public class DashboardPolicyWaiverRequestServiceTest
 
     assertThat(dashboardPolicyWaiverRequestDTO.constraintFacts).isNull();
     assertThat(dashboardPolicyWaiverRequestDTO.comment).isNull();
-    assertThat(dashboardPolicyWaiverRequestDTO.requesterId).isNull();
-    assertThat(dashboardPolicyWaiverRequestDTO.requesterName).isNull();
-    assertThat(dashboardPolicyWaiverRequestDTO.status).isEqualTo(policyWaiverRequest.getStatus());
+    assertThat(dashboardPolicyWaiverRequestDTO.policyWaiverReason).isNull();
   }
 
   private void assertPolicyWaiverRequestDTOBasicFields(
@@ -1099,6 +1097,8 @@ public class DashboardPolicyWaiverRequestServiceTest
     assertThat(dashboardPolicyWaiverRequestDTO.componentUpgradeAvailable)
         .isEqualTo(policyWaiverRequest.isComponentUpgradeAvailable());
     assertThat(dashboardPolicyWaiverRequestDTO.status).isEqualTo(policyWaiverRequest.getStatus());
+    assertThat(dashboardPolicyWaiverRequestDTO.requesterId).isEqualTo(policyWaiverRequest.getRequesterId());
+    assertThat(dashboardPolicyWaiverRequestDTO.requesterName).isEqualTo(policyWaiverRequest.getRequesterName());
 
     if (policyWaiverRequest.getComponentIdentifier() != null) {
       assertThat(dashboardPolicyWaiverRequestDTO.componentIdentifier.toComponentIdentifier())
@@ -1124,8 +1124,6 @@ public class DashboardPolicyWaiverRequestServiceTest
       }
     }
     assertThat(dashboardPolicyWaiverRequestDTO.comment).isEqualTo(policyWaiverRequest.getComment());
-    assertThat(dashboardPolicyWaiverRequestDTO.requesterId).isEqualTo(policyWaiverRequest.getRequesterId());
-    assertThat(dashboardPolicyWaiverRequestDTO.requesterName).isEqualTo(policyWaiverRequest.getRequesterName());
-    assertThat(dashboardPolicyWaiverRequestDTO.status).isEqualTo(policyWaiverRequest.getStatus());
+    assertThat(dashboardPolicyWaiverRequestDTO.policyWaiverReason).isEqualTo(policyWaiverRequest.getWaiverReasonId());
   }
 }

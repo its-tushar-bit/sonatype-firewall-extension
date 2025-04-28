@@ -113,10 +113,10 @@ public class ManualPullRequestCreationService
 
     Application app = applicationDAO.getByIdNotNull(applicationId);
     String branchName = pullRequestBranchNameGenerator.getBranchName(app, componentIdentifier, targetVersion);
-    boolean branchExist = eligibilityService.doesBranchExist(app.getId(), branchName);
-    if (branchExist) {
+    boolean isRemediationWaitingOrDone = eligibilityService.isRemediationWaitingOrDone(app.getId(), branchName);
+    if (isRemediationWaitingOrDone) {
       throw new BadRequestException(
-          "A branch with the name '" + branchName + "' already exists for application '" +
+          "A remediation event for branch name '" + branchName + "' already exists for application '" +
               app.getPublicId() + "'. Please choose a different branch name.");
     }
 

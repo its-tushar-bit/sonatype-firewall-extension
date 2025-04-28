@@ -6,15 +6,14 @@
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import jakarta.persistence.LockModeType;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -24,6 +23,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.nexus.git.utils.GitBranchNameValidator;
 import com.sonatype.nexus.git.utils.InvalidBranchNameException;
 
+import jakarta.persistence.LockModeType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -308,21 +308,38 @@ public class SourceControlEventDAO
     }
   }
 
-  public boolean hasRemediationEventForBranchAndStatus(String applicationId, String branchName, String eventStatus) {
-    String sQuery = "SELECT count(entity) FROM SourceControlEvent entity " +
-        "WHERE entity.applicationId = ?1 AND" +
-        "  entity.eventType IN ?2 AND" +
-        "  entity.branchName = ?3 AND" +
-        "  entity.eventStatus = ?4";
-    List<String> eventTypes = Arrays.asList(REMEDIATION_PULL_REQUEST_EVENT, MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
-    return 0 != getSingle(Long.class, sQuery, applicationId, eventTypes, branchName, eventStatus);
+  public boolean hasRemediationEventForBranchAndStatuses(
+      String applicationId,
+      String branchName,
+      String... eventStatuses)
+  {
+    String sQuery = "SELECT count(entity) FROM SourceControlEvent entity" +
+        " WHERE entity.applicationId = ?1" +
+        " AND entity.eventType IN ?2" +
+        " AND entity.branchName = ?3";
+    List<Object> params = new ArrayList<>();
+    params.add(applicationId);
+    params.add(Arrays.asList(REMEDIATION_PULL_REQUEST_EVENT, MANUAL_REMEDIATION_PULL_REQUEST_EVENT));
+    params.add(branchName);
+    if (eventStatuses.length > 0) {
+      sQuery += " AND entity.eventStatus IN ?4";
+      params.add(Arrays.asList(eventStatuses));
+    }
+    return 0 != getSingle(Long.class, sQuery, params.toArray());
   }
 
   public boolean hasRemediationEventForBranch(String applicationId, String branchName) {
-    String sQuery = "SELECT count(entity) FROM SourceControlEvent entity" +
-        " WHERE entity.applicationId = ?1 AND entity.eventType IN ?2 AND entity.branchName = ?3";
-    List<String> eventTypes = Arrays.asList(REMEDIATION_PULL_REQUEST_EVENT, MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
-    return 0 != getSingle(Long.class, sQuery, applicationId, eventTypes, branchName);
+    return hasRemediationEventForBranchAndStatuses(applicationId, branchName);
+  }
+
+  public boolean hasWaitingOrCompleteRemediationEvent(String applicationId, String branchName) {
+    return hasRemediationEventForBranchAndStatuses(
+        applicationId,
+        branchName,
+        SourceControlEvent.EVENT_STATUS_NEW,
+        SourceControlEvent.EVENT_STATUS_IN_PROGRESS,
+        SourceControlEvent.EVENT_STATUS_COMPLETE
+    );
   }
 
   @Override

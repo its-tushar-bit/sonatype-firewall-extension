@@ -180,7 +180,7 @@ public class ManualPullRequestCreationServiceTest
         "Sonatype"
     )).isInstanceOf(BadRequestException.class)
         .hasMessageContaining(
-            "A branch with the name '" +
+            "A remediation event for branch name '" +
                 branchNameGenerator.getBranchName(application, mavenComponent, DEFAULT_REMEDIATION_VERSION) +
                 "' already exists for application '" + application.getPublicId() +
                 "'. Please choose a different branch name.");
@@ -200,6 +200,7 @@ public class ManualPullRequestCreationServiceTest
     sourceControlEvent.setBranchName(branchName);
     sourceControlEvent.setApplicationId(application.getId());
     sourceControlEvent.setEventType(MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+    sourceControlEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_ERROR);
     sourceControlEvent.setScanId(DEFAULT_SCAN_ID);
     sourceControlEventDAO.insert(sourceControlEvent);
 

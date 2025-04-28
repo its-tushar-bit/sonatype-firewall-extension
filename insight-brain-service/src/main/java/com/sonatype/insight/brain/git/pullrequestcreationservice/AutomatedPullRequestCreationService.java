@@ -80,7 +80,7 @@ public class AutomatedPullRequestCreationService
 
     String branchName =
         pullRequestBranchNameGenerator.getBranchName(app, componentIdentifier, remediationVersionDTO.getVersion());
-    if (eligibilityService.doesBranchExist(app.getId(), branchName)) {
+    if (eligibilityService.isRemediationWaitingOrDone(app.getId(), branchName)) {
       return;
     }
 

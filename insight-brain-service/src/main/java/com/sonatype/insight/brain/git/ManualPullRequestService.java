@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediation
 import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.hds.ComponentRemediationService;
 import com.sonatype.insight.brain.model.Application;
@@ -33,6 +32,7 @@ import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Provider;
 import org.apache.shiro.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,8 +40,6 @@ import org.slf4j.LoggerFactory;
 public class ManualPullRequestService
 {
   protected static final Logger log = LoggerFactory.getLogger(ManualPullRequestService.class);
-
-  private final SourceControlEventDAO sourceControlEventDAO;
 
   private final SourceControlDAO sourceControlDAO;
 
@@ -58,19 +56,20 @@ public class ManualPullRequestService
   private final PullRequestBranchNameGenerator pullRequestBranchNameGenerator;
 
   private final ComponentRemediationService componentRemediationService;
+  
+  private final Provider<RemediationPullRequestEligibilityService> remediationPullRequestEligibilityService;
 
   @Inject
   public ManualPullRequestService(
-      SourceControlEventDAO sourceControlEventDAO,
       SourceControlDAO sourceControlDAO,
       StageTypeService stageTypeService, PermissionService permissionService,
       PullRequestExecutor pullRequestExecutor,
       ManualPullRequestFeatureCheck manualPullRequestFeatureCheck,
       PasswordHandler passwordHandler,
       PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
-      ComponentRemediationService componentRemediationService)
+      ComponentRemediationService componentRemediationService,
+      Provider<RemediationPullRequestEligibilityService> remediationPullRequestEligibilityService)
   {
-    this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlDAO = sourceControlDAO;
     this.stageTypeService = stageTypeService;
     this.permissionService = permissionService;
@@ -79,6 +78,7 @@ public class ManualPullRequestService
     this.passwordHandler = passwordHandler;
     this.pullRequestBranchNameGenerator = pullRequestBranchNameGenerator;
     this.componentRemediationService = componentRemediationService;
+    this.remediationPullRequestEligibilityService = remediationPullRequestEligibilityService;
   }
 
   /**
@@ -137,7 +137,7 @@ public class ManualPullRequestService
     Application application = (Application) owner;
     String branchName = pullRequestBranchNameGenerator.getBranchName(application, componentIdentifier,
         extractVersion(suggestedVersion.get().getData()).get());
-    if (doesRemediationEventExist(owner, branchName)) {
+    if (remediationPullRequestEligibilityService.get().isRemediationWaitingOrDone(application.getId(), branchName)) {
       return Optional.of(ManualPullRequestImpossibilityReason.REMEDIATION_EVENT_EXISTS);
     }
 
@@ -179,10 +179,6 @@ public class ManualPullRequestService
   private boolean isFormatSupportedForPullRequest(ComponentIdentifier componentIdentifier) {
     return componentIdentifier.getFormat() != null &&
         pullRequestExecutor.isSupportedFormat(componentIdentifier.getFormat());
-  }
-
-  private boolean doesRemediationEventExist(Owner owner, String branchName) {
-    return sourceControlEventDAO.hasRemediationEventForBranch(owner.getId(), branchName);
   }
 
   private Optional<String> decryptToken(final String encryptedToken) {

@@ -13,7 +13,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
@@ -102,14 +101,11 @@ public class RemediationPullRequestEligibilityService
   }
 
   /**
-   * Checks if any branch exists with the given name (either automated or manual) in a completed SourceControlEvent
+   * Check if a remediation SourceControlEvent (automated or manual) exists for the given application id and branch name
+   * in a new, pending, or completed state.
    */
-  public boolean doesBranchExist(final String applicationId, final String branchName) {
-    boolean exists = sourceControlEventDAO.hasRemediationEventForBranchAndStatus(
-        applicationId,
-        branchName,
-        SourceControlEvent.EVENT_STATUS_COMPLETE
-    );
+  public boolean isRemediationWaitingOrDone(final String applicationId, final String branchName) {
+    boolean exists = sourceControlEventDAO.hasWaitingOrCompleteRemediationEvent(applicationId, branchName);
 
     if (exists) {
       log.debug("{} branch already exists for application '{}'", branchName, applicationId);

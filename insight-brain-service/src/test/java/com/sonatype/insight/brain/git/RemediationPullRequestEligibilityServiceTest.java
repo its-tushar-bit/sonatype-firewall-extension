@@ -127,49 +127,48 @@ public class RemediationPullRequestEligibilityServiceTest
   }
 
   @Test
-  public void testDoesBranchExist() {
-    String branchName = "branchName";
+  public void testIsRemediationWaitingOrDone() {
     var policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), "scanId");
-    tempEntity.newSourceControlEvent(application, policyEvaluation, branchName,
+
+    tempEntity.newSourceControlEvent(application, policyEvaluation, "b1",
+        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_NEW);
+    tempEntity.newSourceControlEvent(application, policyEvaluation, "b2",
+        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_IN_PROGRESS);
+    tempEntity.newSourceControlEvent(application, policyEvaluation, "b3",
         SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_COMPLETE);
-    boolean result = eligibilityService.doesBranchExist(application.getId(), branchName);
-    assertThat(result).isTrue();
-  }
+    tempEntity.newSourceControlEvent(application, policyEvaluation, "b4",
+        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_ERROR);
 
-  @Test
-  public void testDoesBranchExist_manualPR() {
-    String branchName = "branchName";
-    var policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), "scanId");
-    tempEntity.newSourceControlEvent(application, policyEvaluation, branchName,
+    tempEntity.newSourceControlEvent(application, policyEvaluation, "b5",
+        SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_NEW);
+    tempEntity.newSourceControlEvent(application, policyEvaluation, "b6",
+        SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_IN_PROGRESS);
+    tempEntity.newSourceControlEvent(application, policyEvaluation, "b7",
         SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_COMPLETE);
-    boolean result = eligibilityService.doesBranchExist(application.getId(), branchName);
-    assertThat(result).isTrue();
+    tempEntity.newSourceControlEvent(application, policyEvaluation, "b8",
+        SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_ERROR);
+
+    // Note SourceControlEvent.EVENT_STATUS_PARTIALLY_COMPLETE is not possible for a remediation event
+    // (i.e. either the PR was created or it wasn't)
+
+    assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), "b1")).isTrue();
+    assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), "b2")).isTrue();
+    assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), "b3")).isTrue();
+    assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), "b4")).isFalse();
+    assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), "b5")).isTrue();
+    assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), "b6")).isTrue();
+    assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), "b7")).isTrue();
+    assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), "b8")).isFalse();
   }
 
   @Test
-  public void testDoesBranchExist_incompleteEvents() {
+  public void testIsRemediationWaitingOrDone_noEvents() {
     String branchName = "branchName";
-    var policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), "scanId");
-    tempEntity.newSourceControlEvent(application, policyEvaluation, branchName,
-        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_NEW);
-    tempEntity.newSourceControlEvent(application, policyEvaluation, branchName,
-        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_NEW);
-    tempEntity.newSourceControlEvent(application, policyEvaluation, branchName,
-        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_NEW);
-    tempEntity.newSourceControlEvent(application, policyEvaluation, branchName,
-        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_NEW);
-
-    assertThat(eligibilityService.doesBranchExist(application.getId(), branchName)).isFalse();
+    assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), branchName)).isFalse();
   }
 
   @Test
-  public void testDoesBranchExist_noEvents() {
-    String branchName = "branchName";
-    assertThat(eligibilityService.doesBranchExist(application.getId(), branchName)).isFalse();
-  }
-
-  @Test
-  public void testDoesBranchExist_otherTypes() {
+  public void testIsRemediationWaitingOrDone_otherTypes() {
     String branchName = "branchName";
     var policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), "scanId");
     for (var eventType : SourceControlEvent.EVENT_TYPES) {
@@ -181,7 +180,7 @@ public class RemediationPullRequestEligibilityServiceTest
           eventType, SourceControlEvent.EVENT_STATUS_COMPLETE);
     }
 
-    boolean result = eligibilityService.doesBranchExist(application.getId(), branchName);
+    boolean result = eligibilityService.isRemediationWaitingOrDone(application.getId(), branchName);
     assertThat(result).isFalse();
   }
 

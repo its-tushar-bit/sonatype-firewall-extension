@@ -74,19 +74,18 @@ make(
     runFeatureBranchPolicyEvaluations: true,
     iqPolicyEvaluation: { stage ->
         if (shouldRunPolicyEvaluation()) {
-          def callflowConfig = isDeployBranch(env, 'main') ? [
-              enable: false,
-              includes: [
-                  'nexus-iq-server/target/insight-brain-service-*.jar'
-              ],
-              entrypointStrategy: [
-                  $class: 'NamedStrategy',
-                  name: 'JAVA_MAIN',
-                  namespaces:['com.sonatype.insight']
-              ],
-              java: [
-                  options: [
-                      '-Xmx12G'
+          def reachabilityConfig = isDeployBranch(env, 'main') ? [
+              jsAnalysis: [
+                  enable: true,
+                  node: [
+                      executable: "${env.WORKSPACE}/insight-brain-frontend/node/node"
+                  ],
+                  projectDirectory: 'insight-brain-frontend',
+                  sourceFiles: [
+                      [pattern: 'src/main/**']
+                  ],
+                  excludeFiles: [
+                      [pattern: 'src/test/**']
                   ]
               ]
           ] : null
@@ -95,7 +94,7 @@ make(
               //Test files inside the maven modules are excluded from the scan
               iqModuleExcludes: [[moduleExclude: '**/test/**'], [moduleExclude: '**/test-classes/**/module.xml']],
               failBuildOnNetworkError: true,
-              callflow: callflowConfig
+              reachability: reachabilityConfig
 
           if (stage == 'release') {
             build(job: 'lifecycle-for-sonatype/generate-attribution-report',

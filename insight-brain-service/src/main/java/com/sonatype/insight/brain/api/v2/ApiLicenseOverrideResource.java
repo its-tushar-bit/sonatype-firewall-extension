@@ -141,7 +141,7 @@ public class ApiLicenseOverrideResource
   @GET
   @Path(LEGAL_REVIEWER_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public LicenseOverrideService.AppliedLicenseOverrides getAppliedLicenseOverridesForLegalReviewer(
+  public ApiAppliedLicenseOverridesDTO getAppliedLicenseOverridesForLegalReviewer(
       @Parameter(description = "Select the `ownerType` for which you want to retrieve the applied " +
           "license overrides.",
           required = true)
@@ -156,7 +156,7 @@ public class ApiLicenseOverrideResource
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
   {
     return licenseOverrideService.getAppliedLicenseOverridesForLegalReviewer(ownerType, ownerId,
-        componentIdentifier);
+        componentIdentifier).toDto();
   }
 
   @GET

@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -326,32 +325,6 @@ public class ApplicationEvaluationResourceTest
   }
 
   @Test
-  public void testAnalyzeComponentsWithPollingAndPollEvaluationResult_FeatureFlagDisabled() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(false);
-    Application app = tempEntity.newApplicationWithParent();
-    String testClientUserAgent = "testClientUserAgent";
-
-    Policy policy = tempEntity.newPolicy(app);
-    policy.setAction(BuildStageType.ID, Action.ID_FAIL);
-    policyDAO.update(policy);
-
-    // Simulate that the report is available
-    String scanId = mockReport("/" + getClass().getSimpleName() + "/report");
-    ScanReceipt scanReceipt = new ScanReceipt();
-    scanReceipt.setScanId(scanId);
-
-    mockScanReceipt(scanReceipt);
-
-    HttpResponse response =
-        makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
-            ClientScanType.SONATYPE, false, COMPONENT_ANALYSIS_PATH) //
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
-            .post();
-    assertResponseStatus(403, response);
-    assertThat(response.getBodyText()).isEqualTo("new-scan-process feature is disabled.");
-  }
-
-  @Test
   public void testAnalyzeComponentsWithPollingAndPollEvaluationResult_UnsupportedStage() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
@@ -430,32 +403,6 @@ public class ApplicationEvaluationResourceTest
     assertResponseStatus(402, response);
     assertThat(response.getBodyText()).isEqualTo(String.format("Stage '%s' is not supported by your license.",
         unlicensedStage));
-  }
-
-  @Test
-  public void testEvaluateWithPollingByStatusId_FeatureFlagDisabled() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(false);
-    Application app = tempEntity.newApplicationWithParent();
-    String testClientUserAgent = "testClientUserAgent";
-
-    Policy policy = tempEntity.newPolicy(app);
-    policy.setAction(BuildStageType.ID, Action.ID_FAIL);
-    policyDAO.update(policy);
-
-    VulnerabilitySignatureAnalysisDTO analysisDTO = getVulnerabilitySignatureAnalysisDTO(app);
-
-    PolicyEvaluationRequestDTO policyEvaluationRequestDTO = new PolicyEvaluationRequestDTO();
-    policyEvaluationRequestDTO.setAnalysisDTO(analysisDTO);
-
-    // evaluate policy
-    HttpResponse response =
-        makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
-            ClientScanType.SONATYPE, POLICY_EVALUATION_PATH, "statusId", policyEvaluationRequestDTO) //
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
-            .post();
-
-    assertResponseStatus(403, response);
-    assertThat(response.getBodyText()).isEqualTo("new-scan-process feature is disabled.");
   }
 
   @Test

@@ -69,7 +69,6 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.SBOM_POLICIES.getId(),
       SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId(),
       SystemConfigurationPropertyFeature.API_PAGE.getId(),
-      SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.getId(),
       };
 
   /**
@@ -106,7 +105,6 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.SBOM_POLICIES.getId(),
       SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId(),
       SystemConfigurationPropertyFeature.API_PAGE.getId(),
-      SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.getId(),
       };
 
   /**

@@ -229,8 +229,7 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.NON_BREAKING_VERSION_SUGGESTION_TELEMETRY,
         SystemConfigurationPropertyFeature.SBOM_POLICIES,
         SystemConfigurationPropertyFeature.AUTO_WAIVERS,
-        SystemConfigurationPropertyFeature.API_PAGE,
-        SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS
+        SystemConfigurationPropertyFeature.API_PAGE
     ).collect(toSet()).toArray(new SystemConfigurationPropertyFeature[]{});
   }
 

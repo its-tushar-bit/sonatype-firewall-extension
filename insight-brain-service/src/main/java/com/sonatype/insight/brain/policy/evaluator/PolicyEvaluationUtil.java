@@ -121,7 +121,7 @@ public class PolicyEvaluationUtil
     initialResult.setStatus(PolicyEvaluationStatus.PENDING);
     initialResult.setNextPollingIntervalInSeconds(
         EvaluationTask.getNextPollingInterval(disablePollingIntervalForTesting));
-    if (setNewProcessSubStatus && SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.isEnabled()) {
+    if (setNewProcessSubStatus) {
       initialResult.setSubStatus(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING);
     }
 

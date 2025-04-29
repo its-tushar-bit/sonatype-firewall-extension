@@ -204,7 +204,6 @@ public class Configuration
         SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS,
         SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI,
         SystemConfigurationProperty.SBOM_POLICIES,
-        SystemConfigurationProperty.NEW_SCAN_PROCESS,
         SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR,
         SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS,
         SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_BATCH_SIZE,

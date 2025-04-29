@@ -1061,7 +1061,6 @@ public class SupportInfoFilesTest
     // Given
     Map<String, Object> sysConfigProperties = new HashMap<>();
     sysConfigProperties.put("autoWaivers", true);
-    sysConfigProperties.put("newScanProcess", false);
     sysConfigProperties.put("blockNonAsciiInPath", false);
     sysConfigProperties.put("ADVANCED_REPORTING_INSIGHTS_ENABLED", true);
     sysConfigProperties.put("sbomBinaryScanning", true);
@@ -1079,7 +1078,6 @@ public class SupportInfoFilesTest
     assertThat(fileContents).isEqualTo("""
         {
           "autoWaivers" : true,
-          "newScanProcess" : false,
           "blockNonAsciiInPath" : false,
           "ADVANCED_REPORTING_INSIGHTS_ENABLED" : true,
           "sbomBinaryScanning" : true

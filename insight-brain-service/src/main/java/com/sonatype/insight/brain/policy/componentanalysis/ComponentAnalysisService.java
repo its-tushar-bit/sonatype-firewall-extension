@@ -147,7 +147,6 @@ public class ComponentAnalysisService
       HttpServletRequest request,
       Stage stage) throws IOException
   {
-    EvaluationUtils.ensureNewEvaluationProcessEnabled();
     policyEvaluationUtil.validateEvaluationTypeAndFeature(integrationType, stage);
 
     String statusId = UUID.randomUUID().toString().replace("-", "");

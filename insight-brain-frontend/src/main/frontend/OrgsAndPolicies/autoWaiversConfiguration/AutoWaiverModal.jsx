@@ -19,7 +19,6 @@ import {
   NxFontAwesomeIcon,
   NxP,
 } from '@sonatype/react-shared-components';
-import { selectIsNewScanProcessEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from './autoWaiverModalSlice';
 import { faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
 import { selectAutoWaiverModalSlice, selectAutoWaiverDetails } from './autoWaiverModalSelectors';
@@ -37,9 +36,8 @@ export default function AutoWaiverModal() {
   const { isModalOpen, isEditMode, submitMaskState, submitError, isDirty, isUnsavedChangesModalOpen } = useSelector(
     selectAutoWaiverModalSlice
   );
-  const isNewScanProcessEnabled = useSelector(selectIsNewScanProcessEnabled);
   const waiverModal = useSelector(selectAutoWaiverDetails);
-  const reachability = isNewScanProcessEnabled ? waiverModal.reachability : false;
+  const reachability = waiverModal.reachability;
   const pathForward = waiverModal.pathForward;
   const threatLevel = waiverModal.threatLevel;
   const scope = waiverModal.scope;
@@ -142,29 +140,27 @@ export default function AutoWaiverModal() {
                     </NxCheckbox>
                   </NxTooltip>
                 </div>
-                {isNewScanProcessEnabled && (
-                  <div className="iq-auto-waiver-modal-fieldset__item">
-                    <div className="iq-auto-waiver-modal-fieldset__item-reachability-header">
-                      <NxH4>{VULNERABILITY_IS_NOT_REACHABLE_TEXT}</NxH4>
-                      <NxTooltip title="Reachability Analysis must be enabled (via Sonatype CLI or CI/CD Integration).">
-                        <NxFontAwesomeIcon
-                          className="iq-auto-waiver-modal-fieldset__item-icon"
-                          data-testid="auto-waiver-modal-reachability-icon"
-                          icon={faInfoCircle}
-                        />
-                      </NxTooltip>
-                    </div>
-                    <NxTooltip title={waiverModal?.isInherited ? 'Inherited from parent organization' : ''}>
-                      <NxCheckbox
-                        onChange={() => dispatch(actions.toggleCheckboxReachability())}
-                        isChecked={reachability || false}
-                        disabled={waiverModal?.isInherited}
-                      >
-                        Application does not execute any calls to the vulnerable method
-                      </NxCheckbox>
+                <div className="iq-auto-waiver-modal-fieldset__item">
+                  <div className="iq-auto-waiver-modal-fieldset__item-reachability-header">
+                    <NxH4>{VULNERABILITY_IS_NOT_REACHABLE_TEXT}</NxH4>
+                    <NxTooltip title="Reachability Analysis must be enabled (via Sonatype CLI or CI/CD Integration).">
+                      <NxFontAwesomeIcon
+                        className="iq-auto-waiver-modal-fieldset__item-icon"
+                        data-testid="auto-waiver-modal-reachability-icon"
+                        icon={faInfoCircle}
+                      />
                     </NxTooltip>
                   </div>
-                )}
+                  <NxTooltip title={waiverModal?.isInherited ? 'Inherited from parent organization' : ''}>
+                    <NxCheckbox
+                      onChange={() => dispatch(actions.toggleCheckboxReachability())}
+                      isChecked={reachability || false}
+                      disabled={waiverModal?.isInherited}
+                    >
+                      Application does not execute any calls to the vulnerable method
+                    </NxCheckbox>
+                  </NxTooltip>
+                </div>
               </NxFieldset>
             </NxModal.Content>
           </NxStatefulForm>

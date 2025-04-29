@@ -286,8 +286,6 @@ export const selectIsExpireWhenRemediationAvailableWaiversEnabled = createSelect
   propOr(false, 'expire-waiver-when-remediation-available')
 );
 
-export const selectIsNewScanProcessEnabled = createSelector(selectProductFeatures, propOr(false, 'new-scan-process'));
-
 export const selectIsDarkModeFeatureFlagEnabled = createSelector(selectProductFeatures, propOr(false, 'dark-mode'));
 
 export const selectIsManualPullRequestEnabled = createSelector(

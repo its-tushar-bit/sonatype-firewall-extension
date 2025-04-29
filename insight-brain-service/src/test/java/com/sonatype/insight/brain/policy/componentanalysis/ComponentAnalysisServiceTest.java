@@ -28,7 +28,6 @@ import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -45,7 +44,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
-import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -149,15 +147,6 @@ public class ComponentAnalysisServiceTest
         ClientScanType.SONATYPE, httpRequest, unlicensedStage))
         .isInstanceOf(InvalidLicenseException.class)
         .hasMessage("Stage '" + unlicensedStage.getStageTypeId() + "' is not supported by your license.");
-  }
-
-  @Test
-  public void testAnalyzeComponentsWithPolling_NewScanProcessDisabled() {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(false);
-    assertThatThrownBy(() -> componentAnalysisService.analyzeComponentsWithPolling(INTEGRATION_TYPE, "appId",
-        ClientScanType.SONATYPE, httpRequest, STAGE))
-        .isInstanceOf(UnauthorizedException.class)
-        .hasMessage(SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.getId() + " feature is disabled.");
   }
 
   @Test

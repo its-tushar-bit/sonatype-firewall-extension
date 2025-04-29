@@ -871,71 +871,6 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_Results_AutoWaivedViolations_WithReachableVulnerability_Reachable_MissingNewScanFeature()
-      throws Exception
-  {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(false);
-
-    ComponentDetailsDTO tomcatComponentDetailsDTOV1 = new ComponentDetailsDTO();
-    tomcatComponentDetailsDTOV1.componentIdentifier =
-        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
-    tomcatComponentDetailsDTOV1.violatedPolicyCount = 1;
-    ComponentDetailsDTO tomcatComponentDetailsDTOV2 = new ComponentDetailsDTO();
-    tomcatComponentDetailsDTOV2.componentIdentifier =
-        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.25");
-    tomcatComponentDetailsDTOV2.violatedPolicyCount = 0;
-
-    doReturn(Pair.of(Arrays.asList(tomcatComponentDetailsDTOV1, tomcatComponentDetailsDTOV2), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
-            any(), eq(tomcatComponentDetailsDTOV1.componentIdentifier), any(), any(), any(), any(), any(),
-            anyBoolean());
-
-    doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
-            any(), not(eq(tomcatComponentDetailsDTOV1.componentIdentifier)), any(), any(), any(), any(), any(),
-            anyBoolean());
-
-    Stage stage = new Stage(Stage.ID_BUILD);
-    String scanId = simulateReportIsAvailable("report");
-
-    Policy securityPolicy = new Policy(null, "Security Policy");
-    securityPolicy.setThreatLevel(4);
-    securityPolicy.setOwnerId(application.getId());
-    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
-    securityPolicy.addConstraint(constraint);
-    tempEntity.newPolicy(securityPolicy);
-
-    tempEntity.newAutoPolicyWaiver(application.getId(), 7, true, true);
-
-    ComponentIdentifier componentIdentifier = ComponentIdentifier
-        .createMavenCoordinates("org.openid4java", "openid4java", "0.9.5");
-
-    String vulnerabilityIdentifier = "CVE-2011-4314";
-    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
-        application.getId(),
-        scanId,
-        componentIdentifier,
-        vulnerabilityIdentifier,
-        insightWork
-    );
-
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
-        ClientScanType.SONATYPE, analysisDTO, false);
-
-    List<PolicyViolation> autoWaivedViolations = results.autoWaivedViolations;
-
-    // Total violations = 36
-    // Security.REACHABLE violations = 1
-    // Security.NON_REACHABLE violations = 36
-    // Components with pathForward = 9
-
-    // Disregard reachability since NEW_SCAN_PROCESS FF is turned off
-    assertThat(autoWaivedViolations).hasSize(27);
-    assertThat(results.activeViolations).hasSize(9);
-  }
-
-  @Test
   public void testEvaluate_Results_AutoWaivedViolations_PathForward_WithVersionChanges_WithReachableVuln_Reachable()
       throws Exception
   {
@@ -4880,8 +4815,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_CollectAppliedAutoWaiverTelemetry() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(true);
-
     // Set up no path forward:
     ComponentDetailsDTO tomcatComponentDetailsDTO = new ComponentDetailsDTO();
     tomcatComponentDetailsDTO.componentIdentifier =

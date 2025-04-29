@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import javax.inject.Inject;
@@ -33,7 +32,6 @@ import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.metrics.PolicyEvaluateServiceMetrics;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -55,7 +53,6 @@ import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
-import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
@@ -468,8 +465,6 @@ public class PolicyEvaluateService
       final String statusId,
       final VulnerabilitySignatureAnalysisDTO analysisDTO)
   {
-    EvaluationUtils.ensureNewEvaluationProcessEnabled();
-
     policyEvaluationUtil.validateEvaluationTypeAndFeature(integrationType, stage);
 
     log.debug("Received request to evaluate policy, with vulnerability signature analysis, for app public id {}, " +
@@ -798,8 +793,7 @@ public class PolicyEvaluateService
 
   /**
    * Make a DTO of the given {@link PolicyEvaluationPollingResult} instance with a potential sub status
-   * ({@link PolicyEvaluationSubStatus}), if the feature {@link SystemConfigurationPropertyFeature#NEW_SCAN_PROCESS} is
-   * enabled.
+   * ({@link PolicyEvaluationSubStatus})
    *
    * @param persistedPolicyEvaluationPollingResult the {@link PolicyEvaluationPollingResult} to create a DTO from.
    * @return a new instance of {@link PolicyEvaluationPollingResultDTO}
@@ -817,11 +811,7 @@ public class PolicyEvaluateService
     dto.scanReceipt = res.getScanReceipt();
     dto.nextPollingIntervalInSeconds = res.getNextPollingIntervalInSeconds();
     dto.statusId = persistedPolicyEvaluationPollingResult.getStatusId();
-
-    Set<Feature> features = featuresService.getFeatures();
-    if (features.contains(SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS)) {
-      dto.subStatus = res.getSubStatus();
-    }
+    dto.subStatus = res.getSubStatus();
 
     return dto;
   }

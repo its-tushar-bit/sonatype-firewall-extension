@@ -285,7 +285,6 @@ public class ConfigurationInfoTest
         "sbomPolicies",
         "malwareDefenseApi",
         "autoWaivers",
-        "newScanProcess",
         "idTokenCookieExpirationTime",
         "alpForSbomManager",
         "componentChangeDetectionApi",

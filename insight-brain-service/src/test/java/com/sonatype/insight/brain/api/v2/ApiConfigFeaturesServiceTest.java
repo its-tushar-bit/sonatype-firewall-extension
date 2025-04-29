@@ -52,7 +52,6 @@ import static com.sonatype.insight.brain.model.configuration.SystemConfiguration
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.INNER_SOURCE_TRANSITIVE_WAIVER;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.MANUAL_PULL_REQUESTS;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.NEW_SCAN_PROCESS;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.PR_COMMENTING;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.PR_LINE_COMMENTING;
@@ -1235,49 +1234,6 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
-  public void testGetSystemConfigurationPropertyFeature_NewScanProcess() {
-    assertThat(service.getSystemConfigurationPropertyFeature("newScanProcess")).isEqualTo(
-        SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS);
-    assertThat(service.getSystemConfigurationPropertyFeature("newScanprocess")).isEqualTo(
-        SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS);
-    assertThat(service.getSystemConfigurationPropertyFeature("newscanProcess")).isEqualTo(
-        SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS);
-    assertThat(service.getSystemConfigurationPropertyFeature("NEWSCANPROCESS")).isEqualTo(
-        SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS);
-    assertThat(service.getSystemConfigurationPropertyFeature("NewscanProcess")).isEqualTo(
-        SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS);
-    assertThat(service.getSystemConfigurationPropertyFeature("NewScanprocess")).isEqualTo(
-        SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS);
-    assertThat(service.getSystemConfigurationPropertyFeature("NewScanProcess")).isEqualTo(
-        SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS);
-  }
-
-  @Test
-  public void testEnableFeature_NEW_SCAN_PROCESS_EnabledByDefault() {
-    assertThat(
-        systemConfigurationPropertyDAO.getByName(NEW_SCAN_PROCESS))
-        .isNull();
-    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS)).isTrue();
-  }
-
-  @Test
-  public void testEnableFeature_NEW_SCAN_PROCESS_AlreadyEnabled() {
-    assertThatThrownBy(
-        () -> service.enableFeature(
-            NEW_SCAN_PROCESS)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already enabled.");
-  }
-
-  @Test
-  public void testDisableFeature_NEW_SCAN_PROCESS_AlreadyDisabled() {
-    service.disableFeature(NEW_SCAN_PROCESS);
-    assertThatThrownBy(
-        () -> service.disableFeature(
-            NEW_SCAN_PROCESS)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already disabled.");
-  }
-
-  @Test
   public void testIsEnabled_AutoWaivers_EnabledByDefault() {
     // Enabled by default
     assertThat(systemConfigurationPropertyDAO.getByName(AUTO_WAIVERS)).isNull();
@@ -1293,17 +1249,6 @@ public class ApiConfigFeaturesServiceTest
         systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.AUTO_WAIVERS).getValue())
         .isEqualTo("true");
     assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.AUTO_WAIVERS)).isTrue();
-  }
-
-  @Test
-  public void testIsEnabled_NewScanProcess() {
-    final SystemConfigurationProperty systemConfigurationProperty =
-        new SystemConfigurationProperty(NEW_SCAN_PROCESS, "true");
-    systemConfigurationPropertyDAO.insert(systemConfigurationProperty);
-    assertThat(
-        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.NEW_SCAN_PROCESS).getValue())
-        .isEqualTo("true");
-    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS)).isTrue();
   }
 
   @Test
@@ -1390,8 +1335,7 @@ public class ApiConfigFeaturesServiceTest
         SystemConfigurationPropertyFeature.CODE_INSIGHTS,
         SystemConfigurationPropertyFeature.LDAP_CONFIGURATION,
         SystemConfigurationPropertyFeature.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES,
-        SystemConfigurationPropertyFeature.SCAN_POM_FILES_IN_META_INF_DIRECTORY,
-        SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS);
+        SystemConfigurationPropertyFeature.SCAN_POM_FILES_IN_META_INF_DIRECTORY);
     customFilter.forEach(
         filtered -> expectedFeatureConfigMap.remove(service.getFeatureForPropertyName(filtered.getPropertyName())));
 
@@ -1477,7 +1421,6 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("logoutAuth0OnLogout", false);
     expectedFeatureConfigMap.put("malwareDefenseApi", false);
     expectedFeatureConfigMap.put("manualPullRequests", false);
-    expectedFeatureConfigMap.put("newScanProcess", true);
     expectedFeatureConfigMap.put("nonBreakingVersionSuggestionTelemetry", true);
     expectedFeatureConfigMap.put("OAUTH2_ENABLED", false);
     expectedFeatureConfigMap.put("prioritizedFindingsReport", true);

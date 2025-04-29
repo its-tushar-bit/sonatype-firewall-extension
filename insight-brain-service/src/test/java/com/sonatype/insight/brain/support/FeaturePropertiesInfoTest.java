@@ -30,9 +30,8 @@ public class FeaturePropertiesInfoTest
   public void testGetSystemConfigPropertiesJson_defaultSysConfig() throws IOException {
     JsonNode sysConfigNode = JsonUtils.parse(featurePropertiesInfo.getSystemConfigPropertiesJson());
 
-    assertThat(sysConfigNode.size()).isEqualTo(27);
+    assertThat(sysConfigNode.size()).isEqualTo(26);
     assertThat(sysConfigNode.get(SystemConfigurationProperty.AUTO_WAIVERS).asBoolean()).isTrue();
-    assertThat(sysConfigNode.get(SystemConfigurationProperty.NEW_SCAN_PROCESS).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH).asBoolean()).isTrue();
@@ -76,9 +75,8 @@ public class FeaturePropertiesInfoTest
 
     JsonNode sysConfigNode = JsonUtils.parse(featurePropertiesInfo.getSystemConfigPropertiesJson());
 
-    assertThat(sysConfigNode.size()).isEqualTo(27);
+    assertThat(sysConfigNode.size()).isEqualTo(26);
     assertThat(sysConfigNode.get(SystemConfigurationProperty.AUTO_WAIVERS).asBoolean()).isFalse();
-    assertThat(sysConfigNode.get(SystemConfigurationProperty.NEW_SCAN_PROCESS).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH).asBoolean()).isTrue();
@@ -115,7 +113,7 @@ public class FeaturePropertiesInfoTest
   public void testGetFeatureConfigPropertiesJson_defaultFeatureConfig() throws IOException {
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(56);
+    assertThat(featureConfigNode.size()).isEqualTo(55);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -151,7 +149,6 @@ public class FeaturePropertiesInfoTest
               "logoutAuth0OnLogout": false,
               "malwareDefenseApi": false,
               "manualPullRequests": false,
-              "newScanProcess": true,
               "nonBreakingVersionSuggestionTelemetry": true,
               "OAUTH2_ENABLED": false,
               "prioritizedFindingsReport": true,
@@ -189,7 +186,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(56);
+    assertThat(featureConfigNode.size()).isEqualTo(55);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -225,7 +222,6 @@ public class FeaturePropertiesInfoTest
               "logoutAuth0OnLogout": false,
               "malwareDefenseApi": false,
               "manualPullRequests": false,
-              "newScanProcess": true,
               "nonBreakingVersionSuggestionTelemetry": true,
               "OAUTH2_ENABLED": false,
               "prioritizedFindingsReport": true,
@@ -269,7 +265,7 @@ public class FeaturePropertiesInfoTest
     Map<String, Boolean> featureConfigMap = featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures);
 
     assertThat(featureConfigMap)
-        .hasSize(46)
+        .hasSize(45)
         .doesNotContainKeys(
             "SUCCESS_METRICS_CONFIGURATION",
             "PRODUCT_LICENSE_CONFIGURATION",

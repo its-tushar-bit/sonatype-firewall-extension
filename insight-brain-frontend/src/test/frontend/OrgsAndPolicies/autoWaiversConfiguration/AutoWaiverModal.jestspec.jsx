@@ -34,7 +34,6 @@ describe('Auto Waiver Modal Component', () => {
       productFeatures: {
         'developer-dashboard': true,
         'auto-waivers': true,
-        'new-scan-process': true,
       },
     },
   };

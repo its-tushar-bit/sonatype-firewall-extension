@@ -202,25 +202,7 @@ public class PolicyEvaluationUtilTest
   }
 
   @Test
-  public void testCreatePersistedPolicyEvaluationPollingResultWithSubStatusIfNeeded_FeatureFlagDisabled() {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(false);
-    final String appId = "testAppId";
-
-    final PersistedPolicyEvaluationPollingResult result =
-        policyEvaluationUtil.createPersistedPolicyEvaluationPollingResultWithSubStatusIfNeeded(appId, "testScanId",
-            true);
-    assertThat(result.getStatusId()).isNotNull();
-    assertThat(result.getApplicationId()).isEqualTo(appId);
-    assertThat(result.getPolicyEvaluationPollingResult().getStatus())
-        .isEqualTo(PolicyEvaluationStatus.PENDING);
-    assertThat(result.getPolicyEvaluationPollingResult()).isNotNull();
-    assertThat(result.getPolicyEvaluationPollingResult().getSubStatus())
-        .isNull();
-  }
-
-  @Test
   public void testCreatePersistedPolicyEvaluationPollingResultIfNeeded() {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(false);
     final String appId = "testAppId";
 
     final PersistedPolicyEvaluationPollingResult result =

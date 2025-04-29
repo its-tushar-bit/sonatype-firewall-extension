@@ -47,7 +47,7 @@ describe('Auto Waivers Configuration Component', () => {
   });
 
   beforeEach(() => {
-    axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['developer-dashboard', 'auto-waivers', 'new-scan-process']);
+    axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['developer-dashboard', 'auto-waivers']);
 
     renderComponent = (preloadedState) =>
       render(<AutoWaiversConfiguration />, { preloadedState: preloadedState || defaultPreloadedState });

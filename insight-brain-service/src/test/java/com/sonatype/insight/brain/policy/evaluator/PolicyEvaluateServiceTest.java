@@ -54,7 +54,6 @@ import com.sonatype.insight.brain.jira.JiraIssueCreateRequest.JiraIssueCreateRes
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -99,7 +98,6 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Binder;
-import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -644,12 +642,10 @@ public class PolicyEvaluateServiceTest
 
     final Stage stage = new Stage(Stage.ID_BUILD);
 
-    String scanId = simulateReportIsAvailable();
-
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
 
     ScanReceipt scanReceipt = new ScanReceipt();
-    scanReceipt.setScanId(scanId);
+    scanReceipt.setScanId("scanId");
 
     when(mockScanHandler.createTempScanFile(eq(null), any(Application.class))).thenReturn(mock(File.class));
 
@@ -734,7 +730,7 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  public void testCreatePolicyEvaluationPollingResultDTO_WithNewScanProcess_ShouldHandleResultSubStatus() {
+  public void testCreatePolicyEvaluationPollingResultDTO_ShouldHandleResultSubStatus() {
     PolicyEvaluationPollingResult result = new PolicyEvaluationPollingResult();
     result.setSubStatus(COMPONENT_ANALYSIS_PENDING);
 
@@ -1143,31 +1139,6 @@ public class PolicyEvaluateServiceTest
     PolicyEvaluationResult result = pollingResult.getResult();
     assertThat(result).isNotNull();
     assertThat(result.getAlerts()).isEmpty();
-  }
-
-  @Test
-  public void testEvaluateWithPolling_WithReachableVulnerability_And_NewScanProcessDisabled() throws Exception {
-    SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.setEnabled(false);
-    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
-        app.getId(),
-        "scanId",
-        createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"),
-        "CVE-2012-0022",
-        lookup(InsightWork.class)
-    );
-
-    assertThatExceptionOfType(UnauthorizedException.class)
-        .isThrownBy(() ->
-            policyEvaluateService.evaluateWithPolling(
-                IntegrationType.CLI,
-                app.getPublicId(),
-                ClientScanType.SONATYPE,
-                null,
-                new Stage(Stage.ID_BUILD),
-                "componentAnalysisStatusId",
-                analysisDTO
-            ))
-        .withMessage("new-scan-process feature is disabled.");
   }
 
   @Test

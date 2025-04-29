@@ -18,6 +18,9 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
+import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities;
+import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities.MissingReachableComponentVulnerabilities;
+import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities.PresentReachableComponentVulnerabilities;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -55,9 +58,7 @@ public class PolicyViolationReachabilityServiceTest
   @Inject
   private FileApplicationReportPersistenceService applicationReportPersistenceService;
 
-  private static final String ReachableVulnerabilityCVE = "CVE-2020-13933";
-
-  private static final String NonReachableVulnerabilityCVE = "CVE-2020-13935";
+  private static final String CVE_REF_ID = "CVE-2020-13933";
 
   @Test
   public void testUpdateReachabilityStatusForPolicyViolations_updateOnBothDatabaseAndFileSystem() throws Exception {
@@ -65,28 +66,26 @@ public class PolicyViolationReachabilityServiceTest
     Application application = tempEntity.newApplicationWithParent("test-app");
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
-
-    PolicyViolation policyViolation =
-        createSecurityPolicyViolation(policyEvaluation, policy, ReachableVulnerabilityCVE);
-
+    PolicyViolation policyViolation = createSecurityPolicyViolation(policyEvaluation, policy, CVE_REF_ID);
     assertThat(policyViolation.getReachabilityStatus()).isNull();
-
     ApplicationReport reportZip = new ApplicationReport(applicationReportPersistenceService, application, scanId);
-    Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers =
-        getReachableVulnerabilitiesByPurlIdentifiers();
+    Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> map = new HashMap<>();
+    map.put(
+        PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()),
+        new PresentReachableComponentVulnerabilities(Set.of(CVE_REF_ID))
+    );
 
-    policyViolationReachabilityService.updateReachabilityStatusForPolicyViolations(application.getId(), scanId,
-        reachableVulnerabilitiesByPurlIdentifiers, reportZip);
+    policyViolationReachabilityService.updateReachabilityStatusForPolicyViolations(application.getId(), scanId, map,
+        reportZip);
 
     List<PolicyViolation> policyViolations =
         policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
     assertThat(policyViolations).hasSize(1);
     assertThat(policyViolations.get(0).getReachabilityStatus()).isEqualTo(ReachabilityStatus.REACHABLE);
-
     ReportEntry reportEntry = reportZip.getEntry(POLICY_THREATS_FILENAME);
     PolicyThreats policyThreats = JsonUtils.parse(reportEntry.buf, PolicyThreats.class);
-    assertThat(policyThreats.aaData.get(0).activeViolations.get(0).reachabilityStatus).isEqualTo(
-        ReachabilityStatus.REACHABLE);
+    assertThat(policyThreats.aaData.get(0).activeViolations.get(0).reachabilityStatus)
+        .isEqualTo(ReachabilityStatus.REACHABLE);
   }
 
   @Test
@@ -99,32 +98,30 @@ public class PolicyViolationReachabilityServiceTest
     Policy policywaived = tempEntity.newPolicy(application);
     policywaived.setLegacyViolationAllowed(true);
     policyDAO.update(policywaived);
-
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
     PolicyWaiver policyWaiver =
         tempEntity.newWaiver("hash1", policywaived.getId(), application.getId(), "Some comments here");
     PolicyViolation waivedPolicyViolation =
         tempEntity.newWaivedPolicyViolation(policyEvaluation, policywaived, policyWaiver);
-    PolicyViolation policyViolation =
-        createSecurityPolicyViolation(policyEvaluation, policy, ReachableVulnerabilityCVE);
-
+    PolicyViolation policyViolation = createSecurityPolicyViolation(policyEvaluation, policy, CVE_REF_ID);
     assertThat(policyViolation.getReachabilityStatus()).isNull();
     assertThat(waivedPolicyViolation.getReachabilityStatus()).isNull();
-
     ApplicationReport reportZip = new ApplicationReport(applicationReportPersistenceService, application, scanId);
-    Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers =
-        getReachableVulnerabilitiesByPurlIdentifiers();
+    Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> map = new HashMap<>();
+    map.put(
+        PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()),
+        new PresentReachableComponentVulnerabilities(Set.of(CVE_REF_ID))
+    );
 
-    policyViolationReachabilityService.updateReachabilityStatusForPolicyViolations(application.getId(), scanId,
-        reachableVulnerabilitiesByPurlIdentifiers, reportZip);
+    policyViolationReachabilityService.updateReachabilityStatusForPolicyViolations(application.getId(), scanId, map,
+        reportZip);
 
     List<PolicyViolation> policyViolations =
         policyViolationDAO.getUnfixedByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
     assertThat(policyViolations).hasSize(2);
-    assertThat(policyViolations.get(0).getReachabilityStatus()).isEqualTo(ReachabilityStatus.NON_REACHABLE);
+    assertThat(policyViolations.get(0).getReachabilityStatus()).isEqualTo(ReachabilityStatus.UNKNOWN);
     assertThat(policyViolations.get(0).isWaived()).isTrue();
     assertThat(policyViolations.get(1).getReachabilityStatus()).isEqualTo(ReachabilityStatus.REACHABLE);
-
     ReportEntry reportEntry = reportZip.getEntry(POLICY_THREATS_FILENAME);
     PolicyThreats policyThreats = JsonUtils.parse(reportEntry.buf, PolicyThreats.class);
     assertThat(policyThreats.aaData.get(0).activeViolations.get(0).reachabilityStatus).isEqualTo(
@@ -134,28 +131,52 @@ public class PolicyViolationReachabilityServiceTest
   }
 
   @Test
-  public void testUpdateReachabilityStatusForPolicyViolations_not_reachable() throws Exception {
+  public void testUpdateReachabilityStatusForPolicyViolations_NonReachable() throws Exception {
     String scanId = "test-scanid";
     Application application = tempEntity.newApplicationWithParent("test-app");
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
-
-    PolicyViolation policyViolation =
-        createSecurityPolicyViolation(policyEvaluation, policy, NonReachableVulnerabilityCVE);
+    PolicyViolation policyViolation = createSecurityPolicyViolation(policyEvaluation, policy, CVE_REF_ID);
     policyViolationDAO.update(policyViolation);
-
-    assertThat(policyViolation.getReachabilityStatus()).isNull();
-
     ApplicationReport reportFile = new ApplicationReport(applicationReportPersistenceService, application, scanId);
-    Map<PackageUrlIdentifier, Set<String>> emptyReachableVulnerabilities = new HashMap<>();
+    Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> map = new HashMap<>();
+    map.put(
+        PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()),
+        new PresentReachableComponentVulnerabilities(Set.of())
+    );
 
     policyViolationReachabilityService.updateReachabilityStatusForPolicyViolations(application.getId(), scanId,
-        emptyReachableVulnerabilities, reportFile);
+        map, reportFile);
 
     List<PolicyViolation> policyViolations =
         policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
     assertThat(policyViolations).hasSize(1);
     assertThat(policyViolations.get(0).getReachabilityStatus()).isEqualTo(ReachabilityStatus.NON_REACHABLE);
+  }
+
+  @Test
+  public void testtestUpdateReachabilityStatusForPolicyViolations_NoSignatures() throws Exception {
+    String scanId = "test-scanid";
+    Application application = tempEntity.newApplicationWithParent("test-app");
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
+    PolicyViolation policyViolation = createSecurityPolicyViolation(policyEvaluation, policy, CVE_REF_ID);
+    policyViolationDAO.update(policyViolation);
+    ApplicationReport reportFile = new ApplicationReport(applicationReportPersistenceService, application, scanId);
+    Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> reachableVulnerabilitiesByPurlIdentifiers =
+        new HashMap<>();
+    reachableVulnerabilitiesByPurlIdentifiers.put(
+        PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()),
+        MissingReachableComponentVulnerabilities.INSTANCE
+    );
+
+    policyViolationReachabilityService.updateReachabilityStatusForPolicyViolations(application.getId(), scanId,
+        reachableVulnerabilitiesByPurlIdentifiers, reportFile);
+
+    List<PolicyViolation> policyViolations =
+        policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
+    assertThat(policyViolations).hasSize(1);
+    assertThat(policyViolations.get(0).getReachabilityStatus()).isEqualTo(ReachabilityStatus.UNKNOWN);
   }
 
   private PolicyViolation createSecurityPolicyViolation(PolicyEvaluation policyEvaluation, Policy policy, String cve) {
@@ -173,12 +194,5 @@ public class PolicyViolationReachabilityServiceTest
     policyViolation.setConstraintFacts(List.of(constraintFact));
     policyViolationDAO.update(policyViolation);
     return policyViolation;
-  }
-
-  public Map<PackageUrlIdentifier, Set<String>> getReachableVulnerabilitiesByPurlIdentifiers() {
-    PackageUrlIdentifier packageUrlIdentifier =
-        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200");
-    Set<String> reachableVulnerabilities = Set.of(ReachableVulnerabilityCVE);
-    return Map.of(packageUrlIdentifier, reachableVulnerabilities);
   }
 }

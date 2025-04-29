@@ -152,7 +152,7 @@ function generateMockData() {
     highestThreatPolicyName: faker.lorem.slug(),
     highestThreatPolicyConstraintName: faker.lorem.sentence(),
     priority: 1,
-    securityReachable: faker.datatype.boolean(),
+    securityReachable: faker.helpers.arrayElement([true, false, null]),
     remediationType: 'next-non-failing',
     remediationVersion: '1.0',
   };

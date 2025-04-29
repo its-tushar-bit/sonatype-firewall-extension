@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
+import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities.PresentReachableComponentVulnerabilities;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
@@ -437,9 +438,12 @@ public class PolicyViolationTelemetryCollectorTest
         .createDefaultViolationForComponent(lodashv3);
 
     PurlIdentifiersWithVulnerabilities purlIdentifiersWithVulnerabilities = new PurlIdentifiersWithVulnerabilities(
-        null, null, Map.of(
-        fromComponentIdentifier(testablePolicyViolation.policyViolation.getComponentIdentifier()), Set.of("CVE-1234")
-    ));
+        null,
+        null,
+        Map.of(
+            fromComponentIdentifier(testablePolicyViolation.policyViolation.getComponentIdentifier()),
+            new PresentReachableComponentVulnerabilities(Set.of("CVE-1234"))
+        ));
 
     testablePolicyViolation.withPurlIdentifiersWithVulnerabilities(purlIdentifiersWithVulnerabilities);
 

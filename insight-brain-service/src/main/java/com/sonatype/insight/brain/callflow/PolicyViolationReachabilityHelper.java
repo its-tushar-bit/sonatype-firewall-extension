@@ -8,24 +8,28 @@ package com.sonatype.insight.brain.callflow;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
+import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities;
+import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities.MissingReachableComponentVulnerabilities;
+import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities.PresentReachableComponentVulnerabilities;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_MAVEN;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_NPM;
 import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
-import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.NON_REACHABLE;
-import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.REACHABLE;
+import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.UNKNOWN;
 import static com.sonatype.insight.purl.PackageUrlIdentifier.fromComponentIdentifier;
 
 /**
@@ -39,15 +43,15 @@ public class PolicyViolationReachabilityHelper
   }
 
   /**
-   * Filters a {@link List} of {@link PolicyViolation}s to only include the reachable security violations.
+   * Filters a {@link List} of {@link PolicyViolation}s to only include violations that support reachability analysis.
    *
    * @param policyViolations - the list of {@link PolicyViolation} to filter
-   * @return the list of reachable security violations
+   * @return the list of {@link PolicyViolation} that support reachability analysis
    */
-  public static List<PolicyViolation> filterOnReachableSecurityViolations(
-      final List<PolicyViolation> policyViolations)
-  {
-    return policyViolations.stream().filter(PolicyViolationReachabilityHelper::isReachableSecurityViolation).toList();
+  public static List<PolicyViolation> filterOnReachabilitySupport(final List<PolicyViolation> policyViolations) {
+    return policyViolations.stream()
+        .filter(PolicyViolationReachabilityHelper::supportsReachabilityAnalysis)
+        .toList();
   }
 
   /**
@@ -66,7 +70,7 @@ public class PolicyViolationReachabilityHelper
 
   /**
    * Updates the reachability status of the policy violation based on the vulnerabilities identified. If the policy
-   * violation is not a reachable security violation, then it will not be updated.
+   * violation is not a reachability-supporting security violation, then it will not be updated.
    *
    * @param policyViolation - the {@link PolicyEvaluation} to update
    * @param purlIdentifiers - {@link Map} of {@link PackageUrlIdentifier} mapped to a set of vulnerabilities to map the
@@ -74,7 +78,7 @@ public class PolicyViolationReachabilityHelper
    */
   public static void updateReachabilityStatus(
       final PolicyViolation policyViolation,
-      final Map<PackageUrlIdentifier, Set<String>> purlIdentifiers)
+      final Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> purlIdentifiers)
   {
     if (policyViolation == null || purlIdentifiers == null) {
       return;
@@ -83,9 +87,9 @@ public class PolicyViolationReachabilityHelper
     logger.debug("Updating policy violation with reachability data for applicationId: {}, policyId: {}",
         policyViolation.getApplicationId(), policyViolation.getId());
 
-    if (isReachableSecurityViolation(policyViolation)) {
-      boolean isReachable = isVulnerabilityReachable(policyViolation, purlIdentifiers);
-      policyViolation.setReachabilityStatus(isReachable ? REACHABLE : NON_REACHABLE);
+    if (supportsReachabilityAnalysis(policyViolation)) {
+      ReachabilityStatus isReachable = isVulnerabilityReachable(policyViolation, purlIdentifiers);
+      policyViolation.setReachabilityStatus(isReachable);
     }
 
     logger.debug("Finished updating policy violations with reachability data for applicationId: {}, policyId: {}",
@@ -112,51 +116,72 @@ public class PolicyViolationReachabilityHelper
             .containsKey(fromComponentIdentifier(policyViolation.getComponentIdentifier()));
   }
 
-  private static boolean isVulnerabilityReachable(
+  private static ReachabilityStatus isVulnerabilityReachable(
       final PolicyViolation policyViolation,
-      final Map<PackageUrlIdentifier, Set<String>> purlIdentifiers)
+      final Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> purlIdentifiers)
   {
-    return policyViolation.getConstraintFacts().stream()
+    return ReachabilityStatus.combine(policyViolation.getConstraintFacts().stream()
         .flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
         .map(ConditionFact::getReference)
         .filter(Objects::nonNull)
         .filter(triggerReference -> triggerReference.getType().equals(SECURITY_VULNERABILITY_REFID))
         .map(TriggerReference::getValue)
         .filter(value -> value != null && !value.isEmpty())
-        .anyMatch(vulnerabilityId -> isVulnerabilityReachable(vulnerabilityId, policyViolation, purlIdentifiers));
+        .map(vulnerabilityId -> isVulnerabilityReachable(vulnerabilityId, policyViolation, purlIdentifiers)));
   }
 
-  private static boolean isVulnerabilityReachable(
+  /**
+   * @param vulnerabilitiesByPurlIdentifiers a map from purl to {@link ReachableComponentVulnerabilities}.
+   * @return the {@link ReachabilityStatus}.
+   */
+  private static ReachabilityStatus isVulnerabilityReachable(
       final String vulnerabilityId,
       final PolicyViolation policyViolation,
-      final Map<PackageUrlIdentifier, Set<String>> vulnerabilitiesByPurlIdentifiers)
+      final Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> vulnerabilitiesByPurlIdentifiers)
   {
-    Set<String> vulnerabilities = vulnerabilitiesByPurlIdentifiers.get(
+    ReachableComponentVulnerabilities reachableSignatures = vulnerabilitiesByPurlIdentifiers.get(
         fromComponentIdentifier(policyViolation.getComponentIdentifier())
     );
 
-    if (vulnerabilities == null) {
-      return false;
+    if (reachableSignatures == null || reachableSignatures instanceof MissingReachableComponentVulnerabilities) {
+      return UNKNOWN;
     }
 
-    return vulnerabilities.stream()
+    return ReachabilityStatus.fromBoolean(((PresentReachableComponentVulnerabilities) reachableSignatures)
+        .references()
+        .stream()
         .map(String::toLowerCase)
-        .collect(Collectors.toSet())
-        .contains(vulnerabilityId.toLowerCase());
+        .anyMatch(vulnerabilityId.toLowerCase()::equals));
   }
 
-  private static boolean isReachableSecurityViolation(final PolicyViolation policyViolation) {
-    // only allow if it is a maven or npm security violation, as those are the only types of violation that have
-    // reachability support. More types of security violations can be added here as permitted.
-    return isMavenSecurityViolation(policyViolation) || isNpmSecurityViolation(policyViolation);
+  public static boolean supportsReachabilityAnalysis(
+      final ComponentIdentifier componentIdentifier,
+      final PolicyThreats.PolicyViolation policyViolation)
+  {
+    if (componentIdentifier == null || policyViolation == null) {
+      return false;
+    }
+    return supportsReachabilityAnalysis(policyViolation.policyThreatCategory, componentIdentifier.getFormat());
   }
 
-  private static boolean isMavenSecurityViolation(final PolicyViolation policyViolation) {
-    return SECURITY.equals(policyViolation.getThreatCategory()) && policyViolation.getComponentIdentifier().isMaven();
+  public static boolean supportsReachabilityAnalysis(final PolicyViolation policyViolation) {
+    if (policyViolation == null || policyViolation.getComponentIdentifier() == null ||
+        policyViolation.getThreatCategory() == null) {
+      return false;
+    }
+    return supportsReachabilityAnalysis(policyViolation.getThreatCategory().toString(),
+        policyViolation.getComponentIdentifier().getFormat());
   }
 
-  private static boolean isNpmSecurityViolation(final PolicyViolation policyViolation) {
-    return SECURITY.equals(policyViolation.getThreatCategory()) &&
-        FORMAT_NPM.equals(policyViolation.getComponentIdentifier().getFormat());
+  private static boolean supportsReachabilityAnalysis(final String policyThreatCategory, final String format) {
+    return isSecurityViolation(policyThreatCategory) && isSupportedFormat(format);
+  }
+
+  private static boolean isSecurityViolation(final String policyThreatCategory) {
+    return SECURITY.getName().equalsIgnoreCase(policyThreatCategory);
+  }
+
+  private static boolean isSupportedFormat(final String format) {
+    return FORMAT_MAVEN.equalsIgnoreCase(format) || FORMAT_NPM.equalsIgnoreCase(format);
   }
 }

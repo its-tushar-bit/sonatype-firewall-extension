@@ -40,7 +40,7 @@ public class PrioritizedComponent implements CsvWritable
 
   public final String highestThreatPolicyConstraintName;
 
-  private final boolean securityReachable;
+  private final Boolean securityReachable;
 
   private final int priority;
 
@@ -60,7 +60,7 @@ public class PrioritizedComponent implements CsvWritable
       final int highestThreat,
       final String highestThreatPolicyName,
       final String highestThreatPolicyConstraintName,
-      final boolean securityReachable,
+      final Boolean securityReachable,
       final int priority,
       final ApiVersionChangeOptionType remediationType,
       final String remediationVersion,
@@ -119,7 +119,7 @@ public class PrioritizedComponent implements CsvWritable
     return action;
   }
 
-  public boolean isSecurityReachable() {
+  public Boolean isSecurityReachable() {
     return securityReachable;
   }
 

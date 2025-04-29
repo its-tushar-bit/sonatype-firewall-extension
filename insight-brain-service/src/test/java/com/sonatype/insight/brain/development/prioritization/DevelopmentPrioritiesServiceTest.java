@@ -13,10 +13,15 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 
-import com.google.inject.Binder;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.api.v2.dto.*;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiDependencyDataDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
@@ -41,18 +46,23 @@ import com.sonatype.insight.error.exception.NotAuthorizedException;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import oshi.util.tuples.Pair;
 
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS;
-import static com.sonatype.insight.license.model.LicensedFeature.DEVELOPER_DASHBOARD;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
+import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.NON_REACHABLE;
+import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.REACHABLE;
+import static com.sonatype.insight.license.model.LicensedFeature.DEVELOPER_DASHBOARD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -134,7 +144,7 @@ public class DevelopmentPrioritiesServiceTest
     // === GIVEN ===
     final ApiReportComponentDTOV2 component1 = createComponent("aaa", "component1");
     final List<PolicyViolation> component1Violations = Lists.newArrayList(
-        createPolicyViolation(6, "a", "policy-a", false));
+        createPolicyViolation(6, "a", "policy-a", NON_REACHABLE));
     Collections.shuffle(component1Violations);
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         component1,
@@ -144,13 +154,13 @@ public class DevelopmentPrioritiesServiceTest
     // Has the highest non-security-reachable threat
     final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component2");
     final List<PolicyViolation> component2Violations = Lists.newArrayList(
-        createPolicyViolation(9, "b", "policy-b", false));
+        createPolicyViolation(9, "b", "policy-b", NON_REACHABLE));
     Collections.shuffle(component2Violations);
     final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(component2, component2Violations);
 
     final ApiReportComponentDTOV2 component3 = createComponent("ccc", "component3");
     final List<PolicyViolation> component3Violations = Lists.newArrayList(
-        createPolicyViolation(3, "c", "policy-c", false));
+        createPolicyViolation(3, "c", "policy-c", NON_REACHABLE));
     Collections.shuffle(component2Violations);
     final PolicyThreats.Component component3Threats = createPolicyThreatsComponents(component3, component3Violations);
 
@@ -158,7 +168,7 @@ public class DevelopmentPrioritiesServiceTest
     final ApiReportComponentDTOV2 component4 = createComponent("ddd", "component4");
     final List<PolicyViolation> component4Violations = Lists.newArrayList(
         createPolicyViolation(
-            7, "d", "policy-d", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), true));
+            7, "d", "policy-d", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), REACHABLE));
     Collections.shuffle(component4Violations);
     final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(component4, component4Violations);
 
@@ -175,9 +185,9 @@ public class DevelopmentPrioritiesServiceTest
 
     assertThat(results).containsExactly(
         toPrioritizedComponent(component4, 7, "policy-d", 1, "Unknown", false, null, "none", true, null, null, 7),
-        toPrioritizedComponent(component2, 9, "policy-b", 2, "Unknown", false, null, "none", false, null, null, 0),
-        toPrioritizedComponent(component1, 6, "policy-a", 3, "Unknown", false, null, "none", false, null, null, 0),
-        toPrioritizedComponent(component3, 3, "policy-c", 4, "Unknown", false, null, "none", false, null, null, 0)
+        toPrioritizedComponent(component2, 9, "policy-b", 2, "Unknown", false, null, "none", null, null, null, 0),
+        toPrioritizedComponent(component1, 6, "policy-a", 3, "Unknown", false, null, "none", null, null, null, 0),
+        toPrioritizedComponent(component3, 3, "policy-c", 4, "Unknown", false, null, "none", null, null, null, 0)
     );
 
     verifyServiceCallsInvokedWithExpectedArguments();
@@ -189,26 +199,26 @@ public class DevelopmentPrioritiesServiceTest
     //  has highest threat violations, but none are security-reachable violations
     final ApiReportComponentDTOV2 component1 = createComponent("aaa", "component1");
     final List<PolicyViolation> component1Violations = Lists.newArrayList(
-        createPolicyViolation(2, "a", "policy-a", false),
-        createPolicyViolation(6, "b", "policy-b", false),
-        createPolicyViolation(9, "c", "policy-c", false),
-        createPolicyViolation(6, "d", "policy-d", false),
-        createPolicyViolation(10, "e", "policy-e", false));
+        createPolicyViolation(2, "a", "policy-a", NON_REACHABLE),
+        createPolicyViolation(6, "b", "policy-b", NON_REACHABLE),
+        createPolicyViolation(9, "c", "policy-c", NON_REACHABLE),
+        createPolicyViolation(6, "d", "policy-d", NON_REACHABLE),
+        createPolicyViolation(10, "e", "policy-e", NON_REACHABLE));
     Collections.shuffle(component1Violations);
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         component1,
         component1Violations,
         // add a violation that's not active, it should not affect our results
-        Lists.newArrayList(createPolicyViolation(9, "z", "policy-z", false))
+        Lists.newArrayList(createPolicyViolation(9, "z", "policy-z", NON_REACHABLE))
     );
 
     // has the highest threat security-reachable violations
     final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component2");
     final List<PolicyViolation> component2Violations = Lists.newArrayList(
         createPolicyViolation(
-            7, "f", "policy-f", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), true),
+            7, "f", "policy-f", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), REACHABLE),
         createPolicyViolation(
-            9, "g", "policy-g", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), true));
+            9, "g", "policy-g", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), REACHABLE));
     Collections.shuffle(component2Violations);
     final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(component2, component2Violations);
 
@@ -219,19 +229,19 @@ public class DevelopmentPrioritiesServiceTest
     final ApiReportComponentDTOV2 component4 = createComponent("ddd", "component4");
     final List<PolicyViolation> component4Violations = Lists.newArrayList(
         createPolicyViolation(
-            8, "h", "policy-h", false),
+            8, "h", "policy-h", NON_REACHABLE),
         createPolicyViolation(
-            4, "i", "policy-i", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), true),
+            4, "i", "policy-i", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), REACHABLE),
         createPolicyViolation(
-            5, "j", "policy-j", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), true));
+            5, "j", "policy-j", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), REACHABLE));
     Collections.shuffle(component4Violations);
     final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(component4, component4Violations);
 
     // has the highest threat violations, none are security-reachable, so will have same priority as component1
     final ApiReportComponentDTOV2 component5 = createComponent("eee", "component5");
     final List<PolicyViolation> component5Violations = Lists.newArrayList(
-        createPolicyViolation(5, "k", "policy-k", false),
-        createPolicyViolation(7, "l", "policy-l", false));
+        createPolicyViolation(5, "k", "policy-k", NON_REACHABLE),
+        createPolicyViolation(7, "l", "policy-l", NON_REACHABLE));
     Collections.shuffle(component5Violations);
     final PolicyThreats.Component component5Threats = createPolicyThreatsComponents(component5, component5Violations);
 
@@ -251,8 +261,8 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(results.priorities().getResults()).containsExactly(
             toPrioritizedComponent(component2, 9, "policy-g", 1, "Unknown", false, null, "none", true, null, null, 9),
             toPrioritizedComponent(component4, 8, "policy-h", 2, "Unknown", false, null, "none", true, null, null, 5),
-            toPrioritizedComponent(component1, 10, "policy-e", 3, "Unknown", false, null, "none", false, null, null, 0),
-            toPrioritizedComponent(component5, 7, "policy-l", 4, "Unknown", false, null, "none", false, null, null, 0));
+            toPrioritizedComponent(component1, 10, "policy-e", 3, "Unknown", false, null, "none", null, null, null, 0),
+            toPrioritizedComponent(component5, 7, "policy-l", 4, "Unknown", false, null, "none", null, null, null, 0));
 
     assertPaginationResultCorrect(results.priorities(), 4, 4, 1, 1);
 
@@ -263,24 +273,24 @@ public class DevelopmentPrioritiesServiceTest
   public void testGetPrioritizedFindings_shouldExtractTheNonLegacyHighestThreatPolicyViolation() {
     final ApiReportComponentDTOV2 component1 = createComponent("aaa", "component1");
     final List<PolicyViolation> component1Violations = Lists.newArrayList(
-        createPolicyViolation(2, "a", "policy-a", false),
-        makeLegacy(createPolicyViolation(6, "b", "policy-b", false)),
-        createPolicyViolation(5, "c", "policy-c", false),
-        makeLegacy(createPolicyViolation(6, "d", "policy-d", false)),
-        makeLegacy(createPolicyViolation(6, "e", "policy-e", false)));
+        createPolicyViolation(2, "a", "policy-a", NON_REACHABLE),
+        makeLegacy(createPolicyViolation(6, "b", "policy-b", NON_REACHABLE)),
+        createPolicyViolation(5, "c", "policy-c", NON_REACHABLE),
+        makeLegacy(createPolicyViolation(6, "d", "policy-d", NON_REACHABLE)),
+        makeLegacy(createPolicyViolation(6, "e", "policy-e", NON_REACHABLE)));
     Collections.shuffle(component1Violations);
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         component1,
         component1Violations,
         // add a violation that's not active, it should not affect our results
-        Lists.newArrayList(createPolicyViolation(9, "z", "policy-z", false))
+        Lists.newArrayList(createPolicyViolation(9, "z", "policy-z", NON_REACHABLE))
     );
 
     // has the highest threat level of all the components
     final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component2");
     final List<PolicyViolation> component2Violations = Lists.newArrayList(
-        makeLegacy(createPolicyViolation(10, "f", "policy-f", false)),
-        createPolicyViolation(7, "g", "policy-g", false));
+        makeLegacy(createPolicyViolation(10, "f", "policy-f", NON_REACHABLE)),
+        createPolicyViolation(7, "g", "policy-g", NON_REACHABLE));
     Collections.shuffle(component2Violations);
     final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(component2, component2Violations);
 
@@ -326,19 +336,19 @@ public class DevelopmentPrioritiesServiceTest
         createComponent("eee", "component5", getDependencyTypeWithNulls());
 
     final List<PolicyViolation> component1Violations =
-        Collections.singletonList(createPolicyViolation(1, "a", "policy-a", false));
+        Collections.singletonList(createPolicyViolation(1, "a", "policy-a", NON_REACHABLE));
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(component1, component1Violations);
     final List<PolicyViolation> component2Violations =
-        Collections.singletonList(createPolicyViolation(1, "b", "policy-b", false));
+        Collections.singletonList(createPolicyViolation(1, "b", "policy-b", NON_REACHABLE));
     final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(component2, component2Violations);
     final List<PolicyViolation> component3Violations =
-        Collections.singletonList(createPolicyViolation(1, "c", "policy-c", false));
+        Collections.singletonList(createPolicyViolation(1, "c", "policy-c", NON_REACHABLE));
     final PolicyThreats.Component component3Threats = createPolicyThreatsComponents(component3, component3Violations);
     final List<PolicyViolation> component4Violations =
-        Collections.singletonList(createPolicyViolation(1, "d", "policy-d", false));
+        Collections.singletonList(createPolicyViolation(1, "d", "policy-d", NON_REACHABLE));
     final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(component4, component4Violations);
     final List<PolicyViolation> component5Violations =
-        Collections.singletonList(createPolicyViolation(1, "e", "policy-e", false));
+        Collections.singletonList(createPolicyViolation(1, "e", "policy-e", NON_REACHABLE));
     final PolicyThreats.Component component5Threats = createPolicyThreatsComponents(component5, component5Violations);
 
     // === WHEN ===
@@ -373,27 +383,27 @@ public class DevelopmentPrioritiesServiceTest
     // === Given ===
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> failingComponentsWithSecurityReachable =
         generateComponentAtEachThreatLevelWithFailActions(
-            1, "reachable-component-with-fail-action", SECURITY.getName(), true);
+            1, "reachable-component-with-fail-action", SECURITY.getName(), REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> failingComponents =
         generateComponentAtEachThreatLevelWithFailActions(
-            1,"component-with-fail-action", "not-security", false);
+            1,"component-with-fail-action", "not-security", NON_REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> warningComponents =
         generateComponentAtEachThreatLevelWithWarnActions(
-            1,"component-with-warn-action", "not-security", false);
+            1,"component-with-warn-action", "not-security", NON_REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> warningComponentsWithSecurityReachable =
         generateComponentAtEachThreatLevelWithWarnActions(
-            1,"reachable-component-with-warn-action", SECURITY.getName(), true);
+            1,"reachable-component-with-warn-action", SECURITY.getName(), REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> noActionComponents =
         generateComponentAtEachThreatLevelWitNoActions(
-            1,"component-with-no-action", "not-security", false, false);
+            1,"component-with-no-action", "not-security", false, NON_REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> noActionComponentsWithSecurityReachable =
         generateComponentAtEachThreatLevelWitNoActions(
-            1,"reachable-component-with-no-action", SECURITY.getName(), false, true);
+            1,"reachable-component-with-no-action", SECURITY.getName(), false, REACHABLE);
 
     final List<ApiReportComponentDTOV2> bomComponents = new ArrayList<>();
     bomComponents.addAll(failingComponents.getA());
@@ -448,7 +458,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(prioritizedComponent.getPriority()).isEqualTo(2);
     assertThat(prioritizedComponent.getAction()).isEqualTo("fail");
     assertThat(prioritizedComponent.getHasFailActionOnComponent()).isTrue();
-    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isNull();
     assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
     assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
@@ -466,7 +476,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(prioritizedComponent.getPriority()).isEqualTo(4);
     assertThat(prioritizedComponent.getAction()).isEqualTo("warn");
     assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isNull();
     assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
     assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
@@ -484,7 +494,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(prioritizedComponent.getPriority()).isEqualTo(6);
     assertThat(prioritizedComponent.getAction()).isEqualTo("none");
     assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isNull();
     assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
     assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
@@ -497,53 +507,53 @@ public class DevelopmentPrioritiesServiceTest
     // FAIL ACTION
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> failingComponentsWithSecurityReachable =
         generateComponentAtEachThreatLevelWithActionWithRecommendations(
-            1, "reachable-component-with-fail-action-with-recommendation", "fail", SECURITY.getName(), true);
+            1, "reachable-component-with-fail-action-with-recommendation", "fail", SECURITY.getName(), REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> failingComponents =
         generateComponentAtEachThreatLevelWithActionWithRecommendations(
-            1, "non-reachable-component-with-fail-action-with-recommendation", "fail", "not-security", false);
+            1, "non-reachable-component-with-fail-action-with-recommendation", "fail", "not-security", NON_REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> failingComponentsWithSecurityReachableNoRecommendation =
         generateComponentAtEachThreatLevelWithFailActions(
-            1, "reachable-component-with-fail-action-no-recommendation", SECURITY.getName(), true);
+            1, "reachable-component-with-fail-action-no-recommendation", SECURITY.getName(), REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> failingComponentsWithNoRecommendations =
         generateComponentAtEachThreatLevelWithFailActions(
-            1, "non-reachable-component-with-fail-action-no-recommendation", "not-security", false);
+            1, "non-reachable-component-with-fail-action-no-recommendation", "not-security", NON_REACHABLE);
 
     // WARN ACTION
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> warningComponentsWithSecurityReachable =
         generateComponentAtEachThreatLevelWithActionWithRecommendations(
-            1, "reachable-component-with-warn-action-with-recommendation", "warn", SECURITY.getName(), true);
+            1, "reachable-component-with-warn-action-with-recommendation", "warn", SECURITY.getName(), REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> warningComponents =
         generateComponentAtEachThreatLevelWithActionWithRecommendations(
-            1, "non-reachable-component-with-warn-action-with-recommendation", "warn", "not-security", false);
+            1, "non-reachable-component-with-warn-action-with-recommendation", "warn", "not-security", NON_REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> warningComponentsWithSecurityReachableNoRecommendations =
         generateComponentAtEachThreatLevelWithWarnActions(1, "reachable-component-with-warn-action-no-recommendation",
-            SECURITY.getName(), true);
+            SECURITY.getName(), REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> warningComponentsWithNoRecommendations =
         generateComponentAtEachThreatLevelWithWarnActions(1,
-            "non-reachable-component-with-warn-action-no-recommendation","not-security", false);
+            "non-reachable-component-with-warn-action-no-recommendation","not-security", NON_REACHABLE);
 
     // NONE ACTION
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> noActionComponentsWithSecurityReachable =
         generateComponentAtEachThreatLevelWitNoActions(1, "reachable-component-with-no-action-with-recommendation",
-            SECURITY.getName(), true, true);
+            SECURITY.getName(), true, REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> noActionComponents =
         generateComponentAtEachThreatLevelWitNoActions(1, "non-reachable-component-with-no-action-with-recommendation",
-            "not-security", true, false);
+            "not-security", true, NON_REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> noActionComponentsWithSecurityReachableNoRecommendations
         = generateComponentAtEachThreatLevelWitNoActions(1, "reachable-component-with-no-action-no-recommendation",
-        SECURITY.getName(), false, true);
+        SECURITY.getName(), false, REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> noActionComponentsWithNoRecommendations =
         generateComponentAtEachThreatLevelWitNoActions(1, "non-reachable-component-with-no-action-no-recommendation",
-            "not-security", false, false);
+            "not-security", false, NON_REACHABLE);
 
     final List<ApiReportComponentDTOV2> bomComponents = new ArrayList<>();
     bomComponents.addAll(failingComponents.getA());
@@ -611,7 +621,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(prioritizedComponent.getPriority()).isEqualTo(2);
     assertThat(prioritizedComponent.getAction()).isEqualTo("fail");
     assertThat(prioritizedComponent.getHasFailActionOnComponent()).isTrue();
-    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isNull();
     assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
     assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
@@ -631,7 +641,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(prioritizedComponent.getPriority()).isEqualTo(4);
     assertThat(prioritizedComponent.getAction()).isEqualTo("fail");
     assertThat(prioritizedComponent.getHasFailActionOnComponent()).isTrue();
-    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isNull();
     assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
     assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
@@ -651,7 +661,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(prioritizedComponent.getPriority()).isEqualTo(6);
     assertThat(prioritizedComponent.getAction()).isEqualTo("warn");
     assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isNull();
     assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
     assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
@@ -671,7 +681,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(prioritizedComponent.getPriority()).isEqualTo(8);
     assertThat(prioritizedComponent.getAction()).isEqualTo("warn");
     assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isNull();
     assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
     assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
@@ -691,7 +701,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(prioritizedComponent.getPriority()).isEqualTo(10);
     assertThat(prioritizedComponent.getAction()).isEqualTo("none");
     assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isNull();
     assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
     assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
@@ -711,7 +721,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(prioritizedComponent.getPriority()).isEqualTo(12);
     assertThat(prioritizedComponent.getAction()).isEqualTo("none");
     assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isNull();
     assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
     assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
@@ -723,7 +733,7 @@ public class DevelopmentPrioritiesServiceTest
     // === Given ===
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> components =
         generateComponentAtEachThreatLevelWithFailActions(DEFAULT_COMPONENT_COUNT,
-            "component-with-fail-action", "not-security", false);
+            "component-with-fail-action", "not-security", NON_REACHABLE);
 
     // === WHEN ===
     when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
@@ -742,7 +752,7 @@ public class DevelopmentPrioritiesServiceTest
 
     assertThat(priorities)
         .hasSize(11)
-        .allSatisfy(result -> assertThat(result.isSecurityReachable()).isFalse());
+        .allSatisfy(result -> assertThat(result.isSecurityReachable()).isNull());
 
     assertPaginationResultCorrect(results.priorities(), 11, 11, 1, 1);
   }
@@ -752,7 +762,7 @@ public class DevelopmentPrioritiesServiceTest
     // === Given ===
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> components =
         generateComponentAtEachThreatLevelWithFailActions(DEFAULT_COMPONENT_COUNT,
-            "component-with-fail-action", SECURITY.getName(), true);
+            "component-with-fail-action", SECURITY.getName(), REACHABLE);
 
     // === WHEN ===
     when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
@@ -783,31 +793,31 @@ public class DevelopmentPrioritiesServiceTest
     final ApiReportComponentDTOV2 component1 = createComponent("aaa", "component1");
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         component1,
-        Lists.newArrayList(createPolicyViolation(7, "a", "policy-a", false)));
+        Lists.newArrayList(createPolicyViolation(7, "a", "policy-a", NON_REACHABLE)));
 
     // will be middle priority with component1 (priority 2)
     final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component1");
     final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(
         component2,
-        Lists.newArrayList(createPolicyViolation(7, "b", "policy-b", false)));
+        Lists.newArrayList(createPolicyViolation(7, "b", "policy-b", NON_REACHABLE)));
 
     // will be the highest priority (priority 1)
     final ApiReportComponentDTOV2 component3 = createComponent("ccc", "component1");
     final PolicyThreats.Component component3Threats = createPolicyThreatsComponents(
         component3,
-        Lists.newArrayList(createPolicyViolation(9, "c", "policy-c", false)));
+        Lists.newArrayList(createPolicyViolation(9, "c", "policy-c", NON_REACHABLE)));
 
     // will be the lowest priority (3)
     final ApiReportComponentDTOV2 component4 = createComponent("ddd", "component4");
     final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(
         component4,
-        Lists.newArrayList(createPolicyViolation(2, "d", "policy-d", false)));
+        Lists.newArrayList(createPolicyViolation(2, "d", "policy-d", NON_REACHABLE)));
 
     // will also be the lowest priority (3)
     final ApiReportComponentDTOV2 component5 = createComponent("eee", "component5");
     final PolicyThreats.Component component5Threats = createPolicyThreatsComponents(
         component5,
-        Lists.newArrayList(createPolicyViolation(2, "e", "policy-e", false)));
+        Lists.newArrayList(createPolicyViolation(2, "e", "policy-e", NON_REACHABLE)));
 
     // === WHEN ===
     when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
@@ -863,42 +873,42 @@ public class DevelopmentPrioritiesServiceTest
     final ApiReportComponentDTOV2 component1 = createComponent("aaa", "component1");
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         component1,
-        Lists.newArrayList(createPolicyViolation(7, "a", "policy-a", false)));
+        Lists.newArrayList(createPolicyViolation(7, "a", "policy-a", NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component1");
     final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(
         component2,
-        Lists.newArrayList(createPolicyViolation(7, "b", "policy-b", false)));
+        Lists.newArrayList(createPolicyViolation(7, "b", "policy-b", NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component3 = createComponent("ccc", "component1");
     final PolicyThreats.Component component3Threats = createPolicyThreatsComponents(
         component3,
-        Lists.newArrayList(createPolicyViolation(9, "c", "policy-c", false)));
+        Lists.newArrayList(createPolicyViolation(9, "c", "policy-c", NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component4 = createComponent("ddd", "component4");
     final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(
         component4,
-        Lists.newArrayList(createPolicyViolation(2, "d", "policy-d", false)));
+        Lists.newArrayList(createPolicyViolation(2, "d", "policy-d", NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component5 = createComponent("eee", "component5");
     final PolicyThreats.Component component5Threats = createPolicyThreatsComponents(
         component5,
-        Lists.newArrayList(createPolicyViolation(0, "e", "policy-e", false)));
+        Lists.newArrayList(createPolicyViolation(0, "e", "policy-e", NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component6 = createComponent("fff", "component6");
     final PolicyThreats.Component component6Threats = createPolicyThreatsComponents(
         component6,
-        Lists.newArrayList(createPolicyViolation(0, "g", "policy-g", false)));
+        Lists.newArrayList(createPolicyViolation(0, "g", "policy-g", NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component7 = createComponent("hhh", "component7");
     final PolicyThreats.Component component7Threats = createPolicyThreatsComponents(
         component7,
-        Lists.newArrayList(createPolicyViolation(0, "h", "policy-h", false)));
+        Lists.newArrayList(createPolicyViolation(0, "h", "policy-h", NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component8 = createComponent("iii", "component8");
     final PolicyThreats.Component component8Threats = createPolicyThreatsComponents(
         component5,
-        Lists.newArrayList(createPolicyViolation(0, "i", "policy-i", false)));
+        Lists.newArrayList(createPolicyViolation(0, "i", "policy-i", NON_REACHABLE)));
 
     // === WHEN ===
     when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
@@ -962,7 +972,7 @@ public class DevelopmentPrioritiesServiceTest
                 Lists.newArrayList(policyAction),
                 Lists.newArrayList(constraint),
                 "some-category",
-                false),
+                NON_REACHABLE),
             // at least one component with a security violation,
             // so that we check reachable (it does not have to be highest)
             createPolicyViolation(
@@ -972,7 +982,7 @@ public class DevelopmentPrioritiesServiceTest
                 Collections.emptyList(),
                 Collections.emptyList(),
                 SECURITY.getName(),
-                true)));
+                REACHABLE)));
 
     // === WHEN ===
     when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
@@ -1007,11 +1017,11 @@ public class DevelopmentPrioritiesServiceTest
     // === Given ===
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> failingComponents =
         generateComponentAtEachThreatLevelWithFailActions(DEFAULT_COMPONENT_COUNT,
-            "component-with-fail-action", SECURITY.getName(), true);
+            "component-with-fail-action", SECURITY.getName(), REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> warningComponents =
         generateComponentAtEachThreatLevelWithWarnActions(DEFAULT_COMPONENT_COUNT,
-            "component-with-warn-action", "not-security", false);
+            "component-with-warn-action", "not-security", NON_REACHABLE);
 
     final List<ApiReportComponentDTOV2> bomComponents = new ArrayList<>();
     bomComponents.addAll(failingComponents.getA());
@@ -1211,26 +1221,26 @@ public class DevelopmentPrioritiesServiceTest
     //  has highest threat violations, but none are security-reachable violations
     final ApiReportComponentDTOV2 component1 = createComponent("aaa", "component1");
     final List<PolicyViolation> component1Violations = Lists.newArrayList(
-        createPolicyViolation(2, "a", "policy-a", false),
-        createPolicyViolation(6, "b", "policy-b", false),
-        createPolicyViolation(9, "c", "policy-c", false),
-        createPolicyViolation(6, "d", "policy-d", false),
-        createPolicyViolation(10, "e", "policy-e", false));
+        createPolicyViolation(2, "a", "policy-a", NON_REACHABLE),
+        createPolicyViolation(6, "b", "policy-b", NON_REACHABLE),
+        createPolicyViolation(9, "c", "policy-c", NON_REACHABLE),
+        createPolicyViolation(6, "d", "policy-d", NON_REACHABLE),
+        createPolicyViolation(10, "e", "policy-e", NON_REACHABLE));
     Collections.shuffle(component1Violations);
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         component1,
         component1Violations,
         // add a violation that's not active, it should not affect our results
-        Lists.newArrayList(createPolicyViolation(9, "z", "policy-z", false))
+        Lists.newArrayList(createPolicyViolation(9, "z", "policy-z", NON_REACHABLE))
     );
 
     // has the highest threat security-reachable violations
     final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component2");
     final List<PolicyViolation> component2Violations = Lists.newArrayList(
         createPolicyViolation(
-            7, "f", "policy-f", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), true),
+            7, "f", "policy-f", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), REACHABLE),
         createPolicyViolation(
-            9, "g", "policy-g", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), true));
+            9, "g", "policy-g", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), REACHABLE));
     Collections.shuffle(component2Violations);
     final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(component2, component2Violations);
 
@@ -1241,19 +1251,19 @@ public class DevelopmentPrioritiesServiceTest
     final ApiReportComponentDTOV2 component4 = createComponent("ddd", "component4");
     final List<PolicyViolation> component4Violations = Lists.newArrayList(
         createPolicyViolation(
-            8, "h", "policy-h", false),
+            8, "h", "policy-h", NON_REACHABLE),
         createPolicyViolation(
-            4, "i", "policy-i", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), true),
+            4, "i", "policy-i", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), REACHABLE),
         createPolicyViolation(
-            5, "j", "policy-j", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), true));
+            5, "j", "policy-j", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), REACHABLE));
     Collections.shuffle(component4Violations);
     final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(component4, component4Violations);
 
     //  has highest threat violations, none are security-reachable violations, so will have same priority as component1
     final ApiReportComponentDTOV2 component5 = createComponent("eee", "component5");
     final List<PolicyViolation> component5Violations = Lists.newArrayList(
-        createPolicyViolation(5, "k", "policy-k", false),
-        createPolicyViolation(7, "l", "policy-l", false));
+        createPolicyViolation(5, "k", "policy-k", NON_REACHABLE),
+        createPolicyViolation(7, "l", "policy-l", NON_REACHABLE));
     Collections.shuffle(component5Violations);
     final PolicyThreats.Component component5Threats = createPolicyThreatsComponents(component5, component5Violations);
 
@@ -1272,8 +1282,8 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(results).containsExactly(
             toPrioritizedComponent(component2, 9, "policy-g", 1, "Unknown", false, null, "none", true, null, null, 9),
             toPrioritizedComponent(component4, 8, "policy-h", 2, "Unknown", false, null, "none", true, null, null, 5),
-            toPrioritizedComponent(component1, 10, "policy-e", 3, "Unknown", false, null, "none", false, null, null, 0),
-            toPrioritizedComponent(component5, 7, "policy-l", 4, "Unknown", false, null, "none", false, null, null, 0));
+            toPrioritizedComponent(component1, 10, "policy-e", 3, "Unknown", false, null, "none", null, null, null, 0),
+            toPrioritizedComponent(component5, 7, "policy-l", 4, "Unknown", false, null, "none", null, null, null, 0));
 
     verifyServiceCallsInvokedWithExpectedArguments();
   }
@@ -1286,49 +1296,49 @@ public class DevelopmentPrioritiesServiceTest
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         component1,
         Lists.newArrayList(createPolicyViolation(7, "a", "policy-a",
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component1");
     final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(
         component2,
         Lists.newArrayList(createPolicyViolation(7, "b", "policy-b",
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component3 = createComponent("ccc", "component1");
     final PolicyThreats.Component component3Threats = createPolicyThreatsComponents(
         component3,
         Lists.newArrayList(createPolicyViolation(9, "c", "policy-c",
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component4 = createComponent("ddd", "component4");
     final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(
         component4,
         Lists.newArrayList(createPolicyViolation(2, "d", "policy-d",
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component5 = createComponent("eee", "component5");
     final PolicyThreats.Component component5Threats = createPolicyThreatsComponents(
         component5,
         Lists.newArrayList(createPolicyViolation(0, "e", "policy-e",
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component6 = createComponent("fff", "component6");
     final PolicyThreats.Component component6Threats = createPolicyThreatsComponents(
         component6,
         Lists.newArrayList(createPolicyViolation(0, "g", "policy-g",
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component7 = createComponent("hhh", "component7");
     final PolicyThreats.Component component7Threats = createPolicyThreatsComponents(
         component7,
         Lists.newArrayList(createPolicyViolation(0, "h", "policy-h",
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component8 = createComponent("iii", "component8");
     final PolicyThreats.Component component8Threats = createPolicyThreatsComponents(
         component5,
         Lists.newArrayList(createPolicyViolation(0, "i", "policy-i",
-            false)));
+            NON_REACHABLE)));
 
     // === WHEN ===
     when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
@@ -1390,7 +1400,7 @@ public class DevelopmentPrioritiesServiceTest
                 Lists.newArrayList(policyAction),
                 Lists.newArrayList(constraint),
                 "some-category",
-                false),
+                NON_REACHABLE),
             // at least one component with a security violation,
             // so that we check reachable (it does not have to be highest)
             createPolicyViolation(
@@ -1400,7 +1410,7 @@ public class DevelopmentPrioritiesServiceTest
                 Collections.emptyList(),
                 Collections.emptyList(),
                 SECURITY.getName(),
-                true)));
+                REACHABLE)));
 
     // === WHEN ===
     when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
@@ -1436,32 +1446,32 @@ public class DevelopmentPrioritiesServiceTest
     final ApiReportComponentDTOV2 component1 = createComponent("aaa", "component1");
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         component1,
-        Lists.newArrayList(createPolicyViolation(7, "a", "policy-a", false)));
+        Lists.newArrayList(createPolicyViolation(7, "a", "policy-a", NON_REACHABLE)));
 
     // will be middle priority with component1 (priority 2)
     final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component1");
     final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(
         component2,
-        Lists.newArrayList(createPolicyViolation(7, "b", "policy-b", false)));
+        Lists.newArrayList(createPolicyViolation(7, "b", "policy-b", NON_REACHABLE)));
 
     // will be the highest priority (priority 1)
     final ApiReportComponentDTOV2 component3 = createComponent("ccc", "component1");
     final PolicyThreats.Component component3Threats = createPolicyThreatsComponents(
         component3,
-        Lists.newArrayList(createPolicyViolation(9, "c", "policy-c", false)));
+        Lists.newArrayList(createPolicyViolation(9, "c", "policy-c", NON_REACHABLE)));
 
     // will be the lowest priority (3)
     final ApiReportComponentDTOV2 component4 = createComponent("ddd", "component4");
     final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(
         component4,
-        Lists.newArrayList(createPolicyViolation(2, "d", "policy-d", false)));
+        Lists.newArrayList(createPolicyViolation(2, "d", "policy-d", NON_REACHABLE)));
 
     // will also be the lowest priority (3)
     final ApiReportComponentDTOV2 component5 = createComponent("eee", "component5");
     final PolicyThreats.Component component5Threats = createPolicyThreatsComponents(
         component5,
         Lists.newArrayList(createPolicyViolation(2, "e", "policy-e",
-            false)));
+            NON_REACHABLE)));
 
     // === WHEN ===
     when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
@@ -1503,7 +1513,7 @@ public class DevelopmentPrioritiesServiceTest
     // === Given ===
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> components =
         generateComponentAtEachThreatLevelWithFailActions(DEFAULT_COMPONENT_COUNT,
-            "component-with-fail-action", SECURITY.getName(), true);
+            "component-with-fail-action", SECURITY.getName(), REACHABLE);
 
     // === WHEN ===
     when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
@@ -1528,7 +1538,7 @@ public class DevelopmentPrioritiesServiceTest
     // === Given ===
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> components =
         generateComponentAtEachThreatLevelWithFailActions(DEFAULT_COMPONENT_COUNT,
-            "component-with-fail-action", "not-security", false);
+            "component-with-fail-action", "not-security", NON_REACHABLE);
 
     // === WHEN ===
     when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
@@ -1545,7 +1555,7 @@ public class DevelopmentPrioritiesServiceTest
 
     assertThat(results)
         .hasSize(11)
-        .allSatisfy(result -> assertThat(result.isSecurityReachable()).isFalse());
+        .allSatisfy(result -> assertThat(result.isSecurityReachable()).isNull());
   }
 
   @Test
@@ -1554,58 +1564,58 @@ public class DevelopmentPrioritiesServiceTest
     // FAIL ACTION
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> failingComponentsWithSecurityReachable =
         generateComponentAtEachThreatLevelWithActionWithRecommendations(
-            1, "reachable-component-with-fail-action-with-recommendation", "fail", SECURITY.getName(), true);
+            1, "reachable-component-with-fail-action-with-recommendation", "fail", SECURITY.getName(), REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> failingComponents =
         generateComponentAtEachThreatLevelWithActionWithRecommendations(
-            1, "non-reachable-component-with-fail-action-with-recommendation", "fail", "not-security", false);
+            1, "non-reachable-component-with-fail-action-with-recommendation", "fail", "not-security", NON_REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> failingComponentsWithSecurityReachableNoRecommendation =
         generateComponentAtEachThreatLevelWithFailActions(
-            1, "reachable-component-with-fail-action-no-recommendation", SECURITY.getName(), true);
+            1, "reachable-component-with-fail-action-no-recommendation", SECURITY.getName(), REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> failingComponentsWithNoRecommendations =
         generateComponentAtEachThreatLevelWithFailActions(
-            1, "non-reachable-component-with-fail-action-no-recommendation", "not-security", false);
+            1, "non-reachable-component-with-fail-action-no-recommendation", "not-security", NON_REACHABLE);
 
     // WARN ACTION
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> warningComponentsWithSecurityReachable =
         generateComponentAtEachThreatLevelWithActionWithRecommendations(
-            1, "reachable-component-with-warn-action-with-recommendation", "warn", SECURITY.getName(), true);
+            1, "reachable-component-with-warn-action-with-recommendation", "warn", SECURITY.getName(), REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> warningComponents =
         generateComponentAtEachThreatLevelWithActionWithRecommendations(
-            1, "non-reachable-component-with-warn-action-with-recommendation", "warn", "not-security", false);
+            1, "non-reachable-component-with-warn-action-with-recommendation", "warn", "not-security", NON_REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> warningComponentsWithSecurityReachableNoRecommendations =
         generateComponentAtEachThreatLevelWithWarnActions(1, "reachable-component-with-warn-action-no-recommendation",
-            SECURITY.getName(), true);
+            SECURITY.getName(), REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> warningComponentsWithNoRecommendations =
         generateComponentAtEachThreatLevelWithWarnActions(
             1, "non-reachable-component-with-warn-action-no-recommendation",
-            "not-security", false);
+            "not-security", NON_REACHABLE);
 
     // NONE ACTION
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> noActionComponentsWithSecurityReachable =
         generateComponentAtEachThreatLevelWitNoActions(
             1, "reachable-component-with-no-action-with-recommendation",
-            SECURITY.getName(), true, true);
+            SECURITY.getName(), true, REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> noActionComponents =
         generateComponentAtEachThreatLevelWitNoActions(
             1, "non-reachable-component-with-no-action-with-recommendation",
-            "not-security", true, false);
+            "not-security", true, NON_REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> noActionComponentsWithSecurityReachableNoRecommendations
         = generateComponentAtEachThreatLevelWitNoActions(
         1, "reachable-component-with-no-action-no-recommendation",
-        SECURITY.getName(), false, true);
+        SECURITY.getName(), false, REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> noActionComponentsWithNoRecommendations =
         generateComponentAtEachThreatLevelWitNoActions(
             1, "non-reachable-component-with-no-action-no-recommendation",
-            "not-security", false, false);
+            "not-security", false, NON_REACHABLE);
 
     final List<ApiReportComponentDTOV2> bomComponents = new ArrayList<>();
     bomComponents.addAll(failingComponents.getA());
@@ -1671,7 +1681,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(prioritizedComponent.getPriority()).isEqualTo(2);
     assertThat(prioritizedComponent.getAction()).isEqualTo("fail");
     assertThat(prioritizedComponent.getHasFailActionOnComponent()).isTrue();
-    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isNull();
     assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
     assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
@@ -1691,7 +1701,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(prioritizedComponent.getPriority()).isEqualTo(4);
     assertThat(prioritizedComponent.getAction()).isEqualTo("fail");
     assertThat(prioritizedComponent.getHasFailActionOnComponent()).isTrue();
-    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isNull();
     assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
     assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
@@ -1711,7 +1721,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(prioritizedComponent.getPriority()).isEqualTo(6);
     assertThat(prioritizedComponent.getAction()).isEqualTo("warn");
     assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isNull();
     assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
     assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
@@ -1731,7 +1741,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(prioritizedComponent.getPriority()).isEqualTo(8);
     assertThat(prioritizedComponent.getAction()).isEqualTo("warn");
     assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isNull();
     assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
     assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
@@ -1751,7 +1761,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(prioritizedComponent.getPriority()).isEqualTo(10);
     assertThat(prioritizedComponent.getAction()).isEqualTo("none");
     assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isNull();
     assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
     assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
@@ -1771,7 +1781,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(prioritizedComponent.getPriority()).isEqualTo(12);
     assertThat(prioritizedComponent.getAction()).isEqualTo("none");
     assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isNull();
     assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
     assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
@@ -1783,27 +1793,27 @@ public class DevelopmentPrioritiesServiceTest
     // === Given ===
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> failingComponentsWithSecurityReachable =
         generateComponentAtEachThreatLevelWithFailActions(1, "reachable-component-with-fail-action",
-            SECURITY.getName(), true);
+            SECURITY.getName(), REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> failingComponents =
         generateComponentAtEachThreatLevelWithFailActions(1, "component-with-fail-action",
-            "not-security", false);
+            "not-security", NON_REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> warningComponents =
         generateComponentAtEachThreatLevelWithWarnActions(1, "component-with-warn-action",
-            "not-security", false);
+            "not-security", NON_REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> warningComponentsWithSecurityReachable =
         generateComponentAtEachThreatLevelWithWarnActions(1, "reachable-component-with-warn-action",
-            SECURITY.getName(), true);
+            SECURITY.getName(), REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> noActionComponents =
         generateComponentAtEachThreatLevelWitNoActions(1, "component-with-no-action",
-            "not-security", false, false);
+            "not-security", false, NON_REACHABLE);
 
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> noActionComponentsWithSecurityReachable =
         generateComponentAtEachThreatLevelWitNoActions(1, "reachable-component-with-no-action",
-            SECURITY.getName(), false, true);
+            SECURITY.getName(), false, REACHABLE);
 
     final List<ApiReportComponentDTOV2> bomComponents = new ArrayList<>();
     bomComponents.addAll(failingComponents.getA());
@@ -1853,7 +1863,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(prioritizedComponent.getPriority()).isEqualTo(2);
     assertThat(prioritizedComponent.getAction()).isEqualTo("fail");
     assertThat(prioritizedComponent.getHasFailActionOnComponent()).isTrue();
-    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isNull();
     assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
     assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
@@ -1871,7 +1881,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(prioritizedComponent.getPriority()).isEqualTo(4);
     assertThat(prioritizedComponent.getAction()).isEqualTo("warn");
     assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isNull();
     assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
     assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
@@ -1889,11 +1899,52 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(prioritizedComponent.getPriority()).isEqualTo(6);
     assertThat(prioritizedComponent.getAction()).isEqualTo("none");
     assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isNull();
     assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
     assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
     verifyServiceCallsInvokedWithExpectedArguments();
+  }
+
+  @Test
+  public void testGetAllPrioritizedFindings_HandlesUnknownReachability() {
+    Pair<List<ApiReportComponentDTOV2>, List<Component>> reachable =
+        generateComponentAtEachThreatLevelWithFailActions(1, "reachable-component-with-fail-action",
+            SECURITY.getName(), REACHABLE);
+    Pair<List<ApiReportComponentDTOV2>, List<Component>> nonReachable =
+        generateComponentAtEachThreatLevelWithFailActions(1, "non-reachable-component-with-fail-action",
+            SECURITY.getName(), NON_REACHABLE);
+    Pair<List<ApiReportComponentDTOV2>, List<Component>> unknownReachability =
+        generateComponentAtEachThreatLevelWithFailActions(1, "unknown-reachability-component-with-fail-action",
+            SECURITY.getName(), null);
+    List<ApiReportComponentDTOV2> bomComponents = new ArrayList<>();
+    bomComponents.addAll(reachable.getA());
+    bomComponents.addAll(nonReachable.getA());
+    bomComponents.addAll(unknownReachability.getA());
+    List<PolicyThreats.Component> policyThreatComponents = new ArrayList<>();
+    policyThreatComponents.addAll(reachable.getB());
+    policyThreatComponents.addAll(nonReachable.getB());
+    policyThreatComponents.addAll(unknownReachability.getB());
+    when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString()))
+        .thenReturn(createApiReportRawDataDTOV2(bomComponents));
+    when(reportService.getPolicyThreats(anyString(), anyString()))
+        .thenReturn(createPolicyThreats(policyThreatComponents));
+    when(featuresService.getFeatures()).thenReturn(Sets.newHashSet(DEVELOPER_DASHBOARD));
+
+    List<PrioritizedComponent> results = developmentPrioritiesService.getAllPrioritizedFindings(
+        GIVEN_SOME_PUBLIC_APP_ID,
+        GIVEN_SOME_SCAN_ID,
+        null,
+        null
+    );
+
+    assertThat(results).hasSize(3);
+    assertThat(results.get(0).getDisplayName()).isEqualTo("reachable-component-with-fail-action0");
+    assertThat(results.get(0).isSecurityReachable()).isTrue();
+    assertThat(results.get(1).getDisplayName()).isEqualTo("non-reachable-component-with-fail-action0");
+    assertThat(results.get(1).isSecurityReachable()).isFalse();
+    assertThat(results.get(2).getDisplayName()).isEqualTo("unknown-reachability-component-with-fail-action0");
+    assertThat(results.get(2).isSecurityReachable()).isNull();
   }
 
   @Test
@@ -1911,19 +1962,19 @@ public class DevelopmentPrioritiesServiceTest
         createComponent("eee", "component5", getDependencyTypeWithNulls());
 
     final List<PolicyViolation> component1Violations =
-        Collections.singletonList(createPolicyViolation(1, "a", "policy-a", false));
+        Collections.singletonList(createPolicyViolation(1, "a", "policy-a", NON_REACHABLE));
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(component1, component1Violations);
     final List<PolicyViolation> component2Violations =
-        Collections.singletonList(createPolicyViolation(1, "b", "policy-b", false));
+        Collections.singletonList(createPolicyViolation(1, "b", "policy-b", NON_REACHABLE));
     final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(component2, component2Violations);
     final List<PolicyViolation> component3Violations =
-        Collections.singletonList(createPolicyViolation(1, "c", "policy-c", false));
+        Collections.singletonList(createPolicyViolation(1, "c", "policy-c", NON_REACHABLE));
     final PolicyThreats.Component component3Threats = createPolicyThreatsComponents(component3, component3Violations);
     final List<PolicyViolation> component4Violations =
-        Collections.singletonList(createPolicyViolation(1, "d", "policy-d", false));
+        Collections.singletonList(createPolicyViolation(1, "d", "policy-d", NON_REACHABLE));
     final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(component4, component4Violations);
     final List<PolicyViolation> component5Violations =
-        Collections.singletonList(createPolicyViolation(1, "e", "policy-e", false));
+        Collections.singletonList(createPolicyViolation(1, "e", "policy-e", NON_REACHABLE));
     final PolicyThreats.Component component5Threats = createPolicyThreatsComponents(component5, component5Violations);
 
     // === WHEN ===
@@ -1955,24 +2006,24 @@ public class DevelopmentPrioritiesServiceTest
   public void testGetAllPrioritizedFindings_shouldExtractTheNonLegacyHighestThreatPolicyViolation() {
     final ApiReportComponentDTOV2 component1 = createComponent("aaa", "component1");
     final List<PolicyViolation> component1Violations = Lists.newArrayList(
-        createPolicyViolation(2, "a", "policy-a", false),
-        makeLegacy(createPolicyViolation(6, "b", "policy-b", false)),
-        createPolicyViolation(5, "c", "policy-c", false),
-        makeLegacy(createPolicyViolation(6, "d", "policy-d", false)),
-        makeLegacy(createPolicyViolation(6, "e", "policy-e", false)));
+        createPolicyViolation(2, "a", "policy-a", NON_REACHABLE),
+        makeLegacy(createPolicyViolation(6, "b", "policy-b", NON_REACHABLE)),
+        createPolicyViolation(5, "c", "policy-c", NON_REACHABLE),
+        makeLegacy(createPolicyViolation(6, "d", "policy-d", NON_REACHABLE)),
+        makeLegacy(createPolicyViolation(6, "e", "policy-e", NON_REACHABLE)));
     Collections.shuffle(component1Violations);
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         component1,
         component1Violations,
         // add a violation that's not active, it should not affect our results
-        Lists.newArrayList(createPolicyViolation(9, "z", "policy-z", false))
+        Lists.newArrayList(createPolicyViolation(9, "z", "policy-z", NON_REACHABLE))
     );
 
     // has the highest threat level of all the components
     final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component2");
     final List<PolicyViolation> component2Violations = Lists.newArrayList(
-        makeLegacy(createPolicyViolation(10, "f", "policy-f", false)),
-        createPolicyViolation(7, "g", "policy-g", false));
+        makeLegacy(createPolicyViolation(10, "f", "policy-f", NON_REACHABLE)),
+        createPolicyViolation(7, "g", "policy-g", NON_REACHABLE));
     Collections.shuffle(component2Violations);
     final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(component2, component2Violations);
 
@@ -2007,25 +2058,25 @@ public class DevelopmentPrioritiesServiceTest
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         component1,
         Lists.newArrayList(createPolicyViolation(7, "a", "policy-a",
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component2");
     final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(
         component2,
         Lists.newArrayList(createPolicyViolation(7, "b", "policy-b",
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component3 = createComponent("ccc", "component3");
     final PolicyThreats.Component component3Threats = createPolicyThreatsComponents(
         component3,
         Lists.newArrayList(createPolicyViolation(9, "c", "policy-c",
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component4 = createComponent("ddd", "component4");
     final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(
         component4,
         Lists.newArrayList(createPolicyViolation(2, "d", "policy-d",
-            false)));
+            NON_REACHABLE)));
 
     // === WHEN ===
     when(componentRemediationService.getSuggestedRemediationForComponentNoAuthz(
@@ -2063,55 +2114,55 @@ public class DevelopmentPrioritiesServiceTest
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         component1,
         Lists.newArrayList(createPolicyViolation(7, "a", "policy-a",
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component2");
     final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(
         component2,
         Lists.newArrayList(createPolicyViolation(7, "b", "policy-b",
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component3 = createComponent("ccc", "component3");
     final PolicyThreats.Component component3Threats = createPolicyThreatsComponents(
         component3,
         Lists.newArrayList(createPolicyViolation(9, "c", "policy-c",
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component4 = createComponent("ddd", "component4");
     final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(
         component4,
         Lists.newArrayList(createPolicyViolation(2, "d", "policy-d",
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component5 = createComponent("fff", "component5");
     final PolicyThreats.Component component5Threats = createPolicyThreatsComponents(
         component5,
         Lists.newArrayList(createPolicyViolation(7, "f", "policy-f",
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component6 = createComponent("ggg", "component6");
     final PolicyThreats.Component component6Threats = createPolicyThreatsComponents(
         component6,
         Lists.newArrayList(createPolicyViolation(9, "g", "policy-g",
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component7 = createComponent("hhh", "component7");
     final PolicyThreats.Component component7Threats = createPolicyThreatsComponents(
         component7,
         Lists.newArrayList(createPolicyViolation(2, "h", "policy-h",
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component8 = createComponent("iii", "component8");
     final PolicyThreats.Component component8Threats = createPolicyThreatsComponents(
         component8,
         Lists.newArrayList(createPolicyViolation(7, "i", "policy-i",
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component9 = createComponent("jjj", "component9");
     final PolicyThreats.Component component9Threats = createPolicyThreatsComponents(
         component9,
         Lists.newArrayList(createPolicyViolation(9, "j", "policy-j",
-            false)));
+            NON_REACHABLE)));
 
     // === WHEN ===
     when(componentRemediationService.getSuggestedRemediationForComponentNoAuthz(
@@ -2198,23 +2249,23 @@ public class DevelopmentPrioritiesServiceTest
 
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         component1,
-        List.of(createPolicyViolation(1, "a", "policy-a", false)),
-        Lists.newArrayList(createPolicyViolation(9, "z", "policy-z", false))
+        List.of(createPolicyViolation(1, "a", "policy-a", NON_REACHABLE)),
+        Lists.newArrayList(createPolicyViolation(9, "z", "policy-z", NON_REACHABLE))
     );
     final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(
         component2,
-        List.of(createPolicyViolation(2, "b", "policy-a", false)),
-        Lists.newArrayList(createPolicyViolation(9, "z", "policy-z", false))
+        List.of(createPolicyViolation(2, "b", "policy-a", NON_REACHABLE)),
+        Lists.newArrayList(createPolicyViolation(9, "z", "policy-z", NON_REACHABLE))
     );
     final PolicyThreats.Component component3Threats = createPolicyThreatsComponents(
         component3,
-        List.of(createPolicyViolation(3, "c", "policy-a", false)),
-        Lists.newArrayList(createPolicyViolation(9, "z", "policy-z", false))
+        List.of(createPolicyViolation(3, "c", "policy-a", NON_REACHABLE)),
+        Lists.newArrayList(createPolicyViolation(9, "z", "policy-z", NON_REACHABLE))
     );
     final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(
         component4,
-        List.of(createPolicyViolation(4, "d", "policy-a", false)),
-        Lists.newArrayList(createPolicyViolation(9, "z", "policy-z", false))
+        List.of(createPolicyViolation(4, "d", "policy-a", NON_REACHABLE)),
+        Lists.newArrayList(createPolicyViolation(9, "z", "policy-z", NON_REACHABLE))
     );
 
     when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
@@ -2256,31 +2307,31 @@ public class DevelopmentPrioritiesServiceTest
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         component1,
         Lists.newArrayList(createPolicyViolation(7, "a", "policy-a", List.of(failAction),
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component2");
     final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(
         component2,
         Lists.newArrayList(createPolicyViolation(7, "b", "policy-b", List.of(failAction, otherAction),
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component3 = createComponent("ccc", "component3");
     final PolicyThreats.Component component3Threats = createPolicyThreatsComponents(
         component3,
         Lists.newArrayList(createPolicyViolation(9, "c", "policy-c", List.of(warnAction),
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component4 = createComponent("ddd", "component4");
     final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(
         component4,
         Lists.newArrayList(createPolicyViolation(2, "d", "policy-d", List.of(otherAction),
-            false)));
+            NON_REACHABLE)));
 
     final ApiReportComponentDTOV2 component5 = createComponent("fff", "component5");
     final PolicyThreats.Component component5Threats = createPolicyThreatsComponents(
         component5,
         Lists.newArrayList(createPolicyViolation(7, "f", "policy-f",
-            false)));
+            NON_REACHABLE)));
 
     when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
         createApiReportRawDataDTOV2(Lists.newArrayList(component1, component2, component3, component4, component5)));
@@ -2381,11 +2432,11 @@ public class DevelopmentPrioritiesServiceTest
       final int threatLevel,
       final String policyViolationId,
       final String policyName,
-      final boolean isSecurityReachable
+      final ReachabilityStatus reachabilityStatus
   )
   {
     return createPolicyViolation(
-        threatLevel, policyViolationId, policyName, Collections.emptyList(), isSecurityReachable);
+        threatLevel, policyViolationId, policyName, Collections.emptyList(), reachabilityStatus);
   }
 
   private PolicyViolation makeLegacy(PolicyViolation policyViolation) {
@@ -2398,7 +2449,7 @@ public class DevelopmentPrioritiesServiceTest
       final String policyViolationId,
       final String policyName,
       final List<PolicyAction> policyActions,
-      final boolean isSecurityReachable
+      final ReachabilityStatus reachabilityStatus
   )
   {
     return createPolicyViolation(
@@ -2408,7 +2459,7 @@ public class DevelopmentPrioritiesServiceTest
         policyActions,
         Collections.emptyList(),
         "some-category",
-        isSecurityReachable);
+        reachabilityStatus);
   }
 
   private PolicyViolation createPolicyViolation(
@@ -2418,7 +2469,7 @@ public class DevelopmentPrioritiesServiceTest
       final List<PolicyAction> policyActions,
       final List<PolicyConstraint> constraints,
       final String policyThreatCategory,
-      final boolean isSecurityReachable
+      final ReachabilityStatus reachabilityStatus
   )
   {
     final PolicyViolation policyViolation = new PolicyViolation();
@@ -2428,8 +2479,7 @@ public class DevelopmentPrioritiesServiceTest
     policyViolation.constraints = constraints;
     policyViolation.policyName = policyName;
     policyViolation.policyThreatCategory = policyThreatCategory;
-    policyViolation.reachabilityStatus =
-        isSecurityReachable ? ReachabilityStatus.REACHABLE : ReachabilityStatus.NON_REACHABLE;
+    policyViolation.reachabilityStatus = reachabilityStatus;
     policyViolation.policyId = "some-policy-id";
 
     return policyViolation;
@@ -2497,7 +2547,7 @@ public class DevelopmentPrioritiesServiceTest
         false,
         highestThreatPolicyConstraintName,
         "none",
-        false,
+        null,
         null,
         null,
         0
@@ -2522,7 +2572,7 @@ public class DevelopmentPrioritiesServiceTest
         false,
         highestThreatPolicyConstraintName,
         "none",
-        false,
+        null,
         remediationType,
         remediationVersion,
         0
@@ -2538,7 +2588,7 @@ public class DevelopmentPrioritiesServiceTest
       final boolean hasFailActionComponent,
       final String highestThreatPolicyConstraintName,
       final String action,
-      final boolean securityReachable,
+      final Boolean securityReachable,
       final ApiVersionChangeOptionType remediationType,
       final String remediationVersion,
       final int highestReachableThreat
@@ -2592,22 +2642,22 @@ public class DevelopmentPrioritiesServiceTest
       final int count,
       final String componentBaseName,
       final String policyThreatCategory,
-      final boolean isSecurityReachable
+      final ReachabilityStatus reachabilityStatus
   )
   {
     return generateComponentAtEachThreatLevelWithAction(count, componentBaseName, "warn", policyThreatCategory, false,
-        isSecurityReachable);
+        reachabilityStatus);
   }
 
   private Pair<List<ApiReportComponentDTOV2>, List<Component>> generateComponentAtEachThreatLevelWithFailActions(
       final int count,
       final String componentBaseName,
       final String policyThreatCategory,
-      final boolean isSecurityReachable
+      final ReachabilityStatus reachabilityStatus
   )
   {
     return generateComponentAtEachThreatLevelWithAction(count, componentBaseName, "fail", policyThreatCategory, false,
-        isSecurityReachable);
+        reachabilityStatus);
   }
 
   private Pair<List<ApiReportComponentDTOV2>, List<Component>>
@@ -2616,11 +2666,11 @@ public class DevelopmentPrioritiesServiceTest
       final String componentBaseName,
       final String action,
       final String policyThreatCategory,
-      final boolean isSecurityReachable
+      final ReachabilityStatus reachabilityStatus
   )
   {
     return generateComponentAtEachThreatLevelWithAction(count, componentBaseName, action, policyThreatCategory, true,
-        isSecurityReachable);
+        reachabilityStatus);
   }
 
   private Pair<List<ApiReportComponentDTOV2>, List<Component>> generateComponentAtEachThreatLevelWithAction(
@@ -2629,7 +2679,7 @@ public class DevelopmentPrioritiesServiceTest
       final String action,
       final String policyThreatCategory,
       final boolean includeRecommendations,
-      final boolean isSecurityReachable
+      final ReachabilityStatus reachabilityStatus
   )
   {
     final List<ApiReportComponentDTOV2> bomComponents = new ArrayList<>();
@@ -2645,7 +2695,7 @@ public class DevelopmentPrioritiesServiceTest
           Lists.newArrayList(policyAction),
           Collections.emptyList(),
           policyThreatCategory,
-          isSecurityReachable);
+          reachabilityStatus);
 
       final String hash = TemporaryEntity.uuid().substring(0, 19);
       final ApiReportComponentDTOV2 component = createComponent(hash, componentBaseName + i);
@@ -2678,7 +2728,7 @@ public class DevelopmentPrioritiesServiceTest
       final String componentBaseName,
       final String policyThreatCategory,
       final boolean includeRecommendations,
-      final boolean isSecurityReachable
+      final ReachabilityStatus reachabilityStatus
   )
   {
     final List<ApiReportComponentDTOV2> bomComponents = new ArrayList<>();
@@ -2697,7 +2747,7 @@ public class DevelopmentPrioritiesServiceTest
                   Collections.emptyList(),
                   Collections.emptyList(),
                   policyThreatCategory,
-                  isSecurityReachable)));
+                  reachabilityStatus)));
 
       if (includeRecommendations) {
         tempEntity.newDevelopmentPrioritizationComponentInfo(

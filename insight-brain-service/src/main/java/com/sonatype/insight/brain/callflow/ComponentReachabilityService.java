@@ -6,16 +6,17 @@
 
 package com.sonatype.insight.brain.callflow;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import java.util.Collection;
-import java.util.List;
-
+import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.Component;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyViolation;
 import com.sonatype.insight.brain.report.ReportService;
-
-import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.REACHABLE;
 
 @Named
 public class ComponentReachabilityService
@@ -27,24 +28,33 @@ public class ComponentReachabilityService
     this.reportService = reportService;
   }
 
-  public boolean isComponentReachable(
+  public ReachabilityStatus isComponentReachable(
       final String applicationPublicId,
       final String scanId,
       final String componentHash)
   {
     final PolicyThreats policyThreats = reportService.getPolicyThreats(applicationPublicId, scanId);
-    return hasReachableViolation(policyThreats.aaData, componentHash);
+    return hasReachableSecurityViolation(policyThreats.aaData, componentHash);
   }
 
-  private boolean hasReachableViolation(
+  private ReachabilityStatus hasReachableSecurityViolation(
       final List<PolicyThreats.Component> policyThreatsComponents,
       final String componentHash)
   {
-    return policyThreatsComponents.stream()
-        .filter(policyThreatComponent -> policyThreatComponent.hash.equals(componentHash))
-        .map(comp -> comp.activeViolations)
-        .flatMap(Collection::stream)
-        .filter(violation -> !violation.legacyViolation)
-        .anyMatch(policyViolation -> REACHABLE.equals(policyViolation.reachabilityStatus));
+    Set<ReachabilityStatus> reachabilityStatuses = new HashSet<>();
+    for (Component policyThreatsComponent : policyThreatsComponents) {
+      if (policyThreatsComponent.hash.equals(componentHash)) {
+        for (PolicyViolation activeViolation : policyThreatsComponent.activeViolations) {
+          boolean reachabilitySupported = PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(
+              policyThreatsComponent.componentIdentifier,
+              activeViolation
+          );
+          if (reachabilitySupported && !activeViolation.legacyViolation) {
+            reachabilityStatuses.add(activeViolation.reachabilityStatus);
+          }
+        }
+      }
+    }
+    return ReachabilityStatus.combine(reachabilityStatuses.stream());
   }
 }

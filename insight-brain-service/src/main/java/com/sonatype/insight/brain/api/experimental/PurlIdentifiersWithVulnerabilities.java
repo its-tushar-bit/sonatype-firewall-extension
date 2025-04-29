@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.experimental;
 
 import java.util.Map;
-import java.util.Set;
 
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -19,19 +18,19 @@ public class PurlIdentifiersWithVulnerabilities
 
   private final String scanId;
 
-  private final Map<PackageUrlIdentifier, Set<String>> vulnerabilitiesByPurlIdentifiers;
+  private final Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> vulnerabilitiesByPurlIdentifiers;
 
   public PurlIdentifiersWithVulnerabilities(
       final String applicationId,
       final String scanId,
-      final Map<PackageUrlIdentifier, Set<String>> vulnerabilitiesByPurlIdentifiers)
+      final Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> vulnerabilitiesByPurlIdentifiers)
   {
     this.applicationId = applicationId;
     this.scanId = scanId;
     this.vulnerabilitiesByPurlIdentifiers = vulnerabilitiesByPurlIdentifiers;
   }
 
-  public Map<PackageUrlIdentifier, Set<String>> getVulnerabilitiesByPurlIdentifiers() {
+  public Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> getVulnerabilitiesByPurlIdentifiers() {
     return vulnerabilitiesByPurlIdentifiers;
   }
 

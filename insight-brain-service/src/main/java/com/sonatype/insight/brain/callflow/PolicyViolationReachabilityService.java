@@ -8,10 +8,10 @@ package com.sonatype.insight.brain.callflow;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities;
 import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -28,9 +28,9 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS_FILENAME;
-import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.filterOnReachableSecurityViolations;
+import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.filterOnReachabilitySupport;
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.updateReachabilityStatus;
+import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS_FILENAME;
 
 @Named
 public class PolicyViolationReachabilityService
@@ -65,7 +65,7 @@ public class PolicyViolationReachabilityService
   public void updateReachabilityStatusForPolicyViolations(
       final String applicationId,
       final String reportId,
-      final Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers,
+      final Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> reachableVulnerabilitiesByPurlIdentifiers,
       final ApplicationReport applicationReport) throws IOException
   {
     logger.info("Updating policy violations with reachability data for applicationId: {}, reportId: {}", applicationId,
@@ -101,19 +101,19 @@ public class PolicyViolationReachabilityService
 
   private void updateReachableSecurityViolationsReachableStatus(
       final List<PolicyViolation> policyViolations,
-      final Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers)
+      final Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> reachableVulnerabilitiesByPurlIdentifiers)
   {
-    // only update reachable security violation
-    List<PolicyViolation> reachableSecurityViolations = filterOnReachableSecurityViolations(policyViolations);
+    // only update reachability-supporting security violation
+    List<PolicyViolation> reachabilitySupportingSecurityViolations = filterOnReachabilitySupport(policyViolations);
 
-    if (reachableSecurityViolations.isEmpty()) {
+    if (reachabilitySupportingSecurityViolations.isEmpty()) {
       return;
     }
 
     try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
       tx.begin();
 
-      reachableSecurityViolations.forEach(policyViolation -> {
+      reachabilitySupportingSecurityViolations.forEach(policyViolation -> {
         updateReachabilityStatus(policyViolation, reachableVulnerabilitiesByPurlIdentifiers);
         policyViolationDAO.update(tx, policyViolation);
       });

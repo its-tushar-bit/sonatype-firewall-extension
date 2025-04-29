@@ -10,7 +10,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
@@ -70,14 +69,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApplicationEvaluationResourceTest
     extends AbstractResourceTest
 {
-  private static final String EVALUATE_PATH = Paths.get(ApplicationEvaluationResource.RESOURCE_PATH,
-      ApplicationEvaluationResource.EVALUATE_PATH).toString();
+  private static final String EVALUATE_PATH = ApplicationEvaluationResource.RESOURCE_PATH + "/" +
+      ApplicationEvaluationResource.EVALUATE_PATH;
 
-  private static final String COMPONENT_ANALYSIS_PATH = Paths.get(ApplicationEvaluationResource.RESOURCE_PATH,
-      ApplicationEvaluationResource.COMPONENT_ANALYSIS_PATH).toString();
+  private static final String COMPONENT_ANALYSIS_PATH = ApplicationEvaluationResource.RESOURCE_PATH + "/" +
+      ApplicationEvaluationResource.COMPONENT_ANALYSIS_PATH;
 
-  private static final String POLICY_EVALUATION_PATH = Paths.get(ApplicationEvaluationResource.RESOURCE_PATH,
-      ApplicationEvaluationResource.POLICY_EVALUATION_PATH).toString();
+  private static final String POLICY_EVALUATION_PATH = ApplicationEvaluationResource.RESOURCE_PATH + "/" +
+      ApplicationEvaluationResource.POLICY_EVALUATION_PATH;
 
   private PolicyEvaluationDAO policyEvaluationDAO;
 

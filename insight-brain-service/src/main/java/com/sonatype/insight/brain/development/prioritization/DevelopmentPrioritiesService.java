@@ -7,11 +7,11 @@ package com.sonatype.insight.brain.development.prioritization;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
-import java.util.Comparator;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -21,7 +21,12 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.api.v2.dto.*;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiDependencyDataDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
@@ -34,6 +39,7 @@ import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
@@ -46,6 +52,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -202,12 +209,17 @@ public class DevelopmentPrioritiesService
             }
           }
 
-          final boolean securityReachable = hasSecurityViolations(policyViolations)
-              && isSecurityReachable(applicationPublicId, scanId, component.hash);
+          final ReachabilityStatus securityReachable;
+          if (hasSecurityViolations(policyViolations)) {
+            securityReachable = isSecurityReachable(applicationPublicId, scanId, component.hash);
+          }
+          else {
+            securityReachable = ReachabilityStatus.combine(Stream.of());
+          }
 
           ApiVersionChangeOptionType remediationType = null;
           String remediationVersion = null;
-          if (securityReachable) {
+          if (securityReachable == ReachabilityStatus.REACHABLE) {
             final PolicyViolation highestReachablePolicyViolation = getHighestThreat(policyViolations, true);
             if (highestReachablePolicyViolation != null) {
               highestReachableThreatLevel = highestReachablePolicyViolation.policyThreatLevel;
@@ -235,7 +247,7 @@ public class DevelopmentPrioritiesService
               highestThreatLevel,
               policyName,
               highestThreatConstraintName,
-              securityReachable,
+              securityReachable.toBoolean(),
               remediationType,
               remediationVersion,
               highestReachableThreatLevel
@@ -514,7 +526,7 @@ public class DevelopmentPrioritiesService
     return features.contains(LicensedFeature.DEVELOPER_DASHBOARD);
   }
 
-  private boolean isSecurityReachable(
+  private ReachabilityStatus isSecurityReachable(
       final String applicationId,
       final String scanId,
       final String componentHash)
@@ -549,7 +561,7 @@ public class DevelopmentPrioritiesService
 
     public final String highestThreatPolicyConstraintName;
 
-    public final boolean securityReachable;
+    public final Boolean securityReachable;
 
     public ApiVersionChangeOptionType remediationType;
 
@@ -565,7 +577,7 @@ public class DevelopmentPrioritiesService
         final int highestThreat,
         final String highestThreatPolicyName,
         final String highestThreatPolicyConstraintName,
-        final boolean securityReachable,
+        final Boolean securityReachable,
         final ApiVersionChangeOptionType remediationType,
         final String remediationVersion,
         final int highestReachableThreat

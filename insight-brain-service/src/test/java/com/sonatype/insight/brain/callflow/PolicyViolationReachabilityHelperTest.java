@@ -6,15 +6,22 @@
 package com.sonatype.insight.brain.callflow;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
+import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities;
+import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities.MissingReachableComponentVulnerabilities;
+import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities.PresentReachableComponentVulnerabilities;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Test;
@@ -23,7 +30,7 @@ import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMav
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createNpmCoordinates;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createPypiCoordinates;
 import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
-import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.filterOnReachableSecurityViolations;
+import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.filterOnReachabilitySupport;
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.hasPolicyViolationByComponentIdentifier;
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.updateReachabilityStatus;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
@@ -36,9 +43,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PolicyViolationReachabilityHelperTest
 {
   @Test
-  public void filterOnReachableSecurityViolations_ReturnsOnlyReachableViolations() {
+  public void testFilterOnReachabilitySupport_ReturnsOnlyReachableViolations() {
     // reachable violation by threat category and component identifier format (Maven)
-    PolicyViolation mvnReachablePolicyViolation = createReachablePolicyViolation();
+    PolicyViolation mvnReachablePolicyViolation = createPolicyViolation();
 
     // non-reachable violation by threat category
     PolicyViolation unreachablePolicyViolation1 = new PolicyViolation();
@@ -51,14 +58,14 @@ public class PolicyViolationReachabilityHelperTest
     pipyNonreachablePolicyViolation2.setThreatCategory(SECURITY);
     pipyNonreachablePolicyViolation2.setComponentIdentifier(createPypiCoordinates("n", "v", "q", "e"));
     pipyNonreachablePolicyViolation2.setOpenTime(new Date());
-    
+
     // reachable violation by threat category and component identifier format (NPM)
     PolicyViolation npmReachablePolicyViolation2 = new PolicyViolation();
     npmReachablePolicyViolation2.setThreatCategory(SECURITY);
     npmReachablePolicyViolation2.setComponentIdentifier(createNpmCoordinates("packageId", "version"));
     npmReachablePolicyViolation2.setOpenTime(new Date());
 
-    List<PolicyViolation> result = filterOnReachableSecurityViolations(
+    List<PolicyViolation> result = filterOnReachabilitySupport(
         List.of(mvnReachablePolicyViolation, unreachablePolicyViolation1, npmReachablePolicyViolation2)
     );
 
@@ -68,85 +75,90 @@ public class PolicyViolationReachabilityHelperTest
   }
 
   @Test
-  public void filterOnReachableSecurityViolations_ReturnsEmptyListWhenNoReachableViolations() {
+  public void testFilterOnReachabilitySupport_ReturnsEmptyListWhenNoReachableViolations() {
     // non-reachable violation by threat category
     PolicyViolation unreachablePolicyViolation = new PolicyViolation();
     unreachablePolicyViolation.setThreatCategory(LICENSE);
     unreachablePolicyViolation.setComponentIdentifier(createMavenCoordinates("g", "a", "v"));
 
-    assertThat(filterOnReachableSecurityViolations(List.of(unreachablePolicyViolation))).isEmpty();
+    assertThat(filterOnReachabilitySupport(List.of(unreachablePolicyViolation))).isEmpty();
   }
 
   @Test
-  public void updateReachabilityStatus_UpdatesStatusToReachable() {
-    // reachable violation by threat category, component identifier format, and constraint fact
-    PolicyViolation reachablePolicyViolation = createReachablePolicyViolation();
-
-    assertThat(reachablePolicyViolation.getReachabilityStatus()).isNull();
-
-    updateReachabilityStatus(
-        reachablePolicyViolation,
-        createVulnerabilitiesByPurlIdentifiers(reachablePolicyViolation)
-    );
-
-    assertThat(reachablePolicyViolation.getReachabilityStatus()).isEqualTo(REACHABLE);
-  }
-
-  @Test
-  public void updateReachabilityStatusWithPurlIdentifiersWithVulnerabilities_UpdatesStatusToReachable() {
-    // reachable violation by threat category, component identifier format, and constraint fact
-    PolicyViolation reachablePolicyViolation = createReachablePolicyViolation();
-
-    assertThat(reachablePolicyViolation.getReachabilityStatus()).isNull();
-
+  public void testUpdateReachabilityStatus_UpdatesStatusToReachable() {
+    PolicyViolation policyViolation = createPolicyViolation();
     PurlIdentifiersWithVulnerabilities purlIdentifiersWithVulnerabilities =
         new PurlIdentifiersWithVulnerabilities(
             "applicationId",
             "scanId",
-            createVulnerabilitiesByPurlIdentifiers(reachablePolicyViolation)
+            Map.of(
+                fromComponentIdentifier(policyViolation.getComponentIdentifier()),
+                new PresentReachableComponentVulnerabilities(Set.of("CVE-1234"))
+            )
         );
 
     updateReachabilityStatus(
-        reachablePolicyViolation,
+        policyViolation,
         purlIdentifiersWithVulnerabilities
     );
 
-    assertThat(reachablePolicyViolation.getReachabilityStatus()).isEqualTo(REACHABLE);
+    assertThat(policyViolation.getReachabilityStatus()).isEqualTo(REACHABLE);
   }
 
   @Test
-  public void updateReachabilityStatus_UpdatesStatusToNonReachable() {
-    // unreachable violation by missing proper constraint fact
-    PolicyViolation unreachablePolicyViolation = new PolicyViolation();
-    unreachablePolicyViolation.setThreatCategory(SECURITY);
-    unreachablePolicyViolation.setComponentIdentifier(createMavenCoordinates("g", "a", "v"));
-
-    ConstraintFact constraintFact = new ConstraintFact();
-    unreachablePolicyViolation.setConstraintFacts(List.of(
-        constraintFact
-    ));
-
-    assertThat(unreachablePolicyViolation.getReachabilityStatus()).isNull();
+  public void testUpdateReachabilityStatus_UpdatesStatusToNonReachable() {
+    PolicyViolation policyViolation = createPolicyViolation();
+    PurlIdentifiersWithVulnerabilities purlIdentifiersWithVulnerabilities =
+        new PurlIdentifiersWithVulnerabilities(
+            "applicationId",
+            "scanId",
+            Map.of(
+                fromComponentIdentifier(policyViolation.getComponentIdentifier()),
+                new PresentReachableComponentVulnerabilities(new HashSet<>())
+            )
+        );
 
     updateReachabilityStatus(
-        unreachablePolicyViolation,
-        createVulnerabilitiesByPurlIdentifiers(unreachablePolicyViolation)
+        policyViolation,
+        purlIdentifiersWithVulnerabilities
     );
 
-    assertThat(unreachablePolicyViolation.getReachabilityStatus()).isEqualTo(NON_REACHABLE);
+    assertThat(policyViolation.getReachabilityStatus()).isEqualTo(NON_REACHABLE);
   }
 
   @Test
-  public void updateReachabilityStatus_DoesNotCauseIssuesWithNullOrEmptyData() {
+  public void testUpdateReachabilityStatus_NoSignatures() {
+    PolicyViolation policyViolation = createPolicyViolation();
+    PurlIdentifiersWithVulnerabilities purlIdentifiersWithVulnerabilities =
+        new PurlIdentifiersWithVulnerabilities(
+            "applicationId",
+            "scanId",
+            Map.of(
+                fromComponentIdentifier(policyViolation.getComponentIdentifier()),
+                MissingReachableComponentVulnerabilities.INSTANCE
+            )
+        );
+
+    updateReachabilityStatus(
+        policyViolation,
+        purlIdentifiersWithVulnerabilities
+    );
+
+    assertThat(policyViolation.getReachabilityStatus()).isEqualTo(ReachabilityStatus.UNKNOWN);
+  }
+
+  @Test
+  public void testUpdateReachabilityStatus_DoesNotCauseIssuesWithNullOrEmptyData() {
     // confirm no issues when providing null or empty data
     updateReachabilityStatus(null, Map.of());
-    updateReachabilityStatus(new PolicyViolation(), (Map<PackageUrlIdentifier, Set<String>>) null);
+    updateReachabilityStatus(new PolicyViolation(),
+        (Map<PackageUrlIdentifier, ReachableComponentVulnerabilities>) null);
     updateReachabilityStatus(new PolicyViolation(), (PurlIdentifiersWithVulnerabilities) null);
     updateReachabilityStatus(new PolicyViolation(), new PurlIdentifiersWithVulnerabilities(null, null, null));
   }
 
   @Test
-  public void hasPolicyViolationByComponentIdentifier_ReturnsFalseWithNullOrEmptyData() {
+  public void testHasPolicyViolationByComponentIdentifier_ReturnsFalseWithNullOrEmptyData() {
     assertThat(hasPolicyViolationByComponentIdentifier(null, null)).isFalse();
     assertThat(hasPolicyViolationByComponentIdentifier(new PolicyViolation(), null)).isFalse();
     assertThat(hasPolicyViolationByComponentIdentifier(null, new PurlIdentifiersWithVulnerabilities(null, null, null)))
@@ -156,21 +168,78 @@ public class PolicyViolationReachabilityHelperTest
   }
 
   @Test
-  public void hasPolicyViolationByComponentIdentifier_ReturnsTrueWithPolicyViolation() {
-    PolicyViolation reachablePolicyViolation = createReachablePolicyViolation();
+  public void testHasPolicyViolationByComponentIdentifier_ReturnsTrueWithPolicyViolation() {
+    PolicyViolation reachablePolicyViolation = createPolicyViolation();
 
     PurlIdentifiersWithVulnerabilities purlIdentifiersWithVulnerabilities =
         new PurlIdentifiersWithVulnerabilities(
             "applicationId",
             "scanId",
-            createVulnerabilitiesByPurlIdentifiers(reachablePolicyViolation)
+            Map.of(
+                fromComponentIdentifier(reachablePolicyViolation.getComponentIdentifier()),
+                new PresentReachableComponentVulnerabilities(Set.of("CVE-1234"))
+            )
         );
 
-    assertThat(hasPolicyViolationByComponentIdentifier( reachablePolicyViolation, purlIdentifiersWithVulnerabilities))
+    assertThat(hasPolicyViolationByComponentIdentifier(reachablePolicyViolation, purlIdentifiersWithVulnerabilities))
         .isTrue();
   }
 
-  private PolicyViolation createReachablePolicyViolation() {
+  @Test
+  public void testSupportsReachabilityAnalysis_ComponentIdentifier_PolicyThreatsViolation() {
+    ComponentIdentifier c1 = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    ComponentIdentifier c2 = ComponentIdentifier.createSwiftCoordinates("n", "v");
+
+    PolicyThreats.PolicyViolation v1 = new PolicyThreats.PolicyViolation();
+    v1.policyThreatCategory = SECURITY.toString();
+    PolicyThreats.PolicyViolation v2 = new PolicyThreats.PolicyViolation();
+    v2.policyThreatCategory = LICENSE.toString();
+    PolicyThreats.PolicyViolation v3 = new PolicyThreats.PolicyViolation();
+
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(c1, v1)).isTrue();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(c1, v2)).isFalse();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(c2, v1)).isFalse();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(c1, null)).isFalse();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(null, v1)).isFalse();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(c1, v3)).isFalse();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(null, null)).isFalse();
+  }
+
+  @Test
+  public void testSupportsReachabilityAnalysis_PolicyViolation() {
+    ComponentIdentifier c1 = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    ComponentIdentifier c2 = ComponentIdentifier.createSwiftCoordinates("n", "v");
+
+    PolicyViolation v1 = new PolicyViolation();
+    v1.setComponentIdentifier(c1);
+    v1.setThreatCategory(SECURITY);
+
+    PolicyViolation v2 = new PolicyViolation();
+    v2.setComponentIdentifier(c1);
+    v2.setThreatCategory(LICENSE);
+
+    PolicyViolation v3 = new PolicyViolation();
+    v3.setComponentIdentifier(c2);
+    v3.setThreatCategory(SECURITY);
+
+    PolicyViolation v4 = new PolicyViolation();
+    v4.setComponentIdentifier(c1);
+
+    PolicyViolation v5 = new PolicyViolation();
+    v5.setThreatCategory(SECURITY);
+
+    PolicyViolation v6 = new PolicyViolation();
+
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(v1)).isTrue();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(v2)).isFalse();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(v3)).isFalse();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(v4)).isFalse();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(v5)).isFalse();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(v6)).isFalse();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(null)).isFalse();
+  }
+
+  private PolicyViolation createPolicyViolation() {
     TriggerReference triggerReference = new TriggerReference();
     triggerReference.setType(SECURITY_VULNERABILITY_REFID);
     triggerReference.setValue("CVE-1234");
@@ -187,13 +256,5 @@ public class PolicyViolationReachabilityHelperTest
     policyViolation.setConstraintFacts(List.of(constraintFact));
     policyViolation.setOpenTime(new Date());
     return policyViolation;
-  }
-
-  private Map<PackageUrlIdentifier, Set<String>> createVulnerabilitiesByPurlIdentifiers(
-      final PolicyViolation policyViolation)
-  {
-    return Map.of(
-        fromComponentIdentifier(policyViolation.getComponentIdentifier()), Set.of("CVE-1234")
-    );
   }
 }

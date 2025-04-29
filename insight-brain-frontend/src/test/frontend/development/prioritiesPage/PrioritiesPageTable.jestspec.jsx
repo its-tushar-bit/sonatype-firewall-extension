@@ -278,7 +278,7 @@ describe('PrioritiesPageTable', () => {
               highestThreatPolicyName: faker.lorem.slug(),
               highestThreatPolicyConstraintName: faker.lorem.sentence(),
               priority: 1,
-              securityReachable: faker.datatype.boolean(),
+              securityReachable: faker.helpers.arrayElement([true, false, null]),
             },
             {
               displayName: 'ABC',
@@ -290,7 +290,7 @@ describe('PrioritiesPageTable', () => {
               highestThreatPolicyName: faker.lorem.slug(),
               highestThreatPolicyConstraintName: faker.lorem.sentence(),
               priority: 1,
-              securityReachable: faker.datatype.boolean(),
+              securityReachable: faker.helpers.arrayElement([true, false, null]),
             },
           ],
         },
@@ -629,7 +629,7 @@ function generateMockData(numOfPriorities) {
       highestThreatPolicyName: faker.lorem.slug(),
       highestThreatPolicyConstraintName: faker.lorem.sentence(),
       priority: i,
-      securityReachable: faker.datatype.boolean(),
+      securityReachable: faker.helpers.arrayElement([true, false, null]),
     });
   }
 

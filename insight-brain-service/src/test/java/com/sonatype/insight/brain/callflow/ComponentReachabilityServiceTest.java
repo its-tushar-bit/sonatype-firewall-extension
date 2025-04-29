@@ -6,14 +6,12 @@
 
 package com.sonatype.insight.brain.callflow;
 
-import javax.inject.Inject;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.inject.Inject;
 
-import com.google.inject.Binder;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -26,15 +24,21 @@ import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+
+import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.NON_REACHABLE;
+import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.REACHABLE;
+import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.UNKNOWN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-public class ComponentReachabilityServiceTest extends AbstractComponentTest
+public class ComponentReachabilityServiceTest
+    extends AbstractComponentTest
 {
   private static final String COMPONENT_HASH = "componentHash";
 
@@ -64,47 +68,73 @@ public class ComponentReachabilityServiceTest extends AbstractComponentTest
   }
 
   @Test
-  public void testIsComponentReachable_ReturnsTrueWhenAtLeastOneViolationIsReachable() {
-    final String scanId = "scanId1";
-    final PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
-    final List<PolicyViolation> policyViolations = List.of(
-        createSecurityPolicyViolation(policy, policyEvaluation, true),
-        createSecurityPolicyViolation(policy, policyEvaluation, false),
-        createSecurityPolicyViolation(policy, policyEvaluation, false)
-    );
-    final List<PolicyThreats.PolicyViolation> policyThreatViolations = createPolicyThreatViolations(policyViolations);
-    final PolicyThreats policyThreats = createPolicyThreats(policyThreatViolations);
+  public void testIsComponentReachable() {
+    // Single
+    assertThat(isComponentReachable(REACHABLE)).isEqualTo(REACHABLE);
+    assertThat(isComponentReachable(NON_REACHABLE)).isEqualTo(NON_REACHABLE);
+    assertThat(isComponentReachable(UNKNOWN)).isEqualTo(UNKNOWN);
+    assertThat(isComponentReachable((ReachabilityStatus) null)).isEqualTo(UNKNOWN);
 
-    when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(policyThreats);
+    // Double
+    assertThat(isComponentReachable(REACHABLE, REACHABLE)).isEqualTo(REACHABLE);
+    assertThat(isComponentReachable(REACHABLE, NON_REACHABLE)).isEqualTo(REACHABLE);
+    assertThat(isComponentReachable(REACHABLE, UNKNOWN)).isEqualTo(REACHABLE);
+    assertThat(isComponentReachable(REACHABLE, null)).isEqualTo(REACHABLE);
+    assertThat(isComponentReachable(NON_REACHABLE, NON_REACHABLE)).isEqualTo(NON_REACHABLE);
+    assertThat(isComponentReachable(NON_REACHABLE, UNKNOWN)).isEqualTo(UNKNOWN);
+    assertThat(isComponentReachable(NON_REACHABLE, null)).isEqualTo(UNKNOWN);
+    assertThat(isComponentReachable(UNKNOWN, UNKNOWN)).isEqualTo(UNKNOWN);
+    assertThat(isComponentReachable(UNKNOWN, null)).isEqualTo(UNKNOWN);
+    assertThat(isComponentReachable(null, null)).isEqualTo(UNKNOWN);
 
-    final boolean isComponentReachable =
-        componentReachabilityService.isComponentReachable(application.getId(), scanId, COMPONENT_HASH);
-    assertThat(isComponentReachable).isTrue();
+    // Triple
+    assertThat(isComponentReachable(REACHABLE, NON_REACHABLE, UNKNOWN)).isEqualTo(REACHABLE);
+    assertThat(isComponentReachable(REACHABLE, NON_REACHABLE, null)).isEqualTo(REACHABLE);
+    assertThat(isComponentReachable(REACHABLE, UNKNOWN, null)).isEqualTo(REACHABLE);
+    assertThat(isComponentReachable(NON_REACHABLE, UNKNOWN, null)).isEqualTo(UNKNOWN);
+
+    // Quad
+    assertThat(isComponentReachable(REACHABLE, NON_REACHABLE, UNKNOWN, null)).isEqualTo(REACHABLE);
   }
 
   @Test
-  public void testIsComponentReachable_ReturnsFalseWhenNoViolationIsReachable() {
-    final String scanId = "scanId1";
-    final PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
-    final List<PolicyViolation> policyViolations = List.of(
-        createSecurityPolicyViolation(policy, policyEvaluation, false),
-        createSecurityPolicyViolation(policy, policyEvaluation, false),
-        createSecurityPolicyViolation(policy, policyEvaluation, false)
+  public void testIsComponentReachable_IgnoresNonSecurityViolations() {
+    String scanId = "scanId";
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
+    PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(
+        policyEvaluation,
+        policy,
+        8,
+        PolicyThreatCategory.SECURITY,
+        null,
+        null,
+        null,
+        COMPONENT_HASH
     );
-    final List<PolicyThreats.PolicyViolation> policyThreatViolations = createPolicyThreatViolations(policyViolations);
-    final PolicyThreats policyThreats = createPolicyThreats(policyThreatViolations);
-
+    policyViolation1.setReachabilityStatus(REACHABLE);
+    policyViolationDAO.update(policyViolation1);
+    PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(
+        policyEvaluation,
+        policy,
+        8,
+        PolicyThreatCategory.LICENSE,
+        null,
+        null,
+        null,
+        COMPONENT_HASH
+    );
+    PolicyThreats policyThreats =
+        createPolicyThreats(createPolicyThreatViolations(List.of(policyViolation1, policyViolation2)));
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(policyThreats);
 
-    final boolean isComponentReachable =
+    ReachabilityStatus isComponentReachable =
         componentReachabilityService.isComponentReachable(application.getId(), scanId, COMPONENT_HASH);
-    assertThat(isComponentReachable).isFalse();
+
+    assertThat(isComponentReachable).isEqualTo(REACHABLE);
   }
 
   @Test
-  public void testIsComponentReachable_ReturnsCorrectlyForSameComponentAcrossSeparateScans() {
+  public void testIsComponentReachable_SameComponent_DifferentScans() {
     // Scan 1
     final String scanId1 = "scanId1";
     final PolicyEvaluation policyEvaluation1 =
@@ -112,9 +142,9 @@ public class ComponentReachabilityServiceTest extends AbstractComponentTest
 
     // Include 1 reachable violation to demonstrate results from other scans with the same component are not used
     final List<PolicyViolation> policyViolations1 = List.of(
-        createSecurityPolicyViolation(policy, policyEvaluation1, true),
-        createSecurityPolicyViolation(policy, policyEvaluation1, false),
-        createSecurityPolicyViolation(policy, policyEvaluation1, false)
+        createSecurityPolicyViolation(policy, policyEvaluation1, REACHABLE),
+        createSecurityPolicyViolation(policy, policyEvaluation1, NON_REACHABLE),
+        createSecurityPolicyViolation(policy, policyEvaluation1, UNKNOWN)
     );
     final List<PolicyThreats.PolicyViolation> policyThreatViolations1 = createPolicyThreatViolations(policyViolations1);
     final PolicyThreats policyThreats1 = createPolicyThreats(policyThreatViolations1);
@@ -124,9 +154,9 @@ public class ComponentReachabilityServiceTest extends AbstractComponentTest
     final PolicyEvaluation policyEvaluation2 =
         tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId2);
     final List<PolicyViolation> policyViolations2 = List.of(
-        createSecurityPolicyViolation(policy, policyEvaluation2, false),
-        createSecurityPolicyViolation(policy, policyEvaluation2, false),
-        createSecurityPolicyViolation(policy, policyEvaluation2, false)
+        createSecurityPolicyViolation(policy, policyEvaluation2, NON_REACHABLE),
+        createSecurityPolicyViolation(policy, policyEvaluation2, NON_REACHABLE),
+        createSecurityPolicyViolation(policy, policyEvaluation2, NON_REACHABLE)
     );
     final List<PolicyThreats.PolicyViolation> policyThreatViolations2 = createPolicyThreatViolations(policyViolations2);
     final PolicyThreats policyThreats2 = createPolicyThreats(policyThreatViolations2);
@@ -135,14 +165,27 @@ public class ComponentReachabilityServiceTest extends AbstractComponentTest
         .thenReturn(policyThreats1).thenReturn(policyThreats2);
 
     // Scan 1 had 1 reachable
-    final boolean isComponentReachable1 =
+    final ReachabilityStatus isComponentReachable1 =
         componentReachabilityService.isComponentReachable(application.getId(), scanId1, COMPONENT_HASH);
-    assertThat(isComponentReachable1).isTrue();
+    assertThat(isComponentReachable1).isEqualTo(REACHABLE);
 
     // Scan 2 had no reachable
-    final boolean isComponentReachable2 =
+    final ReachabilityStatus isComponentReachable2 =
         componentReachabilityService.isComponentReachable(application.getId(), scanId2, COMPONENT_HASH);
-    assertThat(isComponentReachable2).isFalse();
+    assertThat(isComponentReachable2).isEqualTo(NON_REACHABLE);
+  }
+
+  private ReachabilityStatus isComponentReachable(final ReachabilityStatus... statuses) {
+    String scanId = "scanId";
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
+    List<PolicyViolation> policyViolations = new ArrayList<>();
+    for (ReachabilityStatus reachabilityStatus : statuses) {
+      policyViolations.add(createSecurityPolicyViolation(policy, policyEvaluation, reachabilityStatus));
+    }
+    List<PolicyThreats.PolicyViolation> policyThreatViolations = createPolicyThreatViolations(policyViolations);
+    PolicyThreats policyThreats = createPolicyThreats(policyThreatViolations);
+    when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(policyThreats);
+    return componentReachabilityService.isComponentReachable(application.getId(), scanId, COMPONENT_HASH);
   }
 
   private PolicyThreats createPolicyThreats(
@@ -180,6 +223,7 @@ public class ComponentReachabilityServiceTest extends AbstractComponentTest
       final PolicyThreats.PolicyViolation policyThreatViolation = new PolicyThreats.PolicyViolation();
       policyThreatViolation.reachabilityStatus = policyViolation.getReachabilityStatus();
       policyThreatViolation.policyThreatLevel = policyViolation.getThreatLevel();
+      policyThreatViolation.policyThreatCategory = policyViolation.getThreatCategory().getName();
       policyThreatViolation.policyId = policyViolation.getPolicyId();
       policyThreatViolation.policyViolationId = policyViolation.getId();
       policyThreatViolation.constraintFactsJson = policyViolation.getConstraintFactsJson();
@@ -192,13 +236,12 @@ public class ComponentReachabilityServiceTest extends AbstractComponentTest
   private PolicyViolation createSecurityPolicyViolation(
       final Policy policy,
       final PolicyEvaluation policyEvaluation,
-      final boolean isReachable)
+      final ReachabilityStatus reachabilityStatus)
   {
     final PolicyViolation policyViolation =
         tempEntity.newPolicyViolation(policyEvaluation, policy, 8, PolicyThreatCategory.SECURITY, null, null, null,
             COMPONENT_HASH);
-    policyViolation
-        .setReachabilityStatus(isReachable ? ReachabilityStatus.REACHABLE : ReachabilityStatus.NON_REACHABLE);
+    policyViolation.setReachabilityStatus(reachabilityStatus);
     policyViolationDAO.update(policyViolation);
     return policyViolation;
   }

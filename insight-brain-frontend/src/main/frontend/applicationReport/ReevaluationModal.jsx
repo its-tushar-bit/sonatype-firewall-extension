@@ -24,6 +24,8 @@ import {
   selectLatestReportForStageId,
 } from 'MainRoot/applicationReport/latestReportForStageSelectors';
 import { reevaluateReport, reevaluateReportCancelled } from './applicationReportActions';
+import { selectReportStageId } from 'MainRoot/applicationReport/applicationReportSelectors';
+import { selectIsContainerImagesEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 const ReevaluationModal = () => {
   const isAutoWaiverEnabled = useSelector(selectIsAutoWaiversEnabled);
@@ -31,6 +33,10 @@ const ReevaluationModal = () => {
   const { scanId } = useSelector(selectRouterCurrentParams);
   const isLatestReportForStageRequestPending = useSelector(selectIsLatestReportForStageRequestPending);
   const latestReportId = useSelector(selectLatestReportForStageId);
+
+  const stageId = useSelector(selectReportStageId);
+  const isContainerImagesEvaluation = useSelector(selectIsContainerImagesEvaluationEnabled) && stageId === 'proxy';
+
   const dispatch = useDispatch();
   const [showDialog, setShowDialog] = useState(false);
 
@@ -74,7 +80,7 @@ const ReevaluationModal = () => {
             disabled={shouldDisableReevaluation() || reevaluating}
           >
             <NxFontAwesomeIcon icon={faSync} />
-            <span>Re-Evaluate Report</span>
+            {isContainerImagesEvaluation ? <span>Re-Evaluate Container</span> : <span>Re-Evaluate Report</span>}
           </NxButton>
         </span>
       </NxTooltip>

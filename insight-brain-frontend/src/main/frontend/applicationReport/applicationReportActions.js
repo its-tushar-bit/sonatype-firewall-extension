@@ -410,13 +410,22 @@ export const goToDependencyTreePage = (hash) => {
   };
 };
 
-export const goToComponentDetailsPage = (hash) => {
+export const goToComponentDetailsPage = (hash, componentIdentifier = null) => {
   return (dispatch, getState) => {
-    const { publicId, scanId } = selectRouterCurrentParams(getState());
+    const { publicId, scanId, repositoryId } = selectRouterCurrentParams(getState());
     const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(getState());
     const prioritiesPageContainerName = selectPrioritiesPageContainerName(getState());
 
-    if (isPrioritiesPageContainer) {
+    if (componentIdentifier) {
+      dispatch(
+        stateGo('firewall.componentDetailsPage', {
+          repositoryId,
+          componentIdentifier: JSON.stringify(componentIdentifier),
+          componentHash: hash,
+          matchState: 'exact',
+        })
+      );
+    } else if (isPrioritiesPageContainer) {
       dispatch(
         stateGo(`${prioritiesPageContainerName}.componentDetailsFromReport.overview`, { hash, publicId, scanId })
       );

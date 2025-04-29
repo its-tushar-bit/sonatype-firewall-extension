@@ -9,17 +9,36 @@ import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import ReportContent from 'MainRoot/applicationReport/ReportContent';
 import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
+const mockComponentIdentifier = {
+  coordinates: {
+    artifactId: 'guava-gwt',
+    classifier: 'sources',
+    extension: 'jar',
+    groupId: 'com.google.guava',
+    version: '30.1-jre',
+  },
+  format: 'maven',
+};
+
 const displayedEntries = [
-  { filename: 'Component 1', policyThreatLevel: 10, policyName: 'Security-High', hash: 'hash1' },
+  {
+    filename: 'Component 1',
+    policyThreatLevel: 10,
+    policyName: 'Security-High',
+    hash: 'hash1',
+    componentIdentifier: mockComponentIdentifier,
+  },
   { filename: 'Component 2', policyThreatLevel: 9, policyName: 'Security-High', hash: 'hash2' },
   { filename: 'Component 3', policyThreatLevel: 8, policyName: 'Security-Medium', hash: 'hash3' },
   { filename: 'Component 4', policyThreatLevel: 7, policyName: 'Security-Medium', hash: 'hash4' },
 ];
 
 const routerCurrentParams = {
+  repositoryId: 'repositoryId',
   publicId: 'publicId',
   scanId: 'scanId',
 };
@@ -189,6 +208,38 @@ describe('ReportContent component', function () {
           publicId: routerCurrentParams.publicId,
           scanId: routerCurrentParams.scanId,
           hash: 'hash1',
+        });
+      });
+    });
+
+    describe('Container Images Evaluation', () => {
+      beforeEach(() => {
+        jest.spyOn(productFeaturesSelectors, 'selectIsContainerImagesEvaluationEnabled').mockReturnValue(true);
+        jest.spyOn(applicationReportSelectors, 'selectReportStageId').mockReturnValue('proxy');
+        jest.spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').mockReturnValue(false);
+      });
+
+      it('should hide dependency tree and filter buttons', () => {
+        const viewDependencyTree = screen.queryByRole('button', { name: /view dependency tree/i });
+        const filterButton = screen.queryByRole('button', { name: /filter/i });
+
+        renderComponent();
+
+        expect(viewDependencyTree).not.toBeInTheDocument();
+        expect(filterButton).not.toBeInTheDocument();
+      });
+
+      it('navigates to the firewall component details state', () => {
+        renderComponent();
+
+        const firstComponentRow = screen.getAllByRole('row')[2];
+        fireEvent.click(firstComponentRow);
+
+        expect(stateGoSpy).toHaveBeenCalledWith('firewall.componentDetailsPage', {
+          repositoryId: 'repositoryId',
+          componentIdentifier: JSON.stringify(mockComponentIdentifier),
+          componentHash: 'hash1',
+          matchState: 'exact',
         });
       });
     });

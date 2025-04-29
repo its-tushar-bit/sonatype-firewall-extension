@@ -10,9 +10,10 @@ import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
@@ -49,9 +50,11 @@ public class PolicyEvaluateResource
   @Audited(AuditEvent.EVALUATE_APPLICATION)
   public PolicyEvaluationResult evaluate(@PathParam("applicationPublicId") final String applicationPublicId,
                                          @QueryParam("scanId") final String scanId,
+                                         @QueryParam("scanTriggerType") @DefaultValue("Unknown")
+                                           ScanTriggerType scanTriggerType,
                                          final Stage stage) throws IOException
   {
     AuditData.get().setScanId(scanId);
-    return policyEvaluateService.evaluate(applicationPublicId, scanId, stage, ScanTriggerType.UNKNOWN);
+    return policyEvaluateService.evaluate(applicationPublicId, scanId, stage, scanTriggerType);
   }
 }

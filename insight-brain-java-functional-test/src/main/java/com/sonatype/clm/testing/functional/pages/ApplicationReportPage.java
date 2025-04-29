@@ -49,6 +49,14 @@ public class ApplicationReportPage
         scanId);
   }
 
+  public static String firewallUrl(String repositoryId, String applicationPublicId, String scanId) {
+    return BaseUrl.resolvePageUrl(
+        "/malware-defense/repository/{repositoryId}/containerReport/{publicId}/{scanId}/policy",
+        repositoryId,
+        applicationPublicId,
+        scanId);
+  }
+
   public ApplicationReportPage() {
     super(ROOT);
   }
@@ -59,6 +67,10 @@ public class ApplicationReportPage
 
   public SelenideElement reportApplicationRiskScore() {
     return child(".iq-application-risk-score--risk");
+  }
+
+  public SelenideElement reportApplicationRiskScoreDescription() {
+    return child(".iq-application-risk-score--desc-title");
   }
 
   public SelenideElement reportDescription() {

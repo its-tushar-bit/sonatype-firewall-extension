@@ -13,6 +13,7 @@ import java.util.Base64;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -96,6 +97,25 @@ public class TestReportEvaluator
     // please don't change the admin password on me!
     post.setHeader("Authorization",
         "Basic " + Base64.getEncoder().encodeToString("admin:admin123".getBytes(StandardCharsets.UTF_8)));
+    HttpResponse response = client.execute(post);
+    // evaluation is done synchronously within the request, if the request is successful the eval is complete
+    hasEvaluation = true;
+    assert response.getStatusLine().getStatusCode() == 200;
+  }
+
+  public void evaluatePolicyForScanIdWithScanTriggerType(ScanTriggerType scanTriggerType) throws IOException {
+    ScanHelper.createDummyScanFile(workStorage, app.getId(), scanId);
+    addTestReport();
+
+    HttpClient client = HttpClientBuilder.create().build();
+    HttpPost post = new HttpPost(
+            brainBaseUrl + "rest/policy/" + app.getPublicId() + "/evaluate?scanId=" + scanId
+                    + "&scanTriggerType=" + scanTriggerType
+    );
+    post.setEntity(new StringEntity(JsonUtils.format(new Stage(stageId)), ContentType.APPLICATION_JSON));
+    // please don't change the admin password on me!
+    post.setHeader("Authorization",
+            "Basic " + Base64.getEncoder().encodeToString("admin:admin123".getBytes(StandardCharsets.UTF_8)));
     HttpResponse response = client.execute(post);
     // evaluation is done synchronously within the request, if the request is successful the eval is complete
     hasEvaluation = true;

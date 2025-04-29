@@ -33,7 +33,10 @@ import {
   selectIsPrioritiesPageContainer,
   selectPrioritiesPageName,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsDeveloperDashboardEnabled,
+  selectIsContainerImagesEvaluationEnabled,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as applicationReportActions from './applicationReportActions';
 import { actions as latestReportForStageActions } from './latestReportForStageSlice';
 import { selectSelectedReport } from './applicationReportSelectors';
@@ -57,6 +60,7 @@ export default function ReportPage() {
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
 
   const stageId = useSelector(selectReportStageId);
+  const isContainerImagesEvaluation = useSelector(selectIsContainerImagesEvaluationEnabled) && stageId === 'proxy';
 
   const { publicId, scanId, unknownjs, embeddable, policyViolationId } = routerCurrentParams;
 
@@ -82,7 +86,12 @@ export default function ReportPage() {
     ? 'N/A'
     : applicationReport.metadata.totalRisk;
 
-  const reportStatusBarProps = { ...selectedReport, totalApplicationRisk, isDeveloperDashboardEnabled };
+  const reportStatusBarProps = {
+    ...selectedReport,
+    totalApplicationRisk,
+    isDeveloperDashboardEnabled,
+    isContainerImagesEvaluation,
+  };
 
   useEffect(() => {
     if (publicId && scanId) {

@@ -17,6 +17,8 @@ import {
 } from 'MainRoot/utility/services/routeStateUtilService';
 import { QUARANTINE, WAIVERS, ROI } from 'MainRoot/firewall/firewallConstants';
 
+import ReportPage from '../applicationReport/ReportPage';
+
 export default angular
   .module('firewallModule', ['ngRedux'])
   .component('firewall', firewall)
@@ -26,6 +28,7 @@ export default angular
     iqReact2Angular(FirewallAutoUnqaurantinePageContainer, [], ['$ngRedux', '$state'])
   )
   .component('firewallComponentDetailsPage', iqReact2Angular(FirewallComponentDetailsPage, [], ['$ngRedux', '$state']))
+  .component('containerReport', iqReact2Angular(ReportPage, [], ['$ngRedux', '$state']))
   .config(routes);
 
 function routes($stateProvider) {
@@ -490,6 +493,13 @@ function routes($stateProvider) {
         authenticationRequired: ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE,
       },
       component: 'apiPage',
+    })
+    .state('firewall.containerReport', {
+      url: '/repository/{repositoryId}/containerReport/{publicId}/{scanId}/policy',
+      component: 'containerReport',
+      params: {
+        policyViolationId: { dynamic: true },
+      },
     });
 
   ownerTypesForFirewall.forEach(function (ownerType) {

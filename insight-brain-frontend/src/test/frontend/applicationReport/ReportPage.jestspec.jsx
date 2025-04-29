@@ -239,6 +239,12 @@ describe('Report Page component', () => {
       const modal = screen.getByRole('dialog');
       expect(modal).toBeInTheDocument();
       expect(within(modal).getByRole('heading', { name: /application risk score/i })).toBeInTheDocument();
+
+      expect(
+        screen.getByText(
+          /Application risk score is the aggregate threat scores of your application's policy violations./i
+        )
+      ).toBeInTheDocument();
     });
 
     it('closes the "Application Risk Score" modal when the modal close button is clicked', () => {
@@ -456,6 +462,47 @@ describe('Report Page component', () => {
     expect(warning.textContent).toEqual(
       'A new version of this report is available. Click here to navigate to the latest report.'
     );
+  });
+
+  describe('Container Images Evaluation', () => {
+    beforeEach(() => {
+      jest.spyOn(applicationReportSelectors, 'selectReportStageId').mockReturnValue('proxy');
+      jest.spyOn(productFeaturesSelectors, 'selectIsContainerImagesEvaluationEnabled').mockReturnValue(true);
+    });
+
+    it('does not render dependency tree and filter button', () => {
+      renderComponent();
+      expect(screen.queryByRole('button', { name: 'View Dependency Tree' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Filter' })).not.toBeInTheDocument();
+    });
+
+    it('renders the "Re-Evaluate Container" button', () => {
+      renderComponent();
+      const reevaluateButton = screen.getByRole('button', { name: 'Re-Evaluate Container' });
+      expect(reevaluateButton).toBeInTheDocument();
+    });
+
+    it('renders a ReportStatusBar with container risk score', () => {
+      selectIsDeveloperDashboardEnabledSpy.mockReturnValue(true);
+      renderComponent();
+      expect(screen.getByText(/container risk score/i)).toBeInTheDocument();
+      expect(screen.getByTestId('iq-app-risk-score')).toHaveTextContent(metadata.totalRisk);
+    });
+
+    it('renders learn more modal', () => {
+      selectIsDeveloperDashboardEnabledSpy.mockReturnValue(true);
+      renderComponent();
+      const learnMoreBtn = screen.getByRole('button', { name: /learn more/i });
+      fireEvent.click(learnMoreBtn);
+
+      const modal = screen.getByRole('dialog');
+      expect(modal).toBeInTheDocument();
+      expect(within(modal).getByRole('heading', { name: /container risk score/i })).toBeInTheDocument();
+
+      expect(
+        screen.getByText(/Container risk score is the aggregate threat scores of your container's policy violations./i)
+      ).toBeInTheDocument();
+    });
   });
 
   function renderComponent() {

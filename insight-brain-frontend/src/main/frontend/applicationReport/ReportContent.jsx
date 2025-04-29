@@ -37,9 +37,11 @@ import {
   selectSortConfiguration,
   selectDependencyTreeIsAvailable,
   selectDependencyTreeUnavailableMessage,
+  selectReportStageId,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { selectRouterCurrentParams, selectIsPrioritiesPageContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { stateGo } from '../reduxUiRouter/routerActions';
+import { selectIsContainerImagesEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 const policyThreatLevelSettings = {
   key: 'policyThreatLevel',
@@ -81,6 +83,9 @@ export default function ReportContent() {
   const dependencyTreeIsAvailable = useSelector(selectDependencyTreeIsAvailable);
   const dependencyTreeUnavailableMessage = useSelector(selectDependencyTreeUnavailableMessage);
 
+  const stageId = useSelector(selectReportStageId);
+  const isContainerImagesEvaluation = useSelector(selectIsContainerImagesEvaluationEnabled) && stageId === 'proxy';
+
   const getSubstringFiltersProp = (propName) => propOr('', propName, substringFilters);
   const policyNameFilter = getSubstringFiltersProp('policyName');
   const derivedComponentNameFilter = getSubstringFiltersProp('derivedComponentName');
@@ -116,11 +121,10 @@ export default function ReportContent() {
   const createRows = () => {
     if (!displayedEntries) return [];
     return displayedEntries.map((component, index) => {
-      const { policyViolationId, hash } = component;
-
+      const { componentIdentifier, policyViolationId, hash } = component;
       const onRowClick = () => {
         setSelectedComponent(index);
-        dispatch(goToComponentDetailsPage(hash));
+        dispatch(goToComponentDetailsPage(hash, isContainerImagesEvaluation ? componentIdentifier : null));
       };
 
       return <ReportTableRow key={policyViolationId || hash} component={component} onClick={onRowClick} />;
@@ -145,21 +149,24 @@ export default function ReportContent() {
             </NxToggle>
           </NxTooltip>
         </div>
-        <div className="nx-tile__actions">
-          <NxButton
-            onClick={redirectToDependencyTree}
-            variant="tertiary"
-            id="dependency-tree-button"
-            className={dependencyTreeIsAvailable ? '' : 'disabled'}
-            title={dependencyTreeUnavailableMessage}
-          >
-            View Dependency Tree
-          </NxButton>
-          <NxButton onClick={toggleShowFilter} variant="tertiary" id="filters-toggle-button">
-            <NxFontAwesomeIcon icon={faFilter} />
-            <span>Filter</span>
-          </NxButton>
-        </div>
+
+        {!isContainerImagesEvaluation ? (
+          <div className="nx-tile__actions">
+            <NxButton
+              onClick={redirectToDependencyTree}
+              variant="tertiary"
+              id="dependency-tree-button"
+              className={dependencyTreeIsAvailable ? '' : 'disabled'}
+              title={dependencyTreeUnavailableMessage}
+            >
+              View Dependency Tree
+            </NxButton>
+            <NxButton onClick={toggleShowFilter} variant="tertiary" id="filters-toggle-button">
+              <NxFontAwesomeIcon icon={faFilter} />
+              <span>Filter</span>
+            </NxButton>
+          </div>
+        ) : null}
       </div>
       <div className="nx-tile-content">
         <div className="nx-table-container">

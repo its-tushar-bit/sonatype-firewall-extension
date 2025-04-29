@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createSelector } from '@reduxjs/toolkit';
-import { and, prop, propOr } from 'ramda';
+import { and, both, prop, propOr } from 'ramda';
 import {
   selectIsRepositories,
   selectIsRepositoryContainer,
@@ -293,4 +293,9 @@ export const selectIsDarkModeFeatureFlagEnabled = createSelector(selectProductFe
 export const selectIsManualPullRequestEnabled = createSelector(
   selectProductFeatures,
   propOr(false, 'manual-pull-requests')
+);
+
+export const selectIsContainerImagesEvaluationEnabled = createSelector(
+  selectProductFeatures,
+  both(propOr(false, 'container-images-evaluation'), propOr(false, 'container-images-eval-enabled'))
 );

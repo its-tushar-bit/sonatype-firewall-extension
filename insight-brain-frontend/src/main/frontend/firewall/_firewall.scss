@@ -8,6 +8,10 @@
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 @use '~@sonatype/react-shared-components/scss-shared/nx-table-helpers';
 
+container-report {
+  display: contents;
+}
+
 firewall,
 firewall-page,
 firewall-auto-unquarantine-page {

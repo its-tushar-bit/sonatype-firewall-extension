@@ -30,7 +30,7 @@ export default function ReportStatusBar(props) {
   const legacyPolicyViolationsCount =
     getReportProp('legacyViolationCount') || getReportProp('grandfatheredPolicyViolationCount');
   const quarantinedComponentCount = getReportProp('quarantinedComponentCount');
-  const { totalApplicationRisk, isDeveloperDashboardEnabled } = props;
+  const { totalApplicationRisk, isDeveloperDashboardEnabled, isContainerImagesEvaluation = false } = props;
   const risk = !isNil(totalApplicationRisk) && totalApplicationRisk >= 0 ? totalApplicationRisk : 'N/A';
 
   const showSectionDefault = (propName) => propOr(true, propName, props);
@@ -47,6 +47,15 @@ export default function ReportStatusBar(props) {
 
   const pluralTermination = (components) => (components === 1 ? '' : 's');
   const [showApplicationRiskScoreModal, toggleShowApplicationRiskScoreModal] = useToggle(false);
+
+  const riskScoreContent = isContainerImagesEvaluation
+    ? `Container risk score is the aggregate threat scores of your container's policy violations.
+    It indicates the total risk found in the latest scan. Sonatype integrations can help lower your
+    container risk score by providing insights based on your container security.`
+    : `Application risk score is the aggregate threat scores of your application's policy violations.
+    It indicates the total risk found in the latest scan. Sonatype integrations can help lower your
+    application risk score by providing insights based on your application security.`;
+
   return (
     <NxTile>
       <NxTile.Content>
@@ -81,7 +90,7 @@ export default function ReportStatusBar(props) {
               <p className="iq-caption__sub-text">{coveragePercent()}% of all components identified</p>
             </div>
           </div>
-          {showLegacyViolationsSection && (
+          {!isContainerImagesEvaluation && showLegacyViolationsSection && (
             <div className="iq-legacy-violations-indicator">
               <NxFontAwesomeIcon icon={faHistory} />
               <div className="iq-caption">
@@ -92,7 +101,7 @@ export default function ReportStatusBar(props) {
               </div>
             </div>
           )}
-          {showQuarantinedSection && (
+          {!isContainerImagesEvaluation && showQuarantinedSection && (
             <div className="iq-quarantine-indicator">
               <div className="iq-caption">
                 <h3 className="iq-caption__text">{quarantinedComponentCount} QUARANTINED</h3>
@@ -110,7 +119,9 @@ export default function ReportStatusBar(props) {
                   {risk}
                 </div>
                 <div className="iq-application-risk-score--desc">
-                  <div className="iq-application-risk-score--desc-title">APP RISK SCORE</div>
+                  <div className="iq-application-risk-score--desc-title">
+                    {isContainerImagesEvaluation ? 'CONTAINER' : 'APP'} RISK SCORE
+                  </div>
                   <button className="nx-text-link" onClick={toggleShowApplicationRiskScoreModal}>
                     Learn more
                   </button>
@@ -119,13 +130,9 @@ export default function ReportStatusBar(props) {
               {showApplicationRiskScoreModal && (
                 <NxModal onCancel={toggleShowApplicationRiskScoreModal}>
                   <NxModal.Header>
-                    <NxH2>Application Risk Score</NxH2>
+                    <NxH2>{isContainerImagesEvaluation ? 'Container Risk Score' : 'Application Risk Score'}</NxH2>
                   </NxModal.Header>
-                  <NxModal.Content>
-                    Application risk score is the aggregate threat scores of your application's policy violations. It
-                    indicates the total risk found in the latest scan. Sonatype integrations can help lower your
-                    application risk score by providing insights based on your application security.
-                  </NxModal.Content>
+                  <NxModal.Content>{riskScoreContent}</NxModal.Content>
                   <footer className="nx-footer">
                     <div className="nx-btn-bar">
                       <NxButton onClick={toggleShowApplicationRiskScoreModal}>Close</NxButton>
@@ -155,4 +162,5 @@ ReportStatusBar.propTypes = {
   showQuarantinedSection: PropTypes.bool,
   totalApplicationRisk: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   isDeveloperDashboardEnabled: PropTypes.bool,
+  isContainerImagesEvaluation: PropTypes.bool,
 };

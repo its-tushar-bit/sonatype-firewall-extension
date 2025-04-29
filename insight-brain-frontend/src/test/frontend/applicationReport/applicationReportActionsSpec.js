@@ -928,6 +928,32 @@ describe('applicationReportActions', function () {
         },
       });
     });
+
+    it('calls stateGo with the appropriate parameters when componentIdentifier is specified', () => {
+      const mockRouterParams = {
+        scanId: 'scanId',
+        publicId: 'publicId',
+        repositoryId: 'repositoryId',
+      };
+      spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue(mockRouterParams);
+      const store = SpecUtil.mockReduxStore({});
+
+      store.dispatch(applicationReportActions.goToComponentDetailsPage('hash', { name: 'componentIdentifier' }));
+
+      expect(store.getActions()).toHaveAction({
+        type: '@@reduxUiRouter/stateGo',
+        payload: {
+          to: 'firewall.componentDetailsPage',
+          params: {
+            repositoryId: 'repositoryId',
+            componentIdentifier: JSON.stringify({ name: 'componentIdentifier' }),
+            componentHash: 'hash',
+            matchState: 'exact',
+          },
+          options: undefined,
+        },
+      });
+    });
   });
 
   function expectCommonDataCalls(isSuccess, additionalCalls = {}) {

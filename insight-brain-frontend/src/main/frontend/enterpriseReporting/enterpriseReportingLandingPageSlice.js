@@ -5,10 +5,11 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { applySpec, path, compose, nth } from 'ramda';
+
 import { getEnterpriseReportingDashboardsUrl, getIqVersion } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import { applySpec, path, compose, nth } from 'ramda';
 
 const REDUCER_NAME = 'enterpriseReportingLandingPage';
 

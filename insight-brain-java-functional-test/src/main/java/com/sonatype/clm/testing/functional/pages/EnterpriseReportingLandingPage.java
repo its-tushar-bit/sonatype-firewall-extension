@@ -54,6 +54,18 @@ public class EnterpriseReportingLandingPage
     return child(".nx-alert--info");
   }
 
+  public SelenideElement copyToClipboard() {
+    return child(".iq-enterprise-reporting-support-info__btn");
+  }
+
+  public SelenideElement copySuccessMessage() {
+    return child(".iq-enterprise-reporting-support-info__message");
+  }
+
+  public SelenideElement helpLink() {
+    return child(".iq-enterprise-reporting-support-info__link");
+  }
+
   public SelenideElement contactUs() {
     return child(".iq-enterprise-reporting__contactus");
   }

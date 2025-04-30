@@ -13,16 +13,19 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.EnterpriseReportingLandingPage;
 import com.sonatype.clm.testing.functional.pages.EnterpriseReportingLandingPage.DashboardCard;
 import com.sonatype.clm.testing.functional.pages.EnterpriseReportingLandingPage.ContactCard;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataDTO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataListDTO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardsVersionDTO;
 import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingConfigDTO;
 import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.lang3.StringUtils;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -94,7 +97,33 @@ public class EnterpriseReportingLandingPageTest
     assertReportContent(spotlightTextProvidedDashboardMetadataDTO);
     assertReportContent(spotlightTextProvidedDisabledSpotlightDashboardMetadataDTO);
     contactUsShouldBeVisible();
+    page.helpLink().shouldBe(visible);
+    page.helpLink().shouldHave(attribute("href", "https://links.sonatype.com/products/nxiq/doc/enterprise-reporting"));
     eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testAdvancedReportingIndicator() {
+    setAdvancedReportingEnabled(false);
+    refreshOrOpen(EnterpriseReportingLandingPage.url());
+    page.statusIndicator().shouldNotHave(cssClass("nx-status-indicator--positive"));
+
+    setAdvancedReportingEnabled(true);
+    refreshOrOpen(EnterpriseReportingLandingPage.url());
+    page.statusIndicator().shouldHave(cssClass("nx-status-indicator--positive"));
+  }
+
+  @Test
+  public void testCopyToClipboard__Success() {
+    refreshOrOpen(EnterpriseReportingLandingPage.url());
+    //need to mock the ClipboardApi writeText() function which needs to resolve before success message renders
+    executeJavaScript( "navigator.clipboard = { writeText: function() { return Promise.resolve(); } }" );
+    page.copyToClipboard().shouldBe(visible);
+    page.copySuccessMessage().shouldBe(hidden);
+
+    page.copyToClipboard().click();
+    Selenide.sleep(1000);
+    page.copySuccessMessage().shouldBe(visible);
   }
 
   private void pageHeaderShouldBeVisible() {
@@ -184,6 +213,14 @@ public class EnterpriseReportingLandingPageTest
     testCLMServer.getHdsServer()
         .respondWith(new EnterpriseReportingConfigDTO("sonatype.looker.com"))
         .atUri(ENTERPRISE_REPORTING_CONFIG_PATH);
+  }
+
+  private void setAdvancedReportingEnabled(Boolean enabled) {
+    ApiConfigurationService configurationService =
+        testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
+    configurationService.setConfigurationNoAuthz(
+        SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED,
+        enabled);
   }
 
   private void setupTests(DashboardMetadataListDTO dashboardList, int version) throws IOException {

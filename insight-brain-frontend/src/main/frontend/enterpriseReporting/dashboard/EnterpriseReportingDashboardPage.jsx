@@ -6,9 +6,11 @@
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxLoadWrapper, NxPageMain, NxTextLink, NxH3, NxTooltip } from '@sonatype/react-shared-components';
-import { useDispatch, useSelector } from 'react-redux';
 import { filter, propEq } from 'ramda';
 
+import { useDispatch, useSelector } from 'react-redux';
+
+import EnterpriseReportingSupportInfo from '../supportInfo/EnterpiseReportingSupportInfo';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { actions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 import { selectEnterpriseReportingDashboard } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSelectors';
@@ -72,6 +74,7 @@ export default function EnterpriseReportingDashboardPage() {
           role="enterprise-reporting-dashboard"
         />
       )}
+      <EnterpriseReportingSupportInfo />
     </NxPageMain>
   );
 }

@@ -20,9 +20,14 @@ import {
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { faCalendar } from '@fortawesome/free-regular-svg-icons';
 import { faLightbulbOn, faQuestionCircle } from '@fortawesome/pro-regular-svg-icons';
+
+import classnames from 'classnames';
+import { useDispatch, useSelector } from 'react-redux';
+
 import EnterpriseReportCard from 'MainRoot/enterpriseReporting/card/EnterpriseReportCard';
 import EnterpriseReportContactCard from 'MainRoot/enterpriseReporting/card/EnterpriseReportContactCard';
-import { useDispatch, useSelector } from 'react-redux';
+import EnterpriseReportingSupportInfo from 'MainRoot/enterpriseReporting/supportInfo/EnterpiseReportingSupportInfo';
+import { selectEnterpriseReportingSupportInfo } from 'MainRoot/enterpriseReporting/supportInfo/enterpriseReportingSupportInfoSelectors';
 import { selectEnterpriseReportingLandingPage } from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSelectors';
 import { actions } from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSlice';
 import { actions as dashboardActions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
@@ -34,6 +39,9 @@ import {
 export default function EnterpriseReportingLandingPage() {
   const dispatch = useDispatch();
   const { dashboardsData, iqVersion, loading, loadError } = useSelector(selectEnterpriseReportingLandingPage);
+  const { telemetryStatus, loading: loadingTelemetry, loadError: loadTelemetryError } = useSelector(
+    selectEnterpriseReportingSupportInfo
+  );
   const loadingFeatures = useSelector(selectLoadingFeatures);
   const isLoading = loading || loadingFeatures;
   const licenseError = useSelector(selectEnterpriseReportingLicenseError);
@@ -57,6 +65,11 @@ export default function EnterpriseReportingLandingPage() {
   const dataInsightsTooltipText = `Data Insights reveal specific/singular open-source trends and test data like EOL, AI/ML use, scoring
     and tech diversity.`;
 
+  const statusIndicatorText = telemetryStatus.advancedReportingEnabled ? 'On' : 'Off';
+  const statusIndicatorClassNames = classnames('nx-status-indicator', {
+    'nx-status-indicator--positive': telemetryStatus.advancedReportingEnabled,
+  });
+
   return (
     <NxPageMain id="enterprise-reporting-landing-page">
       <NxPageTitle id="enterprise-reporting-landing-page-title">
@@ -64,6 +77,19 @@ export default function EnterpriseReportingLandingPage() {
           <NxH1 id="enterprise-reporting-landing-page-heading" className="iq-enterprise-reporting__header__title">
             Enterprise Reporting
           </NxH1>
+          {!loadTelemetryError && !loadingTelemetry && (
+            <div className="iq-enterprise-reporting__advanced-reporting">
+              <span className={statusIndicatorClassNames} role="status">
+                Advanced Reporting: {statusIndicatorText}
+              </span>
+              <NxTextLink
+                external
+                href={'https://links.sonatype.com/products/nxiq/doc/data-insights-advanced-reporting'}
+              >
+                What&apos;s this?
+              </NxTextLink>
+            </div>
+          )}
         </div>
         <NxPageTitle.Description
           id="enterprise-reporting-landing-page-description"
@@ -71,14 +97,14 @@ export default function EnterpriseReportingLandingPage() {
         >
           <NxP>
             If you have disabled Advanced Reporting, application names will be obfuscated. To see application names,{' '}
-            <NxTextLink external href={'https://help.sonatype.com/en/data-insights.html#advanced-reporting-insights'}>
+            <NxTextLink external href={'https://links.sonatype.com/products/nxiq/doc/data-insights-advanced-reporting'}>
               enable Advanced Reporting
             </NxTextLink>
             .
           </NxP>
           <NxP>
             Application names will also be obfuscated if you are using an older verison of Lifcycle.{' '}
-            <NxTextLink external href={'https://help.sonatype.com/en/download-and-compatibility.html'}>
+            <NxTextLink external href={'https://links.sonatype.com/products/clm/download'}>
               Update Lifecycle
             </NxTextLink>{' '}
             to resolve this issue.
@@ -153,6 +179,7 @@ export default function EnterpriseReportingLandingPage() {
           external={true}
         />
       </NxCard.Container>
+      <EnterpriseReportingSupportInfo />
     </NxPageMain>
   );
 }

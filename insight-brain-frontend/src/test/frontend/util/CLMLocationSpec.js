@@ -1798,6 +1798,27 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getEnterpriseReportingBaseUrl', () => {
+    it('returns the correct URL with the given parameter', () => {
+      const expectedUrl = `/rest/enterpriseReporting/getBaseUrl`;
+      expect(clmLocation.getEnterpriseReportingBaseUrl()).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getEnterpriseReportingDashboardsUrl', () => {
+    it('returns the correct URL with the given parameter', () => {
+      const expectedUrl = `/rest/enterpriseReporting/dashboards`;
+      expect(clmLocation.getEnterpriseReportingDashboardsUrl()).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getTelemetryStatusUrl', () => {
+    it('returns the correct URL with the given parameter', () => {
+      const expectedUrl = `/rest/telemetry/status`;
+      expect(clmLocation.getTelemetryStatusUrl()).toEqual(expectedUrl);
+    });
+  });
+
   describe('getApplicationReportHistoryUrl', () => {
     it('returns the url to get the application report history by application ID or public ID and stage ID', () => {
       const applicationId = 'someApplicationId';

@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingServic
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
@@ -140,6 +141,19 @@ public class EnterpriseReportingDashboardPageTest
     SelenideElement link = page.navigationListItem(dashboardMetadataEnterpriseNoVersion.dashboardId).activeLink();
     link.click();
     waitUntilUrl(EnterpriseReportingDashboardPage.url(dashboardMetadataEnterpriseNoVersion.dashboardId));
+  }
+
+  @Test
+  public void testCopyToClipboard__Success() {
+    refreshOrOpen(EnterpriseReportingDashboardPage.url(URL_DASHBOARD_ID));
+    //need to mock the ClipboardApi writeText() function which needs to resolve before success message renders
+    executeJavaScript( "navigator.clipboard = { writeText: function() { return Promise.resolve(); } }" );
+    page.copyToClipboard().shouldBe(visible);
+    page.copySuccessMessage().shouldBe(hidden);
+
+    page.copyToClipboard().click();
+    Selenide.sleep(1000);
+    page.copySuccessMessage().shouldBe(visible);
   }
 
   private void mockHDSResponses() throws IOException {

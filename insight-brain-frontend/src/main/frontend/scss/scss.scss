@@ -158,6 +158,7 @@
 @use '../OrgsAndPolicies/sourceControlRateLimits/sourceControlRateLimits';
 @use '../enterpriseReporting/enterpriseReportingLandingPage';
 @use '../enterpriseReporting/card/enterpriseReportCard';
+@use '../enterpriseReporting/supportInfo/enterpriseReportingSupportInfo';
 @use '../enterpriseReporting/dashboard/enterpriseReportingDashboardPage';
 @use '../OrgsAndPolicies/insufficientPermissionOwnerHierarchyTree/InsufficientPermissionOwnerHierarchyTree';
 @use '../sbomManager/sbomManager';

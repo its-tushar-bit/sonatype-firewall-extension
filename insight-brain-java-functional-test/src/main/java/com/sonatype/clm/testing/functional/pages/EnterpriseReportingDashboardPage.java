@@ -30,6 +30,14 @@ public class EnterpriseReportingDashboardPage
     return child(".nx-alert--error");
   }
 
+  public SelenideElement copyToClipboard() {
+    return child(".iq-enterprise-reporting-support-info__btn");
+  }
+
+  public SelenideElement copySuccessMessage() {
+    return child(".iq-enterprise-reporting-support-info__message");
+  }
+
   public SelenideElement navigationBar() {
     return child(".enterprise-reporting-dashboard__navigation-bar");
   }

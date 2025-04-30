@@ -108,7 +108,7 @@ describe('EnterpriseReportingDashboardPage', () => {
   it('shows loading before iframe is loaded and the renders the iframe', async () => {
     renderPage();
 
-    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.getAllByRole('status').length).toBe(2); //one for iframe, one for telemetry status
     expect(await screen.findByRole('enterprise-reporting-dashboard')).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.queryByRole('status')).not.toBeInTheDocument();
@@ -120,7 +120,7 @@ describe('EnterpriseReportingDashboardPage', () => {
 
     renderPage();
 
-    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.getAllByRole('status').length).toBe(2);
     const errorMessage = await screen.findByText('An error occurred loading data. Unauthorized');
     expect(errorMessage).toBeInTheDocument();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
@@ -131,7 +131,7 @@ describe('EnterpriseReportingDashboardPage', () => {
 
     renderPage();
 
-    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.getAllByRole('status').length).toBe(2);
     const errorMessage = await screen.findByText(
       'An error occurred loading data. Enterprise Reporting feature not supported'
     );
@@ -241,7 +241,7 @@ describe('EnterpriseReportingDashboardPage', () => {
       it('disables links when sinceIQVersion is greater than serverVersion', async () => {
         renderPage();
 
-        const successMetricsLink = await screen.findByRole('link');
+        const successMetricsLink = await screen.findByRole('link', { name: 'Success Metrics' });
         expect(successMetricsLink).toHaveTextContent('Success Metrics');
         expect(successMetricsLink).toHaveAttribute('aria-disabled', 'true');
       });
@@ -250,7 +250,7 @@ describe('EnterpriseReportingDashboardPage', () => {
         const user = userEvent.setup();
         renderPage();
 
-        const successMetricsLink = await screen.findByRole('link');
+        const successMetricsLink = await screen.findByRole('link', { name: 'Success Metrics' });
         expect(successMetricsLink).toHaveAttribute('aria-disabled', 'true');
 
         await user.hover(successMetricsLink);

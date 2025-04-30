@@ -221,6 +221,10 @@ export function getTelemetryUrl() {
   return uriTemplate`/rest/environment/stats`;
 }
 
+export function getTelemetryStatusUrl() {
+  return uriTemplate`/rest/telemetry/status`;
+}
+
 export function getScmOrganizationsUrl() {
   return uriTemplate`/rest/onboarding/organizations`;
 }

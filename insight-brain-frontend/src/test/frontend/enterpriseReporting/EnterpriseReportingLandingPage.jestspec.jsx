@@ -6,7 +6,12 @@
 import React from 'react';
 import { axiosMockAdapter, render, waitFor, within } from 'TestRoot/SpecUtil';
 import EnterpriseReportingLandingPage from 'MainRoot/enterpriseReporting/EnterpriseReportingLandingPage';
-import { getEnterpriseReportingDashboardsUrl, getProductFeaturesUrl, getIqVersion } from 'MainRoot/util/CLMLocation';
+import {
+  getEnterpriseReportingDashboardsUrl,
+  getProductFeaturesUrl,
+  getIqVersion,
+  getTelemetryStatusUrl,
+} from 'MainRoot/util/CLMLocation';
 import { screen } from '@testing-library/dom';
 import { actions as dashboardActions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 
@@ -57,6 +62,14 @@ describe('EnterpriseReportingLandingPage', () => {
   const iqVersionResponse = {
     version: '1.188.0-SNAPSHOT',
   };
+  const telemetryData = {
+    telemetryId: '12345',
+    clusterId: '12345-678',
+    advancedReportingEnabled: true,
+    enterpriseReportingFeatureExists: true,
+    userApplicationCount: 50,
+    totalApplicationCount: 100,
+  };
 
   beforeAll(() => {
     axiosMock = axiosMockAdapter();
@@ -66,18 +79,19 @@ describe('EnterpriseReportingLandingPage', () => {
     axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(200, mockDashboardsData);
     axiosMock.onGet(getIqVersion()).reply(200, iqVersionResponse);
     axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['integrated-enterprise-reporting']);
+    axiosMock.onGet(getTelemetryStatusUrl()).reply(200, telemetryData);
     renderPage = () => render(<EnterpriseReportingLandingPage />);
   });
 
   it('shows loading before dashboards data is loaded', async () => {
     renderPage();
 
-    const loadingSpinners = screen.getAllByRole('status');
-    expect(loadingSpinners.length).toBe(2); //1 loading spinner per dashboard category
+    const loadingSpinners = screen.getAllByText('Loading…');
+    expect(loadingSpinners.length).toBe(3); //1 loading spinner per dashboard category + telemetryInfo
     expect(screen.getByRole('heading', { name: 'Enterprise Dashboards' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Data Insights' })).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: 'Contact Us' })).toBeInTheDocument();
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.queryByText('Loading')).not.toBeInTheDocument();
   });
 
   it('renders a page description and NxInfoAlert', async () => {
@@ -93,10 +107,10 @@ describe('EnterpriseReportingLandingPage', () => {
 
   it('shows dashboard data', async () => {
     renderPage();
+    await waitFor(() => {
+      expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+    });
 
-    expect(screen.getAllByRole('status').length).toBe(2);
-    expect(await screen.findByRole('heading', { name: 'Contact Us' })).toBeInTheDocument();
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
     mockDashboardsData.dashboardMetadata.forEach((dashboard) => {
       expect(screen.getByRole('heading', { name: dashboard.title })).toBeInTheDocument();
       expect(screen.queryByText(dashboard.description)).toBeInTheDocument();
@@ -113,7 +127,7 @@ describe('EnterpriseReportingLandingPage', () => {
   it('splits dashboards into assigned categories', async () => {
     renderPage();
     await waitFor(() => {
-      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
     });
     const enterpriseDashboards = screen.getByRole('heading', { name: 'Enterprise Dashboards' }).nextElementSibling;
     const enterpriseChildren = within(enterpriseDashboards).getAllByRole('enterprise-reporting-dashboard-card');
@@ -128,10 +142,9 @@ describe('EnterpriseReportingLandingPage', () => {
     axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(401, 'Unauthorized');
 
     renderPage();
-
-    expect(screen.getAllByRole('status').length).toBe(2);
-    expect(await screen.findByRole('heading', { name: 'Data Insights' })).toBeInTheDocument();
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+    });
     const errorMessages = screen.getAllByText('An error occurred loading data. Unauthorized');
     expect(errorMessages.length).toBe(2); //error message for each dashboard category
   });
@@ -140,10 +153,10 @@ describe('EnterpriseReportingLandingPage', () => {
     axiosMock.onGet(getProductFeaturesUrl()).reply(200, []);
 
     renderPage();
+    await waitFor(() => {
+      expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+    });
 
-    expect(screen.getAllByRole('status').length).toBe(2);
-    expect(await screen.findByRole('heading', { name: 'Data Insights' })).toBeInTheDocument();
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
     const errorMessages = screen.getAllByText(
       'An error occurred loading data. Enterprise Reporting feature not supported'
     );
@@ -175,5 +188,55 @@ describe('EnterpriseReportingLandingPage', () => {
       'href',
       'http://links.sonatype.com/products/nexus/pro/support'
     );
+  });
+
+  describe('status indicator', () => {
+    it('renders a positive indicator with appropriate text when advancedReporting is enabled', async () => {
+      renderPage();
+      await waitFor(() => {
+        const indicator = screen.getAllByRole('status')[0];
+        expect(indicator).toBeInTheDocument();
+        expect(indicator).toHaveTextContent('Advanced Reporting: On');
+      });
+    });
+
+    it('renders a default indicator with appropriate text when advancedReporting is disabled', async () => {
+      const telemetryData = {
+        telemetryId: '12345',
+        clusterId: '12345-678',
+        advancedReportingEnabled: false,
+        enterpriseReportingFeatureExists: true,
+        userApplicationCount: 50,
+        totalApplicationCount: 100,
+      };
+      axiosMock.onGet(getTelemetryStatusUrl()).reply(200, telemetryData);
+
+      renderPage();
+
+      await waitFor(() => {
+        const indicator = screen.getAllByRole('status')[0];
+        expect(indicator).toHaveTextContent('Advanced Reporting: Off');
+      });
+    });
+
+    it('renders a text link alongside the status indicator', async () => {
+      renderPage();
+      const textLink = await screen.findByRole('link', { name: "What's this?" });
+      expect(textLink).toHaveAttribute(
+        'href',
+        'https://links.sonatype.com/products/nxiq/doc/data-insights-advanced-reporting'
+      );
+    });
+
+    it('does not render the status indicator if error in api call', async () => {
+      axiosMock.onGet(getTelemetryStatusUrl()).reply(400, 'Bad Request');
+      renderPage();
+
+      expect(screen.getAllByText('Loading…').length).toBe(3);
+      await waitFor(() => {
+        expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+        expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      });
+    });
   });
 });

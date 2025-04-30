@@ -101,7 +101,7 @@ describe('EnterpriseReportingReducer', () => {
 
   describe('enterpriseReportingLandingPage/load/rejected', () => {
     it('should set the data to the state ', () => {
-      const oldState = Object.freeze({ loading: false, dashboardsData: null });
+      const oldState = Object.freeze({ loading: false, loadError: null, dashboardsData: null, iqVersion: null });
       const newState = reducer(oldState, {
         type: 'enterpriseReportingLandingPage/load/rejected',
         payload: 'Error on load',
@@ -111,6 +111,7 @@ describe('EnterpriseReportingReducer', () => {
         loadError: 'Error on load',
         loading: false,
         dashboardsData: null,
+        iqVersion: null,
       });
     });
   });

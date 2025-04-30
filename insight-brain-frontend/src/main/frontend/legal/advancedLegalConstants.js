@@ -93,4 +93,16 @@ export const statusTagPropsMap = {
   Selected: 'indigo',
 };
 
-export const SUPPORTED_COMPONENTS_ECOSYSTEM = ['gem', 'maven', 'npm', 'nuget', 'pypi', 'rpm', 'a-name', 'composer'];
+export const SUPPORTED_COMPONENTS_ECOSYSTEM = [
+  'gem',
+  'maven',
+  'npm',
+  'nuget',
+  'pypi',
+  'rpm',
+  'a-name',
+  'composer',
+  'cargo',
+  'hf-model',
+  'pub',
+];

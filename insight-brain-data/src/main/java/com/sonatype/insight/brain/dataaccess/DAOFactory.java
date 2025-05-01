@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfi
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
@@ -456,4 +457,6 @@ public interface DAOFactory
   ClusterIdentificationDAO createClusterIdentificationDAO();
 
   CpeMatchingConfigurationDAO createCpeMatchingConfigurationDAO();
+
+  ZScalerConfigurationDAO createZScalerConfigurationDAO();
 }

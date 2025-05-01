@@ -36,6 +36,7 @@ export const SystemPreferencesMenu = ({
   isStandaloneFirewall = false,
   isOrgsAndAppsEnabled = false,
   isFirewallOnlyLicense = false,
+  isZscalerEnabled = false,
 }) => {
   const {
     CONFIGURE_SYSTEM = false,
@@ -124,6 +125,14 @@ export const SystemPreferencesMenu = ({
         prefix={firewallPrefix || sbomManagerPrefix}
       >
         Email
+      </NavLink>
+      <NavLink
+        stateName="zscalerConfig"
+        id="system-configuration-zscaler"
+        showIf={CONFIGURE_SYSTEM && isZscalerEnabled && (isStandaloneFirewall || isFirewallOnlyLicense)}
+        prefix={firewallPrefix}
+      >
+        zScaler
       </NavLink>
       <NavLink
         stateName="proxyConfig"
@@ -262,9 +271,10 @@ SystemPreferencesMenu.propTypes = {
   isSingleTenant: PropTypes.bool,
   isSbomManagerOnlyLicense: PropTypes.bool,
   isFirewallLicense: PropTypes.bool,
-  isorgsAndAppsEnabled: PropTypes.bool,
+  isOrgsAndAppsEnabled: PropTypes.bool,
   isStandaloneFirewall: PropTypes.bool,
   isFirewallOnlyLicense: PropTypes.bool,
+  isZscalerEnabled: PropTypes.bool,
 };
 
 const EarlyAccessLinks = ({ children }) => {

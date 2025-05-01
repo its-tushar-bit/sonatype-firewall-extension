@@ -67,6 +67,7 @@ export default angular
         'isOrgsAndAppsEnabled',
         'isStandaloneFirewall',
         'isFirewallOnlyLicense',
+        'isZscalerEnabled',
       ],
       ['$ngRedux', 'userActions', '$state']
     )

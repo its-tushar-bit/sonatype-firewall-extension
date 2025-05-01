@@ -19,7 +19,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.MockCleaner;
@@ -55,7 +54,6 @@ import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.json.store.JsonUtils;
-
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
@@ -128,14 +126,14 @@ public class AbstractComponentTest
   private final Collection<Managed> managedComponents = new ArrayList<>();
 
   @Before
-  public final void beforeTest() {
+  public void beforeTest() {
     log.info("Before: {}", testName.getMethodName());
     setUpTestLicenseThreatGroups();
     setUpSecurity();
   }
 
   @After
-  public final void afterTest() {
+  public void afterTest() {
     log.info("After: {}", testName.getMethodName());
     releaseScmPerpetualLock();
     stopManagedComponents();
@@ -292,8 +290,9 @@ public class AbstractComponentTest
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
   }
 
-  public void testCallable_DisallowConcurrentExecution(Callable<Void> callable, Consumer<Answer<Void>> answerConsumer,
-                                                       final boolean callRealMethod)
+  public void testCallable_DisallowConcurrentExecution(
+      Callable<Void> callable, Consumer<Answer<Void>> answerConsumer,
+      final boolean callRealMethod)
       throws Exception
   {
     testCallable_ConcurrentExecution(callable, answerConsumer, false, callRealMethod);

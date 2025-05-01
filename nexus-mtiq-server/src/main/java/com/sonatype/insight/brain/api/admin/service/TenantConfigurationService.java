@@ -59,7 +59,9 @@ public class TenantConfigurationService
       ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
       COMPONENT_CHANGE_DETECTION_API,
       CONTAINER_IMAGES_EVAL_ENABLED,
-      DARK_MODE
+      DARK_MODE,
+      ZSCALER_UPDATE_TASK_PERIOD,
+      ZSCALER
   );
 
   // Visible for testing

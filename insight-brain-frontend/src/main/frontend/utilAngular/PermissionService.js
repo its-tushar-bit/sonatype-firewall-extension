@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import axios from 'axios';
 import CLMContextLocationModule, { getPermissionContextTestUrl } from './CLMContextLocation';
 import { getProductFeaturesUrl } from '../util/CLMLocation';
 
@@ -30,7 +29,6 @@ module.service('PermissionService', [
 
         return deferred.promise;
       },
-
       isAuthorized: function (permissions, globalContext) {
         var deferred = $q.defer();
 
@@ -59,19 +57,25 @@ module.service('PermissionService', [
 
         return deferred.promise;
       },
-      isAutomationFeatureEnabled: isAutomationFeatureEnabled,
+      isAutomationFeatureEnabled: () => {
+        const deferred = $q.defer();
+        $http.get(getProductFeaturesUrl()).then(
+          (response) => deferred.resolve(response.data.includes('automation')),
+          () => deferred.resolve(false)
+        );
+        return deferred.promise;
+      },
+      isFeatureEnabled: (featureName) => {
+        const deferred = $q.defer();
+        $http.get(getProductFeaturesUrl()).then(
+          (response) => deferred.resolve(response.data.includes(featureName)),
+          () => deferred.resolve(false)
+        );
+        return deferred.promise;
+      },
     };
   },
 ]);
-
-function isAutomationFeatureEnabled() {
-  var promise = axios
-    .get(getProductFeaturesUrl())
-    .then((response) => response.data.includes('automation'))
-    .catch(() => false);
-
-  return promise;
-}
 
 module.directive('authorizationWrapper', function () {
   return {

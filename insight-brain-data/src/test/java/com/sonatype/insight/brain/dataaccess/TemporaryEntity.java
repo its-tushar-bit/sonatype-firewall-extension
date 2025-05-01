@@ -70,6 +70,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurat
 import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
@@ -210,6 +211,7 @@ import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.RepositoryClientConfiguration;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
 import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
@@ -667,6 +669,8 @@ public class TemporaryEntity
 
   private CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO;
 
+  private ZScalerConfigurationDAO zScalerConfigurationDAO;
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -954,6 +958,7 @@ public class TemporaryEntity
       delete(componentChangeDetectionConfigurationDAO.getAll(), componentChangeDetectionConfigurationDAO);
       delete(componentChangeDetectionEventDAO.getAll(), componentChangeDetectionEventDAO);
       delete(clusterIdentificationDAO.getAll(), clusterIdentificationDAO);
+      delete(zScalerConfigurationDAO.getAll(), zScalerConfigurationDAO);
 
       restoreInitialWaiverReasons();
       productLicenseDAO.delete();
@@ -6260,6 +6265,7 @@ public class TemporaryEntity
     componentChangeDetectionEventDAO = daoFactory.createComponentChangeDetectionEventDAO();
     clusterIdentificationDAO = daoFactory.createClusterIdentificationDAO();
     cpeMatchingConfigurationDAO = daoFactory.createCpeMatchingConfigurationDAO();
+    zScalerConfigurationDAO = daoFactory.createZScalerConfigurationDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {
@@ -6304,5 +6310,25 @@ public class TemporaryEntity
 
     policyWaiverRequestDAO.insert(policyWaiverRequest);
     return policyWaiverRequest;
+  }
+
+  public ZScalerConfiguration newZScalerConfiguration(
+      String username,
+      String password,
+      String hostname,
+      String apikey)
+  {
+    ZScalerConfiguration zScalerConfiguration = new ZScalerConfiguration();
+    zScalerConfiguration.setUsername(username);
+    zScalerConfiguration.setPassword(password);
+    zScalerConfiguration.setHostname(hostname);
+    zScalerConfiguration.setApikey(apikey);
+    zScalerConfigurationDAO.set(zScalerConfiguration);
+
+    return zScalerConfiguration;
+  }
+
+  public void deleteSystemConfigurationProperty(final String name) {
+    systemConfigurationPropertyDAO.set(name, null);
   }
 }

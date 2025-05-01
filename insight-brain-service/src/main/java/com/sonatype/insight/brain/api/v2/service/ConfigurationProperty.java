@@ -264,7 +264,13 @@ public class ConfigurationProperty
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.DARK_MODE, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
-          (p, o) -> Objects.toString(o, null))
+          (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.ZSCALER_UPDATE_TASK_PERIOD, Integer.class,
+          (p, s) -> NumberUtils.toInt(s, 24),
+          (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.ZSCALER, Boolean.class,
+          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
+          (p, o) -> Objects.toString(o, null)),
       };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(
@@ -272,8 +278,8 @@ public class ConfigurationProperty
 
   private static final Map<String, ConfigurationProperty> BOOLEAN_PROPERTIES_BY_NAME = Collections.unmodifiableMap(
       Arrays.stream(PROPERTIES)
-      .filter(property -> property.getType().equals(Boolean.class))
-      .collect(Collectors.toMap(ConfigurationProperty::getName, Function.identity())));
+          .filter(property -> property.getType().equals(Boolean.class))
+          .collect(Collectors.toMap(ConfigurationProperty::getName, Function.identity())));
 
   // Multiple permissions grouped by each Triple will be ORed in order to check access
   public static final Map<String, Set<Triple<OwnerType, String, Set<Permission>>>> additionalPermissionsPerProperty =

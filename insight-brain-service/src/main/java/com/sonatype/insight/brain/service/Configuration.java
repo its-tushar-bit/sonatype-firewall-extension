@@ -212,7 +212,9 @@ public class Configuration
         SystemConfigurationProperty.ALP_FOR_SBOM_MANAGER,
         SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API,
         SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED,
-        SystemConfigurationProperty.DARK_MODE
+        SystemConfigurationProperty.DARK_MODE,
+        SystemConfigurationProperty.ZSCALER_UPDATE_TASK_PERIOD,
+        SystemConfigurationProperty.ZSCALER
         )
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
@@ -698,6 +700,10 @@ public class Configuration
 
   public Integer getComponentChangeDetectionMaxEvents() {
     return configCache.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_EVENTS);
+  }
+
+  public Integer getZScalerUpdateTaskPeriod() {
+    return configCache.get(SystemConfigurationProperty.ZSCALER_UPDATE_TASK_PERIOD);
   }
 
   /**

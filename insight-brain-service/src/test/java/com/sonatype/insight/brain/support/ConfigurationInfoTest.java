@@ -289,8 +289,9 @@ public class ConfigurationInfoTest
         "alpForSbomManager",
         "componentChangeDetectionApi",
         "containerImagesEvalEnabled",
-        "darkMode"
-        );
+        "darkMode",
+        "zScaler"
+    );
 
     // Properties included in the config.json in support zip
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());

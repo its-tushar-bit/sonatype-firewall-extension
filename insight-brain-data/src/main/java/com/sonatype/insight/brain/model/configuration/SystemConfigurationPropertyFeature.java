@@ -273,6 +273,18 @@ public enum SystemConfigurationPropertyFeature
       return systemConfigurationProperty == null ? super.isEnabled(tx) :
           Boolean.parseBoolean(systemConfigurationProperty.getValue());
     }
+  },
+
+  ZSCALER(SystemConfigurationProperty.ZSCALER, false)
+  {
+    @Override
+    public boolean isEnabled(TransactionContext tx) {
+      final SystemConfigurationProperty systemConfigurationProperty =
+          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
+      return systemConfigurationProperty == null
+          ? super.isEnabled(tx)
+          : Boolean.parseBoolean(systemConfigurationProperty.getValue());
+    }
   };
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";

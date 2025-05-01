@@ -418,6 +418,25 @@ function routes($stateProvider) {
         ],
       },
     })
+    .state('firewall.zscalerConfig', {
+      component: 'zscalerConfig',
+      url: '/zscalerConfig',
+      data: {
+        title: 'zScaler Config',
+        isDirty: ['zscalerConfig', 'isDirty'],
+      },
+      resolve: {
+        isAuthorized: [
+          'PermissionService',
+          function (PermissionService) {
+            return (
+              PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true) &&
+              PermissionService.isFeatureEnabled('zscaler')
+            );
+          },
+        ],
+      },
+    })
     .state('firewall.proxyConfig', {
       component: 'proxyConfig',
       url: '/proxyConfig',

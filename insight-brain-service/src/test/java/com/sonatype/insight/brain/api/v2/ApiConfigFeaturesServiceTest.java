@@ -38,32 +38,7 @@ import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_TRANSITIVE_SOLVER;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.NOT_SUPPORTED_SELF_HOSTED_SYSTEM_PROPERTIES;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ALP_FOR_SBOM_MANAGER;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTO_WAIVERS;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.CODE_INSIGHTS;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.COMPONENT_SEARCH_API_WITH_INNERSOURCE;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DEFAULT_BRANCH_MONITORING;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DEPENDENCY_DATA_IN_API;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DEVELOPER_BULK_RECOMMENDATIONS;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DEVELOPER_SUMMARY_TABLE;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ENABLE_UNAUTHENTICATED_PAGES;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.INNER_SOURCE_REPOSITORY_INTEGRATION;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.INNER_SOURCE_TRANSITIVE_WAIVER;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.MANUAL_PULL_REQUESTS;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.PR_COMMENTING;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.PR_LINE_COMMENTING;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.REPORTS_LIST_DISABLED;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SCAN_POM_FILES_IN_META_INF_DIRECTORY;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.TRANSITIVE_SOLVER_ENABLED;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DARK_MODE;
-
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -1386,6 +1361,42 @@ public class ApiConfigFeaturesServiceTest
         BadRequestException.class).hasMessage("Feature is already disabled.");
   }
 
+  @Test
+  public void testGetSystemConfigurationPropertyFeature_ZScaler() {
+    assertThat(service.getSystemConfigurationPropertyFeature(SystemConfigurationProperty.ZSCALER))
+        .isEqualTo(SystemConfigurationPropertyFeature.ZSCALER);
+  }
+
+  @Test
+  public void testEnableFeature_ZScaler() {
+    service.enableFeature(SystemConfigurationProperty.ZSCALER);
+    assertThat(systemConfigurationPropertyDAO.getByName(ZSCALER).getValue()).isEqualTo("true");
+  }
+
+  @Test
+  public void testEnableFeature_ZScaler_AlreadyEnabled() {
+    service.enableFeature(SystemConfigurationProperty.ZSCALER);
+    assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.ZSCALER))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_ZScaler_AlreadyDisabled() {
+    assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.ZSCALER))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testIsEnabled_ZScaler() {
+    final SystemConfigurationProperty systemConfigurationProperty =
+        new SystemConfigurationProperty(SystemConfigurationProperty.ZSCALER, "true");
+    systemConfigurationPropertyDAO.insert(systemConfigurationProperty);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.ZSCALER).getValue())
+        .isEqualTo("true");
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.ZSCALER)).isTrue();
+  }
+
   private Map<String, Boolean> getExpectedFeatureConfigMap() {
     Map<String, Boolean> expectedFeatureConfigMap = new LinkedHashMap<>();
 
@@ -1444,6 +1455,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("WEBHOOK_CONFIGURATION", true);
     expectedFeatureConfigMap.put("containerImagesEvalEnabled", false);
     expectedFeatureConfigMap.put("darkMode", false);
+    expectedFeatureConfigMap.put("zScaler", false);
 
     return expectedFeatureConfigMap;
   }

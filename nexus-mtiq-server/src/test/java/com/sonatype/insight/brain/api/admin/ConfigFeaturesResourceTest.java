@@ -37,8 +37,8 @@ public class ConfigFeaturesResourceTest
 
   /**
    * SystemConfigurationPropertyFeature that are enabled by default for regular tenants in MTIQ should be added here
-   * Before adding new SystemConfigurationPropertyFeature into these lists check that the feature should be
-   * allowed in MTIQ, if the feature should not be allowed for MTIQ please add to be MTIQ_BANNED_FEATURES
+   * Before adding new SystemConfigurationPropertyFeature into these lists check that the feature should be allowed in
+   * MTIQ, if the feature should not be allowed for MTIQ please add to be MTIQ_BANNED_FEATURES
    */
   private final String[] defaultTenantEnabledFeatures = new String[]{
       SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId(),
@@ -73,8 +73,8 @@ public class ConfigFeaturesResourceTest
 
   /**
    * SystemConfigurationPropertyFeature that are enabled by default for the global tenant in MTIQ should be added here
-   * Before adding new SystemConfigurationPropertyFeature into these lists check that the feature should be
-   * allowed in MTIQ, if the feature should not be allowed for MTIQ please add to be MTIQ_BANNED_FEATURES
+   * Before adding new SystemConfigurationPropertyFeature into these lists check that the feature should be allowed in
+   * MTIQ, if the feature should not be allowed for MTIQ please add to be MTIQ_BANNED_FEATURES
    */
   private final String[] defaultGlobalTenantEnabledFeatures = new String[]{
       SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId(),
@@ -126,6 +126,7 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.COMPONENT_CHANGE_DETECTION_API.getId(),
           SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.getId(),
           SystemConfigurationPropertyFeature.DARK_MODE.getId(),
+          SystemConfigurationPropertyFeature.ZSCALER.getId()
       }
   )).toArray(String[]::new);
 

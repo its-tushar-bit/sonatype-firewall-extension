@@ -297,3 +297,5 @@ export const selectIsContainerImagesEvaluationEnabled = createSelector(
   selectProductFeatures,
   both(propOr(false, 'container-images-evaluation'), propOr(false, 'container-images-eval-enabled'))
 );
+
+export const selectIsZscalerEnabled = createSelector(selectProductFeatures, propOr(false, 'zscaler'));

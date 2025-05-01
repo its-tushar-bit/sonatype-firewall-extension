@@ -81,6 +81,10 @@ export function getAutomaticSourceControlConfigurationUrl() {
   return uriTemplate`/rest/config/automaticScmConfiguration`;
 }
 
+export function getZScalerConfigUrl() {
+  return uriTemplate`/api/v2/config/zscaler`;
+}
+
 export function getMailConfigUrl() {
   return uriTemplate`/api/v2/config/mail`;
 }

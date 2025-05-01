@@ -43,6 +43,7 @@ export const MenuBar = ({
   isStandaloneFirewall,
   isOrgsAndAppsEnabled,
   isFirewallOnlyLicense,
+  isZscalerEnabled,
 }) => {
   const hasAnyPermissions = Object.values(permissions).filter(Boolean).length > 0;
 
@@ -93,6 +94,7 @@ export const MenuBar = ({
             isStandaloneFirewall={isStandaloneFirewall}
             isOrgsAndAppsEnabled={isOrgsAndAppsEnabled}
             isFirewallOnlyLicense={isFirewallOnlyLicense}
+            isZscalerEnabled={isZscalerEnabled}
           />
         )}
         <SolutionSwitcherContainer />
@@ -137,8 +139,8 @@ MenuBar.propTypes = {
   isStandaloneDeveloper: PropTypes.bool,
   isStandaloneFirewall: PropTypes.bool,
   isOrgsAndAppsEnabled: PropTypes.bool,
-  isStandaloneFirewall: PropTypes.bool,
   isFirewallOnlyLicense: PropTypes.bool,
+  isZscalerEnabled: PropTypes.bool,
 };
 
 export default MenuBar;

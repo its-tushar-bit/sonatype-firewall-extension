@@ -112,6 +112,8 @@ public class ConfigurationInfo
         configuration.getComponentChangeDetectionTaskPeriod());
     entries.put(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_EVENTS,
         configuration.getComponentChangeDetectionMaxEvents());
+    entries.put(SystemConfigurationProperty.ZSCALER_UPDATE_TASK_PERIOD,
+        configuration.getZScalerUpdateTaskPeriod());
 
     return JsonUtils.format(entries);
   }

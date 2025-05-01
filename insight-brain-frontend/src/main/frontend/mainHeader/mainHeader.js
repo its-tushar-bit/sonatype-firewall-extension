@@ -25,6 +25,7 @@ import {
   selectTenantMode,
   selectIsSsoIdpManagedBySonatype,
   selectIsOrgsAndAppsEnabled,
+  selectIsZscalerEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   selectIsSbomManagerOnlyLicense,
@@ -34,6 +35,7 @@ import { selectIsStandaloneDeveloper, selectIsStandaloneFirewall } from 'MainRoo
 
 /* global clmServerVersion */
 const globalMajorMinorVersion = (clmServerVersion ? `${clmServerVersion}` : '').split('.').splice(0, 2).join('.');
+
 function MainHeaderController($rootScope, $scope, PermissionService, CurrentUser, routeStateUtilService, $ngRedux) {
   var vm = this;
   vm.faUserAlt = faUserAlt;
@@ -118,6 +120,7 @@ export const mapStateToThis = (state) => ({
   isStandaloneFirewall: selectIsStandaloneFirewall(state),
   isOrgsAndAppsEnabled: selectIsOrgsAndAppsEnabled(state),
   isFirewallOnlyLicense: selectIsFirewallOnlyLicense(state),
+  isZscalerEnabled: selectIsZscalerEnabled(state),
 });
 
 MainHeaderController.$inject = [

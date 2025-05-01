@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.service.banning;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
@@ -77,7 +76,7 @@ public class MTIQFeatureServiceTest
   public void testRegister_setsFeatureFlags() {
     underTest.register();
 
-    verify(service, times(29)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
+    verify(service, times(30)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
     List<String> disabledFlagSet = propertyKeyCaptor.getAllValues();
     assertThat(disabledFlagSet).containsExactlyInAnyOrder(getDisabledSystemConfigurationPropertyFeatures());
   }
@@ -197,7 +196,8 @@ public class MTIQFeatureServiceTest
     return Arrays.stream(SystemConfigurationPropertyFeature.values())
         .filter(f -> !enabledFeatures.contains(f))
         .map(SystemConfigurationPropertyFeature::getPropertyName)
-        .collect(Collectors.toList()).toArray(new String[]{});
+        .toList()
+        .toArray(new String[]{});
   }
 
   private SystemConfigurationPropertyFeature[] getEnabledSystemConfigurationPropertyFeatures() {

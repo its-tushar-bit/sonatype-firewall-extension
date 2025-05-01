@@ -929,6 +929,7 @@
                 <include>**/JWTGenerator*</include>
                 <include>**/FunctionUtils*</include>
                 <include>**/VulnerabilitySignatureAnalysisDTOHelper*</include>
+                <include>**/ZScalerMockServerRule*</include>
               </includes>
             </configuration>
           </execution>

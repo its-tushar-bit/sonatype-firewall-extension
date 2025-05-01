@@ -278,6 +278,10 @@ public class SystemConfigurationProperty
 
   public static final String DARK_MODE = "darkMode";
 
+  public static final String ZSCALER_UPDATE_TASK_PERIOD = "zScalerUpdateTaskPeriod";
+
+  public static final String ZSCALER = "zScaler";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

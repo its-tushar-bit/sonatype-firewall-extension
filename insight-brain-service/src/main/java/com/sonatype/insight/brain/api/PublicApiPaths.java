@@ -101,6 +101,8 @@ public class PublicApiPaths
 
   public static final String MAIL_CONFIG_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "config/mail";
 
+  public static final String ZSCALER_CONFIG_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "config/zscaler";
+
   public static final String SAML_CONFIG_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "config/saml";
 
   public static final String CROWD_CONFIG_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "config/crowd";

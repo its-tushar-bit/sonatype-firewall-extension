@@ -3,8 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import permissionServiceModule from '../../../main/frontend/utilAngular/PermissionService';
-import { getPermissionContextTestUrl } from '../../../main/frontend/utilAngular/CLMContextLocation';
+import permissionServiceModule from 'MainRoot/utilAngular/PermissionService';
+import { getPermissionContextTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
+import { getProductFeaturesUrl } from 'MainRoot/util/CLMLocation';
 
 describe('PermissionService.js', function () {
   var successSpy, errorSpy;
@@ -145,6 +146,35 @@ describe('PermissionService.js', function () {
       expect(response.data).toEqual('foo');
       expect(response.status).toEqual(500);
       expect(response.statusText).toEqual('');
+    }));
+  });
+
+  describe('isFeatureEnabled', () => {
+    it('Feature is enabled: should return true', inject((PermissionService, $httpBackend) => {
+      $httpBackend.expectGET(getProductFeaturesUrl()).respond(['feature1', 'feature2', 'feature3']);
+      PermissionService.isFeatureEnabled('feature1').then(successSpy, errorSpy);
+      $httpBackend.flush();
+
+      expect(successSpy).toHaveBeenCalledWith(true);
+      expect(errorSpy).not.toHaveBeenCalled();
+    }));
+
+    it('Feature is not enabled: should return false', inject((PermissionService, $httpBackend) => {
+      $httpBackend.expectGET(getProductFeaturesUrl()).respond(['feature1', 'feature2', 'feature3']);
+      PermissionService.isFeatureEnabled('feature4').then(successSpy, errorSpy);
+      $httpBackend.flush();
+
+      expect(successSpy).toHaveBeenCalledWith(false);
+      expect(errorSpy).not.toHaveBeenCalled();
+    }));
+
+    it('HTTP request error: should return false', inject((PermissionService, $httpBackend) => {
+      $httpBackend.expectGET(getProductFeaturesUrl()).respond(500);
+      PermissionService.isFeatureEnabled('feature1').then(successSpy, errorSpy);
+      $httpBackend.flush();
+
+      expect(successSpy).toHaveBeenCalledWith(false);
+      expect(errorSpy).not.toHaveBeenCalled();
     }));
   });
 });

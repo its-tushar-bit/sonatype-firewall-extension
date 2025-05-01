@@ -78,6 +78,7 @@ import com.sonatype.insight.brain.repository.RepositorySourceResponseDTO;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.report.ReportDataReader;
 import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -145,6 +146,8 @@ public class ComponentInfoService
 
   private final IdUtils idUtils;
 
+  private final ReportDataReader reportDataReader;
+
   private static final String OTHER_CATEGORY_ID = "113";
 
   private String toolName;
@@ -166,7 +169,8 @@ public class ComponentInfoService
       final OwnerDAO ownerDAO,
       final PolicyDAO policyDAO,
       final IdUtils idUtils,
-      ManualPullRequestService manualPullRequestService)
+      ManualPullRequestService manualPullRequestService,
+      ReportDataReader reportDataReader)
   {
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
@@ -184,6 +188,7 @@ public class ComponentInfoService
     this.policyDAO = policyDAO;
     this.idUtils = idUtils;
     this.manualPullRequestService = manualPullRequestService;
+    this.reportDataReader = reportDataReader;
     initUnspecifiedLicense();
     initOtherCategory();
   }
@@ -251,19 +256,15 @@ public class ComponentInfoService
 
     NamedComponentDetails componentDetails;
 
-    if (identifier != null) {
-      if (isThirdPartyIdentificationSource(identificationSource)) {
-        componentDetails = thirdPartyComponentDAO.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
-      }
-      else {
-        componentDetails = getComponentDetailsFromHDS(matchState, hash, identifier, httpRequest, identificationSource);
-      }
-      augmentEmptyLicensesAsUnspecified(componentDetails);
-      augmentEmptyCategoriesAsOther(componentDetails);
-    }
-    else {
+    if (identifier == null) {
       // See CLM-4195
       componentDetails = createEmptyComponentDetails(hash, identifier);
+    }
+    else {
+      componentDetails = getComponentDetailsBasedOnSource(identifier, owner, scanId, matchState, hash, httpRequest,
+          identificationSource);
+      augmentEmptyLicensesAsUnspecified(componentDetails);
+      augmentEmptyCategoriesAsOther(componentDetails);
     }
 
     Component component = componentDetailsLoaderFactory.newInstance(owner)
@@ -284,6 +285,30 @@ public class ComponentInfoService
         - start);
 
     return componentDetails;
+  }
+
+  private NamedComponentDetails getComponentDetailsBasedOnSource(
+      ComponentIdentifier identifier,
+      Owner owner,
+      String scanId,
+      String matchState,
+      String hash,
+      HttpServletRequest httpRequest,
+      String identificationSource) throws IOException
+  {
+    // Case 1: SBOM identification source with no supported formats
+    if (IdentificationSource.SBOM.getId().equals(identificationSource) &&
+        !ComponentIdentifier.getFormatsSupportedByHds().contains(identifier.getFormat())) {
+      return reportDataReader.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
+    }
+
+    // Case 2: Third-party identification source
+    if (isThirdPartyIdentificationSource(identificationSource)) {
+      return thirdPartyComponentDAO.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
+    }
+
+    // Default case: Get details from Hosted Data Services
+    return getComponentDetailsFromHDS(matchState, hash, identifier, httpRequest, identificationSource);
   }
 
   // Visible for testing
@@ -1292,15 +1317,8 @@ public class ComponentInfoService
       String identificationSource,
       String scanId) throws IOException
   {
-    ComponentDetails componentDetails;
-    if (IdentificationSource.isThirdPartyIdentificationSource(identificationSource)) {
-      componentDetails =
-          thirdPartyComponentDAO.getComponentDetailsByIdentifier(componentIdentifier, owner.getId(), scanId);
-    }
-    else {
-      componentDetails = getComponentDetailsFromHDS(null, null, componentIdentifier, httpRequest, identificationSource);
-    }
-    return componentDetails;
+    return getComponentDetailsBasedOnSource(componentIdentifier, owner, scanId, null, null, httpRequest,
+        identificationSource);
   }
 
   public Component augmentComponentDetails(Owner owner, ComponentDetails componentDetails) {

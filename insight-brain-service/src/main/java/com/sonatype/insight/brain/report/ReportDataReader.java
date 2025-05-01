@@ -26,6 +26,7 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.HealthCheckReportRowDTO;
 import com.sonatype.insight.scan.HealthCheckReportSecurityRowDTO;
@@ -44,7 +45,6 @@ import com.google.common.cache.Weigher;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -177,8 +177,11 @@ public class ReportDataReader
     return componentDetails;
   }
 
-  private @NotNull Set<License> toLicenses(final Set<String> licenses) {
-    return licenses != null ? licenses.stream().map(this::getLicense).collect(Collectors.toSet()) : Set.of();
+  private Set<License> toLicenses(final Set<String> licenses) {
+    return licenses != null ? licenses.stream()
+        .filter(license -> !SbomCommonUtils.isUnsupportedLicenseId(license))
+        .map(this::getLicense)
+        .collect(Collectors.toSet()) : Set.of();
   }
 
   private License getLicense(String licenseId) {

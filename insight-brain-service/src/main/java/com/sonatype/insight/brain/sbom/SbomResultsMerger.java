@@ -84,7 +84,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -144,8 +143,6 @@ public class SbomResultsMerger
   public static final String FIELD_PATHNAMES = "pathnames";
 
   public static final String FIELD_FILENAMES = "filenames";
-
-  public static final Set<String> UNSUPPORTED_LICENSE_IDS = ImmutableSet.of("Not Provided", "Non-Standard");
 
   private final DuplicateAwareThirdPartyFileCoordinatePersister thirdPartyFileCoordinatePersister;
 
@@ -989,7 +986,7 @@ public class SbomResultsMerger
           Collectors.toMap(ThirdPartyCoordinateLicense::getName, Function.identity(), (first, second) -> first));
       for (Entry<String, JsonNode> sonatypeLicenseEntry : sonatypeLicenses.entrySet()) {
         String resultEntryLicense = sonatypeLicenseEntry.getKey();
-        if (UNSUPPORTED_LICENSE_IDS.contains(resultEntryLicense)) {
+        if (SbomCommonUtils.isUnsupportedLicenseId(resultEntryLicense)) {
           //there is no valid license identified by sonatype, so no point storing it in database
           continue;
         }

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.sbom.utils;
 
+import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import java.util.UUID;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -18,6 +20,8 @@ import us.springett.parsers.cpe.util.Validate;
 
 public class SbomCommonUtils
 {
+  public static final Set<String> UNSUPPORTED_LICENSE_IDS = ImmutableSet.of("Not Provided", "Non-Standard");
+
   public static String newFilteredScanFileName(String scanId) {
     if (scanId == null) {
       scanId = UUID.randomUUID().toString().replace("-", "");
@@ -47,5 +51,12 @@ public class SbomCommonUtils
       component.setGroup(namespace);
     }
     return componentIdentifier;
+  }
+
+  public static boolean isUnsupportedLicenseId(String licenseId) {
+    if (StringUtils.isBlank(licenseId)) {
+      return true;
+    }
+    return UNSUPPORTED_LICENSE_IDS.contains(licenseId);
   }
 }

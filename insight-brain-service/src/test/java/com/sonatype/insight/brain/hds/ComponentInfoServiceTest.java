@@ -92,6 +92,7 @@ import com.sonatype.insight.brain.repository.RepositorySourceResponseDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
+import com.sonatype.insight.brain.report.ReportDataReader;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -145,6 +146,9 @@ public class ComponentInfoServiceTest
 
   private static final ComponentIdentifier NPM_COORDINATES = ComponentIdentifier.createNpmCoordinates("p1", "v1");
 
+  private static final ComponentIdentifier GENERIC_COORDINATES =
+      ComponentIdentifier.createGenericCoordinates("g1", "a1", null);
+
   // This is the tool name (ci, ide, rm) used in REST paths for HDS resources. Since we use it when we mock the HDS
   // client, it doesn't really matter what value we use here, because we don't really access HDS REST paths.
   private static final String TOOL_NAME = "ci";
@@ -183,6 +187,9 @@ public class ComponentInfoServiceTest
   @Mock
   private RepositoryQueryService repositoryQueryService;
 
+  @Mock
+  private ReportDataReader reportDataReader;
+
   @Inject
   private ApiConfigurationService configurationService;
 
@@ -199,6 +206,7 @@ public class ComponentInfoServiceTest
     binder.bind(ApiComponentDetailsServiceV2.class).toInstance(apiComponentDetailsServiceV2Mock);
     binder.bind(ThirdPartyComponentDAO.class).toInstance(thirdPartyComponentDAO);
     binder.bind(RepositoryQueryService.class).toInstance(repositoryQueryService);
+    binder.bind(ReportDataReader.class).toInstance(reportDataReader);
     super.configure(binder);
   }
 
@@ -3078,6 +3086,46 @@ public class ComponentInfoServiceTest
         IdentificationSource.EXTERNAL_REPO.getId(), scanId, DependencyType.DIRECT, true).getLeft();
 
     assertThat(result.getList().get(0)).usingRecursiveComparison().isEqualTo(details);
+  }
+
+  @Test
+  public void testGetComponentDetails_genericComponent_sbomSource() throws IOException {
+    String scanId = "scanId";
+    String identificationSource = IdentificationSource.SBOM.getId();
+    NamedComponentDetails componentDetails = newNamedComponentDetails(GENERIC_COORDINATES);
+    componentDetails.setMatchState(MatchState.EXACT.getId());
+    componentDetails.setIdentificationSource(identificationSource);
+
+    when(reportDataReader.getComponentDetailsByIdentifier(GENERIC_COORDINATES, application.getId(), scanId))
+        .thenReturn(componentDetails);
+
+    ComponentDetails result = componentInfoService.getComponentDetails(
+        application, componentDetails.getComponentIdentifier(), componentDetails.getMatchState(), null, false,
+        httpRequestMock, IdentificationSource.SBOM.getId(), scanId, null);
+
+    assertThat(result).isNotNull();
+    assertGenericComponentDetails(componentDetails, GENERIC_COORDINATES);
+  }
+
+  @Test
+  public void testgetMultiLicensesNoAuth_genericComponent_sbomSource() throws Exception {
+    String scanId = "scanId";
+    String identificationSource = IdentificationSource.SBOM.getId();
+    NamedComponentDetails componentDetails = newNamedComponentDetails(GENERIC_COORDINATES);
+    componentDetails.setMatchState(MatchState.EXACT.getId());
+    componentDetails.setIdentificationSource(identificationSource);
+
+    when(reportDataReader.getComponentDetailsByIdentifier(GENERIC_COORDINATES, application.getId(), scanId))
+        .thenReturn(componentDetails);
+
+    ComponentMultiLicenses licenses =
+        componentInfoService.getMultiLicensesNoAuth(OwnerType.APPLICATION, application.getPublicId(),
+            GENERIC_COORDINATES, httpRequestMock, identificationSource, scanId);
+
+    assertMultiLicenses(licenses.declaredLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertMultiLicenses(licenses.observedLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertMultiLicenses(licenses.effectiveLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertThat(licenses.hiddenObservedLicenses).isFalse();
   }
 
   private void assertGetLicensesResults(final License license, final ComponentLicenses retrievedLicenses) {

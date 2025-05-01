@@ -75,6 +75,16 @@ make(
     iqPolicyEvaluation: { stage ->
         if (shouldRunPolicyEvaluation()) {
           def reachabilityConfig = isDeployBranch(env, 'main') ? [
+              javaAnalysis: [
+                  enable: true,
+                  includes: [
+                      [pattern: 'nexus-iq-server/target/insight-brain-service-*.jar']
+                  ],
+                  entrypointStrategy: 'JAVA_MAIN',
+                  namespaces: [
+                      [namespace: 'com.sonatype.insight']
+                  ]
+              ],
               jsAnalysis: [
                   enable: true,
                   node: [

@@ -3047,6 +3047,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GoogleM
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Gooten-SDK-LA','Gooten-SDK-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Gooten-TOS','Gooten-TOS');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GoSecureDNS-OL-1.0','GoSecureDNS-OL-1.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GoSecureDNS-OL-UNSPECIFIED','GoSecureDNS-OL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPI-Connector-LA-RD2019','GPI-Connector-LA-RD2019');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-1.0','GPL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-1.0+','GPL-1.0');
@@ -3451,6 +3452,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0-LGPL-3.0-MPL-2.0','GPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0-LGPL-3.0-MPL-2.0','LGPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0-LGPL-3.0-MPL-2.0','MPL-2.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0-MaidSafe-.net-CL-1.0','GPL-3.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0-MaidSafe-.net-CL-1.0','MaidSafe-.net-CL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0-MIT','GPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0-MIT','MIT');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0-MPL-1.1','GPL-3.0');
@@ -3896,6 +3899,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('JSON-MI
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Just-World-License','Just-World-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Kaazing-Developer-LA','Kaazing-Developer-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Kaiko-NC-PL-1.0','Kaiko-NC-PL-1.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Kaiko-NC-PL-UNSPECIFIED','Kaiko-NC-PL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Karate-Labs-EULA-UD02132024','Karate-Labs-EULA-UD02132024');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Karate-Labs-EULA-UNSPECIFIED','Karate-Labs-EULA-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('KarmaData-TOU','KarmaData-TOU');
@@ -5309,6 +5313,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Skype-E
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Skywork-13B-Model-CL','Skywork-13B-Model-CL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SL','SL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SLAC-BSD-3-Clause','SLAC-BSD-3-Clause');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SLAC-BSD-UNSPECIFIED','SLAC-BSD-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Sleepycat','Sleepycat');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Slint-Royalty-free-2.0','Slint-Royalty-free-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Slint-Software-3.0','Slint-Software-3.0');

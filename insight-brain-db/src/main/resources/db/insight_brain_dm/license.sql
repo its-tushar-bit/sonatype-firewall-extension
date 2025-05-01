@@ -1092,6 +1092,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Googl
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Gooten-SDK-LA','Gooten-SDK-LA','Gooten SDK License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Gooten-TOS','Gooten-TOS','Gooten Terms of Service');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GoSecureDNS-OL-1.0','GoSecureDNS-OL-1.0','GoSecureDNS Open License Version 1.0');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GoSecureDNS-OL-UNSPECIFIED','GoSecureDNS-OL','GoSecureDNS-OL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPI-Connector-LA-RD2019','GPI-Connector-LA-RD2019','Globalization Partners International Connector License Agreement - Release Date 2019');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-1.0','GPL-1.0','GNU General Public License v1.0 only');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0','GPL-2.0','GNU General Public License v2.0 only');
@@ -1442,6 +1443,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('JSON'
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Just-World-License','Just-World-License','Just World License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Kaazing-Developer-LA','Kaazing-Developer-LA','Kaazing Developer License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Kaiko-NC-PL-1.0','Kaiko-NC-PL-1.0','Kaiko Non-Commercial Public License Version 1');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Kaiko-NC-PL-UNSPECIFIED','Kaiko-NC-PL','Kaiko-NC-PL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Karate-Labs-EULA-UD02132024','Karate-Labs-EULA-UD02132024','Karate Labs End User License Agreement - Updated Date 02-13-2024');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Karate-Labs-EULA-UNSPECIFIED','Karate-Labs-EULA','Karate-Labs-EULA-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('KarmaData-TOU','KarmaData-TOU','KarmaData Terms of Use - Release Date 01-12-2013');
@@ -2598,6 +2600,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Skype
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Skywork-13B-Model-CL','Skywork-13B-Model-CL','Skywork-13B Model Community License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('SL','SL','SL License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('SLAC-BSD-3-Clause','SLAC-BSD-3-Clause','SLAC National Accelerator Laboratory BSD-3-Clause License');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('SLAC-BSD-UNSPECIFIED','SLAC-BSD','SLAC-BSD-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Sleepycat','Sleepycat','Sleepycat License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Slint-Royalty-free-2.0','Slint-Royalty-free-2.0','Slint Royalty-free Desktop, Mobile, and Web Applications License 2.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Slint-Software-3.0','Slint-Software-3.0','Slint Software License 3.0');

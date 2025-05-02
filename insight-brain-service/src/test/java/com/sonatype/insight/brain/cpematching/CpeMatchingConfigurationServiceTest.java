@@ -21,6 +21,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.test.LogOutput;
 
+import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -46,6 +47,43 @@ public class CpeMatchingConfigurationServiceTest
   public LogOutput logOutput = new LogOutput(CpeMatchingConfigurationService.class);
 
   @Test
+  public void getCpeMatchingConfiguration_root_cpeCfgRecordFound() {
+    cpeMatchingConfigurationDAO.insert(new CpeMatchingConfiguration(Organization.ROOT_ORGANIZATION_ID, true, true));
+
+    CpeMatchingConfigurationDTO cfg = cpeMatchingConfigurationService.getCpeMatchingConfigurationNoAuthz(
+        OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
+    assertThat(cfg.enabled).isTrue();
+    assertThat(cfg.allowOverride).isTrue();
+    assertThat(cfg.enabledInParent).isNull();
+    assertThat(cfg.inheritedFromOrganizationName).isNull();
+    assertThat(cfg.inheritedFromOrganizationAllowOverride).isNull();
+  }
+
+  @Test
+  public void getCpeMatchingConfiguration_root_cpeCfgRecordFound_false() {
+    cpeMatchingConfigurationDAO.insert(new CpeMatchingConfiguration(Organization.ROOT_ORGANIZATION_ID, false, false));
+
+    CpeMatchingConfigurationDTO cfg = cpeMatchingConfigurationService.getCpeMatchingConfigurationNoAuthz(
+        OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
+    assertThat(cfg.enabled).isFalse();
+    assertThat(cfg.allowOverride).isFalse();
+    assertThat(cfg.enabledInParent).isNull();
+    assertThat(cfg.inheritedFromOrganizationName).isNull();
+    assertThat(cfg.inheritedFromOrganizationAllowOverride).isNull();
+  }
+
+  @Test
+  public void getCpeMatchingConfiguration_root_cpeCfgRecordNotFound() {
+    CpeMatchingConfigurationDTO cfg = cpeMatchingConfigurationService.getCpeMatchingConfigurationNoAuthz(
+        OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
+    assertThat(cfg.enabled).isNull();
+    assertThat(cfg.allowOverride).isNull();
+    assertThat(cfg.enabledInParent).isNull();
+    assertThat(cfg.inheritedFromOrganizationName).isNull();
+    assertThat(cfg.inheritedFromOrganizationAllowOverride).isNull();
+  }
+
+  @Test
   public void testGetCpeMatchingConfiguration_ForApp_NoParentEnabled_NoOverrides() {
     Application app1 = tempEntity.newApplicationWithParent();
     CpeMatchingConfiguration appCpeConfig = new CpeMatchingConfiguration(
@@ -58,15 +96,16 @@ public class CpeMatchingConfigurationServiceTest
         .getCpeMatchingConfiguration(app1.getType(), app1.getId());
     assertThat(actualCpeMatchingConfiguration).isNotNull();
     assertThat(actualCpeMatchingConfiguration.enabled).isTrue();
-    assertThat(actualCpeMatchingConfiguration.enabledInParent).isFalse();
+    assertThat(actualCpeMatchingConfiguration.enabledInParent).isNull(); // Because Root org does not have a CPE config
     assertThat(actualCpeMatchingConfiguration.allowOverride).isFalse();
     assertThat(actualCpeMatchingConfiguration.inheritedFromOrganizationName).isNull();
+    assertThat(actualCpeMatchingConfiguration.inheritedFromOrganizationAllowOverride).isNull();
   }
 
   @Test
   public void testGetCpeMatchingConfiguration_ForOrg_NoParentEnabled_NoOverrides() {
-    Application app1 = tempEntity.newApplicationWithParent();
-    Organization parentOrg = organizationDAO.getById(app1.getParentOwnerId());
+    Organization org1 = tempEntity.newOrganization();
+    Organization parentOrg = organizationDAO.getById(org1.getParentOwnerId());
     CpeMatchingConfiguration orgCpeConfig = new CpeMatchingConfiguration(
         parentOrg.getId(), true, false
     );
@@ -76,9 +115,10 @@ public class CpeMatchingConfigurationServiceTest
         .getCpeMatchingConfiguration(parentOrg.getType(), parentOrg.getId());
     assertThat(actualCpeMatchingConfiguration).isNotNull();
     assertThat(actualCpeMatchingConfiguration.enabled).isTrue();
-    assertThat(actualCpeMatchingConfiguration.enabledInParent).isFalse();
+    assertThat(actualCpeMatchingConfiguration.enabledInParent).isNull(); // Because Root org does not have a CPE config
     assertThat(actualCpeMatchingConfiguration.allowOverride).isFalse();
     assertThat(actualCpeMatchingConfiguration.inheritedFromOrganizationName).isNull();
+    assertThat(actualCpeMatchingConfiguration.inheritedFromOrganizationAllowOverride).isNull();
   }
 
   @Test
@@ -99,9 +139,10 @@ public class CpeMatchingConfigurationServiceTest
 
     assertThat(rootCpeMatchingConfigurationDtoAppTest).isNotNull();
     assertThat(rootCpeMatchingConfigurationDtoAppTest.enabled).isTrue();
-    assertThat(rootCpeMatchingConfigurationDtoAppTest.enabledInParent).isFalse();
+    assertThat(rootCpeMatchingConfigurationDtoAppTest.enabledInParent).isNull(); //Root org does not have a parent
     assertThat(rootCpeMatchingConfigurationDtoAppTest.allowOverride).isFalse();
     assertThat(rootCpeMatchingConfigurationDtoAppTest.inheritedFromOrganizationName).isNull();
+    assertThat(rootCpeMatchingConfigurationDtoAppTest.inheritedFromOrganizationAllowOverride).isNull();
 
     // Check cpe matching configuration status for dummy Org
     CpeMatchingConfigurationDTO dummyOrgCpeMatchingConfigurationDtoAppTest =
@@ -157,7 +198,7 @@ public class CpeMatchingConfigurationServiceTest
 
     assertThat(rootCpeMatchingConfigurationDtoAppTest).isNotNull();
     assertThat(rootCpeMatchingConfigurationDtoAppTest.enabled).isTrue();
-    assertThat(rootCpeMatchingConfigurationDtoAppTest.enabledInParent).isFalse();
+    assertThat(rootCpeMatchingConfigurationDtoAppTest.enabledInParent).isNull();
     //Allow children to override the inherited value
     assertThat(rootCpeMatchingConfigurationDtoAppTest.allowOverride).isTrue();
     assertThat(rootCpeMatchingConfigurationDtoAppTest.inheritedFromOrganizationName).isNull();
@@ -168,7 +209,7 @@ public class CpeMatchingConfigurationServiceTest
             dummyOrg.getType(), dummyOrg.getId());
 
     assertThat(dummyOrgCpeMatchingConfigurationDtoAppTest).isNotNull();
-    assertThat(dummyOrgCpeMatchingConfigurationDtoAppTest.enabledInParent).isTrue();
+    assertThat(dummyOrgCpeMatchingConfigurationDtoAppTest.enabledInParent).isNull();
     // Overridden values at this level
     assertThat(dummyOrgCpeMatchingConfigurationDtoAppTest.enabled).isFalse();
     assertThat(dummyOrgCpeMatchingConfigurationDtoAppTest.allowOverride).isTrue();
@@ -180,7 +221,7 @@ public class CpeMatchingConfigurationServiceTest
             app1.getType(), app1.getId());
 
     assertThat(app1CpeMatchingConfigurationDtoAppTest).isNotNull();
-    assertThat(app1CpeMatchingConfigurationDtoAppTest.enabledInParent).isFalse();
+    assertThat(app1CpeMatchingConfigurationDtoAppTest.enabledInParent).isNull();
     // Override is always false at app level (because it does not have children elements)
     assertThat(app1CpeMatchingConfigurationDtoAppTest.allowOverride).isFalse();
     // Overridden values
@@ -246,7 +287,7 @@ public class CpeMatchingConfigurationServiceTest
   }
 
   @Test
-  public void testUpdateCpeMatchingConfiguration_Org_NoChildren() {
+  public void testUpdateCpeMatchingConfiguration_Org_NoAncestorsPreviousConfig_NoChildren() {
     Organization org = tempEntity.newOrganization();
     //enable
     CpeMatchingConfigurationRequest configRequest = new CpeMatchingConfigurationRequest();
@@ -254,15 +295,16 @@ public class CpeMatchingConfigurationServiceTest
     configRequest.allowOverride = true;
 
     cpeMatchingConfigurationService.updateCpeMatchingConfiguration(OwnerType.ORGANIZATION, org.getId(), configRequest);
+
     CpeMatchingConfiguration stored = cpeMatchingConfigurationDAO.getByOwnerId(org.getId());
-    assertThat(stored).isNotNull()
-        .hasFieldOrPropertyWithValue("cpeEnabled", true)
-        .hasFieldOrPropertyWithValue("allowOverride", true);
+    assertThat(stored).isNotNull();
+    assertThat(stored.isCpeEnabled()).isTrue();
+    assertThat(stored.isAllowOverride()).isTrue();
 
     //disable
     configRequest.enabled = false;
     configRequest.allowOverride = false;
-    cpeMatchingConfigurationService.updateCpeMatchingConfiguration(OwnerType.APPLICATION, org.getId(), configRequest);
+    cpeMatchingConfigurationService.updateCpeMatchingConfiguration(OwnerType.ORGANIZATION, org.getId(), configRequest);
     stored = cpeMatchingConfigurationDAO.getByOwnerId(org.getId());
     assertThat(stored).isNotNull()
         .hasFieldOrPropertyWithValue("cpeEnabled", false)
@@ -300,6 +342,60 @@ public class CpeMatchingConfigurationServiceTest
   }
 
   @Test
+  public void updateCpeMatchingConfiguration_allowOverrideCheckValidation() {
+    /*
+     * Test data hierarchy
+     * level0Org
+     * |__level1Org
+     *    |__level1App
+     * |__
+     *    level2Org
+     *    |__level2App
+     *    |__level3Org
+     *       |__level3App
+     *
+     * */
+    final String expectedExceptionMessageTemplate = "Updating cpe matching configuration for ownerId %s is disabled " +
+        "by parent organization %s";
+    Organization level0Org = tempEntity.newOrganization();
+    Organization level1Org = tempEntity.newOrganization(level0Org);
+    Organization level2Org = tempEntity.newOrganization(level1Org);
+    Organization level3Org = tempEntity.newOrganization(level2Org);
+    cpeMatchingConfigurationDAO.insert(new CpeMatchingConfiguration(level1Org.getId(), true, true));
+    cpeMatchingConfigurationDAO.insert(new CpeMatchingConfiguration(level2Org.getId(), false, false));
+    Application level1App = tempEntity.newApplicationWithParent(level1Org);
+    cpeMatchingConfigurationDAO.insert(new CpeMatchingConfiguration(level1App.getId(), false, false));
+    Application level2App = tempEntity.newApplicationWithParent(level2Org);
+    Application level3App = tempEntity.newApplicationWithParent(level3Org);
+    cpeMatchingConfigurationDAO.insert(new CpeMatchingConfiguration(level3App.getId(), true, false));
+
+    CpeMatchingConfigurationRequest configRequest = new CpeMatchingConfigurationRequest();
+    configRequest.enabled = true;
+    configRequest.allowOverride = true;
+
+    // level2App is not allowed to override because of ancestor level2Org allowOverride setting is false
+    assertThatExceptionOfType(UnauthorizedException.class)
+        .isThrownBy(() -> cpeMatchingConfigurationService.updateCpeMatchingConfiguration(OwnerType.APPLICATION,
+            level2App.getId(), configRequest))
+        .withMessageContaining(String.format(expectedExceptionMessageTemplate, level2App.getId(), level2Org.getName()));
+
+    // level3Org not allowed to override because of ancestor level2Org allowOverride setting is false
+    assertThatExceptionOfType(UnauthorizedException.class)
+        .isThrownBy(() -> cpeMatchingConfigurationService.updateCpeMatchingConfiguration(OwnerType.ORGANIZATION,
+            level3Org.getId(), configRequest))
+        .withMessageContaining(String.format(expectedExceptionMessageTemplate, level3Org.getId(), level2Org.getName()));
+
+    // level1Org is allowed to override because parent level0Org does not contain any cpe config configuration in db
+    cpeMatchingConfigurationService.updateCpeMatchingConfiguration(OwnerType.ORGANIZATION,
+        level1Org.getId(), configRequest);
+
+    // level1App is allowed to override because parent level1Org has explicit record that allows it and ancestor
+    // level0Org does not contain any cpe config configuration in db
+    cpeMatchingConfigurationService.updateCpeMatchingConfiguration(OwnerType.APPLICATION,
+        level1App.getId(), configRequest);
+  }
+
+  @Test
   public void testUpdateCpeMatchingConfiguration_OrgWithChildren_Disable_AllowOverride() {
     Organization level0Org = tempEntity.newOrganization();
     Organization level1Org = tempEntity.newOrganization(level0Org);
@@ -313,12 +409,13 @@ public class CpeMatchingConfigurationServiceTest
     configRequest.enabled = false;
     configRequest.allowOverride = true;
 
-    cpeMatchingConfigurationService.updateCpeMatchingConfiguration(OwnerType.ORGANIZATION, level0Org.getId(),
-        configRequest);
+    cpeMatchingConfigurationService.updateCpeMatchingConfiguration(OwnerType.ORGANIZATION,
+        level0Org.getId(), configRequest);
+
     CpeMatchingConfiguration level0OrgConfig = cpeMatchingConfigurationDAO.getByOwnerId(level0Org.getId());
-    assertThat(level0OrgConfig).isNotNull()
-        .hasFieldOrPropertyWithValue("cpeEnabled", false)
-        .hasFieldOrPropertyWithValue("allowOverride", true);
+    assertThat(level0OrgConfig).isNotNull();
+    assertThat(level0OrgConfig.isCpeEnabled()).isFalse();
+    assertThat(level0OrgConfig.isAllowOverride()).isTrue();
 
     //children config should remain unchanged
     CpeMatchingConfiguration level1AppConfig = cpeMatchingConfigurationDAO.getByOwnerId(level1App.getId());
@@ -374,7 +471,7 @@ public class CpeMatchingConfigurationServiceTest
     cpeMatchingConfigurationService.disableCpeMatchingConfiguration(OwnerType.ORGANIZATION, org.getId(), null);
 
     CpeMatchingConfiguration stored = cpeMatchingConfigurationDAO.getByOwnerId(org.getId());
-    assertThat(stored).isNull(); //no effect. the overall result should inherit from parent
+    assertThat(stored).isNull(); //no effect. the overall result should be inherited from parent
 
     //disable a nonexistent config with allowOverride
     cpeMatchingConfigurationService.disableCpeMatchingConfiguration(OwnerType.ORGANIZATION, org.getId(), true);

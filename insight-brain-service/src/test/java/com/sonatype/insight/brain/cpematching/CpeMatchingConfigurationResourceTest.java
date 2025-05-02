@@ -25,6 +25,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CpeMatchingConfigurationResourceTest
     extends AbstractResourceTest
 {
+  public static final String CPE_MATCHING_OVERRIDING_DISABLED_ERROR_TEMPLATE =
+      "Updating cpe matching configuration for ownerId %s is disabled by parent organization %s";
+
   private OrganizationDAO organizationDAO;
 
   private CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO;
@@ -68,6 +71,38 @@ public class CpeMatchingConfigurationResourceTest
     CpeMatchingConfigurationDTO actualRestResponse = response.getBody(CpeMatchingConfigurationDTO.class);
     assertThat(actualRestResponse.enabled).isTrue();
     assertThat(actualRestResponse.allowOverride).isTrue();
+  }
+
+  @Test
+  public void testUpdateCpeMatchingConfiguration_toApplication_errorWhenParentDisallowsOverriding() throws Exception {
+    Application app1 = tempEntity.newApplicationWithParent();
+    Organization org1 = organizationDAO.getById(app1.getParentOwnerId());
+    cpeMatchingConfigurationDAO.insert(new CpeMatchingConfiguration(org1.getId(), false, false));
+    CpeMatchingConfigurationRequest requestDTO = new CpeMatchingConfigurationRequest();
+    requestDTO.enabled = true;
+    requestDTO.allowOverride = true;
+    HttpResponse response = restRequest().parameter("application", app1.getId())
+        .body(requestDTO).put();
+    assertResponseStatus(403, response);
+    assertThat(response.getBodyText()).isEqualTo(
+        String.format(CPE_MATCHING_OVERRIDING_DISABLED_ERROR_TEMPLATE, app1.getId(),
+            org1.getName()));
+  }
+
+  @Test
+  public void testUpdateCpeMatchingConfiguration_toOrganization_errorWhenParentDisallowsOverriding() throws Exception {
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization(org1);
+    cpeMatchingConfigurationDAO.insert(new CpeMatchingConfiguration(org1.getId(), false, false));
+    CpeMatchingConfigurationRequest requestDTO = new CpeMatchingConfigurationRequest();
+    requestDTO.enabled = true;
+    requestDTO.allowOverride = true;
+    HttpResponse response = restRequest().parameter("organization", org2.getId())
+        .body(requestDTO).put();
+    assertResponseStatus(403, response);
+    assertThat(response.getBodyText()).isEqualTo(
+        String.format(CPE_MATCHING_OVERRIDING_DISABLED_ERROR_TEMPLATE, org2.getId(),
+            org1.getName()));
   }
 
   @Test
@@ -127,7 +162,7 @@ public class CpeMatchingConfigurationResourceTest
     assertThat(actualRestResponse.enabled).isTrue();
     assertThat(actualRestResponse.allowOverride).isFalse();
     assertThat(actualRestResponse.inheritedFromOrganizationName).isNull();
-    assertThat(actualRestResponse.enabledInParent).isFalse();
+    assertThat(actualRestResponse.enabledInParent).isNull();
   }
 
   @Test
@@ -144,7 +179,7 @@ public class CpeMatchingConfigurationResourceTest
     assertThat(actualRestResponse.enabled).isTrue();
     assertThat(actualRestResponse.allowOverride).isFalse();
     assertThat(actualRestResponse.inheritedFromOrganizationName).isNull();
-    assertThat(actualRestResponse.enabledInParent).isFalse();
+    assertThat(actualRestResponse.enabledInParent).isNull();
   }
 
   @Test
@@ -164,17 +199,19 @@ public class CpeMatchingConfigurationResourceTest
     assertThat(actualRestResponse).isNotNull();
     assertThat(actualRestResponse.enabled).isTrue();
     assertThat(actualRestResponse.allowOverride).isFalse();
-    assertThat(actualRestResponse.inheritedFromOrganizationName).isEqualTo(root.getName());
+    assertThat(actualRestResponse.inheritedFromOrganizationName).isEqualTo(org1.getName());
     assertThat(actualRestResponse.enabledInParent).isTrue();
+    assertThat(actualRestResponse.inheritedFromOrganizationAllowOverride).isTrue();
 
     response = restRequest().parameter("organization", org1.getId()).get();
     assertResponseStatus(200, response);
     actualRestResponse = response.getBody(CpeMatchingConfigurationDTO.class);
     assertThat(actualRestResponse).isNotNull();
     assertThat(actualRestResponse.enabled).isTrue();
-    assertThat(actualRestResponse.allowOverride).isFalse();
-    assertThat(actualRestResponse.inheritedFromOrganizationName).isEqualTo(root.getName());
-    assertThat(actualRestResponse.enabledInParent).isTrue();
+    assertThat(actualRestResponse.allowOverride).isTrue();
+    assertThat(actualRestResponse.inheritedFromOrganizationName).isNull();
+    assertThat(actualRestResponse.enabledInParent).isNull();
+    assertThat(actualRestResponse.inheritedFromOrganizationAllowOverride).isNull();
 
     response = restRequest().parameter("organization", root.getId()).get();
     assertResponseStatus(200, response);
@@ -183,7 +220,8 @@ public class CpeMatchingConfigurationResourceTest
     assertThat(actualRestResponse.enabled).isTrue();
     assertThat(actualRestResponse.allowOverride).isFalse();
     assertThat(actualRestResponse.inheritedFromOrganizationName).isNull();
-    assertThat(actualRestResponse.enabledInParent).isFalse();
+    assertThat(actualRestResponse.enabledInParent).isNull();
+    assertThat(actualRestResponse.inheritedFromOrganizationAllowOverride).isNull();
   }
 
   @Test
@@ -200,5 +238,19 @@ public class CpeMatchingConfigurationResourceTest
     HttpResponse response = restRequest().parameter("application", "fakeApp").get();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Application with ID fakeApp does not exist.");
+  }
+
+  @Test
+  public void testGetCpeMatchingConfiguration_emptyConfigReturned() throws Exception {
+    Application app1 = tempEntity.newApplicationWithParent();
+    HttpResponse response = restRequest().parameter("application", app1.getId()).get();
+    assertResponseStatus(200, response);
+    CpeMatchingConfigurationDTO actualRestResponse = response.getBody(CpeMatchingConfigurationDTO.class);
+    assertThat(actualRestResponse).isNotNull();
+    assertThat(actualRestResponse.enabled).isNull();
+    assertThat(actualRestResponse.allowOverride).isNull();
+    assertThat(actualRestResponse.inheritedFromOrganizationName).isNull();
+    assertThat(actualRestResponse.enabledInParent).isNull();
+    assertThat(actualRestResponse.inheritedFromOrganizationAllowOverride).isNull();
   }
 }

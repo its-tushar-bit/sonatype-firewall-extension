@@ -26,5 +26,44 @@ public class CpeMatchingConfigurationDTO
   /**
    * Whether children (orgs and apps) are allowed to override the CPE matching status.
    */
-  public boolean allowOverride;
+  public Boolean allowOverride;
+
+  /**
+   * Nearest ancestor configuration indicating whether children (orgs and apps) are allowed to override the CPE
+   * matching status.
+   * An explicit false value found on any ancestor would signify that overriding is not allowed.
+   * A true or null value means overriding is permitted.
+   */
+  public Boolean inheritedFromOrganizationAllowOverride;
+
+  public static CpeMatchingConfigurationDTO forSelf(Boolean enabled, Boolean allowOverride) {
+    CpeMatchingConfigurationDTO dto = new CpeMatchingConfigurationDTO();
+    dto.enabled = enabled;
+    dto.allowOverride = allowOverride;
+    return dto;
+  }
+
+  public static CpeMatchingConfigurationDTO fromParent(
+      Boolean enabledInParent,
+      String inheritedFromOrganizationName,
+      Boolean inheritedFromOrganizationAllowOverride,
+      boolean isApplication)
+  {
+    CpeMatchingConfigurationDTO dto = new CpeMatchingConfigurationDTO();
+    dto.enabledInParent = enabledInParent;
+    dto.inheritedFromOrganizationName = inheritedFromOrganizationName;
+    dto.inheritedFromOrganizationAllowOverride = inheritedFromOrganizationAllowOverride;
+    dto.enabled = enabledInParent;
+    if (isApplication) {
+      dto.allowOverride = false;
+    }
+    else {
+      dto.allowOverride = inheritedFromOrganizationAllowOverride;
+    }
+    return dto;
+  }
+
+  public CpeMatchingConfigurationDTO() {
+    //for jackson
+  }
 }

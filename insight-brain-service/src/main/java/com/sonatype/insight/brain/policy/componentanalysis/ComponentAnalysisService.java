@@ -212,6 +212,7 @@ public class ComponentAnalysisService
   }
 
   private void sendEvaluationTelemetry(
+      final String scanId,
       final String applicationId,
       final String stageId,
       final ScanTriggerType scanTriggerType,
@@ -219,6 +220,7 @@ public class ComponentAnalysisService
       final String clientUserAgent)
   {
     TelemetryData telemetryData = telemetryUtils.buildComponentsAnalysisTelemetryData(
+        scanId,
         applicationId,
         stageId,
         scanTriggerType,
@@ -325,6 +327,7 @@ public class ComponentAnalysisService
         policyEvaluationPollingResult.setSubStatus(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE);
 
         sendEvaluationTelemetry(
+            scanId,
             app.getId(),
             stage.getStageTypeId(),
             scanTriggerType,

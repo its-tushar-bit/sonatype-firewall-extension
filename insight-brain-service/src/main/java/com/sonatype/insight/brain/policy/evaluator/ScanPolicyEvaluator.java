@@ -1211,6 +1211,7 @@ public class ScanPolicyEvaluator
 
   @VisibleForTesting
   void sendEvaluationTelemetry(
+      String scanId,
       String applicationId,
       String stageId,
       ScanTriggerType scanTriggerType,
@@ -1220,7 +1221,7 @@ public class ScanPolicyEvaluator
   {
     Map<String, Long> componentCounts = getComponentCounts(components);
     TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
-        applicationId, stageId, scanTriggerType, clientUserAgent, clientInstanceId,
+        scanId, applicationId, stageId, scanTriggerType, clientUserAgent, clientInstanceId,
         Collections.singletonMap("component_counts", componentCounts));
     telemetrySender.send(telemetryData);
   }
@@ -1410,8 +1411,7 @@ public class ScanPolicyEvaluator
       final VulnerabilitySignatureAnalysisDTO analysisDTO,
       final boolean skipAutoWaivers) throws IOException
   {
-
-    sendEvaluationTelemetry(application.getId(), stage.getStageTypeId(), scanTriggerType,
+    sendEvaluationTelemetry(scanId, application.getId(), stage.getStageTypeId(), scanTriggerType,
         reportComponentData.components,
         clientUserAgent, clientInstanceId);
 

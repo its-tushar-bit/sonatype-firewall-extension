@@ -295,6 +295,7 @@ public class IdeResource
     String instanceId = HdsClient.getClientInstanceId(req);
 
     TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
+        null,
         applicationPublicId,
         Stage.ID_DEVELOP,
         ScanTriggerType.IDE,
@@ -324,6 +325,7 @@ public class IdeResource
     String instanceId = HdsClient.getClientInstanceId(req);
 
     TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
+        null,
         applicationPublicId,
         Stage.ID_DEVELOP,
         ScanTriggerType.IDE,

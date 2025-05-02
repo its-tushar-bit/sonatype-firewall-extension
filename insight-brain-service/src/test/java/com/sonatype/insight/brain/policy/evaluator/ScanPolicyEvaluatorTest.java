@@ -2737,6 +2737,7 @@ public class ScanPolicyEvaluatorTest
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(mockTelemetrySender, times(2)).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("scan_id", scanId);
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
     expectedAttributes.put("real_application_id", application.getId());
     expectedAttributes.put("stage_id", Stage.ID_BUILD);
@@ -2748,12 +2749,13 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testSendEvaluationTelemetry_NoComponents() {
-    scanPolicyEvaluator.sendEvaluationTelemetry("applicationId", "stageId", ScanTriggerType.THIRD_PARTY,
+    scanPolicyEvaluator.sendEvaluationTelemetry("scanId", "applicationId", "stageId", ScanTriggerType.THIRD_PARTY,
         new ArrayList<>(), null, null);
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("scan_id", "scanId");
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate("applicationId"));
     expectedAttributes.put("real_application_id", "applicationId");
     expectedAttributes.put("stage_id", "stageId");
@@ -2765,12 +2767,13 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testSendEvaluationTelemetry_UA_InstanceId() {
     String userAgent = "client/1.0 (Java 1.8.0; Linux 5.14.30; Other info)";
-    scanPolicyEvaluator.sendEvaluationTelemetry("applicationId", "stageId", ScanTriggerType.THIRD_PARTY,
+    scanPolicyEvaluator.sendEvaluationTelemetry("scanId", "applicationId", "stageId", ScanTriggerType.THIRD_PARTY,
         new ArrayList<>(), userAgent, "instanceId");
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("scan_id", "scanId");
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate("applicationId"));
     expectedAttributes.put("real_application_id", "applicationId");
     expectedAttributes.put("stage_id", "stageId");
@@ -2795,12 +2798,13 @@ public class ScanPolicyEvaluatorTest
         ComponentIdentifier.FORMAT_RPM, 7, ComponentIdentifier.FORMAT_RUBYGEMS, 8
     };
 
-    scanPolicyEvaluator.sendEvaluationTelemetry("applicationId", "stageId", ScanTriggerType.CONTINUOUS_INTEGRATION,
-        components(formatsAndCounts), null, null);
+    scanPolicyEvaluator.sendEvaluationTelemetry("scanId", "applicationId", "stageId",
+        ScanTriggerType.CONTINUOUS_INTEGRATION, components(formatsAndCounts), null, null);
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("scan_id", "scanId");
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate("applicationId"));
     expectedAttributes.put("real_application_id", "applicationId");
     expectedAttributes.put("stage_id", "stageId");

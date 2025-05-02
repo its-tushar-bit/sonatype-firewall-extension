@@ -199,7 +199,7 @@ public class ComponentAnalysisServiceTest
     assertThat(policyEvaluationPollingResult.getSubStatus())
         .isEqualTo(PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE);
 
-    assertComponentAnalysisTelemetry(app.getId(), "28", "28");
+    assertComponentAnalysisTelemetry(scanId, app.getId(), "28", "28");
   }
 
   @Test
@@ -239,12 +239,14 @@ public class ComponentAnalysisServiceTest
   }
 
   private void assertComponentAnalysisTelemetry(
+      final String scanId,
       final String applicationId,
       final String numberOfMavenComponents,
       final String numberOfComponents
   )
   {
     Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("scan_id", scanId);
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
     expectedAttributes.put("real_application_id", applicationId);
     expectedAttributes.put("stage_id", Stage.ID_BUILD);

@@ -91,6 +91,7 @@ public final class TelemetryUtils
   }
 
   public TelemetryData buildComponentsAnalysisTelemetryData(
+      final String scanId,
       final String applicationId,
       final String stageId,
       final ScanTriggerType scanTriggerType,
@@ -100,6 +101,7 @@ public final class TelemetryUtils
   {
     return buildComponentCountsTelemetryData(
         COMPONENT_ANALYSIS_COMPONENT_COUNTS,
+        scanId,
         applicationId,
         stageId,
         scanTriggerType,
@@ -110,6 +112,7 @@ public final class TelemetryUtils
   }
 
   public TelemetryData buildApplicationEvaluationTelemetryData(
+      String scanId,
       String applicationId,
       String stageId,
       ScanTriggerType scanTriggerType,
@@ -119,6 +122,7 @@ public final class TelemetryUtils
   {
     return buildComponentCountsTelemetryData(
         APPLICATION_EVALUATION_COMPONENT_COUNTS,
+        scanId,
         applicationId,
         stageId,
         scanTriggerType,
@@ -131,6 +135,7 @@ public final class TelemetryUtils
   @SuppressWarnings("unchecked")
   private TelemetryData buildComponentCountsTelemetryData(
       TelemetryPurpose telemetryPurpose,
+      String scanId,
       String applicationId,
       String stageId,
       ScanTriggerType scanTriggerType,
@@ -142,6 +147,7 @@ public final class TelemetryUtils
     Map<String, Number> componentCounts = (Map<String, Number>) requestedAttributes.get("component_counts");
 
     Map<String, Object> attributes = new HashMap<>();
+    attributes.put("scan_id", scanId);
     attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
     includeRealApplicationId(attributes, applicationId);
     attributes.put("stage_id", stageId);

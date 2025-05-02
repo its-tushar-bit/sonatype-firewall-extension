@@ -91,9 +91,10 @@ public class TelemetryUtilsTest
   public void test_buildApplicationEvaluationTelemetryData_noComponents_noUA_noInstanceId() {
     // when:
     TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
-        "appId", "build", ScanTriggerType.CLI, null, null, new HashMap<>());
+        "scanId", "appId", "build", ScanTriggerType.CLI, null, null, new HashMap<>());
     // then:
     assertThat(telemetryData.getAttributes()).contains(
+        entry("scan_id", "scanId"),
         entry("application_id", HdsClientAnalytics.obfuscate("appId")),
         entry("stage_id", "build"),
         entry("scan_trigger_type", "CLI"),
@@ -108,10 +109,11 @@ public class TelemetryUtilsTest
   public void test_buildApplicationEvaluationTelemetryData_noComponents_noUA_noInstanceId_IEREnabled() {
     // When
     TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
-        "appId", "build", ScanTriggerType.CLI, null, null, new HashMap<>());
+        "scanId", "appId", "build", ScanTriggerType.CLI, null, null, new HashMap<>());
 
     // Then
     assertThat(telemetryData.getAttributes()).contains(
+        entry("scan_id", "scanId"),
         entry("application_id", HdsClientAnalytics.obfuscate("appId")),
         entry("real_application_id", "appId"),
         entry("stage_id", "build"),
@@ -127,9 +129,12 @@ public class TelemetryUtilsTest
   public void test_buildApplicationEvaluationTelemetryData_noComponents_invalidUA_noInstanceId() {
     // when:
     TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
-        "appId", "build", ScanTriggerType.CLI, "user agent", null, Collections.singletonMap("component_counts", null));
+        "scanId", "appId", "build", ScanTriggerType.CLI, "user agent", null,
+        Collections.singletonMap("component_counts", null));
+
     // then:
     assertThat(telemetryData.getAttributes()).contains(
+        entry("scan_id", "scanId"),
         entry("application_id", HdsClientAnalytics.obfuscate("appId")),
         entry("stage_id", "build"),
         entry("scan_trigger_type", "CLI"),
@@ -146,9 +151,10 @@ public class TelemetryUtilsTest
     String ua = "Sonatype_CLM_CI_Jenkins/3.13 (Java 1.8.0_201; Linux 5.4.144; Jenkins 2.319.2)";
     // when:
     TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
-        "appId", "build", ScanTriggerType.CLI, ua, "abc", Collections.singletonMap("component_counts", null));
+        "scanId", "appId", "build", ScanTriggerType.CLI, ua, "abc", Collections.singletonMap("component_counts", null));
     // then:
     assertThat(telemetryData.getAttributes()).contains(
+        entry("scan_id", "scanId"),
         entry("application_id", HdsClientAnalytics.obfuscate("appId")),
         entry("stage_id", "build"),
         entry("scan_trigger_type", "CLI"),
@@ -173,9 +179,10 @@ public class TelemetryUtilsTest
     map.put("npm", 2L);
     // when:
     TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
-        "appId", "build", ScanTriggerType.CLI, null, null, Collections.singletonMap("component_counts", map));
+        "scanId", "appId", "build", ScanTriggerType.CLI, null, null, Collections.singletonMap("component_counts", map));
     // then:
     assertThat(telemetryData.getAttributes()).contains(
+        entry("scan_id", "scanId"),
         entry("application_id", HdsClientAnalytics.obfuscate("appId")),
         entry("stage_id", "build"),
         entry("scan_trigger_type", "CLI"),
@@ -196,10 +203,11 @@ public class TelemetryUtilsTest
     componentCounts.put("npm", 10);
     // when:
     TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
-        "appId", "build", ScanTriggerType.CLI, null, null,
+        "scanId", "appId", "build", ScanTriggerType.CLI, null, null,
         Collections.singletonMap("component_counts", componentCounts));
     // then:
     assertThat(telemetryData.getAttributes()).contains(
+        entry("scan_id", "scanId"),
         entry("application_id", HdsClientAnalytics.obfuscate("appId")),
         entry("stage_id", "build"),
         entry("scan_trigger_type", "CLI"),
@@ -218,9 +226,12 @@ public class TelemetryUtilsTest
     environmentVariables.set("SONATYPE_INTERNAL_HOST_SYSTEM", "Docker");
     // when:
     TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
-        "appId", "build", ScanTriggerType.CLI, null, null, Collections.singletonMap("component_counts", null));
+        "scanId", "appId", "build", ScanTriggerType.CLI, null, null,
+        Collections.singletonMap("component_counts", null));
+
     // then:
     assertThat(telemetryData.getAttributes()).contains(
+        entry("scan_id", "scanId"),
         entry("application_id", HdsClientAnalytics.obfuscate("appId")),
         entry("stage_id", "build"),
         entry("scan_trigger_type", "CLI"),
@@ -236,10 +247,11 @@ public class TelemetryUtilsTest
     requestedAttributes.put("component_counts", null);
     // when:
     TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
-        "appId", "build", ScanTriggerType.CLI, null, null,
-        requestedAttributes);
+        null, "appId", "build", ScanTriggerType.CLI, null, null, requestedAttributes);
+
     // then:
     assertThat(telemetryData.getAttributes()).contains(
+        entry("scan_id", null),
         entry("application_id", HdsClientAnalytics.obfuscate("appId")),
         entry("stage_id", "build"),
         entry("scan_trigger_type", "CLI"),

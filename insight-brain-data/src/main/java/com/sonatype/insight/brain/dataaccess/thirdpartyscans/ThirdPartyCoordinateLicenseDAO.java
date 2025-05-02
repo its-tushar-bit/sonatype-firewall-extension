@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -48,6 +49,12 @@ public class ThirdPartyCoordinateLicenseDAO
     String sQuery = "SELECT entity FROM ThirdPartyCoordinateLicense entity" + //
         " WHERE entity.fileCoordinateId=?1";
     return getList(sQuery, fileCoordinateId);
+  }
+
+  public List<ThirdPartyCoordinateLicense> getByFileCoordinateIds(final Set<String> fileCoordinateIds) {
+    String sQuery = "SELECT entity FROM ThirdPartyCoordinateLicense entity" + //
+        " WHERE entity.fileCoordinateId IN (?1)";
+    return getList(sQuery, fileCoordinateIds);
   }
 
   public ThirdPartyCoordinateLicense getByFileCoordinateIdAndLicenseId(

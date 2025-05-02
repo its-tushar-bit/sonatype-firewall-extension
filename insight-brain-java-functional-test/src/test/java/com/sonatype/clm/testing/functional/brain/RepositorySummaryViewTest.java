@@ -28,6 +28,7 @@ import com.sonatype.clm.testing.functional.elements.PolicyTileList;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
@@ -104,7 +105,7 @@ public class RepositorySummaryViewTest
     breadcrumb.listItems().get(0).shouldHave(text("Root Organization"));
     breadcrumb.listItems().get(1).shouldHave(text("Repository Managers"));
     breadcrumb.listItems().get(2).shouldHave(text(repositoryManager.getName()));
-    breadcrumb.listItems().get(3).shouldHave(text("npm-proxy"));
+    breadcrumb.listItems().get(3).shouldHave(text("npm-proxy (npm-proxy)"));
 
     refreshOrOpen(RepositoriesSummaryPage.repositoryUrl(hostedRepository.getId()));
     waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(hostedRepository.getId()));
@@ -113,7 +114,7 @@ public class RepositorySummaryViewTest
     breadcrumb.listItems().get(0).shouldHave(text("Root Organization"));
     breadcrumb.listItems().get(1).shouldHave(text("Repository Managers"));
     breadcrumb.listItems().get(2).shouldHave(text(repositoryManager.getName()));
-    breadcrumb.listItems().get(3).shouldHave(text("npm-hosted"));
+    breadcrumb.listItems().get(3).shouldHave(text("npm-hosted (npm-hosted)"));
   }
 
   @Test
@@ -143,7 +144,10 @@ public class RepositorySummaryViewTest
     waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(repository.getId()));
 
     RepositoriesSummaryTile summaryTile = RepositoriesSummaryPage.summaryTile();
-    summaryTile.name().shouldBe(visible).shouldHave(text(repository.getName()));
+    
+    String repostioryPublicIdFormatType = 
+        repository.getName() + " (" + repository.getFormat() + "-" + repository.getRepositoryType() + ")";
+    summaryTile.name().shouldBe(visible).shouldHave(text(repostioryPublicIdFormatType));
 
     PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
     policyTile.shouldBe(visible);
@@ -182,6 +186,21 @@ public class RepositorySummaryViewTest
     assertThat(summarySection.policyName().input().getValue()).isEqualTo(inheritedFromRootOrgPolicies.get(0).getName());
 
     eyesWatcher.eyesCheck("repository policy view page");
+  }
+  
+  @Test
+  public void testRepositorySummaryView_veryLongRepositoryPublicIdTooltip() {
+    RepositoryManager repositoryManager = tempEntity
+        .newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
+    String veryLongRepositoryPublicId =
+        "veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLongPublicId";
+    Repository repository = tempEntity.newProxyRepository(repositoryManager, veryLongRepositoryPublicId,
+        "npm", true, true);
+    refreshOrOpen(RepositoriesSummaryPage.repositoryUrl(repository.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(repository.getId()));
+    RepositoriesSummaryTile summaryTile = RepositoriesSummaryPage.summaryTile();
+    summaryTile.public_id().hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text(veryLongRepositoryPublicId));
   }
 
   @Test

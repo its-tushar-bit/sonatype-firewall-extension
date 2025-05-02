@@ -21,6 +21,10 @@ public class RepositoriesSummaryTile
   public SelenideElement name() {
     return child("h1");
   }
+  
+  public SelenideElement public_id() {
+    return child(".iq-page-title__repository-public-id");
+  }
 
   public SelenideElement title() {
     return $(".nx-tile-header__subtitle");

@@ -226,6 +226,8 @@ describe('MenuBarStatefulBreadcrumb', () => {
           parentId: 'repositoryManagerOne',
           name: 'Repository',
           type: 'repository',
+          format: 'maven2',
+          repositoryType: 'proxy',
         },
         repositoryManagerOne: {
           parentId: 'REPOSITORY_CONTAINER_ID',
@@ -253,7 +255,12 @@ describe('MenuBarStatefulBreadcrumb', () => {
 
       renderComponent(stateWithRouterInRepoContainerPage);
 
-      const expectedBreadCrumbs = ['ROOT_ORGANIZATION_NAME', 'Repository Managers', 'Repo Manager Name', 'Repository'];
+      const expectedBreadCrumbs = [
+        'ROOT_ORGANIZATION_NAME',
+        'Repository Managers',
+        'Repo Manager Name',
+        'Repository (maven2-proxy)',
+      ];
 
       expectedBreadCrumbs.forEach((breadCrumbName) => {
         expect(screen.getByText(breadCrumbName)).toBeVisible();

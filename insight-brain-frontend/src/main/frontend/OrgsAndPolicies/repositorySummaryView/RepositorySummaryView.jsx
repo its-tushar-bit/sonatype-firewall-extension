@@ -5,7 +5,13 @@
  */
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { NxPageTitle, NxH1, NxFontAwesomeIcon, NxLoadWrapper } from '@sonatype/react-shared-components';
+import {
+  NxPageTitle,
+  NxH1,
+  NxFontAwesomeIcon,
+  NxLoadWrapper,
+  NxOverflowTooltip,
+} from '@sonatype/react-shared-components';
 import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import { selectLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
@@ -40,11 +46,16 @@ export default function RepositorySummaryView() {
       <div id="repository-page">
         <header>
           <NxPageTitle id="repositories-summary" className="iq-page-title">
-            <NxH1>
-              <span className="nx-icon">
+            <NxH1 className="iq-page-title__repository-format-type-container">
+              <span className="iq-page-title__icon-wrapper">
                 <NxFontAwesomeIcon icon={faDatabase} />
               </span>
-              <span>{repository.publicId}</span>
+              <NxOverflowTooltip placement="bottom">
+                <span className="iq-page-title__repository-public-id">{repository.publicId}</span>
+              </NxOverflowTooltip>
+              <span className="iq-page-title__repository-format-type">
+                &nbsp;({repository.format}-{repository.repositoryType})
+              </span>
             </NxH1>
             {!isHostedRepository && (
               <div className="nx-btn-bar">

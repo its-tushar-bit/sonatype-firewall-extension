@@ -188,6 +188,7 @@ describe('RepositorySummaryView', () => {
     renderComponent(preloadedState);
 
     expect(await screen.findByText('repository 1')).toBeVisible();
+    expect(await screen.findByText('(maven2-proxy)')).toBeVisible();
 
     expect(await screen.findByRole('button', { name: 'Policies' })).toBeVisible();
 
@@ -279,6 +280,7 @@ describe('RepositorySummaryView', () => {
     renderComponent(preloadedState);
 
     expect(await screen.findByText('repository 1')).toBeVisible();
+    expect(await screen.findByText('(maven2-proxy)')).toBeVisible();
     const actionButton = await screen.findByRole('button', { name: 'Actions' });
     expect(actionButton).toBeVisible();
   });
@@ -305,6 +307,7 @@ describe('RepositorySummaryView', () => {
     renderComponent(preloadedState);
 
     expect(await screen.findByText('repository 1')).toBeVisible();
+    expect(await screen.findByText('(maven2-hosted)')).toBeVisible();
     const actionButton = screen.queryByRole('button', { name: 'Actions' });
     expect(actionButton).toBeNull();
   });

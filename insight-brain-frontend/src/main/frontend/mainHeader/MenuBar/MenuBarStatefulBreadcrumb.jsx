@@ -93,7 +93,7 @@ const getBreadcrumb = (
   if (isRepository && ownersMap.hasOwnProperty(repositoryId)) {
     const displayedRepository = ownersMap[repositoryId];
     breadcrumb.unshift({
-      name: displayedRepository.name,
+      name: `${displayedRepository.name} (${displayedRepository.format}-${displayedRepository.repositoryType})`,
       href: uiRouterState.href(`management.view.repository`, { repositoryId: repositoryId }),
     });
   }

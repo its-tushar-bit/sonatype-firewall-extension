@@ -92,10 +92,10 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.mock.hds.HdsMockServer;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.ResearchType;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilitySeverity;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityWeakness;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityWeakness.CweId;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -1653,7 +1653,7 @@ public class ComponentDetailsTest
 
     SecurityVulnerabilityData securityVulnerabilityData = new SecurityVulnerabilityData(refId);
     securityVulnerabilityData.isAdvancedVulnerabilityDetection = true;
-    securityVulnerabilityData.researchType = ResearchType.DEEP_DIVE;
+    securityVulnerabilityData.researchType = SecurityVulnerabilityResearchType.DEEP_DIVE;
     securityVulnerabilityData.mainSeverity =
         new SecurityVulnerabilitySeverity("source-test", "source-test-label", 7.0f, "test/vector");
     securityVulnerabilityData.weakness = new SecurityVulnerabilityWeakness();

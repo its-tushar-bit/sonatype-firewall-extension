@@ -61,12 +61,12 @@ import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
-import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityResearchType;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;

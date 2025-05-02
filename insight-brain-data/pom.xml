@@ -143,6 +143,17 @@
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-vulnerability-model</artifactId>
+      <exclusions>
+        <exclusion>
+          <!-- unneeded cruft -->
+          <groupId>com.sonatype.data.commons</groupId>
+          <artifactId>vulnerability-renderer</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-test</artifactId>
       <scope>test</scope>
     </dependency>

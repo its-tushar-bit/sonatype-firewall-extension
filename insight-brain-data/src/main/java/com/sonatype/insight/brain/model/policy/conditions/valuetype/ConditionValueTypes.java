@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.model.policy.conditions.valuetype;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
@@ -17,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 public class ConditionValueTypes
 {
@@ -53,7 +55,7 @@ public class ConditionValueTypes
     ConditionValueTypes.vulnerabilityGroupDAO = vulnerabilityGroupDAO;
   }
 
-  public static Collection<ConditionValueType<?>> getAll(String ownerId) {
+  public static Collection<ConditionValueType<?>> getAll(String ownerId, final Set<LicensedFeature> features) {
     List<ConditionValueType<?>> allConditionValueTypes = new ArrayList<>();
     allConditionValueTypes.add(new AgeInDaysValueType());
     allConditionValueTypes.add(new ComponentCategoryValueType(componentCategoryDAO));
@@ -77,7 +79,7 @@ public class ConditionValueTypes
     allConditionValueTypes.add(new SecurityVulnerabilityCategoryValueType());
     allConditionValueTypes.add(new SecurityVulnerabilitySourceValueType());
     allConditionValueTypes.add(new SecurityVulnerabilityCweValueType());
-    allConditionValueTypes.add(new SecurityVulnerabilityResearchValueType());
+    allConditionValueTypes.add(new SecurityVulnerabilityResearchValueType(features));
     allConditionValueTypes.add(new IacControlValueType());
     allConditionValueTypes.add(new VulnerabilityGroupValueType(ownerId, ownerDAO, vulnerabilityGroupDAO));
     allConditionValueTypes.add(new SecurityVulnerabilityCustomDetailsCVSSVectorStringValueType());

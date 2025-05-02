@@ -20,9 +20,9 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.utils.RandomGenerator;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.ResearchType;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityCustomData;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilitySeverity;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
 
 import com.google.common.collect.ImmutableList;
 
@@ -58,7 +58,7 @@ public final class ComponentFeedbackHelper
       final String refId,
       final String description,
       final Float mainCvssScore,
-      final ResearchType researchType)
+      final SecurityVulnerabilityResearchType researchType)
   {
     return generateSecurityVulnerabilityData(refId, description, mainCvssScore, null, researchType);
   }
@@ -68,7 +68,7 @@ public final class ComponentFeedbackHelper
       final String description,
       final Float mainCvssScore,
       final Float customCvssScore,
-      final ResearchType researchType)
+      final SecurityVulnerabilityResearchType researchType)
   {
     final SecurityVulnerabilityData securityVulnerabilityData = new SecurityVulnerabilityData(refId);
     securityVulnerabilityData.mainSeverity = new SecurityVulnerabilitySeverity();

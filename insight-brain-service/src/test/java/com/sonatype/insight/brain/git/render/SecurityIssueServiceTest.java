@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.ResearchType;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.ImmutableList;
@@ -34,8 +34,8 @@ import static com.sonatype.insight.brain.git.render.ComponentFeedbackHelper.gene
 import static com.sonatype.insight.brain.git.render.model.MDImages.SONATYPE_DEEP_DIVE_TAG;
 import static com.sonatype.insight.brain.git.render.model.MDImages.SONATYPE_FAST_TRACK_TAG;
 import static com.sonatype.insight.brain.model.OwnerType.APPLICATION;
-import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.ResearchType.DEEP_DIVE;
-import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.ResearchType.FAST_TRACK;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.DEEP_DIVE;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.FAST_TRACK;
 import static com.sonatype.nexus.scm.SourceControlProvider.AZURE;
 import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
@@ -411,7 +411,7 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
       final String refId,
       final String description,
       final float cvssCcore,
-      final ResearchType researchType)
+      final SecurityVulnerabilityResearchType researchType)
   {
     final SecurityVulnerabilityData securityVulnerabilityData = generateSecurityVulnerabilityData(
         refId,

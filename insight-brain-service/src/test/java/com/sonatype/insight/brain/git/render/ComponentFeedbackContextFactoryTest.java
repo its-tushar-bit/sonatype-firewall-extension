@@ -22,9 +22,9 @@ import com.sonatype.insight.brain.git.render.model.SeverityInfo;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.ResearchType;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityCustomData;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilitySeverity;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.ImmutableList;
@@ -45,8 +45,8 @@ import static com.sonatype.insight.brain.git.render.UTMSourceUtil.maybeAppendUTM
 import static com.sonatype.insight.brain.git.render.model.MDImages.*;
 import static com.sonatype.insight.brain.model.OwnerType.APPLICATION;
 import static com.sonatype.insight.brain.utils.TemplateHelper.assertRenderedOutput;
-import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.ResearchType.DEEP_DIVE;
-import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.ResearchType.FAST_TRACK;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.DEEP_DIVE;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.FAST_TRACK;
 import static com.sonatype.nexus.scm.SourceControlProvider.AZURE;
 import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
@@ -515,7 +515,7 @@ public class ComponentFeedbackContextFactoryTest
 
   private static SecurityVulnerabilityData generateVulnData(
       final String refId,
-      final ResearchType researchType,
+      final SecurityVulnerabilityResearchType researchType,
       final float cvssScore)
   {
     final SecurityVulnerabilityData securityVulnerabilityData = new SecurityVulnerabilityData();

@@ -102,7 +102,7 @@ public class ApiFirewallResource
 
   static final String REPOSITORY_MANAGERS_PATH = "repositoryManagers";
 
-  static final String SWAGGER_UI_API_LABEL = "Malware Defense";
+  static final String SWAGGER_UI_API_LABEL = "Firewall";
 
   private static final String REPOSITORIES_PATH = "repositories";
 

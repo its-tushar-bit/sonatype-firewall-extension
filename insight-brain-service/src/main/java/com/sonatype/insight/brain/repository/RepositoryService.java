@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.repository;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -55,6 +57,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreatsAdapter;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
@@ -107,6 +110,8 @@ public class RepositoryService
 
   private final ProprietaryComponentNameDetector proprietaryComponentNameDetector;
 
+  private final OrganizationService organizationService;
+
   private final ClusterLockManager clusterLockManager;
 
   private final ThreadPoolExecutor reevalExecutor;
@@ -123,6 +128,7 @@ public class RepositoryService
       ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO,
       PolicyDAO policyDAO,
       OwnerDAO ownerDAO,
+      OrganizationService organizationService,
       final ClusterLockManager clusterLockManager,
       ShutdownHandler shutdownHandler)
   {
@@ -136,6 +142,7 @@ public class RepositoryService
     this.proprietaryComponentNamePatternDAO = proprietaryComponentNamePatternDAO;
     this.policyDAO = policyDAO;
     this.ownerDAO = ownerDAO;
+    this.organizationService = organizationService;
     this.clusterLockManager = clusterLockManager;
     reevalExecutor = createReevaluationExecutor();
     shutdownHandler.add(() -> reevalExecutor.getActiveCount() != 0 || !reevalExecutor.getQueue().isEmpty());
@@ -260,9 +267,29 @@ public class RepositoryService
     return executor;
   }
 
+  public void delete(Repository repository) {
+    if (repository.getRelatedOrganizationId() != null) {
+      try {
+        organizationService.deleteOrganizationNoAuthz(repository.getRelatedOrganizationId());
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+    repositoryDAO.delete(repository);
+  }
+
   @Authorize(permission = Permission.WRITE)
-  void deleteRepository(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
+  public void deleteRepository(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
+    if (repository.getRelatedOrganizationId() != null) {
+      try {
+        organizationService.deleteOrganizationNoAuthz(repository.getRelatedOrganizationId());
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
     repositoryDAO.delete(repository);
     AuditData.get().setData("repositoryManagerInstanceId",
         repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId());

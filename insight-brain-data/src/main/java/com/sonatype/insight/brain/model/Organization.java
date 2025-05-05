@@ -68,6 +68,12 @@ public class Organization extends Nameable
   @Column(name = "allow_artifactory_connection_override")
   private boolean allowArtifactoryConnectionOverride = true;
 
+  @Column(name = "related_repository_id")
+  private String relatedRepositoryId;
+
+  @Column(name = "related_repository_manager_id")
+  private String relatedRepositoryManagerId;
+
   public Organization() {
   }
 
@@ -164,6 +170,22 @@ public class Organization extends Nameable
 
   public void setAllowArtifactoryConnectionOverride(boolean allowArtifactoryConnectionOverride) {
     this.allowArtifactoryConnectionOverride = allowArtifactoryConnectionOverride;
+  }
+
+  public String getRelatedRepositoryId() {
+    return relatedRepositoryId;
+  }
+
+  public void setRelatedRepositoryId(final String relatedRepositoryId) {
+    this.relatedRepositoryId = relatedRepositoryId;
+  }
+
+  public String getRelatedRepositoryManagerId() {
+    return relatedRepositoryManagerId;
+  }
+
+  public void setRelatedRepositoryManagerId(final String relatedRepositoryManagerId) {
+    this.relatedRepositoryManagerId = relatedRepositoryManagerId;
   }
 
   @Override

@@ -61,6 +61,7 @@ import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogg
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.repository.RequestSafeComponentsMetricEventService;
 import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
 import com.sonatype.insight.brain.repository.component.QuarantinedComponentAccessManager;
@@ -118,6 +119,8 @@ public abstract class AbstractRepositoryService
 
   private final FirewallIgnorePatternService firewallIgnorePatternService;
 
+  private final RepositoryService repositoryService;
+
   static final String REPOSITORY_COMPONENT_REQUESTED_VERSION_COUNT = "repository_component_requested_version_count";
 
   static final String REPOSITORY_COMPONENT_POLICY_COMPLIANT_VERSION_COUNT =
@@ -132,21 +135,22 @@ public abstract class AbstractRepositoryService
 
   @Inject
   public AbstractRepositoryService(
-      RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-      ProprietaryComponentNameDetector proprietaryComponentNameDetector,
-      ProductLicense productLicense,
-      PolicyViolationLoggerFactory policyViolationLoggerFactory,
-      LicensedFeature requiredFeature,
-      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
-      DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
-      FirewallQuarantineHdsClient quarantineHdsClient,
-      TelemetrySender telemetrySender,
-      RepositoryManagerDAO repositoryManagerDAO,
-      RepositoryDAO repositoryDAO,
-      RepositoryComponentDAO repositoryComponentDAO,
-      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
-      FirewallIgnorePatternService firewallIgnorePatternService,
-      RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService)
+          RepositoryPolicyEvaluator repositoryPolicyEvaluator,
+          ProprietaryComponentNameDetector proprietaryComponentNameDetector,
+          ProductLicense productLicense,
+          PolicyViolationLoggerFactory policyViolationLoggerFactory,
+          LicensedFeature requiredFeature,
+          RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
+          DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
+          FirewallQuarantineHdsClient quarantineHdsClient,
+          TelemetrySender telemetrySender,
+          RepositoryManagerDAO repositoryManagerDAO,
+          RepositoryDAO repositoryDAO,
+          RepositoryComponentDAO repositoryComponentDAO,
+          RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+          FirewallIgnorePatternService firewallIgnorePatternService,
+          RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService,
+          RepositoryService repositoryService)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.proprietaryComponentNameDetector = proprietaryComponentNameDetector;
@@ -163,6 +167,7 @@ public abstract class AbstractRepositoryService
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.firewallIgnorePatternService = firewallIgnorePatternService;
     this.requestSafeComponentsMetricEventService = requestSafeComponentsMetricEventService;
+    this.repositoryService = repositoryService;
   }
 
   protected void checkLicenseFeature() {
@@ -1220,11 +1225,9 @@ public abstract class AbstractRepositoryService
 
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(
         repositoryManagerInstanceId, repositoryPublicId);
-
     if (repository != null) {
       checkEvaluateComponentPermission(repository);
-      repositoryDAO.delete(repository);
-
+      repositoryService.delete(repository);
       log.info("Deleted repository {}:{} ({})", repositoryManagerInstanceId, repositoryPublicId, repository.getId());
     }
     else {

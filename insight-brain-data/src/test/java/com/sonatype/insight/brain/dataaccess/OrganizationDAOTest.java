@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -61,7 +62,9 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
@@ -230,10 +233,77 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
   public void testGetAll() {
     // Create a few orgs
     int orgCount = 3;
-    tempEntity.newOrganizations(orgCount);
 
-    // getAll should return orgCount + 2, to account for org created by AbstractDbDAOTest and one for the root org
-    assertThat(dao.getAll()).hasSize(orgCount + 2);
+    tempEntity.newOrganizations(orgCount);
+    tempEntity.newOrganizationWithRepositoryManager("org-with-repo-manager");
+
+    List<Organization> orgs = dao.getAll();
+
+    // The getAll method should have size: orgCount + 3
+    // 1. One for the organization with a related repository manager.
+    // 2. One for organization created by AbstractDbDAOTest.
+    // 3. One for the root organization.
+    assertThat(orgs).hasSize(orgCount + 3);
+    assertThat(orgs).extracting(Organization::getName)
+        .contains("org-with-repo-manager");
+  }
+
+  @Test
+  public void testGetAllWithoutRelatedRepositories() {
+    // Create a few orgs
+    int orgCount = 3;
+
+    tempEntity.newOrganizations(orgCount);
+    tempEntity.newOrganizationWithRepositoryManager("org-with-repo");
+
+    List<Organization> orgs = dao.getAllWithoutRelatedRepositories();
+
+    // getAllWithoutRelatedRepositories should have size: orgCount + 2
+    // 1. One for the organization created by AbstractDbDAOTest.
+    // 2. One for the root organization.
+    assertThat(orgs).hasSize(orgCount + 2);
+    assertThat(orgs).extracting(Organization::getName)
+        .doesNotContain("org-with-repo");
+    assertThat(orgs).extracting(Organization::getRelatedRepositoryManagerId)
+        .allMatch(Objects::isNull);
+    assertThat(orgs).extracting(Organization::getRelatedRepositoryId)
+        .allMatch(Objects::isNull);
+  }
+
+  @Test
+  public void testGetByRelatedRepositoryManagerId() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    Organization org1 = tempEntity.newOrganization("org1");
+    Organization org2 = tempEntity.newOrganization("org2");
+    tempEntity.newOrganization("org3");
+    org1.setRelatedRepositoryManagerId(repositoryManager.getId());
+    org2.setRelatedRepositoryManagerId(repositoryManager.getId());
+    dao.update(org1);
+    dao.update(org2);
+
+    List<Organization> result = dao.getByRelatedRepositoryManagerId(repositoryManager.getId());
+
+    assertThat(result).extracting(Organization::getId).containsExactly(org1.getId(), org2.getId());
+  }
+
+  @Test
+  public void testGetByRelatedRepositoryId() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "repository");
+
+    Organization org1 = tempEntity.newOrganization("org1");
+    Organization org2 = tempEntity.newOrganization("org2");
+    tempEntity.newOrganization("org3");
+
+    org1.setRelatedRepositoryId(repository.getId());
+    org2.setRelatedRepositoryId(repository.getId());
+
+    dao.update(org1);
+    dao.update(org2);
+
+    List<Organization> result = dao.getByRelatedRepositoryId(repository.getId());
+    assertThat(result).extracting(Organization::getId).containsExactly(org1.getId(), org2.getId());
   }
 
   @Test
@@ -256,8 +326,24 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     Organization org1 = tempEntity.newOrganization("org1");
     tempEntity.newOrganization("org2");
     Organization org3 = tempEntity.newOrganization("org3");
+    Organization org4 = tempEntity.newOrganizationWithRepositoryManager("org-with-repo-manager");
 
-    List<Organization> orgs = dao.getByNames(Sets.newHashSet(org3.getName(), org1.getName()));
+    List<Organization> orgs = dao.getByNames(
+        Sets.newHashSet(org1.getName(), org3.getName(), org4.getName())
+    );
+    assertThat(orgs).extracting(Organization::getId).containsExactly(org4.getId(), org1.getId(), org3.getId());
+  }
+
+  @Test
+  public void testGetByNamesAndWithoutRelatedRepositories() {
+    Organization org1 = tempEntity.newOrganization("org1");
+    tempEntity.newOrganization("org2");
+    Organization org3 = tempEntity.newOrganization("org3");
+    Organization org4 = tempEntity.newOrganizationWithRepositoryManager("org-with-repo-manager");
+
+    List<Organization> orgs = dao.getByNamesAndWithoutRelatedRepositories(
+        Sets.newHashSet(org3.getName(), org1.getName(), org4.getName())
+    );
     assertThat(orgs).extracting(Organization::getId).containsExactly(org1.getId(), org3.getId());
   }
 
@@ -819,10 +905,33 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
   }
 
   @Test
+  public void testNewSearchIndexChange_WithRelatedRepositoryManagerOrRepository() {
+    Organization orgWithRepoManager = tempEntity.newOrganizationWithRepositoryManager("org-with-repo-manager");
+    SearchIndexChange result = dao.newSearchIndexChange(orgWithRepoManager);
+    assertThat(result).isNull();
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "repository");
+    Organization orgWithRepo = tempEntity.newOrganization("org-with-repo");
+    orgWithRepo.setRelatedRepositoryId(repository.getId());
+    dao.update(orgWithRepo);
+
+    result = dao.newSearchIndexChange(orgWithRepo);
+    assertThat(result).isNull();
+
+    Organization orgWithoutRepo = tempEntity.newOrganization("org-without-repo");
+    result = dao.newSearchIndexChange(orgWithoutRepo);
+    assertThat(result).isNotNull();
+    assertThat(result.getChangeType()).isEqualTo(ChangeType.ORGANIZATION);
+    assertThat(result.getChangeData()).isEqualTo(orgWithoutRepo.getId());
+  }
+
+  @Test
   public void testCRUD_RecordSearchIndexChange() {
     systemConfigurationPropertyDAO
         .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
     Organization org = tempEntity.newOrganization();
+    tempEntity.newOrganizationWithRepositoryManager("org-with-repo-man");
 
     List<SearchIndexChange> searchIndexChanges = searchIndexChangeDAO.getAll();
     assertThat(searchIndexChanges).hasSize(1);

@@ -114,13 +114,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
-import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.*;
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
@@ -867,7 +861,6 @@ public class TemporaryEntity
     // - PolicyWaiver: cascaded from Policy
     // - PolicyWaiverRequest: cascaded from Policy
     // - ProprietaryComponentNamePattern: cascaded from Repository
-    // - Repository: cascaded from RepositoryManager
     // - RepositoryComponent: cascaded from Repository
     // - RepositoryMigration: cascaded from Repository
     // - RepositoryPolicyViolation: cascaded from Repository
@@ -929,6 +922,7 @@ public class TemporaryEntity
       delete(tagDAO.getAll(), tagDAO);
       delete(licenseThreatGroupDAO.getAll(), licenseThreatGroupDAO);
       delete(policyMonitoringDAO.getAll(), policyMonitoringDAO);
+      delete(repositoryDAO.getAll(), repositoryDAO);
       delete(repositoryManagerDAO.getAll(), repositoryManagerDAO);
       delete(webhookDAO.getAll(), webhookDAO);
       delete(policyViolationAggregationDAO.getAll(), policyViolationAggregationDAO);
@@ -1177,6 +1171,20 @@ public class TemporaryEntity
       org.setParentOrganizationId(parentOrg.getId());
     }
     orgDAO.insert(org);
+    return org;
+  }
+
+  public Organization newOrganizationWithRepositoryManager(String name) {
+    Organization org = new Organization(name);
+    RepositoryManager repositoryManager = newRepositoryManager();
+    Repository repository = newRepository(repositoryManager);
+    org.setRelatedRepositoryId(repository.getId());
+    org.setRelatedRepositoryManagerId(repositoryManager.getId());
+    orgDAO.insert(org);
+    repositoryManager.setRelatedOrganizationId(org.getId());
+    repositoryManagerDAO.update(repositoryManager);
+    repository.setRelatedOrganizationId(org.getId());
+    repositoryDAO.update(repository);
     return org;
   }
 

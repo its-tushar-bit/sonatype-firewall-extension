@@ -77,13 +77,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
-import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.*;
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
@@ -220,12 +214,14 @@ public class TestDAOFactory
     ThirdPartyFileDAO thirdPartyFileDAO = createThirdPartyFileDAO();
     AutoPolicyWaiverDAO autoPolicyWaiverDAO = createAutoPolicyWaiverDAO();
     CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO = createCpeMatchingConfigurationDAO();
+    OrganizationDAO organizationDAO = createOrganizationDAO();
     return new ApplicationDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager, sourceControlDAOProvider,
         sourceControlEventDAO, sourceControlPullRequestResultDAO, policyViolationDAO, policyEvaluationDAO,
         licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider, ownerDAOProvider, applicationTagDAO,
         applicationComponentDAOProvider, proprietaryConfigDAO, innerSourceComponentDAO, membershipMappingDAO,
         policyViolationAggregationDAO, repositoryConnectionDAO, sourceControlDefaultBranchCommitHistoryDAO,
-        sastScanDAO, thirdPartySbomMetadataDAO, thirdPartyFileDAO, autoPolicyWaiverDAO, cpeMatchingConfigurationDAO);
+        sastScanDAO, thirdPartySbomMetadataDAO, thirdPartyFileDAO, autoPolicyWaiverDAO, cpeMatchingConfigurationDAO,
+            organizationDAO);
   }
 
   @Override
@@ -729,10 +725,18 @@ public class TestDAOFactory
   }
 
   @Override
+  public RepositoryContainerDAO createRepositoryContainerDAO() {
+    OrganizationDAO organizationDAO = createOrganizationDAO();
+    return new RepositoryContainerDAO(dataStoreProvider.getOperationalDataStore(), organizationDAO);
+  }
+
+  @Override
   public RepositoryManagerDAO createRepositoryManagerDAO() {
     RepositoryDAO repositoryDAO = createRepositoryDAO();
     Provider<OwnerDAO> ownerDAOProvider = this::createOwnerDAO;
-    return new RepositoryManagerDAO(dataStoreProvider.getOperationalDataStore(), repositoryDAO, ownerDAOProvider);
+    return new RepositoryManagerDAO(
+            dataStoreProvider.getOperationalDataStore(), repositoryDAO, ownerDAOProvider
+    );
   }
 
   @Override

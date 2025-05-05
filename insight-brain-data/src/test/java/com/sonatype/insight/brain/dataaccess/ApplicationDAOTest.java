@@ -191,8 +191,20 @@ public class ApplicationDAOTest
     int appCount = 3;
     tempEntity.newApplications(organization.getId(), appCount);
 
-    // getAll should return appCount + 1, to account for app created by AbstractDbDAOTest
-    assertThat(applicationDAO.getAll()).hasSize(appCount + 1);
+    // Create an app with a related repository manager
+    Organization orgWithRepoManager = tempEntity.newOrganizationWithRepositoryManager("org-with-repo-manager");    
+    tempEntity.newApplications(orgWithRepoManager.getId(), 1);
+
+    List<Application> apps = applicationDAO.getAll();
+
+    // getAll should return appCount + 2, accounting for:
+    // 1. The app created by AbstractDbDAOTest.
+    // 2. The app created with a related repository manager.
+    assertThat(apps).hasSize(appCount + 2);
+    assertThat(
+      apps.stream()
+        .anyMatch(app -> app.getOrganizationId().equals(orgWithRepoManager.getId()))
+    ).isTrue();
   }
 
   @Test
@@ -213,6 +225,26 @@ public class ApplicationDAOTest
             "Application Z1"
         )
     );
+  }
+
+  @Test
+  public void testGetAllWithoutRelatedRepositories() {
+    // Create an app without a related repository manager
+    tempEntity.newApplications(organization.getId(), 1);
+
+    // Create an app with both a related repository manager and repository
+    Organization orgWithRelatedRepo = tempEntity.newOrganizationWithRepositoryManager("org-with-repo");
+    tempEntity.newApplications(orgWithRelatedRepo.getId(), 1);
+
+    List<Application> appsWithoutRelatedRepositories = applicationDAO.getAllWithoutRelatedRepositories();
+
+    // The getAllWithoutRelatedRepositories method should return 2 applications:
+    // 1. The application created by AbstractDbDAOTest.
+    // 2. The application without a related repository manager.
+    assertThat(appsWithoutRelatedRepositories).hasSize(2);
+    for (Application app : appsWithoutRelatedRepositories) {
+      assertThat(app.getOrganizationId()).isNotEqualTo(orgWithRelatedRepo.getId());
+    }
   }
 
   @Test
@@ -673,6 +705,23 @@ public class ApplicationDAOTest
   }
 
   @Test
+  public void testNewSearchIndexChange_WithRelatedRepositoryManagerOrRepository() {
+    Organization orgWithRepoManager = tempEntity.newOrganizationWithRepositoryManager("org-with-repo-manager");
+    Application appWithRepoManager = tempEntity.newApplication(orgWithRepoManager.getId());
+
+    Organization orgWithoutRepo = tempEntity.newOrganization("org-without-repo");
+    Application appWithoutRepo = tempEntity.newApplication(orgWithoutRepo.getId());
+
+    SearchIndexChange result = applicationDAO.newSearchIndexChange(appWithRepoManager);
+    assertThat(result).isNull();
+
+    result = applicationDAO.newSearchIndexChange(appWithoutRepo);
+    assertThat(result).isNotNull();
+    assertThat(result.getChangeType()).isEqualTo(ChangeType.APPLICATION);
+    assertThat(result.getChangeData()).isEqualTo(appWithoutRepo.getId());
+  }
+
+  @Test
   public void testCRUD_RecordSearchIndexChange() {
     SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
     systemConfigurationPropertyDAO.update(
@@ -682,6 +731,9 @@ public class ApplicationDAOTest
     searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
 
     Application app = tempEntity.newApplication(org.getId());
+
+    Organization orgWithRepo = tempEntity.newOrganizationWithRepositoryManager("org-with-repo-man");
+    tempEntity.newApplication(orgWithRepo.getId());
 
     List<SearchIndexChange> searchIndexChanges = searchIndexChangeDAO.getAll();
     assertThat(searchIndexChanges).hasSize(1);

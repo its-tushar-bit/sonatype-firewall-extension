@@ -121,6 +121,8 @@ public class ApiOrganizationServiceTest
     Organization organization = tempEntity.newOrganization();
     Tag tag = tempEntity.newTag(organization.getId());
 
+    tempEntity.newOrganizationWithRepositoryManager("org-with-repo-man");
+
     ApiOrganizationListDTO apiOrganizationListDTO =
         apiOrganizationService.getOrganizations(Collections.singleton(organization.getName()));
 
@@ -136,6 +138,8 @@ public class ApiOrganizationServiceTest
     tempEntity.newOrganization("org2");
     Organization org3 = tempEntity.newOrganization("org3");
     Tag tag3 = tempEntity.newTag(org3.getId());
+
+    tempEntity.newOrganizationWithRepositoryManager("org-with-repo-man");
 
     ApiOrganizationListDTO apiOrganizationListDTO =
         apiOrganizationService.getOrganizations(Sets.newHashSet(org3.getName(), org1.getName()));
@@ -165,6 +169,26 @@ public class ApiOrganizationServiceTest
     assertThat(apiOrganizationListDTO).isNotNull();
     assertThat(apiOrganizationListDTO.organizations).hasSize(1);
     assertOrganizationData(apiOrganizationListDTO.organizations.get(0), organization, Collections.singletonList(tag));
+  }
+
+  @Test
+  public void testGetOrganizations_ExcludeRepositoryManagerAndRelatedRepository() {
+    tempEntity.newOrganizationWithRepositoryManager("org-exclude");
+    Organization organization = tempEntity.newOrganization("test1");
+    ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationService
+        .getOrganizations(Collections.emptySet());
+
+    assertThat(apiOrganizationListDTO).isNotNull();
+    assertThat(apiOrganizationListDTO.organizations).hasSize(2);
+    assertThat(apiOrganizationListDTO.organizations.get(0).id).isEqualTo("ROOT_ORGANIZATION_ID");
+    assertThat(apiOrganizationListDTO.organizations.get(1).id).isEqualTo(organization.getId());
+    assertThat(apiOrganizationListDTO.organizations)
+        .noneMatch(org -> "org-exclude".equals(org.name));
+
+    apiOrganizationListDTO = apiOrganizationService
+        .getOrganizations(Sets.newHashSet("org-exclude", organization.getName()));
+    assertThat(apiOrganizationListDTO.organizations).hasSize(1);
+    assertThat(apiOrganizationListDTO.organizations.get(0).id).isEqualTo(organization.getId());
   }
 
   @Test

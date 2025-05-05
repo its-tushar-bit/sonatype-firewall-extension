@@ -191,7 +191,22 @@ public class OrganizationServiceTest
         new OrganizationService(null, null, null, organizationDAO, applicationDAO, null, policyViolationLoggerFactory,
             null, mockOwnerMaintenanceTelemetryCreator);
 
+    tempEntity.newOrganizationWithRepositoryManager("org-with-repo-man");
+
     List<Organization> orgs = organizationService.getAll();
+    assertThat(orgs).hasSize(2);
+  }
+
+  @Test
+  public void testGetAllWithoutRelatedRepositories() {
+    OrganizationService organizationService =
+            new OrganizationService(
+                    null, null, null, organizationDAO, applicationDAO, null, policyViolationLoggerFactory,
+                    null, mockOwnerMaintenanceTelemetryCreator);
+
+    tempEntity.newOrganizationWithRepositoryManager("org-with-repo-man");
+
+    List<Organization> orgs = organizationService.getAllWithoutRelatedRepositories();
     assertThat(orgs).hasSize(1);
   }
 

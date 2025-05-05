@@ -53,7 +53,7 @@ public class ApiOrganizationService
   public ApiOrganizationListDTO getOrganizations(Set<String> orgNames) {
     Map<String, List<Tag>> orgTagMap = new HashMap<>();
     List<Organization> organizations =
-        orgNames.isEmpty() ? organizationService.getAll() : getOrganizationsByNames(orgNames);
+        orgNames.isEmpty() ? organizationService.getAllWithoutRelatedRepositories() : getOrganizationsByNames(orgNames);
     for (Organization organization : organizations) {
       List<Tag> tags = tagDAO.getByOrganizationId(organization.getId());
       orgTagMap.put(organization.getId(), tags);
@@ -71,7 +71,7 @@ public class ApiOrganizationService
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
   List<Organization> getOrganizationsByNames(Set<String> orgNames) {
-    return organizationDAO.getByNames(orgNames);
+    return organizationDAO.getByNamesAndWithoutRelatedRepositories(orgNames);
   }
 
   /**

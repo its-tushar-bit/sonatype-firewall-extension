@@ -50,6 +50,7 @@
     <class>com.sonatype.insight.brain.model.repository.Repository</class>
     <class>com.sonatype.insight.brain.model.repository.RepositoryComponent</class>
     <class>com.sonatype.insight.brain.model.repository.RepositoryManager</class>
+    <class>com.sonatype.insight.brain.model.repository.RepositoryContainer</class>
     <class>com.sonatype.insight.brain.model.security.MembershipMapping</class>
     <class>com.sonatype.insight.brain.model.security.Role</class>
     <class>com.sonatype.insight.brain.model.security.RolePermission</class>

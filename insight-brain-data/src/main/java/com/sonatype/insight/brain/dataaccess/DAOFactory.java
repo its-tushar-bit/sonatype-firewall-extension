@@ -81,6 +81,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryContainerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
@@ -299,6 +300,8 @@ public interface DAOFactory
   RepositoryConnectionDAO createRepositoryConnectionDAO();
 
   RepositoryDAO createRepositoryDAO();
+
+  RepositoryContainerDAO createRepositoryContainerDAO();
 
   RepositoryManagerDAO createRepositoryManagerDAO();
 

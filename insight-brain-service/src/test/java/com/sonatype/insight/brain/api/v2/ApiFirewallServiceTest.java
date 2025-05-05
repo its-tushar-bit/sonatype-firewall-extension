@@ -45,7 +45,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField;
@@ -59,6 +61,8 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.integration.repository.RepositoryService;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
@@ -141,6 +145,12 @@ public class ApiFirewallServiceTest
 
   @Inject
   private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
 
   @Mock
   private RepositoryService repositoryServiceMock;
@@ -1609,6 +1619,37 @@ public class ApiFirewallServiceTest
     apiFirewallService.deleteRepositoryManager(repositoryManager.getId());
 
     assertThat(repositoryManagerDAO.getById(repositoryManager.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteRepositoryManager_WithRelatedOrgAndApp() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "repo");
+
+    Organization repoManOrg = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplication(repoManOrg.getId());
+
+    Organization repoOrg = tempEntity.newOrganization();
+    Application app2 = tempEntity.newApplication(repoOrg.getId());
+
+    repositoryManager.setRelatedOrganizationId(repoManOrg.getId());
+    repositoryManagerDAO.update(repositoryManager);
+
+    repository.setRelatedOrganizationId(repoOrg.getId());
+    repositoryDAO.update(repository);
+
+    // Sanity check
+    assertThat(repositoryManager.getRelatedOrganizationId()).isNotNull();
+    assertThat(repository.getRelatedOrganizationId()).isNotNull();
+
+    apiFirewallService.deleteRepositoryManager(repositoryManager.getId());
+
+    assertThat(repositoryManagerDAO.getById(repositoryManager.getId())).isNull();
+    assertThat(repositoryDAO.getById(repository.getId())).isNull();
+    assertThat(organizationDAO.getById(repoManOrg.getId())).isNull();
+    assertThat(organizationDAO.getById(repoOrg.getId())).isNull();
+    assertThat(applicationDAO.getById(app1.getId())).isNull();
+    assertThat(applicationDAO.getById(app2.getId())).isNull();
   }
 
   @Test

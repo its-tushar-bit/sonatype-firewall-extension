@@ -143,6 +143,16 @@ public class OrganizationDAO
     return getList(sQuery, organizationNames);
   }
 
+  public List<Organization> getByNamesAndWithoutRelatedRepositories(Set<String> organizationNames) {
+    organizationNames = organizationNames.stream().map(NameHelper::normalize).collect(Collectors.toSet());
+    String sQuery = "SELECT entity FROM Organization entity" + //
+        " WHERE entity.nameLowercaseNoWhitespace IN (?1)" + //
+        " AND entity.relatedRepositoryId IS NULL" + //
+        " AND entity.relatedRepositoryManagerId IS NULL" + //
+        " ORDER BY entity.name";
+    return getList(sQuery, organizationNames);
+  }
+
   public Organization getByName(String name) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByName(tx, name);
@@ -154,6 +164,43 @@ public class OrganizationDAO
     String sQuery = "SELECT entity FROM Organization entity" + //
         " ORDER BY entity.name";
     return getList(sQuery);
+  }
+
+  public List<Organization> getAllWithoutRelatedRepositories() {
+    String sQuery = "SELECT entity FROM Organization entity" +
+        " WHERE entity.relatedRepositoryId IS NULL" +
+        " AND entity.relatedRepositoryManagerId IS NULL" +
+        " ORDER BY entity.name";
+    return getList(sQuery);
+  }
+
+  public List<Organization> getByRelatedRepositoryManagerId(
+      TransactionContext tx, String relatedRepositoryManagerId
+  )
+  {
+    String sQuery = "SELECT entity FROM Organization entity" + //
+        " WHERE entity.relatedRepositoryManagerId=?1" + //
+        " ORDER BY entity.name";
+    return getList(tx, sQuery, relatedRepositoryManagerId);
+  }
+
+  public List<Organization> getByRelatedRepositoryManagerId(String relatedRepositoryManagerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByRelatedRepositoryManagerId(tx, relatedRepositoryManagerId);
+    }
+  }
+
+  public List<Organization> getByRelatedRepositoryId(TransactionContext tx, String relatedRepositoryId) {
+    String sQuery = "SELECT entity FROM Organization entity" + //
+        " WHERE entity.relatedRepositoryId=?1" + //
+        " ORDER BY entity.name";
+    return getList(tx, sQuery, relatedRepositoryId);
+  }
+
+  public List<Organization> getByRelatedRepositoryId(String relatedRepositoryId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByRelatedRepositoryId(tx, relatedRepositoryId);
+    }
   }
 
   @Override
@@ -206,7 +253,6 @@ public class OrganizationDAO
     if (!Objects.equals(oldParentId, organization.getParentOwnerId())) {
       updateOrganizationAncestors(tx, organization);
     }
-
   }
 
   @Override
@@ -318,6 +364,9 @@ public class OrganizationDAO
 
   @Override
   protected SearchIndexChange newSearchIndexChange(Organization entity) {
+    if (entity.getRelatedRepositoryManagerId() != null || entity.getRelatedRepositoryId() != null) {
+      return null;
+    }
     return new SearchIndexChange(ChangeType.ORGANIZATION, entity.getId());
   }
 

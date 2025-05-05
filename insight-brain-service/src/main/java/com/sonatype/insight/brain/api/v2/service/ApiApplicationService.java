@@ -203,7 +203,7 @@ public class ApiApplicationService
   List<Application> getApplicationsWithReadPermission(final Set<String> publicIdsFilter) {
     List<Application> applications;
     if (publicIdsFilter.isEmpty()) {
-      applications = applicationDAO.getAll();
+      applications = applicationDAO.getAllWithoutRelatedRepositories();
     }
     else {
       applications = applicationDAO.getByPublicIds(publicIdsFilter);

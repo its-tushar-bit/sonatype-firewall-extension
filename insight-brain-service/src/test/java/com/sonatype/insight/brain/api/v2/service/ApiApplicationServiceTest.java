@@ -143,6 +143,24 @@ public class ApiApplicationServiceTest
   }
 
   @Test
+  public void testGetApplicationsWithReadPermission_ExcludeRepositoryManagerAndRelatedRepository() {
+    Organization org = tempEntity.newOrganization();
+    tempEntity.newApplication(org.getId());
+    tempEntity.newApplication(org.getId());
+    tempEntity.newApplication(org.getId());
+    tempEntity.newApplicationWithParent();
+    tempEntity.newApplicationWithParent();
+    tempEntity.newApplicationWithParent();
+    Organization orgExclude = tempEntity.newOrganizationWithRepositoryManager("org-exclude");
+    tempEntity.newApplication(orgExclude.getId());
+    tempEntity.newApplication(orgExclude.getId());
+    List<Application> applications = applicationService.getApplicationsWithReadPermission(Collections.emptySet());
+
+    assertThat(applications)
+        .noneMatch(app -> orgExclude.getId().equals(app.getOrganizationId()));
+  }
+
+  @Test
   public void testGetApplicationsByOrganizationId() {
     Application app1 = tempEntity.newApplicationWithParent();
     Application app2 = tempEntity.newApplication(app1.getOrganizationId());

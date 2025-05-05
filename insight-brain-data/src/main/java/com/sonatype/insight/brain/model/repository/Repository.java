@@ -62,6 +62,9 @@ public class Repository
   @Column(name = "last_manual_configure_time")
   private Date lastManualConfigureTime;
 
+  @Column(name = "related_organization_id")
+  private String relatedOrganizationId;
+
   public Repository() {
   }
 
@@ -175,6 +178,14 @@ public class Repository
 
   public void setLastManualConfigureTime(final Date lastManualConfigureTime) {
     this.lastManualConfigureTime = lastManualConfigureTime;
+  }
+
+  public String getRelatedOrganizationId() {
+    return relatedOrganizationId;
+  }
+
+  public void setRelatedOrganizationId(final String relatedOrganizationId) {
+    this.relatedOrganizationId = relatedOrganizationId;
   }
 
   @Override

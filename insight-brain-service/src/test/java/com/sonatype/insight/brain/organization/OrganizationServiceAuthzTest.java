@@ -49,6 +49,30 @@ public class OrganizationServiceAuthzTest
   }
 
   @Test
+  public void testGetAllWithoutRelatedRepositories_Authorized() {
+    grantReadPermission(org.getId());
+
+    final List<Organization> organizations = organizationService.getAllWithoutRelatedRepositories();
+    assertThat(organizations).hasSize(1);
+    final Organization organization = organizations.get(0);
+    assertThat(organization.getId()).isEqualTo(org.getId());
+    assertThat(organization.getName()).isEqualTo(org.getName());
+  }
+
+  @Test
+  public void testGetAllWithoutRelatedRepositories_Unauthorized() {
+    login();
+    final List<Organization> organizations = organizationService.getAllWithoutRelatedRepositories();
+    assertThat(organizations).isEmpty();
+  }
+
+  @Test
+  public void testGetAllWithoutRelatedRepositories_Unauthenticated() {
+    final List<Organization> organizations = organizationService.getAllWithoutRelatedRepositories();
+    assertThat(organizations).isEmpty();
+  }
+
+  @Test
   public void testAddOrganization_Authorized() {
     grantWritePermission(Organization.ROOT_ORGANIZATION_ID);
 

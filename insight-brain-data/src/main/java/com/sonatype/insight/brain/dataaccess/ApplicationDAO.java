@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.ApplicationRiskDTO;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.SearchIndexChange;
@@ -126,6 +127,8 @@ public class ApplicationDAO
 
   private final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO;
 
+  private final OrganizationDAO organizationDAO;
+
   @Inject
   public ApplicationDAO(
       final OperationalDataStore operationalDataStore,
@@ -151,7 +154,8 @@ public class ApplicationDAO
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final ThirdPartyFileDAO thirdPartyFileDAO,
       final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
-      final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO)
+      final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO,
+      final OrganizationDAO organizationDAO)
   {
     super(operationalDataStore, searchIndexManager);
     this.sourceControlDAOProvider = sourceControlDAOProvider;
@@ -176,6 +180,7 @@ public class ApplicationDAO
     this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
     this.cpeMatchingConfigurationDAO = cpeMatchingConfigurationDAO;
+    this.organizationDAO = organizationDAO;
   }
 
   public Application getByPublicId(TransactionContext tx, String publicId) {
@@ -275,6 +280,21 @@ public class ApplicationDAO
   public List<Application> getAllOrderedByName() {
     try (TransactionContext tx = createTransactionContext()) {
       return getAllOrderedByName(tx);
+    }
+  }
+
+  public List<Application> getAllWithoutRelatedRepositories(TransactionContext tx) {
+    String sQuery = "SELECT entity FROM Application entity, Organization org" + //
+        " WHERE entity.organizationId = org.id" +
+        " AND org.relatedRepositoryId IS NULL" +
+        " AND org.relatedRepositoryManagerId IS NULL" +
+        " ORDER BY entity.publicIdLowercase";
+    return getList(tx, sQuery);
+  }
+
+  public List<Application> getAllWithoutRelatedRepositories() {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getAllWithoutRelatedRepositories(tx);
     }
   }
 
@@ -591,6 +611,10 @@ public class ApplicationDAO
 
   @Override
   protected SearchIndexChange newSearchIndexChange(Application entity) {
+    Organization org = organizationDAO.getById(entity.getOrganizationId());
+    if (org != null && (org.getRelatedRepositoryManagerId() != null || org.getRelatedRepositoryId() != null)) {
+      return null;
+    }
     return new SearchIndexChange(ChangeType.APPLICATION, entity.getId());
   }
 

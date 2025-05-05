@@ -10,6 +10,7 @@ import java.util.Set;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.NameableDAOTest;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -33,14 +34,14 @@ public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
 {
   private RepositoryManagerDAO dao;
 
-  private RepositoryDAO repositoryDAO;
+  private OrganizationDAO organizationDAO;
 
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createRepositoryManagerDAO();
-    repositoryDAO = daoFactory.createRepositoryDAO();
+    organizationDAO = daoFactory.createOrganizationDAO();
   }
 
   @Override
@@ -137,16 +138,16 @@ public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
   }
 
   @Test
-  public void testDelete_CascadesToRepositories() {
+  public void testGetByRelatedOrganizationId() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    Repository repository = tempEntity.newRepository(repoManager, "publicId");
+    Organization organization = tempEntity.newOrganization();
+    organization.setRelatedRepositoryManagerId(repoManager.getId());
+    organizationDAO.update(organization);
+    repoManager.setRelatedOrganizationId(organization.getId());
+    dao.update(repoManager);
 
-    // sanity check
-    assertThat(repositoryDAO.getByRepositoryManagerId(repoManager.getId())).isNotEmpty();
-
-    dao.delete(repoManager);
-
-    assertThat(repositoryDAO.getById(repository.getId())).isNull();
+    RepositoryManager result = dao.getByRelatedOrganizationId(organization.getId());
+    assertThat(result.getId()).isEqualTo(repoManager.getId());
   }
 
   @Test

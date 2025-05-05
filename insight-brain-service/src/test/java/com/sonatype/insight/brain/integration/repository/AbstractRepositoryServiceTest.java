@@ -42,6 +42,7 @@ import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -174,6 +175,9 @@ public abstract class AbstractRepositoryServiceTest
 
   @Inject
   private PolicyDAO policyDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
 
   @Mock
   private FirewallAuditHdsClient auditHdsClient;
@@ -3389,6 +3393,22 @@ public abstract class AbstractRepositoryServiceTest
 
     Repository repositoryFound = repositoryDAO.getById(repository.getId());
     assertThat(repositoryFound).isNull();
+  }
+
+  @Test
+  public void testRemoveRepository_WithRelatedOrganization() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoMaven", "maven2");
+    Organization organization = tempEntity.newOrganization();
+
+    repository.setRelatedOrganizationId(organization.getId());
+    repositoryDAO.update(repository);
+
+    getRepositoryService().removeRepository(repositoryManager.getInstanceId(), repository.getPublicId());
+
+    Repository repositoryFound = repositoryDAO.getById(repository.getId());
+    assertThat(repositoryFound).isNull();
+    assertThat(organizationDAO.getById(organization.getId())).isNull();
   }
 
   private void testAddProprietaryComponentNames_FormatTranslation(String repoFormat, String componentFormat) {

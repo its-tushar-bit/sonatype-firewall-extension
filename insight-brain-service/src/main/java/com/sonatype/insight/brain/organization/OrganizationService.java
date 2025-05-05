@@ -106,6 +106,11 @@ public class OrganizationService
     return organizationDAO.getAll();
   }
 
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
+  public List<Organization> getAllWithoutRelatedRepositories() {
+    return organizationDAO.getAllWithoutRelatedRepositories();
+  }
+
   @AuthzFilter(permission = Permission.WRITE, context = AuthzFilter.Context.ORGANIZATION)
   List<Organization> getAllWithWritePermissions() {
     return organizationDAO.getAll();
@@ -154,6 +159,10 @@ public class OrganizationService
   public void deleteOrganization(
       @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") String orgId) throws IOException
   {
+    deleteOrganizationNoAuthz(orgId);
+  }
+
+  public void deleteOrganizationNoAuthz(String orgId) throws IOException {
     Organization organization = organizationDAO.getByIdNotNull(orgId);
     AuditData.get().setOrganization(organization);
     deleteOrganization(organization);

@@ -47,6 +47,12 @@ public class RepositoryManager
   @Column(name = "configure_time")
   private Date configureTime;
 
+  @Column(name = "base_url")
+  private String baseUrl;
+
+  @Column(name = "related_organization_id")
+  private String relatedOrganizationId;
+
   public RepositoryManager() {
   }
 
@@ -139,5 +145,21 @@ public class RepositoryManager
   @JsonIgnore
   public OwnerType getType() {
     return OwnerType.REPOSITORY_MANAGER;
+  }
+
+  public String getBaseUrl() {
+    return baseUrl;
+  }
+
+  public void setBaseUrl(final String baseUrl) {
+    this.baseUrl = baseUrl;
+  }
+
+  public String getRelatedOrganizationId() {
+    return relatedOrganizationId;
+  }
+
+  public void setRelatedOrganizationId(final String relatedOrganizationId) {
+    this.relatedOrganizationId = relatedOrganizationId;
   }
 }

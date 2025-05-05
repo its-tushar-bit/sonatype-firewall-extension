@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -70,6 +72,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
@@ -133,6 +136,10 @@ public class ApiFirewallService
 
   private final OwnerDAO ownerDAO;
 
+  private final OrganizationService organizationService;
+
+  private final com.sonatype.insight.brain.repository.RepositoryService mainRepositoryService;
+
   @Inject
   ApiFirewallService(
       final ProductLicense productLicense,
@@ -145,7 +152,9 @@ public class ApiFirewallService
       final RepositoryManagerDAO repositoryManagerDAO,
       final RepositoryService repositoryService,
       final ApiComponentDetailsAdapter apiComponentDetailsAdapter,
-      final OwnerDAO ownerDAO)
+      final OwnerDAO ownerDAO,
+      final OrganizationService organizationService,
+      final com.sonatype.insight.brain.repository.RepositoryService mainRepositoryService)
   {
     this.productLicense = productLicense;
     this.repositoryComponentDAO = repositoryComponentDAO;
@@ -158,6 +167,8 @@ public class ApiFirewallService
     this.repositoryService = repositoryService;
     this.apiComponentDetailsAdapter = apiComponentDetailsAdapter;
     this.ownerDAO = ownerDAO;
+    this.organizationService = organizationService;
+    this.mainRepositoryService = mainRepositoryService;
   }
 
   private void executeWithAuditSession(Runnable runnable) {
@@ -649,6 +660,17 @@ public class ApiFirewallService
   @Authorize(permission = Permission.WRITE)
   public void deleteRepositoryManager(@AuthzContext(Key.REPOSITORY_MANAGER_ID) String repositoryManagerId) {
     RepositoryManager repoManager = repositoryManagerDAO.getById(repositoryManagerId);
+    // Delete related organization
+    if (repoManager.getRelatedOrganizationId() != null) {
+      try {
+        organizationService.deleteOrganizationNoAuthz(repoManager.getRelatedOrganizationId());
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+    // Cascade delete repository organizations
+    repositoryDAO.getByRepositoryManagerId(repoManager.getId()).forEach(mainRepositoryService::delete);
     repositoryManagerDAO.delete(repoManager);
     AuditData.get().setRepositoryManager(repoManager);
   }

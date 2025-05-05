@@ -69,12 +69,14 @@ public class RepositoryService extends AbstractRepositoryService
       RepositoryComponentDAO repositoryComponentDAO,
       RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       FirewallIgnorePatternService firewallIgnorePatternService,
-      RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService)
+      RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService,
+      com.sonatype.insight.brain.repository.RepositoryService mainRepositoryService)
   {
     super(repositoryPolicyEvaluator, proprietaryComponentNameDetector, productLicense, policyViolationLoggerFactory,
         LicensedFeature.FIREWALL, repositoryComponentTelemetryCreator, quarantinedComponentAccessManager,
         quarantineHdsClient, telemetrySender, repositoryManagerDAO, repositoryDAO, repositoryComponentDAO,
-        repositoryPolicyViolationDAO, firewallIgnorePatternService, requestSafeComponentsMetricEventService);
+        repositoryPolicyViolationDAO, firewallIgnorePatternService, requestSafeComponentsMetricEventService,
+            mainRepositoryService);
     this.repositoryComponentDeleteService = repositoryComponentDeleteService;
   }
 

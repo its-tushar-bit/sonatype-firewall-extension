@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
-import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -88,6 +87,18 @@ public class RepositoryManagerDAO
     }
   }
 
+  public RepositoryManager getByRelatedOrganizationId(String organizationId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByRelatedOrganizationId(tx, organizationId);
+    }
+  }
+
+  private RepositoryManager getByRelatedOrganizationId(TransactionContext tx, String organizationId) {
+    String sQuery = "SELECT entity FROM RepositoryManager entity" + //
+        " WHERE entity.relatedOrganizationId=?1";
+    return get(tx, sQuery, organizationId);
+  }
+
   @Override
   public void insert(TransactionContext tx, RepositoryManager repositoryManager) {
     validateInstanceId(repositoryManager.getInstanceId());
@@ -141,12 +152,6 @@ public class RepositoryManagerDAO
   @Override
   public void delete(TransactionContext tx, RepositoryManager repositoryManager) {
     long start = System.currentTimeMillis();
-
-    // Cascade to repositories
-    List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(tx, repositoryManager.getId());
-    for (Repository repository : repositories) {
-      repositoryDAO.delete(tx, repository);
-    }
 
     // Cascade to owned entities
     ownerDAOProvider.get().cascadeDelete(tx, repositoryManager);

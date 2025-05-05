@@ -15,6 +15,8 @@ CREATE TABLE organization (
   allow_repository_connection_override boolean DEFAULT true NOT NULL,
   artifactory_connection_enabled boolean,
   allow_artifactory_connection_override boolean DEFAULT true NOT NULL,
+  related_repository_manager_id varchar(50),
+  related_repository_id varchar(50),
   CONSTRAINT organization_pk PRIMARY KEY (organization_id),
   CONSTRAINT organization_name_uk UNIQUE (name_lowercase_no_whitespace),
   CONSTRAINT organization_parent_organization_fk FOREIGN KEY (parent_organization_id) REFERENCES organization(organization_id)
@@ -566,9 +568,12 @@ CREATE TABLE repository_manager (
   name_lowercase_no_whitespace varchar(200) default NULL,
   product_name varchar(50) NULL, -- For ex, "Nexus", "JFrog Artifactory"
   product_version varchar(100) NULL, -- For ex, "3.59.0"
+  base_url varchar(2048) NULL,
+  related_organization_id varchar(50) NULL,
   CONSTRAINT repository_manager_pk PRIMARY KEY (repository_manager_id),
   CONSTRAINT repository_manager_uk UNIQUE (instance_id),
-  CONSTRAINT repository_manager_name_uk UNIQUE (name_lowercase_no_whitespace)
+  CONSTRAINT repository_manager_name_uk UNIQUE (name_lowercase_no_whitespace),
+  CONSTRAINT repository_manager_related_organization_fk FOREIGN KEY (related_organization_id) REFERENCES organization(organization_id) ON DELETE SET NULL
 );
 
 CREATE TABLE repository (
@@ -582,10 +587,11 @@ CREATE TABLE repository (
   namespace_confusion_protection_enabled boolean DEFAULT false NOT NULL,
   format varchar(50),
   last_manual_configure_time timestamp DEFAULT NULL,
-
+  related_organization_id varchar(50) NULL,
   CONSTRAINT repository_pk PRIMARY KEY (repository_id),
   CONSTRAINT repository_uk UNIQUE (repository_manager_id, public_id),
-  CONSTRAINT repository_repository_manager_fk FOREIGN KEY (repository_manager_id) REFERENCES repository_manager(repository_manager_id)
+  CONSTRAINT repository_repository_manager_fk FOREIGN KEY (repository_manager_id) REFERENCES repository_manager(repository_manager_id),
+  CONSTRAINT repository_related_organization_fk FOREIGN KEY (related_organization_id) REFERENCES organization(organization_id) ON DELETE SET NULL
 );
 
 CREATE TABLE repository_component (
@@ -1685,10 +1691,12 @@ CREATE INDEX organization_ancestor_ancestor_id_idx ON organization_ancestor (anc
 CREATE TABLE repository_container (
   repository_container_id VARCHAR(50) NOT NULL,
   organization_id VARCHAR(50) NOT NULL,
-  CONSTRAINT repository_container_pk PRIMARY KEY (repository_container_id)
+  related_organization_id  VARCHAR(50) NULL,
+  CONSTRAINT repository_container_pk PRIMARY KEY (repository_container_id),
+  CONSTRAINT repository_container_related_organization_fk FOREIGN KEY (related_organization_id) REFERENCES organization(organization_id) ON DELETE SET NULL
 );
 
-INSERT INTO repository_container VALUES ('REPOSITORY_CONTAINER_ID', 'ROOT_ORGANIZATION_ID');
+INSERT INTO repository_container VALUES ('REPOSITORY_CONTAINER_ID', 'ROOT_ORGANIZATION_ID', NULL);
 
 -- The following five VIEWs build on organization_ancestor to allow querying of all ancestors of any type of owner
 -- object.

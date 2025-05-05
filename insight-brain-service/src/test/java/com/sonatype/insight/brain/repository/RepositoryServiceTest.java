@@ -32,7 +32,9 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDTO;
@@ -46,6 +48,7 @@ import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -123,6 +126,12 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
   @Inject
   private PolicyDAO policyDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
 
   @Mock
   private FirewallAuditHdsClient auditHdsClient;
@@ -638,6 +647,51 @@ public class RepositoryServiceTest extends AbstractComponentTest
     Repository repository = tempEntity.newRepository();
     repositoryService.deleteRepository(repository.getId());
     assertThat(repositoryDAO.getById(repository.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteRepository_WithRelatedOrganization() {
+    Repository repository = tempEntity.newRepository();
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+
+    repository.setRelatedOrganizationId(organization.getId());
+    repositoryDAO.update(repository);
+
+    // Sanity check
+    assertThat(repository.getRelatedOrganizationId()).isNotNull();
+
+    repositoryService.deleteRepository(repository.getId());
+
+    assertThat(repositoryDAO.getById(repository.getId())).isNull();
+    assertThat(organizationDAO.getById(organization.getId())).isNull();
+    assertThat(applicationDAO.getById(application.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete() {
+    Repository repository = tempEntity.newRepository();
+    repositoryService.delete(repository);
+    assertThat(repositoryDAO.getById(repository.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_WithRelatedOrganization() {
+    Repository repository = tempEntity.newRepository();
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+
+    repository.setRelatedOrganizationId(organization.getId());
+    repositoryDAO.update(repository);
+
+    // Sanity check
+    assertThat(repository.getRelatedOrganizationId()).isNotNull();
+
+    repositoryService.delete(repository);
+
+    assertThat(repositoryDAO.getById(repository.getId())).isNull();
+    assertThat(organizationDAO.getById(organization.getId())).isNull();
+    assertThat(applicationDAO.getById(application.getId())).isNull();
   }
 
   @Test

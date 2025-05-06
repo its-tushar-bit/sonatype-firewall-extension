@@ -74,7 +74,7 @@ public class ApiZScalerConfigurationResourceTest
     HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2).get();
 
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("zScaler not configured.");
+    assertThat(response.getBodyText()).isEqualTo("Zscaler not configured.");
   }
 
   @Test
@@ -122,13 +122,13 @@ public class ApiZScalerConfigurationResourceTest
     HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2).get();
 
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("zScaler not configured.");
+    assertThat(response.getBodyText()).isEqualTo("Zscaler not configured.");
   }
 
   @Test
   public void testPatchZScalerConfiguration() throws Exception {
     String username = "username";
-    String password = "password";
+    String password = passwordHandler.encryptPassword("password");
     String apiKey = "cajgffdcgkej";
 
     ZScalerCategory mavenCategory = new ZScalerCategory();
@@ -166,7 +166,8 @@ public class ApiZScalerConfigurationResourceTest
 
   @Test
   public void testPatchZScalerConfiguration_authenticationException() throws Exception {
-    tempEntity.newZScalerConfiguration("username", "password", zScalerMockServer.getBaseUrl(), "cajgffdcgkej");
+    tempEntity.newZScalerConfiguration(
+        "username", passwordHandler.encryptPassword("password"), zScalerMockServer.getBaseUrl(), "cajgffdcgkej");
 
     zScalerMockServer.mockAuthentication(401, "{\"error\":\"Invalid credentials\"}");
 
@@ -178,7 +179,8 @@ public class ApiZScalerConfigurationResourceTest
 
   @Test
   public void testPatchZScalerConfiguration_getCustomUrlCategoriesException() throws Exception {
-    tempEntity.newZScalerConfiguration("username", "password", zScalerMockServer.getBaseUrl(), "cajgffdcgkej");
+    tempEntity.newZScalerConfiguration(
+        "username", passwordHandler.encryptPassword("password"), zScalerMockServer.getBaseUrl(), "cajgffdcgkej");
 
     zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
     zScalerMockServer.mockGetCustomUrlCategories(500, "{\"error\":\"Internal Server Error\"}");
@@ -190,7 +192,8 @@ public class ApiZScalerConfigurationResourceTest
 
   @Test
   public void testPatchZScalerConfiguration_updateCustomUrlCategoriesException() throws Exception {
-    tempEntity.newZScalerConfiguration("username", "password", zScalerMockServer.getBaseUrl(), "cajgffdcgkej");
+    tempEntity.newZScalerConfiguration(
+        "username", passwordHandler.encryptPassword("password"), zScalerMockServer.getBaseUrl(), "cajgffdcgkej");
 
     zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
     zScalerMockServer.mockGetCustomUrlCategories(200, "[]");
@@ -203,7 +206,8 @@ public class ApiZScalerConfigurationResourceTest
 
   @Test
   public void testPatchZScalerConfiguration_createCustomUrlCategoryException() throws Exception {
-    tempEntity.newZScalerConfiguration("username", "password", zScalerMockServer.getBaseUrl(), "cajgffdcgkej");
+    tempEntity.newZScalerConfiguration(
+        "username", passwordHandler.encryptPassword("password"), zScalerMockServer.getBaseUrl(), "cajgffdcgkej");
 
     zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
     zScalerMockServer.mockGetCustomUrlCategories(200, "[]");
@@ -216,7 +220,8 @@ public class ApiZScalerConfigurationResourceTest
 
   @Test
   public void testPatchZScalerConfiguration_activateChangesException() throws Exception {
-    tempEntity.newZScalerConfiguration("username", "password", zScalerMockServer.getBaseUrl(), "cajgffdcgkej");
+    tempEntity.newZScalerConfiguration(
+        "username", passwordHandler.encryptPassword("password"), zScalerMockServer.getBaseUrl(), "cajgffdcgkej");
 
     zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
     zScalerMockServer.mockGetCustomUrlCategories(200, "[]");

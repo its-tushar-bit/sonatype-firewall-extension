@@ -333,7 +333,6 @@ describe('SystemPreferencesMenu', () => {
           <SystemPreferencesMenu
             permissions={permissions}
             isSuccessMetricsConfigurationEnabled={true}
-            isStandaloneFirewall={false}
             isOrgsAndAppsEnabled={true}
             {...{ [item]: false }}
           />
@@ -439,5 +438,36 @@ describe('SystemPreferencesMenu', () => {
         expect(screen.queryByText('Advanced Search')).toBeInTheDocument();
       }
     );
+
+    it.each(['isStandaloneFirewall', 'isFirewallOnlyLicense'])('should display "Zscaler" if %s is true', (item) => {
+      render(<SystemPreferencesMenu permissions={permissions} isZscalerEnabled={true} {...{ [item]: true }} />);
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Zscaler')).toBeInTheDocument();
+    });
+
+    it.each(['isStandaloneFirewall', 'isFirewallOnlyLicense'])(
+      'should not display "Zscaler" if %s is false',
+      (item) => {
+        render(
+          <SystemPreferencesMenu
+            permissions={permissions}
+            isAdvancedSearchConfigurationEnabled={true}
+            isZscalerEnabled={true}
+            {...{ [item]: false }}
+          />
+        );
+        const button = screen.getByRole('button');
+        fireEvent.click(button);
+        expect(screen.queryByText('Zscaler')).toBeNull();
+      }
+    );
+
+    it('should not display "Zscaler" if isZscalerEnabled is false', () => {
+      render(<SystemPreferencesMenu permissions={permissions} isStandaloneFirewall={true} isZscalerEnabled={false} />);
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Zscaler')).toBeNull();
+    });
   });
 });

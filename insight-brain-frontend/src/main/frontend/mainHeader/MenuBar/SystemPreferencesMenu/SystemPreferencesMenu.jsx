@@ -132,7 +132,7 @@ export const SystemPreferencesMenu = ({
         showIf={CONFIGURE_SYSTEM && isZscalerEnabled && (isStandaloneFirewall || isFirewallOnlyLicense)}
         prefix={firewallPrefix}
       >
-        zScaler
+        Zscaler
       </NavLink>
       <NavLink
         stateName="proxyConfig"

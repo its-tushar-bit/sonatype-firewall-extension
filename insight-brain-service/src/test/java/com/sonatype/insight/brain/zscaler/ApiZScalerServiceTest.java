@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.zscaler;
 
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.test.LogOutput;
 
@@ -68,6 +69,9 @@ public class ApiZScalerServiceTest
   @Mock
   private ZScalerConfigurationDAO dao;
 
+  @Mock
+  private PasswordHandler passwordHandler;
+
   @Spy
   @InjectMocks
   private ApiZScalerService underTest;
@@ -78,16 +82,18 @@ public class ApiZScalerServiceTest
     config.setUsername("user");
     config.setPassword("password");
     config.setApikey("abcdefghijkl");
-    config.setHostname("host");
+    config.setHostname("http://zscaler.net");
 
     urls = new ByteArrayInputStream(url.getBytes(StandardCharsets.UTF_8));
 
-    underTest = Mockito.spy(new ApiZScalerService(dao, client));
+    underTest = Mockito.spy(new ApiZScalerService(dao, client, passwordHandler));
   }
 
   @Test
   public void testUpdateCategories() throws Exception {
     when(dao.get()).thenReturn(config);
+    when(passwordHandler.decryptPassword(config.getPassword()))
+        .thenReturn("password");
     doNothing().when(underTest).authenticate(anyString(), anyString(), anyString(), anyString(), anyString());
     doNothing().when(underTest).updateCategories(anyString(), any(ZScalerFormat.class), any(InputStream.class));
     doNothing().when(underTest).activateChanges(anyString());
@@ -113,6 +119,8 @@ public class ApiZScalerServiceTest
   @Test
   public void testUpdateCategories_exceptionAuthenticating() throws Exception {
     when(dao.get()).thenReturn(config);
+    when(passwordHandler.decryptPassword(config.getPassword()))
+        .thenReturn("password");
     doThrow(BadRequestException.class)
         .when(underTest)
         .authenticate(anyString(), anyString(), anyString(), anyString(), anyString());
@@ -127,6 +135,8 @@ public class ApiZScalerServiceTest
   @Test
   public void testUpdateCategories_exceptionUpdatingCategories() throws Exception {
     when(dao.get()).thenReturn(config);
+    when(passwordHandler.decryptPassword(config.getPassword()))
+        .thenReturn("password");
     doNothing().when(underTest).authenticate(anyString(), anyString(), anyString(), anyString(), anyString());
     doThrow(RuntimeException.class)
         .when(underTest)
@@ -142,6 +152,8 @@ public class ApiZScalerServiceTest
   @Test
   public void testUpdateCategories_exceptionActivatingChanges() throws Exception {
     when(dao.get()).thenReturn(config);
+    when(passwordHandler.decryptPassword(config.getPassword()))
+        .thenReturn("password");
     doNothing().when(underTest).authenticate(anyString(), anyString(), anyString(), anyString(), anyString());
     doNothing().when(underTest).updateCategories(anyString(), any(ZScalerFormat.class), any(InputStream.class));
     doThrow(RuntimeException.class)

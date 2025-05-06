@@ -61,7 +61,7 @@ public class ApiZScalerConfigurationService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void setConfiguration(ApiZScalerConfigurationDTO configuration) {
-    log.error("Setting up zScaler configuration to: {}", configuration);
+    log.debug("Setting up Zscaler configuration to: {}", configuration);
     if (configuration == null) {
       throw new NotFoundException("Configuration is required.");
     }
@@ -111,12 +111,12 @@ public class ApiZScalerConfigurationService
     if (zScalerConfiguration == null) {
       throw newNotFoundException();
     }
-    log.error("Deleting zScaler configuration");
+    log.debug("Deleting Zscaler configuration");
     zScalerConfigurationDAO.delete();
   }
 
   private RuntimeException newNotFoundException() {
-    return new NotFoundException("zScaler not configured.");
+    return new NotFoundException("Zscaler not configured.");
   }
 
   public static class ApiZScalerConfigurationDTO

@@ -13,6 +13,7 @@ import {
   NxFontAwesomeIcon,
   NxFormGroup,
   NxH2,
+  NxSuccessAlert,
   NxModal,
   NxP,
   NxPageMain,
@@ -21,17 +22,43 @@ import {
   NxTextLink,
   NxTile,
   NxWarningAlert,
+  NxLoadError,
 } from '@sonatype/react-shared-components';
 import { reject, isNil } from 'ramda';
 import LoadError from '../../react/LoadError';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
+import classnames from 'classnames';
 
-const authErrorMessage =
+const AUTH_ERROR_MESSAGE =
   'It appears you do not have permission to access this page. ' +
   'If you believe this to be incorrect please contact your administrator.';
 
+const TEST_CONFIG_ERROR_MESSAGE =
+  'Unable to establish the connection to Zscaler as the connection is not configured. ' +
+  'Test Zscaler configuration failed.';
+
+const TEST_CONFIG_SUCCESS_MESSAGE =
+  'The connection to Zscaler was successfully established. Test Zscaler configuration succeed.';
+
+const REQUIRED_DETAILS_MESSAGE = 'Username, Password, Hostname and Zscaler API Key are required details.';
+
+const PASSWORD_REENTER_MESSAGE = 'Password must be re-entered when any fields are modified.';
+
+const PASSWORD_REENTER_TEST_CONFIG_MESSAGE = 'Password must be re-entered for testing configuration.';
+
 export default function ZScalerConfig(props) {
-  const { load, save, del, resetForm, setUsername, setPassword, setHostname, setApiKey, setShowDeleteModal } = props,
+  const {
+      load,
+      save,
+      del,
+      resetForm,
+      setUsername,
+      setPassword,
+      setHostname,
+      setApiKey,
+      setShowDeleteModal,
+      testConfig,
+    } = props,
     {
       loading,
       submitMaskState,
@@ -41,6 +68,7 @@ export default function ZScalerConfig(props) {
       loadError: loadErrorProp,
       saveError,
       deleteError,
+      testConfigError,
       serverData,
       showDeleteModal,
       hostnameState,
@@ -48,9 +76,10 @@ export default function ZScalerConfig(props) {
       passwordState,
       apiKeyState,
       mustReenterPassword,
+      testConfigSuccess,
       isAuthorized,
     } = props,
-    loadError = isAuthorized ? loadErrorProp : authErrorMessage;
+    loadError = isAuthorized ? loadErrorProp : AUTH_ERROR_MESSAGE;
 
   // Fetch ZScaler Configuration when page is opened
   useEffect(() => {
@@ -61,14 +90,25 @@ export default function ZScalerConfig(props) {
     return 'This action cannot be undone. Are you sure you want to delete this configuration?';
   }
 
-  function field(fieldState, onChange, placeholder, id, label, optional = false, validatable = true) {
+  function field(
+    fieldState,
+    onChange,
+    placeholder,
+    id,
+    label,
+    type = 'text',
+    sublabel = null,
+    onFocus = () => {},
+    optional = false,
+    validatable = true
+  ) {
     // The autoComplete setting is a hack to stop chrome autofilling the user's username and password
     // https://stackoverflow.com/a/55292734
     return (
-      <NxFormGroup label={label} isRequired={!optional}>
+      <NxFormGroup label={label} sublabel={sublabel} isRequired={!optional}>
         <NxTextInput
           {...fieldState}
-          {...{ onChange, placeholder, id, validatable }}
+          {...{ onChange, onFocus, placeholder, id, type, validatable }}
           className="nx-text-input--long"
           autoComplete="new-password"
         />
@@ -85,7 +125,7 @@ export default function ZScalerConfig(props) {
         submitError={deleteError}
       >
         <NxModal.Header>
-          <NxH2>Delete zScaler Configuration?</NxH2>
+          <NxH2>Delete Zscaler Configuration?</NxH2>
         </NxModal.Header>
         <NxModal.Content>
           <NxWarningAlert>
@@ -97,10 +137,16 @@ export default function ZScalerConfig(props) {
   );
 
   const formValidationErrors = reject(isNil, [
-    mustReenterPassword ? 'Password must be provided when updating Username, Hostname or ApiKey.' : null,
-    hasAllRequiredData ? null : 'Username, Password, Hostname and ApiKey are required details.',
+    mustReenterPassword ? PASSWORD_REENTER_MESSAGE : null,
+    hasAllRequiredData ? null : REQUIRED_DETAILS_MESSAGE,
     isDirty ? null : MSG_NO_CHANGES_TO_SAVE,
   ]);
+
+  const testConfigTooltip = !hasAllRequiredData
+    ? REQUIRED_DETAILS_MESSAGE
+    : passwordState.isPristine
+    ? PASSWORD_REENTER_TEST_CONFIG_MESSAGE
+    : null;
 
   /*
    * Do not pass the submitError to the form when there are validation errors.
@@ -111,10 +157,33 @@ export default function ZScalerConfig(props) {
    */
   const submitError = hasValidationErrors(formValidationErrors) ? null : saveError;
 
-  const passwordSublabel =
-    hasAllRequiredData && mustReenterPassword ? 'Must be re-entered when any fields are modified.' : null;
+  const passwordSublabel = hasAllRequiredData && mustReenterPassword ? PASSWORD_REENTER_MESSAGE : null;
 
-  const cancelAndDeleteBtns = (
+  const isTestConfigEnabled = hasAllRequiredData && !passwordState.isPristine;
+
+  const apiKeySublabel = (
+    <span>
+      You can generate one in the Zscaler Admin Portal under API Management.
+      <br />
+      <NxTextLink external href="https://links.sonatype.com/products/nxrm3/docs/zscaler/api-keys">
+        Learn how to retrieve your API Key
+      </NxTextLink>
+    </span>
+  );
+
+  const learnMoreAboutZscalerLink = (
+    <NxTextLink external href="https://links.sonatype.com/products/nxrm3/docs/zscaler/configuration">
+      Learn more about the Zscaler integration
+    </NxTextLink>
+  );
+
+  function testConfigHandler() {
+    if (isTestConfigEnabled) {
+      testConfig();
+    }
+  }
+
+  const additionalBtns = (
     <>
       <NxButton
         type="button"
@@ -127,6 +196,15 @@ export default function ZScalerConfig(props) {
       </NxButton>
       <NxButton type="button" id="zscaler-config-cancel" onClick={resetForm} disabled={!isDirty}>
         Cancel
+      </NxButton>
+      <NxButton
+        title={testConfigTooltip}
+        type="button"
+        id="zscaler-config-test"
+        onClick={testConfigHandler}
+        className={classnames({ disabled: !isTestConfigEnabled })}
+      >
+        <span>Test Configuration</span>
       </NxButton>
     </>
   );
@@ -145,41 +223,43 @@ export default function ZScalerConfig(props) {
           // If there is a validationError alert, it's cleared on "Delete Configuration"
           submitMaskState={submitMaskState}
           submitMaskMessage={submitMaskMessage}
-          additionalFooterBtns={cancelAndDeleteBtns}
+          additionalFooterBtns={additionalBtns}
         >
           <NxTile.Header>
             <NxTile.HeaderTitle>
-              <NxH2>zScaler Configuration</NxH2>
+              <NxH2>Zscaler Configuration</NxH2>
             </NxTile.HeaderTitle>
           </NxTile.Header>
           <NxTile.Content>
             <NxP>
-              To protect users at the network level, integrate our data with your zScaler infrastructure. For further
-              details see the{' '}
-              <NxTextLink external href="http://links.sonatype.com/products/nxiq/doc/zscaler-configuration">
-                documentation
-              </NxTextLink>
-              .
+              To protect users at the network level, integrate our data with your Zscaler infrastructure.
+              <br />
+              {learnMoreAboutZscalerLink}
             </NxP>
             {/* Input Fields */}
             {field(usernameState, setUsername, 'user', 'zscaler-config-username', 'Username')}
-            <NxFormGroup label="Password" sublabel={passwordSublabel} isRequired>
-              <NxTextInput
-                {...passwordState}
-                id="zscaler-config-password"
-                onChange={setPassword}
-                onFocus={(evt) => {
-                  evt.target.select();
-                }}
-                className="nx-text-input--long"
-                type="password"
-                autoComplete="new-password"
-                validatable
-              />
-            </NxFormGroup>
-
+            {field(
+              passwordState,
+              setPassword,
+              null,
+              'zscaler-config-password',
+              'Password',
+              'password',
+              passwordSublabel,
+              (evt) => {
+                evt.target.select();
+              }
+            )}
             {field(hostnameState, setHostname, 'https://zsapi.zscalertwo.net', 'zscaler-config-hostname', 'Hostname')}
-            {field(apiKeyState, setApiKey, '465', 'zscaler-config-api-key', 'ApiKey')}
+            {field(apiKeyState, setApiKey, '465', 'zscaler-config-api-key', 'Zscaler API Key', null, apiKeySublabel)}
+            {testConfigSuccess && <NxSuccessAlert>{TEST_CONFIG_SUCCESS_MESSAGE}</NxSuccessAlert>}
+            {testConfigError && (
+              <NxLoadError
+                titleMessage={TEST_CONFIG_ERROR_MESSAGE}
+                error={learnMoreAboutZscalerLink}
+                retryHandler={testConfig}
+              />
+            )}
           </NxTile.Content>
         </NxStatefulForm>
         {showDeleteModal && modal}
@@ -205,6 +285,7 @@ ZScalerConfig.propTypes = {
   setHostname: PropTypes.func.isRequired,
   setApiKey: PropTypes.func.isRequired,
   setShowDeleteModal: PropTypes.func.isRequired,
+  testConfig: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
   submitMaskState: PropTypes.bool,
   submitMaskMessage: PropTypes.string,
@@ -218,6 +299,8 @@ ZScalerConfig.propTypes = {
   loadError: LoadError.propTypes.error,
   saveError: LoadError.propTypes.error,
   deleteError: LoadError.propTypes.error,
+  testConfigError: PropTypes.bool.isRequired,
+  testConfigSuccess: PropTypes.bool.isRequired,
   serverData: PropTypes.any,
   showDeleteModal: PropTypes.bool.isRequired,
   mustReenterPassword: PropTypes.bool.isRequired,

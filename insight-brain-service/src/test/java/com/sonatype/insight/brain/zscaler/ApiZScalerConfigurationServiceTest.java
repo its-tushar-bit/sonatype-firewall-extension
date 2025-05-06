@@ -56,7 +56,7 @@ public class ApiZScalerConfigurationServiceTest
 
   @Test
   public void testGetConfiguration_notFoundException() {
-    assertThrows("zScalar not configured.", NotFoundException.class, () -> underTest.getConfiguration());
+    assertThrows("Zscaler not configured.", NotFoundException.class, () -> underTest.getConfiguration());
   }
 
   @Test
@@ -93,6 +93,6 @@ public class ApiZScalerConfigurationServiceTest
 
   @Test
   public void testDeleteConfiguration_notFoundException() {
-    assertThrows("zScalar not configured.", NotFoundException.class, () -> underTest.getConfiguration());
+    assertThrows("Zscaler not configured.", NotFoundException.class, () -> underTest.getConfiguration());
   }
 }

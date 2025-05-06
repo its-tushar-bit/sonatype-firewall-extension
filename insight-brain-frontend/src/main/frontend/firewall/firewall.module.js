@@ -422,7 +422,7 @@ function routes($stateProvider) {
       component: 'zscalerConfig',
       url: '/zscalerConfig',
       data: {
-        title: 'zScaler Config',
+        title: 'Zscaler Configuration',
         isDirty: ['zscalerConfig', 'isDirty'],
       },
       resolve: {

@@ -24,6 +24,8 @@ function mapStateToProps(state) {
         'loadError',
         'saveError',
         'deleteError',
+        'testConfigError',
+        'testConfigSuccess',
         'serverData',
         'showDeleteModal',
       ],

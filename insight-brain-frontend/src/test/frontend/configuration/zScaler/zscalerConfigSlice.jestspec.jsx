@@ -178,6 +178,54 @@ describe('zscalerConfigSlice', () => {
     });
   });
 
+  describe('zscalerConfig/testConfig', () => {
+    it('pending', () => {
+      const state = Object.freeze({
+        submitMaskState: null,
+        submitMaskMessage: null,
+      });
+
+      const newState = reducer(state, {
+        type: 'zscalerConfig/testConfig/pending',
+      });
+
+      expect(newState.submitMaskState).toBe(false);
+      expect(newState.submitMaskMessage).toBe('Testing configuration...');
+    });
+
+    it('rejected', () => {
+      const state = Object.freeze({
+        submitMaskState: false,
+        testConfigError: false,
+        testConfigSuccess: true,
+      });
+
+      const newState = reducer(state, {
+        type: 'zscalerConfig/testConfig/rejected',
+      });
+
+      expect(newState.submitMaskState).toBe(null);
+      expect(newState.testConfigError).toBe(true);
+      expect(newState.testConfigSuccess).toBe(false);
+    });
+
+    it('fulfilled', () => {
+      const state = Object.freeze({
+        submitMaskState: false,
+        testConfigError: true,
+        testConfigSuccess: false,
+      });
+
+      const newState = reducer(state, {
+        type: 'zscalerConfig/testConfig/fulfilled',
+      });
+
+      expect(newState.submitMaskState).toBe(true);
+      expect(newState.testConfigError).toEqual(false);
+      expect(newState.testConfigSuccess).toEqual(true);
+    });
+  });
+
   describe('zscalerConfig/resetForm', () => {
     it('returns the initial state if there is no serverData', () => {
       const state = Object.freeze({

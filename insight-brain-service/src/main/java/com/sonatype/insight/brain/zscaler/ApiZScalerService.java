@@ -15,7 +15,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +26,7 @@ import com.sonatype.insight.brain.api.v2.HasFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -58,20 +58,29 @@ public class ApiZScalerService
 
   private final ZScalerConfigurationDAO zScalerConfigurationDAO;
 
+  private final PasswordHandler passwordHandler;
+
   @Inject
   public ApiZScalerService(
-      final ZScalerConfigurationDAO zScalerConfigurationDAO)
+      final ZScalerConfigurationDAO zScalerConfigurationDAO,
+      final PasswordHandler passwordHandler)
   {
     this.zScalerConfigurationDAO = zScalerConfigurationDAO;
+    this.passwordHandler = passwordHandler;
     this.client = HttpClient.newBuilder()
         .cookieHandler(new CookieManager())
         .build();
   }
 
   // New constructor allowing HttpClient injection (for testing)
-  public ApiZScalerService(final ZScalerConfigurationDAO zScalerConfigurationDAO, final HttpClient client) {
+  public ApiZScalerService(
+      final ZScalerConfigurationDAO zScalerConfigurationDAO,
+      final HttpClient client,
+      final PasswordHandler passwordHandler)
+  {
     this.zScalerConfigurationDAO = zScalerConfigurationDAO;
     this.client = client;
+    this.passwordHandler = passwordHandler;
   }
 
   public void updateCategories(final ZScalerFormat format, final InputStream urls) {
@@ -82,18 +91,17 @@ public class ApiZScalerService
     }
 
     String apiKey = configuration.getApikey();
-    LocalDateTime now = LocalDateTime.now();
-    String timestamp = String.valueOf(now.toInstant(java.time.ZoneOffset.UTC).toEpochMilli());
+    String timestamp = String.valueOf(System.currentTimeMillis());
     String obfuscatedKey = obfuscateApiKey(apiKey, timestamp);
 
     authenticate(configuration.getHostname(), configuration.getUsername(),
-        configuration.getPassword(), obfuscatedKey, timestamp);
+        passwordHandler.decryptPassword(configuration.getPassword()), obfuscatedKey, timestamp);
 
     updateCategories(configuration.getHostname(), format, urls);
     activateChanges(configuration.getHostname());
   }
 
-  void authenticate(String baseUrl, String username, String password, String apiKey, String timestamp) {
+  public void authenticate(String baseUrl, String username, String password, String apiKey, String timestamp) {
     Map<String, String> authPayload = new HashMap<>();
     authPayload.put("username", username);
     authPayload.put("password", password);
@@ -259,7 +267,7 @@ public class ApiZScalerService
     }
   }
 
-  static String obfuscateApiKey(String key, String timestamp) {
+  public static String obfuscateApiKey(String key, String timestamp) {
     int apiKeySize = 12;
     StringBuilder retVal = new StringBuilder();
     char[] key1Arr = key.substring(0, apiKeySize - 2).toCharArray();

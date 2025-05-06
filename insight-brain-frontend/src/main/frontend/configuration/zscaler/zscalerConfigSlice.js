@@ -11,11 +11,12 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { hasValidationErrors, validateNonEmpty } from '../../util/validationUtil';
 import { pathSet } from '../../util/jsUtil';
 import { propSet, propSetConst } from '../../util/reduxToolkitUtil';
-import { getZScalerConfigUrl } from '../../util/CLMLocation';
+import { getZScalerConfigUrl, getZScalerTestConfigUrl } from '../../util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
 const SUBMIT_MASK_SAVING_MESSAGE = 'Saving';
 const SUBMIT_MASK_DELETING_MESSAGE = 'Deleting';
+const SUBMIT_MASK_TEST_CONFIG_MESSAGE = 'Testing configuration...';
 export const FAKE_PASSWORD = '\x00\x00\x00\x00\x00';
 
 const REDUCER_NAME = 'zscalerConfig';
@@ -38,13 +39,15 @@ export const initialState = {
   loadError: null,
   saveError: null,
   deleteError: null,
+  testConfigError: false,
+  testConfigSuccess: false,
   showDeleteModal: false,
   mustReenterPassword: false,
 };
 
 const textProps = ['username', 'password', 'hostname', 'apiKey'];
 
-const clearedErrors = pick(['loadError', 'saveError', 'deleteError'], initialState);
+const clearedErrors = pick(['loadError', 'saveError', 'deleteError', 'testConfigError'], initialState);
 
 function setFormStateFromServerData(state) {
   const { serverData } = state,
@@ -158,6 +161,7 @@ function saveRequested(state) {
     ...state,
     submitMaskState: false,
     submitMaskMessage: SUBMIT_MASK_SAVING_MESSAGE,
+    testConfigSuccess: false,
     ...clearedErrors,
   };
 }
@@ -206,6 +210,32 @@ function deleteFailed(state, { payload }) {
   };
 }
 
+function testConfigRequested(state) {
+  return {
+    ...state,
+    submitMaskState: false,
+    submitMaskMessage: SUBMIT_MASK_TEST_CONFIG_MESSAGE,
+  };
+}
+
+function testConfigFulfilled(state) {
+  return {
+    ...state,
+    submitMaskState: true,
+    testConfigError: false,
+    testConfigSuccess: true,
+  };
+}
+
+function testConfigFailed(state) {
+  return {
+    ...state,
+    submitMaskState: null,
+    testConfigError: true,
+    testConfigSuccess: false,
+  };
+}
+
 const setTextInput = curryN(4, function setTextInput(fieldName, validator, state, { payload }) {
   const stateWithUpdatedValue = pathSet(
     ['formState', fieldName],
@@ -238,6 +268,20 @@ const del = createAsyncThunk(`${REDUCER_NAME}/delete`, (_, { dispatch, rejectWit
     .delete(getZScalerConfigUrl())
     .then(() => {
       startSubmitMaskSuccessTimer(dispatch);
+    })
+    .catch(rejectWithValue);
+});
+
+const testConfig = createAsyncThunk(`${REDUCER_NAME}/testConfig`, (_, { getState, dispatch, rejectWithValue }) => {
+  const formState = getState().zscalerConfig.formState,
+    serverData = toServerData(formState);
+
+  return axios
+    .post(getZScalerTestConfigUrl(), serverData)
+    .then(prop('data'))
+    .then((data) => {
+      startSubmitMaskSuccessTimer(dispatch);
+      return data;
     })
     .catch(rejectWithValue);
 });
@@ -280,6 +324,9 @@ const zscalerConfigSlice = createSlice({
     [del.pending]: deleteRequested,
     [del.fulfilled]: deleteFulfilled,
     [del.rejected]: deleteFailed,
+    [testConfig.pending]: testConfigRequested,
+    [testConfig.fulfilled]: testConfigFulfilled,
+    [testConfig.rejected]: testConfigFailed,
   },
 });
 
@@ -289,4 +336,5 @@ export const actions = {
   load,
   save,
   del,
+  testConfig,
 };

@@ -49,6 +49,8 @@ public class PullRequestRemediationService
 
   private final SourceControlEventDAO sourceControlEventDAO;
 
+  private final ScmReducedSecurityService scmReducedSecurityService;
+
   @Inject
   public PullRequestRemediationService(
       PullRequestExecutor pullRequestExecutor,
@@ -58,7 +60,8 @@ public class PullRequestRemediationService
       SourceControlUtils sourceControlUtils,
       Provider<PullRequestTask> pullRequestTaskProvider,
       SourceControlSshService sourceControlSshService,
-      SourceControlEventDAO sourceControlEventDAO)
+      SourceControlEventDAO sourceControlEventDAO,
+      ScmReducedSecurityService scmReducedSecurityService)
   {
     this.pullRequestExecutor = pullRequestExecutor;
     this.gitClientFactory = gitClientFactory;
@@ -68,6 +71,7 @@ public class PullRequestRemediationService
     this.pullRequestTaskProvider = pullRequestTaskProvider;
     this.sourceControlSshService = sourceControlSshService;
     this.sourceControlEventDAO = sourceControlEventDAO;
+    this.scmReducedSecurityService = scmReducedSecurityService;
   }
 
   /**
@@ -89,6 +93,7 @@ public class PullRequestRemediationService
       sourceControlSshService.verifySshUrlAndUpdateIfNeeded(event.getApplicationId());
 
       Application application = applicationDAO.getById(event.getApplicationId());
+      boolean reducedSecurityData = scmReducedSecurityService.isReducedSecurityData(application.getId());
       PullRequestRemediationDetails pullRequestRemediationDetails = new PullRequestRemediationDetails(
           event.getComponentIdentifier(),
           event.getRemediationVersion(),
@@ -98,7 +103,8 @@ public class PullRequestRemediationService
           event.getStageTypeId(),
           event.getPullRequestContents(),
           organizationDAO,
-          SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT.equals(event.getEventType())
+          SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT.equals(event.getEventType()),
+          reducedSecurityData
       );
 
       PullRequestTask pullRequestTask = pullRequestTaskProvider.get();

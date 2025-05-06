@@ -134,9 +134,10 @@ public class PullRequestFeedbackDetails
       final String iqBaseUrl,
       final boolean scmImprovementsEnabled,
       final OrganizationDAO organizationDAO,
-      final DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService)
+      final DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService,
+      final boolean reducedSecurityData)
   {
-    super(organizationDAO);
+    super(organizationDAO, reducedSecurityData);
     Preconditions
         .checkNotNull(sourceControlComponentDetails, "sourceControlComponentDetails is required and cannot be null");
     this.sourceControlComponentDetails = sourceControlComponentDetails;
@@ -296,7 +297,9 @@ public class PullRequestFeedbackDetails
                 sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDisplayName())
             .put("highestThreatLevel",
                 getHighestThreatLevel(componentEntry.getValue()))
-            .put("policiesViolated", getPoliciesViolatedMap(componentEntry.getValue(), baseUrl, true))
+            .put("policiesViolated",
+                getPoliciesViolatedMap(componentEntry.getValue(), baseUrl, true, reducedSecurityData, app.getPublicId(),
+                    featureBranchEvaluation.getScanId()))
             .build())
         .sorted(
             (o1, o2) -> Integer.compare((Integer) o2.get("highestThreatLevel"), (Integer) o1.get("highestThreatLevel")))
@@ -344,7 +347,7 @@ public class PullRequestFeedbackDetails
             }
           }
 
-          final ImmutableMap.Builder<String, Object> modelMapBuilder  = ImmutableMap.<String, Object>builder()
+          final ImmutableMap.Builder<String, Object> modelMapBuilder = ImmutableMap.<String, Object>builder()
               .put("componentNameAndVersion",
                   sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDisplayName())
               .put("dependencyLogo",
@@ -361,7 +364,10 @@ public class PullRequestFeedbackDetails
               .put("remediationTypeDisplayName", remediationTypeDisplayName)
               .put("lineCommentLink",
                   getLineCommentLink(pullRequestLineComments, componentEntry.getValue(), gitRepositoryInfo, prNumber))
-              .put("policiesViolated", getPoliciesViolatedMap(componentEntry.getValue(), baseUrl, true));
+              .put("policiesViolated",
+                  getPoliciesViolatedMap(componentEntry.getValue(), baseUrl, true, reducedSecurityData,
+                      app.getPublicId(),
+                      featureBranchEvaluation.getScanId()));
 
           maybePutComponentHash(modelMapBuilder, componentEntry.getValue());
           return modelMapBuilder.build();

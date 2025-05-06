@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.io.IOException;
 import java.util.Arrays;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -22,6 +22,9 @@ import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ScmRepoVisibilityServiceTest
@@ -65,7 +68,7 @@ public class ScmRepoVisibilityServiceTest
   }
 
   private void testIsRepositoryValidForPullRequestFeatures_GitLabEnterprise(boolean expected) {
-    when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
+    lenient().when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
     String repoName = String.format(TEST_REPO_URL, "https://NOTgitlab.com");
     assertThat(scmRepoVisibilityService
         .isRepositoryValidForPullRequestFeatures(newGitRepositoryInfo(repoName, SourceControlProvider.GITLAB)))
@@ -81,7 +84,7 @@ public class ScmRepoVisibilityServiceTest
   }
 
   private void testIsRepositoryValidForPullRequestFeatures_GitHubCloud(boolean expected) {
-    when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
+    lenient().when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
     String repoName = String.format(TEST_REPO_URL, "https://github.com/");
     assertThat(scmRepoVisibilityService
         .isRepositoryValidForPullRequestFeatures(newGitRepositoryInfo(repoName, SourceControlProvider.GITHUB)))
@@ -97,7 +100,7 @@ public class ScmRepoVisibilityServiceTest
   }
 
   private void testIsRepositoryValidForPullRequestFeatures_GitLabCloud(boolean expected) {
-    when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
+    lenient().when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
     String repoName = String.format(TEST_REPO_URL, "https://gitlab.com/");
     assertThat(scmRepoVisibilityService
         .isRepositoryValidForPullRequestFeatures(newGitRepositoryInfo(repoName, SourceControlProvider.GITLAB)))
@@ -112,8 +115,43 @@ public class ScmRepoVisibilityServiceTest
     testIsRepositoryValidForPullRequestFeatures_NotGithubOrGitLab(false);
   }
 
-  private void testIsRepositoryValidForPullRequestFeatures_NotGithubOrGitLab(boolean expected) {
+  private GitRepositoryInfo testIsPrivateRepository(boolean isPrivate) throws IOException {
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
+    when(mockGitApiClient.isRepositoryPrivate()).thenReturn(isPrivate);
+
+    String repoName = String.format(TEST_REPO_URL, "https://github.com/");
+    GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo(repoName, SourceControlProvider.GITHUB);
+
+    assertThat(scmRepoVisibilityService.isPrivateRepository(gitRepositoryInfo)).isEqualTo(isPrivate);
+    return gitRepositoryInfo;
+  }
+
+  @Test
+  public void testIsPrivateRepository_PrivateRepo() throws IOException {
+    testIsPrivateRepository(true);
+  }
+
+  @Test
+  public void testIsPrivateRepository_PublicRepo() throws IOException {
+    testIsPrivateRepository(false);
+  }
+
+  @Test
+  public void testIsPrivateRepository_Cached() throws IOException {
+    GitRepositoryInfo gitRepositoryInfo = testIsPrivateRepository(true);
+
+    // Create a new GitRepositoryInfo to verify the key of the cache is working as expected
+    gitRepositoryInfo = newGitRepositoryInfo(gitRepositoryInfo.normalizedRepositoryUrl, SourceControlProvider.GITHUB);
+
+    // Invoke again and should still return the cached 'true' value
+    assertThat(scmRepoVisibilityService.isPrivateRepository(gitRepositoryInfo)).isTrue();
+
+    // Verify only one invocation on the client
+    verify(mockGitApiClient, times(1)).isRepositoryPrivate();
+  }
+
+  private void testIsRepositoryValidForPullRequestFeatures_NotGithubOrGitLab(boolean expected) {
+    lenient().when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
     String repoName = String.format(TEST_REPO_URL, "https://example.com/");
     Arrays.stream(SourceControlProvider.values())
         .filter(sourceControlProvider -> sourceControlProvider != SourceControlProvider.GITHUB

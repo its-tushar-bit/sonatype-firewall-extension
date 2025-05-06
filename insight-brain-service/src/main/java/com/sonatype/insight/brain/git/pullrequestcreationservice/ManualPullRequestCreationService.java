@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.git.RemediationPullRequestEligibilityService;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
+import com.sonatype.insight.brain.git.ScmReducedSecurityService;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
@@ -84,14 +85,14 @@ public class ManualPullRequestCreationService
       final ApplicationDAO applicationDAO,
       final ComponentInfoService componentInfoService,
       final ComponentRemediationService componentRemediationService,
-      final CurrentUser currentUser)
+      final CurrentUser currentUser,
+      final ScmReducedSecurityService scmReducedSecurityService)
   {
     super(baseUrl,
         sourceControlUtils,
         eventPublisher,
         organizationDAO,
-        pullRequestBranchNameGenerator,
-        eligibilityService);
+        pullRequestBranchNameGenerator, eligibilityService, scmReducedSecurityService);
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.componentInfoService = componentInfoService;
@@ -200,6 +201,7 @@ public class ManualPullRequestCreationService
 
     GitRepositoryInfo gitRepositoryInfo =
         sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
+    boolean reducedSecurityData = scmReducedSecurityService.isReducedSecurityData(applicationId);
     PullRequestRemediationDetails prDetails = new PullRequestRemediationDetails(
         componentIdentifier,
         applicableVersionChange.get(),
@@ -213,7 +215,8 @@ public class ManualPullRequestCreationService
         gitRepositoryInfo.normalizedRepositoryUrl,
         organizationDAO,
         true,
-        currentUser.getDisplayNameOrUsername());
+        currentUser.getDisplayNameOrUsername(),
+        reducedSecurityData);
 
     SourceControlEvent event = createPullRequestEvent(prDetails, true);
     eventPublisher.publishEvent(event);

@@ -90,9 +90,10 @@ public class PullRequestRemediationDetails
       final String scanId,
       final String stage,
       final OrganizationDAO organizationDAO,
-      final boolean isManualPullRequest) throws IOException
+      final boolean isManualPullRequest,
+      final boolean reducedSecurityData) throws IOException
   {
-    super(organizationDAO);
+    super(organizationDAO, reducedSecurityData);
     if (policyThreatsMDEmbeddedHtmlTemplate == null) {
       throw new IOException(
           "Unable to construct PullRequestRemediationDetails: rich Markdown template is unavailable");
@@ -128,10 +129,11 @@ public class PullRequestRemediationDetails
       final String scmBaseUrl,
       final OrganizationDAO organizationDAO,
       final boolean isManualPullRequest,
-      final String displayNameOrUsername) throws IOException
+      final String displayNameOrUsername,
+      final boolean reducedSecurityData) throws IOException
   {
     this(toBeRemediated, remediatedVersion, breakingChangesCount, pullRequestBranchName, app, scanId, stage,
-        organizationDAO, isManualPullRequest);
+        organizationDAO, isManualPullRequest, reducedSecurityData);
     this.contents =
         constructContents(notifications, targetVersionType, iqBaseUrl, provider, scmBaseUrl, displayNameOrUsername);
   }
@@ -149,10 +151,12 @@ public class PullRequestRemediationDetails
       final String iqBaseUrl,
       final SourceControlProvider provider,
       final String scmBaseUrl,
-      final OrganizationDAO organizationDAO) throws IOException
+      final OrganizationDAO organizationDAO,
+      final boolean reducedSecurityData) throws IOException
   {
     this(toBeRemediated, remediatedVersion, targetVersionType, breakingChangesCount, pullRequestBranchName,
-        notifications, app, scanId, stage, iqBaseUrl, provider, scmBaseUrl, organizationDAO, false, null);
+        notifications, app, scanId, stage, iqBaseUrl, provider, scmBaseUrl, organizationDAO, false, null,
+        reducedSecurityData);
   }
 
   public PullRequestRemediationDetails(
@@ -164,10 +168,11 @@ public class PullRequestRemediationDetails
       final String stage,
       final String contents,
       final OrganizationDAO organizationDAO,
-      final boolean isManualPullRequest) throws IOException
+      final boolean isManualPullRequest,
+      final boolean reducedSecurityData) throws IOException
   {
     this(toBeRemediated, remediatedVersion, null, pullRequestBranchName, app, scanId, stage, organizationDAO,
-        isManualPullRequest);
+        isManualPullRequest, reducedSecurityData);
     this.contents = contents;
   }
 
@@ -184,11 +189,11 @@ public class PullRequestRemediationDetails
       final String scmBaseUrl,
       final OrganizationDAO organizationDAO,
       final boolean isManualPullRequest,
-      final String displayNameOrUsername) throws IOException
+      final String displayNameOrUsername,
+      final boolean reducedSecurityData) throws IOException
   {
     this(toBeRemediated, remediationVersionDTO.getVersion(), remediationVersionDTO.getBreakingChangesCount(),
-        pullRequestBranchName, app, scanId, stage,
-        organizationDAO, isManualPullRequest);
+        pullRequestBranchName, app, scanId, stage, organizationDAO, isManualPullRequest, reducedSecurityData);
     this.contents =
         constructContents(notifications, remediationVersionDTO.getRemediationType().getDisplayName(), iqBaseUrl,
             provider, scmBaseUrl, displayNameOrUsername);
@@ -205,10 +210,11 @@ public class PullRequestRemediationDetails
       final String iqBaseUrl,
       final SourceControlProvider provider,
       final String scmBaseUrl,
-      final OrganizationDAO organizationDAO) throws IOException
+      final OrganizationDAO organizationDAO,
+      final boolean reducedSecurityData) throws IOException
   {
     this(toBeRemediated, remediationVersionDTO, pullRequestBranchName, notifications, app, scanId, stage, iqBaseUrl,
-        provider, scmBaseUrl, organizationDAO, false, null);
+        provider, scmBaseUrl, organizationDAO, false, null, reducedSecurityData);
   }
 
   public String getTitle() {
@@ -359,7 +365,7 @@ public class PullRequestRemediationDetails
         .map(ComponentFact::getConstraintFacts)
         .filter(list -> list != null && !list.isEmpty())
         .flatMap(Collection::stream)
-        .collect(Collectors.toList()), baseUrl, true);
+        .collect(Collectors.toList()), baseUrl, true, reducedSecurityData, app.getPublicId(), scanId);
   }
 
   private boolean hasComponentFacts(final PolicyFact policyFact) {

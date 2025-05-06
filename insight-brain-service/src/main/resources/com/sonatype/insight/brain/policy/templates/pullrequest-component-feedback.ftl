@@ -128,6 +128,9 @@ Threat Level: <strong>${threatLevelDisplay.image.alt} (${threatLevelDisplay.valu
 
 ## :page_facing_up: Security Issue Details
 
+<#if (hasReducedSecurityData)>
+Found ${securityIssues?size} security vulnerabilities. [View Details](${componentDetailLink}).
+<#else>
 <details>
   <summary title="View all (${securityIssues?size})">
     View all (${securityIssues?size})
@@ -140,6 +143,7 @@ Threat Level: <strong>${threatLevelDisplay.image.alt} (${threatLevelDisplay.valu
 | <@severityComponent data=securityIssue/> | <@issueComponent data=securityIssue/> | [View Details](${securityIssue.policyViolationDetailsLink})|
 </#list>
 </details>
+</#if>
 </#if>
 </details>
 

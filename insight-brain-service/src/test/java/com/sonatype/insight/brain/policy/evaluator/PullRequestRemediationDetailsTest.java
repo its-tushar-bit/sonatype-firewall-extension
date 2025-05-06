@@ -50,6 +50,9 @@ public class PullRequestRemediationDetailsTest
 
   private static final String TEST_SCM_URL = "https://scm.mycompany.com";
 
+  // The majority of tests will default to use the full security data, not reduced. For readability.
+  private static final boolean FULL_DATA = false;
+
   @Inject
   private OrganizationDAO organizationDAO;
 
@@ -271,7 +274,7 @@ public class PullRequestRemediationDetailsTest
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", targetVersionType, breakingChangesCount,
             "pullRequest", policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL,
-            organizationDAO, isManualPullRequest, isManualPullRequest ? "Bob Smith" : null);
+            organizationDAO, isManualPullRequest, isManualPullRequest ? "Bob Smith" : null, FULL_DATA);
 
     assertThat(details.getTitle()).isEqualTo("Bump jooq to 3.11.3");
 
@@ -319,7 +322,8 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "1.1", "next-no-violations", null, "pullRequest",
-            policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO);
+            policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO,
+            FULL_DATA);
 
     assertThat(details.getTitle()).isEqualTo("Bump @sonatype/foo to 1.1");
 
@@ -363,7 +367,8 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "v0.3.3", "next-no-violations", null, "pullRequest",
-            policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO);
+            policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO,
+            FULL_DATA);
 
     assertThat(details.getTitle()).isEqualTo("Bump golang.org/x/text to v0.3.3");
 
@@ -380,7 +385,7 @@ public class PullRequestRemediationDetailsTest
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "next-no-violations", null, "pullRequest",
             policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), SourceControlProvider.GITHUB, TEST_SCM_URL,
-            organizationDAO);
+            organizationDAO, FULL_DATA);
 
     assertThat(details.getContents().replace("\r\n", "\n"))
         .startsWith("## :shield: Automated pull request: Nexus IQ found 1 Policy Violation\n");

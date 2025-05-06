@@ -47,7 +47,8 @@ public class ComponentFeedbackContextFactory
       final String applicationPublicId,
       final String featureBranchScanId,
       final String iqBaseUrl,
-      final Optional<String> codeSuggestion)
+      final Optional<String> codeSuggestion,
+      final boolean hasReducedSecurityData)
   {
     final int threatLevelValue = getHighestThreatLevel(violations);
     final String componentDetailsLink =
@@ -72,7 +73,8 @@ public class ComponentFeedbackContextFactory
             // there is no line number in the PR diff for the transitive dependency
             DIRECT_DEP_LOGO,
             codeSuggestion.orElse(null),
-        hasSecurityIssues);
+        hasSecurityIssues,
+        hasReducedSecurityData);
   }
 
   private boolean hasSecurityIssuesWithSeverityInfo(final List<SecurityIssue> securityIssues) {

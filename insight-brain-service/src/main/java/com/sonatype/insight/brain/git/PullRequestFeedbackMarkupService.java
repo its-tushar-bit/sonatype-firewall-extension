@@ -46,17 +46,21 @@ public class PullRequestFeedbackMarkupService
 
   private final ComponentFeedbackContextFactory contextFactory;
 
+  private final ScmReducedSecurityService scmReducedSecurityService;
+
   @Inject
   public PullRequestFeedbackMarkupService(
       final ApplicationDAO applicationDAO,
       final OrganizationDAO organizationDAO,
       final BaseUrl iqBaseUrl,
-      final ComponentFeedbackContextFactory componentFeedbackContextFactory)
+      final ComponentFeedbackContextFactory componentFeedbackContextFactory,
+      final ScmReducedSecurityService scmReducedSecurityService)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
     this.iqBaseUrl = iqBaseUrl;
     this.contextFactory = componentFeedbackContextFactory;
+    this.scmReducedSecurityService = scmReducedSecurityService;
   }
 
   /**
@@ -76,11 +80,12 @@ public class PullRequestFeedbackMarkupService
       final DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService) throws IOException
   {
     Application application = applicationDAO.getById(sourceCommitPolicyEvaluation.getApplicationId());
+    boolean reducedSecurityData = scmReducedSecurityService.isReducedSecurityData(application.getId());
     PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation,
             policyViolationDiff, remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber,
             application, iqBaseUrl.getConfigured(), scmImprovementsEnabled, organizationDAO,
-            developmentPrioritiesUtilsService);
+            developmentPrioritiesUtilsService, reducedSecurityData);
 
     Optional<String> optionalString = details.renderTemplateAndGetContents();
     telemetry.newViolationsComponentCount = details.getNewViolationsComponentCount();
@@ -106,6 +111,7 @@ public class PullRequestFeedbackMarkupService
       final boolean scmImprovementsEnabled)
   {
     final String applicationPublicId = applicationDAO.getByIdNotNull(applicationId).getPublicId();
+    boolean reducedSecurityData = scmReducedSecurityService.isReducedSecurityData(applicationId);
     final boolean supportsHtml = provider.supportsEmbeddedHtmlInMarkdown(scmBaseUrl);
     // Refer to https://sonatype.atlassian.net/browse/SDEV-365 for why we need the `supportsHtml` condition
     if (supportsHtml &&
@@ -117,7 +123,8 @@ public class PullRequestFeedbackMarkupService
               applicationPublicId,
               featureBranchScanId,
               iqBaseUrl.getConfigured(),
-              scmImprovementsEnabled ? codeSuggestion : Optional.empty()
+              scmImprovementsEnabled ? codeSuggestion : Optional.empty(),
+              reducedSecurityData
       );
       return ComponentFeedbackMDRenderer.render(context);
     }
@@ -133,7 +140,8 @@ public class PullRequestFeedbackMarkupService
                       featureBranchScanId,
                       codeSuggestion,
                       scmImprovementsEnabled,
-                      organizationDAO);
+                      organizationDAO,
+                      reducedSecurityData);
       return details.renderTemplateAndGetContents(provider);
     }
   }

@@ -13,7 +13,6 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -38,6 +37,7 @@ import com.sonatype.nexus.scm.bitbucket.BitbucketCodeInsightReportOutcome;
 import com.sonatype.nexus.scm.bitbucket.BitbucketLinkDataParameter;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.inject.Binder;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -94,6 +94,9 @@ public class BitbucketCodeInsightsServiceTest
   private SourceControlComponentLoader sourceControlComponentLoader;
 
   @Mock
+  private ScmReducedSecurityService mockScmReducedSecurityService;
+
+  @Mock
   private GitClientFactory gitClientFactory;
 
   @Mock
@@ -121,11 +124,13 @@ public class BitbucketCodeInsightsServiceTest
   @Before
   public void before() throws URISyntaxException, IOException {
     MockitoAnnotations.openMocks(this);
+    lenient().when(mockScmReducedSecurityService.isReducedSecurityData(anyString())).thenReturn(false);
 
     setBaseUrl("http://localhost:1122");
     application = tempEntity.newApplicationWithParent();
     service =
-        new BitbucketCodeInsightsService(applicationDAO, baseUrl, policyDAO, organizationDAO);
+        new BitbucketCodeInsightsService(applicationDAO, baseUrl, policyDAO, organizationDAO,
+            mockScmReducedSecurityService);
 
     createReportFile(application.getId(), FROM_SCAN_ID,
         zipReportDir("/BitbucketCodeInsightsServiceTest/from-report", tempDir), insightWork);
@@ -154,6 +159,13 @@ public class BitbucketCodeInsightsServiceTest
     //setup source control component details
     componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(
         featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+  }
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(ScmReducedSecurityService.class).toInstance(mockScmReducedSecurityService);
+
+    super.configure(binder);
   }
 
   @Test

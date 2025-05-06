@@ -80,6 +80,9 @@ public class PullRequestLineFeedbackTest
 
   private static final String FEATURE_BRANCH_SCAN_ID = "myScanId";
 
+  // The majority of tests will default to use the full security data, not reduced. For readability.
+  private static final boolean FULL_DATA = false;
+
   private Map<String, PullRequestLineFeedback> testCases;
 
   @Inject
@@ -92,23 +95,23 @@ public class PullRequestLineFeedbackTest
     testCases = ImmutableMap.<String, PullRequestLineFeedback>builder()
         .put(MULTIPLE_NO_SUGGESTIONS, new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component",
             iqBaseUrl, null, SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID,
-            FEATURE_BRANCH_SCAN_ID, EMPTY_OPTIONAL_STRING, false, organizationDAO))
+            FEATURE_BRANCH_SCAN_ID, EMPTY_OPTIONAL_STRING, false, organizationDAO, FULL_DATA))
         .put(MULTIPLE_WITH_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component",
             iqBaseUrl, new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, 3),
             SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID,
-            EMPTY_OPTIONAL_STRING, false, organizationDAO))
+            EMPTY_OPTIONAL_STRING, false, organizationDAO, FULL_DATA))
         .put(MULTIPLE_WITH_SUGGESTION_AND_DEPENDENCY_REMEDIATION,
             new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component", iqBaseUrl,
                 new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, 3),
                 SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID,
-                EMPTY_OPTIONAL_STRING, false, organizationDAO))
+                EMPTY_OPTIONAL_STRING, false, organizationDAO, FULL_DATA))
         .put(SINGLE_NO_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component", iqBaseUrl,
             null, SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID, EMPTY_OPTIONAL_STRING,
-                false, organizationDAO))
+            false, organizationDAO, FULL_DATA))
         .put(SINGLE_WITH_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component",
             iqBaseUrl, new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
             SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID,
-            EMPTY_OPTIONAL_STRING, false, organizationDAO))
+            EMPTY_OPTIONAL_STRING, false, organizationDAO, FULL_DATA))
         .put(SINGLE_WITH_SUGGESTION_AZCLOUD, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component",
             "http://dev.azure.com/foo/bar/_git/baz",
             new RemediationVersionDTO(
@@ -118,11 +121,11 @@ public class PullRequestLineFeedbackTest
             APPLICATION_PUBLIC_ID,
             FEATURE_BRANCH_SCAN_ID,
             EMPTY_OPTIONAL_STRING,
-                false, organizationDAO))
+            false, organizationDAO, FULL_DATA))
         .put(SINGLE_WITH_SUGGESTION_AZONPREM, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component",
             iqBaseUrl, new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
             SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID,
-            EMPTY_OPTIONAL_STRING, false, organizationDAO))
+            EMPTY_OPTIONAL_STRING, false, organizationDAO, FULL_DATA))
         .put(
             MULTIPLE_WITH_GOLDEN,
             new PullRequestLineFeedback(
@@ -139,7 +142,7 @@ public class PullRequestLineFeedbackTest
                 FEATURE_BRANCH_SCAN_ID,
                 EMPTY_OPTIONAL_STRING,
                 false,
-                organizationDAO))
+                organizationDAO, FULL_DATA))
         .put(
             MULTIPLE_WITH_RECOMMENDED,
             new PullRequestLineFeedback(
@@ -156,7 +159,7 @@ public class PullRequestLineFeedbackTest
                 FEATURE_BRANCH_SCAN_ID,
                 EMPTY_OPTIONAL_STRING,
                 false,
-                organizationDAO))
+                organizationDAO, FULL_DATA))
         .put(
             SINGLE_WITH_GOLDEN,
             new PullRequestLineFeedback(
@@ -173,7 +176,7 @@ public class PullRequestLineFeedbackTest
                 FEATURE_BRANCH_SCAN_ID,
                 EMPTY_OPTIONAL_STRING,
                 false,
-                organizationDAO))
+                organizationDAO, FULL_DATA))
         .put(
             SINGLE_WITH_RECOMMENDED,
             new PullRequestLineFeedback(
@@ -190,7 +193,7 @@ public class PullRequestLineFeedbackTest
                 FEATURE_BRANCH_SCAN_ID,
                 EMPTY_OPTIONAL_STRING,
                 false,
-                organizationDAO))
+                organizationDAO, FULL_DATA))
         .put(
             MULTIPLE_WITH_GOLDEN_SCM_IMPROVEMENTS,
             new PullRequestLineFeedback(
@@ -207,7 +210,7 @@ public class PullRequestLineFeedbackTest
                 FEATURE_BRANCH_SCAN_ID,
                 EMPTY_OPTIONAL_STRING,
                 true,
-                organizationDAO))
+                organizationDAO, FULL_DATA))
         .put(
             MULTIPLE_WITH_RECOMMENDED_SCM_IMPROVEMENTS,
             new PullRequestLineFeedback(
@@ -224,7 +227,7 @@ public class PullRequestLineFeedbackTest
                 FEATURE_BRANCH_SCAN_ID,
                 EMPTY_OPTIONAL_STRING,
                 true,
-                organizationDAO))
+                organizationDAO, FULL_DATA))
         .put(
             SINGLE_WITH_GOLDEN_SCM_IMPROVEMENTS,
             new PullRequestLineFeedback(
@@ -241,7 +244,8 @@ public class PullRequestLineFeedbackTest
                 FEATURE_BRANCH_SCAN_ID,
                 EMPTY_OPTIONAL_STRING,
                 true,
-                organizationDAO))
+                organizationDAO,
+                FULL_DATA))
         .put(
             SINGLE_WITH_RECOMMENDED_SCM_IMPROVEMENTS,
             new PullRequestLineFeedback(
@@ -258,7 +262,8 @@ public class PullRequestLineFeedbackTest
                 FEATURE_BRANCH_SCAN_ID,
                 EMPTY_OPTIONAL_STRING,
                 true,
-                organizationDAO))
+                organizationDAO,
+                FULL_DATA))
         .build();
   }
 
@@ -514,7 +519,7 @@ public class PullRequestLineFeedbackTest
                 APPLICATION_PUBLIC_ID,
                 FEATURE_BRANCH_SCAN_ID,
                 null,
-                    false, organizationDAO))
+                false, organizationDAO, FULL_DATA))
         .withMessageContaining("violations is required and cannot be null");
   }
 
@@ -523,7 +528,7 @@ public class PullRequestLineFeedbackTest
     assertThatExceptionOfType(IllegalStateException.class)
         .isThrownBy(() -> new PullRequestLineFeedback(new ArrayList<>(), "Test Component",
             lookup(BaseUrl.class).getConfigured(), null, null,
-            APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID, null, false, organizationDAO)
+            APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID, null, false, organizationDAO, FULL_DATA)
             .renderTemplateAndGetContents(GITHUB))
         .withMessageContaining("violations cannot be empty");
   }
@@ -534,7 +539,7 @@ public class PullRequestLineFeedbackTest
         .isThrownBy(
             () -> new PullRequestLineFeedback(new ArrayList<>(), null, lookup(BaseUrl.class).getConfigured(),
                 null, null, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID, null,
-                    false, organizationDAO))
+                false, organizationDAO, FULL_DATA))
         .withMessageContaining("displayName is required and cannot be null");
   }
 

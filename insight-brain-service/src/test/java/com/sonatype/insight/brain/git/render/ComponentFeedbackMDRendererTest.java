@@ -60,7 +60,8 @@ public class ComponentFeedbackMDRendererTest
             ),
             DIRECT_DEP_LOGO,
             "        <version>2.15.0</version>",
-        true
+        true,
+        false
     );
     runTest(componentFeedbackContext, "testRender_sanity.md");
   }

@@ -68,10 +68,10 @@ public class PullRequestLineFeedback
       final String featureBranchScanId,
       final Optional<String> codeSuggestion,
       final boolean scmImprovementsEnabled,
-      final OrganizationDAO organizationDAO
-  )
+      final OrganizationDAO organizationDAO,
+      final boolean reducedSecurityData)
   {
-    super(organizationDAO);
+    super(organizationDAO, reducedSecurityData);
     this.violations = checkNotNull(violations, "violations is required and cannot be null");
     this.displayName = checkNotNull(displayName, "displayName is required and cannot be null");
     this.remediationVersionDTO = remediationVersionDTO;
@@ -138,7 +138,8 @@ public class PullRequestLineFeedback
             provider,
             applicationPublicId,
             featureBranchScanId,
-            scmImprovementsEnabled);
+            scmImprovementsEnabled,
+            reducedSecurityData);
     return TemplateUtils
         .render(getLineFeedbackTemplate(provider.supportsEmbeddedHtmlInMarkdown(scmBaseUrl)),
             componentFeedbackList);
@@ -163,7 +164,8 @@ public class PullRequestLineFeedback
       final SourceControlProvider provider,
       final String applicationPublicId,
       final String featureBranchScanId,
-      final boolean scmImprovementsEnabled)
+      final boolean scmImprovementsEnabled,
+      final boolean reducedSecurityData)
   {
     int threatLevel = getHighestThreatLevel(violations);
     String threatImage = PullRequestFeedbackDetails.getImageForThreatLevel(threatLevel);
@@ -186,7 +188,9 @@ public class PullRequestLineFeedback
         .put("componentNameAndVersion", displayName)
         .put("threatLevel", threatLevel)
         .put("threatImage", threatImage)
-        .put("policiesViolated", getPoliciesViolatedMap(violations, baseUrl, true))
+        .put("policiesViolated",
+            getPoliciesViolatedMap(violations, baseUrl, true, reducedSecurityData, applicationPublicId,
+                featureBranchScanId))
         .put("suggestedVersion", suggestedVersion)
         .put("suggestedVersionType", suggestedVersionType)
         .put("remediationForDependencies", remediationForDependencies)

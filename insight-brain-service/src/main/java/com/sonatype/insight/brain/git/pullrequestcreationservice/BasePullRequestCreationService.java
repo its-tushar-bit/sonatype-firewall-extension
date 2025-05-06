@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.git.pullrequestcreationservice;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.git.RemediationPullRequestEligibilityService;
+import com.sonatype.insight.brain.git.ScmReducedSecurityService;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -32,13 +33,16 @@ public abstract class BasePullRequestCreationService
 
   protected final PullRequestBranchNameGenerator pullRequestBranchNameGenerator;
 
+  protected final ScmReducedSecurityService scmReducedSecurityService;
+
   protected BasePullRequestCreationService(
       final BaseUrl baseUrl,
       final SourceControlUtils sourceControlUtils,
       final SourceControlEventPublisher eventPublisher,
       final OrganizationDAO organizationDAO,
       final PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
-      final RemediationPullRequestEligibilityService eligibilityService)
+      final RemediationPullRequestEligibilityService eligibilityService,
+      final ScmReducedSecurityService scmReducedSecurityService)
   {
     this.baseUrl = baseUrl;
     this.sourceControlUtils = sourceControlUtils;
@@ -46,6 +50,7 @@ public abstract class BasePullRequestCreationService
     this.organizationDAO = organizationDAO;
     this.pullRequestBranchNameGenerator = pullRequestBranchNameGenerator;
     this.eligibilityService = eligibilityService;
+    this.scmReducedSecurityService = scmReducedSecurityService;
   }
 
   /**

@@ -85,9 +85,9 @@ public class PullRequestCodeInsightsDetails
       final String baseUrl,
       final LocationDiscoveryResult locationDiscoveryResult,
       final PolicyDAO policyDAO,
-      final OrganizationDAO organizationDAO)
+      final OrganizationDAO organizationDAO, final boolean reducedSecurityData)
   {
-    super(organizationDAO);
+    super(organizationDAO, reducedSecurityData);
     this.repositoryUrl = checkNotNull(repositoryUrl, "repositoryUrl is required and cannot be null");
     this.application = checkNotNull(application, "app is required and cannot be null");
     this.sourceControlComponentDetails =
@@ -316,7 +316,8 @@ public class PullRequestCodeInsightsDetails
           componentDisplayName);
 
       List<Map<String, Object>> constraintsForPolicyViolationsPerPolicy = getConstraintsForPolicyViolationsPerPolicy(
-          ImmutableList.of(policyViolation), baseUrl, false);
+          ImmutableList.of(policyViolation), baseUrl, false, reducedSecurityData, application.getPublicId(),
+          featureBranchEvaluation.getScanId());
 
       // Details format is: {constraint name}: {condition, condition,...}, ...
       details = constraintsForPolicyViolationsPerPolicy

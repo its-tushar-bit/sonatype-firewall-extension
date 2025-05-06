@@ -6,18 +6,22 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.api.GitApiClient;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,12 +39,14 @@ public class ScmRepoVisibilityService
 
   private final FeaturesService featuresService;
 
-  private final GitClientFactory gitClientFactory;
+  private final TenantReference<LoadingCache<GitRepositoryInfo, Boolean>> privateRepoCache;
 
   @Inject
   public ScmRepoVisibilityService(final FeaturesService featuresService, final GitClientFactory gitClientFactory) {
     this.featuresService = featuresService;
-    this.gitClientFactory = gitClientFactory;
+
+    privateRepoCache = new TenantReference<>(() -> CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES)
+        .build(new GitPrivateRepoCacheLoader(gitClientFactory)));
   }
 
   /**
@@ -62,14 +68,12 @@ public class ScmRepoVisibilityService
   }
 
   public boolean isPrivateRepository(final GitRepositoryInfo gitRepositoryInfo) {
-    GitApiClient client = gitClientFactory.createApiClient(gitRepositoryInfo);
     try {
-      return client.isRepositoryPrivate();
+      return privateRepoCache.get().get(gitRepositoryInfo);
     }
-    catch (IOException e) {
-      log.error("Error when checking if repository is private", e);
-      throw new UncheckedIOException("Unable to connect to the repository " + gitRepositoryInfo.normalizedRepositoryUrl,
-          e);
+    catch (Exception e) {
+      throw new RuntimeException(
+          "Error when checking if repository is private" + gitRepositoryInfo.normalizedRepositoryUrl, e);
     }
   }
 
@@ -81,5 +85,28 @@ public class ScmRepoVisibilityService
   public boolean isScmAllowedOnPublicRepositories() {
     Set<Feature> features = featuresService.getFeatures();
     return features.contains(LicensedFeature.ALLOW_SCM_ON_PUBLIC_REPOS);
+  }
+
+  /**
+   * Local {@link CacheLoader} for {@link GitRepositoryInfo} objects. This is used to be the check to see if a
+   * repository is private. We cannot permanently store this value as someone could then circumvent restrictions by
+   * making a repo private, enabling the repo, and then making it public again. So we must check each time, but this is
+   * also a performance hit. So we cache the value for 5 minutes.
+   */
+  private static class GitPrivateRepoCacheLoader
+      extends CacheLoader<GitRepositoryInfo, Boolean>
+  {
+    private final GitClientFactory gitClientFactory;
+
+    @Inject
+    public GitPrivateRepoCacheLoader(final GitClientFactory gitClientFactory) {
+      this.gitClientFactory = gitClientFactory;
+    }
+
+    @Override
+    public Boolean load(final GitRepositoryInfo gitRepositoryInfo) throws IOException {
+      GitApiClient client = gitClientFactory.createApiClient(gitRepositoryInfo);
+      return client.isRepositoryPrivate();
+    }
   }
 }

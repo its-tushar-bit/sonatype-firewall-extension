@@ -66,17 +66,21 @@ public class BitbucketCodeInsightsService
 
   private final OrganizationDAO organizationDAO;
 
+  private final ScmReducedSecurityService scmReducedSecurityService;
+
   @Inject
   public BitbucketCodeInsightsService(
       final ApplicationDAO applicationDAO,
       final BaseUrl baseUrl,
       final PolicyDAO policyDAO,
-      final OrganizationDAO organizationDAO)
+      final OrganizationDAO organizationDAO,
+      final ScmReducedSecurityService scmReducedSecurityService)
   {
     this.applicationDAO = applicationDAO;
     this.baseUrl = baseUrl;
     this.policyDAO = policyDAO;
     this.organizationDAO = organizationDAO;
+    this.scmReducedSecurityService = scmReducedSecurityService;
   }
 
   @Override
@@ -100,6 +104,7 @@ public class BitbucketCodeInsightsService
 
     try {
       Application application = applicationDAO.getById(sourceCommitPolicyEvaluation.getApplicationId());
+      boolean reducedSecurityData = scmReducedSecurityService.isReducedSecurityData(application.getId());
       PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
           gitRepositoryInfo.normalizedRepositoryUrl,
           application,
@@ -109,7 +114,8 @@ public class BitbucketCodeInsightsService
           baseUrl.getConfigured(),
           locationDiscoveryResult,
           policyDAO,
-          organizationDAO);
+          organizationDAO,
+          reducedSecurityData);
 
       BitbucketApiClient<?, ?> bitbucketApiClient = getBitbucketApiClient(gitClientFactory, gitRepositoryInfo);
 

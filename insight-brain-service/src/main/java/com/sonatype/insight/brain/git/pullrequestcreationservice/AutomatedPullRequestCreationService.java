@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.git.RemediationPullRequestEligibilityService;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
+import com.sonatype.insight.brain.git.ScmReducedSecurityService;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.model.Application;
@@ -47,14 +48,16 @@ public class AutomatedPullRequestCreationService
       final SourceControlUtils sourceControlUtils,
       final SourceControlEventPublisher eventPublisher,
       final OrganizationDAO organizationDAO,
-      final PullRequestBranchNameGenerator pullRequestBranchNameGenerator)
+      final PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
+      final ScmReducedSecurityService scmReducedSecurityService)
   {
     super(baseUrl,
         sourceControlUtils,
         eventPublisher,
         organizationDAO,
         pullRequestBranchNameGenerator,
-        eligibilityService);
+        eligibilityService,
+        scmReducedSecurityService);
   }
 
   public void createAutomatedRemediationPullRequest(
@@ -111,6 +114,7 @@ public class AutomatedPullRequestCreationService
 
     GitRepositoryInfo gitRepositoryInfo =
         sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
+    boolean reducedSecurityData = scmReducedSecurityService.isReducedSecurityData(app.getId());
     PullRequestRemediationDetails prDetails = new PullRequestRemediationDetails(
         componentIdentifier,
         remediationVersionDTO,
@@ -122,7 +126,7 @@ public class AutomatedPullRequestCreationService
         baseUrl.get(),
         gitRepositoryInfo.provider,
         gitRepositoryInfo.normalizedRepositoryUrl,
-        organizationDAO);
+        organizationDAO, reducedSecurityData);
 
     eventPublisher.publishEvent(createPullRequestEvent(prDetails, false));
 

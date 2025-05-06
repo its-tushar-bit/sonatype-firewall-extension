@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.git.render;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Optional;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -97,7 +96,7 @@ public class ComponentFeedbackContextFactoryTest
   private static final RemediationVersionDTO NO_SUGGESTION_REMEDIATION = null;
 
   private static final RemediationVersionDTO SUGGESTION_NO_DEPS_REMEDIATION =
-      new RemediationVersionDTO(SUGGESTED_VERSION, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, 
+      new RemediationVersionDTO(SUGGESTED_VERSION, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
           FEW.getNumBreakingChanges());
 
   private static final RemediationVersionDTO SUGGESTION_WITH_DEPS_REMEDIATION =
@@ -233,15 +232,17 @@ public class ComponentFeedbackContextFactoryTest
     testCases.put(FEW_BREAKING_CHANGES,  buildBreakingChangesTestData(provider, FEW));
     testCases.put(NO_BREAKING_CHANGES,   buildBreakingChangesTestData(provider, NONE));
     testCases.put(HAS_DIRECT_DEP, buildDirectDepTestData(provider));
-    testCases.put(LOW_THREAT_LEVEL,        buildThreatLevelTestData(provider, LOW_THREAT_LEVEL_DISPLAY));
-    testCases.put(MODERATE_THREAT_LEVEL,   buildThreatLevelTestData(provider, MODERATE_THREAT_LEVEL_DISPLAY));
-    testCases.put(SEVERE_THREAT_LEVEL,     buildThreatLevelTestData(provider, SEVERE_THREAT_LEVEL_DISPLAY));
-    testCases.put(CRITICAL_THREAT_LEVEL,   buildThreatLevelTestData(provider, CRITICAL_THREAT_LEVEL_DISPLAY));
+    testCases.put(LOW_THREAT_LEVEL,        buildThreatLevelTestData(provider, LOW_THREAT_LEVEL_DISPLAY, false));
+    testCases.put(MODERATE_THREAT_LEVEL,   buildThreatLevelTestData(provider, MODERATE_THREAT_LEVEL_DISPLAY, false));
+    testCases.put(SEVERE_THREAT_LEVEL,     buildThreatLevelTestData(provider, SEVERE_THREAT_LEVEL_DISPLAY, false));
+    testCases.put(CRITICAL_THREAT_LEVEL,   buildThreatLevelTestData(provider, CRITICAL_THREAT_LEVEL_DISPLAY, false));
     testCases.put(NO_VULN, buildNoVulnTestData(provider));
     testCases.put(HAS_UTM_SOURCE, buildHasUtmSourceTestData(provider));
     testCases.put(NO_UTM_SOURCE, buildNoUtmSourceTestData(provider));
     testCases.put(CRITICAL_THREAT_LEVEL_AND_NON_VULN,
         buildThreatLevelTestDataAndNonVuln(provider, CRITICAL_THREAT_LEVEL_DISPLAY));
+    testCases.put(CRITICAL_THREAT_LEVEL_AND_REDUCED_SECURITY_DATA,
+        buildThreatLevelTestData(provider, CRITICAL_THREAT_LEVEL_DISPLAY, true));
   }
 
   private void setupAllVulnerabilities(final PolicyViolation pv) {
@@ -277,7 +278,8 @@ public class ComponentFeedbackContextFactoryTest
             testData.factoryInput.applicationPublicId,
             testData.factoryInput.featureBranchScanId,
             testData.factoryInput.iqBaseUrl,
-            testData.factoryInput.codeSuggestion
+            testData.factoryInput.codeSuggestion,
+            testData.factoryInput.hasReducedSecurityData
     );
     assertThat(actual).usingRecursiveComparison().isEqualTo(testData.expected);
     renderAndAssert(actual);
@@ -349,17 +351,19 @@ public class ComponentFeedbackContextFactoryTest
 
   private static TestData buildThreatLevelTestData(
       final SourceControlProvider provider,
-      final ThreatLevelDisplay expectedThreatLevelDisplay)
+      final ThreatLevelDisplay expectedThreatLevelDisplay,
+      final boolean hasReducedSecurityData)
   {
     final FactoryInput factoryInput = initFactoryInput(provider);
     final PolicyViolation pv = generatePolicyViolation("pv3", expectedThreatLevelDisplay.getValue());
     factoryInput.violations = ImmutableList.of(pv);
+    factoryInput.hasReducedSecurityData = hasReducedSecurityData;
     final List<SecurityIssue> expectedSecurityIssues = ImmutableList.of(
             buildSecurityIssueWithUtmSource(pv, VULN_2, SONATYPE_DEEP_DIVE_TAG, provider),
             buildSecurityIssueWithUtmSource(pv, VULN_1, SONATYPE_FAST_TRACK_TAG, provider)
     );
     return new TestData(buildThreatLevelContext(provider, expectedThreatLevelDisplay,
-        expectedSecurityIssues), factoryInput);
+        expectedSecurityIssues, hasReducedSecurityData), factoryInput);
   }
 
   private static TestData buildThreatLevelTestDataAndNonVuln(
@@ -419,7 +423,7 @@ public class ComponentFeedbackContextFactoryTest
       final SourceControlProvider provider,
       final BreakingChangeType breakingChangeType)
   {
-    return buildDefaultContext(provider, breakingChangeType, SUGGESTED_VERSION, 
+    return buildDefaultContext(provider, breakingChangeType, SUGGESTED_VERSION,
         "next-no-violations-with-dependencies", true, true);
   }
 
@@ -432,20 +436,35 @@ public class ComponentFeedbackContextFactoryTest
       final ThreatLevelDisplay threatLevelDisplay,
       final List<SecurityIssue> expectedSecurityIssues)
   {
+    return buildThreatLevelContext(provider, threatLevelDisplay, expectedSecurityIssues, false);
+  }
+
+  private static ComponentFeedbackContext buildThreatLevelContext(
+      final SourceControlProvider provider,
+      final ThreatLevelDisplay threatLevelDisplay,
+      final List<SecurityIssue> expectedSecurityIssues,
+      final boolean hasReducedSecurityData)
+  {
     return new ComponentFeedbackContext(
-            true,
-            threatLevelDisplay,
-            resolveExpectedComponentDetailsLink(true, provider),
-            COMPONENT_DISPLAY_NAME,
-            provider,
-            BreakingChangeType.NOT_APPLICABLE.getNumBreakingChanges(),
-            "",
-            "",
-            false,
-            expectedSecurityIssues,
-            DIRECT_DEP_LOGO,
-            NO_CODE_SUGGESTION,
-        true);
+        true,
+        threatLevelDisplay,
+        resolveExpectedComponentDetailsLink(true, provider),
+        COMPONENT_DISPLAY_NAME,
+        provider,
+        BreakingChangeType.NOT_APPLICABLE.getNumBreakingChanges(),
+        "",
+        "",
+        false,
+        expectedSecurityIssues,
+        DIRECT_DEP_LOGO,
+        NO_CODE_SUGGESTION,
+        true,
+        hasReducedSecurityData);
+  }
+
+  @Test
+  public void testBuild_criticalThreatLevelAndReducedSecurityData_github() {
+    runTest(CRITICAL_THREAT_LEVEL_AND_REDUCED_SECURITY_DATA, GITHUB);
   }
 
   private static ComponentFeedbackContext buildNoVulnContext(
@@ -466,6 +485,7 @@ public class ComponentFeedbackContextFactoryTest
             securityIssues,
             DIRECT_DEP_LOGO,
             NO_CODE_SUGGESTION,
+        false,
         false);
   }
 
@@ -510,7 +530,8 @@ public class ComponentFeedbackContextFactoryTest
             securityIssues,
             DIRECT_DEP_LOGO,
             codeSuggestion,
-        true);
+        true,
+        false);
   }
 
   private static SecurityVulnerabilityData generateVulnData(
@@ -605,7 +626,8 @@ public class ComponentFeedbackContextFactoryTest
     NO_VULN,
     HAS_UTM_SOURCE,
     NO_UTM_SOURCE,
-    CRITICAL_THREAT_LEVEL_AND_NON_VULN
+    CRITICAL_THREAT_LEVEL_AND_NON_VULN,
+    CRITICAL_THREAT_LEVEL_AND_REDUCED_SECURITY_DATA
     ;
 
   }
@@ -663,5 +685,7 @@ public class ComponentFeedbackContextFactoryTest
     public String iqBaseUrl;
 
     public Optional<String> codeSuggestion;
+
+    public boolean hasReducedSecurityData;
   }
 }

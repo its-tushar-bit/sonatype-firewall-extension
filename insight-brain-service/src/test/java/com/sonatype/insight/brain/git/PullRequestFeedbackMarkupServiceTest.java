@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TimeZone;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -44,11 +43,13 @@ import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.DiffPosition;
 
+import com.google.inject.Binder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
+import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.git.PullRequestCommentingService.MINIMUM_THREAT_LEVEL;
 import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile;
@@ -60,6 +61,9 @@ import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 public class PullRequestFeedbackMarkupServiceTest
     extends AbstractComponentTest
@@ -70,6 +74,9 @@ public class PullRequestFeedbackMarkupServiceTest
 
   @Rule
   public TestName name = new TestName();
+
+  @Mock
+  private ScmReducedSecurityService mockScmReducedSecurityService;
 
   @Inject
   private PolicyEvaluationDiffService policyEvaluationDiffService;
@@ -97,6 +104,8 @@ public class PullRequestFeedbackMarkupServiceTest
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     // The markdown fixture must match the name of the test method
     this.expectedRenderedOutputFilename = name.getMethodName() + ".md";
+
+    lenient().when(mockScmReducedSecurityService.isReducedSecurityData(anyString())).thenReturn(false);
   }
 
   @After
@@ -104,14 +113,33 @@ public class PullRequestFeedbackMarkupServiceTest
     TimeZone.setDefault(initialTimezone);
   }
 
-  @Test
-  public void testCreateSummaryMarkup_withUxImprovement() throws Exception {
-    runCreateSummaryMarkupTest(true, "PullRequestFeedbackMarkup_violationAdded_withUxImprovement.md" );
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(ScmReducedSecurityService.class).toInstance(mockScmReducedSecurityService);
+
+    super.configure(binder);
   }
 
   @Test
-  public void testCreateSummaryMarkup_noUxImprovement() throws Exception {
-    runCreateSummaryMarkupTest(false, "PullRequestFeedbackMarkup_violationAdded_noUxImprovement.md" );
+  public void testCreateSummaryMarkup_withUxImprovement_RegularSecurityData() throws Exception {
+    runCreateSummaryMarkupTest(true, "PullRequestFeedbackMarkup_violationAdded_withUxImprovement_regular.md");
+  }
+
+  @Test
+  public void testCreateSummaryMarkup_withUxImprovement_ReducedSecurityData() throws Exception {
+    when(mockScmReducedSecurityService.isReducedSecurityData(anyString())).thenReturn(true);
+    runCreateSummaryMarkupTest(true, "PullRequestFeedbackMarkup_violationAdded_withUxImprovement_reduced.md");
+  }
+
+  @Test
+  public void testCreateSummaryMarkup_noUxImprovement_RegularsecurityData() throws Exception {
+    runCreateSummaryMarkupTest(false, "PullRequestFeedbackMarkup_violationAdded_noUxImprovement_regular.md");
+  }
+
+  @Test
+  public void testCreateSummaryMarkup_noUxImprovement_ReducedSecurityData() throws Exception {
+    when(mockScmReducedSecurityService.isReducedSecurityData(anyString())).thenReturn(true);
+    runCreateSummaryMarkupTest(false, "PullRequestFeedbackMarkup_violationAdded_noUxImprovement_reduced.md");
   }
 
   @Test

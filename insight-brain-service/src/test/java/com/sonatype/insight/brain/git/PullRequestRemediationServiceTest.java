@@ -67,6 +67,9 @@ public class PullRequestRemediationServiceTest
   @Mock
   private SourceControlEventDAO mockSourceControlEventDAO;
 
+  @Mock
+  private ScmReducedSecurityService mockScmReducedSecurityService;
+
   // subject
   private PullRequestRemediationService pullRequestRemediationService;
 
@@ -84,7 +87,7 @@ public class PullRequestRemediationServiceTest
     organizationDAO = daoFactory.createOrganizationDAO();
     pullRequestRemediationService = new PullRequestRemediationService(mockPullRequestExecutor, mockGitClientFactory,
         mockApplicationDAO, organizationDAO, mockSourceControlUtils, mockPullRequestTaskProvider,
-        mockSourceControlSshService, mockSourceControlEventDAO);
+        mockSourceControlSshService, mockSourceControlEventDAO, mockScmReducedSecurityService);
   }
 
   private Application setupApplication(String appId) {

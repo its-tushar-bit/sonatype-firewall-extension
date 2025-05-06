@@ -1481,7 +1481,7 @@ public class ScanPolicyEvaluator
         violationMeetsReachabilityConfigurationCriteria(hasReachabilityData, autoPolicyWaiver);
     boolean isNotReachable = false;
     if (isReachabilityConfigured) {
-      isNotReachable = !violationIsReachable(policyViolation);
+      isNotReachable = violationIsNonReachable(policyViolation);
       if (autoPolicyWaiver.getScopesOperatorAny() && isNotReachable) {
         return true;
       }
@@ -1519,8 +1519,8 @@ public class ScanPolicyEvaluator
     return hasReachabilityData && autoPolicyWaiver.hasReachability();
   }
 
-  private boolean violationIsReachable(final PolicyViolation policyViolation) {
-    return ReachabilityStatus.REACHABLE.equals(policyViolation.getReachabilityStatus());
+  private boolean violationIsNonReachable(final PolicyViolation policyViolation) {
+    return ReachabilityStatus.NON_REACHABLE.equals(policyViolation.getReachabilityStatus());
   }
 
   private boolean isNoPathForwardConfigured(final AutoPolicyWaiver autoPolicyWaiver, final Component component) {

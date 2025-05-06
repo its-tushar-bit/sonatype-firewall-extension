@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -34,6 +33,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
 import com.sonatype.insight.brain.api.experimental.ApiVulnerabilityReachabilityStatusService;
 import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
+import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities;
 import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities.PresentReachableComponentVulnerabilities;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
@@ -778,9 +778,23 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_WithReachableVulnerability_NotReachable() throws Exception {
-    doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId",
-        Map.of(new PackageUrlIdentifier("pkg:maven/tomcat/tomcat-util@5.5.23"),
-            new PresentReachableComponentVulnerabilities(new HashSet<>()))))
+    // Mock the reachable vuln map
+    Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> reachableVulnMap = new HashMap();
+
+    List<String> unreachableComponentList = List.of(
+        "pkg:maven/commons-httpclient/commons-httpclient@3.1",
+        "pkg:maven/org.apache.geronimo.framework/geronimo-security@2.1",
+        "pkg:maven/tomcat/catalina-host-manager@5.5.23",
+        "pkg:maven/org.mortbay.jetty/jetty@6.1.15",
+        "pkg:maven/tomcat/servlets-default@5.5.4",
+        "pkg:maven/org.openid4java/openid4java@0.9.5",
+        "pkg:maven/tomcat/tomcat-util@5.4.23",
+        "pkg:maven/tomcat/tomcat-util@5.5.23"
+    );
+
+    addReachabilityMap(unreachableComponentList, reachableVulnMap);
+
+    doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId", reachableVulnMap))
         .when(apiVulnerabilityReachabilityStatusService)
         .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(), any(VulnerabilitySignatureAnalysisDTO.class));
 
@@ -827,9 +841,27 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_WithReachableVulnerability_Reachable() throws Exception {
-    doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId",
-        Map.of(new PackageUrlIdentifier("pkg:maven/tomcat/tomcat-util@5.5.23"),
-            new PresentReachableComponentVulnerabilities(Set.of("CVE-2012-0022")))))
+    // Mock the reachable vuln map
+    Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> reachableVulnMap = new HashMap();
+
+    // reachable vuln
+    String reachableCVE = "CVE-2012-0022";
+    reachableVulnMap.put(new PackageUrlIdentifier("pkg:maven/tomcat/tomcat-util@5.5.23"),
+        new PresentReachableComponentVulnerabilities(Set.of(reachableCVE)));
+
+    List<String> unreachableComponentList = List.of(
+        "pkg:maven/commons-httpclient/commons-httpclient@3.1",
+        "pkg:maven/org.apache.geronimo.framework/geronimo-security@2.1",
+        "pkg:maven/tomcat/catalina-host-manager@5.5.23",
+        "pkg:maven/org.mortbay.jetty/jetty@6.1.15",
+        "pkg:maven/tomcat/servlets-default@5.5.4",
+        "pkg:maven/org.openid4java/openid4java@0.9.5",
+        "pkg:maven/tomcat/tomcat-util@5.4.23"
+    );
+
+    addReachabilityMap(unreachableComponentList, reachableVulnMap);
+
+    doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId", reachableVulnMap))
         .when(apiVulnerabilityReachabilityStatusService)
         .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(), any(VulnerabilitySignatureAnalysisDTO.class));
 
@@ -848,13 +880,12 @@ public class ScanPolicyEvaluatorTest
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier
         .createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
-    String vulnerabilityIdentifier = "CVE-2012-0022";
 
     VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
         application.getId(),
         scanId,
         componentIdentifier,
-        vulnerabilityIdentifier,
+        reachableCVE,
         insightWork
     );
 
@@ -874,9 +905,25 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_Results_AutoWaivedViolations_PathForward_WithVersionChanges_WithReachableVuln_Reachable()
       throws Exception
   {
-    doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId",
-        Map.of(new PackageUrlIdentifier("pkg:maven/org.openid4java/openid4java@0.9.5"),
-            new PresentReachableComponentVulnerabilities(Set.of("CVE-2011-4314")))))
+    String knownCVE = "CVE-2011-4314";
+    Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> reachableVulnMap = new HashMap();
+
+    // reachable vuln
+    reachableVulnMap.put(new PackageUrlIdentifier("pkg:maven/org.openid4java/openid4java@0.9.5"),
+        new PresentReachableComponentVulnerabilities(Set.of(knownCVE)));
+
+    List<String> unreachableComponentList = List.of(
+        "pkg:maven/commons-httpclient/commons-httpclient@3.1",
+        "pkg:maven/org.apache.geronimo.framework/geronimo-security@2.1",
+        "pkg:maven/tomcat/catalina-host-manager@5.5.23",
+        "pkg:maven/org.mortbay.jetty/jetty@6.1.15",
+        "pkg:maven/tomcat/tomcat-util@5.5.23",
+        "pkg:maven/tomcat/servlets-default@5.5.4"
+    );
+
+    addReachabilityMap(unreachableComponentList, reachableVulnMap);
+
+    doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId", reachableVulnMap))
         .when(apiVulnerabilityReachabilityStatusService)
         .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(), any(VulnerabilitySignatureAnalysisDTO.class));
 
@@ -4503,11 +4550,32 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testPerformPolicyEvaluation_WithReachableVulnerability() throws Exception {
-    doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId",
-        Map.of(new PackageUrlIdentifier("pkg:maven/tomcat/tomcat-util@5.5.23"),
-            new PresentReachableComponentVulnerabilities(Set.of("CVE-2012-0022")))))
+
+    // Set up reachable vulnerability:
+    String reachableCVE = "CVE-2012-0022";
+
+    // Mock the reachable vuln map
+    Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> reachableVulnMap = new HashMap();
+
+    reachableVulnMap.put(new PackageUrlIdentifier("pkg:maven/tomcat/tomcat-util@5.5.23"),
+        new PresentReachableComponentVulnerabilities(Set.of(reachableCVE)));
+
+    List<String> unreachableComponentList = List.of(
+        "pkg:maven/commons-httpclient/commons-httpclient@3.1",
+        "pkg:maven/org.apache.geronimo.framework/geronimo-security@2.1",
+        "pkg:maven/tomcat/catalina-host-manager@5.5.23",
+        "pkg:maven/org.mortbay.jetty/jetty@6.1.15",
+        "pkg:maven/tomcat/servlets-default@5.5.4",
+        "pkg:maven/org.openid4java/openid4java@0.9.5",
+        "pkg:maven/tomcat/tomcat-util@5.4.23"
+    );
+
+    addReachabilityMap(unreachableComponentList, reachableVulnMap);
+
+    doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId", reachableVulnMap))
         .when(apiVulnerabilityReachabilityStatusService)
         .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(), any(VulnerabilitySignatureAnalysisDTO.class));
+
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
 
@@ -4523,13 +4591,12 @@ public class ScanPolicyEvaluatorTest
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier
         .createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
-    String vulnerabilityIdentifier = "CVE-2012-0022";
 
     VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
         application.getId(),
         scanId,
         componentIdentifier,
-        vulnerabilityIdentifier,
+        reachableCVE,
         insightWork
     );
 
@@ -4545,7 +4612,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(results.activeViolations).hasSize(1);
 
     Optional<PolicyViolation> optionalPolicyViolation =
-        findPolicyViolationByVulnerabilityIdentifier(results.activeViolations, vulnerabilityIdentifier);
+        findPolicyViolationByVulnerabilityIdentifier(results.activeViolations, reachableCVE);
 
     assertThat(optionalPolicyViolation).isPresent();
     assertThat(optionalPolicyViolation.get().getReachabilityStatus()).isEqualTo(REACHABLE);
@@ -4576,12 +4643,19 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_EvaluateAutoWaiverWithNotReachableAndNoPathForward_ByScopeOperator_And() throws Exception {
     // Set up reachable vulnerability:
     String vulnerabilityIdentifier = "CVE-2007-3385";
+    String vulnerabilityIdentifier2 = "CVE-2007-3386";
+
     doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId",
-        Map.of(new PackageUrlIdentifier("pkg:maven/tomcat/tomcat-util@5.5.23"),
-            new PresentReachableComponentVulnerabilities(Set.of(vulnerabilityIdentifier)))))
+        Map.of(new PackageUrlIdentifier("pkg:maven/org.openid4java/openid4java@0.9.5"),
+            new PresentReachableComponentVulnerabilities(Set.of(vulnerabilityIdentifier2)),
+            new PackageUrlIdentifier("pkg:maven/tomcat/tomcat-util@5.5.23"),
+            new PresentReachableComponentVulnerabilities(Set.of(vulnerabilityIdentifier)),
+            new PackageUrlIdentifier("pkg:maven/org.mortbay.jetty/jetty@6.1.15"),
+            new PresentReachableComponentVulnerabilities(Set.of(vulnerabilityIdentifier2)))))
         .when(apiVulnerabilityReachabilityStatusService)
         .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(),
             any(VulnerabilitySignatureAnalysisDTO.class));
+
     // Set up path forward:
     ComponentDetailsDTO tomcatComponentDetailsDTO = new ComponentDetailsDTO();
     tomcatComponentDetailsDTO.componentIdentifier =
@@ -4643,6 +4717,7 @@ public class ScanPolicyEvaluatorTest
         PackageUrlIdentifier.fromComponentIdentifier(tomcatComponentDetailsDTO.componentIdentifier);
     PackageUrlIdentifier jettyIdentifier =
         PackageUrlIdentifier.fromComponentIdentifier(jettyComponentDetailsDTO.componentIdentifier);
+
     assertThat(results.autoWaivedViolations)
         .hasSize(3)
         .extracting(policyViolation ->
@@ -4664,6 +4739,8 @@ public class ScanPolicyEvaluatorTest
         Map.of(new PackageUrlIdentifier("pkg:maven/tomcat/tomcat-util@5.5.23"),
             new PresentReachableComponentVulnerabilities(Set.of(vulnerabilityIdentifier)),
             new PackageUrlIdentifier("pkg:maven/org.openid4java/openid4java@0.9.5"),
+            new PresentReachableComponentVulnerabilities(Set.of("73737")),
+            new PackageUrlIdentifier("pkg:maven/org.mortbay.jetty/jetty@6.1.15"),
             new PresentReachableComponentVulnerabilities(Set.of("73737")))))
         .when(apiVulnerabilityReachabilityStatusService)
         .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(),
@@ -4794,8 +4871,22 @@ public class ScanPolicyEvaluatorTest
         .extracting(PolicyViolation::getAutoPolicyWaiverId)
         .isEqualTo(noPathForward.getId());
 
-    // Match the auto waiver with Not Reachable
+    // Match the auto waiver with Unknown reachability then non-reachable auto-waiver doesn't apply
     doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId", Map.of()))
+        .when(apiVulnerabilityReachabilityStatusService)
+        .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(),
+            any(VulnerabilitySignatureAnalysisDTO.class));
+    results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, analysisDTO, false);
+    assertThat(results.autoWaivedViolations)
+        .singleElement()
+        .extracting(PolicyViolation::getAutoPolicyWaiverId)
+        .isEqualTo(noPathForward.getId());
+
+    // Match the auto waiver with Not Reachable
+    doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId",
+        Map.of(new PackageUrlIdentifier("pkg:maven/tomcat/tomcat-util@5.5.23"),
+            new PresentReachableComponentVulnerabilities(Set.of("CVE-2007-3382")))))
         .when(apiVulnerabilityReachabilityStatusService)
         .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(),
             any(VulnerabilitySignatureAnalysisDTO.class));
@@ -5088,5 +5179,22 @@ public class ScanPolicyEvaluatorTest
    */
   private String simulateReportIsAvailable(String reportResourceName) {
     return mockReportDownloader.mockDownloadReport("/" + getClass().getSimpleName() + "/" + reportResourceName);
+  }
+
+  /**
+    * Adds a reachable component vulnerability to the map for each package URL identifier.
+    *
+    * @param packageUrlIdentifiers the list of package URL identifiers
+    * @param reachableComponentVulnerabilitiesMap the map to add the reachable component vulnerabilities to
+  */
+  private void addReachabilityMap(
+      List<String> packageUrlIdentifiers,
+      Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> reachableComponentVulnerabilitiesMap)
+  {
+    for (String packageUrlIdentifier : packageUrlIdentifiers) {
+      PackageUrlIdentifier packageUrl = new PackageUrlIdentifier(packageUrlIdentifier);
+      reachableComponentVulnerabilitiesMap.put(packageUrl,
+          new PresentReachableComponentVulnerabilities(Set.of("UNKNOWN_CVE")));
+    }
   }
 }

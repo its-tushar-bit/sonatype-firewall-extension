@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
@@ -41,6 +42,7 @@ import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
 import com.sonatype.insight.productlicense.ProductLicenseConfig;
 import com.sonatype.insight.productlicense.ProductLicenseSigner;
 import com.sonatype.insight.test.LogOutput;
+
 import org.sonatype.licensing.LicensingException;
 
 import com.google.inject.Binder;
@@ -2410,6 +2412,25 @@ public class CLMLicenseManagerTest
     assertThat(info.products).containsExactlyInAnyOrder("Sonatype Lifecycle Foundation");
     assertThat(info.properties.getProperty(ProductLicenseDetails.PROPERTY_PRODUCTS).split(","))
         .containsExactlyInAnyOrder("Foundation");
+  }
+
+  @Test
+  public void testInstallLicense_CurrentLicenseExpired() throws Exception {
+    // Install a license that expires in 2 seconds.
+    licenseManager.setExpirationDate(new Date(System.currentTimeMillis() + 2000));
+    long before = System.currentTimeMillis();
+    installLicense();
+    // Sanity check
+    assertThat(productLicense.isValid()).isTrue();
+    // Wait for the license to expire.
+    Thread.sleep(2100 - (System.currentTimeMillis() - before));
+    // Check that the license expired.
+    assertThat(productLicense.isValid()).isFalse();
+
+    // Install a valid license. There should be no errors (even though the current license is expired).
+    licenseManager.setExpirationDate(new Date(System.currentTimeMillis() + 20000));
+    installLicense();
+    assertThat(productLicense.isValid()).isTrue();
   }
 
   private static String suffix(final String suffix) {

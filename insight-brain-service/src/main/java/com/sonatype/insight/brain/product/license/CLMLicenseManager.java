@@ -332,7 +332,8 @@ public class CLMLicenseManager
 
   private SignedProductLicenseDetailsDTO queryLicenseDetailsFromHds(byte[] licenseData, String licenseFingerprint) {
     SignedProductLicenseDetailsDTO licenseDetails =
-        hdsClient.post(SignedProductLicenseDetailsDTO.class, "rest/productLicense/v1", licenseData);
+        hdsClient.post(SignedProductLicenseDetailsDTO.class, HdsClient.GET_PRODUCT_LICENSE_DETAILS_HDS_PATH,
+            licenseData);
     verifySignature(licenseDetails, licenseFingerprint);
     return licenseDetails;
   }

@@ -114,6 +114,8 @@ public class HdsClient
 
   public static final String CLM_CLIENT_USER_AGENT_HEADER = "X-CLM-Client-User-Agent";
 
+  public static final String GET_PRODUCT_LICENSE_DETAILS_HDS_PATH = "rest/productLicense/v1";
+
   // Visible for testing
   static final Function<String, Retry> DEFAULT_RETRY_CREATOR =
       name -> new Retry(name, 4, null, BadGatewayException.class::isInstance, i -> Duration.ofSeconds(1));
@@ -656,7 +658,10 @@ public class HdsClient
    */
   private void validateProductLicenseIfNeeded(HttpUriRequest request) {
     Header productLicenseHeader = request.getFirstHeader("X-CLM-Token");
+    // If the request is for product license details, the currently installed license may be invalid/expired,
+    // so don't check it. The HDS does not require a product license for this request anyway.
     if (productLicenseHeader != null && !StringUtils.isBlank(productLicenseHeader.getValue())
+        && !request.getURI().getPath().endsWith(GET_PRODUCT_LICENSE_DETAILS_HDS_PATH)
         && !productLicense.isValid()) {
       throw new InvalidLicenseException("The product license is invalid.");
     }

@@ -57,4 +57,8 @@ Threat (of 10) | Policy | Violation Details
 
 [Review full report](${detailedReportUrl})
 
-_This <#if provider.name() == "GITLAB">MR<#else>PR</#if> was <#if !isManualPullRequest>automatically </#if>created by your friendly neighbourhood [IQ Server](${baseIqUrl})_
+<#if isManualPullRequest>
+**Created by:** ${displayNameOrUsername}
+<#else>
+_This <#if provider.name() == "GITLAB">MR<#else>PR</#if> was automatically created by your friendly neighbourhood [IQ Server](${baseIqUrl})_
+</#if>

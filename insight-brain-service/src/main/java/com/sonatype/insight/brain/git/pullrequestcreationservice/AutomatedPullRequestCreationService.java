@@ -122,8 +122,7 @@ public class AutomatedPullRequestCreationService
         baseUrl.get(),
         gitRepositoryInfo.provider,
         gitRepositoryInfo.normalizedRepositoryUrl,
-        organizationDAO,
-        false); // Not manual request
+        organizationDAO);
 
     eventPublisher.publishEvent(createPullRequestEvent(prDetails, false));
 

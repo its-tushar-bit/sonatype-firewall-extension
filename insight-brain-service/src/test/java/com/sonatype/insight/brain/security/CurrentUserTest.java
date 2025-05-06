@@ -110,4 +110,41 @@ public class CurrentUserTest
     ThreadContext.unbindSecurityManager();
     assertThat(currentUser.getUsernameOrSystem()).isEqualTo(CurrentUser.SYSTEM);
   }
+
+  @Test
+  public void testGetDisplayNameOrUsername_Anonymous() {
+    when(subject.getPrincipal()).thenReturn(null);
+    assertThat(currentUser.getDisplayNameOrUsername()).isEqualTo("anonymous");
+  }
+
+  @Test
+  public void testGetDisplayNameOrUsername_System() {
+    ThreadContext.unbindSubject();
+    ThreadContext.unbindSecurityManager();
+    assertThat(currentUser.getDisplayNameOrUsername()).isEqualTo(CurrentUser.SYSTEM);
+  }
+
+  @Test
+  public void testGetDisplayNameOrUsername_DisplayName_Null() {
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal("username", null, "realmId"));
+    assertThat(currentUser.getDisplayNameOrUsername()).isEqualTo("username");
+  }
+
+  @Test
+  public void testGetDisplayNameOrUsername_DisplayName_Empty() {
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal("username", "", "realmId"));
+    assertThat(currentUser.getDisplayNameOrUsername()).isEqualTo("username");
+  }
+
+  @Test
+  public void testGetDisplayNameOrUsername_DisplayName_OnlyWhitespace() {
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal("username", " ", "realmId"));
+    assertThat(currentUser.getDisplayNameOrUsername()).isEqualTo("username");
+  }
+
+  @Test
+  public void testGetDisplayNameOrUsername_DisplayName() {
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal("username", "Bob Smith", "realmId"));
+    assertThat(currentUser.getDisplayNameOrUsername()).isEqualTo("Bob Smith");
+  }
 }

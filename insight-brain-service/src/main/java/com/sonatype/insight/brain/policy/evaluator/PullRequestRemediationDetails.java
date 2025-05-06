@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.utils.TemplateUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 import freemarker.template.Template;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,11 +127,32 @@ public class PullRequestRemediationDetails
       final SourceControlProvider provider,
       final String scmBaseUrl,
       final OrganizationDAO organizationDAO,
-      final boolean isManualPullRequest) throws IOException
+      final boolean isManualPullRequest,
+      final String displayNameOrUsername) throws IOException
   {
     this(toBeRemediated, remediatedVersion, breakingChangesCount, pullRequestBranchName, app, scanId, stage,
         organizationDAO, isManualPullRequest);
-    this.contents = constructContents(notifications, targetVersionType, iqBaseUrl, provider, scmBaseUrl);
+    this.contents =
+        constructContents(notifications, targetVersionType, iqBaseUrl, provider, scmBaseUrl, displayNameOrUsername);
+  }
+
+  public PullRequestRemediationDetails(
+      final ComponentIdentifier toBeRemediated,
+      final String remediatedVersion,
+      final String targetVersionType,
+      final Integer breakingChangesCount,
+      final String pullRequestBranchName,
+      final List<PolicyNotification> notifications,
+      final Application app,
+      final String scanId,
+      final String stage,
+      final String iqBaseUrl,
+      final SourceControlProvider provider,
+      final String scmBaseUrl,
+      final OrganizationDAO organizationDAO) throws IOException
+  {
+    this(toBeRemediated, remediatedVersion, targetVersionType, breakingChangesCount, pullRequestBranchName,
+        notifications, app, scanId, stage, iqBaseUrl, provider, scmBaseUrl, organizationDAO, false, null);
   }
 
   public PullRequestRemediationDetails(
@@ -161,14 +183,32 @@ public class PullRequestRemediationDetails
       final SourceControlProvider provider,
       final String scmBaseUrl,
       final OrganizationDAO organizationDAO,
-      final boolean isManualRequest) throws IOException
+      final boolean isManualPullRequest,
+      final String displayNameOrUsername) throws IOException
   {
     this(toBeRemediated, remediationVersionDTO.getVersion(), remediationVersionDTO.getBreakingChangesCount(),
         pullRequestBranchName, app, scanId, stage,
-        organizationDAO, isManualRequest);
+        organizationDAO, isManualPullRequest);
     this.contents =
         constructContents(notifications, remediationVersionDTO.getRemediationType().getDisplayName(), iqBaseUrl,
-            provider, scmBaseUrl);
+            provider, scmBaseUrl, displayNameOrUsername);
+  }
+
+  public PullRequestRemediationDetails(
+      final ComponentIdentifier toBeRemediated,
+      final RemediationVersionDTO remediationVersionDTO,
+      final String pullRequestBranchName,
+      final List<PolicyNotification> notifications,
+      final Application app,
+      final String scanId,
+      final String stage,
+      final String iqBaseUrl,
+      final SourceControlProvider provider,
+      final String scmBaseUrl,
+      final OrganizationDAO organizationDAO) throws IOException
+  {
+    this(toBeRemediated, remediationVersionDTO, pullRequestBranchName, notifications, app, scanId, stage, iqBaseUrl,
+        provider, scmBaseUrl, organizationDAO, false, null);
   }
 
   public String getTitle() {
@@ -219,7 +259,8 @@ public class PullRequestRemediationDetails
       final String targetVersionType,
       final String iqBaseUrl,
       final SourceControlProvider provider,
-      final String scmBaseUrl) throws IOException
+      final String scmBaseUrl,
+      final String displayNameOrUsername) throws IOException
   {
     List<Map<String, Object>> threatList = notifications.stream()
         .map(policyNotification -> ImmutableMap.<String, Object>builder()
@@ -230,7 +271,7 @@ public class PullRequestRemediationDetails
         .collect(toList());
 
     ComponentIdentifier remediatedComponent = toBeRemediated.createAlternativeVersion(remediatedVersion);
-    Map<String, Object> model = ImmutableMap.<String, Object>builder()
+    Builder<String, Object> builder = ImmutableMap.<String, Object>builder()
         .put("componentName", getComponentName(getToBeRemediated()))
         .put("initialVersionDisplay", constructVersionDisplay(toBeRemediated))
         .put("targetVersionDisplay", constructVersionDisplay(remediatedComponent))
@@ -246,10 +287,12 @@ public class PullRequestRemediationDetails
                 (isManualPullRequest ? "manual" : "auto") + "-pr")
         .put("baseIqUrl", iqBaseUrl)
         .put("provider", provider)
-        .put("isManualPullRequest", isManualPullRequest)
-        .build();
+        .put("isManualPullRequest", isManualPullRequest);
 
-    return TemplateUtils.render(getPolicyTemplate(provider, scmBaseUrl), model);
+    if (displayNameOrUsername != null) {
+      builder.put("displayNameOrUsername", displayNameOrUsername);
+    }
+    return TemplateUtils.render(getPolicyTemplate(provider, scmBaseUrl), builder.build());
   }
 
   /**

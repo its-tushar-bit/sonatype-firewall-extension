@@ -53,4 +53,8 @@
 
 [Review full report](${detailedReportUrl})
 
-_This PR was <#if !isManualPullRequest>automatically </#if>created by your friendly neighbourhood [IQ Server](${baseIqUrl})_
+<#if isManualPullRequest>
+**Created by:** ${displayNameOrUsername}
+<#else>
+_This PR was automatically created by your friendly neighbourhood [IQ Server](${baseIqUrl})_
+</#if>

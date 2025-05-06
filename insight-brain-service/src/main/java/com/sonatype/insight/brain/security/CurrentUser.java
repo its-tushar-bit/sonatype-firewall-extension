@@ -9,12 +9,12 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.util.ThreadContext;
 
@@ -83,6 +83,20 @@ public class CurrentUser
       ip = resolveIP(xff.split("\\s*,\\s*"));
     }
     return ip != null ? ip : request.getRemoteAddr();
+  }
+
+  public String getDisplayNameOrUsername() {
+    if (ThreadContext.getSecurityManager() == null) {
+      return SYSTEM;
+    }
+    UserPrincipal userPrincipal = getUserPrincipal();
+    if (userPrincipal == null) {
+      return "anonymous";
+    }
+    if (StringUtils.isNotBlank(userPrincipal.getDisplayName())) {
+      return userPrincipal.getDisplayName();
+    }
+    return userPrincipal.getUsername();
   }
 
   static String resolveIP(final String... ips) {

@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyNotificationUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
@@ -67,6 +68,8 @@ public class ManualPullRequestCreationService
 
   private final PolicyViolationDAO policyViolationDAO;
 
+  private final CurrentUser currentUser;
+
   @Inject
   public ManualPullRequestCreationService(
       final RemediationPullRequestEligibilityService eligibilityService,
@@ -80,7 +83,8 @@ public class ManualPullRequestCreationService
       final PolicyViolationDAO policyViolationDAO,
       final ApplicationDAO applicationDAO,
       final ComponentInfoService componentInfoService,
-      final ComponentRemediationService componentRemediationService)
+      final ComponentRemediationService componentRemediationService,
+      final CurrentUser currentUser)
   {
     super(baseUrl,
         sourceControlUtils,
@@ -94,6 +98,7 @@ public class ManualPullRequestCreationService
     this.componentRemediationService = componentRemediationService;
     this.policyNotificationUtil = policyNotificationUtil;
     this.policyViolationDAO = policyViolationDAO;
+    this.currentUser = currentUser;
     componentInfoService.setToolName("ci");
   }
 
@@ -207,7 +212,8 @@ public class ManualPullRequestCreationService
         gitRepositoryInfo.provider,
         gitRepositoryInfo.normalizedRepositoryUrl,
         organizationDAO,
-        true);
+        true,
+        currentUser.getDisplayNameOrUsername());
 
     SourceControlEvent event = createPullRequestEvent(prDetails, true);
     eventPublisher.publishEvent(event);

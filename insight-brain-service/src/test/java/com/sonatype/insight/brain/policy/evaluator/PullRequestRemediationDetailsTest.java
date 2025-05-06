@@ -271,7 +271,7 @@ public class PullRequestRemediationDetailsTest
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", targetVersionType, breakingChangesCount,
             "pullRequest", policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL,
-            organizationDAO, isManualPullRequest);
+            organizationDAO, isManualPullRequest, isManualPullRequest ? "Bob Smith" : null);
 
     assertThat(details.getTitle()).isEqualTo("Bump jooq to 3.11.3");
 
@@ -319,8 +319,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "1.1", "next-no-violations", null, "pullRequest",
-            policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO, false);
+            policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO);
 
     assertThat(details.getTitle()).isEqualTo("Bump @sonatype/foo to 1.1");
 
@@ -364,8 +363,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "v0.3.3", "next-no-violations", null, "pullRequest",
-            policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO, false);
+            policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO);
 
     assertThat(details.getTitle()).isEqualTo("Bump golang.org/x/text to v0.3.3");
 
@@ -381,8 +379,8 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "next-no-violations", null, "pullRequest",
-            policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, getBaseUrl(), SourceControlProvider.GITHUB, TEST_SCM_URL, organizationDAO, false);
+            policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), SourceControlProvider.GITHUB, TEST_SCM_URL,
+            organizationDAO);
 
     assertThat(details.getContents().replace("\r\n", "\n"))
         .startsWith("## :shield: Automated pull request: Nexus IQ found 1 Policy Violation\n");

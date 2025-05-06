@@ -52,4 +52,31 @@ public class RepositoryContainerDAOTest
         .isInstanceOf(NotFoundException.class)
         .hasMessage("Organization not found");
   }
+
+  @Test
+  public void testInsert_UnsupportedOperation() {
+    RepositoryContainer repositoryContainer = dao.getInstance();
+
+    assertThatThrownBy(() -> dao.insert(null, repositoryContainer))
+        .isInstanceOf(UnsupportedOperationException.class)
+        .hasMessage("RepositoryContainerDAO does not support insert");
+  }
+
+  @Test
+  public void testUpdate_UnsupportedOperation() {
+    RepositoryContainer repositoryContainer = dao.getInstance();
+
+    assertThatThrownBy(() -> dao.update(null, repositoryContainer))
+        .isInstanceOf(UnsupportedOperationException.class)
+        .hasMessage("RepositoryContainerDAO does not support update");
+  }
+
+  @Test
+  public void testDelete_UnsupportedOperation() {
+    RepositoryContainer repositoryContainer = dao.getInstance();
+
+    assertThatThrownBy(() -> dao.delete(null, repositoryContainer))
+        .isInstanceOf(UnsupportedOperationException.class)
+        .hasMessage("RepositoryContainerDAO does not support delete");
+  }
 }

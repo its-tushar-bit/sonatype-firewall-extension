@@ -68,4 +68,19 @@ public class RepositoryContainerDAO
 
     createQuery(sQuery, organizationId, RepositoryContainer.REPOSITORY_CONTAINER_ID).executeUpdate();
   }
+
+  @Override
+  public void insert(TransactionContext tx, RepositoryContainer entity) {
+    throw new UnsupportedOperationException("RepositoryContainerDAO does not support insert");
+  }
+
+  @Override
+  public void update(TransactionContext tx, RepositoryContainer entity) {
+    throw new UnsupportedOperationException("RepositoryContainerDAO does not support update");
+  }
+
+  @Override
+  public void delete(TransactionContext tx, RepositoryContainer entity) {
+    throw new UnsupportedOperationException("RepositoryContainerDAO does not support delete");
+  }
 }

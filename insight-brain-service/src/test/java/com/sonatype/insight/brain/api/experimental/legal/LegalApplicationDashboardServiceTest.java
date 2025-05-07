@@ -12,9 +12,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -482,6 +482,29 @@ public class LegalApplicationDashboardServiceTest
     assertThat(result).hasSize(1);
     assertApiLicenseLegalApplicationComponentDTO(result.get(0), notInnerSource, Collections.emptyList(), 0, 0,
         LicenseObligationReviewStatus.UNREVIEWED);
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationDashboard_Conan() {
+    ComponentIdentifier componentIdentifier1 = new ComponentIdentifier(ComponentIdentifier.FORMAT_CONAN, Map.of(
+        ComponentIdentifier.CONAN_CHANNEL, "",
+        ComponentIdentifier.CONAN_OWNER, "",
+        ComponentIdentifier.CONAN_NAME, "bzip2",
+        ComponentIdentifier.VERSION, "1.0.8"
+    ));
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createConanCoordinates("bzip2", "1.0.8", null, null);
+    List<String> licenseIds = Collections.singletonList("MIT");
+    Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
+    app.setId(Organization.ROOT_ORGANIZATION_ID);
+    setupLicenseObligations(app, componentIdentifier2, licenseIds, ObligationStatus.FULFILLED,
+        ObligationStatus.FULFILLED);
+
+    List<ApiLicenseLegalApplicationComponentDTO> result =
+        legalApplicationDashboardService.getLicenseLegalApplicationDashboard(app.getPublicId(), null);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).reviewCompletedCount).isEqualTo(2);
+    assertThat(result.get(0).reviewTotalCount).isEqualTo(2);
   }
 
   private void setupLicenseObligations(

@@ -2980,6 +2980,55 @@ public class ApiLicenseLegalServiceTest
         false);
   }
 
+  @Test
+  public void testGetLicenseLegalComponentsDashboard_Conan() {
+    ComponentIdentifier componentIdentifier1 = new ComponentIdentifier(ComponentIdentifier.FORMAT_CONAN, Map.of(
+        ComponentIdentifier.CONAN_CHANNEL, "",
+        ComponentIdentifier.CONAN_OWNER, "",
+        ComponentIdentifier.CONAN_NAME, "bzip2",
+        ComponentIdentifier.VERSION, "1.0.8"
+    ));
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createConanCoordinates("bzip2", "1.0.8", null, null);
+    List<String> licenseIds = Collections.singletonList("MIT");
+    Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
+    app.setId(Organization.ROOT_ORGANIZATION_ID);
+    setupLicenseObligations(app, componentIdentifier2, licenseIds, ObligationStatus.FULFILLED,
+        ObligationStatus.FULFILLED);
+
+    ApiLicenseLegalComponentDashboardResultDTO resultDto = apiLicenseLegalService.getLicenseLegalComponentsDashboard(
+        new LicenseLegalFilterDTO(null, null, null, null, null, null, 1, 3, null)
+    );
+
+    assertThat(resultDto.totalResultsCount).isEqualTo(1);
+    assertThat(resultDto.results).hasSize(1);
+    assertThat(resultDto.results.get(0).reviewCompletedCount).isEqualTo(2);
+    assertThat(resultDto.results.get(0).reviewTotalCount).isEqualTo(2);
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationsDashboard_Conan() {
+    ComponentIdentifier componentIdentifier1 = new ComponentIdentifier(ComponentIdentifier.FORMAT_CONAN, Map.of(
+        ComponentIdentifier.CONAN_CHANNEL, "",
+        ComponentIdentifier.CONAN_OWNER, "",
+        ComponentIdentifier.CONAN_NAME, "bzip2",
+        ComponentIdentifier.VERSION, "1.0.8"
+    ));
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createConanCoordinates("bzip2", "1.0.8", null, null);
+    List<String> licenseIds = Collections.singletonList("MIT");
+    Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
+    app.setId(Organization.ROOT_ORGANIZATION_ID);
+    setupLicenseObligations(app, componentIdentifier2, licenseIds, ObligationStatus.FULFILLED,
+        ObligationStatus.FULFILLED);
+
+    ApiLicenseLegalApplicationDashboardResultDTO resultDto =
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 3);
+
+    assertThat(resultDto.totalResultsCount).isEqualTo(1);
+    assertThat(resultDto.results).hasSize(1);
+    assertThat(resultDto.results.get(0).componentsReviewedCount).isEqualTo(1);
+    assertThat(resultDto.results.get(0).componentsTotalCount).isEqualTo(1);
+  }
+
   private NamedComponentDetails createNamedComponentDetails() {
     return createNamedComponentDetails(
         Arrays.asList("Apache-2.0+", "Apache-2.0-MIT"),

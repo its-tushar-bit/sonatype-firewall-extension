@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.component;
 
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -521,6 +522,49 @@ public class ComponentLoaderTest
     assertThat(analysis.getJustification()).isEqualTo("code_not_reachable");
     assertThat(analysis.getResponse()).isEqualTo("will_not_fix");
     assertThat(analysis.getState()).isEqualTo("resolved");
+  }
+
+  @Test
+  public void testGetAll_WithDetectionType() throws Exception {
+    String hash = "abc123";
+    String refId = "CVE-123";
+    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectNode bom = objectMapper.createObjectNode();
+    ArrayNode aaData = objectMapper.createArrayNode();
+
+    ObjectNode component1 = objectMapper.createObjectNode();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    component1.set("componentIdentifier", objectMapper.valueToTree(componentIdentifier));
+    component1.put("hash", hash);
+    component1.put("matchState", MatchState.EXACT.getId());
+    component1.set("displayName",
+        objectMapper.valueToTree(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier)));
+    component1.put("proprietary", false);
+    component1.put("relativePopularity", 100.0);
+    component1.put("createTime", System.currentTimeMillis());
+    component1.put("endOfLife", END_OF_LIFE_TRUE.name());
+
+    aaData.add(objectMapper.valueToTree(component1));
+    bom.set("aaData", aaData);
+
+    ObjectNode securityData = objectMapper.createObjectNode();
+    ArrayNode aaDataSecurityData = objectMapper.createArrayNode();
+    ObjectNode securityVulnerability = objectMapper.createObjectNode();
+    securityVulnerability.put("hash", hash);
+    securityVulnerability.put("source", "test");
+    securityVulnerability.put("reference", refId);
+    securityVulnerability.put("detectionType", "PRIMARY");
+    aaDataSecurityData.add(securityVulnerability);
+    securityData.set("aaData", aaDataSecurityData);
+
+    List<Component> components = componentLoader.getAll(null, false,
+        objectMapper.writeValueAsBytes(securityData), objectMapper.writeValueAsBytes(bom), null);
+
+    assertThat(components).hasSize(1);
+    assertThat(components.get(0).getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability securityVulnerabilityResult = components.get(0).getSecurityVulnerabilities().get(0);
+    assertThat(securityVulnerabilityResult.getRefId()).isEqualTo(refId);
+    assertThat(securityVulnerabilityResult.getDetectionType()).isEqualTo(SecurityVulnerabilityDetectionType.PRIMARY);
   }
 
   @Test

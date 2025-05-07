@@ -65,6 +65,8 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSev
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
+
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
 
@@ -592,6 +594,7 @@ public class ComponentLoader
               JsonUtils.getStringListFromArray(securityVulnerabilityJson.get("vulnerabilityCategories"));
           final String researchType =
               JsonUtils.getNullableString(securityVulnerabilityJson.get("researchType"));
+          final String detectionType = JsonUtils.getNullableString(securityVulnerabilityJson.get("detectionType"));
           final List<String> aliases = JsonUtils.getStringListFromArray(securityVulnerabilityJson.get("aliases"));
           final String cweString = JsonUtils.getNullableString(securityVulnerabilityJson.get("cwe"));
           final String cvssVectorString =
@@ -618,6 +621,8 @@ public class ComponentLoader
               }
             }
             securityVulnerability.setResearchType(SecurityVulnerabilityResearchType.getResearchType(researchType));
+            securityVulnerability.setDetectionType(SecurityVulnerabilityDetectionType.getDetectionType(
+                    detectionType));
             if (aliases != null) {
               for (String alias : aliases) {
                 securityVulnerability.addAlias(alias);

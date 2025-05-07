@@ -43,6 +43,7 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -53,8 +54,10 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.ManualPullRequestImpossibilityReason;
 import com.sonatype.insight.brain.git.ManualPullRequestService;
+import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.Owner;
@@ -69,6 +72,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.repository.RepositoryAllVersionsResponse;
 import com.sonatype.insight.brain.repository.RepositoryClient;
@@ -126,6 +130,8 @@ public class ComponentInfoService
 
   private final PolicyDAO policyDAO;
 
+  private final SourceControlEventDAO sourceControlEventDAO;
+
   private final HdsClient hdsClient;
 
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
@@ -145,6 +151,8 @@ public class ComponentInfoService
   private final MultiLicenseDAO multiLicenseDAO;
 
   private final IdUtils idUtils;
+
+  private final PullRequestBranchNameGenerator pullRequestBranchNameGenerator;
 
   private final ReportDataReader reportDataReader;
 
@@ -168,8 +176,10 @@ public class ComponentInfoService
       LicenseThreatGroupDAO licenseThreatGroupDAO,
       final OwnerDAO ownerDAO,
       final PolicyDAO policyDAO,
+      final SourceControlEventDAO sourceControlEventDAO,
       final IdUtils idUtils,
       ManualPullRequestService manualPullRequestService,
+      PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
       ReportDataReader reportDataReader)
   {
     this.hdsClient = hdsClient;
@@ -186,8 +196,10 @@ public class ComponentInfoService
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
     this.ownerDAO = ownerDAO;
     this.policyDAO = policyDAO;
+    this.sourceControlEventDAO = sourceControlEventDAO;
     this.idUtils = idUtils;
     this.manualPullRequestService = manualPullRequestService;
+    this.pullRequestBranchNameGenerator = pullRequestBranchNameGenerator;
     this.reportDataReader = reportDataReader;
     initUnspecifiedLicense();
     initOtherCategory();
@@ -551,7 +563,8 @@ public class ComponentInfoService
     }
 
     AutomatedRemediationStatusDTO remediationStatusDTO =
-        getAutomatedRemediationStatusDTO(componentIdentifier, stageId, dependencyType, owner, remediationDto);
+          getAutomatedRemediationStatusDTO(componentIdentifier, stageId, dependencyType, owner,
+              remediationDto);
 
     return new ComponentVersionInfoDTO(
         componentDetailsDTOs,
@@ -567,9 +580,23 @@ public class ComponentInfoService
       Owner owner,
       ApiComponentRemediationValueDTO remediationDto)
   {
+    Optional<ApiVersionChangeOptionDTO> suggestedVersion = Optional.ofNullable(remediationDto)
+        .flatMap((remediation) -> componentRemediationService.getApplicableVersionChangeFromAllType(
+            remediationDto.suggestedVersionChange,
+            remediationDto.versionChanges));
+
+    if (suggestedVersion.isPresent() && OwnerType.APPLICATION == owner.getType()) {
+      Optional<AutomatedRemediationStatusDTO>
+          prStatus = getPullRequestStatus(componentIdentifier, (Application) owner, suggestedVersion.get());
+      if (prStatus.isPresent()) {
+        return prStatus.get();
+      }
+    }
+
     if (SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()) {
       Optional<ManualPullRequestImpossibilityReason> manualPRDisabledReason =
-          manualPullRequestService.isManualPullRequestPossible(componentIdentifier, stageId, dependencyType, owner,
+          manualPullRequestService.isManualPullRequestPossible(componentIdentifier, stageId, dependencyType,
+              owner,
               remediationDto);
       if (manualPRDisabledReason.isEmpty()) {
         return new AutomatedRemediationStatusDTO.ManualPullRequestPossibleDTO();
@@ -578,6 +605,46 @@ public class ComponentInfoService
     }
 
     return null;
+  }
+
+  private Optional<AutomatedRemediationStatusDTO> getPullRequestStatus(
+      ComponentIdentifier componentIdentifier,
+      Application application,
+      ApiVersionChangeOptionDTO suggestedVersion)
+  {
+    String branchName =
+        pullRequestBranchNameGenerator.getBranchName(componentIdentifier, application, suggestedVersion);
+
+    List<SourceControlEvent> sourceControlEvents =
+        sourceControlEventDAO.getRemediationEventsForBranch(application.getId(), branchName);
+    Optional<SourceControlEvent> sourceControlEvent = getHighestPriorityPullRequestEvent(sourceControlEvents);
+
+    if (sourceControlEvent.isPresent()) {
+      try {
+        return Optional.of(AutomatedRemediationStatusDTO.fromSourceControlEvent(sourceControlEvent.get()));
+      }
+      catch (IllegalStateException e) {
+        String errorMessage = String.format(
+            "Pull request for branch %s and application %s has reached an invalid status.",
+            branchName, application.getPublicId());
+        log.error(errorMessage + " {}", e.getMessage());
+        return Optional.of(new AutomatedRemediationStatusDTO.PullRequestCreationFailedDTO(errorMessage));
+      }
+    }
+    return Optional.empty();
+  }
+
+  private Optional<SourceControlEvent> getHighestPriorityPullRequestEvent(
+      List<SourceControlEvent> sourceControlEvents)
+  {
+    return sourceControlEvents.stream()
+        .min(Comparator.comparingInt(e -> switch (e.getEventStatus()) {
+          case SourceControlEvent.EVENT_STATUS_COMPLETE -> 0;
+          case SourceControlEvent.EVENT_STATUS_IN_PROGRESS -> 1;
+          case SourceControlEvent.EVENT_STATUS_NEW -> 2;
+          case SourceControlEvent.EVENT_STATUS_ERROR -> 3;
+          default -> 4;
+        }));
   }
 
   /**

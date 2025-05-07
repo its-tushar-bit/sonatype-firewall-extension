@@ -5,7 +5,12 @@
  */
 package com.sonatype.insight.brain.git.utils;
 
+import java.util.Optional;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.git.RemediationBranchNamePrefixGenerator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.nexus.git.utils.VersionRemediationTitleGenerator;
@@ -39,5 +44,22 @@ public class PullRequestBranchNameGenerator
     String branchPrefix = remediationBranchNamePrefixGenerator.generatePrefixForApplication(application.getId());
     return versionRemediationTitleGenerator.generateBranchNameForVersionRemediation(
         branchPrefix, componentIdentifier, nextVersion);
+  }
+
+  public String getBranchName(
+      final ComponentIdentifier componentIdentifier,
+      final Application application,
+      final ApiVersionChangeOptionDTO suggestedVersion)
+  {
+    String version = Optional.ofNullable(suggestedVersion)
+        .map(ApiVersionChangeOptionDTO::getData)
+        .map(ApiComponentChangeActionDTO::getComponent)
+        .map(component -> component.componentIdentifier)
+        .map(ApiComponentIdentifierDTOV2::getCoordinates)
+        .map(coordinates -> coordinates.get(ComponentIdentifier.VERSION))
+        .orElseThrow(() -> new IllegalStateException(
+            "Suggested remediation is missing version information."));
+
+    return getBranchName(application, componentIdentifier, version);
   }
 }

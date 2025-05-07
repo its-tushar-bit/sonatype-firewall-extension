@@ -64,8 +64,9 @@ public class SourceControlEventDAO
   }
 
   /**
-   * The purpose of this method is to release (i.e. unassign) events that are 'related' to the given event.  Events
-   * are related if they are for the same scm user.
+   * The purpose of this method is to release (i.e. unassign) events that are 'related' to the given event.  Events are
+   * related if they are for the same scm user.
+   *
    * @param event
    */
   public void releaseRelatedEvents(SourceControlEvent event) {
@@ -193,6 +194,13 @@ public class SourceControlEventDAO
         "WHERE entity.eventType = ?1 AND entity.eventStatus IN ?2" + //
         " AND entity.applicationId IN ?3 AND entity.pullRequestNumber=?4";
     return getList(sQuery, UPDATED_PULL_REQUEST_EVENT, statuses, appIds, pullRequestNumber);
+  }
+
+  public List<SourceControlEvent> getRemediationEventsForBranch(String applicationId, String branchName) {
+    String sQuery =
+        SELECT_ENTITY + " WHERE entity.applicationId = ?1 AND entity.eventType IN ?2 AND entity.branchName = ?3";
+    List<String> eventTypes = Arrays.asList(REMEDIATION_PULL_REQUEST_EVENT, MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+    return getList(sQuery, applicationId, eventTypes, branchName);
   }
 
   public void markEventInProgress(final String eventId) {

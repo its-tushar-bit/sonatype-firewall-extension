@@ -14,9 +14,6 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.git.pullrequestcreationservice.ManualPullRequestCreationService;
 import com.sonatype.insight.brain.git.pullrequestcreationservice.PullRequestSubmissionResultDTO;
 import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO;
-import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO.PullRequestCreationFailedDTO;
-import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO.PullRequestCreationPendingDTO;
-import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO.PullRequestDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -48,7 +45,6 @@ public class SourceControlPullRequestService
       final ApplicationDAO applicationDAO,
       final SourceControlEventDAO sourceControlEventDAO,
       final ManualPullRequestCreationService manualPullRequestCreationService)
-
   {
     this.applicationDAO = applicationDAO;
     this.sourceControlEventDAO = sourceControlEventDAO;
@@ -59,39 +55,21 @@ public class SourceControlPullRequestService
     checkAuthenticated();
     SourceControlEvent sourceControlEvent = sourceControlEventDAO.getByIdNotNull(id);
     Application application = applicationDAO.getByIdNotNull(sourceControlEvent.getApplicationId());
-    return getPullRequestStatus(id, application, sourceControlEvent);
+    return getPullRequestStatus(application, sourceControlEvent);
   }
 
   @Authorize(permission = Permission.READ)
   AutomatedRemediationStatusDTO getPullRequestStatus(
-      final String id,
       @AuthzContext(Key.APPLICATION) final Application application,
       final SourceControlEvent sourceControlEvent)
   {
-    if (!SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT.equals(sourceControlEvent.getEventType()) &&
-        !SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT.equals(sourceControlEvent.getEventType())) {
-      throw new NotFoundException(
-          "Pull request not found for application '" + application.getPublicId() + "' and for id '" + id +
-              "'.");
+    try {
+      return AutomatedRemediationStatusDTO.fromSourceControlEvent(sourceControlEvent);
     }
-
-    switch (sourceControlEvent.getEventStatus()) {
-      case SourceControlEvent.EVENT_STATUS_NEW, SourceControlEvent.EVENT_STATUS_IN_PROGRESS -> {
-        return new PullRequestCreationPendingDTO();
-      }
-      case SourceControlEvent.EVENT_STATUS_ERROR -> {
-        String reason = sourceControlEvent.getEventStatusDetails() == null ? "An unknown error occurred." :
-            sourceControlEvent.getEventStatusDetails();
-        return new PullRequestCreationFailedDTO(reason);
-      }
-      case SourceControlEvent.EVENT_STATUS_COMPLETE -> {
-        if (sourceControlEvent.getEventStatusDetails() == null) {
-          throw new IllegalStateException("URL missing from pull request for id '" + id + "'.");
-        }
-        return new PullRequestDTO(sourceControlEvent.getEventStatusDetails());
-      }
-      default ->
-          throw new IllegalStateException("Unsupported event status '" + sourceControlEvent.getEventStatus() + "'.");
+    catch (IllegalArgumentException e) {
+      throw new NotFoundException(
+          "Pull request not found for application '" + application.getPublicId() + "' and for id '" +
+              sourceControlEvent.getId() + "'.");
     }
   }
 

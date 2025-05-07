@@ -11,9 +11,7 @@ import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
-import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
@@ -56,7 +54,7 @@ public class ManualPullRequestService
   private final PullRequestBranchNameGenerator pullRequestBranchNameGenerator;
 
   private final ComponentRemediationService componentRemediationService;
-  
+
   private final Provider<RemediationPullRequestEligibilityService> remediationPullRequestEligibilityService;
 
   @Inject
@@ -98,6 +96,10 @@ public class ManualPullRequestService
       final Owner owner,
       final ApiComponentRemediationValueDTO remediationDto)
   {
+    if (owner.getType() != OwnerType.APPLICATION) {
+      return Optional.of(ManualPullRequestImpossibilityReason.UNSUPPORTED_OWNER_TYPE);
+    }
+
     Set<Permission> grantedPermissions = permissionService.validatePermission(
         SecurityUtils.getSubject(),
         owner.getType(),
@@ -130,13 +132,9 @@ public class ManualPullRequestService
       return Optional.of(ManualPullRequestImpossibilityReason.UNSUPPORTED_FORMAT);
     }
 
-    if (owner.getType() != OwnerType.APPLICATION) {
-      return Optional.of(ManualPullRequestImpossibilityReason.UNSUPPORTED_OWNER_TYPE);
-    }
-
     Application application = (Application) owner;
-    String branchName = pullRequestBranchNameGenerator.getBranchName(application, componentIdentifier,
-        extractVersion(suggestedVersion.get().getData()).get());
+    String branchName =
+        pullRequestBranchNameGenerator.getBranchName(componentIdentifier, application, suggestedVersion.get());
     if (remediationPullRequestEligibilityService.get().isRemediationWaitingOrDone(application.getId(), branchName)) {
       return Optional.of(ManualPullRequestImpossibilityReason.REMEDIATION_EVENT_EXISTS);
     }
@@ -156,14 +154,6 @@ public class ManualPullRequestService
       }
     }
     return manualPullRequestFeatureCheck.isManualPullRequestFeatureSupported(gitRepositoryInfo);
-  }
-
-  private Optional<String> extractVersion(ApiComponentChangeActionDTO changeAction) {
-    return Optional.ofNullable(changeAction)
-        .map(ApiComponentChangeActionDTO::getComponent)
-        .map(component -> component.componentIdentifier)
-        .map(ApiComponentIdentifierDTOV2::getCoordinates)
-        .map(coordinates -> coordinates.get(ComponentIdentifier.VERSION));
   }
 
   private boolean isSupportedStage(String stageId) {

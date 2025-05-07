@@ -9,6 +9,7 @@ package com.sonatype.insight.brain.hds;
 import java.util.Objects;
 
 import com.sonatype.insight.brain.git.ManualPullRequestImpossibilityReason;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 
 public abstract sealed class AutomatedRemediationStatusDTO
 {
@@ -40,8 +41,11 @@ public abstract sealed class AutomatedRemediationStatusDTO
   public static final class PullRequestCreationPendingDTO
       extends AutomatedRemediationStatusDTO
   {
-    public PullRequestCreationPendingDTO() {
+    public final String id;
+
+    public PullRequestCreationPendingDTO(final String id) {
       super(AutomatedRemediationStatus.PULL_REQUEST_CREATION_PENDING);
+      this.id = Objects.requireNonNull(id);
     }
   }
 
@@ -65,5 +69,48 @@ public abstract sealed class AutomatedRemediationStatusDTO
       super(AutomatedRemediationStatus.PULL_REQUEST);
       this.url = Objects.requireNonNull(url);
     }
+  }
+
+  /**
+   * Get the pull request status from a SourceControlEvent
+   *
+   * @param sourceControlEvent the source control event associated with the pull request
+   * @return the pull request status
+   */
+  public static AutomatedRemediationStatusDTO fromSourceControlEvent(
+      final SourceControlEvent sourceControlEvent)
+  {
+    if (!isRemediationEvent(sourceControlEvent)) {
+      throw new IllegalArgumentException(String.format(
+          "Source control event with ID '%s' is not a remediation event.", sourceControlEvent.getId()));
+    }
+
+    switch (sourceControlEvent.getEventStatus()) {
+      case SourceControlEvent.EVENT_STATUS_NEW, SourceControlEvent.EVENT_STATUS_IN_PROGRESS -> {
+        return new PullRequestCreationPendingDTO(sourceControlEvent.getId());
+      }
+      case SourceControlEvent.EVENT_STATUS_ERROR -> {
+        String reason = sourceControlEvent.getEventStatusDetails() != null
+            ? sourceControlEvent.getEventStatusDetails()
+            : "An unknown error occurred.";
+        return new PullRequestCreationFailedDTO(reason);
+      }
+      case SourceControlEvent.EVENT_STATUS_COMPLETE -> {
+        String prLink = sourceControlEvent.getEventStatusDetails();
+        if (prLink == null) {
+          throw new IllegalStateException(
+              String.format("URL missing from pull request for id '%s'.",
+                  sourceControlEvent.getId()));
+        }
+        return new PullRequestDTO(prLink);
+      }
+      default -> throw new IllegalStateException(String.format(
+          "Unsupported event status '%s'.", sourceControlEvent.getEventStatus()));
+    }
+  }
+
+  private static boolean isRemediationEvent(SourceControlEvent event) {
+    return SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT.equals(event.getEventType())
+        || SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT.equals(event.getEventType());
   }
 }

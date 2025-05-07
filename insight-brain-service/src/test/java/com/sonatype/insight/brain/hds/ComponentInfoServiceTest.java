@@ -44,6 +44,12 @@ import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.ManualPullRequestImpossibilityReason;
+import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO.ManualPullRequestNotPossibleDTO;
+import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO.PullRequestCreationFailedDTO;
+import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO.PullRequestCreationPendingDTO;
+import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO.PullRequestDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentMultiLicenses;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVulnerabilities;
@@ -58,6 +64,7 @@ import com.sonatype.insight.brain.model.component.ComponentDataSource;
 import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.MultiLicense;
@@ -80,9 +87,11 @@ import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityCond
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.RepositoryAllVersionsResponse;
@@ -158,6 +167,9 @@ public class ComponentInfoServiceTest
 
   @Inject
   private MultiLicenseDAO multiLicenseDAO;
+
+  @Inject
+  private SourceControlEventDAO sourceControlEventDAO;
 
   @Inject
   private ComponentInfoService componentInfoService;
@@ -2914,6 +2926,247 @@ public class ComponentInfoServiceTest
         .containsExactlyInAnyOrder(
             depPurlId.getPackageUrl(),
             mvnPurlId.getPackageUrl());
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_WithAdvancedRecommendation_Null() {
+    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
+    Policy policy1 = new Policy("security-low", "Security-Low");
+    policy1.setThreatLevel(5);
+    policy1.addConstraint(constraint1);
+    policy1.setAction(ReleaseStageType.ID, WarnActionType.ID);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
+
+    // mock dependencies for advanced recommendation strategies
+    PackageUrlIdentifier mvnPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_A1_COORDINATES);
+    PackageUrlIdentifier depPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_A2_COORDINATES);
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+    dependenciesMap.put(mvnPurlId, Collections.singletonList(depPurlId));
+    detailsMap.put(depPurlId, new ComponentDetails());
+    ComponentDependenciesDTO dependenciesDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    mockHdsGetComponentDependencies(dependenciesDto);
+    mockLicenseFeature(true);
+
+    // case: no existing PR and manual pr feature is not enabled
+    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(false);
+    ComponentVersionInfoDTO dto =
+        testGetComponentVersionInfo(application, application.getPublicId(), ReleaseStageType.ID);
+    assertThat(dto.automatedRemediationStatus).isNull();
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_WithAdvancedRecommendationAndPullRequestStatus() {
+    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
+
+    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
+    Policy policy1 = new Policy("security-low", "Security-Low");
+    policy1.setThreatLevel(5);
+    policy1.addConstraint(constraint1);
+    policy1.setAction(ReleaseStageType.ID, WarnActionType.ID);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
+
+    // mock dependencies for advanced recommendation strategies
+    PackageUrlIdentifier mvnPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_A1_COORDINATES);
+    PackageUrlIdentifier depPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_A2_COORDINATES);
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+    dependenciesMap.put(mvnPurlId, Collections.singletonList(depPurlId));
+    detailsMap.put(depPurlId, new ComponentDetails());
+    ComponentDependenciesDTO dependenciesDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    mockHdsGetComponentDependencies(dependenciesDto);
+    mockLicenseFeature(true);
+
+    // pull request creation complete
+    SourceControlEvent sourceControlEvent =
+        insertSourceControlEvent(SourceControlEvent.EVENT_STATUS_COMPLETE);
+    ComponentVersionInfoDTO dto =
+        testGetComponentVersionInfo(application, application.getPublicId(), SourceStageType.ID);
+
+    PullRequestDTO pullRequestDTO = (PullRequestDTO) dto.automatedRemediationStatus;
+    assertThat(pullRequestDTO).isNotNull();
+    assertThat(pullRequestDTO.status).isEqualTo(AutomatedRemediationStatus.PULL_REQUEST);
+    assertThat(pullRequestDTO.url).isEqualTo("https://git.com/pull/1");
+
+    // pull request creation failed
+    sourceControlEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_ERROR);
+    sourceControlEventDAO.update(sourceControlEvent);
+    dto = testGetComponentVersionInfo(application, application.getPublicId(), SourceStageType.ID);
+
+    PullRequestCreationFailedDTO pullRequestCreationFailedDTO =
+        (PullRequestCreationFailedDTO) dto.automatedRemediationStatus;
+    assertThat(pullRequestCreationFailedDTO).isNotNull();
+    assertThat(pullRequestCreationFailedDTO.status).isEqualTo(AutomatedRemediationStatus.PULL_REQUEST_CREATION_FAILED);
+
+    // pull request creation in progress
+    sourceControlEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_IN_PROGRESS);
+    sourceControlEventDAO.update(sourceControlEvent);
+    dto = testGetComponentVersionInfo(application, application.getPublicId(), SourceStageType.ID);
+
+    PullRequestCreationPendingDTO pullRequestCreationPendingDTO =
+        (PullRequestCreationPendingDTO) dto.automatedRemediationStatus;
+    assertThat(pullRequestCreationPendingDTO).isNotNull();
+    assertThat(pullRequestCreationPendingDTO.status).isEqualTo(
+        AutomatedRemediationStatus.PULL_REQUEST_CREATION_PENDING);
+
+    // pull request creation new
+    sourceControlEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_NEW);
+    sourceControlEventDAO.update(sourceControlEvent);
+    dto = testGetComponentVersionInfo(application, application.getPublicId(), SourceStageType.ID);
+
+    PullRequestCreationPendingDTO pullRequestCreationPendingDTONew =
+        (PullRequestCreationPendingDTO) dto.automatedRemediationStatus;
+    assertThat(pullRequestCreationPendingDTONew).isNotNull();
+    assertThat(pullRequestCreationPendingDTONew.status).isEqualTo(
+        AutomatedRemediationStatus.PULL_REQUEST_CREATION_PENDING);
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_WithAdvancedRecommendationAndPullRequestStatus_Priority() {
+    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
+
+    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
+    Policy policy1 = new Policy("security-low", "Security-Low");
+    policy1.setThreatLevel(5);
+    policy1.addConstraint(constraint1);
+    policy1.setAction(ReleaseStageType.ID, WarnActionType.ID);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
+
+    // mock dependencies for advanced recommendation strategies
+    PackageUrlIdentifier mvnPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_A1_COORDINATES);
+    PackageUrlIdentifier depPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_A2_COORDINATES);
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+    dependenciesMap.put(mvnPurlId, Collections.singletonList(depPurlId));
+    detailsMap.put(depPurlId, new ComponentDetails());
+    ComponentDependenciesDTO dependenciesDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    mockHdsGetComponentDependencies(dependenciesDto);
+    mockLicenseFeature(true);
+
+    // insert multiple source control events
+    insertSourceControlEvent("InvalidStatus");
+    SourceControlEvent errorEvent = insertSourceControlEvent(SourceControlEvent.EVENT_STATUS_ERROR);
+    SourceControlEvent completeEvent = insertSourceControlEvent(SourceControlEvent.EVENT_STATUS_COMPLETE);
+    SourceControlEvent inProgressEvent = insertSourceControlEvent(SourceControlEvent.EVENT_STATUS_IN_PROGRESS);
+    SourceControlEvent newEvent = insertSourceControlEvent(SourceControlEvent.EVENT_STATUS_NEW);
+
+    // complete must be the priority
+    ComponentVersionInfoDTO dto =
+        testGetComponentVersionInfo(application, application.getPublicId(), SourceStageType.ID);
+
+    PullRequestDTO pullRequestDTO = (PullRequestDTO) dto.automatedRemediationStatus;
+    assertThat(pullRequestDTO).isNotNull();
+    assertThat(pullRequestDTO.status).isEqualTo(AutomatedRemediationStatus.PULL_REQUEST);
+    assertThat(pullRequestDTO.url).isEqualTo("https://git.com/pull/1");
+
+    // in progress must be the priority
+    sourceControlEventDAO.delete(completeEvent);
+    dto = testGetComponentVersionInfo(application, application.getPublicId(), SourceStageType.ID);
+
+    PullRequestCreationPendingDTO pendingDTO = (PullRequestCreationPendingDTO) dto.automatedRemediationStatus;
+    assertThat(pendingDTO).isNotNull();
+    assertThat(pendingDTO.status).isEqualTo(AutomatedRemediationStatus.PULL_REQUEST_CREATION_PENDING);
+    assertThat(pendingDTO.id).isEqualTo(inProgressEvent.getId());
+
+    // new must be the priority
+    sourceControlEventDAO.delete(inProgressEvent);
+    dto = testGetComponentVersionInfo(application, application.getPublicId(), SourceStageType.ID);
+
+    PullRequestCreationPendingDTO newDTO = (PullRequestCreationPendingDTO) dto.automatedRemediationStatus;
+    assertThat(newDTO).isNotNull();
+    assertThat(newDTO.status).isEqualTo(AutomatedRemediationStatus.PULL_REQUEST_CREATION_PENDING);
+    assertThat(newDTO.id).isEqualTo(newEvent.getId());
+
+    // error must be the priority
+    sourceControlEventDAO.delete(newEvent);
+    dto = testGetComponentVersionInfo(application, application.getPublicId(), SourceStageType.ID);
+
+    PullRequestCreationFailedDTO errorDTO = (PullRequestCreationFailedDTO) dto.automatedRemediationStatus;
+    assertThat(errorDTO).isNotNull();
+    assertThat(errorDTO.status).isEqualTo(AutomatedRemediationStatus.PULL_REQUEST_CREATION_FAILED);
+    assertThat(errorDTO.reason).isEqualTo("error reason");
+
+    // invalid must return creation failed
+    sourceControlEventDAO.delete(errorEvent);
+    dto = testGetComponentVersionInfo(application, application.getPublicId(), SourceStageType.ID);
+
+    PullRequestCreationFailedDTO invalidDTO = (PullRequestCreationFailedDTO) dto.automatedRemediationStatus;
+    assertThat(invalidDTO).isNotNull();
+    assertThat(invalidDTO.status).isEqualTo(AutomatedRemediationStatus.PULL_REQUEST_CREATION_FAILED);
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_WithAdvancedRecommendationAndPullRequestStatus_Empty() {
+    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
+
+    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
+    Policy policy1 = new Policy("security-low", "Security-Low");
+    policy1.setThreatLevel(5);
+    policy1.addConstraint(constraint1);
+    policy1.setAction(ReleaseStageType.ID, WarnActionType.ID);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
+
+    // mock dependencies for advanced recommendation strategies
+    PackageUrlIdentifier mvnPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_A1_COORDINATES);
+    PackageUrlIdentifier depPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_A2_COORDINATES);
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+    dependenciesMap.put(mvnPurlId, Collections.singletonList(depPurlId));
+    detailsMap.put(depPurlId, new ComponentDetails());
+    ComponentDependenciesDTO dependenciesDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    mockHdsGetComponentDependencies(dependenciesDto);
+    mockLicenseFeature(true);
+
+    // case: there is no remediation event -> proceeds to check if manual pull request is possible
+    ComponentVersionInfoDTO dto =
+        testGetComponentVersionInfo(application, application.getPublicId(), SourceStageType.ID);
+    ManualPullRequestNotPossibleDTO prNotPossible = (ManualPullRequestNotPossibleDTO) dto.automatedRemediationStatus;
+    assertThat(prNotPossible.status).isEqualTo(AutomatedRemediationStatus.MANUAL_PULL_REQUEST_NOT_POSSIBLE);
+    assertThat(prNotPossible.reason).isEqualTo(ManualPullRequestImpossibilityReason.INSUFFICIENT_PERMISSIONS);
+
+    // case: branch name cannot be generated -> proceeds to check if manual pull request is possibles
+    insertSourceControlEvent(SourceControlEvent.EVENT_STATUS_COMPLETE);
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1",
+        null, "", "jar");
+
+    ComponentDetails hdsComponentDetails = newNamedComponentDetails(componentIdentifier);
+    hdsComponentDetails.setCatalogDate(DateTime.now().getMillis());
+    hdsComponentDetails.setSecurityVulnerabilities(asList(
+        new SecurityVulnerability("cve-8", "cve", 8.1f),
+        new SecurityVulnerability("cve-4", "cve", 4f)));
+    ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
+    hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
+    mockHdsGetComponentDetailsList(hdsComponentDetailsList, MAVEN_A1_COORDINATES);
+
+    dto = componentInfoService.getComponentVersionInfo(application.getType(), application.getId(),
+        MAVEN_A1_COORDINATES, SourceStageType.ID, null, null, null);
+    prNotPossible = (ManualPullRequestNotPossibleDTO) dto.automatedRemediationStatus;
+    assertThat(prNotPossible.status).isEqualTo(AutomatedRemediationStatus.MANUAL_PULL_REQUEST_NOT_POSSIBLE);
+    assertThat(prNotPossible.reason).isEqualTo(ManualPullRequestImpossibilityReason.INSUFFICIENT_PERMISSIONS);
+  }
+
+  private SourceControlEvent insertSourceControlEvent(final String eventStatus) {
+    SourceControlEvent sourceControlEvent =
+        new SourceControlEvent().forRemediationPullRequest()
+            .setBranchName(application.getId().substring(0, 6) + "/g1/a1/v1-to-v1");
+    sourceControlEvent.setApplicationId(application.getId());
+    sourceControlEvent.setEventStatus(eventStatus);
+    if (SourceControlEvent.EVENT_STATUS_COMPLETE.equals(eventStatus)) {
+      sourceControlEvent.setEventStatusDetails("https://git.com/pull/1");
+    }
+    else if (SourceControlEvent.EVENT_STATUS_ERROR.equals(eventStatus)) {
+      sourceControlEvent.setEventStatusDetails("error reason");
+    }
+    sourceControlEventDAO.insert(sourceControlEvent);
+    return sourceControlEvent;
   }
 
   @Test

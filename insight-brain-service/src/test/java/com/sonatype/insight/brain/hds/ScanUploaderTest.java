@@ -10,17 +10,15 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.insight.brain.cpematching.CpeMatchingConfigurationService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -51,7 +49,7 @@ public class ScanUploaderTest
   private ThirdPartyScanContext thirdPartyScanContext;
 
   @Mock
-  private ProductLicense mockProductLicense;
+  private CpeMatchingConfigurationService mockCpeMatchingConfigurationService;
 
   @Override
   public void configure(Binder binder) {
@@ -59,7 +57,7 @@ public class ScanUploaderTest
     binder.bind(InsightConfig.class).toInstance(insightConfig);
     binder.bind(Configuration.class).toInstance(mockConfiguration);
     binder.bind(ThirdPartyScanContext.class).toInstance(thirdPartyScanContext);
-    binder.bind(ProductLicense.class).toInstance(mockProductLicense);
+    binder.bind(CpeMatchingConfigurationService.class).toInstance(mockCpeMatchingConfigurationService);
     super.configure(binder);
   }
 
@@ -146,10 +144,9 @@ public class ScanUploaderTest
 
   @Test
   public void testUpload_SendUploadIdToHds_CpeDataMatchingEnabled() throws Exception {
-    when(mockProductLicense.getProducts()).thenReturn(ImmutableSet.of("SbomManager", "SbomManagerSaas"));
-    when(mockProductLicense.hasFeature(LicensedFeature.CPE_MATCHING)).thenReturn(Boolean.TRUE);
-
     Application app = tempEntity.newApplicationWithParent("test-app-id");
+    when(mockCpeMatchingConfigurationService.isCpeDataMatchingEnabled(app.getId())).thenReturn(true);
+
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scanId");
     @SuppressWarnings("unchecked")

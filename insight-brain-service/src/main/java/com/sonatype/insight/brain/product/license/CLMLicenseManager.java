@@ -30,7 +30,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -55,7 +54,6 @@ import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
-
 import org.sonatype.licensing.LicensingException;
 import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -118,6 +116,13 @@ public class CLMLicenseManager
   public static final String PRODUCT_SONATYPE_DEVELOPMENT = "Developer";
 
   public static final String PRODUCT_TEAMS_EDITION = "Teams Edition";
+
+  private static final Set<String> LIFECYCLE_PRODUCTS = Set.of(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
+      ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS, ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD,
+      ProductLicenseDetails.PRODUCT_TEAMS_EDITION);
+
+  private static final Set<String> SBOM_MANAGER_PRODUCTS = Set.of(ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
+      ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
 
   // Visible for testing
   static final String TASK_NAME = "ProductLicenseLoad";
@@ -541,6 +546,14 @@ public class CLMLicenseManager
         licensedUsersToDisplay, firewallUsersToDisplay, applicationLimitToDisplay, applicationCountToDisplay,
         sbomLimitToDisplay, productLicense.getContactName(), productLicense.getContactCompany(),
         productLicense.getContactEmail(), products, properties, productEdition);
+  }
+
+  public static boolean hasLifecycleProduct(ProductLicense productLicense) {
+    return LIFECYCLE_PRODUCTS.stream().anyMatch(productLicense::hasProduct);
+  }
+
+  public static boolean hasSbomManagerProduct(ProductLicense productLicense) {
+    return SBOM_MANAGER_PRODUCTS.stream().anyMatch(productLicense::hasProduct);
   }
 
   private String[] getProductLicenseProductsMarketingNames() {

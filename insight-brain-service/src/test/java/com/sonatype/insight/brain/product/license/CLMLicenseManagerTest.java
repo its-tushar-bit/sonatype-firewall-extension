@@ -2433,6 +2433,33 @@ public class CLMLicenseManagerTest
     assertThat(productLicense.isValid()).isTrue();
   }
 
+  @Test
+  public void testHasLifecycleProduct() {
+    Stream.of(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
+            ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS, ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD,
+            ProductLicenseDetails.PRODUCT_TEAMS_EDITION)
+        .forEach(product -> {
+          licenseManager.setProducts(product);
+          assertThat(CLMLicenseManager.hasLifecycleProduct(productLicense)).isTrue();
+        });
+
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    assertThat(CLMLicenseManager.hasLifecycleProduct(productLicense)).isFalse();
+  }
+
+  @Test
+  public void testHasSbomManagerProduct() {
+    Stream.of(ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
+            ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS)
+        .forEach(product -> {
+          licenseManager.setProducts(product);
+          assertThat(CLMLicenseManager.hasSbomManagerProduct(productLicense)).isTrue();
+        });
+
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    assertThat(CLMLicenseManager.hasSbomManagerProduct(productLicense)).isFalse();
+  }
+
   private static String suffix(final String suffix) {
     return "Sonatype " + suffix;
   }

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.cpematching;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -34,7 +33,8 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.license.model.ProductLicenseDetails.PRODUCT_SBOM_MANAGER;
+import static com.sonatype.insight.brain.product.license.CLMLicenseManager.hasLifecycleProduct;
+import static com.sonatype.insight.brain.product.license.CLMLicenseManager.hasSbomManagerProduct;
 import static java.lang.String.format;
 
 @Singleton
@@ -165,6 +165,24 @@ public class CpeMatchingConfigurationService
     }
   }
 
+  /**
+   * Determines whether CPE data matching is enabled for a given application.
+   * CPE matching will be enabled if:
+   * <p/>
+   * 1. The product license includes the CPE_MATCHING feature, AND <br/>
+   * 2. Either:
+   *    a. SBOM Manager product is licensed without Lifecycle product, OR
+   *    b. The application has CPE matching explicitly enabled in its configuration
+   *
+   * @param appInternalId The unique identifier of the application to check
+   * @return true if CPE data matching is enabled for the application, false otherwise
+   */
+  public boolean isCpeDataMatchingEnabled(String appInternalId) {
+    return productLicense.hasFeature(LicensedFeature.CPE_MATCHING) &&
+        ((hasSbomManagerProduct(productLicense) && !hasLifecycleProduct(productLicense)) ||
+            BooleanUtils.isTrue(getCpeMatchingConfigurationNoAuthz(OwnerType.APPLICATION, appInternalId).enabled));
+  }
+
   private void disableForOrganization(final String orgId, final Boolean allowOverride) {
     log.info("Disable CPE matching configuration for organization with ID: {}.", orgId);
     CpeMatchingConfiguration orgConfig = cpeMatchingConfigurationDAO.getByOwnerId(orgId);
@@ -221,19 +239,5 @@ public class CpeMatchingConfigurationService
       cpeMatchingConfigurationDAO.update(existingConfig);
       return existingConfig;
     }
-  }
-
-  /*
-   * Returns true if license has CPE matching feature AND either:
-   * 1. this is an SBOM Manager only product
-   * OR
-   * 2. this is a multi product license and the CPE matching configuration
-   *    is enabled for the application or an organization in the hierarchy above
-   * */
-  public boolean isCpeDataMatchingEnabled(String applicationId) {
-    return productLicense.hasFeature(LicensedFeature.CPE_MATCHING) &&
-        ((!productLicense.getProducts().isEmpty() &&
-            productLicense.getProducts().stream().allMatch(p -> p.startsWith(PRODUCT_SBOM_MANAGER))) ||
-            BooleanUtils.isTrue(getCpeMatchingConfigurationNoAuthz(OwnerType.APPLICATION, applicationId).enabled));
   }
 }

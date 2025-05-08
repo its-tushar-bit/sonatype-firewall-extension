@@ -705,20 +705,17 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testNewSearchIndexChange_WithRelatedRepositoryManagerOrRepository() {
+  public void testShouldAddSearchIndexChange() {
     Organization orgWithRepoManager = tempEntity.newOrganizationWithRepositoryManager("org-with-repo-manager");
     Application appWithRepoManager = tempEntity.newApplication(orgWithRepoManager.getId());
 
     Organization orgWithoutRepo = tempEntity.newOrganization("org-without-repo");
     Application appWithoutRepo = tempEntity.newApplication(orgWithoutRepo.getId());
 
-    SearchIndexChange result = applicationDAO.newSearchIndexChange(appWithRepoManager);
-    assertThat(result).isNull();
-
-    result = applicationDAO.newSearchIndexChange(appWithoutRepo);
-    assertThat(result).isNotNull();
-    assertThat(result.getChangeType()).isEqualTo(ChangeType.APPLICATION);
-    assertThat(result.getChangeData()).isEqualTo(appWithoutRepo.getId());
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
+      assertThat(applicationDAO.shouldAddSearchIndexChange(tx, appWithRepoManager)).isFalse();
+      assertThat(applicationDAO.shouldAddSearchIndexChange(tx, appWithoutRepo)).isTrue();
+    }
   }
 
   @Test

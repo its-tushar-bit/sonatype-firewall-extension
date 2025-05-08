@@ -611,11 +611,16 @@ public class ApplicationDAO
 
   @Override
   protected SearchIndexChange newSearchIndexChange(Application entity) {
-    Organization org = organizationDAO.getById(entity.getOrganizationId());
-    if (org != null && (org.getRelatedRepositoryManagerId() != null || org.getRelatedRepositoryId() != null)) {
-      return null;
-    }
     return new SearchIndexChange(ChangeType.APPLICATION, entity.getId());
+  }
+
+  @Override
+  protected boolean shouldAddSearchIndexChange(TransactionContext tx, Application entity) {
+    Organization org = organizationDAO.getById(tx, entity.getOrganizationId());
+    if (org != null && (org.getRelatedRepositoryManagerId() != null || org.getRelatedRepositoryId() != null)) {
+      return false;
+    }
+    return true;
   }
 
   @Override

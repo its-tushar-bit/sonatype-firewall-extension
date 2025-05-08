@@ -102,19 +102,25 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
     }
     super.insert(tx, entity);
 
-    insertSearchIndexChange(tx, newSearchIndexChangeForInsert(entity));
+    if (shouldAddSearchIndexChange(tx, entity)) {
+      insertSearchIndexChange(tx, newSearchIndexChangeForInsert(entity));
+    }
   }
 
   @Override
   public void update(TransactionContext tx, T entity) {
     super.update(tx, entity);
-    insertSearchIndexChange(tx, newSearchIndexChangeForUpdate(entity));
+    if (shouldAddSearchIndexChange(tx, entity)) {
+      insertSearchIndexChange(tx, newSearchIndexChangeForUpdate(entity));
+    }
   }
 
   @Override
   public void delete(TransactionContext tx, T entity) {
     super.delete(tx, entity);
-    insertSearchIndexChange(tx, newSearchIndexChangeForDelete(entity));
+    if (shouldAddSearchIndexChange(tx, entity)) {
+      insertSearchIndexChange(tx, newSearchIndexChangeForDelete(entity));
+    }
   }
 
   public long getCount(TransactionContext tx) {
@@ -148,6 +154,13 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
 
   protected SearchIndexChange newSearchIndexChangeForDelete(T entity) {
     return newSearchIndexChange(entity);
+  }
+
+  protected boolean shouldAddSearchIndexChange(
+      @SuppressWarnings("unused") TransactionContext tx,
+      @SuppressWarnings("unused") T entity)
+  {
+    return true;
   }
 
   protected SearchIndexChange newSearchIndexChange(@SuppressWarnings("unused") T entity) {

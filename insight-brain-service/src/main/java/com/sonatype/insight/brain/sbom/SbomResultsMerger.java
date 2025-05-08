@@ -170,11 +170,11 @@ public class SbomResultsMerger
 
   private ContainerNode<?> bomJsonData;
 
-  private ContainerNode<?> securityJsonData;
-
-  private ContainerNode<?> licensesJsonData;
-
   private ContainerNode<?> dependenciesJsonData;
+
+  private final Map<ComponentIdentifier, Set<SecurityVulnerability>> hdsSecurityResults = new HashMap<>();
+
+  private final Map<ComponentIdentifier, Map<String, JsonNode>>  hdsLicenseResults = new HashMap<>();
 
   private SbomPostImportMetricsTelemetry sbomPostImportMetricsTelemetry;
 
@@ -184,9 +184,9 @@ public class SbomResultsMerger
 
   private final DependencyTreeParser dependencyTreeParser = new DependencyTreeParser();
 
-  private Bom originalBom = null;
+  private Bom originalBom;
 
-  private Bom filteredBom = null;
+  private Bom filteredBom;
 
   @Inject
   public SbomResultsMerger(
@@ -235,7 +235,7 @@ public class SbomResultsMerger
       final ApplicationReport applicationReport)
       throws IOException
   {
-    initializeMerge(sbomMetadata, applicationReport);
+    initializeMergeProcessDependencies(sbomMetadata, applicationReport);
     mergeSonatypeDataWithSbomData(sbomMetadata, scanId);
     updateReportJsons(sbomMetadata, applicationReport);
     addDependencyDataForOriginalSbom();
@@ -280,19 +280,17 @@ public class SbomResultsMerger
     }
   }
 
-  private void initializeMerge(final ThirdPartySbomMetadata sbomMetadata, final ApplicationReport applicationReport)
+  private void initializeMergeProcessDependencies(final ThirdPartySbomMetadata sbomMetadata,
+                                                  final ApplicationReport applicationReport)
       throws IOException
   {
     bomJsonData = JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(BOM_JSON_FILENAME)).buf);
-    securityJsonData =
-        JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(SECURITY_JSON_FILENAME)).buf);
-    licensesJsonData =
-        JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(LICENSES_JSON_FILENAME)).buf);
+    readSonatypeSecurityResults(applicationReport);
+    readSonatypeLicenseResults(applicationReport);
     final ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON_FILENAME);
     dependenciesJsonData =
         dependenciesReportEntry != null ? JsonUtils.parse(dependenciesReportEntry.buf) : null;
     sbomPostImportMetricsTelemetry = new SbomPostImportMetricsTelemetry();
-
     dependencyTreeParser.parse(dependenciesJsonData);
 
     // create an original SBOM and filtered scan file for continuous monitoring in the case of binary scans
@@ -304,41 +302,39 @@ public class SbomResultsMerger
   }
 
   private void mergeSonatypeDataWithSbomData(ThirdPartySbomMetadata sbomMetadata, String scanId) {
-    //required for backward compatibility until sonatypeIdentifier is in place
-    MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> resultsWithComponentRef =
+    MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> hdsComponentResultsByComponentRef =
         new ArrayListValuedHashMap<>();
-    MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> resultsWithSonatypeId =
+    MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> hdsComponentResultsBySonatypeId =
         new ArrayListValuedHashMap<>();
-
-    Map<ComponentIdentifier, JsonNode> resultsWithoutUniqueIdentifier = new LinkedHashMap<>();
-
-    groupHdsResultsWithComponentRefOrSonatypeId(bomJsonData, resultsWithComponentRef,
-            resultsWithSonatypeId, resultsWithoutUniqueIdentifier, sbomMetadata.getThirdPartyFileId());
-
-    Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeVulnerabilityResults =
-        readSonatypeSecurityResults(securityJsonData);
-    Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults =
-        readSonatypeLicenseResults(licensesJsonData);
-    if (MapUtils.isEmpty(sonatypeVulnerabilityResults) && MapUtils.isEmpty(sonatypeLicenseResults)) {
+    Map<ComponentIdentifier, JsonNode> hdsResultsWithoutUniqueIdentifier = new LinkedHashMap<>();
+    groupHdsResultsByComponentRefOrSonatypeId(bomJsonData, hdsComponentResultsByComponentRef,
+        hdsComponentResultsBySonatypeId, hdsResultsWithoutUniqueIdentifier, sbomMetadata.getThirdPartyFileId());
+    if (MapUtils.isEmpty(hdsSecurityResults) && MapUtils.isEmpty(hdsLicenseResults)) {
       // Scenario: In this case no vulnerabilities or licenses were found in HDS so the merging process is skipped.
       // We still need to gather telemetry data.
       generateTelemetryForUnverifiedVulnerabilitiesOnlyScenario(scanId);
     }
+    doMerge(hdsComponentResultsByComponentRef, hdsComponentResultsBySonatypeId, hdsResultsWithoutUniqueIdentifier,
+        scanId, sbomMetadata);
+  }
 
-    boolean useComponentRef = !resultsWithComponentRef.isEmpty();
+  private void doMerge(MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> hdsResultsByComponentRef,
+                       MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> hdsResultsBySonatypeId,
+                       Map<ComponentIdentifier, JsonNode> resultsWithoutUniqueIdentifier,
+                       String scanId,
+                       ThirdPartySbomMetadata sbomMetadata)
+  {
+    boolean useComponentRef = !hdsResultsByComponentRef.isEmpty();
 
-    MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> resultsToMerge =
-            useComponentRef ? resultsWithComponentRef : resultsWithSonatypeId;
+    MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> hdsComponentResults =
+        hdsResultsByComponentRef.isEmpty() ? hdsResultsBySonatypeId : hdsResultsByComponentRef;
 
     try (TransactionContext tx = thirdPartyScanDAO.createTransactionContext()) {
       tx.begin();
-      mergeResultsWithComponentRefOrSonatypeIdentifier(scanId, resultsToMerge, sonatypeVulnerabilityResults,
-          sonatypeLicenseResults, sbomMetadata, originalBom, filteredBom, useComponentRef, tx);
-
-      if ((resultsWithSonatypeId.isEmpty() && !useComponentRef) || !resultsWithoutUniqueIdentifier.isEmpty() &&
+      mergeResultsWithComponentRefOrSonatypeIdentifier(scanId, hdsComponentResults, sbomMetadata, useComponentRef, tx);
+      if ((hdsResultsBySonatypeId.isEmpty() && !useComponentRef) || !resultsWithoutUniqueIdentifier.isEmpty() &&
           SbomScanType.BINARY.toString().equals(sbomMetadata.getScanType())) {
-        mergeResultsWithoutUniqueIdentifier(scanId, resultsWithoutUniqueIdentifier, sonatypeVulnerabilityResults,
-            sonatypeLicenseResults, sbomMetadata, originalBom, filteredBom, tx);
+        mergeResultsWithoutUniqueIdentifier(scanId, resultsWithoutUniqueIdentifier, sbomMetadata, tx);
       }
       tx.commit();
     }
@@ -359,58 +355,57 @@ public class SbomResultsMerger
 
   private void mergeResultsWithComponentRefOrSonatypeIdentifier(
       final String scanId,
-      final MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> results,
-      final Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeVulnerabilityResults,
-      final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
+      final MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> hdsComponentResults,
       final ThirdPartySbomMetadata thirdPartySbomMetadata,
-      final Bom originalBom,
-      final Bom filteredBom,
       final boolean useComponentRef,
       final TransactionContext tx)
   {
 
-    for (String key : results.keySet()) {
-
-      ThirdPartyFileCoordinate sbomComponent;
-      if (useComponentRef) {
-        sbomComponent =
-            thirdPartyFileCoordinateDAO.getByComponentRef(key, thirdPartySbomMetadata.getThirdPartyFileId());
-      }
-      else {
-        sbomComponent = thirdPartyFileCoordinateDAO.getById(key);
-      }
-      if (sbomComponent == null) {
+    for (String uniqueIdentifier : hdsComponentResults.keySet()) {
+      ThirdPartyFileCoordinate thirdPartyFileCoordinateMatch =
+          findFileCoordinateByUniqueIdentifier(useComponentRef, uniqueIdentifier,
+              thirdPartySbomMetadata.getThirdPartyFileId());
+      if (thirdPartyFileCoordinateMatch == null) {
         log.debug("Internal Error: no ThirdPartyCoordinate record for {} {}",
-            useComponentRef ? "componentReference" : "sonatypeIdentifier", key);
+            useComponentRef ? "componentReference" : "sonatypeIdentifier", uniqueIdentifier);
         continue;
       }
 
-      Collection<Pair<ComponentIdentifier, JsonNode>> identityResults = results.get(key);
-      Pair<ComponentIdentifier, JsonNode> idResult;
-      if (CollectionUtils.size(identityResults) == 1) {
-        //no multi results. perform merge using this result.
-        idResult = identityResults.iterator().next();
+      Collection<Pair<ComponentIdentifier, JsonNode>> hdsComponentMatchesByUniqueIdentifier =
+          hdsComponentResults.get(uniqueIdentifier);
+      Pair<ComponentIdentifier, JsonNode> hdsComponentMatch;
+      if (CollectionUtils.size(hdsComponentMatchesByUniqueIdentifier) == 1) {
+        // single result from HDS for a unique identifier
+        hdsComponentMatch = hdsComponentMatchesByUniqueIdentifier.iterator().next();
       }
       else {
         SbomResultsMatcherTelemetry bestMatchResultsTelemetry = new SbomResultsMatcherTelemetry();
         bestMatchResultsTelemetries.add(bestMatchResultsTelemetry);
-        //more than 1 hds result for the thirdparty component. perform best match
-        idResult = SbomResultsMatcher.bestMatch(sbomComponent, identityResults, bestMatchResultsTelemetry);
+        //more than 1 hds result for unique identifier, perform best match
+        hdsComponentMatch = SbomResultsMatcher.bestMatch(thirdPartyFileCoordinateMatch,
+            hdsComponentMatchesByUniqueIdentifier, bestMatchResultsTelemetry);
       }
-      doMergeWithWithUniqueReference(scanId, sonatypeVulnerabilityResults,
-          sonatypeLicenseResults, thirdPartySbomMetadata, originalBom, filteredBom, idResult, sbomComponent,
-          tx);
+      mergeThirdPartyComponentMatchWithHdsResults(scanId, thirdPartySbomMetadata, hdsComponentMatch,
+          thirdPartyFileCoordinateMatch, tx);
+    }
+  }
+
+  private ThirdPartyFileCoordinate findFileCoordinateByUniqueIdentifier(final boolean useComponentRef,
+                                                                        final String uniqueIdentifier,
+                                                                        final String thirdPartyFileId)
+  {
+    if (useComponentRef) {
+      return thirdPartyFileCoordinateDAO.getByComponentRef(uniqueIdentifier, thirdPartyFileId);
+    }
+    else {
+      return thirdPartyFileCoordinateDAO.getById(uniqueIdentifier);
     }
   }
 
   private void mergeResultsWithoutUniqueIdentifier(
       final String scanId,
       final Map<ComponentIdentifier, JsonNode> resultsWithoutUniqueIdentifier,
-      final Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeVulnerabilityResults,
-      final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
       final ThirdPartySbomMetadata thirdPartySbomMetadata,
-      final Bom originalBom,
-      final Bom filteredBom,
       final TransactionContext tx)
   {
     Set<String> alreadyInsertedComponentIds = new HashSet<>();
@@ -422,7 +417,7 @@ public class SbomResultsMerger
 
       ThirdPartyFileCoordinate sbomComponent = null;
       if (isBinaryScan) {
-        sbomComponent = addNewComponentsForBinaryScan(bomNode, originalBom, filteredBom, sbomComponent,
+        sbomComponent = addNewComponentForBinaryScan(bomNode, sbomComponent,
             thirdPartySbomMetadata.getThirdPartyFileId(), tx);
       }
       else {
@@ -435,30 +430,24 @@ public class SbomResultsMerger
         }
       }
 
-      mergeResultComponentToDatabase(scanId, bomNode, bomPurl.getPackageUrl(),
-          sbomComponent, bomComponentIdentifier, sonatypeVulnerabilityResults, sonatypeLicenseResults,
+      mergeComponentData(scanId, bomNode, bomPurl.getPackageUrl(), sbomComponent, bomComponentIdentifier,
           thirdPartySbomMetadata, tx);
     }
   }
 
-  private void doMergeWithWithUniqueReference(
+  private void mergeThirdPartyComponentMatchWithHdsResults(
       final String scanId,
-      final Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeVulnerabilityResults,
-      final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
       final ThirdPartySbomMetadata thirdPartySbomMetadata,
-      final Bom originalBom,
-      final Bom filteredBom,
-      final Pair<ComponentIdentifier, JsonNode> idResult,
-      final ThirdPartyFileCoordinate sbomComponent,
+      final Pair<ComponentIdentifier, JsonNode> hdsComponentMatch,
+      final ThirdPartyFileCoordinate thirdPartyFileCoordinate,
       final TransactionContext tx)
   {
-    JsonNode bomNode = idResult.getValue();
-    ComponentIdentifier bomComponentIdentifier = idResult.getKey();
-    addNewComponentsForBinaryScan(bomNode, originalBom, filteredBom, sbomComponent,
-        sbomComponent.getThirdPartyFileId(), tx);
-    mergeResultComponentToDatabase(scanId, bomNode, getBomPurl(bomNode, bomComponentIdentifier),
-        sbomComponent, bomComponentIdentifier, sonatypeVulnerabilityResults, sonatypeLicenseResults,
-        thirdPartySbomMetadata, tx);
+    JsonNode hdsComponentJsonNode = hdsComponentMatch.getValue();
+    ComponentIdentifier componentIdentifier = hdsComponentMatch.getKey();
+    addNewComponentForBinaryScan(hdsComponentJsonNode, thirdPartyFileCoordinate,
+        thirdPartyFileCoordinate.getThirdPartyFileId(), tx);
+    mergeComponentData(scanId, hdsComponentJsonNode, getPurl(hdsComponentJsonNode, componentIdentifier),
+        thirdPartyFileCoordinate, componentIdentifier, thirdPartySbomMetadata, tx);
   }
 
   private void sendTelemetries() {
@@ -478,14 +467,12 @@ public class SbomResultsMerger
     }
   }
 
-  private void mergeResultComponentToDatabase(
+  private void mergeComponentData(
       final String scanId,
-      final JsonNode bomNode,
+      final JsonNode componentJsonNode,
       final String bomPurl,
       final ThirdPartyFileCoordinate sbomComponent,
       final ComponentIdentifier bomComponentIdentifier,
-      final Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeVulnerabilityResults,
-      final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
       final ThirdPartySbomMetadata thirdPartySbomMetadata,
       final TransactionContext tx)
   {
@@ -495,8 +482,8 @@ public class SbomResultsMerger
       return;
     }
     // use directDependency if present in bom, if not, only then walk tree
-    if (bomNode.get("directDependency") != null) {
-      sbomComponent.setDependencyType(bomNode.get("directDependency").booleanValue() ? "D" : "T");
+    if (componentJsonNode.get("directDependency") != null) {
+      sbomComponent.setDependencyType(componentJsonNode.get("directDependency").booleanValue() ? "D" : "T");
     }
     else {
       updateComponentDependencyType(sbomComponent);
@@ -507,57 +494,56 @@ public class SbomResultsMerger
       sbomComponent.setPackageUrl(bomPurl);
     }
 
-    JsonNode bomHashNode = bomNode.get("hash");
+    JsonNode bomHashNode = componentJsonNode.get("hash");
     if (bomHashNode != null && !StringUtils.equals(sbomComponent.getHash(), bomHashNode.asText())) {
       // Update the original hash to the result hash for consistency with Sonatype data
       sbomComponent.setHash(bomHashNode.asText());
     }
 
     if (StringUtils.isEmpty(sbomComponent.getMatchStateId())) {
-      sbomComponent.setMatchStateId(JsonUtils.getNullableString(bomNode.get(FIELD_MATCH_STATE)));
+      sbomComponent.setMatchStateId(JsonUtils.getNullableString(componentJsonNode.get(FIELD_MATCH_STATE)));
     }
     if (CollectionUtils.isEmpty(sbomComponent.getOccurrencesList())) {
-      sbomComponent.setOccurrencesList(JsonUtils.getStringListFromArray(bomNode.get(FIELD_PATHNAMES)));
+      sbomComponent.setOccurrencesList(JsonUtils.getStringListFromArray(componentJsonNode.get(FIELD_PATHNAMES)));
     }
     if (CollectionUtils.isEmpty(sbomComponent.getFilenamesList())) {
-      final List<String> filenames = JsonUtils.getStringListFromArray(bomNode.get(FIELD_FILENAMES));
+      final List<String> filenames = JsonUtils.getStringListFromArray(componentJsonNode.get(FIELD_FILENAMES));
       if (CollectionUtils.isNotEmpty(filenames)) {
         sbomComponent.setFilenamesList(filenames);
       }
     }
-    setSonatypeIdentificationSourceIfApplicable(bomNode, sbomComponent);
+    setSonatypeIdentificationSourceIfApplicable(componentJsonNode, sbomComponent);
     thirdPartyFileCoordinateDAO.update(tx, sbomComponent);
-    mergeSecurityData(sonatypeVulnerabilityResults, bomComponentIdentifier, sbomComponent, thirdPartySbomMetadata, tx);
-    mergeLicenseData(sonatypeLicenseResults, bomComponentIdentifier, sbomComponent, tx);
+    mergeSecurityData(bomComponentIdentifier, sbomComponent, thirdPartySbomMetadata, tx);
+    mergeLicenseData(bomComponentIdentifier, sbomComponent, tx);
   }
 
-  private ThirdPartyFileCoordinate addNewComponentsForBinaryScan(
-      final JsonNode bomNode,
-      final Bom originalBom,
-      final Bom filteredBom,
+  private ThirdPartyFileCoordinate addNewComponentForBinaryScan(
+      final JsonNode hdsComponentJsonNode,
       ThirdPartyFileCoordinate sbomDbComponent,
       final String thirdPartyFileId,
       final TransactionContext tx)
   {
     if (ObjectUtils.allNotNull(originalBom, filteredBom)) {
-      List<ThirdPartyCoordinateSecurity> disclosedVulns = null;
+      List<ThirdPartyCoordinateSecurity> disclosedVulnerabilities = null;
       List<ThirdPartyCoordinateLicense> disclosedLicenses = null;
       String newComponentBomRef = UUID.randomUUID().toString().replace("-", "");
       String newComponentRef = SbomIdentityUtils.getComponentRef(newComponentBomRef);
       if (sbomDbComponent == null) {
-        sbomDbComponent = createAndSaveComponentInThirdPartyDatabase(newComponentBomRef, bomNode, thirdPartyFileId, tx);
+        sbomDbComponent = createAndSaveComponentInThirdPartyDatabase(newComponentBomRef, hdsComponentJsonNode,
+            thirdPartyFileId, tx);
       }
       else {
-        disclosedVulns = thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(sbomDbComponent.getId());
+        disclosedVulnerabilities = thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(sbomDbComponent.getId());
         disclosedLicenses = thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(sbomDbComponent.getId());
         sbomDbComponent.setComponentRef(newComponentRef);
         thirdPartyFileCoordinateDAO.update(tx, sbomDbComponent);
       }
       //replace any existing component refs with the new component ref
-      ArrayNode componentRefs = ((ObjectNode) bomNode).putArray(PROPERTY_COMPONENT_REFS);
+      ArrayNode componentRefs = ((ObjectNode) hdsComponentJsonNode).putArray(PROPERTY_COMPONENT_REFS);
       componentRefs.add(newComponentRef);
-      createAndSaveComponentInBom(newComponentBomRef, sbomDbComponent, disclosedVulns, disclosedLicenses, bomNode,
-          originalBom, filteredBom);
+      createAndSaveComponentInBom(newComponentBomRef, sbomDbComponent, disclosedVulnerabilities, disclosedLicenses,
+          hdsComponentJsonNode);
     }
     return sbomDbComponent;
   }
@@ -567,16 +553,14 @@ public class SbomResultsMerger
       ThirdPartyFileCoordinate thirdPartyFileCoordinate,
       List<ThirdPartyCoordinateSecurity> disclosedVulns,
       List<ThirdPartyCoordinateLicense> disclosedLicenses,
-      JsonNode bomNode,
-      Bom bom,
-      Bom filteredBom)
+      JsonNode bomNode)
   {
     Component component = thirdPartyFileCoordinateToBomComponent(thirdPartyFileCoordinate, bomRef);
     addOccurrenceEvidenceForComponent(bomNode, component);
-    bom.addComponent(component);
+    originalBom.addComponent(component);
     //merge has not happened yet, so at this point only disclosed vulnerabilities and licenses can exist
     //  include them as disclosed
-    addDisclosedVulnerabilities(disclosedVulns, bom, component);
+    addDisclosedVulnerabilities(disclosedVulns, component);
     addDisclosedLicenses(disclosedLicenses, component);
 
     Component clone = thirdPartyFileCoordinateToBomComponent(thirdPartyFileCoordinate, bomRef);
@@ -608,11 +592,10 @@ public class SbomResultsMerger
 
   private void addDisclosedVulnerabilities(
       List<ThirdPartyCoordinateSecurity> disclosedVulns,
-      Bom bom,
       Component component)
   {
     if (CollectionUtils.isNotEmpty(disclosedVulns)) {
-      initVulnerabilities(bom);
+      initVulnerabilities(originalBom);
       List<Vulnerability> newBomVulnerabilities = new ArrayList<>();
       disclosedVulns.forEach(vuln -> {
         ThirdPartyVulnerabilityExploitabilityExchange vex =
@@ -620,7 +603,7 @@ public class SbomResultsMerger
                 vuln.getRefId());
         newBomVulnerabilities.add(createCycloneDxVulnerabilityFromDbData(component, vuln, vex));
       });
-      bom.getVulnerabilities().addAll(newBomVulnerabilities);
+      originalBom.getVulnerabilities().addAll(newBomVulnerabilities);
     }
   }
 
@@ -738,24 +721,23 @@ public class SbomResultsMerger
     component.setHash(JsonUtils.getNullableString(componentNode.get("hash")));
     component.setCpe(JsonUtils.getNullableString(componentNode.get("cpe")));
     component.setSwid(JsonUtils.getNullableString(componentNode.get("swid")));
-    String bomPurl = getBomPurl(componentNode, componentIdentifier);
+    String bomPurl = getPurl(componentNode, componentIdentifier);
     component.setPackageUrl(bomPurl);
     component.setSource("Sonatype");
     setSonatypeIdentificationSourceIfApplicable(componentNode, component);
     return thirdPartyFileCoordinatePersister.persist(tx, component);
   }
 
-  private String getBomPurl(JsonNode bomNode, ComponentIdentifier bomComponentIdentifier) {
+  private String getPurl(JsonNode bomNode, ComponentIdentifier bomComponentIdentifier) {
     if (bomNode.get("packageUrl") != null) {
       return bomNode.get("packageUrl").asText();
     }
     return PackageUrlIdentifier.fromComponentIdentifier(bomComponentIdentifier).getPackageUrl();
   }
 
-  private Map<ComponentIdentifier, Set<SecurityVulnerability>> readSonatypeSecurityResults(
-      final ContainerNode<?> securityJsonData)
-  {
-    Map<ComponentIdentifier, Set<SecurityVulnerability>> secResults = new HashMap<>();
+  private void readSonatypeSecurityResults(final ApplicationReport applicationReport) throws IOException {
+    ContainerNode<?> securityJsonData =
+        JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(SECURITY_JSON_FILENAME)).buf);
     ArrayNode securityJsonArray = (ArrayNode) securityJsonData.get("aaData");
     for (JsonNode securityJsonNode : securityJsonArray) {
       ComponentIdentifier securityComponentIdentifier =
@@ -763,71 +745,69 @@ public class SbomResultsMerger
       if (JsonUtils.getNullableString(securityJsonNode.get(FIELD_MATCH_STATE)) != null) {
         SecurityVulnerability securityVulnerability = loadSecurityJson(securityJsonNode);
         if (securityVulnerability != null) {
-          secResults.computeIfAbsent(securityComponentIdentifier, componentIdentifier ->
+          hdsSecurityResults.computeIfAbsent(securityComponentIdentifier, componentIdentifier ->
               new HashSet<>()).add(securityVulnerability);
         }
       }
     }
-    return secResults;
   }
 
-  private Map<ComponentIdentifier, Map<String, JsonNode>> readSonatypeLicenseResults(
-      final ContainerNode<?> licensesJsonData)
+  private void readSonatypeLicenseResults(final ApplicationReport applicationReport)
+      throws IOException
   {
-    Map<ComponentIdentifier, Map<String, JsonNode>> licenseResults = new HashMap<>();
+    ContainerNode<?> licensesJsonData =
+        JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(LICENSES_JSON_FILENAME)).buf);
     ArrayNode licenseJsonArray = (ArrayNode) licensesJsonData.get("aaData");
     for (JsonNode licenseJsonNode : licenseJsonArray) {
-      ComponentIdentifier componentIdentifier =
-          ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
+      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
       List<String> licenseIds = JsonUtils.getStringListFromArray(licenseJsonNode.get(FIELD_EFFECTIVE_LICENSES));
       // later we may need to fall back to declared licenses if effective licenses is empty
       if (CollectionUtils.isNotEmpty(licenseIds)) {
         for (String licenseId : licenseIds) {
-          licenseResults.computeIfAbsent(componentIdentifier, identifier -> new HashMap<>())
+          hdsLicenseResults.computeIfAbsent(componentIdentifier, identifier -> new HashMap<>())
               .put(licenseId, licenseJsonNode);
         }
       }
     }
-    return licenseResults;
   }
 
-  private void groupHdsResultsWithComponentRefOrSonatypeId(
+  private void groupHdsResultsByComponentRefOrSonatypeId(
       final ContainerNode<?> bomJsonData,
       final MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> resultsWithComponentRef,
       final MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> resultsWithSonatypeId,
       final Map<ComponentIdentifier, JsonNode> resultsWithoutUniqueIdentifier,
       final String thirdPartyFileId)
   {
-    ArrayNode bomArray = (ArrayNode) bomJsonData.get("aaData");
-    for (JsonNode bomNode : bomArray) {
-      String matchStateString = bomNode.get(MATCH_STATE).asText();
+    ArrayNode bomJsonArray = (ArrayNode) bomJsonData.get("aaData");
+    for (JsonNode bomComponentNode : bomJsonArray) {
+      String matchStateString = bomComponentNode.get(MATCH_STATE).asText();
       MatchState matchState = MatchState.getById(matchStateString);
       if (MatchState.UNKNOWN.equals(matchState)) {
         continue;
       }
-      ComponentIdentifier bomComponentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(bomNode);
+      ComponentIdentifier bomComponentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(bomComponentNode);
       if (bomComponentIdentifier == null) {
-        log.debug("matched bom.json entry found without a component identifier {}", bomNode);
+        log.debug("matched bom.json entry found without a component identifier {}", bomComponentNode);
         continue;
       }
-
-      List<String> bomNodeComponentRefs = JsonUtils.getStringListFromArray(bomNode.get(PROPERTY_COMPONENT_REFS));
-      String bomNodeComponentRef = JsonUtils.getNullableString(bomNode.get("componentRef"));
-      String sonatypeIdentifier = JsonUtils.getNullableString(bomNode.get("sonatypeIdentifier"));
+      List<String> bomNodeComponentRefs =
+          JsonUtils.getStringListFromArray(bomComponentNode.get(PROPERTY_COMPONENT_REFS));
+      String bomNodeComponentRef = JsonUtils.getNullableString(bomComponentNode.get("componentRef"));
+      String sonatypeIdentifier = JsonUtils.getNullableString(bomComponentNode.get("sonatypeIdentifier"));
       if (CollectionUtils.isNotEmpty(bomNodeComponentRefs)) {
         Optional<String> mergedComponentRef =
             thirdPartyFileCoordinatePersister.consolidate(bomNodeComponentRefs, thirdPartyFileId);
         mergedComponentRef.ifPresent(componentRef ->
-            resultsWithComponentRef.put(componentRef, Pair.of(bomComponentIdentifier, bomNode)));
+            resultsWithComponentRef.put(componentRef, Pair.of(bomComponentIdentifier, bomComponentNode)));
       }
       else if (StringUtils.isNotBlank(bomNodeComponentRef)) {
-        resultsWithComponentRef.put(bomNodeComponentRef, Pair.of(bomComponentIdentifier, bomNode));
+        resultsWithComponentRef.put(bomNodeComponentRef, Pair.of(bomComponentIdentifier, bomComponentNode));
       }
       else if (StringUtils.isNotBlank(sonatypeIdentifier)) {
-        resultsWithSonatypeId.put(sonatypeIdentifier, Pair.of(bomComponentIdentifier, bomNode));
+        resultsWithSonatypeId.put(sonatypeIdentifier, Pair.of(bomComponentIdentifier, bomComponentNode));
       }
       else {
-        resultsWithoutUniqueIdentifier.put(bomComponentIdentifier, bomNode);
+        resultsWithoutUniqueIdentifier.put(bomComponentIdentifier, bomComponentNode);
       }
     }
   }
@@ -897,13 +877,12 @@ public class SbomResultsMerger
   }
 
   private void mergeSecurityData(
-      final Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeSecResults,
       final ComponentIdentifier bomComponentIdentifier,
       final ThirdPartyFileCoordinate sbomComponent,
       final ThirdPartySbomMetadata thirdPartySbomMetadata,
       final TransactionContext tx)
   {
-    Set<SecurityVulnerability> sonatypeVulns = sonatypeSecResults.get(bomComponentIdentifier);
+    Set<SecurityVulnerability> sonatypeVulns = hdsSecurityResults.get(bomComponentIdentifier);
     if (CollectionUtils.isNotEmpty(sonatypeVulns)) {
       // Get all the coordinate securities from the DB for all the vulnerabilities. This list wil
       Map<String, ThirdPartyCoordinateSecurity> coordinateSecuritiesFromDBForComponentMap =
@@ -970,12 +949,11 @@ public class SbomResultsMerger
   }
 
   private void mergeLicenseData(
-      final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
       final ComponentIdentifier bomComponentIdentifier,
       final ThirdPartyFileCoordinate sbomComponent,
       final TransactionContext tx)
   {
-    Map<String, JsonNode> sonatypeLicenses = sonatypeLicenseResults.get(bomComponentIdentifier);
+    Map<String, JsonNode> sonatypeLicenses = hdsLicenseResults.get(bomComponentIdentifier);
     if (MapUtils.isNotEmpty(sonatypeLicenses)) {
       List<ThirdPartyCoordinateLicense> sbomComponentLicenses =
           thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(sbomComponent.getId());
@@ -1031,9 +1009,9 @@ public class SbomResultsMerger
     }
   }
 
-  private String generateBomString(final Bom originalBom) {
+  private String generateBomString(final Bom bom) {
     try {
-      return BomGeneratorFactory.createJson(Version.VERSION_16, originalBom).toJsonString();
+      return BomGeneratorFactory.createJson(Version.VERSION_16, bom).toJsonString();
     }
     catch (GeneratorException e) {
       throw new SbomExportException("An error occurred while trying to parse the SBOM's content to JSON string", e);

@@ -2105,10 +2105,10 @@
     react-dom "^16.14.0"
     resolve-url-loader "^5.0.0"
 
-"@sonatype/version-graph@^1.0.10":
-  version "1.0.10"
-  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/version-graph/-/version-graph-1.0.10.tgz#fcf829dc5585ac4077471bf9ff0ba32dd68918e2"
-  integrity sha512-mHpgKU5mIznFHfxiUYx1xlyQFdZKbdln06DjheA0zg1J9SfJwcLvikZqKpQESOtTRUidjNssd1n8EgRCV6s7uA==
+"@sonatype/version-graph@^1.0.12":
+  version "1.0.12"
+  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/version-graph/-/version-graph-1.0.12.tgz#34004b504d8001c1d06c2f96d8e03159944a5bf9"
+  integrity sha512-ax4bnASUfqLxI9gCGKwZoRsqRMqf7oVZ1tNg2bgWeZZyHEiI1llJpJoK4zKlBWQpzQb5W7o2TiC+HYaKb8ms3Q==
 
 "@stylelint/postcss-css-in-js@^0.37.2":
   version "0.37.2"

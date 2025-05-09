@@ -188,7 +188,7 @@ public class FirewallComponentDetailsPage
   }
 
   public ElementsCollection getClickableVersionsInVersionExplorer() {
-    return children("#aiVersionChartViz > svg:nth-child(1) > g:nth-child(1) > g:nth-child(23) > g:nth-child(1) > rect");
+    return children("#aiVersionChartViz").get(0).findAll("rect[pointer-events='all']");
   }
 
   public SelenideElement getSecurityTabContainer() {

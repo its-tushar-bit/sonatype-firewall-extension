@@ -49,6 +49,9 @@ public class EyesWatcher
 
   @Override
   protected void starting(Description description) {
+    if (EyesWatcherShared.isDisabled()) {
+      return;
+    }
     initEyes();
 
     String batchId = EyesWatcherShared.INSTANCE.getBatchId();
@@ -67,6 +70,9 @@ public class EyesWatcher
 
   @Override
   protected void finished(Description description) {
+    if (EyesWatcherShared.isDisabled()) {
+      return;
+    }
     try {
       // End visual testing. Validate visual correctness.
       if (eyes.getIsOpen()) {
@@ -102,7 +108,7 @@ public class EyesWatcher
    * (the mouse will not be moved back however)
    */
   public void eyesCheck(String tag, boolean ignoreDisplacements, boolean shouldUnsetCursorAndFocus) {
-    if (eyes.getIsDisabled()) {
+    if (EyesWatcherShared.isDisabled()) {
       return;
     }
 

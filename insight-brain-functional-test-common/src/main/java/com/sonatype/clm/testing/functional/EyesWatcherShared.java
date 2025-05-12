@@ -43,6 +43,9 @@ public class EyesWatcherShared
   private String localBranchName;
 
   private EyesWatcherShared() {
+    if (isDisabled()) {
+      return;
+    }
     try {
       localBranchName = System.getProperty("branchName", System.getenv("GIT_LOCAL_BRANCH"));
 
@@ -74,32 +77,35 @@ public class EyesWatcherShared
     }
   }
 
+  public static boolean isDisabled() {
+    return APPLITOOLS_KEY == null || !APPLITOOLS_ENABLED;
+  }
+
   public Eyes createEyes() {
+    if (isDisabled()) {
+      return null;
+    }
+
     Eyes eyes = new Eyes(runner);
-    eyes.setIsDisabled(APPLITOOLS_KEY == null || !APPLITOOLS_ENABLED);
+    eyes.setConfiguration(config);
 
-    if (!eyes.getIsDisabled()) {
-      eyes.setConfiguration(config);
+    // For local testing or ci runs with main branch, set the branchName and parentBranchName
+    if (batchId == null || "main".equalsIgnoreCase(localBranchName)) {
+      eyes.setBranchName(localBranchName.equalsIgnoreCase("main") ? "sonatype/insight-brain/main" : localBranchName);
+      eyes.setParentBranchName(System.getProperty("parentBranchName", "sonatype/insight-brain/main"));
+    }
 
-      // For local testing or ci runs with main branch, set the branchName and parentBranchName
-      if (batchId == null || "main".equalsIgnoreCase(localBranchName)) {
-        eyes.setBranchName(
-            localBranchName.equalsIgnoreCase("main") ? "sonatype/insight-brain/main" : localBranchName);
-        eyes.setParentBranchName(System.getProperty("parentBranchName", "sonatype/insight-brain/main"));
-      }
-
-      if (StringUtils.isNotBlank(APPLITOOLS_LOG_FILE_NAME)) {
-        eyes.setLogHandler(new FileLogger(APPLITOOLS_LOG_FILE_NAME, true, true));
-      }
+    if (StringUtils.isNotBlank(APPLITOOLS_LOG_FILE_NAME)) {
+      eyes.setLogHandler(new FileLogger(APPLITOOLS_LOG_FILE_NAME, true, true));
     }
     return eyes;
   }
 
-  public String getBatchId() {
+  String getBatchId() {
     return batchId;
   }
 
-  public String getLocalBranchName() {
+  String getLocalBranchName() {
     return localBranchName;
   }
 }

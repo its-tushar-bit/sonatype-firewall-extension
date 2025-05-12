@@ -27,7 +27,6 @@ import org.junit.Test;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.sonatype.insight.brain.api.PublicApiPaths.ZSCALER_CONFIG_RESOURCE_PATH_V2;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -133,32 +132,35 @@ public class ApiZScalerConfigurationResourceTest
 
     ZScalerCategory mavenCategory = new ZScalerCategory();
     mavenCategory.setId("maven-category");
-    mavenCategory.setConfiguredName("maven2");
+    mavenCategory.setConfiguredName("sonatype-maven-shadow-download-defense");
     mavenCategory.setCustomCategory(true);
     mavenCategory.setUrls(List.of("https://repo1.maven.org/maven2/"));
 
     tempEntity.newZScalerConfiguration(username, password, zScalerMockServer.getBaseUrl(), apiKey);
 
     zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
+    zScalerMockServer.mockGetQuota(200, "{\"uniqueUrlsProvisioned\":\"1000\", \"remainingUrlsQuota\":\"10\"}");
     zScalerMockServer.mockGetCustomUrlCategories(200, new ObjectMapper().writeValueAsString(List.of(mavenCategory)));
     zScalerMockServer.mockUpdateCustomUrlCategories(200, "{\"status\":\"success\"}");
     zScalerMockServer.mockActivateChanges(200, "{\"status\":\"success\"}");
 
-    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN2").patch();
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN").patch();
 
     assertResponseStatus(204, response);
 
     zScalerMockServer.getWireMockServer()
         .verify(postRequestedFor(urlPathMatching("/api/v1/authenticatedSession")));
+    zScalerMockServer.getWireMockServer()
+        .verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories/urlQuota")));
     zScalerMockServer.getWireMockServer().verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories"))
         .withQueryParam("customOnly", equalTo("true")));
-    zScalerMockServer.getWireMockServer().verify(putRequestedFor(urlPathMatching("/api/v1/urlCategories/.*")));
+    zScalerMockServer.getWireMockServer().verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories/.*")));
     zScalerMockServer.getWireMockServer().verify(postRequestedFor(urlPathMatching("/api/v1/status/activate")));
   }
 
   @Test
   public void testPatchZScalerConfiguration_noConfiguration() throws Exception {
-    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN2").patch();
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN").patch();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("No zScaler configuration found");
@@ -171,7 +173,7 @@ public class ApiZScalerConfigurationResourceTest
 
     zScalerMockServer.mockAuthentication(401, "{\"error\":\"Invalid credentials\"}");
 
-    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN2").patch();
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN").patch();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).contains("Authentication failed: {\"error\":\"Invalid credentials\"}");
@@ -185,7 +187,7 @@ public class ApiZScalerConfigurationResourceTest
     zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
     zScalerMockServer.mockGetCustomUrlCategories(500, "{\"error\":\"Internal Server Error\"}");
 
-    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN2").patch();
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN").patch();
 
     assertResponseStatus(204, response);
   }
@@ -199,7 +201,7 @@ public class ApiZScalerConfigurationResourceTest
     zScalerMockServer.mockGetCustomUrlCategories(200, "[]");
     zScalerMockServer.mockUpdateCustomUrlCategories(500, "{\"error\":\"Update failed\"}");
 
-    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN2").patch();
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN").patch();
 
     assertResponseStatus(204, response);
   }
@@ -213,7 +215,7 @@ public class ApiZScalerConfigurationResourceTest
     zScalerMockServer.mockGetCustomUrlCategories(200, "[]");
     zScalerMockServer.mockCreateCustomUrlCategory(500, "{\"error\":\"Creation failed\"}");
 
-    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN2").patch();
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN").patch();
 
     assertResponseStatus(204, response);
   }
@@ -228,7 +230,7 @@ public class ApiZScalerConfigurationResourceTest
     zScalerMockServer.mockUpdateCustomUrlCategories(200, "{\"status\":\"success\"}");
     zScalerMockServer.mockActivateChanges(500, "{\"error\":\"Activation failed\"}");
 
-    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN2").patch();
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN").patch();
 
     assertResponseStatus(204, response);
   }

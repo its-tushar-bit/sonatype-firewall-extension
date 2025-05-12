@@ -7,5 +7,5 @@ package com.sonatype.insight.brain.zscaler;
 
 public enum ZScalerFormat
 {
-  MAVEN2, NPM, PYPI
+  MAVEN, NPM, PYPI
 }

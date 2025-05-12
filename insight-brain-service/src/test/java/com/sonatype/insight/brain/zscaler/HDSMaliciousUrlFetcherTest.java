@@ -23,8 +23,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -47,24 +45,23 @@ public class HDSMaliciousUrlFetcherTest
   @Test
   public void testFetchMaliciousUrls() {
     InputStream expectedResponse = new ByteArrayInputStream("maliciousUrls".getBytes(StandardCharsets.UTF_8));
-    when(hdsClient.get(InputStream.class, "rest/component/details/firewall/maliciousUrls/maven2"))
+    when(hdsClient.get(InputStream.class, "rest/maliciousUrls/active/maven"))
         .thenReturn(expectedResponse);
 
-    InputStream actualResponse = underTest.fetchMaliciousUrls(ZScalerFormat.MAVEN2);
+    InputStream actualResponse = underTest.fetchMaliciousUrls(ZScalerFormat.MAVEN);
 
     assertEquals(expectedResponse, actualResponse);
-    assertThat(logOutput).atDebugLevel().contains("Updating zScaler Malicious URLs for format: MAVEN2");
+    assertThat(logOutput).atDebugLevel().contains("Updating zScaler Malicious URLs for format: MAVEN");
   }
 
   @Test
   public void testFetchMaliciousUrls_badGatewayException() {
-    when(hdsClient.get(InputStream.class, "rest/component/details/firewall/maliciousUrls/npm"))
+    when(hdsClient.get(InputStream.class, "rest/maliciousUrls/active/npm"))
         .thenThrow(new BadGatewayException("Bad Gateway"));
 
-    RuntimeException exception = assertThrows(RuntimeException.class,
-        () -> underTest.fetchMaliciousUrls(ZScalerFormat.NPM));
+    InputStream inputStream = underTest.fetchMaliciousUrls(ZScalerFormat.NPM);
 
-    assertThat(exception.getMessage()).contains("Failed to get zScaler malicious URLs: Bad Gateway");
-    verify(hdsClient).get(InputStream.class, "rest/component/details/firewall/maliciousUrls/npm");
+    assertThat(inputStream).isNull();
+    assertThat(logOutput).atWarnLevel().contains("Failed to get zScaler malicious URLs");
   }
 }

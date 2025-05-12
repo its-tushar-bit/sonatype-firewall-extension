@@ -20,6 +20,8 @@ public class ZScalerCategory
 
   private List<String> urls;
 
+  private int customUrlsCount;
+
   public String getConfiguredName() {
     return configuredName;
   }
@@ -50,5 +52,13 @@ public class ZScalerCategory
 
   public void setUrls(final List<String> urls) {
     this.urls = urls;
+  }
+
+  public void setCustomUrlsCount(final int customUrlsCount) {
+    this.customUrlsCount = customUrlsCount;
+  }
+
+  public int getCustomUrlsCount() {
+    return customUrlsCount;
   }
 }

@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 public class HDSMaliciousUrlFetcher
     implements ZScalerMaliciousUrlFetcher
 {
-  private static final String HDS_MALICIOUS_URLS_PATH = "rest/component/details/firewall/maliciousUrls";
+  private static final String HDS_MALICIOUS_URLS_PATH = "rest/maliciousUrls";
 
   private static final Logger log = LoggerFactory.getLogger(HDSMaliciousUrlFetcher.class);
 
@@ -35,11 +35,12 @@ public class HDSMaliciousUrlFetcher
   public InputStream fetchMaliciousUrls(ZScalerFormat format) {
     log.debug("Updating zScaler Malicious URLs for format: {}", format);
     try {
-      return hdsClient.get(InputStream.class, HDS_MALICIOUS_URLS_PATH + "/" +
+      return hdsClient.get(InputStream.class, HDS_MALICIOUS_URLS_PATH + "/active/" +
           format.toString().toLowerCase(Locale.ROOT));
     }
     catch (BadGatewayException e) {
-      throw new RuntimeException("Failed to get zScaler malicious URLs: " + e.getMessage(), e);
+      log.warn("Failed to get zScaler malicious URLs: {}", e.getMessage(), e);
+      return null;
     }
   }
 }

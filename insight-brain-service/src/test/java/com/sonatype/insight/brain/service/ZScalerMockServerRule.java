@@ -74,6 +74,14 @@ public class ZScalerMockServerRule
                 .withBody(responseBody)));
   }
 
+  public void mockGetQuota(int statusCode, String responseBody) {
+    zScalerMockServer.stubFor(get(urlPathMatching(URL_CATEGORIES_PATH + "/urlQuota"))
+        .willReturn(aResponse()
+            .withStatus(statusCode)
+            .withHeader("Content-Type", "application/json")
+            .withBody(responseBody)));
+  }
+
   public void mockGetCustomUrlCategories(int statusCode, String responseBody) {
     zScalerMockServer.stubFor(get(urlPathMatching(URL_CATEGORIES_PATH))
         .withQueryParam("customOnly", equalTo("true")) // Match the query parameter

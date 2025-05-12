@@ -34,8 +34,6 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import static com.sonatype.insight.brain.zscaler.ApiZScalerService.obfuscateApiKey;
-
 @Named
 @Timed
 @Path(value = PublicApiPaths.ZSCALER_CONFIG_RESOURCE_PATH_V2)
@@ -180,9 +178,7 @@ public class ApiZScalerConfigurationResource
           useParameterTypeSchema = true)
       ApiZScalerConfigurationDTO configurationDTO)
   {
-    String timestamp = String.valueOf(System.currentTimeMillis());
-    String obfuscatedKey = obfuscateApiKey(configurationDTO.getApiKey(), timestamp);
     zScalerService.authenticate(configurationDTO.getHostname(),
-        configurationDTO.getUsername(), configurationDTO.getPassword(), obfuscatedKey, timestamp);
+        configurationDTO.getUsername(), configurationDTO.getPassword(), configurationDTO.getApiKey());
   }
 }

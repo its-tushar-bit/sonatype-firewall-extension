@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.zscaler;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -19,8 +22,10 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.zscaler.ApiZScalerService.ActiveUrls;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -34,6 +39,8 @@ public class ZScalerUpdater
     implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(ZScalerUpdater.class);
+
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   static final String TASK_NAME = ZScalerUpdater.class.getSimpleName();
 
@@ -90,28 +97,77 @@ public class ZScalerUpdater
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void update(ZScalerFormat format) {
-    updateInternal(format);
+    apiZScalerService.authenticate();
+    deleteCategory(format);
+    updateCategory(format);
+    apiZScalerService.activate();
   }
 
   void updateAllzScalerMaliciousUrls() {
     // TODO: Rather than assuming all formats are needed we may decide to fetch the format types based on configuration
     if (productLicense.hasFeature(LicensedFeature.FIREWALL)) {
-      updateInternal(ZScalerFormat.MAVEN2);
-      updateInternal(ZScalerFormat.NPM);
-      updateInternal(ZScalerFormat.PYPI);
+      apiZScalerService.authenticate();
+
+      deleteAllCategories();
+      updateAllCategories();
+
+      apiZScalerService.activate();
     }
     else {
       log.debug("zScaler is disabled because the license does not have the required feature");
     }
   }
 
-  void updateInternal(ZScalerFormat format) {
+  private void updateAllCategories() {
+    updateCategory(ZScalerFormat.MAVEN);
+    updateCategory(ZScalerFormat.PYPI);
+    updateCategory(ZScalerFormat.NPM);
+  }
+
+  private void deleteAllCategories() {
+    deleteCategory(ZScalerFormat.MAVEN);
+    deleteCategory(ZScalerFormat.PYPI);
+    deleteCategory(ZScalerFormat.NPM);
+  }
+
+  private void deleteCategory(ZScalerFormat format) {
+    log.debug("deleting zScaler category: {}", format);
+    apiZScalerService.updateCategory(format, List.of("placeholder.com/" + format.toString().toLowerCase()));
+  }
+
+  void updateCategory(ZScalerFormat format) {
     log.debug("Updating zScaler for {}", format);
     if (!productLicense.hasFeature(LicensedFeature.FIREWALL)) {
       throw new InvalidLicenseException("zScaler requires a valid license");
     }
 
     InputStream inputStream = zScalerMaliciousUrlFetcher.fetchMaliciousUrls(format);
-    apiZScalerService.updateCategories(format, inputStream);
+    if (inputStream == null) {
+      log.warn("No zScaler malicious URLs found for format: {}", format);
+      return;
+    }
+
+    apiZScalerService.updateCategory(format, getActiveUrls(inputStream));
+  }
+
+  private static List<String> getActiveUrls(final InputStream inputStream) {
+    if (inputStream == null) {
+      return Collections.emptyList();
+    }
+
+    try {
+      ActiveUrls activeUrls = MAPPER.readValue(inputStream, ActiveUrls.class);
+      return activeUrls.getActiveThreatUrls() == null ? Collections.emptyList() : convertActiveUrls(
+          activeUrls.getActiveThreatUrls());
+    }
+    catch (IOException e) {
+      return Collections.emptyList();
+    }
+  }
+
+  private static List<String> convertActiveUrls(final List<String> activeThreatUrls) {
+    return activeThreatUrls.stream()
+        .map(url -> url.replaceAll("https?://", ""))
+        .toList();
   }
 }

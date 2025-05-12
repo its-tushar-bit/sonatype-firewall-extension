@@ -7,11 +7,6 @@ package com.sonatype.insight.brain.zscaler;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import javax.inject.Named;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -20,25 +15,41 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class DummyMaliciousUrlFetcher
     implements ZScalerMaliciousUrlFetcher
 {
+  private static final String mavenUrls = """
+      {
+        "activeThreatUrls": [
+          "repo.maven.apache.org/maven2/org/sonatype/maven-policy-demo/1.1.0/maven-policy-demo-1.1.0.jar",
+          "repo1.maven.org/maven2/org/sonatype/maven-policy-demo/1.1.0/maven-policy-demo-1.1.0.jar",
+          "repo.maven.apache.org/maven2/com/example/lib1/test.jar",
+          "repo1.maven.org/maven2/com/example/lib2/test.jar"
+        ]
+      }
+      """;
+
+  private static final String npmUrls = """
+      {
+        "activeThreatUrls": [
+          "registry.npmjs.org/example-package",
+          "registry.npmjs.org/another-example"
+        ]
+      }
+      """;
+
+  private static final String pypiUrls = """
+      {
+        "activeThreatUrls": [
+          "pypi.org/project/example-package",
+          "pypi.org/project/another-example"
+        ]
+      }
+      """;
+
   @Override
   public InputStream fetchMaliciousUrls(final ZScalerFormat format) {
-    Map<String, List<String>> formatUrls = new HashMap<>();
-    formatUrls.put("maven2", Arrays.asList(
-        "repo.maven.apache.org/maven2/org/sonatype/maven-policy-demo/1.1.0/maven-policy-demo-1.1.0.jar",
-        "repo1.maven.org/maven2/org/sonatype/maven-policy-demo/1.1.0/maven-policy-demo-1.1.0.jar",
-        "repo.maven.apache.org/maven2/com/example/lib1/test.jar",
-        "repo1.maven.org/maven2/com/example/lib2/test.jar"
-    ));
-    formatUrls.put("npm", Arrays.asList(
-        "registry.npmjs.org/example-package",
-        "registry.npmjs.org/another-example"
-    ));
-    formatUrls.put("pypi", Arrays.asList(
-        "pypi.org/project/example-package",
-        "pypi.org/project/another-example"
-    ));
-
-    String urls = String.join("\n", formatUrls.get(format.toString().toLowerCase(Locale.ROOT)));
-    return new ByteArrayInputStream(urls.getBytes(UTF_8));
+    return switch (format) {
+      case MAVEN -> new ByteArrayInputStream(mavenUrls.getBytes(UTF_8));
+      case NPM -> new ByteArrayInputStream(npmUrls.getBytes(UTF_8));
+      case PYPI -> new ByteArrayInputStream(pypiUrls.getBytes(UTF_8));
+    };
   }
 }

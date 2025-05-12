@@ -5,8 +5,9 @@
  */
 package com.sonatype.insight.brain.zscaler;
 
-import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 import java.time.Duration;
+import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -18,12 +19,12 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
+import com.google.inject.name.Names;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.quartz.JobExecutionContext;
@@ -31,12 +32,12 @@ import org.quartz.JobExecutionException;
 
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ZSCALER;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -65,12 +66,18 @@ public class ZScalerUpdaterTest
   @Mock
   private JobExecutionContext mockJobExecutionContext;
 
+  @Mock
+  private ZScalerClient mockZScalerClient;
+
   @Inject
   private ZScalerUpdater underTest;
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(ZScalerMaliciousUrlFetcher.class).toInstance(mockZScalerMaliciousUrlFetcher);
+    binder.bind(ZScalerMaliciousUrlFetcher.class)
+        .annotatedWith(Names.named("dummy"))
+        .toInstance(mockZScalerMaliciousUrlFetcher);
+    binder.bind(ZScalerClient.class).toInstance(mockZScalerClient);
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
     binder.bind(ApiZScalerService.class).toInstance(mockApiZScalerService);
     binder.bind(ProductLicense.class).toInstance(mockProductLicense);
@@ -133,12 +140,15 @@ public class ZScalerUpdaterTest
   @Test
   public void testUpdateAllzScalerMaliciousUrls_WithValidLicense() {
     when(mockProductLicense.hasFeature(LicensedFeature.FIREWALL)).thenReturn(true);
+    when(mockZScalerMaliciousUrlFetcher.fetchMaliciousUrls(any()))
+        .thenReturn(new ByteArrayInputStream("{\"activeThreatUrls\": [\"randomurl.com\"]}".getBytes()));
 
     underTest.updateAllzScalerMaliciousUrls();
 
-    verify(mockApiZScalerService).updateCategories(eq(ZScalerFormat.MAVEN2), any());
-    verify(mockApiZScalerService).updateCategories(eq(ZScalerFormat.NPM), any());
-    verify(mockApiZScalerService).updateCategories(eq(ZScalerFormat.PYPI), any());
+    // Invocation for deleteCategory and then updateCategory
+    verify(mockApiZScalerService, times(2)).updateCategory(eq(ZScalerFormat.MAVEN), any());
+    verify(mockApiZScalerService, times(2)).updateCategory(eq(ZScalerFormat.NPM), any());
+    verify(mockApiZScalerService, times(2)).updateCategory(eq(ZScalerFormat.PYPI), any());
   }
 
   @Test
@@ -147,25 +157,49 @@ public class ZScalerUpdaterTest
 
     underTest.updateAllzScalerMaliciousUrls();
 
-    verify(mockApiZScalerService, never()).updateCategories(any(), any());
+    verify(mockApiZScalerService, never()).updateCategory(any(), any());
   }
 
   @Test
   public void testUpdate() {
     when(mockProductLicense.hasFeature(LicensedFeature.FIREWALL)).thenReturn(true);
+    when(mockZScalerMaliciousUrlFetcher.fetchMaliciousUrls(any()))
+        .thenReturn(new ByteArrayInputStream("{\"activeThreatUrls\": [\"randomurl.com\"]}".getBytes()));
 
-    underTest.updateInternal(ZScalerFormat.NPM);
+    underTest.updateCategory(ZScalerFormat.NPM);
 
-    ArgumentCaptor<InputStream> inputStreamCaptor = ArgumentCaptor.forClass(InputStream.class);
-    verify(mockApiZScalerService).updateCategories(eq(ZScalerFormat.NPM), inputStreamCaptor.capture());
-
-    assertNotNull(inputStreamCaptor.getValue());
+    verify(mockApiZScalerService).updateCategory(eq(ZScalerFormat.NPM), eq(List.of("randomurl.com")));
   }
 
   @Test(expected = InvalidLicenseException.class)
   public void testUpdate_invalidLicense() {
     when(mockProductLicense.hasFeature(LicensedFeature.FIREWALL)).thenReturn(false);
 
-    underTest.updateInternal(ZScalerFormat.NPM);
+    underTest.updateCategory(ZScalerFormat.NPM);
+  }
+
+  @Test
+  public void testUpdateCategory_handlesEmptyJson() {
+    when(mockProductLicense.hasFeature(LicensedFeature.FIREWALL)).thenReturn(true);
+    when(mockZScalerMaliciousUrlFetcher.fetchMaliciousUrls(any()))
+        .thenReturn(new ByteArrayInputStream("{}".getBytes()));
+
+    underTest.updateCategory(ZScalerFormat.NPM);
+
+    verify(mockApiZScalerService).updateCategory(eq(ZScalerFormat.NPM), eq(List.of()));
+    verify(mockZScalerClient, never()).createCustomUrlCategory(any(), any(), any());
+    verify(mockZScalerClient, never()).updateCustomUrlCategories(any(), any(), any(), any());
+  }
+
+  @Test
+  public void testUpdateCategory_stripsHttpsPrefix() {
+    when(mockProductLicense.hasFeature(LicensedFeature.FIREWALL)).thenReturn(true);
+    when(mockZScalerMaliciousUrlFetcher.fetchMaliciousUrls(any()))
+        .thenReturn(new ByteArrayInputStream(
+            "{\"activeThreatUrls\": [\"http://test1.com\", \"https://test2.com\"]}".getBytes()));
+
+    underTest.updateCategory(ZScalerFormat.NPM);
+
+    verify(mockApiZScalerService).updateCategory(eq(ZScalerFormat.NPM), eq(List.of("test1.com", "test2.com")));
   }
 }

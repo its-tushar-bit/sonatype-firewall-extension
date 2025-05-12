@@ -5,20 +5,9 @@
  */
 package com.sonatype.insight.brain.zscaler;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.CookieManager;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -29,61 +18,48 @@ import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Named
 @HasFeature(SystemConfigurationPropertyFeature.ZSCALER)
 public class ApiZScalerService
 {
-  private static final String V1_URL = "/api/v1/";
-
-  private static final String URL_CATEGORIES = V1_URL + "urlCategories";
-
-  private static final String ACTIVATE = V1_URL + "status/activate";
-
-  private static final String AUTHENTICATED_SESSION = V1_URL + "authenticatedSession";
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private final Logger log = LoggerFactory.getLogger(ApiZScalerService.class);
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
-
-  private final HttpClient client;
-
   private final ZScalerConfigurationDAO zScalerConfigurationDAO;
 
-  private final PasswordHandler passwordHandler;
+  private PasswordHandler passwordHandler;
+
+  private ZScalerClient zScalerClient;
 
   @Inject
   public ApiZScalerService(
       final ZScalerConfigurationDAO zScalerConfigurationDAO,
-      final PasswordHandler passwordHandler)
+      final PasswordHandler passwordHandler,
+      final ZScalerClient zScalerClient)
   {
     this.zScalerConfigurationDAO = zScalerConfigurationDAO;
     this.passwordHandler = passwordHandler;
-    this.client = HttpClient.newBuilder()
-        .cookieHandler(new CookieManager())
-        .build();
+    this.zScalerClient = zScalerClient;
   }
 
-  // New constructor allowing HttpClient injection (for testing)
-  public ApiZScalerService(
-      final ZScalerConfigurationDAO zScalerConfigurationDAO,
-      final HttpClient client,
-      final PasswordHandler passwordHandler)
+  public void authenticate(
+      final String hostname,
+      final String username,
+      final String password,
+      final String apiKey)
   {
-    this.zScalerConfigurationDAO = zScalerConfigurationDAO;
-    this.client = client;
-    this.passwordHandler = passwordHandler;
+    String timestamp = String.valueOf(System.currentTimeMillis());
+    String obfuscatedKey = obfuscateApiKey(apiKey, timestamp);
+
+    zScalerClient.authenticate(hostname, username, password, obfuscatedKey, timestamp);
   }
 
-  public void updateCategories(final ZScalerFormat format, final InputStream urls) {
+  public void authenticate() {
     ZScalerConfiguration configuration = zScalerConfigurationDAO.get();
     if (configuration == null) {
       log.warn("No zScaler configuration found");
@@ -94,180 +70,99 @@ public class ApiZScalerService
     String timestamp = String.valueOf(System.currentTimeMillis());
     String obfuscatedKey = obfuscateApiKey(apiKey, timestamp);
 
-    authenticate(configuration.getHostname(), configuration.getUsername(),
+    zScalerClient.authenticate(configuration.getHostname(), configuration.getUsername(),
         passwordHandler.decryptPassword(configuration.getPassword()), obfuscatedKey, timestamp);
-
-    updateCategories(configuration.getHostname(), format, urls);
-    activateChanges(configuration.getHostname());
   }
 
-  public void authenticate(String baseUrl, String username, String password, String apiKey, String timestamp) {
-    Map<String, String> authPayload = new HashMap<>();
-    authPayload.put("username", username);
-    authPayload.put("password", password);
-    authPayload.put("apiKey", apiKey);
-    authPayload.put("timestamp", timestamp);
-
-    String body;
-    try {
-      body = objectMapper.writeValueAsString(authPayload);
-    }
-    catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
+  public void activate() {
+    ZScalerConfiguration configuration = zScalerConfigurationDAO.get();
+    if (configuration == null) {
+      log.warn("No zScaler configuration found");
+      throw new BadRequestException("No zScaler configuration found");
     }
 
-    HttpRequest request = HttpRequest.newBuilder()
-        .uri(URI.create(baseUrl + AUTHENTICATED_SESSION))
-        .header("Content-Type", ContentType.APPLICATION_JSON.getMimeType())
-        .POST(HttpRequest.BodyPublishers.ofString(body))
-        .build();
-
-    try {
-      HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-      if (response.statusCode() != 200) {
-        log.warn("Authentication failed: {}", response.body());
-        throw new BadRequestException("Authentication failed: " + response.body());
-      }
-      log.info("Authenticated successfully");
-    }
-    catch (Exception e) {
-      log.warn("Exception during authentication: {}", e.getMessage());
-      throw new BadRequestException(e.getMessage());
-    }
+    zScalerClient.activateChanges(configuration.getHostname());
   }
 
-  List<ZScalerCategory> getCustomUrlCategories(String baseUrl) {
-    HttpRequest request = HttpRequest.newBuilder()
-        .uri(URI.create(baseUrl + URL_CATEGORIES + "?customOnly=true"))
-        .header("Content-Type", ContentType.APPLICATION_JSON.getMimeType())
-        .GET()
-        .build();
-
-    try {
-      HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-      if (response.statusCode() != 200) {
-        log.warn("Failed to fetch URL categories: {}", response.body());
-        return Collections.emptyList();
-      }
-
-      List<ZScalerCategory> zScalerCategories =
-          objectMapper.readValue(response.body(), new TypeReference<>() { });
-      log.info("Fetched {} URL categories", zScalerCategories.size());
-      return zScalerCategories;
+  public void updateCategory(final ZScalerFormat format, final List<String> activeUrls) {
+    ZScalerConfiguration configuration = zScalerConfigurationDAO.get();
+    if (configuration == null) {
+      log.warn("No zScaler configuration found");
+      throw new BadRequestException("No zScaler configuration found");
     }
-    catch (Exception e) {
-      log.warn("Exception fetching URL categories: {}", e.getMessage());
-      return Collections.emptyList();
-    }
+
+    updateCategory(configuration.getHostname(), format, activeUrls);
   }
 
-  void updateCustomUrlCategories(String baseUrl, String category, String categoryId, List<String> urls) {
-    String body;
-    try {
-      body = objectMapper.writeValueAsString(new ZScalerUpdateCategory(category, urls));
-    }
-    catch (JsonProcessingException e) {
-      log.warn("Exception during update category: {}", e.getMessage());
-      throw new RuntimeException(e);
-    }
+  private void updateCategory(String baseUrl, ZScalerFormat selectedFormat, List<String> activeUrls) {
+    List<ZScalerCategory> categories = zScalerClient.getCustomUrlCategories(baseUrl);
 
-    HttpRequest put = HttpRequest.newBuilder()
-        .uri(URI.create(baseUrl + URL_CATEGORIES + "/" + categoryId))
-        .header("Content-Type", ContentType.APPLICATION_JSON.getMimeType())
-        .PUT(BodyPublishers.ofString(body))
-        .build();
-
-    try {
-      HttpResponse<String> response = client.send(put, BodyHandlers.ofString());
-      if (response.statusCode() != 200) {
-        log.warn("Failed to update URL category: {}", response.body());
-      }
-      else {
-        log.info("Successfully updated URL category: {}", categoryId);
-      }
-    }
-    catch (Exception e) {
-      log.warn("Failed to update URL category: {}", e.getMessage());
-    }
-  }
-
-  void updateCategories(String baseUrl, ZScalerFormat selectedFormat, InputStream urls) {
-    List<ZScalerCategory> categories = getCustomUrlCategories(baseUrl);
-    String category = selectedFormat.name().toLowerCase();
+    String category = zscalerCategoryName(selectedFormat);
     ZScalerCategory existingCategory = categories.stream()
         .filter(cat -> cat.getConfiguredName().toLowerCase().equals(category))
         .findFirst()
         .orElse(null);
 
-    List<String> urlsList = new BufferedReader(new InputStreamReader(urls, UTF_8))
-        .lines()
-        .toList();
+    int currentCustomCount = existingCategory != null ? existingCategory.getCustomUrlsCount() : 0;
+    List<String> allowedUrls = limitUrlsToQuota(baseUrl, currentCustomCount, activeUrls);
+    if (allowedUrls.isEmpty()) {
+      log.warn("No URLs to update, perhaps the quota is exceeded");
+      return;
+    }
 
     if (existingCategory != null) {
       String categoryId = existingCategory.getId();
       log.info("{} category with id {} already exists, updating it", category, categoryId);
-      updateCustomUrlCategories(baseUrl, category, categoryId, urlsList);
+      zScalerClient.updateCustomUrlCategories(baseUrl, category, categoryId, allowedUrls);
     }
     else {
       log.info("{} category does not exist, creating it", category);
-      createCustomUrlCategory(baseUrl, category, urlsList);
+      zScalerClient.createCustomUrlCategory(baseUrl, category, allowedUrls);
     }
   }
 
-  void createCustomUrlCategory(final String baseUrl, final String category, final List<String> urls) {
-    ZScalerCreateCategory create = new ZScalerCreateCategory(category, "USER_DEFINED", urls, "URL_CATEGORY", true);
-    String body;
-    try {
-      body = objectMapper.writeValueAsString(create);
-    }
-    catch (JsonProcessingException e) {
-      log.warn("Exception during serialization: {}", e.getMessage());
-      throw new RuntimeException(e);
+  private String zscalerCategoryName(final ZScalerFormat selectedFormat) {
+    String formatName = selectedFormat.name().toLowerCase(Locale.getDefault());
+    return "sonatype-" + formatName + "-shadow-download-defense";
+  }
+
+  private List<String> limitUrlsToQuota(
+      final String baseUrl,
+      final int currentCustomCount,
+      final List<String> urlsList)
+  {
+    ZScalerQuota quota = zScalerClient.getZScalerQuota(baseUrl);
+
+    if (quota == null) {
+      log.warn("Quota is null, returning empty list");
+      return Collections.emptyList();
     }
 
-    HttpRequest request = HttpRequest.newBuilder()
-        .uri(URI.create(baseUrl + URL_CATEGORIES))
-        .POST(HttpRequest.BodyPublishers.ofString(body))
-        .header("Content-Type", ContentType.APPLICATION_JSON.getMimeType())
-        .build();
+    log.debug("Quota: {} remaining urls available, {} urls present for current format. Active urls for format {}",
+        quota.getRemainingUrlsQuota(), currentCustomCount, urlsList.size());
 
-    try {
-      HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-      if (response.statusCode() != 200) {
-        log.warn("Failed to create category: {}", response.body());
-        throw new RuntimeException("Failed to create category: " + response.body());
-      }
-      else {
-        log.info("Successfully create category");
-      }
+    // We are going to be overriding the categories urls so need to remove the current urls
+    // count for the selected format
+    int maxUrlsAllowed = quota.getRemainingUrlsQuota() + quota.getUniqueUrlsProvisioned();
+    int provisionedUrlsWithFormatRemoved = quota.getUniqueUrlsProvisioned() - currentCustomCount;
+    int urlsThatCanBeAdded = maxUrlsAllowed - provisionedUrlsWithFormatRemoved;
+
+    if (urlsThatCanBeAdded <= 0) {
+      log.warn("Quota exceeded, no urls can be added");
+      return Collections.emptyList();
     }
-    catch (Exception e) {
-      log.error("Exception creating category: {}", e.getMessage());
+    // Reduce the size of the list to the remaining urls count
+    else if (urlsList.size() > urlsThatCanBeAdded) {
+      log.warn("Quota exceeded, reducing the list size to {}", urlsThatCanBeAdded);
+      return urlsList.subList(0, urlsThatCanBeAdded);
+    }
+    else {
+      log.info("Quota is sufficient, returning the full list ({} urls)", urlsList.size());
+      return urlsList;
     }
   }
 
-  void activateChanges(String baseUrl) {
-    HttpRequest request = HttpRequest.newBuilder()
-        .uri(URI.create(baseUrl + ACTIVATE))
-        .POST(HttpRequest.BodyPublishers.noBody())
-        .header("Content-Type", ContentType.APPLICATION_JSON.getMimeType())
-        .build();
-
-    try {
-      HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-      if (response.statusCode() != 200) {
-        log.warn("Failed to activate changes: {}", response.body());
-      }
-      else {
-        log.info("Successfully activated changes");
-      }
-    }
-    catch (Exception e) {
-      log.error("Exception activating changes: {}", e.getMessage());
-    }
-  }
-
-  public static String obfuscateApiKey(String key, String timestamp) {
+  private static String obfuscateApiKey(String key, String timestamp) {
     int apiKeySize = 12;
     StringBuilder retVal = new StringBuilder();
     char[] key1Arr = key.substring(0, apiKeySize - 2).toCharArray();
@@ -285,5 +180,26 @@ public class ApiZScalerService
     }
 
     return retVal.toString();
+  }
+
+  public static class ActiveUrls
+  {
+    private List<String> activeThreatUrls;
+
+    public ActiveUrls() {
+      // empty
+    }
+
+    public ActiveUrls(List<String> activeThreatUrls) {
+      this.activeThreatUrls = activeThreatUrls;
+    }
+
+    public List<String> getActiveThreatUrls() {
+      return activeThreatUrls;
+    }
+
+    public void setActiveThreatUrls(final List<String> activeThreatUrls) {
+      this.activeThreatUrls = activeThreatUrls;
+    }
   }
 }

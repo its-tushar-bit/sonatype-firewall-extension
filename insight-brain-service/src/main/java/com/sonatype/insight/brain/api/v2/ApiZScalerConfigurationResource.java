@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.zscaler.ZScalerUpdater;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -60,6 +61,7 @@ public class ApiZScalerConfigurationResource
     this.zScalerService = zScalerService;
   }
 
+  @Hidden
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(description = "Use this method to review the configuration for a Zscaler server." +
@@ -85,6 +87,7 @@ public class ApiZScalerConfigurationResource
     return zScalerConfigurationService.getConfiguration();
   }
 
+  @Hidden
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Operation(description = "Use this method to configure or update an existing Zscaler server configuration." +
@@ -114,6 +117,7 @@ public class ApiZScalerConfigurationResource
     zScalerConfigurationService.setConfiguration(configurationDTO);
   }
 
+  @Hidden
   @DELETE
   @Operation(description = "Use this method to disable or remove the Zscaler configuration." +
       "\n" +
@@ -153,6 +157,7 @@ public class ApiZScalerConfigurationResource
     zScalerUpdater.update(format);
   }
 
+  @Hidden
   @POST
   @Path("testConfig")
   @Operation(description = "Use this method to test Zscaler server configuration." +

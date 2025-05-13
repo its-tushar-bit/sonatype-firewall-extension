@@ -36,7 +36,6 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
  */
 @Named
 @Singleton
-@SuppressWarnings("restriction")
 public class SamlConfigurationInternalDAO
     extends AbstractOperationalSqlDAO<SamlConfigurationInternal>
 {

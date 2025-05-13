@@ -27,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Named
 @Singleton
-@SuppressWarnings("restriction")
 public class OAuth2ConfigurationDAO
     extends AbstractOperationalSqlDAO<OAuth2Configuration>
 {

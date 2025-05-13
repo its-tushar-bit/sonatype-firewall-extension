@@ -54,6 +54,7 @@
 @use '../sastScan/sastScanPage';
 @use 'policy-editor';
 @use '../OrgsAndPolicies/repositories/repositoriesSummaryView';
+@use '../configuration/zscaler/zScalerConfig';
 @use '../applicationReport/applicationReport';
 @use '../security/users/user-list';
 @use '../vulnerabilitySearch/vulnerabilitySearch';

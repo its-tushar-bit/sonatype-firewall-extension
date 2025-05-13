@@ -35,6 +35,7 @@ function mapStateToProps(state) {
     passwordState: zscalerConfig.formState.password,
     hostnameState: zscalerConfig.formState.hostname,
     apiKeyState: zscalerConfig.formState.apiKey,
+    eulaState: zscalerConfig.formState.eula,
   };
 }
 

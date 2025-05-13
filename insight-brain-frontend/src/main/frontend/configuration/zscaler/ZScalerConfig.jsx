@@ -10,6 +10,8 @@ import { faTrashAlt } from '@fortawesome/pro-regular-svg-icons';
 import {
   hasValidationErrors,
   NxButton,
+  NxCheckbox,
+  NxFieldset,
   NxFontAwesomeIcon,
   NxFormGroup,
   NxH2,
@@ -58,6 +60,7 @@ export default function ZScalerConfig(props) {
       setApiKey,
       setShowDeleteModal,
       testConfig,
+      setEulaCheckbox,
     } = props,
     {
       loading,
@@ -75,6 +78,7 @@ export default function ZScalerConfig(props) {
       usernameState,
       passwordState,
       apiKeyState,
+      eulaState,
       mustReenterPassword,
       testConfigSuccess,
       isAuthorized,
@@ -117,7 +121,7 @@ export default function ZScalerConfig(props) {
   }
 
   const modal = (
-    <NxModal id="mail-config-delete-modal" onClose={() => setShowDeleteModal(false)}>
+    <NxModal id="zscaler-config-delete-modal" onClose={() => setShowDeleteModal(false)}>
       <NxStatefulForm
         onSubmit={del}
         onCancel={() => setShowDeleteModal(false)}
@@ -139,6 +143,7 @@ export default function ZScalerConfig(props) {
   const formValidationErrors = reject(isNil, [
     mustReenterPassword ? PASSWORD_REENTER_MESSAGE : null,
     hasAllRequiredData ? null : REQUIRED_DETAILS_MESSAGE,
+    eulaState.value ? null : 'Review the highlighted fields for missing information.',
     isDirty ? null : MSG_NO_CHANGES_TO_SAVE,
   ]);
 
@@ -165,14 +170,22 @@ export default function ZScalerConfig(props) {
     <span>
       You can generate one in the Zscaler Admin Portal under API Management.
       <br />
-      <NxTextLink external href="https://links.sonatype.com/products/nxrm3/docs/zscaler/api-keys">
+      <NxTextLink
+        external
+        id="zscaler-api-key-link"
+        href="https://links.sonatype.com/products/nxrm3/docs/zscaler/api-keys"
+      >
         Learn how to retrieve your API Key
       </NxTextLink>
     </span>
   );
 
   const learnMoreAboutZscalerLink = (
-    <NxTextLink external href="https://links.sonatype.com/products/nxrm3/docs/zscaler/configuration">
+    <NxTextLink
+      external
+      id="zscaler-doc-link"
+      href="https://links.sonatype.com/products/nxrm3/docs/zscaler/configuration"
+    >
       Learn more about the Zscaler integration
     </NxTextLink>
   );
@@ -217,7 +230,7 @@ export default function ZScalerConfig(props) {
           doLoad={load}
           loadError={loadError}
           onSubmit={save}
-          submitBtnText="Save"
+          submitBtnText={serverData ? 'Update' : 'Save'}
           submitError={submitError}
           validationErrors={submitMaskMessage !== 'Deleting' ? formValidationErrors : null}
           // If there is a validationError alert, it's cleared on "Delete Configuration"
@@ -227,7 +240,7 @@ export default function ZScalerConfig(props) {
         >
           <NxTile.Header>
             <NxTile.HeaderTitle>
-              <NxH2>Zscaler Configuration</NxH2>
+              <NxH2 id="zscaler-config-header">Zscaler Configuration</NxH2>
             </NxTile.HeaderTitle>
           </NxTile.Header>
           <NxTile.Content>
@@ -251,7 +264,15 @@ export default function ZScalerConfig(props) {
               }
             )}
             {field(hostnameState, setHostname, 'https://zsapi.zscalertwo.net', 'zscaler-config-hostname', 'Hostname')}
-            {field(apiKeyState, setApiKey, '465', 'zscaler-config-api-key', 'Zscaler API Key', null, apiKeySublabel)}
+            {field(
+              apiKeyState,
+              setApiKey,
+              '465',
+              'zscaler-config-api-key',
+              'Zscaler API Key',
+              'password',
+              apiKeySublabel
+            )}
             {testConfigSuccess && <NxSuccessAlert>{TEST_CONFIG_SUCCESS_MESSAGE}</NxSuccessAlert>}
             {testConfigError && (
               <NxLoadError
@@ -260,6 +281,26 @@ export default function ZScalerConfig(props) {
                 retryHandler={testConfig}
               />
             )}
+            <NxFieldset
+              label="End User License Agreement"
+              isRequired={true}
+              isPristine={eulaState.isPristine}
+              validationErrors={eulaState.validationErrors}
+            >
+              <NxCheckbox
+                isChecked={eulaState.value}
+                onChange={setEulaCheckbox}
+                disabled={eulaState.disabled}
+                id="zscaler-eula-checkbox"
+              >
+                I acknowledge that access to and use of Sonatype products is governed by either 1) the terms of
+                company's negotiated license agreement with Sonatype or, in the absence of a negotiated license, 2){' '}
+                {/* The correct link url will be added later */}
+                <NxTextLink external id="zscaler-eula-link" href="https://sonatype.com/">
+                  Sonatype’s End User License Agreement
+                </NxTextLink>
+              </NxCheckbox>
+            </NxFieldset>
           </NxTile.Content>
         </NxStatefulForm>
         {showDeleteModal && modal}
@@ -285,6 +326,7 @@ ZScalerConfig.propTypes = {
   setHostname: PropTypes.func.isRequired,
   setApiKey: PropTypes.func.isRequired,
   setShowDeleteModal: PropTypes.func.isRequired,
+  setEulaCheckbox: PropTypes.func.isRequired,
   testConfig: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
   submitMaskState: PropTypes.bool,

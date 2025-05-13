@@ -19,6 +19,12 @@ describe('ZScalerConfig', () => {
     usernameState: initUserInput(''),
     passwordState: initUserInput(''),
     apiKeyState: initUserInput(''),
+    eulaState: {
+      value: false,
+      isPristine: true,
+      validationErrors: 'This field is required',
+      disabled: false,
+    },
     isDirty: false,
     isValid: false,
     hasAllRequiredData: false,
@@ -42,12 +48,18 @@ describe('ZScalerConfig', () => {
     setPassword: jest.fn(),
     setHostname: jest.fn(),
     setApiKey: jest.fn(),
+    setEulaCheckbox: jest.fn(),
     setShowDeleteModal: jest.fn(),
   };
 
   const setState = (additionalProps = {}) => Object.freeze({ ...initialProps, ...additionalProps });
 
   const renderComponent = (props = setState()) => render(<ZScalerConfig {...props} />);
+
+  const CHECKBOX_NAME =
+    'I acknowledge that access to and use of Sonatype products is governed by either 1) the terms ' +
+    "of company's negotiated license agreement with Sonatype or, in the absence of a negotiated license, 2) " +
+    'Sonatype’s End User License Agreement';
 
   it('renders error alert with message when not authorized', async () => {
     renderComponent(setState({ isAuthorized: false }));
@@ -70,6 +82,7 @@ describe('ZScalerConfig', () => {
     const passwordInput = screen.getByLabelText('Password');
     const hostnameInput = screen.getByLabelText('Hostname');
     const apiKeyInput = screen.getByLabelText('Zscaler API Key');
+    const eulaCheckboxInput = screen.getByRole('checkbox', { name: CHECKBOX_NAME });
     const saveButton = screen.getByRole('button', { name: 'Save' });
     const cancelButton = screen.getByRole('button', { name: 'Cancel' });
     const deleteButton = screen.getByRole('button', { name: 'Delete Configuration' });
@@ -102,6 +115,8 @@ describe('ZScalerConfig', () => {
     expect(apiKeyInput).toHaveAccessibleDescription(apiKeyDesc);
     expect(apiKeyInput).toHaveAttribute('placeholder', '465');
     expect(apiKeyInput).toHaveValue('');
+    expect(eulaCheckboxInput).toBeInTheDocument();
+    expect(eulaCheckboxInput).not.toBeChecked();
     // buttons
     expect(saveButton).toBeInTheDocument();
     expect(saveButton).not.toBeDisabled();
@@ -120,6 +135,19 @@ describe('ZScalerConfig', () => {
         passwordState: initUserInput(FAKE_PASSWORD), // password is null
         hostnameState: initUserInput('https://zsapi.zscalertwo.net'),
         apiKeyState: initUserInput('123'),
+        eulaState: {
+          value: true,
+          isPristine: false,
+          validationErrors: null,
+          disabled: true,
+        },
+        hasAllRequiredData: true,
+        serverData: {
+          username: 'testUser',
+          password: FAKE_PASSWORD,
+          hostname: 'https://zsapi.zscalertwo.net',
+          apiKeyState: '123',
+        },
       })
     );
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
@@ -128,6 +156,9 @@ describe('ZScalerConfig', () => {
     expect(screen.getByLabelText('Password')).toHaveValue(FAKE_PASSWORD);
     expect(screen.getByLabelText('Hostname')).toHaveValue('https://zsapi.zscalertwo.net');
     expect(screen.getByLabelText('Zscaler API Key')).toHaveValue('123');
+    expect(screen.getByRole('checkbox', { name: CHECKBOX_NAME })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: CHECKBOX_NAME })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Update' })).toBeInTheDocument();
   });
 
   it('calls setting methods when updating the input fields', async () => {
@@ -135,6 +166,7 @@ describe('ZScalerConfig', () => {
     const setPasswordMock = jest.fn();
     const setHostnameMock = jest.fn();
     const setApiKeyMock = jest.fn();
+    const setEulaCheckboxMock = jest.fn();
 
     renderComponent(
       setState({
@@ -142,6 +174,7 @@ describe('ZScalerConfig', () => {
         setPassword: setPasswordMock,
         setHostname: setHostnameMock,
         setApiKey: setApiKeyMock,
+        setEulaCheckbox: setEulaCheckboxMock,
       })
     );
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
@@ -150,6 +183,7 @@ describe('ZScalerConfig', () => {
     const passwordInput = screen.getByLabelText('Password');
     const hostnameInput = screen.getByLabelText('Hostname');
     const apiKeyInput = screen.getByLabelText('Zscaler API Key');
+    const eulaCheckboxInput = screen.getByRole('checkbox', { name: CHECKBOX_NAME });
 
     fireEvent.change(usernameInput, { target: { value: 'admin' } });
     expect(setUsernameMock).toHaveBeenCalledWith('admin', expect.anything());
@@ -162,6 +196,9 @@ describe('ZScalerConfig', () => {
 
     fireEvent.change(apiKeyInput, { target: { value: '111' } });
     expect(setApiKeyMock).toHaveBeenCalledWith('111', expect.anything());
+
+    fireEvent.click(eulaCheckboxInput);
+    expect(setEulaCheckboxMock).toHaveBeenCalledWith(true);
   });
 
   it('renders password sub-label when hasAllRequiredData and mustReenterPassword are true', async () => {
@@ -253,6 +290,11 @@ describe('ZScalerConfig', () => {
         testConfigError: true,
         hasAllRequiredData: true,
         isDirty: true,
+        eulaState: {
+          value: true,
+          isPristine: false,
+          validationErrors: null,
+        },
       })
     );
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());

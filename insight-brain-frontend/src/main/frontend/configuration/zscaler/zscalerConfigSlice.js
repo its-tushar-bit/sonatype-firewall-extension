@@ -21,6 +21,8 @@ export const FAKE_PASSWORD = '\x00\x00\x00\x00\x00';
 
 const REDUCER_NAME = 'zscalerConfig';
 
+const validateCheckbox = (checkBoxValue) => (checkBoxValue ? null : 'This field is required');
+
 export const initialState = {
   // the data object as it is on the server, based on the last GET or synthesized after the last save
   serverData: null,
@@ -29,6 +31,12 @@ export const initialState = {
     password: nxTextInputStateHelpers.initialState('', validateNonEmpty),
     hostname: nxTextInputStateHelpers.initialState('', validateNonEmpty),
     apiKey: nxTextInputStateHelpers.initialState('', validateNonEmpty),
+    eula: {
+      value: false,
+      isPristine: true,
+      validationErrors: 'This field is required',
+      disabled: false,
+    },
   },
   isDirty: false,
   isValid: false,
@@ -56,6 +64,12 @@ function setFormStateFromServerData(state) {
       password: nxTextInputStateHelpers.initialState(FAKE_PASSWORD),
       hostname: nxTextInputStateHelpers.initialState(serverData.hostname),
       apiKey: nxTextInputStateHelpers.initialState(serverData.apiKey),
+      eula: {
+        value: true,
+        isPristine: true,
+        validationErrors: null,
+        disabled: true,
+      },
     };
 
   return computeHasAllRequiredData({ ...state, formState });
@@ -236,6 +250,16 @@ function testConfigFailed(state) {
   };
 }
 
+function setEulaCheckbox(state) {
+  const checkboxValue = state.formState.eula.value;
+  state.formState.eula = {
+    value: !checkboxValue,
+    isPristine: false,
+    validationErrors: validateCheckbox(!checkboxValue),
+    disabled: false,
+  };
+}
+
 const setTextInput = curryN(4, function setTextInput(fieldName, validator, state, { payload }) {
   const stateWithUpdatedValue = pathSet(
     ['formState', fieldName],
@@ -313,6 +337,7 @@ const zscalerConfigSlice = createSlice({
     setApiKey: setTextInput('apiKey', validateNonEmpty),
     setShowDeleteModal: propSet('showDeleteModal'),
     submitMaskTimerDone: propSetConst('submitMaskState', null),
+    setEulaCheckbox: setEulaCheckbox,
   },
   extraReducers: {
     [load.pending]: loadRequested,

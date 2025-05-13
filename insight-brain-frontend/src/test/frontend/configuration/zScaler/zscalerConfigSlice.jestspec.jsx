@@ -18,6 +18,12 @@ describe('zscalerConfigSlice', () => {
       password: initialState(''),
       hostname: initialState(''),
       apiKey: initialState(''),
+      eula: {
+        value: false,
+        isPristine: true,
+        validationErrors: 'This field is required',
+        disabled: false,
+      },
     };
     payload = {
       username: 'user',
@@ -386,6 +392,23 @@ describe('zscalerConfigSlice', () => {
       expect(newState.formState.apiKey.value).toBe('boo');
       expect(newState.formState.apiKey.isPristine).toBe(false);
       expect(newState.formState.apiKey.validationErrors).toBeFalsy();
+    });
+  });
+
+  describe('zscalerConfig/setEulaCheckbox', () => {
+    it('updates to the intended state.', () => {
+      const state = Object.freeze({
+        formState: initialFormState,
+      });
+
+      const newState = reducer(state, {
+        type: 'zscalerConfig/setEulaCheckbox',
+      });
+
+      expect(newState.formState.eula.value).toBe(true);
+      expect(newState.formState.eula.isPristine).toBe(false);
+      expect(newState.formState.eula.validationErrors).toBe(null);
+      expect(newState.formState.eula.disabled).toBe(false);
     });
   });
 

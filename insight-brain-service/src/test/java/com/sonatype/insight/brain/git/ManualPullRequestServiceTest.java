@@ -290,6 +290,41 @@ public class ManualPullRequestServiceTest
     assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.UNSUPPORTED_OWNER_TYPE);
   }
 
+  @Test
+  public void testIsManualPullRequestPossible_False_SuggestedVersionIsCurrentVersion() {
+    ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
+
+    for (ApiVersionChangeOptionType versionChangeType : ComponentRemediationService.PREFERABLE_TYPE_ORDER) {
+      remediationDto.versionChanges = getVersionChanges(Map.of("v", versionChangeType));
+
+      Optional<ManualPullRequestImpossibilityReason> result =
+              manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
+                      VALID_DEPENDENCY_TYPE,
+                      app,
+                      remediationDto);
+
+      assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.NO_REMEDIATION_VERSION_AVAILABLE);
+    }
+  }
+
+  @Test
+  public void testIsManualPullRequestPossible_False_SuggestedVersionIsCurrentVersion_DifferentVersionStrings() {
+    ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
+    for (ApiVersionChangeOptionType versionChangeType : ComponentRemediationService.PREFERABLE_TYPE_ORDER) {
+      remediationDto.versionChanges = getVersionChanges(Map.of("1.0.00", versionChangeType));
+
+      ComponentIdentifier componentIdentifier =
+          ComponentIdentifier.createMavenCoordinates("g", "a", "1.0.0", "c", "e");
+      Optional<ManualPullRequestImpossibilityReason> result =
+          manualPullRequestService.isManualPullRequestPossible(componentIdentifier, VALID_STAGE,
+              VALID_DEPENDENCY_TYPE,
+              app,
+              remediationDto);
+
+      assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.NO_REMEDIATION_VERSION_AVAILABLE);
+    }
+  }
+
   private SourceControl getSourceControl() {
     SourceControl sourceControl = new SourceControl();
     sourceControl.setId("id");

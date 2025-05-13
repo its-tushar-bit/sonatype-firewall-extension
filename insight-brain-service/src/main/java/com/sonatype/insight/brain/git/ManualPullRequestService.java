@@ -31,6 +31,7 @@ import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.shiro.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,11 +115,30 @@ public class ManualPullRequestService
       return Optional.of(ManualPullRequestImpossibilityReason.NO_REMEDIATION_VERSION_AVAILABLE);
     }
 
-    Optional<ApiVersionChangeOptionDTO> suggestedVersion =
+    if (!isFormatSupportedForPullRequest(componentIdentifier)) {
+      return Optional.of(ManualPullRequestImpossibilityReason.UNSUPPORTED_FORMAT);
+    }
+
+    Optional<ApiVersionChangeOptionDTO> suggestedVersionChange =
         componentRemediationService.getApplicableVersionChangeFromAllType(remediationDto.suggestedVersionChange,
             remediationDto.versionChanges);
 
-    if (suggestedVersion.isEmpty()) {
+    String currentVersion = componentIdentifier.get(ComponentIdentifier.VERSION);
+
+    if (currentVersion == null || currentVersion.isEmpty()) {
+      return Optional.of(ManualPullRequestImpossibilityReason.NO_REMEDIATION_VERSION_AVAILABLE);
+    }
+
+    if (suggestedVersionChange.isEmpty()) {
+      return Optional.of(ManualPullRequestImpossibilityReason.NO_REMEDIATION_VERSION_AVAILABLE);
+    }
+
+    String suggestedVersion = suggestedVersionChange.get().getData().getComponent().componentIdentifier.getCoordinates()
+        .get(ComponentIdentifier.VERSION);
+
+    ComparableVersion comparableCurrentVersion = new ComparableVersion(currentVersion);
+    ComparableVersion comparableSuggestedVersion = new ComparableVersion(suggestedVersion);
+    if (comparableCurrentVersion.compareTo(comparableSuggestedVersion) == 0) {
       return Optional.of(ManualPullRequestImpossibilityReason.NO_REMEDIATION_VERSION_AVAILABLE);
     }
 
@@ -128,13 +148,10 @@ public class ManualPullRequestService
     if (!isDirectDependency(dependencyType)) {
       return Optional.of(ManualPullRequestImpossibilityReason.UNSUPPORTED_DEPENDENCY_TYPE);
     }
-    if (!isFormatSupportedForPullRequest(componentIdentifier)) {
-      return Optional.of(ManualPullRequestImpossibilityReason.UNSUPPORTED_FORMAT);
-    }
 
     Application application = (Application) owner;
     String branchName =
-        pullRequestBranchNameGenerator.getBranchName(componentIdentifier, application, suggestedVersion.get());
+        pullRequestBranchNameGenerator.getBranchName(application, componentIdentifier, suggestedVersion);
     if (remediationPullRequestEligibilityService.get().isRemediationWaitingOrDone(application.getId(), branchName)) {
       return Optional.of(ManualPullRequestImpossibilityReason.REMEDIATION_EVENT_EXISTS);
     }

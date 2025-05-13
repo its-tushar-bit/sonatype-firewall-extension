@@ -5,14 +5,13 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.EnterpriseReportingLandingPage;
-import com.sonatype.clm.testing.functional.pages.EnterpriseReportingLandingPage.DashboardCard;
 import com.sonatype.clm.testing.functional.pages.EnterpriseReportingLandingPage.ContactCard;
+import com.sonatype.clm.testing.functional.pages.EnterpriseReportingLandingPage.DashboardCard;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataDTO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataListDTO;
@@ -23,10 +22,10 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.apache.commons.lang3.StringUtils;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -68,7 +67,7 @@ public class EnterpriseReportingLandingPageTest
   }
 
   @Test
-  public void testFeatureEnabled_Success() throws IOException {
+  public void testFeatureEnabled_Success() {
     DashboardMetadataDTO spotlightDefautColorDashboardMetadataDTO = mockDashboardMetadataDTOSpotlightDefaultColor();
     DashboardMetadataDTO spotlightProvidedColorDashboardMetadataDTO = mockDashboardMetadataDTOSpotlightProvidedColor();
     DashboardMetadataDTO nonSpotlightDashboardMetadataDTO = mockDashboardMetadataDTO();
@@ -209,7 +208,7 @@ public class EnterpriseReportingLandingPageTest
     thirdCard.contactButton().shouldHave(text("Explore Support"));
   }
 
-  private void mockHDSResponses() throws IOException {
+  private void mockHDSResponses() {
     testCLMServer.getHdsServer()
         .respondWith(new EnterpriseReportingConfigDTO("sonatype.looker.com"))
         .atUri(ENTERPRISE_REPORTING_CONFIG_PATH);
@@ -223,7 +222,7 @@ public class EnterpriseReportingLandingPageTest
         enabled);
   }
 
-  private void setupTests(DashboardMetadataListDTO dashboardList, int version) throws IOException {
+  private void setupTests(DashboardMetadataListDTO dashboardList, int version) {
     setFeatures(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING);
     mockHDSResponses();
     testCLMServer.getHdsServer()

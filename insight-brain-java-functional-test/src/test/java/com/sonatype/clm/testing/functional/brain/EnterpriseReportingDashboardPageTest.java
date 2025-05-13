@@ -5,14 +5,13 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.EnterpriseReportingDashboardPage;
-import com.sonatype.clm.testing.functional.pages.EnterpriseReportingDashboardPage.EnterpriseRow;
 import com.sonatype.clm.testing.functional.pages.EnterpriseReportingDashboardPage.DataInsightRow;
+import com.sonatype.clm.testing.functional.pages.EnterpriseReportingDashboardPage.EnterpriseRow;
 import com.sonatype.clm.testing.functional.pages.EnterpriseReportingDashboardPage.NavigationListItem;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataDTO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataListDTO;
@@ -65,7 +64,7 @@ public class EnterpriseReportingDashboardPageTest
   }
 
   @Test
-  public void testNavigationBarLinks() throws IOException {
+  public void testNavigationBarLinks() {
     DashboardMetadataDTO dashboardMetadataEnterpriseNoVersion = createDashboardMetadata("enterprise", 1, "");
     DashboardMetadataDTO dashboardMetadataEnterpriseVersion = createDashboardMetadata("enterprise", 2, "500");
     DashboardMetadataDTO dashboardMetadataDataInsight = createDashboardMetadata("dataInsight", 3, "");
@@ -125,7 +124,7 @@ public class EnterpriseReportingDashboardPageTest
   }
 
   @Test
-  public void testPageNavigation() throws IOException {
+  public void testPageNavigation() {
     DashboardMetadataDTO dashboardMetadataEnterpriseNoVersion = createDashboardMetadata("enterprise", 1, "");
     DashboardMetadataDTO dashboardMetadataEnterpriseVersion = createDashboardMetadata("enterprise", 2, "500");
     DashboardMetadataDTO dashboardMetadataDataInsight = createDashboardMetadata("dataInsight", 3, "");
@@ -156,13 +155,13 @@ public class EnterpriseReportingDashboardPageTest
     page.copySuccessMessage().shouldBe(visible);
   }
 
-  private void mockHDSResponses() throws IOException {
+  private void mockHDSResponses() {
     testCLMServer.getHdsServer()
         .respondWith(new EnterpriseReportingConfigDTO("sonatype.looker.com"))
         .atUri(ENTERPRISE_REPORTING_CONFIG_PATH);
   }
 
-  private void setupTests(DashboardMetadataListDTO dashboardList, int version) throws IOException {
+  private void setupTests(DashboardMetadataListDTO dashboardList, int version) {
     setFeatures(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING);
     mockHDSResponses();
     testCLMServer.getHdsServer()

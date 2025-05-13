@@ -40,7 +40,19 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.matchText;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -50,8 +62,8 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.pages.SourceControlEditorPage.metricsTable;
 import static com.sonatype.insight.brain.git.EnhancedPullRequestResult.EXCEPTION_MESSAGE;
-import static com.sonatype.insight.brain.git.EnhancedPullRequestResult.SUCCESS_MESSAGE;
 import static com.sonatype.insight.brain.git.EnhancedPullRequestResult.FAILURE_MESSAGE;
+import static com.sonatype.insight.brain.git.EnhancedPullRequestResult.SUCCESS_MESSAGE;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -810,7 +822,7 @@ public class ApplicationSourceControlEditorTest
     row1.title().shouldHave(exactText("Bump bar to 1.1"));
     row1.statusIcon().shouldHave(cssClass("fa-circle-check"));
     row1.statusIcon().hover();
-    row1.statusIconTooltip().should(exist).shouldHave(exactText(String.format(SUCCESS_MESSAGE, "foo : bar : 1.0")));;
+    row1.statusIconTooltip().should(exist).shouldHave(exactText(String.format(SUCCESS_MESSAGE, "foo : bar : 1.0")));
     row1.totalTime().shouldHave(exactText("0"));
     row1.started().shouldNotBe(empty);
 

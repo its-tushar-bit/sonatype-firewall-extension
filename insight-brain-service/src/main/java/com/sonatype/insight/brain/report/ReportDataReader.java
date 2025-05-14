@@ -31,7 +31,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.HealthCheckReportRowDTO;
 import com.sonatype.insight.scan.HealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
-import com.sonatype.insight.util.MetadataRecorderUtils;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -161,7 +160,7 @@ public class ReportDataReader
     componentDetails.setHash(componentDTO.bomRow.hash);
     componentDetails.setMatchState(componentDTO.bomRow.matchState);
     componentDetails.setIdentificationSource(componentDTO.bomRow.identificationSource);
-    componentDetails.setAnalyzerFeatures(MetadataRecorderUtils.fromThirdParty(null));
+    componentDetails.setAnalyzerFeatures(componentDTO.bomRow.analyzerFeatures);
     componentDetails.setSecurityVulnerabilities(
         componentDTO.securityRows.stream().map(this::toSecurityVulnerability).collect(Collectors.toList()));
     if (componentDTO.licenseRow != null) {

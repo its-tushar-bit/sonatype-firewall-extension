@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.report;
 
+import com.sonatype.clm.dto.model.component.AnalysisSource;
+import com.sonatype.clm.dto.model.component.AnalysisType;
+import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -73,7 +76,8 @@ public class ReportDataReaderTest
         ComponentIdentifier.createMavenCoordinates("commons-beanutils", "commons-beanutils", "1.6", "", "jar");
     NamedComponentDetails details =
         reportDataReader.getComponentDetailsByIdentifier(identifier, app.getId(), SCAN_ID);
-    assertComponentDetails(details, identifier);
+    assertComponentDetails(details, identifier,
+        new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.HASH, null));
   }
 
   @Test
@@ -119,7 +123,8 @@ public class ReportDataReaderTest
     });
 
     testAsTenant(tenant1, t1 -> {
-      assertComponentDetails(componentDetails[0], identifier);
+      assertComponentDetails(componentDetails[0], identifier,
+          new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.HASH, null));
       assertThat(reportDataReader.componentCache.get().getIfPresent(tenant1ScanId)).isNotNull();
       assertThat(reportDataReader.componentCache.get().getIfPresent(tenant2ScanId)).isNull();
 
@@ -139,7 +144,8 @@ public class ReportDataReaderTest
     });
 
     testAsTenant(tenant2, t2 -> {
-      assertComponentDetails(componentDetails[0], identifier);
+      assertComponentDetails(componentDetails[0], identifier,
+          new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.HASH, null));
       assertThat(reportDataReader.componentCache.get().getIfPresent(tenant2ScanId)).isNotNull();
       assertThat(reportDataReader.componentCache.get().getIfPresent(tenant1ScanId)).isNull();
 
@@ -149,7 +155,8 @@ public class ReportDataReaderTest
 
   private static void assertComponentDetails(
       final NamedComponentDetails details,
-      final ComponentIdentifier identifier)
+      final ComponentIdentifier identifier,
+      final AnalyzerFeatures analyzerFeatures)
   {
     assertThat(details).isNotNull();
     assertThat(details.getComponentIdentifier()).isEqualTo(identifier);
@@ -166,5 +173,15 @@ public class ReportDataReaderTest
     assertThat(vulnerability.getCvssVector()).isEqualTo("vector-string");
     assertThat(vulnerability.getCwe()).isEqualTo("cwe-1,2.cwe");
     assertThat(vulnerability.getAliases()).containsExactlyInAnyOrder("Sonatype-2023-1234");
+    assertAnalyzerFeatures(details, analyzerFeatures);
+  }
+
+  private static void assertAnalyzerFeatures(
+      final NamedComponentDetails details, final AnalyzerFeatures expectedAnalyzerFeatures)
+  {
+    assertThat(details.getAnalyzerFeatures()).isNotNull();
+    assertThat(details.getAnalyzerFeatures().getAnalysisType()).isEqualTo(expectedAnalyzerFeatures.getAnalysisType());
+    assertThat(details.getAnalyzerFeatures().getAnalysisSource()).isEqualTo(
+        expectedAnalyzerFeatures.getAnalysisSource());
   }
 }

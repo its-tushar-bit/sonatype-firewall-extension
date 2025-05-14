@@ -86,7 +86,7 @@ export default function EnterpriseReportCard(props) {
             <span>
               <NxButton
                 variant="tertiary"
-                className="iq-enterprise-reporting-card__button"
+                className={`iq-enterprise-reporting-card__button dashboard-id-btn-${dashboard.dashboardId}`}
                 disabled={disabled}
                 onClick={() => dispatch(stateGo('enterpriseReportingDashboard', { id: dashboard.dashboardId }))}
               >

@@ -58,7 +58,7 @@ public class ZScalerUpdater
 
   @Inject
   public ZScalerUpdater(
-      @Named("dummy") final ZScalerMaliciousUrlFetcher zScalerMaliciousUrlFetcher,
+      final ZScalerMaliciousUrlFetcher zScalerMaliciousUrlFetcher,
       final TaskScheduler taskScheduler,
       final ApiZScalerService apiZScalerService,
       final ProductLicense productLicense,

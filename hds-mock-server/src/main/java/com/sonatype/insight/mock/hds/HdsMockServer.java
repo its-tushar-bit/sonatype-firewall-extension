@@ -373,6 +373,10 @@ public class HdsMockServer
           consume(baseRequest);
           send(response, "text/plain", "");
         }
+        else if (uri.equals("/rest/maliciousUrls/active/maven")) {
+          consume(baseRequest);
+          sendJson(response, "{\"activeThreatUrls\": [\"https://malicious.com/malicious.jar\"]}");
+        }
       }
       catch (RequestException e) {
         consume(baseRequest);

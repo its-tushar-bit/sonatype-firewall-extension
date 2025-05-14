@@ -232,6 +232,7 @@ export default function ZScalerConfig(props) {
           onSubmit={save}
           submitBtnText={serverData ? 'Update' : 'Save'}
           submitError={submitError}
+          submitBtnClasses="zscaler-submit-button"
           validationErrors={submitMaskMessage !== 'Deleting' ? formValidationErrors : null}
           // If there is a validationError alert, it's cleared on "Delete Configuration"
           submitMaskState={submitMaskState}

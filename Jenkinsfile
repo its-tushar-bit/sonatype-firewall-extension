@@ -282,10 +282,12 @@ Map<String, ?> jreleaserConfig(String mavenOptions, String pomFile = null, Strin
 }
 
 void runBuildAndParallelSteps(Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J) {
-  cache(defaultBranch: 'main', skipSave: isDeployBranch(env, 'main'), caches: [
-              arbitraryFileCache(path: 'insight-brain-frontend/node_modules',
-                                 cacheValidityDecidingFile: 'insight-brain-frontend/package.json',
-                                 compressionMethod: 'TARGZ')]) {
+  cache(defaultBranch: 'main', skipSave: isDeployBranch(env, 'main'),
+    caches:
+      [arbitraryFileCache(path: 'insight-brain-frontend/node_modules',
+                          cacheValidityDecidingFile: 'insight-brain-frontend/yarn.lock',
+                          compressionMethod: 'TARGZ'),
+        arbitraryFileCache(path: 'insight-brain-frontend/yarn-cache', compressionMethod: 'TARGZ')]) {
     buildAndTest(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
   }
 

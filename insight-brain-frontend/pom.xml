@@ -168,5 +168,38 @@
         </plugins>
       </build>
     </profile>
+
+    <!--
+    Profile to be used during CI builds. The install command will specify the yarn cache folder, which
+    the jenkins job cacher plugin will cache to speed up builds.
+    -->
+    <profile>
+      <id>ci-cache-yarn</id>
+      <activation>
+        <property>
+          <name>env.CI</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.github.eirslett</groupId>
+            <artifactId>frontend-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>yarn-install</id>
+                <goals>
+                  <goal>yarn</goal>
+                </goals>
+                <configuration>
+                  <arguments>install --cache-folder yarn-cache --check-files --frozen-lockfile</arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 </project>

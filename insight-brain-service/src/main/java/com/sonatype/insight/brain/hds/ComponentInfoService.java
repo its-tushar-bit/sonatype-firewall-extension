@@ -910,21 +910,6 @@ public class ComponentInfoService
     return result;
   }
 
-  private NamedComponentDetails getComponentDetails(
-      String matchState,
-      final String hash,
-      final ComponentIdentifier identifier,
-      final HttpServletRequest httpRequest,
-      final Owner owner,
-      final String identificationSource,
-      final String scanId) throws IOException
-  {
-    if (IdentificationSource.isThirdPartyIdentificationSource(identificationSource)) {
-      return thirdPartyComponentDAO.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
-    }
-    return getComponentDetailsFromHDS(matchState, hash, identifier, httpRequest, identificationSource);
-  }
-
   Pair<ComponentDetailsList, RepositorySourceResponseDTO> getComponentDetailsList(
       ComponentIdentifier identifier,
       Owner owner,
@@ -1414,7 +1399,9 @@ public class ComponentInfoService
     Owner owner = ownerDAO.getById(internalId);
 
     ComponentDetails componentDetails =
-        getComponentDetails(null, hash, componentIdentifier, httpRequest, owner, identificationSource, scanId);
+        getComponentDetailsBasedOnSource(componentIdentifier, owner, scanId, null, hash, httpRequest,
+            identificationSource);
+
     componentDetailsLoaderFactory.newInstance(owner).augmentComponentDetails(componentDetails);
     return new ComponentSecurityVulnerabilities(componentDetails.getSecurityVulnerabilities());
   }

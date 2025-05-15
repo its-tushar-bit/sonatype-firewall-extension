@@ -3275,6 +3275,31 @@ public class ComponentInfoServiceTest
   }
 
   @Test
+  public void testGetSecurityVulnerabilities_Application_ThirdParty_UnsupportedFormat() throws Exception {
+    String scanId = "scanId";
+    String hash = "01234567890123456789";
+    final String identificationSource = IdentificationSource.SBOM.getId();
+    NamedComponentDetails tpsComponentDetails = newNamedComponentDetails(GENERIC_COORDINATES);
+    tpsComponentDetails.setMatchState(MatchState.EXACT.getId());
+    tpsComponentDetails.setIdentificationSource(identificationSource);
+    SecurityVulnerability vulnerability = new SecurityVulnerability("refId", "source", 5.0f, "summary");
+    tpsComponentDetails.setHash(hash);
+    tpsComponentDetails.setSecurityVulnerabilities(Collections.singletonList(vulnerability));
+
+    when(reportDataReader.getComponentDetailsByIdentifier(GENERIC_COORDINATES, application.getId(), scanId))
+        .thenReturn(tpsComponentDetails);
+
+    tempEntity.newSecurityVulnerabilityOverride(application.getId(), hash, "source", "refId",
+        SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED, "abcd");
+
+    ComponentSecurityVulnerabilities retrievedVulnerabilities = componentInfoService.getSecurityVulnerabilities(
+        OwnerType.APPLICATION, application.getPublicId(), hash, GENERIC_COORDINATES, httpRequestMock,
+        IdentificationSource.SBOM.getId(), scanId);
+
+    assertGetSecurityVulnerabilityResults(vulnerability, retrievedVulnerabilities);
+  }
+
+  @Test
   public void testGetLicenses_Application_ThirdParty() throws Exception {
     String scanId = "scanId";
     String hash = "01234567890123456789";

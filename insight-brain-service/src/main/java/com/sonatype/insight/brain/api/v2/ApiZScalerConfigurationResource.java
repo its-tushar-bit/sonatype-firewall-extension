@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint
 import com.sonatype.insight.brain.zscaler.ApiZScalerConfigurationService;
 import com.sonatype.insight.brain.zscaler.ApiZScalerConfigurationService.ApiZScalerConfigurationDTO;
 import com.sonatype.insight.brain.zscaler.ApiZScalerService;
+import com.sonatype.insight.brain.zscaler.ApiZScalerService.ApiZScalerQuotaDTO;
 import com.sonatype.insight.brain.zscaler.ZScalerFormat;
 import com.sonatype.insight.brain.zscaler.ZScalerUpdater;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -185,5 +186,12 @@ public class ApiZScalerConfigurationResource
   {
     zScalerService.authenticate(configurationDTO.getHostname(),
         configurationDTO.getUsername(), configurationDTO.getPassword(), configurationDTO.getApiKey());
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("zscalerLimits")
+  public ApiZScalerQuotaDTO getQuota() {
+    return zScalerService.getQuota();
   }
 }

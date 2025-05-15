@@ -8,8 +8,10 @@ package com.sonatype.insight.brain.zscaler;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.HasFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
@@ -19,18 +21,25 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
+@Singleton
 @HasFeature(SystemConfigurationPropertyFeature.ZSCALER)
 public class ApiZScalerService
 {
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
+  private static final String QUOTA_KEY = "QUOTA_KEY";
+
   private final Logger log = LoggerFactory.getLogger(ApiZScalerService.class);
 
   private final ZScalerConfigurationDAO zScalerConfigurationDAO;
+
+  private Cache<String, ZScalerQuota> quotaCache;
 
   private PasswordHandler passwordHandler;
 
@@ -45,6 +54,20 @@ public class ApiZScalerService
     this.zScalerConfigurationDAO = zScalerConfigurationDAO;
     this.passwordHandler = passwordHandler;
     this.zScalerClient = zScalerClient;
+    this.quotaCache = CacheBuilder.newBuilder()
+        .expireAfterWrite(1, TimeUnit.HOURS)
+        .maximumSize(1)
+        .build();
+  }
+
+  public ApiZScalerService(
+      final ZScalerConfigurationDAO zScalerConfigurationDAO,
+      final PasswordHandler passwordHandler,
+      final ZScalerClient zScalerClient,
+      final Cache<String, ZScalerQuota> cache)
+  {
+    this(zScalerConfigurationDAO, passwordHandler, zScalerClient);
+    this.quotaCache = cache;
   }
 
   public void authenticate(
@@ -59,19 +82,18 @@ public class ApiZScalerService
     zScalerClient.authenticate(hostname, username, password, obfuscatedKey, timestamp);
   }
 
-  public void authenticate() {
+  public String authenticate() {
     ZScalerConfiguration configuration = zScalerConfigurationDAO.get();
     if (configuration == null) {
       log.warn("No zScaler configuration found");
       throw new BadRequestException("No zScaler configuration found");
     }
 
-    String apiKey = configuration.getApikey();
-    String timestamp = String.valueOf(System.currentTimeMillis());
-    String obfuscatedKey = obfuscateApiKey(apiKey, timestamp);
+    String decryptedPassword = passwordHandler.decryptPassword(configuration.getPassword());
 
-    zScalerClient.authenticate(configuration.getHostname(), configuration.getUsername(),
-        passwordHandler.decryptPassword(configuration.getPassword()), obfuscatedKey, timestamp);
+    authenticate(configuration.getHostname(), configuration.getUsername(), decryptedPassword,
+        configuration.getApikey());
+    return configuration.getHostname();
   }
 
   public void activate() {
@@ -92,6 +114,7 @@ public class ApiZScalerService
     }
 
     updateCategory(configuration.getHostname(), format, activeUrls);
+    this.quotaCache.invalidate(QUOTA_KEY);
   }
 
   private void updateCategory(String baseUrl, ZScalerFormat selectedFormat, List<String> activeUrls) {
@@ -162,6 +185,37 @@ public class ApiZScalerService
     }
   }
 
+  public ApiZScalerQuotaDTO getQuota() {
+    if (zScalerConfigurationDAO.get() == null) {
+      return new ApiZScalerQuotaDTO(0, 0, "none");
+    }
+
+    ZScalerQuota zScalerQuota = this.quotaCache.getIfPresent(QUOTA_KEY);
+    if (zScalerQuota == null) {
+      String hostname = authenticate();
+      zScalerQuota = zScalerClient.getZScalerQuota(hostname);
+      if (zScalerQuota == null) {
+        log.warn("Unable to retrieve zScalerQuota");
+        throw new BadRequestException("Unable to retrieve zScalerQuota");
+      }
+      this.quotaCache.put(QUOTA_KEY, zScalerQuota);
+    }
+
+    return new ApiZScalerQuotaDTO(
+        zScalerQuota.getRemainingUrlsQuota() + zScalerQuota.getUniqueUrlsProvisioned(),
+        zScalerQuota.getRemainingUrlsQuota(), determineStatus(zScalerQuota));
+  }
+
+  private String determineStatus(final ZScalerQuota zScalerQuota) {
+    if (zScalerQuota == null) {
+      return "none";
+    }
+    else if (zScalerQuota.getRemainingUrlsQuota() == 0) {
+      return "over";
+    }
+    return "under";
+  }
+
   private static String obfuscateApiKey(String key, String timestamp) {
     int apiKeySize = 12;
     StringBuilder retVal = new StringBuilder();
@@ -180,6 +234,10 @@ public class ApiZScalerService
     }
 
     return retVal.toString();
+  }
+
+  public record ApiZScalerQuotaDTO(int totalAllowedUrls, int remainingUrls, String status)
+  {
   }
 
   public static class ActiveUrls

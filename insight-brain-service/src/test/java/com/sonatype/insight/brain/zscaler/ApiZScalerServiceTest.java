@@ -8,12 +8,14 @@ package com.sonatype.insight.brain.zscaler;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.zscaler.ApiZScalerService.ApiZScalerQuotaDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.test.LogOutput;
 
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.cache.Cache;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,6 +56,9 @@ public class ApiZScalerServiceTest
   @Mock
   private PasswordHandler passwordHandler;
 
+  @Mock
+  private Cache<String, ZScalerQuota> cache;
+
   @Spy
   @InjectMocks
   private ApiZScalerService underTest;
@@ -68,7 +73,7 @@ public class ApiZScalerServiceTest
 
     urls = List.of(url);
 
-    underTest = Mockito.spy(new ApiZScalerService(dao, passwordHandler, client));
+    underTest = Mockito.spy(new ApiZScalerService(dao, passwordHandler, client, cache));
   }
 
   @Test
@@ -193,5 +198,56 @@ public class ApiZScalerServiceTest
         List.of("http://example-url1", "http://example-url2", "http://example-url3"));
 
     verify(client, never()).updateCustomUrlCategories(anyString(), anyString(), anyString(), anyList());
+  }
+
+  @Test
+  public void testUpdateCategory_whenQuotaIsNotCached() {
+    when(dao.get()).thenReturn(config);
+    when(cache.getIfPresent(anyString())).thenReturn(null);
+    when(client.getZScalerQuota(config.getHostname())).thenReturn(new ZScalerQuota(99, 1));
+
+    ApiZScalerQuotaDTO response = underTest.getQuota();
+
+    verify(client).getZScalerQuota(config.getHostname());
+    assertThat(response).isNotNull();
+    assertThat(response.totalAllowedUrls()).isEqualTo(100);
+    assertThat(response.remainingUrls()).isEqualTo(1);
+    assertThat(response.status()).isEqualTo("under");
+  }
+
+  @Test
+  public void testUpdateCategory_whenQuotaIsCached() {
+    when(dao.get()).thenReturn(config);
+    when(cache.getIfPresent(anyString())).thenReturn(new ZScalerQuota(200, 2));
+
+    ApiZScalerQuotaDTO response = underTest.getQuota();
+
+    verify(client, never()).getZScalerQuota(config.getHostname());
+    assertThat(response).isNotNull();
+    assertThat(response.totalAllowedUrls()).isEqualTo(202);
+    assertThat(response.remainingUrls()).isEqualTo(2);
+    assertThat(response.status()).isEqualTo("under");
+  }
+
+  @Test
+  public void testGetQuota_overStatus() {
+    when(dao.get()).thenReturn(config);
+    when(cache.getIfPresent(anyString())).thenReturn(new ZScalerQuota(100, 0));
+
+    ApiZScalerQuotaDTO response = underTest.getQuota();
+
+    assertThat(response).isNotNull();
+    assertThat(response.status()).isEqualTo("over");
+  }
+
+  @Test
+  public void testGetQuota_underStatus() {
+    when(dao.get()).thenReturn(config);
+    when(cache.getIfPresent(anyString())).thenReturn(new ZScalerQuota(99, 1));
+
+    ApiZScalerQuotaDTO response = underTest.getQuota();
+
+    assertThat(response).isNotNull();
+    assertThat(response.status()).isEqualTo("under");
   }
 }

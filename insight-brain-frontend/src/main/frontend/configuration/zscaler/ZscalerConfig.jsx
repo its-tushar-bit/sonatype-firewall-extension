@@ -30,6 +30,9 @@ import { reject, isNil } from 'ramda';
 import LoadError from '../../react/LoadError';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 import classnames from 'classnames';
+import ZscalerConfigLimits from './ZscalerConfigLimits';
+
+import './ZscalerConfig.scss';
 
 const AUTH_ERROR_MESSAGE =
   'It appears you do not have permission to access this page. ' +
@@ -48,7 +51,7 @@ const PASSWORD_REENTER_MESSAGE = 'Password must be re-entered when any fields ar
 
 const PASSWORD_REENTER_TEST_CONFIG_MESSAGE = 'Password must be re-entered for testing configuration.';
 
-export default function ZScalerConfig(props) {
+export default function ZscalerConfig(props) {
   const {
       load,
       save,
@@ -61,6 +64,7 @@ export default function ZScalerConfig(props) {
       setShowDeleteModal,
       testConfig,
       setEulaCheckbox,
+      loadLimits,
     } = props,
     {
       loading,
@@ -82,6 +86,7 @@ export default function ZScalerConfig(props) {
       mustReenterPassword,
       testConfigSuccess,
       isAuthorized,
+      zscalerConfigLimitsState,
     } = props,
     loadError = isAuthorized ? loadErrorProp : AUTH_ERROR_MESSAGE;
 
@@ -168,14 +173,14 @@ export default function ZScalerConfig(props) {
 
   const apiKeySublabel = (
     <span>
-      You can generate one in the Zscaler Admin Portal under API Management.
+      Generate a Zscaler API Key through the Admin Portal under API Management.
       <br />
       <NxTextLink
         external
         id="zscaler-api-key-link"
         href="https://links.sonatype.com/products/nxrm3/docs/zscaler/api-keys"
       >
-        Learn how to retrieve your API Key
+        Learn how to retrieve Zscaler API Key
       </NxTextLink>
     </span>
   );
@@ -224,6 +229,13 @@ export default function ZScalerConfig(props) {
 
   return (
     <NxPageMain id="zscaler-config-page-container">
+      {isAuthorized && (
+        <ZscalerConfigLimits
+          zscalerConfigLimitsState={zscalerConfigLimitsState}
+          loadLimits={loadLimits}
+          serverData={serverData}
+        />
+      )}
       <NxTile id="zscaler-configuration">
         <NxStatefulForm
           loading={loading}
@@ -246,7 +258,7 @@ export default function ZScalerConfig(props) {
           </NxTile.Header>
           <NxTile.Content>
             <NxP>
-              To protect users at the network level, integrate our data with your Zscaler infrastructure.
+              To protect users at the network level, integrate Sonatype data with your Zscaler infrastructure.
               <br />
               {learnMoreAboutZscalerLink}
             </NxP>
@@ -317,7 +329,7 @@ const textInputPropType = PropTypes.shape({
   validationErrors: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.string.isRequired), PropTypes.string]),
 });
 
-ZScalerConfig.propTypes = {
+ZscalerConfig.propTypes = {
   load: PropTypes.func.isRequired,
   save: PropTypes.func.isRequired,
   del: PropTypes.func.isRequired,
@@ -328,6 +340,7 @@ ZScalerConfig.propTypes = {
   setApiKey: PropTypes.func.isRequired,
   setShowDeleteModal: PropTypes.func.isRequired,
   setEulaCheckbox: PropTypes.func.isRequired,
+  loadLimits: PropTypes.func.isRequired,
   testConfig: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
   submitMaskState: PropTypes.bool,
@@ -345,6 +358,11 @@ ZScalerConfig.propTypes = {
   testConfigError: PropTypes.bool.isRequired,
   testConfigSuccess: PropTypes.bool.isRequired,
   serverData: PropTypes.any,
+  zscalerConfigLimitsState: PropTypes.shape({
+    loading: PropTypes.bool,
+    error: PropTypes.any,
+    limits: PropTypes.object,
+  }).isRequired,
   showDeleteModal: PropTypes.bool.isRequired,
   mustReenterPassword: PropTypes.bool.isRequired,
   isAuthorized: PropTypes.bool.isRequired,

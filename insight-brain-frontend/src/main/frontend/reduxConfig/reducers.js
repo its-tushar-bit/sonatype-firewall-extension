@@ -13,6 +13,7 @@ import userReducer from '../user/userReducer';
 import vulnerabilitySearchReducer from '../vulnerabilitySearch/vulnerabilitySearchReducer';
 import vulnerabilityDetailsModalReducer from '../vulnerabilityDetails/vulnerabilityDetailsModalReducer';
 import zscalerConfigReducer from 'MainRoot/configuration/zscaler/zscalerConfigSlice';
+import zscalerConfigLimitsReducer from 'MainRoot/configuration/zscaler/zscalerConfigLimitsSlice';
 import mailConfigReducer from '../configuration/mail/mailConfigSlice';
 import ldapConfigReducer from '../configuration/ldap/ldapConfigSlice';
 import violationReducer from '../violation/violationReducer';
@@ -129,6 +130,7 @@ export default combineReducers({
   vulnerabilityCustomize: vulnerabilityCustomizeSlice,
   mailConfig: mailConfigReducer,
   zscalerConfig: zscalerConfigReducer,
+  zscalerConfigLimits: zscalerConfigLimitsReducer,
   ldapConfig: ldapConfigReducer,
   ldapList: ldapListReducer,
   violation: violationReducer,

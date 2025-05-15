@@ -7,12 +7,12 @@ import React from 'react';
 import { render, waitFor, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 
-import ZScalerConfig from 'MainRoot/configuration/zscaler/ZScalerConfig';
+import ZscalerConfig from 'MainRoot/configuration/zscaler/ZscalerConfig';
 import { FAKE_PASSWORD } from 'MainRoot/configuration/zscaler/zscalerConfigSlice';
 
 const { initialState: initUserInput, userInput } = nxTextInputStateHelpers;
 
-describe('ZScalerConfig', () => {
+describe('ZscalerConfig', () => {
   const initialProps = {
     serverData: null,
     hostnameState: initUserInput(''),
@@ -39,6 +39,7 @@ describe('ZScalerConfig', () => {
     showDeleteModal: false,
     mustReenterPassword: false,
     isAuthorized: true,
+    loadAll: jest.fn(),
     load: jest.fn(),
     save: jest.fn(),
     del: jest.fn(),
@@ -50,11 +51,17 @@ describe('ZScalerConfig', () => {
     setApiKey: jest.fn(),
     setEulaCheckbox: jest.fn(),
     setShowDeleteModal: jest.fn(),
+    zscalerConfigLimitsState: {
+      loading: false,
+      error: null,
+      limits: null,
+    },
+    loadLimits: jest.fn(),
   };
 
   const setState = (additionalProps = {}) => Object.freeze({ ...initialProps, ...additionalProps });
 
-  const renderComponent = (props = setState()) => render(<ZScalerConfig {...props} />);
+  const renderComponent = (props = setState()) => render(<ZscalerConfig {...props} />);
 
   const CHECKBOX_NAME =
     'I acknowledge that access to and use of Sonatype products is governed by either 1) the terms ' +
@@ -87,11 +94,12 @@ describe('ZScalerConfig', () => {
     const cancelButton = screen.getByRole('button', { name: 'Cancel' });
     const deleteButton = screen.getByRole('button', { name: 'Delete Configuration' });
     const testConfigButton = screen.getByRole('button', { name: 'Test Configuration' });
-    const description = 'To protect users at the network level, integrate our data with your Zscaler infrastructure.';
+    const description =
+      'To protect users at the network level, integrate Sonatype data with your Zscaler infrastructure.';
     const apiKeyDesc =
-      'You can generate one in the Zscaler Admin Portal under API Management. Learn how to retrieve your API Key';
+      'Generate a Zscaler API Key through the Admin Portal under API Management. Learn how to retrieve Zscaler API Key';
     const learnMoreLink = screen.getByRole('link', { name: /Learn more about the Zscaler integration/i });
-    const apiKeyLink = screen.getByRole('link', { name: /Learn how to retrieve your API Key/i });
+    const apiKeyLink = screen.getByRole('link', { name: /Learn how to retrieve Zscaler API Key/i });
 
     expect(screen.getByRole('heading', { level: 2, name: /ZScaler Configuration/i })).toBeInTheDocument();
     expect(screen.getByText(description)).toBeInTheDocument();
@@ -277,9 +285,9 @@ describe('ZScalerConfig', () => {
     );
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
-    const alert = screen.getByRole('status');
-    expect(alert).toBeInTheDocument();
-    expect(alert).toHaveTextContent(
+    const alert = screen.getAllByRole('status');
+    expect(alert[1]).toBeInTheDocument();
+    expect(alert[1]).toHaveTextContent(
       'The connection to Zscaler was successfully established. Test Zscaler configuration succeed.'
     );
   });

@@ -89,6 +89,10 @@ export function getZScalerTestConfigUrl() {
   return uriTemplate`/api/v2/config/zscaler/testConfig`;
 }
 
+export function getZscalerConfigLimitsUrl() {
+  return uriTemplate`/api/v2/config/zscaler/zscalerLimits`;
+}
+
 export function getMailConfigUrl() {
   return uriTemplate`/api/v2/config/mail`;
 }

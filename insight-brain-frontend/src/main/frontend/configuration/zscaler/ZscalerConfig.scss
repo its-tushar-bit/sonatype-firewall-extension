@@ -4,6 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+#zscaler-limits {
+  h3 {
+    margin-bottom: var(--nx-spacing-base);
+  }
+
+  .nx-status-indicator {
+    margin-left: 0;
+  }
+}
+
 #zscaler-eula-checkbox {
   align-items: start;
 

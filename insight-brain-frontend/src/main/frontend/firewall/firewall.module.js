@@ -428,11 +428,16 @@ function routes($stateProvider) {
       resolve: {
         isAuthorized: [
           'PermissionService',
-          function (PermissionService) {
-            return (
-              PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true) &&
-              PermissionService.isFeatureEnabled('zscaler')
-            );
+          '$q',
+          function (PermissionService, $q) {
+            return $q
+              .all([
+                PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true),
+                PermissionService.isFeatureEnabled('zscaler'),
+              ])
+              .then(([isAuthorized, isFeatureEnabled]) => {
+                return isAuthorized && isFeatureEnabled;
+              });
           },
         ],
       },

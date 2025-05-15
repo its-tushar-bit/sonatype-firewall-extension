@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.brain.configuration;
 
+import java.time.Duration;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -18,6 +19,7 @@ import com.sonatype.clm.testing.functional.pages.ZscalerConfigPage;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.PasswordHandler;
 
 import com.codeborne.selenide.SelenideElement;
@@ -26,6 +28,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
@@ -50,7 +53,7 @@ public class ZscalerConfigPageTest
   private PasswordHandler passwordHandler;
 
   private static final String FAKE_PASSWORD = "\u0000\u0000\u0000\u0000\u0000";
-  
+
   private static final String EULA_TEXT_STRING = "I acknowledge that access to and use of Sonatype products is " +  
       "governed by either 1) the terms of company's negotiated license agreement with Sonatype or, in the absence " +
       "of a negotiated license, 2) Sonatype’s End User License Agreement";
@@ -63,9 +66,28 @@ public class ZscalerConfigPageTest
 
   @Before
   public void setUp() {
-    SystemConfigurationPropertyFeature.ZSCALER.setEnabled(true);
     zScalerConfigurationDAO = lookup(ZScalerConfigurationDAO.class);
     passwordHandler = lookup(PasswordHandler.class);
+    SystemConfigurationPropertyFeature.ZSCALER.setEnabled(true);
+  }
+
+  @Test
+  public void testUserNotAuthorized() {
+    try {
+      User user = tempEntity.newUser("username", "foo", "bar", "foo@bar");
+      refreshOrOpen(ZscalerConfigPage.url());
+      logout();
+      login(user.getUsername(), user.getPassword());
+      refreshOrOpen(ZscalerConfigPage.url());
+
+      page.loadError().shouldBe(visible).shouldHave(text("An error occurred loading data. It appears you do not have " +
+          "permission to access this page. If you believe this to be incorrect please contact your administrator.\n" +
+          "Retry"));
+    }
+    finally {
+      logout();
+      loginAsAdmin();
+    }
   }
 
   @Test
@@ -82,6 +104,9 @@ public class ZscalerConfigPageTest
     page.testConfig().shouldHave(attribute("aria-disabled", "true"));
     page.eulaCheckbox().label().shouldHave(text(EULA_TEXT_STRING));
     page.eulaCheckbox().shouldNotBe(selected).shouldBe(enabled);
+    page.delete().shouldBe(disabled);
+    page.cancel().shouldBe(disabled);
+    page.testConfig().shouldHave(attribute("aria-disabled", "true"));
   }
 
   @Test
@@ -196,13 +221,15 @@ public class ZscalerConfigPageTest
     saveConfiguration();
     page.testConfig().shouldHave(attribute("aria-disabled", "true"));
     page.testConfig().click();
+    page.testConfig().hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Password must be re-entered for testing configuration."));
 
     // Only test the config with dummy values as we don't want to have real credentials in the test
     page.password().setValue("a");
     page.testConfig().shouldBe(enabled).click();
     FormMask.seeAndWaitForDismissal();
-    FormUtils.getErrorElement(page).shouldBe(visible)
+    FormUtils.getErrorElement(page).shouldBe(visible);
+    FormUtils.getErrorElement(page.zscalerFormSection()).shouldBe(visible)
         .shouldHave(text("Unable to establish the connection to Zscaler as the connection is not configured. " +
         "Test Zscaler configuration failed. Learn more about the Zscaler integration\n Retry"));
   }
@@ -227,6 +254,17 @@ public class ZscalerConfigPageTest
     unsavedChangesModal.continueButton().click();
 
     apiPage.publicTab().shouldBe(visible);
+  }
+
+  @Test
+  public void testZscalerCustomUrls() {
+    refreshOrOpen(ZscalerConfigPage.url());
+    page.zscalerCustomUrlsHeader().shouldBe(visible, Duration.ofSeconds(30)).shouldHave(text("Zscaler Custom URLs"));
+    page.gridHeaders().shouldHave(size(3));
+    page.gridHeaders().get(0).shouldHave(text("Total Purchased"));
+    page.gridHeaders().get(1).shouldHave(text("Remaining"));
+    page.gridHeaders().get(2).shouldHave(text("Status"));
+    page.indicator().shouldBe(visible);
   }
 
   private void assertNoZscalerConfig() {

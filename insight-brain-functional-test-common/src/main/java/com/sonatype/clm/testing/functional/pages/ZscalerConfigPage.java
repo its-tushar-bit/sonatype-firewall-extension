@@ -33,6 +33,10 @@ public class ZscalerConfigPage
     return child("#zscaler-custom-urls-header");
   }
 
+  public SelenideElement zscalerFormSection() {
+    return child("#zscaler-configuration");
+  }
+
   public SelenideElement username() {
     return child("#zscaler-config-username");
   }

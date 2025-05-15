@@ -9,7 +9,7 @@ import samlModule from './saml/module';
 import webhookModule from './webhook/webhook.module';
 import ProductLicenseModule from './license/ProductLicenseModule';
 import MailConfigContainer from './mail/MailConfigContainer';
-import ZScalerConfigContainer from 'MainRoot/configuration/zscaler/ZScalerConfigContainer';
+import ZscalerConfigContainer from 'MainRoot/configuration/zscaler/ZscalerConfigContainer';
 import AutomaticSourceControlConfigurationContainer from './automaticSourceControlConfiguration/AutomaticSourceControlConfigurationContainer';
 import ProxyConfigContainer from './proxy/ProxyConfigContainer';
 import ScmOnboardingContainer from './scmOnboarding/ScmOnboardingContainer';
@@ -46,7 +46,7 @@ export default angular
     iqReact2Angular(AutomaticSourceControlConfigurationContainer, [], ['$ngRedux', '$state'])
   )
   .component('mailConfig', iqReact2Angular(MailConfigContainer, ['isAuthorized'], ['$ngRedux']))
-  .component('zscalerConfig', iqReact2Angular(ZScalerConfigContainer, ['isAuthorized'], ['$ngRedux']))
+  .component('zscalerConfig', iqReact2Angular(ZscalerConfigContainer, ['isAuthorized'], ['$ngRedux']))
   .component('proxyConfig', iqReact2Angular(ProxyConfigContainer, [], ['$ngRedux', '$state']))
   .component('advancedSearchConfig', iqReact2Angular(AdvancedSearchConfigContainer, ['isAuthorized'], ['$ngRedux']))
   .component('gettingStarted', iqReact2Angular(GettingStartedContainer, [], ['$ngRedux']))

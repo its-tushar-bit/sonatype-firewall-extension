@@ -72,23 +72,16 @@
         vertical-align: baseline;
       }
     }
+    .nx-h1 .iq-page-title__repository-name-icon {
+      vertical-align: -4px;
+      margin: 0 var(--nx-spacing-4x) 0 var(--nx-spacing-2x);
+    }
   }
 
-  .iq-page-title__repository-format-type-container {
-    span {
-      display: inline-block;
-    }
-
-    .iq-page-title__icon-wrapper {
-      vertical-align: -2px;
-      fill: currentColor;
-      margin-right: var(--nx-spacing-2x);
-    }
-
-    .iq-page-title__repository-public-id,
-    .iq-page-title__repository-format-type {
-      vertical-align: top;
-    }
+  .iq-page-title__repository-format-type {
+    font-size: 18px;
+    color: #50504a;
+    margin: -4px 0 var(--nx-spacing-4x);
   }
 
   #iq-owner-actions-dropdown {
@@ -148,17 +141,5 @@
         height: auto;
       }
     }
-  }
-}
-
-.iq-page-title__repository-format-type-container .iq-page-title__repository-public-id {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 50%;
-}
-
-@media only screen and (min-width: 1400px) {
-  .iq-page-title__repository-format-type-container .iq-page-title__repository-public-id {
-    max-width: 55%;
   }
 }

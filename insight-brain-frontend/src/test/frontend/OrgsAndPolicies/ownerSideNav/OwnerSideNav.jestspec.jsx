@@ -1029,7 +1029,7 @@ describe('OwnerSideNav', () => {
         '#/management/view/repository_manager/repositoryManager'
       );
 
-      const currentBreadcrumb = within(navigation).getByText('repositoryOne (maven2-proxy)');
+      const currentBreadcrumb = within(navigation).getByText('repositoryOne (maven2 : proxy)');
       expect(currentBreadcrumb).toBeVisible();
       expect(currentBreadcrumb.closest('a')).not.toHaveAttribute('href');
     });

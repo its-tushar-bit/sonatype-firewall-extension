@@ -8,9 +8,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   NxPageTitle,
   NxH1,
+  NxH3,
   NxFontAwesomeIcon,
   NxLoadWrapper,
   NxOverflowTooltip,
+  NxP,
 } from '@sonatype/react-shared-components';
 import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
@@ -46,23 +48,21 @@ export default function RepositorySummaryView() {
       <div id="repository-page">
         <header>
           <NxPageTitle id="repositories-summary" className="iq-page-title">
-            <NxH1 className="iq-page-title__repository-format-type-container">
-              <span className="iq-page-title__icon-wrapper">
-                <NxFontAwesomeIcon icon={faDatabase} />
-              </span>
-              <NxOverflowTooltip placement="bottom">
-                <span className="iq-page-title__repository-public-id">{repository.publicId}</span>
-              </NxOverflowTooltip>
-              <span className="iq-page-title__repository-format-type">
-                &nbsp;({repository.format}-{repository.repositoryType})
-              </span>
-            </NxH1>
+            <NxOverflowTooltip placement="bottom">
+              <NxH1>
+                <NxFontAwesomeIcon icon={faDatabase} className="iq-page-title__repository-name-icon" />
+                <span>{repository.publicId}</span>
+              </NxH1>
+            </NxOverflowTooltip>
             {!isHostedRepository && (
               <div className="nx-btn-bar">
                 <ActionDropdown />
               </div>
             )}
           </NxPageTitle>
+          <NxH3 className="iq-page-title__repository-format-type">
+            ({repository.format} : {repository.repositoryType})
+          </NxH3>
           <RepositorySummaryPills isHosted={isHostedRepository} />
         </header>
         <div

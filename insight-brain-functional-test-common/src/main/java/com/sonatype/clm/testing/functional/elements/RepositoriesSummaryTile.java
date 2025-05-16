@@ -22,8 +22,8 @@ public class RepositoriesSummaryTile
     return child("h1");
   }
   
-  public SelenideElement public_id() {
-    return child(".iq-page-title__repository-public-id");
+  public SelenideElement repositoryFormatType() {
+    return $(".iq-page-title__repository-format-type");
   }
 
   public SelenideElement title() {

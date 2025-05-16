@@ -259,9 +259,8 @@ describe('MenuBarStatefulBreadcrumb', () => {
         'ROOT_ORGANIZATION_NAME',
         'Repository Managers',
         'Repo Manager Name',
-        'Repository (maven2-proxy)',
+        'Repository (maven2 : proxy)',
       ];
-
       expectedBreadCrumbs.forEach((breadCrumbName) => {
         expect(screen.getByText(breadCrumbName)).toBeVisible();
       });

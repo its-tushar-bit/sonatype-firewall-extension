@@ -105,7 +105,7 @@ public class RepositorySummaryViewTest
     breadcrumb.listItems().get(0).shouldHave(text("Root Organization"));
     breadcrumb.listItems().get(1).shouldHave(text("Repository Managers"));
     breadcrumb.listItems().get(2).shouldHave(text(repositoryManager.getName()));
-    breadcrumb.listItems().get(3).shouldHave(text("npm-proxy (npm-proxy)"));
+    breadcrumb.listItems().get(3).shouldHave(text("npm-proxy (npm : proxy)"));
 
     refreshOrOpen(RepositoriesSummaryPage.repositoryUrl(hostedRepository.getId()));
     waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(hostedRepository.getId()));
@@ -114,7 +114,7 @@ public class RepositorySummaryViewTest
     breadcrumb.listItems().get(0).shouldHave(text("Root Organization"));
     breadcrumb.listItems().get(1).shouldHave(text("Repository Managers"));
     breadcrumb.listItems().get(2).shouldHave(text(repositoryManager.getName()));
-    breadcrumb.listItems().get(3).shouldHave(text("npm-hosted (npm-hosted)"));
+    breadcrumb.listItems().get(3).shouldHave(text("npm-hosted (npm : hosted)"));
   }
 
   @Test
@@ -145,9 +145,10 @@ public class RepositorySummaryViewTest
 
     RepositoriesSummaryTile summaryTile = RepositoriesSummaryPage.summaryTile();
     
-    String repostioryPublicIdFormatType = 
-        repository.getName() + " (" + repository.getFormat() + "-" + repository.getRepositoryType() + ")";
-    summaryTile.name().shouldBe(visible).shouldHave(text(repostioryPublicIdFormatType));
+    String repostioryFormatTypeString = " (" + repository.getFormat() + " : " + repository.getRepositoryType() + ")";
+    
+    summaryTile.name().shouldBe(visible).shouldHave(text(repository.getName()));
+    summaryTile.repositoryFormatType().shouldBe(visible).shouldHave(text(repostioryFormatTypeString));
 
     PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
     policyTile.shouldBe(visible);
@@ -199,7 +200,7 @@ public class RepositorySummaryViewTest
     refreshOrOpen(RepositoriesSummaryPage.repositoryUrl(repository.getId()));
     waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(repository.getId()));
     RepositoriesSummaryTile summaryTile = RepositoriesSummaryPage.summaryTile();
-    summaryTile.public_id().hover();
+    summaryTile.name().hover();
     Tooltip.get().shouldBe(visible).shouldHave(text(veryLongRepositoryPublicId));
   }
 

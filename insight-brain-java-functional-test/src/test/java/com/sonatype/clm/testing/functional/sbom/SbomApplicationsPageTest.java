@@ -397,14 +397,14 @@ public class SbomApplicationsPageTest
       return "a month ago";
     }
     else if (seconds <= 27561600) { //45 to 319 days
-      long months = ChronoUnit.MONTHS.between(rowDateTime, now) + 1;
+      long months = Math.round(duration.toMillis() / (double) ChronoUnit.MONTHS.getDuration().toMillis());
       return months + " months ago";
     }
     else if (seconds <= 47260800) { //320 to 547 days (1.5 years)
       return "a year ago";
     }
     else {
-      long years = ChronoUnit.YEARS.between(rowDateTime, now) + 1;
+      long years = Math.round(duration.toMillis() / (double) ChronoUnit.YEARS.getDuration().toMillis());
       return years + " years ago";
     }
   }

@@ -38,8 +38,8 @@ public class ApiZScalerConfigurationService
 
   @Inject
   public ApiZScalerConfigurationService(
-      ZScalerConfigurationDAO zScalerConfigurationDAO,
-      PasswordHandler passwordHandler)
+      final ZScalerConfigurationDAO zScalerConfigurationDAO,
+      final PasswordHandler passwordHandler)
   {
     this.zScalerConfigurationDAO = zScalerConfigurationDAO;
     this.passwordHandler = passwordHandler;

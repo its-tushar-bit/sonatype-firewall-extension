@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.zscaler;
 
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.zscaler.ZScalerMetricsDAO;
 import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.zscaler.ApiZScalerService.ApiZScalerQuotaDTO;
@@ -28,6 +29,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -51,7 +53,10 @@ public class ApiZScalerServiceTest
   public LogOutput logOutput = new LogOutput(ApiZScalerService.class);
 
   @Mock
-  private ZScalerConfigurationDAO dao;
+  private ZScalerConfigurationDAO configurationDAO;
+
+  @Mock
+  private ZScalerMetricsDAO metricsDAO;
 
   @Mock
   private PasswordHandler passwordHandler;
@@ -73,24 +78,25 @@ public class ApiZScalerServiceTest
 
     urls = List.of(url);
 
-    underTest = Mockito.spy(new ApiZScalerService(dao, passwordHandler, client, cache));
+    underTest = Mockito.spy(new ApiZScalerService(configurationDAO, metricsDAO, passwordHandler, client, cache));
   }
 
   @Test
   public void testUpdateCategory() throws Exception {
-    when(dao.get()).thenReturn(config);
+    when(configurationDAO.get()).thenReturn(config);
     when(client.getZScalerQuota(anyString())).thenReturn(new ZScalerQuota(0, 100));
 
     underTest.updateCategory(ZScalerFormat.NPM, urls);
 
     verify(client).getCustomUrlCategories(anyString());
     verify(client).createCustomUrlCategory(anyString(), anyString(), anyList());
-    verify(dao).get();
+    verify(configurationDAO).get();
+    verify(metricsDAO).set(any());
   }
 
   @Test
   public void testUpdateCategory_noConfiguration() throws Exception {
-    when(dao.get()).thenReturn(null);
+    when(configurationDAO.get()).thenReturn(null);
 
     assertThrows("No zScaler configuration found", BadRequestException.class,
         () -> underTest.updateCategory(ZScalerFormat.NPM, urls));
@@ -106,7 +112,7 @@ public class ApiZScalerServiceTest
     existingCategory.setCustomCategory(true);
     existingCategory.setUrls(List.of("https://npmjs.org/npm/"));
 
-    when(dao.get()).thenReturn(config);
+    when(configurationDAO.get()).thenReturn(config);
     ZScalerQuota quota = new ZScalerQuota(100, 200);
     when(client.getZScalerQuota(config.getHostname())).thenReturn(quota);
     when(client.getCustomUrlCategories(config.getHostname())).thenReturn(List.of(existingCategory));
@@ -119,11 +125,12 @@ public class ApiZScalerServiceTest
     verify(client, never()).createCustomUrlCategory(anyString(), anyString(), anyList());
     assertThat(logOutput).atInfoLevel()
         .contains("sonatype-npm-shadow-download-defense category with id npm-category already exists, updating it");
+    verify(metricsDAO).set(any());
   }
 
   @Test
   public void testUpdateCategory_categoryDoesNotExistAndCreatedSuccessfully() {
-    when(dao.get()).thenReturn(config);
+    when(configurationDAO.get()).thenReturn(config);
     ZScalerQuota quota = new ZScalerQuota(100, 200);
     when(client.getZScalerQuota(config.getHostname())).thenReturn(quota);
     when(client.getCustomUrlCategories(config.getHostname())).thenReturn(Collections.emptyList());
@@ -136,6 +143,7 @@ public class ApiZScalerServiceTest
         anyList());
     assertThat(logOutput).atInfoLevel()
         .contains("sonatype-npm-shadow-download-defense category does not exist, creating it");
+    verify(metricsDAO).set(any());
   }
 
   @Test
@@ -147,7 +155,7 @@ public class ApiZScalerServiceTest
     existingCategory.setCustomUrlsCount(1);
     existingCategory.setUrls(List.of("https://npmjs.org/npm/"));
 
-    when(dao.get()).thenReturn(config);
+    when(configurationDAO.get()).thenReturn(config);
     ZScalerQuota quota = new ZScalerQuota(100, 0);
     when(client.getZScalerQuota(config.getHostname())).thenReturn(quota);
     when(client.getCustomUrlCategories(config.getHostname())).thenReturn(List.of(existingCategory));
@@ -157,6 +165,7 @@ public class ApiZScalerServiceTest
 
     verify(client).updateCustomUrlCategories(eq(config.getHostname()), eq(existingCategory.getConfiguredName()),
         eq(existingCategory.getId()), eq(List.of("http://example-url1")));
+    verify(metricsDAO).set(any());
   }
 
   @Test
@@ -168,7 +177,7 @@ public class ApiZScalerServiceTest
     existingCategory.setCustomUrlsCount(1);
     existingCategory.setUrls(List.of("https://npmjs.org/npm/"));
 
-    when(dao.get()).thenReturn(config);
+    when(configurationDAO.get()).thenReturn(config);
     ZScalerQuota quota = new ZScalerQuota(80, 20);
     when(client.getZScalerQuota(config.getHostname())).thenReturn(quota);
     when(client.getCustomUrlCategories(config.getHostname())).thenReturn(List.of(existingCategory));
@@ -178,6 +187,7 @@ public class ApiZScalerServiceTest
 
     verify(client).updateCustomUrlCategories(eq(config.getHostname()), eq(existingCategory.getConfiguredName()),
         eq(existingCategory.getId()), eq(List.of("http://example-url1", "http://example-url2", "http://example-url3")));
+    verify(metricsDAO).set(any());
   }
 
   @Test
@@ -189,7 +199,7 @@ public class ApiZScalerServiceTest
     existingCategory.setCustomUrlsCount(0);
     existingCategory.setUrls(List.of("https://npmjs.org/npm/"));
 
-    when(dao.get()).thenReturn(config);
+    when(configurationDAO.get()).thenReturn(config);
     ZScalerQuota quota = new ZScalerQuota(100, 0);
     when(client.getZScalerQuota(config.getHostname())).thenReturn(quota);
     when(client.getCustomUrlCategories(config.getHostname())).thenReturn(List.of(existingCategory));
@@ -198,11 +208,12 @@ public class ApiZScalerServiceTest
         List.of("http://example-url1", "http://example-url2", "http://example-url3"));
 
     verify(client, never()).updateCustomUrlCategories(anyString(), anyString(), anyString(), anyList());
+    verify(metricsDAO, never()).set(any());
   }
 
   @Test
   public void testUpdateCategory_whenQuotaIsNotCached() {
-    when(dao.get()).thenReturn(config);
+    when(configurationDAO.get()).thenReturn(config);
     when(cache.getIfPresent(anyString())).thenReturn(null);
     when(client.getZScalerQuota(config.getHostname())).thenReturn(new ZScalerQuota(99, 1));
 
@@ -217,7 +228,7 @@ public class ApiZScalerServiceTest
 
   @Test
   public void testUpdateCategory_whenQuotaIsCached() {
-    when(dao.get()).thenReturn(config);
+    when(configurationDAO.get()).thenReturn(config);
     when(cache.getIfPresent(anyString())).thenReturn(new ZScalerQuota(200, 2));
 
     ApiZScalerQuotaDTO response = underTest.getQuota();
@@ -231,7 +242,7 @@ public class ApiZScalerServiceTest
 
   @Test
   public void testGetQuota_overStatus() {
-    when(dao.get()).thenReturn(config);
+    when(configurationDAO.get()).thenReturn(config);
     when(cache.getIfPresent(anyString())).thenReturn(new ZScalerQuota(100, 0));
 
     ApiZScalerQuotaDTO response = underTest.getQuota();
@@ -242,7 +253,7 @@ public class ApiZScalerServiceTest
 
   @Test
   public void testGetQuota_underStatus() {
-    when(dao.get()).thenReturn(config);
+    when(configurationDAO.get()).thenReturn(config);
     when(cache.getIfPresent(anyString())).thenReturn(new ZScalerQuota(99, 1));
 
     ApiZScalerQuotaDTO response = underTest.getQuota();

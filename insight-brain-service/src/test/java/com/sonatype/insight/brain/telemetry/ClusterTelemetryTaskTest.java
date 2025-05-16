@@ -10,6 +10,10 @@ import java.util.Collections;
 import java.util.List;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.zscaler.ZScalerMetricsDAO;
+import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
+import com.sonatype.insight.brain.model.zscaler.ZScalerMetrics;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
@@ -42,6 +46,12 @@ public class ClusterTelemetryTaskTest
   @Inject
   private ClusterTelemetryTask clusterTelemetryTask;
 
+  @Inject
+  private ZScalerConfigurationDAO zScalerConfigurationDAO;
+
+  @Inject
+  private ZScalerMetricsDAO zScalerMetricsDAO;
+
   @Mock
   private TaskScheduler taskSchedulerMock;
 
@@ -69,6 +79,15 @@ public class ClusterTelemetryTaskTest
 
   @Test
   public void testExecute() throws Exception {
+    // ZScaler configuration and metrics are required in order for the telemetry to be sent
+    ZScalerConfiguration zScalerConfiguration = new ZScalerConfiguration();
+    zScalerConfiguration.setHostname("host");
+    zScalerConfiguration.setUsername("user");
+    zScalerConfiguration.setPassword("password");
+    zScalerConfiguration.setApikey("apikey");
+    zScalerConfigurationDAO.set(zScalerConfiguration);
+    zScalerMetricsDAO.set(new ZScalerMetrics());
+
     doAnswer(invocationOnMock -> {
       assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
       return null;
@@ -90,6 +109,8 @@ public class ClusterTelemetryTaskTest
                                             TelemetryPurpose.CLUSTER_USAGE, //
                                             TelemetryPurpose.REAL_OWNER_IDS, // This one is for Applications
                                             TelemetryPurpose.REAL_OWNER_IDS, // This one is for Organizations
+                                            TelemetryPurpose.ZSCALER_CONFIGURATION,
+                                            TelemetryPurpose.ZSCALER_METRICS,
                                             // TelemetryPurpose.APPLICATION_CATEGORY, Sent with a different overload:
                                             // .send(TelemetryData telemetryData)
     };

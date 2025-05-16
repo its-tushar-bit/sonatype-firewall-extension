@@ -103,7 +103,7 @@ public class ZScalerUpdater
     apiZScalerService.activate();
   }
 
-  void updateAllzScalerMaliciousUrls() {
+  public void updateAllzScalerMaliciousUrls() {
     // TODO: Rather than assuming all formats are needed we may decide to fetch the format types based on configuration
     if (productLicense.hasFeature(LicensedFeature.FIREWALL)) {
       apiZScalerService.authenticate();

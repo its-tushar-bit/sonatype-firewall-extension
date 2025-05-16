@@ -15,8 +15,10 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.HasFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.zscaler.ZScalerMetricsDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
+import com.sonatype.insight.brain.model.zscaler.ZScalerMetrics;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -41,6 +43,8 @@ public class ApiZScalerService
 
   private Cache<String, ZScalerQuota> quotaCache;
 
+  private final ZScalerMetricsDAO zScalerMetricsDAO;
+
   private PasswordHandler passwordHandler;
 
   private ZScalerClient zScalerClient;
@@ -48,10 +52,12 @@ public class ApiZScalerService
   @Inject
   public ApiZScalerService(
       final ZScalerConfigurationDAO zScalerConfigurationDAO,
+      final ZScalerMetricsDAO zScalerMetricsDAO,
       final PasswordHandler passwordHandler,
       final ZScalerClient zScalerClient)
   {
     this.zScalerConfigurationDAO = zScalerConfigurationDAO;
+    this.zScalerMetricsDAO = zScalerMetricsDAO;
     this.passwordHandler = passwordHandler;
     this.zScalerClient = zScalerClient;
     this.quotaCache = CacheBuilder.newBuilder()
@@ -62,11 +68,12 @@ public class ApiZScalerService
 
   public ApiZScalerService(
       final ZScalerConfigurationDAO zScalerConfigurationDAO,
+      final ZScalerMetricsDAO zScalerMetricsDAO,
       final PasswordHandler passwordHandler,
       final ZScalerClient zScalerClient,
       final Cache<String, ZScalerQuota> cache)
   {
-    this(zScalerConfigurationDAO, passwordHandler, zScalerClient);
+    this(zScalerConfigurationDAO, zScalerMetricsDAO, passwordHandler, zScalerClient);
     this.quotaCache = cache;
   }
 
@@ -142,6 +149,38 @@ public class ApiZScalerService
       log.info("{} category does not exist, creating it", category);
       zScalerClient.createCustomUrlCategory(baseUrl, category, allowedUrls);
     }
+
+    updateMetrics(selectedFormat, activeUrls, allowedUrls);
+  }
+
+  private void updateMetrics(
+      final ZScalerFormat selectedFormat,
+      final List<String> activeUrls,
+      final List<String> allowedUrls)
+  {
+    ZScalerMetrics zScalerMetrics = zScalerMetricsDAO.get();
+    if (zScalerMetrics == null) {
+      zScalerMetrics = new ZScalerMetrics();
+    }
+
+    switch (selectedFormat) {
+      case MAVEN:
+        zScalerMetrics.setMavenUrlsFromHds(activeUrls.size());
+        zScalerMetrics.setMavenUrlsToZscaler(allowedUrls.size());
+        break;
+      case NPM:
+        zScalerMetrics.setNpmUrlsFromHds(activeUrls.size());
+        zScalerMetrics.setNpmUrlsToZscaler(allowedUrls.size());
+        break;
+      case PYPI:
+        zScalerMetrics.setPypiUrlsFromHds(activeUrls.size());
+        zScalerMetrics.setPypiUrlsToZscaler(allowedUrls.size());
+        break;
+      default:
+        log.warn("Unsupported zScaler format {}", selectedFormat);
+        return;
+    }
+    zScalerMetricsDAO.set(zScalerMetrics);
   }
 
   private String zscalerCategoryName(final ZScalerFormat selectedFormat) {

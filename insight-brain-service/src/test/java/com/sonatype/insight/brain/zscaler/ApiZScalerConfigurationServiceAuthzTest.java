@@ -63,6 +63,7 @@ public class ApiZScalerConfigurationServiceAuthzTest
     dto.setPassword("testpassword");
     dto.setHostname("testhostname");
     dto.setApiKey("testapikey");
+    dto.setEulaAgreed(true);
     apiZScalerConfigurationService.setConfiguration(dto);
   }
 

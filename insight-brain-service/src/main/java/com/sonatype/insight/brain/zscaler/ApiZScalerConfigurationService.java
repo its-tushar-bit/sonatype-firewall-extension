@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.brain.zscaler;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -22,6 +18,10 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +35,11 @@ public class ApiZScalerConfigurationService
   private final ZScalerConfigurationDAO zScalerConfigurationDAO;
 
   private final PasswordHandler passwordHandler;
+
+  public static final String EULA_MESSAGE = """
+      access to and use of Sonatype's Zscaler integration is subject to and governed by these 
+      <a href="https://links.sonatype.com/products/firewall/docs/zscaler/zscaler-eula">License Terms</a>.
+      """;
 
   @Inject
   public ApiZScalerConfigurationService(
@@ -56,31 +61,38 @@ public class ApiZScalerConfigurationService
     config.setUsername(zScalerConfiguration.getUsername());
     config.setHostname(zScalerConfiguration.getHostname());
     config.setApiKey(zScalerConfiguration.getApikey());
+    config.setEulaAgreed(true); // User must agree EULA to save the configuration. So, it is always true here.
     return config;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public void setConfiguration(ApiZScalerConfigurationDTO configuration) {
+  public String setConfiguration(ApiZScalerConfigurationDTO configuration) {
     log.debug("Setting up Zscaler configuration to: {}", configuration);
     if (configuration == null) {
       throw new NotFoundException("Configuration is required.");
     }
+
+    validateConfiguration(configuration);
 
     ZScalerConfiguration zScalerConfiguration = zScalerConfigurationDAO.get();
     if (zScalerConfiguration == null) {
       zScalerConfiguration = new ZScalerConfiguration();
     }
 
-    validateConfiguration(configuration);
-
     zScalerConfiguration.setPassword(passwordHandler.encryptPassword(configuration.getPassword()));
     zScalerConfiguration.setUsername(configuration.getUsername());
     zScalerConfiguration.setHostname(configuration.getHostname());
     zScalerConfiguration.setApikey(configuration.getApiKey());
     zScalerConfigurationDAO.set(zScalerConfiguration);
+
+    return String.format("You have acknowledged and agreed that %s", EULA_MESSAGE);
   }
 
   private void validateConfiguration(ApiZScalerConfigurationDTO configuration) {
+    if (Boolean.FALSE.equals(configuration.isEulaAgreed())) {
+      throw new BadRequestException(String.format("You must acknowledge and agree that %s", EULA_MESSAGE));
+    }
+
     Map<String, String> fieldsToValidate = new HashMap<>();
     fieldsToValidate.put("username", configuration.getUsername());
     fieldsToValidate.put("password", configuration.getPassword());
@@ -94,6 +106,10 @@ public class ApiZScalerConfigurationService
         missingFields.add(fieldName);
       }
     });
+
+    if (configuration.isEulaAgreed() == null) {
+      missingFields.add("eulaAgreed");
+    }
 
     if (!missingFields.isEmpty()) {
       if (missingFields.size() == 1) {
@@ -129,6 +145,8 @@ public class ApiZScalerConfigurationService
 
     private String apiKey;
 
+    private Boolean eulaAgreed;
+
     public ApiZScalerConfigurationDTO() {
       //empty
     }
@@ -163,6 +181,14 @@ public class ApiZScalerConfigurationService
 
     public void setApiKey(final String apiKey) {
       this.apiKey = apiKey;
+    }
+
+    public Boolean isEulaAgreed() {
+      return eulaAgreed;
+    }
+
+    public void setEulaAgreed(final boolean eulaAgreed) {
+      this.eulaAgreed = eulaAgreed;
     }
   }
 }

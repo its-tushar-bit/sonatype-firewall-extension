@@ -91,6 +91,7 @@ public class ApiZScalerConfigurationResource
   @Hidden
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.TEXT_HTML)
   @Operation(description = "Use this method to configure or update an existing Zscaler server configuration." +
       "\n" +
       "\n" +
@@ -104,18 +105,19 @@ public class ApiZScalerConfigurationResource
       description = "Zscaler server configuration was updated successfully.",
       useReturnTypeSchema = true
   )
-  public void setConfiguration(
+  public String setConfiguration(
       @RequestBody(description = "Provide one or more values for the following in the JSON payload:" +
           "<ul>" +
           "<li>`username` - is the username for the Zscaler server.</li>" +
           "<li>`password` - is the password for the Zscaler server.</li>" +
           "<li>`hostname` - is the hostname or IP address of the Zscaler server.</li>" +
           "<li>`apiKey` - is the apiKey for the Zscaler Server.</li>" +
+          "<li>`eulaAgreed` - is the agreement to the Sonatype's end user license agreement.</li>" +
           "</ul>",
           useParameterTypeSchema = true)
       ApiZScalerConfigurationDTO configurationDTO)
   {
-    zScalerConfigurationService.setConfiguration(configurationDTO);
+    return zScalerConfigurationService.setConfiguration(configurationDTO);
   }
 
   @Hidden

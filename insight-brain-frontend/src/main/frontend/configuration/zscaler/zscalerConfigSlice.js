@@ -323,6 +323,7 @@ function toServerData(formState) {
   return {
     ...map(textPropMapper, pick(['hostname', 'username', 'apiKey'], formState)),
     password: formState.password.value || null,
+    eulaAgreed: formState.eula.value || false,
   };
 }
 

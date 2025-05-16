@@ -29,7 +29,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.sonatype.insight.brain.api.PublicApiPaths.ZSCALER_CONFIG_RESOURCE_PATH_V2;
+import static com.sonatype.insight.brain.zscaler.ApiZScalerConfigurationService.EULA_MESSAGE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 
 public class ApiZScalerConfigurationResourceTest
     extends AbstractResourceTest
@@ -66,6 +68,7 @@ public class ApiZScalerConfigurationResourceTest
     assertThat(configDTO.getPassword()).isNull();
     assertThat(configDTO.getHostname()).isEqualTo(config.getHostname());
     assertThat(configDTO.getApiKey()).isEqualTo(config.getApikey());
+    assertThat(configDTO.isEulaAgreed()).isEqualTo(true);
   }
 
   @Test
@@ -83,10 +86,13 @@ public class ApiZScalerConfigurationResourceTest
     request.setPassword("testpassword");
     request.setHostname("testhostname");
     request.setApiKey("testapikey");
+    request.setEulaAgreed(true);
 
     HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2).body(request).put();
 
-    assertResponseStatus(204, response);
+    assertResponseStatus(200, response);
+
+    assertEquals(String.format("You have acknowledged and agreed that %s", EULA_MESSAGE), response.getBodyText());
 
     ZScalerConfiguration config = zScalerConfigurationDAO.get();
     assertThat(config).isNotNull();
@@ -105,6 +111,22 @@ public class ApiZScalerConfigurationResourceTest
   }
 
   @Test
+  public void testSetZScalerConfiguration_eulaNotAgreed() throws Exception {
+    ApiZScalerConfigurationDTO request = new ApiZScalerConfigurationDTO();
+    request.setUsername("testusername");
+    request.setPassword("testpassword");
+    request.setHostname("testhostname");
+    request.setApiKey("testapikey");
+    request.setEulaAgreed(false);
+
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2).body(request).put();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText())
+        .isEqualTo(String.format("You must acknowledge and agree that %s", EULA_MESSAGE));
+  }
+
+  @Test
   public void testDeleteZScalerConfiguration() throws Exception {
     tempEntity.newZScalerConfiguration("user", "password", "host", "apikey");
 
@@ -118,7 +140,7 @@ public class ApiZScalerConfigurationResourceTest
 
   @Test
   public void testDeleteZScalerConfiguration_noConfiguration() throws Exception {
-    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2).get();
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2).delete();
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Zscaler not configured.");

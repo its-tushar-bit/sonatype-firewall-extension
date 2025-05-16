@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.zscaler.ApiZScalerConfigurationService.ApiZScalerConfigurationDTO;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Before;
@@ -19,6 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static com.sonatype.insight.brain.zscaler.ApiZScalerConfigurationService.EULA_MESSAGE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 
@@ -52,6 +54,7 @@ public class ApiZScalerConfigurationServiceTest
     assert (dto.getHostname().equals(config.getHostname()));
     assertThat(dto.getPassword()).isNull();
     assert (dto.getApiKey().equals(config.getApikey()));
+    assert (dto.isEulaAgreed().equals(true));
   }
 
   @Test
@@ -66,19 +69,32 @@ public class ApiZScalerConfigurationServiceTest
     dto.setPassword("testpassword");
     dto.setHostname("testhostname");
     dto.setApiKey("testapikey");
+    dto.setEulaAgreed(true);
 
-    underTest.setConfiguration(dto);
+    String response = underTest.setConfiguration(dto);
 
     ZScalerConfiguration config = zScalerConfigurationDAO.get();
     assert (config.getUsername().equals(dto.getUsername()));
     assert (config.getHostname().equals(dto.getHostname()));
     assert (passwordHandler.decryptPassword(config.getPassword()).equals(dto.getPassword()));
     assert (config.getApikey().equals(dto.getApiKey()));
+    assertThat(response).isEqualTo(String.format("You have acknowledged and agreed that %s", EULA_MESSAGE));
   }
 
   @Test
   public void testSetConfiguration_notFoundException() {
-    assertThrows("Configuration is required.", NotFoundException.class, () -> underTest.getConfiguration());
+    assertThrows("Configuration is required.", NotFoundException.class, () -> underTest.setConfiguration(null));
+  }
+
+  @Test
+  public void testSetConfiguration_badRequestException() {
+    ApiZScalerConfigurationDTO dto = new ApiZScalerConfigurationDTO();
+    dto.setUsername("testusername");
+    dto.setPassword("testpassword");
+    dto.setHostname("testhostname");
+    dto.setEulaAgreed(false);
+    assertThrows(String.format("You must acknowledge and agree that %s", EULA_MESSAGE), BadRequestException.class,
+        () -> underTest.setConfiguration(dto));
   }
 
   @Test
@@ -93,6 +109,6 @@ public class ApiZScalerConfigurationServiceTest
 
   @Test
   public void testDeleteConfiguration_notFoundException() {
-    assertThrows("Zscaler not configured.", NotFoundException.class, () -> underTest.getConfiguration());
+    assertThrows("Zscaler not configured.", NotFoundException.class, () -> underTest.deleteConfiguration());
   }
 }

@@ -10,8 +10,8 @@ import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.elements.NxTextInput;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.ApiPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
@@ -54,9 +54,11 @@ public class ZscalerConfigPageTest
 
   private static final String FAKE_PASSWORD = "\u0000\u0000\u0000\u0000\u0000";
 
-  private static final String EULA_TEXT_STRING = "I acknowledge that access to and use of Sonatype products is " +  
-      "governed by either 1) the terms of company's negotiated license agreement with Sonatype or, in the absence " +
-      "of a negotiated license, 2) Sonatype’s End User License Agreement";
+  private static final String EULA_TEXT_STRING = """
+      By clicking "Save" below, I hereby acknowledge and agree that
+      access to and use of Sonatype's Zscaler integration is subject to
+      and governed by these License Terms.
+      """;
 
   @BeforeClass
   public static void beforeClass() {
@@ -125,7 +127,7 @@ public class ZscalerConfigPageTest
     page.apiKey().shouldBe(value("key"));
     page.eulaCheckbox().shouldBe(selected).shouldBe(disabled);
   }
-  
+
   @Test
   public void testSaveConfig_failsIfEulaCheckboxNotChecked() {
     refreshOrOpen(ZscalerConfigPage.url());
@@ -133,7 +135,7 @@ public class ZscalerConfigPageTest
     page.password().setValue("asdf");
     page.hostname().setValue("https://zsapi.zscalertwo.net");
     page.apiKey().setValue("key");
-    
+
     saveConfiguration();
     assertValidationError("Review the highlighted fields for missing information.");
   }
@@ -231,7 +233,7 @@ public class ZscalerConfigPageTest
     FormUtils.getErrorElement(page).shouldBe(visible);
     FormUtils.getErrorElement(page.zscalerFormSection()).shouldBe(visible)
         .shouldHave(text("Unable to establish the connection to Zscaler as the connection is not configured. " +
-        "Test Zscaler configuration failed. Learn more about the Zscaler integration\n Retry"));
+            "Test Zscaler configuration failed. Learn more about the Zscaler integration\n Retry"));
   }
 
   @Test

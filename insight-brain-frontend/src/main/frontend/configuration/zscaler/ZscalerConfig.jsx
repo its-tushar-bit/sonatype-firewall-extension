@@ -42,8 +42,7 @@ const TEST_CONFIG_ERROR_MESSAGE =
   'Unable to establish the connection to Zscaler as the connection is not configured. ' +
   'Test Zscaler configuration failed.';
 
-const TEST_CONFIG_SUCCESS_MESSAGE =
-  'The connection to Zscaler was successfully established. Test Zscaler configuration succeed.';
+const TEST_CONFIG_SUCCESS_MESSAGE = 'Connection to Zscaler successful.';
 
 const REQUIRED_DETAILS_MESSAGE = 'Username, Password, Hostname and Zscaler API Key are required details.';
 
@@ -195,6 +194,16 @@ export default function ZscalerConfig(props) {
     </NxTextLink>
   );
 
+  const licenseTermsLink = (
+    <NxTextLink
+      external
+      id="zscaler-eula-link"
+      href="https://links.sonatype.com/products/firewall/docs/zscaler/zscaler-eula"
+    >
+      License Terms.
+    </NxTextLink>
+  );
+
   function testConfigHandler() {
     if (isTestConfigEnabled) {
       testConfig();
@@ -306,12 +315,11 @@ export default function ZscalerConfig(props) {
                 disabled={eulaState.disabled}
                 id="zscaler-eula-checkbox"
               >
-                I acknowledge that access to and use of Sonatype products is governed by either 1) the terms of
-                company's negotiated license agreement with Sonatype or, in the absence of a negotiated license, 2){' '}
-                {/* The correct link url will be added later */}
-                <NxTextLink external id="zscaler-eula-link" href="https://sonatype.com/">
-                  Sonatype’s End User License Agreement
-                </NxTextLink>
+                By clicking "Save" below, I hereby acknowledge and agree that
+                <br />
+                access to and use of Sonatype's Zscaler integration is subject to
+                <br />
+                and governed by these {licenseTermsLink}
               </NxCheckbox>
             </NxFieldset>
           </NxTile.Content>
@@ -326,6 +334,13 @@ const textInputPropType = PropTypes.shape({
   value: PropTypes.string.isRequired,
   trimmedValue: PropTypes.string.isRequired,
   isPristine: PropTypes.bool.isRequired,
+  validationErrors: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.string.isRequired), PropTypes.string]),
+});
+
+const checkboxPropType = PropTypes.shape({
+  value: PropTypes.bool.isRequired,
+  isPristine: PropTypes.bool.isRequired,
+  disabled: PropTypes.bool.isRequired,
   validationErrors: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.string.isRequired), PropTypes.string]),
 });
 
@@ -366,4 +381,5 @@ ZscalerConfig.propTypes = {
   showDeleteModal: PropTypes.bool.isRequired,
   mustReenterPassword: PropTypes.bool.isRequired,
   isAuthorized: PropTypes.bool.isRequired,
+  eulaState: checkboxPropType.isRequired,
 };

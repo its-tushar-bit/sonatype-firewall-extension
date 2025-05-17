@@ -64,9 +64,9 @@ describe('ZscalerConfig', () => {
   const renderComponent = (props = setState()) => render(<ZscalerConfig {...props} />);
 
   const CHECKBOX_NAME =
-    'I acknowledge that access to and use of Sonatype products is governed by either 1) the terms ' +
-    "of company's negotiated license agreement with Sonatype or, in the absence of a negotiated license, 2) " +
-    'Sonatype’s End User License Agreement';
+    `By clicking "Save" below, I hereby acknowledge and agree that ` +
+    `access to and use of Sonatype's Zscaler integration is subject to ` +
+    `and governed by these License Terms.`;
 
   it('renders error alert with message when not authorized', async () => {
     renderComponent(setState({ isAuthorized: false }));
@@ -100,9 +100,12 @@ describe('ZscalerConfig', () => {
       'Generate a Zscaler API Key through the Admin Portal under API Management. Learn how to retrieve Zscaler API Key';
     const learnMoreLink = screen.getByRole('link', { name: /Learn more about the Zscaler integration/i });
     const apiKeyLink = screen.getByRole('link', { name: /Learn how to retrieve Zscaler API Key/i });
+    const licenseTermsLink = screen.getByRole('link', { name: /License Terms/i });
 
+    // heading and description
     expect(screen.getByRole('heading', { level: 2, name: /ZScaler Configuration/i })).toBeInTheDocument();
     expect(screen.getByText(description)).toBeInTheDocument();
+    // links
     expect(learnMoreLink).toBeInTheDocument();
     expect(learnMoreLink).toHaveAttribute(
       'href',
@@ -110,6 +113,11 @@ describe('ZscalerConfig', () => {
     );
     expect(apiKeyLink).toBeInTheDocument();
     expect(apiKeyLink).toHaveAttribute('href', 'https://links.sonatype.com/products/nxrm3/docs/zscaler/api-keys');
+    expect(licenseTermsLink).toBeInTheDocument();
+    expect(licenseTermsLink).toHaveAttribute(
+      'href',
+      'https://links.sonatype.com/products/firewall/docs/zscaler/zscaler-eula'
+    );
     // input fields
     expect(usernameInput).toBeInTheDocument();
     expect(usernameInput).toHaveAttribute('placeholder', 'user');
@@ -287,9 +295,7 @@ describe('ZscalerConfig', () => {
 
     const alert = screen.getAllByRole('status');
     expect(alert[1]).toBeInTheDocument();
-    expect(alert[1]).toHaveTextContent(
-      'The connection to Zscaler was successfully established. Test Zscaler configuration succeed.'
-    );
+    expect(alert[1]).toHaveTextContent('Connection to Zscaler successful.');
   });
 
   it('renders error alert when testConfigError is true', async () => {
@@ -302,6 +308,7 @@ describe('ZscalerConfig', () => {
           value: true,
           isPristine: false,
           validationErrors: null,
+          disabled: false,
         },
       })
     );

@@ -838,6 +838,120 @@ public class ComponentLoaderTest
         .isEqualTo("testRemediation");
   }
 
+  @Test
+  public void testGetAll_WithKevData() throws Exception {
+    String hash1 = "abc123";
+    String hash2 = "def456";
+    String hash3 = "ghi789";
+    String refId1 = "CVE-123";
+    String refId2 = "CVE-456";
+    String refId3 = "CVE-789";
+    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectNode bom = objectMapper.createObjectNode();
+    ArrayNode aaData = objectMapper.createArrayNode();
+
+    // Component 1: getIsKev = false
+    ObjectNode component1 = objectMapper.createObjectNode();
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    component1.set("componentIdentifier", objectMapper.valueToTree(componentIdentifier1));
+    component1.put("hash", hash1);
+    component1.put("matchState", MatchState.EXACT.getId());
+    component1.set("displayName",
+        objectMapper.valueToTree(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier1)));
+    component1.put("proprietary", false);
+    component1.put("relativePopularity", 100.0);
+    component1.put("createTime", System.currentTimeMillis());
+    component1.put("endOfLife", END_OF_LIFE_TRUE.name());
+    aaData.add(objectMapper.valueToTree(component1));
+
+    // Component 2: getIsKev = null
+    ObjectNode component2 = objectMapper.createObjectNode();
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2");
+    component2.set("componentIdentifier", objectMapper.valueToTree(componentIdentifier2));
+    component2.put("hash", hash2);
+    component2.put("matchState", MatchState.EXACT.getId());
+    component2.set("displayName",
+        objectMapper.valueToTree(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier2)));
+    component2.put("proprietary", false);
+    component2.put("relativePopularity", 80.0);
+    component2.put("createTime", System.currentTimeMillis());
+    component2.put("endOfLife", END_OF_LIFE_TRUE.name());
+    aaData.add(objectMapper.valueToTree(component2));
+
+    // Component 3: getIsKev = true
+    ObjectNode component3 = objectMapper.createObjectNode();
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3", "c3", "e3");
+    component3.set("componentIdentifier", objectMapper.valueToTree(componentIdentifier3));
+    component3.put("hash", hash3);
+    component3.put("matchState", MatchState.EXACT.getId());
+    component3.set("displayName",
+        objectMapper.valueToTree(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier3)));
+    component3.put("proprietary", false);
+    component3.put("relativePopularity", 60.0);
+    component3.put("createTime", System.currentTimeMillis());
+    component3.put("endOfLife", END_OF_LIFE_TRUE.name());
+    aaData.add(objectMapper.valueToTree(component3));
+
+    bom.set("aaData", aaData);
+
+    ObjectNode securityData = objectMapper.createObjectNode();
+    ArrayNode aaDataSecurityData = objectMapper.createArrayNode();
+
+    // Security Vulnerability 1: getIsKev = false
+    ObjectNode securityVulnerability1 = objectMapper.createObjectNode();
+    ObjectNode kevDataNode1 = objectMapper.createObjectNode();
+    kevDataNode1.put("isKev", false);
+    securityVulnerability1.put("hash", hash1);
+    securityVulnerability1.put("source", "test");
+    securityVulnerability1.put("reference", refId1);
+    securityVulnerability1.put("kevData", kevDataNode1);
+    aaDataSecurityData.add(securityVulnerability1);
+
+    // Security Vulnerability 2: getIsKev = null
+    ObjectNode securityVulnerability2 = objectMapper.createObjectNode();
+    securityVulnerability2.put("hash", hash2);
+    securityVulnerability2.put("source", "test");
+    securityVulnerability2.put("reference", refId2);
+    aaDataSecurityData.add(securityVulnerability2);
+
+    // Security Vulnerability 3: getIsKev = true
+    ObjectNode securityVulnerability3 = objectMapper.createObjectNode();
+    ObjectNode kevDataNode3 = objectMapper.createObjectNode();
+    kevDataNode3.put("isKev", true);
+    securityVulnerability3.put("hash", hash3);
+    securityVulnerability3.put("source", "test");
+    securityVulnerability3.put("reference", refId3);
+    securityVulnerability3.put("kevData", kevDataNode3);
+    aaDataSecurityData.add(securityVulnerability3);
+
+    securityData.set("aaData", aaDataSecurityData);
+
+    List<Component> components = componentLoader.getAll(null, false,
+        objectMapper.writeValueAsBytes(securityData), objectMapper.writeValueAsBytes(bom), null);
+
+    assertThat(components).hasSize(3);
+
+    // Assert Component 1
+    assertThat(components.get(0).getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability securityVulnerabilityResult1 = components.get(0).getSecurityVulnerabilities().get(0);
+    assertThat(securityVulnerabilityResult1.getRefId()).isEqualTo(refId1);
+    assertThat(securityVulnerabilityResult1.getKevData()).isNotNull();
+    assertThat(securityVulnerabilityResult1.getKevData().getIsKev()).isFalse();
+
+    // Assert Component 2
+    assertThat(components.get(1).getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability securityVulnerabilityResult2 = components.get(1).getSecurityVulnerabilities().get(0);
+    assertThat(securityVulnerabilityResult2.getRefId()).isEqualTo(refId2);
+    assertThat(securityVulnerabilityResult2.getKevData()).isNull();
+
+    // Assert Component 3
+    assertThat(components.get(2).getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability securityVulnerabilityResult3 = components.get(2).getSecurityVulnerabilities().get(0);
+    assertThat(securityVulnerabilityResult3.getRefId()).isEqualTo(refId3);
+    assertThat(securityVulnerabilityResult3.getKevData()).isNotNull();
+    assertThat(securityVulnerabilityResult3.getKevData().getIsKev()).isTrue();
+  }
+
   private void assertLicenseOverrideIsTheExpected(MatchedComponent matchedComponent, String licenseOverrideId) {
     // We need a new instance so the inserted LicenseOverrides are loaded. The LicenseOverride is only loaded
     // one time on first call to getComponent. This is aligned with the intentional design for the ComponentDAO

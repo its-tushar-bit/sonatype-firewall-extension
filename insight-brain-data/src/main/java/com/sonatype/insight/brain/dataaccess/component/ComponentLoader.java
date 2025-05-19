@@ -65,6 +65,7 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSev
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
+import com.sonatype.insight.vulnerability.model.KevData;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
 
 import com.sonatype.insight.json.store.JsonUtils;
@@ -601,6 +602,7 @@ public class ComponentLoader
               JsonUtils.getNullableString(securityVulnerabilityJson.get("cvssVectorString"));
           final String cvssVectorSource =
               JsonUtils.getNullableString(securityVulnerabilityJson.get("cvssVectorSource"));
+          final JsonNode kevDataNode = securityVulnerabilityJson.path("kevData");
 
           Component component = componentsByHash.get(hash);
 
@@ -614,6 +616,7 @@ public class ComponentLoader
             securityVulnerability.setCwe(cweString);
             securityVulnerability.setVector(cvssVectorString);
             securityVulnerability.setVectorSource(cvssVectorSource);
+            securityVulnerability.setKevData(toKevData(kevDataNode));
             if (vulnerabilityCategories != null) {
               for (String categoryStr : vulnerabilityCategories) {
                 SecurityVulnerabilityCategory category = SecurityVulnerabilityCategory.getById(categoryStr);
@@ -886,5 +889,21 @@ public class ComponentLoader
     Boolean dependenciesResolved;
 
     List<Component> components = new ArrayList<>();
+  }
+
+  /**
+   * Convert JSON representation of KevData to the concrete class.
+   */
+  private KevData toKevData(final JsonNode kevDataNode) {
+    if (kevDataNode == null) {
+      return null;
+    }
+
+    try {
+      return JsonUtils.asPojo(kevDataNode, KevData.class);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException("Error deserializing KevData", e);
+    }
   }
 }

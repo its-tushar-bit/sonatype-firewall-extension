@@ -126,6 +126,9 @@ public class JobClassNameTest
         "com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryBackfillTask",
         "PolicyWaiverTelemetryBackfillTask");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.zscaler.ZScalerUpdater", "ZScalerUpdater");
+    insightJobClassNameToExpectedJobName.put(
+        "com.sonatype.insight.brain.git.PullRequestStateUpdateJob",
+        "PullRequestStateUpdateJob");
   }
 
   @Inject

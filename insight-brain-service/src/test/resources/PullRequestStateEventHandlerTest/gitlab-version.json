@@ -1,0 +1,11 @@
+{
+	"version": "17.10.4",
+	"revision": "17c5705edda",
+	"kas": {
+		"enabled": true,
+		"externalUrl": "ws://localhost:8080/-/kubernetes-agent/",
+		"externalK8sProxyUrl": "http://localhost:8080/-/kubernetes-agent/k8s-proxy/",
+		"version": "17.10.4"
+	},
+	"enterprise": false
+}

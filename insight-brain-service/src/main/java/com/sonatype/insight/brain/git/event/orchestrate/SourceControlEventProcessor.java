@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.concurrent.SemaphorePool;
 import com.sonatype.insight.brain.git.GitCommitStatusService;
 import com.sonatype.insight.brain.git.PullRequestCommentingEventHandler;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
+import com.sonatype.insight.brain.git.PullRequestStateEventHandler;
 import com.sonatype.insight.brain.git.SourceControlException;
 import com.sonatype.insight.brain.git.SourceControlScanService;
 import com.sonatype.insight.brain.git.SourceControlService;
@@ -60,6 +61,8 @@ public class SourceControlEventProcessor
 
   private final PullRequestCommentingEventHandler pullRequestCommentingEventHandler;
 
+  private final PullRequestStateEventHandler pullRequestStateEventHandler;
+
   private final PullRequestRemediationService pullRequestRemediationService;
 
   private final GitCommitStatusService gitCommitStatusService;
@@ -73,6 +76,7 @@ public class SourceControlEventProcessor
   @Inject
   public SourceControlEventProcessor(
       PullRequestCommentingEventHandler pullRequestCommentingEventHandler,
+      PullRequestStateEventHandler pullRequestStateEventHandler,
       PullRequestRemediationService pullRequestRemediationService,
       GitCommitStatusService gitCommitStatusService,
       SourceControlScanService sourceControlScanService,
@@ -82,6 +86,7 @@ public class SourceControlEventProcessor
       ShutdownHandler shutdownHandler)
   {
     this.pullRequestCommentingEventHandler = pullRequestCommentingEventHandler;
+    this.pullRequestStateEventHandler = pullRequestStateEventHandler;
     this.pullRequestRemediationService = pullRequestRemediationService;
     this.gitCommitStatusService = gitCommitStatusService;
     this.sourceControlScanService = sourceControlScanService;
@@ -240,6 +245,11 @@ public class SourceControlEventProcessor
 
         case SourceControlEvent.UPDATED_PULL_REQUEST_EVENT:
           pullRequestCommentingEventHandler.onUpdatedPullRequest(event);
+          break;
+
+        case SourceControlEvent.PR_STATE_UPDATE_EVENT:
+        case SourceControlEvent.BATCH_PR_STATE_UPDATE_EVENT:
+          pullRequestStateEventHandler.handle(event);
           break;
 
         default:

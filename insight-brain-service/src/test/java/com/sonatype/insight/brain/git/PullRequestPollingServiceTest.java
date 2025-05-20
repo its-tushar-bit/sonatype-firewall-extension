@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
@@ -29,6 +30,7 @@ import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
 import com.sonatype.nexus.scm.api.model.ProjectUrl;
 import com.sonatype.nexus.scm.api.model.PullRequest;
+import com.sonatype.nexus.scm.api.model.PullRequestState;
 import com.sonatype.nexus.scm.github.dto.GitHubProjectUrl;
 import com.sonatype.nexus.scm.github.dto.GithubPullRequest;
 import com.sonatype.nexus.scm.gitlab.dto.GitlabMergeRequestResponse;
@@ -101,7 +103,7 @@ public class PullRequestPollingServiceTest
         .withApplication("appBaseBranch", "develop")
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "develop", "main-branch",
-            "feature-commit-xyz-1", "base-commit")
+            "feature-commit-xyz-1", "base-commit", PullRequestState.OPEN)
         .build();
 
     // when: fetch and send
@@ -125,7 +127,7 @@ public class PullRequestPollingServiceTest
         .withApplication("appPost", "main-branch")
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
-            "feature-commit-xyz-1", "base-commit")
+            "feature-commit-xyz-1", "base-commit", PullRequestState.OPEN)
         .build();
 
     // when: fetch and send
@@ -140,8 +142,68 @@ public class PullRequestPollingServiceTest
     assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/org7/repo7", 10,
         "feature-commit-xyz-1", "feature-branch",
         "base-commit", "main-branch",
-        pullRequestCreateDate, before, after);
+        pullRequestCreateDate, before, after, com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.OPEN);
 
+    verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
+    assertThatLogMessagesContain(
+        info("Sent pull request discovered event for application 'appPost' with PR# '10' and commit " +
+            "'feature-commit-xyz-1'")
+    );
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_External_Open() throws Exception {
+    assertPersistsExternalPRWithCorrectState(PullRequestState.OPEN,
+        com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.OPEN);
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_External_Closed() throws Exception {
+    assertPersistsExternalPRWithCorrectState(PullRequestState.CLOSED,
+        com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.CLOSED);
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_External_Merged() throws Exception {
+    assertPersistsExternalPRWithCorrectState(PullRequestState.MERGED,
+        com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.MERGED);
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_External_Locked() throws Exception {
+    assertPersistsExternalPRWithCorrectState(PullRequestState.LOCKED,
+        com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.LOCKED);
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_External_Unknown() throws Exception {
+    assertPersistsExternalPRWithCorrectState(PullRequestState.UNKNOWN, null);
+  }
+
+  private void assertPersistsExternalPRWithCorrectState(
+      final PullRequestState state,
+      final com.sonatype.insight.brain.model.sourcecontrol.PullRequestState expectedState) throws Exception
+  {
+    Date pullRequestCreateDate = new Date();
+    Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository("org7/repo7", SourceControlProvider.GITHUB)
+        .withApplication("appPost", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
+            "feature-commit-xyz-1", "base-commit", state)
+        .build();
+    Date before = new Date();
+
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    Date after = new Date();
+    List<SourceControlPullRequest> sourceControlPullRequests = sourceControlPullRequestDAO.getAll();
+    assertThat(sourceControlPullRequests).hasSize(1);
+    SourceControlPullRequest sourceControlPullRequest = sourceControlPullRequests.get(0);
+    assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/org7/repo7", 10,
+        "feature-commit-xyz-1", "feature-branch", "base-commit", "main-branch", pullRequestCreateDate, before, after,
+        expectedState);
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
         info("Sent pull request discovered event for application 'appPost' with PR# '10' and commit " +
@@ -160,7 +222,7 @@ public class PullRequestPollingServiceTest
         .withApplication("appPost", "main-branch", prCommentingEnabled)
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
-            "feature-commit-xyz-1", "base-commit")
+            "feature-commit-xyz-1", "base-commit", PullRequestState.OPEN)
         .build();
 
     // when: fetch and send
@@ -184,7 +246,7 @@ public class PullRequestPollingServiceTest
         .withApplication("app1", "main-branch", false)
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
-            "feature-commit-xyz-1", "base-commit")
+            "feature-commit-xyz-1", "base-commit", PullRequestState.OPEN)
         .forRepository("testorg/testrepo", SourceControlProvider.GITHUB).withApplication("app2", "main-branch")
         .withPollingTime(pullRequestPollingTime).build();
 
@@ -199,7 +261,7 @@ public class PullRequestPollingServiceTest
     assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/testorg/testrepo", 10,
         "feature-commit-xyz-1", "feature-branch",
         "base-commit", "main-branch",
-        pullRequestCreateDate, before, after);
+        pullRequestCreateDate, before, after, com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.OPEN);
 
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
@@ -218,7 +280,7 @@ public class PullRequestPollingServiceTest
         .withApplication("appPost", "main-branch")
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
-            "feature-commit-xyz-1", "base-commit")
+            "feature-commit-xyz-1", "base-commit", PullRequestState.OPEN)
         .unlicensed()
         .build();
 
@@ -238,7 +300,7 @@ public class PullRequestPollingServiceTest
         .forRepository("testorg/testrepo", SourceControlProvider.GITHUB).withApplication("app1", "main-branch")
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
-            "feature-commit-xyz-1", "base-commit")
+            "feature-commit-xyz-1", "base-commit", PullRequestState.OPEN)
         .forRepository("testorg/testrepo", SourceControlProvider.GITHUB).withApplication("app2", "main-branch")
         .withPollingTime(pullRequestPollingTime).build();
 
@@ -254,7 +316,7 @@ public class PullRequestPollingServiceTest
     assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/testorg/testrepo", 10,
         "feature-commit-xyz-1", "feature-branch",
         "base-commit", "main-branch",
-        pullRequestCreateDate, before, after);
+        pullRequestCreateDate, before, after, com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.OPEN);
 
     verify(sourceControlEventPublisher, times(2)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
@@ -275,7 +337,7 @@ public class PullRequestPollingServiceTest
         .forRepository("testorg/testrepo", SourceControlProvider.GITHUB).withApplication("app1", "main-branch")
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
-            "feature-commit-xyz-1", "base-commit")
+            "feature-commit-xyz-1", "base-commit", PullRequestState.OPEN)
         .forRepository("TESTORG/testrepo", SourceControlProvider.GITHUB).withApplication("app2", "main-branch")
         .withPollingTime(pullRequestPollingTime).build();
 
@@ -291,7 +353,7 @@ public class PullRequestPollingServiceTest
     assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/testorg/testrepo", 10,
         "feature-commit-xyz-1", "feature-branch",
         "base-commit", "main-branch",
-        pullRequestCreateDate, before, after);
+        pullRequestCreateDate, before, after, com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.OPEN);
 
     verify(sourceControlEventPublisher, times(2)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
@@ -309,7 +371,7 @@ public class PullRequestPollingServiceTest
         .withApplication("appNoTarget", "main-branch")
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
-            "feature-commit-xyz-1", "base-commit")
+            "feature-commit-xyz-1", "base-commit", PullRequestState.OPEN)
         .build();
 
     // when: fetch and send
@@ -324,7 +386,7 @@ public class PullRequestPollingServiceTest
     assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/org9/repo9", 10,
         "feature-commit-xyz-1", "feature-branch",
         "base-commit", "main-branch",
-        pullRequestCreateDate, before, after);
+        pullRequestCreateDate, before, after, com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.OPEN);
 
     // and: an event is created
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
@@ -344,7 +406,8 @@ public class PullRequestPollingServiceTest
       String baseBranchName,
       Date createTime,
       Date before,
-      Date after)
+      Date after,
+      com.sonatype.insight.brain.model.sourcecontrol.PullRequestState pullRequestState)
   {
     assertThat(actual.getRepositoryUrl()).isEqualTo(repositoryUrl);
     assertThat(actual.getPullRequestId()).isEqualTo(pullRequestId);
@@ -355,6 +418,8 @@ public class PullRequestPollingServiceTest
     assertThat(actual.getCreateTime()).isEqualTo(createTime);
     assertThat(actual.getLastCheckTime()).isBetween(before, after, true, true);
     assertThat(actual.getLastDetectedUpdateTime()).isBetween(before, after, true, true);
+    assertThat(actual.getState()).isEqualTo(pullRequestState);
+    assertThat(actual.getSource()).isEqualTo(PullRequestSource.EXTERNAL);
   }
 
   @Test
@@ -367,7 +432,7 @@ public class PullRequestPollingServiceTest
         .withApplication("appInternal", "main-branch")
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
-            "feature-commit-xyz-1", "base-commit")
+            "feature-commit-xyz-1", "base-commit", PullRequestState.OPEN)
         .withGitRepositoryPrivate(false)
         .withGitRepositoryInternal(true)
         .build();
@@ -384,7 +449,7 @@ public class PullRequestPollingServiceTest
     assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/orgInt/repoInt", 10,
         "feature-commit-xyz-1", "feature-branch",
         "base-commit", "main-branch",
-        pullRequestCreateDate, before, after);
+        pullRequestCreateDate, before, after, com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.OPEN);
 
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
@@ -422,7 +487,7 @@ public class PullRequestPollingServiceTest
         .withApplication("appNotPrivate", "main-branch")
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
-            "feature-commit-xyz-1", "base-commit")
+            "feature-commit-xyz-1", "base-commit", PullRequestState.OPEN)
         .withGitRepositoryPrivate(false)
         .build();
 
@@ -447,7 +512,7 @@ public class PullRequestPollingServiceTest
         .withPollingTime(new Date())
         .withId("sourceControl1")
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
-            "feature-commit-xyz-1", "base-commit")
+            "feature-commit-xyz-1", "base-commit", PullRequestState.OPEN)
         .build();
     doThrow(new IOException("scm error"))
         .when(mockClientMap.get("orgErr/repoErr"))
@@ -477,7 +542,7 @@ public class PullRequestPollingServiceTest
         .withPollingTime(new Date())
         .withId("sourceControl1")
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
-            "feature-commit-xyz-1", "base-commit")
+            "feature-commit-xyz-1", "base-commit", PullRequestState.OPEN)
         .build();
     doThrow(new IOException("scm error"))
         .when(mockClientMap.get("orgErr/repoErr"))
@@ -512,13 +577,13 @@ public class PullRequestPollingServiceTest
         .withApplication("gitlab1", "main-branch")
         .withPollingTime(repo1pullRequestPollingTime)
         .withPullRequest(10, repo1pullRequestCreateDate, "feature-branch", "main-branch",
-            "feature-commit-xyz-1", "base-commit-1")
+            "feature-commit-xyz-1", "base-commit-1", PullRequestState.OPEN)
 
         .forRepository("org/multi-2", SourceControlProvider.GITLAB)
         .withApplication("gitlab2", "main-branch")
         .withPollingTime(repo2pullRequestPollingTime)
         .withPullRequest(20, repo2pullRequestCreateDate, "R2-feature-branch", "main-branch",
-            "feature-commit-abc-2", "base-commit-2")
+            "feature-commit-abc-2", "base-commit-2", PullRequestState.OPEN)
         .build();
 
     // when:
@@ -532,11 +597,13 @@ public class PullRequestPollingServiceTest
     assertSourceControlPullRequest(sourceControlPullRequests.get(0), "https://domain.com/org/multi-1", 10,
         "feature-commit-xyz-1", "feature-branch",
         null, "main-branch",
-        repo1pullRequestCreateDate, before, after);
+        repo1pullRequestCreateDate, before, after,
+        com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.OPEN);
     assertSourceControlPullRequest(sourceControlPullRequests.get(1), "https://domain.com/org/multi-2", 20,
         "feature-commit-abc-2", "R2-feature-branch",
         null, "main-branch",
-        repo2pullRequestCreateDate, before, after);
+        repo2pullRequestCreateDate, before, after,
+        com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.OPEN);
 
     // and SourceControls are updated as expected
     SourceControl sourceControl1 =
@@ -573,7 +640,7 @@ public class PullRequestPollingServiceTest
         .withApplication(appId, "main-branch")
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, branchPrefix + "/com.sonatype/iq-server/1.108", "main-branch",
-            "feature-commit-xyz-1", "base-commit")
+            "feature-commit-xyz-1", "base-commit", PullRequestState.OPEN)
         .build();
 
     // when: fetch and send PRs
@@ -601,13 +668,13 @@ public class PullRequestPollingServiceTest
         .withApplication("github1", "main-branch")
         .withPollingTime(repo1pullRequestPollingTime)
         .withPullRequest(10, repo1pullRequestCreateDate, "feature-branch", "main-branch",
-            "feature-commit-xyz-1", "base-commit")
+            "feature-commit-xyz-1", "base-commit", PullRequestState.OPEN)
 
         .forRepository("githubOrg/multi-2", SourceControlProvider.GITHUB)
         .withApplication("github2", "main-branch")
         .withPollingTime(repo2pullRequestPollingTime)
         .withPullRequest(20, repo2pullRequestCreateDate, "R2-feature-branch", "main-branch",
-            "feature-commit-abc-2", "base-commit")
+            "feature-commit-abc-2", "base-commit", PullRequestState.OPEN)
         .build();
 
     // when:
@@ -621,11 +688,13 @@ public class PullRequestPollingServiceTest
     assertSourceControlPullRequest(sourceControlPullRequests.get(0), "https://domain.com/githubOrg/multi-1", 10,
         "feature-commit-xyz-1", "feature-branch",
         "base-commit", "main-branch",
-        repo1pullRequestCreateDate, before, after);
+        repo1pullRequestCreateDate, before, after,
+        com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.OPEN);
     assertSourceControlPullRequest(sourceControlPullRequests.get(1), "https://domain.com/githubOrg/multi-2", 20,
         "feature-commit-abc-2", "R2-feature-branch",
         "base-commit", "main-branch",
-        repo2pullRequestCreateDate, before, after);
+        repo2pullRequestCreateDate, before, after,
+        com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.OPEN);
 
     // and SourceControls are updated as expected
     // Both SourceControls their poll time updated to the max of pull request create time (for the two pull requests)
@@ -805,7 +874,8 @@ public class PullRequestPollingServiceTest
         String headBranch,
         String baseBranch,
         String headCommit,
-        String baseCommit)
+        String baseCommit,
+        PullRequestState pullRequestState)
     {
       PullRequest pullRequest;
       switch (currentMockRepo.gitRepositoryInfo.provider) {
@@ -825,6 +895,7 @@ public class PullRequestPollingServiceTest
       pullRequest.setRepositoryPrivate(currentMockRepo.isGitRepositoryPrivate);
       pullRequest.setHeadCommitHash(headCommit);
       pullRequest.setBaseCommitHash(baseCommit);
+      pullRequest.setState(pullRequestState);
       currentMockRepo.pullRequests.add(pullRequest);
       return this;
     }

@@ -14,7 +14,10 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -68,6 +71,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.common.collect.ImmutableSortedSet;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -578,6 +582,48 @@ public class ApplicationDAO
     final String sQuery = "SELECT app FROM Application app, SourceControl sc " +
         " WHERE app.id = sc.ownerId AND sc.normalizedRepositoryUrl = ?1";
     return getList(sQuery, repositoryUrl);
+  }
+
+  /**
+   * Efficiently fetch application IDs for all of the provided normalizedRepositoryUrls
+   * @return Map of normalizedRepositoryUrl to applicationIds. The sets that are the values of the map will never be
+   * empty, and are sorted alphabetically.
+   */
+  public Map<String, SortedSet<String>> getApplicationIdsByNormalizedRepositoryUrls(
+      Set<String> normalizedRepositoryUrls)
+  {
+    if (normalizedRepositoryUrls.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    final String sQuery = """
+        SELECT sc.normalizedRepositoryUrl, sc.ownerId
+        FROM SourceControl sc
+        WHERE sc.normalizedRepositoryUrl IN ?1
+        """;
+
+    final List<?> results = getListWithSqlInClause(normalizedRepositoryUrls, urls -> getUntypedResult(sQuery, urls));
+    final Map<String, SortedSet<String>> retval = results.stream()
+        .map(Object[].class::cast)
+        .collect(Collectors.toMap(
+            row -> (String) row[0],
+            row -> ImmutableSortedSet.of((String) row[1]),
+            (set1, set2) -> {
+              // Merge the two sets
+              var mergedSet = new TreeSet<>(set1);
+              mergedSet.addAll(set2);
+              return mergedSet;
+            }
+        ));
+
+    Set<String> missingUrls = new HashSet<>(normalizedRepositoryUrls);
+    missingUrls.removeAll(retval.keySet());
+
+    if (!missingUrls.isEmpty()) {
+      throw new IllegalArgumentException("Repository URLs not found: " + missingUrls);
+    }
+
+    return retval;
   }
 
   public static String normalizePublicId(String publicId) {

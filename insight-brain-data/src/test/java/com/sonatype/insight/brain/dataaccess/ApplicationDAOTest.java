@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -93,6 +94,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestResult;
+import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -109,7 +111,6 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemedia
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -192,7 +193,7 @@ public class ApplicationDAOTest
     tempEntity.newApplications(organization.getId(), appCount);
 
     // Create an app with a related repository manager
-    Organization orgWithRepoManager = tempEntity.newOrganizationWithRepositoryManager("org-with-repo-manager");    
+    Organization orgWithRepoManager = tempEntity.newOrganizationWithRepositoryManager("org-with-repo-manager");
     tempEntity.newApplications(orgWithRepoManager.getId(), 1);
 
     List<Application> apps = applicationDAO.getAll();
@@ -1358,7 +1359,7 @@ public class ApplicationDAOTest
 
     assertThat(applicationDAO.getIdsByAncestorIds(Collections.emptySet()))
         .isEmpty();
-    
+
     assertThat(applicationDAO.getIdsByAncestorIds(Collections.singleton(org0.getId())))
         .isEmpty();
 
@@ -1615,7 +1616,7 @@ public class ApplicationDAOTest
   public void testGetByIdOrPublicId() {
     Application application = tempEntity.newApplicationWithParent();
     tempEntity.newApplicationWithParent();
-    
+
     assertThat(applicationDAO.getByIdOrPublicId(null)).isNull();
     assertThat(applicationDAO.getByIdOrPublicId("")).isNull();
     assertThat(applicationDAO.getByIdOrPublicId(" ")).isNull();
@@ -1809,6 +1810,96 @@ public class ApplicationDAOTest
     assertThat(result.get(0).applicationName()).isEqualTo("AbstractDbDAOTest-AppName");
     assertThat(result.get(1).applicationName()).isEqualTo("app2");
     assertThat(result.get(2).applicationName()).isEqualTo("Sandbox-app");
+  }
+
+  /**
+   * Setup method for application repository URL tests
+   */
+  private void setupRepositoryUrlTests() {
+    // set root org source control
+    tempEntity.newSourceControl(organization.getParentOrganizationId(), null, "token", SourceControlProvider.GITLAB);
+
+    // Create app1 with repo1
+    tempEntity.newApplicationWithSpecificId("app1", "application 1", "app1", organization.getId());
+    tempEntity.newSourceControl("app1", "http://test.gitlab.com/org/repo1.git");
+
+    // Create app2 with repo2
+    tempEntity.newApplicationWithSpecificId("app2", "application 2", "app2", organization.getId());
+    tempEntity.newSourceControl("app2", "http://test.gitlab.com/org/repo2.git");
+
+    // Create app3 with repo3
+    tempEntity.newApplicationWithSpecificId("app3", "application 3", "app3", organization.getId());
+    tempEntity.newSourceControl("app3", "http://test.gitlab.com/org/repo3.git");
+
+    // Create additional apps that share repo1 to test multiple apps per URL
+    tempEntity.newApplicationWithSpecificId("app1b", "application 1b", "app1b", organization.getId());
+    tempEntity.newSourceControl("app1b", "http://test.gitlab.com/org/repo1.git");
+
+    tempEntity.newApplicationWithSpecificId("app1c", "application 1c", "app1c", organization.getId());
+    tempEntity.newSourceControl("app1c", "http://test.gitlab.com/org/repo1.git");
+  }
+
+  @Test
+  public void testGetApplicationIdsByNormalizedRepositoryUrls_Success() {
+    // given: a set of applications with repository URLs (with some URLs having multiple apps)
+    setupRepositoryUrlTests();
+
+    final String normalizedURL1 = "http://test.gitlab.com/org/repo1";
+    final String normalizedURL2 = "http://test.gitlab.com/org/repo2";
+    final String normalizedURL3 = "http://test.gitlab.com/org/repo3";
+
+    // when: Get application IDs for multiple repository URLs
+    Map<String, SortedSet<String>> urlToAppIdsMap = applicationDAO.getApplicationIdsByNormalizedRepositoryUrls(
+        Set.of(normalizedURL1, normalizedURL2, normalizedURL3)
+    );
+
+    // then: Verify the mapping is correct
+    assertThat(urlToAppIdsMap).hasSize(3);
+    // URL1 has multiple applications
+    assertThat(urlToAppIdsMap.get(normalizedURL1))
+        .containsExactlyInAnyOrder("app1", "app1b", "app1c");
+    // URL2 has only one application
+    assertThat(urlToAppIdsMap.get(normalizedURL2))
+        .containsExactly("app2");
+    // URL3 has only one application
+    assertThat(urlToAppIdsMap.get(normalizedURL3))
+        .containsExactly("app3");
+  }
+
+  @Test
+  public void testGetApplicationIdsByNormalizedRepositoryUrls_NonExistentUrl() {
+    // given: a set of applications and a non-existent repository URL
+    setupRepositoryUrlTests();
+
+    final String repositoryURL1 = "http://test.gitlab.com/org/repo1";
+    final String nonExistentRepoURL = "http://test.gitlab.com/org/nonexistent";
+
+    // Normalize the repository URLs as the method expects normalized URLs
+    String normalizedURL1 = SourceControl.normalizeRepositoryUrl(repositoryURL1);
+    String normalizedNonExistentURL = SourceControl.normalizeRepositoryUrl(nonExistentRepoURL);
+
+    // when: Include a non-existent repository URL
+    Set<String> repoUrls = new HashSet<>();
+    repoUrls.add(normalizedURL1);
+    repoUrls.add(normalizedNonExistentURL);
+
+    // then: Expected exception should be thrown
+    assertThatThrownBy(() -> applicationDAO.getApplicationIdsByNormalizedRepositoryUrls(repoUrls))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Repository URLs not found");
+  }
+
+  @Test
+  public void testGetApplicationIdsByNormalizedRepositoryUrls_EmptySet() {
+    // given: an empty set of repository URLs
+    setupRepositoryUrlTests();
+
+    // when: Call method with empty set
+    Map<String, SortedSet<String>> urlToAppIdsMap =
+        applicationDAO.getApplicationIdsByNormalizedRepositoryUrls(Collections.emptySet());
+
+    // then: Result should be empty map
+    assertThat(urlToAppIdsMap).isEmpty();
   }
 
   @Test

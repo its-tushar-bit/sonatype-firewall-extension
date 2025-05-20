@@ -7,13 +7,14 @@ package com.sonatype.insight.brain.model.sourcecontrol;
 
 import java.util.Date;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
 import com.sonatype.insight.model.HasStringId;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -55,6 +56,17 @@ public class SourceControlPullRequest
   @Column(name = "last_detected_update_time")
   private Date lastDetectedUpdateTime;
 
+  @Column(name = "state")
+  @Enumerated(EnumType.STRING)
+  private PullRequestState state;
+
+  // Note that prior to SDEV-1952 all SourceControlPullRequest were external
+  // and when this column was added, it was allowed to be nullable to avoid any migration cost, 
+  // which means that a null value means external
+  @Column(name = "source")
+  @Enumerated(EnumType.STRING)
+  private PullRequestSource source;
+
   public SourceControlPullRequest() {
   }
 
@@ -67,7 +79,9 @@ public class SourceControlPullRequest
       String baseBranchName,
       Date createTime,
       Date lastCheckTime,
-      Date lastDetectedUpdateTime)
+      Date lastDetectedUpdateTime,
+      PullRequestState state,
+      PullRequestSource source)
   {
     setRepositoryUrl(repositoryUrl);
     this.pullRequestId = pullRequestId;
@@ -78,6 +92,8 @@ public class SourceControlPullRequest
     this.createTime = createTime;
     this.lastCheckTime = lastCheckTime;
     this.lastDetectedUpdateTime = lastDetectedUpdateTime;
+    this.state = state;
+    this.source = source;
   }
 
   @Override
@@ -170,11 +186,28 @@ public class SourceControlPullRequest
     this.lastDetectedUpdateTime = lastDetectedUpdateTime;
   }
 
+  public PullRequestState getState() {
+    return state;
+  }
+
+  public void setState(final PullRequestState state) {
+    this.state = state;
+  }
+
+  public PullRequestSource getSource() {
+    return source;
+  }
+
+  public void setSource(final PullRequestSource source) {
+    this.source = source;
+  }
+
   @Override
   public String toString() {
     return "SourceControlPullRequest [id=" + id + ", repositoryUrl=" + repositoryUrl + ", pullRequestId="
         + pullRequestId + ", headCommitHash=" + headCommitHash + ", baseCommitHash=" + baseCommitHash + ", branchName="
         + branchName + ", baseBranchName=" + baseBranchName + ", createTime=" + createTime + ", lastCheckTime="
-        + lastCheckTime + ", lastDetectedUpdateTime=" + lastDetectedUpdateTime + "]";
+        + lastCheckTime + ", lastDetectedUpdateTime=" + lastDetectedUpdateTime + ", state=" + state + ", source="
+        + source + "]";
   }
 }

@@ -280,6 +280,18 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
     }
   }
 
+  protected List<?> getUntypedResult(String sQuery, Object... parameters) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getUntypedResult(tx, sQuery, parameters);
+    }
+  }
+
+  protected List<?> getUntypedResult(TransactionContext tx, String sQuery, Object... parameters) {
+    try (Stream<?> resultStream = getUntypedStream(tx, sQuery, parameters)) {
+      return resultStream.toList();
+    }
+  }
+
   /**
    * Note: This stream should be closed after use
    */
@@ -298,6 +310,13 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
     try (Stream<C> resultStream = getScalarsStreamNative(tx, type, sQuery, parameters)) {
       return resultStream.toList();
     }
+  }
+
+  /**
+   * Note: This stream should be closed after use
+   */
+  protected Stream<?> getUntypedStream(TransactionContext tx, String sQuery, Object... parameters) {
+    return createQuery(tx, sQuery, parameters).getResultStream();
   }
 
   /**

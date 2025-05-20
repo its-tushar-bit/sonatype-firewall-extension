@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
@@ -188,7 +189,8 @@ public class PullRequestMonitor
     long start = System.currentTimeMillis();
     log.debug("Updating pull request details.");
 
-    List<SourceControlPullRequest> allPullRequests = sourceControlPullRequestDAO.getAll();
+    List<SourceControlPullRequest> allPullRequests =
+        sourceControlPullRequestDAO.getBySources(PullRequestSource.EXTERNAL);
 
     Map<String, List<SourceControlPullRequest>> pullRequestsByRepositoryUrl =
         allPullRequests.stream().collect(groupingBy(SourceControlPullRequest::getRepositoryUrl, toList()));

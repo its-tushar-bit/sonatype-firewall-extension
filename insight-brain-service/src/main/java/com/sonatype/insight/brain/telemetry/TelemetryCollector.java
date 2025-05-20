@@ -5,33 +5,53 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.quartz.JobExecutionContext;
 
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
 /**
+ * Implementing classes should override ONE of the collectData or collectAllData methods. Overriding multiple methods
+ * may result in duplicate telemetry collection
+ *
  * @since 1.52
  */
 public interface TelemetryCollector
 {
   /**
+   * TelemetryCollectors whose logic relies on the JobExecutionContext can override this method.
    * Returns the {@code TelemetryData} to send for this particular collector.
+   */
+  default TelemetryData collectData(JobExecutionContext jobExecutionContext) {
+    return null;
+  }
+
+  /**
+   * TelemetryCollectors whose logic doesn't rely on the JobExecutionContext can override this method.
    */
   default TelemetryData collectData() {
     return null;
   }
 
   /**
+   * TelemetryCollectors whose logic relies on the JobExecutionContext can override this method.
    * Returns all of the {@code TelemetryData} to send for this particular collector.
    */
+  default List<TelemetryData> collectAllData(JobExecutionContext jobExecutionContext) {
+    return Stream.concat(Optional.ofNullable(collectData(jobExecutionContext)).stream(), collectAllData().stream())
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * TelemetryCollectors whose logic doesn't rely on the JobExecutionContext can override this method.
+   */
   default List<TelemetryData> collectAllData() {
-    List<TelemetryData> allTelemetryData = new ArrayList<>();
     TelemetryData telemetryData = collectData();
-    if (telemetryData != null) {
-      allTelemetryData.add(telemetryData);
-    }
-    return allTelemetryData;
+    return telemetryData == null ? List.of() : List.of(telemetryData);
   }
 
   /**

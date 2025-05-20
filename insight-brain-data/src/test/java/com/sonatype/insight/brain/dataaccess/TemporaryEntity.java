@@ -295,6 +295,8 @@ import com.sonatype.insight.brain.model.security.SamlUserGroup;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.model.sourcecontrol.GitImplementation;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
 import com.sonatype.insight.brain.model.sourcecontrol.ScmUserMappings;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
@@ -4266,6 +4268,31 @@ public class TemporaryEntity
   }
 
   public SourceControl newSourceControl(
+      String ownerId,
+      String repositoryUrl,
+      String username,
+      String token,
+      SourceControlProvider provider)
+  {
+    return newSourceControl(ownerId, repositoryUrl, username, token, provider, null, null, "master");
+  }
+
+  public SourceControl newSourceControl(
+      String applicationId,
+      String repositoryUrl,
+      String username,
+      String token,
+      SourceControlProvider provider,
+      Boolean remediationPullRequestsEnabled,
+      Boolean statusChecksEnabled,
+      String baseBranch)
+  {
+    return newSourceControl(applicationId, repositoryUrl, username, token, provider, remediationPullRequestsEnabled,
+        statusChecksEnabled, baseBranch, null, null, null,
+        null);
+  }
+
+  public SourceControl newSourceControl(
       String applicationId,
       String repositoryUrl,
       String token,
@@ -5320,12 +5347,88 @@ public class TemporaryEntity
       String baseCommitHash,
       String branchName,
       String baseBranchName,
+      PullRequestState state)
+  {
+    return newSourceControlPullRequest(repositoryUrl, pullRequestId, headCommitHash, baseCommitHash,
+        branchName, baseBranchName, new Date(), new Date(), new Date(), state);
+  }
+
+  public SourceControlPullRequest newSourceControlPullRequest(
+      String repositoryUrl,
+      int pullRequestId,
+      String headCommitHash,
+      String baseCommitHash,
+      String branchName,
+      String baseBranchName,
+      PullRequestSource source)
+  {
+    return newSourceControlPullRequest(repositoryUrl, pullRequestId, headCommitHash, baseCommitHash,
+        branchName, baseBranchName, new Date(), new Date(), new Date(), source);
+  }
+
+  public SourceControlPullRequest newSourceControlPullRequest(
+      String repositoryUrl,
+      int pullRequestId,
+      String headCommitHash,
+      String baseCommitHash,
+      String branchName,
+      String baseBranchName,
       Date createTime,
       Date lastCheckTime,
       Date lastDetectedUpdateTime)
   {
-    SourceControlPullRequest sourceControlPullRequest = new SourceControlPullRequest(repositoryUrl, pullRequestId,
-        headCommitHash, baseCommitHash, branchName, baseBranchName, createTime, lastCheckTime, lastDetectedUpdateTime);
+    return newSourceControlPullRequest(repositoryUrl, pullRequestId, headCommitHash, baseCommitHash,
+        branchName, baseBranchName, createTime, lastCheckTime, lastDetectedUpdateTime, (PullRequestState) null);
+  }
+
+  public SourceControlPullRequest newSourceControlPullRequest(
+      String repositoryUrl,
+      int pullRequestId,
+      String headCommitHash,
+      String baseCommitHash,
+      String branchName,
+      String baseBranchName,
+      Date createTime,
+      Date lastCheckTime,
+      Date lastDetectedUpdateTime,
+      PullRequestState state)
+  {
+    return newSourceControlPullRequest(repositoryUrl, pullRequestId, headCommitHash, baseCommitHash, branchName,
+        baseBranchName, createTime, lastCheckTime, lastDetectedUpdateTime, state, null);
+  }
+
+  public SourceControlPullRequest newSourceControlPullRequest(
+      String repositoryUrl,
+      int pullRequestId,
+      String headCommitHash,
+      String baseCommitHash,
+      String branchName,
+      String baseBranchName,
+      Date createTime,
+      Date lastCheckTime,
+      Date lastDetectedUpdateTime,
+      PullRequestSource source)
+  {
+    return newSourceControlPullRequest(repositoryUrl, pullRequestId, headCommitHash, baseCommitHash, branchName,
+        baseBranchName, createTime, lastCheckTime, lastDetectedUpdateTime, null, source);
+  }
+
+  public SourceControlPullRequest newSourceControlPullRequest(
+      String repositoryUrl,
+      int pullRequestId,
+      String headCommitHash,
+      String baseCommitHash,
+      String branchName,
+      String baseBranchName,
+      Date createTime,
+      Date lastCheckTime,
+      Date lastDetectedUpdateTime,
+      PullRequestState pullRequestState,
+      PullRequestSource pullRequestSource)
+  {
+    SourceControlPullRequest sourceControlPullRequest =
+        new SourceControlPullRequest(repositoryUrl, pullRequestId, headCommitHash, baseCommitHash, branchName,
+            baseBranchName, createTime, lastCheckTime, lastDetectedUpdateTime, pullRequestState, pullRequestSource);
     sourceControlPullRequestDAO.insert(sourceControlPullRequest);
     return sourceControlPullRequest;
   }

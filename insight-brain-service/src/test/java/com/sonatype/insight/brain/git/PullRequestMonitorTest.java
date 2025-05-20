@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.GitImplementation;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
@@ -199,6 +200,41 @@ public class PullRequestMonitorTest
 
     // And no source control event is sent
     verify(sourceControlEventPublisherMock, never()).publishEvent(any());
+  }
+
+  @Test
+  public void testUpdatePullRequestDetails() throws Exception {
+    createSourceControlForRootOrg();
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo();
+    gitRepositoryInfo.pullRequestCommentingEnabled = true;
+    lenient().when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
+    Application app = tempEntity.newApplicationWithParent();
+    String repositoryUrl = "http://example.com/testorg/testproject";
+    tempEntity.newSourceControl(app.getId(), repositoryUrl);
+    tempEntity.newSourceControlPullRequest(repositoryUrl, 1, "testHeadCommitHash1", "testBaseCommitHash1",
+        "testBranchName1", "baseBranchName1", new Date(), new Date(), new Date(), null, PullRequestSource.AUTOMATIC);
+    tempEntity.newSourceControlPullRequest(repositoryUrl, 2, "testHeadCommitHash2", "testBaseCommitHash2",
+        "testBranchName2", "baseBranchName2", new Date(), new Date(), new Date(), null, PullRequestSource.MANUAL);
+    tempEntity.newSourceControlPullRequest(repositoryUrl, 3, "testHeadCommitHash3", "testBaseCommitHash3",
+        "testBranchName3", "baseBranchName3", new Date(), new Date(), new Date(), null, null);
+    tempEntity.newSourceControlPullRequest(repositoryUrl, 4, "testHeadCommitHash4", "testBaseCommitHash4",
+        "testBranchName4", "baseBranchName4", new Date(), new Date(), new Date(), null, PullRequestSource.EXTERNAL);
+    lenient().when(gitApiMock.getHeadCommitsForAllBranches(repositoryUrl)).thenReturn(Map.of(
+        "testBranchName1", "testHeadCommitHashUpdated1",
+        "testBranchName2", "testHeadCommitHashUpdated2",
+        "testBranchName3", "testHeadCommitHashUpdated3",
+        "testBranchName4", "testHeadCommitHashUpdated4"
+    ));
+
+    pullRequestMonitor.updatePullRequestDetails();
+
+    ArgumentCaptor<SourceControlEvent> captor = ArgumentCaptor.forClass(SourceControlEvent.class);
+    verify(sourceControlEventPublisherMock, times(2)).publishEvent(captor.capture());
+    List<SourceControlEvent> sourceControlEvents = captor.getAllValues();
+    // We only expect PullRequestMonitor to consider external pull requests
+    // which either have a source of null or explicitly set to external
+    assertThat(sourceControlEvents).extracting(SourceControlEvent::getCommitHash)
+        .containsExactlyInAnyOrder("testHeadCommitHashUpdated3", "testHeadCommitHashUpdated4");
   }
 
   @Test

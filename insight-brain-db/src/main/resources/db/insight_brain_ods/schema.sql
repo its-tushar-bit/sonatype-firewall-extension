@@ -974,11 +974,14 @@ CREATE TABLE source_control_pull_request
   create_time timestamp NOT NULL,
   last_check_time timestamp NOT NULL,
   last_detected_update_time timestamp NOT NULL,
+  state varchar(50),
+  source varchar(50),
   CONSTRAINT source_control_pull_request_pk PRIMARY KEY (source_control_pull_request_id),
   -- The "source_control_pull_request_uk" name is taken by a constraint incorrectly named in schema_incremental_0171
   CONSTRAINT source_control_pull_request_uk1 UNIQUE (repository_url, pull_request_id)
 );
 CREATE INDEX source_control_pull_request_last_detected_update_time_idx ON source_control_pull_request (last_detected_update_time);
+CREATE INDEX source_control_pull_request_source_idx ON source_control_pull_request(source);
 
 -- Since 1.96
 CREATE TABLE product_license (

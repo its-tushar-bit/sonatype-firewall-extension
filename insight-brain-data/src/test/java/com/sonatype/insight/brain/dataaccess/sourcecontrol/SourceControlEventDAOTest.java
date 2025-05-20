@@ -31,12 +31,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.BATCH_PR_STATE_UPDATE_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUSES;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_COMPLETE;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_ERROR;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_IN_PROGRESS;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_NEW;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_PARTIALLY_COMPLETE;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.PR_STATE_UPDATE_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.UPDATED_PULL_REQUEST_EVENT;
 import static java.lang.System.currentTimeMillis;
@@ -53,6 +55,9 @@ public class SourceControlEventDAOTest
   private Application app2;
 
   private Date testStartTime;
+
+  // Helper method to generate unique PR numbers for test events
+  private final AtomicInteger prNumberCounter = new AtomicInteger(1000);
 
   @Override
   @Before
@@ -1279,6 +1284,131 @@ public class SourceControlEventDAOTest
 
     assertThat(fetchedSourceControlEvents).extracting(SourceControlEvent::getId)
         .containsExactly(expectedEvent.getId(), expectedEventTwo.getId());
+  }
+
+  @Test
+  public void testGetPullRequestStateUpdateEventsForApplication() {
+    // given: a set of events for multiple applications and different event types
+    // Create PR_STATE_UPDATE_EVENT events for app1
+    SourceControlEvent prStateUpdateEvent1 = createPrStateUpdateEvent(app.getId(), EVENT_STATUS_NEW);
+    SourceControlEvent prStateUpdateEvent2 = createPrStateUpdateEvent(app.getId(), EVENT_STATUS_IN_PROGRESS);
+
+    // Create PR_STATE_UPDATE_EVENT events for app2
+    SourceControlEvent prStateUpdateEvent3 = createPrStateUpdateEvent(app2.getId(), EVENT_STATUS_NEW);
+
+    // Create BATCH_PR_STATE_UPDATE_EVENT events for app1
+    SourceControlEvent batchPrStateUpdateEvent1 = createBatchPrStateUpdateEvent(app.getId(), EVENT_STATUS_NEW);
+    SourceControlEvent batchPrStateUpdateEvent2 = createBatchPrStateUpdateEvent(app.getId(), EVENT_STATUS_COMPLETE);
+
+    // Create BATCH_PR_STATE_UPDATE_EVENT events for app2
+    SourceControlEvent batchPrStateUpdateEvent3 = createBatchPrStateUpdateEvent(app2.getId(), EVENT_STATUS_ERROR);
+
+    // Create events with other event types for both apps
+    createUpdatedPullRequestEvent(app.getId(), EVENT_STATUS_NEW, 1);
+    createNewSourceControlEvaluationEvent(app.getId(), EVENT_STATUS_NEW);
+    createNewSourceControlEvents(2, app.getId());
+    createNewSourceControlEvents(2, app2.getId());
+
+    // when: retrieve PR state update events for app1
+    List<SourceControlEvent> events = sourceControlEventDAO.getPullRequestStateUpdateEventsForApplication(app.getId());
+
+    // then: only PR_STATE_UPDATE_EVENT and BATCH_PR_STATE_UPDATE_EVENT events for app1 should be returned
+    assertThat(events).extracting(SourceControlEvent::getId).containsExactlyInAnyOrder(
+        prStateUpdateEvent1.getId(),
+        prStateUpdateEvent2.getId(),
+        batchPrStateUpdateEvent1.getId(),
+        batchPrStateUpdateEvent2.getId()
+    );
+
+    // verify all retrieved events have the correct event type and application ID
+    assertThat(events).allSatisfy(event -> {
+      assertThat(event.getApplicationId()).isEqualTo(app.getId());
+      assertThat(Arrays.asList(PR_STATE_UPDATE_EVENT, BATCH_PR_STATE_UPDATE_EVENT))
+          .contains(event.getEventType());
+    });
+
+    // when: retrieve PR state update events for app2
+    List<SourceControlEvent> eventsForApp2 =
+        sourceControlEventDAO.getPullRequestStateUpdateEventsForApplication(app2.getId());
+
+    // then: only PR_STATE_UPDATE_EVENT and BATCH_PR_STATE_UPDATE_EVENT events for app2 should be returned
+    assertThat(eventsForApp2).extracting(SourceControlEvent::getId).containsExactlyInAnyOrder(
+        prStateUpdateEvent3.getId(),
+        batchPrStateUpdateEvent3.getId()
+    );
+
+    // verify all retrieved events have the correct event type and application ID
+    assertThat(eventsForApp2).allSatisfy(event -> {
+      assertThat(event.getApplicationId()).isEqualTo(app2.getId());
+      assertThat(Arrays.asList(PR_STATE_UPDATE_EVENT, BATCH_PR_STATE_UPDATE_EVENT))
+          .contains(event.getEventType());
+    });
+  }
+
+  @Test
+  public void testGetPullRequestStateUpdateEventsForApplication_NoEvents() {
+    // given: no events exist for the application
+    Application appWithNoEvents = tempEntity.newApplicationWithParent();
+
+    // Create events for other applications but not for appWithNoEvents
+    createPrStateUpdateEvent(app.getId(), EVENT_STATUS_NEW);
+    createPrStateUpdateEvent(app2.getId(), EVENT_STATUS_IN_PROGRESS);
+    createBatchPrStateUpdateEvent(app.getId(), EVENT_STATUS_NEW);
+    createNewSourceControlEvents(2, app.getId());
+
+    // when: retrieve PR state update events for an application with no events
+    List<SourceControlEvent> events =
+        sourceControlEventDAO.getPullRequestStateUpdateEventsForApplication(appWithNoEvents.getId());
+
+    // then: result should be empty
+    assertThat(events).isEmpty();
+  }
+
+  @Test
+  public void testGetPullRequestStateUpdateEventsForApplication_InvalidAppId() {
+    // given: events exist for valid applications
+    createPrStateUpdateEvent(app.getId(), EVENT_STATUS_NEW);
+    createPrStateUpdateEvent(app2.getId(), EVENT_STATUS_IN_PROGRESS);
+    createBatchPrStateUpdateEvent(app.getId(), EVENT_STATUS_NEW);
+
+    // when: retrieve PR state update events for a non-existent application ID
+    List<SourceControlEvent> events =
+        sourceControlEventDAO.getPullRequestStateUpdateEventsForApplication("non-existent-id");
+
+    // then: result should be empty
+    assertThat(events).isEmpty();
+  }
+
+  private SourceControlEvent createPrStateUpdateEvent(String appId, String eventStatus) {
+    SourceControlEvent event = new SourceControlEvent()
+        .setApplicationId(appId)
+        .setEventType(PR_STATE_UPDATE_EVENT)
+        .setEventStatus(eventStatus)
+        .setPullRequestNumber(generateUniquePRNumber())
+        .setCreateTime(testStartTime);
+
+    sourceControlEventDAO.insert(event);
+    return event;
+  }
+
+  private SourceControlEvent createBatchPrStateUpdateEvent(String appId, String eventStatus) {
+    SourceControlEvent event = new SourceControlEvent()
+        .setApplicationId(appId)
+        .setEventType(BATCH_PR_STATE_UPDATE_EVENT)
+        .setEventStatus(eventStatus)
+        .setCreateTime(testStartTime);
+
+    String details = "[%d,%d]".formatted(generateUniquePRNumber(), generateUniquePRNumber());
+
+    // Set event details to mimic a batch update (PR numbers array)
+    event.setEventStatusDetails(details);
+
+    sourceControlEventDAO.insert(event);
+    return event;
+  }
+
+  private int generateUniquePRNumber() {
+    return prNumberCounter.getAndIncrement();
   }
 
   private SourceControlEvent getNewSourceControlEvent() {

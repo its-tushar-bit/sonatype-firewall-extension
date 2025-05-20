@@ -53,10 +53,18 @@ public class  SourceControlEvent
 
   public static final String MANUAL_REMEDIATION_PULL_REQUEST_EVENT = "manual_remediation_pull_request";
 
+  // an event to trigger the refreshing of a specified PR's state from the SCM provider
+  public static final String PR_STATE_UPDATE_EVENT = "pr state update";
+
+  // an event to trigger the refreshing of multiple specified PRs' states from an SCM provider
+  public static final String BATCH_PR_STATE_UPDATE_EVENT = "batch pr state update";
+
   public static final List<String> EVENT_TYPES = ImmutableList.of(
       APPLICATION_EVALUATION_EVENT,
+      BATCH_PR_STATE_UPDATE_EVENT,
       DISCOVERED_PULL_REQUEST_EVENT,
       MANUAL_REMEDIATION_PULL_REQUEST_EVENT,
+      PR_STATE_UPDATE_EVENT,
       REMEDIATION_PULL_REQUEST_EVENT,
       REPOSITORY_URL_UPDATED_EVENT,
       SOURCE_CONTROL_EVALUATION_EVENT,
@@ -272,6 +280,16 @@ public class  SourceControlEvent
 
   public SourceControlEvent forManualRemediationPullRequest() {
     return setEventType(MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+  }
+
+  public SourceControlEvent forPullRequestStateUpdate() {
+    setEventPriority(EVENT_PRIORITY_LOWER);
+    return setEventType(PR_STATE_UPDATE_EVENT);
+  }
+
+  public SourceControlEvent forBatchPullRequestStateUpdate() {
+    setEventPriority(EVENT_PRIORITY_LOWER);
+    return setEventType(BATCH_PR_STATE_UPDATE_EVENT);
   }
 
   public int getEventPriority() {

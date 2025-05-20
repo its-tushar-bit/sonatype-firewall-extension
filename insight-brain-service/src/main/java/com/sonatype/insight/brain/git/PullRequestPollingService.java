@@ -9,7 +9,6 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -19,6 +18,8 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
@@ -155,9 +156,9 @@ public class PullRequestPollingService
   private void persistPullRequest(PullRequest pullRequest) {
     SourceControlPullRequest sourceControlPullRequest =
         new SourceControlPullRequest(pullRequest.getRepository(), pullRequest.getNumber(),
-            pullRequest.getHeadCommitHash(), pullRequest.getBaseCommitHash(),
-            pullRequest.getHead(), pullRequest.getBase(),
-            pullRequest.getCreated(), new Date(), new Date());
+            pullRequest.getHeadCommitHash(), pullRequest.getBaseCommitHash(), pullRequest.getHead(),
+            pullRequest.getBase(), pullRequest.getCreated(), new Date(), new Date(),
+            PullRequestState.fromSCMState(pullRequest.getState()), PullRequestSource.EXTERNAL);
     sourceControlPullRequestDAO.insert(sourceControlPullRequest);
   }
 

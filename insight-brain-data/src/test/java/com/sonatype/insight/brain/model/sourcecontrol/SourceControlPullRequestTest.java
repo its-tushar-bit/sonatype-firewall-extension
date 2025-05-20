@@ -15,8 +15,9 @@ public class SourceControlPullRequestTest
 {
   @Test
   public void testConstructor_SetsRepositoryUrlLowercase() {
-    SourceControlPullRequest sourceControlPullRequest = new SourceControlPullRequest(" testRepositoryUrl ", 1,
-        "testCommitHash", "baseCommitHash", "testBranchName", "baseBranchName", new Date(), new Date(), new Date());
+    SourceControlPullRequest sourceControlPullRequest =
+        new SourceControlPullRequest(" testRepositoryUrl ", 1, "testCommitHash", "baseCommitHash", "testBranchName",
+            "baseBranchName", new Date(), new Date(), new Date(), null, null);
 
     assertThat(sourceControlPullRequest.getRepositoryUrl()).isEqualTo("testRepositoryUrl");
   }

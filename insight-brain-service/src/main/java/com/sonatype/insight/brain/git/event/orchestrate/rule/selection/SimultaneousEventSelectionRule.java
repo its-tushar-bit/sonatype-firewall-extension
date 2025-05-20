@@ -17,8 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.APPLICATION_EVALUATION_EVENT;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.BATCH_PR_STATE_UPDATE_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.PR_STATE_UPDATE_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.REPOSITORY_URL_UPDATED_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT;
@@ -107,6 +109,8 @@ public class SimultaneousEventSelectionRule
           .limit(DISCOVERED_PULL_REQUEST_EVENT, 2, 1)
           .limit(REMEDIATION_PULL_REQUEST_EVENT, 4, 2).adjust(GITHUB, 1, 1)
           .limit(MANUAL_REMEDIATION_PULL_REQUEST_EVENT, 4, 2).adjust(GITHUB, 1, 1)
+          .limit(BATCH_PR_STATE_UPDATE_EVENT, 2, 1).adjust(GITHUB, 1, 1)
+          .limit(PR_STATE_UPDATE_EVENT, 8, 2).adjust(GITHUB, 1, 1)
           .limit(REPOSITORY_URL_UPDATED_EVENT, -1, -1)
           .limit(SOURCE_CONTROL_EVALUATION_EVENT, 8, 2)
           .limit(STATUS_UPDATE_EVENT, 8, 2)

@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.concurrent.SemaphorePool;
 import com.sonatype.insight.brain.git.GitCommitStatusService;
 import com.sonatype.insight.brain.git.PullRequestCommentingEventHandler;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
+import com.sonatype.insight.brain.git.PullRequestStateEventHandler;
 import com.sonatype.insight.brain.git.SourceControlScanService;
 import com.sonatype.insight.brain.git.SourceControlService;
 import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
@@ -52,6 +53,9 @@ public class SourceControlEventProcessorTest
 {
   @Mock
   private PullRequestCommentingEventHandler mockPullRequestCommentingEventHandler;
+
+  @Mock
+  private PullRequestStateEventHandler mockPullRequestStateEventHandler;
 
   @Mock
   private PullRequestRemediationService mockPullRequestRemediationService;
@@ -97,10 +101,17 @@ public class SourceControlEventProcessorTest
     when(poolTenantReference.get()).thenReturn(mockRepoAccessController);
     when(mockCurrentUser.getUsernameOrSystem()).thenReturn(CurrentUser.SYSTEM);
     when(configuration.getSourceControlEventProcessorPoolSize()).thenReturn(DEFAULT_MAX_THREAD_POOL_SIZE);
-    sourceControlEventProcessor =
-        spy(new SourceControlEventProcessor(mockPullRequestCommentingEventHandler, mockPullRequestRemediationService,
-            mockGitCommitStatusService, mockSourceControlScanService, mockSourceControlService, mockCurrentUser,
-            configuration, mockShutdownHandler));
+    sourceControlEventProcessor = spy(new SourceControlEventProcessor(
+        mockPullRequestCommentingEventHandler,
+        mockPullRequestStateEventHandler,
+        mockPullRequestRemediationService,
+        mockGitCommitStatusService,
+        mockSourceControlScanService,
+        mockSourceControlService,
+        mockCurrentUser,
+        configuration,
+        mockShutdownHandler
+    ));
   }
 
   @Test
@@ -243,6 +254,68 @@ public class SourceControlEventProcessorTest
         debug(getProcessedEventMessage(event)),
         warn("Unable to release repo access for application 'app1'")
     );
+  }
+
+  @Test
+  public void testProcessEvent_prStateUpdate() throws InterruptedException {
+    // given: a PR_STATE_UPDATE_EVENT event
+    SourceControlEvent event = createEvent();
+    event.setEventType(SourceControlEvent.PR_STATE_UPDATE_EVENT);
+
+    // when: the event is processed
+    processEventAndWaitForCompletion(event);
+
+    // then: the event is delegated to the handler
+    verify(mockPullRequestStateEventHandler, times(1)).handle(eq(event));
+    verifyEventStarted(event);
+    verifyEventCompleted(event);
+  }
+
+  @Test
+  public void testProcessEvent_batchPrStateUpdate() throws InterruptedException {
+    // given: a BATCH_PR_STATE_UPDATE_EVENT event
+    SourceControlEvent event = createEvent();
+    event.setEventType(SourceControlEvent.BATCH_PR_STATE_UPDATE_EVENT);
+
+    // when: the event is processed
+    processEventAndWaitForCompletion(event);
+
+    // then: the event is delegated to the handler
+    verify(mockPullRequestStateEventHandler, times(1)).handle(eq(event));
+    verifyEventStarted(event);
+    verifyEventCompleted(event);
+  }
+
+  @Test
+  public void testProcessEvent_prStateUpdate_handlingError() throws InterruptedException {
+    // given: a PR_STATE_UPDATE_EVENT event and an error in the handler
+    SourceControlEvent event = createEvent();
+    event.setEventType(SourceControlEvent.PR_STATE_UPDATE_EVENT);
+    doThrow(new RuntimeException("Test error")).when(mockPullRequestStateEventHandler).handle(eq(event));
+
+    // when: the event is processed
+    processEventAndWaitForCompletion(event);
+
+    // then: the error is reported through the status listener
+    verify(mockPullRequestStateEventHandler, times(1)).handle(eq(event));
+    verifyEventStarted(event);
+    verifyEventError(event, "Test error");
+  }
+
+  @Test
+  public void testProcessEvent_batchPrStateUpdate_handlingError() throws InterruptedException {
+    // given: a BATCH_PR_STATE_UPDATE_EVENT event and an error in the handler
+    SourceControlEvent event = createEvent();
+    event.setEventType(SourceControlEvent.BATCH_PR_STATE_UPDATE_EVENT);
+    doThrow(new RuntimeException("Test error")).when(mockPullRequestStateEventHandler).handle(eq(event));
+
+    // when: the event is processed
+    processEventAndWaitForCompletion(event);
+
+    // then: the error is reported as a partial failure
+    verify(mockPullRequestStateEventHandler, times(1)).handle(eq(event));
+    verifyEventStarted(event);
+    verifyEventError(event, "Test error");
   }
 
   private CountDownLatch createOnEventFinishedLatch(SourceControlEvent event) {

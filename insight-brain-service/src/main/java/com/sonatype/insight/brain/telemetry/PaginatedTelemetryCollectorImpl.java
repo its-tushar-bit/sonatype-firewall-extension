@@ -12,6 +12,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.quartz.JobExecutionContext;
 
 /**
  *  For paginated telemetry collectors we send a single telemetry object with a page worth of data as a list in the
@@ -42,6 +43,16 @@ public abstract class PaginatedTelemetryCollectorImpl
 
   @Override
   public TelemetryData collectData() {
+    throw new UnsupportedOperationException("collectData is not supported for paginated telemetry collectors");
+  }
+
+  @Override
+  public List<TelemetryData> collectAllData(JobExecutionContext jobExecutionContext) {
+    throw new UnsupportedOperationException("collectAllData is not supported for paginated telemetry collectors");
+  }
+
+  @Override
+  public TelemetryData collectData(JobExecutionContext jobExecutionContext) {
     throw new UnsupportedOperationException("collectData is not supported for paginated telemetry collectors");
   }
 

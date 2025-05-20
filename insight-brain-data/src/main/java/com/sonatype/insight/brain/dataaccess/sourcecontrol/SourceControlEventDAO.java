@@ -38,6 +38,8 @@ import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.UPDATED_PULL_REQUEST_EVENT;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.PR_STATE_UPDATE_EVENT;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.BATCH_PR_STATE_UPDATE_EVENT;
 
 @Named
 @Singleton
@@ -334,6 +336,16 @@ public class SourceControlEventDAO
       params.add(Arrays.asList(eventStatuses));
     }
     return 0 != getSingle(Long.class, sQuery, params.toArray());
+  }
+
+  public List<SourceControlEvent> getPullRequestStateUpdateEventsForApplication(String applicationId) {
+    String sQuery = """
+        SELECT entity
+        FROM SourceControlEvent entity
+        WHERE entity.eventType IN ?1 AND entity.applicationId = ?2
+        """;
+
+    return getList(sQuery, List.of(PR_STATE_UPDATE_EVENT, BATCH_PR_STATE_UPDATE_EVENT), applicationId);
   }
 
   public boolean hasRemediationEventForBranch(String applicationId, String branchName) {

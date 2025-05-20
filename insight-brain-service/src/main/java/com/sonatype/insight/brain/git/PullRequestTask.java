@@ -14,7 +14,11 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.Configuration;
@@ -53,6 +57,8 @@ public class PullRequestTask
 
   private final Configuration configuration;
 
+  private final SourceControlPullRequestDAO sourceControlPullRequestDAO;
+
   @Inject
   public PullRequestTask(
       final GitClientFactory gitClientFactory,
@@ -60,7 +66,8 @@ public class PullRequestTask
       final GitApiFactory gitApiFactory,
       final AuditRecorder auditRecorder,
       final SourceControlUtils sourceControlUtils,
-      final Configuration configuration)
+      final Configuration configuration,
+      final SourceControlPullRequestDAO sourceControlPullRequestDAO)
   {
     this.gitClientFactory = gitClientFactory;
     this.metrics = metrics;
@@ -68,6 +75,7 @@ public class PullRequestTask
     this.auditRecorder = auditRecorder;
     this.sourceControlUtils = sourceControlUtils;
     this.configuration = configuration;
+    this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
   }
 
   public PullRequestResult run(
@@ -109,6 +117,9 @@ public class PullRequestTask
           .build();
 
       PullRequestResult pullRequestResult = pullRequestExecutor.execute(command);
+
+      Date commandFinishedTime = new Date();
+
       EnhancedPullRequestResult enhancedResult = new EnhancedPullRequestResult(
           pullRequestResult,
           start,
@@ -129,7 +140,25 @@ public class PullRequestTask
             .setData("pullRequestUrl", pullRequestResult.getPullRequestUrl());
       }
 
-      if (!pullRequestResult.isSuccessful()) {
+      if (pullRequestResult.isSuccessful()) {
+        SourceControlPullRequest sourceControlPullRequest = new SourceControlPullRequest();
+        sourceControlPullRequest.setRepositoryUrl(gitRepositoryInfo.repositoryUrl);
+        sourceControlPullRequest.setPullRequestId(Integer.parseInt(pullRequestResult.getPullRequestUrl()
+            .substring(pullRequestResult.getPullRequestUrl().lastIndexOf("/") + 1)));
+        sourceControlPullRequest.setHeadCommitHash(pullRequestResult.getHeadRef());
+        sourceControlPullRequest.setBranchName(pullRequestRemediationDetails.getPullRequestBranchName());
+        sourceControlPullRequest.setBaseBranchName(gitRepositoryInfo.baseBranch);
+        sourceControlPullRequest.setCreateTime(commandFinishedTime);
+        sourceControlPullRequest.setLastCheckTime(commandFinishedTime);
+        sourceControlPullRequest.setLastDetectedUpdateTime(commandFinishedTime);
+        sourceControlPullRequest.setState(PullRequestState.OPEN);
+        sourceControlPullRequest.setSource(pullRequestRemediationDetails.isManualPullRequest()
+            ? PullRequestSource.MANUAL
+            : PullRequestSource.AUTOMATIC
+        );
+        sourceControlPullRequestDAO.insert(sourceControlPullRequest);
+      }
+      else {
         throw new SourceControlException("Pull request creation failed: " + enhancedResult.getReasoning());
       }
 

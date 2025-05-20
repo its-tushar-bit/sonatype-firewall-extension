@@ -72,7 +72,7 @@ public class ClusterTelemetryTask
           sendPaginatedTelemetry(paginatedTelemetryCollector);
         }
         else {
-          telemetrySender.send(clusterTelemetryCollector.collectAllData());
+          telemetrySender.send(clusterTelemetryCollector.collectAllData(context));
         }
 
         long stop = System.currentTimeMillis();

@@ -1306,7 +1306,7 @@ public abstract class AbstractRepositoryService
     // Do nothing as this method is only used to perform authz check for the caller
   }
 
-  private static void validateIsProxyRepository(Repository repository) {
+  public static void validateIsProxyRepository(Repository repository) {
     if (!RepositoryType.proxy.equals(repository.getRepositoryType())) {
       throw new BadRequestException(
           "Repository " + repository.getPublicId() + " (" + repository.getId() + ") is not a proxy repository");

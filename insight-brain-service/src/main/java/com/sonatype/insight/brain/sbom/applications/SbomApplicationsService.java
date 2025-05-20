@@ -68,7 +68,8 @@ public class SbomApplicationsService
     if (filteredApplicationIds.isEmpty()) {
       return new SbomApplicationListSummaryDTO(new ArrayList<>());
     }
-    boolean hasPermissionInAllAppsWithNameFilter = filteredApplicationIds.size() == applicationDAO.getCount();
+    boolean hasPermissionInAllAppsWithNameFilter =
+        filteredApplicationIds.size() == applicationDAO.getCountWithoutRelatedRepositories();
     filteredApplicationIds = hasPermissionInAllAppsWithNameFilter ? Collections.emptySet() : filteredApplicationIds;
     return thirdPartySbomMetadataDAO.getSbomApplicationsWithRecentlyImportedSbomVersion(
         filteredApplicationIds, sortBy, asc, page, pageSize);

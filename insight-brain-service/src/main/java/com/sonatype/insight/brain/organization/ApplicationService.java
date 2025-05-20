@@ -277,7 +277,8 @@ public class ApplicationService
    */
   public Pair<List<Application>, Boolean> getApplicationsAndCheckIfAll() {
     List<Application> applications = getApplications();
-    boolean hasPermissionsInAll = !applications.isEmpty() && applications.size() == applicationDAO.getCount();
+    boolean hasPermissionsInAll =
+        !applications.isEmpty() && applications.size() == applicationDAO.getCountWithoutRelatedRepositories();
     return Pair.of(applications, hasPermissionsInAll);
   }
 

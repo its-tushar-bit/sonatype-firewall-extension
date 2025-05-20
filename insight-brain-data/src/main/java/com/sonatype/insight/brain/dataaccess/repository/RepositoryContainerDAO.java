@@ -40,7 +40,7 @@ public class RepositoryContainerDAO
     }
   }
 
-  private RepositoryContainer getInstance(TransactionContext tx) {
+  public RepositoryContainer getInstance(TransactionContext tx) {
     String sQuery = "SELECT entity FROM RepositoryContainer entity";
     return get(tx, sQuery);
   }
@@ -51,12 +51,20 @@ public class RepositoryContainerDAO
     }
   }
 
-  private String getRelatedOrganizationId(TransactionContext tx) {
+  public String getRelatedOrganizationId(TransactionContext tx) {
     return getInstance(tx).getRelatedOrganizationId();
   }
 
-  public void setRelatedOrganizationId(String organizationId) {
-    final Organization org = organizationDAO.getById(organizationId);
+  public void setRelatedOrganizationIdNotNull(String organizationId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      setRelatedOrganizationIdNotNull(tx, organizationId);
+      tx.commit();
+    }
+  }
+
+  public void setRelatedOrganizationIdNotNull(TransactionContext tx, String organizationId) {
+    final Organization org = organizationDAO.getById(tx, organizationId);
 
     if (org == null) {
       throw new NotFoundException("Organization not found");
@@ -66,7 +74,7 @@ public class RepositoryContainerDAO
             " SET entity.relatedOrganizationId=?1" + //
             " WHERE entity.id=?2";
 
-    createQuery(sQuery, organizationId, RepositoryContainer.REPOSITORY_CONTAINER_ID).executeUpdate();
+    createQuery(tx, sQuery, organizationId, RepositoryContainer.REPOSITORY_CONTAINER_ID).executeUpdate();
   }
 
   @Override

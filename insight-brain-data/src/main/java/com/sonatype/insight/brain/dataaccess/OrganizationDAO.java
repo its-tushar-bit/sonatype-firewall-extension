@@ -125,7 +125,7 @@ public class OrganizationDAO
     this.cpeMatchingConfigurationDAO = cpeMatchingConfigurationDAO;
   }
 
-  private Organization getByName(TransactionContext tx, String name) {
+  public Organization getByName(TransactionContext tx, String name) {
     if (name == null || name.trim().isEmpty()) {
       throw new DataAccessException("The organization name cannot be null or empty.");
     }

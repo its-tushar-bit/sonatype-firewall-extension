@@ -697,6 +697,7 @@ public class ApiFirewallService
     ApiRepositoryContainerDTO apiRepositoryContainerDTO = new ApiRepositoryContainerDTO();
     apiRepositoryContainerDTO.id = RepositoryContainer.REPOSITORY_CONTAINER_ID;
     apiRepositoryContainerDTO.name = RepositoryContainer.SINGLETON.getName();
+    apiRepositoryContainerDTO.relatedOrganizationId = RepositoryContainer.SINGLETON.getRelatedOrganizationId();
     return apiRepositoryContainerDTO;
   }
 

@@ -980,4 +980,14 @@ public class ApplicationDAO
       return results;
     }
   }
+
+  public long getCountWithoutRelatedRepositories() {
+    String sQuery = "" +
+        "SELECT COUNT(application)" +
+        "  FROM Application application, Organization organization" +
+        " WHERE application.organizationId = organization.id" +
+        "   AND organization.relatedRepositoryId IS NULL" +
+        "   AND organization.relatedRepositoryManagerId IS NULL";
+    return getSingle(Long.class, sQuery);
+  }
 }

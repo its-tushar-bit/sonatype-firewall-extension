@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.integration;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -18,7 +19,14 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.insight.brain.api.v2.HasFeature;
+import com.sonatype.insight.brain.api.v2.dto.ApiVerifyOrCreateApplicationForContainerImageFirewallDTO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import org.slf4j.Logger;
@@ -38,13 +46,25 @@ public class ApplicationSummaryResource
 
   static final String VERIFY_OR_CREATE_APPLICATION_PATH = "verifyOrCreate/{applicationPublicId}";
 
+  static final String VERIFY_OR_CREATE_APP_FOR_CONTAINER_IMAGE_PATH = "/verifyOrCreateForContainerImageFirewall";
+
   private static final Logger log = LoggerFactory.getLogger(ApplicationSummaryResource.class);
 
   private final ApplicationSummaryService applicationSummaryService;
 
+  private final RepositoryDAO repositoryDAO;
+
+  private final ApplicationForContainerImageFirewallService applicationForContainerImageFirewallService;
+
   @Inject
-  public ApplicationSummaryResource(final ApplicationSummaryService applicationSummaryService) {
+  public ApplicationSummaryResource(
+      final ApplicationSummaryService applicationSummaryService,
+      final RepositoryDAO repositoryDAO,
+      final ApplicationForContainerImageFirewallService applicationForContainerImageFirewallService)
+  {
     this.applicationSummaryService = applicationSummaryService;
+    this.repositoryDAO = repositoryDAO;
+    this.applicationForContainerImageFirewallService = applicationForContainerImageFirewallService;
   }
 
   /**
@@ -92,5 +112,28 @@ public class ApplicationSummaryResource
         applicationPublicId, goal);
     return applicationSummaryService.verifyOrCreateApplication(applicationPublicId, organizationId, goal,
         HdsClient.getClientUserAgent(request));
+  }
+
+  /**
+   * @param apiVerifyOrCreateApplicationForContainerImageFirewallDTO
+   * {@link ApiVerifyOrCreateApplicationForContainerImageFirewallDTO}
+   * @return applicationPublicId
+   */
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Path(VERIFY_OR_CREATE_APP_FOR_CONTAINER_IMAGE_PATH)
+  @ProductLicenseEnforcementPoint(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
+  @HasFeature(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED)
+  @Produces("text/plain")
+  public String verifyOrCreateApplicationForContainerImage(
+      ApiVerifyOrCreateApplicationForContainerImageFirewallDTO apiVerifyOrCreateApplicationForContainerImageFirewallDTO)
+  {
+    Repository repository = repositoryDAO
+        .getByRepositoryManagerInstanceIdAndPublicIdNotNull(
+            apiVerifyOrCreateApplicationForContainerImageFirewallDTO.getRepositoryManagerInstanceId(),
+            apiVerifyOrCreateApplicationForContainerImageFirewallDTO.getRepositoryPublicId());
+
+    return applicationForContainerImageFirewallService.verifyOrCreateApplicationForContainerImage(repository,
+        apiVerifyOrCreateApplicationForContainerImageFirewallDTO);
   }
 }

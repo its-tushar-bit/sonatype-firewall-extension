@@ -1811,6 +1811,18 @@ public class ApplicationDAOTest
     assertThat(result.get(2).applicationName()).isEqualTo("Sandbox-app");
   }
 
+  @Test
+  public void testGetCountWithoutRelatedRepositories() {
+    // Create an app without a related repository manager
+    tempEntity.newApplications(organization.getId(), 1);
+
+    // Create an app with both a related repository manager and repository
+    Organization orgWithRelatedRepo = tempEntity.newOrganizationWithRepositoryManager("org-with-repo");
+    tempEntity.newApplications(orgWithRelatedRepo.getId(), 1);
+
+    assertThat(applicationDAO.getCountWithoutRelatedRepositories()).isEqualTo(2);
+  }
+
   private void validateApplication(Application actualApp, Application expectedApp) {
     assertThat(actualApp.getName()).isEqualTo(expectedApp.getName());
     assertThat(actualApp.getContactInternalName()).isEqualTo(expectedApp.getContactInternalName());

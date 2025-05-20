@@ -19,14 +19,19 @@ import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.organization.OrganizationSummary;
 import com.sonatype.clm.dto.model.organization.OrganizationSummaryList;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.NetworkingHelper;
 import com.sonatype.insight.brain.client.ConfigurationClient.Context;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
@@ -51,10 +56,13 @@ public class ConfigurationClientTest
 
   private ApplicationDAO applicationDAO;
 
+  private OrganizationDAO organizationDAO;
+
   @Before
   public void setUp() {
     automaticApplicationsConfigurationDAO = lookup(AutomaticApplicationsConfigurationDAO.class);
     applicationDAO = lookup(ApplicationDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
   }
 
   @Test
@@ -371,6 +379,33 @@ public class ConfigurationClientTest
     assertThat(result).isTrue();
     Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
     assertThat(app.getOrganizationId()).isEqualTo(org.getId());
+  }
+
+  @Test
+  public void testVerifyOrCreateApplicationForContainerImageFirewall() throws Exception {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManagerWithBaseUrl("baseUrl1");
+    Repository repository =
+        tempEntity.newRepository(repositoryManager, "repositoryPublicId", RepositoryType.proxy, "docker");
+
+    VerifyOrCreateApplicationForContainerImageFirewallDTO dto =
+        new VerifyOrCreateApplicationForContainerImageFirewallDTO();
+    dto.setRepositoryManagerInstanceId(repositoryManager.getInstanceId());
+    dto.setRepositoryPublicId(repository.getPublicId());
+    dto.setContainerImageName("image1");
+    dto.setContainerImageNamespace("namespace1");
+    dto.setContainerImageVersion("version1");
+    dto.setBaseUrl(repositoryManager.getBaseUrl());
+
+    Configuration config = getCLMServer().getClientConfiguration();
+    ConfigurationClient client = new ConfigurationClient(config);
+    String result = client.verifyOrCreateApplicationForContainerImageFirewall(dto);
+    assertThat(result).isNotEmpty();
+
+    Application app = applicationDAO.getByPublicIdNotNull(result);
+    Organization org = organizationDAO.getById(app.getOrganizationId());
+    assertThat(org.getRelatedRepositoryId()).isEqualTo(repository.getId());
   }
 
   @Test

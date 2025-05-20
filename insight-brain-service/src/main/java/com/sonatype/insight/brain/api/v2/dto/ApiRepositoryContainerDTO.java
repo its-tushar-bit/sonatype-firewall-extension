@@ -10,4 +10,6 @@ public class ApiRepositoryContainerDTO
   public String id;
 
   public String name;
+
+  public String relatedOrganizationId;
 }

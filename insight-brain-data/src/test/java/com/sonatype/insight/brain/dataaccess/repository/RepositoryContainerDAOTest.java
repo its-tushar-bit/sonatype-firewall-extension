@@ -39,7 +39,7 @@ public class RepositoryContainerDAOTest
   public void testGetAndSetRelatedOrganizationId() {
     Organization organization = tempEntity.newOrganization();
 
-    dao.setRelatedOrganizationId(organization.getId());
+    dao.setRelatedOrganizationIdNotNull(organization.getId());
 
     assertThat(dao.getRelatedOrganizationId()).isEqualTo(organization.getId());
   }
@@ -48,7 +48,7 @@ public class RepositoryContainerDAOTest
   public void testSetRelatedOrganizationId_InvalidOrganization() {
     String invalidOrganizationId = "nonexistent-id";
 
-    assertThatThrownBy(() -> dao.setRelatedOrganizationId(invalidOrganizationId))
+    assertThatThrownBy(() -> dao.setRelatedOrganizationIdNotNull(invalidOrganizationId))
         .isInstanceOf(NotFoundException.class)
         .hasMessage("Organization not found");
   }

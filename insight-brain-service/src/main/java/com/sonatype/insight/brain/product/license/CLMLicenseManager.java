@@ -536,7 +536,7 @@ public class CLMLicenseManager
     }
 
     if (applicationLimitToDisplay != null) {
-      applicationCountToDisplay = (int) applicationDAO.getCount();
+      applicationCountToDisplay = (int) applicationDAO.getCountWithoutRelatedRepositories();
     }
 
     Properties properties = productLicense.isValid() ? licenseManager.getLicenseDetails().getProperties() : null;

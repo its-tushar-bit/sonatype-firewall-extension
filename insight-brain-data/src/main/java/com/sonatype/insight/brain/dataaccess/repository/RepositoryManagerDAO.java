@@ -65,7 +65,13 @@ public class RepositoryManagerDAO
    * @since 1.161
    */
   public RepositoryManager getByInstanceIdNotNull(String instanceId) {
-    RepositoryManager repositoryManager = getByInstanceId(instanceId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByInstanceIdNotNull(tx, instanceId);
+    }
+  }
+
+  public RepositoryManager getByInstanceIdNotNull(TransactionContext tx, String instanceId) {
+    RepositoryManager repositoryManager = getByInstanceId(tx, instanceId);
     if (repositoryManager == null) {
       throw new NotFoundException("Cannot find a repository manager with instance ID " + instanceId + ".");
     }

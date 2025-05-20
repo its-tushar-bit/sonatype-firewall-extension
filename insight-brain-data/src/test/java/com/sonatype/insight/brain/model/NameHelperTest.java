@@ -5,8 +5,15 @@
  */
 package com.sonatype.insight.brain.model;
 
+import com.sonatype.insight.brain.db.IdUtil;
+
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class NameHelperTest
@@ -66,6 +73,133 @@ public class NameHelperTest
         .isInstanceOf(InvalidNameException.class).hasMessage("test-field-name must be 2 characters or less.");
   }
 
+  @Test
+  public void testConvertContainerImageToApplicationPublicIdAndName_noRepositoryId() {
+    assertThatThrownBy(
+        () -> NameHelper.convertContainerImageToApplicationPublicIdAndName(null, "namespace", "name", "version"))
+            .isInstanceOf(InvalidNameException.class)
+            .hasMessage("repositoryId, namespace, name and version are all required for a container image");
+
+    assertThatThrownBy(
+        () -> NameHelper.convertContainerImageToApplicationPublicIdAndName("", "namespace", "name", "version"))
+            .isInstanceOf(InvalidNameException.class)
+            .hasMessage("repositoryId, namespace, name and version are all required for a container image");
+
+    assertThatThrownBy(
+        () -> NameHelper.convertContainerImageToApplicationPublicIdAndName(" ", "namespace", "name", "version"))
+            .isInstanceOf(InvalidNameException.class)
+            .hasMessage("repositoryId, namespace, name and version are all required for a container image");
+  }
+
+  @Test
+  public void testConvertContainerImageToApplicationPublicIdAndName_noNamespace() {
+    String repositoryId = IdUtil.newUUID();
+
+    assertThatThrownBy(
+        () -> NameHelper.convertContainerImageToApplicationPublicIdAndName(repositoryId, null, "name", "version"))
+            .isInstanceOf(InvalidNameException.class)
+            .hasMessage("repositoryId, namespace, name and version are all required for a container image");
+
+    assertThatThrownBy(
+        () -> NameHelper.convertContainerImageToApplicationPublicIdAndName(repositoryId, "", "name", "version"))
+            .isInstanceOf(InvalidNameException.class)
+            .hasMessage("repositoryId, namespace, name and version are all required for a container image");
+
+    assertThatThrownBy(
+        () -> NameHelper.convertContainerImageToApplicationPublicIdAndName(repositoryId, " ", "name", "version"))
+            .isInstanceOf(InvalidNameException.class)
+            .hasMessage("repositoryId, namespace, name and version are all required for a container image");
+  }
+
+  @Test
+  public void testConvertContainerImageToApplicationPublicIdAndName_noName() {
+    String repositoryId = IdUtil.newUUID();
+
+    assertThatThrownBy(
+        () -> NameHelper.convertContainerImageToApplicationPublicIdAndName(repositoryId, "namespace", null, "version"))
+            .isInstanceOf(InvalidNameException.class)
+            .hasMessage("repositoryId, namespace, name and version are all required for a container image");
+
+    assertThatThrownBy(
+        () -> NameHelper.convertContainerImageToApplicationPublicIdAndName(repositoryId, "namespace", "", "version"))
+            .isInstanceOf(InvalidNameException.class)
+            .hasMessage("repositoryId, namespace, name and version are all required for a container image");
+
+    assertThatThrownBy(
+        () -> NameHelper.convertContainerImageToApplicationPublicIdAndName(repositoryId, "namespace", " ", "version"))
+            .isInstanceOf(InvalidNameException.class)
+            .hasMessage("repositoryId, namespace, name and version are all required for a container image");
+  }
+
+  @Test
+  public void testConvertContainerImageToApplicationPublicIdAndName_noVersion() {
+    String repositoryId = IdUtil.newUUID();
+
+    assertThatThrownBy(
+        () -> NameHelper.convertContainerImageToApplicationPublicIdAndName(repositoryId, "namespace", "name", null))
+            .isInstanceOf(InvalidNameException.class)
+            .hasMessage("repositoryId, namespace, name and version are all required for a container image");
+
+    assertThatThrownBy(
+        () -> NameHelper.convertContainerImageToApplicationPublicIdAndName(repositoryId, "namespace", "name", ""))
+            .isInstanceOf(InvalidNameException.class)
+            .hasMessage("repositoryId, namespace, name and version are all required for a container image");
+
+    assertThatThrownBy(
+        () -> NameHelper.convertContainerImageToApplicationPublicIdAndName(repositoryId, "namespace", "name", " "))
+            .isInstanceOf(InvalidNameException.class)
+            .hasMessage("repositoryId, namespace, name and version are all required for a container image");
+  }
+
+  @Test
+  public void testConvertContainerImageToApplicationPublicIdAndName() {
+    String repositoryId = IdUtil.newUUID();
+    String repositoryIdBase64 = toBytesBase64(repositoryId);
+
+    assertThat(
+        NameHelper.convertContainerImageToApplicationPublicIdAndName(repositoryId, "namespace", "name", "version"))
+            .isEqualTo(repositoryIdBase64 + "-namespace-name-version");
+
+    assertThat(NameHelper.convertContainerImageToApplicationPublicIdAndName(
+        repositoryId, "namespace 1", "name 2", "version 3"))
+            .isEqualTo(repositoryIdBase64 + "-namespace1-name2-version3");
+
+    assertThat(
+        NameHelper.convertContainerImageToApplicationPublicIdAndName(repositoryId, "namespace?", "name&", "version="))
+            .isEqualTo(repositoryIdBase64 + "-namespace_-name_-version_");
+
+    String longNamespace = StringUtils.repeat("test", NameHelper.MAX_NAME_LENGTH_APP_ORG);
+    String expectedLongResult = longNamespace + "-name-version";
+    expectedLongResult =
+        StringUtils.right(expectedLongResult, NameHelper.MAX_NAME_LENGTH_APP_ORG - (repositoryIdBase64.length() + 1));
+    expectedLongResult = repositoryIdBase64 + "-" + expectedLongResult;
+
+    assertThat(
+        NameHelper.convertContainerImageToApplicationPublicIdAndName(repositoryId, longNamespace, "name", "version"))
+            .hasSize(NameHelper.MAX_NAME_LENGTH_APP_ORG)
+            .isEqualTo(expectedLongResult);
+  }
+
+  @Test
+  public void testConvertToValidName_empty() {
+    assertThatThrownBy(() -> NameHelper.convertToValidName(""))
+        .isInstanceOf(InvalidNameException.class)
+        .hasMessage("A name cannot be empty or blank");
+
+    assertThatThrownBy(() -> NameHelper.convertToValidName(" "))
+        .isInstanceOf(InvalidNameException.class)
+        .hasMessage("A name cannot be empty or blank");
+  }
+
+  @Test
+  public void testConvertToValidName() {
+    assertThat(NameHelper.convertToValidName("test")).isEqualTo("test");
+    assertThat(NameHelper.convertToValidName("test?")).isEqualTo("test_");
+
+    String longName = "test".repeat(NameHelper.MAX_NAME_LENGTH + 10);
+    assertThat(NameHelper.convertToValidName(longName)).isEqualTo(longName.substring(0, NameHelper.MAX_NAME_LENGTH));
+  }
+
   private void verifyNameHasBadWhitespace(String name) {
     assertThatThrownBy(() -> NameHelper.validate(name)).isInstanceOf(InvalidNameException.class)
         .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
@@ -79,5 +213,15 @@ public class NameHelperTest
   private void verifyNameRequired(String name) {
     assertThatThrownBy(() -> NameHelper.validate(name)).isInstanceOf(InvalidNameException.class)
         .hasMessage("Name is required.");
+  }
+
+  private String toBytesBase64(String value) {
+    try {
+      byte[] bytes = Hex.decodeHex(value);
+      return Base64.encodeBase64URLSafeString(bytes);
+    }
+    catch (DecoderException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

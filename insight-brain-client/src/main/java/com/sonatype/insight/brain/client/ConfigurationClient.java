@@ -30,6 +30,7 @@ import org.sonatype.aether.version.Version;
 
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 
@@ -127,6 +128,19 @@ public class ConfigurationClient
    */
   public boolean verifyOrCreateApplication(String applicationPublicId) throws IOException {
     return verifyOrCreateApplication(applicationPublicId, null);
+  }
+
+  public String verifyOrCreateApplicationForContainerImageFirewall(
+      VerifyOrCreateApplicationForContainerImageFirewallDTO apiVerifyOrCreateApplicationForContainerImageFirewallDTO)
+      throws IOException
+  {
+    RequestBuilder builder =
+        path("rest/integration/applications/verifyOrCreateForContainerImageFirewall");
+    ByteArrayEntity entity = new ByteArrayEntity(JsonUtils.generate(
+        apiVerifyOrCreateApplicationForContainerImageFirewallDTO),
+        ContentType.APPLICATION_JSON);
+    Result result = builder.post(entity);
+    return result.text();
   }
 
   /**

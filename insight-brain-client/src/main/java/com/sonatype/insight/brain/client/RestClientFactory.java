@@ -169,6 +169,14 @@ public class RestClientFactory
       return new ConfigurationClient(config).verifyOrCreateApplication(applicationPublicId);
     }
 
+    public String verifyOrCreateApplicationForContainerImageFirewall(
+        VerifyOrCreateApplicationForContainerImageFirewallDTO verifyOrCreateApplicationForContainerImageFirewallDTO)
+        throws IOException
+    {
+      return new ConfigurationClient(config)
+          .verifyOrCreateApplicationForContainerImageFirewall(verifyOrCreateApplicationForContainerImageFirewallDTO);
+    }
+
     /**
      * Get the proprietary configuration used for an application evaluation.
      * 

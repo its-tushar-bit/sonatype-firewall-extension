@@ -3280,6 +3280,14 @@ public class TemporaryEntity
     return repositoryManager;
   }
 
+  public RepositoryManager newRepositoryManagerWithBaseUrl(String baseUrl) {
+    RepositoryManager repositoryManager = new RepositoryManager();
+    repositoryManager.setInstanceId(uuid());
+    repositoryManager.setBaseUrl(baseUrl);
+    repositoryManagerDAO.insert(repositoryManager);
+    return repositoryManager;
+  }
+
   public RepositoryManager newRepositoryManager(
       String instanceId,
       String name,

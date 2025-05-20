@@ -19,20 +19,6 @@ make(
     mavenVersion: 'Maven 3.9.x',
     mavenOptions: "-D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
     retentionPolicy: currentBuild.fullProjectName.endsWith('/main') ? RetentionPolicy.DEFAULT : RetentionPolicy.SHORT_TERM,
-    prepare: {
-
-    if (currentBuild.fullProjectName.toLowerCase().endsWith('/main')) {
-        String fixVersion = 'brain-next'
-        List<String> newFixVersions = ['saas-next']
-        echo "Replacing '${fixVersion}' with [${newFixVersions.join(', ')}]"
-        List<String> issues = getIssuesByFixVersion('CLM', fixVersion)
-        issues.addAll(getIssuesByFixVersion('SDEV', fixVersion))
-        issues.addAll(getIssuesByFixVersion('INT', fixVersion))
-        issues.addAll(getIssuesByFixVersion('NEXUS', fixVersion))
-        issues.addAll(getIssuesByFixVersion('SBOM', fixVersion))
-        replaceFixVersionForIssues(issues, fixVersion, newFixVersions)
-      }
-    },
     snapshotBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J ->
       echo "Using mavenVersion='${mavenCommon.get('mavenVersion')}'"
 

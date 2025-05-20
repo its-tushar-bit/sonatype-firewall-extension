@@ -18,7 +18,10 @@ import com.sonatype.insight.brain.service.ZScalerMockServerRule;
 import com.sonatype.insight.brain.zscaler.ApiZScalerConfigurationService.ApiZScalerConfigurationDTO;
 import com.sonatype.insight.brain.zscaler.ZScalerCategory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.matching.NegativeRegexPattern;
+import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,6 +30,7 @@ import org.junit.Test;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.sonatype.insight.brain.api.PublicApiPaths.ZSCALER_CONFIG_RESOURCE_PATH_V2;
 import static com.sonatype.insight.brain.zscaler.ApiZScalerConfigurationService.EULA_MESSAGE;
@@ -147,7 +151,7 @@ public class ApiZScalerConfigurationResourceTest
   }
 
   @Test
-  public void testPatchZScalerConfiguration() throws Exception {
+  public void testUpdateUrlsZScalerConfiguration() throws Exception {
     String username = "username";
     String password = passwordHandler.encryptPassword("password");
     String apiKey = "cajgffdcgkej";
@@ -166,7 +170,7 @@ public class ApiZScalerConfigurationResourceTest
     zScalerMockServer.mockUpdateCustomUrlCategories(200, "{\"status\":\"success\"}");
     zScalerMockServer.mockActivateChanges(200, "{\"status\":\"success\"}");
 
-    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN").patch();
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/update/MAVEN").post();
 
     assertResponseStatus(204, response);
 
@@ -181,41 +185,41 @@ public class ApiZScalerConfigurationResourceTest
   }
 
   @Test
-  public void testPatchZScalerConfiguration_noConfiguration() throws Exception {
-    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN").patch();
+  public void testUpdateUrlsZScalerConfiguration_noConfiguration() throws Exception {
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/update/MAVEN").post();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("No zScaler configuration found");
   }
 
   @Test
-  public void testPatchZScalerConfiguration_authenticationException() throws Exception {
+  public void testUpdateUrlsZScalerConfiguration_authenticationException() throws Exception {
     tempEntity.newZScalerConfiguration(
         "username", passwordHandler.encryptPassword("password"), zScalerMockServer.getBaseUrl(), "cajgffdcgkej");
 
     zScalerMockServer.mockAuthentication(401, "{\"error\":\"Invalid credentials\"}");
 
-    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN").patch();
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/update/MAVEN").post();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).contains("Authentication failed: {\"error\":\"Invalid credentials\"}");
   }
 
   @Test
-  public void testPatchZScalerConfiguration_getCustomUrlCategoriesException() throws Exception {
+  public void testUpdateUrlsZScalerConfiguration_getCustomUrlCategoriesException() throws Exception {
     tempEntity.newZScalerConfiguration(
         "username", passwordHandler.encryptPassword("password"), zScalerMockServer.getBaseUrl(), "cajgffdcgkej");
 
     zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
     zScalerMockServer.mockGetCustomUrlCategories(500, "{\"error\":\"Internal Server Error\"}");
 
-    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN").patch();
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/update/MAVEN").post();
 
     assertResponseStatus(204, response);
   }
 
   @Test
-  public void testPatchZScalerConfiguration_updateCustomUrlCategoriesException() throws Exception {
+  public void testUpdateUrlsZScalerConfiguration_updateCustomUrlCategoriesException() throws Exception {
     tempEntity.newZScalerConfiguration(
         "username", passwordHandler.encryptPassword("password"), zScalerMockServer.getBaseUrl(), "cajgffdcgkej");
 
@@ -223,13 +227,13 @@ public class ApiZScalerConfigurationResourceTest
     zScalerMockServer.mockGetCustomUrlCategories(200, "[]");
     zScalerMockServer.mockUpdateCustomUrlCategories(500, "{\"error\":\"Update failed\"}");
 
-    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN").patch();
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/update/MAVEN").post();
 
     assertResponseStatus(204, response);
   }
 
   @Test
-  public void testPatchZScalerConfiguration_createCustomUrlCategoryException() throws Exception {
+  public void testUpdateUrlsZScalerConfiguration_createCustomUrlCategoryException() throws Exception {
     tempEntity.newZScalerConfiguration(
         "username", passwordHandler.encryptPassword("password"), zScalerMockServer.getBaseUrl(), "cajgffdcgkej");
 
@@ -237,13 +241,13 @@ public class ApiZScalerConfigurationResourceTest
     zScalerMockServer.mockGetCustomUrlCategories(200, "[]");
     zScalerMockServer.mockCreateCustomUrlCategory(500, "{\"error\":\"Creation failed\"}");
 
-    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN").patch();
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/update/MAVEN").post();
 
     assertResponseStatus(204, response);
   }
 
   @Test
-  public void testPatchZScalerConfiguration_activateChangesException() throws Exception {
+  public void testUpdateUrlsZScalerConfiguration_activateChangesException() throws Exception {
     tempEntity.newZScalerConfiguration(
         "username", passwordHandler.encryptPassword("password"), zScalerMockServer.getBaseUrl(), "cajgffdcgkej");
 
@@ -252,8 +256,89 @@ public class ApiZScalerConfigurationResourceTest
     zScalerMockServer.mockUpdateCustomUrlCategories(200, "{\"status\":\"success\"}");
     zScalerMockServer.mockActivateChanges(500, "{\"error\":\"Activation failed\"}");
 
-    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/MAVEN").patch();
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/update/MAVEN").post();
 
     assertResponseStatus(204, response);
+  }
+
+  @Test
+  public void testUpdateAll() throws Exception {
+    setupExpectedCalls();
+
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/update").post();
+
+    assertResponseStatus(204, response);
+
+    zScalerMockServer.getWireMockServer()
+        .verify(postRequestedFor(urlPathMatching("/api/v1/authenticatedSession")));
+    zScalerMockServer.getWireMockServer()
+        .verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories/urlQuota")));
+    zScalerMockServer.getWireMockServer().verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories"))
+        .withQueryParam("customOnly", equalTo("true")));
+
+    // Account for delete of each format
+    zScalerMockServer.getWireMockServer().verify(3, putRequestedFor(urlPathMatching("/api/v1/urlCategories/.*"))
+        .withRequestBody(new NegativeRegexPattern(".*placeholder.*")));
+    //Account for an update of each format
+    zScalerMockServer.getWireMockServer()
+        .verify(3, putRequestedFor(urlPathMatching("/api/v1/urlCategories/.*"))
+            .withRequestBody(new RegexPattern(".*placeholder.*")));
+    zScalerMockServer.getWireMockServer().verify(postRequestedFor(urlPathMatching("/api/v1/status/activate")));
+  }
+
+  @Test
+  public void testDelete() throws Exception {
+    setupExpectedCalls();
+
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/update/MAVEN").delete();
+
+    assertResponseStatus(204, response);
+    zScalerMockServer.getWireMockServer()
+        .verify(postRequestedFor(urlPathMatching("/api/v1/authenticatedSession")));
+    zScalerMockServer.getWireMockServer()
+        .verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories/urlQuota")));
+    zScalerMockServer.getWireMockServer().verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories"))
+        .withQueryParam("customOnly", equalTo("true")));
+
+    // Account for delete of format
+    zScalerMockServer.getWireMockServer()
+        .verify(putRequestedFor(urlPathMatching("/api/v1/urlCategories/.*"))
+            .withRequestBody(new RegexPattern(".*placeholder.*")));
+
+    zScalerMockServer.getWireMockServer().verify(postRequestedFor(urlPathMatching("/api/v1/status/activate")));
+  }
+
+  @Test
+  public void testDeleteAll() throws Exception {
+    setupExpectedCalls();
+
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/update").delete();
+
+    assertResponseStatus(204, response);
+    zScalerMockServer.getWireMockServer()
+        .verify(postRequestedFor(urlPathMatching("/api/v1/authenticatedSession")));
+    zScalerMockServer.getWireMockServer()
+        .verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories/urlQuota")));
+    zScalerMockServer.getWireMockServer().verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories"))
+        .withQueryParam("customOnly", equalTo("true")));
+
+    // Account for delete of each format
+    zScalerMockServer.getWireMockServer()
+        .verify(3, putRequestedFor(urlPathMatching("/api/v1/urlCategories/.*"))
+            .withRequestBody(new RegexPattern(".*placeholder.*")));
+
+    zScalerMockServer.getWireMockServer().verify(postRequestedFor(urlPathMatching("/api/v1/status/activate")));
+  }
+
+  private void setupExpectedCalls() throws JsonProcessingException {
+    String username = "username";
+    String password = passwordHandler.encryptPassword("password");
+    String apiKey = "cajgffdcgkej";
+    tempEntity.newZScalerConfiguration(username, password, zScalerMockServer.getBaseUrl(), apiKey);
+    zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
+    zScalerMockServer.mockGetQuota(200, "{\"uniqueUrlsProvisioned\":\"1000\", \"remainingUrlsQuota\":\"10\"}");
+    zScalerMockServer.mockGetCustomUrlCategories(200, new ObjectMapper().writeValueAsString(List.of()));
+    zScalerMockServer.mockUpdateCustomUrlCategories(200, "{\"status\":\"success\"}");
+    zScalerMockServer.mockActivateChanges(200, "{\"status\":\"success\"}");
   }
 }

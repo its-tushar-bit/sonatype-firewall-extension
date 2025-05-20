@@ -10,7 +10,6 @@ import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -30,7 +29,6 @@ import com.sonatype.insight.brain.zscaler.ZScalerUpdater;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -62,7 +60,6 @@ public class ApiZScalerConfigurationResource
     this.zScalerService = zScalerService;
   }
 
-  @Hidden
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(description = "Use this method to review the configuration for a Zscaler server." +
@@ -88,7 +85,6 @@ public class ApiZScalerConfigurationResource
     return zScalerConfigurationService.getConfiguration();
   }
 
-  @Hidden
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.TEXT_HTML)
@@ -120,7 +116,6 @@ public class ApiZScalerConfigurationResource
     return zScalerConfigurationService.setConfiguration(configurationDTO);
   }
 
-  @Hidden
   @DELETE
   @Operation(description = "Use this method to disable or remove the Zscaler configuration." +
       "\n" +
@@ -140,27 +135,6 @@ public class ApiZScalerConfigurationResource
     zScalerConfigurationService.deleteConfiguration();
   }
 
-  @PATCH
-  @Path("/{format}")
-  @Operation(description = "Use this endpoint to trigger an update to your Zscaler instance" +
-      "\n" +
-      "\n" +
-      "Permissions required: Edit System Configuration and Users")
-  @ApiResponse(
-      responseCode = "204",
-      description = "Zscaler scan was triggered.",
-      useReturnTypeSchema = true
-  )
-  @ApiResponse(
-      responseCode = "404",
-      description = "Zscaler was not triggered",
-      useReturnTypeSchema = true
-  )
-  public void triggerUpdate(@PathParam("format") ZScalerFormat format) {
-    zScalerUpdater.update(format);
-  }
-
-  @Hidden
   @POST
   @Path("testConfig")
   @Operation(description = "Use this method to test Zscaler server configuration." +
@@ -195,5 +169,85 @@ public class ApiZScalerConfigurationResource
   @Path("zscalerLimits")
   public ApiZScalerQuotaDTO getQuota() {
     return zScalerService.getQuota();
+  }
+
+  @POST
+  @Path("/update/{format}")
+  @Operation(description = "Use this endpoint to trigger an update to your Zscaler instance" +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit System Configuration and Users")
+  @ApiResponse(
+      responseCode = "204",
+      description = "Zscaler updated custom urls for format.",
+      useReturnTypeSchema = true
+  )
+  @ApiResponse(
+      responseCode = "404",
+      description = "Zscaler unable to update custom urls for format.",
+      useReturnTypeSchema = true
+  )
+  public void triggerUpdate(@PathParam("format") ZScalerFormat format) {
+    zScalerUpdater.updateZScalerMaliciousCategory(format);
+  }
+
+  @POST
+  @Path("/update")
+  @Operation(description = "Use this endpoint to trigger an update of all configured formats to your Zscaler instance" +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit System Configuration and Users")
+  @ApiResponse(
+      responseCode = "204",
+      description = "Zscaler updated custom urls successfully.",
+      useReturnTypeSchema = true
+  )
+  @ApiResponse(
+      responseCode = "404",
+      description = "Zscaler unable to update custom urls",
+      useReturnTypeSchema = true
+  )
+  public void triggerUpdateAll() {
+    zScalerUpdater.updateAllZScalerMaliciousCategories();
+  }
+
+  @DELETE
+  @Path("/update")
+  @Operation(description = "Use this endpoint to delete all configured formats from your Zscaler instance" +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit System Configuration and Users")
+  @ApiResponse(
+      responseCode = "204",
+      description = "Zscaler deleted custom urls.",
+      useReturnTypeSchema = true
+  )
+  @ApiResponse(
+      responseCode = "404",
+      description = "Zscaler unable to remove custom urls",
+      useReturnTypeSchema = true
+  )
+  public void deleteAllCategories() {
+    zScalerUpdater.deleteAllZScalerMaliciousUrlCategories();
+  }
+
+  @DELETE
+  @Path("/update/{format}")
+  @Operation(description = "Use this endpoint to delete a specific format from your Zscaler instance" +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit System Configuration and Users")
+  @ApiResponse(
+      responseCode = "204",
+      description = "Zscaler updating a format was successful.",
+      useReturnTypeSchema = true
+  )
+  @ApiResponse(
+      responseCode = "404",
+      description = "Zscaler updating a format was not successful",
+      useReturnTypeSchema = true
+  )
+  public void deleteCategory(@PathParam("format") ZScalerFormat format) {
+    zScalerUpdater.deleteZScalerMaliciousUrlCategory(format);
   }
 }

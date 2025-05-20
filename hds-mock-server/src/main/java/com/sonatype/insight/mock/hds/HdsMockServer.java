@@ -377,6 +377,18 @@ public class HdsMockServer
           consume(baseRequest);
           sendJson(response, "{\"activeThreatUrls\": [\"https://malicious.com/malicious.jar\"]}");
         }
+        else if (uri.equals("/rest/maliciousUrls/active/npm")) {
+          consume(baseRequest);
+          sendJson(response, "{\"activeThreatUrls\": [\"https://malicious.com/npm.tgz\"]}");
+        }
+        else if (uri.equals("/rest/maliciousUrls/active/pypi")) {
+          consume(baseRequest);
+          sendJson(response, "{\"activeThreatUrls\": [\"https://malicious.com/pypi.zip\"]}");
+        }
+        else if (uri.equals("/rest/maliciousUrls/active/nuget")) {
+          consume(baseRequest);
+          sendJson(response, "{\"activeThreatUrls\": [\"https://malicious.com/nuget.pkg\"]}");
+        }
       }
       catch (RequestException e) {
         consume(baseRequest);

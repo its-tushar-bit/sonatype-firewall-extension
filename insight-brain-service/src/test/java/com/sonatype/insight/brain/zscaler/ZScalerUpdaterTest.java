@@ -122,18 +122,18 @@ public class ZScalerUpdaterTest
 
     spyUnderTest.execute(mockJobExecutionContext);
 
-    verify(spyUnderTest).updateAllzScalerMaliciousUrls();
+    verify(spyUnderTest).updateAllZScalerMaliciousCategories();
   }
 
   @Test
   public void testExecute_error() throws JobExecutionException {
     ZScalerUpdater spyUnderTest = spy(underTest);
 
-    doThrow(new RuntimeException("test error")).when(spyUnderTest).updateAllzScalerMaliciousUrls();
+    doThrow(new RuntimeException("test error")).when(spyUnderTest).updateAllZScalerMaliciousCategories();
 
     spyUnderTest.execute(mockJobExecutionContext);
 
-    verify(spyUnderTest).updateAllzScalerMaliciousUrls();
+    verify(spyUnderTest).updateAllZScalerMaliciousCategories();
     assertThat(logOutput).atErrorLevel().contains("Error fetching zScaler malicious URLs");
   }
 
@@ -143,7 +143,7 @@ public class ZScalerUpdaterTest
     when(mockZScalerMaliciousUrlFetcher.fetchMaliciousUrls(any()))
         .thenReturn(new ByteArrayInputStream("{\"activeThreatUrls\": [\"randomurl.com\"]}".getBytes()));
 
-    underTest.updateAllzScalerMaliciousUrls();
+    underTest.updateAllZScalerMaliciousCategories();
 
     // Invocation for deleteCategory and then updateCategory
     verify(mockApiZScalerService, times(2)).updateCategory(eq(ZScalerFormat.MAVEN), any());
@@ -155,7 +155,7 @@ public class ZScalerUpdaterTest
   public void testUpdateAllzScalerMaliciousUrls_WithInvalidLicense() {
     when(mockProductLicense.hasFeature(LicensedFeature.FIREWALL)).thenReturn(false);
 
-    underTest.updateAllzScalerMaliciousUrls();
+    underTest.updateAllZScalerMaliciousCategories();
 
     verify(mockApiZScalerService, never()).updateCategory(any(), any());
   }

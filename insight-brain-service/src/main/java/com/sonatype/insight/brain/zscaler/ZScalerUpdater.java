@@ -88,7 +88,7 @@ public class ZScalerUpdater
   @Override
   public void execute(final JobExecutionContext context) throws JobExecutionException {
     if (SystemConfigurationPropertyFeature.ZSCALER.isEnabled()) {
-      execute(this::updateAllzScalerMaliciousUrls, log, "Error fetching zScaler malicious URLs");
+      execute(this::updateAllZScalerMaliciousCategories, log, "Error fetching zScaler malicious URLs");
     }
     else {
       log.debug("zScaler feature not enabled. Skipping update task.");
@@ -96,21 +96,49 @@ public class ZScalerUpdater
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public void update(ZScalerFormat format) {
-    apiZScalerService.authenticate();
-    deleteCategory(format);
-    updateCategory(format);
-    apiZScalerService.activate();
+  public void updateZScalerMaliciousCategory(ZScalerFormat format) {
+    if (productLicense.hasFeature(LicensedFeature.FIREWALL)) {
+      apiZScalerService.authenticate();
+      deleteCategory(format);
+      updateCategory(format);
+      apiZScalerService.activate();
+    }
+    else {
+      log.debug("zScaler is disabled because the license does not have the required feature");
+    }
   }
 
-  public void updateAllzScalerMaliciousUrls() {
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public void updateAllZScalerMaliciousCategories() {
+    if (productLicense.hasFeature(LicensedFeature.FIREWALL)) {
+      apiZScalerService.authenticate();
+      deleteAllCategories();
+      updateAllCategories();
+      apiZScalerService.activate();
+    }
+    else {
+      log.debug("zScaler is disabled because the license does not have the required feature");
+    }
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public void deleteAllZScalerMaliciousUrlCategories() {
     // TODO: Rather than assuming all formats are needed we may decide to fetch the format types based on configuration
     if (productLicense.hasFeature(LicensedFeature.FIREWALL)) {
       apiZScalerService.authenticate();
-
       deleteAllCategories();
-      updateAllCategories();
+      apiZScalerService.activate();
+    }
+    else {
+      log.debug("zScaler is disabled because the license does not have the required feature");
+    }
+  }
 
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public void deleteZScalerMaliciousUrlCategory(ZScalerFormat format) {
+    if (productLicense.hasFeature(LicensedFeature.FIREWALL)) {
+      apiZScalerService.authenticate();
+      deleteCategory(format);
       apiZScalerService.activate();
     }
     else {
@@ -122,17 +150,6 @@ public class ZScalerUpdater
     updateCategory(ZScalerFormat.MAVEN);
     updateCategory(ZScalerFormat.PYPI);
     updateCategory(ZScalerFormat.NPM);
-  }
-
-  private void deleteAllCategories() {
-    deleteCategory(ZScalerFormat.MAVEN);
-    deleteCategory(ZScalerFormat.PYPI);
-    deleteCategory(ZScalerFormat.NPM);
-  }
-
-  private void deleteCategory(ZScalerFormat format) {
-    log.debug("deleting zScaler category: {}", format);
-    apiZScalerService.updateCategory(format, List.of("placeholder.com/" + format.toString().toLowerCase()));
   }
 
   void updateCategory(ZScalerFormat format) {
@@ -148,6 +165,17 @@ public class ZScalerUpdater
     }
 
     apiZScalerService.updateCategory(format, getActiveUrls(inputStream));
+  }
+
+  private void deleteAllCategories() {
+    deleteCategory(ZScalerFormat.MAVEN);
+    deleteCategory(ZScalerFormat.PYPI);
+    deleteCategory(ZScalerFormat.NPM);
+  }
+
+  private void deleteCategory(ZScalerFormat format) {
+    log.debug("deleting zScaler category: {}", format);
+    apiZScalerService.updateCategory(format, List.of("placeholder.com/" + format.toString().toLowerCase()));
   }
 
   private static List<String> getActiveUrls(final InputStream inputStream) {

@@ -62,7 +62,7 @@ public class FeaturePropertiesInfoTest
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.DARK_MODE).asBoolean()).isFalse();
-    assertThat(sysConfigNode.get(SystemConfigurationProperty.ZSCALER).asBoolean()).isFalse();
+    assertThat(sysConfigNode.get(SystemConfigurationProperty.ZSCALER).asBoolean()).isTrue();
   }
 
   @Test
@@ -108,7 +108,7 @@ public class FeaturePropertiesInfoTest
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.DARK_MODE).asBoolean()).isFalse();
-    assertThat(sysConfigNode.get(SystemConfigurationProperty.ZSCALER).asBoolean()).isFalse();
+    assertThat(sysConfigNode.get(SystemConfigurationProperty.ZSCALER).asBoolean()).isTrue();
   }
 
   @Test
@@ -174,7 +174,7 @@ public class FeaturePropertiesInfoTest
               "WEBHOOK_CONFIGURATION": true,
               "containerImagesEvalEnabled": false,
               "darkMode": false,
-              "zScaler": false
+              "zScaler": true
             }"""));
   }
 
@@ -248,7 +248,7 @@ public class FeaturePropertiesInfoTest
               "WEBHOOK_CONFIGURATION": true,
               "containerImagesEvalEnabled": false,
               "darkMode": false,
-              "zScaler": false
+              "zScaler": true
             }"""));
   }
 

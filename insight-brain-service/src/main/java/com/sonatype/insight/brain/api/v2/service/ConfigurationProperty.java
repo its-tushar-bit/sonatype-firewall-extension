@@ -269,7 +269,7 @@ public class ConfigurationProperty
           (p, s) -> NumberUtils.toInt(s, 24),
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.ZSCALER, Boolean.class,
-          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
+          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, true),
           (p, o) -> Objects.toString(o, null)),
       };
 

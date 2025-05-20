@@ -69,6 +69,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.SBOM_POLICIES.getId(),
       SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId(),
       SystemConfigurationPropertyFeature.API_PAGE.getId(),
+      SystemConfigurationPropertyFeature.ZSCALER.getId(),
       };
 
   /**
@@ -105,6 +106,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.SBOM_POLICIES.getId(),
       SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId(),
       SystemConfigurationPropertyFeature.API_PAGE.getId(),
+      SystemConfigurationPropertyFeature.ZSCALER.getId(),
       };
 
   /**
@@ -125,8 +127,7 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.getId(),
           SystemConfigurationPropertyFeature.COMPONENT_CHANGE_DETECTION_API.getId(),
           SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.getId(),
-          SystemConfigurationPropertyFeature.DARK_MODE.getId(),
-          SystemConfigurationPropertyFeature.ZSCALER.getId()
+          SystemConfigurationPropertyFeature.DARK_MODE.getId()
       }
   )).toArray(String[]::new);
 

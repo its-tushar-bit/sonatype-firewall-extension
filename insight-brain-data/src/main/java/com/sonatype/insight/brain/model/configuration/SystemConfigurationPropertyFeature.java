@@ -275,7 +275,7 @@ public enum SystemConfigurationPropertyFeature
     }
   },
 
-  ZSCALER(SystemConfigurationProperty.ZSCALER, false)
+  ZSCALER(SystemConfigurationProperty.ZSCALER, true)
   {
     @Override
     public boolean isEnabled(TransactionContext tx) {

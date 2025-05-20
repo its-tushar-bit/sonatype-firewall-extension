@@ -1368,14 +1368,7 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
-  public void testEnableFeature_ZScaler() {
-    service.enableFeature(SystemConfigurationProperty.ZSCALER);
-    assertThat(systemConfigurationPropertyDAO.getByName(ZSCALER).getValue()).isEqualTo("true");
-  }
-
-  @Test
   public void testEnableFeature_ZScaler_AlreadyEnabled() {
-    service.enableFeature(SystemConfigurationProperty.ZSCALER);
     assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.ZSCALER))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Feature is already enabled.");
@@ -1383,6 +1376,7 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testDisableFeature_ZScaler_AlreadyDisabled() {
+    service.disableFeature(SystemConfigurationProperty.ZSCALER);
     assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.ZSCALER))
         .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
   }
@@ -1455,7 +1449,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("WEBHOOK_CONFIGURATION", true);
     expectedFeatureConfigMap.put("containerImagesEvalEnabled", false);
     expectedFeatureConfigMap.put("darkMode", false);
-    expectedFeatureConfigMap.put("zScaler", false);
+    expectedFeatureConfigMap.put("zScaler", true);
 
     return expectedFeatureConfigMap;
   }

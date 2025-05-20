@@ -8,24 +8,32 @@ package com.sonatype.insight.brain.telemetry;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PolicyViolationTelemetryBuilder
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyViolationTelemetryBuilder.class);
+
+  private static final Set<PolicyThreatCategory> METADATA_THREAT_CATEGORIES =
+      Set.of(PolicyThreatCategory.SECURITY, PolicyThreatCategory.LICENSE);
 
   static final String APPLICATION_ID = "application_id";
 
@@ -68,6 +76,12 @@ public class PolicyViolationTelemetryBuilder
   public static final String CVE_NUMBER = "cve_number";
 
   public static final String CVSS_SCORE = "cvss_score";
+
+  public static final String LICENSE_THREAT_GROUP_CONDITION_TYPE = "License Threat Group";
+
+  public static final String LICENSE_THREAT_GROUP_ATTRIBUTE = "license_threat_group";
+
+  static final Pattern LICENSE_THREAT_GROUP_PATTERN = Pattern.compile("License Threat Group is '([^']+)'");
 
   private final PolicyViolation policyViolation;
 
@@ -140,37 +154,73 @@ public class PolicyViolationTelemetryBuilder
         .put(REACHABILITY_STATUS, reachabilityStatus == null ? null : reachabilityStatus.getName());
 
     telemetryUtils.includeRealApplicationId(telemetryData.getAttributes(), policyViolation.getApplicationId());
-    addSecurityVulnerabilityMetadataIfNeeded(telemetryData, policyViolation);
+    addVulnerabilityMetadataIfNeeded(telemetryData, policyViolation);
 
     return telemetryData;
   }
 
-  private static void addSecurityVulnerabilityMetadataIfNeeded(
+  private static void addVulnerabilityMetadataIfNeeded(
       TelemetryData telemetryData,
       PolicyViolation policyViolation)
   {
-    if (!PolicyThreatCategory.SECURITY.equals(policyViolation.getThreatCategory())) {
+    if (!METADATA_THREAT_CATEGORIES.contains(policyViolation.getThreatCategory())) {
       return;
     }
 
     policyViolation.getConstraintFacts().stream().flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
         .forEach(conditionFact -> {
-          String triggerJson = conditionFact.getTriggerJson();
-          if (triggerJson != null) {
-            try {
-              ConditionTrigger conditionTrigger = JsonUtils.parse(triggerJson, ConditionTrigger.class);
-              Map<String, Object> trigger = (Map<String, Object>) conditionTrigger.getTrigger();
-              String refId = (String) trigger.get("refId");
-              Object severity = trigger.get("severity");
-              if (refId != null && severity != null) {
-                telemetryData.put(CVE_NUMBER, refId);
-                telemetryData.put(CVSS_SCORE, severity);
-              }
-            }
-            catch (IOException e) {
-              log.error("An error occurred while trying to read the cvss score related to the policy violation", e);
-            }
+          switch (policyViolation.getThreatCategory()) {
+            case SECURITY:
+              addSecurityVulnerabilityMetadata(telemetryData, conditionFact);
+              break;
+
+            case LICENSE:
+              addLicenseVulnerabilityMetadata(telemetryData, conditionFact);
+              break;
+
+            default:
+              break;
           }
         });
+  }
+
+  private static void addLicenseVulnerabilityMetadata(TelemetryData telemetryData, ConditionFact conditionFact) {
+    if (!LicenseThreatGroupConditionType.ID.equals(conditionFact.getConditionTypeId())) {
+      return;
+    }
+
+    var summary = conditionFact.getSummary();
+    if (StringUtils.isBlank(summary)) {
+      return;
+    }
+
+    var matcher = LICENSE_THREAT_GROUP_PATTERN.matcher(summary);
+    var licenseThreatGroup = matcher.find() ? matcher.group(1) : null;
+
+    if (StringUtils.isNotBlank(licenseThreatGroup)) {
+      telemetryData.put(LICENSE_THREAT_GROUP_ATTRIBUTE, licenseThreatGroup);
+    }
+    else {
+      log.warn("Unable to parse license threat group from condition fact summary: {}", conditionFact.getSummary());
+    }
+  }
+
+  private static void addSecurityVulnerabilityMetadata(TelemetryData telemetryData, ConditionFact conditionFact) {
+    String triggerJson = conditionFact.getTriggerJson();
+    if (triggerJson != null) {
+      try {
+        ConditionTrigger conditionTrigger = JsonUtils.parse(triggerJson, ConditionTrigger.class);
+        Map<String, Object> trigger = (Map<String, Object>) conditionTrigger.getTrigger();
+        String refId = (String) trigger.get("refId");
+        Object severity = trigger.get("severity");
+        if (refId != null && severity != null) {
+          telemetryData.put(CVE_NUMBER, refId);
+          telemetryData.put(CVSS_SCORE, severity);
+        }
+      }
+      catch (IOException e) {
+        log.error("An error occurred while trying to read the cvss score related to the policy violation", e);
+      }
+    }
   }
 }

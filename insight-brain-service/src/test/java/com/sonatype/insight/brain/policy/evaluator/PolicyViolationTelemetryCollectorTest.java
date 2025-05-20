@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -30,7 +31,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -40,10 +41,41 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.hasPolicyViolationByComponentIdentifier;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.*;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.APPLICATION_ID;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.AUTO_POLICY_WAIVER_ID;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.CALL_FLOW_EVALUATION_SUCCESSFUL;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.CALL_FLOW_HAS_REACHABLE_INFORMATION_FOR_COMPONENT;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_DOWNGRADE;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_IDENTIFIER;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_NAME;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_NAMESPACE;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_UPGRADE;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_VERSION;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.CONDITION_TYPE;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COUNT;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.DIRECT_DEPENDENCY;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.ECOSYSTEM;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.FIX_BY_VERSION_CHANGE;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.FIX_TIME;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.INNERSOURCE_DEPENDENCY;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.IS_SCM_ENABLED;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.LEGACY_VIOLATION_TIME;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.NEW_POLICY_VIOLATION_ID;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.OPEN_TIME;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.POLICY_VIOLATION_ID;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.POLICY_WAIVER_ID;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.REACHABILITY_STATUS;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.STAGE;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.THREAT_CATEGORY;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.THREAT_LEVEL;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.TIME;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.UNWAIVE_TIME;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.WAIVER_EXPIRATION;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.WAIVE_TIME;
 import static com.sonatype.insight.brain.telemetry.TelemetryUtils.REAL_APPLICATION_ID;
 import static com.sonatype.insight.purl.PackageUrlIdentifier.fromComponentIdentifier;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.CALLFLOW_EVALUATION_COMPONENT_COUNTS;
@@ -92,7 +124,7 @@ public class PolicyViolationTelemetryCollectorTest
   public void testAddTelemetryForConditionTypeViolation() {
     // given a new policy violation and a telemetry collector
     TestablePolicyViolation testablePolicyViolation =
-        TestablePolicyViolation.createDefaultViolationForComponent(commonsLang3)
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
             .withConditionType(HygieneRatingConditionType.ID);
 
     PolicyViolationTelemetryCollector telemetryCollector =
@@ -114,7 +146,7 @@ public class PolicyViolationTelemetryCollectorTest
   public void testAddTelemetryForFixedViolation_FixedByDowngrade() {
     // given a policy violation on lodash v4 that was fixed by downgrading
     TestablePolicyViolation testablePolicyViolation =
-        TestablePolicyViolation.createDefaultViolationForComponent(lodashv4)
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv4)
             .openedHoursAgo(48)
             .asDirectDependency(true)
             .withPolicyViolationId("fixedByDowngrade")
@@ -142,7 +174,7 @@ public class PolicyViolationTelemetryCollectorTest
   public void testAddTelemetryForFixedViolation_FixedByOtherMeans() {
     // given a policy violation on lodash v4 that was fixed by downgrading
     TestablePolicyViolation testablePolicyViolation =
-        TestablePolicyViolation.createDefaultViolationForComponent(lodashv4)
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv4)
             .openedHoursAgo(2)
             .asDirectDependency(true)
             .asInnerSourceDependency(true)
@@ -169,7 +201,7 @@ public class PolicyViolationTelemetryCollectorTest
   public void testAddTelemetryForFixedViolation_FixedByRemoval() {
     // given a policy violation on lodash v4 that was fixed by downgrading
     TestablePolicyViolation testablePolicyViolation =
-        TestablePolicyViolation.createDefaultViolationForComponent(lodashv4)
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv4)
             .openedHoursAgo(37)
             .asDirectDependency(true)
             .withPolicyViolationId("fixedByRemoval")
@@ -193,7 +225,7 @@ public class PolicyViolationTelemetryCollectorTest
   public void testAddTelemetryForFixedViolation_FixedByUpgrade() {
     // given a policy violation on lodash v4 that was fixed by downgrading
     TestablePolicyViolation testablePolicyViolation =
-        TestablePolicyViolation.createDefaultViolationForComponent(lodashv4)
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv4)
             .withScmEnabled(true)
             .openedHoursAgo(72)
             .asDirectDependency(true)
@@ -222,7 +254,7 @@ public class PolicyViolationTelemetryCollectorTest
   public void testAddTelemetryForFixedViolation_FixedWithoutVersionChange() {
     // given a policy violation on lodash v5
     TestablePolicyViolation testablePolicyViolation =
-        TestablePolicyViolation.createDefaultViolationForComponent(lodashv5)
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv5)
             .openedHoursAgo(480)
             .asDirectDependency(false)
             .withPolicyViolationId("fixedWithoutVersionChange")
@@ -246,12 +278,11 @@ public class PolicyViolationTelemetryCollectorTest
   public void testAddTelemetryForFixedViolation_FixedWithoutVersionChange_licenseData() {
     // given a policy violation on lodash v5
     TestablePolicyViolation testablePolicyViolation =
-        TestablePolicyViolation.createMinimalViolationForComponent(lodashv5)
+        TestablePolicyViolation.createDefaultLicenseViolationForComponent(lodashv5)
             .openedHoursAgo(480)
             .withScmEnabled(false)
-            .withThreatCategory(PolicyThreatCategory.LICENSE)
             .withThreatLevel(10)
-            .withConditionType(LicenseConditionType.ID)
+            .withConditionType(LicenseThreatGroupConditionType.ID)
             .asDirectDependency(false)
             .withPolicyViolationId("fixedWithoutVersionChange_license")
             .markFixedByOtherMeans();
@@ -274,7 +305,7 @@ public class PolicyViolationTelemetryCollectorTest
   public void testAddTelemetryForLegacyViolation() {
     // given a policy violation on lodash v3
     TestablePolicyViolation testablePolicyViolation =
-        TestablePolicyViolation.createDefaultViolationForComponent(lodashv3)
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv3)
             .openedHoursAgo(480)
             .asDirectDependency(false)
             .withPolicyViolationId("legacyViolation")
@@ -299,13 +330,13 @@ public class PolicyViolationTelemetryCollectorTest
     // given a policy violation that was unwaived and the new open violation created for it
     var policyWaiver = tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyEvaluation.getApplicationId());
 
-    var replacementPolicyViolation = TestablePolicyViolation.createDefaultViolationForComponent(urllib3)
+    var replacementPolicyViolation = TestablePolicyViolation.createDefaultSecurityViolationForComponent(urllib3)
         .openedHoursAgo(0)
         .asDirectDependency(true)
         .withPolicyViolationId("newViolationAfterUnwaived")
         .withConditionType(SecurityVulnerabilitySeverityConditionType.ID);
 
-    var unwaivedPolicyViolation = TestablePolicyViolation.createDefaultViolationForComponent(urllib3)
+    var unwaivedPolicyViolation = TestablePolicyViolation.createDefaultSecurityViolationForComponent(urllib3)
         .openedHoursAgo(500)
         .asDirectDependency(true)
         .withPolicyViolationId("unwaivedViolation")
@@ -334,7 +365,7 @@ public class PolicyViolationTelemetryCollectorTest
         tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyEvaluation.getApplicationId());
 
     TestablePolicyViolation testablePolicyViolation =
-        TestablePolicyViolation.createDefaultViolationForComponent(commonsLang3)
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
             .openedHoursAgo(5)
             .asDirectDependency(true)
             .withPolicyViolationId("waivedViolation")
@@ -360,7 +391,7 @@ public class PolicyViolationTelemetryCollectorTest
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(policyEvaluation.getApplicationId());
 
     TestablePolicyViolation testablePolicyViolation =
-        TestablePolicyViolation.createDefaultViolationForComponent(commonsLang3)
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
             .openedHoursAgo(5)
             .asDirectDependency(true)
             .withPolicyViolationId("waivedViolation")
@@ -386,13 +417,13 @@ public class PolicyViolationTelemetryCollectorTest
     // given an uwaived policy violation and the new open violation that replaces it
     var autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(policyEvaluation.getApplicationId());
 
-    var replacementPolicyViolation = TestablePolicyViolation.createDefaultViolationForComponent(urllib3)
+    var replacementPolicyViolation = TestablePolicyViolation.createDefaultSecurityViolationForComponent(urllib3)
         .openedHoursAgo(0)
         .asDirectDependency(true)
         .withPolicyViolationId("newViolationAfterUnwaived")
         .withConditionType(SecurityVulnerabilitySeverityConditionType.ID);
 
-    var unwaivedPolicyViolation = TestablePolicyViolation.createDefaultViolationForComponent(urllib3)
+    var unwaivedPolicyViolation = TestablePolicyViolation.createDefaultSecurityViolationForComponent(urllib3)
         .openedHoursAgo(500)
         .asDirectDependency(true)
         .withPolicyViolationId("unwaivedViolation")
@@ -417,7 +448,7 @@ public class PolicyViolationTelemetryCollectorTest
   @Test
   public void testAddTelemetryForReachableViolation_When_ViolationIsNotReachable() {
     TestablePolicyViolation testablePolicyViolation =
-        TestablePolicyViolation.createDefaultViolationForComponent(lodashv3);
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv3);
 
     PolicyViolationTelemetryCollector telemetryCollector =
         createTelemetryCollector(testablePolicyViolation.isScmEnabled());
@@ -435,7 +466,7 @@ public class PolicyViolationTelemetryCollectorTest
   @Test
   public void testAddTelemetryForReachableViolation_When_ViolationIsReachable() {
     TestablePolicyViolation testablePolicyViolation = TestablePolicyViolation
-        .createDefaultViolationForComponent(lodashv3);
+        .createDefaultSecurityViolationForComponent(lodashv3);
 
     PurlIdentifiersWithVulnerabilities purlIdentifiersWithVulnerabilities = new PurlIdentifiersWithVulnerabilities(
         null,
@@ -510,6 +541,8 @@ public class PolicyViolationTelemetryCollectorTest
 
     private boolean isScmEnabled;
 
+    private String licenseThreatGroup;
+
     private String waiverId;
 
     private String autoPolicyWaiverId;
@@ -530,16 +563,22 @@ public class PolicyViolationTelemetryCollectorTest
       policyViolation.setApplicationId(policyEvaluation.getApplicationId());
       policyViolation.setStageTypeId(policyEvaluation.getStageTypeId());
       policyViolation.setOpenTime(policyEvaluation.getTime());
-      policyViolation.setConstraintFacts(
-          ConditionGenerator.createConstraintFactsWithInjectedCondition(cveIdentifier, cvssScore, 1));
     }
 
-    static TestablePolicyViolation createDefaultViolationForComponent(ComponentIdentifier componentIdentifier) {
+    static TestablePolicyViolation createDefaultSecurityViolationForComponent(ComponentIdentifier componentIdentifier) {
       return createMinimalViolationForComponent(componentIdentifier)
           .withPolicyViolationId("conditionTypeViolation")
           .withThreatCategory(PolicyThreatCategory.SECURITY)
           .withThreatLevel(7)
           .withCveAndCvssScore("CVE-123", 7.5, 1);
+    }
+
+    static TestablePolicyViolation createDefaultLicenseViolationForComponent(ComponentIdentifier componentIdentifier) {
+      return createMinimalViolationForComponent(componentIdentifier)
+          .withPolicyViolationId("conditionTypeViolation")
+          .withThreatCategory(PolicyThreatCategory.LICENSE)
+          .withLicenseThreatGroup("GPL")
+          .withThreatLevel(8);
     }
 
     static TestablePolicyViolation createMinimalViolationForComponent(ComponentIdentifier componentIdentifier) {
@@ -714,7 +753,14 @@ public class PolicyViolationTelemetryCollectorTest
       this.cvssScore = cvssScore;
 
       policyViolation.setConstraintFacts(
-          ConditionGenerator.createConstraintFactsWithInjectedCondition(cveIdentifier, cvssScore, index));
+          ConditionGenerator.creatConstraintFactsWithInjectedSecurityCondition(cveIdentifier, cvssScore, index));
+      return this;
+    }
+
+    TestablePolicyViolation withLicenseThreatGroup(String licenseThreatGroup) {
+      this.licenseThreatGroup = licenseThreatGroup;
+      policyViolation.setConstraintFacts(
+          ConditionGenerator.createConstraintFactsWithInjectedLicenseCondition(licenseThreatGroup, 1));
       return this;
     }
 
@@ -772,6 +818,8 @@ public class PolicyViolationTelemetryCollectorTest
       assertThat(attributes).containsEntry(COUNT, count);
       validateMatchesOrNotExists(attributes, PolicyViolationTelemetryBuilder.CVE_NUMBER, cveIdentifier);
       validateMatchesOrNotExists(attributes, PolicyViolationTelemetryBuilder.CVSS_SCORE, cvssScore);
+      validateMatchesOrNotExists(attributes, PolicyViolationTelemetryBuilder.LICENSE_THREAT_GROUP_ATTRIBUTE,
+          licenseThreatGroup);
       assertThat(attributes).containsEntry(IS_SCM_ENABLED, isScmEnabled);
       assertThat(attributes).containsEntry(OPEN_TIME, getOpenTime());
       assertThat(attributes).containsEntry(POLICY_VIOLATION_ID, policyViolation.getId());
@@ -870,6 +918,21 @@ public class PolicyViolationTelemetryCollectorTest
    */
   private class ConditionGenerator
   {
+    static List<ConstraintFact> createConstraintFactsWithInjectedLicenseCondition(
+        String licenseThreatGroup,
+        int cvIteration)
+    {
+      return createConstraintFactsWithInjectedCondition(licenseThreatGroup, null, null, cvIteration);
+    }
+
+    static List<ConstraintFact> creatConstraintFactsWithInjectedSecurityCondition(
+        String cveNumber,
+        Double cvssScore,
+        int cvIteration)
+    {
+      return createConstraintFactsWithInjectedCondition(null, cveNumber, cvssScore, cvIteration);
+    }
+
     /**
      * A useful constraint fact must have at least 1 condition facts because that's where
      * the test data is. Several are created because in real word scenarios there may be multiple constraint facts
@@ -884,7 +947,8 @@ public class PolicyViolationTelemetryCollectorTest
      * @param cvIteration Iteration you want to insert the cv metadata
      * @return A list of constraint fact with the same amount of condition fact that contain the cv metadata
      */
-    static List<ConstraintFact> createConstraintFactsWithInjectedCondition(
+    private static List<ConstraintFact> createConstraintFactsWithInjectedCondition(
+        String licenseThreatGroup,
         String cveNumber,
         Double cvssScore,
         int cvIteration)
@@ -900,8 +964,11 @@ public class PolicyViolationTelemetryCollectorTest
           if (cveNumber != null && cvssScore != null && cvIteration == i && cvIteration == j) {
             conditionFact = createConditionFactWithCVMetadata(j, cveNumber, cvssScore);
           }
+          else if (StringUtils.isNotBlank(licenseThreatGroup)  && cvIteration == i && cvIteration == j) {
+            conditionFact = createConditionFactForLicenseThreat(j, licenseThreatGroup);
+          }
           else {
-            conditionFact = createConditionFact(j);
+            conditionFact = createConditionFact(j, SecurityVulnerabilitySeverityConditionType.ID);
           }
 
           constraintFact.addConditionFact(conditionFact);
@@ -916,13 +983,22 @@ public class PolicyViolationTelemetryCollectorTest
       String triggerJson =
           String.format("{\"conditionIndex\":1,\"trigger\":{\"refId\":\"%s\",\"severity\":%f}}", cveNumber, cvssScore);
       ConditionFact conditionFact =
-          new ConditionFact(LicenseConditionType.ID, j, "summary", "reason", triggerReference);
+          new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID, j, "summary", "reason", triggerReference);
       conditionFact.setTriggerJson(triggerJson);
       return conditionFact;
     }
 
-    private static ConditionFact createConditionFact(int j) {
-      return new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID, j, "summary", "reason");
+    private static ConditionFact createConditionFactForLicenseThreat(int j, String licenseThreatGroup) {
+      var triggerJson = String.format("{\"conditionIndex\":0,\"trigger\":{\"id\":\"%s\"}}", "threatGroupId");
+      var summary = String.format("License Threat Group is '%s'", licenseThreatGroup);
+      ConditionFact conditionFact =
+          new ConditionFact(LicenseThreatGroupConditionType.ID, j, summary, "reason", null);
+      conditionFact.setTriggerJson(triggerJson);
+      return conditionFact;
+    }
+
+    private static ConditionFact createConditionFact(int j, String conditionType) {
+      return new ConditionFact(conditionType, j, "summary", "reason");
     }
   }
 

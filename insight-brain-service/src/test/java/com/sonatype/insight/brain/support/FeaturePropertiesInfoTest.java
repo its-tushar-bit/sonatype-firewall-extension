@@ -115,7 +115,7 @@ public class FeaturePropertiesInfoTest
   public void testGetFeatureConfigPropertiesJson_defaultFeatureConfig() throws IOException {
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(56);
+    assertThat(featureConfigNode.size()).isEqualTo(55);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -150,7 +150,6 @@ public class FeaturePropertiesInfoTest
               "LDAP_CONFIGURATION": true,
               "logoutAuth0OnLogout": false,
               "malwareDefenseApi": false,
-              "manualPullRequests": false,
               "nonBreakingVersionSuggestionTelemetry": true,
               "OAUTH2_ENABLED": false,
               "prioritizedFindingsReport": true,
@@ -189,7 +188,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(56);
+    assertThat(featureConfigNode.size()).isEqualTo(55);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -224,7 +223,6 @@ public class FeaturePropertiesInfoTest
               "LDAP_CONFIGURATION": true,
               "logoutAuth0OnLogout": false,
               "malwareDefenseApi": false,
-              "manualPullRequests": false,
               "nonBreakingVersionSuggestionTelemetry": true,
               "OAUTH2_ENABLED": false,
               "prioritizedFindingsReport": true,
@@ -269,7 +267,7 @@ public class FeaturePropertiesInfoTest
     Map<String, Boolean> featureConfigMap = featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures);
 
     assertThat(featureConfigMap)
-        .hasSize(46)
+        .hasSize(45)
         .doesNotContainKeys(
             "SUCCESS_METRICS_CONFIGURATION",
             "PRODUCT_LICENSE_CONFIGURATION",

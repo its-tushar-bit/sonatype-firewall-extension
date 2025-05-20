@@ -207,29 +207,18 @@ export const selectTenantScmProviderTypes = createSelector(selectTenantMode, (mo
   }
 });
 
-export const selectIsManualPullRequestsEnabled = createSelector(
-  selectProductFeatures,
-  propOr(false, 'manual-pull-requests')
-);
-
-export const selectTenantScmOptionsTypes = createSelector(
-  selectTenantMode,
-  selectIsManualPullRequestsEnabled,
-  (mode, isManualPullRequestsEnabled) => {
-    if (mode === MULTI_TENANT) {
-      return SOURCE_CONTROL_OPTIONS.filter(
-        (option) =>
-          option.id !== 'source-control-remediation-pull-requests' &&
-          option.id !== 'source-control-ssh' &&
-          option.id !== 'manual-pull-requests'
-      );
-    } else {
-      return SOURCE_CONTROL_OPTIONS.filter(
-        (option) => option.id !== 'manual-pull-requests' || isManualPullRequestsEnabled
-      );
-    }
+export const selectTenantScmOptionsTypes = createSelector(selectTenantMode, (mode) => {
+  if (mode === MULTI_TENANT) {
+    return SOURCE_CONTROL_OPTIONS.filter(
+      (option) =>
+        option.id !== 'source-control-remediation-pull-requests' &&
+        option.id !== 'source-control-ssh' &&
+        option.id !== 'manual-pull-requests'
+    );
+  } else {
+    return SOURCE_CONTROL_OPTIONS;
   }
-);
+});
 
 export const selectIsShowVersionEnabled = createSelector(selectTenantMode, (mode) => {
   return mode === SINGLE_TENANT;
@@ -287,11 +276,6 @@ export const selectIsExpireWhenRemediationAvailableWaiversEnabled = createSelect
 );
 
 export const selectIsDarkModeFeatureFlagEnabled = createSelector(selectProductFeatures, propOr(false, 'dark-mode'));
-
-export const selectIsManualPullRequestEnabled = createSelector(
-  selectProductFeatures,
-  propOr(false, 'manual-pull-requests')
-);
 
 export const selectIsContainerImagesEvaluationEnabled = createSelector(
   selectProductFeatures,

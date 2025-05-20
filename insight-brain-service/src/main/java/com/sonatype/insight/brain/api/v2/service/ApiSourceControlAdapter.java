@@ -12,7 +12,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -96,9 +95,6 @@ public class ApiSourceControlAdapter
   }
 
   private static Boolean convertManualPullRequestsEnabled(Boolean manualPullRequestsEnabled) {
-    if (!SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()) {
-      return null;
-    }
     if (new TenantUtil().isMultiTenant()) {
       return false;
     }

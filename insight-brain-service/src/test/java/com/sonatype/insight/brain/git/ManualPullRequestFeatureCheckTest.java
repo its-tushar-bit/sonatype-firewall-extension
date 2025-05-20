@@ -78,6 +78,28 @@ public class ManualPullRequestFeatureCheckTest
   }
 
   @Test
+  public void testManualPullRequestConfigurationNull() {
+    GitRepositoryInfo gitRepositoryInfo = newRepositoryInfo(SourceControlProvider.GITHUB);
+    gitRepositoryInfo.manualPullRequestsEnabled = null;
+
+    Optional<ManualPullRequestImpossibilityReason> result = manualPullRequestFeatureCheck
+        .isManualPullRequestFeatureSupported(gitRepositoryInfo);
+
+    assertThat(result).contains(ManualPullRequestImpossibilityReason.NOT_SUPPORTED_FOR_REPOSITORY);
+  }
+
+  @Test
+  public void testManualPullRequestConfigurationTrue() {
+    GitRepositoryInfo gitRepositoryInfo = newRepositoryInfo(SourceControlProvider.GITHUB);
+    gitRepositoryInfo.manualPullRequestsEnabled = true;
+
+    Optional<ManualPullRequestImpossibilityReason> result = manualPullRequestFeatureCheck
+        .isManualPullRequestFeatureSupported(gitRepositoryInfo);
+
+    assertThat(result).contains(ManualPullRequestImpossibilityReason.NOT_SUPPORTED_FOR_REPOSITORY);
+  }
+
+  @Test
   public void testManualPullRequestSCMNotConfigured() {
     for (SourceControlProvider provider : SourceControlProvider.values()) {
       GitRepositoryInfo gitRepositoryInfo = null;

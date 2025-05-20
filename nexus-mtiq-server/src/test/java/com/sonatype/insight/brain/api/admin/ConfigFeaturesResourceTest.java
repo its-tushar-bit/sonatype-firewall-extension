@@ -124,7 +124,6 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.MALWARE_DEFENSE_API.getId(),
           SystemConfigurationPropertyFeature.EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE.getId(),
           SystemConfigurationPropertyFeature.ALP_FOR_SBOM_MANAGER.getId(),
-          SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.getId(),
           SystemConfigurationPropertyFeature.COMPONENT_CHANGE_DETECTION_API.getId(),
           SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.getId(),
           SystemConfigurationPropertyFeature.DARK_MODE.getId()

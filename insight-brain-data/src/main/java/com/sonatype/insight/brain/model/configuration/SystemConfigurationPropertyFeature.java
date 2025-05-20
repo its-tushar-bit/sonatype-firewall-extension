@@ -247,7 +247,6 @@ public enum SystemConfigurationPropertyFeature
       return super.isEnabled(tx);
     }
   },
-  MANUAL_PULL_REQUESTS(SystemConfigurationProperty.MANUAL_PULL_REQUESTS, false),
 
   COMPONENT_CHANGE_DETECTION_API(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API, false)
   {

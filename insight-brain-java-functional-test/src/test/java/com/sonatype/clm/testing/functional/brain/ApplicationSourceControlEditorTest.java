@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.api.v2.service.ApiCompositeSourceControlConfig
 import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -40,19 +39,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.attribute;
-import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.empty;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.exactText;
-import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.matchText;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -999,7 +986,6 @@ public class ApplicationSourceControlEditorTest
 
   @Test
   public void testSourceControlEditor_manualPullRequests() {
-    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
     refresh();
     Selenide.sleep(1000);
 
@@ -1010,7 +996,7 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.manualPullRequestsFieldset().shouldBe(visible);
     SourceControlEditorPage.manualPullRequestsFieldset().radioInputs()
         .forEach(input -> input.shouldBe(disabled));
-    SourceControlEditorPage.manualPullRequestsFieldset().radioInputs().get(2).shouldBe(selected);
+    SourceControlEditorPage.manualPullRequestsFieldset().radioInputs().get(1).shouldBe(selected);
     SourceControlEditorPage.manualPullRequestsFieldset().labels()
         .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
 
@@ -1061,11 +1047,6 @@ public class ApplicationSourceControlEditorTest
 
     SourceControlEditorPage.manualPullRequestsFieldset().radioInputs().get(0).shouldBe(selected);
     assertSourceControlManualPullRequest(application.getId(), null);
-
-    //disable feature flag
-    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(false);
-    refresh();
-    SourceControlEditorPage.manualPullRequestsFieldset().shouldNotBe(visible);
   }
 
   @Override

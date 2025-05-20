@@ -8,7 +8,7 @@ import { isEmpty } from 'ramda';
 
 export const testSourceControlContainers = async (assertionResults) => {
   const sectionContainers = await screen.findAllByRole('group');
-  expect(sectionContainers.length).toBe(8);
+  expect(sectionContainers.length).toBe(9);
   sectionContainers.forEach((sectionContainer, index) => {
     const section = assertionResults[index];
     if (!section || isEmpty(section)) return;

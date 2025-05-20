@@ -50,7 +50,7 @@ public class ManualPullRequestFeatureCheck
       return Optional.of(ManualPullRequestImpossibilityReason.SCM_NOT_CONFIGURED);
     }
 
-    if (!Boolean.TRUE.equals(gitRepoInfo.getManualPullRequestsEnabled())) {
+    if (Boolean.FALSE.equals(gitRepoInfo.getManualPullRequestsEnabled())) {
       return Optional.of(ManualPullRequestImpossibilityReason.CONFIGURATION_DISABLED);
     }
 

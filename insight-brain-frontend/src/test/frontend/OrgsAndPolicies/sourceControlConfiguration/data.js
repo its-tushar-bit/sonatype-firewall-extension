@@ -203,8 +203,8 @@ export const assertionsForOrgDefaultState = [
     isDisabled: { assertion: 'toBeDisabled' },
     type: 'radio',
     inherit: false,
-    enabled: false,
-    disabled: true,
+    enabled: true,
+    disabled: false,
   },
 ];
 
@@ -550,8 +550,8 @@ export const assertionsForAppDefaultState = [
     isDisabled: { assertion: 'toBeDisabled' },
     type: 'radio',
     inherit: false,
-    enabled: false,
-    disabled: true,
+    enabled: true,
+    disabled: false,
   },
 ];
 

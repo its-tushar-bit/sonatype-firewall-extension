@@ -4,24 +4,26 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import {
+  NxFontAwesomeIcon,
   NxLoadingSpinner,
   NxOverflowTooltip,
-  NxTableRow,
   NxTableCell,
-  NxThreatIndicator,
+  NxTableRow,
+  NxTextLink,
   NxTooltip,
 } from '@sonatype/react-shared-components';
-import DependencyIndicator from 'MainRoot/DependencyTree/DependencyIndicator';
+import { faStar } from '@fortawesome/sharp-solid-svg-icons';
+import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from './slices/prioritiesPageSlice';
+import DependencyIndicator from 'MainRoot/DependencyTree/DependencyIndicator';
 import { stringifyComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
 import { selectIsDeveloperBulkRecommendationsEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
-  getAsyncRecommendationsPrioritiesPage,
   getRecommendationsPrioritiesPage,
   NEXT_NO_VIOLATIONS,
   NEXT_NO_VIOLATIONS_DEPENDENCIES,
@@ -30,11 +32,11 @@ import {
   RECOMMENDED_NON_BREAKING,
   RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
 } from '../../componentDetails/overview/riskRemediation/recommendedVersionsUtils';
-import PropTypes from 'prop-types';
 import { selectReportStageId } from 'MainRoot/applicationReport/applicationReportSelectors';
-import ReachabilityStatus from 'MainRoot/componentDetails/ReachabilityStatus/ReachabilityStatus';
-import GoldenStar from 'MainRoot/img/golden-star.svg';
-import { selectApplicationReportMetaData } from 'MainRoot/applicationReport/applicationReportSelectors';
+import PolicyActionTag from 'MainRoot/react/PolicyActionTag';
+import PRStatus from 'MainRoot/components/prStatus/PRStatus';
+import Reachability from 'MainRoot/components/reachability/Reachability';
+import CreatePRModal from 'MainRoot/manualPullRequest/CreatePRModal';
 
 export const dependencyTypeMap = {
   Direct: 'direct',
@@ -52,25 +54,20 @@ export const recommendationTypeMap = {
   'recommended-non-breaking-with-dependencies': 'Recommended non-breaking with dependencies version',
 };
 
-export default function PrioritiesPageRow({ component, onClick, hasPolicyAction }) {
+export default function PrioritiesPageRow({ component, componentHref, violationsHref }) {
   const dispatch = useDispatch();
 
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
-  const { recommendations } = useSelector(selectPrioritiesPageSlice);
+  const { recommendations, visibleCreatePRModalComponentHash } = useSelector(selectPrioritiesPageSlice);
   const stageId = useSelector(selectReportStageId);
 
   const isDeveloperBulkRecommendationsEnabled = useSelector(selectIsDeveloperBulkRecommendationsEnabled);
-
-  const metadata = useSelector(selectApplicationReportMetaData);
-  const { forMonitoring } = metadata || {};
 
   const {
     displayName,
     dependencyType,
     action,
-    highestThreat,
     priority,
-    highestThreatPolicyName,
     securityReachable,
     componentIdentifier,
     componentHash,
@@ -79,28 +76,41 @@ export default function PrioritiesPageRow({ component, onClick, hasPolicyAction 
     remediationVersion,
   } = component;
 
-  const policyAction = action === 'none' ? '' : action;
+  const policyAction = action === 'none' ? null : action;
   const formattedDependencyType = dependencyTypeMap[dependencyType];
   const actualVersion = componentIdentifier?.coordinates?.version;
   const isUnknown = formattedDependencyType === dependencyTypeMap.Unknown && componentIdentifier === null;
 
   const loading = isDeveloperBulkRecommendationsEnabled ? false : recommendations[componentHash]?.loading;
   const error = isDeveloperBulkRecommendationsEnabled ? null : recommendations[componentHash]?.error;
-  const remediation = isDeveloperBulkRecommendationsEnabled ? null : recommendations[componentHash]?.remediation;
+  const automatedRemediationStatus = recommendations[componentHash]?.automatedRemediationStatus;
 
-  const recommendation = isDeveloperBulkRecommendationsEnabled
-    ? useMemo(() => getRecommendationsPrioritiesPage(remediationType, remediationVersion, actualVersion, stageId), [
-        remediationType,
-        remediationVersion,
-        stageId,
-      ])
-    : useMemo(() => getAsyncRecommendationsPrioritiesPage(remediation, actualVersion, stageId), [
-        remediation,
-        actualVersion,
-        stageId,
-      ]);
+  const isModalOpenForComponent = visibleCreatePRModalComponentHash === componentHash;
 
-  const doLoad = () => {
+  const remediationObj = recommendations[componentHash]?.remediation;
+
+  const bulkRecommendation = useMemo(
+    () => getRecommendationsPrioritiesPage(remediationType, remediationVersion, actualVersion, stageId),
+    [remediationType, remediationVersion, actualVersion, stageId]
+  );
+
+  let recommendation;
+  if (isDeveloperBulkRecommendationsEnabled) {
+    recommendation = bulkRecommendation;
+  } else {
+    recommendation = remediationObj?.type ? remediationObj : null;
+  }
+
+  const remediationStatusPollingRef = useRef(null);
+
+  function startPRStatusPollingAndSaveReference(id, componentHash) {
+    if (id == null || componentHash == null) return;
+
+    remediationStatusPollingRef.current?.abort?.();
+    remediationStatusPollingRef.current = dispatch(actions.startPRStatusPolling({ id, componentHash }));
+  }
+
+  const doLoad = async () => {
     const requestData = {
       clientType: 'ci',
       ownerType: 'application',
@@ -115,73 +125,105 @@ export default function PrioritiesPageRow({ component, onClick, hasPolicyAction 
       displayName,
       stageId,
       dependencyType: formattedDependencyType,
+      actualVersion,
     };
 
-    dispatch(actions.checkIfLoadRecommendationsNeeded(requestData));
+    const response = await dispatch(actions.checkIfLoadRecommendationsNeeded(requestData));
+    if (response?.payload?.[componentHash]?.automatedRemediationStatus) {
+      const { payload } = response;
+      const remediationStatus = payload[componentHash].automatedRemediationStatus;
+
+      if (remediationStatus?.status === 'PULL_REQUEST_CREATION_PENDING' && remediationStatus?.id) {
+        const { id } = remediationStatus;
+        startPRStatusPollingAndSaveReference(id, componentHash);
+      }
+    }
   };
 
   useEffect(() => {
     if (!isDeveloperBulkRecommendationsEnabled) {
       doLoad();
     }
+
+    return () => {
+      remediationStatusPollingRef.current?.abort?.();
+    };
   }, [isDeveloperBulkRecommendationsEnabled]);
 
+  const openCreatePRModal = () => {
+    dispatch(
+      actions.openCreatePRModal({
+        componentHash: componentHash,
+        targetVersion: recommendation.version,
+      })
+    );
+  };
+
+  const onPRCreated = (result) => {
+    startPRStatusPollingAndSaveReference(result?.id, componentHash);
+  };
+
+  const onRetryCreatePR = async () => {
+    const { payload } = await dispatch(
+      actions.createPR({
+        componentHash: componentHash,
+        targetVersion: recommendation.version,
+      })
+    );
+    startPRStatusPollingAndSaveReference(payload?.data?.id, componentHash);
+  };
+
   return (
-    <NxTableRow isClickable onClick={onClick} data-analytics-id="sonatype-developer-priorities-page-component-row">
-      <NxTableCell className="iq-priorities-page-priority">{priority}</NxTableCell>
-      <NxTableCell>
+    <NxTableRow data-analytics-id="sonatype-developer-priorities-page-component-row">
+      <NxTableCell className="nx-cell--num iq-priorities-table__priority">{priority}</NxTableCell>
+      <NxTableCell className="iq-priorities-table__component">
         <NxOverflowTooltip>
           <div className="nx-truncate-ellipsis">
-            <span className="iq-priorities-page-dependency-indicator" data-testid="dependency-type">
-              {formattedDependencyType === dependencyTypeMap.Unknown ? null : (
-                <DependencyIndicator type={formattedDependencyType} />
-              )}
-            </span>
-            <span className="iq-priorities-page-components__component">{displayName}</span>
+            {formattedDependencyType === dependencyTypeMap.Unknown ? null : (
+              <DependencyIndicator type={formattedDependencyType} />
+            )}
+            <NxTextLink href={componentHref}>{displayName}</NxTextLink>
           </div>
         </NxOverflowTooltip>
       </NxTableCell>
-      <NxTableCell>
-        <span className="iq-priorities-page-policy-details">
-          <span
-            className={
-              forMonitoring || !hasPolicyAction
-                ? 'iq-priorities-page-policy-details__desc-ignore-policy-action'
-                : 'iq-priorities-page-policy-details__desc'
-            }
-          >
-            <span className={`iq-priorities-page-policy-details__desc-policy-action ${policyAction}`}>
-              {policyAction}
-            </span>
-            <NxThreatIndicator
-              className="iq-priorities-page-policy-details__desc-threat-indicator"
-              policyThreatLevel={highestThreat}
-            />
-            <span className="iq-priorities-page-policy-details__desc-threat">{highestThreat}</span>
-            <NxOverflowTooltip>
-              <span className="iq-priorities-page-policy-details__policy nx-truncate-ellipsis">
-                {highestThreatPolicyName}
-              </span>
-            </NxOverflowTooltip>
-
-            {securityReachable && <ReachabilityStatus reachabilityStatus={'REACHABLE'} />}
-          </span>
-        </span>
+      <NxTableCell className="iq-priorities-table__build-action">
+        <PolicyActionTag action={policyAction} />
+      </NxTableCell>
+      <NxTableCell className="iq-priorities-table__reachability">
+        <Reachability reachable={securityReachable} />
       </NxTableCell>
       <NxTableCell>
-        <div className="iq-priorities-page-remediation">
-          <Recommendation
-            loading={loading}
-            error={error}
-            isUnknown={isUnknown}
-            actualVersion={actualVersion}
-            recommendation={recommendation}
-          />
-        </div>
+        <Recommendation
+          loading={loading}
+          error={error}
+          isUnknown={isUnknown}
+          actualVersion={actualVersion}
+          recommendation={recommendation}
+        />
       </NxTableCell>
-      <NxTableCell chevron />
+      <NxTableCell>
+        <PRStatus
+          automatedRemediationStatus={automatedRemediationStatus}
+          onCreatePR={openCreatePRModal}
+          onRetry={onRetryCreatePR}
+          defaultContent={
+            loading ? (
+              <NxLoadingSpinner />
+            ) : (
+              <NxTextLink href={violationsHref} className="iq-pr-status__view-violations-link">
+                View Violations
+              </NxTextLink>
+            )
+          }
+        />
+        <RowCreatePRModal visible={isModalOpenForComponent} onPRCreated={onPRCreated} />
+      </NxTableCell>
     </NxTableRow>
   );
+}
+
+function RowCreatePRModal({ visible, onPRCreated }) {
+  return visible ? <CreatePRModal onSuccess={onPRCreated} /> : null;
 }
 
 function Recommendation({ loading, error, isUnknown, actualVersion, recommendation }) {
@@ -190,14 +232,16 @@ function Recommendation({ loading, error, isUnknown, actualVersion, recommendati
   }
 
   if (error || isUnknown || !recommendation?.version || actualVersion === recommendation?.version) {
-    return <span>-</span>;
+    return <span>Investigate</span>;
   }
 
   return (
     <NxTooltip title={recommendationTypeMap[recommendation?.type]}>
-      <div className="iq-suggested-fix">
-        <span>{recommendation?.version}</span>{' '}
-        {recommendation?.isGolden && <img src={GoldenStar} className="iq-golden-star" />}
+      <div className="iq-priorities-table__recommendation">
+        <span>Upgrade to {recommendation?.version}</span>
+        {recommendation?.isGolden && (
+          <NxFontAwesomeIcon aria-hidden="false" aria-label="Golden Version" className="iq-golden-star" icon={faStar} />
+        )}
       </div>
     </NxTooltip>
   );
@@ -209,8 +253,6 @@ Recommendation.propTypes = {
   isUnknown: PropTypes.bool,
   actualVersion: PropTypes.string,
   recommendation: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    text: PropTypes.string.isRequired,
     type: PropTypes.oneOf([
       NEXT_NO_VIOLATIONS,
       NEXT_NO_VIOLATIONS_DEPENDENCIES,
@@ -220,8 +262,6 @@ Recommendation.propTypes = {
       RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
     ]),
     version: PropTypes.string,
-    linkId: PropTypes.string,
-    linkText: PropTypes.string,
     isGolden: PropTypes.bool,
   }),
 };
@@ -231,11 +271,8 @@ PrioritiesPageRow.propTypes = {
     displayName: PropTypes.string.isRequired,
     dependencyType: PropTypes.string.isRequired,
     action: PropTypes.string.isRequired,
-    highestThreat: PropTypes.number.isRequired,
     priority: PropTypes.number.isRequired,
-    highestThreatPolicyName: PropTypes.string,
-    highestThreatPolicyConstraintName: PropTypes.string,
   }).isRequired,
-  onClick: PropTypes.func.isRequired,
-  hasPolicyAction: PropTypes.bool,
+  componentHref: PropTypes.string.isRequired,
+  violationsHref: PropTypes.string.isRequired,
 };

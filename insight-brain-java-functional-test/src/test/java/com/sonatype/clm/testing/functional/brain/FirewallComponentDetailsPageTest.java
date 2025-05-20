@@ -979,7 +979,7 @@ public class FirewallComponentDetailsPageTest
       recommendation.text().shouldHave(text("Version 0.5.3"));
     }
 
-    SelenideElement compareButton = recommendedVersionsSection.getRecommendation(recommendationIndex).actions().first();
+    SelenideElement compareButton = recommendedVersionsSection.getRecommendation(recommendationIndex).actions().get(1);
 
     compareButton.click();
     RiskRemediationTile.CompareVersionsTable table = riskRemediation.compareVersionsTable();

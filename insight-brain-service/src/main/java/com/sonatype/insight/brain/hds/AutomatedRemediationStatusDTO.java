@@ -11,6 +11,27 @@ import java.util.Objects;
 import com.sonatype.insight.brain.git.ManualPullRequestImpossibilityReason;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.EXISTING_PROPERTY,
+    property = "status"
+)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = AutomatedRemediationStatusDTO.ManualPullRequestNotPossibleDTO.class,
+        name = "MANUAL_PULL_REQUEST_NOT_POSSIBLE"),
+    @JsonSubTypes.Type(value = AutomatedRemediationStatusDTO.ManualPullRequestPossibleDTO.class,
+        name = "MANUAL_PULL_REQUEST_POSSIBLE"),
+    @JsonSubTypes.Type(value = AutomatedRemediationStatusDTO.PullRequestCreationPendingDTO.class,
+        name = "PULL_REQUEST_CREATION_PENDING"),
+    @JsonSubTypes.Type(value = AutomatedRemediationStatusDTO.PullRequestCreationFailedDTO.class,
+        name = "PULL_REQUEST_CREATION_FAILED"),
+    @JsonSubTypes.Type(value = AutomatedRemediationStatusDTO.PullRequestDTO.class, name = "PULL_REQUEST")
+})
 public abstract sealed class AutomatedRemediationStatusDTO
 {
   public final AutomatedRemediationStatus status;
@@ -24,7 +45,8 @@ public abstract sealed class AutomatedRemediationStatusDTO
   {
     public final ManualPullRequestImpossibilityReason reason;
 
-    public ManualPullRequestNotPossibleDTO(final ManualPullRequestImpossibilityReason reason) {
+    @JsonCreator
+    public ManualPullRequestNotPossibleDTO(@JsonProperty("reason") final ManualPullRequestImpossibilityReason reason) {
       super(AutomatedRemediationStatus.MANUAL_PULL_REQUEST_NOT_POSSIBLE);
       this.reason = reason;
     }
@@ -43,7 +65,8 @@ public abstract sealed class AutomatedRemediationStatusDTO
   {
     public final String id;
 
-    public PullRequestCreationPendingDTO(final String id) {
+    @JsonCreator
+    public PullRequestCreationPendingDTO(@JsonProperty("id") final String id) {
       super(AutomatedRemediationStatus.PULL_REQUEST_CREATION_PENDING);
       this.id = Objects.requireNonNull(id);
     }
@@ -54,7 +77,8 @@ public abstract sealed class AutomatedRemediationStatusDTO
   {
     public final String reason;
 
-    public PullRequestCreationFailedDTO(final String reason) {
+    @JsonCreator
+    public PullRequestCreationFailedDTO(@JsonProperty("reason") final String reason) {
       super(AutomatedRemediationStatus.PULL_REQUEST_CREATION_FAILED);
       this.reason = Objects.requireNonNull(reason);
     }
@@ -65,7 +89,8 @@ public abstract sealed class AutomatedRemediationStatusDTO
   {
     public final String url;
 
-    public PullRequestDTO(final String url) {
+    @JsonCreator
+    public PullRequestDTO(@JsonProperty("url") final String url) {
       super(AutomatedRemediationStatus.PULL_REQUEST);
       this.url = Objects.requireNonNull(url);
     }

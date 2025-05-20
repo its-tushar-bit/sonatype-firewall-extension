@@ -2114,7 +2114,7 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testGetCompositeSourceControlByOwnerId_ManualPullRequestEnabled_AllNull() {
+  public void testGetCompositeSourceControlByOwnerId_AllNull() {
     TestableHierarchy testableHierarchy = new TestableHierarchy()
         .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appComposite")
         .withProvider(GITLAB, null, null)

@@ -10,10 +10,6 @@ import java.util.List;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.repository.RepositorySourceResponseDTO;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import io.swagger.v3.oas.annotations.media.Schema;
-
 public class ComponentVersionInfoDTO
 {
   public List<ComponentDetailsDTO> allVersions;
@@ -22,9 +18,6 @@ public class ComponentVersionInfoDTO
 
   public RepositorySourceResponseDTO sourceResponse;
 
-  // temporary hidden: SDEV-751
-  @Schema(hidden = true)
-  @JsonInclude(Include.NON_NULL)
   public AutomatedRemediationStatusDTO automatedRemediationStatus;
 
   public ComponentVersionInfoDTO(

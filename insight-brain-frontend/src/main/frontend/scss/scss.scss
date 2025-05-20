@@ -29,6 +29,8 @@
 
 // Components
 @use '../components/components';
+@use '../components/prStatus/prStatus';
+@use '../components/reachability/reachability';
 @use '../configuration/ldap/ldap';
 @use 'reports';
 @use '../mainHeader/mainHeader';
@@ -169,6 +171,7 @@
 @use '../applicationLatestEvaluations/applicationLatestEvaluations';
 @use '../OrgsAndPolicies/importSbomModal/import-sbom-modal';
 @use '../react/policyActionTag';
+@use '../manualPullRequest/createPRModal';
 
 // Overrides
 @use 'responsive';

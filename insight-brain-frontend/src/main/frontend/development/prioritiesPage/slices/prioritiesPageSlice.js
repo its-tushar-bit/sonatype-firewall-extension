@@ -4,14 +4,20 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { getPrioritiesPageTableData, getVersionGraphUrl } from 'MainRoot/util/CLMLocation';
+import { isNil, keys, propEq } from 'ramda';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { getCreatePullRequestUrl, getPrioritiesPageTableData, getVersionGraphUrl } from 'MainRoot/util/CLMLocation';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { isNil, keys } from 'ramda';
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
+import { selectApplicationReportMetaData } from 'MainRoot/applicationReport/applicationReportSelectors';
+import { pollPRStatus } from 'MainRoot/manualPullRequest/pollPRStatus';
+import { actions as createPRModalActions } from 'MainRoot/manualPullRequest/createPRModalSlice';
+import { getAsyncRecommendationsPrioritiesPage } from 'MainRoot/componentDetails/overview/riskRemediation/recommendedVersionsUtils';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
+import { AUTOMATED_REMEDIATION_STATUS } from 'MainRoot/constants/automatedRemediationStatus';
+import { fetchBranchName } from 'MainRoot/util/branchNameUtil';
 
 export const PRIORITIES_PAGE_REDUCER_NAME = 'prioritiesPage';
 
@@ -57,7 +63,7 @@ const loadTableDataFailed = (state, { payload }) => {
 
 const loadTableData = createAsyncThunk(
   `${PRIORITIES_PAGE_REDUCER_NAME}/loadTableData`,
-  (_, { getState, rejectWithValue }) => {
+  (_, { dispatch, getState, rejectWithValue }) => {
     const state = getState();
     const { publicAppId, scanId } = selectRouterCurrentParams(state);
     const tableDataUrl = getPrioritiesPageTableData(publicAppId, scanId);
@@ -67,19 +73,107 @@ const loadTableData = createAsyncThunk(
       .get(tableDataUrl, {
         params: { pageSize: TABLE_PAGE_SIZE, page, componentNameFilter, filterOnPolicyActions },
       })
-      .then(({ data }) => ({ ...data, publicAppId, scanId }))
+      .then(({ data }) => {
+        return dispatch(loadBranchName()).then(() => ({ ...data, publicAppId, scanId }));
+      })
       .catch(rejectWithValue);
   }
 );
 
+const openCreatePRModal = createAsyncThunk(
+  `${PRIORITIES_PAGE_REDUCER_NAME}/openCreatePRModal`,
+  ({ componentHash, targetVersion }, { dispatch, getState }) => {
+    const state = getState();
+    const { scanId } = selectRouterCurrentParams(state);
+    const prioritiesPage = selectPrioritiesPageSlice(state);
+    const { recommendations, branchName } = prioritiesPage;
+    const component = prioritiesPage.priorities.find(propEq('componentHash', componentHash));
+    const { displayName, componentIdentifier } = component;
+
+    const currentVersion = componentIdentifier?.coordinates?.version;
+    const recommendation = recommendations[componentHash];
+    const name = recommendation.componentDisplayName || component.displayName.name;
+    const breakingChangesCount = recommendation.remediation?.breakingChangesCount;
+
+    dispatch(
+      createPRModalActions.openModal({
+        name: name,
+        fullName: displayName,
+        currentVersion: currentVersion,
+        targetVersion: targetVersion,
+        breakingChangesCount: breakingChangesCount,
+        defaultBranch: branchName,
+        scanId: scanId,
+        identificationSource: 'Sonatype',
+        componentHash: componentHash,
+        componentIdentifier: componentIdentifier,
+      })
+    );
+  }
+);
+
+const openCreatePRModalFulfilled = (state, action) => {
+  const { componentHash } = action.meta.arg;
+  state.visibleCreatePRModalComponentHash = componentHash;
+};
+
+const createPR = createAsyncThunk(
+  `${PRIORITIES_PAGE_REDUCER_NAME}/createPR`,
+  ({ componentHash, targetVersion }, { getState, rejectWithValue }) => {
+    const state = getState();
+    const { application } = selectApplicationReportMetaData(state);
+    const { scanId } = selectRouterCurrentParams(state);
+    const prioritiesPage = selectPrioritiesPageSlice(state);
+    const component = prioritiesPage.priorities.find(propEq('componentHash', componentHash));
+    const { componentIdentifier } = component;
+
+    return axios
+      .post(getCreatePullRequestUrl(), {
+        applicationId: application.id,
+        scanId: scanId,
+        targetVersion: targetVersion,
+        identificationSource: 'Sonatype',
+        componentIdentifier: componentIdentifier,
+      })
+      .catch((error) => rejectWithValue(error));
+  }
+);
+
+const createPRPending = (state, action) => {
+  const { componentHash } = action.meta.arg;
+  state.recommendations[componentHash].automatedRemediationStatus = {
+    status: AUTOMATED_REMEDIATION_STATUS.PULL_REQUEST_CREATION_PENDING,
+  };
+};
+
+const createPRFailed = (state, action) => {
+  const { componentHash } = action.meta.arg;
+  const error = action.payload.response?.data?.errorMessage || Messages.getHttpErrorMessage(action.payload);
+  state.recommendations[componentHash].automatedRemediationStatus = {
+    status: AUTOMATED_REMEDIATION_STATUS.PULL_REQUEST_CREATION_FAILED,
+    reason: error,
+  };
+};
+
 const loadRecommendations = createAsyncThunk(
   `${PRIORITIES_PAGE_REDUCER_NAME}/loadRecommendations`,
   (requestData, { rejectWithValue }) => {
+    const { actualVersion, ...requestParams } = requestData;
     return axios
-      .get(getVersionGraphUrl(requestData))
+      .get(getVersionGraphUrl(requestParams))
       .then(({ data }) => {
+        const remediation = getAsyncRecommendationsPrioritiesPage(
+          data.remediation,
+          actualVersion,
+          requestData.stageId,
+          data.allVersions
+        );
         return {
-          [requestData.hash]: { remediation: data.remediation },
+          [requestData.hash]: {
+            remediation: remediation,
+            automatedRemediationStatus: data.automatedRemediationStatus,
+            componentDisplayName: data.allVersions[0].displayName.name,
+          },
         };
       })
       .catch(rejectWithValue);
@@ -91,7 +185,11 @@ const loadRecommendationsRequested = (state, { meta }) => {
     ...state,
     recommendations: {
       ...state.recommendations,
-      [meta.arg.hash]: { loading: true, error: null, remediation: null },
+      [meta.arg.hash]: {
+        loading: true,
+        error: null,
+        remediation: null,
+      },
     },
   };
 };
@@ -112,20 +210,67 @@ const loadRecommendationsFailed = (state, { payload, meta }) => {
     ...state,
     recommendations: {
       ...state.recommendations,
-      [meta.arg.hash]: { loading: false, error: Messages.getHttpErrorMessage(payload), remediation: null },
+      [meta.arg.hash]: {
+        loading: false,
+        error: Messages.getHttpErrorMessage(payload),
+        remediation: null,
+      },
     },
   };
 };
 
-export const checkIfLoadRecommendationsNeeded = (requestData) => (dispatch, getState) => {
+const loadBranchName = createAsyncThunk(
+  `${PRIORITIES_PAGE_REDUCER_NAME}/loadBranchName`,
+  (_, { getState, rejectWithValue }) => {
+    const state = getState();
+    const prioritiesPage = selectPrioritiesPageSlice(state);
+
+    if (prioritiesPage.branchName) {
+      return prioritiesPage.branchName;
+    }
+
+    return fetchBranchName(state).catch(rejectWithValue);
+  }
+);
+
+const loadBranchNameFulfilled = (state, { payload }) => {
+  state.branchName = payload;
+};
+
+const startPRStatusPolling = createAsyncThunk(
+  `${PRIORITIES_PAGE_REDUCER_NAME}/handlePRCreated`,
+  async ({ id, componentHash }, { rejectWithValue, signal }) => {
+    try {
+      const prStatus = await pollPRStatus(id, signal);
+      return {
+        componentHash,
+        automatedRemediationStatus: prStatus,
+      };
+    } catch (error) {
+      rejectWithValue(error);
+    }
+  }
+);
+
+const startPRStatusPollingPending = (state, action) => {
+  const { componentHash } = action.meta.arg;
+  state.recommendations[componentHash].automatedRemediationStatus = {
+    status: AUTOMATED_REMEDIATION_STATUS.PULL_REQUEST_CREATION_PENDING,
+  };
+};
+
+const startPRStatusPollingFulfilled = (state, { payload }) => {
+  const { componentHash, automatedRemediationStatus } = payload;
+  state.recommendations[componentHash].automatedRemediationStatus = automatedRemediationStatus;
+};
+
+export const checkIfLoadRecommendationsNeeded = (requestData) => async (dispatch, getState) => {
   const state = getState();
   const { recommendations } = selectPrioritiesPageSlice(state);
   const { hash } = requestData;
 
   if (!isNil(recommendations[hash]?.remediation)) {
-    return Promise.resolve({
-      [hash]: recommendations[hash],
-    });
+    return { [hash]: recommendations[hash] };
   }
 
   return dispatch(loadRecommendations(requestData));
@@ -164,6 +309,7 @@ const resetState = (state) => {
     recommendations: {},
     page: 1,
     pageCount: 1,
+    branchName: null,
   });
 };
 
@@ -226,12 +372,18 @@ const prioritiesPageSlice = createSlice({
     setIntegrationType,
   },
   extraReducers: {
+    [loadBranchName.fulfilled]: loadBranchNameFulfilled,
     [loadTableData.pending]: loadTableDataRequested,
     [loadTableData.fulfilled]: loadTableDataFulfilled,
     [loadTableData.rejected]: loadTableDataFailed,
     [loadRecommendations.pending]: loadRecommendationsRequested,
     [loadRecommendations.fulfilled]: loadRecommendationsFulfilled,
     [loadRecommendations.rejected]: loadRecommendationsFailed,
+    [openCreatePRModal.fulfilled]: openCreatePRModalFulfilled,
+    [createPR.rejected]: createPRFailed,
+    [createPR.pending]: createPRPending,
+    [startPRStatusPolling.fulfilled]: startPRStatusPollingFulfilled,
+    [startPRStatusPolling.pending]: startPRStatusPollingPending,
     [UI_ROUTER_ON_FINISH]: savePagination,
   },
 });
@@ -256,6 +408,8 @@ function initialState() {
     savedPage: null,
     savedPageCount: null,
     integrationType: null,
+    branchName: null,
+    visibleCreatePRModalComponentHash: null,
   };
 }
 
@@ -265,5 +419,9 @@ export const actions = {
   ...prioritiesPageSlice.actions,
   loadTableData,
   loadRecommendations,
+  openCreatePRModal,
+  createPR,
   checkIfLoadRecommendationsNeeded,
+  loadBranchName,
+  startPRStatusPolling,
 };

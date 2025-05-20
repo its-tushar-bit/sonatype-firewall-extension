@@ -10,6 +10,8 @@ import java.time.ZoneId;
 import java.util.Collections;
 import java.util.UUID;
 
+import com.sonatype.insight.docker.utils.DockerUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
@@ -57,9 +59,9 @@ public class KeycloakServer
   }
 
   public KeycloakServer(Network network) {
-    Utils.assumeSupported();
+    DockerUtils.assumeSupported();
     try {
-      container = new GenericContainer<>(DockerImageName.parse(Utils.applyRegistry(IMAGE)));
+      container = new GenericContainer<>(DockerImageName.parse(DockerUtils.applyRegistry(IMAGE)));
       container.addExposedPort(DEFAULT_PORT);
       container.waitingFor(Wait.forLogMessage(".*Keycloak .* started in.*", 1));
       container.withStartupTimeout(Duration.ofMinutes(2));
@@ -78,7 +80,7 @@ public class KeycloakServer
       containerId = container.getContainerId();
       containerName = container.getContainerName();
       port = container.getMappedPort(DEFAULT_PORT);
-      hostname = Utils.getHostname(container.getHost(), port);
+      hostname = DockerUtils.getHostname(container.getHost(), port);
       log.info("Started Keycloak Sever {}.", this);
     }
     catch (Exception e) {

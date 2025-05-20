@@ -185,6 +185,22 @@ public class RiskRemediationTile
       SelenideElement actions = element.find(".nx-list__actions");
       return actions.findAll(".nx-btn");
     }
+
+    public SelenideElement createPullRequestButton() {
+      return element.find(".iq-pr-status__btn.nx-btn--small");
+    }
+
+    public SelenideElement loadingSpinner() {
+      return element.find(".nx-loading-spinner");
+    }
+
+    public SelenideElement retryButton() {
+      return element.find(".iq-pr-status__btn--failed");
+    }
+
+    public SelenideElement prLink() {
+      return element.find(".nx-text-link[href]");
+    }
   }
 
   public static class CompareVersionsTable

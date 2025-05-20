@@ -71,15 +71,7 @@ public class PermissionTest
     assertPermission(Permission.LEGAL_REVIEWER, "Review", PermissionCategory.REMEDIATION,
         "Legal obligations for components licenses", false, true, true);
     assertPermission(Permission.CREATE_PULL_REQUESTS, "Create", PermissionCategory.REMEDIATION,
-        "Pull requests", false, true, false);
-  }
-
-  @Test
-  public void testPermissions_CREATE_PULL_REQUESTS() {
-    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
-    assertThat(Permission.CREATE_PULL_REQUESTS.isVisible()).isTrue();
-    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(false);
-    assertThat(Permission.CREATE_PULL_REQUESTS.isVisible()).isFalse();
+        "Pull requests", false, true, true);
   }
 
   private void assertPermission(

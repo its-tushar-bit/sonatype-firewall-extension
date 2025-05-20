@@ -13,7 +13,7 @@ import {
   getSourceControlMetricsUrl,
   getSourceControlUrl,
 } from 'MainRoot/util/CLMLocation';
-import { cleanup, fireEvent } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
 import { testSourceControlContainers } from './helpers';
 import {
   ROOT_ORGANIZATION_ID,
@@ -162,7 +162,7 @@ describe('sourceControlConfiguration', () => {
         expect(automaticCommitFeedback.checked).toBe(true);
         expect(manualPullRequests).toBeVisible();
         expect(manualPullRequests).toBeDisabled();
-        expect(manualPullRequests.checked).toBe(false);
+        expect(manualPullRequests.checked).toBe(true);
         expect(resetButton).toBeVisible();
         expect(submitButton).toBeVisible();
         fireEvent.click(submitButton);
@@ -296,7 +296,7 @@ describe('sourceControlConfiguration', () => {
           commitStatusEnabled: true,
           sourceControlEvaluationsEnabled: true,
           sshEnabled: null,
-          manualPullRequestsEnabled: false,
+          manualPullRequestsEnabled: true,
         };
         axiosMock.onPost(getSourceControlUrl(ownerType, ownerId), submitData).reply(200);
         renderComponent();
@@ -405,28 +405,12 @@ describe('sourceControlConfiguration', () => {
         expect(screen.queryByText('An error occurred saving data. Saving Error')).not.toBeInTheDocument();
       });
 
-      it('shows or hides manual pull requests toggle based on feature flag', async () => {
-        //feature flag enabled
+      it('shows the manual pull requests toggle', async () => {
         renderComponent();
         await screen.findByRole('button', { name: 'Create' });
         const switchesWithFlag = screen.getAllByRole('switch');
         expect(switchesWithFlag.length).toBe(6);
         expect(screen.getByText('Manual Pull Requests')).toBeInTheDocument();
-
-        //feature flag disabled
-        const preloadedState = clone(defaultPreloadedState);
-        preloadedState.productFeatures.productFeatures = {
-          notifications: true,
-          automation: true,
-        };
-
-        cleanup();
-        renderComponent(preloadedState);
-        await screen.findByRole('button', { name: 'Create' });
-
-        const switchesWithoutFlag = screen.getAllByRole('switch');
-        expect(switchesWithoutFlag.length).toBe(5);
-        expect(screen.queryByText('Manual Pull Requests')).not.toBeInTheDocument();
       });
     });
 

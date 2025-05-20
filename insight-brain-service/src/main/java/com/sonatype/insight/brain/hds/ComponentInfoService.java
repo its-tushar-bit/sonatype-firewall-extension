@@ -23,7 +23,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -74,6 +73,7 @@ import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
+import com.sonatype.insight.brain.report.ReportDataReader;
 import com.sonatype.insight.brain.repository.RepositoryAllVersionsResponse;
 import com.sonatype.insight.brain.repository.RepositoryClient;
 import com.sonatype.insight.brain.repository.RepositoryComponentResult;
@@ -82,7 +82,6 @@ import com.sonatype.insight.brain.repository.RepositorySourceResponseDTO;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
-import com.sonatype.insight.brain.report.ReportDataReader;
 import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -593,18 +592,14 @@ public class ComponentInfoService
       }
     }
 
-    if (SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()) {
-      Optional<ManualPullRequestImpossibilityReason> manualPRDisabledReason =
-          manualPullRequestService.isManualPullRequestPossible(componentIdentifier, stageId, dependencyType,
-              owner,
-              remediationDto);
-      if (manualPRDisabledReason.isEmpty()) {
-        return new AutomatedRemediationStatusDTO.ManualPullRequestPossibleDTO();
-      }
-      return new AutomatedRemediationStatusDTO.ManualPullRequestNotPossibleDTO(manualPRDisabledReason.get());
+    Optional<ManualPullRequestImpossibilityReason> manualPRDisabledReason =
+        manualPullRequestService.isManualPullRequestPossible(componentIdentifier, stageId, dependencyType,
+            owner,
+            remediationDto);
+    if (manualPRDisabledReason.isEmpty()) {
+      return new AutomatedRemediationStatusDTO.ManualPullRequestPossibleDTO();
     }
-
-    return null;
+    return new AutomatedRemediationStatusDTO.ManualPullRequestNotPossibleDTO(manualPRDisabledReason.get());
   }
 
   private Optional<AutomatedRemediationStatusDTO> getPullRequestStatus(

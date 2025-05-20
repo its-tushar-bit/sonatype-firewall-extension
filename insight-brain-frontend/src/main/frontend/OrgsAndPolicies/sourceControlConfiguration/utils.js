@@ -157,7 +157,7 @@ export const compositeSourceControlToModel = (
       value: setDefaultIfNull(
         manualPullRequestsEnabled?.value ?? null,
         manualPullRequestsEnabled?.parentValue ?? null,
-        false
+        true
       ),
     },
   };
@@ -397,7 +397,7 @@ export const getManualPullRequestsEnabledFlagFromModel = (
     return sourceControl.manualPullRequestsEnabled?.value ?? null;
   }
 
-  return serverSourceControl.manualPullRequestsEnabled?.value ?? false;
+  return serverSourceControl.manualPullRequestsEnabled?.value ?? true;
 };
 
 export const getBaseBranchValueFromModel = (sourceControl, serverSourceControl, isRootOrg, isAutomationSupported) => {

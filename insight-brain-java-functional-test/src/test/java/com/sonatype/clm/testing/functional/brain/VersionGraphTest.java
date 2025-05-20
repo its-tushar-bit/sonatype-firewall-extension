@@ -161,7 +161,7 @@ public class VersionGraphTest
     RiskRemediationTile.RecommendedVersionsSection recommendedVersionsSection = riskRemediation
         .recommendedVersionsSections();
     recommendedVersionsSection.shouldBe(visible);
-    SelenideElement compareButton = recommendedVersionsSection.getRecommendation(0).actions().first();
+    SelenideElement compareButton = recommendedVersionsSection.getRecommendation(0).actions().get(1);
     mockHdsResponseForSecondComponentRecommendedVersion();
     compareButton.click();
 

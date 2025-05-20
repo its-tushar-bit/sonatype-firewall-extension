@@ -11,6 +11,7 @@ import {
   getApplicationReportsUrl,
   getInnerSourceComponentLatestVersionUrl,
   getPolicyEvaluationTimestampUrl,
+  getCreatePullRequestUrl,
 } from '../../util/CLMLocation';
 import { BASE_URL } from '../../util/urlUtil';
 import { Messages } from '../../utilAngular/CommonServices';
@@ -25,16 +26,23 @@ import {
   selectCurrentVersion,
 } from './overviewSelectors';
 import { always, comparator, path, sort } from 'ramda';
-import { selectSelectedComponent } from '../../applicationReport/applicationReportSelectors';
+import {
+  selectApplicationReportMetaData,
+  selectSelectedComponent,
+} from '../../applicationReport/applicationReportSelectors';
 import { pathSet } from '../../util/reduxToolkitUtil';
 import { togglePath } from '../../util/jsUtil';
 import { toggleBooleanProp } from '../../util/reduxUtil';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
-
+import { actions as createPRModalActions } from 'MainRoot/manualPullRequest/createPRModalSlice';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectComponentDetailsSelectedRequestData as firewallSelectComponentDetailsSelectedRequestData,
   selectComponentDetailsFromParams,
 } from 'MainRoot/firewall/firewallComponentDetailsPage/overview/firewallOverviewSelectors';
+import { fetchBranchName } from 'MainRoot/util/branchNameUtil';
+import { pollPRStatus } from 'MainRoot/manualPullRequest/pollPRStatus';
+import { AUTOMATED_REMEDIATION_STATUS } from 'MainRoot/constants/automatedRemediationStatus';
 
 export const HTTP_CLIENT_CLOSED_REQUEST = 499;
 
@@ -46,6 +54,7 @@ const initialState = {
     loadError: null,
     versions: null,
     remediation: null,
+    automatedRemediationStatus: null,
     currentVersionDetails: null,
     sourceResponse: null,
   },
@@ -65,6 +74,7 @@ const initialState = {
     loadError: null,
     selectedVersionDetails: null,
     selectedVersion: null,
+    branchName: null,
   },
   expanded: false,
 };
@@ -152,8 +162,10 @@ export const loadFulfilled = (state, { payload }) => {
       loadError: null,
       versions: payload.componentVersionsData.allVersions,
       remediation: payload.componentVersionsData.remediation,
+      automatedRemediationStatus: payload.componentVersionsData.automatedRemediationStatus,
       currentVersionDetails: payload.currentVersionDetails,
       sourceResponse: payload.componentVersionsData.sourceResponse,
+      branchName: payload.branchName || null,
     },
   };
 };
@@ -223,12 +235,14 @@ const loadVersionExplorerDataWithCancelToken = createAsyncThunk(
     const promises = [
       axios.get(getVersionGraphUrl(selectVersionExplorerRequestData(getState())), { cancelToken }),
       axios.get(getComponentDetailsUrl(requestData), { cancelToken }),
+      fetchBranchName(getState()).catch(() => null), // do not reject if branch name is not available
     ];
 
     return Promise.all(promises)
       .then((results) => ({
         componentVersionsData: results[0].data,
         currentVersionDetails: results[1].data,
+        branchName: results[2],
       }))
       .catch(rejectWithValue);
   }
@@ -267,6 +281,84 @@ const loadComponentDetailsByVerionsNumber = createAsyncThunk(
       .catch(rejectWithValue);
   }
 );
+
+const openCreatePRModal = createAsyncThunk(
+  `${REDUCER_NAME}/openCreatePRModal`,
+  async ({ version, breakingChangesCount }, { dispatch, getState }) => {
+    const state = getState();
+    const { scanId } = selectRouterCurrentParams(state);
+    const component = selectSelectedComponent(state);
+    const { derivedComponentName, componentIdentifier, hash, artifactId, identificationSource } = component;
+
+    dispatch(
+      createPRModalActions.openModal({
+        name: artifactId,
+        fullName: derivedComponentName,
+        currentVersion: componentIdentifier?.coordinates?.version,
+        targetVersion: version,
+        breakingChangesCount: breakingChangesCount,
+        defaultBranch: state[REDUCER_NAME].versionExplorerData.branchName,
+        scanId: scanId,
+        identificationSource: identificationSource,
+        componentHash: hash,
+        componentIdentifier,
+      })
+    );
+  }
+);
+
+const createPR = createAsyncThunk(`${REDUCER_NAME}/createPR`, ({ version }, { getState, rejectWithValue }) => {
+  const state = getState();
+  const { application } = selectApplicationReportMetaData(state);
+  const { scanId } = selectRouterCurrentParams(state);
+  const component = selectSelectedComponent(state);
+  const { componentIdentifier } = component;
+
+  return axios
+    .post(getCreatePullRequestUrl(), {
+      applicationId: application.id,
+      scanId: scanId,
+      targetVersion: version,
+      identificationSource: 'Sonatype',
+      componentIdentifier: componentIdentifier,
+    })
+    .catch((error) => rejectWithValue(error));
+});
+
+const createPRPending = (state) => {
+  state.versionExplorerData.automatedRemediationStatus = {
+    status: AUTOMATED_REMEDIATION_STATUS.PULL_REQUEST_CREATION_PENDING,
+  };
+};
+
+const createPRFailed = (state, action) => {
+  const error = action.payload.response?.data?.errorMessage || Messages.getHttpErrorMessage(action.payload);
+  state.versionExplorerData.automatedRemediationStatus = {
+    status: AUTOMATED_REMEDIATION_STATUS.PULL_REQUEST_CREATION_FAILED,
+    reason: error,
+  };
+};
+
+const startPRStatusPolling = createAsyncThunk(
+  `${REDUCER_NAME}/startPRStatusPolling`,
+  async ({ id }, { rejectWithValue, signal }) => {
+    try {
+      return await pollPRStatus(id, signal);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+const startPRStatusPollingPending = (state) => {
+  state.versionExplorerData.automatedRemediationStatus = {
+    status: AUTOMATED_REMEDIATION_STATUS.PULL_REQUEST_CREATION_PENDING,
+  };
+};
+
+const startPRStatusPollingFulfilled = (state, { payload }) => {
+  state.versionExplorerData.automatedRemediationStatus = payload;
+};
 
 const openInnerSourceProducerReport = () => {
   return (dispatch, getState) => {
@@ -417,6 +509,10 @@ const componentDetailsOverviewSlice = createSlice({
     [firewallLoadComponentDetailsByVerionsNumber.pending]: loadComponentDetailsByVerionsNumberRequested,
     [firewallLoadComponentDetailsByVerionsNumber.fulfilled]: loadComponentDetailsByVerionsNumberFulfilled,
     [firewallLoadComponentDetailsByVerionsNumber.rejected]: loadComponentDetailsByVerionsNumberFailed,
+    [createPR.rejected]: createPRFailed,
+    [createPR.pending]: createPRPending,
+    [startPRStatusPolling.pending]: startPRStatusPollingPending,
+    [startPRStatusPolling.fulfilled]: startPRStatusPollingFulfilled,
     [SELECT_COMPONENT]: always(initialState),
   },
 });
@@ -434,4 +530,7 @@ export const actions = {
   firewallLoadVersionExplorerDataWithCancelToken,
   firewallLoadSelectedVersionData,
   firewallLoadComponentDetailsByVerionsNumber,
+  openCreatePRModal,
+  createPR,
+  startPRStatusPolling,
 };

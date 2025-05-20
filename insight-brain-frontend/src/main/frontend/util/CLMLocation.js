@@ -343,6 +343,14 @@ export function getSourceControlUrl(ownerType, ownerId) {
   return uriTemplate`/api/v2/sourceControl/${ownerType}/${ownerId}`;
 }
 
+export function getCreatePullRequestUrl() {
+  return uriTemplate`/rest/sourceControl/pullRequest`;
+}
+
+export function getPullRequestStatusUrl(id) {
+  return uriTemplate`/rest/sourceControl/pullRequest/${id}`;
+}
+
 export function getDashboardDeleteFilterUrl(filterName) {
   return uriTemplate`/rest/dashboard/filters/named/delete?filterName=${filterName}`;
 }

@@ -14,12 +14,10 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.nexus.scm.SourceControlProvider;
-
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 
 import com.google.inject.Binder;
@@ -85,8 +83,6 @@ public class ApiCompositeSourceControlServiceTest
     app = tempEntity.newApplicationWithParent(level1ChildOrg);
     level2ChildOrg = tempEntity.newOrganization(level1ChildOrg);
     childApp = tempEntity.newApplicationWithParent(level2ChildOrg);
-    //TODO: Remove this once the manual pull request feature flag is removed
-    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
   }
 
   @Test
@@ -1122,22 +1118,6 @@ public class ApiCompositeSourceControlServiceTest
     // then the passwords are redacted
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-  }
-
-  @Test
-  public void getCompositeSourceControlByOwner_ManualPullRequestEnabled_FeatureFlag() {
-    //set manual pull request to true
-    tempEntity.newSourceControl(level1ChildOrg.getId(), null, null, null, TOKEN, null, false,
-            null, null, null, true, true, "/target/*", true, false, true);
-    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
-        .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level1ChildOrg.getId());
-    assertThat(resultDTO.manualPullRequestsEnabled.value).isTrue();
-
-    //set feature flag to false
-    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(false);
-    final ApiCompositeSourceControlDTO resultDTO2 = apiCompositeSourceControlService
-        .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level1ChildOrg.getId());
-    assertThat(resultDTO2.manualPullRequestsEnabled).isNull();
   }
 
   private void validateCompositeSourceControlDTO(

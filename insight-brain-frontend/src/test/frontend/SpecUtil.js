@@ -433,7 +433,10 @@ function render(
   Wrapper.propTypes = {
     children: PropTypes.any,
   };
-  return rtlRender(ui, { wrapper: Wrapper, ...renderOptions });
+  return {
+    ...rtlRender(ui, { wrapper: Wrapper, ...renderOptions }),
+    store,
+  };
 }
 
 // re-export everything

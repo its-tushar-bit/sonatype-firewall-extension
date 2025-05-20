@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 
 import jakarta.inject.Inject;
@@ -58,6 +59,8 @@ public class ManualPullRequestService
 
   private final Provider<RemediationPullRequestEligibilityService> remediationPullRequestEligibilityService;
 
+  private final TenantUtil tenantUtil;
+
   @Inject
   public ManualPullRequestService(
       SourceControlDAO sourceControlDAO,
@@ -67,7 +70,8 @@ public class ManualPullRequestService
       PasswordHandler passwordHandler,
       PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
       ComponentRemediationService componentRemediationService,
-      Provider<RemediationPullRequestEligibilityService> remediationPullRequestEligibilityService)
+      Provider<RemediationPullRequestEligibilityService> remediationPullRequestEligibilityService,
+      TenantUtil tenantUtil)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.stageTypeService = stageTypeService;
@@ -78,6 +82,7 @@ public class ManualPullRequestService
     this.pullRequestBranchNameGenerator = pullRequestBranchNameGenerator;
     this.componentRemediationService = componentRemediationService;
     this.remediationPullRequestEligibilityService = remediationPullRequestEligibilityService;
+    this.tenantUtil = tenantUtil;
   }
 
   /**
@@ -97,6 +102,10 @@ public class ManualPullRequestService
       final Owner owner,
       final ApiComponentRemediationValueDTO remediationDto)
   {
+    if (tenantUtil.isMultiTenant()) {
+      return Optional.of(ManualPullRequestImpossibilityReason.NOT_SUPPORTED_FOR_MTIQ);
+    }
+
     if (owner.getType() != OwnerType.APPLICATION) {
       return Optional.of(ManualPullRequestImpossibilityReason.UNSUPPORTED_OWNER_TYPE);
     }

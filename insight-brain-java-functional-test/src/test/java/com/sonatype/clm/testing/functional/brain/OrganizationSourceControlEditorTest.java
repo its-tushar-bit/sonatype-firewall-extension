@@ -12,7 +12,6 @@ import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -537,7 +536,6 @@ public class OrganizationSourceControlEditorTest
 
   @Test
   public void testSourceControlEditor_manualPullRequests() {
-    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
     refresh();
     Selenide.sleep(1000);
 
@@ -594,11 +592,6 @@ public class OrganizationSourceControlEditorTest
 
     SourceControlEditorPage.manualPullRequestsFieldset().radioInputs().get(0).shouldBe(selected);
     assertSourceControlManualPullRequest(organization.getId(), null);
-
-    //disable feature flag
-    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(false);
-    refresh();
-    SourceControlEditorPage.manualPullRequestsFieldset().shouldNotBe(visible);
   }
 
   @Override

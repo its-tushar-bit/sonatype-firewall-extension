@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -64,7 +63,6 @@ import com.sonatype.insight.brain.model.component.ComponentDataSource;
 import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.MultiLicense;
@@ -94,6 +92,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.report.ReportDataReader;
 import com.sonatype.insight.brain.repository.RepositoryAllVersionsResponse;
 import com.sonatype.insight.brain.repository.RepositoryComponentResult;
 import com.sonatype.insight.brain.repository.RepositoryQueryService;
@@ -101,7 +100,6 @@ import com.sonatype.insight.brain.repository.RepositorySourceResponseDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
-import com.sonatype.insight.brain.report.ReportDataReader;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -2929,38 +2927,7 @@ public class ComponentInfoServiceTest
   }
 
   @Test
-  public void testGetComponentVersionInfo_WithAdvancedRecommendation_Null() {
-    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
-    Policy policy1 = new Policy("security-low", "Security-Low");
-    policy1.setThreatLevel(5);
-    policy1.addConstraint(constraint1);
-    policy1.setAction(ReleaseStageType.ID, WarnActionType.ID);
-    policy1.setOwnerId(application.getId());
-    tempEntity.newPolicy(policy1);
-
-    // mock dependencies for advanced recommendation strategies
-    PackageUrlIdentifier mvnPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_A1_COORDINATES);
-    PackageUrlIdentifier depPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_A2_COORDINATES);
-    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
-    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
-    dependenciesMap.put(mvnPurlId, Collections.singletonList(depPurlId));
-    detailsMap.put(depPurlId, new ComponentDetails());
-    ComponentDependenciesDTO dependenciesDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
-    mockHdsGetComponentDependencies(dependenciesDto);
-    mockLicenseFeature(true);
-
-    // case: no existing PR and manual pr feature is not enabled
-    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(false);
-    ComponentVersionInfoDTO dto =
-        testGetComponentVersionInfo(application, application.getPublicId(), ReleaseStageType.ID);
-    assertThat(dto.automatedRemediationStatus).isNull();
-  }
-
-  @Test
   public void testGetComponentVersionInfo_WithAdvancedRecommendationAndPullRequestStatus() {
-    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
-
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
     Policy policy1 = new Policy("security-low", "Security-Low");
@@ -3027,8 +2994,6 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetComponentVersionInfo_WithAdvancedRecommendationAndPullRequestStatus_Priority() {
-    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
-
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
     Policy policy1 = new Policy("security-low", "Security-Low");
@@ -3103,8 +3068,6 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetComponentVersionInfo_WithAdvancedRecommendationAndPullRequestStatus_Empty() {
-    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
-
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
     Policy policy1 = new Policy("security-low", "Security-Low");

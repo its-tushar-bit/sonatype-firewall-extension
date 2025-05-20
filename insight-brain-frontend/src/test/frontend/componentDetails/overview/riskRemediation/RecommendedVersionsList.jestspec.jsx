@@ -5,20 +5,70 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
+import { mergeDeepRight } from 'ramda';
+import { render } from 'TestRoot/SpecUtil';
+import { screen, fireEvent, within } from '@testing-library/react';
 import { RecommendedVersionsList } from 'MainRoot/componentDetails/overview/riskRemediation/RecommendedVersionsList';
+import userEvent from '@testing-library/user-event';
+import { actions } from 'MainRoot/componentDetails/overview/overviewSlice';
 
 describe('RecommendedVersionsList', () => {
   let minimalProps, renderComponent, handleCompareMock;
+  let defaultPreloadedState;
 
   beforeEach(function () {
-    handleCompareMock = jest.fn('handleCompare').mockImplementation(() => {});
+    handleCompareMock = jest.fn();
+
+    defaultPreloadedState = {
+      componentDetailsOverview: {
+        versionExplorerData: {
+          versions: [],
+          remediation: {},
+          automatedRemediationStatus: null,
+        },
+      },
+      router: {
+        currentParams: {
+          scanId: 'scan-id',
+          hash: 'hash',
+        },
+      },
+      applicationReport: {
+        selectedReport: {
+          allEntries: [
+            {
+              derivedComponentName: 'logback-access',
+              componentIdentifier: {
+                coordinates: {
+                  artifactId: 'logback-access',
+                  classifier: '',
+                  extension: 'jar',
+                  groupId: 'ch.qos.logback',
+                  version: '2.4.9',
+                },
+              },
+              hash: 'hash',
+              artifactId: 'logback-access',
+              identificationSource: 'Sonatype',
+            },
+          ],
+        },
+      },
+      createPRModal: {
+        isModalOpen: false,
+        targetVersion: null,
+      },
+    };
+
     minimalProps = {
       actualVersion: '2.4.9',
       handleCompare: handleCompareMock,
     };
 
-    renderComponent = (props) => render(<RecommendedVersionsList {...minimalProps} {...props} />);
+    renderComponent = (props, preloadedState) =>
+      render(<RecommendedVersionsList {...minimalProps} {...props} />, {
+        preloadedState: preloadedState ? { ...defaultPreloadedState, ...preloadedState } : defaultPreloadedState,
+      });
   });
 
   it('renders an "empty list" message when no versions are available', () => {
@@ -220,5 +270,336 @@ describe('RecommendedVersionsList', () => {
     expect(within(fourthVersion).queryByRole('img')).not.toBeInTheDocument();
     expect(within(fourthVersion).queryByRole('listitem')).not.toBeInTheDocument();
     expect(within(fourthVersion).getByText('Next version with no policy violations')).toBeInTheDocument();
+  });
+
+  it('renders PRStatus component for suggested version', () => {
+    const versionChanges = [
+      {
+        id: 'next-no-violation-version',
+        text: 'Next version with no policy violation',
+        type: 'next-no-violations',
+        version: '2.4.10',
+      },
+      {
+        id: 'next-no-violation-dependencies-version',
+        text: 'Next version with no policy violations for this component and its dependencies',
+        type: 'next-non-failing-with-dependencies',
+        version: '2.4.11',
+      },
+    ];
+
+    const automatedRemediationStatus = {
+      status: 'MANUAL_PULL_REQUEST_POSSIBLE',
+    };
+
+    renderComponent(
+      { versionChanges, automatedRemediationStatus },
+      {
+        ...defaultPreloadedState,
+      }
+    );
+
+    // Suggested version section
+    const firstVersionItem = screen.getAllByRole('listitem')[0];
+    expect(within(firstVersionItem).getByText('Create PR')).toBeVisible();
+
+    // PRStatus should not appear in alternate versions section
+    const secondVersionItem = screen.getAllByRole('listitem')[1];
+    expect(within(secondVersionItem).queryByText('Create PR')).not.toBeInTheDocument();
+  });
+
+  it('calls the right action when Create PR button is clicked', async () => {
+    const versionChanges = [
+      {
+        id: 'next-no-violation-version',
+        text: 'Next version with no policy violation',
+        type: 'next-no-violations-with-dependencies',
+        version: '2.4.10',
+      },
+    ];
+
+    const allVersions = [
+      {
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            artifactId: 'logback-access',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'ch.qos.logback',
+            version: '2.4.10',
+          },
+        },
+      },
+    ];
+
+    const remediations = [
+      {
+        type: 'next-no-violations-with-dependencies',
+        data: {
+          component: {
+            packageUrl: 'pkg:maven/ch.qos.logback/logback-access@2.4.10?type=jar',
+            hash: null,
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                artifactId: 'logback-access',
+                classifier: '',
+                extension: 'jar',
+                groupId: 'ch.qos.logback',
+                version: '2.4.10',
+              },
+            },
+            displayName: 'ch.qos.logback : logback-access : 2.4.10',
+          },
+        },
+      },
+    ];
+
+    const user = userEvent.setup();
+
+    const automatedRemediationStatus = {
+      status: 'MANUAL_PULL_REQUEST_POSSIBLE',
+    };
+
+    const preloadedState = mergeDeepRight(defaultPreloadedState, {
+      componentDetailsOverview: {
+        versionExplorerData: {
+          versions: allVersions,
+          remediation: {
+            versionChanges: remediations,
+          },
+          automatedRemediationStatus: automatedRemediationStatus,
+        },
+      },
+    });
+    let { store } = renderComponent({ versionChanges, automatedRemediationStatus }, preloadedState);
+    expect(store.getState().createPRModal.isModalOpen).toEqual(false);
+
+    const createPRButton = screen.getByRole('button', { name: 'Create PR' });
+    await user.click(createPRButton);
+
+    expect(store.getState().createPRModal.isModalOpen).toEqual(true);
+    expect(store.getState().createPRModal.currentVersion).toEqual('2.4.9');
+    expect(store.getState().createPRModal.targetVersion).toEqual('2.4.10');
+  });
+
+  it('renders an existing PR link when automatedRemediationStatus is PULL_REQUEST', async () => {
+    const versionChanges = [
+      {
+        id: 'next-no-violation-version',
+        text: 'Next version with no policy violation',
+        type: 'next-no-violations',
+        version: '2.4.10',
+      },
+    ];
+
+    const automatedRemediationStatus = {
+      status: 'PULL_REQUEST',
+      url: 'https://github.com/repository/pull/123',
+    };
+
+    renderComponent(
+      { versionChanges, automatedRemediationStatus },
+      {
+        ...defaultPreloadedState,
+      }
+    );
+
+    const viewPRLink = screen.getByRole('link', { name: 'View PR' });
+    expect(viewPRLink).toBeVisible();
+    const href = viewPRLink.getAttribute('href');
+    expect(href).toContain(automatedRemediationStatus.url);
+  });
+
+  it('renders loading spinner when automatedRemediationStatus is PULL_REQUEST_CREATION_PENDING', async () => {
+    const versionChanges = [
+      {
+        id: 'next-no-violation-version',
+        text: 'Next version with no policy violation',
+        type: 'next-no-violations',
+        version: '2.4.10',
+      },
+    ];
+
+    const automatedRemediationStatus = {
+      status: 'PULL_REQUEST_CREATION_PENDING',
+    };
+
+    renderComponent(
+      { versionChanges, automatedRemediationStatus },
+      {
+        ...defaultPreloadedState,
+      }
+    );
+
+    const loadingSpinner = screen.queryByRole('status');
+    expect(loadingSpinner).toBeVisible();
+    expect(loadingSpinner).toHaveTextContent('Creating PR…');
+  });
+
+  it('renders retry button when automatedRemediationStatus is PULL_REQUEST_CREATION_FAILED', async () => {
+    const versionChanges = [
+      {
+        id: 'next-no-violation-version',
+        text: 'Next version with no policy violation',
+        type: 'next-no-violations',
+        version: '2.4.10',
+      },
+    ];
+
+    const automatedRemediationStatus = {
+      status: 'PULL_REQUEST_CREATION_FAILED',
+      reason: 'Network error',
+    };
+
+    renderComponent(
+      { versionChanges, automatedRemediationStatus },
+      {
+        ...defaultPreloadedState,
+      }
+    );
+
+    const retryButton = screen.getByRole('button', { name: 'Retry' });
+    expect(retryButton).toBeVisible();
+  });
+
+  it('renders disabled Create PR button with tooltip when manual PRs are not possible due to SCM not configured', async () => {
+    const user = userEvent.setup();
+    const versionChanges = [
+      {
+        id: 'next-no-violation-version',
+        text: 'Next version with no policy violation',
+        type: 'next-no-violations',
+        version: '2.4.10',
+      },
+    ];
+
+    const automatedRemediationStatus = {
+      status: 'MANUAL_PULL_REQUEST_NOT_POSSIBLE',
+      reason: 'SCM_NOT_CONFIGURED',
+    };
+
+    renderComponent(
+      { versionChanges, automatedRemediationStatus },
+      {
+        ...defaultPreloadedState,
+      }
+    );
+
+    const disabledButton = screen.getByRole('button', { name: 'Create PR' });
+    expect(disabledButton).toBeVisible();
+    expect(disabledButton).toHaveClass('disabled');
+    await user.hover(disabledButton);
+    const tooltip = await screen.findByRole('tooltip');
+    expect(within(tooltip).getByText('Source Control is not configured')).toBeInTheDocument();
+  });
+
+  it('renders nothing when PR status is in hidden reasons list', async () => {
+    const versionChanges = [
+      {
+        id: 'next-no-violation-version',
+        text: 'Next version with no policy violation',
+        type: 'next-no-violations',
+        version: '2.4.10',
+      },
+    ];
+
+    const automatedRemediationStatus = {
+      status: 'MANUAL_PULL_REQUEST_NOT_POSSIBLE',
+      reason: 'UNSUPPORTED_FORMAT',
+    };
+
+    renderComponent(
+      { versionChanges, automatedRemediationStatus },
+      {
+        ...defaultPreloadedState,
+      }
+    );
+
+    const createPRButton = screen.queryByRole('button', { name: 'Create PR' });
+    expect(createPRButton).not.toBeInTheDocument();
+  });
+
+  it('starts polling when automatedRemediationStatus has PULL_REQUEST_CREATION_PENDING status', () => {
+    const startPRStatusPollingSpy = jest.spyOn(actions, 'startPRStatusPolling').mockImplementation(({ id }) => {
+      return {
+        type: 'componentDetailsOverview/startPRStatusPolling',
+        payload: { id },
+        abort: jest.fn(),
+      };
+    });
+
+    const versionChanges = [
+      {
+        id: 'next-no-violation-version',
+        text: 'Next version with no policy violation',
+        type: 'next-no-violations',
+        version: '2.4.10',
+      },
+    ];
+
+    const automatedRemediationStatus = {
+      status: 'PULL_REQUEST_CREATION_PENDING',
+      id: 'test-pr-id',
+    };
+
+    renderComponent(
+      { versionChanges, automatedRemediationStatus },
+      {
+        ...defaultPreloadedState,
+      }
+    );
+
+    expect(startPRStatusPollingSpy).toHaveBeenCalledWith({
+      id: 'test-pr-id',
+    });
+  });
+
+  it('starts polling when PR is created via retry', async () => {
+    const startPRStatusPollingSpy = jest.spyOn(actions, 'startPRStatusPolling').mockImplementation(({ id }) => {
+      return {
+        type: 'componentDetailsOverview/startPRStatusPolling',
+        payload: { id },
+        abort: jest.fn(),
+      };
+    });
+
+    const createPRSpy = jest.spyOn(actions, 'createPR').mockImplementation(() => {
+      return () => ({
+        type: 'componentDetailsOverview/createPR',
+        payload: { data: { id: 'id' } },
+      });
+    });
+
+    const versionChanges = [
+      {
+        id: 'next-no-violation-version',
+        text: 'Next version with no policy violation',
+        type: 'next-no-violations',
+        version: '2.4.10',
+      },
+    ];
+
+    const automatedRemediationStatus = {
+      status: 'PULL_REQUEST_CREATION_FAILED',
+      reason: 'Network error',
+    };
+
+    renderComponent(
+      { versionChanges, automatedRemediationStatus },
+      {
+        ...defaultPreloadedState,
+      }
+    );
+
+    const retryButton = screen.getByRole('button', { name: 'Retry' });
+    await userEvent.setup().click(retryButton);
+
+    expect(createPRSpy).toHaveBeenCalledWith({ version: '2.4.10' });
+
+    expect(startPRStatusPollingSpy).toHaveBeenCalledWith({
+      id: 'id',
+    });
   });
 });

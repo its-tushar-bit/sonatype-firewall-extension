@@ -31,7 +31,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
@@ -653,16 +652,9 @@ public class MembershipMappingServiceTest
   }
 
   @Test
-  public void testGetPermissionsForUserPrincipal_WithManualPullRequests() {
-    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
+  public void testGetPermissionsForUserPrincipal() {
     testGetPermissionsForUserPrincipal("Add", "Change", "Claim", "Edit", "Evaluate", "Manage",
         "Review", "View", "Waive", "Create");
-  }
-
-  @Test
-  public void testGetPermissionsForUserPrincipal_WithoutManualPullRequests() {
-    testGetPermissionsForUserPrincipal("Add", "Change", "Claim", "Edit", "Evaluate", "Manage",
-        "Review", "View", "Waive" /* and not Create */);
   }
 
   private void testGetPermissionsForUserPrincipal(final String... expectedPermissions) {

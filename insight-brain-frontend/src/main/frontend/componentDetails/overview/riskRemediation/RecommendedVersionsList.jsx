@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as PropTypes from 'prop-types';
 
 import {
@@ -18,8 +18,56 @@ import { faCheck } from '@fortawesome/pro-solid-svg-icons';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import GoldenStar from 'MainRoot/img/golden-star.svg';
 import { RECOMMENDED_NON_BREAKING, RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES } from './recommendedVersionsUtils';
+import PRStatus from 'MainRoot/components/prStatus/PRStatus';
+import { useDispatch } from 'react-redux';
+import { actions } from '../overviewSlice';
+import CreatePRModal from 'MainRoot/manualPullRequest/CreatePRModal';
 
-export function RecommendedVersionsList({ versionChanges, actualVersion, handleCompare }) {
+export function RecommendedVersionsList({ versionChanges, actualVersion, handleCompare, automatedRemediationStatus }) {
+  const dispatch = useDispatch();
+  const remediationStatusPollingRef = useRef(null);
+
+  function startPRStatusPollingAndSaveReference(id) {
+    if (id == null) return;
+
+    remediationStatusPollingRef.current?.abort?.();
+
+    remediationStatusPollingRef.current = dispatch(
+      actions.startPRStatusPolling({
+        id,
+      })
+    );
+  }
+
+  const handlePRCreated = (result) => {
+    if (result?.id) {
+      startPRStatusPollingAndSaveReference(result.id);
+    }
+  };
+
+  const handleCreatePR = (version, breakingChangesCount) => {
+    dispatch(actions.openCreatePRModal({ version, breakingChangesCount }));
+  };
+
+  const handleRetryPR = async (version) => {
+    const { payload } = await dispatch(actions.createPR({ version }));
+    if (payload?.data?.id) {
+      startPRStatusPollingAndSaveReference(payload.data.id);
+    }
+  };
+
+  useEffect(() => {
+    if (automatedRemediationStatus?.status === 'PULL_REQUEST_CREATION_PENDING' && automatedRemediationStatus?.id) {
+      startPRStatusPollingAndSaveReference(automatedRemediationStatus.id);
+    }
+  }, [automatedRemediationStatus]);
+
+  useEffect(() => {
+    return () => {
+      remediationStatusPollingRef.current?.abort?.();
+    };
+  }, []);
+
   if (!versionChanges || versionChanges.length === 0) {
     return <span>There are no suggested versions for this component</span>;
   }
@@ -35,6 +83,9 @@ export function RecommendedVersionsList({ versionChanges, actualVersion, handleC
           actualVersion={actualVersion}
           handleCompare={handleCompare}
           isSuggestedVersion={true}
+          automatedRemediationStatus={automatedRemediationStatus}
+          onCreatePR={handleCreatePR}
+          onRetryPR={handleRetryPR}
         />
       </NxList>
       {hasAlternateVersions && (
@@ -55,16 +106,33 @@ export function RecommendedVersionsList({ versionChanges, actualVersion, handleC
           </NxList>
         </NxStatefulAccordion>
       )}
+      <CreatePRModal onSuccess={handlePRCreated} />
     </>
   );
 }
 
-function VersionListItem({ versionItem, actualVersion, handleCompare, isSuggestedVersion }) {
-  const { id, version, type, text, isGolden } = versionItem || {};
+function VersionListItem({
+  versionItem,
+  actualVersion,
+  handleCompare,
+  isSuggestedVersion,
+  automatedRemediationStatus,
+  onCreatePR,
+  onRetryPR,
+}) {
+  const { id, version, type, text, isGolden, breakingChangesCount } = versionItem || {};
 
   if (!version || actualVersion === version) {
     return null;
   }
+
+  const handleCreatePR = () => {
+    onCreatePR(version, breakingChangesCount);
+  };
+
+  const handleRetryPR = async () => {
+    onRetryPR(version);
+  };
 
   return (
     <NxList.Item key={id} className="iq-version-item">
@@ -74,11 +142,14 @@ function VersionListItem({ versionItem, actualVersion, handleCompare, isSuggeste
         <VersionChecklist type={type} text={text} />
       </NxList.Subtext>
       <NxList.Actions>
-        <NxButton
-          variant={isSuggestedVersion ? 'secondary' : 'tertiary'}
-          onClick={() => handleCompare(version)}
-          id={id}
-        >
+        {isSuggestedVersion && (
+          <PRStatus
+            automatedRemediationStatus={automatedRemediationStatus}
+            onCreatePR={handleCreatePR}
+            onRetry={handleRetryPR}
+          />
+        )}
+        <NxButton className="nx-btn--small" variant="tertiary" onClick={() => handleCompare(version)} id={id}>
           Compare
         </NxButton>
       </NxList.Actions>
@@ -125,15 +196,18 @@ VersionChecklist.propTypes = {
 };
 
 VersionListItem.propTypes = {
-  versionChanges: PropTypes.arrayOf(VersionChangePropTypes).isRequired,
+  versionItem: PropTypes.shape(VersionChangePropTypes).isRequired,
   actualVersion: PropTypes.string.isRequired,
   handleCompare: PropTypes.func.isRequired,
-  versionItem: PropTypes.shape(VersionChangePropTypes).isRequired,
   isSuggestedVersion: PropTypes.bool.isRequired,
+  automatedRemediationStatus: PropTypes.object,
+  onCreatePR: PropTypes.func,
+  onRetryPR: PropTypes.func,
 };
 
 RecommendedVersionsList.propTypes = {
   versionChanges: PropTypes.arrayOf(VersionChangePropTypes).isRequired,
   actualVersion: PropTypes.string.isRequired,
   handleCompare: PropTypes.func.isRequired,
+  automatedRemediationStatus: PropTypes.object,
 };

@@ -15,9 +15,9 @@ import java.util.Map.Entry;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsResponseDTO;
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.FromMappingEnum;
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsDTO;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsResponseDTO;
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMatchingResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.ToMappingEnum;
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.UserMapping;
@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceContro
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.sourcecontrol.ScmUserMappings;
@@ -36,7 +35,6 @@ import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import org.assertj.core.api.Assertions;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,6 +45,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -101,7 +100,6 @@ public class ApiSourceControlResourceTest
     app = tempEntity.newApplicationWithParent();
     org = tempEntity.newOrganization();
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
-    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
   }
 
   @Override
@@ -709,31 +707,6 @@ public class ApiSourceControlResourceTest
     assertResponseStatus(400, response);
     assertThat(response.getBodyText())
         .isEqualTo("An SCMUserMappingsDTO must be provided either with the request or via at the organization level");
-  }
-
-  @Test
-  public void testAddSourceControlByOwner_ByOrganization_ManualPullRequestsFeatureFlagDisabled() throws Exception {
-    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(false);
-    ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder()
-            .setOwnerId(org.getId())
-            .setManualPullRequestsEnabled(true)
-            .build());
-
-    HttpResponse response = restRequest()
-        .path(ApiSourceControlResource.BY_OWNER)
-        .parameter(OwnerType.ORGANIZATION, org.getId())
-        .body(sourceControl)
-        .post();
-    assertResponseStatus(200, response);
-
-    ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
-
-    String rawJson = response.getBodyText();
-    //assert that the manualPullRequestsEnabled field is not present in the response before deserialized
-    assertThat(rawJson).doesNotContain("manualPullRequestsEnabled");
-    //FF is disabled, so the value should be null
-    assertThat(result.manualPullRequestsEnabled).isNull();
   }
 
   /**

@@ -42,6 +42,7 @@ export const RiskRemediation = ({
     loading: versionExplorerLoading,
     loadError: versionExplorerLoadError,
     remediation,
+    automatedRemediationStatus,
     versions,
     sourceResponse,
   } = versionExplorerData;
@@ -84,6 +85,7 @@ export const RiskRemediation = ({
             actualVersion={currentVersion}
             stageId={stageId}
             remediation={remediation}
+            automatedRemediationStatus={automatedRemediationStatus}
             handleCompare={handleCompare}
           />
         </div>
@@ -171,6 +173,7 @@ RiskRemediation.propTypes = {
   versionExplorerData: PropTypes.shape({
     versions: PropTypes.array,
     remediation: RemediationPropTypes,
+    automatedRemediationStatus: PropTypes.object,
     sourceResponse: PropTypes.shape({
       source: PropTypes.string,
       sourceMessage: PropTypes.string,

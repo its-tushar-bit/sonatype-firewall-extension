@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.dto.sourcecontrol;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.v3.oas.annotations.media.Schema;
-
 public class ApiCompositeSourceControlDTO
 {
   public String id;
@@ -38,8 +35,5 @@ public class ApiCompositeSourceControlDTO
 
   public ApiCompositeValueDTO<Boolean> commitStatusEnabled = new ApiCompositeValueDTO<>();
 
-  //TODO: Remove these two annotations after the manual pull request feature flag is removed
-  @JsonInclude(JsonInclude.Include.NON_NULL)
-  @Schema(hidden = true)
   public ApiCompositeValueDTO<Boolean> manualPullRequestsEnabled = new ApiCompositeValueDTO<>();
 }

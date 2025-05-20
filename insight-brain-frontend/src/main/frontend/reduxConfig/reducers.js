@@ -114,6 +114,7 @@ import roiFirewallMetricsSlice from 'MainRoot/firewall/roiMetrics/roiFirewallMet
 import roiConfigurationPageSlice from 'MainRoot/configuration/roiConfiguration/roiConfigurationPageSlice';
 import editRoiConfigurationPageSlice from 'MainRoot/configuration/editRoiConfiguration/editRoiConfigurationPageSlice';
 import displayThemeSlice from 'MainRoot/configuration/displayTheme/displayThemeSlice';
+import createPRModalSlice from 'MainRoot/manualPullRequest/createPRModalSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -217,6 +218,7 @@ export default combineReducers({
   sbomExport: sbomExportSlice,
   sbomComponentDetailsPage: sbomComponenDetailsSlice,
   prioritiesPage: prioritiesPageSlice,
+  createPRModal: createPRModalSlice,
   sbomManagerDashboard: sbomManagerDashboardSlice,
   solutionSwitcher: solutionSwitcherSlice,
   latestReportForStage: latestReportForStageSlice,

@@ -10,7 +10,13 @@ import { setRemediations } from './recommendedVersionsUtils';
 import { RecommendedVersionsList } from './RecommendedVersionsList';
 import { RemediationPropTypes } from '../overviewTypes';
 
-export const RecommendedVersions = ({ actualVersion, stageId, remediation, handleCompare }) => {
+export const RecommendedVersions = ({
+  actualVersion,
+  stageId,
+  remediation,
+  automatedRemediationStatus,
+  handleCompare,
+}) => {
   const versionChanges = setRemediations(remediation, actualVersion, stageId);
 
   return (
@@ -22,6 +28,7 @@ export const RecommendedVersions = ({ actualVersion, stageId, remediation, handl
         versionChanges={versionChanges}
         actualVersion={actualVersion}
         handleCompare={handleCompare}
+        automatedRemediationStatus={automatedRemediationStatus}
       />
     </section>
   );
@@ -32,4 +39,5 @@ RecommendedVersions.propTypes = {
   stageId: PropTypes.string.isRequired,
   remediation: RemediationPropTypes,
   handleCompare: PropTypes.func.isRequired,
+  automatedRemediationStatus: PropTypes.object,
 };

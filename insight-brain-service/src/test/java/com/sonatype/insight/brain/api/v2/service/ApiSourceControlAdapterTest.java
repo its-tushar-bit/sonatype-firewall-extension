@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -94,7 +93,7 @@ public class ApiSourceControlAdapterTest
     assertThat(sourceControl.getSourceControlScanTarget()).isEqualTo("/target/*");
     assertThat(sourceControl.getSshEnabled()).isTrue();
     assertThat(sourceControl.getCommitStatusEnabled()).isFalse();
-    assertThat(sourceControl.getManualPullRequestsEnabled()).isNull();
+    assertThat(sourceControl.getManualPullRequestsEnabled()).isFalse();
   }
 
   @SuppressWarnings("deprecation")
@@ -108,22 +107,5 @@ public class ApiSourceControlAdapterTest
 
     assertThat(sourceControl.getRemediationPullRequestsEnabled()).isEqualTo(true);
     assertThat(sourceControl.getStatusChecksEnabled()).isEqualTo(false);
-  }
-
-  @Test
-  public void convertFromDTO_ManualPullRequestsFeatureFlag() {
-    ApiSourceControlDTO apiSourceControlDTO = new ApiSourceControlDTO();
-    apiSourceControlDTO.manualPullRequestsEnabled = true;
-
-    SourceControl sourceControl = ApiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
-
-    assertThat(sourceControl.getManualPullRequestsEnabled()).isEqualTo(null);
-
-    //enable feature flag
-    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
-
-    sourceControl = ApiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
-
-    assertThat(sourceControl.getManualPullRequestsEnabled()).isEqualTo(true);
   }
 }

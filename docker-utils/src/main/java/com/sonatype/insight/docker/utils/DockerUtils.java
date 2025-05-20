@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.keycloak;
+package com.sonatype.insight.docker.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,17 +14,15 @@ import java.net.NetworkInterface;
 import java.net.URL;
 import java.util.Enumeration;
 
-import org.junit.AssumptionViolatedException;
-
-public final class Utils
+public final class DockerUtils
 {
-  private Utils() {
+  private DockerUtils() {
     throw new UnsupportedOperationException();
   }
 
   public static void assumeSupported() {
     if (Boolean.getBoolean("docker.optional")) {
-      throw new AssumptionViolatedException("Docker unavailable.");
+      throw new RuntimeException("Docker unavailable.");
     }
   }
 

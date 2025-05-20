@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -54,8 +53,6 @@ public class ApiCompositeSourceControlResourceTest
         tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, null, "TOKEN", SourceControlProvider.GITHUB, null,
             null, "BASE_BRANCH", null, true, true, "/target/*", null, null, false);
     rootOrganization = organizationDAO.getById(ROOT_ORGANIZATION_ID);
-    //TODO: Remove this when manual pull requests feature flag are removed
-    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(true);
   }
 
   @Override
@@ -283,24 +280,5 @@ public class ApiCompositeSourceControlResourceTest
     assertThat(result.manualPullRequestsEnabled.value).isNull();
     assertThat(result.manualPullRequestsEnabled.parentName).isEqualTo(rootOrganization.getName());
     assertThat(result.manualPullRequestsEnabled.parentValue).isFalse();
-  }
-
-  @Test
-  public void testGetCompositeSourceControlByOwner_ManualPullRequestFeatureFlagDisabled() throws Exception {
-    SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.setEnabled(false);
-
-    final HttpResponse response = restRequest()
-        .path(ApiCompositeSourceControlResource.BY_OWNER)
-        .parameter(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID)
-        .get();
-    assertResponseStatus(200, response);
-    final ApiCompositeSourceControlDTO result = response.getBody(ApiCompositeSourceControlDTO.class);
-
-    String rawJson = response.getBodyText();
-    assertThat(rawJson).doesNotContain("manualPullRequestsEnabled");
-
-    assertThat(result.manualPullRequestsEnabled.value).isNull();
-    assertThat(result.manualPullRequestsEnabled.parentName).isNull();
-    assertThat(result.manualPullRequestsEnabled.parentValue).isNull();
   }
 }

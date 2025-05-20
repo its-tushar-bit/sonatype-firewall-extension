@@ -4,7 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { setRemediations } from 'MainRoot/componentDetails/overview/riskRemediation/recommendedVersionsUtils';
+import {
+  getAsyncRecommendationsPrioritiesPage,
+  setRemediations,
+} from 'MainRoot/componentDetails/overview/riskRemediation/recommendedVersionsUtils';
 
 describe('recommendedVersionUtils', () => {
   it('returns list with one element if no remediation array is sent', () => {
@@ -440,6 +443,219 @@ describe('recommendedVersionUtils', () => {
 
       expect(result[2].version).toBe('1.4');
       expect(result[2].type).toBe('next-non-failing-with-dependencies');
+    });
+  });
+
+  describe('breaking changes count in recommendations', () => {
+    const allVersions = [
+      {
+        componentIdentifier: {
+          coordinates: {
+            artifactId: 'h2',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'com.h2database',
+            version: '1.4.200',
+          },
+        },
+        displayName: {
+          name: 'h2',
+        },
+        breakingChangesCount: 0,
+      },
+      {
+        componentIdentifier: {
+          coordinates: {
+            artifactId: 'h2',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'com.h2database',
+            version: '1.5.0',
+          },
+        },
+        displayName: {
+          name: 'h2',
+        },
+        breakingChangesCount: 2,
+      },
+      {
+        componentIdentifier: {
+          coordinates: {
+            artifactId: 'h2',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'com.h2database',
+            version: '2.0.0',
+          },
+        },
+        displayName: {
+          name: 'h2',
+        },
+        breakingChangesCount: 5,
+      },
+    ];
+
+    const remediation = {
+      suggestedVersionChange: {
+        type: 'recommended-non-breaking-with-dependencies',
+        isGolden: true,
+        data: {
+          component: {
+            componentIdentifier: {
+              coordinates: {
+                artifactId: 'h2',
+                classifier: '',
+                extension: 'jar',
+                groupId: 'com.h2database',
+                version: '1.5.0',
+              },
+            },
+            thirdParty: false,
+          },
+        },
+      },
+      versionChanges: [
+        {
+          type: 'next-no-violations',
+          data: {
+            component: {
+              componentIdentifier: {
+                coordinates: {
+                  artifactId: 'h2',
+                  classifier: '',
+                  extension: 'jar',
+                  groupId: 'com.h2database',
+                  version: '2.0.0',
+                },
+              },
+              thirdParty: false,
+            },
+          },
+        },
+        {
+          type: 'next-non-failing',
+          data: {
+            component: {
+              componentIdentifier: {
+                coordinates: {
+                  artifactId: 'h2',
+                  classifier: '',
+                  extension: 'jar',
+                  groupId: 'com.h2database',
+                  version: '1.5.0',
+                },
+              },
+              thirdParty: false,
+            },
+          },
+        },
+      ],
+    };
+
+    it('includes breaking changes count for golden versions', () => {
+      const result = getAsyncRecommendationsPrioritiesPage(remediation, '1.4.0', 'build', allVersions);
+
+      expect(result.breakingChangesCount).toBe(0);
+      expect(result.version).toBe('1.5.0');
+      expect(result.isGolden).toBe(true);
+    });
+
+    it('includes breaking changes count for next version with no violations', () => {
+      // Suggested version is non-golden
+      const nonGoldenRemediation = {
+        ...remediation,
+        suggestedVersionChange: null,
+      };
+
+      const result = getAsyncRecommendationsPrioritiesPage(nonGoldenRemediation, '1.4.0', 'build', allVersions);
+
+      expect(result.breakingChangesCount).toBe(5);
+      expect(result.version).toBe('2.0.0');
+      expect(result.isGolden).toBe(false);
+    });
+
+    it('returns null breaking changes count when version not found', () => {
+      // Create remediation with a version not in allVersions
+      const missingVersionRemediation = {
+        versionChanges: [
+          {
+            type: 'next-no-violations',
+            data: {
+              component: {
+                componentIdentifier: {
+                  coordinates: {
+                    artifactId: 'h2',
+                    classifier: '',
+                    extension: 'jar',
+                    groupId: 'com.h2database',
+                    version: '3.0.0', // Version not in allVersions
+                  },
+                },
+                thirdParty: false,
+              },
+            },
+          },
+        ],
+      };
+
+      const result = getAsyncRecommendationsPrioritiesPage(missingVersionRemediation, '1.4.0', 'build', allVersions);
+
+      expect(result.breakingChangesCount).toBeNull();
+      expect(result.version).toBe('3.0.0');
+    });
+
+    it('handles null breaking changes count in allVersions', () => {
+      const allVersionsWithNull = [
+        ...allVersions.slice(0, 1),
+        {
+          componentIdentifier: {
+            coordinates: {
+              artifactId: 'h2',
+              classifier: '',
+              extension: 'jar',
+              groupId: 'com.h2database',
+              version: '1.5.0',
+            },
+          },
+          displayName: {
+            name: 'h2',
+          },
+          breakingChangesCount: null,
+        },
+        ...allVersions.slice(2),
+      ];
+
+      const remediationWithVersion = {
+        versionChanges: [
+          {
+            type: 'next-no-violations',
+            data: {
+              component: {
+                componentIdentifier: {
+                  coordinates: {
+                    artifactId: 'h2',
+                    classifier: '',
+                    extension: 'jar',
+                    groupId: 'com.h2database',
+                    version: '1.5.0',
+                  },
+                },
+                thirdParty: false,
+              },
+            },
+          },
+        ],
+      };
+
+      const result = getAsyncRecommendationsPrioritiesPage(
+        remediationWithVersion,
+        '1.4.0',
+        'build',
+        allVersionsWithNull
+      );
+
+      expect(result.breakingChangesCount).toBeNull();
+      expect(result.version).toBe('1.5.0');
     });
   });
 });

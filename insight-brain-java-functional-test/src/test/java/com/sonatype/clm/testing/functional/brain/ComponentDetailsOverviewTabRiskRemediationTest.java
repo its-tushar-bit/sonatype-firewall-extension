@@ -7,12 +7,15 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.io.IOException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.CreatePRModal;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.elements.componentdetails.InnerSourceRepositorySourceAlert;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.CompareVersionsTable;
@@ -28,24 +31,33 @@ import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLevelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.repository.client.NexusRepository3Client;
 import com.sonatype.insight.brain.repository.client.NexusRepository3Client.NXRM3SearchResponse;
 import com.sonatype.insight.brain.repository.client.NexusRepository3Client.NexusItem;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -56,6 +68,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
@@ -72,6 +86,9 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
   @Rule
   public WireMockRule nxrm3MockSever = new WireMockRule(wireMockConfig().dynamicPort());
 
+  @Rule
+  public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
+
   public static final String SCAN_ID = "306e0a923df34c64b836358182b1b902";
 
   public static final String FIRST_COMPONENT_HASH = "9aba4af169a1a3baa67f";
@@ -80,7 +97,15 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
 
+  private PullRequestBranchNameGenerator pullRequestBranchNameGenerator;
+
   private ApplicationDAO applicationDAO;
+
+  private SourceControlEventDAO sourceControlEventDAO;
+
+  private PolicyEvaluationDAO policyEvaluationDAO;
+
+  private SourceControlDAO sourceControlDAO;
 
   private Application app;
 
@@ -93,6 +118,10 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
   @Before
   public void start() throws IOException {
     applicationDAO = lookup(ApplicationDAO.class);
+    sourceControlEventDAO = lookup(SourceControlEventDAO.class);
+    policyEvaluationDAO = lookup(PolicyEvaluationDAO.class);
+    pullRequestBranchNameGenerator = lookup(PullRequestBranchNameGenerator.class);
+    sourceControlDAO = lookup(SourceControlDAO.class);
 
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
 
@@ -161,7 +190,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     recommendation.text().shouldHave(text("Upgrade to 31.52"));
     recommendation.subText().shouldHave(
         text("Next version with no policy violations for this component and its dependencies"));
-    recommendation.actions().shouldHave(size(1));
+    recommendation.actions().shouldHave(size(2));
 
     recommendation = recommendedVersionsSection.getRecommendation(1);
     recommendation.shouldBe(visible);
@@ -507,7 +536,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     recommendation.shouldBe(visible);
     recommendation.text().shouldHave(text("Upgrade to 31.52"));
 
-    SelenideElement compareButton = recommendedVersionsSection.getRecommendation(0).actions().first();
+    SelenideElement compareButton = recommendedVersionsSection.getRecommendation(0).actions().get(1);
 
     mockHdsResponseForFirstComponentWithRecommendedVersion();
     compareButton.click();
@@ -527,6 +556,226 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     table.hygieneRatingRow().get(2).shouldBe(empty);
     table.integrityRatingRow().get(2).shouldBe(empty);
     table.catalogDateRow().get(2).shouldNotBe(empty);
+  }
+
+  @Test
+  public void testRiskRemediationTile_PRStatus_ManualPullRequestsEnabled_SourceControlNotConfigured() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    mockHdsResponseForFirstComponent();
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0, FIRST_COMPONENT_HASH);
+
+    RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
+    RecommendedVersionsSection recommendedVersionsSection = riskRemediation.recommendedVersionsSections();
+    recommendedVersionsSection.getTitle().shouldHave(text("Suggested Version Change"));
+
+    RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
+    recommendation.createPullRequestButton().shouldBe(visible);
+    recommendation.createPullRequestButton().shouldHave(cssClass("disabled"));
+
+    recommendation.createPullRequestButton().hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("Source Control is not configured"));
+  }
+
+  @Test
+  public void testRiskRemediationTile_PRStatus_ManualPullRequestsEnabled_CreatePRModal() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    final String repositoryURL = "http://test.github.com/org/repo";
+
+    SourceControl sourceControl = tempEntity.newSourceControl(
+        app.getId(),
+        repositoryURL,
+        lookup(PasswordHandler.class).encryptPassword("someToken"),
+        SourceControlProvider.GITHUB
+    );
+    sourceControl.setManualPullRequestsEnabled(true);
+    lookup(SourceControlDAO.class).update(sourceControl);
+
+    mockHdsResponseForFirstComponent();
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0, FIRST_COMPONENT_HASH);
+
+    RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
+    RecommendedVersionsSection recommendedVersionsSection = riskRemediation.recommendedVersionsSections();
+    recommendedVersionsSection.getTitle().shouldHave(text("Suggested Version Change"));
+
+    RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
+    recommendation.createPullRequestButton().shouldBe(visible).click();
+
+    CreatePRModal createPRModal = new CreatePRModal();
+    createPRModal.shouldBe(visible).shouldHave(text("Create Pull Request"));
+    createPRModal.createPullRequestModalHeader().shouldBe(visible).shouldHave(text("Create Pull Request"));
+    createPRModal.createPrModalPrTitle().shouldBe(visible).shouldHave(text("Bump javancss to 31.52"));
+    createPRModal.createPrModalComponentName().shouldBe(visible).shouldHave(text("javancss : javancss : 29.50"));
+    createPRModal.createPrModalCurrentVersion().shouldBe(visible).shouldHave(text("29.50"));
+    createPRModal.createPrModalTargetVersion().shouldBe(visible).shouldHave(text("31.52"));
+    createPRModal.createPrModalBreakingChanges().shouldBe(visible).shouldHave(text("Unknown"));
+    createPRModal.createPrModalDefaultBranch().shouldBe(visible).shouldHave(text("master"));
+  }
+
+  @Test
+  public void testRiskRemediationTile_PRStatus_PullRequestCreationPending() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    final String repositoryURL = "http://test.github.com/org/repo";
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("javancss", "javancss", "29.50", "", "jar");
+    String branchName = pullRequestBranchNameGenerator.getBranchName(app, componentIdentifier, "31.52");
+
+    SourceControl sourceControl = tempEntity.newSourceControl(
+        app.getId(),
+        repositoryURL,
+        lookup(PasswordHandler.class).encryptPassword("someToken"),
+        SourceControlProvider.GITHUB
+    );
+    sourceControl.setManualPullRequestsEnabled(true);
+    sourceControlDAO.update(sourceControl);
+
+    PolicyEvaluation evaluation =
+        policyEvaluationDAO.getLastByApplicationIdAndScanIdNotNull(app.getId(), SCAN_ID);
+    SourceControlEvent event = tempEntity.newSourceControlEvent(
+        app,
+        evaluation,
+        "user",
+        branchName,
+        SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT,
+        SourceControlEvent.EVENT_STATUS_IN_PROGRESS
+    );
+    sourceControlEventDAO.update(event);
+
+    mockHdsResponseForFirstComponent();
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0, FIRST_COMPONENT_HASH);
+
+    RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
+    RecommendedVersionsSection recommendedVersionsSection = riskRemediation.recommendedVersionsSections();
+    recommendedVersionsSection.getTitle().shouldHave(text("Suggested Version Change"));
+
+    RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
+    recommendation.loadingSpinner().shouldBe(visible);
+    recommendation.loadingSpinner().shouldHave(text("Creating PR…"));
+    
+    //verify that refreshing the page, will still show the spinner because of polling
+    refreshOrOpen(ComponentDetailsPage.urlToOverview(app, SCAN_ID, FIRST_COMPONENT_HASH));
+    recommendation.loadingSpinner().shouldBe(visible);
+    recommendation.loadingSpinner().shouldHave(text("Creating PR…"));
+
+    //verify that the spinner is not shown when the event is complete
+    event.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
+    event.setEventStatusDetails("http://test.github.com/org/repo/pull/123");
+    sourceControlEventDAO.update(event);
+    componentDetailsPage = new ComponentDetailsPage();
+    riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
+    recommendedVersionsSection = riskRemediation.recommendedVersionsSections();
+    recommendation = recommendedVersionsSection.getRecommendation(0);
+    recommendation.loadingSpinner().shouldNotBe(visible);
+    recommendation.prLink().shouldBe(visible, Duration.ofSeconds(5));
+    recommendation.prLink().shouldHave(text("View PR"));
+    recommendation.prLink().shouldHave(attribute("href", "http://test.github.com/org/repo/pull/123"));
+  }
+
+  @Test
+  public void testRiskRemediationTile_PRStatus_PullRequestCreationFailed_Retry_Complete() {
+    mockHdsResponseForFirstComponent();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    final String repositoryURL = "http://test.github.com/org/repo";
+    final String prUrl = "http://test.github.com/org/repo/pull/123";
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("javancss", "javancss", "29.50", "", "jar");
+    String branchName = pullRequestBranchNameGenerator.getBranchName(app, componentIdentifier, "31.52");
+
+    SourceControl sourceControl = tempEntity.newSourceControl(
+        app.getId(),
+        repositoryURL,
+        lookup(PasswordHandler.class).encryptPassword("someToken"),
+        SourceControlProvider.GITHUB
+    );
+    sourceControl.setManualPullRequestsEnabled(true);
+    sourceControlDAO.update(sourceControl);
+
+    PolicyEvaluation evaluation =
+        policyEvaluationDAO.getLastByApplicationIdAndScanIdNotNull(app.getId(), SCAN_ID);
+    SourceControlEvent sourceControlEvent = tempEntity.newSourceControlEvent(
+        app,
+        evaluation,
+        "user",
+        branchName,
+        SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT,
+        SourceControlEvent.EVENT_STATUS_ERROR
+    );
+    sourceControlEventDAO.update(sourceControlEvent);
+
+    mockHdsResponseForFirstComponentWithRecommendedVersion();
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0, FIRST_COMPONENT_HASH);
+
+    RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
+    RecommendedVersionsSection recommendedVersionsSection = riskRemediation.recommendedVersionsSections();
+    recommendedVersionsSection.getTitle().shouldHave(text("Suggested Version Change"));
+
+    RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
+    recommendation.retryButton().shouldBe(visible);
+    recommendation.retryButton().shouldHave(text("Retry"));
+
+    recommendation.retryButton().hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("Failure to create PR."));
+
+    recommendation.retryButton().click();
+
+    recommendation.loadingSpinner().shouldBe(visible).shouldHave(text("Creating PR…"));
+
+    sourceControlEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
+    sourceControlEvent.setEventStatusDetails(prUrl);
+    sourceControlEventDAO.update(sourceControlEvent);
+
+    refreshOrOpen(ComponentDetailsPage.urlToOverview(app, SCAN_ID, FIRST_COMPONENT_HASH));
+    componentDetailsPage = new ComponentDetailsPage();
+    riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
+    recommendedVersionsSection = riskRemediation.recommendedVersionsSections();
+    recommendation = recommendedVersionsSection.getRecommendation(0);
+
+    recommendation.prLink().shouldBe(visible, Duration.ofSeconds(5));
+    recommendation.prLink().shouldHave(text("View PR"));
+    recommendation.prLink().shouldHave(attribute("href", prUrl));
+  }
+
+  @Test
+  public void testRiskRemediationTile_PRStatus_PullRequest() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    final String repositoryURL = "http://test.github.com/org/repo";
+    final String prUrl = "http://test.github.com/org/repo/pull/123";
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("javancss", "javancss", "29.50", "", "jar");
+    String branchName = pullRequestBranchNameGenerator.getBranchName(app, componentIdentifier, "31.52");
+
+    SourceControl sourceControl = tempEntity.newSourceControl(
+        app.getId(),
+        repositoryURL,
+        lookup(PasswordHandler.class).encryptPassword("someToken"),
+        SourceControlProvider.GITHUB
+    );
+    sourceControl.setManualPullRequestsEnabled(true);
+    sourceControlDAO.update(sourceControl);
+
+    PolicyEvaluation evaluation =
+        policyEvaluationDAO.getLastByApplicationIdAndScanIdNotNull(app.getId(), SCAN_ID);
+    SourceControlEvent sourceControlEvent = tempEntity.newSourceControlEvent(
+        app,
+        evaluation,
+        "user",
+        branchName,
+        SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT,
+        SourceControlEvent.EVENT_STATUS_COMPLETE
+    );
+    sourceControlEvent.setEventStatusDetails(prUrl);
+    sourceControlEventDAO.update(sourceControlEvent);
+
+    mockHdsResponseForFirstComponent();
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0, FIRST_COMPONENT_HASH);
+
+    RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
+    RecommendedVersionsSection recommendedVersionsSection = riskRemediation.recommendedVersionsSections();
+    recommendedVersionsSection.getTitle().shouldHave(text("Suggested Version Change"));
+
+    RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
+    recommendation.prLink().shouldBe(visible);
+    recommendation.prLink().shouldHave(text("View PR"));
+    recommendation.prLink().shouldHave(attribute("href", prUrl));
   }
 
   private ComponentDetailsPage openComponentDetailsPageForViolation(int violationIndex, String hash) {

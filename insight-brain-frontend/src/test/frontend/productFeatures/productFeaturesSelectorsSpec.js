@@ -300,28 +300,33 @@ describe('productFeaturesSelectors', () => {
   });
 
   describe('selectSourceControlOptions', () => {
-    it('returns all with the exception of auto remediated PR and ssh for git operations in multi-tenant mode', () => {
-      mockState.productFeatures.productFeatures['multi-tenant'] = true;
-      const options = selectTenantScmOptionsTypes(mockState);
+    it(
+      'returns all with the exception of ' +
+        'auto remediated PR, manual PR, and ssh for git operations in multi-tenant mode',
+      () => {
+        mockState.productFeatures.productFeatures['multi-tenant'] = true;
+        const options = selectTenantScmOptionsTypes(mockState);
 
-      expect(options).toHaveSize(3);
+        expect(options).toHaveSize(3);
 
-      const optionsIds = options.map((option) => option.id);
-      expect(optionsIds).toContain('source-control-pull-request-commenting');
-      expect(optionsIds).toContain('source-control-evaluations');
-      expect(optionsIds).toContain('automated-commit-feedback');
-    });
+        const optionsIds = options.map((option) => option.id);
+        expect(optionsIds).toContain('source-control-pull-request-commenting');
+        expect(optionsIds).toContain('source-control-evaluations');
+        expect(optionsIds).toContain('automated-commit-feedback');
+      }
+    );
 
     it('returns all option in single-tenant mode', () => {
       mockState.productFeatures.productFeatures['single-tenant'] = true;
       const options = selectTenantScmOptionsTypes(mockState);
-      expect(options).toHaveSize(5);
+      expect(options).toHaveSize(6);
       const optionsIds = options.map((option) => option.id);
       expect(optionsIds).toContain('source-control-remediation-pull-requests');
       expect(optionsIds).toContain('source-control-ssh');
       expect(optionsIds).toContain('source-control-pull-request-commenting');
       expect(optionsIds).toContain('source-control-evaluations');
       expect(optionsIds).toContain('automated-commit-feedback');
+      expect(optionsIds).toContain('manual-pull-requests');
     });
   });
 });

@@ -5,16 +5,17 @@
  */
 
 import React from 'react';
-import { render, screen, within, fireEvent, axiosMockAdapter } from 'TestRoot/SpecUtil';
+import userEvent from '@testing-library/user-event';
+import { faker } from '@faker-js/faker';
+import { mergeDeepRight } from 'ramda';
+import { render, screen, within, axiosMockAdapter, waitFor, act } from 'TestRoot/SpecUtil';
 import PrioritiesPageTable from 'MainRoot/development/prioritiesPage/PrioritiesPageTable';
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
-import { getPrioritiesPageTableData } from 'MainRoot/util/CLMLocation';
-import { faker } from '@faker-js/faker';
-import {
-  defaultIntegrationParamsMap,
-  validIntegrationTypes,
-} from '../../../../main/frontend/development/prioritiesPage/utils';
+import { getCompositeSourceControlUrl, getPrioritiesPageTableData } from 'MainRoot/util/CLMLocation';
+import * as RouterStateContextModule from 'MainRoot/react/RouterStateContext';
+import { defaultIntegrationParamsMap, validIntegrationTypes } from 'MainRoot/development/prioritiesPage/utils';
 
+const appId = 'a1950e2a897240d4878ddb2450d64e10';
 const publicAppId = 'testPublicAppId';
 const scanId = 'testScanId';
 
@@ -29,6 +30,13 @@ describe('PrioritiesPageTable', () => {
   let renderComponent, stateGoSpy, axiosMock;
 
   const defaultPreloadedState = {
+    applicationReport: {
+      metadata: {
+        application: {
+          id: appId,
+        },
+      },
+    },
     router: {
       currentParams: {
         publicAppId,
@@ -42,12 +50,18 @@ describe('PrioritiesPageTable', () => {
     },
   };
 
+  const mockRouterState = {
+    get: () => ({}),
+    href: () => '#',
+  };
+
   beforeAll(() => {
     axiosMock = axiosMockAdapter();
   });
 
   beforeEach(() => {
     stateGoSpy = jest.spyOn(RouterActions, 'stateGo');
+    jest.spyOn(RouterStateContextModule, 'useRouterState').mockImplementation(() => mockRouterState);
 
     axiosMock
       .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
@@ -64,7 +78,7 @@ describe('PrioritiesPageTable', () => {
       render(<PrioritiesPageTable />, { preloadedState: preloadedState || defaultPreloadedState });
   });
 
-  it('makes correct network request', () => {
+  it('makes correct network request', async () => {
     renderComponent();
 
     expect(axiosMock.history.get.length).toBe(1);
@@ -81,16 +95,10 @@ describe('PrioritiesPageTable', () => {
 
     const loading = within(table).getByText('Loading…');
     expect(loading).toBeInTheDocument();
-  });
 
-  it('renders a loading spinner within the table', () => {
-    renderComponent();
-
-    const table = screen.getByRole('table');
-    expect(table).toBeInTheDocument();
-
-    const loading = within(table).getByText('Loading…');
-    expect(loading).toBeInTheDocument();
+    await waitFor(() => {
+      expect(loading).not.toBeInTheDocument();
+    });
   });
 
   it('renders an error within the table when network call fails', async () => {
@@ -120,6 +128,7 @@ describe('PrioritiesPageTable', () => {
     renderComponent();
 
     const table = await screen.findByRole('table');
+    const user = userEvent.setup();
     expect(table).toBeInTheDocument();
 
     expect(axiosMock.history.get.length).toBe(1);
@@ -132,7 +141,7 @@ describe('PrioritiesPageTable', () => {
     });
 
     const retryBtn = within(table).getByRole('button');
-    fireEvent.click(retryBtn);
+    await user.click(retryBtn);
 
     expect(axiosMock.history.get.length).toBe(2);
     expect(axiosMock.history.get[1].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
@@ -144,33 +153,33 @@ describe('PrioritiesPageTable', () => {
     });
   });
 
-  it('renders a table with 4 column headers', async () => {
-    renderComponent();
-
-    const table = await screen.findByRole('table');
-    expect(table).toBeInTheDocument();
-
-    const rows = within(table).getAllByRole('row');
-    const headerRow = rows[0];
-    const columnheaders = within(headerRow).getAllByRole('columnheader');
-    expect(columnheaders.length).toBe(4 + 1); //last column is to render chevron icon for clickable rows
-  });
-
   it('renders column headers with correct names in the correct order', async () => {
-    renderComponent();
+    renderComponent(
+      mergeDeepRight(defaultPreloadedState, {
+        productFeatures: {
+          productFeatures: {
+            'manual-pull-requests': true,
+          },
+        },
+      })
+    );
 
     const table = await screen.findByRole('table');
     expect(table).toBeInTheDocument();
 
     const columnHeaders = within(table).getAllByRole('columnheader');
+    expect(columnHeaders).toHaveLength(6);
     expect(columnHeaders[0]).toHaveAccessibleName(/priority/i);
     expect(columnHeaders[1]).toHaveAccessibleName(/component/i);
-    expect(columnHeaders[2]).toHaveAccessibleName(/reason for priority/i);
-    expect(columnHeaders[3]).toHaveAccessibleName(/suggested fix/i);
+    expect(columnHeaders[2]).toHaveAccessibleName(/build action/i);
+    expect(columnHeaders[3]).toHaveAccessibleName(/reachability/i);
+    expect(columnHeaders[4]).toHaveAccessibleName(/suggested remediation/i);
+    expect(columnHeaders[5]).toHaveAccessibleName(/next step/i);
   });
 
   it('renders the priority column header with an icon and tooltip', async () => {
     renderComponent();
+    const user = userEvent.setup();
 
     const table = await screen.findByRole('table');
     expect(table).toBeInTheDocument();
@@ -180,12 +189,70 @@ describe('PrioritiesPageTable', () => {
     const infoIcon = within(priorityColumnHeader).getByRole('img', { hidden: true });
     expect(infoIcon).toBeInTheDocument();
 
-    fireEvent.mouseOver(infoIcon);
+    await user.hover(infoIcon);
     const tooltip = await screen.findByRole('tooltip', {
       name:
         'Priority of actionable items based on the policy action, component reachability status, and threat score severity.',
     });
     expect(tooltip).toBeInTheDocument();
+  });
+
+  describe('branch name loading', () => {
+    async function assertBranchNameIsLoaded(store, branchName) {
+      const table = screen.getByRole('table');
+      expect(table).toBeInTheDocument();
+
+      const loading = within(table).getByText('Loading…');
+      expect(loading).toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(loading).not.toBeInTheDocument();
+      });
+
+      const state = store.getState();
+      expect(state.prioritiesPage.branchName).toBe(branchName);
+    }
+
+    it('loads branch name from report metadata if available', async () => {
+      const branchName = 'custom-branch-name';
+
+      const { store } = renderComponent(
+        mergeDeepRight(defaultPreloadedState, {
+          applicationReport: {
+            metadata: {
+              branchName,
+            },
+          },
+        })
+      );
+      await assertBranchNameIsLoaded(store, branchName);
+    });
+
+    it('loads branch name from source control config base branch value', async () => {
+      const branchName = 'custom-branch-name';
+      axiosMock.onGet(getCompositeSourceControlUrl('application', appId)).reply(200, {
+        baseBranch: {
+          value: branchName,
+          parentValue: null,
+        },
+      });
+
+      const { store } = renderComponent();
+      await assertBranchNameIsLoaded(store, branchName);
+    });
+
+    it('loads branch name from source control config base branch parentValue', async () => {
+      const branchName = 'custom-branch-name';
+      axiosMock.onGet(getCompositeSourceControlUrl('application', appId)).reply(200, {
+        baseBranch: {
+          value: null,
+          parentValue: branchName,
+        },
+      });
+
+      const { store } = renderComponent();
+      await assertBranchNameIsLoaded(store, branchName);
+    });
   });
 
   describe('empty message when there are no priorities', () => {
@@ -259,8 +326,17 @@ describe('PrioritiesPageTable', () => {
   });
 
   describe('component name filter', () => {
+    beforeEach(() => {
+      axiosMock.onGet(getCompositeSourceControlUrl('application', appId)).reply(200, {
+        baseBranch: {
+          value: 'custom-branch-name',
+        },
+      });
+    });
+
     it('filters components by name', async () => {
       jest.useFakeTimers();
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
       const filteredResponse = {
         priorities: {
           total: 1,
@@ -319,11 +395,14 @@ describe('PrioritiesPageTable', () => {
       expect(table).toBeInTheDocument();
 
       const filterInput = screen.getByPlaceholderText('Filter by component');
-      fireEvent.change(filterInput, { target: { value: 'ABC' } });
+      await user.clear(filterInput);
+      await user.type(filterInput, 'ABC');
 
-      jest.runAllTimers();
+      act(() => {
+        jest.runAllTimers();
+      });
 
-      expect(axiosMock.history.get.length).toEqual(16); // 1 initial request + 15 async recommendation requests
+      expect(axiosMock.history.get.length).toEqual(17); // 1 branch name loading + 1 initial request + 15 async recommendation requests
       expect(stateGoSpy).toHaveBeenCalledWith('prioritiesPageFromReports', {
         publicAppId,
         scanId,
@@ -352,12 +431,16 @@ describe('PrioritiesPageTable', () => {
         componentNameFilter: 'some_component_name',
         filterOnPolicyActions: false,
       });
+
+      // wait for table in order to avoid act() warnings
+      await screen.findByRole('table');
     });
   });
 
   describe('component action filter toggle', () => {
     it('toggles the "Fail/Warn Policy Actions only" filter and makes correct network requests', async () => {
       renderComponent();
+      const user = userEvent.setup();
 
       const defaultParams = {
         pageSize: DEFAULT_PAGE_SIZE,
@@ -377,7 +460,7 @@ describe('PrioritiesPageTable', () => {
       expect(toggle).toBeInTheDocument();
       expect(toggle).not.toBeChecked();
 
-      fireEvent.click(toggle);
+      await user.click(toggle);
 
       expect(stateGoSpy).toHaveBeenCalledWith('prioritiesPageFromReports', {
         publicAppId,
@@ -473,52 +556,15 @@ describe('PrioritiesPageTable', () => {
     expect(toggle).not.toBeChecked();
   });
 
-  it('renders rows that when clicked navigates to component details page - violations section', async () => {
-    renderComponent();
-
-    expect(axiosMock.history.get.length).toBe(1);
-    expect(axiosMock.history.get[0].params).toEqual({
-      pageSize: DEFAULT_PAGE_SIZE,
-      page: 1,
-      componentNameFilter: '',
-      filterOnPolicyActions: false,
+  describe('pagination', () => {
+    beforeEach(() => {
+      axiosMock.onGet(getCompositeSourceControlUrl('application', appId)).reply(200, {
+        baseBranch: {
+          value: 'custom-branch-name',
+        },
+      });
     });
 
-    const table = await screen.findByRole('table');
-    expect(table).toBeInTheDocument();
-
-    const rows = screen.getAllByRole('row');
-    expect(rows.length).toBe(16);
-
-    // 1st row is header row, 2nd row is the first component row
-    const firstComponentRow = rows[1];
-    const firstComponentHash = mockResponsePage1.priorities.results[0].componentHash;
-
-    const secondComponentRow = rows[2];
-    const secondComponentHash = mockResponsePage1.priorities.results[1].componentHash;
-
-    fireEvent.click(firstComponentRow);
-    expect(stateGoSpy).toHaveBeenCalledWith(
-      'componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.overview',
-      {
-        hash: firstComponentHash,
-        publicId: publicAppId,
-        scanId,
-      }
-    );
-
-    fireEvent.click(secondComponentRow);
-    expect(stateGoSpy).toHaveBeenCalledWith(
-      'componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.overview',
-      {
-        hash: secondComponentHash,
-        publicId: publicAppId,
-        scanId,
-      }
-    );
-  });
-
-  describe('pagination', () => {
     it('renders a pagination section', async () => {
       renderComponent();
       const paginationBtnBar = await screen.findByRole('navigation');
@@ -526,6 +572,7 @@ describe('PrioritiesPageTable', () => {
     });
 
     it('makes correct network requests when page is changed', async () => {
+      const user = userEvent.setup();
       renderComponent();
       expect(axiosMock.history.get.length).toBe(1);
       expect(axiosMock.history.get[0].params).toEqual({
@@ -539,21 +586,35 @@ describe('PrioritiesPageTable', () => {
       expect(table).toBeInTheDocument();
 
       let pagination = await screen.findByRole('navigation');
-      expect(within(pagination).getAllByRole('button').length).toBe(3);
+      expect(within(pagination).getAllByRole('button')).toHaveLength(3);
 
       const nextPageBtn = within(pagination).getByRole('button', { name: /goto next page/i });
       expect(nextPageBtn).toBeInTheDocument();
 
-      fireEvent.click(nextPageBtn);
+      // allVersions call for each row in first page + branch name call
+      expect(axiosMock.history.get).toHaveLength(17);
+      for (let i = 2; i < 17; i++) {
+        expect(axiosMock.history.get[i].url).toMatch(
+          /^\/rest\/ci\/componentDetails\/application\/testPublicAppId\/allVersions/
+        );
+      }
 
-      expect(axiosMock.history.get.length).toBe(17);
-      expect(axiosMock.history.get[16].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
-      expect(axiosMock.history.get[16].params).toEqual({
+      await user.click(nextPageBtn);
+
+      expect(axiosMock.history.get).toHaveLength(33);
+      expect(axiosMock.history.get[17].params).toEqual({
         pageSize: DEFAULT_PAGE_SIZE,
         page: 2,
         componentNameFilter: '',
         filterOnPolicyActions: false,
       });
+
+      // allVersions call for each row in second page page
+      for (let i = 18; i < 33; i++) {
+        expect(axiosMock.history.get[i].url).toMatch(
+          /^\/rest\/ci\/componentDetails\/application\/testPublicAppId\/allVersions/
+        );
+      }
 
       await screen.findByRole('table');
       pagination = await screen.findByRole('navigation');
@@ -561,16 +622,22 @@ describe('PrioritiesPageTable', () => {
       const prevPageBtn = within(pagination).getByRole('button', { name: /goto previous page/i });
       expect(prevPageBtn).toBeInTheDocument();
 
-      fireEvent.click(prevPageBtn);
+      await user.click(prevPageBtn);
 
-      expect(axiosMock.history.get.length).toBe(33);
-      expect(axiosMock.history.get[32].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
-      expect(axiosMock.history.get[32].params).toEqual({
+      expect(axiosMock.history.get).toHaveLength(49);
+      expect(axiosMock.history.get[33].params).toEqual({
         pageSize: DEFAULT_PAGE_SIZE,
         page: 1,
         componentNameFilter: '',
         filterOnPolicyActions: false,
       });
+
+      // allVersions call for each row in first row page, again
+      for (let i = 34; i < 49; i++) {
+        expect(axiosMock.history.get[i].url).toMatch(
+          /^\/rest\/ci\/componentDetails\/application\/testPublicAppId\/allVersions/
+        );
+      }
     });
   });
 
@@ -609,6 +676,9 @@ describe('PrioritiesPageTable', () => {
           componentNameFilter: '',
           integrationType,
         });
+
+        // wait for table in order to avoid act() warnings
+        await screen.findByRole('table');
       });
     });
   });

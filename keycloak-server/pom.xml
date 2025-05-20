@@ -129,5 +129,10 @@
       <artifactId>insight-brain-common</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>docker-utils</artifactId>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 </project>

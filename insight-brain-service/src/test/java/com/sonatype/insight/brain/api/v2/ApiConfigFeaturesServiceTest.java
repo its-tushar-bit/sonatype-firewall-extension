@@ -22,22 +22,7 @@ import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mockito;
 
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_CODE_INSIGHTS;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_COMPONENT_SEARCH_API_WITH_INNERSOURCE;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_DASHBOARD;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_DEFAULT_BRANCH_MONITORING;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_DEPENDENCY_DATA_IN_API;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_ENABLE_UNAUTHENTICATED_PAGES;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_INNER_SOURCE_REPOSITORY_INTEGRATION;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_INNER_SOURCE_TRANSITIVE_WAIVER;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_PR_COMMENTING;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_PR_LINE_COMMENTING;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_REPORTS_LIST;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_SAAS_LIFECYCLE_SCM_ENABLED;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_TRANSITIVE_SOLVER;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.NOT_SUPPORTED_SELF_HOSTED_SYSTEM_PROPERTIES;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.*;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -1227,48 +1212,6 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
-  public void testEnableFeature_MANUAL_PULL_REQUESTS() {
-    assertThat(SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()).isFalse();
-
-    service.enableFeature(MANUAL_PULL_REQUESTS);
-
-    assertThat(SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()).isTrue();
-  }
-
-  @Test
-  public void testEnableFeature_MANUAL_PULL_REQUESTS_AlreadyEnabled() {
-    service.enableFeature(MANUAL_PULL_REQUESTS);
-    assertThat(SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()).isTrue();
-
-    assertThatThrownBy(() -> service.enableFeature(MANUAL_PULL_REQUESTS))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage("Feature is already enabled.");
-
-    assertThat(SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()).isTrue();
-  }
-
-  @Test
-  public void testDisableFeature_MANUAL_PULL_REQUESTS() {
-    service.enableFeature(MANUAL_PULL_REQUESTS);
-    assertThat(SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()).isTrue();
-
-    service.disableFeature(MANUAL_PULL_REQUESTS);
-
-    assertThat(SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()).isFalse();
-  }
-
-  @Test
-  public void testDisableFeature_MANUAL_PULL_REQUESTS_AlreadyDisabled() {
-    assertThat(SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()).isFalse();
-
-    assertThatThrownBy(() -> service.disableFeature(MANUAL_PULL_REQUESTS))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage("Feature is already disabled.");
-
-    assertThat(SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS.isEnabled()).isFalse();
-  }
-
-  @Test
   public void testGetAllSystemConfigurationPropertyFeatureWithValue_singleTenant() {
     Map<String, Boolean> expectedFeatureConfigMap = getExpectedFeatureConfigMap();
 
@@ -1425,7 +1368,6 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("LDAP_CONFIGURATION", true);
     expectedFeatureConfigMap.put("logoutAuth0OnLogout", false);
     expectedFeatureConfigMap.put("malwareDefenseApi", false);
-    expectedFeatureConfigMap.put("manualPullRequests", false);
     expectedFeatureConfigMap.put("nonBreakingVersionSuggestionTelemetry", true);
     expectedFeatureConfigMap.put("OAUTH2_ENABLED", false);
     expectedFeatureConfigMap.put("prioritizedFindingsReport", true);

@@ -145,16 +145,18 @@ public class RoleManagementTest
 
     // verify permissions under Remediation category, and that they are in the right
     // order
-    roleEditorPage.permissions(remediationDisplayName).shouldHave(size(4));
+    roleEditorPage.permissions(remediationDisplayName).shouldHave(size(5));
 
     assertPermission(roleEditorPage.permission(remediationDisplayName, 0, FIRST_COLUMN), !ON, !ENABLED,
         Permission.WAIVE_POLICY_VIOLATIONS);
     assertPermission(roleEditorPage.permission(remediationDisplayName, 1, FIRST_COLUMN), !ON, !ENABLED,
         Permission.CHANGE_LICENSES);
-    assertPermission(roleEditorPage.permission(remediationDisplayName, 0, !FIRST_COLUMN), !ON, !ENABLED,
+    assertPermission(roleEditorPage.permission(remediationDisplayName, 2, FIRST_COLUMN), !ON, !ENABLED,
         Permission.CHANGE_SECURITY_VULNERABILITIES);
-    assertPermission(roleEditorPage.permission(remediationDisplayName, 1, !FIRST_COLUMN), !ON, !ENABLED,
+    assertPermission(roleEditorPage.permission(remediationDisplayName, 0, !FIRST_COLUMN), !ON, !ENABLED,
         Permission.LEGAL_REVIEWER);
+    assertPermission(roleEditorPage.permission(remediationDisplayName, 1, !FIRST_COLUMN), ON, !ENABLED,
+        Permission.CREATE_PULL_REQUESTS);
   }
 
   @Test

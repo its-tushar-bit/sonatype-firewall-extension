@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.model.security;
 
 import java.util.function.Supplier;
 
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-
 /**
  * The permissions supporting authorization.
  *
@@ -67,7 +65,7 @@ public enum Permission
       false /* global */, true /* allowedInCustomRoles */),
 
   CREATE_PULL_REQUESTS("Create", PermissionCategory.REMEDIATION, "Pull requests", false /* global */,
-      true /* allowedInCustomRoles */, SystemConfigurationPropertyFeature.MANUAL_PULL_REQUESTS::isEnabled);
+      true /* allowedInCustomRoles */);
 
   private final String displayName;
 

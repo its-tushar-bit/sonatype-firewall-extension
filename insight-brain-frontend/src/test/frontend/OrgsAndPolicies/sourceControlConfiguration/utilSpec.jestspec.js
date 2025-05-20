@@ -655,7 +655,7 @@ describe('sourceControlConfiguration util', () => {
           sourceControlEvaluationsEnabled: { value: true, parentValue: null, parentName: null, isInherited: false },
           sshEnabled: { value: null, parentValue: null, parentName: null, isInherited: false },
           commitStatusEnabled: { value: true, parentValue: null, parentName: null, isInherited: false },
-          manualPullRequestsEnabled: { value: false, parentValue: null, parentName: null, isInherited: false },
+          manualPullRequestsEnabled: { value: true, parentValue: null, parentName: null, isInherited: false },
           statusChecksEnabled: { value: null, parentValue: null, parentName: null },
           token: {
             rscValue: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
@@ -714,14 +714,14 @@ describe('sourceControlConfiguration util', () => {
           commitStatusEnabled: { value: null, parentValue: null, parentName: null },
           statusChecksEnabled: { value: true, parentValue: null, parentName: null },
           pullRequestCommentingEnabled: { value: true, parentValue: null, parentName: null },
-          manualPullRequestsEnabled: { value: true, parentValue: null, parentName: null },
+          manualPullRequestsEnabled: { value: false, parentValue: null, parentName: null },
           sourceControlEvaluationsEnabled: { value: true, parentValue: null, parentName: null },
           sourceControlScanTarget: { value: null, parentValue: null, parentName: null },
           sshEnabled: { value: null, parentValue: null, parentName: null },
         };
         isRootOrg = true;
       });
-      it('returns object with default values if there were no previous configuration', () => {
+      it('returns object with previous configuration values if present', () => {
         const resultDataForRorm = {
           ownerId: 'ROOT_ORGANIZATION_ID',
           id: 'b47108b2c35e4781b91d8c3973961b65',
@@ -746,7 +746,7 @@ describe('sourceControlConfiguration util', () => {
           pullRequestCommentingEnabled: { value: true, parentValue: null, parentName: null, isInherited: false },
           remediationPullRequestsEnabled: { value: false, parentValue: null, parentName: null, isInherited: false },
           commitStatusEnabled: { value: true, parentValue: null, parentName: null, isInherited: false },
-          manualPullRequestsEnabled: { value: true, parentValue: null, parentName: null, isInherited: false },
+          manualPullRequestsEnabled: { value: false, parentValue: null, parentName: null, isInherited: false },
           sourceControlEvaluationsEnabled: { value: true, parentValue: null, parentName: null, isInherited: false },
           sshEnabled: { value: null, parentValue: null, parentName: null, isInherited: false },
           statusChecksEnabled: { value: true, parentValue: null, parentName: null },

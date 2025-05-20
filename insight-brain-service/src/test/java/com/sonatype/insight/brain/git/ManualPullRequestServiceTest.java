@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.inject.Binder;
@@ -47,6 +48,7 @@ import org.mockito.Mock;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 public class ManualPullRequestServiceTest
     extends AbstractServiceAuthzTest
@@ -76,6 +78,9 @@ public class ManualPullRequestServiceTest
 
   @Mock
   private ScmRepoVisibilityService mockScmRepoVisibilityService;
+  
+  @Mock
+  private TenantUtil mockTenantUtil;
 
   @Inject
   private ManualPullRequestService manualPullRequestService;
@@ -84,6 +89,7 @@ public class ManualPullRequestServiceTest
   public void configure(Binder binder) {
     super.configure(binder);
     binder.bind(ScmRepoVisibilityService.class).toInstance(mockScmRepoVisibilityService);
+    binder.bind(TenantUtil.class).toInstance(mockTenantUtil);
   }
 
   @Before
@@ -304,6 +310,24 @@ public class ManualPullRequestServiceTest
                       remediationDto);
 
       assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.NO_REMEDIATION_VERSION_AVAILABLE);
+    }
+  }
+
+  @Test
+  public void testIsManualPullRequestPossible_False_MTIQ() {
+    when(mockTenantUtil.isMultiTenant()).thenReturn(true);
+
+    ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
+    for (ApiVersionChangeOptionType versionChangeType : ComponentRemediationService.PREFERABLE_TYPE_ORDER) {
+      remediationDto.versionChanges = getVersionChanges(Map.of("v", versionChangeType));
+
+      Optional<ManualPullRequestImpossibilityReason> result =
+          manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
+              VALID_DEPENDENCY_TYPE,
+              app,
+              remediationDto);
+
+      assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.NOT_SUPPORTED_FOR_MTIQ);
     }
   }
 

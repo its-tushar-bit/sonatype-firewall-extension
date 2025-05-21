@@ -103,7 +103,7 @@ export default function EnterpriseReportingLandingPage() {
             .
           </NxP>
           <NxP>
-            Application names will also be obfuscated if you are using an older verison of Lifcycle.{' '}
+            Application names will also be obfuscated if you are using an older version of Lifecycle.{' '}
             <NxTextLink external href={'https://links.sonatype.com/products/clm/download'}>
               Update Lifecycle
             </NxTextLink>{' '}

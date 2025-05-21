@@ -196,7 +196,7 @@ VersionChecklist.propTypes = {
 };
 
 VersionListItem.propTypes = {
-  versionItem: PropTypes.shape(VersionChangePropTypes).isRequired,
+  versionItem: PropTypes.shape(VersionChangePropTypes),
   actualVersion: PropTypes.string.isRequired,
   handleCompare: PropTypes.func.isRequired,
   isSuggestedVersion: PropTypes.bool.isRequired,
@@ -206,7 +206,7 @@ VersionListItem.propTypes = {
 };
 
 RecommendedVersionsList.propTypes = {
-  versionChanges: PropTypes.arrayOf(VersionChangePropTypes).isRequired,
+  versionChanges: PropTypes.arrayOf(VersionChangePropTypes),
   actualVersion: PropTypes.string.isRequired,
   handleCompare: PropTypes.func.isRequired,
   automatedRemediationStatus: PropTypes.object,

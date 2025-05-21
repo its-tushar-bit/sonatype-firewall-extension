@@ -24,11 +24,14 @@ import { selectComponentDetails } from 'MainRoot/componentDetails/componentDetai
 import {
   selectIsFirewall,
   selectRouterCurrentParams,
-  selectIsFirewallOrRepository,
   selectIsSbomManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 import { selectIsAutoWaiversEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsContainerImagesEvaluationEnabledAndProxyStage,
+  selectIsFirewallOrRepositoryAndNotProxyStage,
+} from 'MainRoot/applicationReport/applicationReportSelectors';
 
 import {
   selectFirewallComponentDetailsPage,
@@ -38,9 +41,12 @@ import {
 import { actions } from 'MainRoot/componentDetails/ViolationsTableTile/policyViolationsSlice';
 
 function mapStateToProps(state, props) {
+  const isContainerImagesEvaluationEnabled = selectIsContainerImagesEvaluationEnabledAndProxyStage(state);
+
   const { stages, violation } = state;
-  const isFirewall = selectIsFirewall(state);
-  const isFirewallOrRepository = selectIsFirewallOrRepository(state);
+  const isFirewall = selectIsFirewall(state) && !isContainerImagesEvaluationEnabled;
+  const isFirewallOrRepository = selectIsFirewallOrRepositoryAndNotProxyStage(state);
+
   const firewallComponentDetailsPage = selectFirewallComponentDetailsPage(state);
   const { hasEditIqPermission: firewallHasEditIqPermission } = firewallComponentDetailsPage;
   const applicationHasEditPermission = pick(['hasEditIqPermission'], violation)?.hasEditIqPermission;
@@ -101,6 +107,7 @@ function mapStateToProps(state, props) {
     pathname: isFirewallOrRepository ? firewallComponentDetailsPageParams.pathname : null,
     componentDisplayName: isFirewallOrRepository ? firewallComponentDetailsPageParams.componentDisplayName : null,
     isFirewall,
+    isContainerImagesEvaluationEnabled,
     firewallIsLoading,
     isSbomManager,
     isAutoWaiversEnabled,

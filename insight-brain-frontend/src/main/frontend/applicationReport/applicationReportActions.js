@@ -106,8 +106,17 @@ export function fetchCommonData(forceClearMetadata = false) {
   return (dispatch, getState) => {
     const state = getState();
     const { bomData, unknownJsData, metadata } = state.applicationReport;
-    const reportParameters = selectReportParameters(state);
-    const { appId, scanId, isUnknownJs } = reportParameters;
+
+    const getReportParams = () => {
+      const { appId, scanId, isUnknownJs } = selectReportParameters(state);
+      if (appId && scanId) {
+        return { appId, scanId, isUnknownJs };
+      }
+      const currentParams = selectRouterCurrentParams(state);
+      return { appId: currentParams.publicId, scanId: currentParams.scanId, isUnknownJs };
+    };
+
+    const { appId, scanId, isUnknownJs } = getReportParams();
 
     if (forceClearMetadata || !metadata || !bomData || (!unknownJsData && isUnknownJs)) {
       const promises = [axios.get(getReportBomUrl(appId, scanId)), axios.get(getReportMetadataUrl(appId, scanId))];
@@ -147,8 +156,17 @@ export function fetchReportData(forceReload = true) {
   return (dispatch, getState) => {
     const state = getState();
     const { bomData, unknownJsData, selectedReport } = state.applicationReport;
-    const reportParameters = selectReportParameters(state);
-    const { appId, scanId } = reportParameters;
+
+    const getReportParams = () => {
+      const { appId, scanId } = selectReportParameters(state);
+      if (appId && scanId) {
+        return { appId, scanId };
+      }
+      const currentParams = selectRouterCurrentParams(state);
+      return { appId: currentParams.publicId, scanId: currentParams.scanId };
+    };
+
+    const { appId, scanId } = getReportParams();
 
     if (forceReload || !selectedReport) {
       const promises = [
@@ -410,19 +428,18 @@ export const goToDependencyTreePage = (hash) => {
   };
 };
 
-export const goToComponentDetailsPage = (hash, componentIdentifier = null) => {
+export const goToComponentDetailsPage = (hash, isContainerImagesEvaluation = false) => {
   return (dispatch, getState) => {
-    const { publicId, scanId, repositoryId } = selectRouterCurrentParams(getState());
+    const { publicId, scanId } = selectRouterCurrentParams(getState());
     const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(getState());
     const prioritiesPageContainerName = selectPrioritiesPageContainerName(getState());
 
-    if (componentIdentifier) {
+    if (isContainerImagesEvaluation) {
       dispatch(
-        stateGo('firewall.componentDetailsPage', {
-          repositoryId,
-          componentIdentifier: JSON.stringify(componentIdentifier),
-          componentHash: hash,
-          matchState: 'exact',
+        stateGo('firewall.containerComponentDetails.overview', {
+          publicId,
+          scanId,
+          hash,
         })
       );
     } else if (isPrioritiesPageContainer) {

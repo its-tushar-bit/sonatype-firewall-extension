@@ -11,6 +11,7 @@ import { faPen } from '@fortawesome/pro-solid-svg-icons';
 import { renderLicensesList, renderObservedLicenses } from '../LegalTabUtils';
 import { useSelector } from 'react-redux';
 import { selectIsPrioritiesPageContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsContainerImagesEvaluationEnabledAndProxyStage } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 export default function LicenseDetections({
   licenseOverride,
@@ -34,6 +35,10 @@ export default function LicenseDetections({
 
   const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
 
+  const isContainerImagesEvaluationEnabledAndProxyStage = useSelector(
+    selectIsContainerImagesEvaluationEnabledAndProxyStage
+  );
+
   const isClaimed = identificationSource === 'Manual';
 
   const getLicenseOverrideStatus = () => {
@@ -44,6 +49,10 @@ export default function LicenseDetections({
   };
 
   const getExternalLinkOrButton = () => {
+    if (isContainerImagesEvaluationEnabledAndProxyStage) {
+      return null;
+    }
+
     return isPrioritiesPageContainer ? (
       <NxTextLink
         id="component-details-review-obligations"

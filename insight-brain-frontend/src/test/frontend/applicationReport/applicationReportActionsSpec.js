@@ -929,27 +929,21 @@ describe('applicationReportActions', function () {
       });
     });
 
-    it('calls stateGo with the appropriate parameters when componentIdentifier is specified', () => {
+    it('calls stateGo with Container Images Firewall Evaluation', () => {
       const mockRouterParams = {
         scanId: 'scanId',
         publicId: 'publicId',
-        repositoryId: 'repositoryId',
       };
       spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue(mockRouterParams);
       const store = SpecUtil.mockReduxStore({});
 
-      store.dispatch(applicationReportActions.goToComponentDetailsPage('hash', { name: 'componentIdentifier' }));
+      store.dispatch(applicationReportActions.goToComponentDetailsPage('hash', true));
 
       expect(store.getActions()).toHaveAction({
         type: '@@reduxUiRouter/stateGo',
         payload: {
-          to: 'firewall.componentDetailsPage',
-          params: {
-            repositoryId: 'repositoryId',
-            componentIdentifier: JSON.stringify({ name: 'componentIdentifier' }),
-            componentHash: 'hash',
-            matchState: 'exact',
-          },
+          to: 'firewall.containerComponentDetails.overview',
+          params: { ...mockRouterParams, hash: 'hash' },
           options: undefined,
         },
       });

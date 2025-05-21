@@ -37,11 +37,10 @@ import {
   selectSortConfiguration,
   selectDependencyTreeIsAvailable,
   selectDependencyTreeUnavailableMessage,
-  selectReportStageId,
+  selectIsContainerImagesEvaluationEnabledAndProxyStage,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { selectRouterCurrentParams, selectIsPrioritiesPageContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { stateGo } from '../reduxUiRouter/routerActions';
-import { selectIsContainerImagesEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 const policyThreatLevelSettings = {
   key: 'policyThreatLevel',
@@ -82,9 +81,7 @@ export default function ReportContent() {
   const sortConfiguration = useSelector(selectSortConfiguration);
   const dependencyTreeIsAvailable = useSelector(selectDependencyTreeIsAvailable);
   const dependencyTreeUnavailableMessage = useSelector(selectDependencyTreeUnavailableMessage);
-
-  const stageId = useSelector(selectReportStageId);
-  const isContainerImagesEvaluation = useSelector(selectIsContainerImagesEvaluationEnabled) && stageId === 'proxy';
+  const isContainerImagesEvaluation = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
 
   const getSubstringFiltersProp = (propName) => propOr('', propName, substringFilters);
   const policyNameFilter = getSubstringFiltersProp('policyName');
@@ -121,10 +118,10 @@ export default function ReportContent() {
   const createRows = () => {
     if (!displayedEntries) return [];
     return displayedEntries.map((component, index) => {
-      const { componentIdentifier, policyViolationId, hash } = component;
+      const { policyViolationId, hash } = component;
       const onRowClick = () => {
         setSelectedComponent(index);
-        dispatch(goToComponentDetailsPage(hash, isContainerImagesEvaluation ? componentIdentifier : null));
+        dispatch(goToComponentDetailsPage(hash, isContainerImagesEvaluation));
       };
 
       return <ReportTableRow key={policyViolationId || hash} component={component} onClick={onRowClick} />;

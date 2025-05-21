@@ -36,6 +36,7 @@ import { selectIsAutoWaiversEnabled } from 'MainRoot/productFeatures/productFeat
 import ViolationName from './ViolationName';
 import { selectIsStandaloneDeveloper } from '../../reduxUiRouter/routerSelectors';
 import { loadReportAllData, loadReportIfNeeded } from 'MainRoot/applicationReport/applicationReportActions';
+import { selectIsContainerImagesEvaluationEnabledAndProxyStage } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 export default function PolicyViolationDetailsPopover() {
   const dispatch = useDispatch();
@@ -54,6 +55,8 @@ export default function PolicyViolationDetailsPopover() {
   const hasPermissionForAppWaivers = useSelector(selectHasPermissionForAppWaivers);
   const isStandaloneDeveloper = useSelector(selectIsStandaloneDeveloper);
   const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
+
+  const isContainerImagesEvaluationEnabled = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
 
   if (isAutoWaiversEnabled && activeAutoWaivers.autoWaiver) {
     activeWaivers = activeWaivers.concat(activeAutoWaivers.autoWaiver);
@@ -117,12 +120,14 @@ export default function PolicyViolationDetailsPopover() {
                 showUnapplied
               />
             ) : null}
-            <AddOrRequestWaiverButton
-              variant={activeWaivers?.length ? 'secondary' : 'primary'}
-              hasPermissionForAppWaivers={hasPermissionForAppWaivers}
-              onClickAddWaiver={redirectToAddWaiver}
-              onClickRequestWaiver={redirectToRequestWaiver}
-            />
+            {!isContainerImagesEvaluationEnabled && (
+              <AddOrRequestWaiverButton
+                variant={activeWaivers?.length ? 'secondary' : 'primary'}
+                hasPermissionForAppWaivers={hasPermissionForAppWaivers}
+                onClickAddWaiver={redirectToAddWaiver}
+                onClickRequestWaiver={redirectToRequestWaiver}
+              />
+            )}
           </NxButtonBar>
         ) : null}
       </NxFooter>

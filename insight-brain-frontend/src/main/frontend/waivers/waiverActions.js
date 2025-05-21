@@ -32,11 +32,11 @@ import {
   selectHash,
   selectPrevRepositoryPolicyId,
   selectRepositoryId,
-  selectIsFirewallOrRepository,
   selectRouterCurrentParams,
   selectCurrentRouteName,
   selectIsStandaloneFirewall,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsFirewallOrRepositoryAndNotContainerImagesEval } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { gotoWaiver, setSidebarNavListData } from 'MainRoot/sidebarNav/sidebarNavListActions';
 import { loadExistingWaiversData } from 'MainRoot/firewall/firewallActions';
 import { selectComponentDetailsViolationsSlice } from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
@@ -176,7 +176,7 @@ export const saveWaiverAndLoadPolicyViolationData = (
 export function loadAddWaiverData(violationId) {
   return (dispatch, getState) => {
     const state = getState();
-    const isFirewallOrRepositoryComponent = selectIsFirewallOrRepository(state);
+    const isFirewallOrRepositoryComponent = selectIsFirewallOrRepositoryAndNotContainerImagesEval(state);
     const isCurrentRouteName = isFirewallOrRepositoryComponent;
     const repositoryPolicyId = isFirewallOrRepositoryComponent
       ? selectRepositoryId(state)
@@ -398,7 +398,7 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
     const { sidebarNavList } = state;
     const { reloadComponentWaivers } = selectComponentDetailsViolationsSlice(state);
 
-    const policyViolationId = selectIsFirewallOrRepository(state)
+    const policyViolationId = selectIsFirewallOrRepositoryAndNotContainerImagesEval(state)
       ? state.componentDetailsPolicyViolations.selectedPolicyViolation?.policyViolationId
       : state.violation.violationDetails?.policyViolationId;
 

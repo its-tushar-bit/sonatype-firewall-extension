@@ -5,9 +5,10 @@
  */
 import { prop, isNil, isEmpty } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
-import { selectRouterCurrentParams } from '../reduxUiRouter/routerSelectors';
+import { selectRouterCurrentParams, selectIsFirewallOrRepository } from '../reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectIsLatestReportForStageRequestPending } from 'MainRoot/applicationReport/latestReportForStageSelectors';
+import { selectIsContainerImagesEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export const selectApplicationReportSlice = prop('applicationReport');
 export const selectExactValueFilters = createSelector(selectApplicationReportSlice, prop('exactValueFilters'));
@@ -101,4 +102,22 @@ export const selectApplicationReportLoading = createSelector(
 export const selectWaivedViolationCountFromAggregatedComponentList = createSelector(
   selectAggregatedComponentsList,
   (list) => (isNilOrEmpty(list) ? 0 : list.reduce((acc, component) => acc + component.waivedViolations, 0))
+);
+
+export const selectIsContainerImagesEvaluationEnabledAndProxyStage = createSelector(
+  selectIsContainerImagesEvaluationEnabled,
+  selectReportStageId,
+  (isContainerImagesEvaluationEnabled, stageId) => isContainerImagesEvaluationEnabled && stageId === 'proxy'
+);
+
+export const selectIsFirewallOrRepositoryAndNotContainerImagesEval = createSelector(
+  selectIsFirewallOrRepository,
+  selectIsContainerImagesEvaluationEnabledAndProxyStage,
+  (isFirewallOrRepository, isContainerImagesEval) => isFirewallOrRepository && !isContainerImagesEval
+);
+
+export const selectIsFirewallOrRepositoryAndNotProxyStage = createSelector(
+  selectIsFirewallOrRepository,
+  selectReportStageId,
+  (isFirewallOrRepository, stageId) => isFirewallOrRepository && stageId !== 'proxy'
 );

@@ -9,7 +9,7 @@ import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import ReportContent from 'MainRoot/applicationReport/ReportContent';
 import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
-import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
+
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
@@ -214,7 +214,9 @@ describe('ReportContent component', function () {
 
     describe('Container Images Evaluation', () => {
       beforeEach(() => {
-        jest.spyOn(productFeaturesSelectors, 'selectIsContainerImagesEvaluationEnabled').mockReturnValue(true);
+        jest
+          .spyOn(applicationReportSelectors, 'selectIsContainerImagesEvaluationEnabledAndProxyStage')
+          .mockReturnValue(true);
         jest.spyOn(applicationReportSelectors, 'selectReportStageId').mockReturnValue('proxy');
         jest.spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').mockReturnValue(false);
       });
@@ -229,17 +231,16 @@ describe('ReportContent component', function () {
         expect(filterButton).not.toBeInTheDocument();
       });
 
-      it('navigates to the firewall component details state', () => {
+      it('navigates to the Firewall container component details state', () => {
         renderComponent();
 
         const firstComponentRow = screen.getAllByRole('row')[2];
         fireEvent.click(firstComponentRow);
 
-        expect(stateGoSpy).toHaveBeenCalledWith('firewall.componentDetailsPage', {
-          repositoryId: 'repositoryId',
-          componentIdentifier: JSON.stringify(mockComponentIdentifier),
-          componentHash: 'hash1',
-          matchState: 'exact',
+        expect(stateGoSpy).toHaveBeenCalledWith('firewall.containerComponentDetails.overview', {
+          hash: 'hash1',
+          publicId: 'publicId',
+          scanId: 'scanId',
         });
       });
     });

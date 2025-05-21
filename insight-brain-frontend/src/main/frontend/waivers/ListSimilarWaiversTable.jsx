@@ -25,6 +25,7 @@ import {
 } from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 import { loadSimilarWaivers } from './waiverActions';
 import WaiverRow from './WaiverRow';
+import { selectIsContainerImagesEvaluationEnabledAndProxyStage } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 const EmptyMessage = ({ similarWaivers }) =>
   similarWaivers.length === 0 ? (
@@ -43,8 +44,9 @@ export default function ListSimilarWaiversTable() {
     selectViolationSlice
   );
 
+  const isContainerImagesEvaluationEnabled = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
   const filteredSimilarWaivers = useSelector(selectViolationFilteredSimilarWaivers);
-  const isFirewallOrRepository = useSelector(selectIsFirewallOrRepository);
+  const isFirewallOrRepository = useSelector(selectIsFirewallOrRepository) && !isContainerImagesEvaluationEnabled;
   const firewallComponentDetailsPageParams = useSelector(selectFirewallComponentDetailsPageRouteParams);
   const unknownComponentName = isFirewallOrRepository ? firewallComponentDetailsPageParams.componentDisplayName : null;
 

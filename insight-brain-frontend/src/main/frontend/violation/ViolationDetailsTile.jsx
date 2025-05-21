@@ -39,6 +39,7 @@ export default function ViolationDetailsTile(props) {
       hasPermissionForAppWaivers,
       constraintViolations,
       isSbomManager,
+      isContainerImagesEvaluationEnabled,
     } = props,
     applicationPublicId = isFirewallContext ? null : violationDetails.applicationPublicId,
     policyName = isFirewallContext ? policyDetail.policyName : violationDetails.policyName,
@@ -130,14 +131,16 @@ export default function ViolationDetailsTile(props) {
           {!isFirewallContext && <ViolationDetailsSubtitle {...violationDetails} policyExists={policyExists} />}
           {policyExists ? (
             <Fragment>
-              <div className="nx-tile__actions">
-                <AddOrRequestWaiverButton
-                  variant={activeWaivers?.length ? 'secondary' : 'primary'}
-                  hasPermissionForAppWaivers={hasPermissionForAppWaivers}
-                  onClickAddWaiver={redirectToAddWaiverPage}
-                  onClickRequestWaiver={redirectToRequestWaiverPage}
-                />
-              </div>
+              {!isContainerImagesEvaluationEnabled && (
+                <div className="nx-tile__actions">
+                  <AddOrRequestWaiverButton
+                    variant={activeWaivers?.length ? 'secondary' : 'primary'}
+                    hasPermissionForAppWaivers={hasPermissionForAppWaivers}
+                    onClickAddWaiver={redirectToAddWaiverPage}
+                    onClickRequestWaiver={redirectToRequestWaiverPage}
+                  />
+                </div>
+              )}
               {activeWaivers?.length && hasPermissionForAppWaivers ? (
                 <ActiveWaiversIndicator
                   activeWaiverCount={activeWaivers.length}
@@ -174,23 +177,25 @@ export default function ViolationDetailsTile(props) {
           </div>
         </dl>
         <dl className={secondFormGroupClasses}>
-          {isFirewallContext ? null : (
+          {isFirewallContext || isContainerImagesEvaluationEnabled ? null : (
             <div className="iq-violation-details__stages">
               <dt id="iq-violation-details__stages">Stages</dt>
               {map(createStageDisplay, stageDisplayData)}
             </div>
           )}
           <div className={bottomFormGroupClasses}>
-            <div className="iq-violation-details__policy-owner">
-              <dt id="iq-violation-details__policy-owner">Policy Owner</dt>
-              <dd aria-labelledby="iq-violation-details__policy-owner" className="iq-read-only-data">
-                {policyExists ? (
-                  <NxTextLink href={getOwnerHref(policyOwner)}>{policyOwner.ownerName}</NxTextLink>
-                ) : (
-                  'Policy no longer exists'
-                )}
-              </dd>
-            </div>
+            {!isContainerImagesEvaluationEnabled && (
+              <div className="iq-violation-details__policy-owner">
+                <dt id="iq-violation-details__policy-owner">Policy Owner</dt>
+                <dd aria-labelledby="iq-violation-details__policy-owner" className="iq-read-only-data">
+                  {policyExists ? (
+                    <NxTextLink href={getOwnerHref(policyOwner)}>{policyOwner.ownerName}</NxTextLink>
+                  ) : (
+                    'Policy no longer exists'
+                  )}
+                </dd>
+              </div>
+            )}
             <div className={'iq-violation-details__reported'}>
               {isFirewallContext ? null : (
                 <div className="iq-violation-details__first-reported">
@@ -280,5 +285,6 @@ ViolationDetailsTile.propTypes = {
   policyDetail: PropTypes.object,
   hasPermissionForAppWaivers: PropTypes.bool,
   isSbomManager: PropTypes.bool,
+  isContainerImagesEvaluationEnabled: PropTypes.bool,
   constraintViolations: constraintViolationsPropType,
 };

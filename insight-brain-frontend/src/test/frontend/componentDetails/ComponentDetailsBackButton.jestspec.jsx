@@ -10,9 +10,15 @@ import { render, screen, setupPortalContainer, removePortalContainer } from 'Tes
 import ComponentDetailsBackButton from 'MainRoot/componentDetails/ComponentDetailsBackButton';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 import * as RouterSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 
 describe('ComponentDetailsBackButton', () => {
-  let renderComponent, minimalProps, routerContextMock, selectIsPrioritiesPageContainerSpy;
+  let renderComponent,
+    minimalProps,
+    routerContextMock,
+    selectIsPrioritiesPageContainerSpy,
+    selectIsContainerImagesEvaluationEnabledAndProxyStageSpy,
+    selectReportStageIdSpy;
 
   beforeEach(() => {
     setupPortalContainer();
@@ -36,13 +42,19 @@ describe('ComponentDetailsBackButton', () => {
     selectIsPrioritiesPageContainerSpy = jest
       .spyOn(RouterSelectors, 'selectIsPrioritiesPageContainer')
       .mockReturnValue(false);
+
+    selectIsContainerImagesEvaluationEnabledAndProxyStageSpy = jest
+      .spyOn(applicationReportSelectors, 'selectIsContainerImagesEvaluationEnabledAndProxyStage')
+      .mockReturnValue(false);
+
+    selectReportStageIdSpy = jest.spyOn(applicationReportSelectors, 'selectReportStageId').mockReturnValue('proxy');
   });
 
   afterEach(() => removePortalContainer());
 
   describe('Back to Dependency Tree button', () => {
     it('renders if scanId and publicId props are provided', () => {
-      renderComponent({ scanId: 'scanId', publicId: 'testId' });
+      renderComponent({ scanId: 'scanId', publicId: 'testId', fromDependencyTree: true });
 
       const backBtn = screen.getByRole('link', { name: 'Back To Dependency Tree' });
       expect(backBtn).toBeInTheDocument();
@@ -51,6 +63,7 @@ describe('ComponentDetailsBackButton', () => {
 
     it('if navigated from priorities page renders if scanId and publicId props are provided when navigated from Priorities Page -> Dependencies -> Click on Dependency', () => {
       selectIsPrioritiesPageContainerSpy.mockReturnValue(true);
+      selectIsContainerImagesEvaluationEnabledAndProxyStageSpy.mockReturnValue(false);
 
       const routerPreloadedState = {
         router: {
@@ -63,7 +76,7 @@ describe('ComponentDetailsBackButton', () => {
           },
         },
       };
-      renderComponent({ scanId: 'scanId', publicId: 'testId' }, routerPreloadedState);
+      renderComponent({ scanId: 'scanId', publicId: 'testId', fromDependencyTree: true }, routerPreloadedState);
 
       const backBtn = screen.getByRole('link', { name: 'Back To Dependency Tree' });
       expect(backBtn).toBeInTheDocument();
@@ -71,6 +84,18 @@ describe('ComponentDetailsBackButton', () => {
         'href',
         'componentDetailsPageWithinPrioritiesPageContainerFromDashboard.dependencyTree'
       );
+    });
+  });
+
+  describe('Back To Firewall Container Images button', () => {
+    it('renders if scanId and publicId props are provided', () => {
+      selectReportStageIdSpy.mockReturnValue('proxy');
+      selectIsContainerImagesEvaluationEnabledAndProxyStageSpy.mockReturnValue(true);
+
+      renderComponent({ scanId: 'scanId', publicId: 'testId' });
+      const backBtn = screen.getByRole('link', { name: 'Back To Container Images' });
+      expect(backBtn).toBeInTheDocument();
+      expect(backBtn).toHaveAttribute('href', 'firewall.containerReport');
     });
   });
 

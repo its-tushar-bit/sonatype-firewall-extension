@@ -467,7 +467,9 @@ describe('Report Page component', () => {
   describe('Container Images Evaluation', () => {
     beforeEach(() => {
       jest.spyOn(applicationReportSelectors, 'selectReportStageId').mockReturnValue('proxy');
-      jest.spyOn(productFeaturesSelectors, 'selectIsContainerImagesEvaluationEnabled').mockReturnValue(true);
+      jest
+        .spyOn(applicationReportSelectors, 'selectIsContainerImagesEvaluationEnabledAndProxyStage')
+        .mockReturnValue(true);
     });
 
     it('does not render dependency tree and filter button', () => {

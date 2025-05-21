@@ -45,7 +45,7 @@ import {
   isClaimedComponent,
 } from './componentDetailsUtils';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import { selectIsStandaloneDeveloper } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsStandaloneDeveloper, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export function getTabsConfiguration(isUnknown, isExact, isClaimed) {
   let tabsConfiguration = [
@@ -72,6 +72,7 @@ export function getTabsConfiguration(isUnknown, isExact, isClaimed) {
 
   return tabsConfiguration;
 }
+
 export default function ComponentDetails() {
   const dispatch = useDispatch();
   const uiRouterStateService = useRouterState();
@@ -87,6 +88,15 @@ export default function ComponentDetails() {
   const loadComponentDetails = () => dispatch(actions.loadComponentDetails());
   const onTabChange = (tabId) => dispatch(actions.onTabChange(tabId));
   const toggleShowMatchersPopover = () => dispatch(actions.toggleShowMatchersPopover());
+
+  const { scanId, publicId } = useSelector(selectRouterCurrentParams);
+  const componentDetailsBackButtonProps =
+    dependencyTreeRouterParams?.scanId && dependencyTreeRouterParams?.publicId
+      ? {
+          ...dependencyTreeRouterParams,
+          fromDependencyTree: true,
+        }
+      : { scanId, publicId, fromDependencyTree: false };
 
   useEffect(() => {
     loadComponentDetails();
@@ -120,7 +130,7 @@ export default function ComponentDetails() {
     <>
       <PolicyViolationDetailsPopover />
       <main className={`nx-viewport-sized ${getClasses()}`}>
-        <ComponentDetailsBackButton {...dependencyTreeRouterParams} />
+        <ComponentDetailsBackButton {...componentDetailsBackButtonProps} />
         <div className="nx-viewport-sized__scrollable nx-scrollable iq-component-details-page__content">
           <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadComponentDetails}>
             {() => (

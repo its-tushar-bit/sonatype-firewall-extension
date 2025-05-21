@@ -69,6 +69,7 @@ import {
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { SET_SIDEBAR_NAV_LIST_DATA } from 'MainRoot/sidebarNav/sidebarNavListActions';
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
+import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import {
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED,
@@ -472,7 +473,10 @@ describe('waiverActions', function () {
   describe('loadAddWaiverData', function () {
     it('immediately dispatches a WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED action', function () {
       jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
-      jest.spyOn(routerSelectors, 'selectIsFirewallOrRepository').mockReturnValue(false);
+      jest
+        .spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotContainerImagesEval')
+        .mockReturnValue(false);
+      jest.spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotProxyStage').mockReturnValue(false);
 
       jest.spyOn(routerSelectors, 'selectRepositoryId').mockReturnValue('repositoryId');
       jest.spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').mockReturnValue('repositoryId');
@@ -483,9 +487,11 @@ describe('waiverActions', function () {
     });
 
     it('calls fetchCrossStageViolation actionCreator', function (done) {
-      jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
-      jest.spyOn(routerSelectors, 'selectIsFirewallOrRepository').mockReturnValue(false);
-
+      jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(true);
+      jest
+        .spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotContainerImagesEval')
+        .mockReturnValue(false);
+      jest.spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotProxyStage').mockReturnValue(false);
       jest.spyOn(routerSelectors, 'selectRepositoryId').mockReturnValue('repositoryId');
       jest.spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').mockReturnValue('repositoryId');
       const violationDetailsUrl = getViolationDetailsUrl('foo'),
@@ -511,7 +517,10 @@ describe('waiverActions', function () {
     describe('when fetchCrossStageViolation succeeds', function () {
       it('calls loadOwnerContextHierarchy and retrieves the waiver reasons', function (done) {
         jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
-        jest.spyOn(routerSelectors, 'selectIsFirewallOrRepository').mockReturnValue(false);
+        jest
+          .spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotContainerImagesEval')
+          .mockReturnValue(false);
+        jest.spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotProxyStage').mockReturnValue(false);
 
         jest.spyOn(routerSelectors, 'selectRepositoryId').mockReturnValue('repositoryId');
         jest.spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').mockReturnValue('repositoryId');
@@ -574,8 +583,10 @@ describe('waiverActions', function () {
         };
         store = SpecUtil.mockReduxStore(modifiedState);
         jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
-        jest.spyOn(routerSelectors, 'selectIsFirewallOrRepository').mockReturnValue(false);
-
+        jest
+          .spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotContainerImagesEval')
+          .mockReturnValue(false);
+        jest.spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotProxyStage').mockReturnValue(false);
         jest.spyOn(routerSelectors, 'selectRepositoryId').mockReturnValue('repositoryId');
         jest.spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').mockReturnValue('repositoryId');
         const loadViolationDetailsUrl = getViolationDetailsUrl('foo'),
@@ -628,8 +639,10 @@ describe('waiverActions', function () {
 
       it('calls loadOwnerContextHierarchy but waiver reasons fails', function (done) {
         jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
-        jest.spyOn(routerSelectors, 'selectIsFirewallOrRepository').mockReturnValue(false);
-
+        jest
+          .spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotContainerImagesEval')
+          .mockReturnValue(false);
+        jest.spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotProxyStage').mockReturnValue(false);
         jest.spyOn(routerSelectors, 'selectRepositoryId').mockReturnValue('repositoryId');
         jest.spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').mockReturnValue('repositoryId');
         const loadViolationDetailsUrl = getViolationDetailsUrl('foo'),
@@ -673,7 +686,10 @@ describe('waiverActions', function () {
 
       it('sets the preloaded comments from the url into the state, if on addwaiver route', (done) => {
         jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
-        jest.spyOn(routerSelectors, 'selectIsFirewallOrRepository').mockReturnValue(false);
+        jest
+          .spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotContainerImagesEval')
+          .mockReturnValue(false);
+        jest.spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotProxyStage').mockReturnValue(false);
         jest.spyOn(routerSelectors, 'selectRepositoryId').mockReturnValue('repositoryId');
         jest.spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').mockReturnValue('repositoryId');
 
@@ -727,7 +743,10 @@ describe('waiverActions', function () {
 
       it('skips the preloaded comments from the url into the state, if not on addwaiver route', (done) => {
         jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
-        jest.spyOn(routerSelectors, 'selectIsFirewallOrRepository').mockReturnValue(false);
+        jest
+          .spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotContainerImagesEval')
+          .mockReturnValue(false);
+        jest.spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotProxyStage').mockReturnValue(false);
         jest.spyOn(routerSelectors, 'selectRepositoryId').mockReturnValue('repositoryId');
         jest.spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').mockReturnValue('repositoryId');
 
@@ -781,7 +800,10 @@ describe('waiverActions', function () {
 
       it('sets the preloaded reasonId from the url into the state, if on addwaiver route', (done) => {
         jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
-        jest.spyOn(routerSelectors, 'selectIsFirewallOrRepository').mockReturnValue(false);
+        jest
+          .spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotContainerImagesEval')
+          .mockReturnValue(false);
+        jest.spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotProxyStage').mockReturnValue(false);
         jest.spyOn(routerSelectors, 'selectRepositoryId').mockReturnValue('repositoryId');
         jest.spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').mockReturnValue('repositoryId');
 
@@ -835,7 +857,10 @@ describe('waiverActions', function () {
 
       it('skips the preloaded reasonId from the url into the state, if not on addwaiver route', (done) => {
         jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
-        jest.spyOn(routerSelectors, 'selectIsFirewallOrRepository').mockReturnValue(false);
+        jest
+          .spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotContainerImagesEval')
+          .mockReturnValue(false);
+        jest.spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotProxyStage').mockReturnValue(false);
         jest.spyOn(routerSelectors, 'selectRepositoryId').mockReturnValue('repositoryId');
         jest.spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').mockReturnValue('repositoryId');
 
@@ -888,7 +913,10 @@ describe('waiverActions', function () {
 
       it('sets the preloaded comments and reasonId from the url into the state, if on addwaiver route', (done) => {
         jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
-        jest.spyOn(routerSelectors, 'selectIsFirewallOrRepository').mockReturnValue(false);
+        jest
+          .spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotContainerImagesEval')
+          .mockReturnValue(false);
+        jest.spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotProxyStage').mockReturnValue(false);
         jest.spyOn(routerSelectors, 'selectRepositoryId').mockReturnValue('repositoryId');
         jest.spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').mockReturnValue('repositoryId');
 
@@ -945,6 +973,10 @@ describe('waiverActions', function () {
         it('dispatches WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED', function (done) {
           jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
           jest.spyOn(routerSelectors, 'selectIsFirewallOrRepository').mockReturnValue(false);
+          jest
+            .spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotContainerImagesEval')
+            .mockReturnValue(false);
+          jest.spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotProxyStage').mockReturnValue(false);
 
           jest.spyOn(routerSelectors, 'selectRepositoryId').mockReturnValue('repositoryId');
           jest.spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').mockReturnValue('repositoryId');
@@ -984,7 +1016,6 @@ describe('waiverActions', function () {
     });
 
     it('calls fetchCrossStageViolationAddWaiver actionCreator', function (done) {
-      jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(true);
       jest.spyOn(routerSelectors, 'selectRepositoryId').mockReturnValue('repositoryId');
       jest.spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').mockReturnValue('repositoryId');
       const repositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'foo'),
@@ -1010,7 +1041,6 @@ describe('waiverActions', function () {
 
     describe('when fetchCrossStageViolationAddWaiver succeeds', function () {
       it('dispatches WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED', function (done) {
-        jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(true);
         jest.spyOn(routerSelectors, 'selectRepositoryId').mockReturnValue('repositoryId');
         jest.spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').mockReturnValue('repositoryId');
         const loadRepositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'foo');
@@ -1136,6 +1166,10 @@ describe('waiverActions', function () {
     describe('when fetchCrossStageViolationAddWaiver fails', function () {
       it('dispatches WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED', function (done) {
         jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(true);
+        jest
+          .spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotContainerImagesEval')
+          .mockReturnValue(true);
+        jest.spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotProxyStage').mockReturnValue(true);
         jest.spyOn(routerSelectors, 'selectRepositoryId').mockReturnValue('repositoryId');
         jest.spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').mockReturnValue('repositoryId');
         const applicableWaiversUrl = getApplicableWaiversUrl('foo');
@@ -1167,7 +1201,10 @@ describe('waiverActions', function () {
     describe('when fetchCrossStageViolation fails', function () {
       it('dispatches WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED', function (done) {
         jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
-        jest.spyOn(routerSelectors, 'selectIsFirewallOrRepository').mockReturnValue(false);
+        jest
+          .spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotContainerImagesEval')
+          .mockReturnValue(false);
+        jest.spyOn(applicationReportSelectors, 'selectIsFirewallOrRepositoryAndNotProxyStage').mockReturnValue(false);
 
         jest.spyOn(routerSelectors, 'selectRepositoryId').mockReturnValue('repositoryId');
         jest.spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').mockReturnValue('repositoryId');

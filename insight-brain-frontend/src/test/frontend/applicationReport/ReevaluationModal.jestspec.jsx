@@ -38,7 +38,9 @@ describe('ReevaluationModal', () => {
   });
 
   it('renders re-evaluate button correctly when image container', () => {
-    jest.spyOn(productFeaturesSelectors, 'selectIsContainerImagesEvaluationEnabled').mockReturnValue(true);
+    jest
+      .spyOn(applicationReportSelectors, 'selectIsContainerImagesEvaluationEnabledAndProxyStage')
+      .mockReturnValue(true);
     jest.spyOn(applicationReportSelectors, 'selectReportStageId').mockReturnValue('proxy');
     render(<ReevaluationModal />);
     expect(screen.getByRole('button', { name: 'Re-Evaluate Container' })).toBeInTheDocument();

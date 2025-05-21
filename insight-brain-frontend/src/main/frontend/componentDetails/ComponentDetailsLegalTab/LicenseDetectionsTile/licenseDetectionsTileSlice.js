@@ -28,7 +28,7 @@ import { pathSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { isOverriddenOrSelected } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LegalTabUtils';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
-import { selectIsFirewallOrRepository } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsFirewallOrRepositoryAndNotContainerImagesEval } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { loadComponentLicenses } from 'MainRoot/firewall/firewallActions';
 
 const REDUCER_NAME = 'componentDetailsLicenseDetectionsTile';
@@ -274,7 +274,7 @@ const saveEditLicensesForm = createAsyncThunk(
 
 const getComponentInfo = (getState) => {
   let componentIdentifier, component;
-  const isRepositoryComponent = selectIsFirewallOrRepository(getState());
+  const isRepositoryComponent = selectIsFirewallOrRepositoryAndNotContainerImagesEval(getState());
   if (isRepositoryComponent) {
     component = selectFirewallComponentDetailsPageRouteParams(getState());
     componentIdentifier = JSON.parse(component?.componentIdentifier);

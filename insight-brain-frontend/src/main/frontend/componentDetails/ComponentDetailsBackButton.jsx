@@ -16,10 +16,10 @@ import {
   selectPrioritiesPageContainerName,
   selectRouterPrevParams,
 } from '../reduxUiRouter/routerSelectors';
+import { selectIsContainerImagesEvaluationEnabledAndProxyStage } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 export default function ComponentDetailsBackButton(props) {
-  const { scanId, publicId } = props;
-  const dependencyTreePropsPresent = scanId && publicId;
+  const { scanId, publicId, fromDependencyTree } = props;
 
   const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
   const prioritiesPageName = useSelector(selectPrioritiesPageName);
@@ -28,11 +28,21 @@ export default function ComponentDetailsBackButton(props) {
   const prevParams = useSelector(selectRouterPrevParams);
   const uiRouterState = useRouterState();
 
-  if (dependencyTreePropsPresent) {
+  const isContainerImagesEvaluationEnabled = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
+
+  if (fromDependencyTree) {
     const text = 'Back To Dependency Tree';
     const stateName = isPrioritiesPageContainer
       ? `${prioritiesPageContainerName}.dependencyTree`
       : 'applicationReport.dependencyTree';
+    const href = uiRouterState.href(stateName, { scanId, publicId });
+
+    return <MenuBarBackButton text={text} href={href} />;
+  }
+
+  if (isContainerImagesEvaluationEnabled) {
+    const text = 'Back To Container Images';
+    const stateName = 'firewall.containerReport';
     const href = uiRouterState.href(stateName, { scanId, publicId });
 
     return <MenuBarBackButton text={text} href={href} />;

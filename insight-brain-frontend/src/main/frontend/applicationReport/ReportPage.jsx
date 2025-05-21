@@ -27,16 +27,14 @@ import {
   selectHasUnscannedComponents,
   selectIsPolicyTypeFilterEnabled,
   selectReportStageId,
+  selectIsContainerImagesEvaluationEnabledAndProxyStage,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import {
   selectRouterCurrentParams,
   selectIsPrioritiesPageContainer,
   selectPrioritiesPageName,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
-import {
-  selectIsDeveloperDashboardEnabled,
-  selectIsContainerImagesEvaluationEnabled,
-} from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as applicationReportActions from './applicationReportActions';
 import { actions as latestReportForStageActions } from './latestReportForStageSlice';
 import { selectSelectedReport } from './applicationReportSelectors';
@@ -60,7 +58,7 @@ export default function ReportPage() {
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
 
   const stageId = useSelector(selectReportStageId);
-  const isContainerImagesEvaluation = useSelector(selectIsContainerImagesEvaluationEnabled) && stageId === 'proxy';
+  const isContainerImagesEvaluation = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
 
   const { publicId, scanId, unknownjs, embeddable, policyViolationId } = routerCurrentParams;
 

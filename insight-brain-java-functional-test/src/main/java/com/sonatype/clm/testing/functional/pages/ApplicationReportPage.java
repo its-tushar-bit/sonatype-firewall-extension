@@ -49,10 +49,9 @@ public class ApplicationReportPage
         scanId);
   }
 
-  public static String firewallUrl(String repositoryId, String applicationPublicId, String scanId) {
+  public static String firewallContainerReportUrl(String applicationPublicId, String scanId) {
     return BaseUrl.resolvePageUrl(
-        "/malware-defense/repository/{repositoryId}/containerReport/{publicId}/{scanId}/policy",
-        repositoryId,
+        "/malware-defense/containerReport/{publicId}/{scanId}/policy",
         applicationPublicId,
         scanId);
   }

@@ -18,6 +18,7 @@ import {
 import { QUARANTINE, WAIVERS, ROI } from 'MainRoot/firewall/firewallConstants';
 
 import ReportPage from '../applicationReport/ReportPage';
+import ComponentDetails from '../componentDetails/ComponentDetails';
 
 export default angular
   .module('firewallModule', ['ngRedux'])
@@ -29,6 +30,7 @@ export default angular
   )
   .component('firewallComponentDetailsPage', iqReact2Angular(FirewallComponentDetailsPage, [], ['$ngRedux', '$state']))
   .component('containerReport', iqReact2Angular(ReportPage, [], ['$ngRedux', '$state']))
+  .component('containerComponentDetails', iqReact2Angular(ComponentDetails, [], ['$ngRedux', '$state']))
   .config(routes);
 
 function routes($stateProvider) {
@@ -519,10 +521,93 @@ function routes($stateProvider) {
       component: 'apiPage',
     })
     .state('firewall.containerReport', {
-      url: '/repository/{repositoryId}/containerReport/{publicId}/{scanId}/policy',
+      url: '/containerReport/{publicId}/{scanId}/policy',
       component: 'containerReport',
       params: {
         policyViolationId: { dynamic: true },
+      },
+    })
+    .state('firewall.containerComponentDetails', {
+      url: '/containerReport/{publicId}/{scanId}/componentDetails/{hash}',
+      component: 'containerComponentDetails',
+      data: {
+        title: 'Component Details',
+      },
+      params: {
+        tabId: 'overview',
+        policyViolationId: { dynamic: true },
+      },
+    })
+    .state('firewall.containerComponentDetails.overview', {
+      url: '/overview',
+      component: 'containerComponentDetails',
+      data: {
+        title: 'Component Details',
+      },
+      params: {
+        tabId: 'overview',
+        policyViolationId: { dynamic: true },
+      },
+    })
+    .state('firewall.containerComponentDetails.violations', {
+      url: '/violations',
+      component: 'containerComponentDetails',
+      data: {
+        title: 'Component Details',
+      },
+      params: {
+        tabId: 'violations',
+        policyViolationId: { dynamic: true },
+      },
+    })
+    .state('firewall.containerComponentDetails.security', {
+      url: '/security',
+      component: 'containerComponentDetails',
+      data: {
+        title: 'Component Details',
+      },
+      params: {
+        tabId: 'security',
+      },
+    })
+    .state('firewall.containerComponentDetails.legal', {
+      url: '/legal',
+      component: 'containerComponentDetails',
+      data: {
+        title: 'Component Details',
+      },
+      params: {
+        tabId: 'legal',
+      },
+    })
+    .state('firewall.containerComponentDetails.audit', {
+      url: '/audit',
+      component: 'containerComponentDetails',
+      data: {
+        title: 'Component Details',
+      },
+      params: {
+        tabId: 'audit',
+      },
+    })
+    .state('firewall.containerComponentDetails.claim', {
+      url: '/claim',
+      component: 'containerComponentDetails',
+      data: {
+        title: 'Component Details',
+      },
+      params: {
+        tabId: 'claim',
+      },
+    })
+    .state('firewall.containerComponentDetails.labels', {
+      url: '/labels',
+      component: 'containerComponentDetails',
+      data: {
+        title: 'Component Details',
+      },
+      params: {
+        tabId: 'labels',
       },
     });
 

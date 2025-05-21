@@ -20,11 +20,11 @@ import { convertToWaiverViolationFormat } from '../util/waiverUtils';
 import { selectComponentViolations } from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 import { loadPermissionForAppWaivers } from 'MainRoot/waivers/waiverActions';
 import {
-  selectIsFirewallOrRepository,
   selectPrevRepositoryPolicyId,
   selectRepositoryId,
   selectRepositoryPolicyId,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsFirewallOrRepositoryAndNotProxyStage } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 
 export const VIOLATION_RESET_VIOLATION_DETAILS_REQUESTED = 'VIOLATION_RESET_VIOLATION_DETAILS_REQUESTED';
@@ -120,16 +120,18 @@ export function fetchCrossStageViolation(id) {
       return Promise.resolve(violationDetails);
     }
 
-    const repositoryId = selectIsFirewallOrRepository(state)
+    const isFirewallOrRepositoryAndNotContainer = selectIsFirewallOrRepositoryAndNotProxyStage(state);
+
+    const repositoryId = isFirewallOrRepositoryAndNotContainer
       ? selectRepositoryId(state)
       : selectRepositoryPolicyId(state);
 
-    const getDataUrl = selectIsFirewallOrRepository(state)
+    const getDataUrl = isFirewallOrRepositoryAndNotContainer
       ? getRepositoryPolicyViolationUrl(repositoryId, id)
       : getViolationDetailsUrl(id);
 
     return axios.get(getDataUrl).then(({ data }) => {
-      const violationData = selectIsFirewallOrRepository(state) ? convertToWaiverViolationFormat(data) : data;
+      const violationData = isFirewallOrRepositoryAndNotContainer ? convertToWaiverViolationFormat(data) : data;
       const violations = selectComponentViolations(state);
       const waived = violations
         ? prop('waived', find(propEq('policyViolationId', violationData.policyViolationId), violations))
@@ -148,7 +150,9 @@ export function fetchCrossStageViolationAddWaiver(id) {
   return function (dispatch, getState) {
     const state = getState();
 
-    const repositoryId = selectIsFirewallOrRepository(state)
+    const isFirewallOrRepositoryAndNotContainer = selectIsFirewallOrRepositoryAndNotProxyStage(state);
+
+    const repositoryId = isFirewallOrRepositoryAndNotContainer
       ? selectRepositoryId(state)
       : selectPrevRepositoryPolicyId(state);
 
@@ -196,13 +200,17 @@ export function loadVulnerabilityDetails() {
     if (reasonWithRefId) {
       dispatch(loadVulnerabilityDetailsRequested());
       const refId = reasonWithRefId.reference.value;
-      const isFirewallOrRepository = selectIsFirewallOrRepository(getState());
-      const extraQueryParameters = isFirewallOrRepository ? null : { ownerType: 'application', ownerId: publicId };
+
+      const isFirewallOrRepositoryAndNotContainer = selectIsFirewallOrRepositoryAndNotProxyStage(getState());
+
+      const extraQueryParameters = isFirewallOrRepositoryAndNotContainer
+        ? null
+        : { ownerType: 'application', ownerId: publicId };
 
       return axios
         .get(getVulnerabilityJsonDetailUrl(refId, componentIdentifier, extraQueryParameters))
         .then(({ data }) => {
-          if (!isFirewallOrRepository) {
+          if (!isFirewallOrRepositoryAndNotContainer) {
             return checkEditIqPermission(publicId)
               .then(() => dispatch(loadVulnerabilityDetailsFulfilled({ ...data, hasEditIqPermission: true })))
               .catch(() => dispatch(loadVulnerabilityDetailsFulfilled(data)));

@@ -71,14 +71,14 @@ public class FirewallContainerReportPageTest
     evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, baseUrlFromTest, work, Stage.ID_PROXY);
     evaluator.evaluatePolicyForScanIdWithScanTriggerType(ScanTriggerType.CLI);
 
-    refreshOrOpen(ApplicationReportPage.firewallUrl("repository_id", app.getPublicId(), SCAN_ID));
-
     mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
     PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
     Date policyEvaluationTime = policyEvaluation.getTime();
 
     String policyEvaluationTimeStr = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z")
         .print(policyEvaluationTime.getTime());
+
+    refreshOrOpen(ApplicationReportPage.firewallContainerReportUrl(app.getPublicId(), SCAN_ID));
 
     reportPage.shouldBe(visible);
     reportPage.reportTitle().shouldHave(text(app.getName() + " Proxy Report"));

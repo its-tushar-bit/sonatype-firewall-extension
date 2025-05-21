@@ -24,8 +24,7 @@ import {
   selectLatestReportForStageId,
 } from 'MainRoot/applicationReport/latestReportForStageSelectors';
 import { reevaluateReport, reevaluateReportCancelled } from './applicationReportActions';
-import { selectReportStageId } from 'MainRoot/applicationReport/applicationReportSelectors';
-import { selectIsContainerImagesEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsContainerImagesEvaluationEnabledAndProxyStage } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 const ReevaluationModal = () => {
   const isAutoWaiverEnabled = useSelector(selectIsAutoWaiversEnabled);
@@ -34,8 +33,7 @@ const ReevaluationModal = () => {
   const isLatestReportForStageRequestPending = useSelector(selectIsLatestReportForStageRequestPending);
   const latestReportId = useSelector(selectLatestReportForStageId);
 
-  const stageId = useSelector(selectReportStageId);
-  const isContainerImagesEvaluation = useSelector(selectIsContainerImagesEvaluationEnabled) && stageId === 'proxy';
+  const isContainerImagesEvaluation = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
 
   const dispatch = useDispatch();
   const [showDialog, setShowDialog] = useState(false);

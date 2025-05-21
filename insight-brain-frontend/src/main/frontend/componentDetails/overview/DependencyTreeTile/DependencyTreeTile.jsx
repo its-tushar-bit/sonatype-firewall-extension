@@ -13,7 +13,10 @@ import {
   selectComponentDetails,
   selectIsLabelsLoading,
 } from 'MainRoot/componentDetails/componentDetailsSelectors';
-import { selectDependencyTreeIsOldReport } from 'MainRoot/applicationReport/applicationReportSelectors';
+import {
+  selectDependencyTreeIsOldReport,
+  selectIsContainerImagesEvaluationEnabledAndProxyStage,
+} from 'MainRoot/applicationReport/applicationReportSelectors';
 import DependencyTree from 'MainRoot/DependencyTree/DependencyTree';
 import { actions } from 'MainRoot/componentDetails/componentDetailsSlice';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
@@ -24,6 +27,12 @@ export default function DependencyTreeTile() {
   const componentDetails = useSelector(selectComponentDetails);
   const isLoading = useSelector(selectIsLabelsLoading);
   const isOldReport = useSelector(selectDependencyTreeIsOldReport);
+
+  const isContainerImagesEval = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
+
+  if (isContainerImagesEval) {
+    return null;
+  }
 
   if (isLoading) {
     return null;

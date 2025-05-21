@@ -15,13 +15,17 @@ import {
   selectIsPrioritiesPageContainer,
   selectPrioritiesPageContainerName,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsContainerImagesEvaluationEnabledAndProxyStage } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 export const AncestorsList = ({ dependencyTreeSubset, itemsToShow, expanded, toggleAncestorsList }) => {
   const uiRouterState = useRouterState();
   const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
   const prioritiesPageContainerName = useSelector(selectPrioritiesPageContainerName);
+  const isContainerImage = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
 
-  const COMPONENT_DETAILS_OVERVIEW_ROUTE_NAME = isPrioritiesPageContainer
+  const COMPONENT_DETAILS_OVERVIEW_ROUTE_NAME = isContainerImage
+    ? 'firewall.containerComponentDetails'
+    : isPrioritiesPageContainer
     ? `${prioritiesPageContainerName}.componentDetails.overview`
     : 'applicationReport.componentDetails.overview';
 

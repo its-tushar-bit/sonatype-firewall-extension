@@ -66,6 +66,7 @@ export default function ViolationPage(props) {
     matchState,
     pathname,
     isFirewall,
+    isContainerImagesEvaluationEnabled,
     firewallIsLoading,
     isSbomManager,
     similarWaiversFilterSelectedIds,
@@ -168,6 +169,7 @@ export default function ViolationPage(props) {
               hasPermissionForAppWaivers,
               constraintViolations,
               isSbomManager,
+              isContainerImagesEvaluationEnabled,
             }}
           />
 
@@ -305,6 +307,7 @@ export const violationPageTypes = {
   firewallIsLoading: PropTypes.bool,
   setSelectPolicyViolation: PropTypes.func,
   isSbomManager: PropTypes.bool,
+  isContainerImagesEvaluationEnabled: PropTypes.bool,
   similarWaiversFilterSelectedIds: PropTypes.object,
   setFilterIdsSimilarWaivers: PropTypes.func,
 };

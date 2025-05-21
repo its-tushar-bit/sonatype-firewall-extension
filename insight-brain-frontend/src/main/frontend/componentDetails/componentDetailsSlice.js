@@ -10,7 +10,11 @@ import { enableMapSet } from 'immer';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { loadReportIfNeeded } from '../applicationReport/applicationReportActions';
-import { selectDependencyTreeData } from '../applicationReport/applicationReportSelectors';
+import {
+  selectDependencyTreeData,
+  selectIsContainerImagesEvaluationEnabledAndProxyStage,
+  selectIsFirewallOrRepositoryAndNotProxyStage,
+} from '../applicationReport/applicationReportSelectors';
 import {
   getComponentLabels,
   setProprietaryMatchers,
@@ -24,11 +28,7 @@ import { Messages } from '../utilAngular/CommonServices';
 import { toggleBooleanProp } from '../util/reduxUtil';
 import { processOwnerHierarchy } from 'MainRoot/util/hierarchyUtil';
 import { pathSet, pathSetConst, propSet } from 'MainRoot/util/reduxToolkitUtil';
-import {
-  selectRouterCurrentParams,
-  selectIsFirewallOrRepository,
-  selectIsPrioritiesPageContainer,
-} from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectRouterCurrentParams, selectIsPrioritiesPageContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 import {
   selectComponentDetails,
@@ -98,11 +98,20 @@ const flattenLabelsToSingleArray = (labelsByOwner) => {
 
 const onTabChange = (tabId) => {
   return (dispatch, getState) => {
-    const { hash } = selectRouterCurrentParams(getState());
+    const { hash, publicId, scanId } = selectRouterCurrentParams(getState());
     const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(getState());
     const prioritiesPageContainerName = selectPrioritiesPageContainerName(getState());
+    const isContainerImagesEvaluation = selectIsContainerImagesEvaluationEnabledAndProxyStage(getState());
 
-    if (isPrioritiesPageContainer) {
+    if (isContainerImagesEvaluation) {
+      return dispatch(
+        stateGo(`firewall.containerComponentDetails.${tabId}`, {
+          publicId,
+          scanId,
+          hash,
+        })
+      );
+    } else if (isPrioritiesPageContainer) {
       return dispatch(stateGo(`${prioritiesPageContainerName}.componentDetails.${tabId}`, { hash }));
     }
     return dispatch(stateGo(`applicationReport.componentDetails.${tabId}`, { hash }));
@@ -335,7 +344,7 @@ const loadApplicableLabelScopes = createAsyncThunk(
     const { componentDetails, router } = currentState;
     const { id: labelId } = componentDetails.selectedLabelDetails;
     const { publicId, repositoryId } = router.currentParams;
-    if (selectIsFirewallOrRepository(currentState)) {
+    if (selectIsFirewallOrRepositoryAndNotProxyStage(currentState) && repositoryId) {
       return axios.get(getApplicableLabelScopesUrl('repository', repositoryId, labelId)).catch(rejectWithValue);
     } else {
       return axios.get(getApplicableLabelScopesUrl('application', publicId, labelId)).catch(rejectWithValue);
@@ -381,7 +390,7 @@ const saveApplyLabelScope = createAsyncThunk(
           dispatch(actions.cancelApplyLabelModal());
           dispatch(actions.resetApplyLabelMaskState(null));
           dispatch(actions.resetLabelModalMaskState(null));
-          if (selectIsFirewallOrRepository(getState())) {
+          if (selectIsFirewallOrRepositoryAndNotProxyStage(getState())) {
             dispatch(actions.loadFirewallComponentDetailsLabels());
           } else {
             dispatch(actions.loadComponentDetails());
@@ -431,7 +440,7 @@ const removeAppliedLabel = createAsyncThunk(
       .then(() => {
         setTimeout(() => {
           dispatch(actions.toggleShowRemoveLabelModal());
-          if (selectIsFirewallOrRepository(getState())) {
+          if (selectIsFirewallOrRepositoryAndNotProxyStage(getState())) {
             dispatch(loadFirewallComponentDetailsLabels());
           } else {
             dispatch(loadComponentDetails());

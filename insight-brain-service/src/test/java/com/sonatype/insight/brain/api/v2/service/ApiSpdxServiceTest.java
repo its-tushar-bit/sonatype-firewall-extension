@@ -197,7 +197,7 @@ public class ApiSpdxServiceTest
   public void testGetByScanId_invalidSpdxVersion() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> service.getByScanId(application.getId(), scanId, "xml", false, "2.0"))
-        .withMessageContaining("Invalid SPDX version: 2.0. Supported SPDX versions: [2.3]");
+        .withMessageContaining("Invalid SPDX version: 2.0. Supported SPDX versions: [2.2, 2.3]");
   }
 
   @Test
@@ -347,7 +347,7 @@ public class ApiSpdxServiceTest
   public void testGetLatestForStage_invalidSpdxVersion() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> service.getLatestForStage(application.getId(), BuildStageType.ID, "xml", false, "2.1"))
-        .withMessageContaining("Invalid SPDX version: 2.1. Supported SPDX versions: [2.3]");
+        .withMessageContaining("Invalid SPDX version: 2.1. Supported SPDX versions: [2.2, 2.3]");
   }
 
   private void testGetLatest(

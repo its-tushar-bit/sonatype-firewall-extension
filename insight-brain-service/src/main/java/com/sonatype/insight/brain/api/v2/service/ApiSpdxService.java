@@ -104,7 +104,7 @@ public class ApiSpdxService
 
   static final Set<String> SPDX_FORMATS = ImmutableSet.of("json", "xml");
 
-  static final Set<String> SPDX_VERSIONS = ImmutableSet.of("2.3");
+  static final Set<String> SPDX_VERSIONS = ImmutableSet.of("2.2", "2.3");
 
   static final String SPDX_REF_PREFIX = "SPDXRef-";
 

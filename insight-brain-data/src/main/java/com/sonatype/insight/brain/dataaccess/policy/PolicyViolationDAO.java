@@ -802,65 +802,63 @@ public class PolicyViolationDAO
     String aggregationQuery = //
         "  SELECT\n" + //
         "    DISTINCT ON (\n" + //
-        "      pv.application_id,\n" + //
-        "      pv.policy_name,\n" + //
-        "      pv.threat_level,\n" + //
-        "      pv.hash,\n" + //
-        "      pv.component_id_format,\n" + //
-        "      pv.component_id_coordinates_json,\n" + //
-        "      pv.constraint_facts_id\n" + //
+        "      application_id,\n" + //
+        "      policy_name,\n" + //
+        "      threat_level,\n" + //
+        "      hash,\n" + //
+        "      component_id_format,\n" + //
+        "      component_id_coordinates_json,\n" + //
+        "      constraint_facts_id\n" + //
         "    )\n" + //
-        "    pv.application_id,\n" + //
-        "    pv.policy_name,\n" + //
-        "    pv.threat_level,\n" + //
-        "    pv.hash,\n" + //
-        "    pv.component_id_format,\n" + //
-        "    pv.component_id_coordinates_json,\n" + //
-        "    coalesce(cf.constraint_facts_json, pv.constraint_facts_json) constraint_facts_json,\n" + //
-        "    pv.open_time,\n" + //
-        "    pv.filename,\n" + //
-        "    pv.policy_violation_id,\n" + //
-        "    pv.auto_policy_waiver_id\n" + //
-        "  FROM " + databaseSchema + ".policy_violation pv\n" + //
-        "  LEFT JOIN " + databaseSchema + ".policy_violation_constraint_facts cf\n" + //
-        "  ON pv.constraint_facts_id = cf.policy_violation_constraint_facts_id\n" + //
+        "    application_id,\n" + //
+        "    policy_name,\n" + //
+        "    threat_level,\n" + //
+        "    hash,\n" + //
+        "    component_id_format,\n" + //
+        "    component_id_coordinates_json,\n" + //
+        "    constraint_facts_id,\n" + //
+        "    open_time,\n" + //
+        "    filename,\n" + //
+        "    policy_violation_id,\n" + //
+        "    auto_policy_waiver_id\n" + //
+        "  FROM " + databaseSchema + ".policy_violation\n" + //
         "  WHERE\n" + //
-        "    pv.application_id IN " + buildPositionalParameters(applicationIds, appIdsParamStartPosition) + "\n" + //
-        "    AND pv.stage_type_id IN " + buildPositionalParameters(stageTypeIds, stageIdsParamStartPosition) + "\n" + //
-        "    AND pv.fix_time IS NULL\n";
+        "    application_id IN " + buildPositionalParameters(applicationIds, appIdsParamStartPosition) + "\n" + //
+        "    AND stage_type_id IN " + buildPositionalParameters(stageTypeIds, stageIdsParamStartPosition) + "\n" + //
+        "    AND fix_time IS NULL\n";
     int nextParamPosition = stageIdsParamStartPosition + stageTypeIds.size();
     int minDateParamPosition = nextParamPosition;
     if (minDate != null) {
-      aggregationQuery += "    AND pv.open_time >= ?" + minDateParamPosition + "\n";
+      aggregationQuery += "    AND open_time >= ?" + minDateParamPosition + "\n";
       nextParamPosition++;
     }
     int minThreatLevelParamPosition = nextParamPosition;
     if (minPolicyThreatLevel != null) {
-      aggregationQuery += "    AND pv.threat_level >= ?" + minThreatLevelParamPosition + "\n";
+      aggregationQuery += "    AND threat_level >= ?" + minThreatLevelParamPosition + "\n";
       nextParamPosition++;
     }
     int maxThreatLevelParamPosition = nextParamPosition;
     if (maxPolicyThreatLevel != null) {
-      aggregationQuery += "    AND pv.threat_level <= ?" + maxThreatLevelParamPosition + "\n";
+      aggregationQuery += "    AND threat_level <= ?" + maxThreatLevelParamPosition + "\n";
       nextParamPosition++;
     }
     int threatCategoriesParamPosition = nextParamPosition;
     if (policyThreatCategories != null) {
-      aggregationQuery += "    AND pv.threat_category IN "
+      aggregationQuery += "    AND threat_category IN "
           + buildPositionalParameters(policyThreatCategories, threatCategoriesParamPosition) + "\n";
       nextParamPosition++;
     }
     aggregationQuery +=
         getPolicyStateFilterForNativeQuery(violationStateOpen, violationStateWaived, violationStateLegacyViolation);
     aggregationQuery += "  ORDER BY\n" + //
-        "    pv.application_id,\n" + //
-        "    pv.policy_name,\n" + //
-        "    pv.threat_level,\n" + //
-        "    pv.hash,\n" + //
-        "    pv.component_id_format,\n" + //
-        "    pv.component_id_coordinates_json,\n" + //
-        "    pv.constraint_facts_id,\n" + //
-        "    pv.open_time";
+        "    application_id,\n" + //
+        "    policy_name,\n" + //
+        "    threat_level,\n" + //
+        "    hash,\n" + //
+        "    component_id_format,\n" + //
+        "    component_id_coordinates_json,\n" + //
+        "    constraint_facts_id,\n" + //
+        "    open_time";
 
     // The final query uses the aggregation query above to extract the columns needed in the results.
     // We need this "extra" query because the desired order is not the order used in the aggregation query.
@@ -872,17 +870,17 @@ public class PolicyViolationDAO
         "  application.application_id,\n" + //
         "  application.name application_name,\n" + //
         "  organization.name organization_name,\n" + //
-        "  apv.policy_violation_id,\n" + //
-        "  apv.policy_name,\n" + //
-        "  apv.threat_level,\n" + //
-        "  apv.hash,\n" + //
-        "  apv.filename,\n" + //
-        "  apv.component_id_format,\n" + //
-        "  apv.component_id_coordinates_json,\n" + //
-        "  apv.constraint_facts_json,\n" + //
-        "  apv.open_time,\n" + //
-        "  apv.auto_policy_waiver_id\n" + //
-        "FROM aggregated_policy_violation apv\n" + //
+        "  pv.policy_violation_id,\n" + //
+        "  pv.policy_name,\n" + //
+        "  pv.threat_level,\n" + //
+        "  pv.hash,\n" + //
+        "  pv.filename,\n" + //
+        "  pv.component_id_format,\n" + //
+        "  pv.component_id_coordinates_json,\n" + //
+        "  pv.constraint_facts_id,\n" + //
+        "  pv.open_time,\n" + //
+        "  pv.auto_policy_waiver_id\n" + //
+        "FROM aggregated_policy_violation pv\n" + //
         "JOIN " + databaseSchema + ".application application USING (application_id)\n" + //
         "JOIN " + databaseSchema + ".organization organization USING (organization_id)\n";
     // Adds sorting by policy_violation_id to get repeatable results
@@ -926,7 +924,7 @@ public class PolicyViolationDAO
               (String) array[7], // filename
               (String) array[8], // componentIdFormat
               (String) array[9], // componentIdCoordinatesJson
-              (String) array[10], // constraintFactsJson
+              (String) array[10], // constraintFactsId
               ((Timestamp) array[11]).getTime(), // firstOccurrenceTime
               (String) array[12] // autoPolicyWaiverId
           )).toList();

@@ -33,6 +33,10 @@ public class PolicyWaiverTelemetry
 
   private String waiverReason;
 
+  private final boolean isForContainerImage;
+
+  private final boolean isForContainerImageComponent;
+
   public PolicyWaiverTelemetry(
       final PolicyWaiver policyWaiver,
       final String ownerType,
@@ -48,7 +52,9 @@ public class PolicyWaiverTelemetry
         violationTime,
         policyWaiver.getCreateTime(),
         policyWaiver.getExpiryTime(),
-        stageId);
+        stageId,
+        policyWaiver.isForContainerImage(),
+        policyWaiver.isForContainerImageComponent());
   }
 
   PolicyWaiverTelemetry(
@@ -60,7 +66,9 @@ public class PolicyWaiverTelemetry
       final Date violationTime,
       final Date waiverTime,
       final Date waiverExpiration,
-      final String stageId)
+      final String stageId,
+      final boolean isForContainerImage,
+      final boolean isForContainerImageComponent)
   {
     this.policyWaiverId = policyWaiverId;
     this.ownerType = ownerType;
@@ -73,6 +81,8 @@ public class PolicyWaiverTelemetry
     this.waiverExpiration =
         waiverExpiration == null ? null : waiverExpiration.toInstant().toEpochMilli();
     this.stageId = stageId;
+    this.isForContainerImage = isForContainerImage;
+    this.isForContainerImageComponent = isForContainerImageComponent;
   }
 
   public String getPolicyWaiverId() {
@@ -120,5 +130,13 @@ public class PolicyWaiverTelemetry
       waiverReason = policyWaiverReason.getReasonText();
     }
     return this;
+  }
+
+  public boolean isForContainerImage() {
+    return isForContainerImage;
+  }
+
+  public boolean isForContainerImageComponent() {
+    return isForContainerImageComponent;
   }
 }

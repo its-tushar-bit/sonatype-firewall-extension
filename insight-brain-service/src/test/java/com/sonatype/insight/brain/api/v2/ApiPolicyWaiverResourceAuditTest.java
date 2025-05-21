@@ -5,10 +5,15 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -17,12 +22,16 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
+import com.sonatype.insight.brain.api.v2.dto.containerwaivers.ApiContainerWaiversDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -31,6 +40,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -39,6 +49,7 @@ import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
@@ -46,6 +57,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.BY_POLICY_VIOLATION_ID_PATH;
 import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.BY_POLICY_WAIVER_ID_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.CONTAINER_WAIVERS_BY_CONTAINER_IMAGE_ID;
 import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.OWNERS_PATH;
 import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.TRANSITIVE_VIOLATIONS_BY_SCAN_ID_PATH;
 import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.TRANSITIVE_VIOLATIONS_BY_STAGE_ID_PATH;
@@ -57,6 +69,10 @@ public class ApiPolicyWaiverResourceAuditTest
     extends AbstractAuditTest
 {
   private PolicyWaiverDAO policyWaiverDAO;
+
+  private RepositoryDAO repositoryDAO;
+
+  private OrganizationDAO organizationDAO;
 
   private Organization org;
 
@@ -71,6 +87,8 @@ public class ApiPolicyWaiverResourceAuditTest
   @Before
   public void setUpPolicyViolation() {
     policyWaiverDAO = lookup(PolicyWaiverDAO.class);
+    repositoryDAO = lookup(RepositoryDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
 
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
@@ -847,5 +865,84 @@ public class ApiPolicyWaiverResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_WAIVER, "unauthorized");
     assertRepositoryContainerData(auditDTO);
+  }
+
+  @Test
+  public void testAddWaiversToContainerImage_Unauthorized() throws Exception {
+    licenseManager.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    relateOrganizationWithRepository();
+
+    restRequest()
+        .path(CONTAINER_WAIVERS_BY_CONTAINER_IMAGE_ID)
+        .parameter(app.getId())
+        .body(new ApiContainerWaiversDTO(), MediaType.APPLICATION_JSON)
+        .with(unauthorizedUser())
+        .post();
+
+    assertAuditLog(AuditEvent.CREATE_CONTAINER_IMAGE_POLICY_VIOLATIONS_WAIVER, "unauthorized");
+  }
+
+  @Test
+  public void testAddWaiversToContainerImage_AuditEvent() throws Exception {
+    licenseManager.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    relateOrganizationWithRepository();
+
+    policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ProxyStageType.ID, "scan1");
+    policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    ApiContainerWaiversDTO containerWaiversDTO = new ApiContainerWaiversDTO();
+    containerWaiversDTO.policyViolationIds = Set.of(policyViolation.getId());
+    containerWaiversDTO.comment = "Container image waiver comment";
+    containerWaiversDTO.expiryTime = DateUtils.addDays(new Date(), 1);
+
+    restRequest()
+        .path(CONTAINER_WAIVERS_BY_CONTAINER_IMAGE_ID)
+        .parameter(app.getId())
+        .body(containerWaiversDTO)
+        .post();
+
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(policyWaivers).hasSize(2);
+
+    policyWaivers = new ArrayList<>(policyWaivers);
+    policyWaivers.sort(Comparator.comparing(PolicyWaiver::getHash, Comparator.nullsLast(Comparator.naturalOrder())));
+
+    List<AuditDTO> waiverAuditDTOs = assertAuditLogs(AuditEvent.CREATE_WAIVER, 2, null);
+
+    PolicyWaiver policyWaiver = policyWaivers.get(0);
+    AuditDTO waiverAuditDTO = waiverAuditDTOs.get(0);
+
+    assertCustomData(waiverAuditDTO, "isForContainerImageComponent", true);
+    assertCustomData(waiverAuditDTO, "policyWaiverId", policyWaiver.getId());
+    assertCustomData(waiverAuditDTO, "policyId", policy.getId());
+    assertCustomData(waiverAuditDTO, "policyName", policy.getName());
+    assertCustomData(waiverAuditDTO, "comment", containerWaiversDTO.comment);
+    assertCustomObject(waiverAuditDTO, "policyConstraints",
+        policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(Collectors.toList()));
+
+    policyWaiver = policyWaivers.get(1);
+    waiverAuditDTO = waiverAuditDTOs.get(1);
+
+    assertCustomData(waiverAuditDTO, "isForContainerImage", true);
+    assertCustomData(waiverAuditDTO, "policyWaiverId", policyWaiver.getId());
+    assertCustomData(waiverAuditDTO, "policyId", policy.getId());
+    assertCustomData(waiverAuditDTO, "policyName", policy.getName());
+    assertCustomData(waiverAuditDTO, "comment", containerWaiversDTO.comment);
+    assertCustomObject(waiverAuditDTO, "policyConstraints",
+        policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(Collectors.toList()));
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_CONTAINER_IMAGE_POLICY_VIOLATIONS_WAIVER, null);
+    assertCustomData(auditDTO, "policyViolationIds", new ArrayList<>(containerWaiversDTO.policyViolationIds));
+    assertCustomData(auditDTO, "expiryTime", containerWaiversDTO.expiryTime.getTime());
+  }
+
+  private void relateOrganizationWithRepository() {
+    Repository repository = tempEntity.newRepository("docker-repo");
+    repository.setRelatedOrganizationId(org.getId());
+    repositoryDAO.update(repository);
+    org.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(org);
   }
 }

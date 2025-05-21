@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.inject.Inject;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -20,6 +22,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
@@ -30,6 +33,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
@@ -44,6 +48,7 @@ import com.sonatype.insight.brain.model.policy.facts.TriggerSecurityVulnerabilit
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
@@ -58,6 +63,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ComponentPolicyEvaluatorTest
     extends AbstractPolicyEvaluationTest
 {
+  @Inject
+  private PolicyWaiverDAO policyWaiverDAO;
+
   @Test
   public void testEvaluate_ConstraintFactHasDisplayName() {
 
@@ -695,6 +703,100 @@ public class ComponentPolicyEvaluatorTest
     assertThat(waivedPolicyAlerts.get(0).getTrigger().getComponentFacts()).hasSize(1);
     ComponentFact waivedComponentFact = waivedPolicyAlerts.get(0).getTrigger().getComponentFacts().get(0);
     assertThat(policyResults.getPolicyWaiver(waivedComponentFact).getId()).isEqualTo(policyWaiver.getId());
+  }
+
+  @Test
+  public void testEvaluate_PolicyWaivedForContainerImage() {
+    Stage stage = new Stage(ProxyStageType.ID);
+
+    // Create an application
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+
+    // Create two policies
+    List<Constraint> constraints1 = new ArrayList<>();
+    Constraint constraint1 = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    constraints1.add(constraint1);
+    Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
+    policy1.setOwnerId(app.getId());
+    policy1.setConstraints(constraints1);
+    policy1.setAction(stage.getStageTypeId(), FailActionType.ID);
+    tempEntity.newPolicy(policy1);
+    List<Constraint> constraints2 = new ArrayList<>();
+    Constraint constraint2 = new Constraint("ConstraintId2", "Constraint Name 2", LogicalOperator.AND);
+    constraint2.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    constraints2.add(constraint2);
+    Policy policy2 = new Policy("PolicyId2", "Policy Name 2");
+    policy2.setOwnerId(app.getId());
+    policy2.setConstraints(constraints2);
+    policy2.setAction(stage.getStageTypeId(), FailActionType.ID);
+    tempEntity.newPolicy(policy2);
+
+    // Create two components
+    List<Component> components = new ArrayList<>();
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
+    component1.setHash("hash1");
+    component1.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv1", 3F));
+    component1.addDeclaredLicenseId("Apache-2.0");
+    components.add(component1);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
+    component2.setHash("hash2");
+    component2.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv1", 3F));
+    component2.addDeclaredLicenseId("Apache-2.0");
+    components.add(component2);
+
+    // Evaluate the policies.
+    // Both policies are violated by both components.
+    PolicyResults policyResults =
+        componentPolicyEvaluator.evaluate(app.getId(), stage, Arrays.asList(policy1, policy2), components);
+    List<PolicyAlert> activePolicyAlerts = policyResults.getActiveAlerts();
+    assertThat(activePolicyAlerts).hasSize(4);
+    assertContainsPolicyAlert(component1, policy1, constraint1, FailActionType.ID,
+        SecurityVulnerabilitySeverityConditionType.ID, activePolicyAlerts);
+    assertContainsPolicyAlert(component2, policy1, constraint1, FailActionType.ID,
+        SecurityVulnerabilitySeverityConditionType.ID, activePolicyAlerts);
+    assertContainsPolicyAlert(component1, policy2, constraint2, FailActionType.ID,
+        SecurityVulnerabilitySeverityConditionType.ID, activePolicyAlerts);
+    assertContainsPolicyAlert(component2, policy2, constraint2, FailActionType.ID,
+        SecurityVulnerabilitySeverityConditionType.ID, activePolicyAlerts);
+    assertThat(policyResults.getWaivedAlerts()).isEmpty();
+
+    // Waive the alert for policy1 and component1 and re-evaluate
+    PolicyAlert policyAlertToWaive = findPolicyAlert(activePolicyAlerts, component1, policy1);
+    PolicyWaiver policyWaiverForContainerImageComponent = tempEntity.newWaiver("hash1", policy1.getId(), app.getId(),
+        policyAlertToWaive.getTrigger().getComponentFacts().get(0).getConstraintFacts());
+    policyWaiverForContainerImageComponent.setForContainerImageComponent(true);
+    policyWaiverForContainerImageComponent.setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT);
+    policyWaiverDAO.update(policyWaiverForContainerImageComponent);
+
+    // The policy waiver for the container image should not be processed
+    PolicyWaiver policyWaiverForContainerImage = tempEntity.newWaiver(null, policy1.getId(), app.getId(),
+        policyAlertToWaive.getTrigger().getComponentFacts().get(0).getConstraintFacts());
+    policyWaiverForContainerImage.setForContainerImage(true);
+    policyWaiverForContainerImageComponent.setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.ALL_COMPONENTS);
+    policyWaiverDAO.update(policyWaiverForContainerImage);
+
+    policyResults = componentPolicyEvaluator.evaluate(app.getId(), stage, Arrays.asList(policy1, policy2), components);
+    activePolicyAlerts = policyResults.getActiveAlerts();
+
+    assertThat(activePolicyAlerts).hasSize(3);
+    assertContainsPolicyAlert(component2, policy1, constraint1, FailActionType.ID,
+        SecurityVulnerabilitySeverityConditionType.ID, activePolicyAlerts);
+    assertContainsPolicyAlert(component1, policy2, constraint2, FailActionType.ID,
+        SecurityVulnerabilitySeverityConditionType.ID, activePolicyAlerts);
+    assertContainsPolicyAlert(component2, policy2, constraint2, FailActionType.ID,
+        SecurityVulnerabilitySeverityConditionType.ID, activePolicyAlerts);
+
+    List<PolicyAlert> waivedPolicyAlerts = policyResults.getWaivedAlerts();
+
+    assertThat(waivedPolicyAlerts).hasSize(1);
+    assertContainsPolicyAlert(component1, policy1, constraint1, FailActionType.ID,
+        SecurityVulnerabilitySeverityConditionType.ID, waivedPolicyAlerts);
+    assertThat(waivedPolicyAlerts.get(0).getTrigger().getComponentFacts()).hasSize(1);
+    ComponentFact waivedComponentFact = waivedPolicyAlerts.get(0).getTrigger().getComponentFacts().get(0);
+    assertThat(policyResults.getPolicyWaiver(waivedComponentFact).getId())
+        .isEqualTo(policyWaiverForContainerImageComponent.getId());
   }
 
   private PolicyAlert findPolicyAlert(List<PolicyAlert> policyAlerts, Component component, Policy policy) {

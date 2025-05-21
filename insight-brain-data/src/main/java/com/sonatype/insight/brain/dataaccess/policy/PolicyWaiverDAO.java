@@ -153,8 +153,8 @@ public class PolicyWaiverDAO
   private List<PolicyWaiver> getByOwnerIdAndPolicyId(String ownerId, String policyId) {
     String sQuery = """
         SELECT entity FROM PolicyWaiver entity
-        WHERE entity.ownerId=?1 AND entity.policyId=?2""";
-    return getList(sQuery, ownerId, policyId);
+        WHERE entity.ownerId=?1 AND entity.policyId=?2 AND entity.isForContainerImage=?3""";
+    return getList(sQuery, ownerId, policyId, false);
   }
 
   public List<PolicyWaiver> getActiveApplicableByOwnerId(String ownerId) {

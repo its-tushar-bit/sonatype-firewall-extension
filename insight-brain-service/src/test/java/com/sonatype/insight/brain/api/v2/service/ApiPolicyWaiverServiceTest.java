@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -30,6 +31,7 @@ import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
+import com.sonatype.insight.brain.api.v2.dto.containerwaivers.ApiContainerWaiversDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiComponentPolicyWaiversDTO;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -39,6 +41,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -57,6 +60,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -136,6 +140,9 @@ public class ApiPolicyWaiverServiceTest
 
   @Inject
   private OwnerDAO ownerDAO;
+
+  @Inject
+  private RepositoryDAO repositoryDAO;
 
   @Mock
   private TelemetrySender telemetrySenderMock;
@@ -2157,5 +2164,139 @@ public class ApiPolicyWaiverServiceTest
 
     assertThat(savedWaiver.policyWaiverReasonId).isEqualTo(policyWaiver.getWaiverReasonId());
     assertThat(savedWaiver.reasonText).isEqualTo(expectedWaiverReasonText);
+  }
+
+  @Test
+  public void testAddContainerWaivers_ApiContainerWaiversDTONull() {
+    ApiContainerWaiversDTO containerWaiversDTO = null;
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiPolicyWaiverService.addContainerWaivers(app.getId(), containerWaiversDTO))
+        .withMessageContaining("Policy violations must not be empty.");
+  }
+
+  @Test
+  public void testAddContainerWaivers_ApiContainerWaiversDTOEmpty() {
+    ApiContainerWaiversDTO containerWaiversDTO = new ApiContainerWaiversDTO();
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiPolicyWaiverService.addContainerWaivers(app.getId(), containerWaiversDTO))
+        .withMessageContaining("Policy violations must not be empty.");
+  }
+
+  @Test
+  public void testAddContainerWaivers_policyViolationIdsEmpty() {
+    ApiContainerWaiversDTO containerWaiversDTO = new ApiContainerWaiversDTO();
+    containerWaiversDTO.policyViolationIds = Set.of();
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiPolicyWaiverService.addContainerWaivers(app.getId(), containerWaiversDTO))
+        .withMessageContaining("Policy violations must not be empty.");
+  }
+
+  @Test
+  public void testAddContainerWaivers_notAnApplicationForContainerImage() {
+    ApiContainerWaiversDTO containerWaiversDTO = new ApiContainerWaiversDTO();
+    containerWaiversDTO.policyViolationIds = Set.of("test");
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> apiPolicyWaiverService.addContainerWaivers(app.getId(), containerWaiversDTO))
+        .withMessageContaining("No container image was found with the given ID");
+  }
+
+  @Test
+  public void testAddContainerWaivers_policyViolationIdsNotExists() {
+    relateOrganizationWithRepository();
+
+    ApiContainerWaiversDTO containerWaiversDTO = new ApiContainerWaiversDTO();
+    containerWaiversDTO.policyViolationIds = Set.of("test");
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> apiPolicyWaiverService.addContainerWaivers(app.getId(), containerWaiversDTO))
+        .withMessageContaining("No policy violations were found with the given policyViolationIds");
+  }
+
+  @Test
+  public void testAddContainerWaivers() {
+    policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ProxyStageType.ID, "scanId1App1");
+    policyViolation =
+        tempEntity.newPolicyViolation(policyEvaluation, policy, policyViolation.getComponentIdentifier(), "h1", "r1");
+
+    relateOrganizationWithRepository();
+    tempEntity.newLegacyPolicyViolation(policyEvaluation, policy);
+
+    Policy policy2 = tempEntity.newPolicy(app.getId());
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("p2", "v2");
+    PolicyViolation policyViolation2 =
+        tempEntity.newPolicyViolation(policyEvaluation, policy2, componentIdentifier2, "h2", "r2");
+
+    Policy policy3 = tempEntity.newPolicy(org.getId());
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createNpmCoordinates("p3", "v3");
+    tempEntity.newPolicyViolation(policyEvaluation, policy3, componentIdentifier3, "h3", "r3");
+
+    PolicyEvaluation policyEvaluationForOtherStage =
+        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1");
+    Policy policyForOtherStage = tempEntity.newPolicy(app);
+    PolicyViolation policyViolationForOtherStage = tempEntity.newPolicyViolation(policyEvaluationForOtherStage,
+        policyForOtherStage, policyViolation.getComponentIdentifier(), policyViolation.getHash(), "r1");
+
+    Application otherApplication = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluationForApplication =
+        tempEntity.newPolicyEvaluation(otherApplication.getId(), ProxyStageType.ID, "scanId1App1");
+    Policy policyForApplication = tempEntity.newPolicy(otherApplication);
+    PolicyViolation policyViolationForApplication = tempEntity.newPolicyViolation(policyEvaluationForApplication,
+        policyForApplication, policyViolation.getComponentIdentifier(), policyViolation.getHash(), "r1");
+
+    ApiContainerWaiversDTO containerWaiversDTO = new ApiContainerWaiversDTO();
+    containerWaiversDTO.policyViolationIds = Set.of(policyViolation.getId(), policyViolation2.getId(),
+        policyViolationForOtherStage.getId(), policyViolationForApplication.getId());
+    containerWaiversDTO.comment = "Test comment";
+    containerWaiversDTO.expiryTime = DateUtils.addDays(new Date(), 1);
+
+    apiPolicyWaiverService.addContainerWaivers(app.getId(), containerWaiversDTO);
+
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(policyWaivers).hasSize(3);
+
+    policyWaivers = new ArrayList<>(policyWaivers);
+    policyWaivers.sort(Comparator.comparing(PolicyWaiver::getHash, Comparator.nullsLast(Comparator.naturalOrder())));
+
+    PolicyWaiver createdWaiver = policyWaivers.get(0);
+    assertThat(createdWaiver.getHash()).isEqualTo(policyViolation.getHash());
+    assertThat(createdWaiver.getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+    assertThat(createdWaiver.getComment()).isEqualTo(containerWaiversDTO.comment);
+    assertThat(createdWaiver.getExpiryTime()).isEqualTo(containerWaiversDTO.expiryTime);
+    assertThat(createdWaiver.getComponentMatchStrategy()).isEqualTo(EXACT_COMPONENT);
+    assertThat(createdWaiver.isExpireWhenRemediationAvailable()).isFalse();
+    assertThat(createdWaiver.isForContainerImageComponent()).isTrue();
+    assertThat(createdWaiver.isForContainerImage()).isFalse();
+
+    createdWaiver = policyWaivers.get(1);
+    assertThat(createdWaiver.getHash()).isEqualTo(policyViolation2.getHash());
+    assertThat(createdWaiver.getPolicyId()).isEqualTo(policyViolation2.getPolicyId());
+    assertThat(createdWaiver.getComment()).isEqualTo(containerWaiversDTO.comment);
+    assertThat(createdWaiver.getExpiryTime()).isEqualTo(containerWaiversDTO.expiryTime);
+    assertThat(createdWaiver.getComponentMatchStrategy()).isEqualTo(EXACT_COMPONENT);
+    assertThat(createdWaiver.isExpireWhenRemediationAvailable()).isFalse();
+    assertThat(createdWaiver.isForContainerImageComponent()).isTrue();
+    assertThat(createdWaiver.isForContainerImage()).isFalse();
+
+    createdWaiver = policyWaivers.get(2);
+    assertThat(createdWaiver.getHash()).isNull();
+    assertThat(createdWaiver.getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+    assertThat(createdWaiver.getComment()).isEqualTo(containerWaiversDTO.comment);
+    assertThat(createdWaiver.getExpiryTime()).isEqualTo(containerWaiversDTO.expiryTime);
+    assertThat(createdWaiver.getComponentMatchStrategy()).isEqualTo(ALL_COMPONENTS);
+    assertThat(createdWaiver.isExpireWhenRemediationAvailable()).isFalse();
+    assertThat(createdWaiver.isForContainerImageComponent()).isFalse();
+    assertThat(createdWaiver.isForContainerImage()).isTrue();
+  }
+
+  private void relateOrganizationWithRepository() {
+    Repository repository = tempEntity.newRepository("docker-repo");
+    repository.setRelatedOrganizationId(org.getId());
+    repositoryDAO.update(repository);
+    org.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(org);
   }
 }

@@ -382,6 +382,30 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
+  public void testGetByOwnerIdAndPolicyId_excludeWaiversForContainerImage() {
+    Date now = new Date();
+    Policy policy = tempEntity.newPolicy(application);
+    String policyId = policy.getId();
+    String ownerId = application.getId();
+    String comment = "Just testing";
+
+    PolicyWaiver noExpiryWaiver = tempEntity.newWaiver("hash", policyId, ownerId, null, comment, now, null);
+    PolicyWaiver expiringWaiver =
+        tempEntity.newWaiver("expiring", policyId, ownerId, null, comment, now, DateUtils.addHours(now, 1));
+    PolicyWaiver expiredWaiver =
+        tempEntity.newWaiver("expired", policyId, ownerId, null, comment, now, DateUtils.addHours(now, -1));
+
+    PolicyWaiver policyWaiverForContainerImage =
+        tempEntity.newWaiver(null, policyId, application.getId(), null, comment, now, null);
+    policyWaiverForContainerImage.setForContainerImage(true);
+    dao.update(policyWaiverForContainerImage);
+
+    assertThat(dao.getByOwnerHierarchyAndPolicyId(application, policyId))
+        .extracting(PolicyWaiver::getId)
+        .containsExactlyInAnyOrder(noExpiryWaiver.getId(), expiringWaiver.getId(), expiredWaiver.getId());
+  }
+
+  @Test
   public void testGetByOwnerIdAndHash() {
     String hash = "12345678901234567890";
     DateTime now = DateTime.now();

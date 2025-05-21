@@ -193,6 +193,9 @@ public class ComponentPolicyEvaluator
     PolicyWaiver legacyWaiver = null;
 
     for (PolicyWaiver policyWaiver : policyWaivers) {
+      if (policyWaiver.isForContainerImage()) {
+        continue;
+      }
       PolicyWaiverMatcherWrapper policyWaiverMatcher = new PolicyWaiverMatcherWrapper(policyWaiver);
       if (policyWaiverMatcher.matchesPolicyId(policyFact.getPolicyId())) {
         ComponentFact mainComponentFact = policyFact.getComponentFacts().get(0);

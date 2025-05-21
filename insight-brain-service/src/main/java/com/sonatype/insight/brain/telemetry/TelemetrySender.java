@@ -14,12 +14,14 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.TelemetryId;
+import com.sonatype.insight.brain.telemetry.TelemetryReceiptService.TelemetryReceipt;
 import com.sonatype.insight.brain.tenancy.TenantAwareOneTimeRunnable;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.version.VersionService;
@@ -46,6 +48,8 @@ public class TelemetrySender
   private static final Logger log = LoggerFactory.getLogger(TelemetrySender.class);
 
   private final HdsClient hdsClient;
+
+  private final TelemetryReceiptService telemetryReceiptService;
 
   private final VersionService versionService;
 
@@ -76,12 +80,14 @@ public class TelemetrySender
       HdsClient hdsClient,
       VersionService versionService,
       TelemetryId telemetryId,
-      TenantUtil tenantUtil)
+      TenantUtil tenantUtil,
+      TelemetryReceiptService telemetryReceiptService)
   {
     this.hdsClient = hdsClient;
     this.versionService = versionService;
     this.telemetryId = telemetryId;
     this.tenantUtil = tenantUtil;
+    this.telemetryReceiptService = telemetryReceiptService;
   }
 
   @Override
@@ -117,9 +123,9 @@ public class TelemetrySender
       return;
     }
     try {
-      TelemetrySubmission telemetrySubmission =
-          new TelemetrySubmission(createZip(createHeader(), telemetryData), clientUserAgent);
-      submissions.add(new TenantAwareOneTimeRunnable(() -> submitTelemetry(telemetrySubmission)));
+      var telemetrySubmission = new TelemetrySubmission(createZip(createHeader(), telemetryData), clientUserAgent);
+      var telemetryReceipt = telemetryReceiptService.onTelemetrySubmitted(telemetryData);
+      submissions.add(new TenantAwareOneTimeRunnable(() -> submitTelemetry(telemetrySubmission, telemetryReceipt)));
     }
     catch (Exception e) {
       log.debug("Failed to send telemetry.", e);
@@ -196,9 +202,18 @@ public class TelemetrySender
     }
   }
 
-  private void submitTelemetry(final TelemetrySubmission telemetrySubmission) {
-    ContentBody fileBody = new ByteArrayBody(telemetrySubmission.zipData, ZIP_FILENAME);
-    HttpEntity httpEntity = MultipartEntityBuilder.create().addPart(MULTIPART_FILE_NAME, fileBody).build();
-    hdsClient.post(RESOURCE_PATH, httpEntity, telemetrySubmission.clientUserAgent);
+  private void submitTelemetry(final TelemetrySubmission telemetrySubmission, final TelemetryReceipt telemetryReceipt) {
+    try {
+      telemetryReceipt.markSending();
+      ContentBody fileBody = new ByteArrayBody(telemetrySubmission.zipData, ZIP_FILENAME);
+      HttpEntity httpEntity = MultipartEntityBuilder.create().addPart(MULTIPART_FILE_NAME, fileBody).build();
+      hdsClient.post(RESOURCE_PATH, httpEntity, telemetrySubmission.clientUserAgent);
+      telemetryReceipt.markSent();
+    }
+    catch (Exception e) {
+      telemetryReceipt.markInError(e);
+      log.error("Failed to send telemetry.", e);
+      throw(e);
+    }
   }
 }

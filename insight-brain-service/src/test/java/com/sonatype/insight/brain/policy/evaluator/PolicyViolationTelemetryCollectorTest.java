@@ -944,6 +944,7 @@ public class PolicyViolationTelemetryCollectorTest
      *
      * @param cveNumber   CVE id to inject in the condition fact
      * @param cvssScore   Score to inject in the condition fact
+     * @param licenseThreatGroup use for license thread conditions;  mutually exclusive with the cve params above
      * @param cvIteration Iteration you want to insert the cv metadata
      * @return A list of constraint fact with the same amount of condition fact that contain the cv metadata
      */

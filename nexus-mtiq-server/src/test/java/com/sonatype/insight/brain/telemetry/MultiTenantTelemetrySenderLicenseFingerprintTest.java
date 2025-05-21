@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import com.sonatype.insight.brain.TestProductLicenseManager;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.product.license.ProductLicensingModel;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.telemetry.TelemetryReceiptService.TelemetryReceipt;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
@@ -33,6 +35,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+
 import org.sonatype.licensing.product.ProductLicenseKey;
 
 import org.junit.After;
@@ -46,7 +49,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -62,6 +67,9 @@ public class MultiTenantTelemetrySenderLicenseFingerprintTest
 
   @Mock
   private Configuration configuration;
+
+  @Mock
+  private TelemetryReceiptService mockTelemetryReceiptService;
 
   @Mock
   private VersionService versionService;
@@ -92,7 +100,8 @@ public class MultiTenantTelemetrySenderLicenseFingerprintTest
     testProductLicenseManager = new TestProductLicenseManager();
     productLicense = new MultiTenantProductLicense(mock(DeveloperEnablementService.class));
     HdsClient hdsClient = new HdsClient(proxy, productLicense, configuration, versionService, telemetryId);
-    telemetrySender = new TelemetrySender(hdsClient, versionService, telemetryId, tenantUtil);
+    telemetrySender =
+        new TelemetrySender(hdsClient, versionService, telemetryId, tenantUtil, mockTelemetryReceiptService);
 
     telemetrySender.start();
   }
@@ -128,6 +137,8 @@ public class MultiTenantTelemetrySenderLicenseFingerprintTest
       // send some fake telemetry
       TelemetryData telemetryDataSend = new TelemetryData(TelemetryPurpose.DATABASE);
       telemetryDataSend.put("test-key", "test-value");
+      doReturn(new TelemetryReceipt(List.of(telemetryDataSend)))
+          .when(mockTelemetryReceiptService).onTelemetrySubmitted(anyList());
       telemetrySender.send(telemetryDataSend);
     });
 

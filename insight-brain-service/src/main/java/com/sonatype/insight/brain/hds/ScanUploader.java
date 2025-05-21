@@ -20,9 +20,13 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.cpematching.CpeMatchingConfigurationService;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
@@ -42,15 +46,19 @@ public class ScanUploader
 
   private final CpeMatchingConfigurationService cpeMatchingConfigurationService;
 
+  private final ProductLicense productLicense;
+
   @Inject
   public ScanUploader(
       final HdsClient client,
       final Configuration configuration,
-      final CpeMatchingConfigurationService cpeMatchingConfigurationService)
+      final CpeMatchingConfigurationService cpeMatchingConfigurationService,
+      final ProductLicense productLicense)
   {
     this.client = client;
     this.configuration = configuration;
     this.cpeMatchingConfigurationService = cpeMatchingConfigurationService;
+    this.productLicense = productLicense;
   }
 
   /**
@@ -80,8 +88,19 @@ public class ScanUploader
     if (MapUtils.isNotEmpty(matcherConfiguration)) {
       uploadMetadata.putAll(matcherConfiguration);
     }
-    uploadMetadata.put("enableCpeDataMatching",
-        Boolean.toString(cpeMatchingConfigurationService.isCpeDataMatchingEnabled(application.getId())));
+
+    boolean isCpeDataMatchingEnabled;
+
+    if (ProxyStageType.ID.equals(stageTypeId)
+        && SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled()
+        && productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)) {
+      isCpeDataMatchingEnabled = true;
+    }
+    else {
+      isCpeDataMatchingEnabled = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(application.getId());
+    }
+
+    uploadMetadata.put("enableCpeDataMatching", Boolean.toString(isCpeDataMatchingEnabled));
     ScanReceipt receipt = client.put(analytics, ScanReceipt.class, clientUserAgent, HDS_PATH, scanFile, uploadMetadata);
     augmentScanReceipt(application.getPublicId(), receipt, stageTypeId, thirdPartyScanContext);
     return receipt;

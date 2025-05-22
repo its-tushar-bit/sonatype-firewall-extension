@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.scan.file.ThirdPartyUtils;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -75,6 +76,7 @@ import org.spdx.library.model.SpdxElement;
 import org.spdx.library.model.SpdxFile;
 import org.spdx.library.model.SpdxModelFactory;
 import org.spdx.library.model.SpdxPackage;
+import org.spdx.library.model.SpdxPackage.SpdxPackageBuilder;
 import org.spdx.library.model.enumerations.ChecksumAlgorithm;
 import org.spdx.library.model.enumerations.FileType;
 import org.spdx.library.model.enumerations.Purpose;
@@ -424,12 +426,18 @@ public class CycloneDxToSpdxExporter
       setFileProperties((SpdxFile) element, component);
     }
     else {
-      element =
+      SpdxPackageBuilder packageBuilder =
           newDocument.createPackage(elementId, name, new SpdxNoAssertionLicense(), copyright,
                   new SpdxNoAssertionLicense())
-              .setFilesAnalyzed(false)
-              .setPrimaryPurpose(COMPONENT_TYPE_TO_PURPOSE.get(componentType))
-              .build();
+              .setFilesAnalyzed(false);
+
+      //Primary purpose is not supported by SPDX 2.2
+      if (!ThirdPartyUtils.SPDX_ACCEPTED_VERSIONS.get(org.spdx.library.Version.TWO_POINT_TWO_VERSION)
+          .equals(exportParams.getExportSpecification().getVersion())) {
+        packageBuilder.setPrimaryPurpose(COMPONENT_TYPE_TO_PURPOSE.get(componentType));
+      }
+
+      element = packageBuilder.build();
       setPackageProperties((SpdxPackage) element, component);
     }
 

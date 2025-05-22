@@ -39,6 +39,8 @@ import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 import org.xmlunit.assertj.XmlAssert;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import static com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification.SPDX_22;
+import static com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification.SPDX_23;
 import static com.sonatype.insight.brain.sbom.export.SpdxDocumentAssert.assertThatSpdx;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.mockito.Mockito.when;
@@ -86,39 +88,79 @@ public class SpdxToSpdxExporterTest
   }
 
   @Test
-  public void testExport_Json() throws Exception {
-    File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("spdx-v2_3.json"));
+  public void testExport_Json_2_3() throws Exception {
+    assertJsonEquals(SPDX_23, "spdx-v2_3.json");
+  }
+
+  @Test
+  public void testExport_Json_2_2() throws Exception {
+    assertJsonEquals(SPDX_22, "spdx-v2_2.json");
+  }
+
+  private void assertJsonEquals(ExportSpecification spec, String fileName) throws Exception {
+    File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(fileName));
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(tempEntity.newThirdPartyFile().getId(), app.getId(), "1.0.1", ACTIVE,
-            sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.JSON.toString(), "2.3");
+            sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.JSON.toString(), spec.getVersion());
+
     SbomExportParams exportParams =
         SbomExportParams.newSbomExporterParams(sbomMetadata)
-            .withExportSpecification(ExportSpecification.SPDX_23)
+            .withExportSpecification(spec)
             .withTargetFormat(SbomFormat.JSON);
     spdxExporter.setExportParams(exportParams);
     String export = spdxExporter.export();
     ThirdPartyUtils.parseAndValidateSpdx(export, SbomFormat.JSON);
     assertThatJson(export)
         .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]", "documentNamespace", "name")
-        .isEqualTo(readFileToString("outputs/output_spdx-v2_3.json"));
+        .isEqualTo(readFileToString("outputs/output_" + fileName));
   }
 
   @Test
-  public void testExport_Xml() throws Exception {
-    File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("spdx-v2_3.xml"));
+  public void testExport_Xml_2_3() throws Exception {
+    assertXmlEquals(SPDX_23, "spdx-v2_3.xml");
+  }
+
+  @Test
+  public void testExport_Xml_2_2() throws Exception {
+    assertXmlEquals(SPDX_22, "spdx-v2_2.xml");
+  }
+
+  public void assertXmlEquals(ExportSpecification spec, String fileName) throws Exception {
+    File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(fileName));
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(tempEntity.newThirdPartyFile().getId(), app.getId(), "1.0.1", ACTIVE,
-            sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.XML.toString(), "2.3");
+            sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.XML.toString(), spec.getVersion());
     SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
-        .withExportSpecification(ExportSpecification.SPDX_23)
+        .withExportSpecification(spec)
         .withTargetFormat(SbomFormat.XML);
     spdxExporter.setExportParams(exportParams);
     String export = spdxExporter.export();
     ThirdPartyUtils.parseAndValidateSpdx(export, SbomFormat.XML);
-    XmlAssert.assertThat(export).and(readFileToString("outputs/output_spdx-v2_3.xml"))
+    XmlAssert.assertThat(export).and(readFileToString("outputs/output_" + fileName))
         .withNodeFilter(node -> !IGNORE_NODES.contains(node.getNodeName()))
         .ignoreWhitespace()
         .areIdentical();
+  }
+
+  @Test
+  public void testExport_22_to_23() throws Exception {
+    SbomFormat format = SbomFormat.JSON;
+
+    File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("spdx-v2_2.json"));
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(tempEntity.newThirdPartyFile().getId(), app.getId(), "1.3", ACTIVE,
+            sbomFile.getName(), SbomSpecification.SPDX.toString(), format.toString(), SPDX_22.getVersion());
+
+    SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
+        .withExportSpecification(SPDX_23)
+        .withTargetFormat(format);
+    spdxExporter.setExportParams(exportParams);
+    String export = spdxExporter.export();
+    ThirdPartyUtils.parseAndValidateSpdx(export, format);
+
+    assertThatJson(export)
+        .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]", "documentNamespace", "name")
+        .isEqualTo(readFileToString("outputs/output_spdx-v2_3_from_v2_2.json"));
   }
 
   @Test
@@ -138,7 +180,7 @@ public class SpdxToSpdxExporterTest
         "CVSS VectorCVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", "High", "", "", "", "", "SONATYPE");
 
     SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
-        .withExportSpecification(ExportSpecification.SPDX_23)
+        .withExportSpecification(SPDX_23)
         .withTargetFormat(SbomFormat.JSON);
     spdxExporter.setExportParams(exportParams);
     String export = spdxExporter.export();
@@ -185,7 +227,7 @@ public class SpdxToSpdxExporterTest
         "CVSS VectorCVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", "High", "", "", "", "", "SONATYPE");
 
     SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
-        .withExportSpecification(ExportSpecification.SPDX_23)
+        .withExportSpecification(SPDX_23)
         .withTargetFormat(SbomFormat.JSON);
     spdxExporter.setExportParams(exportParams);
     String export = spdxExporter.export();
@@ -227,7 +269,7 @@ public class SpdxToSpdxExporterTest
     tempEntity.newThirdPartyCoordinateLicense(databind, "MIT", "MIT", "", "SONATYPE");
 
     SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
-        .withExportSpecification(ExportSpecification.SPDX_23)
+        .withExportSpecification(SPDX_23)
         .withTargetFormat(SbomFormat.XML);
     spdxExporter.setExportParams(exportParams);
     String export = spdxExporter.export();
@@ -274,7 +316,7 @@ public class SpdxToSpdxExporterTest
     tempEntity.newThirdPartyCoordinateLicense(databind, "Sonatype-Private", "Sonatype Private", "", "SONATYPE");
 
     SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
-        .withExportSpecification(ExportSpecification.SPDX_23)
+        .withExportSpecification(SPDX_23)
         .withTargetFormat(SbomFormat.XML);
     spdxExporter.setExportParams(exportParams);
     String export = spdxExporter.export();
@@ -314,7 +356,7 @@ public class SpdxToSpdxExporterTest
         "CVSS VectorCVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", "High", "", "", "", "", "SONATYPE");
 
     SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
-        .withExportSpecification(ExportSpecification.SPDX_23)
+        .withExportSpecification(SPDX_23)
         .withTargetFormat(SbomFormat.JSON);
     spdxExporter.setExportParams(exportParams);
     String export = spdxExporter.export();
@@ -360,7 +402,7 @@ public class SpdxToSpdxExporterTest
         "CVSS VectorCVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", "High", "", "", "", "", "SONATYPE");
 
     SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
-        .withExportSpecification(ExportSpecification.SPDX_23)
+        .withExportSpecification(SPDX_23)
         .withTargetFormat(SbomFormat.JSON);
     spdxExporter.setExportParams(exportParams);
     String export = spdxExporter.export();
@@ -405,7 +447,7 @@ public class SpdxToSpdxExporterTest
         "CVSS VectorCVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", "High", "", "", "", "", "SONATYPE");
 
     SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
-        .withExportSpecification(ExportSpecification.SPDX_23)
+        .withExportSpecification(SPDX_23)
         .withTargetFormat(SbomFormat.JSON);
     spdxExporter.setExportParams(exportParams);
     String export = spdxExporter.export();

@@ -32,6 +32,8 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.scan.file.ThirdPartyUtils;
+import com.sonatype.insight.scan.file.UnsupportedSbomException;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Binder;
@@ -195,9 +197,11 @@ public class ApiSpdxServiceTest
 
   @Test
   public void testGetByScanId_invalidSpdxVersion() {
-    assertThatExceptionOfType(BadRequestException.class)
+    assertThatExceptionOfType(UnsupportedSbomException.class)
         .isThrownBy(() -> service.getByScanId(application.getId(), scanId, "xml", false, "2.0"))
-        .withMessageContaining("Invalid SPDX version: 2.0. Supported SPDX versions: [2.2, 2.3]");
+        .withMessageContaining(
+            "SPDX 2.0 version is not valid. Supported SPDX versions: " +
+                ThirdPartyUtils.SPDX_ACCEPTED_VERSIONS.values());
   }
 
   @Test
@@ -302,7 +306,7 @@ public class ApiSpdxServiceTest
   private void assertDocument(final SpdxDocument document, final String spdxVersion, boolean isSage) throws Exception {
     String dataDate = isSage ? "20230716" : null;
     assertMetadata(document, spdxVersion, dataDate);
-    assertPackages(document, isSage);
+    assertPackages(document, isSage, spdxVersion);
     assertExtractedLicenseInfo(document);
     assertTopLevelRelationship(document);
 
@@ -315,18 +319,33 @@ public class ApiSpdxServiceTest
   }
 
   @Test
-  public void testGetLatestForStage_json() throws Exception {
+  public void testGetLatestForStage_json_23() throws Exception {
     testGetLatest("json", false, "2.3");
   }
 
   @Test
-  public void testGetLatestForStage_xml() throws Exception {
+  public void testGetLatestForStage_xml_23() throws Exception {
     testGetLatest("xml", false, "2.3");
   }
 
   @Test
-  public void testGetLatestForStage_json_cycloneDx() throws Exception {
+  public void testGetLatestForStage_json_cycloneDx_23() throws Exception {
     testGetLatest("json", true, "2.3");
+  }
+
+  @Test
+  public void testGetLatestForStage_json_22() throws Exception {
+    testGetLatest("json", false, "2.2");
+  }
+
+  @Test
+  public void testGetLatestForStage_xml_22() throws Exception {
+    testGetLatest("xml", false, "2.2");
+  }
+
+  @Test
+  public void testGetLatestForStage_json_cycloneDx_22() throws Exception {
+    testGetLatest("json", true, "2.2");
   }
 
   @Test
@@ -339,15 +358,16 @@ public class ApiSpdxServiceTest
   @Test
   public void testGetLatestForStage_invalidFormat() {
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> service.getLatestForStage(application.getId(), BuildStageType.ID, "yaml", false, "2.0"))
+        .isThrownBy(() -> service.getLatestForStage(application.getId(), BuildStageType.ID, "yaml", false, "2.2"))
         .withMessageContaining("Invalid format: yaml. Supported formats: [json, xml]");
   }
 
   @Test
   public void testGetLatestForStage_invalidSpdxVersion() {
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> service.getLatestForStage(application.getId(), BuildStageType.ID, "xml", false, "2.1"))
-        .withMessageContaining("Invalid SPDX version: 2.1. Supported SPDX versions: [2.2, 2.3]");
+    assertThatExceptionOfType(UnsupportedSbomException.class).isThrownBy(
+            () -> service.getLatestForStage(application.getId(), BuildStageType.ID, "xml", false, "2.1"))
+        .withMessageContaining("SPDX 2.1 version is not valid. Supported SPDX versions: " +
+            ThirdPartyUtils.SPDX_ACCEPTED_VERSIONS.values());
   }
 
   private void testGetLatest(
@@ -419,7 +439,7 @@ public class ApiSpdxServiceTest
       "pkg:maven/net.sf.ehcache/sizeof-agent@1.0.1?type=jar"
   );
 
-  private void assertPackages(SpdxDocument document, boolean isSage) throws Exception {
+  private void assertPackages(SpdxDocument document, boolean isSage, final String spdxVersion) throws Exception {
     List<? extends ModelObject> items =
         Read.getAllItems(document.getModelStore(), document.getDocumentUri(), SpdxConstants.CLASS_SPDX_PACKAGE)
             .collect(Collectors.toList());
@@ -432,6 +452,13 @@ public class ApiSpdxServiceTest
       assertThat(spdxPackage.getVersionInfo()).isPresent().get().isIn(expectedVersions);
       assertThat(spdxPackage.getName()).isPresent().get().isIn(expectedNames);
       assertThat(spdxPackage.getDownloadLocation()).isPresent().get().isEqualTo(SpdxConstants.NOASSERTION_VALUE);
+
+      if (org.spdx.library.Version.TWO_POINT_TWO_VERSION.endsWith(spdxVersion)) {
+        assertThat(spdxPackage.getCopyrightText()).isEqualTo(SpdxConstants.NOASSERTION_VALUE);
+      }
+      else {
+        assertThat(spdxPackage.getCopyrightText()).isEmpty();
+      }
 
       Collection<ExternalRef> externalRefs = spdxPackage.getExternalRefs();
       assertThat(externalRefs).isNotEmpty();

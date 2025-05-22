@@ -161,12 +161,11 @@ public abstract class AbstractSpdxExporter
       final SpdxDocument newDocument)
       throws InvalidSPDXAnalysisException
   {
-
     SpdxPackage originalRootPkg = SbomSpdxUtils.getRootPackage(originalDocument);
     List<SpdxPackage> originalDocPackages = SbomSpdxUtils.getAllPackages(originalDocument);
 
     for (SpdxPackage pkg : originalDocPackages) {
-      // a valid existing package will always have a name. It is unlikely to have this "unknown package" to get called
+      // A valid existing package will always have a name. It is unlikely to have this "unknown package" to get called
       String pkgName = pkg.getName().orElse("UNKNOWN PACKAGE");
 
       SpdxPackage.SpdxPackageBuilder pkgBuilder = newDocument
@@ -193,6 +192,8 @@ public abstract class AbstractSpdxExporter
       }
 
       externalRefs.forEach(pkgBuilder::addExternalRef);
+
+      pkg.getAttributionText().forEach(pkgBuilder::addAttributionText);
 
       pkg.getVersionInfo().ifPresent(pkgBuilder::setVersionInfo);
       pkg.getChecksums().forEach(pkgBuilder::addChecksum);

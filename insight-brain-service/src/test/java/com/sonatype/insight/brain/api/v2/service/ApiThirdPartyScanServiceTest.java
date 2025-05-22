@@ -107,8 +107,17 @@ public class ApiThirdPartyScanServiceTest
   }
 
   @Test
-  public void testScanComponents_spdx_2_2_json_notSupported() throws Exception {
-    testScanComponentsWithFailure("valid_spdx_2_2.json", SbomFormat.JSON, "SPDX 2.2 version is not supported");
+  public void testScanComponents_spdx_2_2_json_invalid() throws Exception {
+    testScanComponentsWithFailure("invalid_spdx_2_2.json", SbomFormat.JSON,
+        "The sbom is not valid.\n - Line: 37, Column: 6, Path: $.packages[1], " +
+            "Error: required property 'copyrightText' not found");
+  }
+
+  @Test
+  public void testScanComponents_spdx_2_2_xml_invalid() throws Exception {
+    testScanComponentsWithFailure("invalid_spdx_2_2.xml", SbomFormat.XML,
+        "The sbom is not valid.\n - Error: Missing required download location for package log4j:log4j in" +
+            " sonatype:iq_application_webgoat in sonatype:iq_application_webgoat in webgoat");
   }
 
   @Test
@@ -121,6 +130,16 @@ public class ApiThirdPartyScanServiceTest
   public void testScanComponents_spdx_2_3_xml_invalid() throws Exception {
     testScanComponentsWithFailure("invalid_spdx_2_3.xml", SbomFormat.XML,
         "The sbom is not valid.\n - Error: Missing required creators");
+  }
+
+  @Test
+  public void testScanComponents_spdx_2_2_json() throws Exception {
+    testScanComponents("valid_spdx_2_2.json", SbomFormat.JSON);
+  }
+
+  @Test
+  public void testScanComponents_spdx_2_2_xml() throws Exception {
+    testScanComponents("valid_spdx_2_2.xml", SbomFormat.XML);
   }
 
   @Test

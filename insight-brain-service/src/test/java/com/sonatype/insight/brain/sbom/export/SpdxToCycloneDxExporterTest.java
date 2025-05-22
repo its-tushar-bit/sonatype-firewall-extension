@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -111,18 +112,32 @@ public class SpdxToCycloneDxExporterTest
   }
 
   @Test
-  public void testExport_Json() throws Exception {
-    File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("spdx-v2_3.json"));
+  public void testExport_Json_2_3() throws Exception {
+    assertJson("spdx-v2_3.json", ExportSpecification.CYCLONEDX_15, "2.3", "output_cdx-v1_5.json");
+  }
+
+  @Test
+  public void testExport_Json_2_2() throws Exception {
+    assertJson("spdx-v2_2.json", ExportSpecification.CYCLONEDX_16, "2.2", "output_cdx-v1_6.json");
+  }
+
+  private void assertJson(
+      String fileName,
+      ExportSpecification exportSpecification,
+      String importVersion,
+      String outputFileName) throws Exception
+  {
+    File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(fileName));
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(tempEntity.newThirdPartyFile().getId(), app.getId(), "1.0.1", ACTIVE,
-            sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.JSON.toString(), "2.3");
+            sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.JSON.toString(), importVersion);
     SbomExportParams exportParams =
         SbomExportParams.newSbomExporterParams(sbomMetadata)
-            .withExportSpecification(SbomExportParams.ExportSpecification.CYCLONEDX_15)
+            .withExportSpecification(exportSpecification)
             .withTargetFormat(SbomFormat.JSON);
     spdxToCycloneDxExporter.setExportParams(exportParams);
     String expected = IOUtils.resourceToString("/" + getClass().getSimpleName() +
-        "/outputs/" + "output_cdx-v1_5.json", Charset.defaultCharset());
+        "/outputs/" + outputFileName, Charset.defaultCharset());
     String actual = spdxToCycloneDxExporter.export();
     assertThatJson(actual)
         .whenIgnoringPaths("components[*].licenses[*].license.bom-ref")
@@ -130,17 +145,31 @@ public class SpdxToCycloneDxExporterTest
   }
 
   @Test
-  public void testExport_XML() throws Exception {
-    File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("spdx-v2_3.xml"));
+  public void testExport_XML_2_2() throws Exception {
+    assertXml("spdx-v2_2.xml", ExportSpecification.CYCLONEDX_16, "2.2", "output_cdx-v1_6.xml");
+  }
+
+  @Test
+  public void testExport_XML_2_3() throws Exception {
+    assertXml("spdx-v2_3.xml", ExportSpecification.CYCLONEDX_15, "2.3", "output_cdx-v1_5.xml");
+  }
+
+  private void assertXml(
+      String fileName,
+      ExportSpecification exportSpecification,
+      String importVersion,
+      String outputFileName) throws Exception
+  {
+    File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(fileName));
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(tempEntity.newThirdPartyFile().getId(), app.getId(), "1.0.1", ACTIVE,
-            sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.XML.toString(), "2.3");
+            sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.XML.toString(), importVersion);
     SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
-        .withExportSpecification(SbomExportParams.ExportSpecification.CYCLONEDX_15)
+        .withExportSpecification(exportSpecification)
         .withTargetFormat(SbomFormat.XML);
     spdxToCycloneDxExporter.setExportParams(exportParams);
     String actual = spdxToCycloneDxExporter.export();
-    XmlAssert.assertThat(actual).and(readFileToString("outputs/output_cdx-v1_5.xml"))
+    XmlAssert.assertThat(actual).and(readFileToString("outputs/" + outputFileName))
         .withNodeFilter(cycloneDxIgnoreNodesFilter())
         .withAttributeFilter(cycloneDxIgnoreAttributesFilter())
         .ignoreWhitespace()

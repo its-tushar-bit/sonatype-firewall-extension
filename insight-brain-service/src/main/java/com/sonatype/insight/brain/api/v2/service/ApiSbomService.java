@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -220,10 +221,16 @@ public class ApiSbomService
   {
     final ThirdPartySbomMetadata thirdPartySbomMetadata = findSbomMetadataRecord(applicationId, version);
     ExportSpecification exportSpec = ExportSpecification.getSpecificationForRequest(targetSpecification);
+
     if (thirdPartySbomMetadata.getSpec().equals(SbomSpecification.CYCLONEDX.toString()) &&
         exportSpec.getSpecification().equals(SbomSpecification.CYCLONEDX)) {
       validateCycloneDxAllowedForwardSpecVersionsOnly(thirdPartySbomMetadata, exportSpec);
     }
+    else if (thirdPartySbomMetadata.getSpec().equals(SbomSpecification.SPDX.toString()) &&
+        exportSpec.getSpecification().equals(SbomSpecification.SPDX)) {
+      validateSpdxAllowedForwardSpecVersionsOnly(thirdPartySbomMetadata, exportSpec);
+    }
+
     SbomFormat sbomFormat = SbomFormat.forMimeType(acceptType);
     SbomExportParams params = SbomExportParams.newSbomExporterParams(thirdPartySbomMetadata)
         .withExportSpecification(exportSpec)
@@ -264,18 +271,55 @@ public class ApiSbomService
       ExportSpecification requestedSpecification)
   {
     String dbSpecVersion = thirdPartySbomMetadata.getSpecVersion();
-    Version dbVersion = Arrays.stream(Version.values()).filter(v -> v.getVersionString()
-            .equalsIgnoreCase(dbSpecVersion)).findFirst()
-        .orElseThrow(() -> new InternalServerException("Unable to determine the original SBOM specification version"));
+    Version dbVersion = findCycloneDxVersionOrThrow(dbSpecVersion,
+        () -> new InternalServerException("Unable to determine the original SBOM specification version"));
+
     String requestedVersionString = requestedSpecification.getVersion();
-    Version requestedVersion = Arrays.stream(Version.values()).filter(v -> v.getVersionString()
-        .equalsIgnoreCase(requestedVersionString)).findFirst().orElseThrow(() -> new BadRequestException(
-        String.format("requested output SBOM version %s not supported", requestedVersionString)));
+    Version requestedVersion = findCycloneDxVersionOrThrow(requestedVersionString,
+        () -> new BadRequestException(
+            String.format("requested output SBOM version %s not supported", requestedVersionString)));
 
     if (requestedVersion.getVersion() < dbVersion.getVersion()) {
-      throw new BadRequestException("Unable to export lower SBOM specification version" + requestedVersionString +
-          ". The original SBOM was already in version " + dbSpecVersion);
+      throw new BadRequestException("Unable to export lower SBOM specification version " + requestedVersionString +
+          ". The original CycloneDX SBOM was already in version " + dbSpecVersion);
     }
+  }
+
+  private void validateSpdxAllowedForwardSpecVersionsOnly(
+      ThirdPartySbomMetadata thirdPartySbomMetadata,
+      ExportSpecification requestedSpecification)
+  {
+    String dbSpecVersion = thirdPartySbomMetadata.getSpecVersion();
+    Double dbVersion = parseSpdxVersionOrThrow(dbSpecVersion,
+        () -> new InternalServerException("Unable to determine the original SBOM specification version"));
+
+    String requestedVersionString = requestedSpecification.getVersion();
+    Double requestedVersion = parseSpdxVersionOrThrow(requestedVersionString,
+        () -> new BadRequestException(
+            String.format("requested output SBOM version %s not supported", requestedVersionString)));
+
+    if (requestedVersion < dbVersion) {
+      throw new BadRequestException("Unable to export lower SBOM specification version " + requestedVersionString +
+          ". The original SPDX SBOM was already in version " + dbSpecVersion);
+    }
+  }
+
+  private Version findCycloneDxVersionOrThrow(
+      String versionString,
+      Supplier<? extends RuntimeException> exceptionSupplier)
+  {
+    return Arrays.stream(Version.values())
+        .filter(v -> v.getVersionString().equalsIgnoreCase(versionString))
+        .findFirst()
+        .orElseThrow(exceptionSupplier);
+  }
+
+  private Double parseSpdxVersionOrThrow(String version, Supplier<? extends RuntimeException> exceptionSupplier) {
+    return ThirdPartyUtils.SPDX_ACCEPTED_VERSIONS.values().stream()
+        .filter(v -> v.equalsIgnoreCase(version))
+        .findFirst()
+        .map(Double::parseDouble)
+        .orElseThrow(exceptionSupplier);
   }
 
   @VisibleForTesting

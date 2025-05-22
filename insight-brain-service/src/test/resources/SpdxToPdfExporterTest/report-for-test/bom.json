@@ -3,19 +3,19 @@
     "componentIdentifier" : {
       "format" : "maven",
       "coordinates" : {
-        "artifactId" : "log4j",
+        "artifactId" : "log4-corej",
         "classifier" : "",
         "extension" : "jar",
-        "groupId" : "log4j",
-        "version" : "1.2.8"
+        "groupId" : "org.apache.logging.log4",
+        "version" : "2.13.2"
       }
     },
-    "packageUrl" : "pkg:maven/log4j/log4j@1.2.8?type=jar",
-    "groupId" : "log4j",
-    "artifactId" : "log4j",
-    "version" : "1.2.8",
-    "filenames" : [ "pkg:maven/log4j/log4j@1.2.8?type=jar:3640dd71069d7986c9a1" ],
-    "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:maven\\log4j\\log4j@1.2.8?type=jar:3640dd71069d7986c9a1" ],
+    "packageUrl" : "pkg:maven/org.apache.logging.log4/log4-corej@2.13.2?type=jar",
+    "groupId" : "org.apache.logging.log4",
+    "artifactId" : "log4-corej",
+    "version" : "2.13.2",
+    "filenames" : [ "pkg:maven/org.apache.logging.log4/log4-corej@2.13.2?type=jar:3640dd71069d7986c9a1" ],
+    "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:maven\\org.apache.logging.log4\\log4-corej@2.13.2?type=jar:3640dd71069d7986c9a1" ],
     "aggregateFiles" : [ ],
     "matchState" : "exact",
     "scanError" : false,
@@ -50,19 +50,19 @@
     "displayName" : {
       "parts" : [ {
         "field" : "Group",
-        "value" : "log4j"
+        "value" : "org.apache.logging.log4"
       }, {
         "value" : " : "
       }, {
         "field" : "Artifact",
-        "value" : "log4j"
+        "value" : "log4-corej"
       }, {
         "value" : " : "
       }, {
         "field" : "Version",
-        "value" : "1.2.8"
+        "value" : "2.13.2"
       } ],
-      "name" : "log4j"
+      "name" : "log4-corej"
     },
     "directDependency" : true,
     "innerSource" : false

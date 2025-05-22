@@ -411,6 +411,48 @@ public class ApiSbomServiceTest
   }
 
   @Test
+  public void testGetSbomVersion_exportSpdxToLowerVersion() throws Exception {
+    testExportToLowerVersion(
+        SbomSpecification.SPDX,
+        "2.3",
+        "spdx2.2",
+        "Unable to export lower SBOM specification version 2.2. " +
+            "The original SPDX SBOM was already in version 2.3"
+    );
+  }
+
+  @Test
+  public void testGetSbomVersion_exportCycloneDxToLowerVersion() throws Exception {
+    testExportToLowerVersion(
+        SbomSpecification.CYCLONEDX,
+        "1.6",
+        "cyclonedx1.5",
+        "Unable to export lower SBOM specification version 1.5. " +
+            "The original CycloneDX SBOM was already in version 1.6"
+    );
+  }
+
+  private void testExportToLowerVersion(
+      SbomSpecification spec,
+      String inputSpecVersion,
+      String targetSpecification,
+      String expectedErrorMessage) throws Exception
+  {
+    Application app = tempEntity.newApplicationWithParent();
+    String inputFileName = "sboms/valid-" + spec.name().toLowerCase() + "-bom." + SbomFormat.XML.name().toLowerCase();
+    Path zippedBom = mockOriginalSbom(this.getClass(), inputFileName, insightWork.getSbomDir(app.getId()).toPath());
+
+    String sbomVersion = tempEntity.newRandomHash();
+    setupScenarioWithMetadataComponentSecurityLicenseAndVex(tempEntity, app, zippedBom, sbomVersion, spec.toString(),
+        inputSpecVersion, SbomFormat.XML);
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.getSbomVersion(app.getId(), sbomVersion, ApiSbomService.SBOM_STATE_CURRENT,
+            targetSpecification, MediaType.APPLICATION_XML))
+        .withMessage(expectedErrorMessage);
+  }
+
+  @Test
   public void testGetSbomVersion_NoActiveSboms() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withStatus(PENDING)

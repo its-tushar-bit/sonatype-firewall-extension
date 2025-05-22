@@ -123,7 +123,7 @@ public abstract class AbstractSbomExporter
              new MultiFormatStore(document.getModelStore(), spdxFormat, Verbose.STANDARD);
          ByteArrayOutputStream out = new ByteArrayOutputStream()) {
       multiFormatStore.serialize(document.getDocumentUri(), out);
-      return out.toString(StandardCharsets.UTF_8.toString());
+      return out.toString(StandardCharsets.UTF_8);
     }
     catch (Exception e) {
       throw new SbomExportException("Internal error generating the target SBOM", e);

@@ -11,6 +11,7 @@
     <documentNamespace>http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-3dea6e06d44e4b439a302af2ed4b6495/bom/1.0.1</documentNamespace>
     <packages>
         <SPDXID>SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2</SPDXID>
+        <attributionTexts>Evidence license text for: (See-License-Clause AND Apache-2.0)</attributionTexts>
         <copyrightText></copyrightText>
         <downloadLocation>NOASSERTION</downloadLocation>
         <externalRefs>
@@ -56,6 +57,7 @@
     </packages>
     <packages>
         <SPDXID>SPDXRef-maven-junit-junit-4.12</SPDXID>
+        <attributionTexts>Evidence license text for: (EPL-1.0)</attributionTexts>
         <copyrightText></copyrightText>
         <downloadLocation>NOASSERTION</downloadLocation>
         <externalRefs>
@@ -92,6 +94,7 @@
     </packages>
     <packages>
         <SPDXID>SPDXRef-maven-org.hamcrest-hamcrest-core-1.3</SPDXID>
+        <attributionTexts>Evidence license text for: (See-License-Clause AND BSD-3-Clause AND BSD-2-Clause)</attributionTexts>
         <copyrightText></copyrightText>
         <downloadLocation>NOASSERTION</downloadLocation>
         <externalRefs>
@@ -107,6 +110,7 @@
     </packages>
     <packages>
         <SPDXID>SPDXRef-maven-org.apache.logging.log4j-log4j-api-2.13.2</SPDXID>
+        <attributionTexts>Evidence license text for: (See-License-Clause AND Apache-2.0)</attributionTexts>
         <copyrightText></copyrightText>
         <downloadLocation>NOASSERTION</downloadLocation>
         <externalRefs>
@@ -122,6 +126,7 @@
     </packages>
     <packages>
         <SPDXID>SPDXRef-maven-org.yaml-snakeyaml-1.29</SPDXID>
+        <attributionTexts>Evidence license text for: (Apache-2.0)</attributionTexts>
         <copyrightText></copyrightText>
         <downloadLocation>NOASSERTION</downloadLocation>
         <externalRefs>
@@ -179,6 +184,7 @@
     </packages>
     <packages>
         <SPDXID>SPDXRef-997583b27e554729b7e310678f0b5690</SPDXID>
+        <attributionTexts>Evidence license text for: (EPL-1.0 AND LGPL-3.0 AND LGPL-3.0+ AND MPL-2.0)</attributionTexts>
         <copyrightText>NOASSERTION</copyrightText>
         <downloadLocation>NOASSERTION</downloadLocation>
         <externalRefs>

@@ -15,12 +15,14 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.report.pdf.PdfData;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent;
+import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.scan.file.SbomFormat;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification.SPDX_22;
 import static com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification.SPDX_23;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -51,11 +53,19 @@ public class SpdxToPdfExporterTest extends AbstractPdfExporterTest
   }
 
   @Test
-  public void testExportPdf_withMergedVulnerabilitiesLicenses() throws Exception {
-    //Given
-    File testBomFile = mockOriginalSbomFile("spdx-bom.xml");
+  public void testExportPdf_withMergedVulnerabilitiesLicenses_2_3() throws Exception {
+    assertPdfExportData("spdx2.3-bom.xml", SPDX_23);
+  }
+
+  @Test
+  public void testExportPdf_withMergedVulnerabilitiesLicenses_2_2() throws Exception {
+    assertPdfExportData("spdx2.2-bom.xml", SPDX_22);
+  }
+
+  private void assertPdfExportData(String fileName, ExportSpecification spec) throws Exception {
+    File testBomFile = mockOriginalSbomFile(fileName);
     ThirdPartySbomMetadata sbomMetadata =
-        createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, SPDX_23);
+        createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, spec);
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.COMPLIANCE.getId(), SCAN_ID, new Date());
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ReportHelper.saveMockReport(insightWork, tempDir, "/SpdxToPdfExporterTest/report-for-test", app.getId(), SCAN_ID);
@@ -68,17 +78,17 @@ public class SpdxToPdfExporterTest extends AbstractPdfExporterTest
         setupReportRawDataLTG("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar", 10));
 
     //When
-    SbomExportParams exportParams = withExportParams(sbomMetadata, SPDX_23, SbomFormat.JSON);
+    SbomExportParams exportParams = withExportParams(sbomMetadata, spec, SbomFormat.JSON);
     exportParams.withReportRawData(rawData);
     exporter.setExportParams(exportParams);
     PdfData pdfData = exporter.exportPdf();
-    assertPdfData(pdfData, SPDX_23, 3);
+    assertPdfData(pdfData, spec, 3);
   }
 
   @Test
   public void testExportPdf_withMissingReportData() throws Exception {
     //Given
-    File testBomFile = mockOriginalSbomFile("spdx-bom.xml");
+    File testBomFile = mockOriginalSbomFile("spdx2.3-bom.xml");
     ThirdPartySbomMetadata sbomMetadata =
         createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, SPDX_23);
     exporter.setExportParams(withExportParams(sbomMetadata, SPDX_23, SbomFormat.JSON));

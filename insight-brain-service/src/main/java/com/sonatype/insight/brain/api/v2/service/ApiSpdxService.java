@@ -9,7 +9,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -59,6 +58,7 @@ import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.file.ThirdPartyUtils;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -103,8 +103,6 @@ public class ApiSpdxService
   private static final Logger log = LoggerFactory.getLogger(ApiSpdxService.class);
 
   static final Set<String> SPDX_FORMATS = ImmutableSet.of("json", "xml");
-
-  static final Set<String> SPDX_VERSIONS = ImmutableSet.of("2.2", "2.3");
 
   static final String SPDX_REF_PREFIX = "SPDXRef-";
 
@@ -155,10 +153,10 @@ public class ApiSpdxService
       boolean generateCycloneDx,
       String spdxVersion)
   {
-    Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
+    ThirdPartyUtils.validateSpdxVersion(spdxVersion);
 
-    return getByScanId(application, scanId, validateFormat(format), generateCycloneDx,
-        validateSpdxVersion(spdxVersion));
+    Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
+    return getByScanId(application, scanId, validateFormat(format), generateCycloneDx, spdxVersion);
   }
 
   @Authorize(permission = Permission.READ)
@@ -169,6 +167,8 @@ public class ApiSpdxService
       boolean generateCycloneDx,
       String spdxVersion)
   {
+    ThirdPartyUtils.validateSpdxVersion(spdxVersion);
+
     if (StageTypes.getById(stageId) == null) {
       throw new BadRequestException("Invalid stage: " + stageId + ".");
     }
@@ -179,8 +179,7 @@ public class ApiSpdxService
       throw new NotFoundException("Unable to locate a policy evaluation for " + applicationId + " in stage " + stageId);
     }
 
-    return getByScanId(application, evaluation.getScanId(), validateFormat(format), generateCycloneDx,
-        validateSpdxVersion(spdxVersion));
+    return getByScanId(application, evaluation.getScanId(), validateFormat(format), generateCycloneDx, spdxVersion);
   }
 
   private Response getByScanId(
@@ -200,12 +199,12 @@ public class ApiSpdxService
       final SpdxDocument document = createDocument(spdxVersion, uri, data);
       final Map<String, SpdxPackage> purlElementMap = new HashMap<>();
 
-      addPackages(data.components, document, purlElementMap);
+      addPackages(data.components, document, purlElementMap, spdxVersion);
 
       ApiDependencyTreeNodeDTO rootNodeDTO =
           apiReportDataServiceV2.getDependencyTreeNoAuth(application.getPublicId(), scanId);
       if (rootNodeDTO != null) {
-        addRootPackage(rootNodeDTO, document, purlElementMap, application.getName(), scanId);
+        addRootPackage(rootNodeDTO, document, purlElementMap, application.getName(), scanId, spdxVersion);
         addDependencyRelationships(rootNodeDTO, document, purlElementMap, true);
       }
 
@@ -224,8 +223,9 @@ public class ApiSpdxService
       final SpdxDocument document,
       final Map<String, SpdxPackage> purlElementMap,
       final String applicationName,
-      final String scanId)
-      throws UnsupportedEncodingException, InvalidSPDXAnalysisException
+      final String scanId,
+      final String spdxVersion)
+      throws InvalidSPDXAnalysisException
   {
     String packageUrl = rootNodeDTO.getPackageUrl();
     if (StringUtils.isBlank(packageUrl)) {
@@ -236,7 +236,7 @@ public class ApiSpdxService
         String version = getSpdxVersionFromPurl(packageUrl);
         SpdxNoAssertionLicense noAssertionLicense = new SpdxNoAssertionLicense();
         addPackage(packageUrl, version, null, noAssertionLicense, noAssertionLicense, Collections.emptyList(),
-            document, purlElementMap);
+            document, purlElementMap, spdxVersion);
       }
       document.setName(packageUrl);
     }
@@ -289,14 +289,17 @@ public class ApiSpdxService
     return iqBaseUrl + UserInterfaceLinksHelper.getReportUrl(applicationPublicId, scanId);
   }
 
-  private void addPackages(final List<ApiReportComponentDTOV2> reportComponents, final SpdxDocument document,
-                           final Map<String, SpdxPackage> purlElementMap)
-      throws InvalidSPDXAnalysisException, UnsupportedEncodingException
+  private void addPackages(
+      final List<ApiReportComponentDTOV2> reportComponents,
+      final SpdxDocument document,
+      final Map<String, SpdxPackage> purlElementMap,
+      final String spdxVersion)
+      throws InvalidSPDXAnalysisException
   {
     Map<String, ExtractedLicenseInfo> extractedLicenseInfoMap =  new HashMap<>();
     for (ApiReportComponentDTOV2 reportComponent : reportComponents) {
       if (!MatchState.UNKNOWN.getId().equals(reportComponent.matchState)) {
-        addPackage(reportComponent, document, purlElementMap, extractedLicenseInfoMap);
+        addPackage(reportComponent, document, purlElementMap, extractedLicenseInfoMap, spdxVersion);
       }
     }
     if (!extractedLicenseInfoMap.isEmpty()) {
@@ -308,8 +311,9 @@ public class ApiSpdxService
       final ApiReportComponentDTOV2 reportComponent,
       final SpdxDocument document,
       final Map<String, SpdxPackage> purlElementMap,
-      final Map<String, ExtractedLicenseInfo> extractedLicenseInfoMap)
-      throws InvalidSPDXAnalysisException, UnsupportedEncodingException
+      final Map<String, ExtractedLicenseInfo> extractedLicenseInfoMap,
+      final String spdxVersion)
+      throws InvalidSPDXAnalysisException
   {
     String packageUrl = getPackageUrl(reportComponent);
     if (packageUrl == null) {
@@ -356,7 +360,7 @@ public class ApiSpdxService
     }
 
     addPackage(packageUrl, version, sha256, declaredLicenseInfo, concludedLicenseInfo, additionalExternalRefs,
-        document, purlElementMap);
+        document, purlElementMap, spdxVersion);
   }
 
   private List<ExternalRef> addVulnerabilities(ApiReportComponentDTOV2 component, SpdxDocument document)
@@ -444,8 +448,9 @@ public class ApiSpdxService
       final AnyLicenseInfo concludedLicenseInfo,
       final List<ExternalRef> additionalExternalRefs,
       final SpdxDocument document,
-      final Map<String, SpdxPackage> purlElementMap)
-      throws InvalidSPDXAnalysisException, UnsupportedEncodingException
+      final Map<String, SpdxPackage> purlElementMap,
+      String spdxVersion)
+      throws InvalidSPDXAnalysisException
   {
     if (purlElementMap.containsKey(packageUrl)) {
       return; // avoids duplicates
@@ -454,13 +459,21 @@ public class ApiSpdxService
     ExternalRef purlRef = document.createExternalRef(ReferenceCategory.PACKAGE_MANAGER,
         new ReferenceType("purl"), packageUrl, null);
 
-    SpdxPackageBuilder packageBuilder = document.createPackage(
-            generateSpdxId(packageUrl),
-            createSpdxNameFromPurl(packageUrl),
-            concludedLicenseInfo, null, declaredLicenseInfo)
-        .setFilesAnalyzed(false)
-        .setDownloadLocation(SpdxConstants.NOASSERTION_VALUE)
-        .addExternalRef(purlRef);
+    String copyrightText = null;
+
+    if (org.spdx.library.Version.TWO_POINT_TWO_VERSION.endsWith(spdxVersion)) {
+      copyrightText = SpdxConstants.NOASSERTION_VALUE;
+    }
+
+    SpdxPackageBuilder packageBuilder =
+        document.createPackage(generateSpdxId(packageUrl),
+                createSpdxNameFromPurl(packageUrl),
+                concludedLicenseInfo,
+                copyrightText,
+                declaredLicenseInfo)
+            .setFilesAnalyzed(false)
+            .setDownloadLocation(SpdxConstants.NOASSERTION_VALUE)
+            .addExternalRef(purlRef);
 
     for (ExternalRef externalRef : additionalExternalRefs) {
       packageBuilder.addExternalRef(externalRef);
@@ -487,8 +500,8 @@ public class ApiSpdxService
     return purl == null ? null : purl.getPackageUrl();
   }
 
-  private String generateSpdxId(final String packageUrl) throws UnsupportedEncodingException {
-    String spdxId = URLDecoder.decode(packageUrl, StandardCharsets.UTF_8.name()).substring(4);
+  private String generateSpdxId(final String packageUrl) {
+    String spdxId = URLDecoder.decode(packageUrl, StandardCharsets.UTF_8).substring(4);
     int index = spdxId.indexOf('?');
     if (index > -1) {
       spdxId = spdxId.substring(0, index);
@@ -501,14 +514,17 @@ public class ApiSpdxService
    * Given a PURL like "{@code scheme:type/namespace/name@version?qualifiers#subpath}" it creates an SPDX name as
    * "{@code namespace:name}", if the namespace element exists; otherwise it's the same as "{@code name}"
    */
-  private String createSpdxNameFromPurl(String purl) throws UnsupportedEncodingException {
-    String name = URLDecoder.decode(purl, StandardCharsets.UTF_8.name());
-    name = name.substring(purl.indexOf('/') + 1);
-    int index = name.indexOf('@');
-    if (index > -1) {
-      name = name.substring(0, index);
+  private String createSpdxNameFromPurl(String purl) {
+    PackageUrlIdentifier purlIdentifier = new PackageUrlIdentifier(purl);
+
+    if (purlIdentifier.getPackageUrl() != null) {
+      String name = purlIdentifier.getName();
+      if (StringUtils.isNotBlank(purlIdentifier.getNamespace())) {
+        return purlIdentifier.getNamespace() + ":" + name;
+      }
+      return name;
     }
-    return name.replace("/", ":");
+    return null;
   }
 
   private String getSpdxVersionFromPurl(String purl) {
@@ -573,12 +589,12 @@ public class ApiSpdxService
              new MultiFormatStore(document.getModelStore(), spdxFormat, Verbose.STANDARD);
          ByteArrayOutputStream out = new ByteArrayOutputStream()) {
       multiFormatStore.serialize(document.getDocumentUri(), out);
-      spdxContent = out.toString("UTF-8");
+      spdxContent = out.toString(StandardCharsets.UTF_8);
     }
 
     if (generateCycloneDx) {
       Response response = apiCycloneDxService.getByScanId(
-          application, scanId, "application/" + format, Version.VERSION_14, "file://" + spdxFilename);
+          application, scanId, "application/" + format, Version.VERSION_16, "file://" + spdxFilename);
       String cdxContent = response.getEntity().toString();
 
       String filename = createFileName(application, scanId, "") + ".tar.gz";
@@ -648,13 +664,5 @@ public class ApiSpdxService
       return format;
     }
     throw new BadRequestException("Invalid format: " + format + ". Supported formats: " + SPDX_FORMATS);
-  }
-
-  private String validateSpdxVersion(String spdxVersion) {
-    if (SPDX_VERSIONS.contains(spdxVersion)) {
-      return spdxVersion;
-    }
-    throw new BadRequestException(
-        "Invalid SPDX version: " + spdxVersion + ". Supported SPDX versions: " + SPDX_VERSIONS);
   }
 }

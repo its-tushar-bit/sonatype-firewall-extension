@@ -147,7 +147,7 @@ public class ApiSbomResource
       @DefaultValue(DEFAULT_SBOM_STATE) @QueryParam("state") String sbomState,
 
       @Parameter(description = "Target specification of the sbom. Allowed values " +
-          "[cyclonedx1.6|cyclonedx1.5|spdx2.3]. default = cyclonedx1.6")
+          "[cyclonedx1.6|cyclonedx1.5|spdx2.2|spdx2.3]. default = cyclonedx1.6")
       @DefaultValue(DEFAULT_SBOM_SPECIFICATION) @QueryParam("specification") String targetSpecification,
 
       @Parameter(in = ParameterIn.HEADER, name = "Accept", description = "Output format(json/xml) of the sbom. " +

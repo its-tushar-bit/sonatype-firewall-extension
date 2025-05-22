@@ -158,9 +158,8 @@ public class SbomFileDetectorTest
 
   @Test
   public void testGetSbomMetadata_SPDX_XML_Valid_2_2() throws Exception {
-    SbomDetectionResult expected =
-        createExpectedResult(true, false, false, "application/xml", "SPDX 2.2 version is not supported",
-            null, null, "SPDX","json", 0, 0, null, null);
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/xml", "2.2", "SPDX", "xml", 6, 13,
+        "sonatype:iq_application_SCM Test 1", "76b10b862e7b42009f2415097620928c");
 
     checkSbomMetadata("spdx-v2_2-xml.tmp", expected);
   }

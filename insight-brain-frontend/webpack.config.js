@@ -31,7 +31,47 @@ function extractFromPom(nodeName) {
  * @param env webpack environment object, expected to contain 'production' property
  * @param externals configuration object to use on the `externals` property
  */
-function config({ entryPath, outputPath, cssOutputPath, env, externals, es5 = false }) {
+function config({ entryPath, outputPath, cssOutputPath, env, externals, es5 = false }) {}
+
+module.exports = function (env) {
+  env = env || {};
+
+  // Specifications for each bundle that this build produces
+  const bundleConfigs = [
+    {
+      name: 'bundle',
+      entryPath: './index.js',
+      outputPath: 'bundle.js',
+      cssOutputPath: 'style.css',
+    },
+    {
+      name: 'viewdetails',
+      entryPath: './version-graph/view-details-index.js',
+      outputPath: 'viewdetails.js',
+      cssOutputPath: 'viewdetails.css',
+    },
+    {
+      name: 'version.graph.app',
+      entryPath: './version-graph/version-graph-app-index.js',
+      outputPath: 'version.graph.app.js',
+      cssOutputPath: 'version.graph.app.css',
+    },
+  ];
+
+  // Determine which bundles to include based on environment flags
+  let activeBundles = [];
+  if (env.brainOnly) {
+    activeBundles = [bundleConfigs[0]]; // Only brain bundle
+  } else if (env.versionGraphOnly) {
+    activeBundles = bundleConfigs.slice(1); // All except brain bundle
+  } else {
+    activeBundles = bundleConfigs; // All bundles
+  }
+
+  // Create a combined multi-entry configuration
+  const entryMap = Object.fromEntries(activeBundles.map((bundle) => [bundle.name, bundle.entryPath]));
+  const cssMap = Object.fromEntries(activeBundles.map((bundle) => [bundle.name, bundle.cssOutputPath]));
+
   function transformCopiedFile(content) {
     let contentStr = content.toString();
 
@@ -48,13 +88,6 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals, es5 = fa
       CLM_SERVER_VERSION: JSON.stringify(extractFromPom('version')),
       'process.env.NODE_ENV': JSON.stringify(production ? 'production' : 'development'),
     },
-    getCssPlugins = () => [new MiniCssExtractPlugin({ filename: cssOutputPath })],
-    productionPlugins = [
-      new CopyModulesPlugin({
-        destination: path.join('target', 'webpack-modules'),
-        includePackageJsons: true,
-      }),
-    ],
     copyPluginFromGlobs = [
       { from: '**/index.html', transform: true },
       { from: 'version-graph/**/viewdetails.html', transform: true },
@@ -65,6 +98,12 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals, es5 = fa
       { from: 'brain.client.js', transform: true },
       { from: 'reports.*', transform: true },
       { from: '**/*.{ttf,woff,png,svg,gif,jpg,ico}', transform: false },
+    ],
+    productionPlugins = [
+      new CopyModulesPlugin({
+        destination: path.join('target', 'webpack-modules'),
+        includePackageJsons: true,
+      }),
     ],
     plugins = [
       new CopyPlugin({
@@ -84,45 +123,23 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals, es5 = fa
         context: __dirname,
         exclude: ['node_modules', 'src/main/frontend/lib', 'src/main/frontend/version-graph'],
       }),
-    ].concat(cssOutputPath ? getCssPlugins() : [], productionPlugins),
-    // Babel is used to to convert to ES5-compatible syntax. We'll probably have to output
-    // ES5 until the end of time due to the IDE plugins. As of 2021, Visual Studio and Eclipse on Windows are known
-    // to not work with modern syntax.
-    es5LoaderBaseRule = {
-      test: /\.jsx?$/,
-      use: {
-        loader: 'babel-loader',
-        options: {
-          presets: ['@babel/preset-env'],
+      new MiniCssExtractPlugin({
+        filename: ({ chunk }) => {
+          return cssMap[chunk.name] || '[name].css';
         },
-      },
-    },
-    es5Rules = es5
-      ? [
-          {
-            ...es5LoaderBaseRule,
-            exclude: /node_modules/,
-          },
-          {
-            ...es5LoaderBaseRule,
-            // third-party modules which ship with ES6 syntax and may need to be transpiled
-            include: /node_modules[\/\\](fuse\.js|asn1.js|@uirouter|@react-hook|@rooks)/,
-          },
-        ]
-      : [];
+      }),
+    ].concat(production ? [] : productionPlugins);
 
-  return {
+  // Create the final configuration
+  const config = {
     mode: 'development', // overridden by --mode flag
-
-    // Tell webpack to produce its own runtime code in ES5-compatible syntax. Otherwise webpack modules output as
-    // arrow functions
-    target: es5 ? ['web', 'es5'] : ['web'],
+    target: ['web'],
     context: path.resolve(__dirname, 'src/main/frontend'),
-    entry: entryPath,
+    entry: entryMap,
     output: {
       path: webpackOutputDir,
       publicPath: production ? './' : '/assets/',
-      filename: outputPath,
+      filename: '[name].js',
     },
     resolve: {
       extensions: ['.js', '.jsx'],
@@ -203,10 +220,9 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals, es5 = fa
             filename: 'fonts/[name][ext]',
           },
         },
-      ].concat(es5Rules),
+      ],
     },
     plugins: plugins,
-    externals,
     devtool: production ? undefined : 'eval-source-map',
     devServer: {
       port: 8070,
@@ -228,40 +244,8 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals, es5 = fa
         },
       ],
     },
+    name: 'insight-brain-frontend',
   };
-}
 
-module.exports = function (env) {
-  env = env || {};
-
-  const brainConfig = config({
-      entryPath: './index.js',
-      outputPath: 'bundle.js',
-      cssOutputPath: 'style.css',
-      env,
-    }),
-    versionGraphConfig = config({
-      entryPath: './version-graph/view-details-index.js',
-      outputPath: 'viewdetails.js',
-      cssOutputPath: 'viewdetails.css',
-      env,
-      es5: true,
-    }),
-    versionGraphAppConfig = config({
-      entryPath: './version-graph/version-graph-app-index.js',
-      outputPath: 'version.graph.app.js',
-      cssOutputPath: 'version.graph.app.css',
-      env,
-      es5: true,
-    });
-
-  if (env.brainOnly) {
-    return brainConfig;
-  }
-
-  if (env.versionGraphOnly) {
-    return [versionGraphConfig, versionGraphAppConfig];
-  }
-
-  return [brainConfig, versionGraphConfig, versionGraphAppConfig];
+  return config;
 };

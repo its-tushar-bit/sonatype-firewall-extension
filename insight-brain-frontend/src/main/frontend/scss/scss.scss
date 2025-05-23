@@ -172,6 +172,7 @@
 @use '../OrgsAndPolicies/importSbomModal/import-sbom-modal';
 @use '../react/policyActionTag';
 @use '../manualPullRequest/createPRModal';
+@use '../modalContainer/modalContainer';
 
 // Overrides
 @use 'responsive';

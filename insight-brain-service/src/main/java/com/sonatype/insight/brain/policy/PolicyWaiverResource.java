@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -25,6 +25,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.dashboard.PolicyWaiverService;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -69,6 +70,8 @@ public class PolicyWaiverResource
 
   private final ApplicationComponentDAO applicationComponentDAO;
 
+  private final PolicyWaiverService policyWaiverService;
+
   private final PolicyWaiverDAO policyWaiverDAO;
 
   private final PolicyWaiverReasonDAO policyWaiverReasonDAO;
@@ -82,6 +85,7 @@ public class PolicyWaiverResource
       final OwnerDAO ownerDAO,
       final RepositoryComponentDAO repositoryComponentDAO,
       final ApplicationComponentDAO applicationComponentDAO,
+      final PolicyWaiverService policyWaiverService,
       final PolicyWaiverDAO policyWaiverDAO,
       final PolicyDAO policyDAO,
       final PolicyWaiverReasonDAO policyWaiverReasonDAO,
@@ -90,6 +94,7 @@ public class PolicyWaiverResource
     this.ownerDAO = ownerDAO;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.applicationComponentDAO = applicationComponentDAO;
+    this.policyWaiverService = policyWaiverService;
     this.policyWaiverDAO = policyWaiverDAO;
     this.policyDAO = policyDAO;
     this.policyWaiverReasonDAO = policyWaiverReasonDAO;
@@ -135,7 +140,7 @@ public class PolicyWaiverResource
     ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     Map<String, String> policyNamesById = new HashMap<>();
-    Function<String, String> policyNameLoader =
+    UnaryOperator<String> policyNameLoader =
         policyId -> policyNamesById.computeIfAbsent(policyId, id -> policyDAO.getById(id).getName());
 
     Map<String, PolicyWaiverReason> policyWaiverReasonMap = policyWaiverReasonDAO
@@ -149,6 +154,8 @@ public class PolicyWaiverResource
       }
       result.add(owner, getApplicableWaivers(owner.getId(), hash, policyNameLoader, componentIdentifier,
               policyWaiverReasonMap));
+      result.addExpired(owner, policyWaiverService.getExpiredWaivers(owner.getId(), hash, policyNameLoader,
+          componentIdentifier, policyWaiverReasonMap));
     }
 
     return result;
@@ -157,7 +164,7 @@ public class PolicyWaiverResource
   private List<PolicyWaiverDTO> getApplicableWaivers(
       String ownerId,
       String hash,
-      Function<String, String> policyNameLoader,
+      UnaryOperator<String> policyNameLoader,
       ComponentIdentifier componentIdentifier,
       Map<String, PolicyWaiverReason> policyWaiverReasonMap)
   {
@@ -166,26 +173,7 @@ public class PolicyWaiverResource
         policyWaiverDAO.getApplicableToComponentIncludingAllVersions(ownerId, hash, purl);
     List<PolicyWaiverDTO> dtos = new ArrayList<>(waivers.size());
     for (PolicyWaiver waiver : waivers) {
-      PolicyWaiverDTO dto = new PolicyWaiverDTO();
-      dto.setComment(waiver.getComment());
-      dto.setCreateTime(waiver.getCreateTime());
-      dto.setHash(waiver.getHash());
-      dto.setId(waiver.getId());
-      dto.setOwnerId(waiver.getOwnerId());
-      dto.setPolicyId(waiver.getPolicyId());
-      dto.policyName = policyNameLoader.apply(dto.getPolicyId());
-      dto.setConstraintFactsJson(waiver.getConstraintFactsJson());
-      dto.setConstraintFacts(waiver.getConstraintFacts());
-      dto.setCreatorId(waiver.getCreatorId());
-      dto.setCreatorName(waiver.getCreatorName());
-      dto.setAssociatedPackageUrl(waiver.getAssociatedPackageUrl());
-      dto.setComponentMatchStrategy(waiver.getComponentMatchStrategy());
-      dto.setExpireWhenRemediationAvailable(waiver.isExpireWhenRemediationAvailable());
-      dto.setExpiryTime(waiver.getExpiryTime());
-      if (waiver.getWaiverReasonId() != null) {
-        dto.policyWaiverReasonId = waiver.getWaiverReasonId();
-        dto.reasonText = policyWaiverReasonMap.get(waiver.getWaiverReasonId()).getReasonText();
-      }
+      PolicyWaiverDTO dto = policyWaiverService.mapPolicyWaiverToDTO(waiver, policyNameLoader, policyWaiverReasonMap);
       dtos.add(dto);
     }
     return dtos;
@@ -241,11 +229,26 @@ public class PolicyWaiverResource
   {
     public List<WaiversByOwner> waiversByOwner = new ArrayList<>();
 
+    public List<WaiversByOwner> expiredWaiversByOwner = new ArrayList<>();
+
     void add(Owner owner, List<PolicyWaiverDTO> waivers) {
-      String ownerId = getRestOwnerId(owner);
       if (waivers == null || waivers.isEmpty()) {
         return;
       }
+      WaiversByOwner wbo = mapWaiversToDTO(owner, waivers);
+      waiversByOwner.add(wbo);
+    }
+
+    void addExpired(Owner owner, List<PolicyWaiverDTO> waivers) {
+      if (waivers == null || waivers.isEmpty()) {
+        return;
+      }
+      WaiversByOwner wbo = mapWaiversToDTO(owner, waivers);
+      expiredWaiversByOwner.add(wbo);
+    }
+
+    private WaiversByOwner mapWaiversToDTO(Owner owner, List<PolicyWaiverDTO> waivers) {
+      String ownerId = getRestOwnerId(owner);
       for (PolicyWaiver waiver : waivers) {
         waiver.setOwnerId(ownerId);
       }
@@ -254,7 +257,7 @@ public class PolicyWaiverResource
       wbo.ownerName = owner.getName();
       wbo.ownerType = owner.getType();
       wbo.waivers = waivers;
-      waiversByOwner.add(wbo);
+      return wbo;
     }
   }
 

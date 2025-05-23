@@ -17,11 +17,13 @@ import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
@@ -42,11 +44,13 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.OrganizationService;
+import com.sonatype.insight.brain.policy.PolicyWaiverResource;
 import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.AuthzFilter.Context;
 
 import com.google.common.collect.Lists;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -394,6 +398,51 @@ public class PolicyWaiverService
     ownersByIdMap.putAll(parentOrgs);
 
     return ownersByIdMap;
+  }
+
+  public List<PolicyWaiverResource.PolicyWaiverDTO> getExpiredWaivers(
+      String ownerId,
+      String hash,
+      UnaryOperator<String> policyNameLoader,
+      ComponentIdentifier componentIdentifier,
+      Map<String, PolicyWaiverReason> policyWaiverReasonMap)
+  {
+    PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
+    List<PolicyWaiver> waivers =
+        policyWaiverDAO.getExpiredToComponentIncludingAllVersions(ownerId, hash, purl);
+    List<PolicyWaiverResource.PolicyWaiverDTO> dtos = new ArrayList<>(waivers.size());
+    for (PolicyWaiver waiver : waivers) {
+      dtos.add(mapPolicyWaiverToDTO(waiver, policyNameLoader, policyWaiverReasonMap));
+    }
+    return dtos;
+  }
+
+  public PolicyWaiverResource.PolicyWaiverDTO mapPolicyWaiverToDTO(
+      PolicyWaiver waiver,
+      UnaryOperator<String> policyNameLoader,
+      Map<String, PolicyWaiverReason> policyWaiverReasonMap)
+  {
+    PolicyWaiverResource.PolicyWaiverDTO dto = new PolicyWaiverResource.PolicyWaiverDTO();
+    dto.setComment(waiver.getComment());
+    dto.setCreateTime(waiver.getCreateTime());
+    dto.setHash(waiver.getHash());
+    dto.setId(waiver.getId());
+    dto.setOwnerId(waiver.getOwnerId());
+    dto.setPolicyId(waiver.getPolicyId());
+    dto.policyName = policyNameLoader.apply(dto.getPolicyId());
+    dto.setConstraintFactsJson(waiver.getConstraintFactsJson());
+    dto.setConstraintFacts(waiver.getConstraintFacts());
+    dto.setCreatorId(waiver.getCreatorId());
+    dto.setCreatorName(waiver.getCreatorName());
+    dto.setAssociatedPackageUrl(waiver.getAssociatedPackageUrl());
+    dto.setComponentMatchStrategy(waiver.getComponentMatchStrategy());
+    dto.setExpireWhenRemediationAvailable(waiver.isExpireWhenRemediationAvailable());
+    dto.setExpiryTime(waiver.getExpiryTime());
+    if (waiver.getWaiverReasonId() != null) {
+      dto.policyWaiverReasonId = waiver.getWaiverReasonId();
+      dto.reasonText = policyWaiverReasonMap.get(waiver.getWaiverReasonId()).getReasonText();
+    }
+    return dto;
   }
 
   // visible for @AuthzFilter

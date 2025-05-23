@@ -581,10 +581,10 @@ public class ComponentDetailsTest
     policyViolationsTable.shouldBe(visible);
     policyViolationsTable.getRows().shouldHave(size(1));
     rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHave(size(6));
+    rowCells.shouldHave(size(7));
 
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
-        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "Unapplied Waiver", ""));
+        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "-", "Unapplied Waiver", ""));
 
     eyesWatcher.eyesCheck("component details violations tab violation table unapplied waiver");
 
@@ -608,9 +608,9 @@ public class ComponentDetailsTest
     policyViolationsTable.shouldBe(visible);
     policyViolationsTable.getRows().shouldHave(size(1));
     rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHave(size(6));
+    rowCells.shouldHave(size(7));
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
-        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "1 Active Waiver", ""));
+        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "-", "Waived", ""));
     testLegacyViolationIndicator(componentDetailsPage);
   }
 
@@ -637,15 +637,15 @@ public class ComponentDetailsTest
     policyViolationsTable.shouldBe(visible);
     policyViolationsTable.getRows().shouldHave(size(3));
 
-    SelenideElement unappliedWaiverCell = policyViolationsTable.getRows().get(0).findAll(By.tagName("td")).get(4);
-    unappliedWaiverCell.shouldBe(empty);
+    SelenideElement unappliedWaiverCell = policyViolationsTable.getRows().get(0).findAll(By.tagName("td")).get(5);
+    unappliedWaiverCell.shouldHave(text("Open"));
 
     // Only the waiver applied for specific violation should have the unapplied waiver label
-    unappliedWaiverCell = policyViolationsTable.getRows().get(1).findAll(By.tagName("td")).get(4);
+    unappliedWaiverCell = policyViolationsTable.getRows().get(1).findAll(By.tagName("td")).get(5);
     unappliedWaiverCell.shouldHave(text("Unapplied Waiver"));
 
-    unappliedWaiverCell = policyViolationsTable.getRows().get(2).findAll(By.tagName("td")).get(4);
-    unappliedWaiverCell.shouldBe(empty);
+    unappliedWaiverCell = policyViolationsTable.getRows().get(2).findAll(By.tagName("td")).get(5);
+    unappliedWaiverCell.shouldHave(text("Open"));
   }
 
   @Test
@@ -1012,12 +1012,12 @@ public class ComponentDetailsTest
     policyViolationsTable.shouldBe(visible);
     policyViolationsTable.getRows().shouldHave(size(3));
     ElementsCollection rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHave(size(6));
+    rowCells.shouldHave(size(7));
     rowCells.shouldHave(exactTexts("9", "Security-High", "High risk CVSS score",
         "Found security vulnerability CVE-2016-9879 with severity >= 7 (severity = 7.5) "
             + "Found security vulnerability CVE-2016-9879 with severity < 10 (severity = 7.5) "
             + "Found security vulnerability CVE-2016-9879 with status 'Open', not 'Not Applicable'",
-        "", ""));
+        "-", "Open", ""));
 
     addWaiver(policyViolationsTable);
 
@@ -1029,12 +1029,12 @@ public class ComponentDetailsTest
     policyViolationsTable.shouldBe(visible);
     policyViolationsTable.getRows().shouldHave(size(3));
     rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHave(size(6));
+    rowCells.shouldHave(size(7));
     rowCells.shouldHave(exactTexts("9", "Security-High", "High risk CVSS score",
         "Found security vulnerability CVE-2016-9879 with severity >= 7 (severity = 7.5) "
             + "Found security vulnerability CVE-2016-9879 with severity < 10 (severity = 7.5) "
             + "Found security vulnerability CVE-2016-9879 with status 'Open', not 'Not Applicable'",
-        "Unapplied Waiver", ""));
+        "-", "Unapplied Waiver", ""));
 
     MainHeader.backButton().click();
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
@@ -1057,12 +1057,12 @@ public class ComponentDetailsTest
     policyViolationsTable.shouldBe(visible);
     policyViolationsTable.getRows().shouldHave(size(3));
     rowCells = policyViolationsTable.getRows().last().findAll(By.tagName("td"));
-    rowCells.shouldHave(size(6));
+    rowCells.shouldHave(size(7));
     rowCells.shouldHave(exactTexts("9", "Security-High", "High risk CVSS score",
         "Found security vulnerability CVE-2016-9879 with severity >= 7 (severity = 7.5) "
             + "Found security vulnerability CVE-2016-9879 with severity < 10 (severity = 7.5) "
             + "Found security vulnerability CVE-2016-9879 with status 'Open', not 'Not Applicable'",
-        "1 Active Waiver", ""));
+        "-", "Waived", ""));
 
     eyesWatcher.eyesCheck("component details security tab violation table Active waiver");
   }
@@ -1215,7 +1215,7 @@ public class ComponentDetailsTest
 
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
         "Found licenses in the 'Banned' license threat group ('AGPL-3.0')",
-        "", ""));
+        "Open", ""));
 
     eyesWatcher.eyesCheck("component details legal tab violation table no waiver");
 
@@ -1259,7 +1259,7 @@ public class ComponentDetailsTest
     rowCells.shouldHave(size(6));
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
         "Found licenses in the 'Banned' license threat group ('AGPL-3.0')",
-        "1 Active Waiver", ""));
+        "Waived", ""));
   }
 
   @Test
@@ -1432,7 +1432,7 @@ public class ComponentDetailsTest
 
     PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
     policyViolationsTable.getRows().shouldHave(size(1));
-    SelenideElement indicatorsCell = policyViolationsTable.getRows().first().findAll(By.tagName("td")).get(4);
+    SelenideElement indicatorsCell = policyViolationsTable.getRows().first().findAll(By.tagName("td")).get(5);
     indicatorsCell.shouldHave(text("Legacy"));
   }
 

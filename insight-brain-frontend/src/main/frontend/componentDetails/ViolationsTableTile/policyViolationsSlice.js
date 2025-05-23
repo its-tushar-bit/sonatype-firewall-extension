@@ -46,7 +46,7 @@ const loadRequested = (state) => {
 const loadFulfilled = (state, { payload }) => {
   const {
     violationsResult = { aaData: [] },
-    waiversResult = { waiversByOwner: [] },
+    waiversResult = { waiversByOwner: [], expiredWaiversByOwner: [] },
     permissionResult,
     innerSourceTransitiveWaiver,
     hash,
@@ -64,12 +64,23 @@ const loadFulfilled = (state, { payload }) => {
       }))
     )
   );
+  const expiredComponentWaivers = flatten(
+    waiversResult.expiredWaiversByOwner.map((expiredWaiversWithOwner) =>
+      expiredWaiversWithOwner.waivers.map((waiver) => ({
+        ...waiver,
+        policyWaiverId: waiver.id,
+        scopeOwnerId: expiredWaiversWithOwner.ownerId,
+        scopeOwnerType: expiredWaiversWithOwner.ownerType,
+        scopeOwnerName: expiredWaiversWithOwner.ownerName,
+      }))
+    )
+  );
 
   const violations = componentViolationInformation.allViolations || componentViolationInformation.activeViolations;
 
   return {
     ...state,
-    violations: populateViolationsWithApplicableWaivers(componentWaivers, violations),
+    violations: populateViolationsWithApplicableWaivers(componentWaivers, violations, expiredComponentWaivers),
     waivers: componentWaivers,
     loading: false,
     loadError: null,

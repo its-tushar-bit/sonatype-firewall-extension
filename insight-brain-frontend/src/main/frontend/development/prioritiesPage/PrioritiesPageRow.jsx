@@ -9,12 +9,15 @@ import {
   NxFontAwesomeIcon,
   NxLoadingSpinner,
   NxOverflowTooltip,
+  NxSmallTag,
   NxTableCell,
   NxTableRow,
   NxTextLink,
   NxTooltip,
 } from '@sonatype/react-shared-components';
 import { faStar } from '@fortawesome/sharp-solid-svg-icons';
+import { faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
+import { faQuestionCircle } from '@fortawesome/pro-regular-svg-icons';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from './slices/prioritiesPageSlice';
@@ -74,6 +77,12 @@ export default function PrioritiesPageRow({ component, componentHref, violations
     pathName,
     remediationType,
     remediationVersion,
+    hasExpiredWaiver,
+    hasSoonToExpireWaiver,
+    isAllViolationsWaived,
+    waiverExpirationDetails,
+    waivedViolationsCount,
+    hasAutoWaiver,
   } = component;
 
   const policyAction = action === 'none' ? null : action;
@@ -186,8 +195,14 @@ export default function PrioritiesPageRow({ component, componentHref, violations
           </div>
         </NxOverflowTooltip>
       </NxTableCell>
-      <NxTableCell className="iq-priorities-table__build-action">
-        <PolicyActionTag action={policyAction} />
+      <NxTableCell>
+        <BuildAction
+          action={policyAction}
+          hasExpiredWaiver={hasExpiredWaiver}
+          hasSoonToExpireWaiver={hasSoonToExpireWaiver}
+          isAllViolationsWaived={isAllViolationsWaived}
+          waiverExpirationDetails={waiverExpirationDetails}
+        />
       </NxTableCell>
       <NxTableCell className="iq-priorities-table__reachability">
         <Reachability reachable={securityReachable} />
@@ -199,6 +214,10 @@ export default function PrioritiesPageRow({ component, componentHref, violations
           isUnknown={isUnknown}
           actualVersion={actualVersion}
           recommendation={recommendation}
+          reachable={securityReachable}
+          isAllViolationsWaived={isAllViolationsWaived}
+          waivedViolationsCount={waivedViolationsCount}
+          hasAutoWaiver={hasAutoWaiver}
         />
       </NxTableCell>
       <NxTableCell>
@@ -226,12 +245,79 @@ function RowCreatePRModal({ visible, onPRCreated }) {
   return visible ? <CreatePRModal onSuccess={onPRCreated} /> : null;
 }
 
-function Recommendation({ loading, error, isUnknown, actualVersion, recommendation }) {
+function BuildAction({
+  action,
+  hasExpiredWaiver,
+  hasSoonToExpireWaiver,
+  isAllViolationsWaived,
+  waiverExpirationDetails,
+}) {
+  return (
+    <div className="iq-priorities-table__build-action">
+      {isAllViolationsWaived === true ? <span>Waived</span> : <PolicyActionTag action={action} />}
+      {waiverExpirationDetails && (
+        <NxTooltip title={waiverExpirationDetails}>
+          {action && hasExpiredWaiver ? (
+            <NxFontAwesomeIcon className="iq-expired-waiver-icon" icon={faQuestionCircle} />
+          ) : isAllViolationsWaived && hasSoonToExpireWaiver ? (
+            <NxFontAwesomeIcon className="iq-soon-to-expire-waiver-icon" icon={faExclamationTriangle} />
+          ) : (
+            <div></div>
+          )}
+        </NxTooltip>
+      )}
+    </div>
+  );
+}
+
+function Recommendation({
+  loading,
+  error,
+  isUnknown,
+  actualVersion,
+  recommendation,
+  reachable,
+  isAllViolationsWaived,
+  waivedViolationsCount,
+  hasAutoWaiver,
+}) {
+  const nudgeAutoWaiverText = 'Ask an administrator to configure Automated Waivers';
+  const waivedViolationsCountText =
+    waivedViolationsCount === 1
+      ? `${waivedViolationsCount} waived violation`
+      : `${waivedViolationsCount} waived violations`;
+  const hasUpgradePath = recommendation?.version && actualVersion !== recommendation?.version;
+  const shouldWaiveViolations = reachable !== true && !hasUpgradePath && !error && !isUnknown;
+  const shouldInvestigate = error || isUnknown || !hasUpgradePath;
+
   if (loading) {
     return <NxLoadingSpinner />;
   }
 
-  if (error || isUnknown || !recommendation?.version || actualVersion === recommendation?.version) {
+  if (isAllViolationsWaived) {
+    return (
+      <div>
+        <span>{waivedViolationsCountText}</span>
+        {hasAutoWaiver && (
+          <NxSmallTag color="green" className="iq-waiver-indicator-auto-tag">
+            Auto
+          </NxSmallTag>
+        )}
+      </div>
+    );
+  }
+
+  if (shouldWaiveViolations) {
+    return (
+      <NxTooltip title={nudgeAutoWaiverText}>
+        <div className="iq-priorities-table__recommendation">
+          <span>Waive violations</span>
+        </div>
+      </NxTooltip>
+    );
+  }
+
+  if (shouldInvestigate) {
     return <span>Investigate</span>;
   }
 

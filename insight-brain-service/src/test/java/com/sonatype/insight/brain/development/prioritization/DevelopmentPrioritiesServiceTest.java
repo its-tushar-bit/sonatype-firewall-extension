@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 
@@ -33,8 +34,11 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.features.FeaturesService;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
+import com.sonatype.insight.brain.policy.PathForwardInspector;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.Component;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyAction;
@@ -47,6 +51,7 @@ import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -106,6 +111,12 @@ public class DevelopmentPrioritiesServiceTest
   @Inject
   private ApplicationDAO applicationDAO;
 
+  @Inject
+  private PolicyWaiverDAO policyWaiverDAO;
+
+  @Inject
+  private PathForwardInspector pathForwardInspector;
+
   private DevelopmentPrioritiesService developmentPrioritiesService;
 
   private String prioritizationId;
@@ -115,7 +126,7 @@ public class DevelopmentPrioritiesServiceTest
     developmentPrioritiesService = new DevelopmentPrioritiesService(
         featuresService, developmentPrioritiesReportService, prioritizationComponentInfoDAO, reportService,
         componentReachabilityService, componentRemediationService, developmentPrioritiesUtilsService,
-        policyEvaluationDAO, applicationDAO);
+        policyEvaluationDAO, applicationDAO, policyWaiverDAO, pathForwardInspector);
     prioritizationId = tempEntity.newDevelopmentPrioritization(GIVEN_SOME_SCAN_ID).getId();
     tempEntity.newApplicationWithParent(GIVEN_SOME_PUBLIC_APP_ID);
   }
@@ -168,7 +179,8 @@ public class DevelopmentPrioritiesServiceTest
     final ApiReportComponentDTOV2 component4 = createComponent("ddd", "component4");
     final List<PolicyViolation> component4Violations = Lists.newArrayList(
         createPolicyViolation(
-            7, "d", "policy-d", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), REACHABLE));
+            7, "d", "policy-d", Collections.emptyList(), Collections.emptyList(),
+            SECURITY.getName(), REACHABLE, false));
     Collections.shuffle(component4Violations);
     final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(component4, component4Violations);
 
@@ -184,10 +196,18 @@ public class DevelopmentPrioritiesServiceTest
         .getAllPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, null, null);
 
     assertThat(results).containsExactly(
-        toPrioritizedComponent(component4, 7, "policy-d", 1, "Unknown", false, null, "none", true, null, null, 7),
-        toPrioritizedComponent(component2, 9, "policy-b", 2, "Unknown", false, null, "none", null, null, null, 0),
-        toPrioritizedComponent(component1, 6, "policy-a", 3, "Unknown", false, null, "none", null, null, null, 0),
-        toPrioritizedComponent(component3, 3, "policy-c", 4, "Unknown", false, null, "none", null, null, null, 0)
+        toPrioritizedComponent(component4, 7, "policy-d", 1, "Unknown",
+            false, null, "none", true, null, null,
+            7, false, false, false, "", 0, false),
+        toPrioritizedComponent(component2, 9, "policy-b", 2, "Unknown",
+            false, null, "none", null, null, null,
+            0, false, false, false, "", 0, false),
+        toPrioritizedComponent(component1, 6, "policy-a", 3, "Unknown",
+            false, null, "none", null, null, null,
+            0, false, false, false, "", 0, false),
+        toPrioritizedComponent(component3, 3, "policy-c", 4, "Unknown",
+            false, null, "none", null, null, null,
+            0, false, false, false, "", 0, false)
     );
 
     verifyServiceCallsInvokedWithExpectedArguments();
@@ -216,9 +236,11 @@ public class DevelopmentPrioritiesServiceTest
     final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component2");
     final List<PolicyViolation> component2Violations = Lists.newArrayList(
         createPolicyViolation(
-            7, "f", "policy-f", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), REACHABLE),
+            7, "f", "policy-f", Collections.emptyList(), Collections.emptyList(),
+            SECURITY.getName(), REACHABLE, false),
         createPolicyViolation(
-            9, "g", "policy-g", Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), REACHABLE));
+            9, "g", "policy-g", Collections.emptyList(), Collections.emptyList(),
+            SECURITY.getName(), REACHABLE, false));
     Collections.shuffle(component2Violations);
     final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(component2, component2Violations);
 
@@ -261,7 +283,10 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(results.priorities().getResults()).containsExactly(
             toPrioritizedComponent(component2, 9, "policy-g", 1, "Unknown", false, null, "none", true, null, null, 9),
             toPrioritizedComponent(component4, 8, "policy-h", 2, "Unknown", false, null, "none", true, null, null, 5),
-            toPrioritizedComponent(component1, 10, "policy-e", 3, "Unknown", false, null, "none", null, null, null, 0),
+            toPrioritizedComponent(component1, 10, "policy-e", 3,
+            "Unknown", false, null, "none",
+            null, null, null, 0,
+            false, false, false, "", 1, false),
             toPrioritizedComponent(component5, 7, "policy-l", 4, "Unknown", false, null, "none", null, null, null, 0));
 
     assertPaginationResultCorrect(results.priorities(), 4, 4, 1, 1);
@@ -313,7 +338,10 @@ public class DevelopmentPrioritiesServiceTest
         // "policy-f" of threat level 10 is a legacy violation, so not in the priority list.
         toPrioritizedComponent(component2, 7, "policy-g", null, 1),
         // "policy-b,d,e" of threat level 6 are a legacy violations, so not in the priority list.
-        toPrioritizedComponent(component1, 5, "policy-c", null, 2)
+        toPrioritizedComponent(component1, 5, "policy-c", 2,
+            "Unknown", false, null, "none",
+            null, null, null, 0,
+            false, false, false, "", 1, false)
     );
 
     assertPaginationResultCorrect(results.priorities(), 2, 2, 1, 1);
@@ -1282,7 +1310,10 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(results).containsExactly(
             toPrioritizedComponent(component2, 9, "policy-g", 1, "Unknown", false, null, "none", true, null, null, 9),
             toPrioritizedComponent(component4, 8, "policy-h", 2, "Unknown", false, null, "none", true, null, null, 5),
-            toPrioritizedComponent(component1, 10, "policy-e", 3, "Unknown", false, null, "none", null, null, null, 0),
+            toPrioritizedComponent(component1, 10, "policy-e", 3,
+            "Unknown", false, null, "none",
+            null, null, null, 0,
+            false, false, false, "", 1, false),
             toPrioritizedComponent(component5, 7, "policy-l", 4, "Unknown", false, null, "none", null, null, null, 0));
 
     verifyServiceCallsInvokedWithExpectedArguments();
@@ -2046,7 +2077,10 @@ public class DevelopmentPrioritiesServiceTest
         // "policy-f" of threat level 10 is a legacy violation, so not in the priority list.
         toPrioritizedComponent(component2, 7, "policy-g", null, 1),
         // "policy-b,d,e" of threat level 6 are a legacy violations, so not in the priority list.
-        toPrioritizedComponent(component1, 5, "policy-c", null, 2)
+        toPrioritizedComponent(component1, 5, "policy-c", 2,
+            "Unknown", false, null, "none",
+            null, null, null, 0,
+            false, false, false, "", 1, false)
     );
 
   }
@@ -2355,6 +2389,63 @@ public class DevelopmentPrioritiesServiceTest
         .hasSize(5);
   }
 
+  @Test
+  public void testGetPrioritizedFindings_ShouldReturnResultsWithCorrectWaiverInfo() {
+    DateTime now = DateTime.now();
+    String appId = applicationDAO.getByPublicId(GIVEN_SOME_PUBLIC_APP_ID).getId();
+    Policy policy1 = tempEntity.newPolicy(applicationDAO.getByPublicId(GIVEN_SOME_PUBLIC_APP_ID));
+    Policy policy2 = tempEntity.newPolicy(applicationDAO.getByPublicId(GIVEN_SOME_PUBLIC_APP_ID));
+    tempEntity.newWaiver("aaa", policy1.getId(), appId,
+        null, "comment", now.toDate(), now.plusDays(3).toDate());
+    tempEntity.newWaiver("bbb", policy2.getId(), appId,
+        null, "comment", now.toDate(), now.minusDays(3).toDate());
+
+    // === Given ===
+    final ApiReportComponentDTOV2 component1 = createComponent("aaa", "component1");
+    final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
+        component1,
+        Collections.emptyList(),
+        List.of(createPolicyViolation(9, "b", "policy-b", NON_REACHABLE)));
+
+    final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component2");
+    final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(
+        component2,
+        List.of(createPolicyViolation(7, "c", "policy-c",
+            Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), NON_REACHABLE, true)),
+        List.of(createPolicyViolation(9, "d", "policy-d", REACHABLE)));
+
+    // === WHEN ===
+    when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
+        createApiReportRawDataDTOV2(List.of(component1, component2)));
+    when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
+        createPolicyThreats(List.of(component1Threats, component2Threats)));
+    when(featuresService.getFeatures()).thenReturn(Set.of(DEVELOPER_DASHBOARD));
+    // === Then ===
+    DevelopmentPrioritizationResults results = developmentPrioritiesService
+        .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID,
+            GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10, null, false, false);
+
+    final List<PrioritizedComponent> priorities = results.priorities().getResults();
+
+    assertThat(priorities).hasSize(2);
+
+    assertThat(priorities.get(0).getHasSoonToExpireWaiver()).isFalse();
+    assertThat(priorities.get(0).getHasExpiredWaiver()).isTrue();
+    assertThat(priorities.get(0).getIsAllViolationsWaived()).isFalse();
+    assertThat(priorities.get(0).getWaiverExpirationDetails())
+        .isEqualTo("Applied waiver expired 3 days ago");
+    assertThat(priorities.get(0).getWaivedViolationsCount()).isEqualTo(1);
+    assertThat(priorities.get(0).getHasAutoWaiver()).isTrue();
+
+    assertThat(priorities.get(1).getHasSoonToExpireWaiver()).isTrue();
+    assertThat(priorities.get(1).getHasExpiredWaiver()).isFalse();
+    assertThat(priorities.get(1).getIsAllViolationsWaived()).isTrue();
+    assertThat(priorities.get(1).getWaiverExpirationDetails())
+        .isEqualTo("Applied waiver will expire in 3 days");
+    assertThat(priorities.get(1).getWaivedViolationsCount()).isEqualTo(1);
+    assertThat(priorities.get(1).getHasAutoWaiver()).isFalse();
+  }
+
   private ApiReportRawDataDTOV2 createApiReportRawDataDTOV2(final List<ApiReportComponentDTOV2> components) {
     final ApiReportRawDataDTOV2 apiReportRawDataDTOV2 = new ApiReportRawDataDTOV2();
     apiReportRawDataDTOV2.components = components;
@@ -2423,6 +2514,8 @@ public class DevelopmentPrioritiesServiceTest
     component.hash = fromComponent.hash;
     component.componentIdentifier = fromComponent.componentIdentifier.toComponentIdentifier();
     component.activeViolations.addAll(activePolicyViolations);
+    component.waivedViolations.addAll(inactivePolicyViolations);
+    component.allViolations.addAll(activePolicyViolations);
     component.allViolations.addAll(inactivePolicyViolations);
 
     return component;
@@ -2472,6 +2565,28 @@ public class DevelopmentPrioritiesServiceTest
       final ReachabilityStatus reachabilityStatus
   )
   {
+    return createPolicyViolation(
+        threatLevel,
+        policyViolationId,
+        policyName,
+        policyActions,
+        constraints,
+        policyThreatCategory,
+        reachabilityStatus,
+        false);
+  }
+
+  private PolicyViolation createPolicyViolation(
+      final int threatLevel,
+      final String policyViolationId,
+      final String policyName,
+      final List<PolicyAction> policyActions,
+      final List<PolicyConstraint> constraints,
+      final String policyThreatCategory,
+      final ReachabilityStatus reachabilityStatus,
+      final boolean waivedWithAutoWaiver
+  )
+  {
     final PolicyViolation policyViolation = new PolicyViolation();
     policyViolation.policyThreatLevel = threatLevel;
     policyViolation.policyViolationId = policyViolationId;
@@ -2481,6 +2596,7 @@ public class DevelopmentPrioritiesServiceTest
     policyViolation.policyThreatCategory = policyThreatCategory;
     policyViolation.reachabilityStatus = reachabilityStatus;
     policyViolation.policyId = "some-policy-id";
+    policyViolation.waivedWithAutoWaiver = waivedWithAutoWaiver;
 
     return policyViolation;
   }
@@ -2550,7 +2666,13 @@ public class DevelopmentPrioritiesServiceTest
         null,
         null,
         null,
-        0
+        0,
+        false,
+        false,
+        false,
+        "",
+        0,
+        false
    );
   }
 
@@ -2575,7 +2697,13 @@ public class DevelopmentPrioritiesServiceTest
         null,
         remediationType,
         remediationVersion,
-        0
+        0,
+        false,
+        false,
+        false,
+        "",
+        0,
+        false
     );
   }
 
@@ -2591,7 +2719,49 @@ public class DevelopmentPrioritiesServiceTest
       final Boolean securityReachable,
       final ApiVersionChangeOptionType remediationType,
       final String remediationVersion,
-      final int highestReachableThreat
+      final int highestReachableThreat)
+  {
+    return toPrioritizedComponent(
+        component,
+        highestThreat,
+        highestThreatPolicyName,
+        priority,
+        dependencyType,
+        hasFailActionComponent,
+        highestThreatPolicyConstraintName,
+        action,
+        securityReachable,
+        remediationType,
+        remediationVersion,
+        highestReachableThreat,
+        false,
+        false,
+        false,
+        "",
+        0,
+        false
+        );
+  }
+
+  private PrioritizedComponent toPrioritizedComponent(
+      final ApiReportComponentDTOV2 component,
+      final int highestThreat,
+      final String highestThreatPolicyName,
+      final int priority,
+      final String dependencyType,
+      final boolean hasFailActionComponent,
+      final String highestThreatPolicyConstraintName,
+      final String action,
+      final Boolean securityReachable,
+      final ApiVersionChangeOptionType remediationType,
+      final String remediationVersion,
+      final int highestReachableThreat,
+      final boolean hasExpiredWaiver,
+      final boolean hasSoonToExpireWaiver,
+      final boolean isAllViolationsWaived,
+      final String waiverExpirationDetails,
+      final int waivedViolationsCount,
+      final boolean hasAutoWaiver
   )
   {
     return new PrioritizedComponent(
@@ -2608,7 +2778,13 @@ public class DevelopmentPrioritiesServiceTest
         priority,
         remediationType,
         remediationVersion,
-        highestReachableThreat
+        highestReachableThreat,
+        hasExpiredWaiver,
+        hasSoonToExpireWaiver,
+        isAllViolationsWaived,
+        waiverExpirationDetails,
+        waivedViolationsCount,
+        hasAutoWaiver
     );
   }
 

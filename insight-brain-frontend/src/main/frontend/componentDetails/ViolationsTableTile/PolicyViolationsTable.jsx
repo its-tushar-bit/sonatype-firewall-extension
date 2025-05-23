@@ -39,6 +39,7 @@ export default function PolicyViolationsTable({
   setViolationsDetailRowClicked,
   waiverToDelete,
   setWaiverToDelete,
+  isLegalTab,
 }) {
   useEffect(() => {
     loadPolicyViolationsInformation();
@@ -67,7 +68,8 @@ export default function PolicyViolationsTable({
             <NxTableCell>Policy/Action</NxTableCell>
             <NxTableCell>Constraint Name</NxTableCell>
             <NxTableCell>Condition</NxTableCell>
-            <NxTableCell />
+            {!isLegalTab && <NxTableCell>Reachability</NxTableCell>}
+            <NxTableCell>Status</NxTableCell>
             <NxTableCell chevron />
           </NxTableRow>
         </NxTableHead>
@@ -83,9 +85,11 @@ export default function PolicyViolationsTable({
               // to index makes sure we still have unique key. See CLM-25312 for more details.
               key={violation.policyViolationId || index}
               violation={violation}
+              waivers={waivers}
               toggleShowViolationsDetailPopover={toggleShowViolationsDetail}
               setSelectedPolicyViolationId={setSelectedPolicyViolationId}
               isAutoWaiversEnabled={isAutoWaiverEnabled}
+              isLegalTab={isLegalTab}
             />
           ))}
         </NxTableBody>
@@ -124,4 +128,5 @@ PolicyViolationsTable.propTypes = {
   setSelectedPolicyViolationId: PropTypes.func.isRequired,
   setWaiverToDelete: PropTypes.func.isRequired,
   waiverToDelete: PropTypes.shape(waiverType),
+  isLegalTab: PropTypes.bool,
 };

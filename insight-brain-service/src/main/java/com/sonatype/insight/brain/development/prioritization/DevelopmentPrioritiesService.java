@@ -5,6 +5,11 @@
  */
 package com.sonatype.insight.brain.development.prioritization;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -34,25 +39,28 @@ import com.sonatype.insight.brain.callflow.ComponentReachabilityService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.development.prioritization.dto.PrioritizationRemediationVersionDTO;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.policy.PathForwardInspector;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.Component;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyViolation;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +96,10 @@ public class DevelopmentPrioritiesService
 
   private final ApplicationDAO applicationDAO;
 
+  private final PolicyWaiverDAO policyWaiverDAO;
+
+  private final PathForwardInspector pathForwardInspector;
+
   @Inject
   public DevelopmentPrioritiesService(
       final FeaturesService featuresService,
@@ -98,7 +110,9 @@ public class DevelopmentPrioritiesService
       final ApiComponentRemediationService apiComponentRemediationService,
       final DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService,
       final PolicyEvaluationDAO policyEvaluationDAO,
-      final ApplicationDAO applicationDAO)
+      final ApplicationDAO applicationDAO,
+      final PolicyWaiverDAO policyWaiverDAO,
+      final PathForwardInspector pathForwardInspector)
   {
     this.featuresService = featuresService;
     this.developmentPrioritiesReportService = developmentPrioritiesReportService;
@@ -109,6 +123,8 @@ public class DevelopmentPrioritiesService
     this.developmentPrioritiesUtilsService = developmentPrioritiesUtilsService;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.applicationDAO = applicationDAO;
+    this.policyWaiverDAO = policyWaiverDAO;
+    this.pathForwardInspector = pathForwardInspector;
   }
 
   @Authorize(permission = Permission.READ)
@@ -174,6 +190,7 @@ public class DevelopmentPrioritiesService
             applicationDAO.getByPublicId(applicationPublicId).getId(),
             scanId);
 
+    String policyEvaluationStage = policyEvaluation != null ? policyEvaluation.getStageTypeId() : null;
     isBulkRecommendationsEnabled = isBulkRecommendationsEnabled();
 
     final List<UnprioritizedComponent> sortedComponents = apiReportRawDataDTOV2.components
@@ -239,6 +256,57 @@ public class DevelopmentPrioritiesService
             }
           }
 
+          boolean hasExpiredWaiver = false;
+          boolean hasSoonToExpireWaiver = false;
+          boolean isAllViolationsWaived = false;
+          String waiverExpirationDetails = "";
+          long soonestToExpireDays = Integer.MAX_VALUE;
+          long oldestHasExpiredDays = Integer.MIN_VALUE;
+          int waivedViolationsCount = 0;
+          boolean hasAutoWaiver = false;
+          String appId = applicationDAO.getByPublicId(applicationPublicId).getId();
+
+          Component policyThreatComponent = getPolicyThreatComponent(policyThreats.aaData, component);
+          if (policyThreatComponent != null) {
+            waivedViolationsCount = policyThreatComponent.waivedViolations.size();
+            isAllViolationsWaived = !policyThreatComponent.allViolations.isEmpty()
+                && policyThreatComponent.allViolations.size() == waivedViolationsCount;
+            for (PolicyViolation policyViolation : policyThreatComponent.allViolations) {
+              if (policyViolation.waivedWithAutoWaiver) {
+                hasAutoWaiver = true;
+                break;
+              }
+            }
+          }
+
+          List<PolicyWaiver> policyWaivers = fetchPolicyWaiversByAppAndHash(appId, component.hash);
+          for (PolicyWaiver policyWaiver : policyWaivers) {
+            if (Objects.nonNull(policyWaiver.getExpiryTime())) {
+              ZonedDateTime waiverExpiryTime = policyWaiver.getExpiryTime().toInstant().atZone(ZoneId.systemDefault());
+              boolean isWaiverExpired = waiverExpiryTime.toLocalDateTime().isBefore(LocalDateTime.now());
+              long daysFromNowToExpiry = ChronoUnit.DAYS.between(LocalDate.now(), waiverExpiryTime.toLocalDate());
+              if (!isWaiverExpired && daysFromNowToExpiry <= 10) {
+                hasSoonToExpireWaiver = true;
+                soonestToExpireDays = Math.min(soonestToExpireDays, daysFromNowToExpiry);
+              }
+              // daysFromNowToExpiry is negative if the waiver has expired
+              else if (isWaiverExpired && daysFromNowToExpiry >= -10) {
+                hasExpiredWaiver = true;
+                oldestHasExpiredDays = Math.max(oldestHasExpiredDays, Math.abs(daysFromNowToExpiry));
+              }
+            }
+          }
+
+          if (isAllViolationsWaived && hasSoonToExpireWaiver) {
+            waiverExpirationDetails = String.format(
+                "Applied waiver will expire in %d %s", soonestToExpireDays, soonestToExpireDays == 1 ? "day" : "days");
+          }
+
+          else if (!isAllViolationsWaived && hasExpiredWaiver) {
+            waiverExpirationDetails = String.format(
+                "Applied waiver expired %d %s ago", oldestHasExpiredDays, oldestHasExpiredDays == 1 ? "day" : "days");
+          }
+
           return new UnprioritizedComponent(
               component,
               getDependencyType(component),
@@ -250,10 +318,17 @@ public class DevelopmentPrioritiesService
               securityReachable.toBoolean(),
               remediationType,
               remediationVersion,
-              highestReachableThreatLevel
+              highestReachableThreatLevel,
+              hasExpiredWaiver,
+              hasSoonToExpireWaiver,
+              isAllViolationsWaived,
+              waiverExpirationDetails,
+              waivedViolationsCount,
+              hasAutoWaiver
           );
         })
-        .filter(unprioritizedComponent -> unprioritizedComponent.highestThreat > 0)
+        .filter(unprioritizedComponent -> unprioritizedComponent.isAllViolationsWaived
+            || unprioritizedComponent.highestThreat > 0)
         .sorted(Comparator.comparingInt(this::getScore).thenComparingInt(this::getHighestThreat).reversed())
         .toList();
 
@@ -261,7 +336,7 @@ public class DevelopmentPrioritiesService
         sortedComponents,
         applicationPublicId,
         scanId,
-        policyEvaluation != null ? policyEvaluation.getStageTypeId() : null,
+        policyEvaluationStage,
         remediationSkip,
         remediationLimit
     );
@@ -471,6 +546,10 @@ public class DevelopmentPrioritiesService
 
     for (int i = 0; i < sortedComponents.size(); i++) {
       final UnprioritizedComponent componentToPrioritize = sortedComponents.get(i);
+      // If we detect an expired waiver, isAllViolationsWaived should be set to false
+      if (componentToPrioritize.isAllViolationsWaived && componentToPrioritize.hasExpiredWaiver) {
+        componentToPrioritize.isAllViolationsWaived = false;
+      }
       prioritizedComponents.add(componentToPrioritize.toPrioritizedComponent(i + 1));
     }
 
@@ -514,6 +593,17 @@ public class DevelopmentPrioritiesService
     return 0;
   }
 
+  private Component getPolicyThreatComponent(
+      final List<Component> policyThreatsComponents,
+      final ApiReportComponentDTOV2 component
+  )
+  {
+    return policyThreatsComponents.stream()
+        .filter(policyThreatComponent -> policyThreatComponent.hash.equals(component.hash))
+        .findFirst()
+        .orElse(null);
+  }
+
   private void throwErrorIfDevelopmentNotEnabledByLicense() {
     if (!isDevelopmentFeatureEnabled()) {
       throw new NotAuthorizedException("This server is not licensed for Sonatype Developer.");
@@ -545,6 +635,12 @@ public class DevelopmentPrioritiesService
         .matches(String.format(".*%s.*", Pattern.quote(filter.toLowerCase(Locale.ROOT))));
   }
 
+  private List<PolicyWaiver> fetchPolicyWaiversByAppAndHash(String appId, String hash) {
+    try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
+      return policyWaiverDAO.getByOwnerIdAndHash(tx, appId, hash);
+    }
+  }
+
   private static class UnprioritizedComponent
   {
     public ApiComponentDTOV2 component;
@@ -569,6 +665,18 @@ public class DevelopmentPrioritiesService
 
     public final int highestReachableThreat;
 
+    public final boolean hasExpiredWaiver;
+
+    public final boolean hasSoonToExpireWaiver;
+
+    public boolean isAllViolationsWaived;
+
+    public final String waiverExpirationDetails;
+
+    public final int waivedViolationsCount;
+
+    public final boolean hasAutoWaiver;
+
     public UnprioritizedComponent(
         final ApiComponentDTOV2 component,
         final String dependencyType,
@@ -580,7 +688,13 @@ public class DevelopmentPrioritiesService
         final Boolean securityReachable,
         final ApiVersionChangeOptionType remediationType,
         final String remediationVersion,
-        final int highestReachableThreat
+        final int highestReachableThreat,
+        final boolean hasExpiredWaiver,
+        final boolean hasSoonToExpireWaiver,
+        boolean isAllViolationsWaived,
+        final String waiverExpirationDetails,
+        final int waivedViolationsCount,
+        final boolean hasAutoWaiver
     )
     {
       this.dependencyType = dependencyType;
@@ -594,6 +708,12 @@ public class DevelopmentPrioritiesService
       this.remediationVersion = remediationVersion;
       this.component = component;
       this.highestReachableThreat = highestReachableThreat;
+      this.hasExpiredWaiver = hasExpiredWaiver;
+      this.hasSoonToExpireWaiver = hasSoonToExpireWaiver;
+      this.isAllViolationsWaived = isAllViolationsWaived;
+      this.waiverExpirationDetails = waiverExpirationDetails;
+      this.waivedViolationsCount = waivedViolationsCount;
+      this.hasAutoWaiver = hasAutoWaiver;
     }
 
     public PrioritizedComponent toPrioritizedComponent(final int priority) {
@@ -611,7 +731,13 @@ public class DevelopmentPrioritiesService
           priority,
           remediationType,
           remediationVersion,
-          highestReachableThreat);
+          highestReachableThreat,
+          hasExpiredWaiver,
+          hasSoonToExpireWaiver,
+          isAllViolationsWaived,
+          waiverExpirationDetails,
+          waivedViolationsCount,
+          hasAutoWaiver);
     }
 
     private ComponentIdentifier getComponentIdentifier() {

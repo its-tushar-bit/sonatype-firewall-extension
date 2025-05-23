@@ -16,7 +16,8 @@ describe('ActiveWaiversIndicator', function () {
     activeTextSingularAggregated = 'Waived Violation',
     unappliedTextSingular = 'Unapplied Waiver',
     inactiveClass = 'iq-waiver-indicator--inactive',
-    activeClass = 'iq-waiver-indicator--active';
+    activeClass = 'iq-waiver-indicator--active',
+    isPolicyViolationStatusClass = 'iq-policy-violation-status';
 
   beforeEach(function () {
     minimalProps = {
@@ -33,6 +34,19 @@ describe('ActiveWaiversIndicator', function () {
 
     expect(screen.getByText('0')).toBeVisible();
     expect(screen.getByText(activeTextPlural)).toBeVisible();
+    expect(screen.getByText(activeTextPlural).closest('div')).toHaveClassName(inactiveClass);
+    expect(screen.getByText(activeTextPlural).closest('div')).not.toHaveClassName(activeClass);
+    expect(screen.getByText(activeTextPlural).closest('div')).not.toHaveClassName(isPolicyViolationStatusClass);
+  });
+
+  it('renders as inactive in the legal tab', function () {
+    renderComponent({
+      isPolicyViolationStatus: true,
+    });
+
+    expect(screen.getByText('0')).toBeVisible();
+    expect(screen.getByText(activeTextPlural)).toBeVisible();
+    expect(screen.getByText(activeTextPlural).closest('div')).toHaveClassName(isPolicyViolationStatusClass);
     expect(screen.getByText(activeTextPlural).closest('div')).toHaveClassName(inactiveClass);
     expect(screen.getByText(activeTextPlural).closest('div')).not.toHaveClassName(activeClass);
   });

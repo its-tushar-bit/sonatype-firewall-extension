@@ -219,7 +219,7 @@ describe('componentDetailspolicyViolationsSlice', () => {
             { hash: 'neither is this one' },
           ],
         },
-        waiversResult: { waiversByOwner: [] },
+        waiversResult: { waiversByOwner: [], expiredWaiversByOwner: [] },
         hash: 'componentHash',
       };
 
@@ -229,8 +229,8 @@ describe('componentDetailspolicyViolationsSlice', () => {
       });
 
       expect(newState.violations).toEqual([
-        { policyViolationId: 'violation1ForComponentHash', applicableWaivers: [] },
-        { policyViolationId: 'violation2ForComponentHash', applicableWaivers: [] },
+        { policyViolationId: 'violation1ForComponentHash', applicableWaivers: [], expiredWaivers: [] },
+        { policyViolationId: 'violation2ForComponentHash', applicableWaivers: [], expiredWaivers: [] },
       ]);
     });
 
@@ -258,6 +258,7 @@ describe('componentDetailspolicyViolationsSlice', () => {
               waivers: [{ id: 'waiverForOrg1' }, { id: 'waiverForOrg2' }],
             },
           ],
+          expiredWaiversByOwner: [],
         },
         hash: 'componentHash',
       };
@@ -315,7 +316,11 @@ describe('componentDetailspolicyViolationsSlice', () => {
                   policyId: 'policyIdForViolation',
                   constraintFactsJson: '{factsSerializedAsJson}',
                 },
-                { policyViolationId: 'violation2ForComponentHash' },
+                {
+                  policyViolationId: 'violation2ForComponentHash',
+                  policyId: 'policyIdForViolation2',
+                  constraintFactsJson: '{factsSerializedAsJson1}',
+                },
               ],
             },
           ],
@@ -336,6 +341,20 @@ describe('componentDetailspolicyViolationsSlice', () => {
               ],
             },
           ],
+          expiredWaiversByOwner: [
+            {
+              owner: 'org1',
+              ownerName: 'org1Name',
+              ownerType: 'organization',
+              waivers: [
+                {
+                  id: 'waiverForOrg3',
+                  policyId: 'policyIdForViolation2',
+                  constraintFactsJson: '{factsSerializedAsJson1}',
+                },
+              ],
+            },
+          ],
         },
         hash: 'componentHash',
       };
@@ -351,8 +370,25 @@ describe('componentDetailspolicyViolationsSlice', () => {
           policyId: 'policyIdForViolation',
           constraintFactsJson: '{factsSerializedAsJson}',
           applicableWaivers: ['waiverForOrg2'],
+          expiredWaivers: [],
         },
-        { policyViolationId: 'violation2ForComponentHash', applicableWaivers: [] },
+        {
+          policyViolationId: 'violation2ForComponentHash',
+          applicableWaivers: [],
+          constraintFactsJson: '{factsSerializedAsJson1}',
+          policyId: 'policyIdForViolation2',
+          expiredWaivers: [
+            {
+              id: 'waiverForOrg3',
+              policyId: 'policyIdForViolation2',
+              constraintFactsJson: '{factsSerializedAsJson1}',
+              policyWaiverId: 'waiverForOrg3',
+              scopeOwnerId: undefined,
+              scopeOwnerType: 'organization',
+              scopeOwnerName: 'org1Name',
+            },
+          ],
+        },
       ]);
     });
     it('enhances old report violations with their applicable waivers information', () => {
@@ -392,6 +428,21 @@ describe('componentDetailspolicyViolationsSlice', () => {
               ],
             },
           ],
+          expiredWaiversByOwner: [
+            {
+              ownerId: 'org1Id',
+              owner: 'org1',
+              ownerName: 'org1Name',
+              ownerType: 'organization',
+              waivers: [
+                {
+                  id: 'waiverForOrg3',
+                  policyId: 'policyIdForViolation',
+                  constraintFactsJson: '{factsSerializedAsJson}',
+                },
+              ],
+            },
+          ],
         },
         hash: 'componentHash',
       };
@@ -407,8 +458,23 @@ describe('componentDetailspolicyViolationsSlice', () => {
           policyId: 'policyIdForViolation',
           constraintFactsJson: '{factsSerializedAsJson}',
           applicableWaivers: ['waiverForOrg2'],
+          expiredWaivers: [
+            {
+              id: 'waiverForOrg3',
+              policyId: 'policyIdForViolation',
+              constraintFactsJson: '{factsSerializedAsJson}',
+              policyWaiverId: 'waiverForOrg3',
+              scopeOwnerId: 'org1Id',
+              scopeOwnerType: 'organization',
+              scopeOwnerName: 'org1Name',
+            },
+          ],
         },
-        { policyViolationId: 'violation2ForComponentHash', applicableWaivers: [] },
+        {
+          policyViolationId: 'violation2ForComponentHash',
+          applicableWaivers: [],
+          expiredWaivers: [],
+        },
       ]);
     });
   });

@@ -50,6 +50,18 @@ public class PrioritizedComponent implements CsvWritable
 
   private final int highestReachableThreat;
 
+  private final boolean hasExpiredWaiver;
+
+  private final boolean hasSoonToExpireWaiver;
+
+  private final boolean isAllViolationsWaived;
+
+  private final String waiverExpirationDetails;
+
+  private final int waivedViolationsCount;
+
+  private final boolean hasAutoWaiver;
+
   public PrioritizedComponent(
       final String displayName,
       final ComponentIdentifier componentIdentifier,
@@ -64,7 +76,13 @@ public class PrioritizedComponent implements CsvWritable
       final int priority,
       final ApiVersionChangeOptionType remediationType,
       final String remediationVersion,
-      final int highestReachableThreat
+      final int highestReachableThreat,
+      final boolean hasExpiredWaiver,
+      final boolean hasSoonToExpireWaiver,
+      final boolean isAllViolationsWaived,
+      final String waiverExpirationDetails,
+      final int waivedViolationsCount,
+      final boolean hasAutoWaiver
   )
   {
     this.displayName = displayName;
@@ -81,6 +99,12 @@ public class PrioritizedComponent implements CsvWritable
     this.remediationType = remediationType;
     this.remediationVersion = remediationVersion;
     this.highestReachableThreat = highestReachableThreat;
+    this.hasExpiredWaiver = hasExpiredWaiver;
+    this.hasSoonToExpireWaiver = hasSoonToExpireWaiver;
+    this.isAllViolationsWaived = isAllViolationsWaived;
+    this.waiverExpirationDetails = waiverExpirationDetails;
+    this.waivedViolationsCount = waivedViolationsCount;
+    this.hasAutoWaiver = hasAutoWaiver;
   }
 
   public ComponentIdentifier getComponentIdentifier() {
@@ -139,6 +163,30 @@ public class PrioritizedComponent implements CsvWritable
     return highestReachableThreat;
   }
 
+  public boolean getHasExpiredWaiver() {
+    return hasExpiredWaiver;
+  }
+
+  public boolean getHasSoonToExpireWaiver() {
+    return hasSoonToExpireWaiver;
+  }
+
+  public boolean getIsAllViolationsWaived() {
+    return isAllViolationsWaived;
+  }
+
+  public String getWaiverExpirationDetails() {
+    return waiverExpirationDetails;
+  }
+
+  public int getWaivedViolationsCount() {
+    return waivedViolationsCount;
+  }
+
+  public boolean getHasAutoWaiver() {
+    return hasAutoWaiver;
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -160,7 +208,14 @@ public class PrioritizedComponent implements CsvWritable
         Objects.equals(highestThreatPolicyConstraintName, that.highestThreatPolicyConstraintName) &&
         Objects.equals(action, that.action) &&
         Objects.equals(remediationType, that.remediationType) &&
-        Objects.equals(remediationVersion, that.remediationVersion);
+        Objects.equals(remediationVersion, that.remediationVersion) &&
+        Objects.equals(highestReachableThreat, that.highestReachableThreat) &&
+        Objects.equals(hasExpiredWaiver, that.hasExpiredWaiver) &&
+        Objects.equals(hasSoonToExpireWaiver, that.hasSoonToExpireWaiver) &&
+        Objects.equals(isAllViolationsWaived, that.isAllViolationsWaived ) &&
+        Objects.equals(waiverExpirationDetails, that.waiverExpirationDetails) &&
+        Objects.equals(waivedViolationsCount, that.waivedViolationsCount) &&
+        Objects.equals(hasAutoWaiver, that.hasAutoWaiver);
   }
 
   @Override
@@ -179,7 +234,13 @@ public class PrioritizedComponent implements CsvWritable
         priority,
         remediationType,
         remediationVersion,
-        highestReachableThreat
+        highestReachableThreat,
+        hasExpiredWaiver,
+        hasSoonToExpireWaiver,
+        isAllViolationsWaived,
+        waiverExpirationDetails,
+        waivedViolationsCount,
+        hasAutoWaiver
         );
   }
 
@@ -200,6 +261,12 @@ public class PrioritizedComponent implements CsvWritable
         ", remediationType=" + remediationType +
         ", remediationVersion=" + remediationVersion +
         ", highestReachableThreat=" + highestReachableThreat +
+        ", hasExpiredWaiver=" + hasExpiredWaiver +
+        ", hasSoonToExpireWaiver=" + hasSoonToExpireWaiver +
+        ", isAllViolationsWaived=" + isAllViolationsWaived +
+        ", waiverExpirationDetails=" + waiverExpirationDetails +
+        ", waivedViolationsCount=" + waivedViolationsCount +
+        ", hasAutoWaiver=" + hasAutoWaiver +
         '}';
   }
 
@@ -207,13 +274,17 @@ public class PrioritizedComponent implements CsvWritable
     // this is the dto involved in the export
     return "Display Name,Component Identifier,Component Hash,Dependency Type,Has Fail Action On Component,Action," +
             "Highest Threat,Highest Threat Policy Name,Highest Threat Policy Constraint Name,Security Reachable," +
-            "Priority,Remediation Type,Remediation Version,Highest Reachable Threat";
+            "Priority,Remediation Type,Remediation Version,Highest Reachable Threat,Has Expired Waiver," +
+            "Has Soon To Expire Waiver,Is All Violations Waived,Waiver Expiration Details,Waived Violations Count," +
+            "Has Auto Waiver";
   }
 
   @Override
   public String toCsvLine() {
     return joiner.useForNull("").join(displayName, componentIdentifier, componentHash, dependencyType,
             hasFailActionOnComponent, action, highestThreat, highestThreatPolicyName, highestThreatPolicyConstraintName,
-            securityReachable, priority, remediationType, remediationVersion, highestReachableThreat);
+            securityReachable, priority, remediationType, remediationVersion, highestReachableThreat, hasExpiredWaiver,
+            hasSoonToExpireWaiver, isAllViolationsWaived, waiverExpirationDetails, waivedViolationsCount,
+            hasAutoWaiver);
   }
 }

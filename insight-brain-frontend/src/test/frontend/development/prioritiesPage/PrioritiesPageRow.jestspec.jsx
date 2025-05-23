@@ -152,6 +152,26 @@ describe('PrioritiesPageRow', () => {
     expect(suggestedFixCell).toHaveTextContent(`Upgrade to ${mockData.remediationVersion}`);
   });
 
+  it('renders "Waived" in build action column', async () => {
+    const renderComponent = (preloadedState, props = minimalProps) =>
+      render(<PrioritiesPageRow {...props} />, {
+        preloadedState: preloadedState || defaultPreloadedState,
+        container: document.body.appendChild(
+          document.createElement('table').appendChild(document.createElement('tbody'))
+        ),
+      });
+    const allViolationsWaivedComponentMockData = mergeDeepRight(minimalProps, {
+      component: {
+        isAllViolationsWaived: true,
+      },
+    });
+
+    const allViolationsWaivedContainer = renderComponent(defaultPreloadedState, allViolationsWaivedComponentMockData)
+      .container;
+    const allViolationsWaivedCell = within(allViolationsWaivedContainer).getAllByRole('cell')[2];
+    await waitFor(() => expect(allViolationsWaivedCell).toHaveTextContent('Waived'));
+  });
+
   describe('async recommendations', () => {
     const asyncRecPreloadedState = mergeDeepRight(defaultPreloadedState, {
       productFeatures: {
@@ -239,6 +259,68 @@ describe('PrioritiesPageRow', () => {
         expect(within(cell).getByRole('img', { name: 'Golden Version' })).toBeInTheDocument();
       });
 
+      it('renders "Waive violations" for the recommendation if non-reachable and no recommended version', async () => {
+        const preloadedState = mergeDeepRight(asyncRecPreloadedState, {
+          productFeatures: {
+            productFeatures: {
+              'developer-bulk-recommendations': true,
+            },
+          },
+          prioritiesPage: {
+            recommendations: {
+              [mockData.componentHash]: {
+                loading: false,
+                error: null,
+                remediation: null,
+              },
+            },
+          },
+        });
+
+        const nonReachableComponentMockData = mergeDeepRight(minimalProps, {
+          component: {
+            securityReachable: false,
+            remediationType: null,
+            remediationVersion: null,
+          },
+        });
+
+        const nonReachableContainer = renderComponent(preloadedState, nonReachableComponentMockData).container;
+        const nonReachableCell = within(nonReachableContainer).getAllByRole('cell')[4];
+        await waitFor(() => expect(nonReachableCell).toHaveTextContent('Waive violations'));
+      });
+
+      it('renders "waived violations" for the recommendation if all violations are waived', async () => {
+        const preloadedState = mergeDeepRight(asyncRecPreloadedState, {
+          productFeatures: {
+            productFeatures: {
+              'developer-bulk-recommendations': true,
+            },
+          },
+          prioritiesPage: {
+            recommendations: {
+              [mockData.componentHash]: {
+                loading: false,
+                error: null,
+                remediation: null,
+              },
+            },
+          },
+        });
+
+        const waivedViolationsComponentMockData = mergeDeepRight(minimalProps, {
+          component: {
+            isAllViolationsWaived: true,
+            waivedViolationsCount: 3,
+            hasAutoWaiver: true,
+          },
+        });
+
+        const waivedViolationsContainer = renderComponent(preloadedState, waivedViolationsComponentMockData).container;
+        const waivedViolationsCell = within(waivedViolationsContainer).getAllByRole('cell')[4];
+        await waitFor(() => expect(waivedViolationsCell).toHaveTextContent('3 waived violations'));
+      });
+
       it('renders "Investigate" for the recommendation if component is unknown', async () => {
         const preloadedState = mergeDeepRight(asyncRecPreloadedState, {
           prioritiesPage: {
@@ -274,7 +356,7 @@ describe('PrioritiesPageRow', () => {
         await waitFor(() => expect(unknownCell).toHaveTextContent('Investigate'));
       });
 
-      it('renders "Investigate" for the recommendation if there is not a recommended version', async () => {
+      it('renders "Investigate" for the recommendation if reachable and there is not a recommended version', async () => {
         const preloadedState = mergeDeepRight(asyncRecPreloadedState, {
           prioritiesPage: {
             recommendations: {
@@ -286,13 +368,19 @@ describe('PrioritiesPageRow', () => {
             },
           },
         });
-        renderComponent(preloadedState);
 
-        const cell = screen.getAllByRole('cell')[4];
-        await waitFor(() => expect(cell).toHaveTextContent('Investigate'));
+        const reachableComponentMockData = mergeDeepRight(minimalProps, {
+          component: {
+            securityReachable: true,
+          },
+        });
+
+        const reachableComponentContainer = renderComponent(preloadedState, reachableComponentMockData).container;
+        const reachableComponentCell = within(reachableComponentContainer).getAllByRole('cell')[4];
+        await waitFor(() => expect(reachableComponentCell).toHaveTextContent('Investigate'));
       });
 
-      it('renders "Investigate" for the recommendation if the current version is the recommendation', async () => {
+      it('renders "Investigate" for the recommendation if reachable and current version is the recommendation', async () => {
         const preloadedState = mergeDeepRight(asyncRecPreloadedState, {
           prioritiesPage: {
             recommendations: {
@@ -309,10 +397,16 @@ describe('PrioritiesPageRow', () => {
             },
           },
         });
-        renderComponent(preloadedState);
 
-        const cell = screen.getAllByRole('cell')[4];
-        await waitFor(() => expect(cell).toHaveTextContent('Investigate'));
+        const reachableComponentMockData = mergeDeepRight(minimalProps, {
+          component: {
+            securityReachable: true,
+          },
+        });
+
+        const reachableComponentContainer = renderComponent(preloadedState, reachableComponentMockData).container;
+        const reachableComponentCell = within(reachableComponentContainer).getAllByRole('cell')[4];
+        await waitFor(() => expect(reachableComponentCell).toHaveTextContent('Investigate'));
       });
 
       it('renders a "Create PR" button if a manual pull request is possible', async () => {
@@ -528,5 +622,11 @@ function generateMockData() {
     securityReachable: faker.helpers.arrayElement([true, false, null]),
     remediationType: 'next-non-failing',
     remediationVersion: '1.0',
+    hasExpiredWaiver: false,
+    hasSoonToExpireWaiver: false,
+    isAllViolationsWaived: false,
+    waiverExpirationDetails: null,
+    waivedViolationsCount: null,
+    hasAutoWaiver: false,
   };
 }

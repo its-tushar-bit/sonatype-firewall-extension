@@ -19,6 +19,8 @@ import { faHistory } from '@fortawesome/pro-solid-svg-icons';
 import classnames from 'classnames';
 import ActiveWaiversIndicator from '../../violation/ActiveWaiversIndicator';
 import ReachabilityStatus from 'MainRoot/componentDetails/ReachabilityStatus/ReachabilityStatus';
+import Reachability from 'MainRoot/components/reachability/Reachability';
+import moment from 'moment/moment';
 
 const ACTION_ICON_CATEGORY = {
   fail: 'critical',
@@ -30,6 +32,8 @@ export default function PolicyViolationsTableRow({
   toggleShowViolationsDetailPopover,
   setSelectedPolicyViolationId,
   isAutoWaiversEnabled,
+  waivers,
+  isLegalTab,
 }) {
   const {
     policyThreatLevel,
@@ -85,7 +89,7 @@ export default function PolicyViolationsTableRow({
       <NxTableCell className="iq-policy-violation-row__policy-name-and-action-cell">
         <div className="iq-policy-violation-row__policy-name-and-reachability">
           <span>{policyName}</span>
-          <ReachabilityStatus reachabilityStatus={reachabilityStatus} />
+          {isLegalTab && <ReachabilityStatus reachabilityStatus={reachabilityStatus} />}
         </div>
         {renderActionsAsList(actions)}
       </NxTableCell>
@@ -95,8 +99,13 @@ export default function PolicyViolationsTableRow({
           return <p key={index}>{reason}</p>;
         })}
       </NxTableCell>
-      <NxTableCell className="iq-policy-violation-row__actions-and-indicators-cell">
-        <LegacyViolationsAndWaiverIndicators violation={violation} isAutoWaiversEnabled={isAutoWaiversEnabled} />
+      {!isLegalTab && (
+        <NxTableCell className="iq-policy-violation-row__actions-and-indicators-cell iq-policy-violation-cell">
+          <Reachability reachable={reachabilityStatus} />
+        </NxTableCell>
+      )}
+      <NxTableCell className="iq-policy-violation-row__actions-and-indicators-cell iq-policy-violation-cell">
+        <WaiverStatus violation={violation} isAutoWaiversEnabled={isAutoWaiversEnabled} waivers={waivers} />
       </NxTableCell>
       <NxTableCell chevron />
     </NxTableRow>
@@ -126,42 +135,155 @@ export const violationPropTypes = {
   legacyViolation: PropTypes.bool,
   waived: PropTypes.bool,
   applicableWaivers: PropTypes.arrayOf(PropTypes.string),
+  waivedWithAutoWaiver: PropTypes.bool,
+  expiredWaivers: PropTypes.arrayOf(
+    PropTypes.shape({
+      expiryTime: PropTypes.number,
+    })
+  ),
 };
 
 PolicyViolationsTableRow.propTypes = {
   violation: PropTypes.shape(violationPropTypes),
   toggleShowViolationsDetailPopover: PropTypes.func,
   setSelectedPolicyViolationId: PropTypes.func.isRequired,
+  isAutoWaiversEnabled: PropTypes.bool,
+  waivers: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string,
+      expiryTime: PropTypes.number,
+    })
+  ),
+  isLegalTab: PropTypes.bool,
 };
 
-/* Helper component for legacy violations and waiver indicators. */
-const LegacyViolationsAndWaiverIndicators = ({ violation, isAutoWaiversEnabled }) => {
-  const { waived, legacyViolation, applicableWaivers, waivedWithAutoWaiver = [] } = violation;
-  const numberOfWaivers = applicableWaivers?.length || 0;
+const WaiverStatus = ({ violation, isAutoWaiversEnabled, waivers }) => {
+  const { waived, legacyViolation, applicableWaivers, waivedWithAutoWaiver = false } = violation;
+  const activeWaivers = applicableWaivers?.length || 0;
 
-  const legacyViolationIndicator = legacyViolation ? (
-    <div className="iq-waiver-indicator">
-      <NxFontAwesomeIcon icon={faHistory} />
-      <span>Legacy</span>
-    </div>
-  ) : null;
+  /**
+   * Calculate the days between today and the given timestamp.
+   * Values less than 1 are returned as decimal for a more precise calculation.
+   * Values greater than 1 are rounded up to the next whole number.
+   * Negative results indicate that the given timestamp is in the past.
+   * @param timestamp Given timestamp
+   * @returns {number|number}
+   */
+  const getDaysBetweenTodayAndTimestamp = (timestamp) => {
+    const today = moment().startOf('day'); // today at 00:00:00
+    const target = moment(timestamp).startOf('day'); // timestamp date at 00:00:00
 
-  return (
-    <Fragment>
-      {waivedWithAutoWaiver && isAutoWaiversEnabled && (
-        <div className="iq-waiver-indicator">
-          <NxSmallTag color="green" className="iq-waiver-indicator-auto-tag">
-            Auto
-          </NxSmallTag>
+    return target.diff(today, 'days');
+  };
+
+  /**
+   * Check if any of the expired waivers in the last 9 days range.
+   * @returns {boolean}
+   */
+  const isEarliestWaiverExpirationInRange = () => {
+    if (!violation.expiredWaivers) {
+      return false;
+    }
+
+    for (const expiredWaiver of violation.expiredWaivers) {
+      const daysBetween = getDaysBetweenTodayAndTimestamp(expiredWaiver.expiryTime);
+
+      if (-10 < daysBetween && daysBetween <= 0) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  /**
+   * Get the furthest expiring waiver days.
+   * If any expiring waiver is above the range then that value is returned.
+   * @param waivers
+   * @returns {number}
+   */
+  const getFurthestExpiringWaiverDays = (waivers) => {
+    if (!violation.applicableWaivers || !waivers) {
+      return -1;
+    }
+
+    let furthestExpiringWaiverDays = -1;
+
+    for (const applicableWaiverId of violation.applicableWaivers) {
+      const foundWaiver = waivers.find((waiver) => waiver.id === applicableWaiverId);
+
+      if (!foundWaiver) {
+        continue;
+      } else if (!foundWaiver.expiryTime) {
+        return -1;
+      }
+
+      const daysBetween = getDaysBetweenTodayAndTimestamp(foundWaiver.expiryTime);
+
+      if (daysBetween >= 10) {
+        return -1;
+      } else if (daysBetween > furthestExpiringWaiverDays) {
+        furthestExpiringWaiverDays = daysBetween;
+      }
+    }
+
+    return furthestExpiringWaiverDays;
+  };
+
+  if (waivedWithAutoWaiver && isAutoWaiversEnabled) {
+    return (
+      <div className="iq-waiver-indicator iq-policy-violation-status">
+        <NxSmallTag color="green" className="iq-waiver-indicator-auto-tag">
+          Auto
+        </NxSmallTag>
+      </div>
+    );
+  } else if (legacyViolation) {
+    return (
+      <div className="iq-waiver-indicator iq-policy-violation-status">
+        <NxFontAwesomeIcon icon={faHistory} />
+        <span>Legacy</span>
+      </div>
+    );
+  } else if (activeWaivers === 0) {
+    const isWaiverExpirationInRange = isEarliestWaiverExpirationInRange();
+
+    return (
+      <div>
+        <span>Open</span>
+        {isWaiverExpirationInRange && <div className="expires-in">Waiver expired</div>}
+      </div>
+    );
+  } else if (activeWaivers > 0 && waived) {
+    const furthestExpiringWaiverDays = getFurthestExpiringWaiverDays(waivers);
+
+    return (
+      <div>
+        Waived
+        <div className="expires-in">
+          {0 <= furthestExpiringWaiverDays && furthestExpiringWaiverDays <= 1 && 'Expires today'}
+          {1 < furthestExpiringWaiverDays &&
+            furthestExpiringWaiverDays < 10 &&
+            `Expires in ${furthestExpiringWaiverDays} days`}
         </div>
-      )}
-      {numberOfWaivers > 0 && (
-        <ActiveWaiversIndicator activeWaiverCount={numberOfWaivers} waived={waived} showUnapplied />
-      )}
-      {legacyViolationIndicator}
-    </Fragment>
-  );
+      </div>
+    );
+  } else if (activeWaivers > 0 && !waived) {
+    return (
+      <ActiveWaiversIndicator activeWaiverCount={activeWaivers} waived={waived} showUnapplied isPolicyViolationStatus />
+    );
+  }
+
+  return <></>;
 };
 
-PolicyViolationsTableRow.indicators = LegacyViolationsAndWaiverIndicators;
-LegacyViolationsAndWaiverIndicators.propTypes = { violation: PropTypes.shape(violationPropTypes) };
+WaiverStatus.propTypes = {
+  violation: PropTypes.shape(violationPropTypes),
+  isAutoWaiversEnabled: PropTypes.bool,
+  waivers: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string,
+      expiryTime: PropTypes.number,
+    })
+  ),
+};

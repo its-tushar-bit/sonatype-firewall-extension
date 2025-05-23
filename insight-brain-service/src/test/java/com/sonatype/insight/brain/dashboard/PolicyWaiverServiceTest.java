@@ -9,11 +9,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.IntConsumer;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -33,6 +36,7 @@ import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -42,12 +46,14 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.policy.PolicyWaiverResource;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -60,6 +66,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_GOLANG;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_MAVEN;
@@ -75,6 +82,9 @@ import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatc
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 public class PolicyWaiverServiceTest
     extends AbstractComponentTest
@@ -1286,6 +1296,135 @@ public class PolicyWaiverServiceTest
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
     assertThat(resultsDTO).isNotNull();
     assertThat(resultsDTO.dashboardResults).hasSize(1);
+  }
+
+  @Test
+  public void testGetExpiredWaiversWithValidInputs() {
+    // Given
+    ComponentIdentifier testComponentIdentifier = getTestComponentIdentifier();
+    PolicyWaiver expectedWaiver = createTestPolicyWaiver("waiver-id");
+
+    PolicyWaiverDAO mockPolicyWaiverDAO = setupMockPolicyWaiverDAO("test-owner", "test-hash", expectedWaiver);
+
+    PolicyWaiverService policyWaiverService = createPolicyWaiverServiceWithMockDAO(mockPolicyWaiverDAO);
+
+    // When
+    List<PolicyWaiverResource.PolicyWaiverDTO> result = policyWaiverService.getExpiredWaivers(
+        "test-owner", "test-hash", Mockito.mock(UnaryOperator.class), testComponentIdentifier, null);
+
+    // Then
+    assertThat(result).hasSize(1)
+        .extracting(PolicyWaiverResource.PolicyWaiverDTO::getId)
+        .containsExactly("waiver-id");
+  }
+
+  private ComponentIdentifier getTestComponentIdentifier() {
+    TreeMap<String, String> coordinates = new TreeMap<>() {{
+        this.put("artifactId", "Artifact1");
+        this.put("groupId", "Group1");
+        this.put("version", "1.2.3");
+      }};
+
+    return new ComponentIdentifier("maven", coordinates);
+  }
+
+  private PolicyWaiver createTestPolicyWaiver(String waiverId) {
+    PolicyWaiver waiver = new PolicyWaiver();
+    waiver.setId(waiverId);
+    return waiver;
+  }
+
+  private PolicyWaiverDAO setupMockPolicyWaiverDAO(String ownerId, String hash, PolicyWaiver expectedWaiver) {
+    PolicyWaiverDAO mockDAO = Mockito.mock(PolicyWaiverDAO.class);
+    when(mockDAO.getExpiredToComponentIncludingAllVersions(eq(ownerId), eq(hash), any(PackageUrlIdentifier.class)))
+        .thenReturn(List.of(expectedWaiver));
+    return mockDAO;
+  }
+
+  private PolicyWaiverService createPolicyWaiverServiceWithMockDAO(PolicyWaiverDAO mockDAO) {
+    return new PolicyWaiverService(
+        null,
+        null,
+        mockDAO,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+    );
+  }
+
+  @Test
+  public void testMapPolicyWaiverToDTO() {
+    // Given
+    PolicyWaiver waiver = createTestPolicyWaiver();
+    UnaryOperator<String> policyNameLoader = setUpPolicyNameLoader();
+    Map<String, PolicyWaiverReason> policyWaiverReasonMap = setUpPolicyWaiverReasonMap();
+
+    // When
+    PolicyWaiverResource.PolicyWaiverDTO dto =
+        dashboardPolicyWaiverService.mapPolicyWaiverToDTO(waiver, policyNameLoader, policyWaiverReasonMap);
+
+    // Then
+    assertPolicyWaiverDTO(dto, waiver);
+  }
+
+  private PolicyWaiver createTestPolicyWaiver() {
+    PolicyWaiver waiver = new PolicyWaiver();
+    waiver.setComment("Test Comment");
+    waiver.setCreateTime(new Date());
+    waiver.setHash("test-hash");
+    waiver.setId("test-id");
+    waiver.setOwnerId("owner-id");
+    waiver.setPolicyId("policy-id");
+    waiver.setConstraintFactsJson("constraint-facts-json");
+    ConstraintFact constraintFact = new ConstraintFact("1234", "aConstraint", "operator-test");
+    waiver.setConstraintFacts(Collections.singletonList(constraintFact));
+    waiver.setCreatorId("creator-id");
+    waiver.setCreatorName("creator-name");
+    waiver.setAssociatedPackageUrl("test-purl");
+    waiver.setComponentMatchStrategy(EXACT_COMPONENT);
+    waiver.setExpireWhenRemediationAvailable(true);
+    waiver.setExpiryTime(new Date());
+    waiver.setWaiverReasonId("reason-id");
+    return waiver;
+  }
+
+  private UnaryOperator<String> setUpPolicyNameLoader() {
+    UnaryOperator<String> policyNameLoader = Mockito.mock(UnaryOperator.class);
+    when(policyNameLoader.apply("policy-id")).thenReturn("Test Policy Name");
+    return policyNameLoader;
+  }
+
+  private Map<String, PolicyWaiverReason> setUpPolicyWaiverReasonMap() {
+    Map<String, PolicyWaiverReason> policyWaiverReasonMap = new HashMap<>();
+    PolicyWaiverReason reason = new PolicyWaiverReason();
+    reason.setReasonText("Test Reason");
+    policyWaiverReasonMap.put("reason-id", reason);
+    return policyWaiverReasonMap;
+  }
+
+  private void assertPolicyWaiverDTO(PolicyWaiverResource.PolicyWaiverDTO dto, PolicyWaiver waiver) {
+    assertThat(dto.getComment()).isEqualTo(waiver.getComment());
+    assertThat(dto.getHash()).isEqualTo(waiver.getHash());
+    assertThat(dto.getId()).isEqualTo(waiver.getId());
+    assertThat(dto.getOwnerId()).isEqualTo(waiver.getOwnerId());
+    assertThat(dto.getPolicyId()).isEqualTo(waiver.getPolicyId());
+    assertThat(dto.policyName).isEqualTo("Test Policy Name");
+    String constraintFactsJsonString =
+        "[{\"constraintId\":\"1234\",\"constraintName\":\"aConstraint\",\"operatorName\":\"operator-test\"," +
+            "\"conditionFacts\":[]}]";
+    assertThat(dto.getConstraintFactsJson()).isEqualTo(constraintFactsJsonString);
+    assertThat(dto.getConstraintFacts()).containsAll(waiver.getConstraintFacts());
+    assertThat(dto.getCreatorId()).isEqualTo(waiver.getCreatorId());
+    assertThat(dto.getCreatorName()).isEqualTo(waiver.getCreatorName());
+    assertThat(dto.getAssociatedPackageUrl()).isEqualTo(waiver.getAssociatedPackageUrl());
+    assertThat(dto.getComponentMatchStrategy()).isEqualTo(waiver.getComponentMatchStrategy());
+    assertThat(dto.isExpireWhenRemediationAvailable()).isEqualTo(waiver.isExpireWhenRemediationAvailable());
+    assertThat(dto.getExpiryTime()).isNotNull();
+    assertThat(dto.policyWaiverReasonId).isEqualTo(waiver.getWaiverReasonId());
+    assertThat(dto.reasonText).isEqualTo("Test Reason");
   }
 
   private PolicyWaiver createPolicyWaiverWithFullDetails(Application application) {

@@ -1533,7 +1533,7 @@ public class ScanPolicyEvaluator
       final String stageId,
       final String scanId)
   {
-    return pathForwardInspector.containsUpgradeableVersion(component, appId, stageId, scanId);
+    return pathForwardInspector.containsUpgradeableVersion(component.getComponentIdentifier(), appId, stageId, scanId);
   }
 
   private List<AutoPolicyWaiver> getApplicableAutoPolicyWaivers(final List<String> ownerIds) {

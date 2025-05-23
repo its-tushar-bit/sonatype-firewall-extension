@@ -149,6 +149,14 @@ priorities-page {
   margin-right: 0;
 }
 
+.nx-icon.iq-soon-to-expire-waiver-icon {
+  color: var(--nx-swatch-orange-55);
+}
+
+.nx-icon.iq-expired-waiver-icon {
+  color: var(--nx-swatch-indigo-80);
+}
+
 .nx-icon.iq-golden-star {
   color: var(--nx-swatch-yellow-45);
   font-size: var(--nx-font-size-s);

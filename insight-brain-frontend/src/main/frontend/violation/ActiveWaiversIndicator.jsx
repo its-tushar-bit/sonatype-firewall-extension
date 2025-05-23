@@ -9,13 +9,20 @@ import classnames from 'classnames';
 import { NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
 import { faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
 
-export default function ActiveWaiversIndicator({ activeWaiverCount = 0, waived, showUnapplied, isFromAggregatedView }) {
+export default function ActiveWaiversIndicator({
+  activeWaiverCount = 0,
+  waived,
+  showUnapplied,
+  isFromAggregatedView,
+  isPolicyViolationStatus,
+}) {
   const hasActiveWaivers = activeWaiverCount > 0;
   const showUnappliedWaiverIndicator = hasActiveWaivers && showUnapplied && waived === false;
   const showActiveWaiverIndicator = hasActiveWaivers && !showUnappliedWaiverIndicator;
   const containerClass = classnames('iq-waiver-indicator', {
     'iq-waiver-indicator--inactive': !hasActiveWaivers,
     'iq-waiver-indicator--active': showActiveWaiverIndicator,
+    'iq-policy-violation-status': isPolicyViolationStatus,
   });
 
   const iconClass = classnames('iq-waiver-indicator__counter', {
@@ -52,4 +59,5 @@ ActiveWaiversIndicator.propTypes = {
   waived: PropTypes.bool,
   showUnapplied: PropTypes.bool,
   isFromAggregatedView: PropTypes.bool,
+  isPolicyViolationStatus: PropTypes.bool,
 };

@@ -108,6 +108,7 @@ describe('FirewallLegalTab', () => {
             },
             policyThreatLevel: 5,
             policyThreatCategory: 'LICENSE',
+            waived: false,
             constraints: [
               {
                 constraintId: '436ec5f5dd6643dbabb1ef2c96c314eb',
@@ -581,9 +582,11 @@ describe('FirewallLegalTab', () => {
     expect(screen.queryByText(/Condition/)).toBeVisible();
     expect(screen.queryByText(/Found 'Apache-1.1' license/)).toBeVisible();
     expect(screen.queryByText(/Select Row/)).toBeVisible();
-    expect(screen.queryAllByRole('button')[2].ariaLabel).toMatch(
-      "5; Luis PolicyProxy Failing; Apache 1 not allowed; Found 'Apache-1.1' license"
-    );
+    expect(
+      screen.getByRole('button', {
+        name: /5; luis policyproxy failing; apache 1 not allowed; found 'apache-1\.1' license; unapplied waiver/i,
+      })
+    ).toBeVisible();
   });
 
   it('contains "View Existing Waivers" button and shows "Component Waivers" popover on click', () => {
@@ -735,13 +738,13 @@ describe('FirewallLegalTab', () => {
       fireEvent.change(commentBox, { target: { value: newComment } });
 
       await waitFor(() => {
-        expect(queryByTextWithin(/Save/, popover).first.className.includes('disabled')).toBeFalse();
+        expect(queryByTextWithin(/Save/, popover).first.className.includes('disabled')).toBe(false);
       });
 
       fireEvent.submit(document.querySelector('.nx-form'));
 
       await waitFor(() => {
-        expect(queryByTextWithin(/Save/, popover).first.className.includes('disabled')).toBeFalse();
+        expect(queryByTextWithin(/Save/, popover).first.className.includes('disabled')).toBe(false);
       });
 
       await waitFor(() => {
@@ -786,13 +789,13 @@ describe('FirewallLegalTab', () => {
       fireEvent.change(commentBox, { target: { value: newComment } });
 
       await waitFor(() => {
-        expect(queryByTextWithin(/Save/, popover).first.className.includes('disabled')).toBeFalse();
+        expect(queryByTextWithin(/Save/, popover).first.className.includes('disabled')).toBe(false);
       });
 
       fireEvent.submit(document.querySelector('.nx-form'));
 
       await waitFor(() => {
-        expect(queryByTextWithin(/Save/, popover).first.className.includes('disabled')).toBeFalse();
+        expect(queryByTextWithin(/Save/, popover).first.className.includes('disabled')).toBe(false);
       });
 
       await waitFor(() => {
@@ -831,13 +834,13 @@ describe('FirewallLegalTab', () => {
         fireEvent.change(commentBox, { target: { value: newComment } });
 
         await waitFor(() => {
-          expect(queryByTextWithin(/Save/, popover).first.className.includes('disabled')).toBeFalse();
+          expect(queryByTextWithin(/Save/, popover).first.className.includes('disabled')).toBe(false);
         });
 
         fireEvent.submit(document.querySelector('.nx-form'));
 
         await waitFor(() => {
-          expect(queryByTextWithin(/Save/, popover).first.className.includes('disabled')).toBeFalse();
+          expect(queryByTextWithin(/Save/, popover).first.className.includes('disabled')).toBe(false);
         });
 
         await waitFor(() => {

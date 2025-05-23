@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.lqa.LqaFormat;
 
@@ -55,13 +54,11 @@ public class PathForwardInspector
   }
 
   public boolean containsUpgradeableVersion(
-      final Component component,
+      final ComponentIdentifier componentIdentifier,
       final String appId,
       final String stageId,
       final String scanId)
   {
-    ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
-
     if (!isKnownFormat(componentIdentifier)) {
       return false;
     }

@@ -90,7 +90,7 @@ export default function ComponentDetailsLegalTab() {
           toggleShowEditLicensesPopover: () => dispatch(actions.toggleShowEditLicensesPopover()),
         }}
       />
-      <ViolationsTableTileContainer title="Legal Policy Violations" violationType={LEGAL} />
+      <ViolationsTableTileContainer title="Legal Policy Violations" violationType={LEGAL} isLegalTab />
       <EditLicensesPopoverContainer />
     </Fragment>
   );

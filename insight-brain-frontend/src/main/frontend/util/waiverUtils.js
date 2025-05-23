@@ -312,9 +312,14 @@ const matchesConstraintFactsSimple = (waiver, violation) =>
  *
  * @param {*} componentWaivers
  * @param {*} allViolations
+ * @param {*} expiredComponentWaivers
  * @returns A list of violations with applicable waivers
  */
-export const populateViolationsWithApplicableWaivers = (componentWaivers, allViolations) => {
+export const populateViolationsWithApplicableWaivers = (
+  componentWaivers,
+  allViolations,
+  expiredComponentWaivers = []
+) => {
   // the waivers are already filtered for the component so there's no need for a hash matcher
   const matchesPolicyId = (waiver, violation) => waiver.policyId === violation.policyId;
 
@@ -330,6 +335,7 @@ export const populateViolationsWithApplicableWaivers = (componentWaivers, allVio
     applicableWaivers: componentWaivers
       .filter((waiver) => waiverIsApplicableToViolation(waiver, violation))
       .map((waiver) => waiver.policyWaiverId),
+    expiredWaivers: expiredComponentWaivers.filter((waiver) => waiverIsApplicableToViolation(waiver, violation)),
   }));
 };
 

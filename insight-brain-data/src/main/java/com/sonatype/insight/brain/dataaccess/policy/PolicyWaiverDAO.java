@@ -114,6 +114,38 @@ public class PolicyWaiverDAO
     return waivers;
   }
 
+  /**
+   * Gets all expired policy waivers that target the specified component hash in the context of the given
+   * app/org and a packageURL. Note that a component can be subject to a waiver that refers to its specific hash,
+   * to all versions of this component or to a waiver that applies to the entire app/org.
+   */
+  public List<PolicyWaiver> getExpiredToComponentIncludingAllVersions(
+      String ownerId,
+      String hash,
+      PackageUrlIdentifier purl)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getExpiredToComponentIncludingAllVersions(tx, ownerId, hash, purl);
+    }
+  }
+
+  /**
+   * Gets all expired policy waivers that target the specified component hash in the context of the given
+   * app/org and a packageURL. Note that a component can be subject to a waiver that refers to its specific hash,
+   * to all versions of this component or to a waiver that applies to the entire app/org.
+   */
+  public List<PolicyWaiver> getExpiredToComponentIncludingAllVersions(
+      TransactionContext tx,
+      String ownerId,
+      String hash,
+      PackageUrlIdentifier purl)
+  {
+    List<PolicyWaiver> waivers = new ArrayList<>(getExpiredByOwnerIdAndHash(tx, ownerId, hash, EXACT_COMPONENT));
+    waivers.addAll(getExpiredByOwnerIdAndHash(tx, ownerId, null, ALL_COMPONENTS));
+    waivers.addAll(getExpiredByOwnerIdAndPurl(tx, ownerId, purl));
+    return waivers;
+  }
+
   public List<PolicyWaiver> getApplicableToComponentOnlyAllVersions(
       TransactionContext tx,
       String ownerId,
@@ -130,6 +162,28 @@ public class PolicyWaiverDAO
           .collect(Collectors.toList());
     }
     return Collections.emptyList();
+  }
+
+  private List<PolicyWaiver> getExpiredByOwnerIdAndPurl(
+      TransactionContext tx,
+      String ownerId,
+      PackageUrlIdentifier purl)
+  {
+    if (purl == null) {
+      return Collections.emptyList();
+    }
+
+    ComponentIdentifier wildcardComponentIdentifier = purl.toComponentIdentifier().createAlternativeVersion("*");
+    Predicate<PolicyWaiver> keepOnlyMatchingWildcardPurl =
+        waiver -> waiver.getComponentIdentifier()
+            .createAlternativeVersion("*")
+            .equals(wildcardComponentIdentifier);
+
+    List<PolicyWaiver> appliesToAllVersionsOfSomeComponent =
+        getExpiredByOwnerIdAndHash(tx, ownerId, null, ALL_VERSIONS);
+    return appliesToAllVersionsOfSomeComponent.stream()
+        .filter(keepOnlyMatchingWildcardPurl)
+        .toList();
   }
 
   public List<PolicyWaiver> getByOwnerHierarchyAndPolicyId(Owner owner, String policyId) {
@@ -185,6 +239,21 @@ public class PolicyWaiverDAO
         SELECT entity FROM PolicyWaiver entity
         WHERE entity.ownerId=?1 AND entity.hash=?2
         AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)
+        AND entity.componentMatchStrategy=?3""";
+
+    return getList(tx, sQuery, ownerId, hash, matcherStrategy);
+  }
+
+  private List<PolicyWaiver> getExpiredByOwnerIdAndHash(
+      TransactionContext tx,
+      String ownerId,
+      String hash,
+      ComponentMatcherStrategyForWaiver matcherStrategy)
+  {
+    String sQuery = """
+        SELECT entity FROM PolicyWaiver entity
+        WHERE entity.ownerId=?1 AND entity.hash=?2
+        AND entity.expiryTime < CURRENT_TIMESTAMP
         AND entity.componentMatchStrategy=?3""";
 
     return getList(tx, sQuery, ownerId, hash, matcherStrategy);

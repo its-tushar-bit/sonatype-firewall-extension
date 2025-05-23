@@ -146,15 +146,13 @@ public class PrioritiesPageTest
     page.prioritiesTableCell(0, 2).shouldHave(text("Fail"));
     page.prioritiesTableCell(0, 3).shouldHave(text("Reachable"));
     page.prioritiesTableCell(0, 4).shouldHave(text("Investigate"));
-    page.prioritiesTableCell(0, 5).shouldHave(text("View Violations"));
 
     // a row with a transitive violation and a non-reachable vulnerability
     page.prioritiesTableCell(1, 0).shouldHave(text("2"));
     page.prioritiesTableCell(1, 1).shouldHave(text("Ttomcat : tomcat-util : 5.5.23"));
     page.prioritiesTableCell(1, 2).shouldHave(text("Fail"));
     page.prioritiesTableCell(1, 3).shouldHave(text("Not Reachable"));
-    page.prioritiesTableCell(1, 4).shouldHave(text("Investigate"));
-    page.prioritiesTableCell(1, 5).shouldHave(text("View Violations"));
+    page.prioritiesTableCell(1, 4).shouldHave(text("Waive violations"));
 
     // a row with an upgrade path
     page.prioritiesTableCell(8, 0).shouldHave(text("9"));
@@ -162,7 +160,6 @@ public class PrioritiesPageTest
     page.prioritiesTableCell(8, 2).shouldHave(text("Fail"));
     page.prioritiesTableCell(8, 3).shouldHave(text("-"));
     page.prioritiesTableCell(8, 4).shouldHave(text("Upgrade to 3.2"));
-    page.prioritiesTableCell(8, 5).shouldHave(text("Create PR"));
 
     // a row with a Warn action
     page.prioritiesTableCell(13, 0).shouldHave(text("14"));
@@ -170,15 +167,13 @@ public class PrioritiesPageTest
     page.prioritiesTableCell(13, 2).shouldHave(text("Warn"));
     page.prioritiesTableCell(13, 3).shouldHave(text("-"));
     page.prioritiesTableCell(13, 4).shouldHave(text("Investigate"));
-    page.prioritiesTableCell(13, 5).shouldHave(text("View Violations"));
 
     // a row with no action
     page.prioritiesTableCell(14, 0).shouldHave(text("15"));
     page.prioritiesTableCell(14, 1).shouldHave(text("Dorg.apache.lucene : lucene-spellchecker : 2.9.0"));
     page.prioritiesTableCell(14, 2).shouldBe(empty);
     page.prioritiesTableCell(14, 3).shouldHave(text("-"));
-    page.prioritiesTableCell(14, 4).shouldHave(text("Investigate"));
-    page.prioritiesTableCell(14, 5).shouldHave(text("View Violations"));
+    page.prioritiesTableCell(14, 4).shouldHave(text("Waive violations"));
   }
 
   @Test
@@ -196,7 +191,7 @@ public class PrioritiesPageTest
     page.prioritiesTableCell(0, 1).shouldHave(text("org.slf4j : slf4j-api : 1.6.1"));
     page.prioritiesTableCell(0, 2).shouldBe(empty);
     page.prioritiesTableCell(0, 3).shouldHave(text("-"));
-    page.prioritiesTableCell(0, 4).shouldHave(text("Investigate"));
+    page.prioritiesTableCell(0, 4).shouldHave(text("Waive Violations"));
     page.prioritiesTableCell(0, 5).shouldHave(text("View Violations"));
   }
 

@@ -85,7 +85,8 @@ public class PathForwardInspectorTest
         .thenReturn(Pair.of(Collections.singletonList(componentDetailsDTO), null));
 
     boolean result =
-        pathForwardInspector.containsUpgradeableVersion(MAVEN_COMPONENT_V1, application.getId(), "stageId", "scanId");
+        pathForwardInspector.containsUpgradeableVersion(MAVEN_COMPONENT_V1.getComponentIdentifier(),
+            application.getId(), "stageId", "scanId");
 
     assertFalse(result);
   }
@@ -107,12 +108,14 @@ public class PathForwardInspectorTest
         Pair.of(Arrays.asList(componentDetailsDTO1, componentDetailsDTO3), null));
 
     boolean result =
-        pathForwardInspector.containsUpgradeableVersion(MAVEN_COMPONENT_V1, application.getId(), "stageId", "scanId");
+        pathForwardInspector.containsUpgradeableVersion(
+            MAVEN_COMPONENT_V1.getComponentIdentifier(), application.getId(), "stageId", "scanId");
 
     assertTrue(result);
     assertThat(pathForwardInspector.getViolatedComponentMap(), hasEntry(MAVEN_COORDINATES_V1, true));
 
-    pathForwardInspector.containsUpgradeableVersion(MAVEN_COMPONENT_V1, application.getId(), "stageId", "scanId");
+    pathForwardInspector.containsUpgradeableVersion(
+        MAVEN_COMPONENT_V1.getComponentIdentifier(), application.getId(), "stageId", "scanId");
 
     //should only call once, as the result is cached
     verify(componentInfoServiceMock, times(1)).getComponentDetailsForAllVersionsNoAuth(

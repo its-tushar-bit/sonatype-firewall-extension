@@ -114,6 +114,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.VulnerabilityGroupConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.KevStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.SecurityVulnerabilityResearch;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
@@ -4045,6 +4046,7 @@ public class ScanPolicyEvaluatorTest
         new Condition(SecurityVulnerabilityCustomCVSSVectorStringConditionType.ID, "matches", "cvss");
     Condition securityVulnerabilityCustomRemediationCondition =
         new Condition(SecurityVulnerabilityCustomRemediationConditionType.ID, "exists", null);
+    Condition kevStatusCondition = new Condition(KevStatusConditionType.ID, "is", "known_to_be_exploited");
 
     List<Condition> conditions = Arrays.asList(ageCondition, coordinatesCondition, identificationSourceCondition,
         labelCondition, licenseCondition, licenseStatusCondition, licenseThreatGroupCondition,
@@ -4054,7 +4056,7 @@ public class ScanPolicyEvaluatorTest
         componentCategoryCondition, hygieneCondition, dataSourceCondition, dependencyCondition,
         componentFormatCondition, vulnerabilityCategoryCondition, integrityCondition,
         securityVulnerabilitySourceCondition, securityVulnerabilityCustomCVSSVectorCondition,
-        securityVulnerabilityCustomRemediationCondition, endOfLifeCondition);
+        securityVulnerabilityCustomRemediationCondition, endOfLifeCondition, kevStatusCondition);
     ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.IntegrityRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.SecurityVulnerabilitySourceConditionType);
@@ -4077,7 +4079,7 @@ public class ScanPolicyEvaluatorTest
           .evaluate(application, simulateReportIsAvailable("LogPolicyViolationPolicyConditionTriggers"),
               new Stage(Stage.ID_BUILD), ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
 
-      assertThat(results.allViolations).hasSize(conditions.size());
+      assertThat(results.allViolations).hasSize(conditions.size() - 1); // KEV Status does not trigger for non CVE vulns
       assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations,
           currentUser.getUsernameOrSystem());
     }

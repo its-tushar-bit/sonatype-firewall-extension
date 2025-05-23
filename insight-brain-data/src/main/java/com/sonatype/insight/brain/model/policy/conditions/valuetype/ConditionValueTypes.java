@@ -83,6 +83,7 @@ public class ConditionValueTypes
     allConditionValueTypes.add(new IacControlValueType());
     allConditionValueTypes.add(new VulnerabilityGroupValueType(ownerId, ownerDAO, vulnerabilityGroupDAO));
     allConditionValueTypes.add(new SecurityVulnerabilityCustomDetailsCVSSVectorStringValueType());
+    allConditionValueTypes.add(new KevStatusValueType());
     return allConditionValueTypes;
   }
 }

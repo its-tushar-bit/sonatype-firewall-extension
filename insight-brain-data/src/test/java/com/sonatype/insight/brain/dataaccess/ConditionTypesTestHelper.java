@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.VulnerabilityGroupConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.KevStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
 
 /**
@@ -82,7 +83,8 @@ public class ConditionTypesTestHelper
             daoFactory.createVulnerabilityGroupVulnerabilityDAO(), daoFactory.createOwnerDAO()),
         new SecurityVulnerabilityCustomCVSSVectorStringConditionType(),
         new ComponentEndOfLifeConditionType(), //
-        new DerivativeAiModelConditionType()
+        new DerivativeAiModelConditionType(),
+        new KevStatusConditionType()
     );
   }
 

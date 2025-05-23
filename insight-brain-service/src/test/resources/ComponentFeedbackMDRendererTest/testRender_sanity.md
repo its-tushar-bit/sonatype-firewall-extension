@@ -23,7 +23,7 @@ There are multiple **breaking changes**. This version upgrade may require signif
 | --- | --- | --- |
 | <b>Threat level:</b> 3<br><b>CVSS Score:</b> 7.6<br><br><a href="#;"> <img title="Sonatype Deep Dive" alt="Sonatype Deep Dive" src="https://cdn.sonatype.com/iq-for-scm/1.0/sonatype-deep-dive.svg" width="150" /></a> | <p>[CVE-123]</p> some desc1 | [View Details](https://example.com/policyViolations/1)|
 | <b>Threat level:</b> 4<br><b>CVSS Score:</b> 6.6<br><br><a href="#;"> <img title="Sonatype Fast Track" alt="Sonatype Fast Track" src="https://cdn.sonatype.com/iq-for-scm/1.0/sonatype-fast-track.svg" width="150" /></a> | <p>[CVE-456]</p> some desc2 | [View Details](https://example.com/policyViolations/2)|
-| <b>Threat level:</b> 6<br><b>CVSS Score:</b> 8.6 | <p>[CVE-789]</p> some desc3 | [View Details](https://example.com/policyViolations/3)|
+| <b>Threat level:</b> 6<br><b>CVSS Score:</b> 8.6 | <p>[CVE-789]</p> Paragraph 1.<br><br>Paragraph 2.<br> | [View Details](https://example.com/policyViolations/3)|
 | <b>Threat level:</b> 7<br><b>CVSS Score:</b> N/A | <p>None</p> | [View Details](https://example.com/policyViolations/4)|
 | <b>Threat level:</b> 8<br><b>CVSS Score:</b> N/A | <p>None</p> | [View Details](https://example.com/policyViolations/5)|
 </details>

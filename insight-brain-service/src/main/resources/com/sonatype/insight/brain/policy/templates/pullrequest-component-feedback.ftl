@@ -51,7 +51,8 @@ There are no breaking changes. This version upgrade requires minimal effort.
 </#macro>
 
 <#macro insertBreaks text x>
-    <#assign words = text?split(" ")>
+    <#assign content = text?replace("\n","<br>")>
+    <#assign words = content?split(" ")>
     <#assign result = []>
     <#list words as word>
         <#if (word?index + 1) % x == 0>

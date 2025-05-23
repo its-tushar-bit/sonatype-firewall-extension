@@ -32,6 +32,11 @@ public class ComponentFeedbackMDRendererTest
    */
   @Test
   public void testRender_sanity() throws Exception {
+    String multiLineDescription = """
+        Paragraph 1.
+        
+        Paragraph 2.
+        """;
     final ComponentFeedbackContext componentFeedbackContext = new ComponentFeedbackContext(
             true, // Only support html for now
             ThreatLevelDisplay.fromValue(10),
@@ -50,7 +55,7 @@ public class ComponentFeedbackMDRendererTest
                         "some desc2", "https://example.com/policyViolations/2"),
 
                     new SecurityIssue(6, new SeverityInfo("CVE-789", 8.6f, null),
-                        "some desc3", "https://example.com/policyViolations/3"),
+                        multiLineDescription, "https://example.com/policyViolations/3"),
 
                     new SecurityIssue(7, null,
                         null, "https://example.com/policyViolations/4"),

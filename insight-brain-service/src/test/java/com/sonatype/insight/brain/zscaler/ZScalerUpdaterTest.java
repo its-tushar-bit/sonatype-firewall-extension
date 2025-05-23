@@ -122,18 +122,18 @@ public class ZScalerUpdaterTest
 
     spyUnderTest.execute(mockJobExecutionContext);
 
-    verify(spyUnderTest).updateAllZScalerMaliciousCategories();
+    verify(spyUnderTest).updateAllZScalerMaliciousCategoriesInternal();
   }
 
   @Test
   public void testExecute_error() throws JobExecutionException {
     ZScalerUpdater spyUnderTest = spy(underTest);
 
-    doThrow(new RuntimeException("test error")).when(spyUnderTest).updateAllZScalerMaliciousCategories();
+    doThrow(new RuntimeException("test error")).when(spyUnderTest).updateAllZScalerMaliciousCategoriesInternal();
 
     spyUnderTest.execute(mockJobExecutionContext);
 
-    verify(spyUnderTest).updateAllZScalerMaliciousCategories();
+    verify(spyUnderTest).updateAllZScalerMaliciousCategoriesInternal();
     assertThat(logOutput).atErrorLevel().contains("Error fetching zScaler malicious URLs");
   }
 

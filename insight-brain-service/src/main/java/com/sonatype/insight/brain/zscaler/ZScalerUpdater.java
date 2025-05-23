@@ -88,7 +88,8 @@ public class ZScalerUpdater
   @Override
   public void execute(final JobExecutionContext context) throws JobExecutionException {
     if (SystemConfigurationPropertyFeature.ZSCALER.isEnabled()) {
-      execute(this::updateAllZScalerMaliciousCategories, log, "Error fetching zScaler malicious URLs");
+      execute(this::updateAllZScalerMaliciousCategoriesInternal,
+          log, "Error fetching zScaler malicious URLs");
     }
     else {
       log.debug("zScaler feature not enabled. Skipping update task.");
@@ -110,6 +111,10 @@ public class ZScalerUpdater
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void updateAllZScalerMaliciousCategories() {
+    updateAllZScalerMaliciousCategoriesInternal();
+  }
+
+  void updateAllZScalerMaliciousCategoriesInternal() {
     if (productLicense.hasFeature(LicensedFeature.FIREWALL)) {
       apiZScalerService.authenticate();
       deleteAllCategories();
